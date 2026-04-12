@@ -1,7 +1,7 @@
-# QA Guide for PILAR-2b (NewLook) — Lucas Boaro
+# QA Guide for PILAR-2b (NewLook)
 
 **Author:** Project Lead
-**For:** Lucas Boaro (3rd Year Computer Engineering Graduate Student)
+**For:** QA Contributor
 **Date:** March 2026
 **Task:** Quality Assurance of the NewLook Platform
 
@@ -509,4 +509,4 @@ cd backend && black . --check && isort . --check-only && flake8
 
 ---
 
-Good luck, Lucas! The project is well-structured, so you will be able to navigate it quickly. Focus first on running existing tests and understanding what they cover, then systematically go through the functional test checklist above. When in doubt, the Swagger UI at `/docs` is your best friend for exploring the API.
+Good luck! The project is well-structured, so you will be able to navigate it quickly. Focus first on running existing tests and understanding what they cover, then systematically go through the functional test checklist above. When in doubt, the Swagger UI at `/docs` is your best friend for exploring the API.
