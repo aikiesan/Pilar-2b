@@ -27,6 +27,21 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [3.0.2] - 2026-04-12
+
+### 🔒 Segurança
+- Corrigido especificador de versão do Next.js de `^16.2.2` para `^16.2.3`
+  - Garante que qualquer `npm install` futuro não resolva para versão vulnerável
+  - CVE-2026-23869 (DoS via React Server Components)
+
+### 🧹 Limpeza para Repositório Público
+- Removidos scripts de implantação internos (`deploy-vm.sh`, `setup-vm.sh`)
+  - Continham infra interna da UNICAMP — mantidos apenas no repositório privado
+- Removido arquivo temporário `frontend/temp.txt`
+- Anonimizado `docs/qa/QA_GUIDE_LUCAS.md` — removido nome pessoal do cabeçalho
+
+---
+
 ## [3.0.1] - 2025-12-07
 
 ### 🔒 Segurança
