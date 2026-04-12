@@ -60,7 +60,7 @@
     "leaflet": "^1.9.4",
     "leaflet.heat": "^0.2.0",
     "lucide-react": "^0.441.0",
-    "next": "^16.2.2",
+    "next": "^16.2.3",
     "next-intl": "^4.9.1",
     "postcss": "^8",
     "react": "^19.2.1",
