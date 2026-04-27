@@ -546,10 +546,10 @@ export default function HomePage() {
                 title={t('features.geospatial.title')}
                 description={t('features.geospatial.description')}
                 features={[
-                  { text: t('features.geospatial.features.0'), link: '/analysis#choropleth' },
-                  { text: t('features.geospatial.features.1'), link: '/about#mapbiomas' },
-                  { text: t('features.geospatial.features.2'), link: '/methodology#logistica' },
-                  { text: t('features.geospatial.features.3'), link: '/docs#export' },
+                  { text: t('features.geospatial.features.0'), link: '/map' },
+                  { text: t('features.geospatial.features.1'), link: '/about' },
+                  { text: t('features.geospatial.features.2') },
+                  { text: t('features.geospatial.features.3') },
                 ]}
                 ctaText={t('features.geospatial.cta')}
                 ctaLink="/map"
@@ -565,13 +565,13 @@ export default function HomePage() {
                 title={t('features.mcda.title')}
                 description={t('features.mcda.description')}
                 features={[
-                  { text: t('features.mcda.features.0'), link: '/methodology#mcda' },
-                  { text: t('features.mcda.features.1'), link: '/dashboard/mcda#weights' },
-                  { text: t('features.mcda.features.2'), link: '/analysis/ranking' },
-                  { text: t('features.mcda.features.3'), link: '/methodology#iat' },
+                  { text: t('features.mcda.features.0') },
+                  { text: t('features.mcda.features.1'), link: '/dashboard/advanced-analysis' },
+                  { text: t('features.mcda.features.2'), link: '/dashboard/advanced-analysis' },
+                  { text: t('features.mcda.features.3') },
                 ]}
                 ctaText={t('features.mcda.cta')}
-                ctaLink="/analysis"
+                ctaLink="/dashboard/advanced-analysis"
               />
             </FadeIn>
 
@@ -584,10 +584,10 @@ export default function HomePage() {
                 title={t('features.collaborative.title')}
                 description={t('features.collaborative.description')}
                 features={[
-                  { text: t('features.collaborative.features.0'), link: '/about#access-levels' },
-                  { text: t('features.collaborative.features.1'), link: '/chat' },
-                  { text: t('features.collaborative.features.2'), link: '/data#sources' },
-                  { text: t('features.collaborative.features.3'), link: '/methodology' },
+                  { text: t('features.collaborative.features.0'), link: '/about' },
+                  { text: t('features.collaborative.features.1') },
+                  { text: t('features.collaborative.features.2'), link: '/dashboard/scientific-database' },
+                  { text: t('features.collaborative.features.3') },
                 ]}
                 ctaText={t('features.collaborative.cta')}
                 ctaLink="/register"
