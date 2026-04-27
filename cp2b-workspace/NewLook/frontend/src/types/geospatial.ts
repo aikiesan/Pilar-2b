@@ -36,13 +36,99 @@ export interface MunicipalityProperties {
   rsu_biogas_m3_year: number;
   rpo_biogas_m3_year: number;
 
-  // Residues
+  // Residues (legacy alias kept for compatibility)
   sugarcane_residues_tons_year: number;
   soybean_residues_tons_year: number;
   corn_residues_tons_year: number;
 
+  // Biomass availability (tons/year) — populated by load_biomass_tons.py
+  total_biomass_tons_year: number;
+  agricultural_biomass_tons_year: number;
+  livestock_biomass_tons_year: number;
+  urban_biomass_tons_year: number;
+  sugarcane_biomass_tons_year: number;
+  soybean_biomass_tons_year: number;
+  corn_biomass_tons_year: number;
+  coffee_biomass_tons_year: number;
+  citrus_biomass_tons_year: number;
+  cattle_biomass_tons_year: number;
+  swine_biomass_tons_year: number;
+  poultry_biomass_tons_year: number;
+  aquaculture_biomass_tons_year: number;
+  rsu_biomass_tons_year: number;
+  rpo_biomass_tons_year: number;
+
   // Classification
   potential_category: 'ALTO' | 'MEDIO' | 'BAIXO' | 'SEM DADOS' | string;
+}
+
+// Display metric — controls whether map shows biogas potential or biomass availability
+export type DisplayMetric = 'biogas_m3' | 'biomass_tons';
+
+// ─── Co-digestion cluster types ───────────────────────────────────────────────
+
+export interface CodigestionResidue {
+  key: string;
+  label: string;
+  sector: 'agricultural' | 'livestock' | 'urban';
+  cn_ratio: number;
+  cn_role: 'carbon_donor' | 'nitrogen_donor' | 'balanced';
+  biomass_tons_year: number;
+}
+
+export interface CodigestionPair {
+  residue_a: CodigestionResidue;
+  residue_b: CodigestionResidue;
+  cn_combined: number;
+  cn_combined_in_range: boolean;
+  improvement_score: number;
+  combined_biomass_tons_year: number;
+  blend_ratio_A_to_B: string;
+}
+
+export interface CodigestionClusterMunicipality {
+  ibge_code: string;
+  name: string;
+  distance_from_centroid_km: number;
+}
+
+export interface CodigestionCluster {
+  cluster_id: string;
+  municipality_count: number;
+  municipalities: CodigestionClusterMunicipality[];
+  convex_hull: {
+    type: string;
+    coordinates: number[][][];
+  } | null;
+  centroid: { lat: number; lng: number };
+  top_pair: CodigestionPair;
+  all_qualifying_pairs: CodigestionPair[];
+  all_present_residues: string[];
+  cluster_score: number;
+  total_biomass_tons_year: number;
+}
+
+export interface CodigestionClustersResponse {
+  clusters: CodigestionCluster[];
+  total_clusters: number;
+  parameters: {
+    radius_km: number;
+    min_biomass_tons: number;
+  };
+}
+
+export interface ResidueCNEntry {
+  key: string;
+  label: string;
+  sector: string;
+  cn_ratio: number;
+  in_optimal_range: boolean;
+  cn_role: 'carbon_donor' | 'nitrogen_donor' | 'balanced';
+}
+
+export interface ResidueCNMatrix {
+  residues: ResidueCNEntry[];
+  optimal_range: { low: number; high: number };
 }
 
 // GeoJSON Feature for municipality

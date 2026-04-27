@@ -7,7 +7,9 @@ import type {
   MunicipalityCollection,
   SummaryStatistics,
   MunicipalityFeature,
-  RankingsResponse
+  RankingsResponse,
+  CodigestionClustersResponse,
+  ResidueCNMatrix,
 } from '@/types/geospatial';
 import { logger } from '@/lib/logger';
 import { supabaseGeospatialClient } from './supabaseGeospatial';
@@ -337,6 +339,35 @@ class GeospatialClient {
     return this.fetchJSON<RankingsResponse>(
       `/rankings?criteria=${criteria}&limit=${limit}`
     );
+  }
+
+  /**
+   * Get co-digestion opportunity clusters based on spatial proximity + C:N compatibility.
+   */
+  async getCodigestionClusters(params: {
+    radius_km?: number;
+    min_biomass_tons?: number;
+    max_clusters?: number;
+  } = {}): Promise<CodigestionClustersResponse> {
+    const qs = new URLSearchParams({
+      radius_km: String(params.radius_km ?? 30),
+      min_biomass_tons: String(params.min_biomass_tons ?? 1000),
+      max_clusters: String(params.max_clusters ?? 20),
+    });
+    const url = `${this.baseUrl}/api/v1/codigestion/clusters?${qs}`;
+    const response = await fetch(url, { headers: { 'Content-Type': 'application/json' } });
+    if (!response.ok) throw new Error(`Cluster API error: ${response.status}`);
+    return response.json();
+  }
+
+  /**
+   * Get C:N ratios for all 11 residue types. Used to populate filter panel badges.
+   */
+  async getResidueCNMatrix(): Promise<ResidueCNMatrix> {
+    const url = `${this.baseUrl}/api/v1/codigestion/residue-cn-matrix`;
+    const response = await fetch(url, { headers: { 'Content-Type': 'application/json' } });
+    if (!response.ok) throw new Error(`C:N matrix API error: ${response.status}`);
+    return response.json();
   }
 
   /**
