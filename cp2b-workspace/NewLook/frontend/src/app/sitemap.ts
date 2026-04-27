@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next'
 
-const BASE_URL = 'https://pilar2b.vercel.app'
+const BASE_URL = 'https://cp2b.unicamp.br/pilar2b'
 
 const locales = ['en', 'pt-BR'] as const
 

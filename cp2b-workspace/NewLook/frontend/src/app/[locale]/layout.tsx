@@ -93,22 +93,22 @@ export default async function LocaleLayout({
                 '@graph': [
                   {
                     '@type': 'Organization',
-                    '@id': 'https://pilar2b.vercel.app/#organization',
+                    '@id': 'https://cp2b.unicamp.br/pilar2b/#organization',
                     name: 'NIPE-UNICAMP',
-                    url: 'https://pilar2b.vercel.app',
+                    url: 'https://cp2b.unicamp.br/pilar2b',
                     description:
                       'Interdisciplinary Center for Energy Planning at the University of Campinas',
                   },
                   {
                     '@type': 'WebApplication',
-                    '@id': 'https://pilar2b.vercel.app/#webapp',
+                    '@id': 'https://cp2b.unicamp.br/pilar2b/#webapp',
                     name: 'PILAR-2b',
-                    url: 'https://pilar2b.vercel.app',
+                    url: 'https://cp2b.unicamp.br/pilar2b',
                     applicationCategory: 'UtilitiesApplication',
                     operatingSystem: 'All',
                     provider: {
                       '@type': 'Organization',
-                      '@id': 'https://pilar2b.vercel.app/#organization',
+                      '@id': 'https://cp2b.unicamp.br/pilar2b/#organization',
                     },
                     inLanguage: [
                       { '@type': 'Language', name: 'English', alternateName: 'en' },

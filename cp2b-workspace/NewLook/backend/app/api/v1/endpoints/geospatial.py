@@ -8,14 +8,25 @@ from typing import List, Optional, Dict, Any
 from pydantic import BaseModel, Field
 import logging
 import psycopg2
+from pathlib import Path
+import geopandas as gpd
+from shapely.geometry import mapping
 
 from app.core.database import get_db
 from app.middleware.auth import optional_auth
 from app.models.auth import UserProfile
 from app.utils.shapefile_loader import get_shapefile_loader
+from app.services.supabase_client import get_supabase_client
 
 # Initialize shapefile loader
 shapefile_loader = get_shapefile_loader()
+
+# Shapefile paths (same pattern as municipalities.py)
+SHAPEFILE_PATH = Path(__file__).parent.parent.parent.parent.parent / "data" / "shapefiles" / "SP_Municipios_2024.shp"
+SHAPEFILE_PATH_ALT = Path(__file__).parent.parent.parent.parent.parent.parent.parent / "project_map" / "data" / "shapefile" / "SP_Municipios_2024.shp"
+
+# In-memory cache for the GeoDataFrame
+_geo_gdf = None
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -145,7 +156,6 @@ class MapBounds(BaseModel):
 
 @router.get(
     "/municipalities/geojson",
-    response_model=GeoJSONFeatureCollection,
     summary="Get municipalities as GeoJSON",
     description="Returns all municipalities with boundaries and biogas data as GeoJSON FeatureCollection"
 )
@@ -156,106 +166,146 @@ async def get_municipalities_geojson(
     current_user: Optional[UserProfile] = Depends(optional_auth)
 ):
     """
-    Get municipalities as GeoJSON FeatureCollection
+    Get municipalities as GeoJSON FeatureCollection.
 
-    Returns polygon geometries with biogas potential data as properties.
-    Suitable for rendering choropleth maps.
+    Loads polygon geometry from local shapefile (avoids PostGIS timeout on free tier).
+    Fetches lightweight biogas data from Supabase and joins by ibge_code / CD_MUN.
     """
-    with get_db() as conn:
-        cursor = conn.cursor()
+    global _geo_gdf
 
-        try:
-            # Build query
-            query = """
-            SELECT jsonb_build_object(
-                'type', 'FeatureCollection',
-                'features', jsonb_agg(feature)
-            ) as geojson
-            FROM (
-                SELECT jsonb_build_object(
-                    'type', 'Feature',
-                    'id', id,
-                    'geometry', ST_AsGeoJSON(
-                        COALESCE(geometry, ST_Buffer(centroid::geography, 5000)::geometry)
-                    )::jsonb,
-                    'properties', jsonb_build_object(
-                        'id', id,
-                        'name', municipality_name,
-                        'ibge_code', ibge_code,
-                        'area_km2', ROUND(area_km2::numeric, 2),
-                        'population', population,
-                        'population_density', ROUND((population / NULLIF(area_km2, 0))::numeric, 2),
-                        'immediate_region', immediate_region,
-                        'intermediate_region', intermediate_region,
-                        'immediate_region_code', immediate_region_code,
-                        'intermediate_region_code', intermediate_region_code,
-                        'total_biogas_m3_year', ROUND(total_biogas_m3_year::numeric, 2),
-                        'urban_biogas_m3_year', ROUND(urban_biogas_m3_year::numeric, 2),
-                        'agricultural_biogas_m3_year', ROUND(agricultural_biogas_m3_year::numeric, 2),
-                        'livestock_biogas_m3_year', ROUND(livestock_biogas_m3_year::numeric, 2),
-                        'sugarcane_biogas_m3_year', ROUND(sugarcane_biogas_m3_year::numeric, 2),
-                        'soybean_biogas_m3_year', ROUND(soybean_biogas_m3_year::numeric, 2),
-                        'corn_biogas_m3_year', ROUND(corn_biogas_m3_year::numeric, 2),
-                        'coffee_biogas_m3_year', ROUND(coffee_biogas_m3_year::numeric, 2),
-                        'citrus_biogas_m3_year', ROUND(citrus_biogas_m3_year::numeric, 2),
-                        'cattle_biogas_m3_year', ROUND(cattle_biogas_m3_year::numeric, 2),
-                        'swine_biogas_m3_year', ROUND(swine_biogas_m3_year::numeric, 2),
-                        'poultry_biogas_m3_year', ROUND(poultry_biogas_m3_year::numeric, 2),
-                        'aquaculture_biogas_m3_year', ROUND(aquaculture_biogas_m3_year::numeric, 2),
-                        'forestry_biogas_m3_year', ROUND(COALESCE(forestry_biogas_m3_year, 0)::numeric, 2),
-                        'rsu_biogas_m3_year', ROUND(rsu_biogas_m3_year::numeric, 2),
-                        'rpo_biogas_m3_year', ROUND(rpo_biogas_m3_year::numeric, 2),
-                        'sugarcane_residues_tons_year', ROUND(COALESCE(sugarcane_residues_tons_year, 0)::numeric, 2),
-                        'soybean_residues_tons_year', ROUND(COALESCE(soybean_residues_tons_year, 0)::numeric, 2),
-                        'corn_residues_tons_year', ROUND(COALESCE(corn_residues_tons_year, 0)::numeric, 2),
-                        'potential_category', potential_category,
-                        'energy_potential_mwh_year', ROUND(energy_potential_mwh_year::numeric, 2),
-                        'co2_reduction_tons_year', ROUND(co2_reduction_tons_year::numeric, 2),
-                        'administrative_region', administrative_region
-                    )
-                ) as feature
-                FROM municipalities
-                WHERE 1=1
-        """
+    # SECURITY: Validate region against whitelist before any I/O
+    if region and region not in VALID_REGIONS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid region. Must be one of: {', '.join(sorted(VALID_REGIONS))}"
+        )
 
-            params = []
+    try:
+        # Load shapefile once and cache
+        if _geo_gdf is None:
+            logger.info("🗺️ Loading municipality polygons from shapefile...")
+            shapefile_to_use = None
+            if SHAPEFILE_PATH.exists():
+                shapefile_to_use = SHAPEFILE_PATH
+            elif SHAPEFILE_PATH_ALT.exists():
+                shapefile_to_use = SHAPEFILE_PATH_ALT
+            else:
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Shapefile not found at {SHAPEFILE_PATH} or {SHAPEFILE_PATH_ALT}"
+                )
+            _geo_gdf = gpd.read_file(shapefile_to_use)
+            logger.info(f"✅ Loaded {len(_geo_gdf)} municipality polygons from shapefile")
 
-            if min_biogas is not None:
-                query += " AND total_biogas_m3_year >= %s"
-                params.append(min_biogas)
+        # Fetch lightweight biogas data from Supabase (no geometry / ST_AsGeoJSON)
+        supabase = get_supabase_client()
+        db_result = supabase.table("municipalities").select(
+            "id, municipality_name, ibge_code, area_km2, population, "
+            "total_biogas_m3_year, urban_biogas_m3_year, agricultural_biogas_m3_year, livestock_biogas_m3_year, "
+            "sugarcane_biogas_m3_year, soybean_biogas_m3_year, corn_biogas_m3_year, "
+            "coffee_biogas_m3_year, citrus_biogas_m3_year, "
+            "cattle_biogas_m3_year, swine_biogas_m3_year, poultry_biogas_m3_year, aquaculture_biogas_m3_year, "
+            "rsu_biogas_m3_year, rpo_biogas_m3_year, "
+            "energy_potential_mwh_year, co2_reduction_tons_year, "
+            "administrative_region, immediate_region, intermediate_region, "
+            "immediate_region_code, intermediate_region_code, potential_category"
+        ).execute()
 
-            if region:
-                # SECURITY: Validate region against whitelist
-                if region not in VALID_REGIONS:
-                    raise HTTPException(
-                        status_code=400,
-                        detail=f"Invalid region. Must be one of: {', '.join(sorted(VALID_REGIONS))}"
-                    )
-                query += " AND administrative_region = %s"
-                params.append(region)
+        biogas_lookup: Dict[str, Any] = {}
+        if db_result.data:
+            for mun in db_result.data:
+                code = str(mun.get("ibge_code", "")).strip()
+                if code:
+                    biogas_lookup[code] = mun
 
-            query += " ORDER BY total_biogas_m3_year DESC"
+        # Join shapefile geometry with biogas data and apply filters
+        features = []
+        for _, shp_row in _geo_gdf.iterrows():
+            ibge_code = None
+            for col in ["CD_MUN", "GEOCODIGO", "geocodigo", "CD_GEOCMU", "cd_mun"]:
+                if col in shp_row and shp_row[col]:
+                    ibge_code = str(shp_row[col]).strip()
+                    break
 
-            # SECURITY: Use parameterized query for LIMIT instead of f-string
-            if limit:
-                query += " LIMIT %s"
-                params.append(limit)
+            if not ibge_code:
+                continue
 
-            query += " ) as features"
+            biogas_data = biogas_lookup.get(ibge_code, {})
+            total_biogas = float(biogas_data.get("total_biogas_m3_year") or 0)
+            adm_region = biogas_data.get("administrative_region") or ""
 
-            cursor.execute(query, params)
-            result = cursor.fetchone()
+            if min_biogas is not None and total_biogas < min_biogas:
+                continue
+            if region and adm_region != region:
+                continue
 
-            if not result or not result.get('geojson'):
-                return GeoJSONFeatureCollection(type="FeatureCollection", features=[])
+            try:
+                geometry = mapping(shp_row.geometry)
+            except Exception as e:
+                logger.error(f"Error converting geometry for {ibge_code}: {e}")
+                continue
 
-            return result['geojson']
+            area = float(biogas_data.get("area_km2") or 0)
+            pop = int(biogas_data.get("population") or 0)
 
-        except psycopg2.Error as e:
-            logger.error(f"Database error in get_municipalities_geojson: {e}")
-            raise HTTPException(status_code=500, detail="Database query failed")
-        finally:
-            cursor.close()
+            def _r(key: str) -> float:
+                return round(float(biogas_data.get(key) or 0), 2)
+
+            props = {
+                "id": biogas_data.get("id"),
+                "name": biogas_data.get("municipality_name") or "",
+                "ibge_code": ibge_code,
+                "area_km2": round(area, 2),
+                "population": pop,
+                "population_density": round(pop / area, 2) if area > 0 else 0,
+                "immediate_region": biogas_data.get("immediate_region"),
+                "intermediate_region": biogas_data.get("intermediate_region"),
+                "immediate_region_code": biogas_data.get("immediate_region_code"),
+                "intermediate_region_code": biogas_data.get("intermediate_region_code"),
+                "total_biogas_m3_year": round(total_biogas, 2),
+                "urban_biogas_m3_year": _r("urban_biogas_m3_year"),
+                "agricultural_biogas_m3_year": _r("agricultural_biogas_m3_year"),
+                "livestock_biogas_m3_year": _r("livestock_biogas_m3_year"),
+                "sugarcane_biogas_m3_year": _r("sugarcane_biogas_m3_year"),
+                "soybean_biogas_m3_year": _r("soybean_biogas_m3_year"),
+                "corn_biogas_m3_year": _r("corn_biogas_m3_year"),
+                "coffee_biogas_m3_year": _r("coffee_biogas_m3_year"),
+                "citrus_biogas_m3_year": _r("citrus_biogas_m3_year"),
+                "cattle_biogas_m3_year": _r("cattle_biogas_m3_year"),
+                "swine_biogas_m3_year": _r("swine_biogas_m3_year"),
+                "poultry_biogas_m3_year": _r("poultry_biogas_m3_year"),
+                "aquaculture_biogas_m3_year": _r("aquaculture_biogas_m3_year"),
+                "forestry_biogas_m3_year": 0.0,
+                "rsu_biogas_m3_year": _r("rsu_biogas_m3_year"),
+                "rpo_biogas_m3_year": _r("rpo_biogas_m3_year"),
+                "sugarcane_residues_tons_year": 0.0,
+                "soybean_residues_tons_year": 0.0,
+                "corn_residues_tons_year": 0.0,
+                "potential_category": biogas_data.get("potential_category"),
+                "energy_potential_mwh_year": _r("energy_potential_mwh_year"),
+                "co2_reduction_tons_year": _r("co2_reduction_tons_year"),
+                "administrative_region": adm_region,
+            }
+
+            features.append({"type": "Feature", "geometry": geometry, "properties": props, "_sort_key": total_biogas})
+
+        features.sort(key=lambda f: f["_sort_key"], reverse=True)
+
+        if limit:
+            features = features[:limit]
+
+        for f in features:
+            del f["_sort_key"]
+
+        logger.info(f"✅ Returning {len(features)} municipalities (shapefile + Supabase)")
+        return {"type": "FeatureCollection", "features": features}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        logger.error(f"Error in get_municipalities_geojson: {e}\n{traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=f"Error: {type(e).__name__}: {str(e)}")
 
 
 @router.get(

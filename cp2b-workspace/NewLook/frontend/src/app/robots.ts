@@ -9,6 +9,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ['/api/', '/dashboard/', '/settings/'],
       },
     ],
-    sitemap: 'https://pilar2b.vercel.app/sitemap.xml',
+    sitemap: 'https://cp2b.unicamp.br/pilar2b/sitemap.xml',
   }
 }

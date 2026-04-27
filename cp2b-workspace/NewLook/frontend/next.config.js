@@ -5,6 +5,10 @@ const withNextIntl = createNextIntlPlugin('./i18n.ts');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  basePath: '/pilar2b',
+  async redirects() {
+    return [{ source: '/', destination: '/pt-BR', permanent: false }]
+  },
   // IMPORTANT: Removed static export for Vercel deployment
   // Vercel supports full Next.js features including:
   // - Middleware (for authentication)
@@ -12,9 +16,6 @@ const nextConfig = {
   // - API routes
   // - Dynamic routes
   // If you need static export for Cloudflare Pages, set STATIC_EXPORT=true
-
-  // Next.js 16: Enable Turbopack (empty config silences warning)
-  turbopack: {},
 
   // Performance: Enable experimental optimizations
   experimental: {
@@ -24,7 +25,7 @@ const nextConfig = {
 
   // Performance: Optimize images
   images: {
-    unoptimized: process.env.STATIC_EXPORT === 'true',
+    unoptimized: process.env.NODE_ENV === 'production' || process.env.STATIC_EXPORT === 'true',
     formats: ['image/avif', 'image/webp'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
@@ -63,7 +64,8 @@ const nextConfig = {
   env: {
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'https://newlook-production.up.railway.app',
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'https://cp2b.unicamp.br/pilar2b',
+    NEXT_PUBLIC_DISABLE_AUTH: process.env.NEXT_PUBLIC_DISABLE_AUTH || 'false',
   },
 
   // Keep relaxed checks for faster builds
