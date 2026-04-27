@@ -12,9 +12,9 @@ import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import { MapContainer, TileLayer } from 'react-leaflet';
 import dynamic from 'next/dynamic';
-import { useGeospatialData } from '@/hooks/useGeospatialData';
+import { useGeospatialData, useCodigestionClusters, useResidueCNMatrix } from '@/hooks/useGeospatialData';
 import type { FilterCriteria } from '@/components/dashboard/FilterPanel';
-import type { MunicipalityCollection, MunicipalityFeature } from '@/types/geospatial';
+import type { MunicipalityCollection, MunicipalityFeature, DisplayMetric, CodigestionCluster } from '@/types/geospatial';
 import type { BiomassType, ResidueType } from './FloatingControlPanel';
 import type { VisualizationMode } from './LeftFilterPanel';
 import MapLegend from './MapLegend';
@@ -33,7 +33,6 @@ const MapBiomasLegend = dynamic(() => import('./MapBiomasLegend'), { ssr: false 
 const BiomassLayerLegend = dynamic(() => import('./BiomassLayerLegend'), { ssr: false });
 const HeatmapLegend = dynamic(() => import('./HeatmapLegend'), { ssr: false });
 const MobileBottomSheet = dynamic(() => import('./MobileBottomSheet'), { ssr: false });
-const QuickFilterBar = dynamic(() => import('./QuickFilterBar'), { ssr: false });
 
 // Desktop left panel (replaces bottom drawer with compact vertical control)
 const DesktopLeftPanel = dynamic(() => import('./DesktopLeftPanel'), { ssr: false });
@@ -49,6 +48,10 @@ const ExportControl = dynamic(() => import('./ExportControl'), { ssr: false });
 // Visualization layers
 const BubbleChartLayer = dynamic(() => import('./BubbleChartLayer'), { ssr: false });
 const MapSearchBox = dynamic(() => import('./MapSearchBox'), { ssr: false });
+
+// Co-digestion clustering layers
+const CodigestionClusterLayer = dynamic(() => import('./CodigestionClusterLayer'), { ssr: false });
+const CodigestionDetailPanel = dynamic(() => import('./CodigestionDetailPanel'), { ssr: false });
 const IntermediateRegionBoundaryLayer = dynamic(
   () => import('./IntermediateRegionBoundaryLayer'),
   { ssr: false }
@@ -64,7 +67,8 @@ const VALID_RESIDUES: ResidueType[] = [
   'cattle', 'swine', 'poultry', 'aquaculture', 'rsu', 'rpo',
 ];
 const VALID_BIOMASS: BiomassType[] = ['total', 'agricultural', 'livestock', 'urban'];
-const VALID_VIZ: VisualizationMode[] = ['choropleth', 'heatmap', 'bubble'];
+const VALID_VIZ: VisualizationMode[] = ['choropleth', 'heatmap', 'bubble', 'clusters'];
+const VALID_METRICS: DisplayMetric[] = ['biogas_m3', 'biomass_tons'];
 
 interface MapComponentProps {
   activeFilters?: FilterCriteria;
@@ -87,6 +91,12 @@ export default function MapComponent({
 }: MapComponentProps = {}) {
   const t = useTranslations('Map');
   const { data, loading, error } = useGeospatialData();
+  const { data: clusterData, loading: clusterLoading } = useCodigestionClusters({
+    radiusKm: 30,
+    minBiomass: 1000,
+    enabled: visualizationMode === 'clusters',
+  });
+  const { data: cnMatrix } = useResidueCNMatrix();
   const [isMounted, setIsMounted] = useState(false);
   const [isRendering, setIsRendering] = useState(false);
   const [layersRendered, setLayersRendered] = useState(0);
@@ -101,6 +111,7 @@ export default function MapComponent({
   const urlType = readURLParam('type');
   const urlResidues = readURLParam('r');
   const urlQuery = readURLParam('q');
+  const urlMetric = readURLParam('metric');
 
   const initialMode: VisualizationMode =
     VALID_VIZ.includes(urlMode as VisualizationMode) ? (urlMode as VisualizationMode) : 'choropleth';
@@ -110,6 +121,8 @@ export default function MapComponent({
     ? urlResidues.split(',').filter(r => VALID_RESIDUES.includes(r as ResidueType)) as ResidueType[]
     : [];
   const initialQuery = urlQuery ?? propSearchQuery;
+  const initialMetric: DisplayMetric =
+    VALID_METRICS.includes(urlMetric as DisplayMetric) ? (urlMetric as DisplayMetric) : 'biomass_tons';
 
   // Local state (authoritative)
   const [selectedResidues, setSelectedResidues] = useState<ResidueType[]>(initialResidues);
@@ -117,6 +130,9 @@ export default function MapComponent({
   const [biomassType, setBiomassType] = useState<BiomassType>(initialBiomass);
   const [searchQuery, setSearchQuery] = useState<string>(initialQuery);
   const [opacity, setOpacity] = useState<number>(propOpacity);
+  const [displayMetric, setDisplayMetric] = useState<DisplayMetric>(initialMetric);
+  const [selectedClusterId, setSelectedClusterId] = useState<string | null>(null);
+  const [showClusterPanel, setShowClusterPanel] = useState(false);
 
   // ── Enhanced interaction state (Phase 2+3) ────────────────────────────────
   const [selectedMunicipality, setSelectedMunicipality] = useState<MunicipalityFeature | null>(null);
@@ -132,6 +148,7 @@ export default function MapComponent({
     type: BiomassType,
     residues: ResidueType[],
     query: string,
+    metric: DisplayMetric,
   ) => {
     if (typeof window === 'undefined') return;
     const params = new URLSearchParams(window.location.search);
@@ -139,29 +156,36 @@ export default function MapComponent({
     if (type !== 'total') params.set('type', type); else params.delete('type');
     if (residues.length > 0) params.set('r', residues.join(',')); else params.delete('r');
     if (query) params.set('q', query); else params.delete('q');
+    if (metric !== 'biomass_tons') params.set('metric', metric); else params.delete('metric');
     window.history.replaceState(null, '', `${window.location.pathname}?${params.toString()}`);
   }, []);
 
   const handleVisualizationModeChange = (mode: VisualizationMode) => {
     setVisualizationMode(mode);
-    syncURL(mode, biomassType, selectedResidues, searchQuery);
+    if (mode !== 'clusters') { setShowClusterPanel(false); setSelectedClusterId(null); }
+    syncURL(mode, biomassType, selectedResidues, searchQuery, displayMetric);
+  };
+
+  const handleDisplayMetricChange = (metric: DisplayMetric) => {
+    setDisplayMetric(metric);
+    syncURL(visualizationMode, biomassType, selectedResidues, searchQuery, metric);
   };
 
   const handleBiomassTypeChange = (type: BiomassType) => {
     setBiomassType(type);
     onBiomassTypeChange?.(type);
-    syncURL(visualizationMode, type, selectedResidues, searchQuery);
+    syncURL(visualizationMode, type, selectedResidues, searchQuery, displayMetric);
   };
 
   const handleResiduesChange = (residues: ResidueType[]) => {
     setSelectedResidues(residues);
-    syncURL(visualizationMode, biomassType, residues, searchQuery);
+    syncURL(visualizationMode, biomassType, residues, searchQuery, displayMetric);
   };
 
   const handleSearchChange = (query: string) => {
     setSearchQuery(query);
     onSearchChange?.(query);
-    syncURL(visualizationMode, biomassType, selectedResidues, query);
+    syncURL(visualizationMode, biomassType, selectedResidues, query, displayMetric);
   };
 
   const handleOpacityChange = (val: number) => {
@@ -246,9 +270,10 @@ export default function MapComponent({
   );
 
   // ── Derive biomass attribute for BubbleChartLayer ─────────────────────────
+  const metricSuffix = displayMetric === 'biomass_tons' ? 'biomass_tons_year' : 'biogas_m3_year';
   const biomassAttribute = biomassType === 'total'
-    ? 'total_biogas_m3_year'
-    : `${biomassType}_biogas_m3_year`;
+    ? `total_${metricSuffix}`
+    : `${biomassType}_${metricSuffix}`;
 
   // ── Data filtering ──────────────────────────────────────────────────────────
   const filteredData = useMemo(() => {
@@ -355,81 +380,8 @@ export default function MapComponent({
   const displayData = filteredData || data;
 
   return (
-    <div className="relative w-full h-full">
-      {/* ── Mobile Quick Filter Bar (above map, below header) ── */}
-      {isMounted && (
-        <QuickFilterBar
-          visualizationMode={visualizationMode}
-          onVisualizationModeChange={handleVisualizationModeChange}
-          biomassType={biomassType}
-          onBiomassTypeChange={handleBiomassTypeChange}
-          selectedResidues={selectedResidues}
-          onResiduesChange={handleResiduesChange}
-        />
-      )}
-
-      <MapContainer
-        center={SAO_PAULO_CENTER}
-        zoom={DEFAULT_ZOOM}
-        scrollWheelZoom={true}
-        style={MAP_CONTAINER_STYLE}
-      >
-        {/* Base Map Tile Layer */}
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          maxZoom={19}
-        />
-
-        {/* Phase 5: In-map search box (desktop, inside MapContainer for useMap access) */}
-        {displayData && <MapSearchBox data={displayData} />}
-
-        {/* Municipality Layer - Choropleth, Heatmap, or Bubble */}
-        {visibleLayerIds.includes('municipalities') && displayData && (
-          <>
-            {visualizationMode === 'choropleth' ? (
-              <MunicipalityLayer
-                data={displayData}
-                opacity={opacity}
-                biomassType={biomassType}
-                selectedResidues={selectedResidues}
-                onMunicipalityClick={handleMunicipalityClick}
-                onMunicipalityHover={handleMunicipalityHover}
-              />
-            ) : visualizationMode === 'bubble' ? (
-              <BubbleChartLayer
-                data={displayData}
-                opacity={opacity}
-                attribute={biomassAttribute}
-              />
-            ) : (
-              <HeatmapLayer
-                data={displayData}
-                selectedResidues={selectedResidues}
-                opacity={opacity}
-              />
-            )}
-          </>
-        )}
-
-        {/* MapBiomas Environmental Layer */}
-        {visibleLayerIds.includes('mapbiomas') && <MapBiomasLayer opacity={0.7} />}
-
-        {/* Infrastructure Layers */}
-        {visibleLayerIds.includes('biogas-plants') && <InfrastructureLayer layerType="biogas-plants" />}
-        {visibleLayerIds.includes('railways') && <InfrastructureLayer layerType="railways" />}
-        {visibleLayerIds.includes('pipelines') && <InfrastructureLayer layerType="pipelines" />}
-        {visibleLayerIds.includes('substations') && <InfrastructureLayer layerType="substations" />}
-        {visibleLayerIds.includes('transmission-lines') && <InfrastructureLayer layerType="transmission-lines" />}
-        {visibleLayerIds.includes('etes') && <InfrastructureLayer layerType="etes" />}
-
-        {/* Intermediate Region Boundaries (IBGE Regiões Intermediárias SP) */}
-        {visibleLayerIds.includes('intermediate-regions') && (
-          <IntermediateRegionBoundaryLayer visible={true} />
-        )}
-      </MapContainer>
-
-      {/* ── Desktop Left Panel (compact vertical controls) ── */}
+    <div className="flex w-full h-full">
+      {/* ── Desktop Persistent Sidebar ── */}
       {isMounted && (
         <DesktopLeftPanel
           searchQuery={searchQuery}
@@ -448,59 +400,128 @@ export default function MapComponent({
           totalMunicipalities={data.features.length}
           onOpenComparison={() => setShowComparison(true)}
           onOpenExport={() => setShowExport(true)}
+          displayMetric={displayMetric}
+          onDisplayMetricChange={handleDisplayMetricChange}
+          cnMatrix={cnMatrix}
         />
       )}
 
-      {/* ── EnhancedTooltip (desktop hover) ── */}
-      {isMounted && hoveredMunicipality && (
-        <div className="hidden md:block">
-          <EnhancedTooltip
-            municipality={hoveredMunicipality}
-            position={mousePosition}
-            visible={true}
+      {/* ── Map area (flex-1 fills remaining width) ── */}
+      <div className="relative flex-1 min-w-0 h-full">
+        <MapContainer
+          center={SAO_PAULO_CENTER}
+          zoom={DEFAULT_ZOOM}
+          scrollWheelZoom={true}
+          style={MAP_CONTAINER_STYLE}
+        >
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            maxZoom={19}
           />
-        </div>
-      )}
 
-      {/* ── Phase 2: MunicipalityProfilePanel (desktop click) ── */}
-      {isMounted && (
-        <MunicipalityProfilePanel
-          municipality={selectedMunicipality}
-          onClose={() => setSelectedMunicipality(null)}
-          visible={selectedMunicipality !== null}
-        />
-      )}
+          {displayData && <MapSearchBox data={displayData} />}
 
-      {/* ── ComparisonPanel (full-screen modal) ── */}
-      {isMounted && (
-        <ComparisonPanel
-          municipalities={data?.features || []}
-          selectedMunicipalities={comparisonMunicipalities}
-          onMunicipalityAdd={handleAddToComparison}
-          onMunicipalityRemove={handleRemoveFromComparison}
-          onClose={() => setShowComparison(false)}
-          visible={showComparison}
-        />
-      )}
+          {/* Municipality Layer */}
+          {visibleLayerIds.includes('municipalities') && displayData && (
+            <>
+              {visualizationMode === 'choropleth' || visualizationMode === 'clusters' ? (
+                <MunicipalityLayer
+                  data={displayData}
+                  opacity={visualizationMode === 'clusters' ? 0.4 : opacity}
+                  biomassType={biomassType}
+                  selectedResidues={selectedResidues}
+                  displayMetric={displayMetric}
+                  onMunicipalityClick={visualizationMode === 'clusters' ? undefined : handleMunicipalityClick}
+                  onMunicipalityHover={visualizationMode === 'clusters' ? undefined : handleMunicipalityHover}
+                />
+              ) : visualizationMode === 'bubble' ? (
+                <BubbleChartLayer data={displayData} opacity={opacity} attribute={biomassAttribute} />
+              ) : (
+                <HeatmapLayer data={displayData} selectedResidues={selectedResidues} opacity={opacity} />
+              )}
+            </>
+          )}
 
-      {/* ── Phase 3: ExportControl (center modal) ── */}
-      {isMounted && (
-        <ExportControl
-          data={displayData}
-          visible={showExport}
-          onClose={() => setShowExport(false)}
-        />
-      )}
+          {/* Co-digestion Cluster Layer */}
+          {visualizationMode === 'clusters' && clusterData?.clusters && (
+            <CodigestionClusterLayer
+              clusters={clusterData.clusters}
+              selectedClusterId={selectedClusterId}
+              onClusterClick={(cluster: CodigestionCluster) => {
+                setSelectedClusterId(cluster.cluster_id);
+                setShowClusterPanel(true);
+              }}
+            />
+          )}
 
-      {/* ── Legend (Bottom-Right) ── */}
-      {visibleLayerIds.includes('municipalities') && (
-        visualizationMode === 'choropleth' ? <MapLegend /> : <HeatmapLegend />
-      )}
+          {visibleLayerIds.includes('mapbiomas') && <MapBiomasLayer opacity={0.7} />}
+          {visibleLayerIds.includes('biogas-plants') && <InfrastructureLayer layerType="biogas-plants" />}
+          {visibleLayerIds.includes('railways') && <InfrastructureLayer layerType="railways" />}
+          {visibleLayerIds.includes('pipelines') && <InfrastructureLayer layerType="pipelines" />}
+          {visibleLayerIds.includes('substations') && <InfrastructureLayer layerType="substations" />}
+          {visibleLayerIds.includes('transmission-lines') && <InfrastructureLayer layerType="transmission-lines" />}
+          {visibleLayerIds.includes('etes') && <InfrastructureLayer layerType="etes" />}
+          {visibleLayerIds.includes('intermediate-regions') && <IntermediateRegionBoundaryLayer visible={true} />}
+        </MapContainer>
 
-      {isMounted && <MapBiomasLegend visible={showMapBiomasLegend} />}
-      {isMounted && <BiomassLayerLegend visible={showBiomassLayerLegend} />}
+        {/* Overlays — all absolute-positioned within the map area */}
 
-      {/* ── Mobile Bottom Sheet (hidden on desktop) ── */}
+        {isMounted && hoveredMunicipality && (
+          <div className="hidden md:block">
+            <EnhancedTooltip municipality={hoveredMunicipality} position={mousePosition} visible={true} />
+          </div>
+        )}
+
+        {isMounted && (
+          <MunicipalityProfilePanel
+            municipality={selectedMunicipality}
+            onClose={() => setSelectedMunicipality(null)}
+            visible={selectedMunicipality !== null}
+          />
+        )}
+
+        {isMounted && (
+          <CodigestionDetailPanel
+            cluster={showClusterPanel && selectedClusterId
+              ? (clusterData?.clusters?.find(c => c.cluster_id === selectedClusterId) ?? null)
+              : null}
+            onClose={() => { setShowClusterPanel(false); setSelectedClusterId(null); }}
+            visible={showClusterPanel && selectedClusterId !== null}
+          />
+        )}
+
+        {isMounted && (
+          <ComparisonPanel
+            municipalities={data?.features || []}
+            selectedMunicipalities={comparisonMunicipalities}
+            onMunicipalityAdd={handleAddToComparison}
+            onMunicipalityRemove={handleRemoveFromComparison}
+            onClose={() => setShowComparison(false)}
+            visible={showComparison}
+          />
+        )}
+
+        {isMounted && (
+          <ExportControl data={displayData} visible={showExport} onClose={() => setShowExport(false)} />
+        )}
+
+        {/* Legends */}
+        {visibleLayerIds.includes('municipalities') && visualizationMode !== 'clusters' && (
+          visualizationMode === 'choropleth' ? <MapLegend displayMetric={displayMetric} /> : <HeatmapLegend />
+        )}
+
+        {visualizationMode === 'clusters' && clusterLoading && isMounted && (
+          <div className="absolute bottom-16 md:bottom-8 right-4 z-[500] bg-white/90 backdrop-blur-sm rounded-lg px-3 py-2 shadow text-xs text-violet-700 flex items-center gap-2">
+            <span className="animate-spin">⚗️</span> Calculando clusters...
+          </div>
+        )}
+
+        {isMounted && <MapBiomasLegend visible={showMapBiomasLegend} />}
+        {isMounted && <BiomassLayerLegend visible={showBiomassLayerLegend} />}
+      </div>
+
+      {/* ── Mobile Tab Bar + Sheet (hidden on desktop, fixed position) ── */}
       {isMounted && (
         <MobileBottomSheet
           searchQuery={searchQuery}
@@ -517,6 +538,9 @@ export default function MapComponent({
           onLayerToggle={handleLayerToggle}
           municipalityCount={displayData.features.length}
           totalMunicipalities={data.features.length}
+          displayMetric={displayMetric}
+          onDisplayMetricChange={handleDisplayMetricChange}
+          cnMatrix={cnMatrix}
         />
       )}
     </div>

@@ -1,10 +1,3 @@
-/**
- * PILAR-2b V3 - Desktop Left Panel
- * Compact vertical control panel for map tools, filters, layers, and insights.
- * Replaces the old DesktopBottomDrawer on desktop (md+).
- * Starts collapsed as an icon rail (~60px), expands to ~320px on section click.
- */
-
 'use client';
 
 import React, { useState } from 'react';
@@ -12,19 +5,20 @@ import { useTranslations } from 'next-intl';
 import {
   Search,
   Layers,
-  BarChart3,
   Database,
   Wrench,
   X,
   ChevronLeft,
   ChevronRight,
   ExternalLink,
+  BarChart3,
+  Download,
   Link,
   Map,
-  Download,
 } from 'lucide-react';
 import type { ResidueType, BiomassType } from './FloatingControlPanel';
 import type { VisualizationMode } from './LeftFilterPanel';
+import type { DisplayMetric, ResidueCNMatrix } from '@/types/geospatial';
 import { useSummaryStatistics } from '@/hooks/useGeospatialData';
 import { formatBiogasShort } from '@/lib/mapUtils';
 
@@ -54,11 +48,14 @@ interface DesktopLeftPanelProps {
   totalMunicipalities: number;
   onOpenComparison: () => void;
   onOpenExport: () => void;
+  displayMetric?: DisplayMetric;
+  onDisplayMetricChange?: (metric: DisplayMetric) => void;
+  cnMatrix?: ResidueCNMatrix | null;
 }
 
-type SectionId = 'filters' | 'layers' | 'insights' | 'data' | 'tools';
+type TabId = 'filters' | 'layers' | 'data' | 'tools';
 
-// ── Layer name mapping ─────────────────────────────────────────────────────────
+// ── Constants ─────────────────────────────────────────────────────────────────
 
 const LAYER_KEY_MAP: Record<string, string> = {
   'municipalities': 'layers.municipalitiesSP',
@@ -138,18 +135,12 @@ const DATA_SOURCES = [
   },
 ];
 
-// ── Sub-components ─────────────────────────────────────────────────────────────
+// ── Section components ────────────────────────────────────────────────────────
 
 function FiltersSection({
-  searchQuery,
-  onSearchChange,
-  visualizationMode,
-  onVisualizationModeChange,
-  biomassType,
-  onBiomassTypeChange,
-  selectedResidues,
-  onResiduesChange,
-  t,
+  searchQuery, onSearchChange, visualizationMode, onVisualizationModeChange,
+  biomassType, onBiomassTypeChange, selectedResidues, onResiduesChange,
+  displayMetric = 'biomass_tons', onDisplayMetricChange, cnMatrix, t,
 }: {
   searchQuery: string;
   onSearchChange: (v: string) => void;
@@ -159,6 +150,9 @@ function FiltersSection({
   onBiomassTypeChange: (t: BiomassType) => void;
   selectedResidues: ResidueType[];
   onResiduesChange: (r: ResidueType[]) => void;
+  displayMetric?: DisplayMetric;
+  onDisplayMetricChange?: (metric: DisplayMetric) => void;
+  cnMatrix?: ResidueCNMatrix | null;
   t: ReturnType<typeof useTranslations>;
 }) {
   const handleResidueToggle = (residue: ResidueType) => {
@@ -168,17 +162,18 @@ function FiltersSection({
     onResiduesChange(next);
   };
 
-  const vizModes: { value: VisualizationMode; key: string }[] = [
-    { value: 'choropleth', key: 'vizModes.choropleth' },
-    { value: 'heatmap', key: 'vizModes.heatmap' },
-    { value: 'bubble', key: 'vizModes.bubble' },
+  const vizModes: { value: VisualizationMode; label: string }[] = [
+    { value: 'choropleth', label: t('vizModes.choropleth') },
+    { value: 'heatmap', label: t('vizModes.heatmap') },
+    { value: 'bubble', label: t('vizModes.bubble') },
+    { value: 'clusters', label: '⚗️ Co-digestão' },
   ];
 
-  const biomassKeys: { value: BiomassType; key: string; icon: string; color: string }[] = [
-    { value: 'total', key: 'biomassTypes.total', icon: '⚡', color: 'bg-green-100 border-green-400 text-green-800' },
-    { value: 'agricultural', key: 'biomassTypes.agricultural', icon: '🌾', color: 'bg-lime-100 border-lime-400 text-lime-800' },
-    { value: 'livestock', key: 'biomassTypes.livestock', icon: '🐄', color: 'bg-yellow-100 border-yellow-400 text-yellow-800' },
-    { value: 'urban', key: 'biomassTypes.urban', icon: '🏙️', color: 'bg-blue-100 border-blue-400 text-blue-800' },
+  const biomassKeys: { value: BiomassType; icon: string; color: string }[] = [
+    { value: 'total', icon: '⚡', color: 'bg-green-100 border-green-400 text-green-800' },
+    { value: 'agricultural', icon: '🌾', color: 'bg-lime-100 border-lime-400 text-lime-800' },
+    { value: 'livestock', icon: '🐄', color: 'bg-yellow-100 border-yellow-400 text-yellow-800' },
+    { value: 'urban', icon: '🏙️', color: 'bg-blue-100 border-blue-400 text-blue-800' },
   ];
 
   return (
@@ -198,33 +193,59 @@ function FiltersSection({
             className="w-full pl-7 pr-7 py-1.5 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
           />
           {searchQuery && (
-            <button
-              onClick={() => onSearchChange('')}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-            >
+            <button onClick={() => onSearchChange('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
               <X className="w-3 h-3" />
             </button>
           )}
         </div>
       </div>
 
+      {/* Metric toggle */}
+      {onDisplayMetricChange && (
+        <div>
+          <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-1">
+            Métrica principal
+          </label>
+          <div className="flex gap-1">
+            <button
+              onClick={() => onDisplayMetricChange('biomass_tons')}
+              className={`flex-1 py-1.5 rounded-lg border text-[11px] font-medium transition-all ${
+                displayMetric === 'biomass_tons' ? 'border-green-600 bg-green-50 text-green-800' : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              Biomassa (t/ano)
+            </button>
+            <button
+              onClick={() => onDisplayMetricChange('biogas_m3')}
+              className={`flex-1 py-1.5 rounded-lg border text-[11px] font-medium transition-all ${
+                displayMetric === 'biogas_m3' ? 'border-blue-600 bg-blue-50 text-blue-800' : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              Biogás (m³/ano)
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Visualization mode */}
       <div>
         <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-1">
           {t('vizModes.label')}
         </label>
-        <div className="flex gap-1">
+        <div className="grid grid-cols-2 gap-1">
           {vizModes.map(opt => (
             <button
               key={opt.value}
               onClick={() => onVisualizationModeChange(opt.value)}
-              className={`flex-1 py-1.5 rounded-lg border text-[11px] font-medium transition-all ${
+              className={`py-1.5 px-2 rounded-lg border text-[11px] font-medium transition-all ${
                 visualizationMode === opt.value
-                  ? 'border-[#1E5128] bg-green-50 text-green-800'
+                  ? opt.value === 'clusters'
+                    ? 'border-violet-600 bg-violet-50 text-violet-800'
+                    : 'border-[#1E5128] bg-green-50 text-green-800'
                   : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'
               }`}
             >
-              {t(opt.key)}
+              {opt.label}
             </button>
           ))}
         </div>
@@ -241,13 +262,11 @@ function FiltersSection({
               key={opt.value}
               onClick={() => onBiomassTypeChange(opt.value)}
               className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-medium border transition-all ${
-                biomassType === opt.value
-                  ? opt.color
-                  : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
+                biomassType === opt.value ? opt.color : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
               }`}
             >
               <span className="text-sm">{opt.icon}</span>
-              {t(opt.key)}
+              {t(`biomassTypes.${opt.value}`)}
             </button>
           ))}
         </div>
@@ -265,15 +284,11 @@ function FiltersSection({
             )}
           </span>
           {selectedResidues.length > 0 && (
-            <button
-              onClick={() => onResiduesChange([])}
-              className="text-[10px] text-red-600 hover:text-red-800 font-medium"
-            >
+            <button onClick={() => onResiduesChange([])} className="text-[10px] text-red-600 hover:text-red-800 font-medium">
               {t('residueFilter.clear')}
             </button>
           )}
         </div>
-
         <div className="space-y-2">
           {(['agricultural', 'livestock', 'urban'] as const).map(cat => {
             const meta = CATEGORY_META[cat];
@@ -283,24 +298,30 @@ function FiltersSection({
                   {meta.icon} {t(`categories.${cat}`)}
                 </p>
                 <div className="flex flex-wrap gap-1">
-                  {RESIDUE_META
-                    .filter(r => r.category === cat)
-                    .map(r => {
-                      const isSelected = selectedResidues.includes(r.value);
-                      return (
-                        <button
-                          key={r.value}
-                          onClick={() => handleResidueToggle(r.value)}
-                          className={`flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-medium border transition-all ${
-                            isSelected
-                              ? meta.activeClass
-                              : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
-                          }`}
-                        >
-                          {r.icon} {t(`residues.${r.value}`)}
-                        </button>
-                      );
-                    })}
+                  {RESIDUE_META.filter(r => r.category === cat).map(r => {
+                    const isSelected = selectedResidues.includes(r.value);
+                    const cnEntry = cnMatrix?.residues?.find(e => e.key === r.value);
+                    const cnBadgeClass = !cnEntry ? '' :
+                      cnEntry.cn_role === 'nitrogen_donor' ? 'bg-blue-100 text-blue-700' :
+                      cnEntry.cn_role === 'carbon_donor' ? 'bg-amber-100 text-amber-700' :
+                      'bg-green-100 text-green-700';
+                    return (
+                      <button
+                        key={r.value}
+                        onClick={() => handleResidueToggle(r.value)}
+                        className={`flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-medium border transition-all ${
+                          isSelected ? meta.activeClass : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
+                        }`}
+                      >
+                        {r.icon} {t(`residues.${r.value}`)}
+                        {cnEntry && (
+                          <span className={`ml-0.5 px-1 rounded text-[8px] font-mono ${cnBadgeClass}`}>
+                            {cnEntry.cn_ratio}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             );
@@ -312,13 +333,7 @@ function FiltersSection({
 }
 
 function LayersSection({
-  municipalityCount,
-  totalMunicipalities,
-  opacity,
-  onOpacityChange,
-  layers,
-  onLayerToggle,
-  t,
+  municipalityCount, totalMunicipalities, opacity, onOpacityChange, layers, onLayerToggle, t,
 }: {
   municipalityCount: number;
   totalMunicipalities: number;
@@ -328,37 +343,29 @@ function LayersSection({
   onLayerToggle: (id: string, visible: boolean) => void;
   t: ReturnType<typeof useTranslations>;
 }) {
-  const getLayerName = (layerId: string): string => {
-    const key = LAYER_KEY_MAP[layerId];
-    return key ? t(key) : layerId;
+  const getLayerName = (id: string) => {
+    const key = LAYER_KEY_MAP[id];
+    return key ? t(key) : id;
   };
 
   const getGroupedLayers = () => {
     const grouped: { labelKey: string; items: Layer[] }[] = [];
     for (const group of LAYER_GROUPS) {
-      const items = group.ids
-        .map(id => layers.find(l => l.id === id))
-        .filter((l): l is Layer => l !== undefined);
-      if (items.length > 0) {
-        grouped.push({ labelKey: group.labelKey, items });
-      }
+      const items = group.ids.map(id => layers.find(l => l.id === id)).filter((l): l is Layer => l !== undefined);
+      if (items.length > 0) grouped.push({ labelKey: group.labelKey, items });
     }
     const groupedIds = new Set<string>(LAYER_GROUPS.flatMap(g => [...g.ids]));
     const ungrouped = layers.filter(l => !groupedIds.has(l.id));
     if (ungrouped.length > 0) {
       const infraGroup = grouped.find(g => g.labelKey === 'layerGroups.infrastructure');
-      if (infraGroup) {
-        infraGroup.items.push(...ungrouped);
-      } else {
-        grouped.push({ labelKey: 'layerGroups.infrastructure', items: ungrouped });
-      }
+      if (infraGroup) infraGroup.items.push(...ungrouped);
+      else grouped.push({ labelKey: 'layerGroups.infrastructure', items: ungrouped });
     }
     return grouped;
   };
 
   return (
     <div className="space-y-3">
-      {/* Municipality count */}
       <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-2.5">
         <div className="flex items-center justify-between mb-1.5">
           <span className="text-[10px] text-gray-600 font-medium">{t('municipalities.visible')}</span>
@@ -375,19 +382,13 @@ function LayersSection({
         </div>
       </div>
 
-      {/* Opacity */}
       <div>
         <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-1">
           {t('opacity.label')}: {Math.round(opacity * 100)}%
         </label>
         <div className="flex items-center gap-2">
           <span className="text-[10px] text-gray-400">30%</span>
-          <input
-            type="range"
-            min="0.3"
-            max="1"
-            step="0.05"
-            value={opacity}
+          <input type="range" min="0.3" max="1" step="0.05" value={opacity}
             onChange={e => onOpacityChange(parseFloat(e.target.value))}
             className="flex-1 h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-green-600"
           />
@@ -395,13 +396,10 @@ function LayersSection({
         </div>
       </div>
 
-      {/* Layer toggles */}
       <div className="space-y-2">
         {getGroupedLayers().map(group => (
           <div key={group.labelKey}>
-            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-1">
-              {t(group.labelKey)}
-            </p>
+            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-1">{t(group.labelKey)}</p>
             <div className="space-y-0.5">
               {group.items.map(layer => (
                 <div key={layer.id} className="flex items-center justify-between py-1">
@@ -412,128 +410,15 @@ function LayersSection({
                     role="switch"
                     aria-checked={layer.visible}
                     onClick={() => onLayerToggle(layer.id, !layer.visible)}
-                    className={`relative w-8 h-[18px] rounded-full transition-colors shrink-0 ${
-                      layer.visible ? 'bg-[#1E5128]' : 'bg-gray-200'
-                    }`}
+                    className={`relative w-8 h-[18px] rounded-full transition-colors shrink-0 ${layer.visible ? 'bg-[#1E5128]' : 'bg-gray-200'}`}
                   >
-                    <span
-                      className={`absolute top-[2px] left-[2px] w-[14px] h-[14px] bg-white rounded-full shadow transition-transform ${
-                        layer.visible ? 'translate-x-[14px]' : ''
-                      }`}
-                    />
+                    <span className={`absolute top-[2px] left-[2px] w-[14px] h-[14px] bg-white rounded-full shadow transition-transform ${layer.visible ? 'translate-x-[14px]' : ''}`} />
                   </button>
                 </div>
               ))}
             </div>
           </div>
         ))}
-      </div>
-    </div>
-  );
-}
-
-function InsightsSection({ t }: { t: ReturnType<typeof useTranslations> }) {
-  const { data, loading, error } = useSummaryStatistics();
-
-  if (loading) {
-    return (
-      <div className="animate-pulse space-y-3">
-        <div className="h-20 bg-gray-100 rounded-xl" />
-        <div className="h-12 bg-gray-100 rounded-lg" />
-        <div className="h-32 bg-gray-100 rounded-lg" />
-      </div>
-    );
-  }
-
-  if (error || !data) {
-    return <p className="text-xs text-gray-500 py-6 text-center">{t('insights.noData')}</p>;
-  }
-
-  const total = data.total_biogas_m3_year || 1;
-  const sectors = [
-    { label: t('categories.agricultural'), value: data.sector_breakdown.agricultural, color: 'bg-green-500', textColor: 'text-green-700' },
-    { label: t('categories.livestock'), value: data.sector_breakdown.livestock, color: 'bg-orange-400', textColor: 'text-orange-600' },
-    { label: t('categories.urban'), value: data.sector_breakdown.urban, color: 'bg-blue-500', textColor: 'text-blue-700' },
-  ];
-
-  const maxMuni = data.top_5_municipalities.length > 0
-    ? data.top_5_municipalities[0].biogas_m3_year
-    : 1;
-
-  return (
-    <div className="space-y-3">
-      {/* Total */}
-      <div className="bg-gradient-to-r from-[#1E5128] to-[#2C6B3A] text-white rounded-xl p-3">
-        <p className="text-[10px] font-medium text-green-200 mb-0.5">
-          {t('insights.totalBiogas')}
-        </p>
-        <p className="text-2xl font-bold">
-          {formatBiogasShort(data.total_biogas_m3_year)}
-        </p>
-        <p className="text-[10px] text-green-200 mt-0.5">
-          m&sup3;/ano
-        </p>
-      </div>
-
-      {/* Sector breakdown */}
-      <div>
-        <p className="text-[9px] font-bold text-gray-500 uppercase tracking-wide mb-1.5">
-          {t('insights.sectorBreakdown')}
-        </p>
-        <div className="flex rounded-full overflow-hidden h-4">
-          {sectors.map(s => {
-            const pct = Math.round((s.value / total) * 100);
-            return (
-              <div
-                key={s.label}
-                className={`${s.color} transition-all duration-500`}
-                style={{ width: `${pct}%` }}
-              />
-            );
-          })}
-        </div>
-        <div className="flex justify-between mt-1.5">
-          {sectors.map(s => {
-            const pct = Math.round((s.value / total) * 100);
-            return (
-              <div key={s.label} className="text-center">
-                <span className={`text-[9px] font-semibold ${s.textColor}`}>{s.label}</span>
-                <span className="text-[9px] text-gray-400 ml-0.5">{pct}%</span>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Top 5 */}
-      <div>
-        <p className="text-[9px] font-bold text-gray-500 uppercase tracking-wide mb-1.5">
-          {t('insights.top5')}
-        </p>
-        <div className="space-y-1.5">
-          {data.top_5_municipalities.map((muni, i) => {
-            const barWidth = Math.max((muni.biogas_m3_year / maxMuni) * 100, 5);
-            return (
-              <div key={i} className="flex items-center gap-2">
-                <span className="w-4 h-4 flex items-center justify-center bg-green-600 text-white text-[8px] font-bold rounded-full shrink-0">
-                  {i + 1}
-                </span>
-                <span className="text-[10px] text-gray-700 truncate w-24 shrink-0">
-                  {muni.name}
-                </span>
-                <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                  <div
-                    className="h-1.5 bg-green-200 rounded-full transition-all duration-500"
-                    style={{ width: `${barWidth}%` }}
-                  />
-                </div>
-                <span className="text-[9px] font-semibold text-green-700 shrink-0 w-12 text-right">
-                  {formatBiogasShort(muni.biogas_m3_year)}
-                </span>
-              </div>
-            );
-          })}
-        </div>
       </div>
     </div>
   );
@@ -549,22 +434,14 @@ function DataSourcesSection({ t }: { t: ReturnType<typeof useTranslations> }) {
           </p>
           <div className="space-y-1">
             {cat.sources.map(src => (
-              <div
-                key={src.name}
-                className="flex items-start justify-between gap-1.5 text-[10px] bg-white border border-gray-200 rounded-lg px-2.5 py-2 hover:border-green-200 transition-colors"
-              >
+              <div key={src.name} className="flex items-start justify-between gap-1.5 text-[10px] bg-white border border-gray-200 rounded-lg px-2.5 py-2 hover:border-green-200 transition-colors">
                 <div className="min-w-0">
                   <p className="font-semibold text-gray-800 truncate">{src.name}</p>
-                  <p className="text-gray-500 text-[9px] truncate">{src.detail} &middot; {src.year}</p>
+                  <p className="text-gray-500 text-[9px] truncate">{src.detail} · {src.year}</p>
                 </div>
                 {src.url && (
-                  <a
-                    href={src.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-gray-400 hover:text-blue-600 transition-colors shrink-0 mt-0.5"
-                    aria-label={`Open ${src.name}`}
-                  >
+                  <a href={src.url} target="_blank" rel="noopener noreferrer"
+                    className="text-gray-400 hover:text-blue-600 transition-colors shrink-0 mt-0.5">
                     <ExternalLink className="w-3 h-3" />
                   </a>
                 )}
@@ -578,69 +455,63 @@ function DataSourcesSection({ t }: { t: ReturnType<typeof useTranslations> }) {
 }
 
 function ToolsSection({
-  onOpenComparison,
-  onOpenExport,
-  onClose,
-  t,
+  onOpenComparison, onOpenExport, t,
 }: {
   onOpenComparison: () => void;
   onOpenExport: () => void;
-  onClose: () => void;
   t: ReturnType<typeof useTranslations>;
 }) {
   const tools = [
+    { icon: <BarChart3 className="w-5 h-5" />, titleKey: 'tools.compare', descKey: 'tools.compareDesc', ctaKey: 'tools.open', onClick: onOpenComparison },
+    { icon: <Download className="w-5 h-5" />, titleKey: 'tools.export', descKey: 'tools.exportDesc', ctaKey: 'tools.open', onClick: onOpenExport },
     {
-      icon: <BarChart3 className="w-5 h-5" />,
-      titleKey: 'tools.compare',
-      descKey: 'tools.compareDesc',
-      ctaKey: 'tools.open',
-      onClick: () => { onOpenComparison(); onClose(); },
+      icon: <Link className="w-5 h-5" />, titleKey: 'tools.share', descKey: 'tools.shareDesc', ctaKey: 'tools.copyUrl',
+      onClick: () => { if (typeof window !== 'undefined') navigator.clipboard.writeText(window.location.href); },
     },
-    {
-      icon: <Download className="w-5 h-5" />,
-      titleKey: 'tools.export',
-      descKey: 'tools.exportDesc',
-      ctaKey: 'tools.open',
-      onClick: () => { onOpenExport(); onClose(); },
-    },
-    {
-      icon: <Link className="w-5 h-5" />,
-      titleKey: 'tools.share',
-      descKey: 'tools.shareDesc',
-      ctaKey: 'tools.copyUrl',
-      onClick: () => {
-        if (typeof window !== 'undefined') {
-          navigator.clipboard.writeText(window.location.href);
-        }
-      },
-    },
-    {
-      icon: <Map className="w-5 h-5" />,
-      titleKey: 'tools.viewProfile',
-      descKey: 'tools.viewProfileDesc',
-      ctaKey: 'tools.open',
-      onClick: () => {},
-    },
+    { icon: <Map className="w-5 h-5" />, titleKey: 'tools.viewProfile', descKey: 'tools.viewProfileDesc', ctaKey: 'tools.open', onClick: () => {} },
   ];
 
   return (
     <div className="space-y-2">
       {tools.map(tool => (
-        <button
-          key={tool.titleKey}
-          onClick={tool.onClick}
-          className="w-full bg-white border border-gray-100 rounded-xl p-3 hover:border-[#1E5128] hover:shadow-sm transition-all cursor-pointer flex items-center gap-3 text-left"
-        >
+        <button key={tool.titleKey} onClick={tool.onClick}
+          className="w-full bg-white border border-gray-100 rounded-xl p-3 hover:border-[#1E5128] hover:shadow-sm transition-all cursor-pointer flex items-center gap-3 text-left">
           <span className="text-gray-500 shrink-0">{tool.icon}</span>
           <div className="min-w-0 flex-1">
             <p className="text-xs font-bold text-gray-800">{t(tool.titleKey)}</p>
             <p className="text-[10px] text-gray-500 truncate">{t(tool.descKey)}</p>
           </div>
-          <span className="text-[10px] font-semibold text-[#1E5128] shrink-0">
-            {t(tool.ctaKey)}
-          </span>
+          <span className="text-[10px] font-semibold text-[#1E5128] shrink-0">{t(tool.ctaKey)}</span>
         </button>
       ))}
+    </div>
+  );
+}
+
+function StatStrip({ municipalityCount, totalMunicipalities, filterCount }: {
+  municipalityCount: number;
+  totalMunicipalities: number;
+  filterCount: number;
+}) {
+  const { data } = useSummaryStatistics();
+  return (
+    <div className="px-3 py-2 border-b border-gray-100 bg-gradient-to-r from-green-50 to-white flex items-center gap-2 flex-shrink-0">
+      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse flex-shrink-0" />
+      <span className="text-xs text-gray-600 truncate">
+        <span className="font-bold text-green-700">{municipalityCount}</span>
+        <span className="text-gray-400">/{totalMunicipalities}</span>
+        {' '}municípios
+      </span>
+      {data && (
+        <span className="ml-auto text-[10px] text-green-700 font-semibold shrink-0">
+          {formatBiogasShort(data.total_biogas_m3_year)} m³/ano
+        </span>
+      )}
+      {filterCount > 0 && !data && (
+        <span className="ml-auto text-[10px] bg-green-100 text-green-700 font-semibold px-1.5 py-0.5 rounded-full shrink-0">
+          {filterCount} filtro{filterCount > 1 ? 's' : ''}
+        </span>
+      )}
     </div>
   );
 }
@@ -648,159 +519,136 @@ function ToolsSection({
 // ── Main Component ─────────────────────────────────────────────────────────────
 
 export default function DesktopLeftPanel({
-  searchQuery,
-  onSearchChange,
-  selectedResidues,
-  onResiduesChange,
-  biomassType,
-  onBiomassTypeChange,
-  visualizationMode,
-  onVisualizationModeChange,
-  opacity,
-  onOpacityChange,
-  layers,
-  onLayerToggle,
-  municipalityCount,
-  totalMunicipalities,
-  onOpenComparison,
-  onOpenExport,
+  searchQuery, onSearchChange, selectedResidues, onResiduesChange,
+  biomassType, onBiomassTypeChange, visualizationMode, onVisualizationModeChange,
+  opacity, onOpacityChange, layers, onLayerToggle,
+  municipalityCount, totalMunicipalities, onOpenComparison, onOpenExport,
+  displayMetric, onDisplayMetricChange, cnMatrix,
 }: DesktopLeftPanelProps) {
   const t = useTranslations('Map');
-  const [activeSection, setActiveSection] = useState<SectionId | null>(null);
-
-  const toggleSection = (id: SectionId) =>
-    setActiveSection(prev => (prev === id ? null : id));
-
-  const closeSection = () => setActiveSection(null);
+  const [collapsed, setCollapsed] = useState(false);
+  const [activeTab, setActiveTab] = useState<TabId>('filters');
 
   const filterCount = selectedResidues.length;
   const activeLayerCount = layers.filter(l => l.visible).length;
 
-  const sections: { id: SectionId; icon: React.ReactNode; labelKey: string; badge?: number }[] = [
-    { id: 'filters', icon: <Search className="w-4 h-4" />, labelKey: 'panels.filters', badge: filterCount > 0 ? filterCount : undefined },
-    { id: 'layers', icon: <Layers className="w-4 h-4" />, labelKey: 'panels.layers', badge: activeLayerCount > 1 ? activeLayerCount : undefined },
-    { id: 'insights', icon: <BarChart3 className="w-4 h-4" />, labelKey: 'panels.insights' },
-    { id: 'data', icon: <Database className="w-4 h-4" />, labelKey: 'panels.dataSources' },
-    { id: 'tools', icon: <Wrench className="w-4 h-4" />, labelKey: 'panels.tools' },
+  const tabs: { id: TabId; icon: React.ReactNode; label: string; badge?: number }[] = [
+    { id: 'filters', icon: <Search className="w-3.5 h-3.5" />, label: 'Filtros', badge: filterCount > 0 ? filterCount : undefined },
+    { id: 'layers', icon: <Layers className="w-3.5 h-3.5" />, label: 'Camadas', badge: activeLayerCount > 1 ? activeLayerCount : undefined },
+    { id: 'data', icon: <Database className="w-3.5 h-3.5" />, label: 'Dados' },
+    { id: 'tools', icon: <Wrench className="w-3.5 h-3.5" />, label: 'Tools' },
   ];
 
-  const isExpanded = activeSection !== null;
-
   return (
-    <div className="hidden md:flex absolute top-20 left-4 z-[400] flex-row max-h-[calc(100vh-120px)]">
-      {/* Icon rail */}
-      <div className="flex flex-col bg-white/95 backdrop-blur-sm shadow-lg rounded-l-xl border border-gray-200 border-r-0 overflow-hidden">
-        {/* Status indicator */}
-        <div className="px-2.5 py-3 border-b border-gray-100">
-          <div className="flex items-center gap-1">
-            <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
-            <span className="text-[10px] font-bold text-gray-700">{municipalityCount}</span>
-          </div>
-        </div>
+    <aside className={`hidden md:flex flex-col flex-shrink-0 h-full bg-white border-r border-gray-200 shadow-sm overflow-hidden transition-all duration-200 ${collapsed ? 'w-14' : 'w-72'}`}>
+      {/* Top bar */}
+      <div className="flex items-center border-b border-gray-100 flex-shrink-0 h-12 px-2">
+        {!collapsed && (
+          <span className="text-sm font-semibold text-gray-700 truncate flex-1 px-1">
+            Biomassa SP
+          </span>
+        )}
+        <button
+          onClick={() => setCollapsed(c => !c)}
+          className={`p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 transition-colors flex-shrink-0 ${collapsed ? 'mx-auto' : 'ml-auto'}`}
+          title={collapsed ? 'Expandir painel' : 'Recolher painel'}
+        >
+          {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+        </button>
+      </div>
 
-        {/* Section icons */}
-        <div className="flex flex-col py-1">
-          {sections.map(section => (
+      {/* Collapsed: vertical icon rail */}
+      {collapsed && (
+        <div className="flex flex-col flex-1 py-1">
+          {tabs.map(tab => (
             <button
-              key={section.id}
-              onClick={() => toggleSection(section.id)}
-              className={`relative flex items-center justify-center w-11 h-10 transition-all ${
-                activeSection === section.id
-                  ? 'bg-[#1E5128] text-white'
-                  : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'
+              key={tab.id}
+              onClick={() => { setCollapsed(false); setActiveTab(tab.id); }}
+              className={`relative flex items-center justify-center w-14 h-11 transition-colors ${
+                activeTab === tab.id ? 'text-green-700 bg-green-50' : 'text-gray-400 hover:bg-gray-50 hover:text-gray-700'
               }`}
-              aria-label={t(section.labelKey)}
-              title={t(section.labelKey)}
+              title={tab.label}
             >
-              {section.icon}
-              {section.badge && (
-                <span className={`absolute top-1 right-1 w-3.5 h-3.5 flex items-center justify-center text-[7px] font-bold rounded-full ${
-                  activeSection === section.id
-                    ? 'bg-white text-[#1E5128]'
-                    : 'bg-green-500 text-white'
-                }`}>
-                  {section.badge}
+              {tab.icon}
+              {tab.badge && (
+                <span className="absolute top-1.5 right-1.5 w-3.5 h-3.5 flex items-center justify-center text-[7px] font-bold rounded-full bg-green-500 text-white">
+                  {tab.badge}
                 </span>
               )}
             </button>
           ))}
-        </div>
-
-        {/* Bottom actions */}
-        <div className="mt-auto border-t border-gray-100 py-1">
-          <button
-            onClick={onOpenComparison}
-            className="flex items-center justify-center w-11 h-10 text-gray-500 hover:bg-purple-50 hover:text-purple-600 transition-all"
-            title={t('tools.compare')}
-          >
-            <BarChart3 className="w-4 h-4" />
-          </button>
-          <button
-            onClick={onOpenExport}
-            className="flex items-center justify-center w-11 h-10 text-gray-500 hover:bg-green-50 hover:text-green-600 transition-all"
-            title={t('tools.export')}
-          >
-            <Download className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
-
-      {/* Expanded content panel */}
-      {isExpanded && (
-        <div className="w-[280px] bg-white/95 backdrop-blur-sm shadow-lg rounded-r-xl border border-gray-200 border-l-0 flex flex-col overflow-hidden">
-          {/* Panel header */}
-          <div className="flex items-center justify-between px-3 py-2.5 border-b border-gray-100 shrink-0">
-            <span className="text-xs font-bold text-gray-800">
-              {t(sections.find(s => s.id === activeSection)?.labelKey || 'panels.filters')}
-            </span>
-            <button
-              onClick={closeSection}
-              className="text-gray-400 hover:text-gray-600 transition-colors p-0.5"
-              aria-label={t('closePanel')}
-            >
-              <X className="w-3.5 h-3.5" />
+          <div className="mt-auto border-t border-gray-100 py-1">
+            <button onClick={onOpenComparison} title={t('tools.compare')}
+              className="flex items-center justify-center w-14 h-11 text-gray-400 hover:bg-purple-50 hover:text-purple-600 transition-colors">
+              <BarChart3 className="w-4 h-4" />
             </button>
-          </div>
-
-          {/* Panel body */}
-          <div className="flex-1 overflow-y-auto px-3 py-3 min-h-0">
-            {activeSection === 'filters' && (
-              <FiltersSection
-                searchQuery={searchQuery}
-                onSearchChange={onSearchChange}
-                visualizationMode={visualizationMode}
-                onVisualizationModeChange={onVisualizationModeChange}
-                biomassType={biomassType}
-                onBiomassTypeChange={onBiomassTypeChange}
-                selectedResidues={selectedResidues}
-                onResiduesChange={onResiduesChange}
-                t={t}
-              />
-            )}
-            {activeSection === 'layers' && (
-              <LayersSection
-                municipalityCount={municipalityCount}
-                totalMunicipalities={totalMunicipalities}
-                opacity={opacity}
-                onOpacityChange={onOpacityChange}
-                layers={layers}
-                onLayerToggle={onLayerToggle}
-                t={t}
-              />
-            )}
-            {activeSection === 'insights' && <InsightsSection t={t} />}
-            {activeSection === 'data' && <DataSourcesSection t={t} />}
-            {activeSection === 'tools' && (
-              <ToolsSection
-                onOpenComparison={onOpenComparison}
-                onOpenExport={onOpenExport}
-                onClose={closeSection}
-                t={t}
-              />
-            )}
+            <button onClick={onOpenExport} title={t('tools.export')}
+              className="flex items-center justify-center w-14 h-11 text-gray-400 hover:bg-green-50 hover:text-green-600 transition-colors">
+              <Download className="w-4 h-4" />
+            </button>
           </div>
         </div>
       )}
-    </div>
+
+      {/* Expanded: stat strip + tab nav + scrollable content */}
+      {!collapsed && (
+        <>
+          <StatStrip
+            municipalityCount={municipalityCount}
+            totalMunicipalities={totalMunicipalities}
+            filterCount={filterCount}
+          />
+
+          {/* Tab nav */}
+          <div className="flex border-b border-gray-100 flex-shrink-0">
+            {tabs.map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`relative flex-1 flex flex-col items-center justify-center py-2 gap-0.5 text-[9px] font-semibold uppercase tracking-wide transition-colors ${
+                  activeTab === tab.id
+                    ? 'border-b-2 border-green-600 text-green-700 bg-green-50/50'
+                    : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'
+                }`}
+                title={tab.label}
+              >
+                {tab.icon}
+                <span>{tab.label}</span>
+                {tab.badge && (
+                  <span className="absolute top-1 right-1 w-3.5 h-3.5 flex items-center justify-center text-[7px] font-bold rounded-full bg-green-500 text-white">
+                    {tab.badge}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+
+          {/* Scrollable content */}
+          <div className="flex-1 overflow-y-auto px-3 py-3 min-h-0">
+            {activeTab === 'filters' && (
+              <FiltersSection
+                searchQuery={searchQuery} onSearchChange={onSearchChange}
+                visualizationMode={visualizationMode} onVisualizationModeChange={onVisualizationModeChange}
+                biomassType={biomassType} onBiomassTypeChange={onBiomassTypeChange}
+                selectedResidues={selectedResidues} onResiduesChange={onResiduesChange}
+                displayMetric={displayMetric} onDisplayMetricChange={onDisplayMetricChange}
+                cnMatrix={cnMatrix} t={t}
+              />
+            )}
+            {activeTab === 'layers' && (
+              <LayersSection
+                municipalityCount={municipalityCount} totalMunicipalities={totalMunicipalities}
+                opacity={opacity} onOpacityChange={onOpacityChange}
+                layers={layers} onLayerToggle={onLayerToggle} t={t}
+              />
+            )}
+            {activeTab === 'data' && <DataSourcesSection t={t} />}
+            {activeTab === 'tools' && (
+              <ToolsSection onOpenComparison={onOpenComparison} onOpenExport={onOpenExport} t={t} />
+            )}
+          </div>
+        </>
+      )}
+    </aside>
   );
 }
