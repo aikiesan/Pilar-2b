@@ -36,7 +36,7 @@ class Settings(BaseSettings):
     ]
     # Production origins - comma-separated, includes main and preview deployments
     # Supports both Vercel and Cloudflare Pages deployments
-    PRODUCTION_ORIGINS: str = "https://new-look-nu.vercel.app,https://new-look-delta.vercel.app,https://cp2bmaps.pages.dev,https://541792a2.cp2bmaps.pages.dev"
+    PRODUCTION_ORIGINS: str = "https://cp2b.unicamp.br,https://new-look-nu.vercel.app,https://new-look-delta.vercel.app,https://cp2bmaps.pages.dev,https://541792a2.cp2bmaps.pages.dev"
     ALLOWED_HOSTS: List[str] = [
         "localhost",
         "127.0.0.1",

@@ -76,8 +76,9 @@ if settings.APP_ENV == "production":
     app.add_middleware(
         TrustedHostMiddleware,
         allowed_hosts=[
-            "cp2b-maps-backend.onrender.com",  # Update with your Render service name
-            "newlook-production.up.railway.app",  # Railway (can be removed after migration)
+            "cp2b.unicamp.br",
+            "cp2b-maps-backend.onrender.com",
+            "newlook-production.up.railway.app",
             "localhost",
             "127.0.0.1",
         ]
