@@ -8,8 +8,9 @@
 import React, { useState } from 'react';
 import { ChevronDown, ChevronUp, Search, Minus, Plus } from 'lucide-react';
 import type { ResidueType, BiomassType } from './FloatingControlPanel';
+import type { DisplayMetric, ResidueCNMatrix } from '@/types/geospatial';
 
-export type VisualizationMode = 'choropleth' | 'heatmap' | 'bubble';
+export type VisualizationMode = 'choropleth' | 'heatmap' | 'bubble' | 'clusters';
 
 interface LeftFilterPanelProps {
   searchQuery: string;
@@ -20,6 +21,9 @@ interface LeftFilterPanelProps {
   onBiomassTypeChange: (type: BiomassType) => void;
   visualizationMode?: VisualizationMode;
   onVisualizationModeChange?: (mode: VisualizationMode) => void;
+  displayMetric?: DisplayMetric;
+  onDisplayMetricChange?: (metric: DisplayMetric) => void;
+  cnMatrix?: ResidueCNMatrix | null;
 }
 
 export default function LeftFilterPanel({
@@ -30,7 +34,10 @@ export default function LeftFilterPanel({
   biomassType,
   onBiomassTypeChange,
   visualizationMode = 'choropleth',
-  onVisualizationModeChange
+  onVisualizationModeChange,
+  displayMetric = 'biomass_tons',
+  onDisplayMetricChange,
+  cnMatrix,
 }: LeftFilterPanelProps) {
   const [isMinimized, setIsMinimized] = useState(true);
   const [showResidues, setShowResidues] = useState(false);
@@ -116,6 +123,37 @@ export default function LeftFilterPanel({
             </div>
           </div>
 
+          {/* Metric Toggle */}
+          {onDisplayMetricChange && (
+            <div>
+              <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                Métrica Principal
+              </label>
+              <div className="flex rounded-lg border border-gray-300 overflow-hidden text-xs">
+                <button
+                  onClick={() => onDisplayMetricChange('biomass_tons')}
+                  className={`flex-1 py-1.5 px-2 font-medium transition-colors ${
+                    displayMetric === 'biomass_tons'
+                      ? 'bg-green-600 text-white'
+                      : 'bg-white text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  🌿 Biomassa (t/ano)
+                </button>
+                <button
+                  onClick={() => onDisplayMetricChange('biogas_m3')}
+                  className={`flex-1 py-1.5 px-2 font-medium transition-colors ${
+                    displayMetric === 'biogas_m3'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-white text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  ⚡ Biogás (m³/ano)
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Residue Filter */}
           <div>
             <button
@@ -163,9 +201,26 @@ export default function LeftFilterPanel({
                         onChange={() => handleResidueToggle(residue.value as ResidueType)}
                         className="w-4 h-4 text-green-600 rounded flex-shrink-0"
                       />
-                      <span className="text-xs text-gray-700 font-medium">
+                      <span className="text-xs text-gray-700 font-medium flex-1">
                         {residue.icon} {residue.label}
                       </span>
+                      {cnMatrix && (() => {
+                        const entry = cnMatrix.residues.find(r => r.key === residue.value);
+                        if (!entry) return null;
+                        const badgeClass = entry.cn_role === 'nitrogen_donor'
+                          ? 'bg-blue-100 text-blue-700'
+                          : entry.cn_role === 'carbon_donor'
+                          ? 'bg-amber-100 text-amber-700'
+                          : 'bg-green-100 text-green-700';
+                        return (
+                          <span
+                            className={`text-[9px] font-mono px-1 py-0.5 rounded flex-shrink-0 ${badgeClass}`}
+                            title={`C:N ratio: ${entry.cn_ratio} (${entry.cn_role.replace('_', ' ')})`}
+                          >
+                            {entry.cn_ratio}
+                          </span>
+                        );
+                      })()}
                     </label>
                   ))}
                 </div>
@@ -300,6 +355,25 @@ export default function LeftFilterPanel({
                     />
                     <span className="text-xs font-medium">
                       🫧 Bolhas Proporcionais (Volume)
+                    </span>
+                  </label>
+                  <label
+                    className={`flex items-center gap-2 px-2 py-2 rounded cursor-pointer transition-colors ${
+                      visualizationMode === 'clusters'
+                        ? 'bg-violet-100 border border-violet-300 text-violet-800'
+                        : 'hover:bg-gray-50 text-gray-700 border border-transparent'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="visualizationMode"
+                      value="clusters"
+                      checked={visualizationMode === 'clusters'}
+                      onChange={() => onVisualizationModeChange('clusters')}
+                      className="w-4 h-4 text-violet-600 flex-shrink-0"
+                    />
+                    <span className="text-xs font-medium">
+                      🔬 Co-digestão (Clusters C:N)
                     </span>
                   </label>
                 </div>

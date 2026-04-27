@@ -79,4 +79,12 @@ export const queryKeys = {
     all: ['mapbiomas'] as const,
     layer: () => [...queryKeys.mapbiomas.all, 'layer'] as const,
   },
+
+  // Co-digestion clustering and C:N analysis
+  codigestion: {
+    all: ['codigestion'] as const,
+    clusters: (radiusKm: number, minBiomass: number) =>
+      [...queryKeys.codigestion.all, 'clusters', radiusKm, minBiomass] as const,
+    cnMatrix: () => [...queryKeys.codigestion.all, 'cn-matrix'] as const,
+  },
 };

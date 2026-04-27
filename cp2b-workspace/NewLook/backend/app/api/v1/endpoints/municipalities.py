@@ -147,6 +147,23 @@ async def get_municipalities_geojson(
                     "aquaculture_biogas_m3_year": biogas_data.get("aquaculture_biogas_m3_year", 0),
                     "rsu_biogas_m3_year": biogas_data.get("rsu_biogas_m3_year", 0),
                     "rpo_biogas_m3_year": biogas_data.get("rpo_biogas_m3_year", 0),
+
+                    # Biomass availability (tons/year) — populated by scripts/load_biomass_tons.py
+                    "total_biomass_tons_year": biogas_data.get("total_biomass_tons_year", 0),
+                    "agricultural_biomass_tons_year": biogas_data.get("agricultural_biomass_tons_year", 0),
+                    "livestock_biomass_tons_year": biogas_data.get("livestock_biomass_tons_year", 0),
+                    "urban_biomass_tons_year": biogas_data.get("urban_biomass_tons_year", 0),
+                    "sugarcane_biomass_tons_year": biogas_data.get("sugarcane_biomass_tons_year", 0),
+                    "soybean_biomass_tons_year": biogas_data.get("soybean_biomass_tons_year", 0),
+                    "corn_biomass_tons_year": biogas_data.get("corn_biomass_tons_year", 0),
+                    "coffee_biomass_tons_year": biogas_data.get("coffee_biomass_tons_year", 0),
+                    "citrus_biomass_tons_year": biogas_data.get("citrus_biomass_tons_year", 0),
+                    "cattle_biomass_tons_year": biogas_data.get("cattle_biomass_tons_year", 0),
+                    "swine_biomass_tons_year": biogas_data.get("swine_biomass_tons_year", 0),
+                    "poultry_biomass_tons_year": biogas_data.get("poultry_biomass_tons_year", 0),
+                    "aquaculture_biomass_tons_year": biogas_data.get("aquaculture_biomass_tons_year", 0),
+                    "rsu_biomass_tons_year": biogas_data.get("rsu_biomass_tons_year", 0),
+                    "rpo_biomass_tons_year": biogas_data.get("rpo_biomass_tons_year", 0),
                 }
             }
             

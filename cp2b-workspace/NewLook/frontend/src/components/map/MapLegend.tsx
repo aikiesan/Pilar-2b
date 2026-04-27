@@ -7,28 +7,40 @@
 
 import React, { useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
+import type { DisplayMetric } from '@/types/geospatial';
 
-// Legend items matching the YlGnBu color scale in MunicipalityLayer
-const legendItems = [
-  { color: '#253494', label: '> 500M', description: 'Muito Alto' },
-  { color: '#2c7fb8', label: '100M - 500M', description: 'Alto' },
-  { color: '#41b6c4', label: '50M - 100M', description: 'Médio-Alto' },
-  { color: '#7fcdbb', label: '10M - 50M', description: 'Médio' },
-  { color: '#c7e9b4', label: '1M - 10M', description: 'Baixo' },
-  { color: '#ffffcc', label: '< 1M', description: 'Muito Baixo' },
-  { color: '#f7f7f7', label: 'Sem dados', description: '' },
+const biogasItems = [
+  { color: '#253494', label: '> 500M m³' },
+  { color: '#2c7fb8', label: '100M – 500M m³' },
+  { color: '#41b6c4', label: '50M – 100M m³' },
+  { color: '#7fcdbb', label: '10M – 50M m³' },
+  { color: '#c7e9b4', label: '1M – 10M m³' },
+  { color: '#ffffcc', label: '< 1M m³' },
+  { color: '#f7f7f7', label: 'Sem dados' },
 ];
 
-export default function MapLegend() {
+const biomassItems = [
+  { color: '#253494', label: '> 500K t' },
+  { color: '#2c7fb8', label: '100K – 500K t' },
+  { color: '#41b6c4', label: '25K – 100K t' },
+  { color: '#7fcdbb', label: '5K – 25K t' },
+  { color: '#c7e9b4', label: '500 – 5K t' },
+  { color: '#ffffcc', label: '< 500 t' },
+  { color: '#f7f7f7', label: 'Sem dados' },
+];
+
+export default function MapLegend({ displayMetric = 'biomass_tons' }: { displayMetric?: DisplayMetric }) {
+  const legendItems = displayMetric === 'biomass_tons' ? biomassItems : biogasItems;
+  const title = displayMetric === 'biomass_tons' ? 'Biomassa (t/ano)' : 'Biogás (m³/ano)';
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   return (
-    <div className="absolute bottom-2 right-2 md:bottom-4 md:right-4 z-[400]">
+    <div className="absolute bottom-16 right-2 md:bottom-4 md:right-4 z-[400]">
       <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-gray-100 overflow-hidden w-40 md:w-48">
         {/* Header */}
         <div className="flex items-center justify-between px-3 py-2.5 bg-gradient-to-r from-gray-50 to-white border-b border-gray-100">
           <span className="text-[10px] font-semibold text-gray-700 uppercase tracking-wide">
-            Biogás (m³/ano)
+            {title}
           </span>
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
