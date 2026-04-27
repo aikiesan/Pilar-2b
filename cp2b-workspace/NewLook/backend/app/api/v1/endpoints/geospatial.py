@@ -24,13 +24,8 @@ logger = logging.getLogger(__name__)
 # SECURITY: Input Validation Constants
 # ============================================================================
 
-# Valid administrative regions for São Paulo state
-VALID_REGIONS = {
-    "Central", "Bauru", "Araçatuba", "Ribeirão Preto",
-    "Campinas", "São José dos Campos", "Sorocaba",
-    "Santos", "São Paulo", "Presidente Prudente",
-    "Marília", "Registro", "Franca", "São José do Rio Preto"
-}
+# (VALID_REGIONS whitelist removed — administrative_region filter now accepts any value;
+#  SQL injection is already prevented by parameterized queries below.)
 
 # Whitelist for sort columns (prevents SQL injection)
 ALLOWED_SORT_COLUMNS = {
@@ -225,12 +220,6 @@ async def get_municipalities_geojson(
                 params.append(min_biogas)
 
             if region:
-                # SECURITY: Validate region against whitelist
-                if region not in VALID_REGIONS:
-                    raise HTTPException(
-                        status_code=400,
-                        detail=f"Invalid region. Must be one of: {', '.join(sorted(VALID_REGIONS))}"
-                    )
                 query += " AND administrative_region = %s"
                 params.append(region)
 

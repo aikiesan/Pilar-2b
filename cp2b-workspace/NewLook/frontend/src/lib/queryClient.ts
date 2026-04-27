@@ -87,4 +87,13 @@ export const queryKeys = {
       [...queryKeys.codigestion.all, 'clusters', radiusKm, minBiomass] as const,
     cnMatrix: () => [...queryKeys.codigestion.all, 'cn-matrix'] as const,
   },
+
+  // National intermediate regions (Phase 1)
+  intermediateRegions: {
+    all: ['intermediate-regions'] as const,
+    geojson: (stateCode?: string) =>
+      [...queryKeys.intermediateRegions.all, 'geojson', stateCode ?? 'all'] as const,
+    rankings: (metric: string, limit: number) =>
+      [...queryKeys.intermediateRegions.all, 'rankings', metric, limit] as const,
+  },
 };

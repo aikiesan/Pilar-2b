@@ -10,7 +10,7 @@ import { logger } from '@/lib/logger';
 import { getFromCache, setInCache, generateCacheKey, CACHE_DURATION } from '@/lib/apiCache';
 import { fetchWithQueue } from '@/lib/apiQueue';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
 const REQUEST_TIMEOUT = 120000; // 120 seconds - increased for debugging
 
 // Types matching backend Pydantic models

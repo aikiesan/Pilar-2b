@@ -21,11 +21,12 @@ import { supabaseGeospatialClient } from './supabaseGeospatial';
 const USE_MOCK_DATA = process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true';
 const USE_SUPABASE = process.env.NEXT_PUBLIC_USE_SUPABASE === 'true';
 
-// API base URL - automatically detects production vs development
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ||
-  (process.env.NODE_ENV === 'production'
-    ? 'https://newlook-production.up.railway.app'
-    : 'http://localhost:8000');
+// API base URL — use relative URL in the browser so any reverse proxy (Apache, Nginx, etc.)
+// routes /api/* transparently without requiring NEXT_PUBLIC_API_URL in the environment.
+// On the server (SSR / build) fall back to localhost so internal fetches still work.
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  (typeof window !== 'undefined' ? '' : 'http://localhost:8001');
 // Use geospatial endpoints when not using mock data
 const API_PREFIX = USE_MOCK_DATA ? '' : '/api/v1/geospatial';
 

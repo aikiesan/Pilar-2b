@@ -70,7 +70,7 @@ const LAYER_KEY_MAP: Record<string, string> = {
 };
 
 const LAYER_GROUPS = [
-  { labelKey: 'layerGroups.base', ids: ['municipalities'] },
+  { labelKey: 'layerGroups.base', ids: ['municipalities', 'intermediate-regions'] },
   { labelKey: 'layerGroups.environmental', ids: ['mapbiomas'] },
   { labelKey: 'layerGroups.infrastructure', ids: ['biogas-plants', 'pipelines', 'substations', 'transmission-lines', 'etes', 'railways'] },
 ] as const;
