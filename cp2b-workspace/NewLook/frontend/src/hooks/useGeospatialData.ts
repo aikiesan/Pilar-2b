@@ -13,6 +13,8 @@ import type {
   MunicipalityCollection,
   SummaryStatistics,
   MunicipalityFeature,
+  CodigestionClustersResponse,
+  ResidueCNMatrix,
 } from '@/types/geospatial';
 
 /**
@@ -170,6 +172,56 @@ export function useInfrastructureLayer(
     isSuccess: queryResult.isSuccess,
     isFetching: queryResult.isFetching,
     refetch: queryResult.refetch,
+  };
+}
+
+/**
+ * Hook to fetch co-digestion opportunity clusters.
+ * Lazy by default — only executes when enabled=true (clusters visualization mode active).
+ */
+export function useCodigestionClusters(params: {
+  radiusKm?: number;
+  minBiomass?: number;
+  enabled?: boolean;
+} = {}) {
+  const { radiusKm = 30, minBiomass = 1000, enabled = false } = params;
+  const queryResult = useQuery({
+    queryKey: queryKeys.codigestion.clusters(radiusKm, minBiomass),
+    queryFn: () =>
+      geospatialClient.getCodigestionClusters({
+        radius_km: radiusKm,
+        min_biomass_tons: minBiomass,
+      }),
+    enabled,
+    staleTime: 1000 * 60 * 60,   // 1 hour — expensive O(n²) computation
+    gcTime:    1000 * 60 * 120,  // 2 hours
+    retry: 2,
+  });
+  return {
+    data: queryResult.data as CodigestionClustersResponse | null,
+    loading: queryResult.isLoading,
+    error: queryResult.error as Error | null,
+    isFetching: queryResult.isFetching,
+    refetch: queryResult.refetch,
+  };
+}
+
+/**
+ * Hook to fetch C:N ratio matrix for all 11 residue types.
+ * Always fetched (cheap, static data used for filter panel badges).
+ */
+export function useResidueCNMatrix() {
+  const queryResult = useQuery({
+    queryKey: queryKeys.codigestion.cnMatrix(),
+    queryFn: () => geospatialClient.getResidueCNMatrix(),
+    staleTime: 1000 * 60 * 60 * 24,  // 24 hours — C:N values are static
+    gcTime:    1000 * 60 * 60 * 48,
+    retry: 1,
+  });
+  return {
+    data: queryResult.data as ResidueCNMatrix | null,
+    loading: queryResult.isLoading,
+    error: queryResult.error as Error | null,
   };
 }
 

@@ -8,7 +8,7 @@
 import React from 'react';
 import { GeoJSON } from 'react-leaflet';
 import type { GeoJsonObject, Feature } from 'geojson';
-import type { MunicipalityCollection, MunicipalityFeature } from '@/types/geospatial';
+import type { MunicipalityCollection, MunicipalityFeature, DisplayMetric } from '@/types/geospatial';
 import type { BiomassType, ResidueType } from './FloatingControlPanel';
 import MunicipalityPopup from '../dashboard/MunicipalityPopup';
 import L from 'leaflet';
@@ -19,78 +19,62 @@ interface MunicipalityLayerProps {
   opacity?: number;
   biomassType?: BiomassType;
   selectedResidues?: ResidueType[];
+  displayMetric?: DisplayMetric;
   onMunicipalityClick?: (feature: MunicipalityFeature) => void;
   onMunicipalityHover?: (feature: MunicipalityFeature | null, e?: MouseEvent) => void;
 }
 
-// YlGnBu color scale (ColorBrewer - colorblind safe)
-const getColorForValue = (value: number): string => {
-  if (value === 0) return '#f7f7f7'; // No data - light gray
-  if (value < 1000000) return '#ffffcc';      // < 1M - Yellow
-  if (value < 10000000) return '#c7e9b4';     // 1M-10M - Light green
-  if (value < 50000000) return '#7fcdbb';     // 10M-50M - Teal
-  if (value < 100000000) return '#41b6c4';    // 50M-100M - Cyan
-  if (value < 500000000) return '#2c7fb8';    // 100M-500M - Blue
-  return '#253494';                            // > 500M - Dark blue
+// YlGnBu color scale for biogas (m³/year)
+const getColorForBiogas = (value: number): string => {
+  if (value === 0) return '#f7f7f7';
+  if (value < 1000000)   return '#ffffcc';   // < 1M
+  if (value < 10000000)  return '#c7e9b4';   // 1M–10M
+  if (value < 50000000)  return '#7fcdbb';   // 10M–50M
+  if (value < 100000000) return '#41b6c4';   // 50M–100M
+  if (value < 500000000) return '#2c7fb8';   // 100M–500M
+  return '#253494';                           // > 500M
 };
+
+// YlGnBu color scale for biomass availability (t/year)
+const getColorForBiomassTons = (value: number): string => {
+  if (value === 0)        return '#f7f7f7';
+  if (value < 500)        return '#ffffcc';   // < 500 t
+  if (value < 5000)       return '#c7e9b4';   // 500–5K t
+  if (value < 25000)      return '#7fcdbb';   // 5K–25K t
+  if (value < 100000)     return '#41b6c4';   // 25K–100K t
+  if (value < 500000)     return '#2c7fb8';   // 100K–500K t
+  return '#253494';                            // > 500K t
+};
+
+const getColorForValue = (value: number, metric: DisplayMetric = 'biogas_m3'): string =>
+  metric === 'biomass_tons' ? getColorForBiomassTons(value) : getColorForBiogas(value);
 
 export default function MunicipalityLayer({
   data,
   opacity = 0.7,
   biomassType = 'total',
   selectedResidues = [],
+  displayMetric = 'biomass_tons',
   onMunicipalityClick,
   onMunicipalityHover,
 }: MunicipalityLayerProps) {
 
-  // Get biogas value based on selected residues or biomass type
+  const suffix = displayMetric === 'biomass_tons' ? 'biomass_tons_year' : 'biogas_m3_year';
+
+  // Get display value based on selected residues or biomass type
   const getBiogasValue = (props: any): number => {
-    // If specific residues are selected, sum them
     if (selectedResidues.length > 0) {
       return selectedResidues.reduce((sum, residue) => {
-        const value = (() => {
-          switch (residue) {
-            case 'sugarcane':
-              return props.sugarcane_biogas_m3_year;
-            case 'soybean':
-              return props.soybean_biogas_m3_year;
-            case 'corn':
-              return props.corn_biogas_m3_year;
-            case 'coffee':
-              return props.coffee_biogas_m3_year;
-            case 'citrus':
-              return props.citrus_biogas_m3_year;
-            case 'cattle':
-              return props.cattle_biogas_m3_year;
-            case 'swine':
-              return props.swine_biogas_m3_year;
-            case 'poultry':
-              return props.poultry_biogas_m3_year;
-            case 'aquaculture':
-              return props.aquaculture_biogas_m3_year;
-            case 'rsu':
-              return props.rsu_biogas_m3_year;
-            case 'rpo':
-              return props.rpo_biogas_m3_year;
-            default:
-              return 0;
-          }
-        })();
-        return sum + (Number(value) || 0);
+        const val = Number(props[`${residue}_${suffix}`]) || 0;
+        return sum + val;
       }, 0);
     }
-
-    // Otherwise use biomass type
     switch (biomassType) {
-      case 'agricultural':
-        return props.agricultural_biogas_m3_year || 0;
-      case 'livestock':
-        return props.livestock_biogas_m3_year || 0;
-      case 'urban':
-        return props.urban_biogas_m3_year || 0;
+      case 'agricultural': return Number(props[`agricultural_${suffix}`]) || 0;
+      case 'livestock':    return Number(props[`livestock_${suffix}`])    || 0;
+      case 'urban':        return Number(props[`urban_${suffix}`])        || 0;
       case 'total':
-      default:
-        return props.total_biogas_m3_year || 0;
+      default:             return Number(props[`total_${suffix}`])        || 0;
     }
   };
 
@@ -99,7 +83,7 @@ export default function MunicipalityLayer({
     if (!feature || !feature.properties) return {};
 
     const biogas = getBiogasValue(feature.properties);
-    const color = getColorForValue(biogas);
+    const color = getColorForValue(biogas, displayMetric);
 
     return {
       fillColor: color,
@@ -163,7 +147,7 @@ export default function MunicipalityLayer({
         `<div style="text-align: center; padding: 4px;">
           <strong style="font-size: 12px; color: white;">${props.name}</strong><br/>
           <span style="font-size: 11px; color: rgba(255, 255, 255, 0.9);">
-            ${getBiomassLabel()}: ${formatBiogas(biogasValue)} m³/ano
+            ${getBiomassLabel()}: ${formatBiogas(biogasValue)} ${displayMetric === 'biomass_tons' ? 't/ano' : 'm³/ano'}
           </span>
         </div>`,
         {
@@ -223,11 +207,12 @@ export default function MunicipalityLayer({
           const target = e.target;
           const biogas = getBiogasValue(feature.properties);
           const color = getColorForValue(biogas);
+          const resetColor = getColorForValue(getBiogasValue(feature.properties), displayMetric);
           target.setStyle({
             weight: 1,
             color: '#666666',
             fillOpacity: opacity,
-            fillColor: color,
+            fillColor: resetColor,
           });
 
           // Desktop: clear hover
@@ -247,7 +232,7 @@ export default function MunicipalityLayer({
 
   return (
     <GeoJSON
-      key={`${biomassType}-${opacity}-${selectedResidues.join(',')}`} // Force re-render when props change
+      key={`${biomassType}-${displayMetric}-${opacity}-${selectedResidues.join(',')}`}
       data={data as GeoJsonObject}
       style={style}
       onEachFeature={onEachFeature}

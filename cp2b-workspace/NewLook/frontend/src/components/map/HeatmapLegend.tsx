@@ -23,7 +23,7 @@ export default function HeatmapLegend() {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   return (
-    <div className="absolute bottom-2 right-2 md:bottom-4 md:right-4 z-[400]">
+    <div className="absolute bottom-16 right-2 md:bottom-4 md:right-4 z-[400]">
       <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-gray-100 overflow-hidden w-40 md:w-48">
         {/* Header */}
         <div className="flex items-center justify-between px-3 py-2.5 bg-gradient-to-r from-orange-50 to-white border-b border-orange-100">

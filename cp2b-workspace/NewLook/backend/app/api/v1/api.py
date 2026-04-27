@@ -3,7 +3,7 @@ Main API router for PILAR-2b V3
 """
 from fastapi import APIRouter
 
-from app.api.v1.endpoints import municipalities, analysis, auth, maps, geospatial, mock_geospatial, infrastructure, mapbiomas, proximity, residuos, statistics, scientific
+from app.api.v1.endpoints import municipalities, analysis, auth, maps, geospatial, mock_geospatial, infrastructure, mapbiomas, proximity, residuos, statistics, scientific, codigestion
 from app.routers import technology_routes
 
 api_router = APIRouter()
@@ -92,4 +92,11 @@ api_router.include_router(
     technology_routes.router,
     prefix="/technology-routes",
     tags=["technology-routes", "educational", "biogas-pathways"]
+)
+
+# Co-digestion clustering and C:N analysis
+api_router.include_router(
+    codigestion.router,
+    prefix="/codigestion",
+    tags=["codigestion", "clustering", "spatial-analysis", "cn-ratio"]
 )
