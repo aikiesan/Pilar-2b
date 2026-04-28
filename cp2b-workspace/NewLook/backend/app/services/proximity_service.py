@@ -14,7 +14,6 @@ from pathlib import Path
 import unicodedata
 import re
 
-from app.services.supabase_client import get_supabase_client
 
 logger = logging.getLogger(__name__)
 
@@ -206,19 +205,21 @@ class ProximityService:
             biogas_data_by_ibge = {}
 
             try:
-                supabase = get_supabase_client()
-                result = supabase.table("municipalities").select(
-                    "municipality_name, ibge_code, population, area_km2, total_biogas_m3_year"
-                ).execute()
-                for row in (result.data or []):
-                    biogas_data[row["municipality_name"]] = row
-                    normalized = normalize_municipality_name(row["municipality_name"])
-                    biogas_data_by_normalized[normalized] = row
-                    if row.get("ibge_code"):
-                        biogas_data_by_ibge[str(row["ibge_code"])] = row
+                from app.core.database import get_db
+                with get_db() as conn:
+                    cursor = conn.cursor()
+                    cursor.execute("SELECT municipality_name, ibge_code, population, area_km2, total_biogas_m3_year FROM municipalities")
+                    for row in cursor.fetchall():
+                        r = dict(row)
+                        biogas_data[r["municipality_name"]] = r
+                        normalized = normalize_municipality_name(r["municipality_name"])
+                        biogas_data_by_normalized[normalized] = r
+                        if r.get("ibge_code"):
+                            biogas_data_by_ibge[str(r["ibge_code"])] = r
+                    cursor.close()
                 logger.info(f"Loaded biogas data for {len(biogas_data)} municipalities")
             except Exception as e:
-                logger.warning(f"Could not load biogas data from Supabase: {e}")
+                logger.warning(f"Could not load biogas data from database: {e}")
 
             # Find intersecting municipalities
             muni_id = 0
@@ -310,17 +311,24 @@ class ProximityService:
             return self._empty_biogas_result()
 
         try:
-            supabase = get_supabase_client()
-            result = supabase.table("municipalities").select(
-                "total_biogas_m3_year, energy_potential_mwh_year, co2_reduction_tons_year, "
-                "urban_biogas_m3_year, agricultural_biogas_m3_year, livestock_biogas_m3_year, "
-                "rsu_biogas_m3_year, rpo_biogas_m3_year, "
-                "sugarcane_biogas_m3_year, soybean_biogas_m3_year, corn_biogas_m3_year, "
-                "coffee_biogas_m3_year, citrus_biogas_m3_year, "
-                "cattle_biogas_m3_year, swine_biogas_m3_year, poultry_biogas_m3_year, aquaculture_biogas_m3_year"
-            ).in_("municipality_name", muni_names).execute()
+            from app.core.database import get_db
+            with get_db() as conn:
+                cursor = conn.cursor()
+                placeholders = ', '.join(['%s'] * len(muni_names))
+                query = f"""
+                    SELECT total_biogas_m3_year, energy_potential_mwh_year, co2_reduction_tons_year,
+                    urban_biogas_m3_year, agricultural_biogas_m3_year, livestock_biogas_m3_year,
+                    rsu_biogas_m3_year, rpo_biogas_m3_year,
+                    sugarcane_biogas_m3_year, soybean_biogas_m3_year, corn_biogas_m3_year,
+                    coffee_biogas_m3_year, citrus_biogas_m3_year,
+                    cattle_biogas_m3_year, swine_biogas_m3_year, poultry_biogas_m3_year, aquaculture_biogas_m3_year
+                    FROM municipalities
+                    WHERE municipality_name IN ({placeholders})
+                """
+                cursor.execute(query, muni_names)
+                rows = [dict(r) for r in cursor.fetchall()]
+                cursor.close()
 
-            rows = result.data or []
             if not rows:
                 return self._empty_biogas_result()
 
@@ -393,24 +401,30 @@ class ProximityService:
             return self._empty_residuos_result()
 
         try:
-            supabase = get_supabase_client()
+            from app.core.database import get_db
+            with get_db() as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    SELECT id, codigo, nome, nome_en, sector_codigo, subsector_codigo, categoria_nome,
+                    bmp_min, bmp_medio, bmp_max, bmp_unidade,
+                    ts_min, ts_medio, ts_max, vs_min, vs_medio, vs_max,
+                    chemical_cn_ratio, chemical_ch4_content, fator_realista, icon
+                    FROM residuos
+                """)
+                residuos_data = [dict(r) for r in cursor.fetchall()]
 
-            residuos_res = supabase.table("residuos").select(
-                "id, codigo, nome, nome_en, sector_codigo, subsector_codigo, categoria_nome, "
-                "bmp_min, bmp_medio, bmp_max, bmp_unidade, "
-                "ts_min, ts_medio, ts_max, vs_min, vs_medio, vs_max, "
-                "chemical_cn_ratio, chemical_ch4_content, fator_realista, icon"
-            ).execute()
+                cursor.execute("SELECT codigo, nome, emoji, ordem FROM sectors")
+                sectors_data = [dict(r) for r in cursor.fetchall()]
+                sector_map = {s["codigo"]: s for s in sectors_data}
 
-            sectors_res = supabase.table("sectors").select("codigo, nome, emoji, ordem").execute()
-            sector_map = {s["codigo"]: s for s in (sectors_res.data or [])}
-
-            subsectors_res = supabase.table("subsectors").select("codigo, nome").execute()
-            subsector_map = {ss["codigo"]: ss["nome"] for ss in (subsectors_res.data or [])}
+                cursor.execute("SELECT codigo, nome FROM subsectors")
+                subsectors_data = [dict(r) for r in cursor.fetchall()]
+                subsector_map = {ss["codigo"]: ss["nome"] for ss in subsectors_data}
+                cursor.close()
 
             residuos_list = []
             for r in sorted(
-                residuos_res.data or [],
+                residuos_data,
                 key=lambda x: (sector_map.get(x.get("sector_codigo", ""), {}).get("ordem") or 999, x.get("nome") or "")
             ):
                 item = {k: (float(v) if hasattr(v, "__float__") else v) for k, v in r.items()}
@@ -463,26 +477,33 @@ class ProximityService:
         by_class = land_use_data.get("by_class", {})
 
         try:
-            supabase = get_supabase_client()
-            sectors_res = supabase.table("sectors").select("codigo, nome").execute()
-            sector_nome_map = {s["codigo"]: s["nome"] for s in (sectors_res.data or [])}
+            from app.core.database import get_db
+            with get_db() as conn:
+                cursor = conn.cursor()
+                cursor.execute("SELECT codigo, nome FROM sectors")
+                sectors_data = [dict(r) for r in cursor.fetchall()]
+                sector_nome_map = {s["codigo"]: s["nome"] for s in sectors_data}
 
-            for class_id_str, class_data in by_class.items():
-                class_id = int(class_id_str)
+                for class_id_str, class_data in by_class.items():
+                    class_id = int(class_id_str)
 
-                if class_id in MAPBIOMAS_RESIDUOS_MAPPING:
-                    mapping_entry = MAPBIOMAS_RESIDUOS_MAPPING[class_id]
-                    residuo_names = mapping_entry["residuos"]
+                    if class_id in MAPBIOMAS_RESIDUOS_MAPPING:
+                        mapping_entry = MAPBIOMAS_RESIDUOS_MAPPING[class_id]
+                        residuo_names = mapping_entry["residuos"]
 
-                    matched_residuos = []
-                    if residuo_names:
-                        res = supabase.table("residuos").select(
-                            "id, nome, bmp_medio, ts_medio, vs_medio, chemical_cn_ratio, "
-                            "chemical_ch4_content, bmp_unidade, sector_codigo"
-                        ).in_("nome", residuo_names).execute()
+                        matched_residuos = []
+                        if residuo_names:
+                            placeholders = ', '.join(['%s'] * len(residuo_names))
+                            cursor.execute(f"""
+                                SELECT id, nome, bmp_medio, ts_medio, vs_medio, chemical_cn_ratio,
+                                chemical_ch4_content, bmp_unidade, sector_codigo
+                                FROM residuos
+                                WHERE nome IN ({placeholders})
+                            """, residuo_names)
+                            res_data = [dict(r) for r in cursor.fetchall()]
 
-                        for r in (res.data or []):
-                            item = {k: (float(v) if hasattr(v, "__float__") else v) for k, v in r.items()}
+                            for r in res_data:
+                                item = {k: (float(v) if hasattr(v, "__float__") else v) for k, v in r.items()}
                             item["sector_nome"] = sector_nome_map.get(r.get("sector_codigo", ""), "")
                             matched_residuos.append(item)
 

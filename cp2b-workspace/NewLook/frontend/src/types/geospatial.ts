@@ -14,7 +14,6 @@ export interface MunicipalityProperties {
   immediate_region: string;
   intermediate_region: string;
   immediate_region_code: string;
-  intermediate_region_code: string;
 
   // Biogas potential (m³/year)
   total_biogas_m3_year: number;

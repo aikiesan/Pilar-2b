@@ -1,30 +1,28 @@
 """
 Geospatial API Endpoints
 Serve spatial data for interactive maps and spatial analysis.
-All geometry comes from local shapefiles; tabular data from Supabase REST.
+All geometry comes from local shapefiles; tabular data from local PostgreSQL.
 """
 
 from fastapi import APIRouter, HTTPException, Query, Depends
 from typing import List, Optional, Dict, Any
 from pydantic import BaseModel, Field
 import logging
+import psycopg2
 from pathlib import Path
 import geopandas as gpd
 from shapely.geometry import mapping, Point
 
+from app.core.database import get_db
 from app.middleware.auth import optional_auth
 from app.models.auth import UserProfile
 from app.utils.shapefile_loader import get_shapefile_loader
-from app.services.supabase_client import get_supabase_client
 
-# Initialize shapefile loader (used by get_municipalities_polygons)
 shapefile_loader = get_shapefile_loader()
 
-# Shapefile paths (same pattern as municipalities.py)
 SHAPEFILE_PATH = Path(__file__).parent.parent.parent.parent.parent / "data" / "shapefiles" / "SP_Municipios_2024.shp"
 SHAPEFILE_PATH_ALT = Path(__file__).parent.parent.parent.parent.parent.parent.parent / "project_map" / "data" / "shapefile" / "SP_Municipios_2024.shp"
 
-# In-memory cache for the GeoDataFrame
 _geo_gdf = None
 
 router = APIRouter()
@@ -34,8 +32,6 @@ logger = logging.getLogger(__name__)
 # SECURITY: Input Validation Constants
 # ============================================================================
 
-# (VALID_REGIONS whitelist removed — administrative_region filter now accepts any value;
-#  SQL injection is already prevented by parameterized queries below.)
 VALID_REGIONS = {
     "Central", "Bauru", "Araçatuba", "Ribeirão Preto",
     "Campinas", "São José dos Campos", "Sorocaba",
@@ -155,16 +151,21 @@ def _ibge_code_from_row(shp_row) -> Optional[str]:
     return None
 
 
-def _fetch_municipalities_supabase(columns: str) -> Dict[str, Dict]:
-    """Fetch municipalities from Supabase and return lookup dict keyed by ibge_code."""
-    supabase = get_supabase_client()
-    result = supabase.table("municipalities").select(columns).execute()
-    lookup = {}
-    for mun in (result.data or []):
-        code = str(mun.get("ibge_code", "")).strip()
-        if code:
-            lookup[code] = mun
-    return lookup
+def _fetch_municipalities_db(columns: str) -> Dict[str, Dict]:
+    """Fetch municipalities from PostgreSQL and return lookup dict keyed by ibge_code."""
+    with get_db() as conn:
+        cursor = conn.cursor()
+        try:
+            cursor.execute(f"SELECT {columns} FROM municipalities")
+            rows = cursor.fetchall()
+            lookup = {}
+            for row in rows:
+                code = str(row.get("ibge_code", "")).strip()
+                if code:
+                    lookup[code] = dict(row)
+            return lookup
+        finally:
+            cursor.close()
 
 
 # ============================================================================
@@ -182,15 +183,10 @@ async def get_municipalities_geojson(
     region: Optional[str] = Query(None, description="Filter by administrative region"),
     current_user: Optional[UserProfile] = Depends(optional_auth)
 ):
-    """
-    Loads polygon geometry from local shapefile, biogas data from Supabase REST.
-    Avoids PostGIS ST_AsGeoJSON which times out on the Supabase free tier.
-    """
     with get_db() as conn:
         cursor = conn.cursor()
 
         try:
-            # Build query
             query = """
             SELECT jsonb_build_object(
                 'type', 'FeatureCollection',
@@ -233,6 +229,21 @@ async def get_municipalities_geojson(
                         'sugarcane_residues_tons_year', ROUND(COALESCE(sugarcane_residues_tons_year, 0)::numeric, 2),
                         'soybean_residues_tons_year', ROUND(COALESCE(soybean_residues_tons_year, 0)::numeric, 2),
                         'corn_residues_tons_year', ROUND(COALESCE(corn_residues_tons_year, 0)::numeric, 2),
+                        'total_biomass_tons_year', ROUND(COALESCE(total_biomass_tons_year, 0)::numeric, 2),
+                        'agricultural_biomass_tons_year', ROUND(COALESCE(agricultural_biomass_tons_year, 0)::numeric, 2),
+                        'livestock_biomass_tons_year', ROUND(COALESCE(livestock_biomass_tons_year, 0)::numeric, 2),
+                        'urban_biomass_tons_year', ROUND(COALESCE(urban_biomass_tons_year, 0)::numeric, 2),
+                        'sugarcane_biomass_tons_year', ROUND(COALESCE(sugarcane_biomass_tons_year, 0)::numeric, 2),
+                        'soybean_biomass_tons_year', ROUND(COALESCE(soybean_biomass_tons_year, 0)::numeric, 2),
+                        'corn_biomass_tons_year', ROUND(COALESCE(corn_biomass_tons_year, 0)::numeric, 2),
+                        'coffee_biomass_tons_year', ROUND(COALESCE(coffee_biomass_tons_year, 0)::numeric, 2),
+                        'citrus_biomass_tons_year', ROUND(COALESCE(citrus_biomass_tons_year, 0)::numeric, 2),
+                        'cattle_biomass_tons_year', ROUND(COALESCE(cattle_biomass_tons_year, 0)::numeric, 2),
+                        'swine_biomass_tons_year', ROUND(COALESCE(swine_biomass_tons_year, 0)::numeric, 2),
+                        'poultry_biomass_tons_year', ROUND(COALESCE(poultry_biomass_tons_year, 0)::numeric, 2),
+                        'aquaculture_biomass_tons_year', ROUND(COALESCE(aquaculture_biomass_tons_year, 0)::numeric, 2),
+                        'rsu_biomass_tons_year', ROUND(COALESCE(rsu_biomass_tons_year, 0)::numeric, 2),
+                        'rpo_biomass_tons_year', ROUND(COALESCE(rpo_biomass_tons_year, 0)::numeric, 2),
                         'potential_category', potential_category,
                         'energy_potential_mwh_year', ROUND(energy_potential_mwh_year::numeric, 2),
                         'co2_reduction_tons_year', ROUND(co2_reduction_tons_year::numeric, 2),
@@ -241,7 +252,7 @@ async def get_municipalities_geojson(
                 ) as feature
                 FROM municipalities
                 WHERE 1=1
-        """
+            """
 
             params = []
 
@@ -255,7 +266,6 @@ async def get_municipalities_geojson(
 
             query += " ORDER BY total_biogas_m3_year DESC"
 
-            # SECURITY: Use parameterized query for LIMIT instead of f-string
             if limit:
                 query += " LIMIT %s"
                 params.append(limit)
@@ -275,107 +285,6 @@ async def get_municipalities_geojson(
             raise HTTPException(status_code=500, detail="Database query failed")
         finally:
             cursor.close()
-    if region and region not in VALID_REGIONS:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Invalid region. Must be one of: {', '.join(sorted(VALID_REGIONS))}"
-        )
-
-    try:
-        gdf = _load_geo_gdf()
-
-        biogas_lookup = _fetch_municipalities_supabase(
-            "id, municipality_name, ibge_code, area_km2, population, "
-            "total_biogas_m3_year, urban_biogas_m3_year, agricultural_biogas_m3_year, livestock_biogas_m3_year, "
-            "sugarcane_biogas_m3_year, soybean_biogas_m3_year, corn_biogas_m3_year, "
-            "coffee_biogas_m3_year, citrus_biogas_m3_year, "
-            "cattle_biogas_m3_year, swine_biogas_m3_year, poultry_biogas_m3_year, aquaculture_biogas_m3_year, "
-            "rsu_biogas_m3_year, rpo_biogas_m3_year, "
-            "energy_potential_mwh_year, co2_reduction_tons_year, "
-            "administrative_region, immediate_region, intermediate_region, "
-            "immediate_region_code, intermediate_region_code, potential_category"
-        )
-
-        features = []
-        for _, shp_row in gdf.iterrows():
-            ibge_code = _ibge_code_from_row(shp_row)
-            if not ibge_code:
-                continue
-
-            biogas_data = biogas_lookup.get(ibge_code, {})
-            total_biogas = float(biogas_data.get("total_biogas_m3_year") or 0)
-            adm_region = biogas_data.get("administrative_region") or ""
-
-            if min_biogas is not None and total_biogas < min_biogas:
-                continue
-            if region and adm_region != region:
-                continue
-
-            try:
-                geometry = mapping(shp_row.geometry)
-            except Exception as e:
-                logger.error(f"Error converting geometry for {ibge_code}: {e}")
-                continue
-
-            area = float(biogas_data.get("area_km2") or 0)
-            pop = int(biogas_data.get("population") or 0)
-
-            def _r(key: str) -> float:
-                return round(float(biogas_data.get(key) or 0), 2)
-
-            props = {
-                "id": biogas_data.get("id"),
-                "name": biogas_data.get("municipality_name") or "",
-                "ibge_code": ibge_code,
-                "area_km2": round(area, 2),
-                "population": pop,
-                "population_density": round(pop / area, 2) if area > 0 else 0,
-                "immediate_region": biogas_data.get("immediate_region"),
-                "intermediate_region": biogas_data.get("intermediate_region"),
-                "immediate_region_code": biogas_data.get("immediate_region_code"),
-                "intermediate_region_code": biogas_data.get("intermediate_region_code"),
-                "total_biogas_m3_year": round(total_biogas, 2),
-                "urban_biogas_m3_year": _r("urban_biogas_m3_year"),
-                "agricultural_biogas_m3_year": _r("agricultural_biogas_m3_year"),
-                "livestock_biogas_m3_year": _r("livestock_biogas_m3_year"),
-                "sugarcane_biogas_m3_year": _r("sugarcane_biogas_m3_year"),
-                "soybean_biogas_m3_year": _r("soybean_biogas_m3_year"),
-                "corn_biogas_m3_year": _r("corn_biogas_m3_year"),
-                "coffee_biogas_m3_year": _r("coffee_biogas_m3_year"),
-                "citrus_biogas_m3_year": _r("citrus_biogas_m3_year"),
-                "cattle_biogas_m3_year": _r("cattle_biogas_m3_year"),
-                "swine_biogas_m3_year": _r("swine_biogas_m3_year"),
-                "poultry_biogas_m3_year": _r("poultry_biogas_m3_year"),
-                "aquaculture_biogas_m3_year": _r("aquaculture_biogas_m3_year"),
-                "forestry_biogas_m3_year": 0.0,
-                "rsu_biogas_m3_year": _r("rsu_biogas_m3_year"),
-                "rpo_biogas_m3_year": _r("rpo_biogas_m3_year"),
-                "sugarcane_residues_tons_year": 0.0,
-                "soybean_residues_tons_year": 0.0,
-                "corn_residues_tons_year": 0.0,
-                "potential_category": biogas_data.get("potential_category"),
-                "energy_potential_mwh_year": _r("energy_potential_mwh_year"),
-                "co2_reduction_tons_year": _r("co2_reduction_tons_year"),
-                "administrative_region": adm_region,
-            }
-
-            features.append({"type": "Feature", "geometry": geometry, "properties": props, "_sort_key": total_biogas})
-
-        features.sort(key=lambda f: f["_sort_key"], reverse=True)
-        if limit:
-            features = features[:limit]
-        for f in features:
-            del f["_sort_key"]
-
-        logger.info(f"✅ Returning {len(features)} municipalities (shapefile + Supabase)")
-        return {"type": "FeatureCollection", "features": features}
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        import traceback as _tb
-        logger.error(f"Error in get_municipalities_geojson: {e}\n{_tb.format_exc()}")
-        raise HTTPException(status_code=500, detail=f"Error: {type(e).__name__}: {str(e)}")
 
 
 @router.get(
@@ -387,14 +296,10 @@ async def get_municipality_centroids(
     limit: Optional[int] = Query(None, ge=1, le=1000),
     min_biogas: Optional[float] = Query(None, ge=0)
 ):
-    """
-    Get municipality centroids computed from shapefile polygon geometries.
-    Biogas data joined from Supabase REST.
-    """
     try:
         gdf = _load_geo_gdf()
 
-        biogas_lookup = _fetch_municipalities_supabase(
+        biogas_lookup = _fetch_municipalities_db(
             "id, municipality_name, ibge_code, total_biogas_m3_year"
         )
 
@@ -443,12 +348,9 @@ async def get_municipality_centroids(
 @router.get(
     "/municipalities/polygons",
     summary="Get municipalities with polygon boundaries from shapefile",
-    description="Returns municipality polygon boundaries from shapefile with biogas data from Supabase"
+    description="Returns municipality polygon boundaries from shapefile with biogas data"
 )
 async def get_municipalities_polygons():
-    """
-    Get municipality boundaries from shapefile joined with biogas data from Supabase.
-    """
     try:
         shapefile_geojson = shapefile_loader.load_shapefile_as_geojson(
             "SP_Municipios_2024",
@@ -458,17 +360,25 @@ async def get_municipalities_polygons():
         logger.error(f"Error loading municipality shapefile: {e}")
         raise HTTPException(status_code=500, detail="Failed to load municipality boundaries")
 
-    supabase = get_supabase_client()
-    result = supabase.table("municipalities").select(
-        "ibge_code, municipality_name, total_biogas_m3_year, urban_biogas_m3_year, "
-        "agricultural_biogas_m3_year, livestock_biogas_m3_year, energy_potential_mwh_year, "
-        "co2_reduction_tons_year, population, administrative_region, immediate_region, "
-        "intermediate_region, area_km2"
-    ).execute()
-
     biogas_by_ibge: Dict[str, Dict] = {}
     biogas_by_name: Dict[str, Dict] = {}
-    for row in (result.data or []):
+
+    with get_db() as conn:
+        cursor = conn.cursor()
+        try:
+            cursor.execute("""
+                SELECT ibge_code, municipality_name, total_biogas_m3_year,
+                       urban_biogas_m3_year, agricultural_biogas_m3_year,
+                       livestock_biogas_m3_year, energy_potential_mwh_year,
+                       co2_reduction_tons_year, population, administrative_region,
+                       immediate_region, intermediate_region, area_km2
+                FROM municipalities
+            """)
+            rows = cursor.fetchall()
+        finally:
+            cursor.close()
+
+    for row in rows:
         ibge_code = str(row.get("ibge_code", "")).strip()
         name = str(row.get("municipality_name", "")).strip().upper()
         data = {k: (row.get(k) or 0) for k in [
@@ -552,7 +462,7 @@ async def get_municipalities_polygons():
         "metadata": {
             "total_features": len(enriched_features),
             "matched_with_biogas": matched_count,
-            "source": "SP_Municipios_2024.shp + Supabase municipalities table",
+            "source": "SP_Municipios_2024.shp + PostgreSQL municipalities table",
         }
     }
 
@@ -573,32 +483,34 @@ async def list_municipalities(
     sort_by: str = Query("biogas", enum=["biogas", "name", "population"]),
     order: str = Query("desc", enum=["asc", "desc"])
 ):
+    sort_column = ALLOWED_SORT_COLUMNS.get(sort_by, "total_biogas_m3_year")
+    sort_order = ALLOWED_ORDERS.get(order, "DESC")
+
     try:
-        sort_column = ALLOWED_SORT_COLUMNS.get(sort_by, "total_biogas_m3_year")
-        reverse = (order.lower() == "desc")
+        with get_db() as conn:
+            cursor = conn.cursor()
+            try:
+                cursor.execute(f"""
+                    SELECT id, municipality_name, total_biogas_m3_year, energy_potential_mwh_year,
+                           ROW_NUMBER() OVER (ORDER BY total_biogas_m3_year DESC) AS ranking
+                    FROM municipalities
+                    WHERE total_biogas_m3_year > 0
+                    ORDER BY {sort_column} {sort_order}
+                    LIMIT %s OFFSET %s
+                """, (limit, offset))
+                rows = cursor.fetchall()
+            finally:
+                cursor.close()
 
-        supabase = get_supabase_client()
-        result = supabase.table("municipalities").select(
-            "id, municipality_name, total_biogas_m3_year, energy_potential_mwh_year"
-        ).gt("total_biogas_m3_year", 0).execute()
-
-        rows = result.data or []
-        rows.sort(key=lambda r: (r.get(sort_column) or 0), reverse=reverse)
-
-        # Global ranking by biogas (independent of sort)
-        sorted_by_biogas = sorted(rows, key=lambda r: float(r.get("total_biogas_m3_year") or 0), reverse=True)
-        rank_map = {r["id"]: idx + 1 for idx, r in enumerate(sorted_by_biogas)}
-
-        page = rows[offset: offset + limit]
         return [
             MunicipalityBasic(
                 id=r["id"],
                 municipality_name=r["municipality_name"],
                 total_biogas_m3_year=float(r.get("total_biogas_m3_year") or 0),
                 energy_potential_mwh_year=float(r.get("energy_potential_mwh_year") or 0),
-                ranking=rank_map.get(r["id"])
+                ranking=int(r["ranking"])
             )
-            for r in page
+            for r in rows
         ]
 
     except Exception as e:
@@ -614,13 +526,16 @@ async def list_municipalities(
 )
 async def get_municipality(municipality_id: int):
     try:
-        supabase = get_supabase_client()
-        result = supabase.table("municipalities").select("*").eq("id", municipality_id).execute()
+        with get_db() as conn:
+            cursor = conn.cursor()
+            try:
+                cursor.execute("SELECT * FROM municipalities WHERE id = %s", (municipality_id,))
+                row = cursor.fetchone()
+            finally:
+                cursor.close()
 
-        if not result.data:
+        if not row:
             raise HTTPException(status_code=404, detail="Municipality not found")
-
-        row = result.data[0]
 
         def _f(key: str) -> float:
             return float(row.get(key) or 0)
@@ -659,7 +574,7 @@ async def get_municipality(municipality_id: int):
             rural_population=int(row["rural_population"]) if row.get("rural_population") is not None else None,
             gdp_total=_f("gdp_total") or None,
             gdp_per_capita=_f("gdp_per_capita") or None,
-            centroid=None,  # PostGIS geometry not available via REST; use /centroids endpoint
+            centroid=None,
             administrative_region=row.get("administrative_region"),
             immediate_region=row.get("immediate_region"),
             intermediate_region=row.get("intermediate_region"),
@@ -682,16 +597,10 @@ async def get_municipality(municipality_id: int):
     description="Find municipalities within radius of a point"
 )
 async def proximity_analysis(query: ProximityQuery):
-    """
-    Find municipalities within specified radius of a point using shapefile geometry.
-    """
     try:
         gdf = _load_geo_gdf()
-        biogas_lookup = _fetch_municipalities_supabase(
-            "id, municipality_name, ibge_code"
-        )
+        biogas_lookup = _fetch_municipalities_db("id, municipality_name, ibge_code")
 
-        # Project to metric CRS for distance calculation
         gdf_proj = gdf.to_crs(epsg=3857)
         from pyproj import Transformer
         transformer = Transformer.from_crs("epsg:4326", "epsg:3857", always_xy=True)
@@ -750,16 +659,19 @@ async def get_rankings(
     column = column_map[criteria]
 
     try:
-        supabase = get_supabase_client()
-        result = supabase.table("municipalities").select(
-            f"municipality_name, {column}, energy_potential_mwh_year"
-        ).gt(column, 0).execute()
-
-        rows = sorted(
-            result.data or [],
-            key=lambda r: float(r.get(column) or 0),
-            reverse=True
-        )[:limit]
+        with get_db() as conn:
+            cursor = conn.cursor()
+            try:
+                cursor.execute(f"""
+                    SELECT municipality_name, {column}, energy_potential_mwh_year
+                    FROM municipalities
+                    WHERE {column} > 0
+                    ORDER BY {column} DESC
+                    LIMIT %s
+                """, (limit,))
+                rows = cursor.fetchall()
+            finally:
+                cursor.close()
 
         return {
             "criteria": criteria,
@@ -785,42 +697,46 @@ async def get_rankings(
     description="Get summary statistics for all municipalities"
 )
 async def get_summary_statistics():
-    """
-    Get overall statistics for the platform (aggregated in Python from Supabase REST).
-    """
     logger.info("📊 Fetching summary statistics")
 
     try:
-        supabase = get_supabase_client()
-        result = supabase.table("municipalities").select(
-            "total_biogas_m3_year, energy_potential_mwh_year, co2_reduction_tons_year, "
-            "population, agricultural_biogas_m3_year, livestock_biogas_m3_year, urban_biogas_m3_year, "
-            "municipality_name"
-        ).execute()
+        with get_db() as conn:
+            cursor = conn.cursor()
+            try:
+                cursor.execute("""
+                    SELECT
+                        COUNT(*) AS n,
+                        COALESCE(SUM(total_biogas_m3_year), 0) AS total_biogas,
+                        COALESCE(AVG(total_biogas_m3_year), 0) AS avg_biogas,
+                        COALESCE(SUM(energy_potential_mwh_year), 0) AS total_energy,
+                        COALESCE(SUM(co2_reduction_tons_year), 0) AS total_co2,
+                        COALESCE(SUM(population), 0) AS total_pop,
+                        COALESCE(SUM(agricultural_biogas_m3_year), 0) AS total_agri,
+                        COALESCE(SUM(livestock_biogas_m3_year), 0) AS total_live,
+                        COALESCE(SUM(urban_biogas_m3_year), 0) AS total_urban
+                    FROM municipalities
+                """)
+                stats = cursor.fetchone()
 
-        rows = result.data or []
+                cursor.execute("""
+                    SELECT municipality_name, total_biogas_m3_year
+                    FROM municipalities
+                    ORDER BY total_biogas_m3_year DESC
+                    LIMIT 5
+                """)
+                top5 = cursor.fetchall()
+            finally:
+                cursor.close()
 
-        total_biogas = 0.0
-        total_energy = 0.0
-        total_co2 = 0.0
-        total_population = 0
-        total_agri = 0.0
-        total_live = 0.0
-        total_urban = 0.0
-
-        for row in rows:
-            total_biogas += float(row.get("total_biogas_m3_year") or 0)
-            total_energy += float(row.get("energy_potential_mwh_year") or 0)
-            total_co2 += float(row.get("co2_reduction_tons_year") or 0)
-            total_population += int(row.get("population") or 0)
-            total_agri += float(row.get("agricultural_biogas_m3_year") or 0)
-            total_live += float(row.get("livestock_biogas_m3_year") or 0)
-            total_urban += float(row.get("urban_biogas_m3_year") or 0)
-
-        n = len(rows)
-        avg_biogas = total_biogas / n if n > 0 else 0.0
-
-        top5 = sorted(rows, key=lambda r: float(r.get("total_biogas_m3_year") or 0), reverse=True)[:5]
+        n = int(stats["n"] or 0)
+        total_biogas = float(stats["total_biogas"] or 0)
+        avg_biogas = float(stats["avg_biogas"] or 0)
+        total_energy = float(stats["total_energy"] or 0)
+        total_co2 = float(stats["total_co2"] or 0)
+        total_pop = int(stats["total_pop"] or 0)
+        total_agri = float(stats["total_agri"] or 0)
+        total_live = float(stats["total_live"] or 0)
+        total_urban = float(stats["total_urban"] or 0)
 
         logger.info(f"✅ Summary statistics: {n} municipalities")
 
@@ -830,7 +746,7 @@ async def get_summary_statistics():
             "average_biogas_m3_year": round(avg_biogas, 2),
             "total_energy_mwh_year": round(total_energy, 2),
             "total_co2_reduction_tons_year": round(total_co2, 2),
-            "total_population": total_population,
+            "total_population": total_pop,
             "top_municipality": {
                 "name": top5[0]["municipality_name"] if top5 else "N/A",
                 "biogas_m3_year": float(top5[0].get("total_biogas_m3_year") or 0) if top5 else 0,
@@ -883,19 +799,23 @@ async def get_summary_statistics():
     description="Returns existing biogas plants as GeoJSON points"
 )
 async def get_biogas_plants():
-    """
-    Fetch biogas plants from Supabase REST.
-    The PostGIS 'location' geometry column is not serialized as GeoJSON via REST;
-    returns an empty FeatureCollection if the table has no lat/lng columns.
-    """
     try:
-        supabase = get_supabase_client()
-        result = supabase.table("biogas_plants").select(
-            "plant_name, plant_type, status, installed_capacity_m3_day, latitude, longitude"
-        ).execute()
+        with get_db() as conn:
+            cursor = conn.cursor()
+            try:
+                cursor.execute("""
+                    SELECT plant_name, plant_type, status,
+                           installed_capacity_m3_day, latitude, longitude
+                    FROM biogas_plants
+                """)
+                rows = cursor.fetchall()
+            except psycopg2.errors.UndefinedTable:
+                return {"type": "FeatureCollection", "features": []}
+            finally:
+                cursor.close()
 
         features = []
-        for row in (result.data or []):
+        for row in rows:
             lat = row.get("latitude")
             lng = row.get("longitude")
             if lat is None or lng is None:

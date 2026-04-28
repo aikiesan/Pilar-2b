@@ -148,6 +148,21 @@ class SupabaseGeospatialClient {
           sugarcane_residues_tons_year: 0,
           soybean_residues_tons_year: 0,
           corn_residues_tons_year: 0,
+          total_biomass_tons_year: 0,
+          agricultural_biomass_tons_year: 0,
+          livestock_biomass_tons_year: 0,
+          urban_biomass_tons_year: 0,
+          sugarcane_biomass_tons_year: 0,
+          soybean_biomass_tons_year: 0,
+          corn_biomass_tons_year: 0,
+          coffee_biomass_tons_year: 0,
+          citrus_biomass_tons_year: 0,
+          cattle_biomass_tons_year: 0,
+          swine_biomass_tons_year: 0,
+          poultry_biomass_tons_year: 0,
+          aquaculture_biomass_tons_year: 0,
+          rsu_biomass_tons_year: 0,
+          rpo_biomass_tons_year: 0,
           potential_category
         }
       }
@@ -363,6 +378,21 @@ class SupabaseGeospatialClient {
         sugarcane_residues_tons_year: 0,
         soybean_residues_tons_year: 0,
         corn_residues_tons_year: 0,
+        total_biomass_tons_year: 0,
+        agricultural_biomass_tons_year: 0,
+        livestock_biomass_tons_year: 0,
+        urban_biomass_tons_year: 0,
+        sugarcane_biomass_tons_year: 0,
+        soybean_biomass_tons_year: 0,
+        corn_biomass_tons_year: 0,
+        coffee_biomass_tons_year: 0,
+        citrus_biomass_tons_year: 0,
+        cattle_biomass_tons_year: 0,
+        swine_biomass_tons_year: 0,
+        poultry_biomass_tons_year: 0,
+        aquaculture_biomass_tons_year: 0,
+        rsu_biomass_tons_year: 0,
+        rpo_biomass_tons_year: 0,
         potential_category
       }
     }

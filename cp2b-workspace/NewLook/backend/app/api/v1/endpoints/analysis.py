@@ -214,7 +214,7 @@ async def get_distribution(
         for i in range(bins):
             b_start = min_val + i * bin_width
             b_end   = min_val + (i + 1) * bin_width
-            count = len([v for v in values if (b_start <= v <= b_end) if i == bins - 1 else (b_start <= v < b_end)])
+            count = len([v for v in values if (b_start <= v <= b_end if i == bins - 1 else b_start <= v < b_end)])
             histogram.append({
                 "bin_start": round(b_start, 2), "bin_end": round(b_end, 2), "count": count,
                 "label": f"{round(b_start/1_000_000, 2)}-{round(b_end/1_000_000, 2)}M",
