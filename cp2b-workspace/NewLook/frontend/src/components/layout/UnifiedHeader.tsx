@@ -100,7 +100,7 @@ export default function UnifiedHeader({ variant = 'auto' }: UnifiedHeaderProps) 
   const styles = {
     public: {
       header: 'bg-white/95 backdrop-blur-sm border-b border-gray-200',
-      logo: '/images/logotipo-full-black.png',
+      logo: '/pilar2b/images/logotipo-full-black.png',
       logoClass: '',
       navLink: 'text-cp2b-gray-600 hover:text-cp2b-green',
       navLinkActive: 'text-cp2b-green font-semibold relative after:absolute after:bottom-0 after:left-2 after:right-2 after:h-0.5 after:bg-cp2b-green after:rounded-full',
@@ -110,7 +110,7 @@ export default function UnifiedHeader({ variant = 'auto' }: UnifiedHeaderProps) 
     },
     authenticated: {
       header: 'bg-gradient-to-r from-[#1E5128] to-[#2C6B3A] shadow-lg',
-      logo: '/images/logotipo-full-black.png',
+      logo: '/pilar2b/images/logotipo-full-black.png',
       logoClass: 'brightness-0 invert',
       navLink: 'text-green-100 hover:bg-white/10 hover:text-white',
       navLinkActive: 'bg-white/20 text-white shadow-inner',

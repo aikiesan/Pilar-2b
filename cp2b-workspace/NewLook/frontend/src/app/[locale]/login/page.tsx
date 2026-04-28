@@ -78,7 +78,7 @@ export default function LoginPage() {
             aria-label={t('login.back_to_home')}
           >
             <Image
-              src="/images/logotipo-full-black.png"
+              src="/pilar2b/images/logotipo-full-black.png"
               alt="PILAR-2b Logo"
               width={200}
               height={55}

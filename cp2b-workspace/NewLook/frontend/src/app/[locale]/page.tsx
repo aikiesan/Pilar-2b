@@ -301,10 +301,10 @@ const AnimatedMapBackground = () => {
 const screenshotKeys = ['interactive_map', 'data_analysis', 'proximity_analysis', 'scientific_basis'] as const
 
 const screenshotImages = [
-  '/screenshots/interactive-map.png',
-  '/screenshots/data-analysis.png',
-  '/screenshots/proximity-analysis.png',
-  '/screenshots/scientific-basis.png',
+  '/pilar2b/screenshots/interactive-map.png',
+  '/pilar2b/screenshots/data-analysis.png',
+  '/pilar2b/screenshots/proximity-analysis.png',
+  '/pilar2b/screenshots/scientific-basis.png',
 ]
 
 export default function HomePage() {
