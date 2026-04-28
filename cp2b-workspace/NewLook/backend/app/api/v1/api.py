@@ -3,7 +3,7 @@ Main API router for PILAR-2b V3
 """
 from fastapi import APIRouter
 
-from app.api.v1.endpoints import municipalities, analysis, auth, maps, geospatial, mock_geospatial, infrastructure, mapbiomas, proximity, residuos, statistics, scientific, codigestion
+from app.api.v1.endpoints import municipalities, analysis, auth, maps, geospatial, mock_geospatial, infrastructure, mapbiomas, proximity, residuos, statistics, scientific, codigestion, intermediate_regions
 from app.routers import technology_routes
 
 api_router = APIRouter()
@@ -99,4 +99,11 @@ api_router.include_router(
     codigestion.router,
     prefix="/codigestion",
     tags=["codigestion", "clustering", "spatial-analysis", "cn-ratio"]
+)
+
+# National intermediate regions (Phase 1 — 133 IBGE regions)
+api_router.include_router(
+    intermediate_regions.router,
+    prefix="/intermediate-regions",
+    tags=["intermediate-regions", "national", "geospatial"]
 )

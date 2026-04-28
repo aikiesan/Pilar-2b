@@ -51,9 +51,7 @@ function ComparePageContent() {
 
         setLoading(true);
 
-        const apiUrl = process.env.NODE_ENV === 'production'
-          ? 'https://newlook-production.up.railway.app'
-          : 'http://localhost:8000';
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
 
         const promises = ids.map((id) =>
           fetch(`${apiUrl}/api/v1/geospatial/municipalities/${id}`).then((res) => {

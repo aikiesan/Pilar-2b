@@ -140,11 +140,7 @@ export function useInfrastructureLayer(
   layerType: string,
   enabled: boolean = true
 ) {
-  const API_BASE_URL =
-    process.env.NEXT_PUBLIC_API_URL ||
-    (process.env.NODE_ENV === 'production'
-      ? 'https://newlook-production.up.railway.app'
-      : 'http://localhost:8000');
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
   const queryResult = useQuery({
     queryKey: queryKeys.infrastructure.layer(layerType),
@@ -222,6 +218,43 @@ export function useResidueCNMatrix() {
     data: queryResult.data as ResidueCNMatrix | null,
     loading: queryResult.isLoading,
     error: queryResult.error as Error | null,
+  };
+}
+
+/**
+ * Hook to fetch intermediate regions GeoJSON (133 IBGE regions, enriched with
+ * biogas/biomass data). Lazy by default — only fetches when enabled=true.
+ */
+export function useIntermediateRegionsGeoJSON(params: {
+  stateCode?: string;
+  enrich?: boolean;
+  enabled?: boolean;
+} = {}) {
+  const { stateCode, enrich = true, enabled = false } = params;
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
+
+  const queryResult = useQuery({
+    queryKey: queryKeys.intermediateRegions.geojson(stateCode),
+    queryFn: async () => {
+      const url = new URL(`${API_BASE_URL}/api/v1/intermediate-regions/geojson`, window.location.origin);
+      url.searchParams.set('enrich', String(enrich));
+      if (stateCode) url.searchParams.set('state_code', stateCode);
+      const res = await fetch(url.toString());
+      if (!res.ok) throw new Error(`Failed to fetch intermediate regions: ${res.statusText}`);
+      return res.json();
+    },
+    enabled,
+    staleTime: 1000 * 60 * 30,  // 30 min — region boundaries rarely change
+    gcTime:    1000 * 60 * 60,
+    retry: 2,
+  });
+
+  return {
+    data: queryResult.data || null,
+    loading: queryResult.isLoading,
+    error: queryResult.error as Error | null,
+    isFetching: queryResult.isFetching,
+    refetch: queryResult.refetch,
   };
 }
 

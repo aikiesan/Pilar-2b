@@ -12,7 +12,7 @@ import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import { MapContainer, TileLayer } from 'react-leaflet';
 import dynamic from 'next/dynamic';
-import { useGeospatialData, useCodigestionClusters, useResidueCNMatrix } from '@/hooks/useGeospatialData';
+import { useGeospatialData, useCodigestionClusters, useResidueCNMatrix, useIntermediateRegionsGeoJSON } from '@/hooks/useGeospatialData';
 import type { FilterCriteria } from '@/components/dashboard/FilterPanel';
 import type { MunicipalityCollection, MunicipalityFeature, DisplayMetric, CodigestionCluster } from '@/types/geospatial';
 import type { BiomassType, ResidueType } from './FloatingControlPanel';
@@ -56,10 +56,16 @@ const IntermediateRegionBoundaryLayer = dynamic(
   () => import('./IntermediateRegionBoundaryLayer'),
   { ssr: false }
 );
+const IntermediateRegionsMapLayer = dynamic(
+  () => import('./IntermediateRegionsMapLayer'),
+  { ssr: false }
+);
 
-// São Paulo state center coordinates
+// Map center / zoom by scope
 const SAO_PAULO_CENTER: [number, number] = [-22.0, -48.5];
-const DEFAULT_ZOOM = 7;
+const BRAZIL_CENTER: [number, number] = [-15.0, -53.0];
+const DEFAULT_ZOOM = 7;   // SP scope
+const BRAZIL_ZOOM = 4;    // Brazil scope
 
 // Valid residue values for URL parsing
 const VALID_RESIDUES: ResidueType[] = [
@@ -97,6 +103,12 @@ export default function MapComponent({
     enabled: visualizationMode === 'clusters',
   });
   const { data: cnMatrix } = useResidueCNMatrix();
+  // Separate state so we can pass it to the hook before visibleLayerIds is computed
+  const [intermediateRegionsEnabled, setIntermediateRegionsEnabled] = useState(false);
+  const { data: intermediateRegionsGeoJSON } = useIntermediateRegionsGeoJSON({
+    enrich: true,
+    enabled: intermediateRegionsEnabled,
+  });
   const [isMounted, setIsMounted] = useState(false);
   const [isRendering, setIsRendering] = useState(false);
   const [layersRendered, setLayersRendered] = useState(0);
@@ -112,6 +124,7 @@ export default function MapComponent({
   const urlResidues = readURLParam('r');
   const urlQuery = readURLParam('q');
   const urlMetric = readURLParam('metric');
+  const urlScope = readURLParam('scope'); // 'brazil' → national view
 
   const initialMode: VisualizationMode =
     VALID_VIZ.includes(urlMode as VisualizationMode) ? (urlMode as VisualizationMode) : 'choropleth';
@@ -133,6 +146,10 @@ export default function MapComponent({
   const [displayMetric, setDisplayMetric] = useState<DisplayMetric>(initialMetric);
   const [selectedClusterId, setSelectedClusterId] = useState<string | null>(null);
   const [showClusterPanel, setShowClusterPanel] = useState(false);
+  const [mapScope, setMapScope] = useState<'sp' | 'brazil'>(urlScope === 'brazil' ? 'brazil' : 'sp');
+
+  const mapCenter = mapScope === 'brazil' ? BRAZIL_CENTER : SAO_PAULO_CENTER;
+  const mapZoom = mapScope === 'brazil' ? BRAZIL_ZOOM : DEFAULT_ZOOM;
 
   // ── Enhanced interaction state (Phase 2+3) ────────────────────────────────
   const [selectedMunicipality, setSelectedMunicipality] = useState<MunicipalityFeature | null>(null);
@@ -262,6 +279,10 @@ export default function MapComponent({
     setLayers(prev => prev.map(l => l.id === layerId ? { ...l, visible } : l));
     if (layerId === 'mapbiomas') setShowMapBiomasLegend(visible);
     if (layerId === 'biogas-plants') setShowBiomassLayerLegend(visible);
+    if (layerId === 'intermediate-regions') {
+      setIntermediateRegionsEnabled(visible);
+      if (visible) setMapScope('brazil');
+    }
   };
 
   const visibleLayerIds = useMemo(
@@ -409,8 +430,8 @@ export default function MapComponent({
       {/* ── Map area (flex-1 fills remaining width) ── */}
       <div className="relative flex-1 min-w-0 h-full">
         <MapContainer
-          center={SAO_PAULO_CENTER}
-          zoom={DEFAULT_ZOOM}
+          center={mapCenter}
+          zoom={mapZoom}
           scrollWheelZoom={true}
           style={MAP_CONTAINER_STYLE}
         >
@@ -462,7 +483,14 @@ export default function MapComponent({
           {visibleLayerIds.includes('substations') && <InfrastructureLayer layerType="substations" />}
           {visibleLayerIds.includes('transmission-lines') && <InfrastructureLayer layerType="transmission-lines" />}
           {visibleLayerIds.includes('etes') && <InfrastructureLayer layerType="etes" />}
-          {visibleLayerIds.includes('intermediate-regions') && <IntermediateRegionBoundaryLayer visible={true} />}
+          {visibleLayerIds.includes('intermediate-regions') && (
+            intermediateRegionsGeoJSON
+              ? <IntermediateRegionsMapLayer
+                  geoJSON={intermediateRegionsGeoJSON}
+                  opacity={opacity}
+                />
+              : <IntermediateRegionBoundaryLayer visible={true} />
+          )}
         </MapContainer>
 
         {/* Overlays — all absolute-positioned within the map area */}
