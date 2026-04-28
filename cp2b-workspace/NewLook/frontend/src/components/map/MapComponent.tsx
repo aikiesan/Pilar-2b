@@ -97,21 +97,6 @@ export default function MapComponent({
 }: MapComponentProps = {}) {
   const t = useTranslations('Map');
   const { data, loading, error } = useGeospatialData();
-  const { data: clusterData, loading: clusterLoading } = useCodigestionClusters({
-    radiusKm: 30,
-    minBiomass: 1000,
-    enabled: visualizationMode === 'clusters',
-  });
-  const { data: cnMatrix } = useResidueCNMatrix();
-  // Separate state so we can pass it to the hook before visibleLayerIds is computed
-  const [intermediateRegionsEnabled, setIntermediateRegionsEnabled] = useState(false);
-  const { data: intermediateRegionsGeoJSON } = useIntermediateRegionsGeoJSON({
-    enrich: true,
-    enabled: intermediateRegionsEnabled,
-  });
-  const [isMounted, setIsMounted] = useState(false);
-  const [isRendering, setIsRendering] = useState(false);
-  const [layersRendered, setLayersRendered] = useState(0);
 
   // ── URL state sync (client-only, safe since ssr:false) ─────────────────────
   const readURLParam = (key: string): string | null => {
@@ -128,6 +113,26 @@ export default function MapComponent({
 
   const initialMode: VisualizationMode =
     VALID_VIZ.includes(urlMode as VisualizationMode) ? (urlMode as VisualizationMode) : 'choropleth';
+
+  // visualizationMode must be declared before useCodigestionClusters uses it
+  const [visualizationMode, setVisualizationMode] = useState<VisualizationMode>(initialMode);
+
+  const { data: clusterData, loading: clusterLoading } = useCodigestionClusters({
+    radiusKm: 30,
+    minBiomass: 1000,
+    enabled: visualizationMode === 'clusters',
+  });
+  const { data: cnMatrix } = useResidueCNMatrix();
+  // Separate state so we can pass it to the hook before visibleLayerIds is computed
+  const [intermediateRegionsEnabled, setIntermediateRegionsEnabled] = useState(false);
+  const { data: intermediateRegionsGeoJSON } = useIntermediateRegionsGeoJSON({
+    enrich: true,
+    enabled: intermediateRegionsEnabled,
+  });
+  const [isMounted, setIsMounted] = useState(false);
+  const [isRendering, setIsRendering] = useState(false);
+  const [layersRendered, setLayersRendered] = useState(0);
+
   const initialBiomass: BiomassType =
     VALID_BIOMASS.includes(urlType as BiomassType) ? (urlType as BiomassType) : propBiomassType;
   const initialResidues: ResidueType[] = urlResidues
@@ -139,7 +144,6 @@ export default function MapComponent({
 
   // Local state (authoritative)
   const [selectedResidues, setSelectedResidues] = useState<ResidueType[]>(initialResidues);
-  const [visualizationMode, setVisualizationMode] = useState<VisualizationMode>(initialMode);
   const [biomassType, setBiomassType] = useState<BiomassType>(initialBiomass);
   const [searchQuery, setSearchQuery] = useState<string>(initialQuery);
   const [opacity, setOpacity] = useState<number>(propOpacity);

@@ -26,26 +26,24 @@ logger = logging.getLogger(__name__)
 
 CN_OPTIMAL_LOW  = 20.0
 CN_OPTIMAL_HIGH = 30.0
-CN_OPTIMAL_MID  = 25.0  # scoring midpoint
+CN_OPTIMAL_MID  = 25.0
 
-# Residue display metadata (key → label, sector)
 RESIDUE_META = {
-    "sugarcane": {"label": "Palha de Cana",      "sector": "agricultural", "codigo": "palha_cana"},
-    "soybean":   {"label": "Palha de Soja",      "sector": "agricultural", "codigo": "palha_soja"},
-    "corn":      {"label": "Palha de Milho",     "sector": "agricultural", "codigo": "palha_milho"},
-    "coffee":    {"label": "Casca de Café",      "sector": "agricultural", "codigo": "casca_cafe"},
-    "citrus":    {"label": "Bagaço de Citros",   "sector": "agricultural", "codigo": "bagaco_citros"},
-    "cattle":    {"label": "Esterco Bovino",     "sector": "livestock",    "codigo": "esterco_bovino_fresco"},
-    "swine":     {"label": "Dejetos de Suínos",  "sector": "livestock",    "codigo": "dejetos_suinos_liquidos"},
-    "poultry":   {"label": "Cama de Aviário",    "sector": "livestock",    "codigo": "cama_aviario"},
-    "aquaculture":{"label": "Resíduo Aquicultura","sector": "livestock",   "codigo": None},
-    "rsu":       {"label": "FORSU (RSU Orgânico)","sector": "urban",       "codigo": "forsu_ur_rsu"},
-    "rpo":       {"label": "Lodo de ETE",        "sector": "urban",        "codigo": "lodo_primario_ete"},
+    "sugarcane":   {"label": "Palha de Cana",       "sector": "agricultural", "codigo": "palha_cana"},
+    "soybean":     {"label": "Palha de Soja",       "sector": "agricultural", "codigo": "palha_soja"},
+    "corn":        {"label": "Palha de Milho",      "sector": "agricultural", "codigo": "palha_milho"},
+    "coffee":      {"label": "Casca de Café",       "sector": "agricultural", "codigo": "casca_cafe"},
+    "citrus":      {"label": "Bagaço de Citros",    "sector": "agricultural", "codigo": "bagaco_citros"},
+    "cattle":      {"label": "Esterco Bovino",      "sector": "livestock",    "codigo": "esterco_bovino_fresco"},
+    "swine":       {"label": "Dejetos de Suínos",   "sector": "livestock",    "codigo": "dejetos_suinos_liquidos"},
+    "poultry":     {"label": "Cama de Aviário",     "sector": "livestock",    "codigo": "cama_aviario"},
+    "aquaculture": {"label": "Resíduo Aquicultura", "sector": "livestock",    "codigo": None},
+    "rsu":         {"label": "FORSU (RSU Orgânico)","sector": "urban",        "codigo": "forsu_ur_rsu"},
+    "rpo":         {"label": "Lodo de ETE",         "sector": "urban",        "codigo": "lodo_primario_ete"},
 }
 
 RESIDUE_KEYS = list(RESIDUE_META.keys())
 
-# Shapefile path — same as municipalities.py uses
 SHAPEFILE_PATH = (
     Path(__file__).parent.parent.parent.parent / "data" / "shapefiles" / "SP_Municipios_2024.shp"
 )
@@ -69,12 +67,8 @@ def _weighted_cn(biomass_a: float, cn_a: float, biomass_b: float, cn_b: float) -
 
 
 def _improvement_score(cn_combined: float, cn_a: float, cn_b: float) -> float:
-    """
-    Score > 0 if combining A+B moves C:N closer to the 20–30 optimal midpoint
-    than either residue alone. Higher = better opportunity.
-    """
-    dist_a       = abs(cn_a       - CN_OPTIMAL_MID)
-    dist_b       = abs(cn_b       - CN_OPTIMAL_MID)
+    dist_a        = abs(cn_a        - CN_OPTIMAL_MID)
+    dist_b        = abs(cn_b        - CN_OPTIMAL_MID)
     dist_combined = abs(cn_combined - CN_OPTIMAL_MID)
     return round((dist_a + dist_b) / 2.0 - dist_combined, 2)
 
@@ -84,11 +78,10 @@ def _blend_ratio(biomass_a: float, biomass_b: float) -> str:
     if total <= 0:
         return "0:0"
     pct_a = round(biomass_a / total * 100, 1)
-    pct_b = round(100 - pct_a, 1)
-    return f"{pct_a}:{pct_b}"
+    return f"{pct_a}:{round(100 - pct_a, 1)}"
 
 
-# ─── Spatial grouping (union-find with UTM distance) ──────────────────────────
+# ─── Spatial grouping ─────────────────────────────────────────────────────────
 
 class _UnionFind:
     def __init__(self, n: int):
@@ -107,7 +100,6 @@ class _UnionFind:
 
 
 def _haversine_km(lat1: float, lng1: float, lat2: float, lng2: float) -> float:
-    """Fast haversine distance in km (sufficient accuracy for 30 km threshold)."""
     R = 6371.0
     dlat = math.radians(lat2 - lat1)
     dlng = math.radians(lng2 - lng1)
@@ -117,32 +109,20 @@ def _haversine_km(lat1: float, lng1: float, lat2: float, lng2: float) -> float:
     return R * 2 * math.asin(math.sqrt(a))
 
 
-def _build_spatial_groups(
-    municipalities: list[dict],
-    radius_km: float,
-) -> list[list[dict]]:
-    """
-    Group municipalities via union-find: any two within radius_km are connected.
-    Uses haversine distance between centroids (lat/lng fields).
-    Returns list of groups; single-municipality groups are excluded.
-    """
-    n = len(municipalities)
+def _build_spatial_groups(municipalities: list[dict], radius_km: float) -> list[list[dict]]:
+    n  = len(municipalities)
     uf = _UnionFind(n)
-
     for i in range(n):
         for j in range(i + 1, n):
             a, b = municipalities[i], municipalities[j]
             if None in (a.get("centroid_lat"), a.get("centroid_lng"),
                         b.get("centroid_lat"), b.get("centroid_lng")):
                 continue
-            dist = _haversine_km(
-                a["centroid_lat"], a["centroid_lng"],
-                b["centroid_lat"], b["centroid_lng"]
-            )
+            dist = _haversine_km(a["centroid_lat"], a["centroid_lng"],
+                                 b["centroid_lat"], b["centroid_lng"])
             if dist <= radius_km:
                 uf.union(i, j)
 
-    # Group by component root
     groups_idx: dict[int, list[int]] = {}
     for i in range(n):
         root = uf.find(i)
@@ -158,14 +138,9 @@ def _build_spatial_groups(
 # ─── Convex hull ─────────────────────────────────────────────────────────────
 
 def _convex_hull_geojson(municipalities: list[dict]) -> Optional[dict]:
-    """
-    Compute convex hull of municipality centroids and return as GeoJSON Polygon.
-    Returns None if fewer than 2 points.
-    """
     try:
-        from shapely.geometry import MultiPoint
+        from shapely.geometry import MultiPoint, mapping
     except ImportError:
-        logger.warning("shapely not available — skipping convex hull")
         return None
 
     coords = [
@@ -176,42 +151,31 @@ def _convex_hull_geojson(municipalities: list[dict]) -> Optional[dict]:
     if len(coords) < 2:
         return None
 
-    points = MultiPoint(coords)
-    hull = points.convex_hull
-    # Buffer slightly so single-line hulls become visible polygons
+    hull = MultiPoint(coords).convex_hull
     if hull.geom_type != "Polygon":
         hull = hull.buffer(0.05)
-
-    from shapely.geometry import mapping
     return mapping(hull)
 
 
-# ─── C:N data from Supabase ───────────────────────────────────────────────────
+# ─── C:N data from local PostgreSQL ──────────────────────────────────────────
 
 @lru_cache(maxsize=1)
 def _load_cn_data() -> dict[str, float]:
-    """
-    Load C:N ratios keyed by residue key from Supabase residuos table.
-    Cached for the process lifetime (data is static).
-    """
     try:
-        from app.services.supabase_client import get_supabase_client
-        supabase = get_supabase_client()
-        rows = supabase.table("residuos").select(
-            "codigo, chemical_cn_ratio"
-        ).execute().data or []
-        return {row["codigo"]: float(row["chemical_cn_ratio"] or 0) for row in rows}
+        from app.core.database import get_db
+        with get_db() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT codigo, chemical_cn_ratio FROM residuos WHERE chemical_cn_ratio IS NOT NULL")
+            rows = cursor.fetchall()
+            cursor.close()
+        return {row["codigo"]: float(row["chemical_cn_ratio"]) for row in rows}
     except Exception as e:
         logger.error(f"Failed to load C:N data: {e}")
         return {}
 
 
 def _get_cn(key: str, cn_by_codigo: dict[str, float]) -> float:
-    """
-    Return the C:N ratio for a residue key, using the primary codigo.
-    Falls back to 25 (optimal midpoint) if data is missing.
-    """
-    meta = RESIDUE_META.get(key, {})
+    meta   = RESIDUE_META.get(key, {})
     codigo = meta.get("codigo")
     if codigo and codigo in cn_by_codigo:
         return cn_by_codigo[codigo]
@@ -225,79 +189,58 @@ def find_codigestion_clusters(
     min_biomass_tons: float = 1000.0,
     max_clusters: int = 20,
 ) -> dict:
-    """
-    Identify co-digestion opportunity clusters across São Paulo municipalities.
+    from app.core.database import get_db
 
-    Args:
-        radius_km:        Proximity threshold for grouping municipalities (default 30 km)
-        min_biomass_tons: Minimum cluster-level biomass for a residue to qualify (default 1,000 t/yr)
-        max_clusters:     Maximum clusters to return, ranked by score
-
-    Returns:
-        {clusters: [...], total_clusters: int, parameters: {...}}
-    """
-    from app.services.supabase_client import get_supabase_client
-    supabase = get_supabase_client()
-
-    # Fetch municipalities with centroid + biomass data
-    biomass_cols = ", ".join(f"{k}_biomass_tons_year" for k in RESIDUE_KEYS)
-    logger.info("Fetching municipality biomass data for clustering...")
-    rows = supabase.table("municipalities").select(
-        f"id, municipality_name, ibge_code, centroid_lat, centroid_lng, {biomass_cols}"
-    ).execute().data or []
-
-    if not rows:
-        logger.warning("No municipality data returned from Supabase")
+    biomass_cols_sql = ", ".join(f"{k}_biomass_tons_year" for k in RESIDUE_KEYS)
+    try:
+        with get_db() as conn:
+            cursor = conn.cursor()
+            cursor.execute(f"""
+                SELECT id, municipality_name, ibge_code, centroid_lat, centroid_lng, {biomass_cols_sql}
+                FROM municipalities
+                WHERE centroid_lat IS NOT NULL AND centroid_lng IS NOT NULL
+            """)
+            rows = [dict(r) for r in cursor.fetchall()]
+            cursor.close()
+    except Exception as e:
+        logger.error(f"Failed to fetch municipality data: {e}")
         return {"clusters": [], "total_clusters": 0,
                 "parameters": {"radius_km": radius_km, "min_biomass_tons": min_biomass_tons}}
 
-    # Parse centroid from geometry string if stored as WKT, or use lat/lng columns
+    if not rows:
+        return {"clusters": [], "total_clusters": 0,
+                "parameters": {"radius_km": radius_km, "min_biomass_tons": min_biomass_tons}}
+
     municipalities = []
     for row in rows:
-        lat = row.get("centroid_lat")
-        lng = row.get("centroid_lng")
-        if lat is None or lng is None:
-            continue
         municipalities.append({
-            "id": row["id"],
-            "name": row.get("municipality_name", ""),
-            "ibge_code": row.get("ibge_code", ""),
-            "centroid_lat": float(lat),
-            "centroid_lng": float(lng),
-            **{f"{k}_biomass_tons_year": float(row.get(f"{k}_biomass_tons_year") or 0)
-               for k in RESIDUE_KEYS},
+            "id":           row["id"],
+            "name":         row.get("municipality_name", ""),
+            "ibge_code":    row.get("ibge_code", ""),
+            "centroid_lat": float(row["centroid_lat"]),
+            "centroid_lng": float(row["centroid_lng"]),
+            **{f"{k}_biomass_tons_year": float(row.get(f"{k}_biomass_tons_year") or 0) for k in RESIDUE_KEYS},
         })
 
-    logger.info(f"Building spatial groups for {len(municipalities)} municipalities "
-                f"(radius={radius_km} km)...")
+    logger.info(f"Building spatial groups for {len(municipalities)} municipalities (radius={radius_km} km)...")
     groups = _build_spatial_groups(municipalities, radius_km)
     logger.info(f"Found {len(groups)} multi-municipality groups")
 
-    cn_by_codigo = _load_cn_data()
-
+    cn_by_codigo   = _load_cn_data()
     cluster_results = []
 
     for group_idx, group in enumerate(groups):
-        # Aggregate biomass per residue across the cluster
         cluster_biomass: dict[str, float] = {}
         for key in RESIDUE_KEYS:
-            total = sum(m.get(f"{key}_biomass_tons_year", 0.0) for m in group)
-            cluster_biomass[key] = round(total, 2)
+            cluster_biomass[key] = round(sum(m.get(f"{key}_biomass_tons_year", 0.0) for m in group), 2)
 
-        # Residues present above threshold
-        present = [
-            k for k in RESIDUE_KEYS
-            if cluster_biomass.get(k, 0.0) >= min_biomass_tons
-        ]
-
+        present = [k for k in RESIDUE_KEYS if cluster_biomass.get(k, 0.0) >= min_biomass_tons]
         if len(present) < 2:
             continue
 
-        # Compute centroid of the cluster
         avg_lat = sum(m["centroid_lat"] for m in group) / len(group)
         avg_lng = sum(m["centroid_lng"] for m in group) / len(group)
 
-        # Score all qualifying pairs
         qualifying_pairs = []
         for i, key_a in enumerate(present):
             for key_b in present[i + 1:]:
@@ -305,32 +248,19 @@ def find_codigestion_clusters(
                 cn_b = _get_cn(key_b, cn_by_codigo)
                 if cn_a <= 0 or cn_b <= 0:
                     continue
-
-                b_a = cluster_biomass[key_a]
-                b_b = cluster_biomass[key_b]
+                b_a    = cluster_biomass[key_a]
+                b_b    = cluster_biomass[key_b]
                 cn_comb = _weighted_cn(b_a, cn_a, b_b, cn_b)
-                score = _improvement_score(cn_comb, cn_a, cn_b)
-
+                score   = _improvement_score(cn_comb, cn_a, cn_b)
                 if score <= 0:
                     continue
-
                 qualifying_pairs.append({
-                    "residue_a": {
-                        "key": key_a,
-                        "label": RESIDUE_META[key_a]["label"],
-                        "sector": RESIDUE_META[key_a]["sector"],
-                        "cn_ratio": cn_a,
-                        "cn_role": _cn_role(cn_a),
-                        "biomass_tons_year": b_a,
-                    },
-                    "residue_b": {
-                        "key": key_b,
-                        "label": RESIDUE_META[key_b]["label"],
-                        "sector": RESIDUE_META[key_b]["sector"],
-                        "cn_ratio": cn_b,
-                        "cn_role": _cn_role(cn_b),
-                        "biomass_tons_year": b_b,
-                    },
+                    "residue_a": {"key": key_a, "label": RESIDUE_META[key_a]["label"],
+                                  "sector": RESIDUE_META[key_a]["sector"], "cn_ratio": cn_a,
+                                  "cn_role": _cn_role(cn_a), "biomass_tons_year": b_a},
+                    "residue_b": {"key": key_b, "label": RESIDUE_META[key_b]["label"],
+                                  "sector": RESIDUE_META[key_b]["sector"], "cn_ratio": cn_b,
+                                  "cn_role": _cn_role(cn_b), "biomass_tons_year": b_b},
                     "cn_combined": round(cn_comb, 2),
                     "cn_combined_in_range": CN_OPTIMAL_LOW <= cn_comb <= CN_OPTIMAL_HIGH,
                     "improvement_score": score,
@@ -343,72 +273,47 @@ def find_codigestion_clusters(
 
         qualifying_pairs.sort(key=lambda p: p["improvement_score"], reverse=True)
         top_pair = qualifying_pairs[0]
-        cluster_score = top_pair["improvement_score"]
 
-        # Municipality list with distance from centroid
-        mun_list = [
-            {
-                "ibge_code": m["ibge_code"],
-                "name": m["name"],
-                "distance_from_centroid_km": round(
-                    _haversine_km(avg_lat, avg_lng, m["centroid_lat"], m["centroid_lng"]), 1
-                ),
-            }
-            for m in group
-        ]
-        mun_list.sort(key=lambda x: x["distance_from_centroid_km"])
+        mun_list = sorted(
+            [{"ibge_code": m["ibge_code"], "name": m["name"],
+              "distance_from_centroid_km": round(_haversine_km(avg_lat, avg_lng, m["centroid_lat"], m["centroid_lng"]), 1)}
+             for m in group],
+            key=lambda x: x["distance_from_centroid_km"],
+        )
 
         cluster_results.append({
-            "cluster_id": f"cluster_{group_idx:04d}",
+            "cluster_id":         f"cluster_{group_idx:04d}",
             "municipality_count": len(group),
-            "municipalities": mun_list,
-            "convex_hull": _convex_hull_geojson(group),
-            "centroid": {"lat": round(avg_lat, 6), "lng": round(avg_lng, 6)},
-            "top_pair": top_pair,
-            "all_qualifying_pairs": qualifying_pairs[:10],  # cap at 10 pairs per cluster
+            "municipalities":     mun_list,
+            "convex_hull":        _convex_hull_geojson(group),
+            "centroid":           {"lat": round(avg_lat, 6), "lng": round(avg_lng, 6)},
+            "top_pair":           top_pair,
+            "all_qualifying_pairs": qualifying_pairs[:10],
             "all_present_residues": present,
-            "cluster_score": cluster_score,
+            "cluster_score":      top_pair["improvement_score"],
             "total_biomass_tons_year": round(sum(cluster_biomass.values()), 2),
         })
 
-    # Sort by score descending
     cluster_results.sort(key=lambda c: c["cluster_score"], reverse=True)
     top_clusters = cluster_results[:max_clusters]
-
-    # Re-label with stable rank-based IDs
     for rank, cluster in enumerate(top_clusters, 1):
         cluster["cluster_id"] = f"cluster_{rank:03d}"
 
     return {
-        "clusters": top_clusters,
+        "clusters":       top_clusters,
         "total_clusters": len(cluster_results),
-        "parameters": {
-            "radius_km": radius_km,
-            "min_biomass_tons": min_biomass_tons,
-        },
+        "parameters":     {"radius_km": radius_km, "min_biomass_tons": min_biomass_tons},
     }
 
 
 def get_residue_cn_matrix() -> dict:
-    """
-    Return C:N ratios for all 11 residue types with role classification.
-    Used for the filter panel C:N badge display.
-    """
     cn_by_codigo = _load_cn_data()
-
     residues = []
     for key, meta in RESIDUE_META.items():
         cn = _get_cn(key, cn_by_codigo)
         residues.append({
-            "key": key,
-            "label": meta["label"],
-            "sector": meta["sector"],
-            "cn_ratio": cn,
-            "in_optimal_range": CN_OPTIMAL_LOW <= cn <= CN_OPTIMAL_HIGH,
+            "key": key, "label": meta["label"], "sector": meta["sector"],
+            "cn_ratio": cn, "in_optimal_range": CN_OPTIMAL_LOW <= cn <= CN_OPTIMAL_HIGH,
             "cn_role": _cn_role(cn),
         })
-
-    return {
-        "residues": residues,
-        "optimal_range": {"low": CN_OPTIMAL_LOW, "high": CN_OPTIMAL_HIGH},
-    }
+    return {"residues": residues, "optimal_range": {"low": CN_OPTIMAL_LOW, "high": CN_OPTIMAL_HIGH}}
