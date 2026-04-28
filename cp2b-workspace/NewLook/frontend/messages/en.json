@@ -99,9 +99,9 @@
   "landing": {
     "skip_to_content": "Skip to main content",
     "hero": {
-      "badge": "FAPESP Project 2025/08745-2 | NIPE-UNICAMP",
-      "title": "Mapping the Potential of",
-      "title_highlight": "Biogas in São Paulo",
+      "badge": "CP2b - FAPESP 2024/01112-1 NIPE-Unicamp",
+      "title": "PILAR-2b: Intelligent Platform for Locating and Using Residues for",
+      "title_highlight": "Biogas and Bioproducts",
       "subtitle": "Geospatial platform for analyzing biogas production potential from organic waste in São Paulo state",
       "cta_explore": "Explore Interactive Map",
       "cta_demo": "Watch Demo",
@@ -204,7 +204,7 @@
       "description": "Subscribe to receive updates on new features, analyses, and insights about the biogas sector in São Paulo."
     },
     "footer": {
-      "fapesp_project": "FAPESP Grant 2025/08745-2",
+      "fapesp_project": "FAPESP 2024/01112-1 · CP2Bsd",
       "about": "About",
       "copyright": "© 2025 NIPE-UNICAMP",
       "newsletter_heading": "Get Our Updates",

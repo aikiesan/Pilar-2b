@@ -90,16 +90,16 @@ export default function MunicipalityProfilePanel({
       />
 
       {/* Profile Panel - Slide in from right */}
-      <div className="fixed right-0 top-0 bottom-0 w-full md:w-[500px] lg:w-[600px] bg-white dark:bg-slate-900 shadow-2xl z-[1101] overflow-y-auto transform transition-transform">
+      <div className="fixed right-0 top-0 bottom-0 w-full md:w-[360px] lg:w-[400px] bg-white dark:bg-slate-900 shadow-2xl z-[1101] overflow-y-auto transform transition-transform">
         {/* Header */}
-        <div className="sticky top-0 bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-700 dark:to-blue-800 text-white p-6 shadow-lg z-10">
+        <div className="sticky top-0 bg-gradient-to-r from-[#1B5E20] to-[#2F7D32] text-white p-4 shadow-lg z-10">
           <div className="flex items-start justify-between">
             <div className="flex-1">
-              <div className="flex items-center space-x-2 mb-2">
-                <MapPin className="w-5 h-5" />
-                <span className="text-sm font-medium opacity-90">Município de São Paulo</span>
+              <div className="flex items-center space-x-2 mb-1">
+                <MapPin className="w-4 h-4" />
+                <span className="text-xs font-medium opacity-80">Município de São Paulo</span>
               </div>
-              <h2 className="text-3xl font-bold mb-1">{props.name}</h2>
+              <h2 className="text-xl font-bold mb-1">{props.name}</h2>
               <div className="flex items-center space-x-4 text-sm opacity-90">
                 <span>IBGE: {props.ibge_code}</span>
                 <span>•</span>
@@ -117,7 +117,7 @@ export default function MunicipalityProfilePanel({
         </div>
 
         {/* Content */}
-        <div className="p-6 space-y-6">
+        <div className="p-4 space-y-4">
           {/* Overview Section */}
           <Section
             title="Visão Geral"
@@ -125,21 +125,21 @@ export default function MunicipalityProfilePanel({
             expanded={expandedSections.has('overview')}
             onToggle={() => toggleSection('overview')}
           >
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3">
               <StatCard
-                icon={<Users className="w-5 h-5 text-blue-600" />}
+                icon={<Users className="w-4 h-4 text-blue-600" />}
                 label="População"
                 value={formatNumber(props.population)}
                 subtitle="habitantes (2022)"
               />
               <StatCard
-                icon={<Maximize className="w-5 h-5 text-green-600" />}
+                icon={<Maximize className="w-4 h-4 text-green-600" />}
                 label="Área"
                 value={formatNumber(props.area_km2)}
                 subtitle="km²"
               />
               <StatCard
-                icon={<Users className="w-5 h-5 text-purple-600" />}
+                icon={<Users className="w-4 h-4 text-purple-600" />}
                 label="Densidade"
                 value={
                   props.population && props.area_km2
@@ -149,7 +149,7 @@ export default function MunicipalityProfilePanel({
                 subtitle="hab/km²"
               />
               <StatCard
-                icon={<TrendingUp className="w-5 h-5 text-orange-600" />}
+                icon={<TrendingUp className="w-4 h-4 text-orange-600" />}
                 label="PIB per capita"
                 value="N/A"
                 subtitle="R$ (2022)"
@@ -166,14 +166,14 @@ export default function MunicipalityProfilePanel({
           >
             <div className="space-y-4">
               {/* Total Biogas */}
-              <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-xl p-6 border border-blue-200 dark:border-blue-800">
-                <div className="text-sm text-blue-700 dark:text-blue-300 font-medium mb-2">
+              <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-lg p-4 border border-green-200 dark:border-green-800">
+                <div className="text-xs text-green-700 dark:text-green-300 font-medium mb-1">
                   Potencial Total
                 </div>
-                <div className="text-4xl font-bold text-blue-900 dark:text-blue-100 mb-1">
+                <div className="text-2xl font-bold text-green-900 dark:text-green-100 mb-0.5">
                   {formatBigNumber(totalBiogas)}
                 </div>
-                <div className="text-sm text-blue-600 dark:text-blue-400">
+                <div className="text-xs text-green-600 dark:text-green-400">
                   m³/ano de biogás
                 </div>
               </div>
@@ -328,12 +328,12 @@ interface StatCardProps {
 
 function StatCard({ icon, label, value, subtitle }: StatCardProps) {
   return (
-    <div className="bg-gray-50 dark:bg-slate-800 rounded-lg p-4">
-      <div className="flex items-center space-x-2 mb-2">
+    <div className="bg-gray-50 dark:bg-slate-800 rounded-lg p-3">
+      <div className="flex items-center space-x-1.5 mb-1">
         {icon}
         <span className="text-xs font-medium text-gray-600 dark:text-gray-400">{label}</span>
       </div>
-      <div className="text-2xl font-bold text-gray-900 dark:text-white mb-1">{value}</div>
+      <div className="text-lg font-bold text-gray-900 dark:text-white mb-0.5">{value}</div>
       <div className="text-xs text-gray-500 dark:text-gray-400">{subtitle}</div>
     </div>
   );
