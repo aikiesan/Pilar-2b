@@ -90,11 +90,11 @@ export default function IntermediateRegionsMapLayer({
       layer.on('click', () => onRegionClick(feature));
     }
 
-    (layer as L.Path).on('mouseover', function () {
-      (this as L.Path).setStyle({ weight: 3, color: '#000' });
+    (layer as L.Path).on('mouseover', () => {
+      (layer as L.Path).setStyle({ weight: 3, color: '#000' });
     });
-    (layer as L.Path).on('mouseout', function () {
-      (this as L.Path).setStyle({ weight: biogas > 0 ? 1.5 : 1, color: '#1B5E20' });
+    (layer as L.Path).on('mouseout', () => {
+      (layer as L.Path).setStyle({ weight: biogas > 0 ? 1.5 : 1, color: '#1B5E20' });
     });
   };
 
