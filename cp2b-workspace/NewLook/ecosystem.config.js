@@ -25,8 +25,8 @@ module.exports = {
     },
     {
       name: 'pilar-frontend',
-      script: `${REPO_ROOT}/frontend/.next/standalone/server.js`,
-      interpreter: 'node',
+      script: 'npm',
+      args: 'run start',
       cwd: `${REPO_ROOT}/frontend`,
       autorestart: true,
       watch: false,
