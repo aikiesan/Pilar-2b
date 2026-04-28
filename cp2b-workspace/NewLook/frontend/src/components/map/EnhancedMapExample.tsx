@@ -264,7 +264,7 @@ export default function EnhancedMapExample() {
           biomassType={biomassType}
           onBiomassTypeChange={setBiomassType}
           visualizationMode={visualizationMode}
-          onVisualizationModeChange={setVisualizationMode}
+          onVisualizationModeChange={(mode) => setVisualizationMode(mode)}
         />
       )}
 
