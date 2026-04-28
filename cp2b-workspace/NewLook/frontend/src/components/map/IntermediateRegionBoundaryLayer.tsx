@@ -55,7 +55,8 @@ export default function IntermediateRegionBoundaryLayer({
   useEffect(() => {
     const fetchRegions = async () => {
       try {
-        const response = await fetch('/data/br_intermediary_regions.geojson')
+        const basePath = process.env.NEXT_PUBLIC_BASE_PATH || ''
+        const response = await fetch(`${basePath}/data/br_intermediary_regions.geojson`)
         if (!response.ok) throw new Error(`HTTP ${response.status}`)
         const data = await response.json()
 

@@ -10,7 +10,7 @@ import { QueryProvider } from '@/contexts/QueryProvider'
 import ComparisonBar from '@/components/comparison/ComparisonBar'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import UnifiedHeader from '@/components/layout/UnifiedHeader'
-import Footer from '@/components/layout/Footer'
+import ConditionalFooter from '@/components/layout/ConditionalFooter'
 import { ToastProvider } from '@/contexts/ToastContext'
 import ToastContainer from '@/components/ui/ToastContainer'
 import { locales, type Locale } from '@/config/i18n'
@@ -146,7 +146,7 @@ export default async function LocaleLayout({
                             {children}
                           </main>
                           <ComparisonBar />
-                          <Footer />
+                          <ConditionalFooter />
                           {/* Global toast notification stack */}
                           <ToastContainer />
                         </ErrorBoundary>

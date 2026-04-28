@@ -99,9 +99,9 @@
   "landing": {
     "skip_to_content": "Pular para o conteúdo principal",
     "hero": {
-      "badge": "Projeto FAPESP 2025/08745-2 | NIPE-UNICAMP",
-      "title": "Mapeamento do Potencial de",
-      "title_highlight": "Biogás em São Paulo",
+      "badge": "CP2b - FAPESP 2024/01112-1 NIPE-Unicamp",
+      "title": "PILAR-2b: Plataforma Inteligente de Localização e Aproveitamento de Resíduos para",
+      "title_highlight": "Biogás e Bioprodutos",
       "subtitle": "Plataforma geoespacial para análise do potencial de produção de biogás a partir de resíduos orgânicos no estado de São Paulo",
       "cta_explore": "Explorar Mapa Interativo",
       "cta_demo": "Ver Demonstração",
@@ -204,7 +204,7 @@
       "description": "Inscreva-se para receber atualizações sobre novos recursos, análises e insights sobre o setor de biogás em São Paulo."
     },
     "footer": {
-      "fapesp_project": "Processo FAPESP 2025/08745-2",
+      "fapesp_project": "FAPESP 2024/01112-1 · CP2Bsd",
       "about": "Sobre",
       "copyright": "© 2025 NIPE-UNICAMP",
       "newsletter_heading": "Receba Nossas Novidades",

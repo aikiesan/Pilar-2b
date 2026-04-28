@@ -135,7 +135,7 @@ export default function MapComponent({
     : [];
   const initialQuery = urlQuery ?? propSearchQuery;
   const initialMetric: DisplayMetric =
-    VALID_METRICS.includes(urlMetric as DisplayMetric) ? (urlMetric as DisplayMetric) : 'biomass_tons';
+    VALID_METRICS.includes(urlMetric as DisplayMetric) ? (urlMetric as DisplayMetric) : 'biogas_m3';
 
   // Local state (authoritative)
   const [selectedResidues, setSelectedResidues] = useState<ResidueType[]>(initialResidues);
