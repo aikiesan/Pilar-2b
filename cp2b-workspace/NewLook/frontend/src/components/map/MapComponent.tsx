@@ -17,6 +17,7 @@ import type { FilterCriteria } from '@/components/dashboard/FilterPanel';
 import type { MunicipalityCollection, MunicipalityFeature, DisplayMetric, CodigestionCluster } from '@/types/geospatial';
 import type { BiomassType, ResidueType } from './FloatingControlPanel';
 import type { VisualizationMode } from './LeftFilterPanel';
+import type { InfrastructureLayerStatus } from './InfrastructureLayer';
 import MapLegend from './MapLegend';
 import MapLoadingSkeleton from './MapLoadingSkeleton';
 import 'leaflet/dist/leaflet.css';
@@ -261,6 +262,7 @@ export default function MapComponent({
     { id: 'etes', name: 'ETEs (SNIS, 2023)', visible: false, icon: '💧' },
     { id: 'railways', name: 'Rodovias (EPE, 2023)', visible: false, icon: '🛣️' },
   ]);
+  const [infrastructureStatuses, setInfrastructureStatuses] = useState<Record<string, InfrastructureLayerStatus>>({});
 
   const [showMapBiomasLegend, setShowMapBiomasLegend] = useState(false);
   const [showBiomassLayerLegend, setShowBiomassLayerLegend] = useState(false);
@@ -281,6 +283,13 @@ export default function MapComponent({
 
   const handleLayerToggle = (layerId: string, visible: boolean) => {
     setLayers(prev => prev.map(l => l.id === layerId ? { ...l, visible } : l));
+    if (!visible) {
+      setInfrastructureStatuses(prev => {
+        const next = { ...prev };
+        delete next[layerId];
+        return next;
+      });
+    }
     if (layerId === 'mapbiomas') setShowMapBiomasLegend(visible);
     if (layerId === 'biogas-plants') setShowBiomassLayerLegend(visible);
     if (layerId === 'intermediate-regions') {
@@ -293,6 +302,19 @@ export default function MapComponent({
     () => layers.filter(l => l.visible).map(l => l.id),
     [layers]
   );
+  const infrastructureAlerts = useMemo(
+    () => Object.values(infrastructureStatuses).filter(status =>
+      visibleLayerIds.includes(status.layerType) &&
+      (status.state === 'empty' || status.state === 'error')
+    ),
+    [infrastructureStatuses, visibleLayerIds]
+  );
+  const handleInfrastructureStatus = useCallback((status: InfrastructureLayerStatus) => {
+    setInfrastructureStatuses(prev => ({ ...prev, [status.layerType]: status }));
+  }, []);
+  const getLayerLabel = useCallback((layerId: string) => {
+    return layers.find(layer => layer.id === layerId)?.name || layerId;
+  }, [layers]);
 
   // ── Derive biomass attribute for BubbleChartLayer ─────────────────────────
   const metricSuffix = displayMetric === 'biomass_tons' ? 'biomass_tons_year' : 'biogas_m3_year';
@@ -481,12 +503,12 @@ export default function MapComponent({
           )}
 
           {visibleLayerIds.includes('mapbiomas') && <MapBiomasLayer opacity={0.7} />}
-          {visibleLayerIds.includes('biogas-plants') && <InfrastructureLayer layerType="biogas-plants" />}
-          {visibleLayerIds.includes('railways') && <InfrastructureLayer layerType="railways" />}
-          {visibleLayerIds.includes('pipelines') && <InfrastructureLayer layerType="pipelines" />}
-          {visibleLayerIds.includes('substations') && <InfrastructureLayer layerType="substations" />}
-          {visibleLayerIds.includes('transmission-lines') && <InfrastructureLayer layerType="transmission-lines" />}
-          {visibleLayerIds.includes('etes') && <InfrastructureLayer layerType="etes" />}
+          {visibleLayerIds.includes('biogas-plants') && <InfrastructureLayer layerType="biogas-plants" onStatus={handleInfrastructureStatus} />}
+          {visibleLayerIds.includes('railways') && <InfrastructureLayer layerType="railways" onStatus={handleInfrastructureStatus} />}
+          {visibleLayerIds.includes('pipelines') && <InfrastructureLayer layerType="pipelines" onStatus={handleInfrastructureStatus} />}
+          {visibleLayerIds.includes('substations') && <InfrastructureLayer layerType="substations" onStatus={handleInfrastructureStatus} />}
+          {visibleLayerIds.includes('transmission-lines') && <InfrastructureLayer layerType="transmission-lines" onStatus={handleInfrastructureStatus} />}
+          {visibleLayerIds.includes('etes') && <InfrastructureLayer layerType="etes" onStatus={handleInfrastructureStatus} />}
           {visibleLayerIds.includes('intermediate-regions') && (
             intermediateRegionsGeoJSON
               ? <IntermediateRegionsMapLayer
@@ -498,6 +520,24 @@ export default function MapComponent({
         </MapContainer>
 
         {/* Overlays — all absolute-positioned within the map area */}
+        {infrastructureAlerts.length > 0 && (
+          <div className="absolute top-4 right-4 z-[450] max-w-sm space-y-2">
+            {infrastructureAlerts.map(status => (
+              <div
+                key={status.layerType}
+                className="rounded-lg border border-amber-300 bg-amber-50/95 px-3 py-2 text-xs text-amber-900 shadow-lg backdrop-blur"
+                role="status"
+              >
+                <p className="font-semibold">
+                  {getLayerLabel(status.layerType)} indisponível
+                </p>
+                <p className="mt-1 leading-snug">
+                  {status.message || 'O servidor retornou uma camada vazia.'}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
 
         {isMounted && hoveredMunicipality && (
           <div className="hidden md:block">

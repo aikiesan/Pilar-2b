@@ -24,12 +24,17 @@ CREATE TABLE IF NOT EXISTS municipalities (
     -- Geographic Data
     geometry GEOMETRY(MultiPolygon, 4326),  -- Municipality boundaries
     centroid GEOMETRY(Point, 4326),          -- Municipality center point
+    centroid_lat NUMERIC(10, 6),
+    centroid_lng NUMERIC(10, 6),
     area_km2 NUMERIC(10, 2),
+    area_year INTEGER,
 
     -- Regional Classification
     administrative_region VARCHAR(100),
     immediate_region VARCHAR(100),
+    immediate_region_code VARCHAR(6),
     intermediate_region VARCHAR(100),
+    intermediate_region_code VARCHAR(4),
 
     -- Total Biogas Potential (m³/year)
     total_biogas_m3_year NUMERIC(15, 2) DEFAULT 0,
@@ -66,12 +71,16 @@ CREATE TABLE IF NOT EXISTS municipalities (
 
     -- Population Data
     population INTEGER,
+    population_density NUMERIC(12, 4),
+    population_year INTEGER,
     urban_population INTEGER,
     rural_population INTEGER,
 
     -- Economic Data
     gdp_total NUMERIC(15, 2),
     gdp_per_capita NUMERIC(10, 2),
+    gdp_year INTEGER,
+    ibge_data_source TEXT,
 
     -- Metadata
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,

@@ -12,14 +12,11 @@ import type {
   ResidueCNMatrix,
 } from '@/types/geospatial';
 import { logger } from '@/lib/logger';
-import { supabaseGeospatialClient } from './supabaseGeospatial';
 
 // Data source configuration
 // NEXT_PUBLIC_USE_MOCK_DATA=true - Use client-side mock data
-// NEXT_PUBLIC_USE_SUPABASE=true - Use Supabase directly (recommended)
 // Otherwise - Use FastAPI backend
 const USE_MOCK_DATA = process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true';
-const USE_SUPABASE = process.env.NEXT_PUBLIC_USE_SUPABASE === 'true';
 
 // API base URL — use relative URL in the browser so any reverse proxy (Apache, Nginx, etc.)
 // routes /api/* transparently without requiring NEXT_PUBLIC_API_URL in the environment.
@@ -41,19 +38,13 @@ class GeospatialClient {
    * Generic fetch wrapper with error handling and client-side fallback
    */
   private async fetchJSON<T>(endpoint: string, options?: RequestInit): Promise<T> {
-    // Priority 1: Use Supabase directly if enabled
-    if (USE_SUPABASE) {
-      console.info('🔌 Using Supabase database directly');
-      return this.getFromSupabase<T>(endpoint);
-    }
-
-    // Priority 2: Use mock data if enabled
+    // Priority 1: Use mock data if enabled
     if (USE_MOCK_DATA) {
       console.info('📦 Using client-side mock data (Railway backend bypassed)');
       return this.getClientSideMockData<T>(endpoint);
     }
 
-    // Priority 3: Use FastAPI backend
+    // Priority 2: Use FastAPI backend
     const url = `${this.baseUrl}${API_PREFIX}${endpoint}`;
 
     try {
@@ -76,42 +67,11 @@ class GeospatialClient {
     } catch (error) {
       if (error instanceof Error) {
         logger.warn(`API fetch failed for ${endpoint}: ${error.message}`);
-        // Try Supabase as fallback
-        if (!USE_MOCK_DATA) {
-          try {
-            logger.info('🔄 Trying Supabase as fallback');
-            return await this.getFromSupabase<T>(endpoint);
-          } catch {
-            logger.info('🔄 Using client-side mock data as final fallback');
-          }
-        }
-        // Use client-side mock data as final fallback
+        logger.info('🔄 Using client-side mock data as final fallback');
         return this.getClientSideMockData<T>(endpoint);
       }
       throw new Error('Unknown error occurred');
     }
-  }
-
-  /**
-   * Get data from Supabase
-   */
-  private async getFromSupabase<T>(endpoint: string): Promise<T> {
-    if (endpoint.includes('/geojson') || endpoint.includes('/polygons')) {
-      return supabaseGeospatialClient.getMunicipalitiesGeoJSON() as Promise<T>;
-    } else if (endpoint.includes('/summary')) {
-      return supabaseGeospatialClient.getSummaryStatistics() as Promise<T>;
-    } else if (endpoint.includes('/rankings')) {
-      // Parse criteria and limit from endpoint
-      const url = new URL(endpoint, 'http://dummy');
-      const criteria = url.searchParams.get('criteria') as 'total' | 'agricultural' | 'livestock' | 'urban' || 'total';
-      const limit = parseInt(url.searchParams.get('limit') || '10');
-      return supabaseGeospatialClient.getRankings(criteria, limit) as Promise<T>;
-    } else if (endpoint.match(/\/municipalities\/\d+/)) {
-      const id = endpoint.split('/').pop();
-      return supabaseGeospatialClient.getMunicipalityDetail(id || '') as Promise<T>;
-    }
-
-    throw new Error(`No Supabase handler for endpoint: ${endpoint}`);
   }
 
   /**
@@ -229,16 +189,16 @@ class GeospatialClient {
     // Get biogas data from Supabase
     let biogasDataByCode: Record<string, any> = {};
     try {
-      const summaryData = await supabaseGeospatialClient.getMunicipalitiesGeoJSON();
-      summaryData.features.forEach((feature) => {
-        const ibgeCode = feature.properties.ibge_code?.toString() || '';
+      const municipalitiesList = await this.fetchJSON<any[]>('/municipalities');
+      municipalitiesList.forEach((m: any) => {
+        const ibgeCode = m.ibge_code?.toString() || '';
         if (ibgeCode) {
-          biogasDataByCode[ibgeCode] = feature.properties;
+          biogasDataByCode[ibgeCode] = m;
         }
       });
-      logger.info(`📊 Loaded biogas data for ${Object.keys(biogasDataByCode).length} municipalities from Supabase`);
+      logger.info(`📊 Loaded biogas data for ${Object.keys(biogasDataByCode).length} municipalities from backend API`);
     } catch (error) {
-      logger.warn(`Failed to load biogas data from Supabase: ${error}`);
+      logger.warn(`Failed to load biogas data from backend API: ${error}`);
     }
 
     // Merge IBGE geometries with biogas data
@@ -250,13 +210,18 @@ class GeospatialClient {
         id: ibgeCode,
         name: feature.properties?.name || feature.properties?.NM_MUN || 'Unknown',
         ibge_code: ibgeCode,
-        area_km2: 0,
+        area_km2: biogasData?.area_km2 || 0,
         population: biogasData?.population || 0,
-        population_density: 0,
+        population_density: biogasData?.population_density || 0,
+        population_year: biogasData?.population_year,
+        area_year: biogasData?.area_year,
+        gdp_total: biogasData?.gdp_total || 0,
+        gdp_per_capita: biogasData?.gdp_per_capita || 0,
+        gdp_year: biogasData?.gdp_year,
         immediate_region: biogasData?.immediate_region || '',
         intermediate_region: biogasData?.intermediate_region || '',
-        immediate_region_code: '',
-        intermediate_region_code: '',
+        immediate_region_code: biogasData?.immediate_region_code || '',
+        intermediate_region_code: biogasData?.intermediate_region_code || '',
         total_biogas_m3_year: biogasData?.total_biogas_m3_year || 0,
         agricultural_biogas_m3_year: biogasData?.agricultural_biogas_m3_year || 0,
         livestock_biogas_m3_year: biogasData?.livestock_biogas_m3_year || 0,

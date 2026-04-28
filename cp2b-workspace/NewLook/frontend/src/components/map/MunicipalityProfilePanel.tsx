@@ -59,6 +59,15 @@ export default function MunicipalityProfilePanel({
     return value.toLocaleString('pt-BR');
   };
 
+  const formatCurrency = (value: number | undefined | null) => {
+    if (value === undefined || value === null || value <= 0) return 'N/A';
+    return value.toLocaleString('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+      maximumFractionDigits: 0,
+    });
+  };
+
   const formatBigNumber = (value: number | undefined | null) => {
     if (value === undefined || value === null) return 'N/A';
     if (value >= 1000000) {
@@ -130,19 +139,21 @@ export default function MunicipalityProfilePanel({
                 icon={<Users className="w-4 h-4 text-blue-600" />}
                 label="População"
                 value={formatNumber(props.population)}
-                subtitle="habitantes (2022)"
+                subtitle={`habitantes${props.population_year ? ` (${props.population_year})` : ''}`}
               />
               <StatCard
                 icon={<Maximize className="w-4 h-4 text-green-600" />}
                 label="Área"
                 value={formatNumber(props.area_km2)}
-                subtitle="km²"
+                subtitle={`km²${props.area_year ? ` (${props.area_year})` : ''}`}
               />
               <StatCard
                 icon={<Users className="w-4 h-4 text-purple-600" />}
                 label="Densidade"
                 value={
-                  props.population && props.area_km2
+                  props.population_density
+                    ? formatNumber(Math.round(props.population_density))
+                    : props.population && props.area_km2
                     ? formatNumber(Math.round(props.population / props.area_km2))
                     : 'N/A'
                 }
@@ -151,8 +162,8 @@ export default function MunicipalityProfilePanel({
               <StatCard
                 icon={<TrendingUp className="w-4 h-4 text-orange-600" />}
                 label="PIB per capita"
-                value="N/A"
-                subtitle="R$ (2022)"
+                value={formatCurrency(props.gdp_per_capita)}
+                subtitle={`per capita${props.gdp_year ? ` (${props.gdp_year})` : ''}`}
               />
             </div>
           </Section>

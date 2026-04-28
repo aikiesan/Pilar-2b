@@ -101,28 +101,6 @@ const apiCache = new ApiCache();
  * Helper function to get auth headers from Supabase session
  */
 async function getAuthHeaders(): Promise<HeadersInit> {
-  if (typeof window === 'undefined') {
-    return {};
-  }
-
-  try {
-    const { createClient } = await import('@supabase/supabase-js');
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
-    const { data: { session } } = await supabase.auth.getSession();
-
-    if (session?.access_token) {
-      return {
-        'Authorization': `Bearer ${session.access_token}`,
-        'Content-Type': 'application/json',
-      };
-    }
-  } catch (error) {
-    logger.error('Failed to get auth headers:', error);
-  }
-
   return {
     'Content-Type': 'application/json',
   };

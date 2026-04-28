@@ -465,10 +465,10 @@ async def get_infrastructure_types():
             },
             {
                 "id": "railway",
-                "name": "Ferrovia",
-                "icon": "🚂",
+                "name": "Rodovia",
+                "icon": "🛣️",
                 "search_radius_km": 50,
-                "description": "Linhas ferroviárias para transporte"
+                "description": "Rodovias estaduais para transporte"
             },
             {
                 "id": "transmission_line",

@@ -45,7 +45,7 @@ class ShapefileLoader:
                         "total_features": 0,
                         "crs": "EPSG:4326",
                         "note": f"Shapefile {filename} não encontrado no servidor",
-                        "error": "File not found - shapefiles must be uploaded to Railway"
+                        "error": "File not found - shapefile bundle must be deployed to the server"
                     }
                 }
 

@@ -41,11 +41,11 @@ export default function LayerControl({ onLayerToggle }: LayerControlProps) {
     },
     {
       id: 'railways',
-      name: 'Ferrovias',
-      description: 'Malha ferroviária',
+      name: 'Rodovias',
+      description: 'Malha rodoviária',
       visible: false,
       category: 'infrastructure',
-      icon: '🚂',
+      icon: '🛣️',
     },
     {
       id: 'pipelines',

@@ -231,7 +231,7 @@ export default function FilterPanel({ onFilterChange }: FilterPanelProps) {
               onChange={(e) => updateFilter('nearRailway', e.target.checked)}
               className="h-4 w-4 rounded border-gray-300 text-[#1E5128] focus:ring-[#1E5128]"
             />
-            <span className="text-sm text-gray-700">🚂 Próximo a ferrovias</span>
+            <span className="text-sm text-gray-700">🛣️ Próximo a rodovias</span>
           </label>
           <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded">
             <input

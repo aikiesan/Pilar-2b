@@ -6,23 +6,35 @@ Provides GeoJSON data for infrastructure layers from real shapefiles
 from fastapi import APIRouter
 from typing import Dict, Any
 import logging
-from app.utils.shapefile_loader import get_shapefile_loader
+from app.utils.shapefile_loader import SHAPEFILE_DIR, get_shapefile_loader
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
 shapefile_loader = get_shapefile_loader()
 
+REQUIRED_SHAPEFILES = {
+    "railways": ["Rodovias_Estaduais_SP"],
+    "pipelines": ["Gasodutos_Distribuicao_SP", "Gasodutos_Transporte_SP"],
+    "substations": ["Subestacoes_Energia"],
+    "biogas-plants": ["Plantas_Biogas_SP"],
+    "transmission-lines": ["Linhas_De_Transmissao_Energia"],
+    "etes": ["ETEs_2019_SP"],
+}
+REQUIRED_SIDECAR_EXTENSIONS = (".shp", ".shx", ".dbf", ".prj")
+
 
 @router.get("/railways/geojson")
 async def get_railways_geojson() -> Dict[str, Any]:
     """
-    Get railway network GeoJSON for São Paulo state
+    Get state highway GeoJSON for São Paulo state.
+
+    The route name is kept as /railways for frontend/API compatibility, but
+    the dataset served here is Rodovias_Estaduais_SP.
 
     Returns:
-        GeoJSON FeatureCollection with railway lines from Rodovias_Estaduais_SP.shp
+        GeoJSON FeatureCollection with highway lines from Rodovias_Estaduais_SP.shp
     """
-    # Use highways shapefile (Rodovias) as proxy for railways
     # Simplify to reduce file size (tolerance in degrees, ~0.001 = ~100m)
     geojson = shapefile_loader.load_shapefile_as_geojson(
         "Rodovias_Estaduais_SP",
@@ -185,10 +197,29 @@ async def get_sp_boundary_geojson() -> Dict[str, Any]:
 
 
 @router.get("/health")
-async def health_check() -> Dict[str, str]:
+async def health_check() -> Dict[str, Any]:
     """Health check endpoint for infrastructure module"""
+    layers = {}
+    missing = []
+    for layer_type, shapefile_names in REQUIRED_SHAPEFILES.items():
+        layer_missing = []
+        for shapefile_name in shapefile_names:
+            missing_parts = [
+                f"{shapefile_name}{extension}"
+                for extension in REQUIRED_SIDECAR_EXTENSIONS
+                if not (SHAPEFILE_DIR / f"{shapefile_name}{extension}").exists()
+            ]
+            layer_missing.extend(missing_parts)
+        layers[layer_type] = {
+            "status": "missing" if layer_missing else "ready",
+            "missing_files": layer_missing,
+        }
+        missing.extend(layer_missing)
+
     return {
-        "status": "healthy",
+        "status": "degraded" if missing else "healthy",
         "module": "infrastructure",
-        "note": "Serving real shapefile data from project_map repo"
+        "shapefile_dir": str(SHAPEFILE_DIR),
+        "layers": layers,
+        "missing_files": missing,
     }

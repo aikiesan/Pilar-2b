@@ -476,7 +476,7 @@ function InfrastructureCard({ results }: { results: ProximityAnalysisResponse })
   const infraIcons: Record<string, { icon: React.ReactNode; label: string }> = {
     gas_pipeline: { icon: <Flame className="h-4 w-4" />, label: '🔥 Gasoduto' },
     substation: { icon: <Zap className="h-4 w-4" />, label: '⚡ Subestação' },
-    railway: { icon: '🛣️', label: '🛣️ Rodovia/Ferrovia' },
+    railway: { icon: '🛣️', label: '🛣️ Rodovia' },
     transmission_line: { icon: '🔌', label: '🔌 Linha de Transmissão' },
     ete: { icon: '💧', label: '💧 ETE' },
   };

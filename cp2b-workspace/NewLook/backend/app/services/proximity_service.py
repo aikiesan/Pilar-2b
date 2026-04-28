@@ -487,23 +487,24 @@ class ProximityService:
                 for class_id_str, class_data in by_class.items():
                     class_id = int(class_id_str)
 
-                    if class_id in MAPBIOMAS_RESIDUOS_MAPPING:
-                        mapping_entry = MAPBIOMAS_RESIDUOS_MAPPING[class_id]
-                        residuo_names = mapping_entry["residuos"]
+                    mapping_entry = MAPBIOMAS_RESIDUOS_MAPPING.get(class_id)
+                    if not mapping_entry:
+                        continue
 
-                        matched_residuos = []
-                        if residuo_names:
-                            placeholders = ', '.join(['%s'] * len(residuo_names))
-                            cursor.execute(f"""
-                                SELECT id, nome, bmp_medio, ts_medio, vs_medio, chemical_cn_ratio,
-                                chemical_ch4_content, bmp_unidade, sector_codigo
-                                FROM residuos
-                                WHERE nome IN ({placeholders})
-                            """, residuo_names)
-                            res_data = [dict(r) for r in cursor.fetchall()]
+                    residuo_names = mapping_entry["residuos"]
+                    matched_residuos = []
+                    if residuo_names:
+                        placeholders = ', '.join(['%s'] * len(residuo_names))
+                        cursor.execute(f"""
+                            SELECT id, nome, bmp_medio, ts_medio, vs_medio, chemical_cn_ratio,
+                            chemical_ch4_content, bmp_unidade, sector_codigo
+                            FROM residuos
+                            WHERE nome IN ({placeholders})
+                        """, residuo_names)
+                        res_data = [dict(r) for r in cursor.fetchall()]
 
-                            for r in res_data:
-                                item = {k: (float(v) if hasattr(v, "__float__") else v) for k, v in r.items()}
+                        for r in res_data:
+                            item = {k: (float(v) if hasattr(v, "__float__") else v) for k, v in r.items()}
                             item["sector_nome"] = sector_nome_map.get(r.get("sector_codigo", ""), "")
                             matched_residuos.append(item)
 
@@ -602,7 +603,7 @@ class ProximityService:
             },
             {
                 "type": "railway",
-                "name": "Rodovia/Ferrovia",
+                "name": "Rodovia",
                 "files": ["Rodovias_Estaduais_SP"],
                 "max_distance_km": 50
             },

@@ -11,6 +11,11 @@ export interface MunicipalityProperties {
   area_km2: number;
   population: number;
   population_density: number;
+  population_year?: number;
+  area_year?: number;
+  gdp_total?: number;
+  gdp_per_capita?: number;
+  gdp_year?: number;
   immediate_region: string;
   intermediate_region: string;
   immediate_region_code: string;

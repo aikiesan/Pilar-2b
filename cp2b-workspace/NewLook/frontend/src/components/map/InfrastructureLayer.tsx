@@ -5,15 +5,23 @@
 
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { GeoJSON, Marker, Popup } from 'react-leaflet';
 import type { GeoJsonObject, Feature } from 'geojson';
 import L from 'leaflet';
 import { logger } from '@/lib/logger';
 import { useInfrastructureLayer } from '@/hooks/useGeospatialData';
 
+export type InfrastructureLayerStatus = {
+  layerType: string;
+  state: 'loading' | 'empty' | 'error' | 'ready';
+  message?: string;
+  featureCount?: number;
+};
+
 interface InfrastructureLayerProps {
   layerType: 'railways' | 'pipelines' | 'substations' | 'biogas-plants' | 'transmission-lines' | 'etes' | 'admin-regions' | 'intermediate-regions' | 'immediate-regions';
+  onStatus?: (status: InfrastructureLayerStatus) => void;
 }
 
 // Layer styling configurations
@@ -203,17 +211,51 @@ const createETEIcon = () => {
   });
 };
 
-export default function InfrastructureLayer({ layerType }: InfrastructureLayerProps) {
+export default function InfrastructureLayer({ layerType, onStatus }: InfrastructureLayerProps) {
   // Use React Query hook for automatic caching and background refetching
   const { data, loading, error, isFetching } = useInfrastructureLayer(layerType, true);
+  const featureCount = Array.isArray(data?.features) ? data.features.length : 0;
+
+  useEffect(() => {
+    if (!onStatus) return;
+
+    if (loading || (isFetching && !data)) {
+      onStatus({ layerType, state: 'loading' });
+      return;
+    }
+
+    if (error) {
+      onStatus({
+        layerType,
+        state: 'error',
+        message: error.message || `Falha ao carregar a camada ${layerType}`,
+      });
+      return;
+    }
+
+    if (data && featureCount === 0) {
+      onStatus({
+        layerType,
+        state: 'empty',
+        featureCount,
+        message: data.metadata?.error || data.metadata?.note || 'Camada sem feições disponíveis no servidor',
+      });
+      return;
+    }
+
+    if (data) {
+      onStatus({ layerType, state: 'ready', featureCount });
+    }
+  }, [data, error, featureCount, isFetching, layerType, loading, onStatus]);
 
   // Show subtle loading indicator when refetching in background
   if (isFetching && !data) {
     logger.info(`Loading ${layerType} layer...`);
   }
 
-  // Don't render anything while loading or if there's an error
-  if (loading || error || !data) {
+  // Don't render geometry while loading or if there's an error. The parent map
+  // receives the status above and can surface it to users instead of failing silently.
+  if (loading || error || !data || featureCount === 0) {
     if (error) {
       logger.error(`Error loading ${layerType} layer:`, error);
     }
@@ -222,7 +264,7 @@ export default function InfrastructureLayer({ layerType }: InfrastructureLayerPr
 
   logger.info(`Rendering ${layerType} layer (cached: ${!isFetching})`);
 
-  // Style function for line features (railways, pipelines)
+  // Style function for line features (roads, pipelines)
   const style = (feature?: Feature) => {
     return layerStyles[layerType] || {
       color: '#666',
@@ -280,10 +322,10 @@ export default function InfrastructureLayer({ layerType }: InfrastructureLayerPr
 
     // Add specific properties based on layer type with actual shapefile field mappings
     if (layerType === 'railways') {
-      const name = props.nome || props.name || props.NOME || 'Ferrovia';
+      const name = props.nome || props.name || props.NOME || 'Rodovia';
       popupContent += `<h3 style="margin: 0 0 8px 0; font-size: 14px; font-weight: bold;">${name}</h3>`;
       popupContent += `
-        <p style="margin: 4px 0; font-size: 12px;"><strong>Tipo:</strong> ${props.tipo || props.type || 'Ferrovia'}</p>
+        <p style="margin: 4px 0; font-size: 12px;"><strong>Tipo:</strong> ${props.tipo || props.type || 'Rodovia'}</p>
         <p style="margin: 4px 0; font-size: 12px;"><strong>Operador:</strong> ${props.operador || props.operator || 'N/A'}</p>
         <p style="margin: 4px 0; font-size: 12px;"><strong>Status:</strong> ${props.status || props.STATUS || 'N/A'}</p>
       `;

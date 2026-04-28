@@ -205,7 +205,12 @@ async def get_municipalities_geojson(
                         'ibge_code', ibge_code,
                         'area_km2', ROUND(area_km2::numeric, 2),
                         'population', population,
-                        'population_density', ROUND((population / NULLIF(area_km2, 0))::numeric, 2),
+                        'population_density', ROUND(COALESCE(population_density, population / NULLIF(area_km2, 0))::numeric, 2),
+                        'population_year', population_year,
+                        'area_year', area_year,
+                        'gdp_total', ROUND(COALESCE(gdp_total, 0)::numeric, 2),
+                        'gdp_per_capita', ROUND(COALESCE(gdp_per_capita, 0)::numeric, 2),
+                        'gdp_year', gdp_year,
                         'immediate_region', immediate_region,
                         'intermediate_region', intermediate_region,
                         'immediate_region_code', immediate_region_code,
@@ -371,7 +376,9 @@ async def get_municipalities_polygons():
                        urban_biogas_m3_year, agricultural_biogas_m3_year,
                        livestock_biogas_m3_year, energy_potential_mwh_year,
                        co2_reduction_tons_year, population, administrative_region,
-                       immediate_region, intermediate_region, area_km2
+                       immediate_region, intermediate_region, immediate_region_code,
+                       intermediate_region_code, area_km2, population_density,
+                       population_year, area_year, gdp_total, gdp_per_capita, gdp_year
                 FROM municipalities
             """)
             rows = cursor.fetchall()
@@ -386,9 +393,17 @@ async def get_municipalities_polygons():
             "livestock_biogas_m3_year", "energy_potential_mwh_year", "co2_reduction_tons_year",
             "population", "area_km2"
         ]}
+        data["population_density"] = row.get("population_density")
+        data["population_year"] = row.get("population_year")
+        data["area_year"] = row.get("area_year")
+        data["gdp_total"] = row.get("gdp_total")
+        data["gdp_per_capita"] = row.get("gdp_per_capita")
+        data["gdp_year"] = row.get("gdp_year")
         data["administrative_region"] = row.get("administrative_region", "")
         data["immediate_region"] = row.get("immediate_region", "")
         data["intermediate_region"] = row.get("intermediate_region", "")
+        data["immediate_region_code"] = row.get("immediate_region_code", "")
+        data["intermediate_region_code"] = row.get("intermediate_region_code", "")
         if ibge_code:
             biogas_by_ibge[ibge_code] = data
         if name:
@@ -434,8 +449,18 @@ async def get_municipalities_polygons():
                 "region": biogas_data["administrative_region"],
                 "immediate_region": biogas_data["immediate_region"],
                 "intermediate_region": biogas_data["intermediate_region"],
+                "immediate_region_code": biogas_data["immediate_region_code"],
+                "intermediate_region_code": biogas_data["intermediate_region_code"],
                 "area_km2": round(area, 2),
-                "population_density": round(pop / area, 2) if area > 0 else 0,
+                "population_density": round(
+                    float(biogas_data.get("population_density") or (pop / area if area > 0 else 0)),
+                    2
+                ),
+                "population_year": biogas_data.get("population_year"),
+                "area_year": biogas_data.get("area_year"),
+                "gdp_total": round(float(biogas_data.get("gdp_total") or 0), 2),
+                "gdp_per_capita": round(float(biogas_data.get("gdp_per_capita") or 0), 2),
+                "gdp_year": biogas_data.get("gdp_year"),
                 "potential_category": cat,
             })
         else:
