@@ -45,7 +45,7 @@ requests==2.33.0  # Updated from 2.31.0 — fixes CVE-2024-35195, CVE-2024-47081
 supabase==2.7.4
 
 # Development and Testing
-pytest==7.4.3
+pytest==9.0.3
 pytest-asyncio==0.21.1
 pytest-cov==4.1.0
 pytest-mock==3.12.0

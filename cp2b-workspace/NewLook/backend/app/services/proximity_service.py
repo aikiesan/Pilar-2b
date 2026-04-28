@@ -14,7 +14,7 @@ from pathlib import Path
 import unicodedata
 import re
 
-from app.core.database import get_db
+from app.services.supabase_client import get_supabase_client
 
 logger = logging.getLogger(__name__)
 
@@ -200,39 +200,25 @@ class ProximityService:
             if gdf.crs != WGS84:
                 gdf = gdf.to_crs(WGS84)
 
-            # Get biogas data from database with multiple lookup keys
+            # Get biogas data from Supabase REST with multiple lookup keys
             biogas_data = {}
             biogas_data_by_normalized = {}
             biogas_data_by_ibge = {}
-            
+
             try:
-                with get_db() as conn:
-                    cursor = conn.cursor()
-                    cursor.execute("""
-                        SELECT
-                            municipality_name,
-                            ibge_code,
-                            population,
-                            area_km2,
-                            total_biogas_m3_year
-                        FROM municipalities
-                    """)
-                    for row in cursor.fetchall():
-                        # Store by original name
-                        biogas_data[row["municipality_name"]] = row
-                        
-                        # Store by normalized name for fuzzy matching
-                        normalized = normalize_municipality_name(row["municipality_name"])
-                        biogas_data_by_normalized[normalized] = row
-                        
-                        # Store by IBGE code if available
-                        if row["ibge_code"]:
-                            biogas_data_by_ibge[str(row["ibge_code"])] = row
-                    
-                    cursor.close()
-                    logger.info(f"Loaded biogas data for {len(biogas_data)} municipalities")
+                supabase = get_supabase_client()
+                result = supabase.table("municipalities").select(
+                    "municipality_name, ibge_code, population, area_km2, total_biogas_m3_year"
+                ).execute()
+                for row in (result.data or []):
+                    biogas_data[row["municipality_name"]] = row
+                    normalized = normalize_municipality_name(row["municipality_name"])
+                    biogas_data_by_normalized[normalized] = row
+                    if row.get("ibge_code"):
+                        biogas_data_by_ibge[str(row["ibge_code"])] = row
+                logger.info(f"Loaded biogas data for {len(biogas_data)} municipalities")
             except Exception as e:
-                logger.warning(f"Could not load biogas data from database: {e}")
+                logger.warning(f"Could not load biogas data from Supabase: {e}")
 
             # Find intersecting municipalities
             muni_id = 0
@@ -323,79 +309,51 @@ class ProximityService:
         if not muni_names:
             return self._empty_biogas_result()
 
-        # Query biogas data for these municipalities
-        placeholders = ", ".join(["%s"] * len(muni_names))
-        query = f"""
-        SELECT
-            -- Totals
-            COALESCE(SUM(m.total_biogas_m3_year), 0) as total_biogas,
-            COALESCE(SUM(m.energy_potential_mwh_year), 0) as total_energy_mwh,
-            COALESCE(SUM(m.co2_reduction_tons_year), 0) as total_co2_reduction,
-
-            -- By category
-            COALESCE(SUM(m.urban_biogas_m3_year), 0) as urban_biogas,
-            COALESCE(SUM(m.agricultural_biogas_m3_year), 0) as agricultural_biogas,
-            COALESCE(SUM(m.livestock_biogas_m3_year), 0) as livestock_biogas,
-
-            -- Urban detail
-            COALESCE(SUM(m.rsu_biogas_m3_year), 0) as rsu_biogas,
-            COALESCE(SUM(m.rpo_biogas_m3_year), 0) as rpo_biogas,
-
-            -- Agricultural residues
-            COALESCE(SUM(m.sugarcane_biogas_m3_year), 0) as sugarcane_biogas,
-            COALESCE(SUM(m.soybean_biogas_m3_year), 0) as soybean_biogas,
-            COALESCE(SUM(m.corn_biogas_m3_year), 0) as corn_biogas,
-            COALESCE(SUM(m.coffee_biogas_m3_year), 0) as coffee_biogas,
-            COALESCE(SUM(m.citrus_biogas_m3_year), 0) as citrus_biogas,
-
-            -- Livestock residues
-            COALESCE(SUM(m.cattle_biogas_m3_year), 0) as cattle_biogas,
-            COALESCE(SUM(m.swine_biogas_m3_year), 0) as swine_biogas,
-            COALESCE(SUM(m.poultry_biogas_m3_year), 0) as poultry_biogas,
-            COALESCE(SUM(m.aquaculture_biogas_m3_year), 0) as aquaculture_biogas
-
-        FROM municipalities m
-        WHERE m.municipality_name IN ({placeholders})
-        """
-
         try:
-            with get_db() as conn:
-                cursor = conn.cursor()
-                cursor.execute(query, tuple(muni_names))
-                row = cursor.fetchone()
-                cursor.close()
+            supabase = get_supabase_client()
+            result = supabase.table("municipalities").select(
+                "total_biogas_m3_year, energy_potential_mwh_year, co2_reduction_tons_year, "
+                "urban_biogas_m3_year, agricultural_biogas_m3_year, livestock_biogas_m3_year, "
+                "rsu_biogas_m3_year, rpo_biogas_m3_year, "
+                "sugarcane_biogas_m3_year, soybean_biogas_m3_year, corn_biogas_m3_year, "
+                "coffee_biogas_m3_year, citrus_biogas_m3_year, "
+                "cattle_biogas_m3_year, swine_biogas_m3_year, poultry_biogas_m3_year, aquaculture_biogas_m3_year"
+            ).in_("municipality_name", muni_names).execute()
 
-                if not row:
-                    return self._empty_biogas_result()
+            rows = result.data or []
+            if not rows:
+                return self._empty_biogas_result()
 
-                # Calculate homes powered (average Brazilian home uses ~150 kWh/month)
-                total_energy = float(row["total_energy_mwh"]) if row["total_energy_mwh"] else 0
-                homes_powered = int(total_energy * 1000 / (150 * 12)) if total_energy > 0 else 0
+            def _sum(key):
+                return sum(float(r.get(key) or 0) for r in rows)
 
-                return {
-                    "total_m3_year": float(row["total_biogas"]) if row["total_biogas"] else 0,
-                    "by_category": {
-                        "urban": float(row["urban_biogas"]) if row["urban_biogas"] else 0,
-                        "agricultural": float(row["agricultural_biogas"]) if row["agricultural_biogas"] else 0,
-                        "livestock": float(row["livestock_biogas"]) if row["livestock_biogas"] else 0
-                    },
-                    "by_residue": {
-                        "RSU (Resíduos Sólidos Urbanos)": float(row["rsu_biogas"]) if row["rsu_biogas"] else 0,
-                        "RPO (Resíduos Orgânicos)": float(row["rpo_biogas"]) if row["rpo_biogas"] else 0,
-                        "Cana-de-açúcar": float(row["sugarcane_biogas"]) if row["sugarcane_biogas"] else 0,
-                        "Soja": float(row["soybean_biogas"]) if row["soybean_biogas"] else 0,
-                        "Milho": float(row["corn_biogas"]) if row["corn_biogas"] else 0,
-                        "Café": float(row["coffee_biogas"]) if row["coffee_biogas"] else 0,
-                        "Citros": float(row["citrus_biogas"]) if row["citrus_biogas"] else 0,
-                        "Bovinos": float(row["cattle_biogas"]) if row["cattle_biogas"] else 0,
-                        "Suínos": float(row["swine_biogas"]) if row["swine_biogas"] else 0,
-                        "Aves": float(row["poultry_biogas"]) if row["poultry_biogas"] else 0,
-                        "Aquicultura": float(row["aquaculture_biogas"]) if row["aquaculture_biogas"] else 0
-                    },
-                    "energy_potential_mwh_year": total_energy,
-                    "co2_reduction_tons_year": float(row["total_co2_reduction"]) if row["total_co2_reduction"] else 0,
-                    "homes_powered_equivalent": homes_powered
-                }
+            total_energy = _sum("energy_potential_mwh_year")
+            homes_powered = int(total_energy * 1000 / (150 * 12)) if total_energy > 0 else 0
+
+            return {
+                "total_m3_year": _sum("total_biogas_m3_year"),
+                "by_category": {
+                    "urban": _sum("urban_biogas_m3_year"),
+                    "agricultural": _sum("agricultural_biogas_m3_year"),
+                    "livestock": _sum("livestock_biogas_m3_year"),
+                },
+                "by_residue": {
+                    "RSU (Resíduos Sólidos Urbanos)": _sum("rsu_biogas_m3_year"),
+                    "RPO (Resíduos Orgânicos)": _sum("rpo_biogas_m3_year"),
+                    "Cana-de-açúcar": _sum("sugarcane_biogas_m3_year"),
+                    "Soja": _sum("soybean_biogas_m3_year"),
+                    "Milho": _sum("corn_biogas_m3_year"),
+                    "Café": _sum("coffee_biogas_m3_year"),
+                    "Citros": _sum("citrus_biogas_m3_year"),
+                    "Bovinos": _sum("cattle_biogas_m3_year"),
+                    "Suínos": _sum("swine_biogas_m3_year"),
+                    "Aves": _sum("poultry_biogas_m3_year"),
+                    "Aquicultura": _sum("aquaculture_biogas_m3_year"),
+                },
+                "energy_potential_mwh_year": total_energy,
+                "co2_reduction_tons_year": _sum("co2_reduction_tons_year"),
+                "homes_powered_equivalent": homes_powered,
+            }
 
         except Exception as e:
             logger.error(f"Error aggregating biogas potential: {e}")
@@ -435,81 +393,50 @@ class ProximityService:
             return self._empty_residuos_result()
 
         try:
-            with get_db() as conn:
-                cursor = conn.cursor()
+            supabase = get_supabase_client()
 
-                # Get all residuos with their chemical parameters
-                cursor.execute("""
-                    SELECT
-                        r.id,
-                        r.codigo,
-                        r.nome,
-                        r.nome_en,
-                        r.sector_codigo,
-                        r.subsector_codigo,
-                        r.categoria_nome,
-                        r.bmp_min,
-                        r.bmp_medio,
-                        r.bmp_max,
-                        r.bmp_unidade,
-                        r.ts_min,
-                        r.ts_medio,
-                        r.ts_max,
-                        r.vs_min,
-                        r.vs_medio,
-                        r.vs_max,
-                        r.chemical_cn_ratio,
-                        r.chemical_ch4_content,
-                        r.fator_realista,
-                        r.icon,
-                        s.nome as sector_nome,
-                        s.emoji as sector_emoji,
-                        ss.nome as subsector_nome
-                    FROM residuos r
-                    JOIN sectors s ON r.sector_codigo = s.codigo
-                    LEFT JOIN subsectors ss ON r.subsector_codigo = ss.codigo
-                    ORDER BY s.ordem, r.nome
-                """)
+            residuos_res = supabase.table("residuos").select(
+                "id, codigo, nome, nome_en, sector_codigo, subsector_codigo, categoria_nome, "
+                "bmp_min, bmp_medio, bmp_max, bmp_unidade, "
+                "ts_min, ts_medio, ts_max, vs_min, vs_medio, vs_max, "
+                "chemical_cn_ratio, chemical_ch4_content, fator_realista, icon"
+            ).execute()
 
-                rows = cursor.fetchall()
-                columns = [desc[0] for desc in cursor.description]
+            sectors_res = supabase.table("sectors").select("codigo, nome, emoji, ordem").execute()
+            sector_map = {s["codigo"]: s for s in (sectors_res.data or [])}
 
-                residuos_list = []
-                for row in rows:
-                    residuo = dict(zip(columns, row))
-                    # Convert Decimal to float
-                    for key, value in residuo.items():
-                        if hasattr(value, '__float__'):
-                            residuo[key] = float(value)
-                    residuos_list.append(residuo)
+            subsectors_res = supabase.table("subsectors").select("codigo, nome").execute()
+            subsector_map = {ss["codigo"]: ss["nome"] for ss in (subsectors_res.data or [])}
 
-                # Organize by sector
-                by_sector = {}
-                for residuo in residuos_list:
-                    sector = residuo["sector_codigo"]
-                    if sector not in by_sector:
-                        by_sector[sector] = {
-                            "nome": residuo["sector_nome"],
-                            "emoji": residuo["sector_emoji"],
-                            "residuos": []
-                        }
-                    by_sector[sector]["residuos"].append(residuo)
+            residuos_list = []
+            for r in sorted(
+                residuos_res.data or [],
+                key=lambda x: (sector_map.get(x.get("sector_codigo", ""), {}).get("ordem") or 999, x.get("nome") or "")
+            ):
+                item = {k: (float(v) if hasattr(v, "__float__") else v) for k, v in r.items()}
+                sc = r.get("sector_codigo", "")
+                sector = sector_map.get(sc, {})
+                item["sector_nome"] = sector.get("nome", "")
+                item["sector_emoji"] = sector.get("emoji", "")
+                item["subsector_nome"] = subsector_map.get(r.get("subsector_codigo", ""), "")
+                residuos_list.append(item)
 
-                # Get summary statistics (ensure float conversion)
-                total_residuos = len(residuos_list)
-                avg_bmp = sum(float(r.get("bmp_medio") or 0) for r in residuos_list) / total_residuos if total_residuos > 0 else 0
+            by_sector: Dict[str, Any] = {}
+            for residuo in residuos_list:
+                sc = residuo["sector_codigo"]
+                if sc not in by_sector:
+                    by_sector[sc] = {"nome": residuo["sector_nome"], "emoji": residuo["sector_emoji"], "residuos": []}
+                by_sector[sc]["residuos"].append(residuo)
 
-                cursor.close()
+            total_residuos = len(residuos_list)
+            avg_bmp = sum(float(r.get("bmp_medio") or 0) for r in residuos_list) / total_residuos if total_residuos > 0 else 0
 
-                return {
-                    "total_residuos": total_residuos,
-                    "by_sector": by_sector,
-                    "residuos": residuos_list,
-                    "summary": {
-                        "avg_bmp_medio": round(avg_bmp, 2),
-                        "sectors_count": len(by_sector)
-                    }
-                }
+            return {
+                "total_residuos": total_residuos,
+                "by_sector": by_sector,
+                "residuos": residuos_list,
+                "summary": {"avg_bmp_medio": round(avg_bmp, 2), "sectors_count": len(by_sector)},
+            }
 
         except Exception as e:
             logger.error(f"Error fetching residuos for municipalities: {e}")
@@ -536,82 +463,58 @@ class ProximityService:
         by_class = land_use_data.get("by_class", {})
 
         try:
-            with get_db() as conn:
-                cursor = conn.cursor()
+            supabase = get_supabase_client()
+            sectors_res = supabase.table("sectors").select("codigo, nome").execute()
+            sector_nome_map = {s["codigo"]: s["nome"] for s in (sectors_res.data or [])}
 
-                for class_id_str, class_data in by_class.items():
-                    class_id = int(class_id_str)
+            for class_id_str, class_data in by_class.items():
+                class_id = int(class_id_str)
 
-                    # Check if we have a mapping for this class
-                    if class_id in MAPBIOMAS_RESIDUOS_MAPPING:
-                        mapping = MAPBIOMAS_RESIDUOS_MAPPING[class_id]
-                        residuo_names = mapping["residuos"]
+                if class_id in MAPBIOMAS_RESIDUOS_MAPPING:
+                    mapping_entry = MAPBIOMAS_RESIDUOS_MAPPING[class_id]
+                    residuo_names = mapping_entry["residuos"]
 
-                        # Query matching residuos from database
-                        if residuo_names:
-                            placeholders = ", ".join(["%s"] * len(residuo_names))
-                            cursor.execute(f"""
-                                SELECT
-                                    r.id,
-                                    r.nome,
-                                    r.bmp_medio,
-                                    r.ts_medio,
-                                    r.vs_medio,
-                                    r.chemical_cn_ratio,
-                                    r.chemical_ch4_content,
-                                    r.bmp_unidade,
-                                    r.sector_codigo,
-                                    s.nome as sector_nome
-                                FROM residuos r
-                                JOIN sectors s ON r.sector_codigo = s.codigo
-                                WHERE r.nome IN ({placeholders})
-                            """, tuple(residuo_names))
+                    matched_residuos = []
+                    if residuo_names:
+                        res = supabase.table("residuos").select(
+                            "id, nome, bmp_medio, ts_medio, vs_medio, chemical_cn_ratio, "
+                            "chemical_ch4_content, bmp_unidade, sector_codigo"
+                        ).in_("nome", residuo_names).execute()
 
-                            matched_residuos = []
-                            for row in cursor.fetchall():
-                                columns = [desc[0] for desc in cursor.description]
-                                residuo = dict(zip(columns, row))
-                                # Convert Decimal to float
-                                for key, value in residuo.items():
-                                    if hasattr(value, '__float__'):
-                                        residuo[key] = float(value)
-                                matched_residuos.append(residuo)
+                        for r in (res.data or []):
+                            item = {k: (float(v) if hasattr(v, "__float__") else v) for k, v in r.items()}
+                            item["sector_nome"] = sector_nome_map.get(r.get("sector_codigo", ""), "")
+                            matched_residuos.append(item)
 
-                            # Calculate potential biogas from this land use
-                            area_km2 = class_data.get("area_km2", 0)
-                            area_ha = area_km2 * 100  # Convert to hectares
+                    area_km2 = class_data.get("area_km2", 0)
+                    area_ha = area_km2 * 100
+                    production_factor = mapping_entry.get("production_factor")
+                    estimated_residue_tons = None
+                    estimated_biogas_m3 = None
 
-                            production_factor = mapping.get("production_factor")
-                            estimated_residue_tons = None
-                            estimated_biogas_m3 = None
+                    if production_factor and matched_residuos:
+                        estimated_residue_tons = area_ha * production_factor
+                        avg_bmp = sum(float(r.get("bmp_medio") or 0) for r in matched_residuos) / len(matched_residuos)
+                        avg_ts = sum(float(r.get("ts_medio") or 0) for r in matched_residuos) / len(matched_residuos)
+                        avg_vs = sum(float(r.get("vs_medio") or 0) for r in matched_residuos) / len(matched_residuos)
+                        if avg_ts > 0 and avg_vs > 0:
+                            vs_tons = estimated_residue_tons * (avg_ts / 100) * (avg_vs / 100)
+                            estimated_biogas_m3 = vs_tons * avg_bmp
 
-                            if production_factor and matched_residuos:
-                                estimated_residue_tons = area_ha * production_factor
-                                # Use average BMP from matched residuos (ensure float conversion)
-                                avg_bmp = sum(float(r.get("bmp_medio") or 0) for r in matched_residuos) / len(matched_residuos)
-                                # BMP is typically in m³/ton VS, adjust for TS and VS
-                                avg_ts = sum(float(r.get("ts_medio") or 0) for r in matched_residuos) / len(matched_residuos)
-                                avg_vs = sum(float(r.get("vs_medio") or 0) for r in matched_residuos) / len(matched_residuos)
-                                if avg_ts > 0 and avg_vs > 0:
-                                    vs_tons = estimated_residue_tons * (avg_ts / 100) * (avg_vs / 100)
-                                    estimated_biogas_m3 = vs_tons * avg_bmp
-
-                            correlations.append({
-                                "mapbiomas_class_id": class_id,
-                                "mapbiomas_class_name": class_data.get("name", f"Classe {class_id}"),
-                                "area_km2": round(area_km2, 4),
-                                "area_ha": round(area_ha, 2),
-                                "percent_of_buffer": class_data.get("percent", 0),
-                                "color": class_data.get("color", "#808080"),
-                                "description": mapping.get("description", ""),
-                                "subsector_codigo": mapping.get("subsector_codigo"),
-                                "matched_residuos": matched_residuos,
-                                "production_factor": production_factor,
-                                "estimated_residue_tons": round(estimated_residue_tons, 2) if estimated_residue_tons else None,
-                                "estimated_biogas_m3_year": round(estimated_biogas_m3, 2) if estimated_biogas_m3 else None
-                            })
-
-                cursor.close()
+                    correlations.append({
+                        "mapbiomas_class_id": class_id,
+                        "mapbiomas_class_name": class_data.get("name", f"Classe {class_id}"),
+                        "area_km2": round(area_km2, 4),
+                        "area_ha": round(area_ha, 2),
+                        "percent_of_buffer": class_data.get("percent", 0),
+                        "color": class_data.get("color", "#808080"),
+                        "description": mapping_entry.get("description", ""),
+                        "subsector_codigo": mapping_entry.get("subsector_codigo"),
+                        "matched_residuos": matched_residuos,
+                        "production_factor": production_factor,
+                        "estimated_residue_tons": round(estimated_residue_tons, 2) if estimated_residue_tons else None,
+                        "estimated_biogas_m3_year": round(estimated_biogas_m3, 2) if estimated_biogas_m3 else None,
+                    })
 
         except Exception as e:
             logger.error(f"Error correlating MapBiomas with residuos: {e}")

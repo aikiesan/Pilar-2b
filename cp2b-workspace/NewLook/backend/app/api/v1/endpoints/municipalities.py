@@ -236,8 +236,8 @@ async def get_municipalities_stats():
         supabase = get_supabase_client()
 
         # Get count of municipalities
-        count_result = supabase.table("municipalities").select("id", count="exact").execute()
-        total_municipalities = count_result.count if count_result.count else 0
+        count_result = supabase.table("municipalities").select("id").execute()
+        total_municipalities = len(count_result.data)
 
         # Get aggregated stats
         stats_result = supabase.table("municipalities").select("population, area_km2, total_biogas_m3_year").execute()
@@ -290,8 +290,8 @@ async def get_municipalities(
         result = query.execute()
 
         # Get total count
-        count_result = supabase.table("municipalities").select("id", count="exact").execute()
-        total = count_result.count if count_result.count else len(result.data)
+        count_result = supabase.table("municipalities").select("id").execute()
+        total = len(count_result.data)
 
         return {
             "data": result.data,
@@ -334,37 +334,3 @@ async def get_municipality(
     except Exception as e:
         logger.error(f"Error fetching municipality: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error fetching municipality: {str(e)}")
-    """Get summary statistics for all municipalities"""
-    try:
-        supabase = get_supabase_client()
-
-        # Get count of municipalities
-        count_result = supabase.table("municipalities").select("id", count="exact").execute()
-        total_municipalities = count_result.count if count_result.count else 0
-
-        # Get aggregated stats
-        stats_result = supabase.table("municipalities").select("population, area_km2, total_biogas_m3_year").execute()
-
-        total_population = 0
-        total_area = 0.0
-        total_biogas = 0.0
-
-        if stats_result.data:
-            for m in stats_result.data:
-                if m.get("population"):
-                    total_population += m["population"]
-                if m.get("area_km2"):
-                    total_area += float(m["area_km2"]) if m["area_km2"] else 0
-                if m.get("total_biogas_m3_year"):
-                    total_biogas += float(m["total_biogas_m3_year"]) if m["total_biogas_m3_year"] else 0
-
-        return {
-            "total_municipalities": total_municipalities,
-            "total_population": total_population,
-            "total_area_km2": round(total_area, 2),
-            "total_biogas_m3_year": round(total_biogas, 2),
-            "timestamp": "2025-11-24T00:00:00Z"
-        }
-    except Exception as e:
-        logger.error(f"Error calculating stats: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error calculating stats: {str(e)}")

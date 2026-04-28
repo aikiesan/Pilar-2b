@@ -12,8 +12,7 @@ const intlMiddleware = createIntlMiddleware({
   localeDetection: false,
 });
 
-export function middleware(request: NextRequest) {
-  // Use next-intl's middleware for all routing
+export function proxy(request: NextRequest) {
   return intlMiddleware(request);
 }
 
