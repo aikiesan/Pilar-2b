@@ -200,30 +200,29 @@ function FiltersSection({
         </div>
       </div>
 
-      {/* Metric toggle */}
+      {/* Mode toggle — BIOGAS POTENTIAL / BIOMASS MONITORING */}
       {onDisplayMetricChange && (
-        <div>
-          <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-1">
-            Métrica principal
-          </label>
-          <div className="flex gap-1">
-            <button
-              onClick={() => onDisplayMetricChange('biomass_tons')}
-              className={`flex-1 py-1.5 rounded-lg border text-[11px] font-medium transition-all ${
-                displayMetric === 'biomass_tons' ? 'border-green-600 bg-green-50 text-green-800' : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'
-              }`}
-            >
-              Biomassa (t/ano)
-            </button>
-            <button
-              onClick={() => onDisplayMetricChange('biogas_m3')}
-              className={`flex-1 py-1.5 rounded-lg border text-[11px] font-medium transition-all ${
-                displayMetric === 'biogas_m3' ? 'border-blue-600 bg-blue-50 text-blue-800' : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'
-              }`}
-            >
-              Biogás (m³/ano)
-            </button>
-          </div>
+        <div className="flex rounded-xl overflow-hidden border-2 border-gray-200">
+          <button
+            onClick={() => onDisplayMetricChange('biogas_m3')}
+            className={`flex-1 py-2 text-[11px] font-bold uppercase tracking-wide transition-colors ${
+              displayMetric === 'biogas_m3'
+                ? 'bg-blue-600 text-white'
+                : 'bg-white text-gray-500 hover:bg-gray-50'
+            }`}
+          >
+            ⚡ Biogás
+          </button>
+          <button
+            onClick={() => onDisplayMetricChange('biomass_tons')}
+            className={`flex-1 py-2 text-[11px] font-bold uppercase tracking-wide border-l-2 border-gray-200 transition-colors ${
+              displayMetric === 'biomass_tons'
+                ? 'bg-green-600 text-white'
+                : 'bg-white text-gray-500 hover:bg-gray-50'
+            }`}
+          >
+            🌿 Biomassa
+          </button>
         </div>
       )}
 
@@ -315,7 +314,10 @@ function FiltersSection({
                       >
                         {r.icon} {t(`residues.${r.value}`)}
                         {cnEntry && (
-                          <span className={`ml-0.5 px-1 rounded text-[8px] font-mono ${cnBadgeClass}`}>
+                          <span
+                            className={`ml-0.5 px-1 rounded text-[8px] font-mono ${cnBadgeClass}`}
+                            title={cnEntry.cn_role === 'nitrogen_donor' ? 'Leaning N' : cnEntry.cn_role === 'carbon_donor' ? 'Leaning C' : 'Balanced'}
+                          >
                             {cnEntry.cn_ratio}
                           </span>
                         )}

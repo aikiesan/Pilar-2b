@@ -215,7 +215,7 @@ export default function LeftFilterPanel({
                         return (
                           <span
                             className={`text-[9px] font-mono px-1 py-0.5 rounded flex-shrink-0 ${badgeClass}`}
-                            title={`C:N ratio: ${entry.cn_ratio} (${entry.cn_role.replace('_', ' ')})`}
+                            title={`C:N ratio: ${entry.cn_ratio} (${entry.cn_role === 'nitrogen_donor' ? 'Leaning N' : entry.cn_role === 'carbon_donor' ? 'Leaning C' : 'Balanced'})`}
                           >
                             {entry.cn_ratio}
                           </span>

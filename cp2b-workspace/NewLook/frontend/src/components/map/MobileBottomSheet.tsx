@@ -145,30 +145,25 @@ export default function MobileBottomSheet({
                   </div>
                 </div>
 
-                {/* Metric toggle */}
+                {/* Mode toggle — BIOGAS POTENTIAL / BIOMASS MONITORING */}
                 {onDisplayMetricChange && (
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">
-                      Métrica
-                    </label>
-                    <div className="flex rounded-xl overflow-hidden border border-gray-200">
-                      <button
-                        onClick={() => onDisplayMetricChange('biomass_tons')}
-                        className={`flex-1 py-2.5 text-xs font-medium transition-colors ${
-                          displayMetric === 'biomass_tons' ? 'bg-green-600 text-white' : 'bg-white text-gray-600'
-                        }`}
-                      >
-                        Biomassa (t/ano)
-                      </button>
-                      <button
-                        onClick={() => onDisplayMetricChange('biogas_m3')}
-                        className={`flex-1 py-2.5 text-xs font-medium transition-colors border-l border-gray-200 ${
-                          displayMetric === 'biogas_m3' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600'
-                        }`}
-                      >
-                        Biogás (m³/ano)
-                      </button>
-                    </div>
+                  <div className="flex rounded-xl overflow-hidden border-2 border-gray-200">
+                    <button
+                      onClick={() => onDisplayMetricChange('biogas_m3')}
+                      className={`flex-1 py-3 text-xs font-bold uppercase tracking-wide transition-colors ${
+                        displayMetric === 'biogas_m3' ? 'bg-blue-600 text-white' : 'bg-white text-gray-500'
+                      }`}
+                    >
+                      ⚡ Potencial Biogás
+                    </button>
+                    <button
+                      onClick={() => onDisplayMetricChange('biomass_tons')}
+                      className={`flex-1 py-3 text-xs font-bold uppercase tracking-wide border-l-2 border-gray-200 transition-colors ${
+                        displayMetric === 'biomass_tons' ? 'bg-green-600 text-white' : 'bg-white text-gray-500'
+                      }`}
+                    >
+                      🌿 Monit. Biomassa
+                    </button>
                   </div>
                 )}
 
