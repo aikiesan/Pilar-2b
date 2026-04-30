@@ -33,6 +33,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Load mock user on mount
   useEffect(() => {
+    // Clear any lingering Supabase auth tokens from the previous integration
+    Object.keys(localStorage).forEach(key => {
+      if (key.startsWith('sb-') && key.endsWith('-auth-token')) {
+        localStorage.removeItem(key);
+      }
+    });
     logger.warn('Authentication disabled - using mock local admin user')
     setUser(MOCK_USER)
     setLoading(false)
