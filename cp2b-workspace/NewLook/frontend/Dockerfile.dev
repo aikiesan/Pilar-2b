@@ -4,12 +4,12 @@
 # bind-mounted by docker-compose (anonymous /app/node_modules volume
 # shadows the bind-mount so the container's modules are used).
 
-FROM node:18-alpine
+FROM node:20-alpine
 
 WORKDIR /app
 
 # Install deps before mounting source so the layer is cached
-COPY package.json package-lock.json* ./
+COPY package.json package-lock.json* .npmrc* ./
 RUN npm ci --prefer-offline
 
 # No CMD — overridden by docker-compose (next dev)
