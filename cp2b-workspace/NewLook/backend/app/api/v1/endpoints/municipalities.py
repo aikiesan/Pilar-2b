@@ -1,55 +1,29 @@
 """
 Municipalities API endpoints
-Geometry from local shapefile, tabular data from local PostgreSQL.
+Geometry and tabular data both served from local PostgreSQL / PostGIS.
 """
+import json
+import logging
+from typing import Optional
+
 from fastapi import APIRouter, HTTPException, Query, Depends
-from typing import Optional, Dict, Any, List
+
 from app.core.database import get_db
 from app.middleware.auth import optional_auth
 from app.models.auth import UserProfile
-import logging
-from pathlib import Path
-import geopandas as gpd
-from shapely.geometry import mapping
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
-SHAPEFILE_PATH = Path(__file__).parent.parent.parent.parent.parent / "data" / "shapefiles" / "SP_Municipios_2024.shp"
-SHAPEFILE_PATH_ALT = (
-    Path(__file__).parent.parent.parent.parent.parent.parent.parent
-    / "project_map" / "data" / "shapefile" / "SP_Municipios_2024.shp"
-)
 
-_municipalities_gdf = None
-
-
-def _load_gdf():
-    global _municipalities_gdf
-    if _municipalities_gdf is None:
-        shapefile_to_use = None
-        if SHAPEFILE_PATH.exists():
-            shapefile_to_use = SHAPEFILE_PATH
-        elif SHAPEFILE_PATH_ALT.exists():
-            shapefile_to_use = SHAPEFILE_PATH_ALT
-        else:
-            raise HTTPException(status_code=500, detail=f"Shapefile not found at {SHAPEFILE_PATH}")
-        _municipalities_gdf = gpd.read_file(shapefile_to_use)
-        logger.info(f"Loaded {len(_municipalities_gdf)} municipality polygons from shapefile")
-    return _municipalities_gdf
-
-
-def _fetch_biogas_lookup(conn, columns: str = "*") -> Dict[str, Dict]:
-    cursor = conn.cursor()
-    cursor.execute(f"SELECT {columns} FROM municipalities")
-    rows = cursor.fetchall()
-    cursor.close()
-    lookup = {}
-    for row in (rows or []):
-        code = str(row.get("ibge_code", "") or "").strip()
-        if code:
-            lookup[code] = dict(row)
-    return lookup
+def _cat(total_biogas: float) -> str:
+    if total_biogas > 100_000_000:
+        return "ALTO"
+    if total_biogas > 10_000_000:
+        return "MEDIO"
+    if total_biogas > 0:
+        return "BAIXO"
+    return "SEM DADOS"
 
 
 @router.get("/geojson")
@@ -58,136 +32,143 @@ async def get_municipalities_geojson(
     current_user: Optional[UserProfile] = Depends(optional_auth),
 ):
     try:
-        gdf = _load_gdf()
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error loading shapefile: {e}")
-
-    try:
         with get_db() as conn:
-            biogas_lookup = _fetch_biogas_lookup(conn)
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                SELECT
+                    ibge_code, municipality_name, id,
+                    ST_AsGeoJSON(ST_Simplify(geometry, 0.001)) AS geojson,
+                    total_biogas_m3_year, urban_biogas_m3_year,
+                    agricultural_biogas_m3_year, livestock_biogas_m3_year,
+                    energy_potential_mwh_year, co2_reduction_tons_year,
+                    population, area_km2, population_density,
+                    population_year, area_year,
+                    gdp_total, gdp_per_capita, gdp_year,
+                    administrative_region, immediate_region, intermediate_region,
+                    immediate_region_code, intermediate_region_code,
+                    sugarcane_biogas_m3_year, soybean_biogas_m3_year,
+                    corn_biogas_m3_year, coffee_biogas_m3_year, citrus_biogas_m3_year,
+                    cattle_biogas_m3_year, swine_biogas_m3_year, poultry_biogas_m3_year,
+                    aquaculture_biogas_m3_year, rsu_biogas_m3_year, rpo_biogas_m3_year,
+                    total_biomass_tons_year, agricultural_biomass_tons_year,
+                    livestock_biomass_tons_year, urban_biomass_tons_year,
+                    sugarcane_biomass_tons_year, soybean_biomass_tons_year,
+                    corn_biomass_tons_year, coffee_biomass_tons_year, citrus_biomass_tons_year,
+                    cattle_biomass_tons_year, swine_biomass_tons_year, poultry_biomass_tons_year,
+                    aquaculture_biomass_tons_year, rsu_biomass_tons_year, rpo_biomass_tons_year
+                FROM municipalities
+                WHERE geometry IS NOT NULL
+                LIMIT %s
+                """,
+                (limit,),
+            )
+            rows = cursor.fetchall()
+            cursor.close()
     except Exception as e:
-        logger.error(f"Error fetching biogas data: {e}")
-        biogas_lookup = {}
+        logger.error(f"Error fetching municipalities GeoJSON: {e}")
+        raise HTTPException(status_code=500, detail=f"Database error: {e}")
 
-    merged_features = []
-    matched_count   = 0
+    def _f(row, key, default=0):
+        v = row.get(key)
+        return v if v is not None else default
 
-    for _, row in gdf.iterrows():
-        ibge_code = None
-        for col in ["CD_MUN", "GEOCODIGO", "geocodigo", "CD_GEOCMU", "cd_mun"]:
-            if col in row and row[col]:
-                ibge_code = str(row[col]).strip()
-                break
-        if not ibge_code:
-            continue
-
-        biogas_data = biogas_lookup.get(ibge_code, {})
-
-        mun_name = biogas_data.get("municipality_name")
-        if not mun_name:
-            for col in ["NM_MUN", "nome", "NOME_MUN", "nm_mun"]:
-                if col in row and row[col]:
-                    mun_name = str(row[col])
-                    break
-
-        try:
-            geometry = mapping(row.geometry)
-        except Exception as e:
-            logger.error(f"Error converting geometry for {ibge_code}: {e}")
-            continue
-
-        if biogas_data:
-            matched_count += 1
-
-        def _g(key, default=0):
-            return biogas_data.get(key, default)
-
-        merged_features.append({
+    features = []
+    for row in rows:
+        ibge_code = str(_f(row, "ibge_code", ""))
+        tb = float(_f(row, "total_biogas_m3_year"))
+        features.append({
             "type": "Feature",
-            "geometry": geometry,
+            "geometry": json.loads(row["geojson"]),
             "properties": {
-                "ibge_code":        ibge_code,
-                "name":             mun_name or "Unknown",
-                "id":               _g("id"),
-                "municipality_name": _g("municipality_name"),
-                "population":       _g("population"),
-                "area_km2":         _g("area_km2"),
-                "population_density": _g("population_density"),
-                "population_year":  _g("population_year"),
-                "area_year":        _g("area_year"),
-                "gdp_total":        _g("gdp_total"),
-                "gdp_per_capita":   _g("gdp_per_capita"),
-                "gdp_year":         _g("gdp_year"),
-                "total_biogas_m3_year":          _g("total_biogas_m3_year"),
-                "agricultural_biogas_m3_year":   _g("agricultural_biogas_m3_year"),
-                "livestock_biogas_m3_year":       _g("livestock_biogas_m3_year"),
-                "urban_biogas_m3_year":           _g("urban_biogas_m3_year"),
-                "energy_potential_mwh_year":      _g("energy_potential_mwh_year"),
-                "administrative_region":          _g("administrative_region"),
-                "immediate_region":               _g("immediate_region"),
-                "intermediate_region":            _g("intermediate_region"),
-                "immediate_region_code":          _g("immediate_region_code"),
-                "intermediate_region_code":       _g("intermediate_region_code"),
-                "potential_category":             _g("potential_category"),
-                "sugarcane_biogas_m3_year":  _g("sugarcane_biogas_m3_year", 0),
-                "soybean_biogas_m3_year":    _g("soybean_biogas_m3_year", 0),
-                "corn_biogas_m3_year":       _g("corn_biogas_m3_year", 0),
-                "coffee_biogas_m3_year":     _g("coffee_biogas_m3_year", 0),
-                "citrus_biogas_m3_year":     _g("citrus_biogas_m3_year", 0),
-                "cattle_biogas_m3_year":     _g("cattle_biogas_m3_year", 0),
-                "swine_biogas_m3_year":      _g("swine_biogas_m3_year", 0),
-                "poultry_biogas_m3_year":    _g("poultry_biogas_m3_year", 0),
-                "aquaculture_biogas_m3_year":_g("aquaculture_biogas_m3_year", 0),
-                "rsu_biogas_m3_year":        _g("rsu_biogas_m3_year", 0),
-                "rpo_biogas_m3_year":        _g("rpo_biogas_m3_year", 0),
-                "total_biomass_tons_year":        _g("total_biomass_tons_year", 0),
-                "agricultural_biomass_tons_year": _g("agricultural_biomass_tons_year", 0),
-                "livestock_biomass_tons_year":    _g("livestock_biomass_tons_year", 0),
-                "urban_biomass_tons_year":        _g("urban_biomass_tons_year", 0),
-                "sugarcane_biomass_tons_year":    _g("sugarcane_biomass_tons_year", 0),
-                "soybean_biomass_tons_year":      _g("soybean_biomass_tons_year", 0),
-                "corn_biomass_tons_year":         _g("corn_biomass_tons_year", 0),
-                "coffee_biomass_tons_year":       _g("coffee_biomass_tons_year", 0),
-                "citrus_biomass_tons_year":       _g("citrus_biomass_tons_year", 0),
-                "cattle_biomass_tons_year":       _g("cattle_biomass_tons_year", 0),
-                "swine_biomass_tons_year":        _g("swine_biomass_tons_year", 0),
-                "poultry_biomass_tons_year":      _g("poultry_biomass_tons_year", 0),
-                "aquaculture_biomass_tons_year":  _g("aquaculture_biomass_tons_year", 0),
-                "rsu_biomass_tons_year":          _g("rsu_biomass_tons_year", 0),
-                "rpo_biomass_tons_year":          _g("rpo_biomass_tons_year", 0),
+                "ibge_code":                     ibge_code,
+                "name":                          _f(row, "municipality_name", "Unknown"),
+                "id":                            _f(row, "id"),
+                "municipality_name":             _f(row, "municipality_name"),
+                "population":                    _f(row, "population"),
+                "area_km2":                      _f(row, "area_km2"),
+                "population_density":            _f(row, "population_density"),
+                "population_year":               _f(row, "population_year"),
+                "area_year":                     _f(row, "area_year"),
+                "gdp_total":                     _f(row, "gdp_total"),
+                "gdp_per_capita":                _f(row, "gdp_per_capita"),
+                "gdp_year":                      _f(row, "gdp_year"),
+                "total_biogas_m3_year":          tb,
+                "agricultural_biogas_m3_year":   _f(row, "agricultural_biogas_m3_year"),
+                "livestock_biogas_m3_year":      _f(row, "livestock_biogas_m3_year"),
+                "urban_biogas_m3_year":          _f(row, "urban_biogas_m3_year"),
+                "energy_potential_mwh_year":     _f(row, "energy_potential_mwh_year"),
+                "co2_reduction_tons_year":       _f(row, "co2_reduction_tons_year"),
+                "administrative_region":         _f(row, "administrative_region", ""),
+                "immediate_region":              _f(row, "immediate_region", ""),
+                "intermediate_region":           _f(row, "intermediate_region", ""),
+                "immediate_region_code":         _f(row, "immediate_region_code", ""),
+                "intermediate_region_code":      _f(row, "intermediate_region_code", ""),
+                "potential_category":            _cat(tb),
+                "sugarcane_biogas_m3_year":      _f(row, "sugarcane_biogas_m3_year"),
+                "soybean_biogas_m3_year":        _f(row, "soybean_biogas_m3_year"),
+                "corn_biogas_m3_year":           _f(row, "corn_biogas_m3_year"),
+                "coffee_biogas_m3_year":         _f(row, "coffee_biogas_m3_year"),
+                "citrus_biogas_m3_year":         _f(row, "citrus_biogas_m3_year"),
+                "cattle_biogas_m3_year":         _f(row, "cattle_biogas_m3_year"),
+                "swine_biogas_m3_year":          _f(row, "swine_biogas_m3_year"),
+                "poultry_biogas_m3_year":        _f(row, "poultry_biogas_m3_year"),
+                "aquaculture_biogas_m3_year":    _f(row, "aquaculture_biogas_m3_year"),
+                "rsu_biogas_m3_year":            _f(row, "rsu_biogas_m3_year"),
+                "rpo_biogas_m3_year":            _f(row, "rpo_biogas_m3_year"),
+                "total_biomass_tons_year":       _f(row, "total_biomass_tons_year"),
+                "agricultural_biomass_tons_year":_f(row, "agricultural_biomass_tons_year"),
+                "livestock_biomass_tons_year":   _f(row, "livestock_biomass_tons_year"),
+                "urban_biomass_tons_year":       _f(row, "urban_biomass_tons_year"),
+                "sugarcane_biomass_tons_year":   _f(row, "sugarcane_biomass_tons_year"),
+                "soybean_biomass_tons_year":     _f(row, "soybean_biomass_tons_year"),
+                "corn_biomass_tons_year":        _f(row, "corn_biomass_tons_year"),
+                "coffee_biomass_tons_year":      _f(row, "coffee_biomass_tons_year"),
+                "citrus_biomass_tons_year":      _f(row, "citrus_biomass_tons_year"),
+                "cattle_biomass_tons_year":      _f(row, "cattle_biomass_tons_year"),
+                "swine_biomass_tons_year":       _f(row, "swine_biomass_tons_year"),
+                "poultry_biomass_tons_year":     _f(row, "poultry_biomass_tons_year"),
+                "aquaculture_biomass_tons_year": _f(row, "aquaculture_biomass_tons_year"),
+                "rsu_biomass_tons_year":         _f(row, "rsu_biomass_tons_year"),
+                "rpo_biomass_tons_year":         _f(row, "rpo_biomass_tons_year"),
             },
         })
 
-    logger.info(f"Returning {len(merged_features)} municipalities ({matched_count} with biogas data)")
+    logger.info(f"Returning {len(features)} municipalities from PostGIS")
     return {
         "type": "FeatureCollection",
-        "features": merged_features,
+        "features": features,
         "metadata": {
-            "total_municipalities":    len(merged_features),
-            "matched_with_biogas_data": matched_count,
-            "source_geometry":  "Local Shapefile (SP_Municipios_2024.shp)",
-            "source_biogas_data": "Local PostgreSQL",
+            "total_municipalities":    len(features),
+            "source_geometry":         "PostGIS municipalities.geometry",
+            "source_biogas_data":      "PostGIS municipalities table",
         },
     }
 
 
-@router.get("/test-shapefile")
-async def test_shapefile():
+@router.get("/test-geometry")
+async def test_geometry():
+    """Sanity-check that PostGIS geometry is populated."""
     try:
-        if SHAPEFILE_PATH.exists():
-            gdf = gpd.read_file(SHAPEFILE_PATH)
-            test_geom = mapping(gdf.iloc[0].geometry)
-            return {
-                "success": True, "path": str(SHAPEFILE_PATH),
-                "count": len(gdf), "columns": list(gdf.columns),
-                "first_municipality": gdf.iloc[0]["NM_MUN"],
-                "geometry_type": test_geom["type"],
-            }
-        return {"success": False, "error": f"Shapefile not found at {SHAPEFILE_PATH}"}
+        with get_db() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                SELECT COUNT(*) AS total,
+                       COUNT(geometry) AS with_geometry,
+                       ST_AsGeoJSON(ST_Envelope(ST_Collect(geometry))) AS bbox
+                FROM municipalities
+                """
+            )
+            row = cursor.fetchone()
+            cursor.close()
+        return {
+            "total_rows":      int(row["total"] or 0),
+            "with_geometry":   int(row["with_geometry"] or 0),
+            "bounding_box":    json.loads(row["bbox"]) if row["bbox"] else None,
+        }
     except Exception as e:
-        return {"success": False, "error": str(e), "type": type(e).__name__}
+        return {"error": str(e)}
 
 
 @router.get("/stats/summary")
@@ -233,9 +214,11 @@ async def get_municipalities(
                 cursor.execute("SELECT * FROM municipalities LIMIT %s OFFSET %s", [limit, offset])
             data = [dict(r) for r in cursor.fetchall()]
 
-            cursor.execute("SELECT COUNT(*) AS total FROM municipalities" +
-                           (" WHERE municipality_name ILIKE %s" if search else ""),
-                           [f"%{search}%"] if search else [])
+            cursor.execute(
+                "SELECT COUNT(*) AS total FROM municipalities"
+                + (" WHERE municipality_name ILIKE %s" if search else ""),
+                [f"%{search}%"] if search else [],
+            )
             total = cursor.fetchone()["total"]
             cursor.close()
 
