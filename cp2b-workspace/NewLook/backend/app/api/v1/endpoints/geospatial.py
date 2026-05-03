@@ -246,7 +246,8 @@ async def get_municipalities_geojson(
                         'cattle_biomass_tons_year', ROUND(COALESCE(cattle_biomass_tons_year, 0)::numeric, 2),
                         'swine_biomass_tons_year', ROUND(COALESCE(swine_biomass_tons_year, 0)::numeric, 2),
                         'poultry_biomass_tons_year', ROUND(COALESCE(poultry_biomass_tons_year, 0)::numeric, 2),
-                        'aquaculture_biomass_tons_year', ROUND(COALESCE(aquaculture_biomass_tons_year, 0)::numeric, 2),
+                        'aquaculture_biomass_tons_year', ROUND(COALESCE(aquaculture_biomass_tons_year, 0)::numeric, 2)
+                    ) || jsonb_build_object(
                         'rsu_biomass_tons_year', ROUND(COALESCE(rsu_biomass_tons_year, 0)::numeric, 2),
                         'rpo_biomass_tons_year', ROUND(COALESCE(rpo_biomass_tons_year, 0)::numeric, 2),
                         'potential_category', potential_category,
