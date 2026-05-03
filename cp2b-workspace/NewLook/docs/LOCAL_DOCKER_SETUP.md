@@ -19,8 +19,7 @@ cd A:\Pilar-2b\cp2b-workspace\NewLook
 
 # 2. Create your local env file for Docker
 cp .env.docker.example .env.docker
-# Edit .env.docker if you need Supabase or Sentry keys; defaults work for
-# a fully local setup.
+# Edit .env.docker — the only required change is SECRET_KEY (must be ≥ 32 chars).
 
 # 3. Build images and start all services
 docker compose up --build
@@ -28,6 +27,30 @@ docker compose up --build
 
 The first `--build` takes 3-10 minutes (GDAL compilation + npm install).
 Subsequent starts reuse cached layers and are fast.
+
+## Database seeding (one-time, after first `docker compose up --build`)
+
+The PostgreSQL container starts empty.  Run the migrations and import the
+V2 municipality data to make the map show real biogas data.
+
+```bash
+# Run all schema migrations in order
+for f in backend/app/migrations/*.sql; do
+  echo "Running $f..."
+  Get-Content $f | docker exec -i cp2b-db-dev psql -U postgres -d cp2b_maps
+done
+
+# Seed technology cards
+Get-Content backend/data/seed_technologies_expanded.sql | \
+  docker exec -i cp2b-db-dev psql -U postgres -d cp2b_maps
+
+# Import 645 SP municipalities with biogas data from the V2 database
+# (requires A:/CP2B_Maps_V2/data/database/cp2b_maps.db on this machine)
+python backend/scripts/import_v2_municipalities.py
+```
+
+After seeding, the map at http://localhost:3006/pilar2b will show colored
+municipalities with real biogas potentials (Barretos, Morro Agudo, etc. as ALTO).
 
 ## Daily workflow
 
