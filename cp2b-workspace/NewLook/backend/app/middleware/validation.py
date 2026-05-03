@@ -3,6 +3,7 @@ Input validation middleware for API endpoints
 Prevents injection attacks and ensures data integrity
 """
 from fastapi import Request, HTTPException, status
+from fastapi.responses import JSONResponse
 from typing import Any, Dict, Optional
 import re
 import logging
@@ -314,7 +315,7 @@ async def validation_middleware(request: Request, call_next):
             f"Validation failed for {request.method} {request.url.path}",
             extra={"params": dict(request.query_params)}
         )
-        raise
+        return JSONResponse(status_code=e.status_code, content={"detail": e.detail})
 
     # Continue to next handler
     response = await call_next(request)

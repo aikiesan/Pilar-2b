@@ -1,0 +1,15 @@
+# Development image for PILAR-2b frontend
+# node_modules are installed inside the image at build time so they are
+# isolated from the host's own node_modules.  The source tree is
+# bind-mounted by docker-compose (anonymous /app/node_modules volume
+# shadows the bind-mount so the container's modules are used).
+
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Install deps before mounting source so the layer is cached
+COPY package.json package-lock.json* ./
+RUN npm ci --prefer-offline
+
+# No CMD — overridden by docker-compose (next dev)
