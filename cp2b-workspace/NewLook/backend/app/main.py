@@ -23,6 +23,7 @@ from app.middleware.rate_limiter import rate_limit_middleware
 from app.middleware.response_compression import gzip_middleware
 from app.middleware.rate_limit import limiter, rate_limit_exceeded_handler
 from app.middleware.request_size_limit import request_size_limit_middleware
+from app.middleware.validation import validation_middleware
 from app.services.cache_service import get_all_cache_stats
 
 # Create FastAPI app - disable docs in production
@@ -46,7 +47,10 @@ app.middleware("http")(request_size_limit_middleware)
 # 2. Rate limiting (prevents abuse)
 app.middleware("http")(rate_limit_middleware)
 
-# 3. CORS middleware - Allow specific PILAR-2b deployments only
+# 3. Input validation & injection detection (blocks SQLi/CMDi in query params)
+app.middleware("http")(validation_middleware)
+
+# 4. CORS middleware - Allow specific PILAR-2b deployments only
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.get_all_origins(),  # Includes localhost origins
@@ -61,10 +65,10 @@ app.add_middleware(
     max_age=3600,  # Cache preflight requests for 1 hour
 )
 
-# 4. Response compression (reduces bandwidth)
+# 5. Response compression (reduces bandwidth)
 app.middleware("http")(gzip_middleware)
 
-# 5. Trusted host middleware - Prevents host header injection attacks
+# 6. Trusted host middleware - Prevents host header injection attacks
 # NOTE: TrustedHostMiddleware doesn't support wildcards in allowed_hosts
 # Using specific domains only. CORS middleware above handles origin validation.
 # For production, we allow:

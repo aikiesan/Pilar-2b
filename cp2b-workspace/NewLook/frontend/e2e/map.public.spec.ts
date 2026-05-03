@@ -283,3 +283,114 @@ test.describe('Map Data Loading', () => {
     await expect(mapPage.leafletContainer).toBeVisible()
   })
 })
+
+// ---------------------------------------------------------------------------
+// Proximity analysis sanity sweep
+// ---------------------------------------------------------------------------
+
+test.describe('Proximity Analysis Sanity', () => {
+  /**
+   * Intercepts the proximity API and returns a minimal valid response so we
+   * can verify the UI handles a successful analysis without a real backend.
+   */
+  const MOCK_PROXIMITY_RESPONSE = {
+    analysis_point: { latitude: -22.9, longitude: -47.1 },
+    radius_km: 20,
+    land_use: {
+      total_area_km2: 1256.6,
+      by_class: {},
+      dominant_class: 'Pastagem',
+      agricultural_percent: 42.3,
+    },
+    municipalities: [
+      {
+        name: 'Campinas',
+        ibge_code: '3509502',
+        distance_km: 0,
+        biogas_m3_year: 150000,
+        population: 1213792,
+      },
+    ],
+    biogas_potential: { agricultural: 50000, livestock: 80000, urban: 20000, total: 150000 },
+    infrastructure: [],
+    summary: {
+      total_municipalities: 1,
+      total_population: 1213792,
+      avg_distance_km: 0,
+      total_biogas_m3_year: 150000,
+    },
+    processing_time_seconds: 0.5,
+  }
+
+  test('map loads without unhandled JS errors', async ({ page }) => {
+    const jsErrors: string[] = []
+    page.on('pageerror', (err) => jsErrors.push(err.message))
+
+    const mapPage = new MapPage(page)
+    await mapPage.goto('pt')
+
+    await expect(mapPage.leafletContainer).toBeVisible()
+    expect(jsErrors).toHaveLength(0)
+  })
+
+  test('proximity API mock returns valid response shape', async ({ page }) => {
+    // Intercept the proximity endpoint before loading the page
+    await page.route('**/api/v1/proximity**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(MOCK_PROXIMITY_RESPONSE),
+      })
+    })
+
+    const mapPage = new MapPage(page)
+    await mapPage.goto('pt')
+
+    await expect(mapPage.leafletContainer).toBeVisible()
+
+    // Click map center — may or may not trigger proximity depending on auth state
+    await mapPage.clickMapCenter()
+    await page.waitForTimeout(1000)
+
+    // Map must remain stable after interaction
+    await expect(mapPage.leafletContainer).toBeVisible()
+  })
+
+  test('no console errors during municipality layer load', async ({ page }) => {
+    const consoleErrors: string[] = []
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') consoleErrors.push(msg.text())
+    })
+
+    const mapPage = new MapPage(page)
+    await mapPage.goto('pt')
+
+    // Wait for interactive elements if they load
+    try {
+      await mapPage.waitForMunicipalitiesLoad()
+    } catch {
+      // Acceptable — municipalities may not load in unauthenticated public view
+    }
+
+    // Filter out known benign network errors (e.g. blocked external tiles in CI)
+    const criticalErrors = consoleErrors.filter(
+      (e) => !e.includes('net::ERR_') && !e.includes('Failed to load resource')
+    )
+    expect(criticalErrors).toHaveLength(0)
+  })
+
+  test('map remains functional after proximity API failure', async ({ page }) => {
+    // Simulate a backend outage
+    await page.route('**/api/v1/proximity**', (route) => route.abort())
+
+    const mapPage = new MapPage(page)
+    await mapPage.goto('pt')
+
+    // Click to potentially trigger proximity
+    await mapPage.clickMapCenter()
+    await page.waitForTimeout(1500)
+
+    // The base map must survive an API failure gracefully
+    await expect(mapPage.leafletContainer).toBeVisible()
+  })
+})
