@@ -15,6 +15,7 @@ router = APIRouter()
 # ─── Simple in-process cache (avoids repeated O(n²) computation) ─────────────
 
 _cluster_cache: dict[tuple, dict] = {}
+_cn_profile_cache: list[dict] | None = None
 
 
 def _cache_key(radius_km: float, min_biomass_tons: float, max_clusters: int) -> tuple:
@@ -100,6 +101,52 @@ async def get_cluster_detail(
     raise HTTPException(status_code=404, detail=f"Cluster '{cluster_id}' not found")
 
 
+@router.get("/municipality-cn-profiles")
+async def get_municipality_cn_profiles_endpoint():
+    """
+    Weighted C/N ratio for every São Paulo municipality.
+
+    Computes Σ(biomass_tons × cn_ratio) / Σ(biomass_tons) across all residue
+    streams. Used to drive the C/N choropleth layer on the map.
+    Result is cached for the process lifetime (reset via DELETE /clusters/cache).
+    """
+    global _cn_profile_cache
+    if _cn_profile_cache is None:
+        try:
+            from app.services.codigestion_service import get_municipality_cn_profiles
+            _cn_profile_cache = get_municipality_cn_profiles()
+        except Exception as e:
+            logger.error(f"Error computing municipality C/N profiles: {e}", exc_info=True)
+            raise HTTPException(status_code=500, detail=f"Error computing C/N profiles: {str(e)}")
+    return {"profiles": _cn_profile_cache, "count": len(_cn_profile_cache)}
+
+
+@router.get("/pairing-candidates")
+async def get_pairing_candidates_endpoint(
+    ibge_code: str = Query(..., description="IBGE code of the target municipality"),
+    radius_km: float = Query(default=50.0, ge=5.0, le=200.0,
+                             description="Search radius in km"),
+):
+    """
+    Top-ranked co-digestion partners for a municipality within radius_km.
+
+    Ranks candidate municipalities by improvement_score:
+        |cn_target − 25| − |cn_blended − 25|
+    Higher score = blending moves the mixture closer to the 20–30 optimal range.
+    Returns up to 20 candidates sorted descending by score.
+    """
+    try:
+        from app.services.codigestion_service import get_pairing_candidates
+        candidates = get_pairing_candidates(ibge_code=ibge_code, radius_km=radius_km)
+    except Exception as e:
+        logger.error(f"Error computing pairing candidates: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Error computing candidates: {str(e)}")
+
+    if candidates is None:
+        raise HTTPException(status_code=404, detail=f"Municipality '{ibge_code}' not found")
+    return {"ibge_code": ibge_code, "radius_km": radius_km, "candidates": candidates}
+
+
 @router.get("/residue-cn-matrix")
 async def get_residue_cn_matrix():
     """
@@ -123,6 +170,8 @@ async def clear_cluster_cache():
     Clear the in-process cluster cache. Call after updating biomass data
     (e.g., after running load_biomass_tons.py).
     """
+    global _cn_profile_cache
     count = len(_cluster_cache)
     _cluster_cache.clear()
-    return {"cleared_entries": count, "message": "Cluster cache cleared"}
+    _cn_profile_cache = None
+    return {"cleared_entries": count, "message": "Cluster and C/N profile caches cleared"}

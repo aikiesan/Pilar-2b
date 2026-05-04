@@ -481,7 +481,7 @@ class ProximityService:
             with get_db() as conn:
                 cursor = conn.cursor()
                 cursor.execute("SELECT codigo, nome FROM sectors")
-                sectors_data = [dict(r) for r in cursor.fetchall()]
+                sectors_data = [dict(row) for row in cursor.fetchall()]
                 sector_nome_map = {s["codigo"]: s["nome"] for s in sectors_data}
 
                 for class_id_str, class_data in by_class.items():
@@ -501,11 +501,11 @@ class ProximityService:
                             FROM residuos
                             WHERE nome IN ({placeholders})
                         """, residuo_names)
-                        res_data = [dict(r) for r in cursor.fetchall()]
+                        res_data = [dict(row) for row in cursor.fetchall()]
 
-                        for r in res_data:
-                            item = {k: (float(v) if hasattr(v, "__float__") else v) for k, v in r.items()}
-                            item["sector_nome"] = sector_nome_map.get(r.get("sector_codigo", ""), "")
+                        for residuo in res_data:
+                            item = {k: (float(v) if hasattr(v, "__float__") else v) for k, v in residuo.items()}
+                            item["sector_nome"] = sector_nome_map.get(residuo.get("sector_codigo", ""), "")
                             matched_residuos.append(item)
 
                     area_km2 = class_data.get("area_km2", 0)
@@ -516,9 +516,9 @@ class ProximityService:
 
                     if production_factor and matched_residuos:
                         estimated_residue_tons = area_ha * production_factor
-                        avg_bmp = sum(float(r.get("bmp_medio") or 0) for r in matched_residuos) / len(matched_residuos)
-                        avg_ts = sum(float(r.get("ts_medio") or 0) for r in matched_residuos) / len(matched_residuos)
-                        avg_vs = sum(float(r.get("vs_medio") or 0) for r in matched_residuos) / len(matched_residuos)
+                        avg_bmp = sum(float(res.get("bmp_medio") or 0) for res in matched_residuos) / len(matched_residuos)
+                        avg_ts = sum(float(res.get("ts_medio") or 0) for res in matched_residuos) / len(matched_residuos)
+                        avg_vs = sum(float(res.get("vs_medio") or 0) for res in matched_residuos) / len(matched_residuos)
                         if avg_ts > 0 and avg_vs > 0:
                             vs_tons = estimated_residue_tons * (avg_ts / 100) * (avg_vs / 100)
                             estimated_biogas_m3 = vs_tons * avg_bmp

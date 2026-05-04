@@ -215,17 +215,23 @@ async def trigger_cluster_analysis(
 # ─── Internal helpers ─────────────────────────────────────────────────────────
 
 def _fetch_all_from_db(state_code: Optional[str] = None) -> list[dict]:
-    with get_db() as conn:
-        cursor = conn.cursor()
-        if state_code:
-            cursor.execute(
-                "SELECT * FROM intermediate_regions WHERE state_code = %s ORDER BY total_biogas_m3_year DESC",
-                (state_code.strip(),)
-            )
-        else:
-            cursor.execute(
-                "SELECT * FROM intermediate_regions ORDER BY total_biogas_m3_year DESC"
-            )
-        rows = cursor.fetchall()
-        cursor.close()
-    return [dict(r) for r in (rows or [])]
+    try:
+        with get_db() as conn:
+            cursor = conn.cursor()
+            if state_code:
+                cursor.execute(
+                    "SELECT * FROM intermediate_regions WHERE state_code = %s ORDER BY total_biogas_m3_year DESC",
+                    (state_code.strip(),)
+                )
+            else:
+                cursor.execute(
+                    "SELECT * FROM intermediate_regions ORDER BY total_biogas_m3_year DESC"
+                )
+            rows = cursor.fetchall()
+            cursor.close()
+        return [dict(r) for r in (rows or [])]
+    except Exception as e:
+        if "does not exist" in str(e) or "relation" in str(e).lower():
+            logger.warning("intermediate_regions table not found — returning empty list")
+            return []
+        raise

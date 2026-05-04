@@ -86,6 +86,9 @@ export const queryKeys = {
     clusters: (radiusKm: number, minBiomass: number) =>
       [...queryKeys.codigestion.all, 'clusters', radiusKm, minBiomass] as const,
     cnMatrix: () => [...queryKeys.codigestion.all, 'cn-matrix'] as const,
+    cnProfiles: () => [...queryKeys.codigestion.all, 'cn-profiles'] as const,
+    pairingCandidates: (ibgeCode: string, radiusKm: number) =>
+      [...queryKeys.codigestion.all, 'pairing-candidates', ibgeCode, radiusKm] as const,
   },
 
   // National intermediate regions (Phase 1)

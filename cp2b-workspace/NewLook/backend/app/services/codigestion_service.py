@@ -306,6 +306,108 @@ def find_codigestion_clusters(
     }
 
 
+def _cn_label(cn: float) -> str:
+    if cn > 40:
+        return "C-RICH"
+    if cn < 20:
+        return "N-RICH"
+    return "BALANCED"
+
+
+def get_municipality_cn_profiles() -> list[dict]:
+    """
+    Per-municipality weighted C/N ratio using biomass tonnage × residue C/N.
+    Formula: Σ(biomass_i × cn_i) / Σ(biomass_i) across all active residue streams.
+    """
+    from app.core.database import get_db
+
+    biomass_cols_sql = ", ".join(f"{k}_biomass_tons_year" for k in RESIDUE_KEYS)
+    try:
+        with get_db() as conn:
+            cursor = conn.cursor()
+            cursor.execute(f"""
+                SELECT ibge_code, municipality_name, centroid_lat, centroid_lng,
+                       {biomass_cols_sql}
+                FROM municipalities
+                WHERE centroid_lat IS NOT NULL AND centroid_lng IS NOT NULL
+            """)
+            rows = [dict(r) for r in cursor.fetchall()]
+            cursor.close()
+    except Exception as e:
+        logger.error(f"Failed to fetch municipality data for C/N profiles: {e}")
+        return []
+
+    cn_by_codigo = _load_cn_data()
+    results = []
+    for row in rows:
+        breakdown: dict[str, dict] = {}
+        total_biomass = 0.0
+        numerator = 0.0
+        for key in RESIDUE_KEYS:
+            tons = float(row.get(f"{key}_biomass_tons_year") or 0)
+            if tons <= 0:
+                continue
+            cn = _get_cn(key, cn_by_codigo)
+            breakdown[key] = {"tons": round(tons, 1), "cn": cn}
+            total_biomass += tons
+            numerator += tons * cn
+
+        cn_weighted = round(numerator / total_biomass, 2) if total_biomass > 0 else CN_OPTIMAL_MID
+        dominant = max(breakdown, key=lambda k: breakdown[k]["tons"], default=None)
+        results.append({
+            "ibge_code": row["ibge_code"],
+            "municipality_name": row["municipality_name"],
+            "centroid_lat": float(row["centroid_lat"]),
+            "centroid_lng": float(row["centroid_lng"]),
+            "cn_ratio_weighted": cn_weighted,
+            "cn_label": _cn_label(cn_weighted),
+            "dominant_residue": dominant,
+            "total_biomass_tons_year": round(total_biomass, 1),
+            "residue_breakdown": breakdown,
+        })
+    return results
+
+
+def get_pairing_candidates(ibge_code: str, radius_km: float = 50.0) -> list[dict]:
+    """
+    Top-ranked co-digestion partners for a given municipality within radius_km.
+    Ranked by improvement_score = |cn_target − 25| − |cn_blended − 25|.
+    """
+    profiles = get_municipality_cn_profiles()
+    target = next((p for p in profiles if str(p["ibge_code"]) == str(ibge_code)), None)
+    if target is None:
+        return []
+
+    candidates = []
+    for p in profiles:
+        if str(p["ibge_code"]) == str(ibge_code):
+            continue
+        dist = _haversine_km(
+            target["centroid_lat"], target["centroid_lng"],
+            p["centroid_lat"], p["centroid_lng"],
+        )
+        if dist > radius_km:
+            continue
+        b_a = target["total_biomass_tons_year"]
+        b_b = p["total_biomass_tons_year"]
+        cn_blended = _weighted_cn(b_a, target["cn_ratio_weighted"], b_b, p["cn_ratio_weighted"])
+        score = _improvement_score(cn_blended, target["cn_ratio_weighted"], p["cn_ratio_weighted"])
+        candidates.append({
+            "ibge_code": p["ibge_code"],
+            "municipality_name": p["municipality_name"],
+            "distance_km": round(dist, 1),
+            "cn_ratio_weighted": p["cn_ratio_weighted"],
+            "cn_label": p["cn_label"],
+            "dominant_residue": p["dominant_residue"],
+            "total_biomass_tons_year": p["total_biomass_tons_year"],
+            "cn_blended": round(cn_blended, 2),
+            "improvement_score": score,
+        })
+
+    candidates.sort(key=lambda c: c["improvement_score"], reverse=True)
+    return candidates[:20]
+
+
 def get_residue_cn_matrix() -> dict:
     cn_by_codigo = _load_cn_data()
     residues = []

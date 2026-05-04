@@ -136,6 +136,41 @@ export interface ResidueCNMatrix {
   optimal_range: { low: number; high: number };
 }
 
+export interface MunicipalityCnProfile {
+  ibge_code: string;
+  municipality_name: string;
+  centroid_lat: number;
+  centroid_lng: number;
+  cn_ratio_weighted: number;
+  cn_label: 'C-RICH' | 'BALANCED' | 'N-RICH';
+  dominant_residue: string | null;
+  total_biomass_tons_year: number;
+  residue_breakdown: Record<string, { tons: number; cn: number }>;
+}
+
+export interface MunicipalityCnProfilesResponse {
+  profiles: MunicipalityCnProfile[];
+  count: number;
+}
+
+export interface PairingCandidate {
+  ibge_code: string;
+  municipality_name: string;
+  distance_km: number;
+  cn_ratio_weighted: number;
+  cn_label: 'C-RICH' | 'BALANCED' | 'N-RICH';
+  dominant_residue: string | null;
+  total_biomass_tons_year: number;
+  cn_blended: number;
+  improvement_score: number;
+}
+
+export interface PairingCandidatesResponse {
+  ibge_code: string;
+  radius_km: number;
+  candidates: PairingCandidate[];
+}
+
 // GeoJSON Feature for municipality
 export interface MunicipalityFeature {
   type: 'Feature';

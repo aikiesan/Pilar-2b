@@ -13,10 +13,12 @@ import { useTranslations } from 'next-intl';
 import { MapContainer, TileLayer } from 'react-leaflet';
 import dynamic from 'next/dynamic';
 import { useGeospatialData, useCodigestionClusters, useResidueCNMatrix, useIntermediateRegionsGeoJSON } from '@/hooks/useGeospatialData';
+import { useCnProfiles } from '@/hooks/useCnProfiles';
 import type { FilterCriteria } from '@/components/dashboard/FilterPanel';
 import type { MunicipalityCollection, MunicipalityFeature, DisplayMetric, CodigestionCluster } from '@/types/geospatial';
 import type { BiomassType, ResidueType } from './FloatingControlPanel';
 import type { VisualizationMode } from './LeftFilterPanel';
+import MapToolbar, { type ColorMode } from './MapToolbar';
 import type { InfrastructureLayerStatus } from './InfrastructureLayer';
 import MapLegend from './MapLegend';
 import MapLoadingSkeleton from './MapLoadingSkeleton';
@@ -53,6 +55,7 @@ const MapSearchBox = dynamic(() => import('./MapSearchBox'), { ssr: false });
 // Co-digestion clustering layers
 const CodigestionClusterLayer = dynamic(() => import('./CodigestionClusterLayer'), { ssr: false });
 const CodigestionDetailPanel = dynamic(() => import('./CodigestionDetailPanel'), { ssr: false });
+const CnChoroLayer = dynamic(() => import('./CnChoroLayer'), { ssr: false });
 const IntermediateRegionBoundaryLayer = dynamic(
   () => import('./IntermediateRegionBoundaryLayer'),
   { ssr: false }
@@ -151,6 +154,9 @@ export default function MapComponent({
   const [displayMetric, setDisplayMetric] = useState<DisplayMetric>(initialMetric);
   const [selectedClusterId, setSelectedClusterId] = useState<string | null>(null);
   const [showClusterPanel, setShowClusterPanel] = useState(false);
+  const [colorMode, setColorMode] = useState<ColorMode>('biogas');
+
+  const { profilesMap: cnProfilesMap, isLoading: cnLoading } = useCnProfiles(colorMode === 'cn_profile');
   const [mapScope, setMapScope] = useState<'sp' | 'brazil'>(urlScope === 'brazil' ? 'brazil' : 'sp');
 
   const mapCenter = mapScope === 'brazil' ? BRAZIL_CENTER : SAO_PAULO_CENTER;
@@ -455,6 +461,9 @@ export default function MapComponent({
 
       {/* ── Map area (flex-1 fills remaining width) ── */}
       <div className="relative flex-1 min-w-0 h-full">
+        {/* Color mode toggle — floats above the map */}
+        <MapToolbar colorMode={colorMode} onColorModeChange={setColorMode} />
+
         <MapContainer
           center={mapCenter}
           zoom={mapZoom}
@@ -488,6 +497,11 @@ export default function MapComponent({
                 <HeatmapLayer data={displayData} selectedResidues={selectedResidues} opacity={opacity} />
               )}
             </>
+          )}
+
+          {/* C/N Choropleth overlay */}
+          {colorMode === 'cn_profile' && !cnLoading && displayData && (
+            <CnChoroLayer geoJsonData={displayData} profilesMap={cnProfilesMap} />
           )}
 
           {/* Co-digestion Cluster Layer */}
