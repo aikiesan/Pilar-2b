@@ -9,10 +9,12 @@ import React from 'react';
 import { GeoJSON } from 'react-leaflet';
 import type { GeoJsonObject, Feature } from 'geojson';
 import type { MunicipalityCollection, MunicipalityFeature, DisplayMetric } from '@/types/geospatial';
+import type { ColorMode } from './MapToolbar';
 import type { BiomassType, ResidueType } from './FloatingControlPanel';
 import MunicipalityPopup from '../dashboard/MunicipalityPopup';
 import L from 'leaflet';
 import { createRoot } from 'react-dom/client';
+import { getBiomassTonsByType, getResidueBiomassTons } from '@/lib/biomassAvailability';
 
 interface MunicipalityLayerProps {
   data: MunicipalityCollection;
@@ -20,9 +22,21 @@ interface MunicipalityLayerProps {
   biomassType?: BiomassType;
   selectedResidues?: ResidueType[];
   displayMetric?: DisplayMetric;
+  colorMode?: ColorMode;
   onMunicipalityClick?: (feature: MunicipalityFeature) => void;
   onMunicipalityHover?: (feature: MunicipalityFeature | null, e?: MouseEvent) => void;
 }
+
+// Cluster choropleth — 4 distinct qualitative colors
+const CLUSTER_COLORS: Record<number, string> = {
+  0: '#4daf4a',  // green  — sugarcane-dominated
+  1: '#ff7f00',  // orange — soybean-intensive
+  2: '#e41a1c',  // red    — rsu-urban-intensive
+  3: '#377eb8',  // blue   — cattle-intensive
+};
+
+const getColorForCluster = (clusterId: number | null | undefined): string =>
+  clusterId != null && clusterId in CLUSTER_COLORS ? CLUSTER_COLORS[clusterId] : '#aaaaaa';
 
 // YlGnBu color scale for biogas (m³/year)
 const getColorForBiogas = (value: number): string => {
@@ -36,14 +50,15 @@ const getColorForBiogas = (value: number): string => {
 };
 
 // YlGnBu color scale for biomass availability (t/year)
+// Breaks tuned for SP municipalities: nearly none fall below 5K t; top tier splits >500K
 const getColorForBiomassTons = (value: number): string => {
-  if (value === 0)        return '#f7f7f7';
-  if (value < 500)        return '#ffffcc';   // < 500 t
-  if (value < 5000)       return '#c7e9b4';   // 500–5K t
-  if (value < 25000)      return '#7fcdbb';   // 5K–25K t
-  if (value < 100000)     return '#41b6c4';   // 25K–100K t
-  if (value < 500000)     return '#2c7fb8';   // 100K–500K t
-  return '#253494';                            // > 500K t
+  if (value === 0)          return '#f7f7f7';
+  if (value < 5_000)        return '#ffffcc';   // < 5K t
+  if (value < 50_000)       return '#c7e9b4';   // 5K–50K t
+  if (value < 200_000)      return '#7fcdbb';   // 50K–200K t
+  if (value < 1_000_000)    return '#41b6c4';   // 200K–1M t
+  if (value < 5_000_000)    return '#2c7fb8';   // 1M–5M t
+  return '#253494';                              // > 5M t
 };
 
 const getColorForValue = (value: number, metric: DisplayMetric = 'biogas_m3'): string =>
@@ -55,6 +70,7 @@ export default function MunicipalityLayer({
   biomassType = 'total',
   selectedResidues = [],
   displayMetric = 'biomass_tons',
+  colorMode = 'biogas',
   onMunicipalityClick,
   onMunicipalityHover,
 }: MunicipalityLayerProps) {
@@ -63,6 +79,17 @@ export default function MunicipalityLayer({
 
   // Get display value based on selected residues or biomass type
   const getBiogasValue = (props: any): number => {
+    if (displayMetric === 'biomass_tons') {
+      if (selectedResidues.length > 0) {
+        return selectedResidues.reduce(
+          (sum, residue) => sum + getResidueBiomassTons(props, residue),
+          0
+        );
+      }
+
+      return getBiomassTonsByType(props, biomassType);
+    }
+
     if (selectedResidues.length > 0) {
       return selectedResidues.reduce((sum, residue) => {
         const val = Number(props[`${residue}_${suffix}`]) || 0;
@@ -82,11 +109,12 @@ export default function MunicipalityLayer({
   const style = (feature?: Feature) => {
     if (!feature || !feature.properties) return {};
 
-    const biogas = getBiogasValue(feature.properties);
-    const color = getColorForValue(biogas, displayMetric);
+    const fillColor = colorMode === 'cluster'
+      ? getColorForCluster((feature.properties as any).cluster_id)
+      : getColorForValue(getBiogasValue(feature.properties), displayMetric);
 
     return {
-      fillColor: color,
+      fillColor,
       weight: 1,
       opacity: 0.8,
       color: '#666666',
@@ -143,19 +171,16 @@ export default function MunicipalityLayer({
 
     // Tooltip (hover) — only bind HTML tooltip when no hover handler (mobile fallback)
     if (!onMunicipalityHover) {
+      const tooltipBody = colorMode === 'cluster'
+        ? `<span style="font-size:11px;color:rgba(255,255,255,0.9);">${props.cluster_label ?? 'N/A'} · ${props.mun_dominant_stream ?? ''}</span>`
+        : `<span style="font-size:11px;color:rgba(255,255,255,0.9);">${getBiomassLabel()}: ${formatBiogas(biogasValue)} ${displayMetric === 'biomass_tons' ? 't/ano' : 'm³/ano'}</span>`;
+
       layer.bindTooltip(
-        `<div style="text-align: center; padding: 4px;">
-          <strong style="font-size: 12px; color: white;">${props.name}</strong><br/>
-          <span style="font-size: 11px; color: rgba(255, 255, 255, 0.9);">
-            ${getBiomassLabel()}: ${formatBiogas(biogasValue)} ${displayMetric === 'biomass_tons' ? 't/ano' : 'm³/ano'}
-          </span>
+        `<div style="text-align:center;padding:4px;">
+          <strong style="font-size:12px;color:white;">${props.name}</strong><br/>
+          ${tooltipBody}
         </div>`,
-        {
-          permanent: false,
-          direction: 'top',
-          className: 'custom-tooltip',
-          offset: [0, -10]
-        }
+        { permanent: false, direction: 'top', className: 'custom-tooltip', offset: [0, -10] }
       );
     }
 
@@ -205,9 +230,9 @@ export default function MunicipalityLayer({
         },
         mouseout: (e) => {
           const target = e.target;
-          const biogas = getBiogasValue(feature.properties);
-          const color = getColorForValue(biogas);
-          const resetColor = getColorForValue(getBiogasValue(feature.properties), displayMetric);
+          const resetColor = colorMode === 'cluster'
+            ? getColorForCluster((feature.properties as any).cluster_id)
+            : getColorForValue(getBiogasValue(feature.properties), displayMetric);
           target.setStyle({
             weight: 1,
             color: '#666666',
@@ -232,7 +257,7 @@ export default function MunicipalityLayer({
 
   return (
     <GeoJSON
-      key={`${biomassType}-${displayMetric}-${opacity}-${selectedResidues.join(',')}`}
+      key={`${biomassType}-${displayMetric}-${opacity}-${colorMode}-${selectedResidues.join(',')}`}
       data={data as GeoJsonObject}
       style={style}
       onEachFeature={onEachFeature}

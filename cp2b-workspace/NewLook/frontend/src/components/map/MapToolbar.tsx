@@ -11,7 +11,7 @@
 
 import React from 'react';
 
-export type ColorMode = 'biogas' | 'cn_profile' | 'pairings';
+export type ColorMode = 'biogas' | 'cn_profile' | 'cluster';
 
 interface MapToolbarProps {
   colorMode: ColorMode;
@@ -21,7 +21,7 @@ interface MapToolbarProps {
 const MODES: { value: ColorMode; label: string; disabled?: boolean }[] = [
   { value: 'biogas',      label: 'Potencial Biogás' },
   { value: 'cn_profile',  label: 'Perfil C/N' },
-  { value: 'pairings',    label: 'Pareamentos', disabled: true },
+  { value: 'cluster',     label: 'Clusters K4' },
 ];
 
 export default function MapToolbar({ colorMode, onColorModeChange }: MapToolbarProps) {

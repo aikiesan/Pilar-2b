@@ -22,6 +22,11 @@ import {
   FileText,
 } from 'lucide-react';
 import type { MunicipalityFeature } from '@/types/geospatial';
+import {
+  getResidueBiomassTons,
+  getSectorBiomassTons,
+  getTotalBiomassTons,
+} from '@/lib/biomassAvailability';
 
 interface MunicipalityProfilePanelProps {
   municipality: MunicipalityFeature | null;
@@ -35,7 +40,7 @@ export default function MunicipalityProfilePanel({
   visible,
 }: MunicipalityProfilePanelProps) {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
-    new Set(['overview', 'biogas'])
+    new Set(['overview', 'biomass'])
   );
 
   if (!visible || !municipality) return null;
@@ -79,16 +84,21 @@ export default function MunicipalityProfilePanel({
     return value.toFixed(0);
   };
 
+  const formatTons = (value: number | undefined | null) => {
+    if (value === undefined || value === null) return 'N/A';
+    return `${formatBigNumber(value)} t/ano`;
+  };
+
   // Calculate totals
-  const totalBiogas = props.total_biogas_m3_year || 0;
-  const agriculturalBiogas = props.agricultural_biogas_m3_year || 0;
-  const livestockBiogas = props.livestock_biogas_m3_year || 0;
-  const urbanBiogas = props.urban_biogas_m3_year || 0;
+  const agriculturalBiomass = getSectorBiomassTons(props, 'agricultural');
+  const livestockBiomass = getSectorBiomassTons(props, 'livestock');
+  const urbanBiomass = getSectorBiomassTons(props, 'urban');
+  const totalBiomass = getTotalBiomassTons(props);
 
   // Calculate percentages
-  const agriculturePercent = totalBiogas > 0 ? (agriculturalBiogas / totalBiogas) * 100 : 0;
-  const livestockPercent = totalBiogas > 0 ? (livestockBiogas / totalBiogas) * 100 : 0;
-  const urbanPercent = totalBiogas > 0 ? (urbanBiogas / totalBiogas) * 100 : 0;
+  const agriculturePercent = totalBiomass > 0 ? (agriculturalBiomass / totalBiomass) * 100 : 0;
+  const livestockPercent = totalBiomass > 0 ? (livestockBiomass / totalBiomass) * 100 : 0;
+  const urbanPercent = totalBiomass > 0 ? (urbanBiomass / totalBiomass) * 100 : 0;
 
   return (
     <>
@@ -127,6 +137,47 @@ export default function MunicipalityProfilePanel({
 
         {/* Content */}
         <div className="p-4 space-y-4">
+          {/* Cluster Profile — shown when cluster data is available */}
+          {props.cluster_label != null && (
+            <div className="rounded-xl border border-gray-200 dark:border-slate-700 overflow-hidden">
+              <div className="flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-slate-800">
+                <h3 className="font-semibold text-gray-900 dark:text-white text-sm">Perfil de Resíduos 2023</h3>
+                <span
+                  className="text-xs font-medium px-2 py-0.5 rounded-full text-white"
+                  style={{
+                    backgroundColor:
+                      props.cluster_id === 0 ? '#4daf4a' :
+                      props.cluster_id === 1 ? '#ff7f00' :
+                      props.cluster_id === 2 ? '#e41a1c' :
+                      props.cluster_id === 3 ? '#377eb8' : '#aaaaaa',
+                  }}
+                >
+                  {props.cluster_label}
+                </span>
+              </div>
+              <div className="px-4 py-3 space-y-1.5 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-500 dark:text-gray-400">Potencial biogás</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">
+                    {props.mun_total_GWh != null ? `${props.mun_total_GWh.toFixed(1)} GWh/ano` : 'N/A'}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500 dark:text-gray-400">Streams ativos</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">
+                    {props.mun_n_streams ?? 'N/A'}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500 dark:text-gray-400">Stream dominante</span>
+                  <span className="font-semibold text-gray-900 dark:text-white capitalize">
+                    {props.mun_dominant_stream?.replace('_', ' ') ?? 'N/A'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Overview Section */}
           <Section
             title="Visão Geral"
@@ -168,24 +219,24 @@ export default function MunicipalityProfilePanel({
             </div>
           </Section>
 
-          {/* Biogas Potential Section */}
+          {/* Biomass Availability Section */}
           <Section
-            title="Potencial de Biogás"
+            title="Disponibilidade de Biomassa"
             icon={<Factory className="w-5 h-5" />}
-            expanded={expandedSections.has('biogas')}
-            onToggle={() => toggleSection('biogas')}
+            expanded={expandedSections.has('biomass')}
+            onToggle={() => toggleSection('biomass')}
           >
             <div className="space-y-4">
-              {/* Total Biogas */}
+              {/* Total Biomass */}
               <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-lg p-4 border border-green-200 dark:border-green-800">
                 <div className="text-xs text-green-700 dark:text-green-300 font-medium mb-1">
-                  Potencial Total
+                  Biomassa Disponível Total
                 </div>
                 <div className="text-2xl font-bold text-green-900 dark:text-green-100 mb-0.5">
-                  {formatBigNumber(totalBiogas)}
+                  {formatBigNumber(totalBiomass)}
                 </div>
                 <div className="text-xs text-green-600 dark:text-green-400">
-                  m³/ano de biogás
+                  toneladas/ano de biomassa
                 </div>
               </div>
 
@@ -198,28 +249,31 @@ export default function MunicipalityProfilePanel({
                 {/* Agricultural */}
                 <ProgressBar
                   label="Agrícola"
-                  value={agriculturalBiogas}
+                  value={agriculturalBiomass}
                   percentage={agriculturePercent}
                   color="green"
                   icon={<Leaf className="w-4 h-4" />}
+                  unit="t/ano"
                 />
 
                 {/* Livestock */}
                 <ProgressBar
                   label="Pecuária"
-                  value={livestockBiogas}
+                  value={livestockBiomass}
                   percentage={livestockPercent}
                   color="yellow"
                   icon={<Factory className="w-4 h-4" />}
+                  unit="t/ano"
                 />
 
                 {/* Urban */}
                 <ProgressBar
                   label="Urbano"
-                  value={urbanBiogas}
+                  value={urbanBiomass}
                   percentage={urbanPercent}
                   color="blue"
                   icon={<Droplets className="w-4 h-4" />}
+                  unit="t/ano"
                 />
               </div>
             </div>
@@ -233,11 +287,11 @@ export default function MunicipalityProfilePanel({
             onToggle={() => toggleSection('agriculture')}
           >
             <div className="space-y-2">
-              <DetailRow label="Cana-de-açúcar" value={formatBigNumber(props.sugarcane_biogas_m3_year)} />
-              <DetailRow label="Soja" value={formatBigNumber(props.soybean_biogas_m3_year)} />
-              <DetailRow label="Milho" value={formatBigNumber(props.corn_biogas_m3_year)} />
-              <DetailRow label="Café" value={formatBigNumber(props.coffee_biogas_m3_year)} />
-              <DetailRow label="Citros" value={formatBigNumber(props.citrus_biogas_m3_year)} />
+              <DetailRow label="Cana-de-açúcar" value={formatTons(getResidueBiomassTons(props, 'sugarcane'))} />
+              <DetailRow label="Soja" value={formatTons(getResidueBiomassTons(props, 'soybean'))} />
+              <DetailRow label="Milho" value={formatTons(getResidueBiomassTons(props, 'corn'))} />
+              <DetailRow label="Café" value={formatTons(getResidueBiomassTons(props, 'coffee'))} />
+              <DetailRow label="Citros" value={formatTons(getResidueBiomassTons(props, 'citrus'))} />
             </div>
           </Section>
 
@@ -249,10 +303,10 @@ export default function MunicipalityProfilePanel({
             onToggle={() => toggleSection('livestock')}
           >
             <div className="space-y-2">
-              <DetailRow label="Bovinos" value={formatBigNumber(props.cattle_biogas_m3_year)} />
-              <DetailRow label="Suínos" value={formatBigNumber(props.swine_biogas_m3_year)} />
-              <DetailRow label="Aves" value={formatBigNumber(props.poultry_biogas_m3_year)} />
-              <DetailRow label="Aquicultura" value={formatBigNumber(props.aquaculture_biogas_m3_year)} />
+              <DetailRow label="Bovinos" value={formatTons(getResidueBiomassTons(props, 'cattle'))} />
+              <DetailRow label="Suínos" value={formatTons(getResidueBiomassTons(props, 'swine'))} />
+              <DetailRow label="Aves" value={formatTons(getResidueBiomassTons(props, 'poultry'))} />
+              <DetailRow label="Aquicultura" value={formatTons(getResidueBiomassTons(props, 'aquaculture'))} />
             </div>
           </Section>
 
@@ -264,8 +318,8 @@ export default function MunicipalityProfilePanel({
             onToggle={() => toggleSection('urban')}
           >
             <div className="space-y-2">
-              <DetailRow label="RSU (Resíduos Sólidos)" value={formatBigNumber(props.rsu_biogas_m3_year)} />
-              <DetailRow label="RPO (Resíduos Orgânicos)" value={formatBigNumber(props.rpo_biogas_m3_year)} />
+              <DetailRow label="RSU (Resíduos Sólidos)" value={formatTons(getResidueBiomassTons(props, 'rsu'))} />
+              <DetailRow label="RPO (Resíduos Orgânicos)" value={formatTons(getResidueBiomassTons(props, 'rpo'))} />
             </div>
           </Section>
 
@@ -356,9 +410,10 @@ interface ProgressBarProps {
   percentage: number;
   color: 'green' | 'yellow' | 'blue';
   icon: React.ReactNode;
+  unit?: string;
 }
 
-function ProgressBar({ label, value, percentage, color, icon }: ProgressBarProps) {
+function ProgressBar({ label, value, percentage, color, icon, unit = 'm³/ano' }: ProgressBarProps) {
   const colorClasses = {
     green: {
       bg: 'bg-green-500',
@@ -387,7 +442,7 @@ function ProgressBar({ label, value, percentage, color, icon }: ProgressBarProps
           <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{label}</span>
         </div>
         <div className="text-sm font-semibold text-gray-900 dark:text-white">
-          {value.toLocaleString('pt-BR', { maximumFractionDigits: 0 })} m³/ano
+          {value.toLocaleString('pt-BR', { maximumFractionDigits: 0 })} {unit}
         </div>
       </div>
       <div className="relative h-2 bg-gray-200 dark:bg-slate-700 rounded-full overflow-hidden">
@@ -412,7 +467,7 @@ function DetailRow({ label, value }: DetailRowProps) {
   return (
     <div className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-slate-700 last:border-0">
       <span className="text-sm text-gray-600 dark:text-gray-400">{label}</span>
-      <span className="text-sm font-semibold text-gray-900 dark:text-white">{value} m³/ano</span>
+      <span className="text-sm font-semibold text-gray-900 dark:text-white">{value}</span>
     </div>
   );
 }

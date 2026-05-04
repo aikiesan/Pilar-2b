@@ -9,8 +9,6 @@
 import React from 'react';
 import type { MunicipalityProperties } from '@/types/geospatial';
 import {
-  formatBiogas,
-  formatBiogasShort,
   formatPopulation,
   formatArea,
   calculatePercentage,
@@ -19,10 +17,46 @@ import {
   getCategoryLabel,
 } from '@/lib/mapUtils';
 import { BookOpen } from 'lucide-react';
+import {
+  BIOMASS_RESIDUES,
+  getResidueBiomassTons,
+  getSectorBiomassTons,
+  getTotalBiomassTons,
+  numberValue,
+} from '@/lib/biomassAvailability';
+import type { ResidueType } from '@/components/map/FloatingControlPanel';
 
 interface MunicipalityPopupProps {
   properties: MunicipalityProperties;
 }
+
+const residuePillClass: Record<ResidueType, string> = {
+  sugarcane: 'bg-green-50 border-green-200',
+  soybean: 'bg-green-50 border-green-200',
+  corn: 'bg-green-50 border-green-200',
+  coffee: 'bg-green-50 border-green-200',
+  citrus: 'bg-green-50 border-green-200',
+  cattle: 'bg-yellow-50 border-yellow-200',
+  swine: 'bg-yellow-50 border-yellow-200',
+  poultry: 'bg-yellow-50 border-yellow-200',
+  aquaculture: 'bg-yellow-50 border-yellow-200',
+  rsu: 'bg-blue-50 border-blue-200',
+  rpo: 'bg-blue-50 border-blue-200',
+};
+
+const formatTons = (value: unknown): string => {
+  const tons = numberValue(value);
+  if (tons >= 1_000_000) return `${(tons / 1_000_000).toFixed(2)} mi t/ano`;
+  if (tons >= 1_000) return `${(tons / 1_000).toFixed(1)} mil t/ano`;
+  return `${tons.toLocaleString('pt-BR', { maximumFractionDigits: 0 })} t/ano`;
+};
+
+const formatTonsShort = (value: unknown): string => {
+  const tons = numberValue(value);
+  if (tons >= 1_000_000) return `${(tons / 1_000_000).toFixed(1)}M t`;
+  if (tons >= 1_000) return `${(tons / 1_000).toFixed(1)}K t`;
+  return `${tons.toFixed(0)} t`;
+};
 
 function MunicipalityPopup({ properties }: MunicipalityPopupProps) {
   // Defensive checks for required properties
@@ -34,10 +68,13 @@ function MunicipalityPopup({ properties }: MunicipalityPopupProps) {
     );
   }
 
-  const totalBiogas = properties.total_biogas_m3_year || 0;
-  const agriPercentage = calculatePercentage(properties.agricultural_biogas_m3_year || 0, totalBiogas);
-  const livestockPercentage = calculatePercentage(properties.livestock_biogas_m3_year || 0, totalBiogas);
-  const urbanPercentage = calculatePercentage(properties.urban_biogas_m3_year || 0, totalBiogas);
+  const agriculturalBiomass = getSectorBiomassTons(properties, 'agricultural');
+  const livestockBiomass = getSectorBiomassTons(properties, 'livestock');
+  const urbanBiomass = getSectorBiomassTons(properties, 'urban');
+  const totalBiomass = getTotalBiomassTons(properties);
+  const agriPercentage = calculatePercentage(agriculturalBiomass, totalBiomass);
+  const livestockPercentage = calculatePercentage(livestockBiomass, totalBiomass);
+  const urbanPercentage = calculatePercentage(urbanBiomass, totalBiomass);
 
   return (
     <div className="w-full">
@@ -62,20 +99,20 @@ function MunicipalityPopup({ properties }: MunicipalityPopupProps) {
 
       {/* Main Content - Horizontal Grid Layout */}
       <div className="grid grid-cols-2 gap-3 mb-2">
-        {/* Left Column - Total Biogas & Demographics */}
+        {/* Left Column - Total Biomass & Demographics */}
         <div className="space-y-2">
-          {/* Total Biogas Potential */}
+          {/* Total Biomass Availability */}
           <div className="p-2 bg-green-50 rounded">
             <div className="flex items-center gap-1.5 mb-1">
               <svg className="w-3.5 h-3.5 text-green-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
               <span className="text-[10px] font-medium text-green-900">
-                Potencial Total
+                Biomassa Disponível
               </span>
             </div>
             <p className="text-sm font-bold text-green-900">
-              {formatBiogas(totalBiogas)}
+              {formatTons(totalBiomass)}
             </p>
           </div>
 
@@ -164,66 +201,16 @@ function MunicipalityPopup({ properties }: MunicipalityPopupProps) {
           Principais Resíduos
         </h4>
         <div className="flex flex-wrap gap-1.5">
-          {/* Agricultural Residues */}
-          {(properties.sugarcane_biogas_m3_year || 0) > 0 && (
-            <div className="px-2 py-0.5 bg-green-50 border border-green-200 rounded text-[9px]">
-              <span className="font-medium">Cana:</span> {formatBiogasShort(properties.sugarcane_biogas_m3_year || 0)}
-            </div>
-          )}
-          {(properties.soybean_biogas_m3_year || 0) > 0 && (
-            <div className="px-2 py-0.5 bg-green-50 border border-green-200 rounded text-[9px]">
-              <span className="font-medium">Soja:</span> {formatBiogasShort(properties.soybean_biogas_m3_year || 0)}
-            </div>
-          )}
-          {(properties.corn_biogas_m3_year || 0) > 0 && (
-            <div className="px-2 py-0.5 bg-green-50 border border-green-200 rounded text-[9px]">
-              <span className="font-medium">Milho:</span> {formatBiogasShort(properties.corn_biogas_m3_year || 0)}
-            </div>
-          )}
-          {(properties.coffee_biogas_m3_year || 0) > 0 && (
-            <div className="px-2 py-0.5 bg-green-50 border border-green-200 rounded text-[9px]">
-              <span className="font-medium">Café:</span> {formatBiogasShort(properties.coffee_biogas_m3_year || 0)}
-            </div>
-          )}
-          {(properties.citrus_biogas_m3_year || 0) > 0 && (
-            <div className="px-2 py-0.5 bg-green-50 border border-green-200 rounded text-[9px]">
-              <span className="font-medium">Citrus:</span> {formatBiogasShort(properties.citrus_biogas_m3_year || 0)}
-            </div>
-          )}
+          {(Object.keys(BIOMASS_RESIDUES) as ResidueType[]).map((residue) => {
+            const value = getResidueBiomassTons(properties, residue);
+            if (value <= 0) return null;
 
-          {/* Livestock Residues */}
-          {(properties.cattle_biogas_m3_year || 0) > 0 && (
-            <div className="px-2 py-0.5 bg-yellow-50 border border-yellow-200 rounded text-[9px]">
-              <span className="font-medium">Bovinos:</span> {formatBiogasShort(properties.cattle_biogas_m3_year || 0)}
-            </div>
-          )}
-          {(properties.swine_biogas_m3_year || 0) > 0 && (
-            <div className="px-2 py-0.5 bg-yellow-50 border border-yellow-200 rounded text-[9px]">
-              <span className="font-medium">Suínos:</span> {formatBiogasShort(properties.swine_biogas_m3_year || 0)}
-            </div>
-          )}
-          {(properties.poultry_biogas_m3_year || 0) > 0 && (
-            <div className="px-2 py-0.5 bg-yellow-50 border border-yellow-200 rounded text-[9px]">
-              <span className="font-medium">Aves:</span> {formatBiogasShort(properties.poultry_biogas_m3_year || 0)}
-            </div>
-          )}
-          {(properties.aquaculture_biogas_m3_year || 0) > 0 && (
-            <div className="px-2 py-0.5 bg-yellow-50 border border-yellow-200 rounded text-[9px]">
-              <span className="font-medium">Aquicultura:</span> {formatBiogasShort(properties.aquaculture_biogas_m3_year || 0)}
-            </div>
-          )}
-
-          {/* Urban Residues */}
-          {(properties.rsu_biogas_m3_year || 0) > 0 && (
-            <div className="px-2 py-0.5 bg-blue-50 border border-blue-200 rounded text-[9px]">
-              <span className="font-medium">RSU:</span> {formatBiogasShort(properties.rsu_biogas_m3_year || 0)}
-            </div>
-          )}
-          {(properties.rpo_biogas_m3_year || 0) > 0 && (
-            <div className="px-2 py-0.5 bg-blue-50 border border-blue-200 rounded text-[9px]">
-              <span className="font-medium">RPO:</span> {formatBiogasShort(properties.rpo_biogas_m3_year || 0)}
-            </div>
-          )}
+            return (
+              <div key={residue} className={`px-2 py-0.5 border rounded text-[9px] ${residuePillClass[residue]}`}>
+                <span className="font-medium">{BIOMASS_RESIDUES[residue].label}:</span> {formatTonsShort(value)}
+              </div>
+            );
+          })}
         </div>
       </div>
 
