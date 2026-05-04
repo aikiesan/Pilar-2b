@@ -20,12 +20,12 @@ const biogasItems = [
 ];
 
 const biomassItems = [
-  { color: '#253494', label: '> 500K t' },
-  { color: '#2c7fb8', label: '100K – 500K t' },
-  { color: '#41b6c4', label: '25K – 100K t' },
-  { color: '#7fcdbb', label: '5K – 25K t' },
-  { color: '#c7e9b4', label: '500 – 5K t' },
-  { color: '#ffffcc', label: '< 500 t' },
+  { color: '#253494', label: '> 5M t' },
+  { color: '#2c7fb8', label: '1M – 5M t' },
+  { color: '#41b6c4', label: '200K – 1M t' },
+  { color: '#7fcdbb', label: '50K – 200K t' },
+  { color: '#c7e9b4', label: '5K – 50K t' },
+  { color: '#ffffcc', label: '< 5K t' },
   { color: '#f7f7f7', label: 'Sem dados' },
 ];
 

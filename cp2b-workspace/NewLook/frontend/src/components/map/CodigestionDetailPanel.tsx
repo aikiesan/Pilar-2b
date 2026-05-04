@@ -14,6 +14,23 @@ const CN_OPTIMAL_LOW  = 20;
 const CN_OPTIMAL_HIGH = 30;
 const CN_BAR_MAX      = 160;  // max C:N shown on bar
 
+const numberValue = (value: unknown): number => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+};
+
+const formatCompact = (value: number) =>
+  value >= 1_000_000 ? `${(value / 1_000_000).toFixed(1)}M` :
+  value >= 1_000     ? `${(value / 1_000).toFixed(1)}K` :
+  Math.round(value).toLocaleString('pt-BR');
+
+const formatPairAmount = (pair: CodigestionPair) => {
+  const biomassTons = numberValue(pair.combined_biomass_tons_year);
+  if (biomassTons > 0) return `${formatCompact(biomassTons)} t/ano`;
+
+  return `${formatCompact(numberValue(pair.combined_biogas_m3_year))} m³/ano`;
+};
+
 function CNRatioBar({ cn, label, role }: { cn: number; label: string; role: string }) {
   const pct = Math.min((cn / CN_BAR_MAX) * 100, 100);
   const optLow  = (CN_OPTIMAL_LOW  / CN_BAR_MAX) * 100;
@@ -88,8 +105,8 @@ function PairCard({ pair, rank }: { pair: CodigestionPair; rank: number }) {
               </span>
             </div>
             <div className="flex justify-between">
-              <span>Biomassa combinada</span>
-              <span className="font-mono">{(pair.combined_biomass_tons_year / 1000).toFixed(1)}K t/ano</span>
+              <span>Recurso combinado</span>
+              <span className="font-mono">{formatPairAmount(pair)}</span>
             </div>
             <div className="flex justify-between">
               <span>Melhora (score)</span>
@@ -112,10 +129,6 @@ export default function CodigestionDetailPanel({
   if (!visible || !cluster) return null;
 
   const top = cluster.top_pair;
-  const formatTons = (v: number) =>
-    v >= 1_000_000 ? `${(v / 1_000_000).toFixed(1)}M` :
-    v >= 1_000     ? `${(v / 1_000).toFixed(1)}K` :
-    v.toFixed(0);
 
   return (
     <div className="absolute top-20 right-4 z-[500] w-80 max-h-[calc(100vh-120px)] flex flex-col bg-white/97 backdrop-blur-sm shadow-xl rounded-xl overflow-hidden border border-violet-200">
@@ -155,8 +168,8 @@ export default function CodigestionDetailPanel({
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Biomassa disponível</span>
-                <span className="font-mono">{formatTons(top.combined_biomass_tons_year)} t/ano</span>
+                <span className="text-gray-600">Recurso disponível</span>
+                <span className="font-mono">{formatPairAmount(top)}</span>
               </div>
             </div>
           </div>

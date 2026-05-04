@@ -144,7 +144,7 @@ export default function MapComponent({
     : [];
   const initialQuery = urlQuery ?? propSearchQuery;
   const initialMetric: DisplayMetric =
-    VALID_METRICS.includes(urlMetric as DisplayMetric) ? (urlMetric as DisplayMetric) : 'biogas_m3';
+    VALID_METRICS.includes(urlMetric as DisplayMetric) ? (urlMetric as DisplayMetric) : 'biomass_tons';
 
   // Local state (authoritative)
   const [selectedResidues, setSelectedResidues] = useState<ResidueType[]>(initialResidues);
@@ -488,6 +488,7 @@ export default function MapComponent({
                   biomassType={biomassType}
                   selectedResidues={selectedResidues}
                   displayMetric={displayMetric}
+                  colorMode={colorMode}
                   onMunicipalityClick={visualizationMode === 'clusters' ? undefined : handleMunicipalityClick}
                   onMunicipalityHover={visualizationMode === 'clusters' ? undefined : handleMunicipalityHover}
                 />
@@ -499,7 +500,7 @@ export default function MapComponent({
             </>
           )}
 
-          {/* C/N Choropleth overlay */}
+          {/* C/N Choropleth overlay — hidden when cluster mode is active */}
           {colorMode === 'cn_profile' && !cnLoading && displayData && (
             <CnChoroLayer geoJsonData={displayData} profilesMap={cnProfilesMap} />
           )}
@@ -590,6 +591,25 @@ export default function MapComponent({
 
         {isMounted && (
           <ExportControl data={displayData} visible={showExport} onClose={() => setShowExport(false)} />
+        )}
+
+        {/* Cluster K4 legend — shown when cluster color mode is active */}
+        {colorMode === 'cluster' && (
+          <div className="absolute bottom-16 md:bottom-8 left-4 z-[500] bg-white/95 backdrop-blur-sm rounded-lg px-3 py-2 shadow-lg border border-gray-200 text-xs">
+            <p className="font-semibold text-gray-700 mb-1.5">Clusters K=4 (2023)</p>
+            {[
+              { color: '#4daf4a', label: 'Cana dominante', n: 599 },
+              { color: '#ff7f00', label: 'Soja/grãos intensivo', n: 36 },
+              { color: '#e41a1c', label: 'RSU urbano', n: 1 },
+              { color: '#377eb8', label: 'Pecuária intensiva', n: 9 },
+            ].map(({ color, label, n }) => (
+              <div key={color} className="flex items-center gap-2 py-0.5">
+                <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
+                <span className="text-gray-700">{label}</span>
+                <span className="text-gray-400 ml-auto pl-2">{n}</span>
+              </div>
+            ))}
+          </div>
         )}
 
         {/* Legends */}

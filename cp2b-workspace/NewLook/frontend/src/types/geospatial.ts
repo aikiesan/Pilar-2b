@@ -65,6 +65,13 @@ export interface MunicipalityProperties {
 
   // Classification
   potential_category: 'ALTO' | 'MEDIO' | 'BAIXO' | 'SEM DADOS' | string;
+
+  // K-means cluster fields (from municipality_summary, null when no match)
+  cluster_id?: number | null;
+  cluster_label?: string | null;
+  mun_total_GWh?: number | null;
+  mun_n_streams?: number | null;
+  mun_dominant_stream?: string | null;
 }
 
 // Display metric — controls whether map shows biogas potential or biomass availability
@@ -87,7 +94,8 @@ export interface CodigestionPair {
   cn_combined: number;
   cn_combined_in_range: boolean;
   improvement_score: number;
-  combined_biomass_tons_year: number;
+  combined_biomass_tons_year?: number;
+  combined_biogas_m3_year?: number;
   blend_ratio_A_to_B: string;
 }
 
@@ -110,7 +118,8 @@ export interface CodigestionCluster {
   all_qualifying_pairs: CodigestionPair[];
   all_present_residues: string[];
   cluster_score: number;
-  total_biomass_tons_year: number;
+  total_biomass_tons_year?: number;
+  total_biogas_m3_year?: number;
 }
 
 export interface CodigestionClustersResponse {

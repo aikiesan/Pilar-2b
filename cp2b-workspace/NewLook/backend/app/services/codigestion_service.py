@@ -20,6 +20,12 @@ from pathlib import Path
 from functools import lru_cache
 from typing import Optional
 
+from app.services.biomass_availability import (
+    BIOMASS_FIELDS,
+    BIOGAS_FIELDS,
+    derive_biomass_fields,
+)
+
 logger = logging.getLogger(__name__)
 
 # ─── Constants ────────────────────────────────────────────────────────────────
@@ -191,9 +197,7 @@ def find_codigestion_clusters(
 ) -> dict:
     from app.core.database import get_db
 
-    # Use biogas_m3_year as weight proxy — biomass_tons_year columns are not
-    # populated in the current DB; biogas m³ is proportional and correctly weighted.
-    weight_cols_sql = ", ".join(f"{k}_biogas_m3_year" for k in RESIDUE_KEYS)
+    weight_cols_sql = ", ".join(dict.fromkeys((*BIOGAS_FIELDS, *BIOMASS_FIELDS)))
     try:
         with get_db() as conn:
             cursor = conn.cursor()
@@ -215,6 +219,7 @@ def find_codigestion_clusters(
 
     municipalities = []
     for row in rows:
+        biomass_fields = derive_biomass_fields(row)
         municipalities.append({
             "id":           row["id"],
             "name":         row.get("municipality_name", ""),
@@ -222,6 +227,7 @@ def find_codigestion_clusters(
             "centroid_lat": float(row["centroid_lat"]),
             "centroid_lng": float(row["centroid_lng"]),
             **{f"{k}_biogas_m3_year": float(row.get(f"{k}_biogas_m3_year") or 0) for k in RESIDUE_KEYS},
+            **biomass_fields,
         })
 
     logger.info(f"Building spatial groups for {len(municipalities)} municipalities (radius={radius_km} km)...")
@@ -233,8 +239,10 @@ def find_codigestion_clusters(
 
     for group_idx, group in enumerate(groups):
         cluster_biomass: dict[str, float] = {}
+        cluster_biogas: dict[str, float] = {}
         for key in RESIDUE_KEYS:
-            cluster_biomass[key] = round(sum(m.get(f"{key}_biogas_m3_year", 0.0) for m in group), 2)
+            cluster_biomass[key] = round(sum(m.get(f"{key}_biomass_tons_year", 0.0) for m in group), 2)
+            cluster_biogas[key] = round(sum(m.get(f"{key}_biogas_m3_year", 0.0) for m in group), 2)
 
         present = [k for k in RESIDUE_KEYS if cluster_biomass.get(k, 0.0) >= min_biomass_tons]
         if len(present) < 2:
@@ -259,14 +267,17 @@ def find_codigestion_clusters(
                 qualifying_pairs.append({
                     "residue_a": {"key": key_a, "label": RESIDUE_META[key_a]["label"],
                                   "sector": RESIDUE_META[key_a]["sector"], "cn_ratio": cn_a,
-                                  "cn_role": _cn_role(cn_a), "biogas_m3_year": b_a},
+                                  "cn_role": _cn_role(cn_a), "biomass_tons_year": b_a,
+                                  "biogas_m3_year": cluster_biogas[key_a]},
                     "residue_b": {"key": key_b, "label": RESIDUE_META[key_b]["label"],
                                   "sector": RESIDUE_META[key_b]["sector"], "cn_ratio": cn_b,
-                                  "cn_role": _cn_role(cn_b), "biogas_m3_year": b_b},
+                                  "cn_role": _cn_role(cn_b), "biomass_tons_year": b_b,
+                                  "biogas_m3_year": cluster_biogas[key_b]},
                     "cn_combined": round(cn_comb, 2),
                     "cn_combined_in_range": CN_OPTIMAL_LOW <= cn_comb <= CN_OPTIMAL_HIGH,
                     "improvement_score": score,
-                    "combined_biogas_m3_year": round(b_a + b_b, 2),
+                    "combined_biomass_tons_year": round(b_a + b_b, 2),
+                    "combined_biogas_m3_year": round(cluster_biogas[key_a] + cluster_biogas[key_b], 2),
                     "blend_ratio_A_to_B": _blend_ratio(b_a, b_b),
                 })
 
@@ -293,7 +304,8 @@ def find_codigestion_clusters(
             "all_qualifying_pairs": qualifying_pairs[:10],
             "all_present_residues": present,
             "cluster_score":      top_pair["improvement_score"],
-            "total_biogas_m3_year": round(sum(cluster_biomass.values()), 2),
+            "total_biomass_tons_year": round(sum(cluster_biomass.values()), 2),
+            "total_biogas_m3_year": round(sum(cluster_biogas.values()), 2),
         })
 
     cluster_results.sort(key=lambda c: c["cluster_score"], reverse=True)

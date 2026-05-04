@@ -11,6 +11,7 @@ from fastapi import APIRouter, HTTPException, Query, Depends
 from app.core.database import get_db
 from app.middleware.auth import optional_auth
 from app.models.auth import UserProfile
+from app.services.biomass_availability import derive_biomass_fields
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -37,28 +38,31 @@ async def get_municipalities_geojson(
             cursor.execute(
                 """
                 SELECT
-                    ibge_code, municipality_name, id,
-                    ST_AsGeoJSON(ST_Simplify(geometry, 0.001)) AS geojson,
-                    total_biogas_m3_year, urban_biogas_m3_year,
-                    agricultural_biogas_m3_year, livestock_biogas_m3_year,
-                    energy_potential_mwh_year, co2_reduction_tons_year,
-                    population, area_km2, population_density,
-                    population_year, area_year,
-                    gdp_total, gdp_per_capita, gdp_year,
-                    administrative_region, immediate_region, intermediate_region,
-                    immediate_region_code, intermediate_region_code,
-                    sugarcane_biogas_m3_year, soybean_biogas_m3_year,
-                    corn_biogas_m3_year, coffee_biogas_m3_year, citrus_biogas_m3_year,
-                    cattle_biogas_m3_year, swine_biogas_m3_year, poultry_biogas_m3_year,
-                    aquaculture_biogas_m3_year, rsu_biogas_m3_year, rpo_biogas_m3_year,
-                    total_biomass_tons_year, agricultural_biomass_tons_year,
-                    livestock_biomass_tons_year, urban_biomass_tons_year,
-                    sugarcane_biomass_tons_year, soybean_biomass_tons_year,
-                    corn_biomass_tons_year, coffee_biomass_tons_year, citrus_biomass_tons_year,
-                    cattle_biomass_tons_year, swine_biomass_tons_year, poultry_biomass_tons_year,
-                    aquaculture_biomass_tons_year, rsu_biomass_tons_year, rpo_biomass_tons_year
-                FROM municipalities
-                WHERE geometry IS NOT NULL
+                    m.ibge_code, m.municipality_name, m.id,
+                    ST_AsGeoJSON(ST_Simplify(m.geometry, 0.001)) AS geojson,
+                    m.total_biogas_m3_year, m.urban_biogas_m3_year,
+                    m.agricultural_biogas_m3_year, m.livestock_biogas_m3_year,
+                    m.energy_potential_mwh_year, m.co2_reduction_tons_year,
+                    m.population, m.area_km2, m.population_density,
+                    m.population_year, m.area_year,
+                    m.gdp_total, m.gdp_per_capita, m.gdp_year,
+                    m.administrative_region, m.immediate_region, m.intermediate_region,
+                    m.immediate_region_code, m.intermediate_region_code,
+                    m.sugarcane_biogas_m3_year, m.soybean_biogas_m3_year,
+                    m.corn_biogas_m3_year, m.coffee_biogas_m3_year, m.citrus_biogas_m3_year,
+                    m.cattle_biogas_m3_year, m.swine_biogas_m3_year, m.poultry_biogas_m3_year,
+                    m.aquaculture_biogas_m3_year, m.rsu_biogas_m3_year, m.rpo_biogas_m3_year,
+                    m.total_biomass_tons_year, m.agricultural_biomass_tons_year,
+                    m.livestock_biomass_tons_year, m.urban_biomass_tons_year,
+                    m.sugarcane_biomass_tons_year, m.soybean_biomass_tons_year,
+                    m.corn_biomass_tons_year, m.coffee_biomass_tons_year, m.citrus_biomass_tons_year,
+                    m.cattle_biomass_tons_year, m.swine_biomass_tons_year, m.poultry_biomass_tons_year,
+                    m.aquaculture_biomass_tons_year, m.rsu_biomass_tons_year, m.rpo_biomass_tons_year,
+                    ms.cluster_id, ms.cluster_label,
+                    ms.mun_total_gwh, ms.mun_n_streams, ms.mun_dominant_stream
+                FROM municipalities m
+                LEFT JOIN municipality_summary ms ON m.ibge_code::integer = ms.ibge_code
+                WHERE m.geometry IS NOT NULL
                 LIMIT %s
                 """,
                 (limit,),
@@ -77,6 +81,7 @@ async def get_municipalities_geojson(
     for row in rows:
         ibge_code = str(_f(row, "ibge_code", ""))
         tb = float(_f(row, "total_biogas_m3_year"))
+        biomass_fields = derive_biomass_fields(row)
         features.append({
             "type": "Feature",
             "geometry": json.loads(row["geojson"]),
@@ -116,21 +121,12 @@ async def get_municipalities_geojson(
                 "aquaculture_biogas_m3_year":    _f(row, "aquaculture_biogas_m3_year"),
                 "rsu_biogas_m3_year":            _f(row, "rsu_biogas_m3_year"),
                 "rpo_biogas_m3_year":            _f(row, "rpo_biogas_m3_year"),
-                "total_biomass_tons_year":       _f(row, "total_biomass_tons_year"),
-                "agricultural_biomass_tons_year":_f(row, "agricultural_biomass_tons_year"),
-                "livestock_biomass_tons_year":   _f(row, "livestock_biomass_tons_year"),
-                "urban_biomass_tons_year":       _f(row, "urban_biomass_tons_year"),
-                "sugarcane_biomass_tons_year":   _f(row, "sugarcane_biomass_tons_year"),
-                "soybean_biomass_tons_year":     _f(row, "soybean_biomass_tons_year"),
-                "corn_biomass_tons_year":        _f(row, "corn_biomass_tons_year"),
-                "coffee_biomass_tons_year":      _f(row, "coffee_biomass_tons_year"),
-                "citrus_biomass_tons_year":      _f(row, "citrus_biomass_tons_year"),
-                "cattle_biomass_tons_year":      _f(row, "cattle_biomass_tons_year"),
-                "swine_biomass_tons_year":       _f(row, "swine_biomass_tons_year"),
-                "poultry_biomass_tons_year":     _f(row, "poultry_biomass_tons_year"),
-                "aquaculture_biomass_tons_year": _f(row, "aquaculture_biomass_tons_year"),
-                "rsu_biomass_tons_year":         _f(row, "rsu_biomass_tons_year"),
-                "rpo_biomass_tons_year":         _f(row, "rpo_biomass_tons_year"),
+                "cluster_id":                    row.get("cluster_id"),
+                "cluster_label":                 row.get("cluster_label"),
+                "mun_total_GWh":                 row.get("mun_total_gwh"),
+                "mun_n_streams":                 row.get("mun_n_streams"),
+                "mun_dominant_stream":           row.get("mun_dominant_stream"),
+                **biomass_fields,
             },
         })
 
@@ -142,6 +138,7 @@ async def get_municipalities_geojson(
             "total_municipalities":    len(features),
             "source_geometry":         "PostGIS municipalities.geometry",
             "source_biogas_data":      "PostGIS municipalities table",
+            "source_biomass_data":     "Stored biomass columns with reverse-BMP fallback from biogas fields",
         },
     }
 
