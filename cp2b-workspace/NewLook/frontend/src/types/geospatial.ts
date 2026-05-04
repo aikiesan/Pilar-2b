@@ -144,8 +144,8 @@ export interface MunicipalityCnProfile {
   cn_ratio_weighted: number;
   cn_label: 'C-RICH' | 'BALANCED' | 'N-RICH';
   dominant_residue: string | null;
-  total_biomass_tons_year: number;
-  residue_breakdown: Record<string, { tons: number; cn: number }>;
+  total_biogas_m3_year: number;
+  residue_breakdown: Record<string, { biogas_m3: number; cn: number }>;
 }
 
 export interface MunicipalityCnProfilesResponse {
@@ -160,7 +160,7 @@ export interface PairingCandidate {
   cn_ratio_weighted: number;
   cn_label: 'C-RICH' | 'BALANCED' | 'N-RICH';
   dominant_residue: string | null;
-  total_biomass_tons_year: number;
+  total_biogas_m3_year: number;
   cn_blended: number;
   improvement_score: number;
 }

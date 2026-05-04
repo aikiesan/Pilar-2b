@@ -191,12 +191,14 @@ def find_codigestion_clusters(
 ) -> dict:
     from app.core.database import get_db
 
-    biomass_cols_sql = ", ".join(f"{k}_biomass_tons_year" for k in RESIDUE_KEYS)
+    # Use biogas_m3_year as weight proxy — biomass_tons_year columns are not
+    # populated in the current DB; biogas m³ is proportional and correctly weighted.
+    weight_cols_sql = ", ".join(f"{k}_biogas_m3_year" for k in RESIDUE_KEYS)
     try:
         with get_db() as conn:
             cursor = conn.cursor()
             cursor.execute(f"""
-                SELECT id, municipality_name, ibge_code, centroid_lat, centroid_lng, {biomass_cols_sql}
+                SELECT id, municipality_name, ibge_code, centroid_lat, centroid_lng, {weight_cols_sql}
                 FROM municipalities
                 WHERE centroid_lat IS NOT NULL AND centroid_lng IS NOT NULL
             """)
@@ -219,7 +221,7 @@ def find_codigestion_clusters(
             "ibge_code":    row.get("ibge_code", ""),
             "centroid_lat": float(row["centroid_lat"]),
             "centroid_lng": float(row["centroid_lng"]),
-            **{f"{k}_biomass_tons_year": float(row.get(f"{k}_biomass_tons_year") or 0) for k in RESIDUE_KEYS},
+            **{f"{k}_biogas_m3_year": float(row.get(f"{k}_biogas_m3_year") or 0) for k in RESIDUE_KEYS},
         })
 
     logger.info(f"Building spatial groups for {len(municipalities)} municipalities (radius={radius_km} km)...")
@@ -232,7 +234,7 @@ def find_codigestion_clusters(
     for group_idx, group in enumerate(groups):
         cluster_biomass: dict[str, float] = {}
         for key in RESIDUE_KEYS:
-            cluster_biomass[key] = round(sum(m.get(f"{key}_biomass_tons_year", 0.0) for m in group), 2)
+            cluster_biomass[key] = round(sum(m.get(f"{key}_biogas_m3_year", 0.0) for m in group), 2)
 
         present = [k for k in RESIDUE_KEYS if cluster_biomass.get(k, 0.0) >= min_biomass_tons]
         if len(present) < 2:
@@ -257,14 +259,14 @@ def find_codigestion_clusters(
                 qualifying_pairs.append({
                     "residue_a": {"key": key_a, "label": RESIDUE_META[key_a]["label"],
                                   "sector": RESIDUE_META[key_a]["sector"], "cn_ratio": cn_a,
-                                  "cn_role": _cn_role(cn_a), "biomass_tons_year": b_a},
+                                  "cn_role": _cn_role(cn_a), "biogas_m3_year": b_a},
                     "residue_b": {"key": key_b, "label": RESIDUE_META[key_b]["label"],
                                   "sector": RESIDUE_META[key_b]["sector"], "cn_ratio": cn_b,
-                                  "cn_role": _cn_role(cn_b), "biomass_tons_year": b_b},
+                                  "cn_role": _cn_role(cn_b), "biogas_m3_year": b_b},
                     "cn_combined": round(cn_comb, 2),
                     "cn_combined_in_range": CN_OPTIMAL_LOW <= cn_comb <= CN_OPTIMAL_HIGH,
                     "improvement_score": score,
-                    "combined_biomass_tons_year": round(b_a + b_b, 2),
+                    "combined_biogas_m3_year": round(b_a + b_b, 2),
                     "blend_ratio_A_to_B": _blend_ratio(b_a, b_b),
                 })
 
@@ -291,7 +293,7 @@ def find_codigestion_clusters(
             "all_qualifying_pairs": qualifying_pairs[:10],
             "all_present_residues": present,
             "cluster_score":      top_pair["improvement_score"],
-            "total_biomass_tons_year": round(sum(cluster_biomass.values()), 2),
+            "total_biogas_m3_year": round(sum(cluster_biomass.values()), 2),
         })
 
     cluster_results.sort(key=lambda c: c["cluster_score"], reverse=True)
@@ -321,13 +323,14 @@ def get_municipality_cn_profiles() -> list[dict]:
     """
     from app.core.database import get_db
 
-    biomass_cols_sql = ", ".join(f"{k}_biomass_tons_year" for k in RESIDUE_KEYS)
+    # Weight by biogas_m3_year — proportional to biomass contribution, correctly scales C/N.
+    weight_cols_sql = ", ".join(f"{k}_biogas_m3_year" for k in RESIDUE_KEYS)
     try:
         with get_db() as conn:
             cursor = conn.cursor()
             cursor.execute(f"""
                 SELECT ibge_code, municipality_name, centroid_lat, centroid_lng,
-                       {biomass_cols_sql}
+                       {weight_cols_sql}
                 FROM municipalities
                 WHERE centroid_lat IS NOT NULL AND centroid_lng IS NOT NULL
             """)
@@ -341,19 +344,19 @@ def get_municipality_cn_profiles() -> list[dict]:
     results = []
     for row in rows:
         breakdown: dict[str, dict] = {}
-        total_biomass = 0.0
+        total_weight = 0.0
         numerator = 0.0
         for key in RESIDUE_KEYS:
-            tons = float(row.get(f"{key}_biomass_tons_year") or 0)
-            if tons <= 0:
+            weight = float(row.get(f"{key}_biogas_m3_year") or 0)
+            if weight <= 0:
                 continue
             cn = _get_cn(key, cn_by_codigo)
-            breakdown[key] = {"tons": round(tons, 1), "cn": cn}
-            total_biomass += tons
-            numerator += tons * cn
+            breakdown[key] = {"biogas_m3": round(weight, 1), "cn": cn}
+            total_weight += weight
+            numerator += weight * cn
 
-        cn_weighted = round(numerator / total_biomass, 2) if total_biomass > 0 else CN_OPTIMAL_MID
-        dominant = max(breakdown, key=lambda k: breakdown[k]["tons"], default=None)
+        cn_weighted = round(numerator / total_weight, 2) if total_weight > 0 else CN_OPTIMAL_MID
+        dominant = max(breakdown, key=lambda k: breakdown[k]["biogas_m3"], default=None)
         results.append({
             "ibge_code": row["ibge_code"],
             "municipality_name": row["municipality_name"],
@@ -362,7 +365,7 @@ def get_municipality_cn_profiles() -> list[dict]:
             "cn_ratio_weighted": cn_weighted,
             "cn_label": _cn_label(cn_weighted),
             "dominant_residue": dominant,
-            "total_biomass_tons_year": round(total_biomass, 1),
+            "total_biogas_m3_year": round(total_weight, 1),
             "residue_breakdown": breakdown,
         })
     return results
@@ -388,8 +391,8 @@ def get_pairing_candidates(ibge_code: str, radius_km: float = 50.0) -> list[dict
         )
         if dist > radius_km:
             continue
-        b_a = target["total_biomass_tons_year"]
-        b_b = p["total_biomass_tons_year"]
+        b_a = target["total_biogas_m3_year"]
+        b_b = p["total_biogas_m3_year"]
         cn_blended = _weighted_cn(b_a, target["cn_ratio_weighted"], b_b, p["cn_ratio_weighted"])
         score = _improvement_score(cn_blended, target["cn_ratio_weighted"], p["cn_ratio_weighted"])
         candidates.append({
@@ -399,7 +402,7 @@ def get_pairing_candidates(ibge_code: str, radius_km: float = 50.0) -> list[dict
             "cn_ratio_weighted": p["cn_ratio_weighted"],
             "cn_label": p["cn_label"],
             "dominant_residue": p["dominant_residue"],
-            "total_biomass_tons_year": p["total_biomass_tons_year"],
+            "total_biogas_m3_year": p["total_biogas_m3_year"],
             "cn_blended": round(cn_blended, 2),
             "improvement_score": score,
         })
