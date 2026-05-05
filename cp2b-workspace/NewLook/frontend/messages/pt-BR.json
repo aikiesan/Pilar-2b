@@ -543,5 +543,16 @@
     "security_subtitle": "Gerencie a segurança da sua conta",
     "two_factor": "Autenticação de dois fatores",
     "session_timeout": "Tempo limite da sessão (minutos)"
+  },
+  "cookieConsent": {
+    "title": "Usamos cookies e dados",
+    "description": "Usamos cookies para melhorar sua experiência, analisar o tráfego e exibir conteúdo relevante. Você também pode assinar nossa newsletter para receber novidades sobre biogás.",
+    "privacyLink": "Leia nossa Política de Privacidade",
+    "emailPlaceholder": "seu@email.com",
+    "emailLabel": "Assine nossa newsletter (opcional)",
+    "acceptAll": "Aceitar tudo",
+    "essentialOnly": "Apenas essenciais",
+    "successMessage": "Obrigado! Entraremos em contato.",
+    "lgpdNote": "Em conformidade com a LGPD (Lei 13.709/2018) e GDPR."
   }
 }

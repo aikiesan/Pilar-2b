@@ -543,5 +543,16 @@
     "security_subtitle": "Manage your account security",
     "two_factor": "Two-factor authentication",
     "session_timeout": "Session timeout (minutes)"
+  },
+  "cookieConsent": {
+    "title": "We use cookies & data",
+    "description": "We use cookies to improve your experience, analyze site traffic, and serve relevant content. You can also subscribe to our newsletter to stay updated on biogas research.",
+    "privacyLink": "Read our Privacy Policy",
+    "emailPlaceholder": "your@email.com",
+    "emailLabel": "Subscribe to our newsletter (optional)",
+    "acceptAll": "Accept All",
+    "essentialOnly": "Essential Only",
+    "successMessage": "Thank you! We'll be in touch.",
+    "lgpdNote": "In accordance with LGPD (Law 13.709/2018) and GDPR."
   }
 }
