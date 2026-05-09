@@ -7,6 +7,7 @@
 
 import React, { useState } from 'react';
 import { X, ExternalLink, BookOpen, Beaker, FileText, CheckCircle2, Database } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface ReferencesModalProps {
   isOpen: boolean;
@@ -376,6 +377,7 @@ const DATA_SOURCES: DataSourceCategory[] = [
 ];
 
 export default function ReferencesModal({ isOpen, onClose }: ReferencesModalProps) {
+  const t = useTranslations('analysis')
   const [activeTab, setActiveTab] = useState<'scientific' | 'data-sources'>('scientific');
   if (!isOpen) return null;
 
@@ -409,17 +411,17 @@ export default function ReferencesModal({ isOpen, onClose }: ReferencesModalProp
                 </div>
                 <div>
                   <h2 className="text-xl font-bold text-white">
-                    Referências e Fontes de Dados
+                    {t('references_modal.title')}
                   </h2>
                   <p className="text-sm text-white/80 mt-0.5">
-                    Referências científicas e fontes de dados oficiais
+                    {t('references_modal.subtitle')}
                   </p>
                 </div>
               </div>
               <button
                 onClick={onClose}
                 className="p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
-                aria-label="Fechar modal"
+                aria-label={t('references_modal.close_aria')}
               >
                 <X className="h-6 w-6" />
               </button>
@@ -437,7 +439,7 @@ export default function ReferencesModal({ isOpen, onClose }: ReferencesModalProp
               }`}
             >
               <Beaker className="w-4 h-4" />
-              Referências Científicas
+              {t('references_modal.tab_scientific')}
               <span className="ml-1 px-2 py-0.5 bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400 rounded-full text-xs font-semibold">
                 {totalReferences}
               </span>
@@ -451,7 +453,7 @@ export default function ReferencesModal({ isOpen, onClose }: ReferencesModalProp
               }`}
             >
               <Database className="w-4 h-4" />
-              Fontes de Dados
+              {t('references_modal.tab_data_sources')}
               <span className="ml-1 px-2 py-0.5 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400 rounded-full text-xs font-semibold">
                 {DATA_SOURCES.length}
               </span>
@@ -546,7 +548,7 @@ export default function ReferencesModal({ isOpen, onClose }: ReferencesModalProp
                               className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-blue-700 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/40 hover:bg-blue-200 dark:hover:bg-blue-900/60 rounded-lg transition-colors"
                             >
                               <ExternalLink className="h-3.5 w-3.5" />
-                              Acessar fonte
+                              {t('references_modal.source_access')}
                             </a>
                           )}
                         </div>
@@ -561,10 +563,9 @@ export default function ReferencesModal({ isOpen, onClose }: ReferencesModalProp
                   <div className="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
                     <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
                     <div className="text-sm text-blue-800 dark:text-blue-300">
-                      <p className="font-semibold mb-1">Sobre as referências</p>
+                      <p className="font-semibold mb-1">{t('references_modal.scientific_footer_heading')}</p>
                       <p className="text-blue-700 dark:text-blue-400">
-                        Todas as referências são utilizadas no cálculo dos fatores de conversão de resíduos para biogás.
-                        Os fatores de disponibilidade estão sendo validados para o contexto do Estado de São Paulo.
+                        {t('references_modal.scientific_footer_text')}
                       </p>
                     </div>
                   </div>
@@ -629,7 +630,7 @@ export default function ReferencesModal({ isOpen, onClose }: ReferencesModalProp
                               className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-blue-700 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/40 hover:bg-blue-200 dark:hover:bg-blue-900/60 rounded-lg transition-colors mt-2"
                             >
                               <ExternalLink className="h-3.5 w-3.5" />
-                              Acessar fonte
+                              {t('references_modal.source_access')}
                             </a>
                           )}
                         </div>
@@ -681,7 +682,7 @@ export default function ReferencesModal({ isOpen, onClose }: ReferencesModalProp
                                   className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-blue-700 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/40 hover:bg-blue-200 dark:hover:bg-blue-900/60 rounded-lg transition-colors mt-1"
                                 >
                                   <ExternalLink className="h-3 w-3" />
-                                  Acessar
+                                  {t('references_modal.source_access_short')}
                                 </a>
                               )}
                             </div>
@@ -697,14 +698,14 @@ export default function ReferencesModal({ isOpen, onClose }: ReferencesModalProp
                   <div className="flex items-start gap-3 p-4 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-200 dark:border-green-800">
                     <Database className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
                     <div className="text-sm text-green-800 dark:text-green-300">
-                      <p className="font-semibold mb-1">Sobre as fontes de dados</p>
+                      <p className="font-semibold mb-1">{t('references_modal.data_sources_footer_heading')}</p>
                       <p className="text-green-700 dark:text-green-400 mb-2">
-                        Todas as fontes de dados são oficiais e atualizadas regularmente. Os dados georreferenciados seguem o sistema SIRGAS 2000 (EPSG 4674).
+                        {t('references_modal.data_sources_footer_text')}
                       </p>
                       <ul className="text-green-600 dark:text-green-400 text-xs space-y-1 list-disc list-inside">
-                        <li><strong>Prioridade de Atualização:</strong> MapBiomas Coleção 10.0 e PAM 2024</li>
-                        <li><strong>Validação Cruzada:</strong> SIDRA vs MapBiomas vs dados operacionais</li>
-                        <li><strong>Precisão Espacial:</strong> GEDAVE e MapBiomas fornecem georreferenciamento</li>
+                        <li><strong>{t('references_modal.data_sources_footer_priority')}</strong></li>
+                        <li><strong>{t('references_modal.data_sources_footer_validation')}</strong></li>
+                        <li><strong>{t('references_modal.data_sources_footer_precision')}</strong></li>
                       </ul>
                     </div>
                   </div>

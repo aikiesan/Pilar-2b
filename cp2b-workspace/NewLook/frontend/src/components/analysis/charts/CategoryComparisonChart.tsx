@@ -14,6 +14,7 @@ import {
   ChartData
 } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
+import { useTranslations } from 'next-intl';
 import { StatisticsByCategoryResponse } from '@/services/analysisApi';
 
 // Register Chart.js components
@@ -37,22 +38,29 @@ export default function CategoryComparisonChart({
   data,
   loading = false
 }: CategoryComparisonChartProps) {
+  const t = useTranslations('charts');
+  const tMap = useTranslations('Map');
+
   if (loading || !data) {
     return (
       <div className="bg-white rounded-xl shadow-md p-6 h-[400px] flex items-center justify-center border border-gray-100">
         <div className="flex flex-col items-center gap-3">
           <div className="w-10 h-10 border-4 border-green-600 border-t-transparent rounded-full animate-spin" />
-          <span className="text-sm text-gray-600 font-medium">Carregando dados...</span>
+          <span className="text-sm text-gray-600 font-medium">{t('loading')}</span>
         </div>
       </div>
     );
   }
 
   const chartData: ChartData<'bar'> = {
-    labels: ['Agrícola', 'Pecuário', 'Urbano'],
+    labels: [
+      tMap('categories.agricultural'),
+      tMap('categories.livestock'),
+      tMap('categories.urban')
+    ],
     datasets: [
       {
-        label: 'Potencial Total (bilhões m³/ano)',
+        label: t('category_comparison_dataset'),
         data: [
           data.categories.agricultural.total / 1000000000,
           data.categories.livestock.total / 1000000000,
@@ -83,7 +91,7 @@ export default function CategoryComparisonChart({
       },
       title: {
         display: true,
-        text: 'Comparação entre Categorias de Resíduos',
+        text: t('category_comparison_title'),
         font: {
           size: 16,
           weight: 'bold'
@@ -106,7 +114,7 @@ export default function CategoryComparisonChart({
         callbacks: {
           label: (context) => {
             const value = context.parsed.y;
-            return `Total: ${value?.toFixed(2) ?? '0.00'} bilhões m³/ano`;
+            return t('category_comparison_tooltip', { value: value?.toFixed(2) ?? '0.00' });
           }
         }
       }
@@ -116,7 +124,7 @@ export default function CategoryComparisonChart({
         beginAtZero: true,
         title: {
           display: true,
-          text: 'Potencial (bilhões m³/ano)',
+          text: t('category_comparison_yaxis'),
           color: '#6B7280',
           font: {
             size: 12,
@@ -159,34 +167,34 @@ export default function CategoryComparisonChart({
       <div className="mt-5 pt-5 border-t border-gray-200">
         <h4 className="text-xs font-semibold text-gray-600 mb-3 uppercase flex items-center gap-2">
           <span className="w-1.5 h-1.5 bg-green-600 rounded-full"></span>
-          Análise Comparativa
+          {t('category_comparison_heading')}
         </h4>
         <div className="grid grid-cols-3 gap-3">
           <div className="bg-gradient-to-br from-green-50 to-white rounded-lg p-3 border border-green-100">
-            <div className="text-xs text-gray-600 mb-1">Agrícola</div>
+            <div className="text-xs text-gray-600 mb-1">{tMap('categories.agricultural')}</div>
             <div className="font-bold text-green-900 text-sm">
-              {data.categories.agricultural.count} municípios
+              {data.categories.agricultural.count}
             </div>
             <div className="text-xs text-gray-500 mt-1">
-              Média: {(data.categories.agricultural.average / 1000000).toFixed(2)}M m³/ano
+              {(data.categories.agricultural.average / 1000000).toFixed(2)}M m³/year
             </div>
           </div>
           <div className="bg-gradient-to-br from-orange-50 to-white rounded-lg p-3 border border-orange-100">
-            <div className="text-xs text-gray-600 mb-1">Pecuário</div>
+            <div className="text-xs text-gray-600 mb-1">{tMap('categories.livestock')}</div>
             <div className="font-bold text-orange-900 text-sm">
-              {data.categories.livestock.count} municípios
+              {data.categories.livestock.count}
             </div>
             <div className="text-xs text-gray-500 mt-1">
-              Média: {(data.categories.livestock.average / 1000000).toFixed(2)}M m³/ano
+              {(data.categories.livestock.average / 1000000).toFixed(2)}M m³/year
             </div>
           </div>
           <div className="bg-gradient-to-br from-blue-50 to-white rounded-lg p-3 border border-blue-100">
-            <div className="text-xs text-gray-600 mb-1">Urbano</div>
+            <div className="text-xs text-gray-600 mb-1">{tMap('categories.urban')}</div>
             <div className="font-bold text-blue-900 text-sm">
-              {data.categories.urban.count} municípios
+              {data.categories.urban.count}
             </div>
             <div className="text-xs text-gray-500 mt-1">
-              Média: {(data.categories.urban.average / 1000000).toFixed(2)}M m³/ano
+              {(data.categories.urban.average / 1000000).toFixed(2)}M m³/year
             </div>
           </div>
         </div>
@@ -194,4 +202,3 @@ export default function CategoryComparisonChart({
     </div>
   );
 }
-

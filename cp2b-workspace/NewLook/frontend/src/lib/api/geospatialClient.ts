@@ -119,14 +119,13 @@ class GeospatialClient {
 
   /**
    * Get all municipalities as GeoJSON FeatureCollection
-   * Uses Supabase data via FastAPI backend with centroid points
+   * Uses local PostGIS via FastAPI backend, with IBGE API as geometry fallback
    */
   async getMunicipalitiesGeoJSON(): Promise<MunicipalityCollection> {
-    // Use FastAPI endpoint that fetches from Supabase
     const url = `${this.baseUrl}/api/v1/municipalities/geojson`;
 
     try {
-      logger.info('🗺️ Fetching municipality data from Supabase via FastAPI');
+      logger.info('🗺️ Fetching municipality data from local backend (PostGIS)');
       const response = await fetch(url, {
         headers: {
           'Content-Type': 'application/json',
@@ -139,23 +138,20 @@ class GeospatialClient {
 
       const data = await response.json();
 
-      // Check if we got actual features
       if (!data.features || data.features.length === 0) {
-        logger.warn('No municipalities returned from Supabase, trying IBGE API fallback');
+        logger.warn('No municipalities returned from local backend, trying IBGE API fallback');
         return this.getFromIBGEWithBiogasData();
       }
 
-      logger.info(`✅ Loaded ${data.features?.length || 0} municipalities from Supabase`);
+      logger.info(`✅ Loaded ${data.features?.length || 0} municipalities from local DB`);
       return data;
     } catch (error) {
-      logger.warn(`Failed to fetch from Supabase: ${error}`);
-      // Try IBGE API as fallback
+      logger.warn(`Failed to fetch from local backend: ${error}`);
       try {
         logger.info('🗺️ Trying IBGE GeoJSON API fallback');
         return await this.getFromIBGEWithBiogasData();
       } catch (ibgeError) {
         logger.warn(`IBGE fallback failed: ${ibgeError}`);
-        // Final fallback to empty data structure
         logger.error('All data sources failed. Returning empty municipality collection.');
         return {
           type: 'FeatureCollection',
@@ -163,7 +159,7 @@ class GeospatialClient {
           metadata: {
             total_municipalities: 0,
             source: 'Fallback',
-            note: 'All data sources unavailable - please check backend API and Supabase connection',
+            note: 'All data sources unavailable - please check backend API and local database connection',
           },
         };
       }
@@ -171,7 +167,7 @@ class GeospatialClient {
   }
 
   /**
-   * Fetch municipality polygons from IBGE API and merge with biogas data from Supabase
+   * Fetch municipality polygons from IBGE API and merge with biogas data from local backend
    */
   private async getFromIBGEWithBiogasData(): Promise<MunicipalityCollection> {
     // Fetch São Paulo state municipalities from IBGE API
@@ -186,7 +182,7 @@ class GeospatialClient {
     const ibgeData = await response.json();
     logger.info(`📍 Fetched ${ibgeData.features?.length || 0} municipalities from IBGE`);
 
-    // Get biogas data from Supabase
+    // Get biogas data from local backend
     let biogasDataByCode: Record<string, any> = {};
     try {
       const municipalitiesList = await this.fetchJSON<any[]>('/municipalities');
@@ -258,8 +254,8 @@ class GeospatialClient {
       features: enrichedFeatures,
       metadata: {
         total_municipalities: enrichedFeatures.length,
-        source: 'IBGE API + Supabase',
-        note: `${enrichedFeatures.length} municípios de São Paulo com geometrias do IBGE e dados de biogás do Supabase`,
+        source: 'IBGE API + Local DB',
+        note: `${enrichedFeatures.length} municípios de São Paulo com geometrias do IBGE e dados de biogás do banco local`,
       },
     };
   }

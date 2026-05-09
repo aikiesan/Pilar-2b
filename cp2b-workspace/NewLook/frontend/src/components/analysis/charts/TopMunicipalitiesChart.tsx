@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -13,6 +12,7 @@ import {
   ChartData
 } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
+import { useTranslations } from 'next-intl';
 import { Municipality } from '@/services/analysisApi';
 
 // Register Chart.js components
@@ -34,16 +34,18 @@ interface TopMunicipalitiesChartProps {
 
 export default function TopMunicipalitiesChart({
   data,
-  title = 'Top Municípios por Potencial de Biogás',
+  title,
   loading = false,
   maxItems = 10
 }: TopMunicipalitiesChartProps) {
+  const t = useTranslations('charts');
+
   // Prepare chart data
   const chartData: ChartData<'bar'> = {
     labels: data.slice(0, maxItems).map(m => m.municipality_name),
     datasets: [
       {
-        label: 'Biogás (m³/ano)',
+        label: t('top_municipalities_dataset'),
         data: data.slice(0, maxItems).map(m => m.biogas_m3_year),
         backgroundColor: 'rgba(34, 197, 94, 0.7)',
         borderColor: 'rgba(34, 197, 94, 1)',
@@ -63,7 +65,7 @@ export default function TopMunicipalitiesChart({
       },
       title: {
         display: true,
-        text: title,
+        text: title ?? t('top_municipalities_title'),
         font: {
           size: 14,
           weight: 'bold'
@@ -74,13 +76,13 @@ export default function TopMunicipalitiesChart({
         callbacks: {
           label: (context) => {
             const value = context.parsed.x;
-            if (value == null) return '0 m³/ano';
+            if (value == null) return '0 m³/year';
             if (value >= 1000000) {
-              return `${(value / 1000000).toFixed(2)} milhões m³/ano`;
+              return `${(value / 1000000).toFixed(2)}M m³/year`;
             } else if (value >= 1000) {
-              return `${(value / 1000).toFixed(2)} mil m³/ano`;
+              return `${(value / 1000).toFixed(2)}k m³/year`;
             }
-            return `${value.toFixed(2)} m³/ano`;
+            return `${value.toFixed(2)} m³/year`;
           }
         }
       }
@@ -90,7 +92,7 @@ export default function TopMunicipalitiesChart({
         beginAtZero: true,
         title: {
           display: true,
-          text: 'Potencial de Biogás (m³/ano)',
+          text: t('top_municipalities_xaxis'),
           color: '#6B7280',
           font: {
             size: 11
@@ -134,7 +136,7 @@ export default function TopMunicipalitiesChart({
       <div className="bg-white rounded-xl shadow-md p-6 h-[450px] flex items-center justify-center border border-gray-100">
         <div className="flex flex-col items-center gap-3">
           <div className="w-10 h-10 border-4 border-green-600 border-t-transparent rounded-full animate-spin" />
-          <span className="text-sm text-gray-600 font-medium">Carregando dados...</span>
+          <span className="text-sm text-gray-600 font-medium">{t('loading')}</span>
         </div>
       </div>
     );
@@ -145,7 +147,7 @@ export default function TopMunicipalitiesChart({
       <div className="bg-white rounded-xl shadow-md p-6 h-[450px] flex items-center justify-center border border-gray-100">
         <div className="text-center">
           <div className="text-4xl mb-3">📊</div>
-          <span className="text-sm text-gray-500">Nenhum dado disponível</span>
+          <span className="text-sm text-gray-500">{t('no_data')}</span>
         </div>
       </div>
     );
