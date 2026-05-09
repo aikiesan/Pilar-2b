@@ -17,6 +17,7 @@ import {
   Cell
 } from 'recharts'
 import { Layers, Check, Info } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import {
   Scenario,
   PREDEFINED_SCENARIOS,
@@ -36,9 +37,10 @@ export default function ScenarioComparator({
   theoreticalPotential,
   onSelectScenario,
   currentFactors,
-  title = 'Comparacao de Cenarios',
+  title,
   loading = false
 }: ScenarioComparatorProps) {
+  const t = useTranslations('analysis')
   const [selectedScenarioId, setSelectedScenarioId] = useState<string>('realistic')
 
   // Calculate results for all scenarios
@@ -46,7 +48,6 @@ export default function ScenarioComparator({
     return PREDEFINED_SCENARIOS.map(scenario => {
       const fde = calculateFDE(scenario.factors)
       const available = theoreticalPotential * fde
-      // Simplified biogas calculation (0.6 m3/kg or 600 m3/ton)
       const biogas = available * 600
 
       return {
@@ -74,20 +75,19 @@ export default function ScenarioComparator({
   // Chart data for comparison
   const chartData = useMemo(() => {
     const data = scenarioResults.map(s => ({
-      name: s.name,
+      name: t(s.nameKey),
       fde: s.percentage,
-      available: s.available / 1e6, // Convert to millions
+      available: s.available / 1e6,
       color: s.color
     }))
 
-    // Add current custom scenario if different from predefined
     if (currentResult) {
       const isCustom = !scenarioResults.some(s =>
         Math.abs(s.fde - currentResult.fde) < 0.001
       )
       if (isCustom) {
         data.push({
-          name: 'Personalizado',
+          name: t('scenario_comparator.col_custom'),
           fde: currentResult.percentage,
           available: currentResult.available / 1e6,
           color: '#059669'
@@ -96,7 +96,7 @@ export default function ScenarioComparator({
     }
 
     return data
-  }, [scenarioResults, currentResult])
+  }, [scenarioResults, currentResult, t])
 
   // Format numbers
   const formatValue = (value: number): string => {
@@ -119,12 +119,12 @@ export default function ScenarioComparator({
       <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
         <div className="flex items-center gap-2 mb-4">
           <Layers className="h-5 w-5 text-green-600" />
-          <h3 className="text-lg font-semibold text-gray-800">{title}</h3>
+          <h3 className="text-lg font-semibold text-gray-800">{title ?? t('scenario_comparator.title')}</h3>
         </div>
         <div className="h-[400px] flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cp2b-primary mx-auto mb-3"></div>
-            <p className="text-sm text-gray-500">Carregando cenarios...</p>
+            <p className="text-sm text-gray-500">{t('scenario_comparator.loading')}</p>
           </div>
         </div>
       </div>
@@ -135,7 +135,7 @@ export default function ScenarioComparator({
     <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
       <div className="flex items-center gap-2 mb-6">
         <Layers className="h-5 w-5 text-green-600" />
-        <h3 className="text-lg font-semibold text-gray-800">{title}</h3>
+        <h3 className="text-lg font-semibold text-gray-800">{title ?? t('scenario_comparator.title')}</h3>
       </div>
 
       {/* Scenario Cards */}
@@ -160,10 +160,10 @@ export default function ScenarioComparator({
               )}
             </div>
             <h4 className="font-semibold text-gray-900 text-sm mb-1">
-              {scenario.name}
+              {t(scenario.nameKey)}
             </h4>
             <p className="text-xs text-gray-500 mb-2 line-clamp-2">
-              {scenario.description}
+              {t(scenario.descKey)}
             </p>
             <div className="pt-2 border-t border-gray-100">
               <div className="flex items-center justify-between">
@@ -210,11 +210,11 @@ export default function ScenarioComparator({
                       <p className="font-semibold text-gray-900 mb-2">{data.name}</p>
                       <div className="space-y-1 text-sm">
                         <p>
-                          <span className="text-gray-500">FDE:</span>{' '}
+                          <span className="text-gray-500">{t('scenario_comparator.fde_label')}</span>{' '}
                           <span className="font-mono font-semibold">{data.fde.toFixed(1)}%</span>
                         </p>
                         <p>
-                          <span className="text-gray-500">Disponivel:</span>{' '}
+                          <span className="text-gray-500">{t('scenario_comparator.col_available')}:</span>{' '}
                           <span className="font-mono font-semibold">{data.available.toFixed(2)}M t/ano</span>
                         </p>
                       </div>
@@ -238,13 +238,13 @@ export default function ScenarioComparator({
         <table className="w-full text-sm">
           <thead className="bg-gray-50">
             <tr>
-              <th className="text-left py-3 px-4 font-semibold text-gray-700">Cenario</th>
-              <th className="text-center py-3 px-4 font-semibold text-gray-700">FC</th>
-              <th className="text-center py-3 px-4 font-semibold text-gray-700">FCp</th>
-              <th className="text-center py-3 px-4 font-semibold text-gray-700">FS</th>
-              <th className="text-center py-3 px-4 font-semibold text-gray-700">FL</th>
-              <th className="text-center py-3 px-4 font-semibold text-gray-700">FDE</th>
-              <th className="text-right py-3 px-4 font-semibold text-gray-700">Disponivel</th>
+              <th className="text-left py-3 px-4 font-semibold text-gray-700">{t('scenario_comparator.col_scenario')}</th>
+              <th className="text-center py-3 px-4 font-semibold text-gray-700">{t('scenario_comparator.col_fc')}</th>
+              <th className="text-center py-3 px-4 font-semibold text-gray-700">{t('scenario_comparator.col_fcp')}</th>
+              <th className="text-center py-3 px-4 font-semibold text-gray-700">{t('scenario_comparator.col_fs')}</th>
+              <th className="text-center py-3 px-4 font-semibold text-gray-700">{t('scenario_comparator.col_fl')}</th>
+              <th className="text-center py-3 px-4 font-semibold text-gray-700">{t('scenario_comparator.col_fde')}</th>
+              <th className="text-right py-3 px-4 font-semibold text-gray-700">{t('scenario_comparator.col_available')}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
@@ -262,7 +262,7 @@ export default function ScenarioComparator({
                       className="w-2 h-2 rounded-full"
                       style={{ backgroundColor: scenario.color }}
                     />
-                    <span className="font-medium text-gray-900">{scenario.name}</span>
+                    <span className="font-medium text-gray-900">{t(scenario.nameKey)}</span>
                   </div>
                 </td>
                 <td className="text-center py-3 px-4 font-mono text-gray-600">
@@ -297,7 +297,7 @@ export default function ScenarioComparator({
                 <td className="py-3 px-4">
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                    <span className="font-medium text-gray-900">Personalizado</span>
+                    <span className="font-medium text-gray-900">{t('scenario_comparator.col_custom')}</span>
                   </div>
                 </td>
                 <td className="text-center py-3 px-4 font-mono text-gray-600">
@@ -329,10 +329,7 @@ export default function ScenarioComparator({
       {/* Info note */}
       <div className="mt-4 p-3 bg-blue-50 rounded-lg flex items-start gap-2">
         <Info className="h-4 w-4 text-blue-500 flex-shrink-0 mt-0.5" />
-        <p className="text-xs text-blue-700">
-          Clique em um cenario para aplicar seus fatores de correcao. O cenario selecionado sera
-          usado para calcular o potencial de biogas em todas as visualizacoes.
-        </p>
+        <p className="text-xs text-blue-700">{t('scenario_comparator.info_note')}</p>
       </div>
     </div>
   )
