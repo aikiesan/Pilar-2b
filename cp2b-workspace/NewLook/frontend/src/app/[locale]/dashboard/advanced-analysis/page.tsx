@@ -59,6 +59,7 @@ import {
   getAnalysisByResidue,
   getStatisticsByCategory,
   getStatisticsByRegion,
+  getStatisticsByStream,
   getDistribution,
   Municipality,
   StatisticsByCategoryResponse,
@@ -123,6 +124,7 @@ export default function AdvancedAnalysisPage() {
 
   // State for data
   const [topMunicipalities, setTopMunicipalities] = useState<Municipality[]>([])
+  const [streamTotal, setStreamTotal] = useState<number | null>(null)
   const [categoryStats, setCategoryStats] = useState<StatisticsByCategoryResponse | null>(null)
   const [regionData, setRegionData] = useState<RegionData[]>([])
   const [histogramData, setHistogramData] = useState<HistogramBin[]>([])
@@ -147,12 +149,12 @@ export default function AdvancedAnalysisPage() {
   }, [categoryStats, selectedCategory])
 
   // Calculate FILTERED theoretical potential (only selected residues)
+  // Prefer streamTotal (scalar from /statistics/by-stream) over municipality sum for accuracy
   const filteredTheoreticalPotential = useMemo(() => {
+    if (streamTotal !== null) return streamTotal
     if (!topMunicipalities || topMunicipalities.length === 0) return 0
-
-    // Sum up biogas from filtered municipalities
     return topMunicipalities.reduce((sum, mun) => sum + (mun.biogas_m3_year || 0), 0)
-  }, [topMunicipalities])
+  }, [streamTotal, topMunicipalities])
 
   // Use filtered if residues selected, otherwise total
   const theoreticalPotential = useMemo(() => {
@@ -258,13 +260,24 @@ export default function AdvancedAnalysisPage() {
   const fetchAllData = useCallback(async () => {
     setError(null)
 
+    const residueCodes = JSON.parse(stableResidueCodesRef.current) as string[]
+
+    // Fetch stream-level total when specific residues are selected (fast scalar query)
+    if (residueCodes.length > 0) {
+      try {
+        const streamStats = await getStatisticsByStream(residueCodes)
+        setStreamTotal(streamStats.total > 0 ? streamStats.total : null)
+      } catch (err) {
+        logger.warn('Stream stats fetch failed, will fall back to municipality sum:', err)
+        setStreamTotal(null)
+      }
+    } else {
+      setStreamTotal(null)
+    }
+
     // Fetch top municipalities
     setLoadingMunicipalities(true)
     try {
-      // Note: API may not support specific residue codes yet
-      // For now, we pass the residue codes as residueTypes
-      // In production, backend should be updated to handle specific codes
-      const residueCodes = JSON.parse(stableResidueCodesRef.current) as string[]
       const residueResponse = await getAnalysisByResidue(toApiCategory(selectedCategory)!, {
         residueTypes: residueCodes.length > 0 ? residueCodes : undefined,
         limit: 20

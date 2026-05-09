@@ -41,10 +41,12 @@ export interface CategoryStats {
 
 export interface StatisticsByCategoryResponse {
   categories: {
-    agricultural: CategoryStats;
-    livestock: CategoryStats;
-    urban: CategoryStats;
+    agricultural?: CategoryStats;
+    livestock?: CategoryStats;
+    urban?: CategoryStats;
+    industrial?: CategoryStats;
     total: CategoryStats;
+    [key: string]: CategoryStats | undefined;
   };
   total_municipalities: number;
 }
@@ -101,6 +103,13 @@ export interface ResidueConfigResponse {
     livestock: CategoryConfig;
     urban: CategoryConfig;
   };
+}
+
+export interface StreamStatisticsResponse {
+  total: number;
+  streams: Record<string, number>;
+  residue_codes: string[];
+  note?: string;
 }
 
 // API Functions
@@ -201,6 +210,24 @@ export async function getDistribution(
     throw new Error(`Failed to fetch distribution: ${response.statusText}`);
   }
 
+  return response.json();
+}
+
+/**
+ * Get total biogas potential for a set of frontend residue codes from residue_streams_sp2023.
+ * Returns a scalar total instead of waiting for the full municipality list.
+ */
+export async function getStatisticsByStream(
+  residueCodes: string[]
+): Promise<StreamStatisticsResponse> {
+  const params = new URLSearchParams();
+  residueCodes.forEach(c => params.append('residue_codes', c));
+  const response = await authenticatedFetch(
+    `${API_BASE_URL}/api/v1/analysis/statistics/by-stream?${params}`
+  );
+  if (!response.ok) {
+    throw new Error(`Failed to fetch stream statistics: ${response.statusText}`);
+  }
   return response.json();
 }
 
