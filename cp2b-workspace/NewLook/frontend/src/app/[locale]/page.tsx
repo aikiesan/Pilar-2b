@@ -426,6 +426,7 @@ export default function HomePage() {
                           src={screenshotImages[index]}
                           alt={t(`screenshots.${key}.alt`)}
                           fill
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 70vw"
                           className="object-cover"
                         />
                         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6">

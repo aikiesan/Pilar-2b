@@ -23,12 +23,18 @@ export default function WelcomeWizard({ onComplete, onClose }: WelcomeWizardProp
   const [loadingTech, setLoadingTech] = useState(true);
 
   // Form state
+  const [activeCategory, setActiveCategory] = useState<'urban' | 'livestock' | 'agricultural' | 'industrial'>('agricultural');
   const [residueCode, setResidueCode] = useState('');
   const [amountTons, setAmountTons] = useState<number | ''>('');
   const [availabilityMonths, setAvailabilityMonths] = useState<number[]>([]);
   const [preTreatmentId, setPreTreatmentId] = useState<string | null>(null);
   const [digesterTechnologyId, setDigesterTechnologyId] = useState('');
   const [outputIds, setOutputIds] = useState<string[]>([]);
+  
+  // Monetary state
+  const [electricityTariff, setElectricityTariff] = useState<number | ''>('');
+  const [biomethanePrice, setBiomethanePrice] = useState<number | ''>('');
+  const [fertilizerPrice, setFertilizerPrice] = useState<number | ''>('');
 
   useEffect(() => {
     technologyRoutesApi.getTechnologies()
@@ -59,10 +65,33 @@ export default function WelcomeWizard({ onComplete, onClose }: WelcomeWizardProp
     setOutputIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
 
   const handleSubmit = () =>
-    onComplete({ residueCode, amountTons: amountTons || 0, availabilityMonths, preTreatmentId, digesterTechnologyId, outputIds });
+    onComplete({ 
+      residueCode, 
+      amountTons: amountTons || 0, 
+      availabilityMonths, 
+      preTreatmentId, 
+      digesterTechnologyId, 
+      outputIds,
+      tariffs: {
+        electricity: electricityTariff || undefined,
+        biomethane: biomethanePrice || undefined,
+        fertilizer: fertilizerPrice || undefined
+      }
+    });
 
   const stepTitles = [t('step1_title'), t('step2_title'), t('step3_title')];
   const selectedResidue = DETAILED_RESIDUES.find(r => r.code === residueCode);
+
+  // Helper to get emoji for residue category
+  const getCategoryEmoji = (cat: string) => {
+    switch (cat) {
+      case 'urban': return '🏙️';
+      case 'livestock': return '🐄';
+      case 'agricultural': return '🌾';
+      case 'industrial': return '🏭';
+      default: return '♻️';
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
@@ -103,27 +132,50 @@ export default function WelcomeWizard({ onComplete, onClose }: WelcomeWizardProp
 
           {/* ── Step 0: Residue & Amount ── */}
           {step === 0 && (
-            <div className="space-y-5">
+            <div className="space-y-6">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                <label className="block text-sm font-semibold text-gray-700 mb-3">
                   {t('residue_label')} <span className="text-red-500">*</span>
                 </label>
-                <select
-                  value={residueCode}
-                  onChange={e => setResidueCode(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-cp2b-green focus:border-transparent"
-                >
-                  <option value="">{t('residue_placeholder')}</option>
-                  {(['urban', 'livestock', 'agricultural', 'industrial'] as const).map(cat => (
-                    <optgroup key={cat} label={t(`category_${cat}`)}>
-                      {DETAILED_RESIDUES.filter(r => r.category === cat).map(r => (
-                        <option key={r.code} value={r.code}>
-                          {r.name} — FDE {r.fde.toFixed(1)}%
-                        </option>
-                      ))}
-                    </optgroup>
+                
+                {/* Tabs */}
+                <div className="flex p-1 bg-gray-100 rounded-xl mb-4">
+                  {(['agricultural', 'livestock', 'urban', 'industrial'] as const).map(cat => (
+                    <button
+                      key={cat}
+                      onClick={() => setActiveCategory(cat)}
+                      className={`flex-1 py-1.5 px-2 text-xs font-medium rounded-lg transition-all ${
+                        activeCategory === cat 
+                          ? 'bg-white text-cp2b-dark-green shadow-sm' 
+                          : 'text-gray-500 hover:text-gray-700'
+                      }`}
+                    >
+                      <span className="mr-1">{getCategoryEmoji(cat)}</span>
+                      {t(`category_${cat}`)}
+                    </button>
                   ))}
-                </select>
+                </div>
+
+                {/* Grid of Cards */}
+                <div className="grid grid-cols-2 gap-3 mb-6">
+                  {DETAILED_RESIDUES.filter(r => r.category === activeCategory).map(r => (
+                    <button
+                      key={r.code}
+                      onClick={() => setResidueCode(r.code)}
+                      className={`flex flex-col p-3 rounded-xl border text-left transition-all ${
+                        residueCode === r.code
+                          ? 'bg-cp2b-green/10 border-cp2b-green shadow-sm ring-1 ring-cp2b-green'
+                          : 'bg-white border-gray-200 hover:border-cp2b-green'
+                      }`}
+                    >
+                      <span className="text-xs font-bold text-gray-900 mb-1 line-clamp-2">{r.name}</span>
+                      <div className="flex items-center justify-between mt-auto">
+                        <span className="text-[10px] text-cp2b-green font-semibold">FDE {r.fde.toFixed(1)}%</span>
+                        {residueCode === r.code && <CheckCircle2 className="h-3.5 w-3.5 text-cp2b-green" />}
+                      </div>
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <div>
@@ -138,22 +190,24 @@ export default function WelcomeWizard({ onComplete, onClose }: WelcomeWizardProp
                     step={100}
                     placeholder="0"
                     onChange={e => setAmountTons(e.target.value === '' ? '' : Math.max(1, Number(e.target.value)))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-cp2b-green focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-cp2b-green focus:border-transparent shadow-sm"
                   />
-                  <span className="text-sm text-gray-500 whitespace-nowrap">t/ano</span>
+                  <span className="text-sm text-gray-500 whitespace-nowrap font-medium">t/ano</span>
                 </div>
                 {selectedResidue?.potentialSP && (
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-gray-400 mt-1.5 italic">
                     {t('sp_reference')}: {selectedResidue.potentialSP}
                   </p>
                 )}
               </div>
 
               {selectedResidue && (
-                <div className="bg-green-50 rounded-lg px-4 py-3 text-sm text-gray-700 space-y-1">
-                  <p><span className="font-medium">FDE:</span> {selectedResidue.fde.toFixed(2)}%</p>
-                  <p><span className="font-medium">BMP:</span> {selectedResidue.bmp} m³/kgSV</p>
-                  <p className="text-xs text-gray-500">{selectedResidue.observation}</p>
+                <div className="bg-gradient-to-br from-green-50 to-lime-50 rounded-xl px-4 py-3 border border-green-100 shadow-sm animate-in fade-in slide-in-from-top-2 duration-300">
+                  <div className="flex justify-between items-start mb-1">
+                    <span className="text-xs font-bold text-cp2b-dark-green uppercase tracking-wider">{selectedResidue.name}</span>
+                    <span className="bg-white/80 px-2 py-0.5 rounded text-[10px] font-bold text-cp2b-green border border-green-100">BMP: {selectedResidue.bmp}</span>
+                  </div>
+                  <p className="text-xs text-gray-600 leading-relaxed">{selectedResidue.observation}</p>
                 </div>
               )}
             </div>
@@ -188,10 +242,10 @@ export default function WelcomeWizard({ onComplete, onClose }: WelcomeWizardProp
                 </button>
               </div>
               {availabilityMonths.length > 0 && (
-                <p className="text-sm bg-green-50 rounded-lg px-3 py-2 text-gray-700">
+                <p className="text-sm bg-green-50 rounded-lg px-3 py-2 text-gray-700 border border-green-100">
                   {t('months_selected', { count: availabilityMonths.length })}
                   {availabilityMonths.length < 12 && (
-                    <span className="text-amber-600 ml-1">— {t('seasonal_warning')}</span>
+                    <span className="text-amber-600 ml-1 font-medium">— {t('seasonal_warning')}</span>
                   )}
                 </p>
               )}
@@ -200,9 +254,9 @@ export default function WelcomeWizard({ onComplete, onClose }: WelcomeWizardProp
 
           {/* ── Step 2: Process config ── */}
           {step === 2 && (
-            <div className="space-y-5">
+            <div className="space-y-6">
               {loadingTech ? (
-                <div className="text-center py-8 text-gray-500 text-sm">{t('loading_technologies')}</div>
+                <div className="text-center py-8 text-gray-500 text-sm animate-pulse">{t('loading_technologies')}</div>
               ) : technologies.length === 0 ? (
                 <div className="text-center py-8 space-y-2">
                   <p className="text-sm font-medium text-red-600">{t('no_technologies_found')}</p>
@@ -236,7 +290,7 @@ export default function WelcomeWizard({ onComplete, onClose }: WelcomeWizardProp
                     <select
                       value={digesterTechnologyId}
                       onChange={e => setDigesterTechnologyId(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-cp2b-green focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-cp2b-green focus:border-transparent shadow-sm"
                     >
                       <option value="">{t('digester_placeholder')}</option>
                       {digesters.map(tech => (
@@ -252,20 +306,20 @@ export default function WelcomeWizard({ onComplete, onClose }: WelcomeWizardProp
                     <label className="block text-sm font-semibold text-gray-700 mb-1.5">
                       {t('outputs_label')} <span className="text-red-500">*</span>
                     </label>
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-2 gap-3">
                       {outputs.map(tech => (
                         <button
                           key={tech.id}
                           type="button"
                           onClick={() => handleToggleOutput(tech.id)}
-                          className={`flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm border transition-all text-left ${
+                          className={`flex items-center gap-3 px-3 py-2.5 rounded-xl border transition-all text-left ${
                             outputIds.includes(tech.id)
-                              ? 'bg-cp2b-green/10 border-cp2b-green text-cp2b-dark-green'
+                              ? 'bg-cp2b-green/10 border-cp2b-green text-cp2b-dark-green shadow-sm ring-1 ring-cp2b-green'
                               : 'bg-white border-gray-200 text-gray-600 hover:border-cp2b-green'
                           }`}
                         >
-                          <span className="text-lg flex-shrink-0">{tech.emoji}</span>
-                          <span className="flex-1 truncate font-medium">{tech.namePt}</span>
+                          <span className="text-xl flex-shrink-0">{tech.emoji}</span>
+                          <span className="flex-1 truncate text-xs font-bold uppercase tracking-tight">{tech.namePt}</span>
                           {outputIds.includes(tech.id) && (
                             <CheckCircle2 className="h-4 w-4 flex-shrink-0 text-cp2b-green" />
                           )}
@@ -273,6 +327,76 @@ export default function WelcomeWizard({ onComplete, onClose }: WelcomeWizardProp
                       ))}
                     </div>
                   </div>
+
+                  {/* Monetary Inputs (revealed based on selection) */}
+                  {outputIds.length > 0 && (
+                    <div className="pt-4 border-t border-gray-100 space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                      <h4 className="text-sm font-bold text-cp2b-dark-green flex items-center gap-2">
+                        <Sparkles className="h-4 w-4" />
+                        Estimativa de Valores de Mercado
+                      </h4>
+                      <p className="text-xs text-gray-500 mb-2">Insira os valores locais para estimar o retorno financeiro.</p>
+                      
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {/* Electricity */}
+                        {(outputIds.some(id => id.includes('elec')) || outputIds.some(id => id.includes('gen'))) && (
+                          <div className="space-y-1.5">
+                            <label className="text-[11px] font-bold text-gray-600 uppercase tracking-wider">Tarifa de Energia</label>
+                            <div className="relative">
+                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 font-medium">R$</span>
+                              <input
+                                type="number"
+                                step="0.01"
+                                placeholder="0,00"
+                                value={electricityTariff}
+                                onChange={e => setElectricityTariff(e.target.value === '' ? '' : Number(e.target.value))}
+                                className="w-full pl-9 pr-12 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-cp2b-green focus:border-transparent outline-none shadow-sm"
+                              />
+                              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 font-bold">/kWh</span>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Biomethane */}
+                        {outputIds.some(id => id.includes('methane') || id.includes('gnv')) && (
+                          <div className="space-y-1.5">
+                            <label className="text-[11px] font-bold text-gray-600 uppercase tracking-wider">Preço do Biometano</label>
+                            <div className="relative">
+                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 font-medium">R$</span>
+                              <input
+                                type="number"
+                                step="0.10"
+                                placeholder="0,00"
+                                value={biomethanePrice}
+                                onChange={e => setBiomethanePrice(e.target.value === '' ? '' : Number(e.target.value))}
+                                className="w-full pl-9 pr-12 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-cp2b-green focus:border-transparent outline-none shadow-sm"
+                              />
+                              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 font-bold">/m³</span>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Fertilizer */}
+                        {outputIds.some(id => id.includes('fert') || id.includes('biofert')) && (
+                          <div className="space-y-1.5">
+                            <label className="text-[11px] font-bold text-gray-600 uppercase tracking-wider">Preço do Biofertilizante</label>
+                            <div className="relative">
+                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 font-medium">R$</span>
+                              <input
+                                type="number"
+                                step="1"
+                                placeholder="0,00"
+                                value={fertilizerPrice}
+                                onChange={e => setFertilizerPrice(e.target.value === '' ? '' : Number(e.target.value))}
+                                className="w-full pl-9 pr-12 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-cp2b-green focus:border-transparent outline-none shadow-sm"
+                              />
+                              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 font-bold">/ton</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </>
               )}
             </div>

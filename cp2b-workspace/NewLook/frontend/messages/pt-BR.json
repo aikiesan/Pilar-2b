@@ -1061,6 +1061,14 @@
       "digester_label": "Tecnologia de digestão",
       "digester_placeholder": "Selecione um digestor...",
       "outputs_label": "Usos ou saídas desejadas",
+      "outcomes_label": "O que você quer produzir?",
+      "purification_label": "Como purificar o biometano?",
+      "price_overrides_label": "Ajustar preços de referência (padrão: SP 2025)",
+      "tariff_elec": "Energia Elétrica",
+      "tariff_fuel": "Biometano",
+      "tariff_heat": "Calor / Vapor",
+      "tariff_fert": "Biofertilizante",
+      "tariff_co2": "Créditos CO₂",
       "close": "Fechar",
       "cancel": "Cancelar",
       "back": "Voltar",
@@ -1083,8 +1091,16 @@
       "seasonal_desc": "Disponível em {months} meses do ano. Os valores anuais ajustados refletem a sazonalidade.",
       "adjusted_label": "Valores Anuais Ajustados",
       "biogas": "biogás",
-      "coming_soon": "Em breve",
-      "cost_water_estimates": "Estimativas de custo e consumo de água"
+      "revenue_title": "Receita Estimada",
+      "revenue_electricity": "Energia Elétrica",
+      "revenue_biomethane": "Biometano",
+      "revenue_heat": "Calor / Vapor",
+      "revenue_fertilizer": "Biofertilizante",
+      "revenue_carbon": "Créditos de Carbono",
+      "revenue_total": "Receita Bruta Total Estimada",
+      "per_year": "por ano",
+      "revenue_disclaimer": "estimativa simplificada · sem CAPEX/OPEX",
+      "revenue_source": "Referências: CPFL Paulista, Comgás CP, MFRural SP — 2025–2026"
     }
   },
   "cookieConsent": {

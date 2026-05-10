@@ -80,9 +80,10 @@ export default function LoginPage() {
             <Image
               src="/pilar2b/images/logotipo-full-black.png"
               alt="PILAR-2b Logo"
-              width={200}
-              height={55}
-              className="brightness-0 invert"
+              width={180}
+              height={50}
+              style={{ height: 'auto' }}
+              className="brightness-0 invert mb-6"
               priority
             />
           </Link>
