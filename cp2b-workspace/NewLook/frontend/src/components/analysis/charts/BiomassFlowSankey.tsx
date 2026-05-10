@@ -44,7 +44,7 @@ function AlluvialDiagram({
 }) {
   // SVG layout
   const svgWidth = 700
-  const svgHeight = 460
+  const svgHeight = 600
   const barW = 56
   const leftX = 60
   const rightX = 380
@@ -128,7 +128,20 @@ function AlluvialDiagram({
       </text>
 
       {/* Trapezoid bands + right segments */}
-      {rightRects.map((seg, i) => {
+      {(() => {
+        // Pre-calculate text Y positions to prevent label collision
+        let lastTextY = -Infinity;
+        const MIN_LABEL_SPACING = 30;
+        const rightRectsWithText = rightRects.map(seg => {
+          let idealTextY = seg.y + seg.h / 2;
+          if (idealTextY < lastTextY + MIN_LABEL_SPACING) {
+            idealTextY = lastTextY + MIN_LABEL_SPACING;
+          }
+          lastTextY = idealTextY;
+          return { ...seg, textY: idealTextY };
+        });
+
+        return rightRectsWithText.map((seg, i) => {
         const lSlice = leftSlices[i]
         const lLeft = leftX + barW
         const lTop = lSlice.y
@@ -161,10 +174,10 @@ function AlluvialDiagram({
               ry={3}
             />
 
-            {/* Segment label — right of bar */}
+            {/* Segment label — right of bar (collision-avoided Y) */}
             <text
               x={rightX + barW + 10}
-              y={rTop + seg.h / 2 - 5}
+              y={seg.textY - 5}
               dominantBaseline="middle"
               fontSize={11}
               fontWeight={500}
@@ -174,7 +187,7 @@ function AlluvialDiagram({
             </text>
             <text
               x={rightX + barW + 10}
-              y={rTop + seg.h / 2 + 8}
+              y={seg.textY + 8}
               dominantBaseline="middle"
               fontSize={10}
               fill="#6B7280"
@@ -184,7 +197,8 @@ function AlluvialDiagram({
             </text>
           </g>
         )
-      })}
+      });
+      })()}
 
       {/* Right column header */}
       <text
@@ -282,17 +296,17 @@ export default function BiomassFlowSankey({
         <div className="flex items-center gap-4 text-sm flex-wrap">
           <div className="flex items-center gap-1.5">
             <span className="text-gray-500">{t('sankey_node_biogas')}:</span>
-            <span className="font-mono font-bold text-green-600">{formatValue(availableBiogas)} m³/ano</span>
+            <span className="font-mono font-bold text-green-600">{formatValue(availableBiogas)} {t('unit_m3_yr')}</span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="text-gray-500">{t('sankey_ch4_label')}:</span>
-            <span className="font-mono font-bold text-blue-600">{formatValue(ch4Equivalent)} m³/ano</span>
+            <span className="font-mono font-bold text-blue-600">{formatValue(ch4Equivalent)} {t('unit_m3_yr')}</span>
           </div>
         </div>
       </div>
 
       {/* SVG Alluvial Diagram */}
-      <div className="h-[460px]">
+      <div className="h-[600px] overflow-visible">
         <AlluvialDiagram
           theoretical={theoreticalPotential}
           segments={segments}
@@ -306,7 +320,7 @@ export default function BiomassFlowSankey({
           <div className="text-center p-3 bg-amber-50 rounded-lg">
             <div className="text-xs text-gray-500 mb-1">{t('sankey_summary_input')}</div>
             <div className="font-mono font-semibold text-amber-700">{formatValue(theoreticalPotential)}</div>
-            <div className="text-xs text-gray-400">m³/ano</div>
+            <div className="text-xs text-gray-400">{t('unit_m3_yr')}</div>
           </div>
           <div className="text-center p-3 bg-red-50 rounded-lg">
             <div className="text-xs text-gray-500 mb-1">{t('sankey_summary_total_losses')}</div>

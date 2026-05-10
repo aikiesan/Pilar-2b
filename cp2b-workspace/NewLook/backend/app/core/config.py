@@ -78,7 +78,7 @@ class Settings(BaseSettings):
     UPLOAD_DIR: Path = Path(__file__).parent.parent.parent / "uploads"
 
     # Rate limiting
-    RATE_LIMIT_PER_MINUTE: int = 60
+    RATE_LIMIT_PER_MINUTE: int = 300
 
     # Request size limiting (DoS protection)
     MAX_REQUEST_SIZE: int = 10_000_000  # 10MB maximum request body size
