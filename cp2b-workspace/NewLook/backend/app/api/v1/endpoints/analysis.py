@@ -81,6 +81,42 @@ FRONTEND_CODE_TO_STREAM: Dict[str, Optional[str]] = {
     "IND_RESIDUO_PROCESSAMENTO_VEGETAL":    None,
 }
 
+# Maps frontend residue codes (from residueFactors.ts) → residue_streams_sp2023.residue_stream
+# None = residue exists in frontend but has no DB stream (not yet in residue_streams_sp2023)
+FRONTEND_CODE_TO_STREAM: Dict[str, Optional[str]] = {
+    # Agricultural — Cana (4 sub-residues all map to the sugarcane stream)
+    "AG_CANA_BAGACO":       "sugarcane",
+    "AG_CANA_PALHA":        "sugarcane",
+    "AG_CANA_TORTA_FILTRO": "sugarcane",
+    "AG_CANA_VINHACA":      "sugarcane",
+    # Agricultural — other crops
+    "AG_MILHO_PALHA":       "corn",
+    "AG_SOJA_PALHA":        "soybean",
+    "AG_CITROS_BAGACO":     "citrus",
+    "AG_CITROS_CASCAS":     "citrus",
+    "AG_CITROS_POLPA":      "citrus",
+    "AG_CAFE_POLPA":        "coffee",
+    "AG_CAFE_CASCA":        "coffee",
+    "AG_CAFE_MUCILAGEM":    "coffee",
+    # Livestock
+    "PEC_DEJETOS_LIQUIDOS_SUINO": "swine",
+    "PEC_ESTERCO_BOVINO":         "cattle",
+    "PEC_CAMA_AVIARIO":           "poultry",
+    # Urban
+    "URB_LODO_PRIMARIO":    "rsu_organic",
+    "URB_LODO_SECUNDARIO":  "rsu_organic",
+    "URB_FORSU_SEPARADA":   "rsu_organic",
+    # Industrial — only eucalyptus bark maps to a DB stream
+    "IND_CASCA_EUCALIPTO":                  "forestry",
+    # Industrial — no DB stream yet
+    "IND_BAGACO_MALTE":                     None,
+    "IND_TRUB_CERVEJA":                     None,
+    "IND_SORO_LATICINIOS":                  None,
+    "IND_RESIDUO_ABATEDOURO":               None,
+    "IND_VISCERAS_NAO_COMESTIVEIS":         None,
+    "IND_RESIDUO_PROCESSAMENTO_VEGETAL":    None,
+}
+
 
 @router.get("/mcda")
 async def get_mcda_analysis(

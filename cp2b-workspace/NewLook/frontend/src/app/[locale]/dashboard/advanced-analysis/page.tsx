@@ -103,15 +103,16 @@ const CODE_TO_STREAM: Record<string, string | null> = {
 }
 
 /**
- * Computes RPR-adjusted theoretical biogas for a set of residue codes using the crop/stream's
- * total production mass (tons/yr). Each sub-residue contributes: crop_tons * rpr * bmp * 1000.
- * Codes without an rpr entry (rpr omitted) default to 1.0 (direct 1-to-1 mapping).
+ * Computes RPR-adjusted theoretical biogas for a set of residue codes.
+ * - Codes WITH rpr: mass-based formula → crop_tons * rpr * bmp * 1000 (m³/yr)
+ * - Codes WITHOUT rpr (e.g. livestock): use DB biogas total directly from streamBiogas,
+ *   because residue_tons_yr has inconsistent units for those streams.
  */
 function computeRPRAdjustedBiogas(
   codes: string[],
-  streamTons: Record<string, number>
+  streamTons: Record<string, number>,
+  streamBiogas: Record<string, number>
 ): number {
-  // Group codes by stream
   const byStream = new Map<string, string[]>()
   for (const code of codes) {
     const stream = CODE_TO_STREAM[code]
@@ -122,13 +123,17 @@ function computeRPRAdjustedBiogas(
 
   let total = 0
   byStream.forEach((codesInStream, stream) => {
-    const cropTons = streamTons[stream] ?? 0
     for (const code of codesInStream) {
       const residue = getResidueByCode(code)
       if (!residue) continue
-      const rpr = residue.rpr ?? 1.0
-      // bmp is in m³/kgSV; multiply by 1000 to convert to m³/tonSV
-      total += cropTons * rpr * residue.bmp * 1000
+      if (residue.rpr !== undefined) {
+        // Crop sub-residue: mass-based RPR formula
+        const cropTons = streamTons[stream] ?? 0
+        total += cropTons * residue.rpr * residue.bmp * 1000
+      } else {
+        // Livestock / unique-stream: residue_tons_yr has inconsistent units, use DB biogas directly
+        total += streamBiogas[stream] ?? 0
+      }
     }
   })
   return total
@@ -168,6 +173,7 @@ export default function AdvancedAnalysisPage() {
   const [topMunicipalities, setTopMunicipalities] = useState<Municipality[]>([])
   const [streamTotal, setStreamTotal] = useState<number | null>(null)
   const [streamTons, setStreamTons] = useState<Record<string, number>>({})
+  const [streamBiogas, setStreamBiogas] = useState<Record<string, number>>({})
   const [categoryStats, setCategoryStats] = useState<StatisticsByCategoryResponse | null>(null)
   const [regionData, setRegionData] = useState<RegionData[]>([])
   const [histogramData, setHistogramData] = useState<HistogramBin[]>([])
@@ -193,19 +199,17 @@ export default function AdvancedAnalysisPage() {
 
   // Calculate FILTERED theoretical potential (only selected residues)
   // Use RPR-adjusted calculation when stream_tons is available (avoids double-counting shared streams).
-  // For codes with rpr=1.0 (unique stream per code, e.g. livestock), the formula degenerates to
-  // crop_tons * 1.0 * bmp * 1000, which equals the raw biogas value if bmp is calibrated to DB data.
   // Falls back to raw streamTotal or municipality sum when crop tonnage data is unavailable.
   const filteredTheoreticalPotential = useMemo(() => {
-    if (selectedResidueCodes.length > 0 && Object.keys(streamTons).length > 0) {
-      const rprTotal = computeRPRAdjustedBiogas(selectedResidueCodes, streamTons)
+    if (selectedResidueCodes.length > 0 && (Object.keys(streamTons).length > 0 || Object.keys(streamBiogas).length > 0)) {
+      const rprTotal = computeRPRAdjustedBiogas(selectedResidueCodes, streamTons, streamBiogas)
       if (rprTotal > 0) return rprTotal
     }
     // Fallback: raw stream biogas total (pre-RPR, for livestock / single-code streams)
     if (streamTotal !== null) return streamTotal
     if (!topMunicipalities || topMunicipalities.length === 0) return 0
     return topMunicipalities.reduce((sum, mun) => sum + (mun.biogas_m3_year || 0), 0)
-  }, [selectedResidueCodes, streamTons, streamTotal, topMunicipalities])
+  }, [selectedResidueCodes, streamTons, streamBiogas, streamTotal, topMunicipalities])
 
   // Use filtered if residues selected, otherwise total
   const theoreticalPotential = useMemo(() => {
@@ -363,12 +367,14 @@ export default function AdvancedAnalysisPage() {
     if (streamResult.status === 'fulfilled' && streamResult.value) {
       setStreamTotal(streamResult.value.total > 0 ? streamResult.value.total : null)
       setStreamTons(streamResult.value.stream_tons ?? {})
+      setStreamBiogas(streamResult.value.streams ?? {})
     } else {
       if (streamResult.status === 'rejected') {
         logger.warn('Stream stats fetch failed, falling back to municipality sum:', streamResult.reason)
       }
       setStreamTotal(null)
       setStreamTons({})
+      setStreamBiogas({})
     }
   }, [selectedCategory, selectedResidueCodes])
 

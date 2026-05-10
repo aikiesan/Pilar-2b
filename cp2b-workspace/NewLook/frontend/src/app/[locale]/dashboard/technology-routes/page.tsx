@@ -87,7 +87,7 @@ export default function TechnologyRoutesPage() {
   }, []);
 
   return (
-    <div className="flex flex-col h-screen bg-gradient-to-br from-gray-50 to-cp2b-lime-light/10">
+    <div className="flex flex-col h-[calc(100vh-64px)] bg-gradient-to-br from-gray-50 to-cp2b-lime-light/10 overflow-hidden">
       <Breadcrumb items={[
         { label: t('back_to_dashboard'), href: '/dashboard' },
         { label: t('technology_routes.title') },
