@@ -266,7 +266,6 @@ export default function WelcomeWizard({ onComplete, onClose }: WelcomeWizardProp
                 <div className="bg-green-50 rounded-lg px-4 py-3 text-sm text-gray-700 space-y-1">
                   <div className="flex gap-4">
                     <p><span className="font-medium">BMP:</span> {selectedResidue.bmp} m³/kgSV</p>
-                    <p><span className="font-medium">FDE:</span> {selectedResidue.fde.toFixed(1)}%</p>
                   </div>
                   {selectedResidue.observation && (
                     <p className="text-xs text-gray-500 italic">{selectedResidue.observation}</p>

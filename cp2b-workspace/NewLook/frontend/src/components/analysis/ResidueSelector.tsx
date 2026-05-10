@@ -301,13 +301,8 @@ export default function ResidueSelector({
                             )}
                           </div>
 
-                          {/* FDE and Classification */}
+                          {/* Classification and confidence */}
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className={`text-xs font-semibold ${
-                              isInviable ? 'text-red-600' : 'text-green-700'
-                            }`}>
-                              FDE: {residue.fde.toFixed(2)}%
-                            </span>
                             <span className={`text-xs ${classDisplay.color}`}>
                               {classDisplay.emoji} {classDisplay.label}
                             </span>

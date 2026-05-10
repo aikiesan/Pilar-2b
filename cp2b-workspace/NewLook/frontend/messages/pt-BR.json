@@ -1100,7 +1100,9 @@
       "revenue_total": "Receita Bruta Total Estimada",
       "per_year": "por ano",
       "revenue_disclaimer": "estimativa simplificada · sem CAPEX/OPEX",
-      "revenue_source": "Referências: CPFL Paulista, Comgás CP, MFRural SP — 2025–2026"
+      "revenue_source": "Referências: CPFL Paulista, Comgás CP, MFRural SP — 2025–2026",
+      "coming_soon": "Em breve",
+      "cost_water_estimates": "Estimativas de custo e consumo de água"
     }
   },
   "cookieConsent": {

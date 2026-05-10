@@ -1097,11 +1097,13 @@
       "revenue_heat": "Heat / Steam",
       "revenue_fertilizer": "Biofertilizer",
       "revenue_carbon": "Carbon Credits",
-      "revenue_total": "Estimated Gross Revenue",
+      "revenue_total": "Estimated Total Gross Revenue",
       "per_year": "per year",
-      "revenue_disclaimer": "simplified estimate · excludes CAPEX/OPEX",
-      "revenue_source": "Sources: CPFL Paulista, Comgás CP, MFRural SP — 2025–2026"
-    }
+      "revenue_disclaimer": "simplified estimate · no CAPEX/OPEX",
+      "revenue_source": "References: CPFL Paulista, Comgás CP, MFRural SP — 2025–2026",
+      "coming_soon": "Coming soon",
+      "cost_water_estimates": "Cost and water consumption estimates"
+      }
   },
   "cookieConsent": {
     "title": "We use cookies & data",
