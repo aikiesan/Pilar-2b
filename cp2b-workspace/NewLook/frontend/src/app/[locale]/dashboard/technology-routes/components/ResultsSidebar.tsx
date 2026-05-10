@@ -149,10 +149,6 @@ export default function ResultsSidebar({ config, onClose }: ResultsSidebarProps)
             <span className="text-gray-500">BMP</span>
             <span className="font-medium">{residue.bmp} m³/kgSV</span>
           </div>
-          <div className="flex justify-between">
-            <span className="text-gray-500">FDE</span>
-            <span className="font-semibold text-cp2b-green">{residue.fde.toFixed(2)}%</span>
-          </div>
         </div>
 
         {/* Physical KPI cards */}
@@ -172,7 +168,7 @@ export default function ResultsSidebar({ config, onClose }: ResultsSidebarProps)
               <span className="text-xs font-semibold text-green-800 uppercase tracking-wide">{t('available_biogas')}</span>
             </div>
             <p className="text-2xl font-bold text-green-700">{formatLarge(calcs.availableBiogasM3)}</p>
-            <p className="text-xs text-green-600">m³/ano · FDE {residue.fde.toFixed(1)}%</p>
+            <p className="text-xs text-green-600">m³/ano</p>
           </div>
 
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-3">
