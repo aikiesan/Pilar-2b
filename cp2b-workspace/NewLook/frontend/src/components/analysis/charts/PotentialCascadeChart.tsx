@@ -160,11 +160,11 @@ export default function PotentialCascadeChart({
           <p className="text-sm text-gray-600 mb-2">{data.description}</p>
           <div className="space-y-1">
             <p className="text-sm">
-              <span className="text-gray-500">Valor:</span>{' '}
-              <span className="font-mono font-semibold">{formatValue(data.value)} t/ano</span>
+              <span className="text-gray-500">{t('cascade_tooltip_value')}</span>{' '}
+              <span className="font-mono font-semibold">{formatValue(data.value)} {t('unit_m3_yr')}</span>
             </p>
             <p className="text-sm">
-              <span className="text-gray-500">% do Teorico:</span>{' '}
+              <span className="text-gray-500">{t('cascade_tooltip_percent')}</span>{' '}
               <span className="font-mono font-semibold">{data.percentage.toFixed(1)}%</span>
             </p>
           </div>
@@ -226,7 +226,7 @@ export default function PotentialCascadeChart({
           </div>
           <div className="flex items-center gap-2">
             <span className="text-gray-500">{t('cascade_final_label')}</span>
-            <span className="font-mono font-bold text-gray-900">{formatValue(finalValue)} t/ano</span>
+            <span className="font-mono font-bold text-gray-900">{formatValue(finalValue)} {t('unit_m3_yr')}</span>
           </div>
         </div>
       </div>

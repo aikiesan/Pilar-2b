@@ -9,10 +9,8 @@ import { logger } from '@/lib/logger';
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 // Types
-// Note: API only supports 3 categories (agricultural, livestock, urban)
-// "industrial" is defined in UI but not yet supported by backend
-export type ApiCategory = 'agricultural' | 'livestock' | 'urban';
-export type ResidueCategory = ApiCategory | 'industrial';
+export type ApiCategory = 'agricultural' | 'livestock' | 'urban' | 'industrial';
+export type ResidueCategory = ApiCategory;
 export interface Municipality {
   id: number;
   municipality_name: string;
@@ -21,6 +19,7 @@ export interface Municipality {
   population: number;
   area_km2: number;
   biogas_m3_year: number;
+  residue_tons_yr?: number;
 }
 
 export interface ByResidueResponse {
@@ -108,6 +107,7 @@ export interface ResidueConfigResponse {
 export interface StreamStatisticsResponse {
   total: number;
   streams: Record<string, number>;
+  stream_tons: Record<string, number>;
   residue_codes: string[];
   note?: string;
 }

@@ -14,6 +14,7 @@ class ResidueCategory(str, Enum):
     agricultural = "agricultural"
     livestock    = "livestock"
     urban        = "urban"
+    industrial   = "industrial"
 
 
 # Legacy column mapping (for backward-compat with old clients that pass stream names directly)
@@ -38,6 +39,46 @@ RESIDUE_COLUMNS = {
         "rpo":    "rpo_biogas_m3_year",
         "_total": "urban_biogas_m3_year",
     },
+    "industrial": {
+        "forestry": "forestry_biogas_m3_year",
+        "_total":   "forestry_biogas_m3_year",
+    },
+}
+
+# Maps frontend residue codes (from residueFactors.ts) → residue_streams_sp2023.residue_stream
+# None = residue exists in frontend but has no DB stream (not yet in residue_streams_sp2023)
+FRONTEND_CODE_TO_STREAM: Dict[str, Optional[str]] = {
+    # Agricultural — Cana (4 sub-residues all map to the sugarcane stream)
+    "AG_CANA_BAGACO":       "sugarcane",
+    "AG_CANA_PALHA":        "sugarcane",
+    "AG_CANA_TORTA_FILTRO": "sugarcane",
+    "AG_CANA_VINHACA":      "sugarcane",
+    # Agricultural — other crops
+    "AG_MILHO_PALHA":       "corn",
+    "AG_SOJA_PALHA":        "soybean",
+    "AG_CITROS_BAGACO":     "citrus",
+    "AG_CITROS_CASCAS":     "citrus",
+    "AG_CITROS_POLPA":      "citrus",
+    "AG_CAFE_POLPA":        "coffee",
+    "AG_CAFE_CASCA":        "coffee",
+    "AG_CAFE_MUCILAGEM":    "coffee",
+    # Livestock
+    "PEC_DEJETOS_LIQUIDOS_SUINO": "swine",
+    "PEC_ESTERCO_BOVINO":         "cattle",
+    "PEC_CAMA_AVIARIO":           "poultry",
+    # Urban
+    "URB_LODO_PRIMARIO":    "rsu_organic",
+    "URB_LODO_SECUNDARIO":  "rsu_organic",
+    "URB_FORSU_SEPARADA":   "rsu_organic",
+    # Industrial — only eucalyptus bark maps to a DB stream
+    "IND_CASCA_EUCALIPTO":                  "forestry",
+    # Industrial — no DB stream yet
+    "IND_BAGACO_MALTE":                     None,
+    "IND_TRUB_CERVEJA":                     None,
+    "IND_SORO_LATICINIOS":                  None,
+    "IND_RESIDUO_ABATEDOURO":               None,
+    "IND_VISCERAS_NAO_COMESTIVEIS":         None,
+    "IND_RESIDUO_PROCESSAMENTO_VEGETAL":    None,
 }
 
 # Maps frontend residue codes (from residueFactors.ts) → residue_streams_sp2023.residue_stream
@@ -144,7 +185,8 @@ async def get_analysis_by_residue(
                 m.administrative_region,
                 m.population,
                 m.area_km2,
-                COALESCE(SUM(rs.biogas_m3_yr), 0) AS biogas_m3_year
+                COALESCE(SUM(rs.biogas_m3_yr), 0)      AS biogas_m3_year,
+                COALESCE(SUM(rs.residue_tons_yr), 0)   AS residue_tons_yr
             FROM municipalities m
             LEFT JOIN residue_streams_sp2023 rs
                 ON rs.ibge_code::text = m.ibge_code::text
@@ -173,6 +215,7 @@ async def get_analysis_by_residue(
                     "population": row["population"],
                     "area_km2": row["area_km2"],
                     "biogas_m3_year": round(float(row["biogas_m3_year"]), 2),
+                    "residue_tons_yr": round(float(row["residue_tons_yr"]), 2),
                 }
                 for row in rows
             ]
@@ -313,7 +356,9 @@ async def get_statistics_by_stream(
         with get_db() as conn:
             cursor = conn.cursor()
             cursor.execute(
-                f"SELECT residue_stream, COALESCE(SUM(biogas_m3_yr), 0) AS total "
+                f"SELECT residue_stream, "
+                f"COALESCE(SUM(biogas_m3_yr), 0) AS total, "
+                f"COALESCE(SUM(residue_tons_yr), 0) AS total_tons "
                 f"FROM residue_streams_sp2023 WHERE residue_stream IN ({placeholders}) "
                 f"GROUP BY residue_stream",
                 streams,
@@ -322,10 +367,12 @@ async def get_statistics_by_stream(
             cursor.close()
 
         stream_totals = {row["residue_stream"]: round(float(row["total"]), 2) for row in rows}
+        stream_tons   = {row["residue_stream"]: round(float(row["total_tons"]), 2) for row in rows}
         grand_total = sum(stream_totals.values())
         return {
             "total": round(grand_total, 2),
             "streams": stream_totals,
+            "stream_tons": stream_tons,
             "residue_codes": residue_codes,
         }
 

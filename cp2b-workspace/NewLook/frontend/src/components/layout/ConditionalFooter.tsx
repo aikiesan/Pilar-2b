@@ -5,6 +5,10 @@ import Footer from './Footer';
 
 export default function ConditionalFooter() {
   const pathname = usePathname();
-  if (pathname.includes('/map')) return null;
+  if (
+    pathname.includes('/map') ||
+    pathname.includes('/technology-routes') ||
+    pathname.includes('/advanced-analysis')
+  ) return null;
   return <Footer />;
 }
