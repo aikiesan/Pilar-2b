@@ -75,7 +75,7 @@ class RateLimiter:
 
 
 # Global rate limiter instances
-analysis_rate_limiter = RateLimiter(max_requests=10, window_minutes=1)
+analysis_rate_limiter = RateLimiter(max_requests=100, window_minutes=1)
 general_rate_limiter = RateLimiter(max_requests=100, window_minutes=1)
 
 

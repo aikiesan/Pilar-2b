@@ -9,10 +9,8 @@ import { logger } from '@/lib/logger';
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 // Types
-// Note: API only supports 3 categories (agricultural, livestock, urban)
-// "industrial" is defined in UI but not yet supported by backend
-export type ApiCategory = 'agricultural' | 'livestock' | 'urban';
-export type ResidueCategory = ApiCategory | 'industrial';
+export type ApiCategory = 'agricultural' | 'livestock' | 'urban' | 'industrial';
+export type ResidueCategory = ApiCategory;
 export interface Municipality {
   id: number;
   municipality_name: string;
@@ -21,6 +19,7 @@ export interface Municipality {
   population: number;
   area_km2: number;
   biogas_m3_year: number;
+  residue_tons_yr?: number;
 }
 
 export interface ByResidueResponse {
@@ -41,10 +40,12 @@ export interface CategoryStats {
 
 export interface StatisticsByCategoryResponse {
   categories: {
-    agricultural: CategoryStats;
-    livestock: CategoryStats;
-    urban: CategoryStats;
+    agricultural?: CategoryStats;
+    livestock?: CategoryStats;
+    urban?: CategoryStats;
+    industrial?: CategoryStats;
     total: CategoryStats;
+    [key: string]: CategoryStats | undefined;
   };
   total_municipalities: number;
 }
@@ -101,6 +102,14 @@ export interface ResidueConfigResponse {
     livestock: CategoryConfig;
     urban: CategoryConfig;
   };
+}
+
+export interface StreamStatisticsResponse {
+  total: number;
+  streams: Record<string, number>;
+  stream_tons: Record<string, number>;
+  residue_codes: string[];
+  note?: string;
 }
 
 // API Functions
@@ -201,6 +210,24 @@ export async function getDistribution(
     throw new Error(`Failed to fetch distribution: ${response.statusText}`);
   }
 
+  return response.json();
+}
+
+/**
+ * Get total biogas potential for a set of frontend residue codes from residue_streams_sp2023.
+ * Returns a scalar total instead of waiting for the full municipality list.
+ */
+export async function getStatisticsByStream(
+  residueCodes: string[]
+): Promise<StreamStatisticsResponse> {
+  const params = new URLSearchParams();
+  residueCodes.forEach(c => params.append('residue_codes', c));
+  const response = await authenticatedFetch(
+    `${API_BASE_URL}/api/v1/analysis/statistics/by-stream?${params}`
+  );
+  if (!response.ok) {
+    throw new Error(`Failed to fetch stream statistics: ${response.statusText}`);
+  }
   return response.json();
 }
 

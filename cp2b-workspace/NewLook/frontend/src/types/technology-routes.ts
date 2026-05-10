@@ -3,6 +3,15 @@
  * Educational tool for visualizing biogas technology pathways
  */
 
+export interface WizardConfig {
+  residueCode: string;          // matches DetailedResidue.code
+  amountTons: number;
+  availabilityMonths: number[]; // 1-12, e.g. [4,5,6,7,8,9,10,11] for sugarcane harvest
+  preTreatmentId: string | null;
+  digesterTechnologyId: string;
+  outputIds: string[];          // upgrading / enduse / byproduct tech IDs
+}
+
 export type TechnologyCategory =
   | 'feedstock'
   | 'pretreatment'

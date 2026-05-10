@@ -19,6 +19,10 @@ export interface DetailedResidue {
   
   // Technical Data
   bmp: number     // Biochemical Methane Potential (m³/kg SV)
+  // Residue-to-Product Ratio: fraction of this sub-residue relative to parent crop mass.
+  // Used to apportion a shared DB stream (e.g. "sugarcane") among multiple frontend codes.
+  // Omit (or set 1.0) for residues with a 1-to-1 stream mapping.
+  rpr?: number
   classification: string
   confidence: 'HIGH' | 'MEDIUM' | 'LOW'
   
@@ -46,6 +50,7 @@ export const DETAILED_RESIDUES: DetailedResidue[] = [
     fl: 0.9,
     fde: 54.51,
     bmp: 0.25,
+    rpr: 0.40,
     classification: '🟢 EXCEPCIONAL (40%+)',
     confidence: 'HIGH',
     fcJustification: 'ETEs centralizam; 85% coletável peneiramento',
@@ -66,6 +71,7 @@ export const DETAILED_RESIDUES: DetailedResidue[] = [
     fl: 0.85,
     fde: 46.35,
     bmp: 0.28,
+    rpr: 0.40,
     classification: '🟢 EXCEPCIONAL (40%+)',
     confidence: 'HIGH',
     fcJustification: 'Sistemas secundários; 82% coletável',
@@ -86,6 +92,7 @@ export const DETAILED_RESIDUES: DetailedResidue[] = [
     fl: 0.8,
     fde: 42.12,
     bmp: 0.35,
+    rpr: 0.20,
     classification: '🟢 EXCEPCIONAL (40%+)',
     confidence: 'MEDIUM',
     fcJustification: 'Separação na fonte; 90% de pureza',
@@ -170,6 +177,7 @@ export const DETAILED_RESIDUES: DetailedResidue[] = [
     fl: 0.9,
     fde: 0.0,
     bmp: 0.35,
+    rpr: 0.28,
     classification: '⚫ INVIÁVEL (0%)',
     confidence: 'HIGH',
     fcJustification: '95% gerado em usinas centralizadas',
@@ -190,6 +198,7 @@ export const DETAILED_RESIDUES: DetailedResidue[] = [
     fl: 0.85,
     fde: 6.5,
     bmp: 0.3,
+    rpr: 0.14,
     classification: '🟠 REGULAR (5-9%)',
     confidence: 'MEDIUM',
     fcJustification: '85% coletável mecanicamente',
@@ -210,6 +219,7 @@ export const DETAILED_RESIDUES: DetailedResidue[] = [
     fl: 0.9,
     fde: 25.39,
     bmp: 0.28,
+    rpr: 0.03,
     classification: '🟢 MUITO BOM (25-39%)',
     confidence: 'HIGH',
     fcJustification: '95% gerado centralizado em filtros',
@@ -230,6 +240,7 @@ export const DETAILED_RESIDUES: DetailedResidue[] = [
     fl: 0.9,
     fde: 11.54,
     bmp: 0.35,
+    rpr: 0.12,
     classification: '🟡 RAZOÁVEL (10-14%)',
     confidence: 'HIGH',
     fcJustification: '95% gerado em destilarias',
@@ -296,6 +307,7 @@ export const DETAILED_RESIDUES: DetailedResidue[] = [
     fl: 0.75,
     fde: 17.21,
     bmp: 0.28,
+    rpr: 0.50,
     classification: '🟡 BOM (15-24%)',
     confidence: 'MEDIUM',
     fcJustification: '85% processamento suco concentrado',
@@ -316,6 +328,7 @@ export const DETAILED_RESIDUES: DetailedResidue[] = [
     fl: 0.75,
     fde: 16.2,
     bmp: 0.25,
+    rpr: 0.30,
     classification: '🟡 BOM (15-24%)',
     confidence: 'MEDIUM',
     fcJustification: '80% descascamento/processamento',
@@ -336,6 +349,7 @@ export const DETAILED_RESIDUES: DetailedResidue[] = [
     fl: 0.7,
     fde: 11.81,
     bmp: 0.2,
+    rpr: 0.20,
     classification: '🟡 RAZOÁVEL (10-14%)',
     confidence: 'MEDIUM',
     fcJustification: '75% secagem polpa',
@@ -358,6 +372,7 @@ export const DETAILED_RESIDUES: DetailedResidue[] = [
     fl: 0.7,
     fde: 19.04,
     bmp: 0.32,
+    rpr: 0.45,
     classification: '🟡 BOM (15-24%)',
     confidence: 'MEDIUM',
     fcJustification: '80% beneficiamento via úmida',
@@ -378,6 +393,7 @@ export const DETAILED_RESIDUES: DetailedResidue[] = [
     fl: 0.65,
     fde: 19.34,
     bmp: 0.25,
+    rpr: 0.35,
     classification: '🟡 BOM (15-24%)',
     confidence: 'MEDIUM',
     fcJustification: '70% beneficiamento',
@@ -398,6 +414,7 @@ export const DETAILED_RESIDUES: DetailedResidue[] = [
     fl: 0.7,
     fde: 21.42,
     bmp: 0.35,
+    rpr: 0.20,
     classification: '🟡 BOM (15-24%)',
     confidence: 'MEDIUM',
     fcJustification: '85% despolpamento via úmida',

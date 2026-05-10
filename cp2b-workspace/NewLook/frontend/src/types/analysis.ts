@@ -351,11 +351,11 @@ export const FACTOR_DOCUMENTATION: FactorDocumentation[] = [
   {
     factor: 'fc',
     name: 'Fator de Coleta (FC)',
-    nameKey: 'analysis.factor_docs.fc_title',
+    nameKey: 'factor_docs.fc_title',
     description: 'Eficiencia de coleta do residuo desde a geracao ate o ponto de processamento',
-    descKey: 'analysis.factor_docs.fc_desc',
+    descKey: 'factor_docs.fc_desc',
     context: 'Depende da infraestrutura de coleta, mecanizacao e dispersao geografica da fonte',
-    contextKey: 'analysis.factor_docs.fc_context',
+    contextKey: 'factor_docs.fc_context',
     typicalRange: { min: 0.55, max: 0.95 },
     references: [
       'UNICA (2023) - Relatorio Tecnico sobre Gestao de Bagaco',
@@ -365,11 +365,11 @@ export const FACTOR_DOCUMENTATION: FactorDocumentation[] = [
   {
     factor: 'fcp',
     name: 'Fator de Competicao (FCp)',
-    nameKey: 'analysis.factor_docs.fcp_title',
+    nameKey: 'factor_docs.fcp_title',
     description: 'Fracao do residuo coletado que vai para usos alternativos ao biogas',
-    descKey: 'analysis.factor_docs.fcp_desc',
+    descKey: 'factor_docs.fcp_desc',
     context: 'Inclui uso como racao animal, fertilizante, material industrial ou combustivel de caldeira',
-    contextKey: 'analysis.factor_docs.fcp_context',
+    contextKey: 'factor_docs.fcp_context',
     typicalRange: { min: 0, max: 1 },
     references: [
       'CEPEA/ESALQ - Precos de mercado para subprodutos',
@@ -379,11 +379,11 @@ export const FACTOR_DOCUMENTATION: FactorDocumentation[] = [
   {
     factor: 'fs',
     name: 'Fator de Sazonalidade (FS)',
-    nameKey: 'analysis.factor_docs.fs_title',
+    nameKey: 'factor_docs.fs_title',
     description: 'Ajuste pela disponibilidade variavel ao longo do ano',
-    descKey: 'analysis.factor_docs.fs_desc',
+    descKey: 'factor_docs.fs_desc',
     context: 'Culturas sazonais como cana (abril-novembro) vs. pecuaria (constante)',
-    contextKey: 'analysis.factor_docs.fs_context',
+    contextKey: 'factor_docs.fs_context',
     typicalRange: { min: 0.70, max: 1.00 },
     references: [
       'CONAB - Calendario agricola e periodos de safra',
@@ -393,11 +393,11 @@ export const FACTOR_DOCUMENTATION: FactorDocumentation[] = [
   {
     factor: 'fl',
     name: 'Fator de Logistica (FL)',
-    nameKey: 'analysis.factor_docs.fl_title',
+    nameKey: 'factor_docs.fl_title',
     description: 'Viabilidade economica do transporte ate a planta de biogas',
-    descKey: 'analysis.factor_docs.fl_desc',
+    descKey: 'factor_docs.fl_desc',
     context: 'Baseado em distancia tipica, custo de frete e valor do biogas',
-    contextKey: 'analysis.factor_docs.fl_context',
+    contextKey: 'factor_docs.fl_context',
     typicalRange: { min: 0.65, max: 1.00 },
     references: [
       'ANTT - Tabelas de custo de frete',
