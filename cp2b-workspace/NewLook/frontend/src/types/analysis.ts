@@ -264,8 +264,8 @@ export const PREDEFINED_SCENARIOS: Scenario[] = [
     id: 'optimistic',
     name: 'Otimista',
     description: 'Alta eficiencia de coleta, baixa competicao, disponibilidade constante',
-    nameKey: 'analysis.scenarios.optimistic_name',
-    descKey: 'analysis.scenarios.optimistic_desc',
+    nameKey: 'scenarios.optimistic_name',
+    descKey: 'scenarios.optimistic_desc',
     // FDE = 0.95 × 0.90 × 0.95 × 0.92 = 0.748 → 74.8% → ~20.1B m³ CH₄/year
     factors: { fc: 0.95, fcp: 0.10, fs: 0.95, fl: 0.92 },
     color: '#22C55E'
@@ -274,8 +274,8 @@ export const PREDEFINED_SCENARIOS: Scenario[] = [
     id: 'realistic',
     name: 'Realista',
     description: 'Valores baseados em evidencias de literatura e validacao de campo',
-    nameKey: 'analysis.scenarios.realistic_name',
-    descKey: 'analysis.scenarios.realistic_desc',
+    nameKey: 'scenarios.realistic_name',
+    descKey: 'scenarios.realistic_desc',
     // FDE = 0.90 × 0.80 × 0.90 × 0.88 = 0.570 → 57.0% → ~15.3B m³ CH₄/year (near FIESP ~16B)
     factors: { fc: 0.90, fcp: 0.20, fs: 0.90, fl: 0.88 },
     color: '#3B82F6'
@@ -284,8 +284,8 @@ export const PREDEFINED_SCENARIOS: Scenario[] = [
     id: 'conservative',
     name: 'Conservador',
     description: 'Considera todas as restricoes praticas de forma conservadora',
-    nameKey: 'analysis.scenarios.conservative_name',
-    descKey: 'analysis.scenarios.conservative_desc',
+    nameKey: 'scenarios.conservative_name',
+    descKey: 'scenarios.conservative_desc',
     // FDE = 0.75 × 0.65 × 0.80 × 0.75 = 0.293 → 29.3%
     factors: { fc: 0.75, fcp: 0.35, fs: 0.80, fl: 0.75 },
     color: '#F59E0B'
@@ -294,8 +294,8 @@ export const PREDEFINED_SCENARIOS: Scenario[] = [
     id: 'pessimistic',
     name: 'Pessimista',
     description: 'Cenario com maiores perdas e competicao',
-    nameKey: 'analysis.scenarios.pessimistic_name',
-    descKey: 'analysis.scenarios.pessimistic_desc',
+    nameKey: 'scenarios.pessimistic_name',
+    descKey: 'scenarios.pessimistic_desc',
     // FDE = 0.60 × 0.50 × 0.72 × 0.65 = 0.140 → 14.0%
     factors: { fc: 0.60, fcp: 0.50, fs: 0.72, fl: 0.65 },
     color: '#EF4444'
@@ -461,33 +461,33 @@ export interface ResidueScenario {
 export const RESIDUE_SCENARIOS: Record<ScenarioType, Omit<ResidueScenario, 'type'>> = {
   baseline: {
     name: 'Baseline',
-    nameKey: 'analysis.residue_scenarios.baseline_name',
+    nameKey: 'residue_scenarios.baseline_name',
     description: 'Fatores padrão baseados em dados da literatura (CSV)',
-    descKey: 'analysis.residue_scenarios.baseline_desc',
+    descKey: 'residue_scenarios.baseline_desc',
     color: '#3B82F6',
     multiplier: 1.0
   },
   conservative: {
     name: 'Conservador',
-    nameKey: 'analysis.residue_scenarios.conservative_name',
+    nameKey: 'residue_scenarios.conservative_name',
     description: 'Reduz todos os fatores em 20% (pior cenário)',
-    descKey: 'analysis.residue_scenarios.conservative_desc',
+    descKey: 'residue_scenarios.conservative_desc',
     color: '#F59E0B',
     multiplier: 0.8
   },
   optimistic: {
     name: 'Otimista',
-    nameKey: 'analysis.residue_scenarios.optimistic_name',
+    nameKey: 'residue_scenarios.optimistic_name',
     description: 'Aumenta fatores em 15% (melhor cenário)',
-    descKey: 'analysis.residue_scenarios.optimistic_desc',
+    descKey: 'residue_scenarios.optimistic_desc',
     color: '#22C55E',
     multiplier: 1.15
   },
   custom: {
     name: 'Personalizado',
-    nameKey: 'analysis.residue_scenarios.custom_name',
+    nameKey: 'residue_scenarios.custom_name',
     description: 'Fatores ajustados manualmente por resíduo',
-    descKey: 'analysis.residue_scenarios.custom_desc',
+    descKey: 'residue_scenarios.custom_desc',
     color: '#8B5CF6'
   }
 }

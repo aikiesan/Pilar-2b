@@ -1,27 +1,5 @@
 import type { RouteNode, RouteEdge, WizardConfig, TechnologyCardWithReferences } from '@/types/technology-routes';
 
-const RESIDUE_TO_FEEDSTOCK_ID: Record<string, string> = {
-  AG_CANA_BAGACO:               'feed_bagasse',
-  AG_CANA_PALHA:                'feed_straw',
-  AG_CANA_TORTA_FILTRO:         'feed_filter_cake',
-  AG_CANA_VINHACA:              'feed_vinasse',
-  AG_MILHO_PALHA:               'feed_corn_stover',
-  AG_SOJA_PALHA:                'feed_soy_stover',
-  AG_CITROS_BAGACO:             'feed_bagasse',
-  AG_CITROS_CASCAS:             'feed_bagasse',
-  AG_CITROS_POLPA:              'feed_bagasse',
-  AG_CAFE_POLPA:                'feed_bagasse',
-  AG_CAFE_CASCA:                'feed_bagasse',
-  AG_CAFE_MUCILAGEM:            'feed_bagasse',
-  PEC_ESTERCO_BOVINO:           'feed_cattle_manure',
-  PEC_DEJETOS_LIQUIDOS_SUINO:   'feed_swine_slurry',
-  PEC_CAMA_AVIARIO:             'feed_poultry_litter',
-  URB_LODO_PRIMARIO:            'feed_urban_organic',
-  URB_LODO_SECUNDARIO:          'feed_urban_organic',
-  URB_FORSU_SEPARADA:           'feed_urban_organic',
-  IND_CASCA_EUCALIPTO:          'feed_bagasse',
-};
-
 /**
  * Given a WizardConfig and the full technology catalogue fetched from the API,
  * returns a React Flow node+edge array ready to be loaded into RouteCanvas.
@@ -49,11 +27,9 @@ export function generateRouteFromWizard(
   const findTech = (id: string) => allTechnologies.find(t => t.id === id);
 
   // ── 1. Feedstock node (derived from residue code, category "feedstock") ──
-  const preferredFeedstockId = RESIDUE_TO_FEEDSTOCK_ID[config.residueCode];
-  const feedstockTech = (preferredFeedstockId
-    ? allTechnologies.find(t => t.id === preferredFeedstockId)
-    : undefined)
-    ?? allTechnologies.find(t => t.category === 'feedstock');
+  const feedstockTech = allTechnologies.find(
+    t => t.category === 'feedstock' && t.id.toLowerCase().includes(config.residueCode.toLowerCase().slice(0, 4))
+  ) ?? allTechnologies.find(t => t.category === 'feedstock');
 
   const feedstockNodeId = makeId('feedstock');
   nodes.push({
