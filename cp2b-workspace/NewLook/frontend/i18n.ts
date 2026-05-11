@@ -3,22 +3,13 @@ import { notFound } from 'next/navigation';
 import { locales, defaultLocale, type Locale } from './src/config/i18n';
 
 export default getRequestConfig(async ({ requestLocale }) => {
-  // Handle static generation case
-  if (typeof requestLocale === 'undefined') {
-    // During static build, provide a default locale
-    // This ensures messages are loaded for SSG
-    return {
-      locale: defaultLocale,
-      messages: (await import(`./messages/${defaultLocale}.json`)).default,
-      timeZone: 'America/Sao_Paulo',
-    };
-  }
+  // next-intl v4: requestLocale is always a Promise (never undefined itself).
+  // Without middleware the awaited value is undefined — fall back to default.
+  const locale = (await requestLocale) ?? defaultLocale;
 
-  // Normal request handling - await the requestLocale
-  const locale = await requestLocale;
-  
-  // Validate that the incoming `locale` parameter is valid
-  if (!locale || !locales.includes(locale as Locale)) {
+  // Reject genuinely unknown locales (dynamicParams=false already blocks them,
+  // but guard here too for safety).
+  if (!locales.includes(locale as Locale)) {
     notFound();
   }
 
