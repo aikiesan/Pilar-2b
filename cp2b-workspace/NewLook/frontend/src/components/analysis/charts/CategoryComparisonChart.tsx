@@ -62,9 +62,9 @@ export default function CategoryComparisonChart({
       {
         label: t('category_comparison_dataset'),
         data: [
-          data.categories.agricultural.total / 1000000000,
-          data.categories.livestock.total / 1000000000,
-          data.categories.urban.total / 1000000000
+          (data.categories.agricultural?.total ?? 0) / 1000000000,
+          (data.categories.livestock?.total ?? 0) / 1000000000,
+          (data.categories.urban?.total ?? 0) / 1000000000
         ],
         backgroundColor: [
           'rgba(34, 197, 94, 0.8)',
@@ -173,28 +173,28 @@ export default function CategoryComparisonChart({
           <div className="bg-gradient-to-br from-green-50 to-white rounded-lg p-3 border border-green-100">
             <div className="text-xs text-gray-600 mb-1">{tMap('categories.agricultural')}</div>
             <div className="font-bold text-green-900 text-sm">
-              {data.categories.agricultural.count}
+              {data.categories.agricultural?.count ?? 0} municípios
             </div>
             <div className="text-xs text-gray-500 mt-1">
-              {(data.categories.agricultural.average / 1000000).toFixed(2)}M m³/year
+              Média: {((data.categories.agricultural?.average ?? 0) / 1000000).toFixed(2)}M m³/ano
             </div>
           </div>
           <div className="bg-gradient-to-br from-orange-50 to-white rounded-lg p-3 border border-orange-100">
             <div className="text-xs text-gray-600 mb-1">{tMap('categories.livestock')}</div>
             <div className="font-bold text-orange-900 text-sm">
-              {data.categories.livestock.count}
+              {data.categories.livestock?.count ?? 0} municípios
             </div>
             <div className="text-xs text-gray-500 mt-1">
-              {(data.categories.livestock.average / 1000000).toFixed(2)}M m³/year
+              Média: {((data.categories.livestock?.average ?? 0) / 1000000).toFixed(2)}M m³/ano
             </div>
           </div>
           <div className="bg-gradient-to-br from-blue-50 to-white rounded-lg p-3 border border-blue-100">
             <div className="text-xs text-gray-600 mb-1">{tMap('categories.urban')}</div>
             <div className="font-bold text-blue-900 text-sm">
-              {data.categories.urban.count}
+              {data.categories.urban?.count ?? 0} municípios
             </div>
             <div className="text-xs text-gray-500 mt-1">
-              {(data.categories.urban.average / 1000000).toFixed(2)}M m³/year
+              Média: {((data.categories.urban?.average ?? 0) / 1000000).toFixed(2)}M m³/ano
             </div>
           </div>
         </div>
