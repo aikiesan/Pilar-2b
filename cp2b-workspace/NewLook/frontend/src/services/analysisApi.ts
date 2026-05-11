@@ -109,7 +109,7 @@ export interface ResidueConfigResponse {
  * Get analysis data by residue category
  */
 export async function getAnalysisByResidue(
-  category: 'agricultural' | 'livestock' | 'urban',
+  category: 'agricultural' | 'livestock' | 'urban' | 'industrial',
   options?: {
     residueTypes?: string[];
     limit?: number;
