@@ -14,12 +14,13 @@ instantly without a rebuild.
 ## First-time setup
 
 ```bash
-# 1. Navigate to the project root
-cd A:\Pilar-2b\cp2b-workspace\NewLook
+# 1. Navigate to the NewLook workspace root
+cd cp2b-workspace/NewLook
 
 # 2. Create your local env file for Docker
 cp .env.docker.example .env.docker
-# Edit .env.docker — the only required change is SECRET_KEY (must be ≥ 32 chars).
+# Edit .env.docker — the only required change is SECRET_KEY (≥ 32 chars).
+# Generate one with: openssl rand -hex 32
 
 # 3. Build images and start all services
 docker compose up --build
@@ -31,26 +32,25 @@ Subsequent starts reuse cached layers and are fast.
 ## Database seeding (one-time, after first `docker compose up --build`)
 
 The PostgreSQL container starts empty.  Run the migrations and import the
-V2 municipality data to make the map show real biogas data.
+municipality data to make the map show real biogas data.
 
 ```bash
 # Run all schema migrations in order
 for f in backend/app/migrations/*.sql; do
   echo "Running $f..."
-  Get-Content $f | docker exec -i cp2b-db-dev psql -U postgres -d cp2b_maps
+  cat "$f" | docker exec -i cp2b-db-dev psql -U postgres -d cp2b_maps
 done
 
 # Seed technology cards
-Get-Content backend/data/seed_technologies_expanded.sql | \
+cat backend/data/seed_technologies_expanded.sql | \
   docker exec -i cp2b-db-dev psql -U postgres -d cp2b_maps
 
-# Import 645 SP municipalities with biogas data from the V2 database
-# (requires A:/CP2B_Maps_V2/data/database/cp2b_maps.db on this machine)
+# Import 645 SP municipalities with biogas data
 python backend/scripts/import_v2_municipalities.py
 ```
 
-After seeding, the map at http://localhost:3006/pilar2b will show colored
-municipalities with real biogas potentials (Barretos, Morro Agudo, etc. as ALTO).
+After seeding, the map at http://localhost:3006/pilar2b shows colored
+municipalities with real biogas potentials.
 
 ## Daily workflow
 
@@ -73,12 +73,30 @@ docker compose down -v
 
 ## Accessing the services
 
-| Service   | URL                              |
-|-----------|----------------------------------|
-| Frontend  | http://localhost:3006/pilar2b    |
-| Backend   | http://localhost:8000            |
-| API docs  | http://localhost:8000/docs       |
+| Service   | URL                                   |
+|-----------|---------------------------------------|
+| Frontend  | http://localhost:3006/pilar2b         |
+| Backend   | http://localhost:8000                 |
+| API docs  | http://localhost:8000/docs            |
 | Database  | localhost:5432 (postgres/password/cp2b_maps) |
+
+## Production parity — Docker dev vs. VM
+
+The VM runs processes directly (PM2 + native PostgreSQL), not via Docker.
+The environments are intentionally kept separate but the key vars are aligned:
+
+| Setting            | Docker dev (this setup)       | VM production                          |
+|--------------------|-------------------------------|----------------------------------------|
+| Backend port       | 8000                          | 8001 (Apache proxies `/api/` → :8001)  |
+| Frontend port      | 3006                          | 3002 (`ecosystem.config.js` PORT=3002) |
+| `NEXT_PUBLIC_API_URL` | `http://localhost:8000`    | `https://cp2b.unicamp.br/pilar2b`      |
+| Database           | containerized PostGIS         | local PostgreSQL on the VM             |
+| Static assets      | Next.js dev server            | Apache `Alias` → `.next/standalone/`  |
+| Deploy path        | `docker compose up`           | `frontend/deploy.sh`                   |
+
+**The only supported deploy path on the VM is `frontend/deploy.sh`.**
+It builds, copies static assets, and restarts PM2 with the correct PORT.
+Do not use `pm2 restart` directly — it reuses a stale in-memory config.
 
 ## Viewing logs in Docker Desktop
 
@@ -97,11 +115,11 @@ docker compose logs --tail=100 db   # last 100 lines from db
 
 ## Hot-reloading explained
 
-| Service  | Mechanism | What triggers a refresh |
-|----------|-----------|------------------------|
-| Backend  | `uvicorn --reload` watches `/app` | Any `.py` file save |
-| Frontend | Next.js Fast Refresh | Any `.ts/.tsx/.css` save |
-| Database | n/a — persistent volume | n/a |
+| Service  | Mechanism                  | What triggers a refresh       |
+|----------|----------------------------|-------------------------------|
+| Backend  | `uvicorn --reload`         | Any `.py` file save           |
+| Frontend | Next.js Fast Refresh       | Any `.ts/.tsx/.css` save      |
+| Database | n/a — persistent volume    | n/a                           |
 
 `node_modules` inside the frontend container is isolated from the host via
 an anonymous Docker volume.  If you add a new npm package:
