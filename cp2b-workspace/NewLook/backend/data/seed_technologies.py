@@ -85,6 +85,66 @@ INITIAL_TECHNOLOGIES = [
         "can_connect_to": ["digestion"],
         "can_receive_from": []
     },
+    {
+        "id": "feed_swine_slurry",
+        "category": "feedstock",
+        "name_pt": "Dejetos Suínos (chorume)",
+        "name_en": "Swine Slurry",
+        "emoji": "🐷",
+        "description_pt": "Chorume líquido de suinocultura intensiva",
+        "description_en": "Liquid slurry from intensive pig farming",
+        "color": "#EC4899",
+        "can_connect_to": ["pretreatment", "digestion"],
+        "can_receive_from": []
+    },
+    {
+        "id": "feed_poultry_litter",
+        "category": "feedstock",
+        "name_pt": "Cama de Aviário",
+        "name_en": "Poultry Litter",
+        "emoji": "🐔",
+        "description_pt": "Cama de frango e resíduos de aviário",
+        "description_en": "Poultry house litter and waste",
+        "color": "#F59E0B",
+        "can_connect_to": ["pretreatment", "digestion"],
+        "can_receive_from": []
+    },
+    {
+        "id": "feed_corn_stover",
+        "category": "feedstock",
+        "name_pt": "Palha de Milho",
+        "name_en": "Corn Stover",
+        "emoji": "🌽",
+        "description_pt": "Palha e sabugo de milho após colheita",
+        "description_en": "Corn stalks and cobs after harvest",
+        "color": "#EAB308",
+        "can_connect_to": ["pretreatment", "digestion"],
+        "can_receive_from": []
+    },
+    {
+        "id": "feed_soy_stover",
+        "category": "feedstock",
+        "name_pt": "Palha de Soja",
+        "name_en": "Soy Stover",
+        "emoji": "🫘",
+        "description_pt": "Resíduos de colheita de soja",
+        "description_en": "Soybean harvest residues",
+        "color": "#84CC16",
+        "can_connect_to": ["pretreatment", "digestion"],
+        "can_receive_from": []
+    },
+    {
+        "id": "feed_urban_organic",
+        "category": "feedstock",
+        "name_pt": "Resíduo Orgânico Urbano",
+        "name_en": "Urban Organic Waste",
+        "emoji": "🏙️",
+        "description_pt": "Fração orgânica de resíduos sólidos urbanos (FORSU) e lodos de ETE",
+        "description_en": "Organic fraction of urban solid waste and wastewater sludge",
+        "color": "#6B7280",
+        "can_connect_to": ["pretreatment", "digestion"],
+        "can_receive_from": []
+    },
 
     # ========================================================================
     # PRETREATMENT - Preparation for digestion

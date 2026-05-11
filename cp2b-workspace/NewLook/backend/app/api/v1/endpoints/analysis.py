@@ -14,8 +14,10 @@ class ResidueCategory(str, Enum):
     agricultural = "agricultural"
     livestock    = "livestock"
     urban        = "urban"
+    industrial   = "industrial"
 
 
+# Legacy column mapping (for backward-compat with old clients that pass stream names directly)
 RESIDUE_COLUMNS = {
     "agricultural": {
         "sugarcane": "sugarcane_biogas_m3_year",
@@ -37,6 +39,82 @@ RESIDUE_COLUMNS = {
         "rpo":    "rpo_biogas_m3_year",
         "_total": "urban_biogas_m3_year",
     },
+    "industrial": {
+        "forestry": "forestry_biogas_m3_year",
+        "_total":   "forestry_biogas_m3_year",
+    },
+}
+
+# Maps frontend residue codes (from residueFactors.ts) → residue_streams_sp2023.residue_stream
+# None = residue exists in frontend but has no DB stream (not yet in residue_streams_sp2023)
+FRONTEND_CODE_TO_STREAM: Dict[str, Optional[str]] = {
+    # Agricultural — Cana (4 sub-residues all map to the sugarcane stream)
+    "AG_CANA_BAGACO":       "sugarcane",
+    "AG_CANA_PALHA":        "sugarcane",
+    "AG_CANA_TORTA_FILTRO": "sugarcane",
+    "AG_CANA_VINHACA":      "sugarcane",
+    # Agricultural — other crops
+    "AG_MILHO_PALHA":       "corn",
+    "AG_SOJA_PALHA":        "soybean",
+    "AG_CITROS_BAGACO":     "citrus",
+    "AG_CITROS_CASCAS":     "citrus",
+    "AG_CITROS_POLPA":      "citrus",
+    "AG_CAFE_POLPA":        "coffee",
+    "AG_CAFE_CASCA":        "coffee",
+    "AG_CAFE_MUCILAGEM":    "coffee",
+    # Livestock
+    "PEC_DEJETOS_LIQUIDOS_SUINO": "swine",
+    "PEC_ESTERCO_BOVINO":         "cattle",
+    "PEC_CAMA_AVIARIO":           "poultry",
+    # Urban
+    "URB_LODO_PRIMARIO":    "rsu_organic",
+    "URB_LODO_SECUNDARIO":  "rsu_organic",
+    "URB_FORSU_SEPARADA":   "rsu_organic",
+    # Industrial — only eucalyptus bark maps to a DB stream
+    "IND_CASCA_EUCALIPTO":                  "forestry",
+    # Industrial — no DB stream yet
+    "IND_BAGACO_MALTE":                     None,
+    "IND_TRUB_CERVEJA":                     None,
+    "IND_SORO_LATICINIOS":                  None,
+    "IND_RESIDUO_ABATEDOURO":               None,
+    "IND_VISCERAS_NAO_COMESTIVEIS":         None,
+    "IND_RESIDUO_PROCESSAMENTO_VEGETAL":    None,
+}
+
+# Maps frontend residue codes (from residueFactors.ts) → residue_streams_sp2023.residue_stream
+# None = residue exists in frontend but has no DB stream (not yet in residue_streams_sp2023)
+FRONTEND_CODE_TO_STREAM: Dict[str, Optional[str]] = {
+    # Agricultural — Cana (4 sub-residues all map to the sugarcane stream)
+    "AG_CANA_BAGACO":       "sugarcane",
+    "AG_CANA_PALHA":        "sugarcane",
+    "AG_CANA_TORTA_FILTRO": "sugarcane",
+    "AG_CANA_VINHACA":      "sugarcane",
+    # Agricultural — other crops
+    "AG_MILHO_PALHA":       "corn",
+    "AG_SOJA_PALHA":        "soybean",
+    "AG_CITROS_BAGACO":     "citrus",
+    "AG_CITROS_CASCAS":     "citrus",
+    "AG_CITROS_POLPA":      "citrus",
+    "AG_CAFE_POLPA":        "coffee",
+    "AG_CAFE_CASCA":        "coffee",
+    "AG_CAFE_MUCILAGEM":    "coffee",
+    # Livestock
+    "PEC_DEJETOS_LIQUIDOS_SUINO": "swine",
+    "PEC_ESTERCO_BOVINO":         "cattle",
+    "PEC_CAMA_AVIARIO":           "poultry",
+    # Urban
+    "URB_LODO_PRIMARIO":    "rsu_organic",
+    "URB_LODO_SECUNDARIO":  "rsu_organic",
+    "URB_FORSU_SEPARADA":   "rsu_organic",
+    # Industrial — only eucalyptus bark maps to a DB stream
+    "IND_CASCA_EUCALIPTO":                  "forestry",
+    # Industrial — no DB stream yet
+    "IND_BAGACO_MALTE":                     None,
+    "IND_TRUB_CERVEJA":                     None,
+    "IND_SORO_LATICINIOS":                  None,
+    "IND_RESIDUO_ABATEDOURO":               None,
+    "IND_VISCERAS_NAO_COMESTIVEIS":         None,
+    "IND_RESIDUO_PROCESSAMENTO_VEGETAL":    None,
 }
 
 
@@ -81,83 +159,225 @@ async def get_analysis_by_residue(
     limit: int = Query(default=20, le=100),
     min_value: float = Query(default=0),
 ):
-    category_columns = RESIDUE_COLUMNS.get(category.value, {})
+    # Detect if caller passed frontend codes (AG_CANA_BAGACO style) vs legacy stream keys (sugarcane)
+    use_streams = bool(residue_types and any(rt in FRONTEND_CODE_TO_STREAM for rt in residue_types))
 
-    if residue_types:
-        columns_to_sum = [category_columns[rt] for rt in residue_types if rt in category_columns and rt != "_total"]
-        if not columns_to_sum:
-            raise HTTPException(status_code=400, detail=f"No valid residue types for category {category.value}")
+    if use_streams:
+        # Resolve frontend codes → DB stream names (deduplicate, skip codes with no mapping)
+        streams = list({
+            FRONTEND_CODE_TO_STREAM[rt]
+            for rt in residue_types  # type: ignore[union-attr]
+            if rt in FRONTEND_CODE_TO_STREAM and FRONTEND_CODE_TO_STREAM[rt] is not None
+        })
+        if not streams:
+            return {
+                "data": [], "total": 0, "category": category.value,
+                "residue_types": residue_types,
+                "note": "No DB stream mapping for selected residues",
+            }
+
+        placeholders = ", ".join(f"%s" for _ in streams)
+        sql = f"""
+            SELECT
+                m.id,
+                m.municipality_name,
+                m.ibge_code,
+                m.administrative_region,
+                m.population,
+                m.area_km2,
+                COALESCE(SUM(rs.biogas_m3_yr), 0)      AS biogas_m3_year,
+                COALESCE(SUM(rs.residue_tons_yr), 0)   AS residue_tons_yr
+            FROM municipalities m
+            LEFT JOIN residue_streams_sp2023 rs
+                ON rs.ibge_code::text = m.ibge_code::text
+               AND rs.residue_stream IN ({placeholders})
+            GROUP BY m.id, m.municipality_name, m.ibge_code, m.administrative_region,
+                     m.population, m.area_km2
+            HAVING COALESCE(SUM(rs.biogas_m3_yr), 0) >= %s
+            ORDER BY biogas_m3_year DESC
+            LIMIT %s
+        """
+        params: list = streams + [min_value, limit]
+
+        try:
+            with get_db() as conn:
+                cursor = conn.cursor()
+                cursor.execute(sql, params)
+                rows = [dict(r) for r in cursor.fetchall()]
+                cursor.close()
+
+            results = [
+                {
+                    "id": row["id"],
+                    "municipality_name": row["municipality_name"],
+                    "ibge_code": row["ibge_code"],
+                    "administrative_region": row["administrative_region"],
+                    "population": row["population"],
+                    "area_km2": row["area_km2"],
+                    "biogas_m3_year": round(float(row["biogas_m3_year"]), 2),
+                    "residue_tons_yr": round(float(row["residue_tons_yr"]), 2),
+                }
+                for row in rows
+            ]
+            return {"data": results, "total": len(results), "category": category.value,
+                    "residue_types": residue_types, "streams_used": streams}
+
+        except HTTPException:
+            raise
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error fetching residue analysis: {str(e)}")
+
     else:
-        columns_to_sum = [category_columns["_total"]]
+        # Legacy path: query municipalities aggregate columns
+        category_columns = RESIDUE_COLUMNS.get(category.value, {})
+        if residue_types:
+            columns_to_sum = [
+                category_columns[rt] for rt in residue_types
+                if rt in category_columns and rt != "_total"
+            ]
+            if not columns_to_sum:
+                raise HTTPException(status_code=400, detail=f"No valid residue types for category {category.value}")
+        else:
+            columns_to_sum = [category_columns["_total"]]
 
-    select_fields = "id, municipality_name, ibge_code, administrative_region, population, area_km2, " + \
-                    ", ".join(c for c in columns_to_sum if c)
+        select_fields = (
+            "id, municipality_name, ibge_code, administrative_region, population, area_km2, " +
+            ", ".join(c for c in columns_to_sum if c)
+        )
 
-    try:
-        with get_db() as conn:
-            cursor = conn.cursor()
-            cursor.execute(f"SELECT {select_fields} FROM municipalities")
-            rows = [dict(r) for r in cursor.fetchall()]
-            cursor.close()
+        try:
+            with get_db() as conn:
+                cursor = conn.cursor()
+                cursor.execute(f"SELECT {select_fields} FROM municipalities")
+                rows = [dict(r) for r in cursor.fetchall()]
+                cursor.close()
 
-        results = []
-        for row in rows:
-            total_biogas = sum(float(row.get(c) or 0) for c in columns_to_sum if c)
-            if total_biogas >= min_value:
-                results.append({
-                    "id": row.get("id"),
-                    "municipality_name": row.get("municipality_name"),
-                    "ibge_code": row.get("ibge_code"),
-                    "administrative_region": row.get("administrative_region"),
-                    "population": row.get("population"),
-                    "area_km2": row.get("area_km2"),
-                    "biogas_m3_year": round(total_biogas, 2),
-                })
+            results = []
+            for row in rows:
+                total_biogas = sum(float(row.get(c) or 0) for c in columns_to_sum if c)
+                if total_biogas >= min_value:
+                    results.append({
+                        "id": row.get("id"),
+                        "municipality_name": row.get("municipality_name"),
+                        "ibge_code": row.get("ibge_code"),
+                        "administrative_region": row.get("administrative_region"),
+                        "population": row.get("population"),
+                        "area_km2": row.get("area_km2"),
+                        "biogas_m3_year": round(total_biogas, 2),
+                    })
 
-        results.sort(key=lambda x: x["biogas_m3_year"], reverse=True)
-        return {"data": results[:limit], "total": len(results), "category": category.value,
-                "residue_types": residue_types or ["_total"], "columns_used": columns_to_sum}
+            results.sort(key=lambda x: x["biogas_m3_year"], reverse=True)
+            return {"data": results[:limit], "total": len(results), "category": category.value,
+                    "residue_types": residue_types or ["_total"], "columns_used": columns_to_sum}
 
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error fetching residue analysis: {str(e)}")
+        except HTTPException:
+            raise
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error fetching residue analysis: {str(e)}")
 
 
 @router.get("/statistics/by-category")
 async def get_statistics_by_category():
+    """Return total biogas potential per sector from residue_streams_sp2023 (authoritative source)."""
     try:
         with get_db() as conn:
             cursor = conn.cursor()
             cursor.execute("""
                 SELECT
-                    COALESCE(SUM(agricultural_biogas_m3_year), 0) AS agricultural,
-                    COALESCE(SUM(livestock_biogas_m3_year), 0)    AS livestock,
-                    COALESCE(SUM(urban_biogas_m3_year), 0)        AS urban,
-                    COALESCE(SUM(total_biogas_m3_year), 0)        AS total,
-                    COUNT(*)                                       AS n
-                FROM municipalities
+                    sector,
+                    COALESCE(SUM(biogas_m3_yr), 0) AS total,
+                    COUNT(DISTINCT ibge_code)       AS n_municipalities
+                FROM residue_streams_sp2023
+                GROUP BY sector
             """)
-            row = cursor.fetchone()
+            sector_rows = cursor.fetchall()
+            cursor.execute("SELECT COUNT(*) AS n FROM municipalities")
+            n_total = int(cursor.fetchone()["n"] or 0)
             cursor.close()
 
-        n = int(row["n"] or 0)
-
-        def _stats(val_sum):
-            return {"total": round(float(val_sum or 0), 2), "average": 0, "min": 0, "max": 0, "count": n}
-
-        return {
-            "categories": {
-                "agricultural": _stats(row["agricultural"]),
-                "livestock":    _stats(row["livestock"]),
-                "urban":        _stats(row["urban"]),
-                "total":        _stats(row["total"]),
-            },
-            "total_municipalities": n,
+        # forestry is stored as its own sector in DB but belongs to the industrial category in the frontend
+        SECTOR_TO_CATEGORY = {
+            "agricultural": "agricultural",
+            "livestock":    "livestock",
+            "urban":        "urban",
+            "industrial":   "industrial",
+            "forestry":     "industrial",
         }
+        categories: Dict[str, Any] = {}
+        grand_total = 0.0
+        for row in sector_rows:
+            sector = (row["sector"] or "").lower()
+            key = SECTOR_TO_CATEGORY.get(sector, sector)
+            val = float(row["total"] or 0)
+            categories[key] = {
+                "total": round(val, 2),
+                "average": 0,
+                "min": 0,
+                "max": 0,
+                "count": int(row["n_municipalities"] or 0),
+            }
+            grand_total += val
+
+        categories["total"] = {
+            "total": round(grand_total, 2),
+            "average": 0,
+            "min": 0,
+            "max": 0,
+            "count": n_total,
+        }
+
+        return {"categories": categories, "total_municipalities": n_total}
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching category statistics: {str(e)}")
+
+
+@router.get("/statistics/by-stream")
+async def get_statistics_by_stream(
+    residue_codes: List[str] = Query(...),
+):
+    """Return total biogas potential from residue_streams_sp2023 for a set of frontend residue codes."""
+    streams = list({
+        FRONTEND_CODE_TO_STREAM[code]
+        for code in residue_codes
+        if code in FRONTEND_CODE_TO_STREAM and FRONTEND_CODE_TO_STREAM[code] is not None
+    })
+
+    if not streams:
+        return {
+            "total": 0.0,
+            "streams": {},
+            "residue_codes": residue_codes,
+            "note": "No DB stream mapping for requested codes",
+        }
+
+    placeholders = ", ".join("%s" for _ in streams)
+    try:
+        with get_db() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                f"SELECT residue_stream, "
+                f"COALESCE(SUM(biogas_m3_yr), 0) AS total, "
+                f"COALESCE(SUM(residue_tons_yr), 0) AS total_tons "
+                f"FROM residue_streams_sp2023 WHERE residue_stream IN ({placeholders}) "
+                f"GROUP BY residue_stream",
+                streams,
+            )
+            rows = cursor.fetchall()
+            cursor.close()
+
+        stream_totals = {row["residue_stream"]: round(float(row["total"]), 2) for row in rows}
+        stream_tons   = {row["residue_stream"]: round(float(row["total_tons"]), 2) for row in rows}
+        grand_total = sum(stream_totals.values())
+        return {
+            "total": round(grand_total, 2),
+            "streams": stream_totals,
+            "stream_tons": stream_tons,
+            "residue_codes": residue_codes,
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching stream statistics: {str(e)}")
 
 
 @router.get("/statistics/by-region")

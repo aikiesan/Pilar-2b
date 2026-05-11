@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { RotateCcw, Info, TrendingUp } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { getResidueByCode } from '@/data/residueFactors';
 import { CorrectionFactors, calculateFDE, ResidueFactorOverrides } from '@/types/analysis';
 
@@ -18,6 +19,7 @@ export default function PerResidueFactorEditor({
   onChange,
   showAggregatedFDE = true
 }: PerResidueFactorEditorProps) {
+  const t = useTranslations('analysis')
   const [activeTab, setActiveTab] = useState<string>(selectedResidueCodes[0] || '');
 
   // Get residue details
@@ -90,8 +92,8 @@ export default function PerResidueFactorEditor({
   }> = [
     {
       key: 'fc',
-      label: 'FC - Fator de Coleta',
-      description: 'Eficiência de coleta do resíduo',
+      label: t('per_residue_editor.fc_label'),
+      description: t('per_residue_editor.fc_desc'),
       min: 0,
       max: 1,
       step: 0.01,
@@ -99,8 +101,8 @@ export default function PerResidueFactorEditor({
     },
     {
       key: 'fcp',
-      label: 'FCp - Fator de Competição',
-      description: 'Fração que vai para usos alternativos',
+      label: t('per_residue_editor.fcp_label'),
+      description: t('per_residue_editor.fcp_desc'),
       min: 0,
       max: 1,
       step: 0.01,
@@ -108,8 +110,8 @@ export default function PerResidueFactorEditor({
     },
     {
       key: 'fs',
-      label: 'FS - Fator de Sazonalidade',
-      description: 'Disponibilidade ao longo do ano',
+      label: t('per_residue_editor.fs_label'),
+      description: t('per_residue_editor.fs_desc'),
       min: 0,
       max: 1,
       step: 0.01,
@@ -117,8 +119,8 @@ export default function PerResidueFactorEditor({
     },
     {
       key: 'fl',
-      label: 'FL - Fator de Logística',
-      description: 'Viabilidade de transporte',
+      label: t('per_residue_editor.fl_label'),
+      description: t('per_residue_editor.fl_desc'),
       min: 0,
       max: 1,
       step: 0.01,
@@ -132,7 +134,7 @@ export default function PerResidueFactorEditor({
         <div className="text-center py-8">
           <Info className="w-12 h-12 text-gray-400 mx-auto mb-3" />
           <p className="text-sm text-gray-600">
-            Selecione um ou mais resíduos para ajustar os fatores FDE
+            {t('per_residue_editor.empty_state')}
           </p>
         </div>
       </div>
@@ -150,10 +152,10 @@ export default function PerResidueFactorEditor({
       <div className="p-3 border-b border-gray-100">
         <h3 className="text-sm font-semibold text-gray-800 flex items-center gap-2">
           <span className="w-2 h-2 bg-purple-600 rounded-full"></span>
-          Ajuste de Fatores por Resíduo
+          {t('per_residue_editor.title')}
         </h3>
         <p className="text-xs text-gray-600 mt-1">
-          Personalize os fatores FDE para cada resíduo selecionado
+          {t('per_residue_editor.subtitle')}
         </p>
       </div>
 
@@ -170,7 +172,7 @@ export default function PerResidueFactorEditor({
             const hasOverride = factorOverrides[residue.code] !== undefined;
             return (
               <option key={residue.code} value={residue.code}>
-                {residue.name} {hasOverride ? '(modificado)' : ''}
+                {residue.name} {hasOverride ? t('per_residue_editor.modified_label') : ''}
               </option>
             );
           })}
@@ -183,7 +185,7 @@ export default function PerResidueFactorEditor({
               <div className="flex flex-col items-start gap-2 mb-2">
                 <div>
                   <h4 className="font-semibold text-gray-900 break-words">{activeResidue.name}</h4>
-                  <p className="text-xs text-gray-600 mt-0.5">Código: {activeResidue.code}</p>
+                  <p className="text-xs text-gray-600 mt-0.5">{t('per_residue_editor.code_label')} {activeResidue.code}</p>
                 </div>
                 {isCustom && (
                   <button
@@ -191,7 +193,7 @@ export default function PerResidueFactorEditor({
                     className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-purple-600 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors"
                   >
                     <RotateCcw className="w-3.5 h-3.5" />
-                    Restaurar Padrão
+                    {t('per_residue_editor.restore_default')}
                   </button>
                 )}
               </div>
@@ -199,12 +201,12 @@ export default function PerResidueFactorEditor({
               {/* Current FDE Display - REDUCED FONT */}
               <div className="flex items-center gap-3 mt-3">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-medium text-gray-600">FDE Atual:</span>
+                  <span className="text-xs font-medium text-gray-600">{t('per_residue_editor.current_fde')}</span>
                   <span className="text-base font-bold text-purple-700">{activeFDE.toFixed(2)}%</span>
                 </div>
                 {activeResidue.fde !== activeFDE && (
                   <div className="flex items-center gap-1 text-xs text-gray-600">
-                    <span>(Padrão: {activeResidue.fde.toFixed(2)}%)</span>
+                    <span>{t('per_residue_editor.default_fde', { value: activeResidue.fde.toFixed(2) })}</span>
                   </div>
                 )}
               </div>
@@ -216,7 +218,7 @@ export default function PerResidueFactorEditor({
                   activeResidue.confidence === 'MEDIUM' ? 'bg-yellow-100 text-yellow-700 border-yellow-300' :
                   'bg-gray-100 text-gray-700 border-gray-300'
                 }`}>
-                  Confiança: {activeResidue.confidence}
+                  {t('per_residue_editor.confidence_label')} {activeResidue.confidence}
                 </span>
               </div>
             </div>
@@ -252,7 +254,7 @@ export default function PerResidueFactorEditor({
                           {config.format(value)}
                         </span>
                         {isModified && (
-                          <span className="text-xs text-purple-600">(mod.)</span>
+                          <span className="text-xs text-purple-600">{t('per_residue_editor.mod_short')}</span>
                         )}
                       </div>
                     </div>
@@ -279,7 +281,7 @@ export default function PerResidueFactorEditor({
             <div className="mt-4 p-3 bg-purple-50 rounded-lg border border-purple-200">
               <div className="flex items-center gap-2 mb-2">
                 <TrendingUp className="w-4 h-4 text-purple-700" />
-                <span className="text-sm font-semibold text-purple-900">Cálculo FDE</span>
+                <span className="text-sm font-semibold text-purple-900">{t('per_residue_editor.fde_calc_heading')}</span>
               </div>
               <div className="text-xs text-gray-700 font-mono break-words">
                 FDE = FC × (1 - FCp) × FS × FL
@@ -296,11 +298,11 @@ export default function PerResidueFactorEditor({
       {showAggregatedFDE && selectedResidueCodes.length > 1 && weightedFDE !== null && (
         <div className="p-4 bg-gradient-to-r from-purple-50 to-blue-50 border-t border-gray-200">
           <div className="flex flex-wrap items-center justify-between">
-            <span className="text-sm font-medium text-gray-700">FDE Médio Ponderado (todos resíduos):</span>
+            <span className="text-sm font-medium text-gray-700">{t('per_residue_editor.weighted_fde')}</span>
             <span className="text-lg font-bold text-purple-700">{weightedFDE.toFixed(2)}%</span>
           </div>
           <p className="text-xs text-gray-600 mt-1">
-            Baseado em {selectedResidueCodes.length} resíduos selecionados
+            {t('per_residue_editor.based_on_count', { count: selectedResidueCodes.length })}
           </p>
         </div>
       )}

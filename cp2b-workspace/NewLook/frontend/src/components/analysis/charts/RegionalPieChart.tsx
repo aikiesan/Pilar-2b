@@ -9,6 +9,7 @@ import {
   ChartData
 } from 'chart.js';
 import { Doughnut } from 'react-chartjs-2';
+import { useTranslations } from 'next-intl';
 import { RegionData } from '@/services/analysisApi';
 
 // Register Chart.js components
@@ -54,10 +55,11 @@ const BORDER_COLORS = [
 
 export default function RegionalPieChart({
   data,
-  title = 'Distribuição Regional',
+  title,
   loading = false,
   maxRegions = 8
 }: RegionalPieChartProps) {
+  const t = useTranslations('charts');
   // Process data - group smaller regions into "Outros"
   let processedData = [...data];
   if (data.length > maxRegions) {
@@ -116,7 +118,7 @@ export default function RegionalPieChart({
       },
       title: {
         display: true,
-        text: title,
+        text: title ?? t('chart_regional'),
         font: {
           size: 14,
           weight: 'bold'
@@ -147,7 +149,7 @@ export default function RegionalPieChart({
       <div className="bg-white rounded-xl shadow-md p-6 h-[450px] flex items-center justify-center border border-gray-100">
         <div className="flex flex-col items-center gap-3">
           <div className="w-10 h-10 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin" />
-          <span className="text-sm text-gray-600 font-medium">Carregando dados...</span>
+          <span className="text-sm text-gray-600 font-medium">{t('loading')}</span>
         </div>
       </div>
     );
@@ -158,7 +160,7 @@ export default function RegionalPieChart({
       <div className="bg-white rounded-xl shadow-md p-6 h-[450px] flex items-center justify-center border border-gray-100">
         <div className="text-center">
           <div className="text-4xl mb-3">🥧</div>
-          <span className="text-sm text-gray-500">Nenhum dado disponível</span>
+          <span className="text-sm text-gray-500">{t('no_data')}</span>
         </div>
       </div>
     );

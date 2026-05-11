@@ -48,7 +48,7 @@ export default function PublicMapPage() {
   })
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50 dark:bg-slate-900 transition-colors">
+    <div className="h-[calc(100vh-64px)] flex flex-col bg-gray-50 dark:bg-slate-900 transition-colors overflow-hidden">
       {/* Full-Page Map */}
       <main className="flex-1 relative">
         <MapComponent

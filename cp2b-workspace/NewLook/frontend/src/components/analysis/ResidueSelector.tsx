@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Wheat, Beef, Building2, Check, ChevronDown, ChevronRight, AlertCircle, Info } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { DETAILED_RESIDUES, getResiduesByCategory, getParentCrop } from '@/data/residueFactors';
 
 export type ResidueCategory = 'agricultural' | 'livestock' | 'urban';
@@ -35,6 +36,7 @@ export default function ResidueSelector({
   onResidueCodesChange,
   onApply
 }: ResidueSelectorProps) {
+  const t = useTranslations('analysis')
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(['all']));
 
   // Get residues for current category
@@ -69,7 +71,7 @@ export default function ResidueSelector({
       // For livestock and urban, create a single "all" group
       return [{
         id: 'all',
-        label: selectedCategory === 'livestock' ? 'Resíduos Pecuários' : 'Resíduos Urbanos',
+        label: selectedCategory === 'livestock' ? t('residue_selector.livestock') : t('residue_selector.urban'),
         residues: categoryResidues.map(r => ({
           code: r.code,
           name: r.name,
@@ -152,16 +154,16 @@ export default function ResidueSelector({
   };
 
   const categoryConfig = {
-    agricultural: { label: 'Agrícola', icon: <Wheat className="w-4 h-4" /> },
-    livestock: { label: 'Pecuário', icon: <Beef className="w-4 h-4" /> },
-    urban: { label: 'Urbano', icon: <Building2 className="w-4 h-4" /> }
+    agricultural: { label: t('residue_selector.category_label_agricultural'), icon: <Wheat className="w-4 h-4" /> },
+    livestock: { label: t('residue_selector.category_label_livestock'), icon: <Beef className="w-4 h-4" /> },
+    urban: { label: t('residue_selector.category_label_urban'), icon: <Building2 className="w-4 h-4" /> }
   };
 
   return (
     <div className="bg-white rounded-xl shadow-md p-5 border border-gray-100">
       <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
         <span className="w-2 h-2 bg-green-600 rounded-full"></span>
-        Filtro de Resíduos
+        {t('residue_selector.filter_title')}
       </h3>
 
       {/* Category Tabs */}
@@ -185,7 +187,7 @@ export default function ResidueSelector({
       {/* Residue Groups */}
       <div className="space-y-2 mb-4 pt-3 border-t border-gray-100 max-h-[500px] overflow-y-auto">
         <h4 className="text-xs font-semibold text-gray-600 mb-2 uppercase">
-          {selectedCategory === 'agricultural' ? 'Culturas Agrícolas' : 'Tipos de Resíduo'}
+          {selectedCategory === 'agricultural' ? t('residue_selector.agricultural_crops') : t('residue_selector.residue_types')}
         </h4>
 
         {residueGroups.map(group => {
@@ -293,19 +295,14 @@ export default function ResidueSelector({
                               <span className="group relative">
                                 <AlertCircle className="w-4 h-4 text-red-500" />
                                 <span className="absolute left-full ml-2 top-1/2 -translate-y-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-                                  FDE = 0% - Não viável para biogás
+                                  {t('residue_selector.not_viable')}
                                 </span>
                               </span>
                             )}
                           </div>
 
-                          {/* FDE and Classification */}
+                          {/* Classification and confidence */}
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className={`text-xs font-semibold ${
-                              isInviable ? 'text-red-600' : 'text-green-700'
-                            }`}>
-                              FDE: {residue.fde.toFixed(2)}%
-                            </span>
                             <span className={`text-xs ${classDisplay.color}`}>
                               {classDisplay.emoji} {classDisplay.label}
                             </span>
@@ -339,20 +336,20 @@ export default function ResidueSelector({
             onClick={selectAll}
             className="flex-1 px-3 py-2 text-xs font-medium text-green-600 bg-green-50 hover:bg-green-100 rounded-lg transition-colors"
           >
-            Selecionar Todos
+            {t('residue_selector.select_all')}
           </button>
           <button
             onClick={clearAll}
             className="flex-1 px-3 py-2 text-xs font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
           >
-            Limpar
+            {t('residue_selector.clear')}
           </button>
         </div>
         <button
           onClick={onApply}
           className="w-full px-4 py-2.5 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white text-sm font-semibold rounded-lg transition-all shadow-sm hover:shadow-md"
         >
-          Aplicar Filtro
+          {t('residue_selector.apply_filter')}
         </button>
       </div>
 
@@ -360,9 +357,9 @@ export default function ResidueSelector({
       <div className="mt-3 px-3 py-2 bg-gray-50 rounded-lg">
         <p className="text-xs text-gray-600 text-center">
           {selectedResidueCodes.length === 0 ? (
-            <span>Nenhum resíduo selecionado</span>
+            <span>{t('residue_selector.none_selected')}</span>
           ) : (
-            <span><strong>{selectedResidueCodes.length}</strong> resíduo(s) selecionado(s)</span>
+            <span>{t('residue_selector.selected_count', { count: selectedResidueCodes.length })}</span>
           )}
         </p>
       </div>

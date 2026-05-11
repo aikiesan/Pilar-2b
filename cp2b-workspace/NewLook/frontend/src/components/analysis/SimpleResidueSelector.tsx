@@ -7,6 +7,7 @@
 
 import { useState } from 'react';
 import { Wheat, Beef, Building2, Factory, Check, ChevronDown, ChevronRight } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { getResiduesByCategory, getParentCrop } from '@/data/residueFactors';
 
 export type ResidueCategory = 'agricultural' | 'livestock' | 'urban' | 'industrial';
@@ -35,6 +36,7 @@ export default function SimpleResidueSelector({
   onResidueCodesChange,
   onApply
 }: SimpleResidueSelectorProps) {
+  const t = useTranslations('analysis')
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(['all']));
 
   // Get residues for current category
@@ -65,7 +67,7 @@ export default function SimpleResidueSelector({
       // For industrial, create a flat list with single group (no grouping display)
       return [{
         id: 'all',
-        label: 'Resíduos Industriais',
+        label: t('residue_selector.industrial'),
         residues: categoryResidues.map(r => ({
           code: r.code,
           name: r.name
@@ -75,7 +77,7 @@ export default function SimpleResidueSelector({
       // For livestock and urban, create a single "all" group
       return [{
         id: 'all',
-        label: selectedCategory === 'livestock' ? 'Resíduos Pecuários' : 'Resíduos Urbanos',
+        label: selectedCategory === 'livestock' ? t('residue_selector.livestock') : t('residue_selector.urban'),
         residues: categoryResidues.map(r => ({
           code: r.code,
           name: r.name
@@ -126,10 +128,10 @@ export default function SimpleResidueSelector({
 
   // Category tabs
   const categories = [
-    { id: 'agricultural' as const, label: 'Agrícola', icon: Wheat, color: 'green' },
-    { id: 'livestock' as const, label: 'Pecuário', icon: Beef, color: 'orange' },
-    { id: 'urban' as const, label: 'Urbano', icon: Building2, color: 'blue' },
-    { id: 'industrial' as const, label: 'Industrial', icon: Factory, color: 'purple' }
+    { id: 'agricultural' as const, label: t('residue_selector.category_label_agricultural'), icon: Wheat, color: 'green' },
+    { id: 'livestock' as const, label: t('residue_selector.category_label_livestock'), icon: Beef, color: 'orange' },
+    { id: 'urban' as const, label: t('residue_selector.category_label_urban'), icon: Building2, color: 'blue' },
+    { id: 'industrial' as const, label: t('residue_selector.industrial'), icon: Factory, color: 'purple' }
   ];
 
   const selectedCategoryInfo = categories.find(c => c.id === selectedCategory)!;
@@ -307,20 +309,20 @@ export default function SimpleResidueSelector({
         <div className="p-3 bg-gray-50 border-t border-gray-200">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs text-gray-600">
-              {selectedResidueCodes.length} selecionado(s)
+              {t('residue_selector.selected_count', { count: selectedResidueCodes.length })}
             </span>
             <button
               onClick={() => onResidueCodesChange([])}
               className="text-xs text-gray-500 hover:text-gray-700"
             >
-              Limpar
+              {t('residue_selector.clear')}
             </button>
           </div>
           <button
             onClick={onApply}
             className="w-full px-3 py-2 text-xs font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors"
           >
-            Aplicar Filtros
+            {t('residue_selector.apply_filters')}
           </button>
         </div>
       )}

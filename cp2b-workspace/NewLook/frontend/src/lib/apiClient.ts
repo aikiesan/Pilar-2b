@@ -6,8 +6,7 @@
 import { logger } from '@/lib/logger';
 
 /**
- * Get authentication headers from Supabase session
- * Returns headers with Authorization Bearer token if user is authenticated
+ * Get authentication headers for API requests
  */
 export async function getAuthHeaders(): Promise<HeadersInit> {
   return {

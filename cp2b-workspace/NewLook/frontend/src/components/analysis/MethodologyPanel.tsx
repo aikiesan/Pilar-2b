@@ -1,10 +1,5 @@
 'use client'
 
-/**
- * MethodologyPanel - Documentation panel for correction factors
- * Shows detailed explanation, context, and references for each factor
- */
-
 import React, { useState } from 'react'
 import { Link } from '@/navigation'
 import {
@@ -16,6 +11,7 @@ import {
   BookOpen,
   X
 } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import {
   CorrectionFactors,
   calculateFDE,
@@ -33,9 +29,9 @@ export default function MethodologyPanel({
   isOpen,
   onClose
 }: MethodologyPanelProps) {
+  const t = useTranslations('analysis')
   const [expandedFactors, setExpandedFactors] = useState<string[]>(['fc'])
 
-  // Toggle factor expansion
   const toggleFactor = (factor: string) => {
     setExpandedFactors(prev =>
       prev.includes(factor)
@@ -44,12 +40,10 @@ export default function MethodologyPanel({
     )
   }
 
-  // Get current factor value
   const getFactorValue = (factor: keyof CorrectionFactors): number => {
     return factors[factor]
   }
 
-  // Calculate FDE
   const fdeValue = calculateFDE(factors)
 
   if (!isOpen) return null
@@ -69,7 +63,7 @@ export default function MethodologyPanel({
           <div className="flex items-center gap-2">
             <BookOpen className="h-5 w-5 text-green-600" />
             <h2 className="text-lg font-semibold text-gray-900">
-              Metodologia FDE
+              {t('methodology_panel.title')}
             </h2>
           </div>
           <button
@@ -86,7 +80,7 @@ export default function MethodologyPanel({
           <div className="bg-gray-50 rounded-lg p-4">
             <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
               <Calculator className="h-4 w-4" />
-              Formula do FDE
+              {t('methodology_panel.formula_heading')}
             </h3>
             <div className="text-center py-3">
               <div className="text-lg font-mono font-semibold text-gray-800 mb-2">
@@ -99,7 +93,7 @@ export default function MethodologyPanel({
                 {(fdeValue * 100).toFixed(1)}%
               </div>
               <div className="text-xs text-gray-500">
-                Fator de Disponibilidade Efetiva
+                {t('methodology_panel.formula_desc')}
               </div>
             </div>
           </div>
@@ -107,7 +101,7 @@ export default function MethodologyPanel({
           {/* Factor Documentation */}
           <div className="space-y-2">
             <h3 className="text-sm font-semibold text-gray-700 px-1">
-              Fatores de Correcao
+              {t('methodology_panel.factors_heading')}
             </h3>
 
             {FACTOR_DOCUMENTATION.map(doc => {
@@ -132,7 +126,7 @@ export default function MethodologyPanel({
                       )}
                       <div className="text-left">
                         <div className="font-semibold text-gray-900 text-sm">
-                          {doc.name}
+                          {t(doc.nameKey)}
                         </div>
                         <div className="text-xs text-gray-500">
                           {doc.factor.toUpperCase()}
@@ -151,30 +145,27 @@ export default function MethodologyPanel({
                   {/* Expanded Content */}
                   {isExpanded && (
                     <div className="px-4 pb-4 pt-1 border-t border-gray-100 bg-gray-50">
-                      {/* Description */}
                       <div className="mb-3">
                         <div className="text-xs font-medium text-gray-500 mb-1">
-                          Descricao
+                          {t('methodology_panel.description')}
                         </div>
                         <p className="text-sm text-gray-700">
-                          {doc.description}
+                          {t(doc.descKey)}
                         </p>
                       </div>
 
-                      {/* Context */}
                       <div className="mb-3">
                         <div className="text-xs font-medium text-gray-500 mb-1">
-                          Contexto
+                          {t('methodology_panel.context')}
                         </div>
                         <p className="text-sm text-gray-600">
-                          {doc.context}
+                          {t(doc.contextKey)}
                         </p>
                       </div>
 
-                      {/* Typical Range */}
                       <div className="mb-3">
                         <div className="text-xs font-medium text-gray-500 mb-1">
-                          Faixa Tipica
+                          {t('methodology_panel.typical_range')}
                         </div>
                         <div className="flex items-center gap-2">
                           <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
@@ -192,10 +183,9 @@ export default function MethodologyPanel({
                         </div>
                       </div>
 
-                      {/* References */}
                       <div>
                         <div className="text-xs font-medium text-gray-500 mb-1">
-                          Referencias
+                          {t('methodology_panel.references')}
                         </div>
                         <ul className="space-y-1">
                           {doc.references.map((ref, idx) => (
@@ -220,20 +210,17 @@ export default function MethodologyPanel({
           <div className="bg-blue-50 rounded-lg p-4">
             <h3 className="text-sm font-semibold text-blue-800 mb-2 flex items-center gap-2">
               <FileText className="h-4 w-4" />
-              Sobre a Metodologia FDE
+              {t('methodology_panel.about_heading')}
             </h3>
             <p className="text-xs text-blue-700 mb-3">
-              A metodologia FDE (Fator de Disponibilidade Efetiva) converte potencial
-              teorico em disponibilidade efetiva real de biomassa para producao de biogas,
-              considerando fatores praticos de coleta, competicao, sazonalidade e logistica.
+              {t('methodology_panel.about_text')}
             </p>
             <div className="bg-amber-100 rounded-md p-2 mb-3">
               <p className="text-xs text-amber-800 font-semibold mb-1">
-                ⚠️ Dados em Validacao
+                ⚠️ {t('methodology_panel.validation_warning_title')}
               </p>
               <p className="text-xs text-amber-700">
-                Os fatores de correcao estao sendo validados. Os valores apresentados
-                sao estimativas preliminares baseadas em dados da literatura cientifica.
+                {t('methodology_panel.validation_warning_text')}
               </p>
             </div>
             <div className="flex items-center gap-2 text-xs">
@@ -261,20 +248,20 @@ export default function MethodologyPanel({
           {/* Interpretation Guide */}
           <div className="bg-amber-50 rounded-lg p-4">
             <h3 className="text-sm font-semibold text-amber-800 mb-2">
-              Interpretacao dos Valores
+              {t('methodology_panel.interpretation_heading')}
             </h3>
             <ul className="space-y-2 text-xs text-amber-700">
               <li className="flex items-start gap-2">
-                <span className="font-bold text-green-600 mt-0.5">Verde</span>
-                <span>FDE &ge; 50%: Alta disponibilidade, excelente potencial</span>
+                <span className="font-bold text-green-600 mt-0.5">{t('methodology_panel.color_green')}</span>
+                <span>{t('methodology_panel.interp_high_detail')}</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="font-bold text-yellow-600 mt-0.5">Amarelo</span>
-                <span>FDE 30-50%: Disponibilidade moderada, potencial viavel</span>
+                <span className="font-bold text-yellow-600 mt-0.5">{t('methodology_panel.color_yellow')}</span>
+                <span>{t('methodology_panel.interp_medium_detail')}</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="font-bold text-red-600 mt-0.5">Vermelho</span>
-                <span>FDE &lt; 30%: Baixa disponibilidade, avaliar viabilidade</span>
+                <span className="font-bold text-red-600 mt-0.5">{t('methodology_panel.color_red')}</span>
+                <span>{t('methodology_panel.interp_low_detail')}</span>
               </li>
             </ul>
           </div>
@@ -287,13 +274,13 @@ export default function MethodologyPanel({
             className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
           >
             <BookOpen className="h-4 w-4" />
-            Ver Referências Completas
+            {t('methodology_panel.view_references')}
           </Link>
           <button
             onClick={onClose}
             className="w-full py-2 px-4 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors"
           >
-            Fechar
+            {t('methodology_panel.close')}
           </button>
         </div>
       </div>

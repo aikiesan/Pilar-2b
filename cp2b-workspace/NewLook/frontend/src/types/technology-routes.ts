@@ -3,6 +3,26 @@
  * Educational tool for visualizing biogas technology pathways
  */
 
+export interface WizardTariffs {
+  electricity?: number;  // R$/kWh
+  biomethane?: number;   // R$/m³
+  fertilizer?: number;   // R$/ton
+  heat?: number;         // R$/GJ
+  carbon?: number;       // R$/tCO₂
+}
+
+export interface WizardConfig {
+  residueCode: string;          // matches DetailedResidue.code
+  amountTons: number;
+  availabilityMonths: number[]; // 1-12, e.g. [4,5,6,7,8,9,10,11] for sugarcane harvest
+  preTreatmentId: string | null;
+  digesterTechnologyId: string;
+  outputIds: string[];          // derived from businessOutcomes — tech IDs for the canvas
+  businessOutcomes: string[];   // e.g. ['elec', 'fuel', 'fert']
+  upgradingTechId?: string;     // purification tech when 'fuel' is selected
+  tariffs?: WizardTariffs;      // user price overrides; SP baselines used as fallback
+}
+
 export type TechnologyCategory =
   | 'feedstock'
   | 'pretreatment'

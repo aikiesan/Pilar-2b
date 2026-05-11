@@ -7,7 +7,10 @@ const withNextIntl = createNextIntlPlugin('./i18n.ts');
 const nextConfig = {
   basePath: '/pilar2b',
   async redirects() {
-    return [{ source: '/', destination: '/pt-BR', permanent: false }]
+    return [
+      { source: '/', destination: '/pilar2b/pt-BR', permanent: false, basePath: false },
+      { source: '/', destination: '/pt-BR', permanent: false },
+    ]
   },
   // IMPORTANT: Removed static export for Vercel deployment
   // Vercel supports full Next.js features including:

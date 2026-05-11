@@ -1,228 +1,279 @@
 'use client'
 
-/**
- * BiomassFlowSankey - Sankey diagram showing biomass flow
- * Visualizes flow from theoretical potential to final biogas through losses and competing uses
- */
-
 import React, { useMemo } from 'react'
-import { Sankey, Tooltip, ResponsiveContainer, Layer, Rectangle, type SankeyNodeOptions } from 'recharts'
 import { GitBranch, Info } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import {
   CorrectionFactors,
   calculateFDE,
-  DEFAULT_FACTORS
+  DEFAULT_FACTORS,
+  CH4_FRACTION
 } from '@/types/analysis'
 
-interface SankeyNode {
-  name: string
-}
-
-interface SankeyLink {
-  source: number
-  target: number
-  value: number
-}
-
 interface BiomassFlowSankeyProps {
-  theoreticalPotential: number
+  theoreticalPotential: number  // m³ biogas/year (pre-FDE)
   factors?: CorrectionFactors
+  ch4Fraction?: number          // fraction of CH₄ in biogas, default 0.60
   title?: string
   loading?: boolean
 }
 
-// Custom node component for better styling
-function CustomNode({ x, y, width, height, index, payload }: {
-  x: number
-  y: number
-  width: number
-  height: number
-  index: number
-  payload: { name: string }
+interface FlowSegment {
+  label: string
+  value: number
+  color: string
+  isLoss: boolean
+}
+
+function formatValue(value: number): string {
+  if (value >= 1e9) return `${(value / 1e9).toFixed(2)}B`
+  if (value >= 1e6) return `${(value / 1e6).toFixed(2)}M`
+  if (value >= 1e3) return `${(value / 1e3).toFixed(2)}k`
+  return value.toFixed(0)
+}
+
+// Pure SVG alluvial diagram — two columns connected by straight trapezoid bands
+function AlluvialDiagram({
+  theoretical,
+  segments,
+  t
+}: {
+  theoretical: number
+  segments: FlowSegment[]
+  t: (key: string, values?: Record<string, string | number>) => string
 }) {
-  const colors = [
-    '#FFD700', // Theoretical
-    '#DC143C', // Collection losses
-    '#FFA500', // Collected
-    '#8B4513', // Competition
-    '#228B22', // Available
-    '#CD853F', // Seasonal losses
-    '#32CD32', // Adjusted
-    '#A0522D', // Logistics losses
-    '#006400'  // Biogas
-  ]
+  // SVG layout
+  const svgWidth = 700
+  const svgHeight = 600
+  const barW = 56
+  const leftX = 60
+  const rightX = 380
+  const topPad = 20
+  const usableH = svgHeight - topPad * 2
+
+  // Right column: stack segments top-to-bottom proportional to value
+  const rightSegments = segments.map(seg => ({
+    ...seg,
+    height: Math.max((seg.value / theoretical) * usableH, 2)
+  }))
+
+  // Left bar: full usable height
+  const leftBarY = topPad
+  const leftBarH = usableH
+
+  // Compute right column Y positions (stacked)
+  let accY = topPad
+  const rightRects = rightSegments.map(seg => {
+    const y = accY
+    accY += seg.height
+    return { ...seg, y, h: seg.height }
+  })
+
+  // Map each right segment to its corresponding left slice
+  // Left column is cut into the same proportional slices in the same order
+  let leftAccY = topPad
+  const leftSlices = rightSegments.map(seg => {
+    const h = (seg.value / theoretical) * usableH
+    const y = leftAccY
+    leftAccY += h
+    return { y, h }
+  })
 
   return (
-    <Layer key={`node-${index}`}>
-      <Rectangle
-        x={x}
-        y={y}
-        width={width}
-        height={height}
-        fill={colors[index] || '#ccc'}
-        fillOpacity={0.9}
+    <svg
+      viewBox={`0 0 ${svgWidth} ${svgHeight}`}
+      className="w-full h-full"
+      aria-label="Biomass flow diagram"
+    >
+      {/* Left bar */}
+      <rect
+        x={leftX}
+        y={leftBarY}
+        width={barW}
+        height={leftBarH}
+        fill="#F59E0B"
         rx={4}
         ry={4}
       />
+
+      {/* Left bar label */}
       <text
-        x={x + width + 8}
-        y={y + height / 2}
-        textAnchor="start"
-        dominantBaseline="middle"
+        x={leftX + barW / 2}
+        y={topPad - 8}
+        textAnchor="middle"
         fontSize={11}
-        fill="#374151"
-        fontWeight={500}
+        fontWeight={600}
+        fill="#92400E"
       >
-        {payload.name}
+        {t('sankey_left_label')}
       </text>
-    </Layer>
-  )
-}
+      <text
+        x={leftX + barW / 2}
+        y={topPad + usableH + 16}
+        textAnchor="middle"
+        fontSize={10}
+        fill="#6B7280"
+        fontFamily="monospace"
+      >
+        {formatValue(theoretical)}
+      </text>
+      <text
+        x={leftX + barW / 2}
+        y={topPad + usableH + 28}
+        textAnchor="middle"
+        fontSize={9}
+        fill="#9CA3AF"
+      >
+        {t('sankey_unit')}
+      </text>
 
-// Custom link component with gradient
-function CustomLink({
-  sourceX,
-  sourceY,
-  sourceControlX,
-  targetX,
-  targetY,
-  targetControlX,
-  linkWidth,
-  index
-}: {
-  sourceX: number
-  sourceY: number
-  sourceControlX: number
-  targetX: number
-  targetY: number
-  targetControlX: number
-  linkWidth: number
-  index: number
-}) {
-  // Determine if this is a "loss" link (going to losses nodes)
-  const isLoss = [0, 2, 4, 6].includes(index % 8) // Links to loss nodes
+      {/* Trapezoid bands + right segments */}
+      {(() => {
+        // Pre-calculate text Y positions to prevent label collision
+        let lastTextY = -Infinity;
+        const MIN_LABEL_SPACING = 30;
+        const rightRectsWithText = rightRects.map(seg => {
+          let idealTextY = seg.y + seg.h / 2;
+          if (idealTextY < lastTextY + MIN_LABEL_SPACING) {
+            idealTextY = lastTextY + MIN_LABEL_SPACING;
+          }
+          lastTextY = idealTextY;
+          return { ...seg, textY: idealTextY };
+        });
 
-  return (
-    <Layer key={`link-${index}`}>
-      <path
-        d={`
-          M${sourceX},${sourceY}
-          C${sourceControlX},${sourceY} ${targetControlX},${targetY} ${targetX},${targetY}
-        `}
-        fill="none"
-        stroke={isLoss ? '#FCA5A5' : '#86EFAC'}
-        strokeWidth={linkWidth}
-        strokeOpacity={0.5}
-      />
-    </Layer>
+        return rightRectsWithText.map((seg, i) => {
+        const lSlice = leftSlices[i]
+        const lLeft = leftX + barW
+        const lTop = lSlice.y
+        const lBot = lSlice.y + lSlice.h
+        const rLeft = rightX
+        const rTop = seg.y
+        const rBot = seg.y + seg.h
+
+        return (
+          <g key={seg.label}>
+            {/* Trapezoid band */}
+            <polygon
+              points={`${lLeft},${lTop} ${lLeft},${lBot} ${rLeft},${rBot} ${rLeft},${rTop}`}
+              fill={seg.color}
+              fillOpacity={seg.isLoss ? 0.18 : 0.25}
+              stroke={seg.color}
+              strokeWidth={0.5}
+              strokeOpacity={0.4}
+            />
+
+            {/* Right segment bar */}
+            <rect
+              x={rightX}
+              y={rTop}
+              width={barW}
+              height={Math.max(seg.h, 2)}
+              fill={seg.color}
+              fillOpacity={seg.isLoss ? 0.75 : 0.9}
+              rx={3}
+              ry={3}
+            />
+
+            {/* Segment label — right of bar (collision-avoided Y) */}
+            <text
+              x={rightX + barW + 10}
+              y={seg.textY - 5}
+              dominantBaseline="middle"
+              fontSize={11}
+              fontWeight={500}
+              fill={seg.isLoss ? '#7F1D1D' : '#14532D'}
+            >
+              {seg.label}
+            </text>
+            <text
+              x={rightX + barW + 10}
+              y={seg.textY + 8}
+              dominantBaseline="middle"
+              fontSize={10}
+              fill="#6B7280"
+              fontFamily="monospace"
+            >
+              {formatValue(seg.value)} ({((seg.value / theoretical) * 100).toFixed(1)}%)
+            </text>
+          </g>
+        )
+      });
+      })()}
+
+      {/* Right column header */}
+      <text
+        x={rightX + barW / 2}
+        y={topPad - 8}
+        textAnchor="middle"
+        fontSize={11}
+        fontWeight={600}
+        fill="#374151"
+      >
+        {t('sankey_right_label')}
+      </text>
+    </svg>
   )
 }
 
 export default function BiomassFlowSankey({
   theoreticalPotential,
   factors = DEFAULT_FACTORS,
-  title = 'Fluxo de Biomassa - Teorico para Biogas',
+  ch4Fraction = CH4_FRACTION,
+  title,
   loading = false
 }: BiomassFlowSankeyProps) {
-  // Generate Sankey data
-  const sankeyData = useMemo(() => {
-    if (theoreticalPotential <= 0) return null
+  const t = useTranslations('charts')
+
+  const segments = useMemo((): FlowSegment[] => {
+    if (theoreticalPotential <= 0) return []
 
     const collectionLoss = theoreticalPotential * (1 - factors.fc)
     const afterCollection = theoreticalPotential * factors.fc
-    const competitionUse = afterCollection * factors.fcp
+    const competitionLoss = afterCollection * factors.fcp
     const afterCompetition = afterCollection * (1 - factors.fcp)
     const seasonalLoss = afterCompetition * (1 - factors.fs)
     const afterSeasonal = afterCompetition * factors.fs
     const logisticsLoss = afterSeasonal * (1 - factors.fl)
-    const finalAvailable = afterSeasonal * factors.fl
+    const availableBiogas = afterSeasonal * factors.fl
 
-    const nodes: SankeyNode[] = [
-      { name: 'Potencial Teorico' },
-      { name: 'Perdas Coleta' },
-      { name: 'Coletado' },
-      { name: 'Usos Competidores' },
-      { name: 'Disponivel' },
-      { name: 'Perdas Sazonais' },
-      { name: 'Ajustado' },
-      { name: 'Perdas Logistica' },
-      { name: 'Biogas Potencial' }
+    return [
+      { label: t('sankey_node_collection_loss'), value: collectionLoss,   color: '#EF4444', isLoss: true  },
+      { label: t('sankey_node_competition'),     value: competitionLoss,  color: '#F97316', isLoss: true  },
+      { label: t('sankey_node_seasonal_loss'),   value: seasonalLoss,     color: '#F59E0B', isLoss: true  },
+      { label: t('sankey_node_logistics_loss'),  value: logisticsLoss,    color: '#B45309', isLoss: true  },
+      { label: t('sankey_node_biogas'),          value: availableBiogas,  color: '#16A34A', isLoss: false },
     ]
-
-    const links: SankeyLink[] = [
-      { source: 0, target: 1, value: Math.max(collectionLoss, 1) },
-      { source: 0, target: 2, value: Math.max(afterCollection, 1) },
-      { source: 2, target: 3, value: Math.max(competitionUse, 1) },
-      { source: 2, target: 4, value: Math.max(afterCompetition, 1) },
-      { source: 4, target: 5, value: Math.max(seasonalLoss, 1) },
-      { source: 4, target: 6, value: Math.max(afterSeasonal, 1) },
-      { source: 6, target: 7, value: Math.max(logisticsLoss, 1) },
-      { source: 6, target: 8, value: Math.max(finalAvailable, 1) }
-    ]
-
-    return { nodes, links }
-  }, [theoreticalPotential, factors])
-
-  // Format numbers for display
-  const formatValue = (value: number): string => {
-    if (value >= 1e9) return `${(value / 1e9).toFixed(2)}B`
-    if (value >= 1e6) return `${(value / 1e6).toFixed(2)}M`
-    if (value >= 1e3) return `${(value / 1e3).toFixed(2)}k`
-    return value.toFixed(0)
-  }
-
-  // Custom tooltip
-  const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: unknown[] }) => {
-    if (active && payload && payload.length > 0) {
-      const data = payload[0] as { payload?: { source?: { name: string }; target?: { name: string }; value?: number } }
-      if (data.payload) {
-        const { source, target, value } = data.payload
-        if (source && target && value !== undefined) {
-          return (
-            <div className="bg-white p-3 rounded-lg shadow-lg border border-gray-200">
-              <p className="text-sm font-semibold text-gray-900">
-                {source.name} &rarr; {target.name}
-              </p>
-              <p className="text-sm text-gray-600 mt-1">
-                Volume: <span className="font-mono font-semibold">{formatValue(value)} t/ano</span>
-              </p>
-            </div>
-          )
-        }
-      }
-    }
-    return null
-  }
+  }, [theoreticalPotential, factors, t])
 
   if (loading) {
     return (
       <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
         <div className="flex items-center gap-2 mb-4">
           <GitBranch className="h-5 w-5 text-green-600" />
-          <h3 className="text-lg font-semibold text-gray-800">{title}</h3>
+          <h3 className="text-lg font-semibold text-gray-800">{title ?? t('sankey_title')}</h3>
         </div>
         <div className="h-[500px] flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cp2b-primary mx-auto mb-3"></div>
-            <p className="text-sm text-gray-500">Carregando diagrama...</p>
+            <p className="text-sm text-gray-500">{t('sankey_loading')}</p>
           </div>
         </div>
       </div>
     )
   }
 
-  if (!sankeyData) {
+  if (!segments.length) {
     return (
       <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
         <div className="flex items-center gap-2 mb-4">
           <GitBranch className="h-5 w-5 text-green-600" />
-          <h3 className="text-lg font-semibold text-gray-800">{title}</h3>
+          <h3 className="text-lg font-semibold text-gray-800">{title ?? t('sankey_title')}</h3>
         </div>
         <div className="h-[500px] flex items-center justify-center">
           <div className="text-center text-gray-500">
             <Info className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-            <p className="text-lg font-medium mb-1">Sem dados disponiveis</p>
-            <p className="text-sm">Selecione uma categoria para visualizar o fluxo</p>
+            <p className="text-lg font-medium mb-1">{t('sankey_no_data')}</p>
+            <p className="text-sm">{t('sankey_select_category')}</p>
           </div>
         </div>
       </div>
@@ -230,90 +281,81 @@ export default function BiomassFlowSankey({
   }
 
   const fdeValue = calculateFDE(factors)
-  const finalValue = theoreticalPotential * fdeValue
-  const totalLosses = theoreticalPotential - finalValue
+  const availableBiogas = theoreticalPotential * fdeValue
+  const ch4Equivalent = availableBiogas * ch4Fraction
+  const totalLosses = theoreticalPotential - availableBiogas
 
   return (
     <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
         <div className="flex items-center gap-2">
           <GitBranch className="h-5 w-5 text-green-600" />
-          <h3 className="text-lg font-semibold text-gray-800">{title}</h3>
+          <h3 className="text-lg font-semibold text-gray-800">{title ?? t('sankey_title')}</h3>
         </div>
-        <div className="flex items-center gap-4 text-sm">
-          <div className="flex items-center gap-2">
-            <span className="text-gray-500">Disponivel:</span>
-            <span className="font-mono font-bold text-green-600">{formatValue(finalValue)} t/ano</span>
+        <div className="flex items-center gap-4 text-sm flex-wrap">
+          <div className="flex items-center gap-1.5">
+            <span className="text-gray-500">{t('sankey_node_biogas')}:</span>
+            <span className="font-mono font-bold text-green-600">{formatValue(availableBiogas)} {t('unit_m3_yr')}</span>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-gray-500">Perdas:</span>
-            <span className="font-mono font-bold text-red-500">{formatValue(totalLosses)} t/ano</span>
+          <div className="flex items-center gap-1.5">
+            <span className="text-gray-500">{t('sankey_ch4_label')}:</span>
+            <span className="font-mono font-bold text-blue-600">{formatValue(ch4Equivalent)} {t('unit_m3_yr')}</span>
           </div>
         </div>
       </div>
 
-      <div className="h-[500px]">
-        <ResponsiveContainer width="100%" height="100%">
-          <Sankey
-            data={sankeyData}
-            nodeWidth={15}
-            nodePadding={30}
-            margin={{ top: 20, right: 200, bottom: 20, left: 20 }}
-            node={CustomNode as unknown as SankeyNodeOptions}
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            link={CustomLink as any}
-          >
-            <Tooltip content={<CustomTooltip />} />
-          </Sankey>
-        </ResponsiveContainer>
+      {/* SVG Alluvial Diagram */}
+      <div className="h-[600px] overflow-visible">
+        <AlluvialDiagram
+          theoretical={theoreticalPotential}
+          segments={segments}
+          t={t}
+        />
       </div>
 
-      {/* Flow Summary */}
+      {/* Summary Cards */}
       <div className="mt-6 pt-4 border-t border-gray-100">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div className="text-center p-3 bg-yellow-50 rounded-lg">
-            <div className="text-xs text-gray-500 mb-1">Entrada</div>
-            <div className="font-mono font-semibold text-yellow-700">
-              {formatValue(theoreticalPotential)}
-            </div>
-            <div className="text-xs text-gray-400">t/ano</div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="text-center p-3 bg-amber-50 rounded-lg">
+            <div className="text-xs text-gray-500 mb-1">{t('sankey_summary_input')}</div>
+            <div className="font-mono font-semibold text-amber-700">{formatValue(theoreticalPotential)}</div>
+            <div className="text-xs text-gray-400">{t('unit_m3_yr')}</div>
           </div>
           <div className="text-center p-3 bg-red-50 rounded-lg">
-            <div className="text-xs text-gray-500 mb-1">Perdas Totais</div>
-            <div className="font-mono font-semibold text-red-600">
-              {formatValue(totalLosses)}
-            </div>
+            <div className="text-xs text-gray-500 mb-1">{t('sankey_summary_total_losses')}</div>
+            <div className="font-mono font-semibold text-red-600">{formatValue(totalLosses)}</div>
             <div className="text-xs text-gray-400">{((totalLosses / theoreticalPotential) * 100).toFixed(1)}%</div>
           </div>
           <div className="text-center p-3 bg-green-50 rounded-lg">
-            <div className="text-xs text-gray-500 mb-1">Para Biogas</div>
-            <div className="font-mono font-semibold text-green-700">
-              {formatValue(finalValue)}
-            </div>
-            <div className="text-xs text-gray-400">{(fdeValue * 100).toFixed(1)}%</div>
+            <div className="text-xs text-gray-500 mb-1">{t('sankey_summary_to_biogas')}</div>
+            <div className="font-mono font-semibold text-green-700">{formatValue(availableBiogas)}</div>
+            <div className="text-xs text-gray-400">{(fdeValue * 100).toFixed(1)}% FDE</div>
           </div>
           <div className="text-center p-3 bg-blue-50 rounded-lg">
-            <div className="text-xs text-gray-500 mb-1">Eficiencia</div>
-            <div className="font-mono font-semibold text-blue-700">
-              {(fdeValue * 100).toFixed(1)}%
-            </div>
-            <div className="text-xs text-gray-400">FDE</div>
+            <div className="text-xs text-gray-500 mb-1">{t('sankey_summary_ch4')}</div>
+            <div className="font-mono font-semibold text-blue-700">{formatValue(ch4Equivalent)}</div>
+            <div className="text-xs text-gray-400">{t('sankey_ch4_fraction', { pct: (ch4Fraction * 100).toFixed(0) })}</div>
           </div>
         </div>
       </div>
 
-      {/* Legend */}
+      {/* Legend + Benchmark */}
       <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-        <h4 className="text-sm font-semibold text-gray-700 mb-3">Legenda de Fluxos</h4>
-        <div className="grid grid-cols-2 gap-3 text-xs">
+        <h4 className="text-sm font-semibold text-gray-700 mb-3">{t('sankey_legend_title')}</h4>
+        <div className="grid grid-cols-2 gap-3 text-xs mb-3">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-2 bg-green-300 rounded opacity-60"></div>
-            <span className="text-gray-600">Fluxo util (para biogas)</span>
+            <div className="w-8 h-2 bg-green-600 rounded opacity-80"></div>
+            <span className="text-gray-600">{t('sankey_legend_useful')}</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-8 h-2 bg-red-300 rounded opacity-60"></div>
-            <span className="text-gray-600">Perdas e usos competidores</span>
+            <div className="w-8 h-2 bg-red-400 rounded opacity-80"></div>
+            <span className="text-gray-600">{t('sankey_legend_losses')}</span>
           </div>
+        </div>
+        <div className="flex items-start gap-2 pt-2 border-t border-gray-200">
+          <Info className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
+          <p className="text-xs text-blue-700 font-medium">{t('sankey_benchmark_label')}</p>
         </div>
       </div>
     </div>
