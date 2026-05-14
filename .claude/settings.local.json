@@ -1,7 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(xargs grep *)"
+      "Bash(xargs grep *)",
+      "Bash(git -C \"C:\\\\Users\\\\Lucas\\\\Documents\\\\Pilar2b\" add cp2b-workspace/NewLook/frontend/src/components/analysis/charts/CategoryComparisonChart.tsx cp2b-workspace/NewLook/frontend/src/services/analysisApi.ts)",
+      "Bash(git -C 'C:\\\\Users\\\\Lucas\\\\Documents\\\\Pilar2b' commit -m ' *)",
+      "Bash(git -C \"C:\\\\Users\\\\Lucas\\\\Documents\\\\Pilar2b\" push origin feat/cp2b-clusters-k4-biomass-scale)"
     ]
   }
 }

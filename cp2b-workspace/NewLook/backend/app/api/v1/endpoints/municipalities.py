@@ -17,26 +17,36 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-def _cat(total_biogas: float) -> str:
-    if total_biogas > 100_000_000:
-        return "ALTO"
-    if total_biogas > 10_000_000:
-        return "MEDIO"
-    if total_biogas > 0:
-        return "BAIXO"
-    return "SEM DADOS"
+def _table_exists(cursor, table_name: str, schema: str = "public") -> bool:
+    cursor.execute(
+        """
+        SELECT 1 FROM information_schema.tables
+        WHERE table_schema = %s AND table_name = %s
+        LIMIT 1
+        """,
+        (schema, table_name),
+    )
+    return cursor.fetchone() is not None
 
 
-@router.get("/geojson")
-async def get_municipalities_geojson(
-    limit: int = Query(default=1000, le=1000),
-    current_user: Optional[UserProfile] = Depends(optional_auth),
-):
-    try:
-        with get_db() as conn:
-            cursor = conn.cursor()
-            cursor.execute(
-                """
+def _geojson_select_sql(include_municipality_summary: bool) -> str:
+    """Build SELECT for GeoJSON rows; omit JOIN if municipality_summary is not deployed."""
+    cluster_cols = (
+        "ms.cluster_id, ms.cluster_label,\n"
+        "                    ms.mun_total_gwh, ms.mun_n_streams, ms.mun_dominant_stream"
+        if include_municipality_summary
+        else (
+            "NULL::integer AS cluster_id, NULL::text AS cluster_label,\n"
+            "                    NULL::double precision AS mun_total_gwh, "
+            "NULL::integer AS mun_n_streams, NULL::text AS mun_dominant_stream"
+        )
+    )
+    join = (
+        "\n                LEFT JOIN municipality_summary ms ON m.ibge_code::integer = ms.ibge_code"
+        if include_municipality_summary
+        else ""
+    )
+    return f"""
                 SELECT
                     m.ibge_code, m.municipality_name, m.id,
                     ST_AsGeoJSON(ST_Simplify(m.geometry, 0.001)) AS geojson,
@@ -58,15 +68,38 @@ async def get_municipalities_geojson(
                     m.corn_biomass_tons_year, m.coffee_biomass_tons_year, m.citrus_biomass_tons_year,
                     m.cattle_biomass_tons_year, m.swine_biomass_tons_year, m.poultry_biomass_tons_year,
                     m.aquaculture_biomass_tons_year, m.rsu_biomass_tons_year, m.rpo_biomass_tons_year,
-                    ms.cluster_id, ms.cluster_label,
-                    ms.mun_total_gwh, ms.mun_n_streams, ms.mun_dominant_stream
-                FROM municipalities m
-                LEFT JOIN municipality_summary ms ON m.ibge_code::integer = ms.ibge_code
+                    {cluster_cols}
+                FROM municipalities m{join}
                 WHERE m.geometry IS NOT NULL
                 LIMIT %s
-                """,
-                (limit,),
-            )
+                """
+
+
+def _cat(total_biogas: float) -> str:
+    if total_biogas > 100_000_000:
+        return "ALTO"
+    if total_biogas > 10_000_000:
+        return "MEDIO"
+    if total_biogas > 0:
+        return "BAIXO"
+    return "SEM DADOS"
+
+
+@router.get("/geojson")
+async def get_municipalities_geojson(
+    limit: int = Query(default=1000, le=1000),
+    current_user: Optional[UserProfile] = Depends(optional_auth),
+):
+    try:
+        with get_db() as conn:
+            cursor = conn.cursor()
+            has_summary = _table_exists(cursor, "municipality_summary")
+            if not has_summary:
+                logger.warning(
+                    "municipality_summary missing — GeoJSON served without cluster columns "
+                    "(apply backend/migrations/013_cp2b_municipality_summary.sql)."
+                )
+            cursor.execute(_geojson_select_sql(has_summary), (limit,))
             rows = cursor.fetchall()
             cursor.close()
     except Exception as e:
