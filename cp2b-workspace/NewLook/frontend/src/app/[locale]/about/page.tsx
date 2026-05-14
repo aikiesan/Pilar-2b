@@ -324,6 +324,8 @@ export default function AboutPage() {
                         width={128}
                         height={128}
                         className="w-full h-full object-cover"
+                        style={{ height: 'auto' }}
+                        sizes="128px"
                       />
                     </div>
                     <h3 className="text-xl font-bold text-white">Profa. Dra.</h3>

@@ -259,6 +259,31 @@ async def get_municipalities(
         raise HTTPException(status_code=500, detail=f"Error fetching municipalities: {str(e)}")
 
 
+@router.get("/names")
+async def get_municipality_names(
+    limit: int = Query(default=1000, le=1000),
+):
+    """Lightweight list for typeahead — returns only id, name, ibge_code, no geometry."""
+    try:
+        with get_db() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                SELECT id, municipality_name, ibge_code
+                FROM municipalities
+                ORDER BY municipality_name
+                LIMIT %s
+                """,
+                (limit,),
+            )
+            data = [dict(r) for r in cursor.fetchall()]
+            cursor.close()
+        return {"data": data}
+    except Exception as e:
+        logger.error(f"Error fetching municipality names: {e}")
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
+
 @router.get("/{municipality_id}")
 async def get_municipality(municipality_id: str):
     try:
