@@ -192,11 +192,11 @@ export default function ResultsDashboard({ result, municipalityName, onReset }: 
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
               <XAxis dataKey="name" tick={{ fontSize: 10 }} />
               <YAxis tick={{ fontSize: 10 }} />
-              <Tooltip formatter={(v: number) => [
-                `${fmt(v)} ${chartMode === 'energy' ? 'kWh' : 'm³'}`,
-                chartMode === 'energy' ? 'Energia' : 'Biogás'
-              ]} />
-              <Bar dataKey="value" fill="#16a34a" radius={[3,3,0,0]} />
+              <Tooltip formatter={(v) => [
+		`${fmt(Number(v))} ${chartMode === 'energy' ? 'kWh' : 'm³'}`,
+		chartMode === 'energy' ? 'Energia' : 'Biogás'
+	      ]} />
+	     <Bar dataKey="value" fill="#16a34a" radius={[3,3,0,0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
