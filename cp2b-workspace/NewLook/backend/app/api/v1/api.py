@@ -4,7 +4,7 @@ Main API router for PILAR-2b V3
 from fastapi import APIRouter
 
 from app.api.v1.endpoints import municipalities, analysis, auth, maps, geospatial, mock_geospatial, infrastructure, mapbiomas, proximity, residuos, statistics, scientific, codigestion, intermediate_regions
-from app.routers import technology_routes
+from app.routers import technology_routes, calculator
 
 api_router = APIRouter()
 
@@ -106,4 +106,11 @@ api_router.include_router(
     intermediate_regions.router,
     prefix="/intermediate-regions",
     tags=["intermediate-regions", "national", "geospatial"]
+)
+
+# CP2B Biogas Viability Calculator (lead capture)
+api_router.include_router(
+    calculator.router,
+    prefix="/calculator",
+    tags=["calculator", "leads", "viability"]
 )
