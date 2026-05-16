@@ -52,8 +52,8 @@ export default function StepSazonalidade({ activeMonths, activityType, onChange,
       </div>
 
       {/* Visual bar chart */}
-      <div className="h-36">
-        <ResponsiveContainer width="100%" height="100%">
+      <div className="h-36 w-full min-w-0">
+        <ResponsiveContainer width="100%" height={144}>
           <BarChart data={chartData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} />
             <XAxis dataKey="label" tick={{ fontSize: 11 }} />

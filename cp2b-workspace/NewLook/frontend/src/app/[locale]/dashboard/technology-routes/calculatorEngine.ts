@@ -78,6 +78,17 @@ export const LIVESTOCK_PPB: Record<LivestockSpecies, { ppb: number; ch4: number 
   poultry_meat:   { ppb: 0.8,  ch4: 0.60 },
 }
 
+// ── Livestock manure production (wet tonnes / head / year) ───────────────────
+// Source: EMBRAPA Suínos e Aves (2022) — Boletim Técnico 47
+// Used for digestate calculation (replaces circular biogas × 0.08 proxy)
+const MANURE_TONS_PER_HEAD_YEAR: Record<LivestockSpecies, number> = {
+  swine:          1.2,
+  cattle_beef:    8.0,
+  cattle_dairy:   18.0,
+  poultry_eggs:   0.04,
+  poultry_meat:   0.005,  // ~0.6 kg/cycle × 8 cycles/year; EMBRAPA Suínos e Aves 2022
+}
+
 export const LIVESTOCK_CATEGORY_SPECIES: Record<'swine' | 'cattle' | 'poultry', LivestockSpecies[]> = {
   swine:   ['swine'],
   cattle:  ['cattle_beef', 'cattle_dairy'],
@@ -141,13 +152,12 @@ export interface ScenarioFactor {
   elecEff: number
   thermalEff: number
   biocharYield: number
-  capexTierIndex: 0 | 1 | 2
 }
 
 export const SCENARIO_FACTORS: Record<ScenarioTier, ScenarioFactor> = {
-  min: { labelPt: 'Básico',   technology: 'Lagoa coberta / tubular PVC',      utilization: 0.55, startupMonths: 4,  bmpFactor: 0.75, elecEff: 0.28, thermalEff: 0.40, biocharYield: 0.20, capexTierIndex: 0 },
-  avg: { labelPt: 'Ideal',    technology: 'Biodigestor CSTR',                  utilization: 0.75, startupMonths: 6,  bmpFactor: 1.00, elecEff: 0.35, thermalEff: 0.50, biocharYield: 0.28, capexTierIndex: 1 },
-  max: { labelPt: 'Avançado', technology: 'CSTR + upgrading / CHP premium',    utilization: 0.90, startupMonths: 10, bmpFactor: 1.20, elecEff: 0.42, thermalEff: 0.60, biocharYield: 0.35, capexTierIndex: 2 },
+  min: { labelPt: 'Básico',   technology: 'Lagoa coberta / tubular PVC',   utilization: 0.55, startupMonths: 4,  bmpFactor: 0.75, elecEff: 0.28, thermalEff: 0.40, biocharYield: 0.20 },
+  avg: { labelPt: 'Ideal',    technology: 'Biodigestor CSTR',               utilization: 0.75, startupMonths: 6,  bmpFactor: 1.00, elecEff: 0.35, thermalEff: 0.50, biocharYield: 0.28 },
+  max: { labelPt: 'Avançado', technology: 'CSTR + upgrading / CHP premium', utilization: 0.90, startupMonths: 10, bmpFactor: 1.20, elecEff: 0.42, thermalEff: 0.60, biocharYield: 0.35 },
 }
 
 // ── Realistic payback factors ─────────────────────────────────────────────────
@@ -253,7 +263,7 @@ export function calcBiogasFromSugarcane(tonsCanaBruta: number): {
 export function calcBiogasFromLivestock(heads: Partial<Record<LivestockSpecies, number>>): {
   biogasM3: number; ch4Weighted: number; biomassTotal: number
 } {
-  let totalBiogas = 0, ch4Numerator = 0
+  let totalBiogas = 0, ch4Numerator = 0, manureTotal = 0
 
   for (const [species, count] of Object.entries(heads) as [LivestockSpecies, number][]) {
     if (!count || count <= 0) continue
@@ -261,12 +271,13 @@ export function calcBiogasFromLivestock(heads: Partial<Record<LivestockSpecies, 
     const biogas = count * coeff.ppb
     totalBiogas  += biogas
     ch4Numerator += biogas * coeff.ch4
+    manureTotal  += count * MANURE_TONS_PER_HEAD_YEAR[species]
   }
 
   return {
     biogasM3: totalBiogas,
     ch4Weighted: totalBiogas > 0 ? ch4Numerator / totalBiogas : 0.60,
-    biomassTotal: totalBiogas * 0.08,
+    biomassTotal: manureTotal,
   }
 }
 
@@ -394,7 +405,9 @@ export function calcPaybackRange(annualRevNominal: number, tier: CapexTier): Pay
 
 /**
  * Calculate financial indicators from computed outputs.
- * selectedOutputs controls which revenue streams count toward payback.
+ * selectedOutputs controls which revenue streams are shown in the display breakdown,
+ * but payback is always computed from the full economic potential (energy + carbon)
+ * so that selecting only digestate/heat/biochar doesn't collapse payback to 999.
  * prices allows overriding SP 2025 defaults (used by sliders in ResultsDashboard).
  */
 export function calcFinancials(
@@ -402,19 +415,24 @@ export function calcFinancials(
   selectedOutputs: OutputType[] = ALL_OUTPUT_TYPES,
   prices: PriceConfig = DEFAULT_PRICES,
 ): FinancialResult {
+  // Full potential revenue — used for payback (system viability is independent of display choice)
+  const energyFull    = outputs.energyKwhYear    * prices.energyTariffBrlKwh
+  const biomethFull   = outputs.biomethaneM3Year * prices.biomethaneM3
+  const carbonFull    = outputs.co2TonsYear      * prices.co2CreditBrlTon
+  const primaryFull   = energyFull > 0 ? energyFull : biomethFull
+  const annualRevMax  = primaryFull + carbonFull
+
+  // Filtered revenue — only selected outputs, for display breakdown
   const useEnergy     = selectedOutputs.includes('energy')
   const useBiomethane = selectedOutputs.includes('biomethane')
   const useCarbon     = selectedOutputs.includes('carbon')
+  const energySavings = useEnergy     ? energyFull  : 0
+  const biomethaneRev = useBiomethane ? biomethFull : 0
+  const carbonRev     = useCarbon     ? carbonFull  : 0
 
-  const energySavings  = useEnergy     ? outputs.energyKwhYear    * prices.energyTariffBrlKwh : 0
-  const biomethaneRev  = useBiomethane ? outputs.biomethaneM3Year * prices.biomethaneM3       : 0
-  const carbonRev      = useCarbon     ? outputs.co2TonsYear      * prices.co2CreditBrlTon    : 0
-  const dieselEquiv    = outputs.biomethaneM3Year * CH4_DIESEL_EQUIV_RATIO * 1000
-
-  const primaryRev   = energySavings > 0 ? energySavings : biomethaneRev
-  const annualRevMax = primaryRev + carbonRev
-  const tier         = getCapexTier(outputs.totalBiogasM3Year)
-  const payback      = calcPaybackRange(annualRevMax, tier)
+  const dieselEquiv   = outputs.biomethaneM3Year * CH4_DIESEL_EQUIV_RATIO * 1000
+  const tier          = getCapexTier(outputs.totalBiogasM3Year)
+  const payback       = calcPaybackRange(annualRevMax, tier)
 
   return {
     annualRevenueMaxBRL:  annualRevMax,
@@ -451,7 +469,7 @@ export function runCalculation(
       : sugarcaneInput.value
     const r = calcBiogasFromSugarcane(tonsRaw)
     biogasM3 = r.biogasM3; ch4 = r.ch4Weighted; biomass = r.biomassTotal
-    dryLigno = r.strawTons
+    dryLigno = r.strawTons * SUGARCANE_STREAMS.palha.vs
     activityLabel = `Cana-de-açúcar (${sugarcaneInput.type === 'hectares'
       ? sugarcaneInput.value + ' ha'
       : tonsRaw.toLocaleString('pt-BR') + ' t'})`
@@ -476,8 +494,8 @@ export function runCalculation(
   } else if (cropInput && activityType in CROP_PARAMS) {
     const r = calcBiogasFromCrop(activityType as CropType, cropInput.tonnes)
     biogasM3 = r.biogasM3; ch4 = r.ch4Weighted; biomass = r.biomassTotal
-    dryLigno = biomass * 0.87
     const p = CROP_PARAMS[activityType as CropType]
+    dryLigno = biomass * p.vs
     activityLabel = `${p.label} (${cropInput.tonnes.toLocaleString('pt-BR')} t)`
   }
 

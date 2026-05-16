@@ -101,11 +101,6 @@ export default function BiogasCalculator() {
       setActiveMonths(ALL_MONTHS)
     }
 
-    // Smart pre-selection: reset when activity type category changes
-    if (prevType !== d.activityType) {
-      const isLivestock = LIVESTOCK_TYPES.has(d.activityType)
-      setSelectedOutputs(isLivestock ? ['digestate'] : ['energy'])
-    }
   }
 
   async function handleCalculate() {
@@ -220,7 +215,6 @@ export default function BiogasCalculator() {
           onChange={setSelectedOutputs}
           onNext={handleCalculate}
           onBack={() => setStep(2)}
-          activityType={atividade.activityType}
           previewOutputs={previewOutputs}
         />
       )}
