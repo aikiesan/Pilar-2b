@@ -45,16 +45,34 @@ const THERMAL_EFFICIENCY   = 0.50   // heat recovery efficiency
 const MJ_TO_KWH            = 1 / 3.6
 
 // ── CAPEX reference tiers (R$, mid-point) ────────────────────────────────────
+// Technology choice drives cost far more than ±30% — a lagoa coberta vs. CSTR
+// vs. CSTR+upgrading/CHP are fundamentally different investment levels (4–12×).
+// Each scenario has its own tier table; scale (volume) selects the row within it.
+// Sources: SEBRAE 2020, PROBIOGÁS/BNDES 2021, ANEEL 2022, EPE 2023
 export interface CapexTier {
   label: 'Baixo' | 'Médio' | 'Alto'
   range: string
   mid: number
 }
-export const CAPEX_TIERS: CapexTier[] = [
-  { label: 'Baixo', range: 'R$ 80k – 300k',  mid: 190_000   },
-  { label: 'Médio', range: 'R$ 300k – 2M',   mid: 1_150_000 },
-  { label: 'Alto',  range: 'R$ 2M – 10M+',  mid: 6_000_000 },
-]
+export const SCENARIO_CAPEX_TIERS: Record<'min' | 'avg' | 'max', CapexTier[]> = {
+  min: [  // Lagoa coberta / tubular PVC — civil works dominant, minimal machinery
+    { label: 'Baixo', range: 'R$ 40k – 180k',   mid: 80_000    },
+    { label: 'Médio', range: 'R$ 200k – 1M',     mid: 500_000   },
+    { label: 'Alto',  range: 'R$ 1M – 6M',       mid: 3_000_000 },
+  ],
+  avg: [  // Biodigestor CSTR — engineered tank + mixing + instrumentation
+    { label: 'Baixo', range: 'R$ 150k – 700k',   mid: 350_000    },
+    { label: 'Médio', range: 'R$ 700k – 4M',     mid: 2_000_000  },
+    { label: 'Alto',  range: 'R$ 4M – 25M',      mid: 12_000_000 },
+  ],
+  max: [  // CSTR + upgrading / CHP premium — full biogas-to-energy chain
+    { label: 'Baixo', range: 'R$ 500k – 2M',     mid: 900_000    },
+    { label: 'Médio', range: 'R$ 3M – 12M',      mid: 6_000_000  },
+    { label: 'Alto',  range: 'R$ 20M – 60M',     mid: 35_000_000 },
+  ],
+}
+// Backward-compat alias (CSTR baseline = avg scenario tiers)
+export const CAPEX_TIERS = SCENARIO_CAPEX_TIERS.avg
 
 // ── Sugarcane residue streams ─────────────────────────────────────────────────
 // rpr  = mass fraction of residue per tonne of raw cane input
@@ -366,10 +384,11 @@ export function applyScenario(base: OutputResult, scenario: ScenarioFactor): Out
   }
 }
 
-export function getCapexTier(biogasM3Year: number): CapexTier {
-  if (biogasM3Year < 100_000)   return CAPEX_TIERS[0]
-  if (biogasM3Year < 1_000_000) return CAPEX_TIERS[1]
-  return CAPEX_TIERS[2]
+export function getCapexTier(biogasM3Year: number, scenario: ScenarioTier = 'avg'): CapexTier {
+  const tiers = SCENARIO_CAPEX_TIERS[scenario]
+  if (biogasM3Year < 100_000)   return tiers[0]
+  if (biogasM3Year < 1_000_000) return tiers[1]
+  return tiers[2]
 }
 
 function roundYears(y: number): number {
