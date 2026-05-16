@@ -99,14 +99,14 @@ export default function UnifiedHeader({ variant = 'auto' }: UnifiedHeaderProps) 
   // Style configurations based on variant
   const styles = {
     public: {
-      header: 'bg-white/95 backdrop-blur-sm border-b border-gray-200',
+      header: 'bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm border-b border-gray-200 dark:border-slate-700',
       logo: '/pilar2b/images/logotipo-full-black.png',
-      logoClass: '',
-      navLink: 'text-cp2b-gray-600 hover:text-cp2b-green',
-      navLinkActive: 'text-cp2b-green font-semibold relative after:absolute after:bottom-0 after:left-2 after:right-2 after:h-0.5 after:bg-cp2b-green after:rounded-full',
-      mobileMenu: 'bg-white border-t border-gray-200',
-      toggleBg: 'bg-gray-100 hover:bg-gray-200',
-      toggleText: 'text-gray-700',
+      logoClass: 'dark:brightness-0 dark:invert',
+      navLink: 'text-cp2b-gray-600 dark:text-slate-300 hover:text-cp2b-green dark:hover:text-emerald-400',
+      navLinkActive: 'text-cp2b-green dark:text-emerald-400 font-semibold relative after:absolute after:bottom-0 after:left-2 after:right-2 after:h-0.5 after:bg-cp2b-green dark:after:bg-emerald-400 after:rounded-full',
+      mobileMenu: 'bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-700',
+      toggleBg: 'bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700',
+      toggleText: 'text-gray-700 dark:text-slate-300',
     },
     authenticated: {
       header: 'bg-gradient-to-r from-[#1E5128] to-[#2C6B3A] shadow-lg',
@@ -253,24 +253,24 @@ export default function UnifiedHeader({ variant = 'auto' }: UnifiedHeaderProps) 
                 {/* Dropdown Menu */}
                 {userMenuOpen && (
                   <div
-                    className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-50 border border-gray-200"
+                    className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 rounded-lg shadow-lg dark:shadow-slate-900/50 py-1 z-50 border border-gray-200 dark:border-slate-700"
                     role="menu"
                     aria-orientation="vertical"
                   >
-                    <div className="px-4 py-2 border-b border-gray-100">
-                      <p className="text-sm font-medium text-gray-900 truncate">
+                    <div className="px-4 py-2 border-b border-gray-100 dark:border-slate-700">
+                      <p className="text-sm font-medium text-gray-900 dark:text-slate-100 truncate">
                         {user.full_name || t('auth.user')}
                       </p>
-                      <p className="text-xs text-gray-500 truncate">
+                      <p className="text-xs text-gray-500 dark:text-slate-400 truncate">
                         {user.email}
                       </p>
-                      <p className="text-xs text-green-600 mt-1">
+                      <p className="text-xs text-green-600 dark:text-emerald-400 mt-1">
                         {user.role === 'admin' ? t('auth.admin') : t('auth.authenticated')}
                       </p>
                     </div>
                     <Link
                       href="/settings"
-                      className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700"
                       role="menuitem"
                       onClick={() => setUserMenuOpen(false)}
                     >
@@ -279,7 +279,7 @@ export default function UnifiedHeader({ variant = 'auto' }: UnifiedHeaderProps) 
                     </Link>
                     <button
                       onClick={handleLogout}
-                      className="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                      className="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
                       role="menuitem"
                     >
                       <LogOut className="h-4 w-4" aria-hidden="true" />
@@ -315,7 +315,7 @@ export default function UnifiedHeader({ variant = 'auto' }: UnifiedHeaderProps) 
                 inline-flex items-center justify-center p-2 rounded-lg
                 focus:outline-none focus:ring-2
                 ${isPublic
-                  ? 'text-gray-600 hover:bg-gray-100 focus:ring-cp2b-lime'
+                  ? 'text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700 focus:ring-cp2b-lime'
                   : 'text-white hover:bg-white/10 focus:ring-white'
                 }
               `}
@@ -393,7 +393,7 @@ export default function UnifiedHeader({ variant = 'auto' }: UnifiedHeaderProps) 
             </div>
 
             {/* Mobile Toggles */}
-            <div className={`px-4 py-3 border-t ${isPublic ? 'border-gray-200' : 'border-white/20'}`}>
+            <div className={`px-4 py-3 border-t ${isPublic ? 'border-gray-200 dark:border-slate-700' : 'border-white/20'}`}>
               <div className="flex items-center justify-between gap-4">
                 <LanguageSwitcher />
                 <ThemeToggle variant={isPublic ? 'light' : 'dark'} />
@@ -402,16 +402,16 @@ export default function UnifiedHeader({ variant = 'auto' }: UnifiedHeaderProps) 
 
             {/* Mobile User Section */}
             {isAuthenticated && user ? (
-              <div className={`border-t ${isPublic ? 'border-gray-200' : 'border-white/20'} px-4 py-4`}>
+              <div className={`border-t ${isPublic ? 'border-gray-200 dark:border-slate-700' : 'border-white/20'} px-4 py-4`}>
                 <div className="flex items-center gap-3 mb-3">
                   <User className={`h-8 w-8 p-1 rounded-full ${
-                    isPublic ? 'text-gray-700 bg-gray-100' : 'text-white bg-white/20'
+                    isPublic ? 'text-gray-700 dark:text-slate-300 bg-gray-100 dark:bg-slate-700' : 'text-white bg-white/20'
                   }`} />
                   <div>
-                    <p className={`text-sm font-medium ${isPublic ? 'text-gray-900' : 'text-white'}`}>
+                    <p className={`text-sm font-medium ${isPublic ? 'text-gray-900 dark:text-slate-100' : 'text-white'}`}>
                       {user.full_name || t('auth.user')}
                     </p>
-                    <p className={`text-xs ${isPublic ? 'text-gray-500' : 'text-green-200'}`}>
+                    <p className={`text-xs ${isPublic ? 'text-gray-500 dark:text-slate-400' : 'text-green-200'}`}>
                       {user.email}
                     </p>
                   </div>
@@ -425,7 +425,7 @@ export default function UnifiedHeader({ variant = 'auto' }: UnifiedHeaderProps) 
                 </button>
               </div>
             ) : (
-              <div className={`border-t ${isPublic ? 'border-gray-200' : 'border-white/20'} px-4 py-4`}>
+              <div className={`border-t ${isPublic ? 'border-gray-200 dark:border-slate-700' : 'border-white/20'} px-4 py-4`}>
                 <Link
                   href="/login"
                   className={`

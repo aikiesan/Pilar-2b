@@ -156,7 +156,7 @@ export default function WelcomeWizard({ onComplete, onClose }: WelcomeWizardProp
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="relative w-full max-w-2xl mx-4 bg-white rounded-2xl shadow-2xl overflow-hidden">
+      <div className="relative w-full max-w-2xl mx-4 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl overflow-hidden">
 
         {/* Header */}
         <div className="bg-gradient-to-r from-cp2b-green to-cp2b-lime px-6 py-4 flex items-center justify-between">
@@ -173,13 +173,13 @@ export default function WelcomeWizard({ onComplete, onClose }: WelcomeWizardProp
         </div>
 
         {/* Progress bar */}
-        <div className="px-6 py-2 bg-gray-50 border-b border-gray-200">
+        <div className="px-6 py-2 bg-gray-50 dark:bg-slate-900/50 border-b border-gray-200 dark:border-slate-700">
           <div className="flex gap-1.5">
             {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
-              <div key={i} className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${i <= step ? 'bg-cp2b-green' : 'bg-gray-200'}`} />
+              <div key={i} className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${i <= step ? 'bg-cp2b-green' : 'bg-gray-200 dark:bg-slate-700'}`} />
             ))}
           </div>
-          <p className="text-xs text-gray-500 mt-1 text-center">{t('step_indicator', { current: step + 1, total: TOTAL_STEPS })}</p>
+          <p className="text-xs text-gray-500 dark:text-slate-400 mt-1 text-center">{t('step_indicator', { current: step + 1, total: TOTAL_STEPS })}</p>
         </div>
 
         {/* Body */}
@@ -189,12 +189,12 @@ export default function WelcomeWizard({ onComplete, onClose }: WelcomeWizardProp
           {step === 0 && (
             <div className="space-y-5">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-2">
                   {t('residue_label')} <span className="text-red-500">*</span>
                 </label>
 
                 {/* Category tabs */}
-                <div className="flex gap-1 mb-3 bg-gray-100 p-1 rounded-lg">
+                <div className="flex gap-1 mb-3 bg-gray-100 dark:bg-slate-700 p-1 rounded-lg">
                   {([
                     { key: 'agricultural', emoji: '🌾' },
                     { key: 'livestock',    emoji: '🐄' },
@@ -207,8 +207,8 @@ export default function WelcomeWizard({ onComplete, onClose }: WelcomeWizardProp
                       onClick={() => setActiveCategory(key)}
                       className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-md text-xs font-medium transition-all ${
                         activeCategory === key
-                          ? 'bg-white text-cp2b-dark-green shadow-sm'
-                          : 'text-gray-500 hover:text-gray-700'
+                          ? 'bg-white dark:bg-slate-600 text-cp2b-dark-green dark:text-emerald-300 shadow-sm'
+                          : 'text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200'
                       }`}
                     >
                       <span>{emoji}</span>
@@ -226,15 +226,15 @@ export default function WelcomeWizard({ onComplete, onClose }: WelcomeWizardProp
                       onClick={() => setResidueCode(r.code)}
                       className={`text-left px-3 py-2 rounded-lg border transition-all ${
                         residueCode === r.code
-                          ? 'bg-cp2b-green/10 border-cp2b-green ring-1 ring-cp2b-green text-cp2b-dark-green'
-                          : 'bg-white border-gray-200 text-gray-700 hover:border-cp2b-green'
+                          ? 'bg-cp2b-green/10 border-cp2b-green ring-1 ring-cp2b-green text-cp2b-dark-green dark:text-emerald-300'
+                          : 'bg-white dark:bg-slate-700 border-gray-200 dark:border-slate-600 text-gray-700 dark:text-slate-300 hover:border-cp2b-green dark:hover:border-emerald-500'
                       }`}
                     >
                       <p className="text-sm font-medium truncate leading-tight">{r.name}</p>
                       {r.observation ? (
-                        <p className="text-xs text-gray-400 mt-0.5 line-clamp-2 italic leading-tight">{r.observation}</p>
+                        <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5 line-clamp-2 italic leading-tight">{r.observation}</p>
                       ) : (
-                        <p className="text-xs text-gray-300 mt-0.5">{r.classification}</p>
+                        <p className="text-xs text-gray-300 dark:text-slate-600 mt-0.5">{r.classification}</p>
                       )}
                     </button>
                   ))}
@@ -242,7 +242,7 @@ export default function WelcomeWizard({ onComplete, onClose }: WelcomeWizardProp
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-1.5">
                   {t('amount_label')} <span className="text-red-500">*</span>
                 </label>
                 <div className="flex items-center gap-2">
@@ -253,22 +253,22 @@ export default function WelcomeWizard({ onComplete, onClose }: WelcomeWizardProp
                     step={100}
                     placeholder="0"
                     onChange={e => setAmountTons(e.target.value === '' ? '' : Math.max(1, Number(e.target.value)))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-cp2b-green focus:border-transparent"
+                    className="input-field"
                   />
-                  <span className="text-sm text-gray-500 whitespace-nowrap">t/ano</span>
+                  <span className="text-sm text-gray-500 dark:text-slate-400 whitespace-nowrap">t/ano</span>
                 </div>
                 {selectedResidue?.potentialSP && (
-                  <p className="text-xs text-gray-500 mt-1">{t('sp_reference')}: {selectedResidue.potentialSP}</p>
+                  <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">{t('sp_reference')}: {selectedResidue.potentialSP}</p>
                 )}
               </div>
 
               {selectedResidue && (
-                <div className="bg-green-50 rounded-lg px-4 py-3 text-sm text-gray-700 space-y-1">
+                <div className="bg-green-50 dark:bg-emerald-900/20 rounded-lg px-4 py-3 text-sm text-gray-700 dark:text-slate-300 space-y-1">
                   <div className="flex gap-4">
                     <p><span className="font-medium">BMP:</span> {selectedResidue.bmp} m³/kgSV</p>
                   </div>
                   {selectedResidue.observation && (
-                    <p className="text-xs text-gray-500 italic">{selectedResidue.observation}</p>
+                    <p className="text-xs text-gray-500 dark:text-slate-400 italic">{selectedResidue.observation}</p>
                   )}
                 </div>
               )}
@@ -278,7 +278,7 @@ export default function WelcomeWizard({ onComplete, onClose }: WelcomeWizardProp
           {/* ── Step 1: Availability ── */}
           {step === 1 && (
             <div className="space-y-4">
-              <p className="text-sm text-gray-600">{t('availability_hint')}</p>
+              <p className="text-sm text-gray-600 dark:text-slate-400">{t('availability_hint')}</p>
               <div className="grid grid-cols-4 gap-2">
                 {MONTHS.map((m, i) => (
                   <button
@@ -288,7 +288,7 @@ export default function WelcomeWizard({ onComplete, onClose }: WelcomeWizardProp
                     className={`py-2.5 rounded-lg text-sm font-medium border transition-all ${
                       availabilityMonths.includes(m)
                         ? 'bg-cp2b-green text-white border-cp2b-green shadow-sm'
-                        : 'bg-white text-gray-600 border-gray-200 hover:border-cp2b-green'
+                        : 'bg-white dark:bg-slate-700 text-gray-600 dark:text-slate-300 border-gray-200 dark:border-slate-600 hover:border-cp2b-green dark:hover:border-emerald-500'
                     }`}
                   >
                     {MONTH_NAMES_SHORT[i]}
@@ -299,15 +299,15 @@ export default function WelcomeWizard({ onComplete, onClose }: WelcomeWizardProp
                 <button type="button" onClick={() => setAvailabilityMonths(MONTHS)} className="text-xs text-cp2b-green hover:underline">
                   {t('select_all_months')}
                 </button>
-                <button type="button" onClick={() => setAvailabilityMonths([])} className="text-xs text-gray-500 hover:underline">
+                <button type="button" onClick={() => setAvailabilityMonths([])} className="text-xs text-gray-500 dark:text-slate-400 hover:underline">
                   {t('clear_months')}
                 </button>
               </div>
               {availabilityMonths.length > 0 && (
-                <p className="text-sm bg-green-50 rounded-lg px-3 py-2 text-gray-700">
+                <p className="text-sm bg-green-50 dark:bg-emerald-900/20 rounded-lg px-3 py-2 text-gray-700 dark:text-slate-300">
                   {t('months_selected', { count: availabilityMonths.length })}
                   {availabilityMonths.length < 12 && (
-                    <span className="text-amber-600 ml-1">— {t('seasonal_warning')}</span>
+                    <span className="text-amber-600 dark:text-amber-400 ml-1">— {t('seasonal_warning')}</span>
                   )}
                 </p>
               )}
@@ -320,7 +320,7 @@ export default function WelcomeWizard({ onComplete, onClose }: WelcomeWizardProp
 
               {/* Section A — Business outcome cards (always rendered) */}
               <div>
-                <p className="text-sm font-semibold text-gray-700 mb-2">
+                <p className="text-sm font-semibold text-gray-700 dark:text-slate-300 mb-2">
                   {t('outcomes_label')} <span className="text-red-500">*</span>
                 </p>
                 <div className="space-y-2">
@@ -337,25 +337,25 @@ export default function WelcomeWizard({ onComplete, onClose }: WelcomeWizardProp
                         className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border text-left transition-all ${
                           selected
                             ? 'bg-cp2b-green/10 border-cp2b-green ring-1 ring-cp2b-green'
-                            : 'bg-white border-gray-200 hover:border-cp2b-green'
+                            : 'bg-white dark:bg-slate-700 border-gray-200 dark:border-slate-600 hover:border-cp2b-green dark:hover:border-emerald-500'
                         }`}
                       >
                         <span className="text-2xl flex-shrink-0 leading-none">{outcome.icon}</span>
                         <div className="flex-1 min-w-0">
-                          <p className={`font-semibold text-sm ${selected ? 'text-cp2b-dark-green' : 'text-gray-800'}`}>
+                          <p className={`font-semibold text-sm ${selected ? 'text-cp2b-dark-green dark:text-emerald-300' : 'text-gray-800 dark:text-slate-200'}`}>
                             {outcome.label}
                           </p>
-                          <p className="text-xs text-gray-500 truncate">{outcome.desc}</p>
+                          <p className="text-xs text-gray-500 dark:text-slate-400 truncate">{outcome.desc}</p>
                         </div>
                         {hasData ? (
                           <div className="text-right flex-shrink-0 min-w-[90px]">
-                            <p className="text-xs text-gray-400">{fmtQty(qty, outcome.unit)}</p>
-                            <p className={`text-sm font-bold tabular-nums ${selected ? 'text-cp2b-dark-green' : 'text-gray-700'}`}>
-                              {fmtBRL(revenue)}<span className="text-xs font-normal text-gray-400">/ano</span>
+                            <p className="text-xs text-gray-400 dark:text-slate-500">{fmtQty(qty, outcome.unit)}</p>
+                            <p className={`text-sm font-bold tabular-nums ${selected ? 'text-cp2b-dark-green dark:text-emerald-300' : 'text-gray-700 dark:text-slate-300'}`}>
+                              {fmtBRL(revenue)}<span className="text-xs font-normal text-gray-400 dark:text-slate-500">/ano</span>
                             </p>
                           </div>
                         ) : (
-                          <p className="text-xs text-gray-300 flex-shrink-0 italic">insira qtd.</p>
+                          <p className="text-xs text-gray-300 dark:text-slate-600 flex-shrink-0 italic">insira qtd.</p>
                         )}
                         {selected && <CheckCircle2 className="h-4 w-4 text-cp2b-green flex-shrink-0" />}
                       </button>
@@ -366,8 +366,8 @@ export default function WelcomeWizard({ onComplete, onClose }: WelcomeWizardProp
 
               {/* Section B — Purification tech (only when fuel is selected) */}
               {businessOutcomes.includes('fuel') && (
-                <div className="bg-blue-50 border border-blue-200 rounded-xl p-3">
-                  <p className="text-xs font-semibold text-blue-700 mb-2 uppercase tracking-wide">
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-3">
+                  <p className="text-xs font-semibold text-blue-700 dark:text-blue-300 mb-2 uppercase tracking-wide">
                     🔬 {t('purification_label')}
                   </p>
                   <div className="grid grid-cols-2 gap-2">
@@ -378,8 +378,8 @@ export default function WelcomeWizard({ onComplete, onClose }: WelcomeWizardProp
                         onClick={() => setUpgradingTechId(opt.id)}
                         className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm transition-all text-left ${
                           upgradingTechId === opt.id
-                            ? 'bg-blue-100 border-blue-400 text-blue-800 font-semibold'
-                            : 'bg-white border-gray-200 text-gray-600 hover:border-blue-300'
+                            ? 'bg-blue-100 dark:bg-blue-900/40 border-blue-400 dark:border-blue-500 text-blue-800 dark:text-blue-200 font-semibold'
+                            : 'bg-white dark:bg-slate-700 border-gray-200 dark:border-slate-600 text-gray-600 dark:text-slate-300 hover:border-blue-300 dark:hover:border-blue-500'
                         }`}
                       >
                         <span>{opt.icon}</span>
@@ -391,21 +391,21 @@ export default function WelcomeWizard({ onComplete, onClose }: WelcomeWizardProp
               )}
 
               {/* Section C — Digester + Pre-treatment (requires API data) */}
-              <div className="border-t border-gray-100 pt-4 space-y-4">
+              <div className="border-t border-gray-100 dark:border-slate-700 pt-4 space-y-4">
                 {loadingTech ? (
-                  <p className="text-center text-sm text-gray-400 py-2">{t('loading_technologies')}</p>
+                  <p className="text-center text-sm text-gray-400 dark:text-slate-500 py-2">{t('loading_technologies')}</p>
                 ) : technologies.length === 0 ? (
                   <p className="text-center text-sm text-red-500 py-2">{t('no_technologies_found')}</p>
                 ) : (
                   <>
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-1.5">
                         {t('digester_label')} <span className="text-red-500">*</span>
                       </label>
                       <select
                         value={digesterTechnologyId}
                         onChange={e => setDigesterTechnologyId(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-cp2b-green focus:border-transparent"
+                        className="input-field"
                       >
                         <option value="">{t('digester_placeholder')}</option>
                         {digesters.map(tech => (
@@ -415,13 +415,13 @@ export default function WelcomeWizard({ onComplete, onClose }: WelcomeWizardProp
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                        {t('pretreatment_label')} <span className="text-gray-400 font-normal">({t('optional')})</span>
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-1.5">
+                        {t('pretreatment_label')} <span className="text-gray-400 dark:text-slate-500 font-normal">({t('optional')})</span>
                       </label>
                       <select
                         value={preTreatmentId ?? ''}
                         onChange={e => setPreTreatmentId(e.target.value || null)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-cp2b-green focus:border-transparent"
+                        className="input-field"
                       >
                         <option value="">{t('none')}</option>
                         {pretreatments.map(tech => (
@@ -434,18 +434,18 @@ export default function WelcomeWizard({ onComplete, onClose }: WelcomeWizardProp
               </div>
 
               {/* Section D — Price overrides (collapsible, SP baselines as placeholders) */}
-              <details className="border border-dashed border-gray-300 rounded-xl group">
-                <summary className="px-4 py-3 text-xs font-semibold text-gray-500 cursor-pointer hover:text-gray-700 select-none list-none flex items-center justify-between">
+              <details className="border border-dashed border-gray-300 dark:border-slate-600 rounded-xl group">
+                <summary className="px-4 py-3 text-xs font-semibold text-gray-500 dark:text-slate-400 cursor-pointer hover:text-gray-700 dark:hover:text-slate-200 select-none list-none flex items-center justify-between">
                   <span>💰 {t('price_overrides_label')}</span>
-                  <span className="text-gray-400">▸</span>
+                  <span className="text-gray-400 dark:text-slate-500">▸</span>
                 </summary>
                 <div className="px-4 pb-4 pt-1 space-y-2.5">
-                  <p className="text-xs text-gray-400 mb-3">
+                  <p className="text-xs text-gray-400 dark:text-slate-500 mb-3">
                     Padrão: médias SP 2025–2026. Deixe em branco para usar referências automáticas.
                   </p>
                   {TARIFF_ROWS.map(row => (
                     <div key={row.key} className="flex items-center gap-2">
-                      <label className="text-xs text-gray-600 w-36 shrink-0">
+                      <label className="text-xs text-gray-600 dark:text-slate-400 w-36 shrink-0">
                         {row.icon} {OUTCOMES.find(o => o.priceKey === row.key)?.label}
                       </label>
                       <div className="flex items-center gap-1 flex-1">
@@ -456,9 +456,9 @@ export default function WelcomeWizard({ onComplete, onClose }: WelcomeWizardProp
                           step={row.step}
                           placeholder={String(SP_MARKET_BASELINES[row.key])}
                           onChange={e => setTariffValues(prev => ({ ...prev, [row.key]: e.target.value }))}
-                          className="w-full px-2 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-cp2b-green focus:border-transparent"
+                          className="input-field py-1.5"
                         />
-                        <span className="text-xs text-gray-400 whitespace-nowrap">{row.unit}</span>
+                        <span className="text-xs text-gray-400 dark:text-slate-500 whitespace-nowrap">{row.unit}</span>
                       </div>
                     </div>
                   ))}
@@ -470,11 +470,11 @@ export default function WelcomeWizard({ onComplete, onClose }: WelcomeWizardProp
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex items-center justify-between">
+        <div className="px-6 py-4 bg-gray-50 dark:bg-slate-900/50 border-t border-gray-200 dark:border-slate-700 flex items-center justify-between">
           <button
             type="button"
             onClick={() => step > 0 ? setStep(s => s - 1) : onClose()}
-            className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-gray-700 dark:text-slate-300 bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-600 transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
             {step === 0 ? t('cancel') : t('back')}

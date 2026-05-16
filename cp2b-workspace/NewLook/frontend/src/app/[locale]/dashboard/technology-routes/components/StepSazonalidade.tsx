@@ -41,14 +41,14 @@ export default function StepSazonalidade({ activeMonths, activityType, onChange,
   return (
     <div className="space-y-5">
       <div className="text-center">
-        <p className="text-sm text-gray-600 mb-1">
+        <p className="text-sm text-gray-600 dark:text-slate-400 mb-1">
           {activityType === 'sugarcane'
             ? t('step3.caneNote')
             : activityType === 'livestock'
               ? t('step3.livestockNote')
               : t('step3.cropNote')}
         </p>
-        <p className="text-xs text-gray-400">{t('step3.toggleHint')}</p>
+        <p className="text-xs text-gray-400 dark:text-slate-500">{t('step3.toggleHint')}</p>
       </div>
 
       {/* Visual bar chart */}
@@ -84,7 +84,7 @@ export default function StepSazonalidade({ activeMonths, activityType, onChange,
               className={`py-1.5 rounded-lg text-xs font-medium border transition-colors
                 ${active
                   ? 'bg-green-600 text-white border-green-600'
-                  : 'bg-white text-gray-500 border-gray-300 hover:border-green-400'}`}
+                  : 'bg-white dark:bg-slate-800 text-gray-500 dark:text-slate-400 border-gray-300 dark:border-slate-600 hover:border-green-400 dark:hover:border-emerald-500'}`}
             >
               {label}
             </button>
@@ -92,7 +92,7 @@ export default function StepSazonalidade({ activeMonths, activityType, onChange,
         })}
       </div>
 
-      <p className="text-center text-xs text-gray-500">
+      <p className="text-center text-xs text-gray-500 dark:text-slate-400">
         {activeMonths.length} {t('step3.monthsActive')}
         {activityType === 'sugarcane' && activeMonths.length < 6 && (
           <span className="ml-2 text-amber-500">⚠ {t('step3.shortSafraWarning')}</span>
@@ -102,7 +102,7 @@ export default function StepSazonalidade({ activeMonths, activityType, onChange,
       <div className="flex gap-3">
         <button
           onClick={onBack}
-          className="flex-1 py-3 rounded-xl font-medium text-gray-600 border border-gray-300 hover:bg-gray-50 transition-colors"
+          className="flex-1 py-3 rounded-xl font-medium text-gray-600 dark:text-slate-300 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
         >
           ← {t('common.back')}
         </button>

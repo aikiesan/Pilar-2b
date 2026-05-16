@@ -100,10 +100,10 @@ function ComparePageContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-slate-900 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">{t('compare.loading_comparison')}</p>
+          <p className="text-gray-600 dark:text-slate-400">{t('compare.loading_comparison')}</p>
         </div>
       </div>
     );
@@ -126,43 +126,43 @@ function ComparePageContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-900 pb-20">
       {/* Breadcrumb */}
-      <div className="bg-white border-b">
+      <div className="bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700">
         <Breadcrumb items={breadcrumbs} />
       </div>
 
       {/* Page Title */}
-      <div className="bg-white border-b shadow-sm">
+      <div className="bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <h1 className="text-2xl font-bold text-gray-900">{t('compare.title')}</h1>
-          <p className="text-gray-600 mt-1">{t('compare.comparing', { count: municipalities.length })}</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100">{t('compare.title')}</h1>
+          <p className="text-gray-600 dark:text-slate-400 mt-1">{t('compare.comparing', { count: municipalities.length })}</p>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Comparison Table */}
-        <div className="bg-white rounded-lg shadow overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+        <div className="bg-white dark:bg-slate-800 rounded-lg shadow overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-slate-700">
+            <thead className="bg-gray-50 dark:bg-slate-700">
               <tr>
-                <th className="sticky left-0 bg-gray-50 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider z-10">
+                <th className="sticky left-0 bg-gray-50 dark:bg-slate-700 px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider z-10">
                   {t('compare.indicator')}
                 </th>
                 {municipalities.map((m) => (
                   <th
                     key={m.id}
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider"
                   >
-                    <div className="font-bold text-gray-900">{m.municipality_name}</div>
-                    <div className="font-normal text-gray-500 normal-case">
+                    <div className="font-bold text-gray-900 dark:text-slate-100">{m.municipality_name}</div>
+                    <div className="font-normal text-gray-500 dark:text-slate-400 normal-case">
                       {t('compare.ibge_code')}: {m.ibge_code || 'N/A'}
                     </div>
                   </th>
                 ))}
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white dark:bg-slate-800 divide-y divide-gray-200 dark:divide-slate-700">
               {/* Location */}
               <ComparisonRow
                 label={t('compare.admin_region')}
@@ -193,8 +193,8 @@ function ComparePageContent() {
               />
 
               {/* Biogas Potential section header */}
-              <tr className="bg-green-50">
-                <td colSpan={municipalities.length + 1} className="px-6 py-2 text-sm font-bold text-green-900">
+              <tr className="bg-green-50 dark:bg-emerald-900/30">
+                <td colSpan={municipalities.length + 1} className="px-6 py-2 text-sm font-bold text-green-900 dark:text-emerald-300">
                   {t('compare.biogas_section')}
                 </td>
               </tr>
@@ -229,8 +229,8 @@ function ComparePageContent() {
               />
 
               {/* Energy and Environmental section header */}
-              <tr className="bg-yellow-50">
-                <td colSpan={municipalities.length + 1} className="px-6 py-2 text-sm font-bold text-yellow-900">
+              <tr className="bg-yellow-50 dark:bg-yellow-900/20">
+                <td colSpan={municipalities.length + 1} className="px-6 py-2 text-sm font-bold text-yellow-900 dark:text-yellow-300">
                   {t('compare.energy_section')}
                 </td>
               </tr>
@@ -294,15 +294,15 @@ function ComparisonRow({
   highlight = false,
 }: ComparisonRowProps) {
   return (
-    <tr className={highlight ? 'bg-green-50' : ''}>
-      <td className={`sticky left-0 ${highlight ? 'bg-green-50' : 'bg-white'} px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 z-10`}>
+    <tr className={highlight ? 'bg-green-50 dark:bg-emerald-900/20' : 'hover:bg-gray-50 dark:hover:bg-slate-700/50'}>
+      <td className={`sticky left-0 ${highlight ? 'bg-green-50 dark:bg-emerald-900/20' : 'bg-white dark:bg-slate-800'} px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-slate-100 z-10`}>
         {label}
       </td>
       {values.map((value, index) => (
-        <td key={index} className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+        <td key={index} className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-slate-300">
           <div className="flex items-center gap-2">
             {numericValues && getComparisonIcon && getComparisonIcon(numericValues, index)}
-            <span className={highlight ? 'font-bold text-green-900' : ''}>{value}</span>
+            <span className={highlight ? 'font-bold text-green-900 dark:text-emerald-300' : ''}>{value}</span>
           </div>
         </td>
       ))}

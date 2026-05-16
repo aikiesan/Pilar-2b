@@ -258,10 +258,10 @@ function ProximityAnalysisContent() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-slate-900">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cp2b-primary mx-auto"></div>
-          <p className="mt-4 text-gray-600">Carregando...</p>
+          <p className="mt-4 text-gray-600 dark:text-slate-400">Carregando...</p>
         </div>
       </div>
     )
@@ -272,7 +272,7 @@ function ProximityAnalysisContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-900">
       <Breadcrumb items={[
         { label: t('back_to_dashboard'), href: '/dashboard' },
         { label: t('proximity.title') },
@@ -291,12 +291,12 @@ function ProximityAnalysisContent() {
           {/* Left Panel - Controls */}
           <div className="space-y-4">
             {/* Instructions */}
-            <div className="bg-white rounded-lg shadow-md p-4">
-              <h3 className="font-semibold text-gray-900 mb-3 flex items-center">
+            <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md p-4">
+              <h3 className="font-semibold text-gray-900 dark:text-slate-100 mb-3 flex items-center">
                 <Info className="h-5 w-5 mr-2 text-emerald-600" />
                 Como usar
               </h3>
-              <ol className="text-sm text-gray-600 space-y-2">
+              <ol className="text-sm text-gray-600 dark:text-slate-400 space-y-2">
                 <li className="flex items-start">
                   <span className="flex-shrink-0 w-5 h-5 bg-emerald-100 text-emerald-600 rounded-full text-xs flex items-center justify-center mr-2 mt-0.5">1</span>
                   Clique no mapa para selecionar um ponto
@@ -313,38 +313,38 @@ function ProximityAnalysisContent() {
             </div>
 
             {/* Point Selection */}
-            <div className="bg-white rounded-lg shadow-md p-4">
-              <h3 className="font-semibold text-gray-900 mb-3 flex items-center">
+            <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md p-4">
+              <h3 className="font-semibold text-gray-900 dark:text-slate-100 mb-3 flex items-center">
                 <MapPin className="h-5 w-5 mr-2 text-emerald-600" />
                 Ponto Selecionado
               </h3>
               {selectedPoint ? (
                 <div className="space-y-2">
                   <div className="flex items-center text-sm">
-                    <span className="text-gray-500 w-20">Latitude:</span>
-                    <span className="font-mono text-gray-900">{selectedPoint.lat.toFixed(6)}</span>
+                    <span className="text-gray-500 dark:text-slate-400 w-20">Latitude:</span>
+                    <span className="font-mono text-gray-900 dark:text-slate-100">{selectedPoint.lat.toFixed(6)}</span>
                   </div>
                   <div className="flex items-center text-sm">
-                    <span className="text-gray-500 w-20">Longitude:</span>
-                    <span className="font-mono text-gray-900">{selectedPoint.lng.toFixed(6)}</span>
+                    <span className="text-gray-500 dark:text-slate-400 w-20">Longitude:</span>
+                    <span className="font-mono text-gray-900 dark:text-slate-100">{selectedPoint.lng.toFixed(6)}</span>
                   </div>
                 </div>
               ) : (
-                <p className="text-sm text-gray-500 italic">
+                <p className="text-sm text-gray-500 dark:text-slate-400 italic">
                   Clique no mapa para selecionar um ponto
                 </p>
               )}
             </div>
 
             {/* Radius Control */}
-            <div className="bg-white rounded-lg shadow-md p-4">
-              <h3 className="font-semibold text-gray-900 mb-3 flex items-center">
+            <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md p-4">
+              <h3 className="font-semibold text-gray-900 dark:text-slate-100 mb-3 flex items-center">
                 <Circle className="h-5 w-5 mr-2 text-emerald-600" />
                 Raio de Captação
               </h3>
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-2xl font-bold text-gray-900">{radius} km</span>
+                  <span className="text-2xl font-bold text-gray-900 dark:text-slate-100">{radius} km</span>
                   <span className={`text-sm font-medium ${getRadiusColor(radius)}`}>
                     {getRadiusLabel(radius)}
                   </span>
@@ -365,7 +365,7 @@ function ProximityAnalysisContent() {
                       #ef4444 60%, #ef4444 100%)`
                   }}
                 />
-                <div className="flex justify-between text-xs text-gray-500">
+                <div className="flex justify-between text-xs text-gray-500 dark:text-slate-400">
                   <span>10 km</span>
                   <span className="text-green-600 font-medium">20 km</span>
                   <span>50 km</span>
@@ -388,7 +388,7 @@ function ProximityAnalysisContent() {
               className={`w-full py-3 px-4 rounded-lg font-medium transition-colors flex items-center justify-center ${
                 selectedPoint && !loading
                   ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                  : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                  : 'bg-gray-200 dark:bg-slate-700 text-gray-500 dark:text-slate-400 cursor-not-allowed'
               }`}
             >
               {loading ? (
@@ -417,7 +417,7 @@ function ProximityAnalysisContent() {
 
           {/* Center Panel - Map */}
           <div className="lg:col-span-2">
-            <div className="bg-white rounded-lg shadow-md overflow-hidden">
+            <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md overflow-hidden">
               <ProximityMap
                 selectedPoint={selectedPoint}
                 radius={radius}
@@ -436,15 +436,15 @@ function ProximityAnalysisContent() {
             <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <CheckCircle2 className="h-6 w-6 text-green-600 mr-2" />
-                <h2 className="text-xl font-bold text-gray-900">Análise de Uso do Solo</h2>
-                <span className="ml-3 text-sm text-gray-500">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-slate-100">Análise de Uso do Solo</h2>
+                <span className="ml-3 text-sm text-gray-500 dark:text-slate-400">
                   {analysisResult.summary?.total_municipalities || 0} municípios • Processado em {analysisResult.metadata.processing_time_ms}ms
                 </span>
               </div>
               <div className="flex gap-2">
                 <button
                   onClick={handleShare}
-                  className="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                  className="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 dark:text-slate-300 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700"
                 >
                   <Share2 className="h-4 w-4 mr-2" />
                   Compartilhar
@@ -514,16 +514,16 @@ function ProximityAnalysisContent() {
 
                   {/* Land Use Breakdown - Card Style */}
                   {analysisResult.results.land_use.by_class && Object.keys(analysisResult.results.land_use.by_class).length > 0 && (
-                    <div className="bg-white rounded-2xl shadow-xl p-8">
-                      <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-8">
+                      <h3 className="text-2xl font-bold text-gray-900 dark:text-slate-100 mb-6 flex items-center">
                         <Layers className="h-6 w-6 mr-3 text-blue-600" />
                         Distribuição Detalhada do Uso do Solo
                       </h3>
 
                       {/* Large Visual Bar */}
                       <div className="mb-8">
-                        <p className="text-sm font-medium text-gray-600 mb-3">Proporção Visual</p>
-                        <div className="w-full h-16 flex rounded-xl overflow-hidden shadow-lg border-2 border-gray-200">
+                        <p className="text-sm font-medium text-gray-600 dark:text-slate-400 mb-3">Proporção Visual</p>
+                        <div className="w-full h-16 flex rounded-xl overflow-hidden shadow-lg border-2 border-gray-200 dark:border-slate-700">
                           {Object.entries(analysisResult.results.land_use.by_class)
                             .sort(([, a]: [string, any], [, b]: [string, any]) => (b.percent || 0) - (a.percent || 0))
                             .map(([classId, classData]: [string, any]) => (
@@ -555,7 +555,7 @@ function ProximityAnalysisContent() {
                           .map(([classId, classData]: [string, any]) => (
                             <div
                               key={classId}
-                              className="bg-gradient-to-br from-white to-gray-50 rounded-xl p-5 border-2 hover:border-gray-300 transition-all hover:shadow-lg cursor-pointer group"
+                              className="bg-gradient-to-br from-white to-gray-50 dark:from-slate-800 dark:to-slate-700 rounded-xl p-5 border-2 hover:border-gray-300 dark:hover:border-slate-600 transition-all hover:shadow-lg cursor-pointer group"
                               style={{ borderColor: `${classData.color}40` }}
                             >
                               <div className="flex items-start gap-4">
@@ -567,24 +567,24 @@ function ProximityAnalysisContent() {
                                 
                                 <div className="flex-1 min-w-0">
                                   {/* Class Name */}
-                                  <h4 className="font-bold text-gray-900 mb-1 text-base leading-tight">
+                                  <h4 className="font-bold text-gray-900 dark:text-slate-100 mb-1 text-base leading-tight">
                                     {classData.name || `Classe ${classId}`}
                                   </h4>
                                   
                                   {/* Category Badge */}
-                                  <span className="inline-block px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs mb-3">
+                                  <span className="inline-block px-2 py-0.5 bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-400 rounded text-xs mb-3">
                                     {classData.category || 'Outros'}
                                   </span>
                                   
                                   {/* Stats */}
                                   <div className="space-y-1">
                                     <div className="flex items-baseline gap-2">
-                                      <span className="text-2xl font-bold text-gray-900">
+                                      <span className="text-2xl font-bold text-gray-900 dark:text-slate-100">
                                         {(classData.percent || 0).toFixed(1)}%
                                       </span>
-                                      <span className="text-sm text-gray-500">da área</span>
+                                      <span className="text-sm text-gray-500 dark:text-slate-400">da área</span>
                                     </div>
-                                    <p className="text-sm text-gray-600 font-medium">
+                                    <p className="text-sm text-gray-600 dark:text-slate-400 font-medium">
                                       {(classData.area_km2 || 0).toFixed(2)} km²
                                     </p>
                                   </div>
@@ -666,10 +666,10 @@ function ProximityAnalysisContent() {
 export default function ProximityAnalysisPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-slate-900">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Carregando...</p>
+          <p className="mt-4 text-gray-600 dark:text-slate-400">Carregando...</p>
         </div>
       </div>
     }>

@@ -58,20 +58,58 @@ function fmtBiogas(m3: number): string {
   return m3.toLocaleString('pt-BR', { maximumFractionDigits: 0 })
 }
 
+/** Update the CSS gradient fill on a range input to reflect its current value */
+function updateRangeFill(el: HTMLInputElement, max: number) {
+  const pct = max > 0 ? ((parseFloat(el.value) / max) * 100).toFixed(1) : '0'
+  el.style.setProperty('--range-pct', `${pct}%`)
+}
+
+// ── Slider with fill + min/max labels ────────────────────────────────────────
+interface SliderProps {
+  value: number
+  max: number
+  step?: number
+  onChange: (v: number) => void
+}
+function Slider({ value, max, step = 1, onChange }: SliderProps) {
+  return (
+    <div className="mt-3">
+      <input
+        type="range"
+        min={0}
+        max={max}
+        step={step}
+        value={value}
+        style={{ '--range-pct': `${max > 0 ? ((value / max) * 100).toFixed(1) : 0}%` } as React.CSSProperties}
+        onChange={e => {
+          const v = parseFloat(e.target.value) || 0
+          onChange(v)
+          updateRangeFill(e.target, max)
+        }}
+        className="w-full"
+      />
+      <div className="flex justify-between text-xs text-gray-400 dark:text-slate-500 mt-0.5">
+        <span>0</span>
+        <span>{fmt(max)}</span>
+      </div>
+    </div>
+  )
+}
+
 // ── Residue Breakdown Panels ─────────────────────────────────────────────────
 
 const STREAM_LABELS: Record<keyof typeof SUGARCANE_STREAMS, { label: string; emoji: string; note: string }> = {
-  bagaco:  { label: 'Bagaço',        emoji: '🟫', note: `${(SUGARCANE_STREAMS.bagaco.fde * 100).toFixed(0)}% disponível p/ biogás (resto: cogeração)` },
-  palha:   { label: 'Palha / Palhiço', emoji: '🟡', note: `${(SUGARCANE_STREAMS.palha.fde * 100).toFixed(0)}% disponível p/ biogás (resto: cobertura do solo)` },
-  vinhaca: { label: 'Vinhaça',       emoji: '🟤', note: `${(SUGARCANE_STREAMS.vinhaca.fde * 100).toFixed(0)}% disponível p/ biogás (10% fertirrigação obrigatória)` },
-  torta:   { label: 'Torta de filtro', emoji: '⚫', note: `${(SUGARCANE_STREAMS.torta.fde * 100).toFixed(0)}% disponível p/ biogás (resto: adubo)` },
+  bagaco:  { label: 'Bagaço',          emoji: '🟫', note: `${(SUGARCANE_STREAMS.bagaco.fde  * 100).toFixed(0)}% disponível p/ biogás (resto: cogeração)` },
+  palha:   { label: 'Palha / Palhiço', emoji: '🟡', note: `${(SUGARCANE_STREAMS.palha.fde   * 100).toFixed(0)}% disponível p/ biogás (resto: cobertura do solo)` },
+  vinhaca: { label: 'Vinhaça',         emoji: '🟤', note: `${(SUGARCANE_STREAMS.vinhaca.fde * 100).toFixed(0)}% disponível p/ biogás (10% fertirrigação obrigatória)` },
+  torta:   { label: 'Torta de filtro', emoji: '⚫', note: `${(SUGARCANE_STREAMS.torta.fde   * 100).toFixed(0)}% disponível p/ biogás (resto: adubo)` },
 }
 
 function SugarcaneBreakdown({ tonsRaw }: { tonsRaw: number }) {
   if (tonsRaw <= 0) return null
   return (
-    <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-xl space-y-1">
-      <p className="text-xs font-semibold text-amber-800 mb-2">📦 Resíduos gerados pelo seu processo:</p>
+    <div className="mt-4 p-3 panel-amber rounded-xl space-y-1">
+      <p className="text-xs font-semibold text-amber-800 dark:text-amber-300 mb-2">📦 Resíduos gerados pelo seu processo:</p>
       {(Object.entries(SUGARCANE_STREAMS) as [keyof typeof SUGARCANE_STREAMS, typeof SUGARCANE_STREAMS[keyof typeof SUGARCANE_STREAMS]][]).map(([key, s]) => {
         const total = tonsRaw * s.rpr
         const available = total * s.fde
@@ -81,18 +119,18 @@ function SugarcaneBreakdown({ tonsRaw }: { tonsRaw: number }) {
             <span className="mt-0.5">{meta.emoji}</span>
             <div className="flex-1">
               <div className="flex justify-between">
-                <span className="font-medium text-gray-700">{meta.label}</span>
-                <span className="font-semibold text-amber-700">{fmt(total)} t geradas</span>
+                <span className="font-medium text-gray-700 dark:text-slate-300">{meta.label}</span>
+                <span className="font-semibold text-amber-700 dark:text-amber-400">{fmt(total)} t geradas</span>
               </div>
-              <div className="flex justify-between text-gray-500">
+              <div className="flex justify-between text-gray-500 dark:text-slate-400">
                 <span className="italic">{meta.note}</span>
-                <span className="text-green-700 font-medium">→ {fmt(available)} t p/ biogás</span>
+                <span className="text-green-700 dark:text-emerald-400 font-medium">→ {fmt(available)} t p/ biogás</span>
               </div>
             </div>
           </div>
         )
       })}
-      <p className="text-xs text-gray-400 pt-1 border-t border-amber-100 mt-2">
+      <p className="text-xs text-gray-400 dark:text-slate-500 pt-1 border-t border-amber-100 dark:border-amber-800/50 mt-2">
         Total resíduos gerados: <strong>{fmt(Object.values(SUGARCANE_STREAMS).reduce((s, r) => s + tonsRaw * r.rpr, 0))} t/ano</strong> •
         Para biogás: <strong>{fmt(Object.values(SUGARCANE_STREAMS).reduce((s, r) => s + tonsRaw * r.rpr * r.fde, 0))} t/ano</strong>
       </p>
@@ -112,8 +150,8 @@ function LivestockBreakdown({ heads }: { heads: Partial<Record<LivestockSpecies,
   const entries = (Object.entries(heads) as [LivestockSpecies, number][]).filter(([, v]) => v > 0)
   if (entries.length === 0) return null
   return (
-    <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-xl space-y-2">
-      <p className="text-xs font-semibold text-amber-800 mb-2">📦 Estimativa de resíduos do seu rebanho:</p>
+    <div className="mt-4 p-3 panel-amber rounded-xl space-y-2">
+      <p className="text-xs font-semibold text-amber-800 dark:text-amber-300 mb-2">📦 Estimativa de resíduos do seu rebanho:</p>
       {entries.map(([species, count]) => {
         const meta = LIVESTOCK_LABELS[species]
         const ppb = LIVESTOCK_PPB[species]
@@ -124,12 +162,12 @@ function LivestockBreakdown({ heads }: { heads: Partial<Record<LivestockSpecies,
             <span className="mt-0.5">{meta.emoji}</span>
             <div className="flex-1">
               <div className="flex justify-between">
-                <span className="font-medium text-gray-700">{meta.label} — {fmt(count)} cabeças</span>
-                <span className="font-semibold text-amber-700">≈ {fmt(manureTotal)} m³ esterco/ano</span>
+                <span className="font-medium text-gray-700 dark:text-slate-300">{meta.label} — {fmt(count)} cabeças</span>
+                <span className="font-semibold text-amber-700 dark:text-amber-400">≈ {fmt(manureTotal)} m³ esterco/ano</span>
               </div>
-              <div className="flex justify-between text-gray-500">
+              <div className="flex justify-between text-gray-500 dark:text-slate-400">
                 <span className="italic">Potencial (PPB)</span>
-                <span className="text-green-700 font-medium">→ {fmt(biogasYear)} m³ biogás/ano</span>
+                <span className="text-green-700 dark:text-emerald-400 font-medium">→ {fmt(biogasYear)} m³ biogás/ano</span>
               </div>
             </div>
           </div>
@@ -145,25 +183,25 @@ function CropBreakdown({ cropType, tonnes }: { cropType: CropType; tonnes: numbe
   const available = tonnes * p.avail
   const notUsed = tonnes - available
   return (
-    <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-xl space-y-1 text-xs">
-      <p className="text-xs font-semibold text-amber-800 mb-2">📦 Estimativa de resíduo gerado:</p>
+    <div className="mt-4 p-3 panel-amber rounded-xl space-y-1 text-xs">
+      <p className="text-xs font-semibold text-amber-800 dark:text-amber-300 mb-2">📦 Estimativa de resíduo gerado:</p>
       <div className="flex justify-between">
-        <span className="text-gray-600">Total de resíduo informado</span>
-        <span className="font-semibold text-gray-800">{fmt(tonnes)} t/ano</span>
+        <span className="text-gray-600 dark:text-slate-400">Total de resíduo informado</span>
+        <span className="font-semibold text-gray-800 dark:text-slate-200">{fmt(tonnes)} t/ano</span>
       </div>
       <div className="flex justify-between">
-        <span className="text-gray-600">Disponível para biodigestor ({(p.avail * 100).toFixed(0)}%)</span>
-        <span className="font-semibold text-green-700">{fmt(available)} t/ano</span>
+        <span className="text-gray-600 dark:text-slate-400">Disponível para biodigestor ({(p.avail * 100).toFixed(0)}%)</span>
+        <span className="font-semibold text-green-700 dark:text-emerald-400">{fmt(available)} t/ano</span>
       </div>
-      <div className="flex justify-between text-gray-400">
+      <div className="flex justify-between text-gray-400 dark:text-slate-500">
         <span>Outros usos / perdas ({(100 - p.avail * 100).toFixed(0)}%)</span>
         <span>{fmt(notUsed)} t/ano</span>
       </div>
-      <div className="flex justify-between border-t border-amber-100 pt-1 mt-1">
-        <span className="text-gray-500">Sólidos Voláteis (SV) disponíveis</span>
-        <span className="font-medium text-gray-700">{fmt(available * p.vs)} t SV/ano</span>
+      <div className="flex justify-between border-t border-amber-100 dark:border-amber-800/50 pt-1 mt-1">
+        <span className="text-gray-500 dark:text-slate-400">Sólidos Voláteis (SV) disponíveis</span>
+        <span className="font-medium text-gray-700 dark:text-slate-300">{fmt(available * p.vs)} t SV/ano</span>
       </div>
-      <p className="text-gray-400 pt-1">Fonte dos parâmetros: {p.source}</p>
+      <p className="text-gray-400 dark:text-slate-500 pt-1">Fonte dos parâmetros: {p.source}</p>
     </div>
   )
 }
@@ -182,7 +220,6 @@ export default function StepAtividade({ data, onChange, onNext, onBack }: Props)
     ? LIVESTOCK_SPECIES.filter(s => LIVESTOCK_CATEGORY_SPECIES[livestockCatKey].includes(s.key))
     : LIVESTOCK_SPECIES
 
-  const totalHeads = Object.values(data.livestockHeads).reduce((s, v) => s + (v ?? 0), 0)
   const visibleHeads = visibleSpecies.reduce((s, sp) => s + (data.livestockHeads[sp.key] ?? 0), 0)
 
   const canAdvance = (() => {
@@ -199,6 +236,8 @@ export default function StepAtividade({ data, onChange, onNext, onBack }: Props)
   const cropLabel = isCrop && data.activityType
     ? CROP_PARAMS[data.activityType as CropType].descLabel
     : ''
+
+  const selectedOption = ACTIVITY_OPTIONS.find(o => o.key === data.activityType)
 
   // Real-time biogas preview
   const biogasPreview = (() => {
@@ -220,6 +259,32 @@ export default function StepAtividade({ data, onChange, onNext, onBack }: Props)
     return null
   })()
 
+  // Shared activity header banner with "× Trocar" chip
+  function ActivityBanner() {
+    if (!selectedOption) return null
+    return (
+      <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-emerald-900/20 border border-green-200 dark:border-emerald-800 rounded-xl">
+        <div className="flex items-center gap-2">
+          <span className="text-2xl">{selectedOption.emoji}</span>
+          <div>
+            <p className="font-semibold text-gray-800 dark:text-slate-200 text-sm">
+              {t(`step2.${selectedOption.labelKey}`)}
+            </p>
+            <p className="text-xs text-gray-500 dark:text-slate-400">
+              {t(`step2.${selectedOption.descKey}`)}
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={() => set({ activityType: null })}
+          className="text-xs text-gray-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 transition-colors px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20"
+        >
+          × Trocar
+        </button>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-5">
       {/* Activity type selector grid */}
@@ -229,12 +294,16 @@ export default function StepAtividade({ data, onChange, onNext, onBack }: Props)
             <button
               key={key}
               onClick={() => set({ activityType: key })}
-              className="flex flex-col items-center justify-center gap-2 p-4 rounded-2xl border-2 border-gray-200
-                hover:border-green-400 hover:bg-green-50 transition-all text-center"
+              className="flex flex-col items-center justify-center gap-2 p-4 rounded-2xl
+                border-2 border-gray-200 dark:border-slate-700
+                bg-white dark:bg-slate-800
+                hover:border-green-400 dark:hover:border-emerald-500
+                hover:bg-green-50 dark:hover:bg-emerald-900/20
+                transition-all text-center"
             >
               <span className="text-3xl">{emoji}</span>
-              <span className="font-semibold text-gray-800 text-sm">{t(`step2.${labelKey}`)}</span>
-              <span className="text-xs text-gray-500 leading-tight">{t(`step2.${descKey}`)}</span>
+              <span className="font-semibold text-gray-800 dark:text-slate-200 text-sm">{t(`step2.${labelKey}`)}</span>
+              <span className="text-xs text-gray-500 dark:text-slate-400 leading-tight">{t(`step2.${descKey}`)}</span>
             </button>
           ))}
         </div>
@@ -243,26 +312,17 @@ export default function StepAtividade({ data, onChange, onNext, onBack }: Props)
       {/* Sugarcane input */}
       {isSugarcane && (
         <div className="space-y-4">
-          <button onClick={() => set({ activityType: null })} className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1">
-            ← {t('common.back')}
-          </button>
-          <div className="flex items-center gap-2 p-3 bg-green-50 rounded-xl">
-            <span className="text-2xl">🌾</span>
-            <div>
-              <p className="font-semibold text-gray-800">{t('step2.sugarcane')}</p>
-              <p className="text-xs text-gray-500">{t('step2.sugarcaneDesc')}</p>
-            </div>
-          </div>
+          <ActivityBanner />
 
-          <div className="flex rounded-lg overflow-hidden border border-gray-300">
+          <div className="flex rounded-lg overflow-hidden border border-gray-300 dark:border-slate-600">
             {(['tons', 'hectares'] as const).map(opt => (
               <button
                 key={opt}
                 onClick={() => set({ sugarcaneType: opt, sugarcaneValue: 0 })}
                 className={`flex-1 py-2 text-sm font-medium transition-colors
                   ${data.sugarcaneType === opt
-                    ? 'bg-green-600 text-white'
-                    : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+                    ? 'bg-green-600 dark:bg-emerald-600 text-white'
+                    : 'bg-white dark:bg-slate-800 text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700'}`}
               >
                 {opt === 'tons' ? t('step2.tons') : t('step2.hectares')}
               </button>
@@ -270,93 +330,76 @@ export default function StepAtividade({ data, onChange, onNext, onBack }: Props)
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
               {data.sugarcaneType === 'tons' ? t('step2.tonsLabel') : t('step2.hectaresLabel')}
             </label>
             <input
-              type="number" min={0}
+              type="number"
+              min={0}
               value={data.sugarcaneValue || ''}
               onChange={e => set({ sugarcaneValue: parseFloat(e.target.value) || 0 })}
               placeholder="0"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="input-field"
             />
-            <input
-              type="range" min={0} max={data.sugarcaneType === 'hectares' ? 1000 : 10000}
-              step={data.sugarcaneType === 'hectares' ? 10 : 100}
+            <Slider
               value={data.sugarcaneValue}
-              onChange={e => set({ sugarcaneValue: parseFloat(e.target.value) || 0 })}
-              className="w-full accent-green-600 mt-2"
+              max={data.sugarcaneType === 'hectares' ? 1000 : 10000}
+              step={data.sugarcaneType === 'hectares' ? 10 : 100}
+              onChange={v => set({ sugarcaneValue: v })}
             />
-            {caneHint && <p className="text-xs text-green-600 mt-1">📊 {caneHint}</p>}
+            {caneHint && <p className="text-xs text-green-600 dark:text-emerald-400 mt-2">📊 {caneHint}</p>}
             {biogasPreview !== null && biogasPreview > 0 && (
-              <p className="text-xs text-green-700 font-medium mt-1">
+              <p className="text-xs text-green-700 dark:text-emerald-400 font-medium mt-1">
                 🔬 ~ {fmtBiogas(biogasPreview)} m³ biogás/ano estimado (cenário ideal)
               </p>
             )}
           </div>
 
           <SugarcaneBreakdown
-            tonsRaw={data.sugarcaneType === 'hectares'
-              ? hectaresToCane(data.sugarcaneValue)
-              : data.sugarcaneValue}
+            tonsRaw={data.sugarcaneType === 'hectares' ? hectaresToCane(data.sugarcaneValue) : data.sugarcaneValue}
           />
         </div>
       )}
 
-      {/* Generic crop input (corn, soy, coffee, citrus) */}
+      {/* Generic crop input */}
       {isCrop && (
         <div className="space-y-4">
-          <button onClick={() => set({ activityType: null, cropTonnes: 0 })} className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1">
-            ← {t('common.back')}
-          </button>
-          <div className="flex items-center gap-2 p-3 bg-green-50 rounded-xl">
-            <span className="text-2xl">
-              {ACTIVITY_OPTIONS.find(o => o.key === data.activityType)?.emoji}
-            </span>
-            <div>
-              <p className="font-semibold text-gray-800">
-                {data.activityType ? t(`step2.${data.activityType}`) : ''}
-              </p>
-              <p className="text-xs text-gray-500">{cropLabel}</p>
-            </div>
-          </div>
+          <ActivityBanner />
 
           {/* Seasonal warning banner */}
-          <div className="flex items-start gap-2 p-3 bg-yellow-50 border border-yellow-200 rounded-xl text-xs text-yellow-800">
+          <div className="flex items-start gap-2 p-3 panel-yellow rounded-xl text-xs text-yellow-800 dark:text-yellow-300">
             <span className="mt-0.5 shrink-0">⚠️</span>
             <p>{t('step2.seasonalWarning')}</p>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
               {t('step2.cropTonnesLabel')}
             </label>
             <input
-              type="number" min={0}
+              type="number"
+              min={0}
               value={data.cropTonnes || ''}
               onChange={e => set({ cropTonnes: parseFloat(e.target.value) || 0 })}
               placeholder="0"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="input-field"
             />
-            <input
-              type="range" min={0} max={10000} step={50}
+            <Slider
               value={data.cropTonnes}
-              onChange={e => set({ cropTonnes: parseFloat(e.target.value) || 0 })}
-              className="w-full accent-green-600 mt-2"
+              max={10000}
+              step={50}
+              onChange={v => set({ cropTonnes: v })}
             />
-            <p className="text-xs text-gray-400 mt-1">{t('step2.cropTonnesHint')}</p>
+            <p className="text-xs text-gray-400 dark:text-slate-500 mt-1">{t('step2.cropTonnesHint')}</p>
             {biogasPreview !== null && biogasPreview > 0 && (
-              <p className="text-xs text-green-700 font-medium mt-1">
+              <p className="text-xs text-green-700 dark:text-emerald-400 font-medium mt-1">
                 🔬 ~ {fmtBiogas(biogasPreview)} m³ biogás/ano estimado (cenário ideal)
               </p>
             )}
           </div>
 
           {isCrop && data.activityType && (
-            <CropBreakdown
-              cropType={data.activityType as CropType}
-              tonnes={data.cropTonnes}
-            />
+            <CropBreakdown cropType={data.activityType as CropType} tonnes={data.cropTonnes} />
           )}
         </div>
       )}
@@ -364,48 +407,38 @@ export default function StepAtividade({ data, onChange, onNext, onBack }: Props)
       {/* Livestock input */}
       {isLivestock && (
         <div className="space-y-4">
-          <button onClick={() => set({ activityType: null, livestockHeads: {} })} className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1">
-            ← {t('common.back')}
-          </button>
-          <div className="flex items-center gap-2 p-3 bg-green-50 rounded-xl">
-            <span className="text-2xl">{ACTIVITY_OPTIONS.find(o => o.key === data.activityType)?.emoji}</span>
-            <div>
-              <p className="font-semibold text-gray-800">
-                {data.activityType ? t(`step2.${data.activityType}`) : ''}
-              </p>
-              <p className="text-xs text-gray-500">
-                {data.activityType ? t(`step2.${data.activityType}Desc`) : ''}
-              </p>
-            </div>
-          </div>
-          <p className="text-sm font-medium text-gray-700">{t('step2.livestockInstructions')}</p>
-          <div className="space-y-4">
+          <ActivityBanner />
+
+          <p className="text-sm font-medium text-gray-700 dark:text-slate-300">{t('step2.livestockInstructions')}</p>
+          <div className="space-y-5">
             {visibleSpecies.map(({ key, emoji, labelKey }) => (
               <div key={key} className="space-y-1.5">
                 <div className="flex items-center gap-3">
                   <span className="text-xl w-7 text-center shrink-0">{emoji}</span>
-                  <label className="flex-1 text-sm text-gray-700">{t(`step2.${labelKey}`)}</label>
+                  <label className="flex-1 text-sm text-gray-700 dark:text-slate-300">{t(`step2.${labelKey}`)}</label>
                   <input
-                    type="number" min={0} max={5000}
+                    type="number"
+                    min={0}
+                    max={5000}
                     value={data.livestockHeads[key] || ''}
                     onChange={e => set({ livestockHeads: { ...data.livestockHeads, [key]: parseInt(e.target.value) || 0 } })}
                     placeholder="0"
-                    className="w-24 border border-gray-300 rounded-lg px-2 py-1.5 text-sm text-right focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="w-24 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 rounded-lg px-2 py-1.5 text-sm text-right focus:outline-none focus:ring-2 focus:ring-green-500 dark:focus:ring-emerald-500"
                   />
-                  <span className="text-xs text-gray-400 w-10">{t('step2.heads')}</span>
+                  <span className="text-xs text-gray-400 dark:text-slate-500 w-10">{t('step2.heads')}</span>
                 </div>
-                <input
-                  type="range" min={0} max={5000} step={10}
+                <Slider
                   value={data.livestockHeads[key] ?? 0}
-                  onChange={e => set({ livestockHeads: { ...data.livestockHeads, [key]: parseInt(e.target.value) || 0 } })}
-                  className="w-full accent-green-600"
+                  max={5000}
+                  step={10}
+                  onChange={v => set({ livestockHeads: { ...data.livestockHeads, [key]: v } })}
                 />
               </div>
             ))}
           </div>
 
           {biogasPreview !== null && biogasPreview > 0 && (
-            <p className="text-xs text-green-700 font-medium">
+            <p className="text-xs text-green-700 dark:text-emerald-400 font-medium">
               🔬 ~ {fmtBiogas(biogasPreview)} m³ biogás/ano estimado (cenário ideal)
             </p>
           )}
@@ -424,7 +457,7 @@ export default function StepAtividade({ data, onChange, onNext, onBack }: Props)
         <div className="flex gap-3">
           <button
             onClick={onBack}
-            className="flex-1 py-3 rounded-xl font-medium text-gray-600 border border-gray-300 hover:bg-gray-50 transition-colors"
+            className="flex-1 py-3 rounded-xl font-medium text-gray-600 dark:text-slate-300 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
           >
             ← {t('common.back')}
           </button>
@@ -432,7 +465,8 @@ export default function StepAtividade({ data, onChange, onNext, onBack }: Props)
             onClick={onNext}
             disabled={!canAdvance}
             className="flex-1 py-3 rounded-xl font-semibold text-white transition-colors
-              bg-green-600 hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+              bg-green-600 dark:bg-emerald-600 hover:bg-green-700 dark:hover:bg-emerald-700
+              disabled:bg-gray-300 dark:disabled:bg-slate-600 disabled:cursor-not-allowed"
           >
             {t('common.next')} →
           </button>

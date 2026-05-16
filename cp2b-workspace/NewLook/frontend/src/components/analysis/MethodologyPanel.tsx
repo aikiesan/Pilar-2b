@@ -57,42 +57,42 @@ export default function MethodologyPanel({
       />
 
       {/* Panel */}
-      <div className="absolute right-0 top-0 bottom-0 w-full max-w-lg bg-white shadow-2xl overflow-hidden flex flex-col">
+      <div className="absolute right-0 top-0 bottom-0 w-full max-w-lg bg-white dark:bg-slate-800 shadow-2xl overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gradient-to-r from-green-50 to-white">
+        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-slate-700 bg-gradient-to-r from-green-50 to-white">
           <div className="flex items-center gap-2">
             <BookOpen className="h-5 w-5 text-green-600" />
-            <h2 className="text-lg font-semibold text-gray-900">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-slate-100">
               {t('methodology_panel.title')}
             </h2>
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
           >
-            <X className="h-5 w-5 text-gray-500" />
+            <X className="h-5 w-5 text-gray-500 dark:text-slate-400" />
           </button>
         </div>
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {/* Formula Overview */}
-          <div className="bg-gray-50 rounded-lg p-4">
-            <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+          <div className="bg-gray-50 dark:bg-slate-900 rounded-lg p-4">
+            <h3 className="text-sm font-semibold text-gray-700 dark:text-slate-300 mb-3 flex items-center gap-2">
               <Calculator className="h-4 w-4" />
               {t('methodology_panel.formula_heading')}
             </h3>
             <div className="text-center py-3">
-              <div className="text-lg font-mono font-semibold text-gray-800 mb-2">
+              <div className="text-lg font-mono font-semibold text-gray-800 dark:text-slate-200 mb-2">
                 FDE = FC &times; (1 - FCp) &times; FS &times; FL
               </div>
-              <div className="text-sm font-mono text-gray-600">
+              <div className="text-sm font-mono text-gray-600 dark:text-slate-400">
                 {factors.fc.toFixed(2)} &times; {(1 - factors.fcp).toFixed(2)} &times; {factors.fs.toFixed(2)} &times; {factors.fl.toFixed(2)} = {fdeValue.toFixed(3)}
               </div>
               <div className="mt-3 text-2xl font-bold text-green-600">
                 {(fdeValue * 100).toFixed(1)}%
               </div>
-              <div className="text-xs text-gray-500">
+              <div className="text-xs text-gray-500 dark:text-slate-400">
                 {t('methodology_panel.formula_desc')}
               </div>
             </div>
@@ -100,7 +100,7 @@ export default function MethodologyPanel({
 
           {/* Factor Documentation */}
           <div className="space-y-2">
-            <h3 className="text-sm font-semibold text-gray-700 px-1">
+            <h3 className="text-sm font-semibold text-gray-700 dark:text-slate-300 px-1">
               {t('methodology_panel.factors_heading')}
             </h3>
 
@@ -111,16 +111,16 @@ export default function MethodologyPanel({
               return (
                 <div
                   key={doc.factor}
-                  className="border border-gray-200 rounded-lg overflow-hidden"
+                  className="border border-gray-200 dark:border-slate-700 rounded-lg overflow-hidden"
                 >
                   {/* Factor Header */}
                   <button
                     onClick={() => toggleFactor(doc.factor)}
-                    className="w-full p-3 flex items-center justify-between hover:bg-gray-50 transition-colors"
+                    className="w-full p-3 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
                   >
                     <div className="flex items-center gap-3">
                       {isExpanded ? (
-                        <ChevronDown className="h-4 w-4 text-gray-400" />
+                        <ChevronDown className="h-4 w-4 text-gray-400 dark:text-slate-500" />
                       ) : (
                         <ChevronRight className="h-4 w-4 text-gray-400" />
                       )}

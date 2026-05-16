@@ -180,7 +180,7 @@ export default function AboutPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white dark:bg-slate-900">
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-br from-green-900 via-green-800 to-emerald-900">
         {/* Background Pattern */}
@@ -263,57 +263,57 @@ export default function AboutPage() {
         {/* Wave Divider */}
         <div className="absolute bottom-0 left-0 right-0 -mb-px">
           <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" className="block w-full">
-            <path d="M0 120L60 105C120 90 240 60 360 45C480 30 600 30 720 37.5C840 45 960 60 1080 67.5C1200 75 1320 75 1380 75L1440 75V120H1380C1320 120 1200 120 1080 120C960 120 840 120 720 120C600 120 480 120 360 120C240 120 120 120 60 120H0Z" fill="white"/>
+            <path d="M0 120L60 105C120 90 240 60 360 45C480 30 600 30 720 37.5C840 45 960 60 1080 67.5C1200 75 1320 75 1380 75L1440 75V120H1380C1320 120 1200 120 1080 120C960 120 840 120 720 120C600 120 480 120 360 120C240 120 120 120 60 120H0Z" className="fill-white dark:fill-slate-900"/>
           </svg>
         </div>
       </section>
 
       {/* Mobile Stats */}
-      <section className="lg:hidden bg-white py-8">
+      <section className="lg:hidden bg-white dark:bg-slate-900 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-green-50 rounded-lg p-4 text-center">
               <div className="text-2xl font-bold text-green-700">
                 <AnimatedCounter end={4.6} decimals={1} suffix=" bi" />
               </div>
-              <div className="text-xs text-gray-600 uppercase tracking-wide">m³/ano</div>
+              <div className="text-xs text-gray-600 dark:text-slate-400 uppercase tracking-wide">m³/ano</div>
             </div>
             <div className="bg-green-50 rounded-lg p-4 text-center">
               <div className="text-2xl font-bold text-green-700">
                 R$ <AnimatedCounter end={20} suffix="M" />
               </div>
-              <div className="text-xs text-gray-600 uppercase tracking-wide">Investimento</div>
+              <div className="text-xs text-gray-600 dark:text-slate-400 uppercase tracking-wide">Investimento</div>
             </div>
             <div className="bg-green-50 rounded-lg p-4 text-center">
               <div className="text-2xl font-bold text-green-700">
                 <AnimatedCounter end={645} />
               </div>
-              <div className="text-xs text-gray-600 uppercase tracking-wide">Municípios</div>
+              <div className="text-xs text-gray-600 dark:text-slate-400 uppercase tracking-wide">Municípios</div>
             </div>
             <div className="bg-green-50 rounded-lg p-4 text-center">
               <div className="text-2xl font-bold text-green-700">
                 <AnimatedCounter end={8} />
               </div>
-              <div className="text-xs text-gray-600 uppercase tracking-wide">Eixos</div>
+              <div className="text-xs text-gray-600 dark:text-slate-400 uppercase tracking-wide">Eixos</div>
             </div>
           </div>
         </div>
       </section>
 
       {/* Coordinator Section */}
-      <section className="py-16 lg:py-24 bg-white">
+      <section className="py-16 lg:py-24 bg-white dark:bg-slate-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-slate-100 mb-4">
               Coordenação
             </h2>
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+            <p className="text-lg text-gray-600 dark:text-slate-400 max-w-3xl mx-auto">
               Liderança científica do Centro de Excelência em Biogás
             </p>
           </div>
 
           <div className="max-w-4xl mx-auto">
-            <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg overflow-hidden">
               <div className="md:flex">
                 <div className="md:w-1/3 bg-gradient-to-br from-green-600 to-emerald-700 p-8 flex items-center justify-center">
                   <div className="text-center">
@@ -333,10 +333,10 @@ export default function AboutPage() {
                   </div>
                 </div>
                 <div className="md:w-2/3 p-8">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-slate-100 mb-4">
                     Coordenadora Geral do PILAR-2b
                   </h3>
-                  <div className="space-y-3 text-gray-600 mb-6">
+                  <div className="space-y-3 text-gray-600 dark:text-slate-400 mb-6">
                     <p className="flex items-start">
                       <CheckCircle2 className="h-5 w-5 text-green-600 mr-2 flex-shrink-0 mt-0.5" aria-hidden="true" />
                       Pesquisadora Permanente do NIPE/UNICAMP
@@ -350,9 +350,9 @@ export default function AboutPage() {
                       15+ anos de experiência em bioenergia
                     </p>
                   </div>
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <h4 className="font-semibold text-gray-900 mb-2">Formação Acadêmica</h4>
-                    <ul className="text-sm text-gray-600 space-y-1">
+                  <div className="bg-gray-50 dark:bg-slate-900 rounded-lg p-4">
+                    <h4 className="font-semibold text-gray-900 dark:text-slate-100 mb-2">Formação Acadêmica</h4>
+                    <ul className="text-sm text-gray-600 dark:text-slate-400 space-y-1">
                       <li>• Doutorado em Engenharia - USP (2012)</li>
                       <li>• Mestrado em Engenharia - USP (2009)</li>
                       <li>• Engenharia de Alimentos - USP (2007)</li>
@@ -372,26 +372,26 @@ export default function AboutPage() {
       </section>
 
       {/* Mission/Vision/Values */}
-      <section className="py-16 lg:py-24 bg-white">
+      <section className="py-16 lg:py-24 bg-white dark:bg-slate-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-slate-100 mb-4">
               Sobre o Projeto
             </h2>
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+            <p className="text-lg text-gray-600 dark:text-slate-400 max-w-3xl mx-auto">
               Missão, visão e valores que orientam o Centro Paulista de Estudos em Biogás e Bioprodutos.
             </p>
           </div>
 
           {/* Tab Navigation */}
           <div className="flex justify-center mb-8">
-            <div className="inline-flex bg-gray-100 rounded-lg p-1" role="tablist">
+            <div className="inline-flex bg-gray-100 dark:bg-slate-800 rounded-lg p-1" role="tablist">
               <button
                 onClick={() => setActiveTab('mission')}
                 className={`px-6 py-3 rounded-lg text-sm font-medium transition-all ${
                   activeTab === 'mission'
-                    ? 'bg-white text-green-700 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
+                    ? 'bg-white dark:bg-slate-700 text-green-700 dark:text-green-400 shadow-sm'
+                    : 'text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-100'
                 }`}
                 role="tab"
                 aria-selected={activeTab === 'mission'}
@@ -404,8 +404,8 @@ export default function AboutPage() {
                 onClick={() => setActiveTab('vision')}
                 className={`px-6 py-3 rounded-lg text-sm font-medium transition-all ${
                   activeTab === 'vision'
-                    ? 'bg-white text-green-700 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
+                    ? 'bg-white dark:bg-slate-700 text-green-700 dark:text-green-400 shadow-sm'
+                    : 'text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-100'
                 }`}
                 role="tab"
                 aria-selected={activeTab === 'vision'}
@@ -418,8 +418,8 @@ export default function AboutPage() {
                 onClick={() => setActiveTab('values')}
                 className={`px-6 py-3 rounded-lg text-sm font-medium transition-all ${
                   activeTab === 'values'
-                    ? 'bg-white text-green-700 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
+                    ? 'bg-white dark:bg-slate-700 text-green-700 dark:text-green-400 shadow-sm'
+                    : 'text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-100'
                 }`}
                 role="tab"
                 aria-selected={activeTab === 'values'}
@@ -434,20 +434,20 @@ export default function AboutPage() {
           {/* Tab Content */}
           <div className="max-w-4xl mx-auto">
             {activeTab === 'mission' && (
-              <div id="mission-panel" role="tabpanel" className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-8 lg:p-12 border border-green-100">
+              <div id="mission-panel" role="tabpanel" className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-slate-800 dark:to-slate-800 rounded-2xl p-8 lg:p-12 border border-green-100 dark:border-slate-700">
                 <div className="flex items-center mb-6">
                   <div className="h-12 w-12 bg-green-600 rounded-xl flex items-center justify-center mr-4">
                     <Target className="h-6 w-6 text-white" aria-hidden="true" />
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-900">Nossa Missão</h3>
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-slate-100">Nossa Missão</h3>
                 </div>
-                <p className="text-lg text-gray-700 leading-relaxed">
+                <p className="text-lg text-gray-700 dark:text-slate-300 leading-relaxed">
                   Desenvolver pesquisas, tecnologias e soluções inovadoras de biogás com motivação industrial,
                   ambiental e social, promovendo o aproveitamento inteligente de resíduos para o desenvolvimento
                   sustentável do Estado de São Paulo e contribuindo para a transição energética brasileira.
                 </p>
-                <div className="mt-6 p-4 bg-white/50 rounded-lg">
-                  <p className="text-sm text-gray-600">
+                <div className="mt-6 p-4 bg-white/50 dark:bg-slate-700/50 rounded-lg">
+                  <p className="text-sm text-gray-600 dark:text-slate-400">
                     <strong>Modelo:</strong> Laboratório vivo integrando Academia, Indústria, Governo e Sociedade
                   </p>
                 </div>
