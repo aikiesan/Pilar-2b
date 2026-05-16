@@ -3,14 +3,24 @@ const createNextIntlPlugin = require('next-intl/plugin');
 // Point to the correct i18n.ts location (root of frontend)
 const withNextIntl = createNextIntlPlugin('./i18n.ts');
 
+const isProd = process.env.NODE_ENV === 'production';
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  basePath: '/pilar2b',
+  // basePath is only needed in production (Apache reverse-proxy at /pilar2b).
+  // In local Docker dev (NODE_ENV=development) we serve from root so that
+  // localhost:3006/pt-BR works without any extra path prefix.
+  basePath: isProd ? '/pilar2b' : '',
   async redirects() {
+    if (!isProd) {
+      // Strip stale /pilar2b prefix that browsers may have cached from production URLs
+      return [
+        { source: '/pilar2b/:path*', destination: '/:path*', permanent: false },
+      ];
+    }
     return [
       { source: '/', destination: '/pilar2b/pt-BR', permanent: false, basePath: false },
-      { source: '/', destination: '/pt-BR', permanent: false },
-    ]
+    ];
   },
   // IMPORTANT: Removed static export for Vercel deployment
   // Vercel supports full Next.js features including:

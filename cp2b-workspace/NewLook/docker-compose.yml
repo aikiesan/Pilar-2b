@@ -69,6 +69,9 @@ services:
     depends_on:
       - backend
     environment:
+      # Explicitly set development mode so next.config.js isProd=false,
+      # which keeps basePath empty and lets localhost:3006/pt-BR work.
+      NODE_ENV: development
       # The browser calls the backend directly via localhost, not via the
       # Docker network name, so localhost:8000 is correct here.
       NEXT_PUBLIC_API_URL: http://localhost:8000

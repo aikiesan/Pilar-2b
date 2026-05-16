@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useTranslations } from 'next-intl'
 import StepIdentificacao, { type IdentificacaoData } from './StepIdentificacao'
 import StepAtividade, { type AtividadeData } from './StepAtividade'
@@ -9,10 +9,17 @@ import StepOutputs from './StepOutputs'
 import ResultsDashboard from './ResultsDashboard'
 import {
   runCalculation,
+  calcBiogasFromSugarcane,
+  calcBiogasFromLivestock,
+  calcBiogasFromCrop,
+  calcOutputs,
+  hectaresToCane,
   type OutputType,
   type CalculationResult,
   type CropType,
+  type OutputResult,
   CROP_DEFAULT_MONTHS,
+  LIVESTOCK_CATEGORY_SPECIES,
 } from '../calculatorEngine'
 import { submitLead } from '../calculatorApi'
 
@@ -26,6 +33,7 @@ const STEP_TITLES = [
 ] as const
 
 const CROP_TYPES: CropType[] = ['corn', 'soy', 'coffee', 'citrus']
+const LIVESTOCK_TYPES = new Set(['livestock', 'swine', 'cattle', 'poultry'])
 
 export default function BiogasCalculator() {
   const t = useTranslations('calculator')
@@ -49,16 +57,54 @@ export default function BiogasCalculator() {
   const [selectedOutputs, setSelectedOutputs] = useState<OutputType[]>([])
   const [calcResult, setCalcResult] = useState<CalculationResult | null>(null)
 
+  // Compute preview outputs (avg scenario) for StepOutputs
+  const previewOutputs = useMemo((): OutputResult | null => {
+    const { activityType, sugarcaneType, sugarcaneValue, livestockHeads, cropTonnes } = atividade
+    if (!activityType) return null
+
+    let biogasM3 = 0, ch4 = 0.60, biomass = 0, dryLigno = 0
+
+    if (activityType === 'sugarcane' && sugarcaneValue > 0) {
+      const tonsRaw = sugarcaneType === 'hectares' ? hectaresToCane(sugarcaneValue) : sugarcaneValue
+      const r = calcBiogasFromSugarcane(tonsRaw)
+      biogasM3 = r.biogasM3; ch4 = r.ch4Weighted; biomass = r.biomassTotal; dryLigno = r.strawTons
+    } else if (LIVESTOCK_TYPES.has(activityType)) {
+      const catKey = activityType as 'livestock' | 'swine' | 'cattle' | 'poultry'
+      const speciesFilter = catKey === 'livestock' ? null : LIVESTOCK_CATEGORY_SPECIES[catKey as 'swine' | 'cattle' | 'poultry']
+      const heads = speciesFilter
+        ? Object.fromEntries(
+            speciesFilter.filter(s => (livestockHeads[s] ?? 0) > 0).map(s => [s, livestockHeads[s]])
+          )
+        : livestockHeads
+      const r = calcBiogasFromLivestock(heads)
+      biogasM3 = r.biogasM3; ch4 = r.ch4Weighted; biomass = r.biomassTotal
+    } else if (CROP_TYPES.includes(activityType as CropType) && cropTonnes > 0) {
+      const r = calcBiogasFromCrop(activityType as CropType, cropTonnes)
+      biogasM3 = r.biogasM3; ch4 = r.ch4Weighted; biomass = r.biomassTotal; dryLigno = biomass * 0.87
+    }
+
+    if (biogasM3 <= 0) return null
+    return calcOutputs(biogasM3, ch4, biomass, dryLigno, activeMonths)
+  }, [atividade, activeMonths])
+
   function handleAtividadeChange(d: AtividadeData) {
+    const prevType = atividade.activityType
     setAtividade(d)
     if (d.activityType === null) return
+
+    // Update active months per activity type
     if (d.activityType === 'sugarcane') {
       if (activeMonths.length === 12) setActiveMonths(DEFAULT_CANE_MONTHS)
     } else if (CROP_TYPES.includes(d.activityType as CropType)) {
       setActiveMonths(CROP_DEFAULT_MONTHS[d.activityType as CropType])
     } else {
-      // livestock — year-round
       setActiveMonths(ALL_MONTHS)
+    }
+
+    // Smart pre-selection: reset when activity type category changes
+    if (prevType !== d.activityType) {
+      const isLivestock = LIVESTOCK_TYPES.has(d.activityType)
+      setSelectedOutputs(isLivestock ? ['digestate'] : ['energy'])
     }
   }
 
@@ -66,7 +112,8 @@ export default function BiogasCalculator() {
     if (!atividade.activityType) return
 
     const isSugarcane = atividade.activityType === 'sugarcane'
-    const isLivestock = atividade.activityType === 'livestock'
+    const isLivestock = atividade.activityType !== null &&
+      LIVESTOCK_TYPES.has(atividade.activityType)
     const isCrop = CROP_TYPES.includes(atividade.activityType as CropType)
 
     const result = runCalculation(
@@ -173,6 +220,8 @@ export default function BiogasCalculator() {
           onChange={setSelectedOutputs}
           onNext={handleCalculate}
           onBack={() => setStep(2)}
+          activityType={atividade.activityType}
+          previewOutputs={previewOutputs}
         />
       )}
       {step === 'results' && calcResult && (

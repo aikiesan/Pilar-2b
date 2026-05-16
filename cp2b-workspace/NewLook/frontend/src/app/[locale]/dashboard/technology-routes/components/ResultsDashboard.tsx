@@ -5,15 +5,20 @@ import { useTranslations } from 'next-intl'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts'
-import type { CalculationResult, OutputType, PriceConfig, ActivityType } from '../calculatorEngine'
+import type { CalculationResult, OutputType, PriceConfig, ActivityType, ScenarioTier } from '../calculatorEngine'
 import {
   calcFinancials,
+  calcPaybackRange,
   DEFAULT_PRICES,
   ALL_OUTPUT_TYPES,
   CROP_PARAMS,
   SUGARCANE_STREAMS,
   LIVESTOCK_PPB,
+  SCENARIO_FACTORS,
+  CAPEX_TIERS,
+  applyScenario,
 } from '../calculatorEngine'
+import type { PaybackRange } from '../calculatorEngine'
 
 interface Props {
   result: CalculationResult
@@ -23,6 +28,13 @@ interface Props {
 
 type ChartMode = 'biogas' | 'energy'
 
+// Mirrors the CAPEX spread constants from the engine
+const CAPEX_LOW_FACTOR  = 0.65
+const CAPEX_HIGH_FACTOR = 1.50
+
+const SCENARIO_EMOJIS: Record<ScenarioTier, string> = { min: '💰', avg: '💰💰', max: '💰💰💰' }
+const SCENARIO_ORDER: ScenarioTier[] = ['min', 'avg', 'max']
+
 function fmt(n: number, decimals = 0): string {
   return n.toLocaleString('pt-BR', { maximumFractionDigits: decimals })
 }
@@ -31,6 +43,19 @@ function fmtCurrency(n: number): string {
 }
 function fmtSlider(val: number, unit: string): string {
   return `${val.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${unit}`
+}
+function fmtK(n: number): string {
+  const k = Math.round(n / 1000)
+  return `${k}k`
+}
+function fmtPayback(pb: number): string {
+  return pb >= 999 ? 'Indet.' : `${pb}`
+}
+function fmtPaybackFull(pb: number): string {
+  return pb >= 999 ? 'Indeterminado' : `${pb} anos`
+}
+function fmtPaybackRange(p: PaybackRange): string {
+  return `${fmtPayback(p.min)} – ${fmtPayback(p.avg)} – ${fmtPayback(p.max)} anos`
 }
 
 interface MetricCardProps {
@@ -81,9 +106,9 @@ function methodologyText(activityType: ActivityType): { bmp: string; ch4: string
       source: 'UNICA 2023; EMBRAPA Agroenergia; NBR 15.527',
     }
   }
-  if (activityType === 'livestock') {
+  if (['livestock', 'swine', 'cattle', 'poultry'].includes(activityType)) {
     return {
-      bmp: 'Suínos: 200 m³/cab·ano; Bovinos corte: 350; Bovinos leite: 500',
+      bmp: 'Suínos: 200 m³/cab·ano; Bovinos corte: 350; Bovinos leite: 500; Galináceos: 0,8–1,4',
       ch4: '60–65% CH₄ (lagoa coberta/CSTR)',
       source: 'EMBRAPA 2023; Chernicharo 2016; IEA Bioenergy',
     }
@@ -103,22 +128,35 @@ export default function ResultsDashboard({ result, municipalityName, onReset }: 
   const t = useTranslations('calculator')
   const [chartMode, setChartMode] = useState<ChartMode>('energy')
   const [prices, setPrices] = useState<PriceConfig>(DEFAULT_PRICES)
+  const [scenario, setScenario] = useState<ScenarioTier>('avg')
 
-  const { outputs, selectedOutputs, inputSummary } = result
+  const { outputs: baseOutputs, selectedOutputs, inputSummary } = result
 
-  // Recalculate financials whenever prices change (pure, instant)
-  const financials = calcFinancials(outputs, selectedOutputs, prices)
+  // Active scenario outputs + financials
+  const outputs = applyScenario(baseOutputs, SCENARIO_FACTORS[scenario])
+  const rawFinancials = calcFinancials(outputs, selectedOutputs, prices)
+  const activeCapex = CAPEX_TIERS[SCENARIO_FACTORS[scenario].capexTierIndex]
+  const activePayback = calcPaybackRange(rawFinancials.annualRevenueMaxBRL, activeCapex)
+  const financials = { ...rawFinancials, capexTier: activeCapex, payback: activePayback }
+
+  // Pre-compute all 3 scenario cards data
+  const scenarioCards = SCENARIO_ORDER.map(tier => {
+    const sf = SCENARIO_FACTORS[tier]
+    const tierCapex = CAPEX_TIERS[sf.capexTierIndex]
+    const scenOutputs = applyScenario(baseOutputs, sf)
+    const scenFin = calcFinancials(scenOutputs, selectedOutputs, prices)
+    const payback = calcPaybackRange(scenFin.annualRevenueMaxBRL, tierCapex)
+    const cl = tierCapex.mid * CAPEX_LOW_FACTOR
+    const ch = tierCapex.mid * CAPEX_HIGH_FACTOR
+    return { tier, sf, tierCapex, payback, cl, ch, annualRevAvg: scenFin.annualRevenueAvgBRL }
+  })
 
   const chartData = outputs.monthly.map(m => ({
     name: m.monthLabel,
     value: chartMode === 'energy' ? Math.round(m.energy) : Math.round(m.biogas),
   }))
 
-  const capexColor = financials.capexTier.label === 'Baixo' ? 'text-green-600'
-    : financials.capexTier.label === 'Médio' ? 'text-amber-600' : 'text-red-600'
-
   const secondaryOutputs = ALL_OUTPUT_TYPES.filter(o => !selectedOutputs.includes(o))
-
   const method = methodologyText(inputSummary.activityType)
 
   function updatePrice(key: keyof PriceConfig, val: number) {
@@ -133,6 +171,57 @@ export default function ResultsDashboard({ result, municipalityName, onReset }: 
         <p className="text-3xl font-bold">{fmt(outputs.totalBiogasM3Year)} m³</p>
         <p className="text-sm opacity-80">{t('results.biogasPerYear')}</p>
         <p className="text-xs mt-1 opacity-60">{inputSummary.activityLabel}</p>
+      </div>
+
+      {/* Scenario cards — 3 horizontal scrollable cards */}
+      <div>
+        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Cenário de implantação</p>
+        <div className="flex gap-3 overflow-x-auto pb-1 -mx-1 px-1 snap-x">
+          {scenarioCards.map(({ tier, sf, tierCapex, payback, cl, ch }) => {
+            const active = scenario === tier
+            return (
+              <button
+                key={tier}
+                onClick={() => setScenario(tier)}
+                className={`snap-start shrink-0 w-48 p-3 rounded-xl border-2 text-left transition-all ${
+                  active
+                    ? 'border-green-500 bg-green-50 shadow-sm'
+                    : 'border-gray-200 bg-white hover:border-gray-300'
+                }`}
+              >
+                <div className="flex items-center gap-1.5 mb-2">
+                  <span className="text-base">{SCENARIO_EMOJIS[tier]}</span>
+                  <span className={`text-sm font-bold ${active ? 'text-green-800' : 'text-gray-700'}`}>
+                    {sf.labelPt}
+                  </span>
+                </div>
+                <p className="text-xs text-gray-500 leading-tight mb-2">{sf.technology}</p>
+                <div className="space-y-1 text-xs">
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Aproveit.</span>
+                    <span className="font-medium text-gray-700">{Math.round(sf.utilization * 100)}%</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Início op.</span>
+                    <span className="font-medium text-gray-700">{sf.startupMonths} meses</span>
+                  </div>
+                  <div className="pt-1 border-t border-gray-100">
+                    <p className="text-gray-400 mb-0.5">Investimento</p>
+                    <p className="font-semibold text-gray-800">
+                      R$ {fmtK(cl)} – {fmtK(tierCapex.mid)} – {fmtK(ch)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-gray-400 mb-0.5">Payback (min–esp–max)</p>
+                    <p className={`font-semibold ${active ? 'text-green-700' : 'text-gray-800'}`}>
+                      {fmtPaybackRange(payback)}
+                    </p>
+                  </div>
+                </div>
+              </button>
+            )
+          })}
+        </div>
       </div>
 
       {/* Price sliders accordion */}
@@ -193,10 +282,10 @@ export default function ResultsDashboard({ result, municipalityName, onReset }: 
               <XAxis dataKey="name" tick={{ fontSize: 10 }} />
               <YAxis tick={{ fontSize: 10 }} />
               <Tooltip formatter={(v) => [
-		`${fmt(Number(v))} ${chartMode === 'energy' ? 'kWh' : 'm³'}`,
-		chartMode === 'energy' ? 'Energia' : 'Biogás'
-	      ]} />
-	     <Bar dataKey="value" fill="#16a34a" radius={[3,3,0,0]} />
+                `${fmt(Number(v))} ${chartMode === 'energy' ? 'kWh' : 'm³'}`,
+                chartMode === 'energy' ? 'Energia' : 'Biogás'
+              ]} />
+              <Bar dataKey="value" fill="#16a34a" radius={[3,3,0,0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -256,25 +345,85 @@ export default function ResultsDashboard({ result, municipalityName, onReset }: 
       <div className="p-4 rounded-xl border border-gray-200 bg-white space-y-3">
         <p className="font-semibold text-gray-700 text-sm">{t('results.financialTitle')}</p>
         <div className="flex justify-between items-center text-sm">
-          <span className="text-gray-500">📊 {t('results.capex')}</span>
-          <span className={`font-bold ${capexColor}`}>
-            {financials.capexTier.label} <span className="font-normal text-xs text-gray-400">({financials.capexTier.range})</span>
+          <span className="text-gray-500">📊 Investimento estimado</span>
+          <span className="font-bold text-gray-800 text-xs">
+            R$ {fmtK(activeCapex.mid * CAPEX_LOW_FACTOR)} – {fmtK(activeCapex.mid)} – {fmtK(activeCapex.mid * CAPEX_HIGH_FACTOR)}
           </span>
         </div>
         <div className="flex justify-between items-center text-sm">
           <span className="text-gray-500">⏱ {t('results.payback')}</span>
-          <span className="font-bold text-gray-800">
-            {financials.paybackYears < 100
-              ? `${financials.paybackYears} ${t('results.years')}`
-              : t('results.paybackIndeterminate')}
+          <span className="font-bold text-gray-800 text-xs">
+            {fmtPaybackRange(financials.payback)}
           </span>
         </div>
         <div className="flex justify-between items-center text-sm">
           <span className="text-gray-500">💰 {t('results.annualRevenue')}</span>
-          <span className="font-bold text-green-700">{fmtCurrency(financials.annualRevenueMaxBRL)}/ano</span>
+          <div className="text-right">
+            <span className="font-bold text-green-700">{fmtCurrency(financials.annualRevenueMaxBRL)}/ano</span>
+            <p className="text-xs text-gray-400">esperado: {fmtCurrency(financials.annualRevenueAvgBRL)}/ano</p>
+          </div>
         </div>
+
+        {/* Payback comparison across scenarios */}
+        <div className="pt-2 border-t border-gray-100">
+          <p className="text-xs font-semibold text-gray-500 mb-2">📊 Comparativo de cenários — payback (min–esp–max)</p>
+          <div className="grid grid-cols-3 gap-1 text-xs text-center">
+            {scenarioCards.map(({ tier, sf, payback }) => {
+              const active = scenario === tier
+              return (
+                <button
+                  key={tier}
+                  onClick={() => setScenario(tier)}
+                  className={`p-2 rounded-lg border transition-colors ${
+                    active ? 'border-green-400 bg-green-50' : 'border-gray-100 bg-gray-50 hover:border-gray-200'
+                  }`}
+                >
+                  <p className={`font-bold text-xs ${active ? 'text-green-700' : 'text-gray-600'}`}>{sf.labelPt}</p>
+                  <p className={`font-semibold text-xs mt-1 ${active ? 'text-green-800' : 'text-gray-700'}`}>
+                    {fmtPayback(payback.min)} – {fmtPayback(payback.avg)} – {fmtPayback(payback.max)}
+                  </p>
+                  <p className="text-gray-400 text-xs">anos</p>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
         <p className="text-xs text-gray-400">{t('results.financialDisclaimer')}</p>
       </div>
+
+      {/* "Entenda os cenários" expandable section */}
+      <details className="group border border-blue-100 rounded-xl overflow-hidden">
+        <summary className="flex items-center justify-between px-4 py-3 cursor-pointer bg-blue-50 hover:bg-blue-100 transition-colors text-xs font-medium text-blue-700 select-none">
+          <span>💡 Entenda os cenários</span>
+          <span className="text-blue-400 group-open:rotate-180 transition-transform">▼</span>
+        </summary>
+        <div className="px-4 py-4 space-y-3 bg-white text-xs text-gray-600">
+          <p>
+            <strong className="text-gray-800">💰 Básico — Lagoa coberta / tubular PVC</strong><br/>
+            Tecnologia mais simples e acessível, adequada para pequenas propriedades que estão dando os primeiros passos.
+            Aproveita cerca de 55% do potencial da biomassa. Payback mais curto porque o investimento é menor,
+            mas a geração também é menor. Bom para começar com baixo risco.
+          </p>
+          <p>
+            <strong className="text-gray-800">💰💰 Ideal — Biodigestor CSTR</strong><br/>
+            Configuração mais comum em propriedades rurais brasileiras de médio porte. Aproveita 75% do potencial,
+            com operação estável e boa eficiência. O payback esperado é realisticamente mais longo que o anunciado
+            por vendedores — estamos mostrando o cenário honesto, considerando curva de aprendizado e manutenção.
+          </p>
+          <p>
+            <strong className="text-gray-800">💰💰💰 Avançado — CSTR + upgrading / CHP premium</strong><br/>
+            Máxima eficiência, ideal para operações de grande escala com acesso a mercados de biometano ou créditos
+            de carbono. O investimento é alto e o payback conservador pode ser &quot;Indeterminado&quot; para operações pequenas —
+            o que não significa que é inviável, mas que a receita desse cenário ainda não cobre o investimento no
+            horizonte de 40 anos com os preços atuais.
+          </p>
+          <p className="text-gray-400 pt-1">
+            Os valores de payback mostram (mínimo – esperado – conservador). O &quot;esperado&quot; usa 75% de realização
+            de receita e 5% de manutenção/ano. &quot;Indet.&quot; = calculado acima de 40 anos.
+          </p>
+        </div>
+      </details>
 
       {/* Methodology accordion */}
       <details className="group border border-gray-100 rounded-xl overflow-hidden">

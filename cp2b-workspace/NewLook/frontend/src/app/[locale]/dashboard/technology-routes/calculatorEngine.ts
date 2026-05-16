@@ -45,12 +45,12 @@ const THERMAL_EFFICIENCY   = 0.50   // heat recovery efficiency
 const MJ_TO_KWH            = 1 / 3.6
 
 // ── CAPEX reference tiers (R$, mid-point) ────────────────────────────────────
-interface CapexTier {
+export interface CapexTier {
   label: 'Baixo' | 'Médio' | 'Alto'
   range: string
   mid: number
 }
-const CAPEX_TIERS: CapexTier[] = [
+export const CAPEX_TIERS: CapexTier[] = [
   { label: 'Baixo', range: 'R$ 80k – 300k',  mid: 190_000   },
   { label: 'Médio', range: 'R$ 300k – 2M',   mid: 1_150_000 },
   { label: 'Alto',  range: 'R$ 2M – 10M+',  mid: 6_000_000 },
@@ -76,6 +76,12 @@ export const LIVESTOCK_PPB: Record<LivestockSpecies, { ppb: number; ch4: number 
   cattle_dairy:   { ppb: 500,  ch4: 0.60 },
   poultry_eggs:   { ppb: 1.4,  ch4: 0.60 },
   poultry_meat:   { ppb: 0.8,  ch4: 0.60 },
+}
+
+export const LIVESTOCK_CATEGORY_SPECIES: Record<'swine' | 'cattle' | 'poultry', LivestockSpecies[]> = {
+  swine:   ['swine'],
+  cattle:  ['cattle_beef', 'cattle_dairy'],
+  poultry: ['poultry_eggs', 'poultry_meat'],
 }
 
 // ── Crop residue params (single-stream BMP method) ───────────────────────────
@@ -118,10 +124,50 @@ export type LivestockSpecies =
   | 'poultry_eggs'
   | 'poultry_meat'
 
-export type ActivityType = 'sugarcane' | 'livestock' | CropType
+export type ActivityType = 'sugarcane' | 'livestock' | 'swine' | 'cattle' | 'poultry' | CropType
 
 export type OutputType = 'energy' | 'biomethane' | 'digestate' | 'thermal' | 'biochar' | 'carbon'
 export const ALL_OUTPUT_TYPES: OutputType[] = ['energy', 'biomethane', 'digestate', 'thermal', 'biochar', 'carbon']
+
+// ── Scenario tiers ────────────────────────────────────────────────────────────
+export type ScenarioTier = 'min' | 'avg' | 'max'
+
+export interface ScenarioFactor {
+  labelPt: string
+  technology: string
+  utilization: number   // fraction of biomass effectively processed
+  startupMonths: number // months to reach full operation (kinetics curve)
+  bmpFactor: number
+  elecEff: number
+  thermalEff: number
+  biocharYield: number
+  capexTierIndex: 0 | 1 | 2
+}
+
+export const SCENARIO_FACTORS: Record<ScenarioTier, ScenarioFactor> = {
+  min: { labelPt: 'Básico',   technology: 'Lagoa coberta / tubular PVC',      utilization: 0.55, startupMonths: 4,  bmpFactor: 0.75, elecEff: 0.28, thermalEff: 0.40, biocharYield: 0.20, capexTierIndex: 0 },
+  avg: { labelPt: 'Ideal',    technology: 'Biodigestor CSTR',                  utilization: 0.75, startupMonths: 6,  bmpFactor: 1.00, elecEff: 0.35, thermalEff: 0.50, biocharYield: 0.28, capexTierIndex: 1 },
+  max: { labelPt: 'Avançado', technology: 'CSTR + upgrading / CHP premium',    utilization: 0.90, startupMonths: 10, bmpFactor: 1.20, elecEff: 0.42, thermalEff: 0.60, biocharYield: 0.35, capexTierIndex: 2 },
+}
+
+// ── Realistic payback factors ─────────────────────────────────────────────────
+// Consultancy, kinetics ramp-up, year-1 learning curve, and maintenance
+// create a significant gap between theoretical and actual revenue.
+const STARTUP_COST_FACTOR = 0.12     // consultancy + startup adds ~12% to effective CAPEX
+const REVENUE_BEST  = 1.10           // optimistic: good tariffs, smooth operation
+const REVENUE_AVG   = 0.75           // realistic: typical losses, downtime, seasonal variation
+const REVENUE_WORST = 0.45           // conservative: year-1-2 learning curve, bad market
+const MAINT_LOW  = 0.03              // annual maintenance as % of CAPEX (simple system)
+const MAINT_MID  = 0.05              // mid-tier
+const MAINT_HIGH = 0.08              // complex system with upgrading
+const CAPEX_LOW_FACTOR  = 0.65       // CAPEX range bottom around tier mid
+const CAPEX_HIGH_FACTOR = 1.50       // CAPEX range top around tier mid
+
+export interface PaybackRange {
+  min: number   // best case (anos)
+  avg: number   // expected realistic (anos)
+  max: number   // conservative (anos); 999 = Indeterminado
+}
 
 export interface SugarcaneInput {
   type: 'tons' | 'hectares'
@@ -152,9 +198,10 @@ export interface OutputResult {
 }
 
 export interface FinancialResult {
-  annualRevenueMaxBRL: number
+  annualRevenueMaxBRL: number    // nominal theoretical max
+  annualRevenueAvgBRL: number    // realistic expected (REVENUE_AVG × nominal)
   capexTier: CapexTier
-  paybackYears: number
+  payback: PaybackRange          // replaces single paybackYears
   dieselEquivLitersYear: number
   energySavingsBrlYear: number
   biomethaneRevBrlYear: number
@@ -246,12 +293,14 @@ export function spreadToMonths(biogasYearly: number, activeMonths: number[]): Mo
   })
 }
 
-/** Compute all 6 outputs — always returns full values regardless of selection. */
+/** Compute all 6 outputs — always returns full values regardless of selection.
+ *  dryLignoCellulosic: dry lignocellulosic biomass available for pyrolysis (t/ano).
+ *  Pass strawTons for sugarcane, biomassTotal*0.87 for crops, 0 for livestock (manure unsuitable). */
 export function calcOutputs(
   biogasM3Year: number,
   ch4Content: number,
   biomassTotal: number,
-  strawTons: number,
+  dryLignoCellulosic: number,
   activeMonths: number[],
 ): OutputResult {
   const ch4M3Year = biogasM3Year * ch4Content
@@ -260,7 +309,7 @@ export function calcOutputs(
   const biomethaneM3   = ch4M3Year
   const digestateTons  = biomassTotal * 0.75
   const thermalMjYear  = ch4M3Year * CH4_LHV_MJ_PER_M3 * THERMAL_EFFICIENCY
-  const biocharTons    = strawTons * 0.30
+  const biocharTons    = dryLignoCellulosic * SCENARIO_FACTORS.avg.biocharYield
   const co2TonsYear    = ch4M3Year * 0.657 * (44 / 16) / 1000
 
   const monthly = spreadToMonths(biogasM3Year, activeMonths).map(m => ({
@@ -281,10 +330,66 @@ export function calcOutputs(
   }
 }
 
+/** Transform a base OutputResult (computed at avg scenario) into a different scenario.
+ *  Biochar scales only by pyrolysis yield ratio (independent of BMP). */
+export function applyScenario(base: OutputResult, scenario: ScenarioFactor): OutputResult {
+  const AVG    = SCENARIO_FACTORS.avg
+  const bmpF   = scenario.bmpFactor
+  const elecF  = scenario.elecEff   / AVG.elecEff
+  const thermF = scenario.thermalEff / AVG.thermalEff
+  const charF  = scenario.biocharYield / AVG.biocharYield
+  return {
+    totalBiogasM3Year:  base.totalBiogasM3Year  * bmpF,
+    ch4ContentWeighted: base.ch4ContentWeighted,
+    energyKwhYear:      base.energyKwhYear      * bmpF * elecF,
+    biomethaneM3Year:   base.biomethaneM3Year   * bmpF,
+    digestateTonsYear:  base.digestateTonsYear  * bmpF,
+    thermalMjYear:      base.thermalMjYear      * bmpF * thermF,
+    biocharTonsYear:    base.biocharTonsYear    * charF,
+    co2TonsYear:        base.co2TonsYear        * bmpF,
+    monthly: base.monthly.map(m => ({
+      ...m,
+      biogas: m.biogas * bmpF,
+      energy: m.energy * bmpF * elecF,
+    })),
+  }
+}
+
 export function getCapexTier(biogasM3Year: number): CapexTier {
   if (biogasM3Year < 100_000)   return CAPEX_TIERS[0]
   if (biogasM3Year < 1_000_000) return CAPEX_TIERS[1]
   return CAPEX_TIERS[2]
+}
+
+function roundYears(y: number): number {
+  return Math.round(y * 10) / 10
+}
+
+export function calcPaybackRange(annualRevNominal: number, tier: CapexTier): PaybackRange {
+  if (annualRevNominal <= 0) return { min: 999, avg: 999, max: 999 }
+
+  const cm = tier.mid
+  const cl = cm * CAPEX_LOW_FACTOR
+  const ch = cm * CAPEX_HIGH_FACTOR
+
+  // Best case: low CAPEX, good revenue, minimal overhead + maintenance
+  const netBest = annualRevNominal * REVENUE_BEST - cl * MAINT_LOW
+  const pb_min = netBest > 0 ? (cl * (1 + 0.06)) / netBest : 999
+
+  // Expected case: mid CAPEX, realistic revenue realization, standard maintenance
+  const netAvg  = annualRevNominal * REVENUE_AVG - cm * MAINT_MID
+  const pb_avg  = netAvg > 0  ? (cm * (1 + STARTUP_COST_FACTOR)) / netAvg : 999
+
+  // Conservative case: high CAPEX, poor realization (kinetics curve, low tariffs, downtime),
+  // high maintenance, extended startup overhead
+  const netWorst = annualRevNominal * REVENUE_WORST - ch * MAINT_HIGH
+  const pb_max  = netWorst > 0 ? Math.min((ch * 1.25) / netWorst, 40) : 999
+
+  return {
+    min: pb_min < 999 ? roundYears(Math.max(pb_min, 0.5)) : 999,
+    avg: pb_avg < 999 ? roundYears(pb_avg) : 999,
+    max: pb_max >= 40  ? 999 : roundYears(pb_max),
+  }
 }
 
 /**
@@ -309,12 +414,13 @@ export function calcFinancials(
   const primaryRev   = energySavings > 0 ? energySavings : biomethaneRev
   const annualRevMax = primaryRev + carbonRev
   const tier         = getCapexTier(outputs.totalBiogasM3Year)
-  const payback      = annualRevMax > 0 ? tier.mid / annualRevMax : 999
+  const payback      = calcPaybackRange(annualRevMax, tier)
 
   return {
     annualRevenueMaxBRL:  annualRevMax,
+    annualRevenueAvgBRL:  annualRevMax * REVENUE_AVG,
     capexTier:            tier,
-    paybackYears:         Math.round(payback * 10) / 10,
+    payback,
     dieselEquivLitersYear: dieselEquiv,
     energySavingsBrlYear:  energySavings,
     biomethaneRevBrlYear:  biomethaneRev,
@@ -324,6 +430,11 @@ export function calcFinancials(
 
 // ── Main entry point ──────────────────────────────────────────────────────────
 
+const LIVESTOCK_ACTIVITY_TYPES = new Set<ActivityType>(['livestock', 'swine', 'cattle', 'poultry'])
+const LIVESTOCK_CATEGORY_LABEL: Record<string, string> = {
+  livestock: 'Pecuária', swine: 'Suínos', cattle: 'Bovinos', poultry: 'Aves',
+}
+
 export function runCalculation(
   activityType: ActivityType,
   sugarcaneInput: SugarcaneInput | null,
@@ -332,35 +443,45 @@ export function runCalculation(
   selectedOutputs: OutputType[],
   cropInput?: { tonnes: number },
 ): CalculationResult {
-  let biogasM3 = 0, ch4 = 0.60, biomass = 0, straw = 0, activityLabel = ''
+  let biogasM3 = 0, ch4 = 0.60, biomass = 0, dryLigno = 0, activityLabel = ''
 
   if (activityType === 'sugarcane' && sugarcaneInput) {
     const tonsRaw = sugarcaneInput.type === 'hectares'
       ? hectaresToCane(sugarcaneInput.value)
       : sugarcaneInput.value
     const r = calcBiogasFromSugarcane(tonsRaw)
-    biogasM3 = r.biogasM3; ch4 = r.ch4Weighted; biomass = r.biomassTotal; straw = r.strawTons
+    biogasM3 = r.biogasM3; ch4 = r.ch4Weighted; biomass = r.biomassTotal
+    dryLigno = r.strawTons
     activityLabel = `Cana-de-açúcar (${sugarcaneInput.type === 'hectares'
       ? sugarcaneInput.value + ' ha'
       : tonsRaw.toLocaleString('pt-BR') + ' t'})`
 
-  } else if (activityType === 'livestock' && livestockInput) {
-    const r = calcBiogasFromLivestock(livestockInput.heads)
+  } else if (LIVESTOCK_ACTIVITY_TYPES.has(activityType) && livestockInput) {
+    const catKey = activityType as 'livestock' | 'swine' | 'cattle' | 'poultry'
+    const speciesFilter = catKey === 'livestock'
+      ? null
+      : LIVESTOCK_CATEGORY_SPECIES[catKey as 'swine' | 'cattle' | 'poultry']
+    const heads: Partial<Record<LivestockSpecies, number>> = speciesFilter
+      ? Object.fromEntries(
+          speciesFilter
+            .filter(s => (livestockInput.heads[s] ?? 0) > 0)
+            .map(s => [s, livestockInput.heads[s]])
+        )
+      : livestockInput.heads
+    const r = calcBiogasFromLivestock(heads)
     biogasM3 = r.biogasM3; ch4 = r.ch4Weighted; biomass = r.biomassTotal
-    const speciesList = Object.entries(livestockInput.heads)
-      .filter(([, v]) => v > 0)
-      .map(([k, v]) => `${v?.toLocaleString('pt-BR')} ${k}`)
-      .join(', ')
-    activityLabel = `Pecuária (${speciesList})`
+    dryLigno = 0
+    activityLabel = `Pecuária — ${LIVESTOCK_CATEGORY_LABEL[catKey]}`
 
   } else if (cropInput && activityType in CROP_PARAMS) {
     const r = calcBiogasFromCrop(activityType as CropType, cropInput.tonnes)
     biogasM3 = r.biogasM3; ch4 = r.ch4Weighted; biomass = r.biomassTotal
+    dryLigno = biomass * 0.87
     const p = CROP_PARAMS[activityType as CropType]
     activityLabel = `${p.label} (${cropInput.tonnes.toLocaleString('pt-BR')} t)`
   }
 
-  const outputs    = calcOutputs(biogasM3, ch4, biomass, straw, activeMonths)
+  const outputs    = calcOutputs(biogasM3, ch4, biomass, dryLigno, activeMonths)
   const financials = calcFinancials(outputs, selectedOutputs)
 
   return {

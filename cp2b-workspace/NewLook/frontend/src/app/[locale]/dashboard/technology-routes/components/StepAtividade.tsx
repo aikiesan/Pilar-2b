@@ -2,7 +2,16 @@
 
 import { useTranslations } from 'next-intl'
 import type { ActivityType, LivestockSpecies, CropType } from '../calculatorEngine'
-import { hectaresToCane, CROP_PARAMS, SUGARCANE_STREAMS, LIVESTOCK_PPB } from '../calculatorEngine'
+import {
+  hectaresToCane,
+  CROP_PARAMS,
+  SUGARCANE_STREAMS,
+  LIVESTOCK_PPB,
+  LIVESTOCK_CATEGORY_SPECIES,
+  calcBiogasFromSugarcane,
+  calcBiogasFromLivestock,
+  calcBiogasFromCrop,
+} from '../calculatorEngine'
 
 export interface AtividadeData {
   activityType: ActivityType | null
@@ -33,13 +42,20 @@ const ACTIVITY_OPTIONS: { key: ActivityType; emoji: string; labelKey: string; de
   { key: 'soy',       emoji: '🌿', labelKey: 'soy',        descKey: 'soyDesc'        },
   { key: 'coffee',    emoji: '☕', labelKey: 'coffee',     descKey: 'coffeeDesc'     },
   { key: 'citrus',    emoji: '🍊', labelKey: 'citrus',     descKey: 'citrusDesc'     },
-  { key: 'livestock', emoji: '🐄', labelKey: 'livestock',  descKey: 'livestockDesc'  },
+  { key: 'swine',     emoji: '🐖', labelKey: 'swine',      descKey: 'swineDesc'      },
+  { key: 'cattle',    emoji: '🐄', labelKey: 'cattle',     descKey: 'cattleDesc'     },
+  { key: 'poultry',   emoji: '🐔', labelKey: 'poultry',    descKey: 'poultryDesc'    },
 ]
 
+const LIVESTOCK_CATEGORY_TYPES = new Set<ActivityType>(['livestock', 'swine', 'cattle', 'poultry'])
 const CROP_TYPES: CropType[] = ['corn', 'soy', 'coffee', 'citrus']
 
 function fmt(n: number): string {
   return n.toLocaleString('pt-BR', { maximumFractionDigits: 0 })
+}
+
+function fmtBiogas(m3: number): string {
+  return m3.toLocaleString('pt-BR', { maximumFractionDigits: 0 })
 }
 
 // ── Residue Breakdown Panels ─────────────────────────────────────────────────
@@ -157,14 +173,21 @@ export default function StepAtividade({ data, onChange, onNext, onBack }: Props)
   const set = (patch: Partial<AtividadeData>) => onChange({ ...data, ...patch })
 
   const isSugarcane = data.activityType === 'sugarcane'
-  const isLivestock = data.activityType === 'livestock'
+  const isLivestock = data.activityType !== null && LIVESTOCK_CATEGORY_TYPES.has(data.activityType)
   const isCrop = data.activityType !== null && CROP_TYPES.includes(data.activityType as CropType)
 
+  // Species visible for the selected livestock category
+  const livestockCatKey = data.activityType as 'swine' | 'cattle' | 'poultry' | null
+  const visibleSpecies = isLivestock && livestockCatKey && livestockCatKey in LIVESTOCK_CATEGORY_SPECIES
+    ? LIVESTOCK_SPECIES.filter(s => LIVESTOCK_CATEGORY_SPECIES[livestockCatKey].includes(s.key))
+    : LIVESTOCK_SPECIES
+
   const totalHeads = Object.values(data.livestockHeads).reduce((s, v) => s + (v ?? 0), 0)
+  const visibleHeads = visibleSpecies.reduce((s, sp) => s + (data.livestockHeads[sp.key] ?? 0), 0)
 
   const canAdvance = (() => {
     if (isSugarcane) return data.sugarcaneValue > 0
-    if (isLivestock) return totalHeads > 0
+    if (isLivestock) return visibleHeads > 0
     if (isCrop)      return data.cropTonnes > 0
     return false
   })()
@@ -176,6 +199,26 @@ export default function StepAtividade({ data, onChange, onNext, onBack }: Props)
   const cropLabel = isCrop && data.activityType
     ? CROP_PARAMS[data.activityType as CropType].descLabel
     : ''
+
+  // Real-time biogas preview
+  const biogasPreview = (() => {
+    if (isSugarcane && data.sugarcaneValue > 0) {
+      const tonsRaw = data.sugarcaneType === 'hectares' ? hectaresToCane(data.sugarcaneValue) : data.sugarcaneValue
+      return calcBiogasFromSugarcane(tonsRaw).biogasM3
+    }
+    if (isCrop && data.activityType && data.cropTonnes > 0) {
+      return calcBiogasFromCrop(data.activityType as CropType, data.cropTonnes).biogasM3
+    }
+    if (isLivestock && visibleHeads > 0) {
+      const headsFiltered = Object.fromEntries(
+        visibleSpecies
+          .filter(sp => (data.livestockHeads[sp.key] ?? 0) > 0)
+          .map(sp => [sp.key, data.livestockHeads[sp.key]])
+      ) as Partial<Record<LivestockSpecies, number>>
+      return calcBiogasFromLivestock(headsFiltered).biogasM3
+    }
+    return null
+  })()
 
   return (
     <div className="space-y-5">
@@ -237,7 +280,19 @@ export default function StepAtividade({ data, onChange, onNext, onBack }: Props)
               placeholder="0"
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
             />
+            <input
+              type="range" min={0} max={data.sugarcaneType === 'hectares' ? 1000 : 10000}
+              step={data.sugarcaneType === 'hectares' ? 10 : 100}
+              value={data.sugarcaneValue}
+              onChange={e => set({ sugarcaneValue: parseFloat(e.target.value) || 0 })}
+              className="w-full accent-green-600 mt-2"
+            />
             {caneHint && <p className="text-xs text-green-600 mt-1">📊 {caneHint}</p>}
+            {biogasPreview !== null && biogasPreview > 0 && (
+              <p className="text-xs text-green-700 font-medium mt-1">
+                🔬 ~ {fmtBiogas(biogasPreview)} m³ biogás/ano estimado (cenário ideal)
+              </p>
+            )}
           </div>
 
           <SugarcaneBreakdown
@@ -266,6 +321,12 @@ export default function StepAtividade({ data, onChange, onNext, onBack }: Props)
             </div>
           </div>
 
+          {/* Seasonal warning banner */}
+          <div className="flex items-start gap-2 p-3 bg-yellow-50 border border-yellow-200 rounded-xl text-xs text-yellow-800">
+            <span className="mt-0.5 shrink-0">⚠️</span>
+            <p>{t('step2.seasonalWarning')}</p>
+          </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               {t('step2.cropTonnesLabel')}
@@ -277,7 +338,18 @@ export default function StepAtividade({ data, onChange, onNext, onBack }: Props)
               placeholder="0"
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
             />
+            <input
+              type="range" min={0} max={10000} step={50}
+              value={data.cropTonnes}
+              onChange={e => set({ cropTonnes: parseFloat(e.target.value) || 0 })}
+              className="w-full accent-green-600 mt-2"
+            />
             <p className="text-xs text-gray-400 mt-1">{t('step2.cropTonnesHint')}</p>
+            {biogasPreview !== null && biogasPreview > 0 && (
+              <p className="text-xs text-green-700 font-medium mt-1">
+                🔬 ~ {fmtBiogas(biogasPreview)} m³ biogás/ano estimado (cenário ideal)
+              </p>
+            )}
           </div>
 
           {isCrop && data.activityType && (
@@ -292,28 +364,59 @@ export default function StepAtividade({ data, onChange, onNext, onBack }: Props)
       {/* Livestock input */}
       {isLivestock && (
         <div className="space-y-4">
-          <button onClick={() => set({ activityType: null })} className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1">
+          <button onClick={() => set({ activityType: null, livestockHeads: {} })} className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1">
             ← {t('common.back')}
           </button>
+          <div className="flex items-center gap-2 p-3 bg-green-50 rounded-xl">
+            <span className="text-2xl">{ACTIVITY_OPTIONS.find(o => o.key === data.activityType)?.emoji}</span>
+            <div>
+              <p className="font-semibold text-gray-800">
+                {data.activityType ? t(`step2.${data.activityType}`) : ''}
+              </p>
+              <p className="text-xs text-gray-500">
+                {data.activityType ? t(`step2.${data.activityType}Desc`) : ''}
+              </p>
+            </div>
+          </div>
           <p className="text-sm font-medium text-gray-700">{t('step2.livestockInstructions')}</p>
-          <div className="space-y-3">
-            {LIVESTOCK_SPECIES.map(({ key, emoji, labelKey }) => (
-              <div key={key} className="flex items-center gap-3">
-                <span className="text-2xl w-8 text-center">{emoji}</span>
-                <label className="flex-1 text-sm text-gray-700">{t(`step2.${labelKey}`)}</label>
+          <div className="space-y-4">
+            {visibleSpecies.map(({ key, emoji, labelKey }) => (
+              <div key={key} className="space-y-1.5">
+                <div className="flex items-center gap-3">
+                  <span className="text-xl w-7 text-center shrink-0">{emoji}</span>
+                  <label className="flex-1 text-sm text-gray-700">{t(`step2.${labelKey}`)}</label>
+                  <input
+                    type="number" min={0} max={5000}
+                    value={data.livestockHeads[key] || ''}
+                    onChange={e => set({ livestockHeads: { ...data.livestockHeads, [key]: parseInt(e.target.value) || 0 } })}
+                    placeholder="0"
+                    className="w-24 border border-gray-300 rounded-lg px-2 py-1.5 text-sm text-right focus:outline-none focus:ring-2 focus:ring-green-500"
+                  />
+                  <span className="text-xs text-gray-400 w-10">{t('step2.heads')}</span>
+                </div>
                 <input
-                  type="number" min={0}
-                  value={data.livestockHeads[key] || ''}
+                  type="range" min={0} max={5000} step={10}
+                  value={data.livestockHeads[key] ?? 0}
                   onChange={e => set({ livestockHeads: { ...data.livestockHeads, [key]: parseInt(e.target.value) || 0 } })}
-                  placeholder="0"
-                  className="w-28 border border-gray-300 rounded-lg px-3 py-2 text-sm text-right focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className="w-full accent-green-600"
                 />
-                <span className="text-xs text-gray-400 w-12">{t('step2.heads')}</span>
               </div>
             ))}
           </div>
 
-          <LivestockBreakdown heads={data.livestockHeads} />
+          {biogasPreview !== null && biogasPreview > 0 && (
+            <p className="text-xs text-green-700 font-medium">
+              🔬 ~ {fmtBiogas(biogasPreview)} m³ biogás/ano estimado (cenário ideal)
+            </p>
+          )}
+
+          <LivestockBreakdown heads={
+            Object.fromEntries(
+              visibleSpecies
+                .filter(sp => (data.livestockHeads[sp.key] ?? 0) > 0)
+                .map(sp => [sp.key, data.livestockHeads[sp.key]])
+            ) as Partial<Record<LivestockSpecies, number>>
+          } />
         </div>
       )}
 
