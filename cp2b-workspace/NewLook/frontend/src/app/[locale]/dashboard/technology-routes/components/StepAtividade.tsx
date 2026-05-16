@@ -58,10 +58,17 @@ function fmtBiogas(m3: number): string {
   return m3.toLocaleString('pt-BR', { maximumFractionDigits: 0 })
 }
 
-/** Update the CSS gradient fill on a range input to reflect its current value */
-function updateRangeFill(el: HTMLInputElement, max: number) {
-  const pct = max > 0 ? ((parseFloat(el.value) / max) * 100).toFixed(1) : '0'
-  el.style.setProperty('--range-pct', `${pct}%`)
+// ── Logarithmic scale helpers ────────────────────────────────────────────────
+// Converts a linear slider position (0–1000) ↔ an exponential value (0–max).
+// This gives equal thumb travel to each order of magnitude, so small-producer
+// quantities (100–500 t) sit comfortably in the middle of the slider.
+function posToValue(pos: number, max: number): number {
+  if (pos <= 0) return 0
+  return Math.round(Math.pow(10, (pos / 1000) * Math.log10(max + 1)) - 1)
+}
+function valueToPos(val: number, max: number): number {
+  if (val <= 0) return 0
+  return Math.round((Math.log10(val + 1) / Math.log10(max + 1)) * 1000)
 }
 
 // ── Slider with fill + min/max labels ────────────────────────────────────────
@@ -69,22 +76,29 @@ interface SliderProps {
   value: number
   max: number
   step?: number
+  log?: boolean
   onChange: (v: number) => void
 }
-function Slider({ value, max, step = 1, onChange }: SliderProps) {
+function Slider({ value, max, step = 1, log = false, onChange }: SliderProps) {
+  const pos = log ? valueToPos(value, max) : value
+  const sliderMax = log ? 1000 : max
+  const pct = ((pos / sliderMax) * 100).toFixed(1)
+
   return (
     <div className="mt-3">
       <input
         type="range"
         min={0}
-        max={max}
-        step={step}
-        value={value}
-        style={{ '--range-pct': `${max > 0 ? ((value / max) * 100).toFixed(1) : 0}%` } as React.CSSProperties}
+        max={sliderMax}
+        step={log ? 1 : step}
+        value={pos}
+        style={{ '--range-pct': `${pct}%` } as React.CSSProperties}
         onChange={e => {
-          const v = parseFloat(e.target.value) || 0
+          const rawPos = parseFloat(e.target.value) || 0
+          const v = log ? posToValue(rawPos, max) : rawPos
           onChange(v)
-          updateRangeFill(e.target, max)
+          const newPct = ((rawPos / sliderMax) * 100).toFixed(1)
+          e.target.style.setProperty('--range-pct', `${newPct}%`)
         }}
         className="w-full"
       />
@@ -289,6 +303,7 @@ export default function StepAtividade({ data, onChange, onNext, onBack }: Props)
     <div className="space-y-5">
       {/* Activity type selector grid */}
       {data.activityType === null && (
+        <>
         <div className="grid grid-cols-2 gap-3">
           {ACTIVITY_OPTIONS.map(({ key, emoji, labelKey, descKey }) => (
             <button
@@ -307,6 +322,13 @@ export default function StepAtividade({ data, onChange, onNext, onBack }: Props)
             </button>
           ))}
         </div>
+        <button
+          onClick={onBack}
+          className="w-full py-2.5 rounded-xl font-medium text-sm text-gray-500 dark:text-slate-400 border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+        >
+          ← {t('common.back')}
+        </button>
+        </>
       )}
 
       {/* Sugarcane input */}
@@ -345,9 +367,15 @@ export default function StepAtividade({ data, onChange, onNext, onBack }: Props)
               value={data.sugarcaneValue}
               max={data.sugarcaneType === 'hectares' ? 1000 : 10000}
               step={data.sugarcaneType === 'hectares' ? 10 : 100}
+              log
               onChange={v => set({ sugarcaneValue: v })}
             />
-            {caneHint && <p className="text-xs text-green-600 dark:text-emerald-400 mt-2">📊 {caneHint}</p>}
+            <p className="text-xs text-gray-400 dark:text-slate-500 mt-1 italic">
+              {data.sugarcaneType === 'tons'
+                ? 'Referência: pequeno produtor 100–500 t/ano (2–7 ha)'
+                : 'Referência: pequena propriedade 2–10 ha (150–850 t/ano)'}
+            </p>
+            {caneHint && <p className="text-xs text-green-600 dark:text-emerald-400 mt-1">📊 {caneHint}</p>}
             {biogasPreview !== null && biogasPreview > 0 && (
               <p className="text-xs text-green-700 dark:text-emerald-400 font-medium mt-1">
                 🔬 ~ {fmtBiogas(biogasPreview)} m³ biogás/ano estimado (cenário ideal)
@@ -388,9 +416,13 @@ export default function StepAtividade({ data, onChange, onNext, onBack }: Props)
               value={data.cropTonnes}
               max={10000}
               step={50}
+              log
               onChange={v => set({ cropTonnes: v })}
             />
-            <p className="text-xs text-gray-400 dark:text-slate-500 mt-1">{t('step2.cropTonnesHint')}</p>
+            <p className="text-xs text-gray-400 dark:text-slate-500 mt-1 italic">
+              Referência: pequeno produtor 50–300 t resíduo/ano
+            </p>
+            <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">{t('step2.cropTonnesHint')}</p>
             {biogasPreview !== null && biogasPreview > 0 && (
               <p className="text-xs text-green-700 dark:text-emerald-400 font-medium mt-1">
                 🔬 ~ {fmtBiogas(biogasPreview)} m³ biogás/ano estimado (cenário ideal)
@@ -431,8 +463,16 @@ export default function StepAtividade({ data, onChange, onNext, onBack }: Props)
                   value={data.livestockHeads[key] ?? 0}
                   max={5000}
                   step={10}
+                  log
                   onChange={v => set({ livestockHeads: { ...data.livestockHeads, [key]: v } })}
                 />
+                <p className="text-xs text-gray-400 dark:text-slate-500 italic">
+                  {key === 'swine'        && 'Referência: pequena granja 50–500 cabeças'}
+                  {key === 'cattle_beef'  && 'Referência: pequena propriedade 20–200 cabeças'}
+                  {key === 'cattle_dairy' && 'Referência: pequena propriedade 10–80 cabeças'}
+                  {key === 'poultry_eggs' && 'Referência: pequeno aviário 500–5.000 aves'}
+                  {key === 'poultry_meat' && 'Referência: pequeno aviário 500–5.000 aves'}
+                </p>
               </div>
             ))}
           </div>
@@ -456,7 +496,7 @@ export default function StepAtividade({ data, onChange, onNext, onBack }: Props)
       {data.activityType !== null && (
         <div className="flex gap-3">
           <button
-            onClick={onBack}
+            onClick={() => set({ activityType: null })}
             className="flex-1 py-3 rounded-xl font-medium text-gray-600 dark:text-slate-300 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
           >
             ← {t('common.back')}

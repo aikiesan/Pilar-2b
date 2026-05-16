@@ -9,13 +9,13 @@ import type { CalculationResult, OutputType, PriceConfig, ActivityType, Scenario
 import {
   calcFinancials,
   calcPaybackRange,
+  getCapexTier,
   DEFAULT_PRICES,
   ALL_OUTPUT_TYPES,
   CROP_PARAMS,
   SUGARCANE_STREAMS,
   LIVESTOCK_PPB,
   SCENARIO_FACTORS,
-  CAPEX_TIERS,
   applyScenario,
 } from '../calculatorEngine'
 import type { PaybackRange } from '../calculatorEngine'
@@ -29,10 +29,13 @@ interface Props {
 
 type ChartMode = 'biogas' | 'energy'
 
-const CAPEX_LOW_FACTOR  = 0.65
-const CAPEX_HIGH_FACTOR = 1.50
+const CAPEX_LOW_FACTOR = 0.65
 
-const SCENARIO_EMOJIS: Record<ScenarioTier, string> = { min: '💰', avg: '💰💰', max: '💰💰💰' }
+// Scenario adjusts CAPEX *within* the scale-appropriate tier, not across tiers.
+// Básico uses simpler/cheaper tech (−30%); Avançado adds automation/redundancy (+30%).
+const CAPEX_SCENARIO_MULTIPLIER: Record<ScenarioTier, number> = { min: 0.70, avg: 1.00, max: 1.30 }
+
+const SCENARIO_EMOJIS: Record<ScenarioTier, string> = { min: '🌱', avg: '⚙️', max: '🚀' }
 const SCENARIO_ORDER: ScenarioTier[] = ['min', 'avg', 'max']
 
 function fmt(n: number, decimals = 0): string {
@@ -46,9 +49,6 @@ function fmtSlider(val: number, unit: string): string {
 }
 function fmtK(n: number): string {
   return `${Math.round(n / 1000)}k`
-}
-function fmtPayback(pb: number): string {
-  return pb >= 999 ? 'Indet.' : `${pb}`
 }
 
 interface MetricCardProps {
@@ -131,23 +131,26 @@ export default function ResultsDashboard({ result, municipalityName, onReset }: 
 
   const { outputs: baseOutputs, selectedOutputs, inputSummary } = result
 
+  // Scale-appropriate CAPEX tier — determined by biogas volume, not by scenario label.
+  // Scenario then applies a ±30% multiplier within that tier for technology premium/discount.
+  const volumeCapex = getCapexTier(baseOutputs.totalBiogasM3Year)
+
   // Active scenario outputs + financials
   const outputs = applyScenario(baseOutputs, SCENARIO_FACTORS[scenario])
   const rawFinancials = calcFinancials(outputs, selectedOutputs, prices)
-  const activeCapex = CAPEX_TIERS[SCENARIO_FACTORS[scenario].capexTierIndex]
+  const activeCapex = { ...volumeCapex, mid: Math.round(volumeCapex.mid * CAPEX_SCENARIO_MULTIPLIER[scenario]) }
   const activePayback = calcPaybackRange(rawFinancials.annualRevenueMaxBRL, activeCapex)
   const financials = { ...rawFinancials, capexTier: activeCapex, payback: activePayback }
 
   // Pre-compute all 3 scenario cards data
   const scenarioCards = SCENARIO_ORDER.map(tier => {
     const sf = SCENARIO_FACTORS[tier]
-    const tierCapex = CAPEX_TIERS[sf.capexTierIndex]
+    const tierCapex = { ...volumeCapex, mid: Math.round(volumeCapex.mid * CAPEX_SCENARIO_MULTIPLIER[tier]) }
     const scenOutputs = applyScenario(baseOutputs, sf)
     const scenFin = calcFinancials(scenOutputs, selectedOutputs, prices)
     const payback = calcPaybackRange(scenFin.annualRevenueMaxBRL, tierCapex)
     const cl = tierCapex.mid * CAPEX_LOW_FACTOR
-    const ch = tierCapex.mid * CAPEX_HIGH_FACTOR
-    return { tier, sf, tierCapex, payback, cl, ch }
+    return { tier, sf, payback, cl }
   })
 
   const chartData = outputs.monthly.map(m => ({
@@ -183,7 +186,7 @@ export default function ResultsDashboard({ result, municipalityName, onReset }: 
           Cenário de implantação
         </p>
         <div className="space-y-2">
-          {scenarioCards.map(({ tier, sf, tierCapex, payback, cl, ch }) => {
+          {scenarioCards.map(({ tier, sf, payback, cl }) => {
             const active = scenario === tier
             return (
               <button
@@ -229,13 +232,13 @@ export default function ResultsDashboard({ result, municipalityName, onReset }: 
                     <div>
                       <p className="text-gray-500 dark:text-slate-400">Investimento estimado</p>
                       <p className="font-semibold text-gray-800 dark:text-slate-200">
-                        R$ {fmtK(cl)} – {fmtK(tierCapex.mid)} – {fmtK(ch)}
+                        A partir de R$ {fmtK(cl)}
                       </p>
                     </div>
                     <div className="col-span-2">
-                      <p className="text-gray-500 dark:text-slate-400">Payback estimado (otimista – conservador)</p>
+                      <p className="text-gray-500 dark:text-slate-400">Payback estimado</p>
                       <p className="font-semibold text-gray-800 dark:text-slate-200">
-                        {fmtPayback(payback.min)} – {payback.max >= 999 ? 'Indeterminado' : `${fmtPayback(payback.max)} anos`}
+                        {payback.min >= 999 ? 'Não é possível estimar neste caso' : `A partir de ${payback.min} anos`}
                       </p>
                     </div>
                   </div>
@@ -308,7 +311,7 @@ export default function ResultsDashboard({ result, municipalityName, onReset }: 
           </div>
         </div>
         <div className="h-40 w-full min-w-0">
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height={160}>
             <BarChart data={chartData} margin={{ top: 4, right: 4, left: -24, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chartGrid} />
               <XAxis dataKey="name" tick={{ fontSize: 10, fill: chartTick }} axisLine={false} tickLine={false} />
@@ -365,26 +368,6 @@ export default function ResultsDashboard({ result, municipalityName, onReset }: 
         </div>
       )}
 
-      {/* Secondary outputs (muted) */}
-      {secondaryOutputs.length > 0 && (
-        <div>
-          <p className="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide mb-2">
-            {t('results.secondaryOutputs')}
-          </p>
-          <div className="grid grid-cols-2 gap-3">
-            {secondaryOutputs.map(type => (
-              <MetricCard
-                key={type}
-                emoji={OUTPUT_META[type].emoji}
-                label={OUTPUT_META[type].label}
-                value={outputValue(type, outputs)}
-                sub={t('results.notSelected')}
-                muted
-              />
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Financial summary */}
       <div className="p-4 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 space-y-3">
@@ -393,32 +376,32 @@ export default function ResultsDashboard({ result, municipalityName, onReset }: 
         <div className="flex justify-between items-center text-sm">
           <span className="text-gray-500 dark:text-slate-400">📊 Investimento estimado</span>
           <span className="font-bold text-gray-800 dark:text-slate-200 text-xs">
-            R$ {fmtK(activeCapex.mid * CAPEX_LOW_FACTOR)} – {fmtK(activeCapex.mid)} – {fmtK(activeCapex.mid * CAPEX_HIGH_FACTOR)}
+            A partir de R$ {fmtK(activeCapex.mid * CAPEX_LOW_FACTOR)}
           </span>
         </div>
 
-        {/* Payback — simplified range with expandable detail */}
+        {/* Payback — optimistic floor with expandable detail */}
         <div className="flex justify-between items-start text-sm">
           <span className="text-gray-500 dark:text-slate-400">⏱ Payback estimado</span>
           <div className="text-right">
             <p className="font-bold text-gray-800 dark:text-slate-200">
-              {fmtPayback(financials.payback.min)} – {financials.payback.max >= 999 ? 'Indet.' : `${fmtPayback(financials.payback.max)}`} anos
+              {financials.payback.min >= 999 ? 'Não é possível estimar neste caso' : `A partir de ${financials.payback.min} anos`}
             </p>
             <details className="text-xs">
               <summary className="cursor-pointer text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300 select-none">
-                ver detalhes ▾
+                ver cenários ▾
               </summary>
               <div className="mt-1 text-left text-gray-500 dark:text-slate-400 max-w-52 space-y-0.5">
-                <p>🟢 Otimista: {fmtPayback(financials.payback.min)} anos — operação plena, boas tarifas</p>
-                <p>🟡 Esperado: {fmtPayback(financials.payback.avg)} anos — curva de aprendizado incluída</p>
-                <p>🔴 Conservador: {financials.payback.max >= 999 ? 'Indet.' : `${fmtPayback(financials.payback.max)} anos`} — consultoria, manutenção elevada, startup lento</p>
+                <p>🟢 Otimista: {financials.payback.min >= 999 ? 'Não é possível estimar neste caso' : `${financials.payback.min} anos`} — operação plena, boas tarifas</p>
+                <p>🟡 Esperado: {financials.payback.avg >= 999 ? 'Não é possível estimar neste caso' : `${financials.payback.avg} anos`} — curva de aprendizado incluída</p>
+                <p>🔴 Conservador: {financials.payback.max >= 999 ? 'Não é possível estimar neste caso' : `${financials.payback.max} anos`}</p>
               </div>
             </details>
           </div>
         </div>
 
         <div className="flex justify-between items-center text-sm">
-          <span className="text-gray-500 dark:text-slate-400">💰 {t('results.annualRevenue')}</span>
+          <span className="text-gray-500 dark:text-slate-400">{t('results.annualRevenue')}</span>
           <div className="text-right">
             <span className="font-bold text-green-700 dark:text-emerald-400">{fmtCurrency(financials.annualRevenueMaxBRL)}/ano</span>
             <p className="text-xs text-gray-400 dark:text-slate-500">esperado: {fmtCurrency(financials.annualRevenueAvgBRL)}/ano</p>
@@ -445,9 +428,9 @@ export default function ResultsDashboard({ result, municipalityName, onReset }: 
                     {sf.labelPt}
                   </p>
                   <p className={`font-semibold text-xs mt-1 ${active ? 'text-green-800 dark:text-emerald-300' : 'text-gray-700 dark:text-slate-300'}`}>
-                    {fmtPayback(payback.min)} – {payback.max >= 999 ? 'Indet.' : fmtPayback(payback.max)}
+                    {payback.min >= 999 ? '—' : `≥ ${payback.min}`}
                   </p>
-                  <p className="text-gray-400 dark:text-slate-500 text-xs">anos</p>
+                  <p className="text-gray-400 dark:text-slate-500 text-xs">{payback.min >= 999 ? 'não estimável' : 'anos (otimista)'}</p>
                 </button>
               )
             })}
@@ -456,6 +439,31 @@ export default function ResultsDashboard({ result, municipalityName, onReset }: 
 
         <p className="text-xs text-gray-400 dark:text-slate-500">{t('results.financialDisclaimer')}</p>
       </div>
+
+      {/* "Também calculado" — non-selected outputs shown for context */}
+      {secondaryOutputs.length > 0 && (
+        <details className="group border border-gray-200 dark:border-slate-700 rounded-xl overflow-hidden">
+          <summary className="flex items-center justify-between px-4 py-3 cursor-pointer select-none
+                              bg-gray-50 dark:bg-slate-800/60 hover:bg-gray-100 dark:hover:bg-slate-700/60
+                              transition-colors">
+            <span className="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide">
+              Também calculado — não selecionado ({secondaryOutputs.length})
+            </span>
+            <span className="text-gray-400 dark:text-slate-500 group-open:rotate-180 transition-transform text-xs">▼</span>
+          </summary>
+          <div className="px-4 py-3 space-y-1 bg-white dark:bg-slate-900">
+            {secondaryOutputs.map(type => (
+              <div key={type} className="flex items-center gap-3 py-1.5 border-b border-gray-100 dark:border-slate-800 last:border-0">
+                <span className="text-lg">{OUTPUT_META[type].emoji}</span>
+                <span className="text-sm text-gray-600 dark:text-slate-400 flex-1">{OUTPUT_META[type].label}</span>
+                <span className="text-sm font-medium text-gray-700 dark:text-slate-300">
+                  {outputValue(type, outputs)}
+                </span>
+              </div>
+            ))}
+          </div>
+        </details>
+      )}
 
       {/* "Entenda os cenários" accordion */}
       <details className="group border border-blue-100 dark:border-blue-900 rounded-xl overflow-hidden">
@@ -467,23 +475,23 @@ export default function ResultsDashboard({ result, municipalityName, onReset }: 
         </summary>
         <div className="px-4 py-4 space-y-3 bg-white dark:bg-slate-900 text-xs text-gray-600 dark:text-slate-400">
           <p>
-            <strong className="text-gray-800 dark:text-slate-200">💰 Básico — Lagoa coberta / tubular PVC</strong><br/>
+            <strong className="text-gray-800 dark:text-slate-200">🌱 Básico — Lagoa coberta / tubular PVC</strong><br/>
             Tecnologia mais simples e acessível, adequada para pequenas propriedades. Aproveita cerca de 55% do potencial.
             Payback mais curto porque o investimento é menor, mas a geração também é menor.
           </p>
           <p>
-            <strong className="text-gray-800 dark:text-slate-200">💰💰 Ideal — Biodigestor CSTR</strong><br/>
+            <strong className="text-gray-800 dark:text-slate-200">⚙️ Ideal — Biodigestor CSTR</strong><br/>
             Configuração mais comum em propriedades de médio porte. Aproveita 75% do potencial.
             O payback esperado considera curva de aprendizado e manutenção — mais honesto que promessas de vendedores.
           </p>
           <p>
-            <strong className="text-gray-800 dark:text-slate-200">💰💰💰 Avançado — CSTR + upgrading / CHP premium</strong><br/>
-            Máxima eficiência para grandes operações. O payback conservador pode ser &quot;Indeterminado&quot; para operações
+            <strong className="text-gray-800 dark:text-slate-200">🚀 Avançado — CSTR + upgrading / CHP premium</strong><br/>
+            Máxima eficiência para grandes operações. O payback conservador pode ser longo para operações
             pequenas — não significa inviabilidade, mas que a receita não cobre o investimento no horizonte de 40 anos.
           </p>
           <p className="text-gray-400 dark:text-slate-500 pt-1">
             Payback otimista: CAPEX mínimo, 110% de realização de receita, 3% manutenção/ano.<br/>
-            Payback conservador: CAPEX máximo, 45% de realização, 8% manutenção/ano, +25% startup. &quot;Indet.&quot; = acima de 40 anos.
+            Payback conservador: CAPEX máximo, 45% de realização, 8% manutenção/ano, +25% startup. &quot;Não é possível estimar&quot; = acima de 40 anos.
           </p>
         </div>
       </details>
