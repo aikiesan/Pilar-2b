@@ -363,7 +363,7 @@ Three technology scenarios represent different levels of investment, sophisticat
 | **Electrical efficiency** | 28% | 35% | 42% |
 | **Thermal efficiency** | 40% | 50% | 60% |
 | **Biochar yield** | 20% | 28% | 35% |
-| **CAPEX tier** | Baixo | Médio | Alto |
+| **CAPEX** | Own tier table (see §9) | Own tier table (see §9) | Own tier table (see §9) |
 
 ### Parameter meanings
 
@@ -413,38 +413,66 @@ CH₄ content (`ch4ContentWeighted`) does not change between scenarios — it is
 
 ## 9. CAPEX Reference Tiers
 
-CAPEX tier is selected **automatically** based on annual biogas volume, then overridden by scenario:
+CAPEX is a function of **both biogas volume (scale)** and **technology scenario (choice)**. These are independent axes: a lagoa coberta on a large farm is not "almost as expensive" as a CSTR on a small farm.
 
-### Automatic tier selection (from biogas volume)
+### Scale selection (from annual biogas volume)
 
 ```
-if biogasM3Year < 100,000   → Tier 0 (Baixo)
-if biogasM3Year < 1,000,000 → Tier 1 (Médio)
-else                         → Tier 2 (Alto)
+if biogasM3Year < 100,000   → Baixo (small-scale)
+if biogasM3Year < 1,000,000 → Médio (medium-scale)
+else                         → Alto  (large-scale / agro-industrial)
 ```
 
-### Tier reference values
+### Scenario × scale CAPEX matrix
 
-| Tier | Label | Range | Mid-point (reference) | Typical installation |
-|------|-------|-------|-----------------------|---------------------|
-| 0 | Baixo | R$ 80k – 300k | **R$ 190,000** | Lagoa coberta, tubular PVC, small farm |
-| 1 | Médio | R$ 300k – 2M | **R$ 1,150,000** | CSTR 200–2,000 m³, medium property |
-| 2 | Alto | R$ 2M – 10M+ | **R$ 6,000,000** | CSTR + upgrading + CHP, agro-industrial |
+Each scenario has its own set of tier midpoints reflecting real technology cost differences:
 
-Each scenario then forces its tier:
-- **Básico** → always Tier 0 (even if biogas volume suggests higher)
-- **Ideal** → always Tier 1
-- **Avançado** → always Tier 2
+**🌱 Básico — Lagoa coberta / tubular PVC** (civil works dominant, minimal machinery)
 
-The investment display shows only the **floor** of the range (optimistic CAPEX):
+| Scale | Range | Mid-point |
+|-------|-------|-----------|
+| Baixo | R$ 40k – 180k | **R$ 80,000** |
+| Médio | R$ 200k – 1M | **R$ 500,000** |
+| Alto | R$ 1M – 6M | **R$ 3,000,000** |
+
+**⚙️ Ideal — Biodigestor CSTR** (engineered tank + mixing + instrumentation + gas management)
+
+| Scale | Range | Mid-point |
+|-------|-------|-----------|
+| Baixo | R$ 150k – 700k | **R$ 350,000** |
+| Médio | R$ 700k – 4M | **R$ 2,000,000** |
+| Alto | R$ 4M – 25M | **R$ 12,000,000** |
+
+**🚀 Avançado — CSTR + upgrading / CHP premium** (full biogas-to-energy chain with upgrading or premium CHP)
+
+| Scale | Range | Mid-point |
+|-------|-------|-----------|
+| Baixo | R$ 500k – 2M | **R$ 900,000** |
+| Médio | R$ 3M – 12M | **R$ 6,000,000** |
+| Alto | R$ 20M – 60M | **R$ 35,000,000** |
+
+### Technology cost ratios (per scale band)
+
+| Comparison | Ratio |
+|-----------|-------|
+| Lagoa coberta → CSTR | ~4–4.4× |
+| CSTR → CSTR+CHP premium | ~2.6–3× |
+| Lagoa coberta → CSTR+CHP premium | ~11–12× |
+
+Sources: SEBRAE 2020; PROBIOGÁS/BNDES 2021; ANEEL 2022 (micro/minigeração); EPE 2023 (biogás)
+
+### Investment display
+
+The display shows only the **floor** of each scenario×scale cell (optimistic best case):
 ```
 floor = mid × 0.65   (CAPEX_LOW_FACTOR)
 ```
 
-Full range used internally for payback:
+Full range used internally for payback three-scenario calculation:
 ```
-low  = mid × 0.65
-high = mid × 1.50
+low  = mid × 0.65   (Payback otimista)
+mid  = mid          (Payback esperado)
+high = mid × 1.50   (Payback conservador)
 ```
 
 ---

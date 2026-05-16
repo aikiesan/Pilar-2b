@@ -30,10 +30,9 @@ interface Props {
 type ChartMode = 'biogas' | 'energy'
 
 const CAPEX_LOW_FACTOR = 0.65
-
-// Scenario adjusts CAPEX *within* the scale-appropriate tier, not across tiers.
-// Básico uses simpler/cheaper tech (−30%); Avançado adds automation/redundancy (+30%).
-const CAPEX_SCENARIO_MULTIPLIER: Record<ScenarioTier, number> = { min: 0.70, avg: 1.00, max: 1.30 }
+// Note: CAPEX_SCENARIO_MULTIPLIER removed — each scenario now has its own tier
+// table in calculatorEngine.ts (SCENARIO_CAPEX_TIERS), reflecting real technology
+// cost differences: lagoa coberta → CSTR → CSTR+CHP is roughly 4× and 3× steps.
 
 const SCENARIO_EMOJIS: Record<ScenarioTier, string> = { min: '🌱', avg: '⚙️', max: '🚀' }
 const SCENARIO_ORDER: ScenarioTier[] = ['min', 'avg', 'max']
@@ -131,21 +130,20 @@ export default function ResultsDashboard({ result, municipalityName, onReset }: 
 
   const { outputs: baseOutputs, selectedOutputs, inputSummary } = result
 
-  // Scale-appropriate CAPEX tier — determined by biogas volume, not by scenario label.
-  // Scenario then applies a ±30% multiplier within that tier for technology premium/discount.
-  const volumeCapex = getCapexTier(baseOutputs.totalBiogasM3Year)
+  // CAPEX tier: both volume (small/medium/large) and technology scenario determine cost.
+  // Each scenario has its own tier table in calculatorEngine.ts (SCENARIO_CAPEX_TIERS).
+  const activeCapex = getCapexTier(baseOutputs.totalBiogasM3Year, scenario)
 
   // Active scenario outputs + financials
   const outputs = applyScenario(baseOutputs, SCENARIO_FACTORS[scenario])
   const rawFinancials = calcFinancials(outputs, selectedOutputs, prices)
-  const activeCapex = { ...volumeCapex, mid: Math.round(volumeCapex.mid * CAPEX_SCENARIO_MULTIPLIER[scenario]) }
   const activePayback = calcPaybackRange(rawFinancials.annualRevenueMaxBRL, activeCapex)
   const financials = { ...rawFinancials, capexTier: activeCapex, payback: activePayback }
 
   // Pre-compute all 3 scenario cards data
   const scenarioCards = SCENARIO_ORDER.map(tier => {
     const sf = SCENARIO_FACTORS[tier]
-    const tierCapex = { ...volumeCapex, mid: Math.round(volumeCapex.mid * CAPEX_SCENARIO_MULTIPLIER[tier]) }
+    const tierCapex = getCapexTier(baseOutputs.totalBiogasM3Year, tier)
     const scenOutputs = applyScenario(baseOutputs, sf)
     const scenFin = calcFinancials(scenOutputs, selectedOutputs, prices)
     const payback = calcPaybackRange(scenFin.annualRevenueMaxBRL, tierCapex)
