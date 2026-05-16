@@ -1,18 +1,26 @@
 import createIntlMiddleware from 'next-intl/middleware';
-import type { NextRequest } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server';
 import { locales, defaultLocale, localePrefix } from './config/i18n';
 
-// Create the next-intl middleware with proper configuration
 const intlMiddleware = createIntlMiddleware({
   locales,
   defaultLocale,
   localePrefix,
-  // Disable automatic locale detection for better control
-  // Users will be redirected to the default locale if no locale is in the URL
   localeDetection: false,
 });
 
 export function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // In dev (basePath=''), strip stale /pilar2b prefix that may arrive from
+  // cached links or direct navigation using the production URL structure.
+  // In production the basePath strips this before the proxy ever sees it.
+  if (pathname.startsWith('/pilar2b')) {
+    const url = request.nextUrl.clone();
+    url.pathname = pathname.slice('/pilar2b'.length) || '/';
+    return NextResponse.redirect(url);
+  }
+
   return intlMiddleware(request);
 }
 

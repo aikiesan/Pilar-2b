@@ -1,7 +1,7 @@
 'use client'
 
 import { useLocale, useTranslations } from 'next-intl'
-import { useRouter, usePathname } from 'next/navigation'
+import { useRouter, usePathname } from '@/navigation'
 
 const LOCALE_STORAGE_KEY = 'cp2b-locale'
 
@@ -18,8 +18,7 @@ export default function LanguageSwitcher() {
       localStorage.setItem(LOCALE_STORAGE_KEY, newLocale)
     }
 
-    const pathnameWithoutLocale = pathname.replace(`/${locale}`, '') || '/'
-    router.push(`/${newLocale}${pathnameWithoutLocale}`)
+    router.push(pathname, { locale: newLocale })
   }
 
   const activeClass = 'px-2 py-1 text-xs font-bold rounded transition-colors text-cp2b-green dark:text-emerald-400'
