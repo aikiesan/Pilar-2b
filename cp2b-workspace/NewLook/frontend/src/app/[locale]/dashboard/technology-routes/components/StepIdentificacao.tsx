@@ -57,7 +57,7 @@ export default function StepIdentificacao({ data, onChange, onNext, onSkip }: Pr
   return (
     <div className="space-y-5">
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
           {t('step1.nome')} <span className="text-red-500">*</span>
         </label>
         <input
@@ -65,12 +65,12 @@ export default function StepIdentificacao({ data, onChange, onNext, onSkip }: Pr
           value={data.nome}
           onChange={e => set({ nome: e.target.value })}
           placeholder={t('step1.nomePlaceholder')}
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+          className="input-field"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
           {t('step1.email')} <span className="text-red-500">*</span>
         </label>
         <input
@@ -78,12 +78,12 @@ export default function StepIdentificacao({ data, onChange, onNext, onSkip }: Pr
           value={data.email}
           onChange={e => set({ email: e.target.value })}
           placeholder="seu@email.com.br"
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+          className="input-field"
         />
       </div>
 
       <div className="relative">
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
           {t('step1.municipio')} <span className="text-red-500">*</span>
         </label>
         {munError ? (
@@ -95,7 +95,7 @@ export default function StepIdentificacao({ data, onChange, onNext, onSkip }: Pr
               set({ municipality_id: null, municipality_name: e.target.value })
             }}
             placeholder="Digite o nome do município"
-            className="w-full border border-amber-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+            className="w-full border border-amber-300 dark:border-amber-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-amber-400"
           />
         ) : (
           <>
@@ -112,10 +112,10 @@ export default function StepIdentificacao({ data, onChange, onNext, onSkip }: Pr
               placeholder={loadingMun ? 'Carregando municípios…' : t('step1.municipioPlaceholder')}
               autoComplete="off"
               disabled={loadingMun}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 disabled:bg-gray-50 disabled:text-gray-400"
+              className="input-field disabled:opacity-60"
             />
             {showDropdown && filtered.length > 0 && !loadingMun && (
-              <ul className="absolute z-20 w-full bg-white border border-gray-200 rounded-lg shadow-lg mt-1 max-h-52 overflow-y-auto">
+              <ul className="absolute z-20 w-full bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg shadow-lg dark:shadow-slate-900/50 mt-1 max-h-52 overflow-y-auto">
                 {filtered.map(m => (
                   <li
                     key={m.id}
@@ -124,7 +124,7 @@ export default function StepIdentificacao({ data, onChange, onNext, onSkip }: Pr
                       setMunSearch(m.municipality_name)
                       setShowDropdown(false)
                     }}
-                    className="px-3 py-2 text-sm cursor-pointer hover:bg-green-50"
+                    className="px-3 py-2 text-sm text-gray-700 dark:text-slate-300 cursor-pointer hover:bg-green-50 dark:hover:bg-emerald-900/30"
                   >
                     {m.municipality_name}
                   </li>
@@ -139,20 +139,20 @@ export default function StepIdentificacao({ data, onChange, onNext, onSkip }: Pr
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          {t('step1.cpfCnpj')} <span className="text-gray-400 text-xs">({t('common.optional')})</span>
+        <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
+          {t('step1.cpfCnpj')} <span className="text-gray-400 dark:text-slate-500 text-xs">({t('common.optional')})</span>
         </label>
         <input
           type="text"
           value={data.cpf_cnpj}
           onChange={e => set({ cpf_cnpj: e.target.value })}
           placeholder="CPF ou CNPJ"
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+          className="input-field"
         />
-        <p className="text-xs text-gray-400 mt-1">{t('step1.cpfNote')}</p>
+        <p className="text-xs text-gray-400 dark:text-slate-500 mt-1">{t('step1.cpfNote')}</p>
       </div>
 
-      <div className="flex items-start gap-2 p-3 bg-gray-50 rounded-lg">
+      <div className="flex items-start gap-2 p-3 bg-gray-50 dark:bg-slate-800/60 rounded-lg">
         <input
           id="lgpd"
           type="checkbox"
@@ -160,7 +160,7 @@ export default function StepIdentificacao({ data, onChange, onNext, onSkip }: Pr
           onChange={e => set({ consent_lgpd: e.target.checked })}
           className="mt-0.5 h-4 w-4 accent-green-600"
         />
-        <label htmlFor="lgpd" className="text-xs text-gray-600 leading-relaxed">
+        <label htmlFor="lgpd" className="text-xs text-gray-600 dark:text-slate-400 leading-relaxed">
           {t('step1.lgpdConsent')}
         </label>
       </div>
@@ -169,7 +169,7 @@ export default function StepIdentificacao({ data, onChange, onNext, onSkip }: Pr
         onClick={onNext}
         disabled={!canAdvance}
         className="w-full py-3 rounded-xl font-semibold text-white transition-colors
-          bg-green-600 hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+          bg-green-600 hover:bg-green-700 disabled:bg-gray-300 dark:disabled:bg-slate-600 disabled:cursor-not-allowed"
       >
         {t('common.next')} →
       </button>
@@ -177,7 +177,7 @@ export default function StepIdentificacao({ data, onChange, onNext, onSkip }: Pr
       {onSkip && (
         <button
           onClick={onSkip}
-          className="w-full py-2 rounded-xl text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+          className="w-full py-2 rounded-xl text-sm font-medium text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
         >
           {t('common.skip')}
         </button>

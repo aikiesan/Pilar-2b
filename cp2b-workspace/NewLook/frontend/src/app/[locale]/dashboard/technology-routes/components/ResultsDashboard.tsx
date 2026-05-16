@@ -19,6 +19,7 @@ import {
   applyScenario,
 } from '../calculatorEngine'
 import type { PaybackRange } from '../calculatorEngine'
+import { useTheme } from '@/contexts/ThemeContext'
 
 interface Props {
   result: CalculationResult
@@ -28,7 +29,6 @@ interface Props {
 
 type ChartMode = 'biogas' | 'energy'
 
-// Mirrors the CAPEX spread constants from the engine
 const CAPEX_LOW_FACTOR  = 0.65
 const CAPEX_HIGH_FACTOR = 1.50
 
@@ -45,17 +45,10 @@ function fmtSlider(val: number, unit: string): string {
   return `${val.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${unit}`
 }
 function fmtK(n: number): string {
-  const k = Math.round(n / 1000)
-  return `${k}k`
+  return `${Math.round(n / 1000)}k`
 }
 function fmtPayback(pb: number): string {
   return pb >= 999 ? 'Indet.' : `${pb}`
-}
-function fmtPaybackFull(pb: number): string {
-  return pb >= 999 ? 'Indeterminado' : `${pb} anos`
-}
-function fmtPaybackRange(p: PaybackRange): string {
-  return `${fmtPayback(p.min)} – ${fmtPayback(p.avg)} – ${fmtPayback(p.max)} anos`
 }
 
 interface MetricCardProps {
@@ -64,25 +57,33 @@ interface MetricCardProps {
 function MetricCard({ emoji, label, value, sub, highlight, muted }: MetricCardProps) {
   return (
     <div className={`p-4 rounded-xl border transition-colors ${
-      muted    ? 'border-gray-100 bg-gray-50 opacity-60' :
-      highlight ? 'border-green-300 bg-green-50' : 'border-gray-200 bg-white'}`}>
+      muted
+        ? 'border-gray-100 dark:border-slate-700 bg-gray-50 dark:bg-slate-900/50 opacity-60'
+        : highlight
+        ? 'border-green-300 dark:border-emerald-700 bg-green-50 dark:bg-emerald-900/20'
+        : 'border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800'
+    }`}>
       <div className="flex items-center gap-2 mb-1">
         <span className="text-xl">{emoji}</span>
-        <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">{label}</span>
+        <span className="text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wide">{label}</span>
       </div>
-      <p className={`text-xl font-bold ${highlight ? 'text-green-700' : muted ? 'text-gray-400' : 'text-gray-800'}`}>{value}</p>
-      {sub && <p className={`text-xs mt-0.5 ${muted ? 'text-gray-400' : 'text-gray-500'}`}>{sub}</p>}
+      <p className={`text-xl font-bold ${
+        highlight ? 'text-green-700 dark:text-emerald-400'
+        : muted    ? 'text-gray-400 dark:text-slate-500'
+        :            'text-gray-800 dark:text-slate-200'
+      }`}>{value}</p>
+      {sub && <p className={`text-xs mt-0.5 ${muted ? 'text-gray-400 dark:text-slate-500' : 'text-gray-500 dark:text-slate-400'}`}>{sub}</p>}
     </div>
   )
 }
 
-const OUTPUT_META: Record<OutputType, { emoji: string; label: string; unit: string }> = {
-  energy:     { emoji: '⚡', label: 'Energia Elétrica', unit: 'MWh/ano' },
-  biomethane: { emoji: '⛽', label: 'Biometano',        unit: 'm³/ano'  },
-  digestate:  { emoji: '🌱', label: 'Digestato',        unit: 't/ano'   },
-  thermal:    { emoji: '🔥', label: 'Energia Térmica',  unit: 'GJ/ano'  },
-  biochar:    { emoji: '🪨', label: 'Biochar',           unit: 't/ano'   },
-  carbon:     { emoji: '🌍', label: 'CO₂eq evitado',    unit: 'tCO₂eq'  },
+const OUTPUT_META: Record<OutputType, { emoji: string; label: string }> = {
+  energy:     { emoji: '⚡', label: 'Energia Elétrica' },
+  biomethane: { emoji: '⛽', label: 'Biometano'        },
+  digestate:  { emoji: '🌱', label: 'Digestato'        },
+  thermal:    { emoji: '🔥', label: 'Energia Térmica'  },
+  biochar:    { emoji: '🪨', label: 'Biochar'           },
+  carbon:     { emoji: '🌍', label: 'CO₂eq evitado'    },
 }
 
 function outputValue(type: OutputType, outputs: CalculationResult['outputs']): string {
@@ -98,13 +99,8 @@ function outputValue(type: OutputType, outputs: CalculationResult['outputs']): s
 
 function methodologyText(activityType: ActivityType): { bmp: string; ch4: string; source: string } {
   if (activityType === 'sugarcane') {
-    const streams = Object.entries(SUGARCANE_STREAMS)
-    const bmps = streams.map(([k, s]) => `${k}: ${s.bmp} m³ CH₄/tVS`).join(', ')
-    return {
-      bmp: bmps,
-      ch4: '55–65% CH₄ por fluxo',
-      source: 'UNICA 2023; EMBRAPA Agroenergia; NBR 15.527',
-    }
+    const bmps = Object.entries(SUGARCANE_STREAMS).map(([k, s]) => `${k}: ${s.bmp} m³ CH₄/tVS`).join(', ')
+    return { bmp: bmps, ch4: '55–65% CH₄ por fluxo', source: 'UNICA 2023; EMBRAPA Agroenergia; NBR 15.527' }
   }
   if (['livestock', 'swine', 'cattle', 'poultry'].includes(activityType)) {
     return {
@@ -126,6 +122,9 @@ function methodologyText(activityType: ActivityType): { bmp: string; ch4: string
 
 export default function ResultsDashboard({ result, municipalityName, onReset }: Props) {
   const t = useTranslations('calculator')
+  const { resolvedTheme } = useTheme()
+  const isDark = resolvedTheme === 'dark'
+
   const [chartMode, setChartMode] = useState<ChartMode>('energy')
   const [prices, setPrices] = useState<PriceConfig>(DEFAULT_PRICES)
   const [scenario, setScenario] = useState<ScenarioTier>('avg')
@@ -148,7 +147,7 @@ export default function ResultsDashboard({ result, municipalityName, onReset }: 
     const payback = calcPaybackRange(scenFin.annualRevenueMaxBRL, tierCapex)
     const cl = tierCapex.mid * CAPEX_LOW_FACTOR
     const ch = tierCapex.mid * CAPEX_HIGH_FACTOR
-    return { tier, sf, tierCapex, payback, cl, ch, annualRevAvg: scenFin.annualRevenueAvgBRL }
+    return { tier, sf, tierCapex, payback, cl, ch }
   })
 
   const chartData = outputs.monthly.map(m => ({
@@ -159,6 +158,11 @@ export default function ResultsDashboard({ result, municipalityName, onReset }: 
   const secondaryOutputs = ALL_OUTPUT_TYPES.filter(o => !selectedOutputs.includes(o))
   const method = methodologyText(inputSummary.activityType)
 
+  // Dark-mode-aware chart colors
+  const chartGrid   = isDark ? '#334155' : '#f0f0f0'
+  const chartTick   = isDark ? '#94a3b8' : '#6b7280'
+  const chartBarFill = isDark ? '#10b981' : '#16a34a'
+
   function updatePrice(key: keyof PriceConfig, val: number) {
     setPrices(p => ({ ...p, [key]: val }))
   }
@@ -166,58 +170,76 @@ export default function ResultsDashboard({ result, municipalityName, onReset }: 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="text-center p-4 bg-gradient-to-br from-green-600 to-green-700 rounded-2xl text-white">
+      <div className="text-center p-4 bg-gradient-to-br from-green-600 to-green-700 dark:from-emerald-700 dark:to-emerald-800 rounded-2xl text-white">
         <p className="text-sm opacity-80 mb-1">{t('results.potentialHeader', { municipality: municipalityName })}</p>
         <p className="text-3xl font-bold">{fmt(outputs.totalBiogasM3Year)} m³</p>
         <p className="text-sm opacity-80">{t('results.biogasPerYear')}</p>
         <p className="text-xs mt-1 opacity-60">{inputSummary.activityLabel}</p>
       </div>
 
-      {/* Scenario cards — 3 horizontal scrollable cards */}
+      {/* Scenario cards — vertical stacked, expand on click */}
       <div>
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Cenário de implantação</p>
-        <div className="flex gap-3 overflow-x-auto pb-1 -mx-1 px-1 snap-x">
+        <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-2">
+          Cenário de implantação
+        </p>
+        <div className="space-y-2">
           {scenarioCards.map(({ tier, sf, tierCapex, payback, cl, ch }) => {
             const active = scenario === tier
             return (
               <button
                 key={tier}
                 onClick={() => setScenario(tier)}
-                className={`snap-start shrink-0 w-48 p-3 rounded-xl border-2 text-left transition-all ${
+                className={`w-full text-left p-3 rounded-xl border-2 transition-all ${
                   active
-                    ? 'border-green-500 bg-green-50 shadow-sm'
-                    : 'border-gray-200 bg-white hover:border-gray-300'
+                    ? 'border-green-500 dark:border-emerald-500 bg-green-50 dark:bg-emerald-900/20'
+                    : 'border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-gray-300 dark:hover:border-slate-600'
                 }`}
               >
-                <div className="flex items-center gap-1.5 mb-2">
-                  <span className="text-base">{SCENARIO_EMOJIS[tier]}</span>
-                  <span className={`text-sm font-bold ${active ? 'text-green-800' : 'text-gray-700'}`}>
-                    {sf.labelPt}
+                {/* Always-visible header row */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="shrink-0">{SCENARIO_EMOJIS[tier]}</span>
+                    <span className={`font-bold text-sm ${active ? 'text-green-800 dark:text-emerald-300' : 'text-gray-700 dark:text-slate-300'}`}>
+                      {sf.labelPt}
+                    </span>
+                    <span className="text-xs text-gray-400 dark:text-slate-500 truncate hidden sm:block">
+                      — {sf.technology}
+                    </span>
+                  </div>
+                  <span className={`text-xs font-semibold shrink-0 ml-2 ${active ? 'text-green-600 dark:text-emerald-400' : 'text-gray-400 dark:text-slate-500'}`}>
+                    {active ? 'Selecionado ✓' : 'Selecionar'}
                   </span>
                 </div>
-                <p className="text-xs text-gray-500 leading-tight mb-2">{sf.technology}</p>
-                <div className="space-y-1 text-xs">
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Aproveit.</span>
-                    <span className="font-medium text-gray-700">{Math.round(sf.utilization * 100)}%</span>
+
+                {/* Detail rows — only visible when active */}
+                {active && (
+                  <div className="mt-3 pt-3 border-t border-green-200 dark:border-emerald-800 grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
+                    <div>
+                      <p className="text-gray-500 dark:text-slate-400">Tecnologia</p>
+                      <p className="font-medium text-gray-800 dark:text-slate-200 leading-tight">{sf.technology}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500 dark:text-slate-400">Aproveitamento</p>
+                      <p className="font-semibold text-gray-800 dark:text-slate-200">{Math.round(sf.utilization * 100)}% da biomassa</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500 dark:text-slate-400">Início de operação</p>
+                      <p className="font-semibold text-gray-800 dark:text-slate-200">{sf.startupMonths} meses até plena carga</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500 dark:text-slate-400">Investimento estimado</p>
+                      <p className="font-semibold text-gray-800 dark:text-slate-200">
+                        R$ {fmtK(cl)} – {fmtK(tierCapex.mid)} – {fmtK(ch)}
+                      </p>
+                    </div>
+                    <div className="col-span-2">
+                      <p className="text-gray-500 dark:text-slate-400">Payback estimado (otimista – conservador)</p>
+                      <p className="font-semibold text-gray-800 dark:text-slate-200">
+                        {fmtPayback(payback.min)} – {payback.max >= 999 ? 'Indeterminado' : `${fmtPayback(payback.max)} anos`}
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Início op.</span>
-                    <span className="font-medium text-gray-700">{sf.startupMonths} meses</span>
-                  </div>
-                  <div className="pt-1 border-t border-gray-100">
-                    <p className="text-gray-400 mb-0.5">Investimento</p>
-                    <p className="font-semibold text-gray-800">
-                      R$ {fmtK(cl)} – {fmtK(tierCapex.mid)} – {fmtK(ch)}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-gray-400 mb-0.5">Payback (min–esp–max)</p>
-                    <p className={`font-semibold ${active ? 'text-green-700' : 'text-gray-800'}`}>
-                      {fmtPaybackRange(payback)}
-                    </p>
-                  </div>
-                </div>
+                )}
               </button>
             )
           })}
@@ -225,14 +247,15 @@ export default function ResultsDashboard({ result, municipalityName, onReset }: 
       </div>
 
       {/* Price sliders accordion */}
-      <details className="group border border-gray-200 rounded-xl overflow-hidden">
-        <summary className="flex items-center justify-between px-4 py-3 cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors text-sm font-medium text-gray-700 select-none">
+      <details className="group border border-gray-200 dark:border-slate-700 rounded-xl overflow-hidden">
+        <summary className="flex items-center justify-between px-4 py-3 cursor-pointer
+                            bg-gray-50 dark:bg-slate-800/60 hover:bg-gray-100 dark:hover:bg-slate-700/60
+                            transition-colors text-sm font-medium text-gray-700 dark:text-slate-300 select-none">
           <span>⚙️ {t('results.priceSliders')}</span>
-          <span className="text-gray-400 group-open:rotate-180 transition-transform">▼</span>
+          <span className="text-gray-400 dark:text-slate-500 group-open:rotate-180 transition-transform">▼</span>
         </summary>
-        <div className="px-4 py-4 space-y-4 bg-white">
-          <p className="text-xs text-gray-400">{t('results.priceSlidersHint')}</p>
-
+        <div className="px-4 py-4 space-y-4 bg-white dark:bg-slate-900">
+          <p className="text-xs text-gray-400 dark:text-slate-500">{t('results.priceSlidersHint')}</p>
           {[
             { key: 'energyTariffBrlKwh' as const, label: t('results.tariffEnergy'),    min: 0.50, max: 1.50, step: 0.01, unit: 'R$/kWh'    },
             { key: 'biomethaneM3'        as const, label: t('results.priceBiomethane'), min: 1.00, max: 8.00, step: 0.10, unit: 'R$/m³'     },
@@ -240,17 +263,22 @@ export default function ResultsDashboard({ result, municipalityName, onReset }: 
             { key: 'dieselBrlLiter'      as const, label: t('results.priceDiesel'),     min: 4.00, max: 9.00, step: 0.10, unit: 'R$/L'      },
           ].map(({ key, label, min, max, step, unit }) => (
             <div key={key}>
-              <div className="flex justify-between text-xs text-gray-600 mb-1">
+              <div className="flex justify-between text-xs text-gray-600 dark:text-slate-400 mb-1">
                 <span>{label}</span>
-                <span className="font-semibold text-green-700">{fmtSlider(prices[key], unit)}</span>
+                <span className="font-semibold text-green-700 dark:text-emerald-400">{fmtSlider(prices[key], unit)}</span>
               </div>
               <input
                 type="range" min={min} max={max} step={step}
                 value={prices[key]}
-                onChange={e => updatePrice(key, parseFloat(e.target.value))}
-                className="w-full accent-green-600"
+                style={{ '--range-pct': `${(((prices[key] - min) / (max - min)) * 100).toFixed(1)}%` } as React.CSSProperties}
+                onChange={e => {
+                  const v = parseFloat(e.target.value)
+                  updatePrice(key, v)
+                  e.target.style.setProperty('--range-pct', `${(((v - min) / (max - min)) * 100).toFixed(1)}%`)
+                }}
+                className="w-full"
               />
-              <div className="flex justify-between text-xs text-gray-400">
+              <div className="flex justify-between text-xs text-gray-400 dark:text-slate-500">
                 <span>{fmtSlider(min, unit)}</span>
                 <span>{fmtSlider(max, unit)}</span>
               </div>
@@ -262,39 +290,54 @@ export default function ResultsDashboard({ result, municipalityName, onReset }: 
       {/* Seasonality chart */}
       <div>
         <div className="flex items-center justify-between mb-2">
-          <p className="text-sm font-semibold text-gray-700">{t('results.seasonalityTitle')}</p>
-          <div className="flex rounded-lg overflow-hidden border border-gray-200 text-xs">
+          <p className="text-sm font-semibold text-gray-700 dark:text-slate-300">{t('results.seasonalityTitle')}</p>
+          <div className="flex rounded-lg overflow-hidden border border-gray-200 dark:border-slate-700 text-xs">
             {(['energy', 'biogas'] as ChartMode[]).map(mode => (
               <button
                 key={mode}
                 onClick={() => setChartMode(mode)}
-                className={`px-3 py-1 ${chartMode === mode ? 'bg-green-600 text-white' : 'bg-white text-gray-500 hover:bg-gray-50'}`}
+                className={`px-3 py-1 ${
+                  chartMode === mode
+                    ? 'bg-green-600 dark:bg-emerald-600 text-white'
+                    : 'bg-white dark:bg-slate-800 text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700'
+                }`}
               >
                 {mode === 'energy' ? 'kWh' : 'm³'}
               </button>
             ))}
           </div>
         </div>
-        <div className="h-40">
+        <div className="h-40 w-full min-w-0">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData} margin={{ top: 4, right: 4, left: -24, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="name" tick={{ fontSize: 10 }} />
-              <YAxis tick={{ fontSize: 10 }} />
-              <Tooltip formatter={(v) => [
-                `${fmt(Number(v))} ${chartMode === 'energy' ? 'kWh' : 'm³'}`,
-                chartMode === 'energy' ? 'Energia' : 'Biogás'
-              ]} />
-              <Bar dataKey="value" fill="#16a34a" radius={[3,3,0,0]} />
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chartGrid} />
+              <XAxis dataKey="name" tick={{ fontSize: 10, fill: chartTick }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 10, fill: chartTick }} axisLine={false} tickLine={false} />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: isDark ? '#1e293b' : '#fff',
+                  border: `1px solid ${isDark ? '#334155' : '#e5e7eb'}`,
+                  borderRadius: '8px',
+                  color: isDark ? '#f1f5f9' : '#111827',
+                  fontSize: 12,
+                }}
+                formatter={(v) => [
+                  `${fmt(Number(v))} ${chartMode === 'energy' ? 'kWh' : 'm³'}`,
+                  chartMode === 'energy' ? 'Energia' : 'Biogás',
+                ]}
+              />
+              <Bar dataKey="value" fill={chartBarFill} radius={[3,3,0,0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
       </div>
 
-      {/* Primary outputs (selected by user) */}
+      {/* Primary outputs */}
       {selectedOutputs.length > 0 && (
         <div>
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">{t('results.primaryOutputs')}</p>
+          <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-2">
+            {t('results.primaryOutputs')}
+          </p>
           <div className="grid grid-cols-2 gap-3">
             {selectedOutputs.map(type => {
               const meta = OUTPUT_META[type]
@@ -322,10 +365,12 @@ export default function ResultsDashboard({ result, municipalityName, onReset }: 
         </div>
       )}
 
-      {/* Secondary outputs (not selected, shown muted) */}
+      {/* Secondary outputs (muted) */}
       {secondaryOutputs.length > 0 && (
         <div>
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">{t('results.secondaryOutputs')}</p>
+          <p className="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide mb-2">
+            {t('results.secondaryOutputs')}
+          </p>
           <div className="grid grid-cols-2 gap-3">
             {secondaryOutputs.map(type => (
               <MetricCard
@@ -342,31 +387,47 @@ export default function ResultsDashboard({ result, municipalityName, onReset }: 
       )}
 
       {/* Financial summary */}
-      <div className="p-4 rounded-xl border border-gray-200 bg-white space-y-3">
-        <p className="font-semibold text-gray-700 text-sm">{t('results.financialTitle')}</p>
+      <div className="p-4 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 space-y-3">
+        <p className="font-semibold text-gray-700 dark:text-slate-300 text-sm">{t('results.financialTitle')}</p>
+
         <div className="flex justify-between items-center text-sm">
-          <span className="text-gray-500">📊 Investimento estimado</span>
-          <span className="font-bold text-gray-800 text-xs">
+          <span className="text-gray-500 dark:text-slate-400">📊 Investimento estimado</span>
+          <span className="font-bold text-gray-800 dark:text-slate-200 text-xs">
             R$ {fmtK(activeCapex.mid * CAPEX_LOW_FACTOR)} – {fmtK(activeCapex.mid)} – {fmtK(activeCapex.mid * CAPEX_HIGH_FACTOR)}
           </span>
         </div>
-        <div className="flex justify-between items-center text-sm">
-          <span className="text-gray-500">⏱ {t('results.payback')}</span>
-          <span className="font-bold text-gray-800 text-xs">
-            {fmtPaybackRange(financials.payback)}
-          </span>
-        </div>
-        <div className="flex justify-between items-center text-sm">
-          <span className="text-gray-500">💰 {t('results.annualRevenue')}</span>
+
+        {/* Payback — simplified range with expandable detail */}
+        <div className="flex justify-between items-start text-sm">
+          <span className="text-gray-500 dark:text-slate-400">⏱ Payback estimado</span>
           <div className="text-right">
-            <span className="font-bold text-green-700">{fmtCurrency(financials.annualRevenueMaxBRL)}/ano</span>
-            <p className="text-xs text-gray-400">esperado: {fmtCurrency(financials.annualRevenueAvgBRL)}/ano</p>
+            <p className="font-bold text-gray-800 dark:text-slate-200">
+              {fmtPayback(financials.payback.min)} – {financials.payback.max >= 999 ? 'Indet.' : `${fmtPayback(financials.payback.max)}`} anos
+            </p>
+            <details className="text-xs">
+              <summary className="cursor-pointer text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300 select-none">
+                ver detalhes ▾
+              </summary>
+              <div className="mt-1 text-left text-gray-500 dark:text-slate-400 max-w-52 space-y-0.5">
+                <p>🟢 Otimista: {fmtPayback(financials.payback.min)} anos — operação plena, boas tarifas</p>
+                <p>🟡 Esperado: {fmtPayback(financials.payback.avg)} anos — curva de aprendizado incluída</p>
+                <p>🔴 Conservador: {financials.payback.max >= 999 ? 'Indet.' : `${fmtPayback(financials.payback.max)} anos`} — consultoria, manutenção elevada, startup lento</p>
+              </div>
+            </details>
           </div>
         </div>
 
-        {/* Payback comparison across scenarios */}
-        <div className="pt-2 border-t border-gray-100">
-          <p className="text-xs font-semibold text-gray-500 mb-2">📊 Comparativo de cenários — payback (min–esp–max)</p>
+        <div className="flex justify-between items-center text-sm">
+          <span className="text-gray-500 dark:text-slate-400">💰 {t('results.annualRevenue')}</span>
+          <div className="text-right">
+            <span className="font-bold text-green-700 dark:text-emerald-400">{fmtCurrency(financials.annualRevenueMaxBRL)}/ano</span>
+            <p className="text-xs text-gray-400 dark:text-slate-500">esperado: {fmtCurrency(financials.annualRevenueAvgBRL)}/ano</p>
+          </div>
+        </div>
+
+        {/* Scenario comparison mini-table */}
+        <div className="pt-2 border-t border-gray-100 dark:border-slate-700">
+          <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 mb-2">📊 Comparativo — payback otimista–conservador</p>
           <div className="grid grid-cols-3 gap-1 text-xs text-center">
             {scenarioCards.map(({ tier, sf, payback }) => {
               const active = scenario === tier
@@ -375,91 +436,95 @@ export default function ResultsDashboard({ result, municipalityName, onReset }: 
                   key={tier}
                   onClick={() => setScenario(tier)}
                   className={`p-2 rounded-lg border transition-colors ${
-                    active ? 'border-green-400 bg-green-50' : 'border-gray-100 bg-gray-50 hover:border-gray-200'
+                    active
+                      ? 'border-green-400 dark:border-emerald-600 bg-green-50 dark:bg-emerald-900/30'
+                      : 'border-gray-100 dark:border-slate-700 bg-gray-50 dark:bg-slate-900/50 hover:border-gray-200 dark:hover:border-slate-600'
                   }`}
                 >
-                  <p className={`font-bold text-xs ${active ? 'text-green-700' : 'text-gray-600'}`}>{sf.labelPt}</p>
-                  <p className={`font-semibold text-xs mt-1 ${active ? 'text-green-800' : 'text-gray-700'}`}>
-                    {fmtPayback(payback.min)} – {fmtPayback(payback.avg)} – {fmtPayback(payback.max)}
+                  <p className={`font-bold text-xs ${active ? 'text-green-700 dark:text-emerald-400' : 'text-gray-600 dark:text-slate-400'}`}>
+                    {sf.labelPt}
                   </p>
-                  <p className="text-gray-400 text-xs">anos</p>
+                  <p className={`font-semibold text-xs mt-1 ${active ? 'text-green-800 dark:text-emerald-300' : 'text-gray-700 dark:text-slate-300'}`}>
+                    {fmtPayback(payback.min)} – {payback.max >= 999 ? 'Indet.' : fmtPayback(payback.max)}
+                  </p>
+                  <p className="text-gray-400 dark:text-slate-500 text-xs">anos</p>
                 </button>
               )
             })}
           </div>
         </div>
 
-        <p className="text-xs text-gray-400">{t('results.financialDisclaimer')}</p>
+        <p className="text-xs text-gray-400 dark:text-slate-500">{t('results.financialDisclaimer')}</p>
       </div>
 
-      {/* "Entenda os cenários" expandable section */}
-      <details className="group border border-blue-100 rounded-xl overflow-hidden">
-        <summary className="flex items-center justify-between px-4 py-3 cursor-pointer bg-blue-50 hover:bg-blue-100 transition-colors text-xs font-medium text-blue-700 select-none">
+      {/* "Entenda os cenários" accordion */}
+      <details className="group border border-blue-100 dark:border-blue-900 rounded-xl overflow-hidden">
+        <summary className="flex items-center justify-between px-4 py-3 cursor-pointer select-none
+                            bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30
+                            transition-colors text-xs font-medium text-blue-700 dark:text-blue-400">
           <span>💡 Entenda os cenários</span>
-          <span className="text-blue-400 group-open:rotate-180 transition-transform">▼</span>
+          <span className="text-blue-400 dark:text-blue-500 group-open:rotate-180 transition-transform">▼</span>
         </summary>
-        <div className="px-4 py-4 space-y-3 bg-white text-xs text-gray-600">
+        <div className="px-4 py-4 space-y-3 bg-white dark:bg-slate-900 text-xs text-gray-600 dark:text-slate-400">
           <p>
-            <strong className="text-gray-800">💰 Básico — Lagoa coberta / tubular PVC</strong><br/>
-            Tecnologia mais simples e acessível, adequada para pequenas propriedades que estão dando os primeiros passos.
-            Aproveita cerca de 55% do potencial da biomassa. Payback mais curto porque o investimento é menor,
-            mas a geração também é menor. Bom para começar com baixo risco.
+            <strong className="text-gray-800 dark:text-slate-200">💰 Básico — Lagoa coberta / tubular PVC</strong><br/>
+            Tecnologia mais simples e acessível, adequada para pequenas propriedades. Aproveita cerca de 55% do potencial.
+            Payback mais curto porque o investimento é menor, mas a geração também é menor.
           </p>
           <p>
-            <strong className="text-gray-800">💰💰 Ideal — Biodigestor CSTR</strong><br/>
-            Configuração mais comum em propriedades rurais brasileiras de médio porte. Aproveita 75% do potencial,
-            com operação estável e boa eficiência. O payback esperado é realisticamente mais longo que o anunciado
-            por vendedores — estamos mostrando o cenário honesto, considerando curva de aprendizado e manutenção.
+            <strong className="text-gray-800 dark:text-slate-200">💰💰 Ideal — Biodigestor CSTR</strong><br/>
+            Configuração mais comum em propriedades de médio porte. Aproveita 75% do potencial.
+            O payback esperado considera curva de aprendizado e manutenção — mais honesto que promessas de vendedores.
           </p>
           <p>
-            <strong className="text-gray-800">💰💰💰 Avançado — CSTR + upgrading / CHP premium</strong><br/>
-            Máxima eficiência, ideal para operações de grande escala com acesso a mercados de biometano ou créditos
-            de carbono. O investimento é alto e o payback conservador pode ser &quot;Indeterminado&quot; para operações pequenas —
-            o que não significa que é inviável, mas que a receita desse cenário ainda não cobre o investimento no
-            horizonte de 40 anos com os preços atuais.
+            <strong className="text-gray-800 dark:text-slate-200">💰💰💰 Avançado — CSTR + upgrading / CHP premium</strong><br/>
+            Máxima eficiência para grandes operações. O payback conservador pode ser &quot;Indeterminado&quot; para operações
+            pequenas — não significa inviabilidade, mas que a receita não cobre o investimento no horizonte de 40 anos.
           </p>
-          <p className="text-gray-400 pt-1">
-            Os valores de payback mostram (mínimo – esperado – conservador). O &quot;esperado&quot; usa 75% de realização
-            de receita e 5% de manutenção/ano. &quot;Indet.&quot; = calculado acima de 40 anos.
+          <p className="text-gray-400 dark:text-slate-500 pt-1">
+            Payback otimista: CAPEX mínimo, 110% de realização de receita, 3% manutenção/ano.<br/>
+            Payback conservador: CAPEX máximo, 45% de realização, 8% manutenção/ano, +25% startup. &quot;Indet.&quot; = acima de 40 anos.
           </p>
         </div>
       </details>
 
       {/* Methodology accordion */}
-      <details className="group border border-gray-100 rounded-xl overflow-hidden">
-        <summary className="flex items-center justify-between px-4 py-3 cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors text-xs font-medium text-gray-500 select-none">
+      <details className="group border border-gray-100 dark:border-slate-700 rounded-xl overflow-hidden">
+        <summary className="flex items-center justify-between px-4 py-3 cursor-pointer select-none
+                            bg-gray-50 dark:bg-slate-800/60 hover:bg-gray-100 dark:hover:bg-slate-700/60
+                            transition-colors text-xs font-medium text-gray-500 dark:text-slate-400">
           <span>🔬 {t('results.methodology')}</span>
-          <span className="text-gray-400 group-open:rotate-180 transition-transform">▼</span>
+          <span className="text-gray-400 dark:text-slate-500 group-open:rotate-180 transition-transform">▼</span>
         </summary>
-        <div className="px-4 py-4 space-y-2 bg-white text-xs text-gray-600">
-          <p><strong>Metodologia:</strong> Potencial Bioquímico de Metano (BMP) normalizado por Sólidos Voláteis (SV). Distribuição mensal proporcional ao calendário selecionado.</p>
-          <p><strong>BMP utilizado:</strong> {method.bmp}</p>
-          <p><strong>Composição do biogás:</strong> {method.ch4} | PCI CH₄: 35,8 MJ/m³</p>
-          <p><strong>Eficiências:</strong> Elétrica 35% (motor-gerador); Térmica 50% (recuperação de calor)</p>
-          <p><strong>Preços padrão SP 2025:</strong> Tarifa CPFL/Enel R$ 0,85/kWh; Biometano R$ 4,50/m³; Carbono R$ 35/tCO₂eq (VCM)</p>
-          <p><strong>Fontes:</strong> {method.source}</p>
-          <p className="text-gray-400 pt-1">Estimativas para viabilidade preliminar. Projeto executivo requer estudo técnico detalhado.</p>
+        <div className="px-4 py-4 space-y-2 bg-white dark:bg-slate-900 text-xs text-gray-600 dark:text-slate-400">
+          <p><strong className="text-gray-700 dark:text-slate-300">Metodologia:</strong> Potencial Bioquímico de Metano (BMP) normalizado por Sólidos Voláteis (SV). Distribuição mensal proporcional ao calendário selecionado.</p>
+          <p><strong className="text-gray-700 dark:text-slate-300">BMP utilizado:</strong> {method.bmp}</p>
+          <p><strong className="text-gray-700 dark:text-slate-300">Composição do biogás:</strong> {method.ch4} | PCI CH₄: 35,8 MJ/m³</p>
+          <p><strong className="text-gray-700 dark:text-slate-300">Eficiências:</strong> Elétrica 35% (motor-gerador); Térmica 50% (recuperação de calor)</p>
+          <p><strong className="text-gray-700 dark:text-slate-300">Preços padrão SP 2025:</strong> Tarifa CPFL/Enel R$ 0,85/kWh; Biometano R$ 4,50/m³; Carbono R$ 35/tCO₂eq (VCM)</p>
+          <p><strong className="text-gray-700 dark:text-slate-300">Fontes:</strong> {method.source}</p>
+          <p className="text-gray-400 dark:text-slate-500 pt-1">Estimativas para viabilidade preliminar. Projeto executivo requer estudo técnico detalhado.</p>
         </div>
       </details>
 
       {/* Phase 2 CTA */}
-      <div className="p-4 rounded-xl border-2 border-dashed border-amber-300 bg-amber-50 text-center">
-        <p className="text-sm font-semibold text-amber-800 mb-1">📋 {t('results.pdfCtaTitle')}</p>
-        <p className="text-xs text-amber-700">{t('results.pdfCtaDesc')}</p>
-        <p className="text-xs font-semibold text-amber-600 mt-2">{t('results.pdfCtaSoon')}</p>
+      <div className="p-4 rounded-xl border-2 border-dashed border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 text-center">
+        <p className="text-sm font-semibold text-amber-800 dark:text-amber-300 mb-1">📋 {t('results.pdfCtaTitle')}</p>
+        <p className="text-xs text-amber-700 dark:text-amber-400">{t('results.pdfCtaDesc')}</p>
+        <p className="text-xs font-semibold text-amber-600 dark:text-amber-400 mt-2">{t('results.pdfCtaSoon')}</p>
       </div>
 
       {/* Actions */}
       <div className="flex flex-col gap-2">
         <a
           href="mailto:cp2b@unicamp.br?subject=Feedback%20Calculadora%20CP2B"
-          className="w-full py-2 rounded-xl text-sm text-center text-gray-500 border border-gray-200 hover:bg-gray-50 transition-colors"
+          className="w-full py-2 rounded-xl text-sm text-center text-gray-500 dark:text-slate-400 border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
         >
           💬 {t('results.feedback')}
         </a>
         <button
           onClick={onReset}
-          className="w-full py-2 rounded-xl text-sm text-center text-green-600 border border-green-300 hover:bg-green-50 transition-colors"
+          className="w-full py-2 rounded-xl text-sm text-center text-green-600 dark:text-emerald-400 border border-green-300 dark:border-emerald-700 hover:bg-green-50 dark:hover:bg-emerald-900/20 transition-colors"
         >
           🔄 {t('results.newCalculation')}
         </button>

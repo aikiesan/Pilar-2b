@@ -143,7 +143,7 @@ const FeatureCard = ({
   ctaText: string
   ctaLink: string
 }) => (
-  <article className="group bg-white rounded-2xl p-8 shadow-sm hover:shadow-2xl transition-all duration-500 border border-gray-200 hover:border-cp2b-lime hover:-translate-y-2">
+  <article className="group bg-white dark:bg-slate-800 rounded-2xl p-8 shadow-sm hover:shadow-2xl transition-all duration-500 border border-gray-200 dark:border-slate-700 hover:border-cp2b-lime dark:hover:border-emerald-500 hover:-translate-y-2">
     {/* Icon */}
     <div className={`inline-flex p-4 rounded-xl ${iconBg} mb-6 transform group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300`}>
       <div className={iconColor}>
@@ -166,7 +166,7 @@ const FeatureCard = ({
       {features.map((feature, index) => (
         <li key={index} className="flex items-start gap-3 transform hover:translate-x-1 transition-transform duration-200">
           <Check className="w-5 h-5 text-cp2b-green flex-shrink-0 mt-0.5" />
-          <span className="text-sm text-gray-700 leading-relaxed">
+          <span className="text-sm text-gray-700 dark:text-slate-300 leading-relaxed">
             {feature.link ? (
               <Link
                 href={feature.link}
@@ -599,7 +599,7 @@ export default function HomePage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 bg-white">
+      <section className="py-16 bg-white dark:bg-slate-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <FadeIn>
             <div className="max-w-3xl mx-auto bg-gradient-to-r from-cp2b-green to-cp2b-lime rounded-2xl p-8 text-center text-white shadow-xl hover:shadow-2xl transition-shadow duration-500 hover:scale-[1.02] transform">
@@ -613,7 +613,7 @@ export default function HomePage() {
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link
                   href="/register"
-                  className="group inline-flex items-center justify-center gap-2 px-8 py-4 text-base font-semibold text-cp2b-green bg-white hover:bg-gray-50 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+                  className="group inline-flex items-center justify-center gap-2 px-8 py-4 text-base font-semibold text-cp2b-green bg-white hover:bg-gray-50 dark:bg-white dark:hover:bg-gray-100 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
                 >
                   {t('cta_section.button_register')}
                   <UserPlus className="w-5 h-5 group-hover:rotate-12 transition-transform duration-300" />
