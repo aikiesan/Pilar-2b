@@ -64,6 +64,10 @@ services:
       # Anonymous volume shadows the bind-mount for node_modules so the
       # container's npm-installed modules are used, not the host's.
       - /app/node_modules
+      # Anonymous volume keeps .next on the container's local filesystem.
+      # Without this, Turbopack writes its cache through the Windows bind-mount
+      # (slow filesystem) and the route cache gets corrupted, causing 404s.
+      - /app/.next
     ports:
       - "3006:3006"
     depends_on:
