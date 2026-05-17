@@ -46,7 +46,7 @@ export class LoginPage {
   /**
    * Navigate to login page
    */
-  async goto(locale: string = 'pt') {
+  async goto(locale: string = 'pt-BR') {
     await this.page.goto(`/${locale}/login`)
     await this.page.waitForLoadState('networkidle')
   }

@@ -28,7 +28,7 @@ setup('authenticate', async ({ page }) => {
   const loginPage = new LoginPage(page)
 
   // Navigate to login page
-  await loginPage.goto('pt')
+  await loginPage.goto('pt-BR')
 
   // Verify login page is ready
   expect(await loginPage.isReady()).toBe(true)

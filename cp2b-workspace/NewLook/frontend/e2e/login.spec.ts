@@ -19,7 +19,7 @@ test.describe('Login Page', () => {
 
   test.beforeEach(async ({ page }) => {
     loginPage = new LoginPage(page)
-    await loginPage.goto('pt')
+    await loginPage.goto('pt-BR')
   })
 
   test.describe('Page Load', () => {
@@ -217,7 +217,7 @@ test.describe('Login Page', () => {
   test.describe('Responsive Design', () => {
     test('should be usable on mobile viewport', async ({ page }) => {
       await page.setViewportSize({ width: 375, height: 667 })
-      await loginPage.goto('pt')
+      await loginPage.goto('pt-BR')
 
       // All elements should still be visible
       await expect(loginPage.emailInput).toBeVisible()
@@ -227,7 +227,7 @@ test.describe('Login Page', () => {
 
     test('should be usable on tablet viewport', async ({ page }) => {
       await page.setViewportSize({ width: 768, height: 1024 })
-      await loginPage.goto('pt')
+      await loginPage.goto('pt-BR')
 
       // All elements should still be visible
       await expect(loginPage.emailInput).toBeVisible()
@@ -243,7 +243,7 @@ test.describe('Login Success Flow', () => {
     // This test requires actual valid credentials
 
     const loginPage = new LoginPage(page)
-    await loginPage.goto('pt')
+    await loginPage.goto('pt-BR')
 
     // Use environment variables for real credentials
     const email = process.env.E2E_TEST_EMAIL

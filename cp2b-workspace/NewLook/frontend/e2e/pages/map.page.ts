@@ -66,7 +66,7 @@ export class MapPage {
   /**
    * Navigate to the public map page
    */
-  async goto(locale: string = 'pt') {
+  async goto(locale: string = 'pt-BR') {
     await this.page.goto(`/${locale}/map`)
     await this.waitForMapLoad()
   }
