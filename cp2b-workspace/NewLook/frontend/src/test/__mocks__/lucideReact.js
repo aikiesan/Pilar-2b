@@ -6,7 +6,7 @@
 const React = require('react')
 
 const createMockIcon = (name) => {
-  return React.forwardRef((props, ref) => {
+  const Icon = React.forwardRef((props, ref) => {
     return React.createElement('div', {
       ...props,
       ref,
@@ -17,6 +17,8 @@ const createMockIcon = (name) => {
       className: `lucide-icon ${props.className || ''}`.trim(),
     })
   })
+  Icon.displayName = `MockIcon(${name})`
+  return Icon
 }
 
 // Export commonly used icons

@@ -276,7 +276,7 @@ export default function DashboardPage() {
           {filteredMunicipalities.length === 0 && searchTerm && (
             <div className="text-center py-8">
               <p className="text-gray-500">
-                Nenhum município encontrado para "{searchTerm}"
+                Nenhum município encontrado para &quot;{searchTerm}&quot;
               </p>
             </div>
           )}
