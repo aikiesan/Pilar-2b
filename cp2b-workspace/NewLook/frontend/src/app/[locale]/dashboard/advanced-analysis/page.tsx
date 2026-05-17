@@ -86,6 +86,12 @@ import {
 // Data
 import { getResidueByCode, DETAILED_RESIDUES } from '@/data/residueFactors'
 import { logger } from '@/lib/logger'
+import type { ResidueStream } from '@/components/analysis/charts/BiomassFlowSankey'
+
+const RESIDUE_PALETTE = [
+  '#3B82F6', '#8B5CF6', '#EC4899', '#14B8A6',
+  '#F97316', '#06B6D4', '#A78BFA', '#FB923C',
+]
 
 // Client-side mirror of the backend FRONTEND_CODE_TO_STREAM mapping
 const CODE_TO_STREAM: Record<string, string | null> = {
@@ -283,6 +289,40 @@ export default function AdvancedAnalysisPage() {
   const fdeAdjustedPotential = useMemo(() => {
     return theoreticalPotential * calculateFDE(effectiveFactors)
   }, [theoreticalPotential, effectiveFactors])
+
+  // Per-residue streams for multi-residue Sankey (only when ≥2 residues selected)
+  const residueStreams = useMemo((): ResidueStream[] | undefined => {
+    if (selectedResidueCodes.length < 2) return undefined
+
+    const streams = selectedResidueCodes
+      .map((code, idx) => {
+        const residue = getResidueByCode(code)
+        if (!residue) return null
+
+        const theoretical = computeRPRAdjustedBiogas([code], streamTons, streamBiogas)
+        if (theoretical <= 0) return null
+
+        const baseFactors: CorrectionFactors = {
+          fc: residue.fc, fcp: residue.fcp, fs: residue.fs, fl: residue.fl,
+        }
+        const scenarioConfig = RESIDUE_SCENARIOS[currentScenario]
+        const adjustedFactors =
+          currentScenario === 'custom' && residueFactorOverrides[code]
+            ? residueFactorOverrides[code]!
+            : applyScenarioMultiplier(baseFactors, scenarioConfig.multiplier || 1)
+
+        return {
+          name: residue.name,
+          code,
+          theoretical,
+          factors: adjustedFactors,
+          color: RESIDUE_PALETTE[idx % RESIDUE_PALETTE.length],
+        } satisfies ResidueStream
+      })
+      .filter((s): s is ResidueStream => s !== null)
+
+    return streams.length >= 2 ? streams : undefined
+  }, [selectedResidueCodes, streamTons, streamBiogas, currentScenario, residueFactorOverrides])
 
   // Handle scenario change
   const handleScenarioChange = (scenario: ScenarioType) => {
@@ -923,6 +963,7 @@ export default function AdvancedAnalysisPage() {
                 <BiomassFlowSankey
                   theoreticalPotential={theoreticalPotential}
                   factors={effectiveFactors}
+                  residues={residueStreams}
                   title={`${t('advanced_analysis.tab_flow')} - ${RESIDUE_SCENARIOS[currentScenario].name}`}
                   loading={loadingStats}
                 />
