@@ -146,7 +146,7 @@ export default function Footer() {
           {/* Col A — Branding */}
           <div className="space-y-4">
             <Image
-              src="/pilar2b/images/logotipo-full-black.png"
+              src="/images/logotipo-full-black.png"
               alt="PILAR-2b"
               width={130}
               height={44}

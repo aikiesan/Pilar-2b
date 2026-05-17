@@ -97,7 +97,7 @@ export default function RegisterPage() {
             className="inline-flex items-center space-x-2 text-white hover:text-cp2b-accent transition-colors focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-cp2b-primary rounded-lg"
             aria-label={t('register.back_to_home')}
           >
-            <Image src="/pilar2b/images/logotipo-full-black.png" alt="PILAR-2b Logo" width={200} height={55} style={{ height: 'auto' }} className="brightness-0 invert" priority />
+            <Image src="/images/logotipo-full-black.png" alt="PILAR-2b Logo" width={200} height={55} style={{ height: 'auto' }} className="brightness-0 invert" priority />
 
           </Link>
           <h1 className="mt-6 text-3xl font-extrabold text-white">

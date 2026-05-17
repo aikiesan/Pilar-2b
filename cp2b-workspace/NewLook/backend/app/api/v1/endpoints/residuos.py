@@ -141,7 +141,7 @@ async def get_residuos(
             sectors      = _rows(conn, "SELECT codigo, nome, emoji, ordem FROM sectors")
             subsectors   = _rows(conn, "SELECT codigo, nome FROM subsectors")
             refs         = _rows(conn, """
-                SELECT primary_residue, authors, year, publication_year, has_validated_params
+                SELECT primary_residue, authors, publication_year, has_validated_params
                 FROM scientific_references
             """)
 

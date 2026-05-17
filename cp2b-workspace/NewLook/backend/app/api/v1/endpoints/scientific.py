@@ -69,7 +69,7 @@ async def get_kinetics(
                     -- Aggregated references
                     COALESCE(
                         (
-                            SELECT array_agg(DISTINCT CONCAT(sr.authors, ' (', COALESCE(sr.year, sr.publication_year), ')'))
+                            SELECT array_agg(DISTINCT CONCAT(sr.authors, ' (', sr.publication_year::text, ')'))
                             FROM scientific_references sr
                             WHERE sr.primary_residue = r.codigo
                         ),

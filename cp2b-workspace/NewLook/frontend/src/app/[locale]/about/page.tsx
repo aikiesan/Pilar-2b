@@ -319,7 +319,7 @@ export default function AboutPage() {
                   <div className="text-center">
                     <div className="w-32 h-32 rounded-full overflow-hidden mx-auto mb-4 border-4 border-white/30">
                       <Image
-                        src="/pilar2b/images/team/bruna-moraes.jpg"
+                        src="/images/team/bruna-moraes.jpg"
                         alt="Profa. Dra. Bruna de Souza Moraes"
                         width={128}
                         height={128}
