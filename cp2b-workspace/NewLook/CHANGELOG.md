@@ -27,6 +27,41 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [3.0.3] - 2026-05-18
+
+### 🏛️ Institucional
+- Registro oficial no INPI Brasil — Processo Nº **BR512026003115-0**
+  - Expedido em 12/05/2026, válido por 50 anos (até 2076)
+  - Titular: Universidade Estadual de Campinas (UNICAMP)
+  - Autores: Lucas Nakamura Cerejo; Rubens Augusto Camargo Lamparelli; Bruna de Souza Moraes; Ana Beatriz Soares Aguiar
+  - Facilitado pela **INOVA Unicamp**
+  - Lei 9.609/1998, hash SHA-512
+- Plataforma ao vivo em **https://cp2b.unicamp.br/pilar2b** (pt-BR e en)
+
+### 🔧 Infraestrutura
+- Apache2 + PM2 deployment na VM da Unicamp (`cp2b.unicamp.br`)
+- Roteamento `/api/` para backend porta 3001 (PostgREST interno na 3000)
+- Suporte completo a subpath `/pilar2b/` sem `basePath` hardcoded
+- Configurações Apache2 de produção para `cp2b.unicamp.br`
+
+### ✨ Features
+- Diagrama Sankey com visual polish + split flow para múltiplos resíduos
+- Deploy script automatizado com cópia de `static/public`
+
+### 🐛 Correções
+- E2E tests públicos — locale, auth e error handling
+- ESLint 9 flat config + correções de lint errors
+- Caminhos de imagem sem `basePath` hardcoded corrigidos
+
+### 📚 Documentação
+- README atualizado com registro INPI, URLs da Unicamp, versões corretas
+- Guia de atualização da VM (`docs/VM_UPDATE_GUIDE.md`)
+
+### 🧹 Limpeza
+- Removidos scripts arquivados e arquivos de migração duplicados
+
+---
+
 ## [3.0.2] - 2026-04-12
 
 ### 🔒 Segurança
