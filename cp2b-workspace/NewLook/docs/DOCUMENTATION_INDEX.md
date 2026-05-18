@@ -1,13 +1,14 @@
 # Documentation Index — PILAR-2b (NewLook)
 
-> **~50 documentation files | ~18,500+ lines** organized in `docs/` subdirectories.
-> Last updated: April 2026
+> **~43 documentation files | ~18,500+ lines** organized in `docs/` subdirectories.
+> Last updated: May 2026
 
 ---
 
 ## Quick Navigation
 
 - [Project Root](#1-project-root)
+- [docs/ Root Files](#1b-docs-root-files)
 - [docs/api/](#2-api)
 - [docs/architecture/](#3-architecture)
 - [docs/data/](#4-data--scientific-methodology)
@@ -16,7 +17,8 @@
 - [docs/qa/](#7-qa--testing)
 - [docs/security/](#8-security)
 - [docs/sql/](#9-sql-scripts)
-- [Backend READMEs](#10-backend-readmes)
+- [Root-Level Docs](#10-root-level-docs-repository-root)
+- [Backend READMEs](#11-backend-readmes)
 
 ---
 
@@ -26,11 +28,22 @@ Standard open-source project files at `cp2b-workspace/NewLook/`:
 
 | File | Lines | Description |
 |---|---|---|
-| `README.md` | 412 | **Main entry point** — project overview, features, quick start, live URLs, tech stack |
-| `CHANGELOG.md` | 96 | Version history following Keep a Changelog format |
+| `README.md` | — | **Main entry point** — project overview, features, quick start, live URLs, tech stack, INPI registration |
+| `CHANGELOG.md` | — | Version history following Keep a Changelog format (v3.0.3 current) |
 | `CONTRIBUTING.md` | 454 | Contribution guidelines, code standards, PR process for external contributors |
 | `LICENSE` | 675 | GPL-3.0 License (2025) |
 | `.cursorrules` | 53 | AI assistant coding rules — project context, patterns, SOLID principles |
+
+---
+
+## 1b. docs/ Root Files
+
+| File | Description |
+|---|---|
+| [`DOCUMENTATION_INDEX.md`](DOCUMENTATION_INDEX.md) | This file — master index of all documentation |
+| [`LOCAL_DOCKER_SETUP.md`](LOCAL_DOCKER_SETUP.md) | Local development with Docker Compose — backend + frontend + PostgreSQL |
+| [`VM_UPDATE_GUIDE.md`](VM_UPDATE_GUIDE.md) | Unicamp VM update guide — Apache2/PM2 deployment for `cp2b.unicamp.br` |
+| [`BIOMASS_PAIRING_ROADMAP.md`](BIOMASS_PAIRING_ROADMAP.md) | Biomass data pairing plan — MapBiomas integration roadmap |
 
 ---
 
@@ -87,6 +100,7 @@ Standard open-source project files at `cp2b-workspace/NewLook/`:
 | File | Description |
 |---|---|
 | [`planning/IMPROVEMENT_ROADMAP.md`](planning/IMPROVEMENT_ROADMAP.md) | Project roadmap V3.0.1 (Dec 7, 2025) — future features, priorities (638 lines) |
+| [`planning/DEVELOPMENT_ROADMAP_APR_AUG_2026.md`](planning/DEVELOPMENT_ROADMAP_APR_AUG_2026.md) | Development roadmap April–August 2026 — sprint targets, milestones |
 
 ---
 
@@ -124,7 +138,21 @@ Standard open-source project files at `cp2b-workspace/NewLook/`:
 
 ---
 
-## 10. Backend READMEs
+## 10. Root-Level Docs (Repository Root)
+
+These files live at the repository root (`/`) rather than inside `cp2b-workspace/NewLook/docs/`:
+
+| File | Description |
+|---|---|
+| `MIGRATION_PLAN.md` | Subpath migration guide — moving from subdomain to `cp2b.unicamp.br/pilar2b` (10KB) |
+| `README_DICIONARIO_PIPELINE.md` | ABIOVE Biocombustíveis 2026 data pipeline — raw data dictionary and ingestion (7KB) |
+| `Cronograma de Execução_CP2B.docx.md` | Project execution timeline |
+| `Cronograma de metas e entregas_CP2B.docx.md` | Milestones and deliverables schedule |
+| `Outline_Paper_CP2b_*.md` | Scientific paper drafts (3 versions) |
+
+---
+
+## 11. Backend READMEs
 
 These remain in their respective directories for context:
 
@@ -149,7 +177,8 @@ These remain in their respective directories for context:
 | **Security** | 5 | `security/SECURITY_AUDIT_REPORT.md`, `security/SECURITY.md` |
 | **Deployment** | 5 | `deployment/DEPLOYMENT_GUIDE.md`, `deployment/DEPLOYMENT_CHECKLIST.md` |
 | **Data / Methodology** | 6 | `data/FDE_METHODOLOGY.md`, `data/FEEDSTOCK_FACTORS_LITERATURE_TABLE.md` |
-| **Planning** | 1 | `planning/IMPROVEMENT_ROADMAP.md` |
+| **Planning** | 2 | `planning/IMPROVEMENT_ROADMAP.md`, `planning/DEVELOPMENT_ROADMAP_APR_AUG_2026.md` |
 | **SQL Scripts** | 3 | `sql/REMOVE_ECONOMIC_TABLES.sql` |
+| **Root-Level Docs** | 5+ | `MIGRATION_PLAN.md`, `README_DICIONARIO_PIPELINE.md`, paper drafts |
 | **Backend READMEs** | 5 | `backend/migrations/README.md` |
-| **Total** | **~43** | |
+| **Total** | **~48** | |
