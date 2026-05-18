@@ -17,8 +17,7 @@
 - [docs/qa/](#7-qa--testing)
 - [docs/security/](#8-security)
 - [docs/sql/](#9-sql-scripts)
-- [Root-Level Docs](#10-root-level-docs-repository-root)
-- [Backend READMEs](#11-backend-readmes)
+- [Backend READMEs](#10-backend-readmes)
 
 ---
 
@@ -138,21 +137,7 @@ Standard open-source project files at `cp2b-workspace/NewLook/`:
 
 ---
 
-## 10. Root-Level Docs (Repository Root)
-
-These files live at the repository root (`/`) rather than inside `cp2b-workspace/NewLook/docs/`:
-
-| File | Description |
-|---|---|
-| `MIGRATION_PLAN.md` | Subpath migration guide — moving from subdomain to `cp2b.unicamp.br/pilar2b` (10KB) |
-| `README_DICIONARIO_PIPELINE.md` | ABIOVE Biocombustíveis 2026 data pipeline — raw data dictionary and ingestion (7KB) |
-| `Cronograma de Execução_CP2B.docx.md` | Project execution timeline |
-| `Cronograma de metas e entregas_CP2B.docx.md` | Milestones and deliverables schedule |
-| `Outline_Paper_CP2b_*.md` | Scientific paper drafts (3 versions) |
-
----
-
-## 11. Backend READMEs
+## 10. Backend READMEs
 
 These remain in their respective directories for context:
 
@@ -179,6 +164,5 @@ These remain in their respective directories for context:
 | **Data / Methodology** | 6 | `data/FDE_METHODOLOGY.md`, `data/FEEDSTOCK_FACTORS_LITERATURE_TABLE.md` |
 | **Planning** | 2 | `planning/IMPROVEMENT_ROADMAP.md`, `planning/DEVELOPMENT_ROADMAP_APR_AUG_2026.md` |
 | **SQL Scripts** | 3 | `sql/REMOVE_ECONOMIC_TABLES.sql` |
-| **Root-Level Docs** | 5+ | `MIGRATION_PLAN.md`, `README_DICIONARIO_PIPELINE.md`, paper drafts |
 | **Backend READMEs** | 5 | `backend/migrations/README.md` |
 | **Total** | **~48** | |
