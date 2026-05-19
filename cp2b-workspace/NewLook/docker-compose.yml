@@ -1,0 +1,88 @@
+# PILAR-2b V3 — Local Development Environment
+# Usage: docker compose up --build
+# See docs/LOCAL_DOCKER_SETUP.md for full instructions.
+
+services:
+
+  # ─── PostgreSQL + PostGIS ─────────────────────────────────────────────────
+  db:
+    image: postgis/postgis:15-3.4
+    container_name: cp2b-db-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: cp2b_maps
+    ports:
+      - "5432:5432"
+    volumes:
+      - cp2b_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d cp2b_maps"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  # ─── FastAPI backend (hot-reload) ─────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: cp2b-backend-dev
+    restart: unless-stopped
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      # Bind-mount source — changes in your IDE are visible instantly
+      - ./backend:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - .env.docker       # copy from .env.docker.example
+    environment:
+      # Override / supplement anything in .env.docker
+      APP_ENV: development
+      DEBUG: "true"
+      DATABASE_URL: postgresql://postgres:password@db:5432/cp2b_maps
+      PYTHONUNBUFFERED: "1"
+
+  # ─── Next.js frontend (hot-reload) ────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: cp2b-frontend-dev
+    restart: unless-stopped
+    # -H 0.0.0.0 makes Next.js listen on all interfaces inside the container
+    command: npm run dev -- -H 0.0.0.0 -p 3006
+    volumes:
+      # Bind-mount source — changes in your IDE are visible instantly
+      - ./frontend:/app
+      # Anonymous volume shadows the bind-mount for node_modules so the
+      # container's npm-installed modules are used, not the host's.
+      - /app/node_modules
+      # Anonymous volume keeps .next on the container's local filesystem.
+      # Without this, Turbopack writes its cache through the Windows bind-mount
+      # (slow filesystem) and the route cache gets corrupted, causing 404s.
+      - /app/.next
+    ports:
+      - "3006:3006"
+    depends_on:
+      - backend
+    environment:
+      # Explicitly set development mode so next.config.js isProd=false,
+      # which keeps basePath empty and lets localhost:3006/pt-BR work.
+      NODE_ENV: development
+      # The browser calls the backend directly via localhost, not via the
+      # Docker network name, so localhost:8000 is correct here.
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+      NEXT_PUBLIC_DISABLE_AUTH: "false"
+      # Disable telemetry inside Docker
+      NEXT_TELEMETRY_DISABLED: "1"
+
+volumes:
+  cp2b_pg_data:
+    driver: local

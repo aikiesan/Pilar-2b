@@ -1,0 +1,13 @@
+﻿sector,residue_stream,municipalities,residue_ktons_yr,biogas_Mm3_yr,energy_GWh_yr,pct_of_total_GWh
+agricultural,sugarcane,512,247212.22,12382.57,123454.18,62.22
+urban,rsu_organic,645,0.0,1556.17,15515.01,7.82
+livestock,cattle,617,11186.67,1454.27,14499.04,7.31
+agricultural,corn,564,6481.98,1361.22,13571.32,6.84
+agricultural,soybean,480,6115.42,1223.08,12194.15,6.15
+livestock,swine,587,1587.61,603.29,6014.83,3.03
+forestry,forestry,365,0.0,599.8,5980.03,3.01
+livestock,poultry,577,205686.53,308.53,3076.04,1.55
+agricultural,citrus,337,15008.24,285.16,2843.01,1.43
+agricultural,coffee,284,340.28,95.28,949.94,0.48
+urban,rpo_pruning,645,0.0,31.2,311.11,0.16
+livestock,aquaculture,156,0.0,0.13,1.3,0.0

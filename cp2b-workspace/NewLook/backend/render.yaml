@@ -1,0 +1,72 @@
+# Render Blueprint Configuration for CP2B Maps V3 Backend
+# Documentation: https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: cp2b-maps-backend
+    runtime: python
+    plan: starter  # Change to 'standard' or higher for production
+    region: oregon  # Choose: oregon, frankfurt, singapore, ohio
+    branch: main  # Deploy from main branch
+    rootDir: cp2b-workspace/NewLook/backend
+
+    # Build configuration
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+
+    # Health check configuration
+    healthCheckPath: /health
+
+    # Auto-deploy settings
+    autoDeploy: true
+
+    # Environment variables
+    envVars:
+      - key: APP_ENV
+        value: production
+
+      - key: DEBUG
+        value: false
+
+      - key: SECRET_KEY
+        generateValue: true  # Render will auto-generate a secure random value
+
+      - key: PORT
+        value: 10000  # Render's default port
+
+      # Database - Supabase connection
+      - key: DATABASE_URL
+        sync: false  # Set manually in Render dashboard
+
+      - key: POSTGRES_HOST
+        sync: false
+
+      - key: POSTGRES_PORT
+        value: 5432
+
+      - key: POSTGRES_DB
+        sync: false
+
+      - key: POSTGRES_USER
+        sync: false
+
+      - key: POSTGRES_PASSWORD
+        sync: false
+
+      # Supabase authentication
+      - key: SUPABASE_URL
+        sync: false
+
+      - key: SUPABASE_ANON_KEY
+        sync: false
+
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+
+      # CORS - Production origins (will be updated with actual Render URL)
+      - key: PRODUCTION_ORIGINS
+        value: https://new-look-nu.vercel.app,https://new-look-delta.vercel.app,https://cp2bmaps.pages.dev,https://541792a2.cp2bmaps.pages.dev
+
+      # Optional: Error monitoring
+      - key: SENTRY_DSN
+        sync: false

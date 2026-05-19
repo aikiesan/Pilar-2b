@@ -1,0 +1,17 @@
+# Nixpacks configuration for Railway deployment
+# Optimized for faster builds with caching
+
+[phases.setup]
+aptPkgs = ["unzip", "curl"]
+
+# Let Nixpacks auto-detect and install Python dependencies
+# (Don't override install phase - it breaks pip setup)
+
+[phases.build]
+# Download shapefiles after dependencies are installed
+cmds = ["bash ./scripts/download-shapefiles.sh"]
+
+# Optimize Python version and caching
+[variables]
+NIXPACKS_PYTHON_VERSION = "3.11"
+PIP_CACHE_DIR = "/root/.cache/pip"

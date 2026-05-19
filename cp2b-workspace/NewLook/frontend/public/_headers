@@ -1,0 +1,10 @@
+# Cache control for static assets
+/_next/static/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/images/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Pages - short cache to allow quick updates
+/*
+  Cache-Control: public, max-age=3600, must-revalidate

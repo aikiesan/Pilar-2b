@@ -1,0 +1,54 @@
+# Instruções para Claude Code - CP2B Maps V3
+
+## Contexto do Projeto
+- Projeto: Plataforma de análise de potencial de biogás (São Paulo)
+- Stack: Python 3.10+, Streamlit, Supabase, PostGIS
+- Prazo: MVP em 4 semanas
+- Objetivo: Sistema com autenticação + 8 módulos de análise
+
+## Padrões de Código
+- Type hints obrigatórios em todas funções
+- Docstrings estilo Google
+- Imports organizados (stdlib → third-party → local)
+- Nomes em inglês (código), comentários em português
+- Logging estruturado (não usar print)
+- Error handling robusto (try/except com logs)
+
+## Estrutura de Funções
+```python
+def nome_funcao(param: tipo) -> tipo_retorno:
+    """Breve descrição.
+
+    Args:
+        param: Descrição do parâmetro
+
+    Returns:
+        Descrição do retorno
+
+    Raises:
+        ErroTipo: Quando ocorre X
+    """
+    try:
+        # Implementação
+        pass
+    except Exception as e:
+        logger.error(f"Erro em nome_funcao: {e}")
+        raise
+```
+
+## Princípios
+- WCAG 2.1 AA compliance sempre
+- Performance: cache com @st.cache_data quando apropriado
+- Segurança: nunca hardcode credentials
+- Modularidade: funções pequenas, responsabilidade única
+- Testabilidade: código deve ser testável
+
+## Referências
+- Código V2 em: ../project_map/
+- Dados municipais: 645 municípios SP
+- Metodologia: Papers MCDA (Kaynak & Gümüş 2025)
+
+## Quando Criar Arquivos
+- Sempre pergunte antes de criar novos módulos
+- Siga estrutura em STRUCTURE.md
+- Imports relativos dentro de src/

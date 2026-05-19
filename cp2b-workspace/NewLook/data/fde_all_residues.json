@@ -1,0 +1,1223 @@
+[
+  {
+    "codigo": "BAGACO",
+    "nome": "Bagaço de cana",
+    "setor": "AG_AGRICULTURA",
+    "fde": 0.0979,
+    "fde_availability": 0.1399,
+    "fde_efficiency": 0.7,
+    "validation_status": "UNICA_VALIDATED",
+    "validation_confidence": "MEDIUM",
+    "data_sources": [
+      {
+        "organization": "UNICA - União da Indústria de Cana-de-Açúcar",
+        "reference": "Bioenergia e Sustentabilidade no Setor Sucroenergético",
+        "type": "industry",
+        "year": 2024,
+        "url": "https://unica.com.br"
+      },
+      {
+        "organization": "IEA Bioenergy Task 37",
+        "reference": "BMP Database - Biochemical Methane Potential",
+        "type": "academic",
+        "year": 2020,
+        "url": "https://www.iea-biogas.net"
+      }
+    ],
+    "alternative_pathways": {
+      "total_unavailable": 0.8181818181818181,
+      "competing_uses": {
+        "cogeneration": 0.8,
+        "second_gen_ethanol": 0.2
+      },
+      "reasons": [
+        "Cogeração oferece retorno econômico superior",
+        "Etanol de segunda geração é prioridade estratégica",
+        "Mandato CETESB para uso energético em usinas"
+      ]
+    },
+    "bmp_value": 115.0
+  },
+  {
+    "codigo": "BAGACO_CITROS",
+    "nome": "Bagaço de citros",
+    "setor": "AG_AGRICULTURA",
+    "fde": 0.0772,
+    "fde_availability": 0.099,
+    "fde_efficiency": 0.78,
+    "validation_status": "NEEDS_FIELD_SURVEY",
+    "validation_confidence": "LOW",
+    "data_sources": [
+      {
+        "organization": "IEA Bioenergy Task 37",
+        "reference": "BMP Database - Biochemical Methane Potential",
+        "type": "academic",
+        "year": 2020,
+        "url": "https://www.iea-biogas.net"
+      }
+    ],
+    "alternative_pathways": {
+      "total_unavailable": 0.7142857142857143,
+      "competing_uses": {},
+      "reasons": []
+    },
+    "bmp_value": 180.0
+  },
+  {
+    "codigo": "CASCA_CAFE",
+    "nome": "Casca de café",
+    "setor": "AG_AGRICULTURA",
+    "fde": 0.1137,
+    "fde_availability": 0.1624,
+    "fde_efficiency": 0.7,
+    "validation_status": "NEEDS_FIELD_SURVEY",
+    "validation_confidence": "LOW",
+    "data_sources": [
+      {
+        "organization": "Instituto de Economia Agrícola (IEA)",
+        "reference": "Potencial de resíduos do café para bioenergia",
+        "type": "government",
+        "year": 2023,
+        "url": "http://www.iea.sp.gov.br"
+      },
+      {
+        "organization": "IEA Bioenergy Task 37",
+        "reference": "BMP Database - Biochemical Methane Potential",
+        "type": "academic",
+        "year": 2020,
+        "url": "https://www.iea-biogas.net"
+      }
+    ],
+    "alternative_pathways": {
+      "total_unavailable": 0.6666666666666667,
+      "competing_uses": {},
+      "reasons": []
+    },
+    "bmp_value": 130.0
+  },
+  {
+    "codigo": "CASCA_EUCALIPTO",
+    "nome": "Casca de eucalipto",
+    "setor": "AG_AGRICULTURA",
+    "fde": 0.1455,
+    "fde_availability": 0.2425,
+    "fde_efficiency": 0.6,
+    "validation_status": "NEEDS_FIELD_SURVEY",
+    "validation_confidence": "LOW",
+    "data_sources": [
+      {
+        "organization": "IEA Bioenergy Task 37",
+        "reference": "BMP Database - Biochemical Methane Potential",
+        "type": "academic",
+        "year": 2020,
+        "url": "https://www.iea-biogas.net"
+      }
+    ],
+    "alternative_pathways": {
+      "total_unavailable": 0.65,
+      "competing_uses": {},
+      "reasons": []
+    },
+    "bmp_value": 80.0
+  },
+  {
+    "codigo": "CASCA_MILHO",
+    "nome": "Casca de milho",
+    "setor": "AG_AGRICULTURA",
+    "fde": 0.1951,
+    "fde_availability": 0.2709,
+    "fde_efficiency": 0.72,
+    "validation_status": "NEEDS_FIELD_SURVEY",
+    "validation_confidence": "LOW",
+    "data_sources": [
+      {
+        "organization": "IEA Bioenergy Task 37",
+        "reference": "BMP Database - Biochemical Methane Potential",
+        "type": "academic",
+        "year": 2020,
+        "url": "https://www.iea-biogas.net"
+      }
+    ],
+    "alternative_pathways": {
+      "total_unavailable": 0.5,
+      "competing_uses": {},
+      "reasons": []
+    },
+    "bmp_value": 130.0
+  },
+  {
+    "codigo": "CASCA_SOJA",
+    "nome": "Casca de soja",
+    "setor": "AG_AGRICULTURA",
+    "fde": 0.042,
+    "fde_availability": 0.06,
+    "fde_efficiency": 0.7,
+    "validation_status": "NEEDS_FIELD_SURVEY",
+    "validation_confidence": "LOW",
+    "data_sources": [
+      {
+        "organization": "IEA Bioenergy Task 37",
+        "reference": "BMP Database - Biochemical Methane Potential",
+        "type": "academic",
+        "year": 2020,
+        "url": "https://www.iea-biogas.net"
+      }
+    ],
+    "alternative_pathways": {
+      "total_unavailable": 0.6,
+      "competing_uses": {},
+      "reasons": []
+    },
+    "bmp_value": 400.0
+  },
+  {
+    "codigo": "CASCAS_CITROS",
+    "nome": "Cascas de citros",
+    "setor": "AG_AGRICULTURA",
+    "fde": 0.0772,
+    "fde_availability": 0.099,
+    "fde_efficiency": 0.78,
+    "validation_status": "NEEDS_FIELD_SURVEY",
+    "validation_confidence": "LOW",
+    "data_sources": [
+      {
+        "organization": "IEA Bioenergy Task 37",
+        "reference": "BMP Database - Biochemical Methane Potential",
+        "type": "academic",
+        "year": 2020,
+        "url": "https://www.iea-biogas.net"
+      }
+    ],
+    "alternative_pathways": {
+      "total_unavailable": 0.7142857142857143,
+      "competing_uses": {},
+      "reasons": []
+    },
+    "bmp_value": 180.0
+  },
+  {
+    "codigo": "FOLHAS_EUCALIPTO",
+    "nome": "Folhas de eucalipto",
+    "setor": "AG_AGRICULTURA",
+    "fde": 0.0293,
+    "fde_availability": 0.045,
+    "fde_efficiency": 0.65,
+    "validation_status": "NEEDS_FIELD_SURVEY",
+    "validation_confidence": "LOW",
+    "data_sources": [
+      {
+        "organization": "IEA Bioenergy Task 37",
+        "reference": "BMP Database - Biochemical Methane Potential",
+        "type": "academic",
+        "year": 2020,
+        "url": "https://www.iea-biogas.net"
+      }
+    ],
+    "alternative_pathways": {
+      "total_unavailable": 0.8,
+      "competing_uses": {},
+      "reasons": []
+    },
+    "bmp_value": 200.0
+  },
+  {
+    "codigo": "GALHOS_EUCALIPTO",
+    "nome": "Galhos e ponteiros",
+    "setor": "AG_AGRICULTURA",
+    "fde": 0.136,
+    "fde_availability": 0.2194,
+    "fde_efficiency": 0.62,
+    "validation_status": "NEEDS_FIELD_SURVEY",
+    "validation_confidence": "LOW",
+    "data_sources": [
+      {
+        "organization": "IEA Bioenergy Task 37",
+        "reference": "BMP Database - Biochemical Methane Potential",
+        "type": "academic",
+        "year": 2020,
+        "url": "https://www.iea-biogas.net"
+      }
+    ],
+    "alternative_pathways": {
+      "total_unavailable": 0.55,
+      "competing_uses": {},
+      "reasons": []
+    },
+    "bmp_value": 100.0
+  },
+  {
+    "codigo": "MUCILAGEM_CAFE",
+    "nome": "Mucilagem de café",
+    "setor": "AG_AGRICULTURA",
+    "fde": 0.1354,
+    "fde_availability": 0.1592,
+    "fde_efficiency": 0.85,
+    "validation_status": "IEA_VALIDATED",
+    "validation_confidence": "MEDIUM",
+    "data_sources": [
+      {
+        "organization": "Instituto de Economia Agrícola (IEA)",
+        "reference": "Potencial de resíduos do café para bioenergia",
+        "type": "government",
+        "year": 2023,
+        "url": "http://www.iea.sp.gov.br"
+      },
+      {
+        "organization": "IEA Bioenergy Task 37",
+        "reference": "BMP Database - Biochemical Methane Potential",
+        "type": "academic",
+        "year": 2020,
+        "url": "https://www.iea-biogas.net"
+      }
+    ],
+    "alternative_pathways": {
+      "total_unavailable": 0.5,
+      "competing_uses": {},
+      "reasons": []
+    },
+    "bmp_value": 130.0
+  },
+  {
+    "codigo": "PALHA",
+    "nome": "Palha de cana",
+    "setor": "AG_AGRICULTURA",
+    "fde": 0.019,
+    "fde_availability": 0.0292,
+    "fde_efficiency": 0.65,
+    "validation_status": "NEEDS_FIELD_SURVEY",
+    "validation_confidence": "LOW",
+    "data_sources": [
+      {
+        "organization": "UNICA - União da Indústria de Cana-de-Açúcar",
+        "reference": "Bioenergia e Sustentabilidade no Setor Sucroenergético",
+        "type": "industry",
+        "year": 2024,
+        "url": "https://unica.com.br"
+      },
+      {
+        "organization": "IEA Bioenergy Task 37",
+        "reference": "BMP Database - Biochemical Methane Potential",
+        "type": "academic",
+        "year": 2020,
+        "url": "https://www.iea-biogas.net"
+      }
+    ],
+    "alternative_pathways": {
+      "total_unavailable": 0.9166666666666666,
+      "competing_uses": {},
+      "reasons": []
+    },
+    "bmp_value": 250.0
+  },
+  {
+    "codigo": "PALHA_MILHO",
+    "nome": "Palha de milho",
+    "setor": "AG_AGRICULTURA",
+    "fde": 0.0323,
+    "fde_availability": 0.0475,
+    "fde_efficiency": 0.68,
+    "validation_status": "NEEDS_FIELD_SURVEY",
+    "validation_confidence": "LOW",
+    "data_sources": [
+      {
+        "organization": "IEA Bioenergy Task 37",
+        "reference": "BMP Database - Biochemical Methane Potential",
+        "type": "academic",
+        "year": 2020,
+        "url": "https://www.iea-biogas.net"
+      }
+    ],
+    "alternative_pathways": {
+      "total_unavailable": 0.8333333333333334,
+      "competing_uses": {},
+      "reasons": []
+    },
+    "bmp_value": 130.0
+  },
+  {
+    "codigo": "PALHA_SOJA",
+    "nome": "Palha de soja",
+    "setor": "AG_AGRICULTURA",
+    "fde": 0.0053,
+    "fde_availability": 0.0082,
+    "fde_efficiency": 0.65,
+    "validation_status": "NEEDS_FIELD_SURVEY",
+    "validation_confidence": "LOW",
+    "data_sources": [
+      {
+        "organization": "IEA Bioenergy Task 37",
+        "reference": "BMP Database - Biochemical Methane Potential",
+        "type": "academic",
+        "year": 2020,
+        "url": "https://www.iea-biogas.net"
+      }
+    ],
+    "alternative_pathways": {
+      "total_unavailable": 0.875,
+      "competing_uses": {},
+      "reasons": []
+    },
+    "bmp_value": 230.0
+  },
+  {
+    "codigo": "POLPA_CAFE",
+    "nome": "Polpa de café",
+    "setor": "AG_AGRICULTURA",
+    "fde": 0.1414,
+    "fde_availability": 0.1768,
+    "fde_efficiency": 0.8,
+    "validation_status": "IEA_VALIDATED",
+    "validation_confidence": "MEDIUM",
+    "data_sources": [
+      {
+        "organization": "Instituto de Economia Agrícola (IEA)",
+        "reference": "Potencial de resíduos do café para bioenergia",
+        "type": "government",
+        "year": 2023,
+        "url": "http://www.iea.sp.gov.br"
+      },
+      {
+        "organization": "IEA Bioenergy Task 37",
+        "reference": "BMP Database - Biochemical Methane Potential",
+        "type": "academic",
+        "year": 2020,
+        "url": "https://www.iea-biogas.net"
+      }
+    ],
+    "alternative_pathways": {
+      "total_unavailable": 0.6,
+      "competing_uses": {},
+      "reasons": []
+    },
+    "bmp_value": 130.0
+  },
+  {
+    "codigo": "POLPA_CITROS",
+    "nome": "Polpa de citros",
+    "setor": "AG_AGRICULTURA",
+    "fde": 0.0792,
+    "fde_availability": 0.099,
+    "fde_efficiency": 0.8,
+    "validation_status": "NEEDS_FIELD_SURVEY",
+    "validation_confidence": "LOW",
+    "data_sources": [
+      {
+        "organization": "IEA Bioenergy Task 37",
+        "reference": "BMP Database - Biochemical Methane Potential",
+        "type": "academic",
+        "year": 2020,
+        "url": "https://www.iea-biogas.net"
+      }
+    ],
+    "alternative_pathways": {
+      "total_unavailable": 0.7142857142857143,
+      "competing_uses": {},
+      "reasons": []
+    },
+    "bmp_value": 260.0
+  },
+  {
+    "codigo": "SABUGO",
+    "nome": "Sabugo de milho",
+    "setor": "AG_AGRICULTURA",
+    "fde": 0.2709,
+    "fde_availability": 0.3612,
+    "fde_efficiency": 0.75,
+    "validation_status": "NEEDS_FIELD_SURVEY",
+    "validation_confidence": "LOW",
+    "data_sources": [
+      {
+        "organization": "IEA Bioenergy Task 37",
+        "reference": "BMP Database - Biochemical Methane Potential",
+        "type": "academic",
+        "year": 2020,
+        "url": "https://www.iea-biogas.net"
+      }
+    ],
+    "alternative_pathways": {
+      "total_unavailable": 0.33333333333333337,
+      "competing_uses": {},
+      "reasons": []
+    },
+    "bmp_value": 130.0
+  },
+  {
+    "codigo": "TORTA_FILTRO",
+    "nome": "Torta de filtro",
+    "setor": "AG_AGRICULTURA",
+    "fde": 0.2103,
+    "fde_availability": 0.2565,
+    "fde_efficiency": 0.82,
+    "validation_status": "UNICA_VALIDATED",
+    "validation_confidence": "HIGH",
+    "data_sources": [
+      {
+        "organization": "IEA Bioenergy Task 37",
+        "reference": "BMP Database - Biochemical Methane Potential",
+        "type": "academic",
+        "year": 2020,
+        "url": "https://www.iea-biogas.net"
+      }
+    ],
+    "alternative_pathways": {
+      "total_unavailable": 0.6666666666666667,
+      "competing_uses": {
+        "direct_soil": 0.4666666666666667,
+        "composting": 0.2
+      },
+      "reasons": [
+        "Rico em nutrientes para aplicação no solo",
+        "Usado em compostagem comercial"
+      ]
+    },
+    "bmp_value": 250.0
+  },
+  {
+    "codigo": "VAGEM_SOJA",
+    "nome": "Vagem de soja",
+    "setor": "AG_AGRICULTURA",
+    "fde": 0.0324,
+    "fde_availability": 0.045,
+    "fde_efficiency": 0.72,
+    "validation_status": "NEEDS_FIELD_SURVEY",
+    "validation_confidence": "LOW",
+    "data_sources": [
+      {
+        "organization": "IEA Bioenergy Task 37",
+        "reference": "BMP Database - Biochemical Methane Potential",
+        "type": "academic",
+        "year": 2020,
+        "url": "https://www.iea-biogas.net"
+      }
+    ],
+    "alternative_pathways": {
+      "total_unavailable": 0.7,
+      "competing_uses": {},
+      "reasons": []
+    },
+    "bmp_value": 250.0
+  },
+  {
+    "codigo": "VINHACA",
+    "nome": "Vinhaça",
+    "setor": "AG_AGRICULTURA",
+    "fde": 0.0698,
+    "fde_availability": 0.0931,
+    "fde_efficiency": 0.75,
+    "validation_status": "CETESB_VALIDATED",
+    "validation_confidence": "HIGH",
+    "data_sources": [
+      {
+        "organization": "IEA Bioenergy Task 37",
+        "reference": "BMP Database - Biochemical Methane Potential",
+        "type": "academic",
+        "year": 2020,
+        "url": "https://www.iea-biogas.net"
+      }
+    ],
+    "alternative_pathways": {
+      "total_unavailable": 0.8888888888888888,
+      "competing_uses": {
+        "direct_soil": 0.8888888888888888
+      },
+      "reasons": [
+        "Fertirrigação é prática padrão regulamentada pela CETESB",
+        "Alto valor nutricional para fertirrigação de cana"
+      ]
+    },
+    "bmp_value": 300.0
+  },
+  {
+    "codigo": "APARAS_ALIMENTOS",
+    "nome": "Aparas e refiles",
+    "setor": "IN_INDUSTRIAL",
+    "fde": 0.185,
+    "fde_availability": 0.272,
+    "fde_efficiency": 0.68,
+    "validation_status": "NEEDS_FIELD_SURVEY",
+    "validation_confidence": "LOW",
+    "data_sources": [
+      {
+        "organization": "ABRELPE",
+        "reference": "Panorama dos Resíduos Sólidos no Brasil",
+        "type": "industry",
+        "year": 2023,
+        "url": "https://abrelpe.org.br"
+      },
+      {
+        "organization": "IEA Bioenergy Task 37",
+        "reference": "BMP Database - Biochemical Methane Potential",
+        "type": "academic",
+        "year": 2020,
+        "url": "https://www.iea-biogas.net"
+      }
+    ],
+    "alternative_pathways": {
+      "total_unavailable": 0.6,
+      "competing_uses": {
+        "other": 0.6
+      },
+      "reasons": [
+        "Pode ter valor comercial para outras aplicações",
+        "Restrições logísticas para transporte"
+      ]
+    },
+    "bmp_value": 350.0
+  },
+  {
+    "codigo": "BAGACO_MALTE",
+    "nome": "Bagaço de malte",
+    "setor": "IN_INDUSTRIAL",
+    "fde": 0.2355,
+    "fde_availability": 0.2944,
+    "fde_efficiency": 0.8,
+    "validation_status": "NEEDS_FIELD_SURVEY",
+    "validation_confidence": "LOW",
+    "data_sources": [
+      {
+        "organization": "ABRELPE",
+        "reference": "Panorama dos Resíduos Sólidos no Brasil",
+        "type": "industry",
+        "year": 2023,
+        "url": "https://abrelpe.org.br"
+      },
+      {
+        "organization": "IEA Bioenergy Task 37",
+        "reference": "BMP Database - Biochemical Methane Potential",
+        "type": "academic",
+        "year": 2020,
+        "url": "https://www.iea-biogas.net"
+      }
+    ],
+    "alternative_pathways": {
+      "total_unavailable": 0.6666666666666667,
+      "competing_uses": {
+        "other": 0.6666666666666667
+      },
+      "reasons": [
+        "Pode ter valor comercial para outras aplicações",
+        "Restrições logísticas para transporte"
+      ]
+    },
+    "bmp_value": 115.0
+  },
+  {
+    "codigo": "CASCAS_ALIMENTOS",
+    "nome": "Cascas diversas",
+    "setor": "IN_INDUSTRIAL",
+    "fde": 0.1428,
+    "fde_availability": 0.1904,
+    "fde_efficiency": 0.75,
+    "validation_status": "NEEDS_FIELD_SURVEY",
+    "validation_confidence": "LOW",
+    "data_sources": [
+      {
+        "organization": "ABRELPE",
+        "reference": "Panorama dos Resíduos Sólidos no Brasil",
+        "type": "industry",
+        "year": 2023,
+        "url": "https://abrelpe.org.br"
+      },
+      {
+        "organization": "IEA Bioenergy Task 37",
+        "reference": "BMP Database - Biochemical Methane Potential",
+        "type": "academic",
+        "year": 2020,
+        "url": "https://www.iea-biogas.net"
+      }
+    ],
+    "alternative_pathways": {
+      "total_unavailable": 0.65,
+      "competing_uses": {
+        "other": 0.65
+      },
+      "reasons": [
+        "Pode ter valor comercial para outras aplicações",
+        "Restrições logísticas para transporte"
+      ]
+    },
+    "bmp_value": 280.0
+  },
+  {
+    "codigo": "GORDURA",
+    "nome": "Gordura e sebo",
+    "setor": "IN_INDUSTRIAL",
+    "fde": 0.4416,
+    "fde_availability": 0.4907,
+    "fde_efficiency": 0.9,
+    "validation_status": "INDUSTRY_VALIDATED",
+    "validation_confidence": "MEDIUM",
+    "data_sources": [
+      {
+        "organization": "ABRELPE",
+        "reference": "Panorama dos Resíduos Sólidos no Brasil",
+        "type": "industry",
+        "year": 2023,
+        "url": "https://abrelpe.org.br"
+      },
+      {
+        "organization": "IEA Bioenergy Task 37",
+        "reference": "BMP Database - Biochemical Methane Potential",
+        "type": "academic",
+        "year": 2020,
+        "url": "https://www.iea-biogas.net"
+      }
+    ],
+    "alternative_pathways": {
+      "total_unavailable": 0.4444444444444444,
+      "competing_uses": {
+        "other": 0.4444444444444444
+      },
+      "reasons": [
+        "Pode ter valor comercial para outras aplicações",
+        "Restrições logísticas para transporte"
+      ]
+    },
+    "bmp_value": 850.0
+  },
+  {
+    "codigo": "LEVEDO_CERVEJA",
+    "nome": "Levedura residual",
+    "setor": "IN_INDUSTRIAL",
+    "fde": 0.2776,
+    "fde_availability": 0.3386,
+    "fde_efficiency": 0.82,
+    "validation_status": "NEEDS_FIELD_SURVEY",
+    "validation_confidence": "LOW",
+    "data_sources": [
+      {
+        "organization": "ABRELPE",
+        "reference": "Panorama dos Resíduos Sólidos no Brasil",
+        "type": "industry",
+        "year": 2023,
+        "url": "https://abrelpe.org.br"
+      },
+      {
+        "organization": "IEA Bioenergy Task 37",
+        "reference": "BMP Database - Biochemical Methane Potential",
+        "type": "academic",
+        "year": 2020,
+        "url": "https://www.iea-biogas.net"
+      }
+    ],
+    "alternative_pathways": {
+      "total_unavailable": 0.6,
+      "competing_uses": {
+        "other": 0.6
+      },
+      "reasons": [
+        "Pode ter valor comercial para outras aplicações",
+        "Restrições logísticas para transporte"
+      ]
+    },
+    "bmp_value": 420.0
+  },
+  {
+    "codigo": "REJEITOS",
+    "nome": "Rejeitos industriais orgânicos",
+    "setor": "IN_INDUSTRIAL",
+    "fde": 0.1501,
+    "fde_availability": 0.1924,
+    "fde_efficiency": 0.78,
+    "validation_status": "NEEDS_FIELD_SURVEY",
+    "validation_confidence": "LOW",
+    "data_sources": [
+      {
+        "organization": "ABRELPE",
+        "reference": "Panorama dos Resíduos Sólidos no Brasil",
+        "type": "industry",
+        "year": 2023,
+        "url": "https://abrelpe.org.br"
+      },
+      {
+        "organization": "IEA Bioenergy Task 37",
+        "reference": "BMP Database - Biochemical Methane Potential",
+        "type": "academic",
+        "year": 2020,
+        "url": "https://www.iea-biogas.net"
+      }
+    ],
+    "alternative_pathways": {
+      "total_unavailable": 0.75,
+      "competing_uses": {
+        "other": 0.75
+      },
+      "reasons": [
+        "Pode ter valor comercial para outras aplicações",
+        "Restrições logísticas para transporte"
+      ]
+    },
+    "bmp_value": 320.0
+  },
+  {
+    "codigo": "SANGUE",
+    "nome": "Sangue animal",
+    "setor": "IN_INDUSTRIAL",
+    "fde": 0.1457,
+    "fde_availability": 0.1656,
+    "fde_efficiency": 0.88,
+    "validation_status": "INDUSTRY_VALIDATED",
+    "validation_confidence": "MEDIUM",
+    "data_sources": [
+      {
+        "organization": "ABRELPE",
+        "reference": "Panorama dos Resíduos Sólidos no Brasil",
+        "type": "industry",
+        "year": 2023,
+        "url": "https://abrelpe.org.br"
+      },
+      {
+        "organization": "IEA Bioenergy Task 37",
+        "reference": "BMP Database - Biochemical Methane Potential",
+        "type": "academic",
+        "year": 2020,
+        "url": "https://www.iea-biogas.net"
+      }
+    ],
+    "alternative_pathways": {
+      "total_unavailable": 0.8,
+      "competing_uses": {
+        "other": 0.8
+      },
+      "reasons": [
+        "Pode ter valor comercial para outras aplicações",
+        "Restrições logísticas para transporte"
+      ]
+    },
+    "bmp_value": 450.0
+  },
+  {
+    "codigo": "VISCERAS",
+    "nome": "Vísceras não comestíveis",
+    "setor": "IN_INDUSTRIAL",
+    "fde": 0.2011,
+    "fde_availability": 0.2366,
+    "fde_efficiency": 0.85,
+    "validation_status": "INDUSTRY_VALIDATED",
+    "validation_confidence": "MEDIUM",
+    "data_sources": [
+      {
+        "organization": "ABRELPE",
+        "reference": "Panorama dos Resíduos Sólidos no Brasil",
+        "type": "industry",
+        "year": 2023,
+        "url": "https://abrelpe.org.br"
+      },
+      {
+        "organization": "IEA Bioenergy Task 37",
+        "reference": "BMP Database - Biochemical Methane Potential",
+        "type": "academic",
+        "year": 2020,
+        "url": "https://www.iea-biogas.net"
+      }
+    ],
+    "alternative_pathways": {
+      "total_unavailable": 0.7142857142857143,
+      "competing_uses": {
+        "other": 0.7142857142857143
+      },
+      "reasons": [
+        "Pode ter valor comercial para outras aplicações",
+        "Restrições logísticas para transporte"
+      ]
+    },
+    "bmp_value": 245.4175
+  },
+  {
+    "codigo": "CAMA_AVIARIO",
+    "nome": "Cama de aviário",
+    "setor": "PC_PECUARIA",
+    "fde": 0.1585,
+    "fde_availability": 0.2113,
+    "fde_efficiency": 0.75,
+    "validation_status": "INDUSTRY_VALIDATED",
+    "validation_confidence": "MEDIUM",
+    "data_sources": [
+      {
+        "organization": "EMBRAPA Gado de Leite",
+        "reference": "Produção de biogás a partir de dejetos de bovinos",
+        "type": "government",
+        "year": 2022,
+        "url": "https://www.embrapa.br/gado-de-leite"
+      },
+      {
+        "organization": "IEA Bioenergy Task 37",
+        "reference": "BMP Database - Biochemical Methane Potential",
+        "type": "academic",
+        "year": 2020,
+        "url": "https://www.iea-biogas.net"
+      }
+    ],
+    "alternative_pathways": {
+      "total_unavailable": 0.7142857142857143,
+      "competing_uses": {},
+      "reasons": []
+    },
+    "bmp_value": 290.0
+  },
+  {
+    "codigo": "CARCACAS_AVES",
+    "nome": "Carcaças e mortalidade",
+    "setor": "PC_PECUARIA",
+    "fde": 0.2834,
+    "fde_availability": 0.3456,
+    "fde_efficiency": 0.82,
+    "validation_status": "NEEDS_FIELD_SURVEY",
+    "validation_confidence": "LOW",
+    "data_sources": [
+      {
+        "organization": "EMBRAPA Gado de Leite",
+        "reference": "Produção de biogás a partir de dejetos de bovinos",
+        "type": "government",
+        "year": 2022,
+        "url": "https://www.embrapa.br/gado-de-leite"
+      },
+      {
+        "organization": "IEA Bioenergy Task 37",
+        "reference": "BMP Database - Biochemical Methane Potential",
+        "type": "academic",
+        "year": 2020,
+        "url": "https://www.iea-biogas.net"
+      }
+    ],
+    "alternative_pathways": {
+      "total_unavailable": 0.6,
+      "competing_uses": {},
+      "reasons": []
+    },
+    "bmp_value": 620.0
+  },
+  {
+    "codigo": "DEJETOS_AVES",
+    "nome": "Dejetos frescos de aves",
+    "setor": "PC_PECUARIA",
+    "fde": 0.1445,
+    "fde_availability": 0.1806,
+    "fde_efficiency": 0.8,
+    "validation_status": "NEEDS_FIELD_SURVEY",
+    "validation_confidence": "LOW",
+    "data_sources": [
+      {
+        "organization": "EMBRAPA Gado de Leite",
+        "reference": "Produção de biogás a partir de dejetos de bovinos",
+        "type": "government",
+        "year": 2022,
+        "url": "https://www.embrapa.br/gado-de-leite"
+      },
+      {
+        "organization": "IEA Bioenergy Task 37",
+        "reference": "BMP Database - Biochemical Methane Potential",
+        "type": "academic",
+        "year": 2020,
+        "url": "https://www.iea-biogas.net"
+      }
+    ],
+    "alternative_pathways": {
+      "total_unavailable": 0.75,
+      "competing_uses": {
+        "free_range": 0.375,
+        "direct_soil": 0.22499999999999998,
+        "composting": 0.11249999999999999,
+        "unmanaged": 0.037500000000000006
+      },
+      "reasons": [
+        "Sistemas de criação extensiva dispersam resíduos em pastagens",
+        "Aplicação direta no solo como fertilizante orgânico",
+        "Compostagem para produção de fertilizante comercial"
+      ]
+    },
+    "bmp_value": 175.59
+  },
+  {
+    "codigo": "DEJETOS_BOVINO",
+    "nome": "Dejetos líquidos bovino",
+    "setor": "PC_PECUARIA",
+    "fde": 0.1527,
+    "fde_availability": 0.1797,
+    "fde_efficiency": 0.85,
+    "validation_status": "EMBRAPA_VALIDATED",
+    "validation_confidence": "HIGH",
+    "data_sources": [
+      {
+        "organization": "EMBRAPA Gado de Leite",
+        "reference": "Produção de biogás a partir de dejetos de bovinos",
+        "type": "government",
+        "year": 2022,
+        "url": "https://www.embrapa.br/gado-de-leite"
+      },
+      {
+        "organization": "IEA Bioenergy Task 37",
+        "reference": "BMP Database - Biochemical Methane Potential",
+        "type": "academic",
+        "year": 2020,
+        "url": "https://www.iea-biogas.net"
+      }
+    ],
+    "alternative_pathways": {
+      "total_unavailable": 0.6666666666666667,
+      "competing_uses": {
+        "free_range": 0.33333333333333337,
+        "direct_soil": 0.2,
+        "composting": 0.1,
+        "unmanaged": 0.03333333333333334
+      },
+      "reasons": [
+        "Sistemas de criação extensiva dispersam resíduos em pastagens",
+        "Aplicação direta no solo como fertilizante orgânico",
+        "Compostagem para produção de fertilizante comercial"
+      ]
+    },
+    "bmp_value": 175.59
+  },
+  {
+    "codigo": "DEJETOS_SUINO",
+    "nome": "Dejetos líquidos de suínos",
+    "setor": "PC_PECUARIA",
+    "fde": 0.3564,
+    "fde_availability": 0.405,
+    "fde_efficiency": 0.88,
+    "validation_status": "EMBRAPA_VALIDATED",
+    "validation_confidence": "HIGH",
+    "data_sources": [
+      {
+        "organization": "EMBRAPA Gado de Leite",
+        "reference": "Produção de biogás a partir de dejetos de bovinos",
+        "type": "government",
+        "year": 2022,
+        "url": "https://www.embrapa.br/gado-de-leite"
+      },
+      {
+        "organization": "IEA Bioenergy Task 37",
+        "reference": "BMP Database - Biochemical Methane Potential",
+        "type": "academic",
+        "year": 2020,
+        "url": "https://www.iea-biogas.net"
+      }
+    ],
+    "alternative_pathways": {
+      "total_unavailable": 0.5,
+      "competing_uses": {
+        "free_range": 0.25,
+        "direct_soil": 0.15,
+        "composting": 0.075,
+        "unmanaged": 0.025
+      },
+      "reasons": [
+        "Sistemas de criação extensiva dispersam resíduos em pastagens",
+        "Aplicação direta no solo como fertilizante orgânico",
+        "Compostagem para produção de fertilizante comercial"
+      ]
+    },
+    "bmp_value": 175.59
+  },
+  {
+    "codigo": "ESTERCO_BOVINO",
+    "nome": "Esterco bovino",
+    "setor": "PC_PECUARIA",
+    "fde": 0.1309,
+    "fde_availability": 0.154,
+    "fde_efficiency": 0.85,
+    "validation_status": "EMBRAPA_VALIDATED",
+    "validation_confidence": "HIGH",
+    "data_sources": [
+      {
+        "organization": "EMBRAPA Gado de Leite",
+        "reference": "Produção de biogás a partir de dejetos de bovinos",
+        "type": "government",
+        "year": 2022,
+        "url": "https://www.embrapa.br/gado-de-leite"
+      },
+      {
+        "organization": "IEA Bioenergy Task 37",
+        "reference": "BMP Database - Biochemical Methane Potential",
+        "type": "academic",
+        "year": 2020,
+        "url": "https://www.iea-biogas.net"
+      }
+    ],
+    "alternative_pathways": {
+      "total_unavailable": 0.7142857142857143,
+      "competing_uses": {
+        "free_range": 0.35714285714285715,
+        "direct_soil": 0.21428571428571427,
+        "composting": 0.10714285714285714,
+        "unmanaged": 0.03571428571428572
+      },
+      "reasons": [
+        "Sistemas de criação extensiva dispersam resíduos em pastagens",
+        "Aplicação direta no solo como fertilizante orgânico",
+        "Compostagem para produção de fertilizante comercial"
+      ]
+    },
+    "bmp_value": 175.59
+  },
+  {
+    "codigo": "ESTERCO_SUINO",
+    "nome": "Esterco sólido de suínos",
+    "setor": "PC_PECUARIA",
+    "fde": 0.3025,
+    "fde_availability": 0.3559,
+    "fde_efficiency": 0.85,
+    "validation_status": "INDUSTRY_VALIDATED",
+    "validation_confidence": "MEDIUM",
+    "data_sources": [
+      {
+        "organization": "EMBRAPA Gado de Leite",
+        "reference": "Produção de biogás a partir de dejetos de bovinos",
+        "type": "government",
+        "year": 2022,
+        "url": "https://www.embrapa.br/gado-de-leite"
+      },
+      {
+        "organization": "IEA Bioenergy Task 37",
+        "reference": "BMP Database - Biochemical Methane Potential",
+        "type": "academic",
+        "year": 2020,
+        "url": "https://www.iea-biogas.net"
+      }
+    ],
+    "alternative_pathways": {
+      "total_unavailable": 0.5454545454545454,
+      "competing_uses": {
+        "free_range": 0.2727272727272727,
+        "direct_soil": 0.1636363636363636,
+        "composting": 0.0818181818181818,
+        "unmanaged": 0.02727272727272727
+      },
+      "reasons": [
+        "Sistemas de criação extensiva dispersam resíduos em pastagens",
+        "Aplicação direta no solo como fertilizante orgânico",
+        "Compostagem para produção de fertilizante comercial"
+      ]
+    },
+    "bmp_value": 175.59
+  },
+  {
+    "codigo": "FORSU",
+    "nome": "FORSU - Fração Orgânica separada",
+    "setor": "UR_URBANO",
+    "fde": 0.2519,
+    "fde_availability": 0.323,
+    "fde_efficiency": 0.78,
+    "validation_status": "SNIS_VALIDATED",
+    "validation_confidence": "MEDIUM",
+    "data_sources": [
+      {
+        "organization": "SNIS - Sistema Nacional de Informações sobre Saneamento",
+        "reference": "Diagnóstico do Manejo de Resíduos Sólidos Urbanos",
+        "type": "government",
+        "year": 2023,
+        "url": "http://www.snis.gov.br"
+      },
+      {
+        "organization": "IEA Bioenergy Task 37",
+        "reference": "BMP Database - Biochemical Methane Potential",
+        "type": "academic",
+        "year": 2020,
+        "url": "https://www.iea-biogas.net"
+      }
+    ],
+    "alternative_pathways": {
+      "total_unavailable": 0.15000000000000002,
+      "competing_uses": {},
+      "reasons": []
+    },
+    "bmp_value": 88.00306666666667
+  },
+  {
+    "codigo": "ORGANICO_RSU",
+    "nome": "Fração orgânica RSU",
+    "setor": "UR_URBANO",
+    "fde": 0.2052,
+    "fde_availability": 0.2736,
+    "fde_efficiency": 0.75,
+    "validation_status": "SNIS_VALIDATED",
+    "validation_confidence": "MEDIUM",
+    "data_sources": [
+      {
+        "organization": "SNIS - Sistema Nacional de Informações sobre Saneamento",
+        "reference": "Diagnóstico do Manejo de Resíduos Sólidos Urbanos",
+        "type": "government",
+        "year": 2023,
+        "url": "http://www.snis.gov.br"
+      },
+      {
+        "organization": "IEA Bioenergy Task 37",
+        "reference": "BMP Database - Biochemical Methane Potential",
+        "type": "academic",
+        "year": 2020,
+        "url": "https://www.iea-biogas.net"
+      }
+    ],
+    "alternative_pathways": {
+      "total_unavailable": 0.19999999999999996,
+      "competing_uses": {},
+      "reasons": []
+    },
+    "bmp_value": 88.00306666666667
+  },
+  {
+    "codigo": "LODO_PRIMARIO",
+    "nome": "Lodo primário",
+    "setor": "UR_URBANO",
+    "fde": 0.488,
+    "fde_availability": 0.5741,
+    "fde_efficiency": 0.85,
+    "validation_status": "SABESP_VALIDATED",
+    "validation_confidence": "HIGH",
+    "data_sources": [
+      {
+        "organization": "SNIS - Sistema Nacional de Informações sobre Saneamento",
+        "reference": "Diagnóstico do Manejo de Resíduos Sólidos Urbanos",
+        "type": "government",
+        "year": 2023,
+        "url": "http://www.snis.gov.br"
+      },
+      {
+        "organization": "IEA Bioenergy Task 37",
+        "reference": "BMP Database - Biochemical Methane Potential",
+        "type": "academic",
+        "year": 2020,
+        "url": "https://www.iea-biogas.net"
+      }
+    ],
+    "alternative_pathways": {
+      "total_unavailable": 0.35,
+      "competing_uses": {},
+      "reasons": []
+    },
+    "bmp_value": 303.0
+  },
+  {
+    "codigo": "LODO_SECUNDARIO",
+    "nome": "Lodo secundário (biológico)",
+    "setor": "UR_URBANO",
+    "fde": 0.4239,
+    "fde_availability": 0.5299,
+    "fde_efficiency": 0.8,
+    "validation_status": "SABESP_VALIDATED",
+    "validation_confidence": "HIGH",
+    "data_sources": [
+      {
+        "organization": "SNIS - Sistema Nacional de Informações sobre Saneamento",
+        "reference": "Diagnóstico do Manejo de Resíduos Sólidos Urbanos",
+        "type": "government",
+        "year": 2023,
+        "url": "http://www.snis.gov.br"
+      },
+      {
+        "organization": "IEA Bioenergy Task 37",
+        "reference": "BMP Database - Biochemical Methane Potential",
+        "type": "academic",
+        "year": 2020,
+        "url": "https://www.iea-biogas.net"
+      }
+    ],
+    "alternative_pathways": {
+      "total_unavailable": 0.4,
+      "competing_uses": {},
+      "reasons": []
+    },
+    "bmp_value": 303.0
+  }
+]

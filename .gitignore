@@ -1,0 +1,26 @@
+v2-data/
+
+# Local development helper files (auto-generated)
+START_BACKEND.ps1
+START_FRONTEND.ps1
+START_PROJECT.ps1
+RESTART_BACKEND.ps1
+RESTART_BACKEND_SIMPLE.ps1
+FIX_BACKEND_DEPS.ps1
+PROJECT_STATUS.md
+LOCAL_SETUP_SUCCESS.md
+SUCCESS_SUMMARY.txt
+SUPABASE_INTEGRATION_SUCCESS.md
+FINAL_SETUP_COMPLETE.txt
+POLYGON_CHLOROPLETH_RESTORED.md
+FILTERED_FDE_CASCADE_FEATURE.md
+DETAILED_RESIDUE_IMPLEMENTATION_PLAN.md
+HANDOFF_PROMPT_FOR_CONTINUATION.md
+
+# Temporary files
+nul
+
+# Local raw data drops
+cp2b-workspace/Nova pasta/
+# Claude Code local settings (not for version control)
+.claude/

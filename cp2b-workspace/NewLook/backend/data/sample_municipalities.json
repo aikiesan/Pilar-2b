@@ -1,0 +1,683 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -48.51074879733595,
+          -20.940451120864008
+        ]
+      },
+      "properties": {
+        "id": 3506102,
+        "name": "Bebedouro",
+        "ibge_code": 3506102,
+        "area_km2": 683.192,
+        "population": 76373.0,
+        "population_density": 111.78848698462511,
+        "immediate_region": "Barretos",
+        "intermediate_region": "Ribeirão Preto",
+        "immediate_region_code": "350032",
+        "intermediate_region_code": "3508",
+        "total_biogas_m3_year": 351045596.519974,
+        "agricultural_biogas_m3_year": 345750750.019974,
+        "livestock_biogas_m3_year": 2564387.5,
+        "urban_biogas_m3_year": 2730459.0,
+        "sugarcane_biogas_m3_year": 337554000,
+        "soybean_biogas_m3_year": 2464788.7323943665,
+        "corn_biogas_m3_year": 904471.3375796179,
+        "coffee_biogas_m3_year": 0,
+        "citrus_biogas_m3_year": 4822528.699999999,
+        "cattle_biogas_m3_year": 1721887.5,
+        "swine_biogas_m3_year": 418000,
+        "poultry_biogas_m3_year": 424500.0,
+        "aquaculture_biogas_m3_year": 0.0,
+        "forestry_biogas_m3_year": 4961.25,
+        "rsu_biogas_m3_year": 2676109.92,
+        "rpo_biogas_m3_year": 53661.58,
+        "sugarcane_residues_tons_year": 2021732.9999999998,
+        "soybean_residues_tons_year": 12323.943661971833,
+        "corn_residues_tons_year": 4307.006369426752,
+        "potential_category": "BAIXO"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -48.18132248290114,
+          -21.791649699520345
+        ]
+      },
+      "properties": {
+        "id": 3503208,
+        "name": "Araraquara",
+        "ibge_code": 3503208,
+        "area_km2": 1003.625,
+        "population": 242228.0,
+        "population_density": 241.3530950305144,
+        "immediate_region": "Araraquara",
+        "intermediate_region": "Araraquara",
+        "immediate_region_code": "350036",
+        "intermediate_region_code": "3509",
+        "total_biogas_m3_year": 310537793.3230771,
+        "agricultural_biogas_m3_year": 299366214.90307707,
+        "livestock_biogas_m3_year": 2513713.8499999996,
+        "urban_biogas_m3_year": 8657864.57,
+        "sugarcane_biogas_m3_year": 293280000,
+        "soybean_biogas_m3_year": 2957746.47887324,
+        "corn_biogas_m3_year": 1230586.6242038216,
+        "coffee_biogas_m3_year": 29450,
+        "citrus_biogas_m3_year": 17806.8,
+        "cattle_biogas_m3_year": 1347393.8499999999,
+        "swine_biogas_m3_year": 318820,
+        "poultry_biogas_m3_year": 847500.0,
+        "aquaculture_biogas_m3_year": 0.0,
+        "forestry_biogas_m3_year": 1850625.0,
+        "rsu_biogas_m3_year": 8487669.12,
+        "rpo_biogas_m3_year": 170195.45,
+        "sugarcane_residues_tons_year": 1756559.9999999998,
+        "soybean_residues_tons_year": 14788.7323943662,
+        "corn_residues_tons_year": 5859.9363057324845,
+        "potential_category": "SEM DADOS"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -48.84782469976841,
+          -21.792941299426563
+        ]
+      },
+      "properties": {
+        "id": 3519600,
+        "name": "Ibitinga",
+        "ibge_code": 3519600,
+        "area_km2": 689.391,
+        "population": 60033.0,
+        "population_density": 87.08120645613303,
+        "immediate_region": "Araraquara",
+        "intermediate_region": "Araraquara",
+        "immediate_region_code": "350036",
+        "intermediate_region_code": "3509",
+        "total_biogas_m3_year": 302114203.2236656,
+        "agricultural_biogas_m3_year": 297531672.1236656,
+        "livestock_biogas_m3_year": 2436794.08975,
+        "urban_biogas_m3_year": 2145737.01,
+        "sugarcane_biogas_m3_year": 291400000,
+        "soybean_biogas_m3_year": 1663732.3943661973,
+        "corn_biogas_m3_year": 1213452.2292993632,
+        "coffee_biogas_m3_year": 11160,
+        "citrus_biogas_m3_year": 3218600.0,
+        "cattle_biogas_m3_year": 1451787.5,
+        "swine_biogas_m3_year": 361000,
+        "poultry_biogas_m3_year": 624000.0,
+        "aquaculture_biogas_m3_year": 6.5897499999999996,
+        "forestry_biogas_m3_year": 24727.5,
+        "rsu_biogas_m3_year": 2103556.32,
+        "rpo_biogas_m3_year": 42180.69,
+        "sugarcane_residues_tons_year": 1745299.9999999998,
+        "soybean_residues_tons_year": 8318.661971830987,
+        "corn_residues_tons_year": 5778.343949044587,
+        "potential_category": "SEM DADOS"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -48.46832192899482,
+          -22.863442195558434
+        ]
+      },
+      "properties": {
+        "id": 3507506,
+        "name": "Botucatu",
+        "ibge_code": 3507506,
+        "area_km2": 1482.642,
+        "population": 145155.0,
+        "population_density": 97.90293273763997,
+        "immediate_region": "Botucatu",
+        "intermediate_region": "Bauru",
+        "immediate_region_code": "350011",
+        "intermediate_region_code": "3503",
+        "total_biogas_m3_year": 220899256.9842388,
+        "agricultural_biogas_m3_year": 198965178.2542388,
+        "livestock_biogas_m3_year": 16538893.0,
+        "urban_biogas_m3_year": 5395185.73,
+        "sugarcane_biogas_m3_year": 150400000,
+        "soybean_biogas_m3_year": 1663732.3943661973,
+        "corn_biogas_m3_year": 8960445.859872613,
+        "coffee_biogas_m3_year": 196850,
+        "citrus_biogas_m3_year": 10575400.0,
+        "cattle_biogas_m3_year": 4842893.0,
+        "swine_biogas_m3_year": 836000,
+        "poultry_biogas_m3_year": 10860000.0,
+        "aquaculture_biogas_m3_year": 0.0,
+        "forestry_biogas_m3_year": 27168750.0,
+        "rsu_biogas_m3_year": 5086231.2,
+        "rpo_biogas_m3_year": 101989.53,
+        "sugarcane_residues_tons_year": 900799.9999999999,
+        "soybean_residues_tons_year": 8318.661971830987,
+        "corn_residues_tons_year": 42668.7898089172,
+        "potential_category": "MÉDIO"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -48.430118467621426,
+          -21.610117990761175
+        ]
+      },
+      "properties": {
+        "id": 3529302,
+        "name": "Matão",
+        "ibge_code": 3529302,
+        "area_km2": 524.899,
+        "population": 79033.0,
+        "population_density": 150.56801403698617,
+        "immediate_region": "Araraquara",
+        "intermediate_region": "Araraquara",
+        "immediate_region_code": "350036",
+        "intermediate_region_code": "3509",
+        "total_biogas_m3_year": 152281604.30639276,
+        "agricultural_biogas_m3_year": 147629511.92639276,
+        "livestock_biogas_m3_year": 1572348.0,
+        "urban_biogas_m3_year": 3079744.38,
+        "sugarcane_biogas_m3_year": 141000000,
+        "soybean_biogas_m3_year": 2684154.929577465,
+        "corn_biogas_m3_year": 1085646.4968152868,
+        "coffee_biogas_m3_year": 31000,
+        "citrus_biogas_m3_year": 2828710.5,
+        "cattle_biogas_m3_year": 669848.0,
+        "swine_biogas_m3_year": 275500,
+        "poultry_biogas_m3_year": 627000.0,
+        "aquaculture_biogas_m3_year": 0.0,
+        "forestry_biogas_m3_year": 0.0,
+        "rsu_biogas_m3_year": 2769316.32,
+        "rpo_biogas_m3_year": 55530.56,
+        "sugarcane_residues_tons_year": 844499.9999999999,
+        "soybean_residues_tons_year": 13420.774647887325,
+        "corn_residues_tons_year": 5169.745222929937,
+        "potential_category": "MÉDIO"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -48.35732372102879,
+          -21.51612300274148
+        ]
+      },
+      "properties": {
+        "id": 3514007,
+        "name": "Dobrada",
+        "ibge_code": 3514007,
+        "area_km2": 149.729,
+        "population": 8759.0,
+        "population_density": 58.49902156562857,
+        "immediate_region": "Araraquara",
+        "intermediate_region": "Araraquara",
+        "immediate_region_code": "350036",
+        "intermediate_region_code": "3509",
+        "total_biogas_m3_year": 83846309.5432224,
+        "agricultural_biogas_m3_year": 83356390.64322239,
+        "livestock_biogas_m3_year": 176849.25,
+        "urban_biogas_m3_year": 313069.65,
+        "sugarcane_biogas_m3_year": 83161800,
+        "soybean_biogas_m3_year": 137288.7323943662,
+        "corn_biogas_m3_year": 57301.91082802548,
+        "coffee_biogas_m3_year": 0,
+        "citrus_biogas_m3_year": 0.0,
+        "cattle_biogas_m3_year": 99261.75,
+        "swine_biogas_m3_year": 76380,
+        "poultry_biogas_m3_year": 1207.5,
+        "aquaculture_biogas_m3_year": 0.0,
+        "forestry_biogas_m3_year": 0.0,
+        "rsu_biogas_m3_year": 306915.36,
+        "rpo_biogas_m3_year": 6154.29,
+        "sugarcane_residues_tons_year": 498086.1,
+        "soybean_residues_tons_year": 686.443661971831,
+        "corn_residues_tons_year": 272.86624203821657,
+        "potential_category": "SEM DADOS"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -48.36681853601794,
+          -21.45254620898556
+        ]
+      },
+      "properties": {
+        "id": 3546504,
+        "name": "Santa Ernestina",
+        "ibge_code": 3546504,
+        "area_km2": 134.421,
+        "population": 6118.0,
+        "population_density": 45.51372181429985,
+        "immediate_region": "Ribeirão Preto",
+        "intermediate_region": "Ribeirão Preto",
+        "immediate_region_code": "350031",
+        "intermediate_region_code": "3508",
+        "total_biogas_m3_year": 60762979.61933345,
+        "agricultural_biogas_m3_year": 60426628.689333454,
+        "livestock_biogas_m3_year": 117677.54999999999,
+        "urban_biogas_m3_year": 218673.38,
+        "sugarcane_biogas_m3_year": 60108300,
+        "soybean_biogas_m3_year": 183380.28169014087,
+        "corn_biogas_m3_year": 40448.4076433121,
+        "coffee_biogas_m3_year": 0,
+        "citrus_biogas_m3_year": 0.0,
+        "cattle_biogas_m3_year": 52804.549999999996,
+        "swine_biogas_m3_year": 63460,
+        "poultry_biogas_m3_year": 1412.9999999999998,
+        "aquaculture_biogas_m3_year": 0.0,
+        "forestry_biogas_m3_year": 94500.0,
+        "rsu_biogas_m3_year": 214374.72,
+        "rpo_biogas_m3_year": 4298.66,
+        "sugarcane_residues_tons_year": 360010.35,
+        "soybean_residues_tons_year": 916.9014084507044,
+        "corn_residues_tons_year": 192.61146496815286,
+        "potential_category": "SEM DADOS"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -49.234571897548555,
+          -23.530185452764947
+        ]
+      },
+      "properties": {
+        "id": 3553807,
+        "name": "Taquarituba",
+        "ibge_code": 3553807,
+        "area_km2": 448.515,
+        "population": 24350.0,
+        "population_density": 54.29026899880718,
+        "immediate_region": "Avaré",
+        "intermediate_region": "Sorocaba",
+        "immediate_region_code": "350007",
+        "intermediate_region_code": "3502",
+        "total_biogas_m3_year": 40798854.49590832,
+        "agricultural_biogas_m3_year": 35359837.225908324,
+        "livestock_biogas_m3_year": 4568684.35,
+        "urban_biogas_m3_year": 870332.92,
+        "sugarcane_biogas_m3_year": 1427860,
+        "soybean_biogas_m3_year": 23606514.084507044,
+        "corn_biogas_m3_year": 9700595.541401275,
+        "coffee_biogas_m3_year": 325500,
+        "citrus_biogas_m3_year": 278262.6,
+        "cattle_biogas_m3_year": 2483164.35,
+        "swine_biogas_m3_year": 2061880,
+        "poultry_biogas_m3_year": 23640.0,
+        "aquaculture_biogas_m3_year": 0.0,
+        "forestry_biogas_m3_year": 21105.0,
+        "rsu_biogas_m3_year": 853224.0,
+        "rpo_biogas_m3_year": 17108.92,
+        "sugarcane_residues_tons_year": 8551.97,
+        "soybean_residues_tons_year": 118032.57042253522,
+        "corn_residues_tons_year": 46193.31210191083,
+        "potential_category": "SEM DADOS"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -50.71741889428712,
+          -21.681162394577278
+        ]
+      },
+      "properties": {
+        "id": 3543808,
+        "name": "Rinópolis",
+        "ibge_code": 3543808,
+        "area_km2": 358.481,
+        "population": 9259.0,
+        "population_density": 25.828426053263634,
+        "immediate_region": "Tupã",
+        "intermediate_region": "Marília",
+        "immediate_region_code": "350016",
+        "intermediate_region_code": "3504",
+        "total_biogas_m3_year": 37732771.1199076,
+        "agricultural_biogas_m3_year": 28901499.9899076,
+        "livestock_biogas_m3_year": 8500330.175,
+        "urban_biogas_m3_year": 330940.96,
+        "sugarcane_biogas_m3_year": 27495000,
+        "soybean_biogas_m3_year": 788732.3943661973,
+        "corn_biogas_m3_year": 505605.0955414013,
+        "coffee_biogas_m3_year": 27900,
+        "citrus_biogas_m3_year": 0.0,
+        "cattle_biogas_m3_year": 5542046.85,
+        "swine_biogas_m3_year": 47500,
+        "poultry_biogas_m3_year": 2910750.0,
+        "aquaculture_biogas_m3_year": 33.324999999999996,
+        "forestry_biogas_m3_year": 84262.5,
+        "rsu_biogas_m3_year": 324435.36,
+        "rpo_biogas_m3_year": 6505.6,
+        "sugarcane_residues_tons_year": 164677.49999999997,
+        "soybean_residues_tons_year": 3943.6619718309867,
+        "corn_residues_tons_year": 2407.643312101911,
+        "potential_category": "SEM DADOS"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -46.55079180064649,
+          -23.812988838766383
+        ]
+      },
+      "properties": {
+        "id": 3548708,
+        "name": "São Bernardo do Campo",
+        "ibge_code": 3548708,
+        "area_km2": 409.532,
+        "population": 810729.0,
+        "population_density": 1979.6475000732544,
+        "immediate_region": "São Paulo",
+        "intermediate_region": "São Paulo",
+        "immediate_region_code": "350001",
+        "intermediate_region_code": "3501",
+        "total_biogas_m3_year": 29280132.53,
+        "agricultural_biogas_m3_year": 0.0,
+        "livestock_biogas_m3_year": 0.0,
+        "urban_biogas_m3_year": 29280132.53,
+        "sugarcane_biogas_m3_year": 0,
+        "soybean_biogas_m3_year": 0,
+        "corn_biogas_m3_year": 0,
+        "coffee_biogas_m3_year": 0,
+        "citrus_biogas_m3_year": 0.0,
+        "cattle_biogas_m3_year": 0.0,
+        "swine_biogas_m3_year": 0,
+        "poultry_biogas_m3_year": 0.0,
+        "aquaculture_biogas_m3_year": 0.0,
+        "forestry_biogas_m3_year": 0.0,
+        "rsu_biogas_m3_year": 28407944.16,
+        "rpo_biogas_m3_year": 569638.46,
+        "sugarcane_residues_tons_year": 0.0,
+        "soybean_residues_tons_year": 0.0,
+        "corn_residues_tons_year": 0.0,
+        "potential_category": "SEM DADOS"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -51.62577855619251,
+          -22.357974825976534
+        ]
+      },
+      "properties": {
+        "id": 3553906,
+        "name": "Tarabai",
+        "ibge_code": 3553906,
+        "area_km2": 201.385,
+        "population": 6536.0,
+        "population_density": 32.45524741167416,
+        "immediate_region": "Presidente Prudente",
+        "intermediate_region": "Presidente Prudente",
+        "immediate_region_code": "350018",
+        "intermediate_region_code": "3505",
+        "total_biogas_m3_year": 27773401.502558537,
+        "agricultural_biogas_m3_year": 24328577.342558537,
+        "livestock_biogas_m3_year": 3176835.363,
+        "urban_biogas_m3_year": 267988.8,
+        "sugarcane_biogas_m3_year": 24049900,
+        "soybean_biogas_m3_year": 71725.35211267606,
+        "corn_biogas_m3_year": 125839.49044585989,
+        "coffee_biogas_m3_year": 0,
+        "citrus_biogas_m3_year": 0.0,
+        "cattle_biogas_m3_year": 2872783.6,
+        "swine_biogas_m3_year": 182400,
+        "poultry_biogas_m3_year": 121650.0,
+        "aquaculture_biogas_m3_year": 1.763,
+        "forestry_biogas_m3_year": 81112.5,
+        "rsu_biogas_m3_year": 229021.44,
+        "rpo_biogas_m3_year": 4592.36,
+        "sugarcane_residues_tons_year": 144043.55,
+        "soybean_residues_tons_year": 358.6267605633803,
+        "corn_residues_tons_year": 599.235668789809,
+        "potential_category": "BAIXO"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -47.44089064629389,
+          -20.060799685940548
+        ]
+      },
+      "properties": {
+        "id": 3543600,
+        "name": "Rifaina",
+        "ibge_code": 3543600,
+        "area_km2": 162.508,
+        "population": 4049.0,
+        "population_density": 24.915696458020527,
+        "immediate_region": "Franca",
+        "intermediate_region": "Ribeirão Preto",
+        "immediate_region_code": "350033",
+        "intermediate_region_code": "3508",
+        "total_biogas_m3_year": 16932678.861830987,
+        "agricultural_biogas_m3_year": 15572421.971830986,
+        "livestock_biogas_m3_year": 1215535.0,
+        "urban_biogas_m3_year": 144721.89,
+        "sugarcane_biogas_m3_year": 15122250,
+        "soybean_biogas_m3_year": 443661.9718309859,
+        "corn_biogas_m3_year": 0,
+        "coffee_biogas_m3_year": 6510,
+        "citrus_biogas_m3_year": 0.0,
+        "cattle_biogas_m3_year": 904835.0,
+        "swine_biogas_m3_year": 117800,
+        "poultry_biogas_m3_year": 180000.0,
+        "aquaculture_biogas_m3_year": 12900.0,
+        "forestry_biogas_m3_year": 0.0,
+        "rsu_biogas_m3_year": 141876.96,
+        "rpo_biogas_m3_year": 2844.93,
+        "sugarcane_residues_tons_year": 90572.62499999999,
+        "soybean_residues_tons_year": 2218.3098591549297,
+        "corn_residues_tons_year": 0.0,
+        "potential_category": "SEM DADOS"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -46.56606262303446,
+          -23.626140562974108
+        ]
+      },
+      "properties": {
+        "id": 3548807,
+        "name": "São Caetano do Sul",
+        "ibge_code": 3548807,
+        "area_km2": 15.331,
+        "population": 165655.0,
+        "population_density": 10805.231230839476,
+        "immediate_region": "São Paulo",
+        "intermediate_region": "São Paulo",
+        "immediate_region_code": "350001",
+        "intermediate_region_code": "3501",
+        "total_biogas_m3_year": 6341969.54,
+        "agricultural_biogas_m3_year": 0.0,
+        "livestock_biogas_m3_year": 0.0,
+        "urban_biogas_m3_year": 6341969.54,
+        "sugarcane_biogas_m3_year": 0,
+        "soybean_biogas_m3_year": 0,
+        "corn_biogas_m3_year": 0,
+        "coffee_biogas_m3_year": 0,
+        "citrus_biogas_m3_year": 0.0,
+        "cattle_biogas_m3_year": 0.0,
+        "swine_biogas_m3_year": 0,
+        "poultry_biogas_m3_year": 0.0,
+        "aquaculture_biogas_m3_year": 0.0,
+        "forestry_biogas_m3_year": 0.0,
+        "rsu_biogas_m3_year": 5804551.2,
+        "rpo_biogas_m3_year": 116393.34,
+        "sugarcane_residues_tons_year": 0.0,
+        "soybean_residues_tons_year": 0.0,
+        "corn_residues_tons_year": 0.0,
+        "potential_category": "MÉDIO"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -45.86329816360909,
+          -23.42639518381915
+        ]
+      },
+      "properties": {
+        "id": 3546009,
+        "name": "Santa Branca",
+        "ibge_code": 3546009,
+        "area_km2": 272.238,
+        "population": 13975.0,
+        "population_density": 51.33375943108604,
+        "immediate_region": "São José dos Campos",
+        "intermediate_region": "São José dos Campos",
+        "immediate_region_code": "350049",
+        "intermediate_region_code": "3511",
+        "total_biogas_m3_year": 3120360.8551592357,
+        "agricultural_biogas_m3_year": 1045042.6751592357,
+        "livestock_biogas_m3_year": 1575815.0,
+        "urban_biogas_m3_year": 499503.18,
+        "sugarcane_biogas_m3_year": 4700,
+        "soybean_biogas_m3_year": 0,
+        "corn_biogas_m3_year": 842.6751592356688,
+        "coffee_biogas_m3_year": 0,
+        "citrus_biogas_m3_year": 0.0,
+        "cattle_biogas_m3_year": 1505807.5,
+        "swine_biogas_m3_year": 68400,
+        "poultry_biogas_m3_year": 1500.0,
+        "aquaculture_biogas_m3_year": 107.5,
+        "forestry_biogas_m3_year": 1039500.0,
+        "rsu_biogas_m3_year": 489684.0,
+        "rpo_biogas_m3_year": 9819.18,
+        "sugarcane_residues_tons_year": 28.15,
+        "soybean_residues_tons_year": 0.0,
+        "corn_residues_tons_year": 4.012738853503185,
+        "potential_category": "SEM DADOS"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -47.28515757021841,
+          -22.78411059903785
+        ]
+      },
+      "properties": {
+        "id": 3533403,
+        "name": "Nova Odessa",
+        "ibge_code": 3533403,
+        "area_km2": 73.788,
+        "population": 62019.0,
+        "population_density": 840.5025207350789,
+        "immediate_region": "Campinas",
+        "intermediate_region": "Campinas",
+        "immediate_region_code": "350038",
+        "intermediate_region_code": "3510",
+        "total_biogas_m3_year": 3098413.442309141,
+        "agricultural_biogas_m3_year": 658347.5823091415,
+        "livestock_biogas_m3_year": 99594.0,
+        "urban_biogas_m3_year": 2340471.86,
+        "sugarcane_biogas_m3_year": 0,
+        "soybean_biogas_m3_year": 151338.02816901408,
+        "corn_biogas_m3_year": 507009.5541401274,
+        "coffee_biogas_m3_year": 0,
+        "citrus_biogas_m3_year": 0.0,
+        "cattle_biogas_m3_year": 37814.0,
+        "swine_biogas_m3_year": 61180,
+        "poultry_biogas_m3_year": 600.0,
+        "aquaculture_biogas_m3_year": 0.0,
+        "forestry_biogas_m3_year": 0.0,
+        "rsu_biogas_m3_year": 2173145.76,
+        "rpo_biogas_m3_year": 43576.1,
+        "sugarcane_residues_tons_year": 0.0,
+        "soybean_residues_tons_year": 756.6901408450705,
+        "corn_residues_tons_year": 2414.331210191083,
+        "potential_category": "MÉDIO"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -45.323190277839245,
+          -23.84849847753567
+        ]
+      },
+      "properties": {
+        "id": 3520400,
+        "name": "Ilhabela",
+        "ibge_code": 3520400,
+        "area_km2": 346.389,
+        "population": 34934.0,
+        "population_density": 100.85193236505778,
+        "immediate_region": "Caraguatatuba - Ubatuba - São Sebastião",
+        "intermediate_region": "São José dos Campos",
+        "immediate_region_code": "350051",
+        "intermediate_region_code": "3511",
+        "total_biogas_m3_year": 1252819.41,
+        "agricultural_biogas_m3_year": 0.0,
+        "livestock_biogas_m3_year": 4186.549999999999,
+        "urban_biogas_m3_year": 1248632.86,
+        "sugarcane_biogas_m3_year": 0,
+        "soybean_biogas_m3_year": 0,
+        "corn_biogas_m3_year": 0,
+        "coffee_biogas_m3_year": 0,
+        "citrus_biogas_m3_year": 0.0,
+        "cattle_biogas_m3_year": 4186.549999999999,
+        "swine_biogas_m3_year": 0,
+        "poultry_biogas_m3_year": 0.0,
+        "aquaculture_biogas_m3_year": 0.0,
+        "forestry_biogas_m3_year": 0.0,
+        "rsu_biogas_m3_year": 1224087.36,
+        "rpo_biogas_m3_year": 24545.5,
+        "sugarcane_residues_tons_year": 0.0,
+        "soybean_residues_tons_year": 0.0,
+        "corn_residues_tons_year": 0.0,
+        "potential_category": "SEM DADOS"
+      }
+    }
+  ],
+  "metadata": {
+    "total_municipalities": 16,
+    "region": "Araraquara",
+    "source": "PILAR-2b V2",
+    "note": "Sample data for V3 dashboard development"
+  }
+}

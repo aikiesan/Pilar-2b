@@ -1,0 +1,96 @@
+# Docker Compose Configuration for Production
+# CP2B Maps V3 Backend with Resource Limits
+
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: cp2b-maps-backend:latest
+    container_name: cp2b-backend
+    restart: unless-stopped
+
+    # Resource Limits (CRITICAL for production)
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'      # Maximum 2 CPU cores
+          memory: 4G       # Maximum 4GB RAM
+        reservations:
+          cpus: '1.0'      # Guaranteed 1 CPU core
+          memory: 2G       # Guaranteed 2GB RAM
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+
+    # Environment Variables
+    environment:
+      - APP_ENV=production
+      - PORT=8000
+      - DATABASE_URL=${DATABASE_URL}
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - SECRET_KEY=${SECRET_KEY}
+      - PRODUCTION_ORIGINS=${PRODUCTION_ORIGINS}
+      # Optional monitoring
+      - SENTRY_DSN=${SENTRY_DSN}
+
+    # Port Mapping
+    ports:
+      - "8000:8000"
+
+    # Health Check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+    # Logging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+    # Security
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE  # Only for binding to port 80/443
+
+    # Read-only root filesystem (recommended but requires writable /tmp)
+    # read_only: true
+    # tmpfs:
+    #   - /tmp
+
+# Optional: PostgreSQL for local testing
+# (In production, use Supabase managed database)
+  # postgres:
+  #   image: postgis/postgis:15-3.4
+  #   environment:
+  #     - POSTGRES_DB=cp2b_maps
+  #     - POSTGRES_USER=postgres
+  #     - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   deploy:
+  #     resources:
+  #       limits:
+  #         cpus: '1.0'
+  #         memory: 2G
+
+# volumes:
+#   postgres_data:
+
+networks:
+  default:
+    driver: bridge
