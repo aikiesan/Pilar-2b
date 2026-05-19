@@ -57,7 +57,7 @@ def _make_db_patch(rows_by_call):
 
 
 def _patch_db(rows_by_call):
-    return patch("app.core.database.get_db", new=_make_db_patch(rows_by_call))
+    return patch("app.api.v1.endpoints.residuos.get_db", new=_make_db_patch(rows_by_call))
 
 
 # ─── Sample data fixtures ──────────────────────────────────────────────────────

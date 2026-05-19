@@ -4,6 +4,7 @@ Covers /statistics/summary and /statistics/category/{category}.
 """
 import pytest
 from contextlib import contextmanager
+from datetime import datetime, timezone
 from unittest.mock import MagicMock, patch
 from fastapi.testclient import TestClient
 from app.main import app
@@ -14,11 +15,14 @@ from app.models.auth import UserProfile
 
 def _mock_authenticated_user():
     """Return a minimal UserProfile suitable for require_authenticated."""
+    now = datetime.now(timezone.utc)
     return UserProfile(
         id="test-user-id",
         email="test@example.com",
         full_name="Test User",
         role="autenticado",
+        created_at=now,
+        updated_at=now,
     )
 
 
@@ -77,7 +81,7 @@ def _make_db_patch(fetchone_values):
 
 
 def _patch_db(fetchone_values):
-    return patch("app.core.database.get_db", new=_make_db_patch(fetchone_values))
+    return patch("app.api.v1.endpoints.statistics.get_db", new=_make_db_patch(fetchone_values))
 
 
 # ─── Sample DB row ────────────────────────────────────────────────────────────

@@ -166,13 +166,14 @@ class TestValidateCoordinates:
     # --- Ocean heuristic ---
 
     def test_ocean_point_returns_false(self):
-        # lng > -44.5 and lat < -23.5 triggers ocean heuristic
-        is_valid, error, _ = ValidationService.validate_coordinates(-24.0, -44.0)
+        # lng must be in (-44.5, -44.2] to pass SP bounds check but still trigger
+        # the ocean heuristic (lng > -44.5 and lat < -23.5).
+        is_valid, error, _ = ValidationService.validate_coordinates(-24.0, -44.4)
         assert is_valid is False
         assert "oceano" in error.lower() or "ocean" in error.lower()
 
     def test_suggestion_provided_on_ocean_error(self):
-        is_valid, error, suggestion = ValidationService.validate_coordinates(-24.0, -44.0)
+        is_valid, error, suggestion = ValidationService.validate_coordinates(-24.0, -44.4)
         assert is_valid is False
         assert suggestion is not None
 
