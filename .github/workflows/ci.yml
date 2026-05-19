@@ -168,7 +168,7 @@ jobs:
         run: pytest -v --cov=app --cov-report=xml --no-cov-on-fail
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/test_db
-          SECRET_KEY: test-secret-key-for-ci-only
+          SECRET_KEY: test-secret-key-for-ci-only-xxxx
           SUPABASE_URL: https://placeholder.supabase.co
           SUPABASE_KEY: placeholder-key
           SUPABASE_SERVICE_ROLE_KEY: placeholder-service-key
