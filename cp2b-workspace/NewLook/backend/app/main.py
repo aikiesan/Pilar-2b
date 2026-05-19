@@ -153,9 +153,10 @@ async def readiness_check():
             content={"ready": False, "reason": "database_unavailable"}
         )
     except Exception as e:
+        log.error("Readiness check failed: %s", e, exc_info=True)
         return JSONResponse(
             status_code=503,
-            content={"ready": False, "reason": str(e)}
+            content={"ready": False, "reason": "Internal server error"}
         )
 
 

@@ -92,19 +92,10 @@ class ShapefileLoader:
             return geojson_dict
 
         except Exception as e:
-            logger.error(f"Error loading shapefile {filename}: {str(e)}")
-            # Return empty FeatureCollection on any error
-            return {
-                "type": "FeatureCollection",
-                "features": [],
-                "metadata": {
-                    "source": f"{filename}.shp",
-                    "total_features": 0,
-                    "crs": "EPSG:4326",
-                    "note": f"Erro ao carregar {filename}",
-                    "error": str(e)
-                }
-            }
+            logger.exception(f"Error loading shapefile {filename}")
+            # Do not expose exception-path details via API payloads.
+            # Endpoints convert this to a generic HTTP 500 response.
+            raise RuntimeError("Internal error while loading shapefile") from e
 
 
 # Singleton instance

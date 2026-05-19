@@ -6,8 +6,11 @@ Calculation-free, reference-based learning platform.
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from typing import List, Optional
+import logging
 import secrets
 from uuid import UUID
+
+logger = logging.getLogger(__name__)
 import json
 
 from app.core.database import get_db, get_db_transaction
@@ -78,10 +81,11 @@ def health_check():
             }
 
     except Exception as e:
+        logger.error("Error in technology_routes health check: %s", e, exc_info=True)
         return {
             "status": "error",
             "database": "error",
-            "error": str(e),
+            "error": "Internal server error",
             "tables_exist": False,
             "ready": False,
             "message": "Database tables may not exist. Run migration 010_technology_routes.sql and seed data."

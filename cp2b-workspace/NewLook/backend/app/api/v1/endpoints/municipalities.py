@@ -198,7 +198,8 @@ async def test_geometry():
             "bounding_box":    json.loads(row["bbox"]) if row["bbox"] else None,
         }
     except Exception as e:
-        return {"error": str(e)}
+        logger.error("Error in municipalities stats: %s", e, exc_info=True)
+        return {"error": "Internal server error"}
 
 
 @router.get("/stats/summary")

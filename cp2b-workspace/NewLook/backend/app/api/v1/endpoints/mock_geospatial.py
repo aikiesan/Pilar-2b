@@ -6,7 +6,10 @@ Serves sample data (16 municipalities) for dashboard development
 from fastapi import APIRouter, HTTPException
 from pathlib import Path
 import json
+import logging
 from typing import Dict, Any
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -237,7 +240,8 @@ async def health_check():
             "data_source": "PILAR-2b V2 (Sample)"
         }
     except Exception as e:
+        logger.error("Error in mock_geospatial health check: %s", e, exc_info=True)
         return {
             "status": "error",
-            "message": str(e)
+            "message": "Internal server error"
         }

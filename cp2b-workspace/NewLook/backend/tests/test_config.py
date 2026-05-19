@@ -78,8 +78,8 @@ class TestSettings:
         settings = Settings()
         all_origins = settings.get_all_origins()
 
-        assert "https://example.com" in all_origins
-        assert "https://test.com" in all_origins
+        assert any(o == "https://example.com" for o in all_origins)
+        assert any(o == "https://test.com" for o in all_origins)
 
     def test_wildcard_cors_blocked_in_production(self, monkeypatch):
         """Test that wildcard CORS is not allowed in production"""

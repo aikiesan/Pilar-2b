@@ -3,7 +3,7 @@ PILAR-2b V3 - Infrastructure Endpoints
 Provides GeoJSON data for infrastructure layers from real shapefiles
 """
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from typing import Dict, Any
 import logging
 from app.utils.shapefile_loader import SHAPEFILE_DIR, get_shapefile_loader
@@ -12,6 +12,16 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 
 shapefile_loader = get_shapefile_loader()
+
+
+def _sanitize_geojson_response(geojson: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Remove internal error details from GeoJSON metadata before sending to clients.
+    """
+    metadata = geojson.get("metadata")
+    if isinstance(metadata, dict):
+        metadata.pop("error", None)
+    return geojson
 
 REQUIRED_SHAPEFILES = {
     "railways": ["Rodovias_Estaduais_SP"],
@@ -35,13 +45,16 @@ async def get_railways_geojson() -> Dict[str, Any]:
     Returns:
         GeoJSON FeatureCollection with highway lines from Rodovias_Estaduais_SP.shp
     """
-    # Simplify to reduce file size (tolerance in degrees, ~0.001 = ~100m)
-    geojson = shapefile_loader.load_shapefile_as_geojson(
-        "Rodovias_Estaduais_SP",
-        simplify_tolerance=0.001
-    )
-    geojson["metadata"]["layer_type"] = "railways"
-    return geojson
+    try:
+        geojson = shapefile_loader.load_shapefile_as_geojson(
+            "Rodovias_Estaduais_SP",
+            simplify_tolerance=0.001
+        )
+        geojson["metadata"]["layer_type"] = "railways"
+        return geojson
+    except Exception as e:
+        logger.error("Error loading railways shapefile: %s", e)
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.get("/pipelines/geojson")
@@ -52,29 +65,29 @@ async def get_pipelines_geojson() -> Dict[str, Any]:
     Returns:
         GeoJSON FeatureCollection with gas pipeline lines from Gasodutos shapefiles
     """
-    # Load both distribution and transport pipelines
-    dist_geojson = shapefile_loader.load_shapefile_as_geojson(
-        "Gasodutos_Distribuicao_SP",
-        simplify_tolerance=0.001
-    )
-    transp_geojson = shapefile_loader.load_shapefile_as_geojson(
-        "Gasodutos_Transporte_SP",
-        simplify_tolerance=0.001
-    )
-
-    # Combine both into one FeatureCollection
-    combined_features = dist_geojson["features"] + transp_geojson["features"]
-
-    return {
-        "type": "FeatureCollection",
-        "features": combined_features,
-        "metadata": {
-            "source": "Gasodutos_Distribuicao_SP.shp + Gasodutos_Transporte_SP.shp",
-            "total_features": len(combined_features),
-            "layer_type": "pipelines",
-            "note": f"Dados de gasodutos - {len(combined_features)} segmentos"
+    try:
+        dist_geojson = shapefile_loader.load_shapefile_as_geojson(
+            "Gasodutos_Distribuicao_SP",
+            simplify_tolerance=0.001
+        )
+        transp_geojson = shapefile_loader.load_shapefile_as_geojson(
+            "Gasodutos_Transporte_SP",
+            simplify_tolerance=0.001
+        )
+        combined_features = dist_geojson["features"] + transp_geojson["features"]
+        return {
+            "type": "FeatureCollection",
+            "features": combined_features,
+            "metadata": {
+                "source": "Gasodutos_Distribuicao_SP.shp + Gasodutos_Transporte_SP.shp",
+                "total_features": len(combined_features),
+                "layer_type": "pipelines",
+                "note": f"Dados de gasodutos - {len(combined_features)} segmentos"
+            }
         }
-    }
+    except Exception as e:
+        logger.error("Error loading pipelines shapefile: %s", e)
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.get("/substations/geojson")
@@ -85,9 +98,13 @@ async def get_substations_geojson() -> Dict[str, Any]:
     Returns:
         GeoJSON FeatureCollection with substation points from Subestacoes_Energia.shp
     """
-    geojson = shapefile_loader.load_shapefile_as_geojson("Subestacoes_Energia")
-    geojson["metadata"]["layer_type"] = "substations"
-    return geojson
+    try:
+        geojson = shapefile_loader.load_shapefile_as_geojson("Subestacoes_Energia")
+        geojson["metadata"]["layer_type"] = "substations"
+        return geojson
+    except Exception as e:
+        logger.error("Error loading substations shapefile: %s", e)
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.get("/biogas-plants/geojson")
@@ -98,9 +115,13 @@ async def get_biogas_plants_geojson() -> Dict[str, Any]:
     Returns:
         GeoJSON FeatureCollection with biogas plant points from Plantas_Biogas_SP.shp
     """
-    geojson = shapefile_loader.load_shapefile_as_geojson("Plantas_Biogas_SP")
-    geojson["metadata"]["layer_type"] = "biogas_plants"
-    return geojson
+    try:
+        geojson = shapefile_loader.load_shapefile_as_geojson("Plantas_Biogas_SP")
+        geojson["metadata"]["layer_type"] = "biogas_plants"
+        return _sanitize_geojson_response(geojson)
+    except Exception as e:
+        logger.error("Error loading biogas-plants shapefile: %s", e)
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.get("/transmission-lines/geojson")
@@ -111,12 +132,16 @@ async def get_transmission_lines_geojson() -> Dict[str, Any]:
     Returns:
         GeoJSON FeatureCollection with transmission line polylines
     """
-    geojson = shapefile_loader.load_shapefile_as_geojson(
-        "Linhas_De_Transmissao_Energia",
-        simplify_tolerance=0.001
-    )
-    geojson["metadata"]["layer_type"] = "transmission_lines"
-    return geojson
+    try:
+        geojson = shapefile_loader.load_shapefile_as_geojson(
+            "Linhas_De_Transmissao_Energia",
+            simplify_tolerance=0.001
+        )
+        geojson["metadata"]["layer_type"] = "transmission_lines"
+        return _sanitize_geojson_response(geojson)
+    except Exception as e:
+        logger.error("Error loading transmission-lines shapefile: %s", e)
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.get("/etes/geojson")
@@ -127,9 +152,13 @@ async def get_etes_geojson() -> Dict[str, Any]:
     Returns:
         GeoJSON FeatureCollection with ETE points
     """
-    geojson = shapefile_loader.load_shapefile_as_geojson("ETEs_2019_SP")
-    geojson["metadata"]["layer_type"] = "etes"
-    return geojson
+    try:
+        geojson = shapefile_loader.load_shapefile_as_geojson("ETEs_2019_SP")
+        geojson["metadata"]["layer_type"] = "etes"
+        return _sanitize_geojson_response(geojson)
+    except Exception as e:
+        logger.error("Error loading ETEs shapefile: %s", e)
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.get("/administrative-regions/geojson")
@@ -140,12 +169,16 @@ async def get_admin_regions_geojson() -> Dict[str, Any]:
     Returns:
         GeoJSON FeatureCollection with admin region polygons
     """
-    geojson = shapefile_loader.load_shapefile_as_geojson(
-        "Regiao_Adm_SP",
-        simplify_tolerance=0.001
-    )
-    geojson["metadata"]["layer_type"] = "administrative_regions"
-    return geojson
+    try:
+        geojson = shapefile_loader.load_shapefile_as_geojson(
+            "Regiao_Adm_SP",
+            simplify_tolerance=0.001
+        )
+        geojson["metadata"]["layer_type"] = "administrative_regions"
+        return _sanitize_geojson_response(geojson)
+    except Exception as e:
+        logger.error("Error loading admin-regions shapefile: %s", e)
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.get("/intermediate-regions/geojson")
@@ -156,12 +189,16 @@ async def get_intermediate_regions_geojson() -> Dict[str, Any]:
     Returns:
         GeoJSON FeatureCollection with intermediate region polygons
     """
-    geojson = shapefile_loader.load_shapefile_as_geojson(
-        "SP_RG_Intermediarias_2024",
-        simplify_tolerance=0.001
-    )
-    geojson["metadata"]["layer_type"] = "intermediate_regions"
-    return geojson
+    try:
+        geojson = shapefile_loader.load_shapefile_as_geojson(
+            "SP_RG_Intermediarias_2024",
+            simplify_tolerance=0.001
+        )
+        geojson["metadata"]["layer_type"] = "intermediate_regions"
+        return _sanitize_geojson_response(geojson)
+    except Exception as e:
+        logger.error("Error loading intermediate-regions shapefile: %s", e)
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.get("/immediate-regions/geojson")
@@ -172,12 +209,16 @@ async def get_immediate_regions_geojson() -> Dict[str, Any]:
     Returns:
         GeoJSON FeatureCollection with immediate region polygons
     """
-    geojson = shapefile_loader.load_shapefile_as_geojson(
-        "SP_RG_Imediatas_2024",
-        simplify_tolerance=0.001
-    )
-    geojson["metadata"]["layer_type"] = "immediate_regions"
-    return geojson
+    try:
+        geojson = shapefile_loader.load_shapefile_as_geojson(
+            "SP_RG_Imediatas_2024",
+            simplify_tolerance=0.001
+        )
+        geojson["metadata"]["layer_type"] = "immediate_regions"
+        return geojson
+    except Exception as e:
+        logger.error("Error loading immediate-regions shapefile: %s", e)
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.get("/sp-boundary/geojson")
@@ -188,12 +229,16 @@ async def get_sp_boundary_geojson() -> Dict[str, Any]:
     Returns:
         GeoJSON FeatureCollection with state boundary polygon
     """
-    geojson = shapefile_loader.load_shapefile_as_geojson(
-        "Limite_SP",
-        simplify_tolerance=0.002
-    )
-    geojson["metadata"]["layer_type"] = "state_boundary"
-    return geojson
+    try:
+        geojson = shapefile_loader.load_shapefile_as_geojson(
+            "Limite_SP",
+            simplify_tolerance=0.002
+        )
+        geojson["metadata"]["layer_type"] = "state_boundary"
+        return geojson
+    except Exception as e:
+        logger.error("Error loading SP-boundary shapefile: %s", e)
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.get("/health")

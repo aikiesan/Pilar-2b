@@ -68,7 +68,7 @@ class ValidationService:
         
         # Check if point is in ocean (simple heuristic - eastern coast check)
         if lng > -44.5 and lat < -23.5:
-            logger.warning(f"Point possibly in ocean: ({lat}, {lng})")
+            logger.warning("Point possibly in ocean (coordinates withheld from logs)")
             return False, "❌ Ponto possivelmente no oceano", "💡 Selecione um ponto em terra firme dentro do estado."
         
         return True, None, None
@@ -98,7 +98,7 @@ class ValidationService:
         
         # Warning for large radius
         if radius_km > 50:
-            logger.warning(f"Large radius requested: {radius_km} km")
+            logger.warning("Large radius requested: %s km", float(radius_km))
         
         return True, None, None
     
