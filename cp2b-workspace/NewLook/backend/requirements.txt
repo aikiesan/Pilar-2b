@@ -35,7 +35,7 @@ pillow>=11.0.0  # Updated from 10.4.0 — fixes out-of-bounds write in PSD image
 pandas==2.1.4
 numpy==1.24.3
 scipy==1.11.4
-scikit-learn>=1.6.0
+scikit-learn>=1.7.2
 openpyxl==3.1.2
 xlrd>=2.0.1  # Required to read IBGE .xls workbooks such as POP2025
 
