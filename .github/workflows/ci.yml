@@ -166,7 +166,6 @@ jobs:
         run: pip install -r requirements.txt
       - name: Run tests
         run: pytest -v --cov=app --cov-report=xml --no-cov-on-fail
-        continue-on-error: true
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/test_db
           SECRET_KEY: test-secret-key-for-ci-only
@@ -188,10 +187,20 @@ jobs:
           cache: 'pip'
           cache-dependency-path: ./cp2b-workspace/NewLook/backend/requirements.txt
       - name: Install dependencies
-        run: pip install -r requirements.txt safety
+        run: pip install -r requirements.txt safety bandit
       - name: Safety check
         run: safety check
         continue-on-error: true
+      - name: Bandit SAST scan
+        run: bandit -r app/ -f json -o bandit-report.json
+        continue-on-error: true
+      - name: Upload Bandit report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bandit-report
+          path: cp2b-workspace/NewLook/backend/bandit-report.json
+          retention-days: 7
 
   # ── Summary ──────────────────────────────────────────────────────────────────
 
