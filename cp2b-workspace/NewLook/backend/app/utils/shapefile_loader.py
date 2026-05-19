@@ -91,8 +91,8 @@ class ShapefileLoader:
             logger.info(f"Successfully converted {filename} ({len(gdf)} features)")
             return geojson_dict
 
-        except Exception as e:
-            logger.error(f"Error loading shapefile {filename}: {str(e)}")
+        except Exception:
+            logger.exception(f"Error loading shapefile {filename}")
             # Return empty FeatureCollection on any error
             return {
                 "type": "FeatureCollection",
@@ -102,7 +102,7 @@ class ShapefileLoader:
                     "total_features": 0,
                     "crs": "EPSG:4326",
                     "note": f"Erro ao carregar {filename}",
-                    "error": str(e)
+                    "error": "Internal error while loading shapefile"
                 }
             }
 
