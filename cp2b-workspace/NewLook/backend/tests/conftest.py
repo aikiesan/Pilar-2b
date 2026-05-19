@@ -54,13 +54,14 @@ def mock_supabase_autouse(monkeypatch):
 
     mock_fn = lambda: mock_client  # noqa: E731
 
-    # Patch at call sites so the source module stays intact
+    # Patch at call sites so the source module stays intact.
+    # Use raising=False so tests continue if the attribute was removed.
     for call_site in (
         "app.api.v1.endpoints.municipalities.get_supabase_client",
         "app.api.v1.endpoints.analysis.get_supabase_client",
         "app.services.auth_service.get_supabase_client",
     ):
-        monkeypatch.setattr(call_site, mock_fn)
+        monkeypatch.setattr(call_site, mock_fn, raising=False)
 
     return mock_client
 

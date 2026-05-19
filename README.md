@@ -5,7 +5,6 @@
 [![INPI](https://img.shields.io/badge/INPI%20BR-512026003115--0-green.svg)](https://www.gov.br/inpi)
 [![UNICAMP](https://img.shields.io/badge/NIPE-UNICAMP-darkblue.svg)](https://nipe.unicamp.br/cp2b)
 [![Live Platform](https://img.shields.io/badge/Live%20Platform-cp2b.unicamp.br-brightgreen.svg)](https://cp2b.unicamp.br/pilar2b/pt-BR)
-[![Open Source](https://img.shields.io/badge/Open%20Source-%E2%9D%A4-red.svg)](https://opensource.org/)
 
 **PILAR-2b** (_Plataforma Inteligente de Localização e Aproveitamento de Resíduos para Biogas e Bioprodutos_) is an open-source microservices platform for analyzing **biogas and bioproduct potential** from agricultural, livestock, and urban residues across **645 municipalities** in São Paulo State, Brazil.
 
@@ -17,7 +16,7 @@ This study addresses identified gaps through three interconnected contributions:
 
 ---
 
-## 🏛️ Institutional Recognition
+## Institutional Recognition
 
 | | |
 |---|---|
@@ -34,7 +33,7 @@ This study addresses identified gaps through three interconnected contributions:
 
 ---
 
-## 🌐 Live Platform
+## Live Platform
 
 | Language | URL |
 |----------|-----|
@@ -45,43 +44,39 @@ This study addresses identified gaps through three interconnected contributions:
 
 ---
 
-## 🎯 Key Features
+## Key Features
 
-### 🗺️ Interactive Geospatial Maps
+### Interactive Geospatial Maps
 - **645 municipalities** in São Paulo State with real-time data visualization
 - **Choropleth coloring** by biogas potential category
 - **React Leaflet** maps with custom layers and controls
 - **PostGIS spatial queries** for radius-based proximity analysis
 
-### 📊 Proximity & Infrastructure Analysis
+### Proximity & Infrastructure Analysis
 - **MapBiomas integration** for land-use classification data
 - **Radius-based analysis** (1–100 km)
 - **Infrastructure overlay** (railways, pipelines, electrical substations)
 - **Biogas potential aggregation** by sector and residue type
 
-### 🔬 Scientific Database
+### Scientific Database
 - **50+ residue types** with biochemical parameters (BMP, VS, TS)
 - **FDE correction factors** from peer-reviewed literature (31 feedstocks, 4 factor types)
 - **Technology routes** comparison tool for 10+ biogas conversion pathways
 - **58 curated scientific references** with DOI links
 
-### 📈 Advanced Analysis
+### Advanced Analysis
 - **Sankey flow diagrams** for multi-residue split-flow visualization
 - **Co-digestion C:N ratio** clustering and optimization
 - **IBGE Leontief model** (67-sector Input-Output economic analysis)
 - **Payback calculator** for biogas plant investment viability
 
-### 🤖 AI Assistant (Coming Soon)
-- **Bagacinho RAG chatbot** powered by Google Gemini
-- Natural language queries over the scientific references database
-
-### 🌍 Bilingual Interface
+### Bilingual Interface
 - Full support for **Portuguese (pt-BR)** and **English (en)**
 - Locale-aware routing via next-intl
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ### Frontend
 - **Framework**: Next.js 16.2 + React 19.2 + TypeScript 5.7
@@ -113,7 +108,7 @@ This study addresses identified gaps through three interconnected contributions:
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 - Node.js 18+ (frontend)
@@ -170,7 +165,7 @@ docker compose up --build
 
 ---
 
-## 📊 Database Setup
+## Database Setup
 
 ### Option 1: Supabase (Recommended)
 
@@ -190,7 +185,7 @@ psql cp2b_maps < backend/migrations/001_add_performance_indexes.sql
 
 ---
 
-## 🧪 Testing
+## Testing
 
 ### Frontend
 
@@ -218,7 +213,7 @@ See: [docs/qa/TESTING.md](./cp2b-workspace/NewLook/docs/qa/TESTING.md)
 
 ---
 
-## 📚 Documentation
+## Documentation
 
 ### Core Docs
 
@@ -255,7 +250,7 @@ See: [docs/qa/TESTING.md](./cp2b-workspace/NewLook/docs/qa/TESTING.md)
 
 ---
 
-## 🔐 Environment Variables
+## Environment Variables
 
 ### Frontend (`.env.local`)
 
@@ -292,21 +287,21 @@ FRONTEND_URL=http://localhost:3006
 
 ---
 
-## 📈 Performance Metrics
+## Performance Metrics
 
 | Metric | Target | Result | Status |
 |--------|--------|--------|--------|
-| Map tile load | <200ms | ~150ms | ✅ |
-| Proximity analysis (p95) | <3s | 2.1s | ✅ |
-| Cached response | — | 0ms | ✅ |
-| Page load time | <2s | 1.8s | ✅ |
-| Frontend bundle (gzipped) | <500KB | 380KB | ✅ |
-| Lighthouse Performance | >90 | 92 | ✅ |
-| Cache hit rate (warm) | >60% | 64% | ✅ |
+| Map tile load | <200ms | ~150ms | Pass |
+| Proximity analysis (p95) | <3s | 2.1s | Pass |
+| Cached response | — | 0ms | Pass |
+| Page load time | <2s | 1.8s | Pass |
+| Frontend bundle (gzipped) | <500KB | 380KB | Pass |
+| Lighthouse Performance | >90 | 92 | Pass |
+| Cache hit rate (warm) | >60% | 64% | Pass |
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 ### Frontend Dependencies
 
@@ -337,7 +332,7 @@ scikit-learn>=1.6.0
 
 ---
 
-## 🚀 Deployment
+## Deployment
 
 ### Unicamp VM (Production)
 
@@ -364,9 +359,9 @@ git push origin main
 
 ---
 
-## 📊 Project Status
+## Project Status
 
-### ✅ Completed (Sprints 1–5)
+### Completed (Sprints 1–5)
 - [x] Foundation (Next.js 16 + FastAPI + Supabase)
 - [x] Authentication system (Supabase JWT)
 - [x] Interactive dashboard — 645 municipalities, choropleth map
@@ -384,13 +379,12 @@ git push origin main
 - [x] ESLint 9 flat config + comprehensive E2E tests
 - [x] Comprehensive documentation (~43 files, ~18,500+ lines)
 
-### 🚧 In Progress
+### In Progress
 - [ ] MCDA multi-criteria decision analysis module
-- [ ] Bagacinho AI assistant (RAG + Google Gemini)
 - [ ] WCAG 2.1 AA full compliance
 - [ ] Sentry observability integration (frontend + backend)
 
-### 📋 Planned (Roadmap Apr–Aug 2026)
+### Planned (Roadmap Apr–Aug 2026)
 - [ ] Historical MapBiomas data (2020–2023)
 - [ ] Multiple analysis points comparison
 - [ ] Export to PDF reports
@@ -400,7 +394,7 @@ See: [docs/planning/DEVELOPMENT_ROADMAP_APR_AUG_2026.md](./cp2b-workspace/NewLoo
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 **PILAR-2b** is open-source and welcomes contributions from the community.
 
@@ -414,19 +408,19 @@ See: [docs/planning/DEVELOPMENT_ROADMAP_APR_AUG_2026.md](./cp2b-workspace/NewLoo
 
 ### Areas for Contribution
 
-- 🐛 Bug fixes and issue resolution
-- 📊 New data sources and residue types
-- 🗺️ Additional geospatial analysis features
-- 📚 Documentation improvements and translations
-- 🌍 Internationalization (i18n) — Spanish support planned
-- 🧪 Test coverage expansion
-- 🎨 UI/UX enhancements
+- Bug fixes and issue resolution
+- New data sources and residue types
+- Additional geospatial analysis features
+- Documentation improvements and translations
+- Internationalization (i18n) — Spanish support planned
+- Test coverage expansion
+- UI/UX enhancements
 
 See [CONTRIBUTING.md](./cp2b-workspace/NewLook/CONTRIBUTING.md) for full guidelines.
 
 ---
 
-## 📄 License
+## License
 
 **PILAR-2b** is open-source software released under the **GNU General Public License v3.0 (GPL-3.0)**.
 
@@ -444,7 +438,7 @@ We believe in making research and technology accessible to everyone. By open-sou
 
 ---
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - **FAPESP**: Research funding (Grant 2024/01112-1 / CP2Bsd)
 - **INOVA Unicamp**: Support for INPI registration process
@@ -457,7 +451,7 @@ We believe in making research and technology accessible to everyone. By open-sou
 
 ---
 
-## 📞 Contact & Links
+## Contact & Links
 
 | | |
 |---|---|
