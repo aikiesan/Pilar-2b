@@ -57,7 +57,7 @@
     "html2canvas": "^1.4.1",
     "leaflet": "^1.9.4",
     "leaflet.heat": "^0.2.0",
-    "lucide-react": "^0.441.0",
+    "lucide-react": "^1.16.0",
     "next": "^16.2.3",
     "next-intl": "^4.9.1",
     "postcss": "^8",
