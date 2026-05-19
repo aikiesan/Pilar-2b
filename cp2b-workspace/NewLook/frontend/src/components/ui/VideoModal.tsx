@@ -86,20 +86,29 @@ export default function VideoModal({
   if (!isOpen) return null
 
   // Detect video type and create appropriate embed
-  const getEmbedUrl = (url: string) => {
-    // YouTube
-    if (url.includes('youtube.com') || url.includes('youtu.be')) {
-      const videoId = url.includes('youtu.be')
-        ? url.split('youtu.be/')[1]?.split('?')[0]
-        : url.split('v=')[1]?.split('&')[0]
+  const getEmbedUrl = (url: string): string => {
+    let parsed: URL
+    try {
+      parsed = new URL(url)
+    } catch {
+      return ''
+    }
+    if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') return ''
+
+    const host = parsed.hostname.replace(/^www\./, '')
+    if (host === 'youtube.com' || host === 'youtu.be') {
+      const videoId = host === 'youtu.be'
+        ? parsed.pathname.slice(1).split('?')[0]
+        : parsed.searchParams.get('v') ?? ''
+      if (!videoId) return ''
       return `https://www.youtube.com/embed/${videoId}?autoplay=1`
     }
-    // Vimeo
-    if (url.includes('vimeo.com')) {
-      const videoId = url.split('vimeo.com/')[1]?.split('?')[0]
+    if (host === 'vimeo.com') {
+      const videoId = parsed.pathname.slice(1).split('?')[0]
+      if (!videoId) return ''
       return `https://player.vimeo.com/video/${videoId}?autoplay=1`
     }
-    return url
+    return ''
   }
 
   return (

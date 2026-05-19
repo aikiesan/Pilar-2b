@@ -274,7 +274,7 @@ class ProximityService:
             # Sort by distance
             municipalities.sort(key=lambda x: x["distance_km"])
 
-            logger.info(f"Found {len(municipalities)} municipalities within {radius_km}km")
+            logger.info("Found %s municipalities within %s km", len(municipalities), float(radius_km))
 
         except Exception as e:
             logger.error(f"Error finding municipalities: {e}")

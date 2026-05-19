@@ -169,8 +169,7 @@ async def analyze_proximity(request: ProximityAnalysisRequest):
     start_time = time.time()
     analysis_id = str(uuid.uuid4())
 
-    logger.info(f"Starting proximity analysis {analysis_id}")
-    logger.info(f"Point: ({request.latitude}, {request.longitude}), Radius: {request.radius_km}km")
+    logger.info("Starting proximity analysis %s", analysis_id)
 
     # Sprint 4: Validate request (Task 4.2 - Error Handling & Edge Cases)
     try:
@@ -181,7 +180,7 @@ async def analyze_proximity(request: ProximityAnalysisRequest):
         )
         # Log warnings if any
         for warning in validation_result.get("warnings", []):
-            logger.warning(f"Validation warning: {warning}")
+            logger.warning("Validation warning: %s", str(warning).replace('\n', ' ').replace('\r', ' ')[:200])
     except ValidationError as e:
         logger.warning(f"Validation failed: {e.message}")
         raise HTTPException(
@@ -226,7 +225,7 @@ async def analyze_proximity(request: ProximityAnalysisRequest):
             radius_km=request.radius_km
         )
 
-        logger.info(f"Found {len(municipalities)} municipalities within {request.radius_km}km")
+        logger.info("Found %s municipalities within %s km", len(municipalities), float(request.radius_km))
 
         # 2. Calculate biogas potential aggregation
         biogas_result = None

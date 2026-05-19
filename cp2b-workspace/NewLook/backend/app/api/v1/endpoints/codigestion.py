@@ -51,7 +51,7 @@ async def get_codigestion_clusters(
     """
     key = _cache_key(radius_km, min_biomass_tons, max_clusters)
     if key in _cluster_cache:
-        logger.info(f"Returning cached cluster result for {key}")
+        logger.info("Returning cached cluster result for %s", str(key).replace('\n', ' ').replace('\r', ' ')[:200])
         return _cluster_cache[key]
 
     try:

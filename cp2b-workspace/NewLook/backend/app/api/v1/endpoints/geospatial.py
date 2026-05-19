@@ -609,7 +609,7 @@ async def get_municipality(municipality_id: int):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error in get_municipality {municipality_id}: {e}")
+        logger.error("Error in get_municipality %s: %s", str(municipality_id).replace('\n', ' ').replace('\r', ' ')[:50], e)
         raise HTTPException(status_code=500, detail="Failed to fetch municipality")
 
 

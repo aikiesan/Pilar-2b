@@ -410,8 +410,8 @@ async def get_residuo_references(residuo_id: int, parameter_type: Optional[str] 
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error fetching references for residuo {residuo_id}: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error("Error fetching references for residuo %s: %s", str(residuo_id).replace('\n', ' ').replace('\r', ' ')[:50], e, exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal server error")
 
     refs_sorted = sorted(refs, key=lambda r: -(r.get("year") or r.get("publication_year") or 0))
     references  = []
@@ -455,8 +455,8 @@ async def get_residuo(residuo_id: int):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error fetching residuo {residuo_id}: {e}\n{traceback.format_exc()}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error("Error fetching residuo %s: %s", str(residuo_id).replace('\n', ' ').replace('\r', ' ')[:50], e, exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal server error")
 
     residuo = {k: (_to_float(v) if isinstance(v, (int, float)) else v) for k, v in r.items()}
     if sectors:

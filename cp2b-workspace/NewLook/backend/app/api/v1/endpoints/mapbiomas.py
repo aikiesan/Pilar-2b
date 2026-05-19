@@ -291,10 +291,10 @@ async def get_tile(z: int, x: int, y: int):
             )
 
     except Exception as e:
-        logger.error(f"Error generating tile {z}/{x}/{y}: {e}")
+        logger.error("Error generating tile %s/%s/%s: %s", int(z), int(x), int(y), e)
         raise HTTPException(
             status_code=500,
-            detail=f"Error generating tile: {str(e)}"
+            detail="Internal server error"
         )
 
 

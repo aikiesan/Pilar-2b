@@ -30,7 +30,6 @@ SQL_INJECTION_PATTERNS = [
     re.compile(r"(;\s*delete\s+from)", re.IGNORECASE),
     re.compile(r"(;\s*insert\s+into)", re.IGNORECASE),
     re.compile(r"(;\s*update\s+\w+\s+set)", re.IGNORECASE),
-    re.compile(r"(<script[^>]*>.*?</script>)", re.IGNORECASE),  # XSS
     re.compile(r"(javascript:)", re.IGNORECASE),  # XSS
 ]
 
