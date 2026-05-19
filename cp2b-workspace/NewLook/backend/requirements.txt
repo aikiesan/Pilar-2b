@@ -17,7 +17,7 @@ python-multipart==0.0.22  # Updated from 0.0.20 — fixes CVE-2026-24486
 
 # Environment and Configuration
 python-dotenv==1.0.0
-pydantic>=2.5.0
+pydantic>=2.13.4
 pydantic-settings==2.0.3
 email-validator==2.1.0
 
