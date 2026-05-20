@@ -4,6 +4,7 @@
 @tailwind components;
 @tailwind utilities;
 @config "../../../tailwind.config.js";
+@variant dark (&:where(.dark, .dark *));
 
 /* ============================================
    PILAR-2b DARK MODE - CSS VARIABLES
