@@ -67,7 +67,8 @@
     "react-leaflet": "^4.2.1",
     "reactflow": "^11.10.4",
     "recharts": "^3.8.1",
-    "tailwindcss": "^4.3.0"
+    "tailwindcss": "^4.3.0",
+    "@tailwindcss/postcss": "^4.3.0"
   },
   "overrides": {
     "picomatch": "4.0.4",
