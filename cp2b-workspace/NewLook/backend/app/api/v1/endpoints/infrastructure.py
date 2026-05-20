@@ -13,6 +13,16 @@ logger = logging.getLogger(__name__)
 
 shapefile_loader = get_shapefile_loader()
 
+
+def _sanitize_geojson_response(geojson: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Remove internal error details from GeoJSON metadata before sending to clients.
+    """
+    metadata = geojson.get("metadata")
+    if isinstance(metadata, dict):
+        metadata.pop("error", None)
+    return geojson
+
 REQUIRED_SHAPEFILES = {
     "railways": ["Rodovias_Estaduais_SP"],
     "pipelines": ["Gasodutos_Distribuicao_SP", "Gasodutos_Transporte_SP"],
@@ -108,7 +118,7 @@ async def get_biogas_plants_geojson() -> Dict[str, Any]:
     try:
         geojson = shapefile_loader.load_shapefile_as_geojson("Plantas_Biogas_SP")
         geojson["metadata"]["layer_type"] = "biogas_plants"
-        return geojson
+        return _sanitize_geojson_response(geojson)
     except Exception as e:
         logger.error("Error loading biogas-plants shapefile: %s", e)
         raise HTTPException(status_code=500, detail="Internal server error")
@@ -128,7 +138,7 @@ async def get_transmission_lines_geojson() -> Dict[str, Any]:
             simplify_tolerance=0.001
         )
         geojson["metadata"]["layer_type"] = "transmission_lines"
-        return geojson
+        return _sanitize_geojson_response(geojson)
     except Exception as e:
         logger.error("Error loading transmission-lines shapefile: %s", e)
         raise HTTPException(status_code=500, detail="Internal server error")
@@ -145,7 +155,7 @@ async def get_etes_geojson() -> Dict[str, Any]:
     try:
         geojson = shapefile_loader.load_shapefile_as_geojson("ETEs_2019_SP")
         geojson["metadata"]["layer_type"] = "etes"
-        return geojson
+        return _sanitize_geojson_response(geojson)
     except Exception as e:
         logger.error("Error loading ETEs shapefile: %s", e)
         raise HTTPException(status_code=500, detail="Internal server error")
@@ -165,7 +175,7 @@ async def get_admin_regions_geojson() -> Dict[str, Any]:
             simplify_tolerance=0.001
         )
         geojson["metadata"]["layer_type"] = "administrative_regions"
-        return geojson
+        return _sanitize_geojson_response(geojson)
     except Exception as e:
         logger.error("Error loading admin-regions shapefile: %s", e)
         raise HTTPException(status_code=500, detail="Internal server error")
@@ -185,7 +195,7 @@ async def get_intermediate_regions_geojson() -> Dict[str, Any]:
             simplify_tolerance=0.001
         )
         geojson["metadata"]["layer_type"] = "intermediate_regions"
-        return geojson
+        return _sanitize_geojson_response(geojson)
     except Exception as e:
         logger.error("Error loading intermediate-regions shapefile: %s", e)
         raise HTTPException(status_code=500, detail="Internal server error")
