@@ -26,7 +26,6 @@ import {
   ExternalLink,
   ChevronLeft,
   ChevronRight,
-  Github,
   Sparkles,
   Download,
   FileJson,
