@@ -230,9 +230,9 @@ def find_codigestion_clusters(
             **biomass_fields,
         })
 
-    logger.info(f"Building spatial groups for {len(municipalities)} municipalities (radius={radius_km} km)...")
+    logger.info("Building spatial groups for %s municipalities (radius=%s km)", len(municipalities), float(radius_km))
     groups = _build_spatial_groups(municipalities, radius_km)
-    logger.info(f"Found {len(groups)} multi-municipality groups")
+    logger.info("Found %s multi-municipality groups", len(groups))
 
     cn_by_codigo   = _load_cn_data()
     cluster_results = []

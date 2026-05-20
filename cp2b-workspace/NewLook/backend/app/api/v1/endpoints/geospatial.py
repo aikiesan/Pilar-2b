@@ -810,7 +810,6 @@ async def get_summary_statistics():
             "sector_breakdown": {"agricultural": 0, "livestock": 0, "urban": 0},
             "sector_percentages": {"agricultural": 0, "livestock": 0, "urban": 0},
             "error": "Failed to load data",
-            "detail": str(e),
             "note": "Erro ao carregar dados - usando valores padrão",
         }
 
