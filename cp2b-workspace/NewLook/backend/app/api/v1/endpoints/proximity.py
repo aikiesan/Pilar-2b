@@ -178,9 +178,9 @@ async def analyze_proximity(request: ProximityAnalysisRequest):
             request.longitude,
             request.radius_km
         )
-        # Log warnings if any
-        for warning in validation_result.get("warnings", []):
-            logger.warning("Validation warning: %s", str(warning).replace('\n', ' ').replace('\r', ' ')[:200])
+        # Log warnings if any (without warning content to avoid sensitive data exposure)
+        for warning_index, _ in enumerate(validation_result.get("warnings", []), start=1):
+            logger.warning("Validation warning generated (index=%d)", warning_index)
     except ValidationError as e:
         logger.warning(f"Validation failed: {e.message}")
         raise HTTPException(
