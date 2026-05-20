@@ -138,11 +138,13 @@ describe('Performance Utilities', () => {
 
     it('should use exponential backoff', async () => {
       const delays: number[] = [];
+      let callCount = 0;
       let callTime = Date.now();
 
       const trackingOperation = jest.fn().mockImplementation(async () => {
         const now = Date.now();
-        if (delays.length > 0) {
+        callCount++;
+        if (callCount > 1) {
           delays.push(now - callTime);
         }
         callTime = now;
@@ -182,7 +184,7 @@ describe('Performance Utilities', () => {
       await sleep(0);
       const duration = Date.now() - start;
 
-      expect(duration).toBeLessThan(10);
+      expect(duration).toBeLessThan(30); // CI VMs can take >10ms for 0ms sleep
     });
   });
 

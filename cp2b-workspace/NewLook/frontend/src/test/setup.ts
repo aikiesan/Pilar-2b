@@ -52,27 +52,8 @@ Object.defineProperty(navigator, 'geolocation', {
   writable: true,
 })
 
-// Mock localStorage
-const localStorageMock = {
-  getItem: jest.fn(),
-  setItem: jest.fn(),
-  removeItem: jest.fn(),
-  clear: jest.fn(),
-}
-Object.defineProperty(window, 'localStorage', {
-  value: localStorageMock,
-})
-
-// Mock sessionStorage
-const sessionStorageMock = {
-  getItem: jest.fn(),
-  setItem: jest.fn(),
-  removeItem: jest.fn(),
-  clear: jest.fn(),
-}
-Object.defineProperty(window, 'sessionStorage', {
-  value: sessionStorageMock,
-})
+// Use JSDOM's native localStorage/sessionStorage — empty jest.fn() mocks
+// break any code that reads back what was stored (apiCache, etc.)
 
 // Mock fetch
 global.fetch = jest.fn()
