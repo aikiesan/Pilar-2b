@@ -6,3 +6,4 @@
 
 export { LoginPage } from './login.page'
 export { MapPage } from './map.page'
+export { DashboardPage } from './dashboard.page'

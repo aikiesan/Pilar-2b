@@ -5,6 +5,7 @@ Pytest configuration and fixtures for comprehensive testing
 import pytest
 import asyncio
 import os
+from contextlib import contextmanager
 from typing import AsyncGenerator, Generator
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
@@ -12,18 +13,62 @@ from unittest.mock import Mock, MagicMock
 import psycopg2
 from httpx import AsyncClient, ASGITransport
 
-# Mock the database connection for tests
+# Endpoint modules that import get_db — patch at call site so the
+# `from app.core.database import get_db` binding is also replaced.
+_GET_DB_CALL_SITES = [
+    "app.core.database.get_db",
+    "app.api.v1.endpoints.municipalities.get_db",
+    "app.api.v1.endpoints.analysis.get_db",
+    "app.api.v1.endpoints.geospatial.get_db",
+    "app.api.v1.endpoints.statistics.get_db",
+    "app.api.v1.endpoints.residuos.get_db",
+    "app.api.v1.endpoints.scientific.get_db",
+    "app.api.v1.endpoints.proximity.get_db",
+    "app.api.v1.endpoints.infrastructure.get_db",
+    "app.api.v1.endpoints.codigestion.get_db",
+    "app.api.v1.endpoints.intermediate_regions.get_db",
+    "app.api.v1.endpoints.auth.get_db",
+    "app.api.v1.endpoints.mapbiomas.get_db",
+    "app.routers.technology_routes.get_db",
+    "app.routers.calculator.get_db",
+]
+
+_TEST_DB_CONN_SITES = [
+    "app.core.database.test_db_connection",
+    "app.main.test_db_connection",
+]
+
+
 @pytest.fixture(autouse=True)
 def mock_db_connection(monkeypatch):
-    """Mock database connections for all tests"""
+    """Mock database connections for all tests.
+
+    Patches get_db at every endpoint call site (not just the source module)
+    so that endpoints using `from app.core.database import get_db` are also
+    intercepted.  The mock is a proper @contextmanager so `with get_db() as
+    conn:` works correctly.
+    """
     mock_conn = MagicMock()
     mock_cursor = MagicMock()
     mock_conn.cursor.return_value = mock_cursor
+    # fetchall() returns an empty list by default so iteration is safe.
+    mock_cursor.fetchall.return_value = []
+    # fetchone() returns None by default (no rows found).
+    mock_cursor.fetchone.return_value = None
 
+    @contextmanager
     def mock_get_db():
         yield mock_conn
 
-    monkeypatch.setattr("app.core.database.get_db", mock_get_db)
+    def mock_test_db_connection():
+        return True
+
+    for site in _GET_DB_CALL_SITES:
+        monkeypatch.setattr(site, mock_get_db, raising=False)
+
+    for site in _TEST_DB_CONN_SITES:
+        monkeypatch.setattr(site, mock_test_db_connection, raising=False)
+
     return mock_conn, mock_cursor
 
 

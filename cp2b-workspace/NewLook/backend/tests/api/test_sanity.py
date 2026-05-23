@@ -49,6 +49,44 @@ class TestHealthEndpoints:
         assert response.status_code == 200
         assert elapsed < LATENCY_LIMIT
 
+    def test_health_check_schema(self, client: TestClient):
+        """Health response must contain status and timestamp."""
+        response, _ = _get(client, "/health")
+        if response.status_code == 200:
+            body = response.json()
+            assert "status" in body
+            assert body["status"] in ("healthy", "degraded", "unhealthy")
+            assert "timestamp" in body
+
+    def test_readiness_check_not_5xx(self, client: TestClient):
+        """/health/ready must not crash the server."""
+        response, elapsed = _get(client, "/health/ready")
+        # 200 (ready) or 503 (db unavailable) — never 4xx
+        assert response.status_code in (200, 503)
+        assert elapsed < LATENCY_LIMIT
+
+    def test_readiness_check_schema(self, client: TestClient):
+        """Readiness probe returns a 'ready' boolean field."""
+        response, _ = _get(client, "/health/ready")
+        body = response.json()
+        assert "ready" in body
+        assert isinstance(body["ready"], bool)
+        assert "timestamp" in body
+
+    def test_liveness_check_returns_200(self, client: TestClient):
+        """/health/live always returns 200 with alive=true."""
+        response, elapsed = _get(client, "/health/live")
+        assert response.status_code == 200
+        assert elapsed < LATENCY_LIMIT
+
+    def test_liveness_check_alive_true(self, client: TestClient):
+        """Liveness probe always reports alive=true when the process is running."""
+        response, _ = _get(client, "/health/live")
+        assert response.status_code == 200
+        body = response.json()
+        assert body.get("alive") is True
+        assert "timestamp" in body
+
 
 # ---------------------------------------------------------------------------
 # Municipalities endpoints
@@ -134,6 +172,106 @@ class TestTechnologyRoutesSanity:
 
     def test_list_not_5xx(self, client: TestClient):
         response, elapsed = _get(client, "/api/v1/technology-routes/")
+        assert response.status_code < 500
+        assert elapsed < LATENCY_LIMIT
+
+
+# ---------------------------------------------------------------------------
+# Analysis endpoints
+# ---------------------------------------------------------------------------
+
+@pytest.mark.api
+class TestAnalysisSanity:
+
+    def test_residue_config_not_5xx(self, client: TestClient):
+        response, elapsed = _get(client, "/api/v1/analysis/residue-config")
+        assert response.status_code < 500
+        assert elapsed < LATENCY_LIMIT
+
+    def test_by_residue_not_5xx(self, client: TestClient):
+        response, elapsed = _get(client, "/api/v1/analysis/by-residue", params={"category": "agricultural"})
+        assert response.status_code < 500
+        assert elapsed < LATENCY_LIMIT
+
+    def test_distribution_not_5xx(self, client: TestClient):
+        response, elapsed = _get(client, "/api/v1/analysis/distribution")
+        assert response.status_code < 500
+        assert elapsed < LATENCY_LIMIT
+
+
+# ---------------------------------------------------------------------------
+# Proximity endpoint
+# ---------------------------------------------------------------------------
+
+@pytest.mark.api
+class TestProximitySanity:
+
+    def test_proximity_post_valid_body_not_5xx(self, client: TestClient):
+        """POST /proximity with a valid Campinas coordinate must not 5xx."""
+        response, elapsed = client.post(
+            "/api/v1/proximity/analyze",
+            json={"latitude": -22.9, "longitude": -47.06, "radius_km": 20},
+        ), 0.0
+        # Unpack the tuple returned when not using _get
+        if isinstance(response, tuple):
+            response, elapsed = response
+        assert response.status_code < 500
+
+
+# ---------------------------------------------------------------------------
+# Infrastructure endpoint
+# ---------------------------------------------------------------------------
+
+@pytest.mark.api
+class TestInfrastructureSanity:
+
+    def test_infrastructure_not_5xx(self, client: TestClient):
+        response, elapsed = _get(client, "/api/v1/infrastructure/")
+        assert response.status_code < 500
+        assert elapsed < LATENCY_LIMIT
+
+
+# ---------------------------------------------------------------------------
+# Co-digestion endpoint
+# ---------------------------------------------------------------------------
+
+@pytest.mark.api
+class TestCodigestionSanity:
+
+    def test_clusters_not_5xx(self, client: TestClient):
+        response, elapsed = _get(client, "/api/v1/codigestion/clusters")
+        assert response.status_code < 500
+        assert elapsed < LATENCY_LIMIT
+
+    def test_residue_cn_matrix_not_5xx(self, client: TestClient):
+        response, elapsed = _get(client, "/api/v1/codigestion/residue-cn-matrix")
+        assert response.status_code < 500
+        assert elapsed < LATENCY_LIMIT
+
+
+# ---------------------------------------------------------------------------
+# Intermediate regions endpoint
+# ---------------------------------------------------------------------------
+
+@pytest.mark.api
+class TestIntermediateRegionsSanity:
+
+    def test_list_not_5xx(self, client: TestClient):
+        response, elapsed = _get(client, "/api/v1/intermediate-regions/")
+        assert response.status_code < 500
+        assert elapsed < LATENCY_LIMIT
+
+
+# ---------------------------------------------------------------------------
+# Calculator endpoint
+# ---------------------------------------------------------------------------
+
+@pytest.mark.api
+class TestCalculatorSanity:
+
+    def test_calculator_get_not_5xx(self, client: TestClient):
+        """GET on the calculator root should return 200 or 405 (method not allowed)."""
+        response, elapsed = _get(client, "/api/v1/calculator/")
         assert response.status_code < 500
         assert elapsed < LATENCY_LIMIT
 

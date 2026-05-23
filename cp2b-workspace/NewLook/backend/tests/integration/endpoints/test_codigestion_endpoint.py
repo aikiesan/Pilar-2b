@@ -6,9 +6,6 @@ candidates, residue C:N matrix, and cache management endpoints.
 import pytest
 from fastapi.testclient import TestClient
 from unittest.mock import patch, MagicMock
-from app.main import app
-
-client = TestClient(app)
 
 # ─── Sample payloads ─────────────────────────────────────────────────────────
 
@@ -99,7 +96,7 @@ class TestGetCodigestionClusters:
     def setup_method(self):
         _clear_codigestion_caches()
 
-    def test_get_clusters_happy_path(self):
+    def test_get_clusters_happy_path(self, client: TestClient):
         """Returns cluster list with default query params."""
         with patch(
             "app.api.v1.endpoints.codigestion.find_codigestion_clusters",
@@ -113,7 +110,7 @@ class TestGetCodigestionClusters:
         assert body["total_clusters"] == 2
         assert len(body["clusters"]) == 2
 
-    def test_get_clusters_structure(self):
+    def test_get_clusters_structure(self, client: TestClient):
         """Each cluster object contains required fields."""
         with patch(
             "app.api.v1.endpoints.codigestion.find_codigestion_clusters",
@@ -128,7 +125,7 @@ class TestGetCodigestionClusters:
         assert "improvement_score" in cluster
         assert "geojson" in cluster
 
-    def test_get_clusters_custom_radius(self):
+    def test_get_clusters_custom_radius(self, client: TestClient):
         """Custom radius_km is forwarded to the service function."""
         with patch(
             "app.api.v1.endpoints.codigestion.find_codigestion_clusters",
@@ -141,7 +138,7 @@ class TestGetCodigestionClusters:
         call_kwargs = mock_fn.call_args.kwargs
         assert call_kwargs["radius_km"] == 50.0
 
-    def test_get_clusters_custom_min_biomass(self):
+    def test_get_clusters_custom_min_biomass(self, client: TestClient):
         """Custom min_biomass_tons is forwarded to the service function."""
         with patch(
             "app.api.v1.endpoints.codigestion.find_codigestion_clusters",
@@ -153,17 +150,17 @@ class TestGetCodigestionClusters:
         call_kwargs = mock_fn.call_args.kwargs
         assert call_kwargs["min_biomass_tons"] == 5000.0
 
-    def test_get_clusters_radius_below_minimum_returns_422(self):
+    def test_get_clusters_radius_below_minimum_returns_422(self, client: TestClient):
         """radius_km below ge=10 constraint is rejected with 422."""
         response = client.get("/api/v1/codigestion/clusters?radius_km=5.0")
         assert response.status_code == 422
 
-    def test_get_clusters_radius_above_maximum_returns_422(self):
+    def test_get_clusters_radius_above_maximum_returns_422(self, client: TestClient):
         """radius_km above le=150 constraint is rejected with 422."""
         response = client.get("/api/v1/codigestion/clusters?radius_km=200.0")
         assert response.status_code == 422
 
-    def test_get_clusters_max_clusters_limit(self):
+    def test_get_clusters_max_clusters_limit(self, client: TestClient):
         """max_clusters parameter is passed to the service."""
         with patch(
             "app.api.v1.endpoints.codigestion.find_codigestion_clusters",
@@ -175,7 +172,7 @@ class TestGetCodigestionClusters:
         call_kwargs = mock_fn.call_args.kwargs
         assert call_kwargs["max_clusters"] == 5
 
-    def test_get_clusters_service_error_returns_500(self):
+    def test_get_clusters_service_error_returns_500(self, client: TestClient):
         """Service exceptions are wrapped in 500 responses."""
         with patch(
             "app.api.v1.endpoints.codigestion.find_codigestion_clusters",
@@ -186,7 +183,7 @@ class TestGetCodigestionClusters:
         assert response.status_code == 500
         assert "Clustering error" in response.json()["detail"]
 
-    def test_get_clusters_empty_result(self):
+    def test_get_clusters_empty_result(self, client: TestClient):
         """Service returning zero clusters is handled gracefully."""
         with patch(
             "app.api.v1.endpoints.codigestion.find_codigestion_clusters",
@@ -199,7 +196,7 @@ class TestGetCodigestionClusters:
         assert body["total_clusters"] == 0
         assert body["clusters"] == []
 
-    def test_get_clusters_result_is_cached(self):
+    def test_get_clusters_result_is_cached(self, client: TestClient):
         """Second call with same params uses cache; service called only once."""
         _clear_codigestion_caches()
         with patch(
@@ -219,7 +216,7 @@ class TestGetClusterDetail:
     def setup_method(self):
         _clear_codigestion_caches()
 
-    def test_get_cluster_detail_valid_id(self):
+    def test_get_cluster_detail_valid_id(self, client: TestClient):
         """Returns specific cluster when cluster_id exists in the result."""
         with patch(
             "app.api.v1.endpoints.codigestion.find_codigestion_clusters",
@@ -232,7 +229,7 @@ class TestGetClusterDetail:
         assert body["cluster_id"] == "cluster-001"
         assert body["municipalities"] == ["São Paulo", "Santo André"]
 
-    def test_get_cluster_detail_invalid_id_returns_404(self):
+    def test_get_cluster_detail_invalid_id_returns_404(self, client: TestClient):
         """Returns 404 when cluster_id is not found."""
         with patch(
             "app.api.v1.endpoints.codigestion.find_codigestion_clusters",
@@ -243,7 +240,7 @@ class TestGetClusterDetail:
         assert response.status_code == 404
         assert "cluster-999" in response.json()["detail"]
 
-    def test_get_cluster_detail_service_error_returns_500(self):
+    def test_get_cluster_detail_service_error_returns_500(self, client: TestClient):
         """Service exception during detail lookup returns 500."""
         with patch(
             "app.api.v1.endpoints.codigestion.find_codigestion_clusters",
@@ -253,7 +250,7 @@ class TestGetClusterDetail:
 
         assert response.status_code == 500
 
-    def test_get_cluster_detail_uses_custom_radius(self):
+    def test_get_cluster_detail_uses_custom_radius(self, client: TestClient):
         """radius_km param is forwarded when cache miss triggers recompute."""
         with patch(
             "app.api.v1.endpoints.codigestion.find_codigestion_clusters",
@@ -275,7 +272,7 @@ class TestMunicipalityCnProfiles:
     def setup_method(self):
         _clear_codigestion_caches()
 
-    def test_get_cn_profiles_happy_path(self):
+    def test_get_cn_profiles_happy_path(self, client: TestClient):
         """Returns list of municipality C:N profiles."""
         with patch(
             "app.api.v1.endpoints.codigestion.get_municipality_cn_profiles",
@@ -289,7 +286,7 @@ class TestMunicipalityCnProfiles:
         assert "count" in body
         assert body["count"] == 3
 
-    def test_get_cn_profiles_structure(self):
+    def test_get_cn_profiles_structure(self, client: TestClient):
         """Each profile contains ibge_code and weighted_cn."""
         with patch(
             "app.api.v1.endpoints.codigestion.get_municipality_cn_profiles",
@@ -301,7 +298,7 @@ class TestMunicipalityCnProfiles:
         assert "ibge_code" in profile
         assert "weighted_cn" in profile
 
-    def test_get_cn_profiles_empty(self):
+    def test_get_cn_profiles_empty(self, client: TestClient):
         """Empty profile list is returned cleanly."""
         with patch(
             "app.api.v1.endpoints.codigestion.get_municipality_cn_profiles",
@@ -312,7 +309,7 @@ class TestMunicipalityCnProfiles:
         assert response.status_code == 200
         assert response.json()["count"] == 0
 
-    def test_get_cn_profiles_service_error_returns_500(self):
+    def test_get_cn_profiles_service_error_returns_500(self, client: TestClient):
         """Service error returns 500."""
         with patch(
             "app.api.v1.endpoints.codigestion.get_municipality_cn_profiles",
@@ -322,7 +319,7 @@ class TestMunicipalityCnProfiles:
 
         assert response.status_code == 500
 
-    def test_get_cn_profiles_cached_on_second_call(self):
+    def test_get_cn_profiles_cached_on_second_call(self, client: TestClient):
         """C:N profiles are cached after first successful call."""
         _clear_codigestion_caches()
         with patch(
@@ -339,7 +336,7 @@ class TestMunicipalityCnProfiles:
 class TestPairingCandidates:
     """Tests for GET /api/v1/codigestion/pairing-candidates"""
 
-    def test_get_pairing_candidates_happy_path(self):
+    def test_get_pairing_candidates_happy_path(self, client: TestClient):
         """Returns candidates for a valid IBGE code."""
         with patch(
             "app.api.v1.endpoints.codigestion.get_pairing_candidates",
@@ -355,12 +352,12 @@ class TestPairingCandidates:
         assert "candidates" in body
         assert len(body["candidates"]) == 1
 
-    def test_get_pairing_candidates_missing_ibge_code_returns_422(self):
+    def test_get_pairing_candidates_missing_ibge_code_returns_422(self, client: TestClient):
         """ibge_code is required; missing it returns 422."""
         response = client.get("/api/v1/codigestion/pairing-candidates")
         assert response.status_code == 422
 
-    def test_get_pairing_candidates_not_found_returns_404(self):
+    def test_get_pairing_candidates_not_found_returns_404(self, client: TestClient):
         """Service returning None signals municipality not found -> 404."""
         with patch(
             "app.api.v1.endpoints.codigestion.get_pairing_candidates",
@@ -373,7 +370,7 @@ class TestPairingCandidates:
         assert response.status_code == 404
         assert "9999999" in response.json()["detail"]
 
-    def test_get_pairing_candidates_service_error_returns_500(self):
+    def test_get_pairing_candidates_service_error_returns_500(self, client: TestClient):
         """Service exception returns 500."""
         with patch(
             "app.api.v1.endpoints.codigestion.get_pairing_candidates",
@@ -390,7 +387,7 @@ class TestPairingCandidates:
 class TestResidueCnMatrix:
     """Tests for GET /api/v1/codigestion/residue-cn-matrix"""
 
-    def test_get_residue_cn_matrix_happy_path(self):
+    def test_get_residue_cn_matrix_happy_path(self, client: TestClient):
         """Returns C:N matrix with residues and optimal range."""
         with patch(
             "app.api.v1.endpoints.codigestion.get_residue_cn_matrix",
@@ -405,7 +402,7 @@ class TestResidueCnMatrix:
         assert body["optimal_range"]["low"] == 20.0
         assert body["optimal_range"]["high"] == 30.0
 
-    def test_get_residue_cn_matrix_service_error_returns_500(self):
+    def test_get_residue_cn_matrix_service_error_returns_500(self, client: TestClient):
         """Service error returns 500."""
         with patch(
             "app.api.v1.endpoints.codigestion.get_residue_cn_matrix",
@@ -420,7 +417,7 @@ class TestResidueCnMatrix:
 class TestClearClusterCache:
     """Tests for DELETE /api/v1/codigestion/clusters/cache"""
 
-    def test_clear_cache_returns_cleared_count(self):
+    def test_clear_cache_returns_cleared_count(self, client: TestClient):
         """DELETE /clusters/cache clears caches and returns count."""
         import app.api.v1.endpoints.codigestion as mod
         mod._cluster_cache[("30.0", "1000.0", 20)] = SAMPLE_CLUSTERS_RESULT
@@ -436,7 +433,7 @@ class TestClearClusterCache:
         assert len(mod._cluster_cache) == 0
         assert mod._cn_profile_cache is None
 
-    def test_clear_cache_on_empty_cache(self):
+    def test_clear_cache_on_empty_cache(self, client: TestClient):
         """Clearing an already-empty cache returns 0 cleared entries."""
         _clear_codigestion_caches()
         response = client.delete("/api/v1/codigestion/clusters/cache")
