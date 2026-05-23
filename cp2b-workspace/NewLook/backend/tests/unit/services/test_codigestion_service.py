@@ -288,6 +288,58 @@ class TestImprovementScore:
     def test_score_returns_float(self):
         assert isinstance(_improvement_score(25.0, 10.0, 40.0), float)
 
+    def test_score_exact_value_when_blended_reaches_optimum(self):
+        # cn_a=10 (nitrogen donor), cn_b=40 (carbon donor), equal biomass → cn_blended=25
+        # Formula: (|10−25| + |40−25|) / 2 − |25−25| = (15+15)/2 − 0 = 15.0
+        # Source: codigestion_service.py _improvement_score()
+        assert _improvement_score(25.0, 10.0, 40.0) == pytest.approx(15.0, abs=0.01)
+
+    def test_score_exact_value_partial_improvement(self):
+        # cn_a=10, cn_b=40, cn_blended=22.333 (≈ 2:1 N-donor:C-donor ratio)
+        # Formula: (|10−25| + |40−25|) / 2 − |22.333−25|
+        #        = (15+15)/2 − 2.667 = 15.0 − 2.667 = 12.33
+        score = _improvement_score(22.333, 10.0, 40.0)
+        assert score == pytest.approx(12.33, abs=0.01)
+
+    def test_score_exact_value_symmetric_balanced_pair(self):
+        # cn_a=22 (slightly N-rich), cn_b=28 (slightly C-rich), equal blend → cn_blended=25
+        # Formula: (|22−25| + |28−25|) / 2 − |25−25| = (3+3)/2 − 0 = 3.0
+        assert _improvement_score(25.0, 22.0, 28.0) == pytest.approx(3.0, abs=0.01)
+
+    def test_domain_invariant_nitrogen_donor_plus_carbon_donor_always_improves(self):
+        """
+        Domain property: if cn_a < 20 (nitrogen donor) AND cn_b > 30 (carbon donor),
+        any weighted blend must move the C:N closer to the optimal 20–30 range,
+        so improvement_score MUST be > 0.
+
+        This is a mathematical consequence of the formula when individual values
+        are on opposite sides of the optimal range.  A score ≤ 0 here would
+        indicate a formula regression.
+        """
+        nitrogen_donors = [5, 8, 12, 15, 19]
+        carbon_donors   = [31, 38, 50, 70, 100]
+
+        for cn_a in nitrogen_donors:
+            for cn_b in carbon_donors:
+                cn_blended = _weighted_cn(100.0, float(cn_a), 100.0, float(cn_b))
+                score = _improvement_score(cn_blended, float(cn_a), float(cn_b))
+                assert score > 0, (
+                    f"Expected improvement_score > 0 for N-donor ({cn_a}) + "
+                    f"C-donor ({cn_b}), blended={cn_blended:.2f}, got score={score}"
+                )
+
+    def test_improvement_score_bounded_from_below_by_zero_for_optimal_inputs(self):
+        # Both inputs already in optimal range → blending stays optimal → score ≥ 0
+        optimal_pairs = [(20, 30), (22, 28), (24, 26), (25, 25)]
+        for cn_a, cn_b in optimal_pairs:
+            cn_blended = _weighted_cn(100.0, float(cn_a), 100.0, float(cn_b))
+            score = _improvement_score(cn_blended, float(cn_a), float(cn_b))
+            # Blending two optimal C:N values should not worsen the result
+            assert score >= -0.01, (
+                f"Blending two optimal C:N values ({cn_a}, {cn_b}) worsened the "
+                f"score: {score:.3f}"
+            )
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # TestBlendRatio
