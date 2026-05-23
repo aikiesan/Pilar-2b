@@ -8,15 +8,14 @@
 import React, { useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 
-// Legend items matching the heatmap color scale in HeatmapLayer
+// Legend items matching the recalibrated HEAT_GRADIENT in HeatmapLayer.tsx
 const legendItems = [
-  { color: '#800026', label: '> 500M', description: 'Muito Alto' },
-  { color: '#bd0026', label: '100M - 500M', description: 'Alto' },
-  { color: '#f03b20', label: '50M - 100M', description: 'Médio-Alto' },
-  { color: '#fd8d3c', label: '10M - 50M', description: 'Médio' },
-  { color: '#fecc5c', label: '1M - 10M', description: 'Baixo' },
-  { color: '#ffffb2', label: '< 1M', description: 'Muito Baixo' },
-  { color: '#cccccc', label: 'Sem dados', description: '' },
+  { color: '#bd0026', label: '> 200M m³/ano', description: 'Muito Alto' },
+  { color: '#f03b20', label: '50M – 200M',    description: 'Alto' },
+  { color: '#fd8d3c', label: '10M – 50M',     description: 'Médio' },
+  { color: '#fecc5c', label: '1M – 10M',      description: 'Baixo' },
+  { color: '#ffffb2', label: '< 1M',          description: 'Muito Baixo' },
+  { color: '#cccccc', label: 'Sem dados',     description: '' },
 ];
 
 export default function HeatmapLegend() {

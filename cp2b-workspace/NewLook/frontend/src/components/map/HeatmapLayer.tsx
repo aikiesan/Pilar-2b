@@ -6,8 +6,8 @@
 
 'use client';
 
-import React, { useEffect, useRef, useMemo } from 'react';
-import { useMap, CircleMarker, Tooltip } from 'react-leaflet';
+import React, { useEffect, useRef, useMemo, useState } from 'react';
+import { useMap, useMapEvents, CircleMarker, Tooltip } from 'react-leaflet';
 import L from 'leaflet';
 import type { MunicipalityCollection } from '@/types/geospatial';
 import type { ResidueType } from './FloatingControlPanel';
@@ -18,14 +18,15 @@ interface HeatmapLayerProps {
   opacity?: number;
 }
 
-// Colour gradient matching the legend thresholds
+// Colour gradient calibrated for SP state biogas distribution.
+// Most municipalities fall in the 0.05–0.4 normalised range, so the
+// gradient starts colour at 0.0 and spreads the warm tones lower.
 const HEAT_GRADIENT: Record<number, string> = {
-  0.2: '#ffffb2',
-  0.4: '#fecc5c',
-  0.6: '#fd8d3c',
-  0.8: '#f03b20',
-  0.9: '#bd0026',
-  1.0: '#800026',
+  0.0:  '#ffffb2',
+  0.3:  '#fecc5c',
+  0.55: '#fd8d3c',
+  0.75: '#f03b20',
+  1.0:  '#bd0026',
 };
 
 export default function HeatmapLayer({
@@ -35,6 +36,9 @@ export default function HeatmapLayer({
 }: HeatmapLayerProps) {
   const map = useMap();
   const heatLayerRef = useRef<L.Layer | null>(null);
+  const [zoom, setZoom] = useState(map.getZoom());
+
+  useMapEvents({ zoomend: () => setZoom(map.getZoom()) });
 
   // Calculate residue value for each municipality
   const getResidueValue = (props: any): number => {
@@ -137,12 +141,18 @@ export default function HeatmapLayer({
         maxVal > 0 ? p.value / maxVal : 0,
       ]);
 
+      // Zoom-aware radius and blur: spread wider at lower zoom for continuity
+      const zoom = map.getZoom();
+      const heatRadius = Math.max(15, 60 - zoom * 4);
+      const heatBlur   = Math.max(10, 40 - zoom * 3);
+
       heatLayerRef.current = (L as any).heatLayer(heatPoints, {
-        radius: 35,
-        blur: 25,
+        radius: heatRadius,
+        blur: heatBlur,
         maxZoom: 17,
         max: 1.0,
-        minOpacity: Math.max(0.2, opacity * 0.5),
+        // Respect opacity=0 exactly; avoid the always-visible floor
+        minOpacity: opacity <= 0 ? 0 : Math.max(0.05, opacity * 0.4),
         gradient: HEAT_GRADIENT,
       });
 
@@ -156,7 +166,7 @@ export default function HeatmapLayer({
         heatLayerRef.current = null;
       }
     };
-  }, [map, points, opacity]);
+  }, [map, points, opacity, zoom]);
 
   const residueLabel = getResidueLabel();
 
