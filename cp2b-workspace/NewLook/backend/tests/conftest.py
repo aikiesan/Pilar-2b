@@ -35,9 +35,24 @@ def mock_db_connection(monkeypatch):
     _SHARED_MOCK_CONN.cursor.return_value = _SHARED_MOCK_CURSOR
 
     monkeypatch.setattr("app.core.database.get_db", _shared_get_db)
-    # Patch call sites for modules imported at collection time (top-level imports
-    # in test files bind get_db before any fixture runs, bypassing the source patch).
-    monkeypatch.setattr("app.api.v1.endpoints.scientific.get_db", _shared_get_db, raising=False)
+    # Patch every call site that may have been imported before the fixture ran.
+    # Integration tests do `from app.main import app` at module level, which
+    # pulls in all endpoint modules at collection time — before any monkeypatch
+    # is active. Without these call-site patches those modules keep the real
+    # get_db reference and attempt live DB connections during unit tests.
+    _call_sites = [
+        "app.api.v1.endpoints.analysis",
+        "app.api.v1.endpoints.geospatial",
+        "app.api.v1.endpoints.intermediate_regions",
+        "app.api.v1.endpoints.municipalities",
+        "app.api.v1.endpoints.residuos",
+        "app.api.v1.endpoints.scientific",
+        "app.api.v1.endpoints.statistics",
+        "app.routers.calculator",
+        "app.routers.technology_routes",
+    ]
+    for _mod in _call_sites:
+        monkeypatch.setattr(f"{_mod}.get_db", _shared_get_db, raising=False)
     return _SHARED_MOCK_CONN, _SHARED_MOCK_CURSOR
 
 
