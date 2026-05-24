@@ -72,8 +72,8 @@ app.middleware("http")(gzip_middleware)
 # NOTE: TrustedHostMiddleware doesn't support wildcards in allowed_hosts
 # Using specific domains only. CORS middleware above handles origin validation.
 # For production, we allow:
-# - Render backend domain (update with your actual Render service name)
-# - Railway backend domain (legacy, remove after migration complete)
+# - Unicamp VM domain
+# - Render backend domain (legacy mirror)
 # - Localhost for development
 # - Wildcard disabled to prevent security issues
 if settings.APP_ENV == "production":
@@ -82,7 +82,6 @@ if settings.APP_ENV == "production":
         allowed_hosts=[
             "cp2b.unicamp.br",
             "cp2b-maps-backend.onrender.com",
-            "newlook-production.up.railway.app",
             "localhost",
             "127.0.0.1",
         ]

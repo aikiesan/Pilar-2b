@@ -1,6 +1,6 @@
 # PILAR-2b — Plataforma Inteligente de Localização e Aproveitamento de Resíduos para Biogas e Bioprodutos
 
-[![Version](https://img.shields.io/badge/version-3.0.3-blue.svg)](https://github.com/aikiesan/CP2B_Maps_V3)
+[![Version](https://img.shields.io/badge/version-3.0.3-blue.svg)](https://github.com/aikiesan/Pilar-2b)
 [![License](https://img.shields.io/badge/license-GPL--3.0-blue.svg)](./LICENSE)
 [![INPI](https://img.shields.io/badge/INPI%20BR-512026003115--0-green.svg)](https://www.gov.br/inpi)
 [![UNICAMP](https://img.shields.io/badge/NIPE-UNICAMP-darkblue.svg)](https://nipe.unicamp.br/cp2b)
@@ -39,7 +39,7 @@ This study addresses identified gaps through three interconnected contributions:
 |----------|-----|
 | Português (BR) | **[https://cp2b.unicamp.br/pilar2b/pt-BR](https://cp2b.unicamp.br/pilar2b/pt-BR)** |
 | English | **[https://cp2b.unicamp.br/pilar2b/en](https://cp2b.unicamp.br/pilar2b/en)** |
-| API Documentation | [https://newlook-production.up.railway.app/docs](https://newlook-production.up.railway.app/docs) |
+| API Documentation | [https://cp2b.unicamp.br/pilar2b/api/docs](https://cp2b.unicamp.br/pilar2b/api/docs) |
 | NIPE Website | [https://nipe.unicamp.br/cp2b](https://nipe.unicamp.br/cp2b) |
 
 ---
@@ -84,7 +84,7 @@ This study addresses identified gaps through three interconnected contributions:
 - **Maps**: React Leaflet 4.2
 - **Charts**: Recharts 3.8 + Chart.js 4.5
 - **State Management**: TanStack React Query 5.90
-- **Auth**: Supabase Auth (JWT)
+- **Auth**: FastAPI JWT (python-jose)
 - **i18n**: next-intl 4.9 (pt-BR, en, es)
 - **Testing**: Jest 30 + Playwright 1.57 + Testing Library
 - **Deployment**: Apache2 + PM2 (Unicamp VM) / Cloudflare Pages / Vercel
@@ -92,12 +92,12 @@ This study addresses identified gaps through three interconnected contributions:
 
 ### Backend
 - **Framework**: FastAPI 0.135.3 + Uvicorn 0.32.1
-- **Database**: PostgreSQL 15 + PostGIS 3.4 (Supabase)
+- **Database**: PostgreSQL 15 + PostGIS 3.4
 - **ORM**: SQLAlchemy 2.0
 - **Geospatial**: GeoPandas 1.0+, Shapely 2.0, PyProj 3.6, Rasterio 1.3
 - **Data Processing**: Pandas 2.1, NumPy 1.24, scikit-learn 1.6
 - **Testing**: Pytest 9.0 + pytest-cov + pytest-asyncio
-- **Deployment**: Railway (primary)
+- **Deployment**: Apache2 + PM2 (Unicamp VM)
 
 ### Performance
 - **LRU Caching** — 5-minute TTL for analysis results
@@ -113,13 +113,13 @@ This study addresses identified gaps through three interconnected contributions:
 ### Prerequisites
 - Node.js 18+ (frontend)
 - Python 3.10+ (backend)
-- PostgreSQL 15+ with PostGIS (or Supabase account)
+- PostgreSQL 15+ with PostGIS
 
 ### 1. Clone Repository
 
 ```bash
-git clone https://github.com/aikiesan/CP2B_Maps_V3.git
-cd CP2B_Maps_V3/cp2b-workspace/NewLook
+git clone https://github.com/aikiesan/Pilar-2b.git
+cd Pilar-2b/cp2b-workspace/NewLook
 ```
 
 ### 2. Setup Frontend
@@ -130,8 +130,6 @@ npm install
 cp .env.example .env.local
 # Edit .env.local:
 #   NEXT_PUBLIC_API_URL=http://localhost:8000
-#   NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
-#   NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGc...
 npm run dev
 ```
 
@@ -167,14 +165,7 @@ docker compose up --build
 
 ## Database Setup
 
-### Option 1: Supabase (Recommended)
-
-1. Create account at [supabase.com](https://supabase.com)
-2. Create a new project
-3. Get the connection string from Settings → Database
-4. Apply migrations from `backend/migrations/`
-
-### Option 2: Local PostgreSQL
+### Local PostgreSQL
 
 ```bash
 sudo apt-get install postgresql-15 postgresql-15-postgis-3
@@ -265,12 +256,7 @@ NEXT_PUBLIC_USE_MOCK_DATA=false
 
 ```bash
 # Database
-DATABASE_URL=postgresql://user:pass@host:5432/db
-
-# Supabase
-SUPABASE_URL=https://YOUR_PROJECT.supabase.co
-SUPABASE_SERVICE_ROLE_KEY=eyJhbGc...
-SUPABASE_ANON_KEY=eyJhbGc...
+DATABASE_URL=postgresql://user:pass@localhost:5432/cp2b_maps
 
 # Security
 SECRET_KEY=generate_with_openssl_rand_hex_32
@@ -343,12 +329,9 @@ cd frontend && npm run build
 pm2 restart pilar2b-frontend
 ```
 
-### Railway (Backend Auto-deploy)
+### Unicamp VM (Primary — Apache2 + PM2)
 
-```bash
-git push origin main
-# Railway auto-deploys from cp2b-workspace/NewLook/backend/
-```
+See [`docs/VM_UPDATE_GUIDE.md`](docs/VM_UPDATE_GUIDE.md) for the full deployment procedure.
 
 ### Cloudflare Pages / Vercel (Frontend Alternative)
 
@@ -362,8 +345,8 @@ git push origin main
 ## Project Status
 
 ### Completed (Sprints 1–5)
-- [x] Foundation (Next.js 16 + FastAPI + Supabase)
-- [x] Authentication system (Supabase JWT)
+- [x] Foundation (Next.js 16 + FastAPI + PostgreSQL/PostGIS)
+- [x] Authentication system (FastAPI JWT)
 - [x] Interactive dashboard — 645 municipalities, choropleth map
 - [x] Proximity analysis with MapBiomas land-use integration
 - [x] FDE methodology implementation and validation
@@ -445,9 +428,7 @@ We believe in making research and technology accessible to everyone. By open-sou
 - **NIPE-UNICAMP**: Institutional support and research infrastructure
 - **MapBiomas**: Land-use classification data ([mapbiomas.org](https://mapbiomas.org))
 - **DBFZ**: Inspiration for UI/UX ([datalab.dbfz.de/resdb](https://datalab.dbfz.de/resdb))
-- **Supabase**: Managed PostgreSQL + Auth hosting
 - **Cloudflare Pages**: Frontend CDN hosting
-- **Railway**: Backend cloud deployment
 
 ---
 
@@ -455,12 +436,12 @@ We believe in making research and technology accessible to everyone. By open-sou
 
 | | |
 |---|---|
-| **Repository** | https://github.com/aikiesan/CP2B_Maps_V3 |
+| **Repository** | https://github.com/aikiesan/Pilar-2b |
 | **Live Platform** | https://cp2b.unicamp.br/pilar2b/pt-BR |
 | **NIPE Website** | https://nipe.unicamp.br/cp2b |
 | **Documentation** | [docs/](./docs/) |
-| **Issues** | [GitHub Issues](https://github.com/aikiesan/CP2B_Maps_V3/issues) |
-| **API Docs** | https://newlook-production.up.railway.app/docs |
+| **Issues** | [GitHub Issues](https://github.com/aikiesan/Pilar-2b/issues) |
+| **API Docs** | https://cp2b.unicamp.br/pilar2b/api/docs |
 
 ---
 

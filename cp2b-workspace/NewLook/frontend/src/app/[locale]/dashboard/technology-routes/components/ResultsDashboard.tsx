@@ -513,13 +513,6 @@ export default function ResultsDashboard({ result, municipalityName, onReset }: 
         </div>
       </details>
 
-      {/* Phase 2 CTA */}
-      <div className="p-4 rounded-xl border-2 border-dashed border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 text-center">
-        <p className="text-sm font-semibold text-amber-800 dark:text-amber-300 mb-1">📋 {t('results.pdfCtaTitle')}</p>
-        <p className="text-xs text-amber-700 dark:text-amber-400">{t('results.pdfCtaDesc')}</p>
-        <p className="text-xs font-semibold text-amber-600 dark:text-amber-400 mt-2">{t('results.pdfCtaSoon')}</p>
-      </div>
-
       {/* Actions */}
       <div className="flex flex-col gap-2">
         <a

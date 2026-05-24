@@ -23,15 +23,15 @@ Thank you for your interest in contributing to PILAR-2b! This document provides 
 - **Node.js** 18+ (for frontend)
 - **Python** 3.10+ (for backend)
 - **Git** for version control
-- **PostgreSQL** 15+ with PostGIS (or Supabase account)
+- **PostgreSQL** 15+ with PostGIS
 
 ### Quick Start
 
 1. **Fork the repository**
    ```bash
    # Fork via GitHub UI, then clone your fork
-   git clone https://github.com/YOUR_USERNAME/NewLook.git
-   cd NewLook
+   git clone https://github.com/YOUR_USERNAME/Pilar-2b.git
+   cd Pilar-2b
    ```
 
 2. **Set up development environment**
@@ -437,9 +437,8 @@ WIP
 
 - [Project README](./README.md)
 - [Architecture Documentation](./STRUCTURE.md)
-- [API Documentation](https://newlook-production.up.railway.app/docs)
-- [Deployment Guide](./docs/deployment/DEPLOYMENT_GUIDE.md)
-- [Improvement Roadmap](./docs/planning/IMPROVEMENT_ROADMAP.md)
+- [API Documentation](https://cp2b.unicamp.br/pilar2b/api/docs)
+- [Deployment Guide](./docs/VM_UPDATE_GUIDE.md)
 
 ---
 

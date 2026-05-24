@@ -5,7 +5,6 @@
  * PILAR-2b V3 - DBFZ-inspired scientific knowledge platform
  * Features: Kinetic curves, chemical data, references, comparison, co-digestion
  *
- * Protected by Vercel Edge Middleware that checks for Supabase auth cookies.
  * Client-side fetching uses useEffect to load fresh data on each visit.
  */
 import { useEffect, useState, useCallback, useMemo } from 'react'
