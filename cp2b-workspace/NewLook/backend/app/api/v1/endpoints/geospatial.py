@@ -570,6 +570,10 @@ async def get_municipality(municipality_id: int):
         pop = row.get("population")
         pop_density = (float(pop) / area) if area > 0 and pop else None
 
+        _lat = row.get("centroid_lat")
+        _lng = row.get("centroid_lng")
+        _centroid = {"lat": float(_lat), "lng": float(_lng)} if _lat is not None and _lng is not None else None
+
         return MunicipalityDetail(
             id=row["id"],
             municipality_name=row["municipality_name"],
@@ -600,7 +604,7 @@ async def get_municipality(municipality_id: int):
             rural_population=int(row["rural_population"]) if row.get("rural_population") is not None else None,
             gdp_total=_f("gdp_total") or None,
             gdp_per_capita=_f("gdp_per_capita") or None,
-            centroid=None,
+            centroid=_centroid,
             administrative_region=row.get("administrative_region"),
             immediate_region=row.get("immediate_region"),
             intermediate_region=row.get("intermediate_region"),

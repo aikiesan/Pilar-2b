@@ -5,6 +5,7 @@ Pytest configuration and fixtures for comprehensive testing
 import pytest
 import asyncio
 import os
+from contextlib import contextmanager
 from typing import AsyncGenerator, Generator
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
@@ -12,19 +13,47 @@ from unittest.mock import Mock, MagicMock
 import psycopg2
 from httpx import AsyncClient, ASGITransport
 
-# Mock the database connection for tests
+# Singleton mock objects — endpoint modules capture get_db at import time.
+# Using a persistent object means all tests configure the SAME connection
+# that the endpoint closures already hold, eliminating cross-test leakage.
+_SHARED_MOCK_CONN = MagicMock(name="shared_db_conn")
+_SHARED_MOCK_CURSOR = MagicMock(name="shared_db_cursor")
+_SHARED_MOCK_CONN.cursor.return_value = _SHARED_MOCK_CURSOR
+
+@contextmanager
+def _shared_get_db():
+    yield _SHARED_MOCK_CONN
+
+
 @pytest.fixture(autouse=True)
 def mock_db_connection(monkeypatch):
     """Mock database connections for all tests"""
-    mock_conn = MagicMock()
-    mock_cursor = MagicMock()
-    mock_conn.cursor.return_value = mock_cursor
+    # Reset shared mocks fully — including side_effect and return_value —
+    # so state from one test cannot bleed into the next.
+    _SHARED_MOCK_CONN.reset_mock(return_value=True, side_effect=True)
+    _SHARED_MOCK_CURSOR.reset_mock(return_value=True, side_effect=True)
+    _SHARED_MOCK_CONN.cursor.return_value = _SHARED_MOCK_CURSOR
 
-    def mock_get_db():
-        yield mock_conn
-
-    monkeypatch.setattr("app.core.database.get_db", mock_get_db)
-    return mock_conn, mock_cursor
+    monkeypatch.setattr("app.core.database.get_db", _shared_get_db)
+    # Patch every call site that may have been imported before the fixture ran.
+    # Integration tests do `from app.main import app` at module level, which
+    # pulls in all endpoint modules at collection time — before any monkeypatch
+    # is active. Without these call-site patches those modules keep the real
+    # get_db reference and attempt live DB connections during unit tests.
+    _call_sites = [
+        "app.api.v1.endpoints.analysis",
+        "app.api.v1.endpoints.geospatial",
+        "app.api.v1.endpoints.intermediate_regions",
+        "app.api.v1.endpoints.municipalities",
+        "app.api.v1.endpoints.residuos",
+        "app.api.v1.endpoints.scientific",
+        "app.api.v1.endpoints.statistics",
+        "app.routers.calculator",
+        "app.routers.technology_routes",
+    ]
+    for _mod in _call_sites:
+        monkeypatch.setattr(f"{_mod}.get_db", _shared_get_db, raising=False)
+    return _SHARED_MOCK_CONN, _SHARED_MOCK_CURSOR
 
 
 @pytest.fixture(autouse=True)
