@@ -70,30 +70,6 @@ export default function AboutPage() {
       icon: <Database className="w-4 h-4" />
     },
     {
-      date: 'Abril 2025',
-      title: 'Primeiros Workshops e Capacitação',
-      description: 'Início das atividades de educação e capacitação para stakeholders do setor.',
-      status: 'upcoming',
-      details: [
-        'Workshop sobre metodologia SAF',
-        'Treinamento de gestores públicos',
-        'Seminário sobre bioeconomia circular'
-      ],
-      icon: <Users className="w-4 h-4" />
-    },
-    {
-      date: 'Junho 2025',
-      title: 'Parcerias Estratégicas',
-      description: 'Consolidação de parcerias com universidades, governo e setor privado.',
-      status: 'upcoming',
-      details: [
-        'Acordo com Aalborg University',
-        'Parceria com CIBiogás',
-        'Colaboração com UNICA'
-      ],
-      icon: <Building2 className="w-4 h-4" />
-    },
-    {
       date: 'Fevereiro 2030',
       title: 'Conclusão do Projeto',
       description: 'Encerramento da primeira fase do PILAR-2b com legado de pesquisa e inovação.',

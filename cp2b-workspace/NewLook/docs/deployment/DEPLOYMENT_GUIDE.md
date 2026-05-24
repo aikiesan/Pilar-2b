@@ -1,4 +1,7 @@
-# PILAR-2b V3 - Deployment Guide
+# PILAR-2b V3 - Deployment Guide (Alternative Paths)
+
+> **Primary deployment** is the Unicamp VM (Apache2 + PM2). See [`VM_UPDATE_GUIDE.md`](../VM_UPDATE_GUIDE.md) for the current production procedure.
+> This document describes alternative self-hosted deployment paths (Vercel frontend + hosted PostgreSQL backend) for independent contributors.
 
 ## 🚀 Deployment Status
 
@@ -20,7 +23,7 @@
 The backend is already deployed and running on Railway.
 
 ### Configuration
-- **Repository**: `aikiesan/NewLook`
+- **Repository**: `aikiesan/Pilar-2b`
 - **Root Directory**: `/cp2b-workspace/NewLook/backend`
 - **Branch**: `main`
 - **Runtime**: `python-3.10`
@@ -36,7 +39,7 @@ Make sure these are set in Railway:
 
 ---
 
-## Frontend Deployment (Vercel) - TODO
+## Frontend Deployment (Vercel)
 
 ### Step 1: Prerequisites
 
@@ -53,7 +56,7 @@ Make sure these are set in Railway:
 
 1. Go to [vercel.com](https://vercel.com) and sign in
 2. Click **"Add New Project"**
-3. Import your GitHub repository: `aikiesan/NewLook`
+3. Import your GitHub repository: `aikiesan/Pilar-2b`
 4. Configure the project:
    - **Framework Preset**: Next.js
    - **Root Directory**: `cp2b-workspace/NewLook/frontend`
@@ -180,5 +183,5 @@ The frontend is currently configured to use mock endpoints. To use real backend 
 For issues, check:
 - Railway logs: Railway Dashboard → NewLook → Logs
 - Vercel logs: Vercel Dashboard → Your Project → Deployments → Logs
-- GitHub repository: https://github.com/aikiesan/NewLook
+- GitHub repository: https://github.com/aikiesan/Pilar-2b
 
