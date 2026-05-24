@@ -5,6 +5,7 @@ Pytest configuration and fixtures for comprehensive testing
 import pytest
 import asyncio
 import os
+from contextlib import contextmanager
 from typing import AsyncGenerator, Generator
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
@@ -12,19 +13,32 @@ from unittest.mock import Mock, MagicMock
 import psycopg2
 from httpx import AsyncClient, ASGITransport
 
-# Mock the database connection for tests
+# Singleton mock objects — endpoint modules capture get_db at import time.
+# Using a persistent object means all tests configure the SAME connection
+# that the endpoint closures already hold, eliminating cross-test leakage.
+_SHARED_MOCK_CONN = MagicMock(name="shared_db_conn")
+_SHARED_MOCK_CURSOR = MagicMock(name="shared_db_cursor")
+_SHARED_MOCK_CONN.cursor.return_value = _SHARED_MOCK_CURSOR
+
+@contextmanager
+def _shared_get_db():
+    yield _SHARED_MOCK_CONN
+
+
 @pytest.fixture(autouse=True)
 def mock_db_connection(monkeypatch):
     """Mock database connections for all tests"""
-    mock_conn = MagicMock()
-    mock_cursor = MagicMock()
-    mock_conn.cursor.return_value = mock_cursor
+    # Reset shared mocks fully — including side_effect and return_value —
+    # so state from one test cannot bleed into the next.
+    _SHARED_MOCK_CONN.reset_mock(return_value=True, side_effect=True)
+    _SHARED_MOCK_CURSOR.reset_mock(return_value=True, side_effect=True)
+    _SHARED_MOCK_CONN.cursor.return_value = _SHARED_MOCK_CURSOR
 
-    def mock_get_db():
-        yield mock_conn
-
-    monkeypatch.setattr("app.core.database.get_db", mock_get_db)
-    return mock_conn, mock_cursor
+    monkeypatch.setattr("app.core.database.get_db", _shared_get_db)
+    # Patch call sites for modules imported at collection time (top-level imports
+    # in test files bind get_db before any fixture runs, bypassing the source patch).
+    monkeypatch.setattr("app.api.v1.endpoints.scientific.get_db", _shared_get_db, raising=False)
+    return _SHARED_MOCK_CONN, _SHARED_MOCK_CURSOR
 
 
 @pytest.fixture(autouse=True)
