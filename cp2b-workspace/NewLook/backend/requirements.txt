@@ -33,7 +33,7 @@ pillow>=11.0.0  # Updated from 10.4.0 — fixes out-of-bounds write in PSD image
 
 # Data processing
 pandas==2.3.3
-numpy==1.24.3
+numpy==2.2.6
 scipy==1.15.3
 scikit-learn>=1.7.2
 openpyxl==3.1.5
