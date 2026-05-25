@@ -47,8 +47,8 @@
     "prepare": "husky"
   },
   "dependencies": {
-    "@tanstack/react-query": "^5.100.11",
-    "@tanstack/react-query-devtools": "^5.100.11",
+    "@tanstack/react-query": "^5.100.14",
+    "@tanstack/react-query-devtools": "^5.100.14",
     "@types/leaflet": "^1.9.12",
     "autoprefixer": "^10.5.0",
     "chart.js": "^4.5.1",
@@ -86,7 +86,7 @@
     "@testing-library/user-event": "^14.6.1",
     "@types/jest": "^30.0.0",
     "@types/node": "^22.10.6",
-    "@types/react": "^19.2.14",
+    "@types/react": "^19.2.15",
     "@types/react-dom": "^19.0.3",
     "axe-core": "^4.10.2",
     "eslint": "^9.0.0",
