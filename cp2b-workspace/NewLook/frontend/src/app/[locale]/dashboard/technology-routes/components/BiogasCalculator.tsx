@@ -164,21 +164,21 @@ export default function BiogasCalculator() {
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2">
             {[0,1,2,3].map(i => (
-              <div key={i} className="flex items-center">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold
+              <div key={i} className={`flex items-center ${i < 3 ? 'flex-1' : ''}`}>
+                <div className={`shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold
                   ${i < numericStep ? 'bg-green-600 text-white'
-                  : i === numericStep ? 'bg-green-600 text-white ring-4 ring-green-100'
-                  : 'bg-gray-200 text-gray-400'}`}>
+                  : i === numericStep ? 'bg-green-600 text-white ring-4 ring-green-100 dark:ring-emerald-900/40'
+                  : 'bg-gray-200 text-gray-400 dark:bg-slate-700 dark:text-slate-500'}`}>
                   {i < numericStep ? '✓' : i + 1}
                 </div>
                 {i < 3 && (
-                  <div className={`flex-1 h-1 mx-1 w-16 rounded
-                    ${i < numericStep ? 'bg-green-600' : 'bg-gray-200'}`} />
+                  <div className={`flex-1 min-w-0 h-1 mx-1 sm:mx-2 rounded
+                    ${i < numericStep ? 'bg-green-600' : 'bg-gray-200 dark:bg-slate-700'}`} />
                 )}
               </div>
             ))}
           </div>
-          <p className="text-center text-sm text-gray-500 mt-1">
+          <p className="text-center text-sm text-gray-500 dark:text-slate-400 mt-1">
             {t(STEP_TITLES[numericStep])}
           </p>
         </div>

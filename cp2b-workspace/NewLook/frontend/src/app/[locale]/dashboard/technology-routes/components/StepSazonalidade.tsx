@@ -73,7 +73,7 @@ export default function StepSazonalidade({ activeMonths, activityType, onChange,
       </div>
 
       {/* Month toggle buttons */}
-      <div className="grid grid-cols-6 gap-2">
+      <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
         {MONTHS.map((label, i) => {
           const m = i + 1
           const active = activeMonths.includes(m)
