@@ -4,31 +4,32 @@
  */
 
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import MapComponent from './MapComponent';
 import type { MunicipalityCollection, MunicipalityFeature } from '@/types/geospatial';
 
-// next/dynamic's loader returns a Promise (import('./X')), so calling it and
-// using the result as a component yields "Element type is invalid". The dynamic
-// children are individually jest.mock'd below, so render a lightweight stub that
-// resolves to the mocked module's default once the import settles.
+// next/dynamic's loader returns a Promise (import('./X')); using that as a
+// component yields "Element type is invalid", and the async resolution never
+// flushes under fake timers. Every dynamic child is jest.mock'd below, so parse
+// the import path from the loader source and resolve the mocked module
+// SYNCHRONOUSLY via jest.requireMock — the child renders in the same tick.
 jest.mock('next/dynamic', () => ({
   __esModule: true,
   default: (loader: () => Promise<any>) => {
     const ReactLib = require('react');
-    const Dynamic = (props: any) => {
-      const [Comp, setComp] = ReactLib.useState(null);
-      ReactLib.useEffect(() => {
-        let active = true;
-        Promise.resolve(loader())
-          .then((mod: any) => { if (active) setComp(() => (mod && mod.default) || mod); })
-          .catch(() => {});
-        return () => { active = false; };
-      }, []);
-      return Comp ? ReactLib.createElement(Comp, props) : null;
-    };
-    return Dynamic;
+    // SWC transpiles `import('./X')` to `require("./X")`, so match either form.
+    const match = loader.toString().match(/(?:import|require)\(\s*['"]([^'"]+)['"]\s*\)/);
+    if (match) {
+      try {
+        const mod = jest.requireMock(match[1]);
+        const Comp = (mod && mod.default) || mod;
+        if (Comp) return Comp;
+      } catch {
+        /* fall through */
+      }
+    }
+    return () => null;
   },
 }));
 
@@ -125,9 +126,17 @@ jest.mock('./LeftFilterPanel', () => ({
 
 jest.mock('./DesktopLeftPanel', () => ({
   __esModule: true,
-  default: ({ layers, onLayerToggle, municipalityCount, totalMunicipalities }: any) => (
+  default: ({ layers, onLayerToggle, municipalityCount, totalMunicipalities, visualizationMode, onVisualizationModeChange }: any) => (
     <div data-testid="desktop-left-panel">
       <div data-testid="municipality-count">{municipalityCount} / {totalMunicipalities}</div>
+      <select
+        data-testid="visualization-mode-select"
+        value={visualizationMode}
+        onChange={(e) => onVisualizationModeChange(e.target.value)}
+      >
+        <option value="choropleth">Choropleth</option>
+        <option value="heatmap">Heatmap</option>
+      </select>
       {layers.map((layer: any) => (
         <button
           key={layer.id}
@@ -175,6 +184,26 @@ jest.mock('./MapLoadingSkeleton', () => ({
   __esModule: true,
   default: () => <div data-testid="loading-skeleton">Loading...</div>,
 }));
+
+// Remaining dynamic children the tests don't assert on. Stubbed to a noop so
+// the synchronous next/dynamic resolver doesn't render the real
+// leaflet-dependent components (which crash in jsdom).
+const stubChild = (testid: string) => ({
+  __esModule: true,
+  default: () => <div data-testid={testid} />,
+});
+jest.mock('./BubbleChartLayer', () => stubChild('bubble-chart-layer'));
+jest.mock('./CnChoroLayer', () => stubChild('cn-choro-layer'));
+jest.mock('./CodigestionClusterLayer', () => stubChild('codigestion-cluster-layer'));
+jest.mock('./CodigestionDetailPanel', () => stubChild('codigestion-detail-panel'));
+jest.mock('./ComparisonPanel', () => stubChild('comparison-panel'));
+jest.mock('./EnhancedTooltip', () => stubChild('enhanced-tooltip'));
+jest.mock('./ExportControl', () => stubChild('export-control'));
+jest.mock('./IntermediateRegionBoundaryLayer', () => stubChild('intermediate-region-boundary-layer'));
+jest.mock('./IntermediateRegionsMapLayer', () => stubChild('intermediate-regions-map-layer'));
+jest.mock('./MapSearchBox', () => stubChild('map-search-box'));
+jest.mock('./MobileBottomSheet', () => stubChild('mobile-bottom-sheet'));
+jest.mock('./MunicipalityProfilePanel', () => stubChild('municipality-profile-panel'));
 
 // Sample test data
 const createMunicipalityFeature = (overrides: Partial<any> = {}): MunicipalityFeature => ({
@@ -253,7 +282,7 @@ describe('MapComponent', () => {
       expect(screen.getByTestId('loading-skeleton')).toBeInTheDocument();
 
       // After rendering timer completes
-      jest.advanceTimersByTime(1500);
+      act(() => { jest.advanceTimersByTime(1500); });
       waitFor(() => {
         expect(screen.queryByTestId('loading-skeleton')).not.toBeInTheDocument();
       });
@@ -283,9 +312,10 @@ describe('MapComponent', () => {
 
       render(<MapComponent />);
 
-      expect(screen.getByText('Possíveis causas:')).toBeInTheDocument();
-      expect(screen.getByText(/Backend API não está respondendo/)).toBeInTheDocument();
-      expect(screen.getByText(/Erro de conexão com o banco de dados Supabase/)).toBeInTheDocument();
+      // The error UI was simplified to a title + reload action (the old
+      // detailed cause list, which referenced Supabase, was removed).
+      expect(screen.getByText('Erro ao Carregar Mapa')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Recarregar Página/i })).toBeInTheDocument();
     });
 
     it('should show reload button on error', () => {
@@ -311,9 +341,10 @@ describe('MapComponent', () => {
       });
 
       render(<MapComponent />);
+      act(() => { jest.advanceTimersByTime(1600); });
 
       expect(screen.getByText('Nenhum Dado Disponível')).toBeInTheDocument();
-      expect(screen.getByText(/O mapa não possui dados de municípios para exibir/)).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Tentar Novamente/i })).toBeInTheDocument();
     });
 
     it('should show "try again" button when no data', () => {
@@ -349,7 +380,7 @@ describe('MapComponent', () => {
       render(<MapComponent />);
 
       // Fast-forward rendering timer
-      jest.advanceTimersByTime(1500);
+      act(() => { jest.advanceTimersByTime(1500); });
 
       waitFor(() => {
         expect(screen.getByTestId('map-container')).toBeInTheDocument();
@@ -359,7 +390,7 @@ describe('MapComponent', () => {
 
     it('should render municipality layer by default', () => {
       render(<MapComponent />);
-      jest.advanceTimersByTime(1500);
+      act(() => { jest.advanceTimersByTime(1500); });
 
       waitFor(() => {
         expect(screen.getByTestId('municipality-layer')).toBeInTheDocument();
@@ -369,7 +400,7 @@ describe('MapComponent', () => {
 
     it('should render all panel components', () => {
       render(<MapComponent />);
-      jest.advanceTimersByTime(1500);
+      act(() => { jest.advanceTimersByTime(1500); });
 
       waitFor(() => {
         expect(screen.getByTestId('left-filter-panel')).toBeInTheDocument();
@@ -381,7 +412,7 @@ describe('MapComponent', () => {
 
     it('should pass correct props to municipality layer', () => {
       render(<MapComponent biomassType="agricultural" opacity={0.5} />);
-      jest.advanceTimersByTime(1500);
+      act(() => { jest.advanceTimersByTime(1500); });
 
       waitFor(() => {
         const layer = screen.getByTestId('municipality-layer');
@@ -406,7 +437,7 @@ describe('MapComponent', () => {
 
     it('should render choropleth by default', async () => {
       render(<MapComponent />);
-      jest.advanceTimersByTime(1500);
+      act(() => { jest.advanceTimersByTime(1500); });
 
       await waitFor(() => {
         expect(screen.getByTestId('municipality-layer')).toBeInTheDocument();
@@ -418,7 +449,7 @@ describe('MapComponent', () => {
     it('should switch to heatmap mode', async () => {
       const user = userEvent.setup({ delay: null });
       render(<MapComponent />);
-      jest.advanceTimersByTime(1500);
+      act(() => { jest.advanceTimersByTime(1500); });
 
       await waitFor(() => {
         expect(screen.getByTestId('visualization-mode-select')).toBeInTheDocument();
@@ -451,7 +482,7 @@ describe('MapComponent', () => {
     it('should toggle MapBiomas layer', async () => {
       const user = userEvent.setup({ delay: null });
       render(<MapComponent />);
-      jest.advanceTimersByTime(1500);
+      act(() => { jest.advanceTimersByTime(1500); });
 
       await waitFor(() => {
         expect(screen.queryByTestId('mapbiomas-layer')).not.toBeInTheDocument();
@@ -469,7 +500,7 @@ describe('MapComponent', () => {
     it('should toggle biogas-plants layer and legend', async () => {
       const user = userEvent.setup({ delay: null });
       render(<MapComponent />);
-      jest.advanceTimersByTime(1500);
+      act(() => { jest.advanceTimersByTime(1500); });
 
       await waitFor(() => {
         expect(screen.queryByTestId('infrastructure-layer-biogas-plants')).not.toBeInTheDocument();
@@ -487,7 +518,7 @@ describe('MapComponent', () => {
     it('should toggle infrastructure layers', async () => {
       const user = userEvent.setup({ delay: null });
       render(<MapComponent />);
-      jest.advanceTimersByTime(1500);
+      act(() => { jest.advanceTimersByTime(1500); });
 
       const pipelinesToggle = screen.getByTestId('layer-toggle-pipelines');
       await user.click(pipelinesToggle);
@@ -507,7 +538,7 @@ describe('MapComponent', () => {
     it('should show/hide MapBiomas legend with layer toggle', async () => {
       const user = userEvent.setup({ delay: null });
       render(<MapComponent />);
-      jest.advanceTimersByTime(1500);
+      act(() => { jest.advanceTimersByTime(1500); });
 
       // Initially no legend
       await waitFor(() => {
@@ -569,7 +600,7 @@ describe('MapComponent', () => {
 
     it('should filter by search query (name)', () => {
       render(<MapComponent searchQuery="São Paulo" />);
-      jest.advanceTimersByTime(1500);
+      act(() => { jest.advanceTimersByTime(1500); });
 
       // The filtering logic should reduce municipalities to 1
       // Note: In real test, we'd verify the filtered count via the municipality layer
@@ -580,7 +611,7 @@ describe('MapComponent', () => {
 
     it('should filter by search query (IBGE code)', () => {
       render(<MapComponent searchQuery="3509502" />);
-      jest.advanceTimersByTime(1500);
+      act(() => { jest.advanceTimersByTime(1500); });
 
       waitFor(() => {
         expect(screen.getByTestId('municipality-layer')).toBeInTheDocument();
@@ -599,7 +630,7 @@ describe('MapComponent', () => {
           }}
         />
       );
-      jest.advanceTimersByTime(1500);
+      act(() => { jest.advanceTimersByTime(1500); });
 
       // Should show municipalities with biogas between 40M and 150M
       waitFor(() => {
@@ -619,7 +650,7 @@ describe('MapComponent', () => {
           }}
         />
       );
-      jest.advanceTimersByTime(1500);
+      act(() => { jest.advanceTimersByTime(1500); });
 
       waitFor(() => {
         expect(screen.getByTestId('municipality-layer')).toBeInTheDocument();
@@ -638,7 +669,7 @@ describe('MapComponent', () => {
           }}
         />
       );
-      jest.advanceTimersByTime(1500);
+      act(() => { jest.advanceTimersByTime(1500); });
 
       waitFor(() => {
         expect(screen.getByTestId('municipality-layer')).toBeInTheDocument();
@@ -657,7 +688,7 @@ describe('MapComponent', () => {
           }}
         />
       );
-      jest.advanceTimersByTime(1500);
+      act(() => { jest.advanceTimersByTime(1500); });
 
       // Should filter to 1 municipality (São Paulo with 100M) out of 3 total
       waitFor(() => {
@@ -678,7 +709,7 @@ describe('MapComponent', () => {
           }}
         />
       );
-      jest.advanceTimersByTime(1500);
+      act(() => { jest.advanceTimersByTime(1500); });
 
       // Multiple filters should all apply
       waitFor(() => {
@@ -702,7 +733,7 @@ describe('MapComponent', () => {
 
     it('should use default biomass type', () => {
       render(<MapComponent />);
-      jest.advanceTimersByTime(1500);
+      act(() => { jest.advanceTimersByTime(1500); });
 
       waitFor(() => {
         const layer = screen.getByTestId('municipality-layer');
@@ -712,7 +743,7 @@ describe('MapComponent', () => {
 
     it('should accept custom biomass type', () => {
       render(<MapComponent biomassType="livestock" />);
-      jest.advanceTimersByTime(1500);
+      act(() => { jest.advanceTimersByTime(1500); });
 
       waitFor(() => {
         const layer = screen.getByTestId('municipality-layer');
@@ -722,7 +753,7 @@ describe('MapComponent', () => {
 
     it('should use default opacity', () => {
       render(<MapComponent />);
-      jest.advanceTimersByTime(1500);
+      act(() => { jest.advanceTimersByTime(1500); });
 
       waitFor(() => {
         const layer = screen.getByTestId('municipality-layer');
@@ -732,7 +763,7 @@ describe('MapComponent', () => {
 
     it('should accept custom opacity', () => {
       render(<MapComponent opacity={0.9} />);
-      jest.advanceTimersByTime(1500);
+      act(() => { jest.advanceTimersByTime(1500); });
 
       waitFor(() => {
         const layer = screen.getByTestId('municipality-layer');
@@ -743,7 +774,7 @@ describe('MapComponent', () => {
     it('should handle callbacks for biomass type change', () => {
       const handleBiomassTypeChange = jest.fn();
       render(<MapComponent onBiomassTypeChange={handleBiomassTypeChange} />);
-      jest.advanceTimersByTime(1500);
+      act(() => { jest.advanceTimersByTime(1500); });
 
       // Callback should be passed to LeftFilterPanel
       waitFor(() => {
@@ -754,7 +785,7 @@ describe('MapComponent', () => {
     it('should handle callbacks for opacity change', () => {
       const handleOpacityChange = jest.fn();
       render(<MapComponent onOpacityChange={handleOpacityChange} />);
-      jest.advanceTimersByTime(1500);
+      act(() => { jest.advanceTimersByTime(1500); });
 
       // Callback should be passed to DesktopLeftPanel
       waitFor(() => {
@@ -784,6 +815,7 @@ describe('MapComponent', () => {
       });
 
       render(<MapComponent />);
+      act(() => { jest.advanceTimersByTime(1600); });
 
       expect(screen.getByText('Nenhum Dado Disponível')).toBeInTheDocument();
     });
@@ -808,7 +840,7 @@ describe('MapComponent', () => {
           }}
         />
       );
-      jest.advanceTimersByTime(1500);
+      act(() => { jest.advanceTimersByTime(1500); });
 
       // Should show 0 / 1
       waitFor(() => {

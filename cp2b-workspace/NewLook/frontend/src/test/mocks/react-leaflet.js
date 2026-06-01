@@ -1,3 +1,4 @@
+/* eslint-disable react/display-name */
 /**
  * Manual mock for react-leaflet.
  *

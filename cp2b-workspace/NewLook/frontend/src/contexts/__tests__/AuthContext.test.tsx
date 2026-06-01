@@ -17,11 +17,13 @@ jest.mock('@/lib/logger', () => ({
 
 const createWrapper = () => {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
-  return ({ children }: { children: React.ReactNode }) => (
+  const Wrapper = ({ children }: { children: React.ReactNode }) => (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>{children}</AuthProvider>
     </QueryClientProvider>
   )
+  Wrapper.displayName = 'TestWrapper'
+  return Wrapper
 }
 
 const renderAuth = () => renderHook(() => useAuth(), { wrapper: createWrapper() })
