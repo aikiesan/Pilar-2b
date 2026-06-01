@@ -309,14 +309,14 @@ export default function StepAtividade({ data, onChange, onNext, onBack }: Props)
             <button
               key={key}
               onClick={() => set({ activityType: key })}
-              className="flex flex-col items-center justify-center gap-2 p-4 rounded-2xl
+              className="flex flex-col items-center justify-center gap-2 p-3 sm:p-4 rounded-2xl
                 border-2 border-gray-200 dark:border-slate-700
                 bg-white dark:bg-slate-800
                 hover:border-green-400 dark:hover:border-emerald-500
                 hover:bg-green-50 dark:hover:bg-emerald-900/20
                 transition-all text-center"
             >
-              <span className="text-3xl">{emoji}</span>
+              <span className="text-2xl sm:text-3xl">{emoji}</span>
               <span className="font-semibold text-gray-800 dark:text-slate-200 text-sm">{t(`step2.${labelKey}`)}</span>
               <span className="text-xs text-gray-500 dark:text-slate-400 leading-tight">{t(`step2.${descKey}`)}</span>
             </button>

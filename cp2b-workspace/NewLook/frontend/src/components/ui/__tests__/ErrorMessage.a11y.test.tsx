@@ -37,7 +37,7 @@ describe('ErrorMessage Accessibility', () => {
   describe('Retry button', () => {
     it('retry button has accessible label', () => {
       render(<ErrorMessage type="network" message="Network error." onRetry={jest.fn()} />)
-      const btn = screen.getByRole('button', { name: /retry|try again/i })
+      const btn = screen.getByRole('button', { name: /retry|try again|tentar/i })
       expect(btn).toBeInTheDocument()
     })
 
@@ -45,7 +45,7 @@ describe('ErrorMessage Accessibility', () => {
       const user = userEvent.setup()
       const onRetry = jest.fn()
       render(<ErrorMessage type="network" message="Network error." onRetry={onRetry} />)
-      const btn = screen.getByRole('button', { name: /retry|try again/i })
+      const btn = screen.getByRole('button', { name: /retry|try again|tentar/i })
       btn.focus()
       await user.keyboard('{Enter}')
       expect(onRetry).toHaveBeenCalled()
@@ -53,7 +53,7 @@ describe('ErrorMessage Accessibility', () => {
 
     it('rate_limit error disables retry button during countdown', () => {
       render(<ErrorMessage type="rate_limit" message="Too many requests." retryAfter={30} />)
-      const btn = screen.queryByRole('button', { name: /retry|try again/i })
+      const btn = screen.queryByRole('button', { name: /retry|try again|tentar/i })
       if (btn) expect(btn).toBeDisabled()
     })
   })

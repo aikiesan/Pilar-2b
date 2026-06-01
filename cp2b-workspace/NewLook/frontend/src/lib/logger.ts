@@ -7,8 +7,11 @@
 
 type LogLevel = 'error' | 'warn' | 'info' | 'debug';
 
-const isDevelopment = process.env.NODE_ENV === 'development';
-const isTest = process.env.NODE_ENV === 'test';
+// Read NODE_ENV dynamically (not at module load) so the level is correct even
+// when the environment changes after import — and so tests can exercise each
+// branch by toggling process.env.NODE_ENV.
+const isDevelopment = () => process.env.NODE_ENV === 'development';
+const isTest = () => process.env.NODE_ENV === 'test';
 
 class Logger {
   private shouldLog(level: LogLevel): boolean {
@@ -16,10 +19,10 @@ class Logger {
     if (level === 'error') return true;
 
     // Log everything in development
-    if (isDevelopment) return true;
+    if (isDevelopment()) return true;
 
     // Don't log in production or tests
-    if (isTest) return false;
+    if (isTest()) return false;
 
     return false;
   }

@@ -27,10 +27,22 @@ jest.mock('next-intl', () => ({
 jest.mock('leaflet/dist/leaflet.css', () => ({}));
 jest.mock('@/lib/leafletConfig', () => ({}));
 
-// Mock useGeospatialData hook
+// Mock useGeospatialData hook.
+// MapComponent also calls useCodigestionClusters, useResidueCNMatrix and
+// useIntermediateRegionsGeoJSON — they must be stubbed too or the component
+// throws "useCodigestionClusters is not a function" before render.
 const mockUseGeospatialData = jest.fn();
 jest.mock('@/hooks/useGeospatialData', () => ({
   useGeospatialData: () => mockUseGeospatialData(),
+  useCodigestionClusters: () => ({ data: null, loading: false, error: null, isFetching: false, refetch: jest.fn() }),
+  useResidueCNMatrix: () => ({ data: null, loading: false, error: null }),
+  useIntermediateRegionsGeoJSON: () => ({ data: null, loading: false, error: null, isFetching: false, refetch: jest.fn() }),
+}));
+
+// useCnProfiles lives in a separate module and also calls React Query —
+// stub it so the component doesn't need a QueryClientProvider.
+jest.mock('@/hooks/useCnProfiles', () => ({
+  useCnProfiles: () => ({ profiles: [], profilesMap: {}, isLoading: false, error: null }),
 }));
 
 // Mock child components to simplify testing
@@ -104,6 +116,11 @@ jest.mock('./DesktopLeftPanel', () => ({
       ))}
     </div>
   ),
+}));
+
+jest.mock('./MapToolbar', () => ({
+  __esModule: true,
+  default: () => <div data-testid="map-toolbar">Toolbar</div>,
 }));
 
 jest.mock('./MapLegend', () => ({

@@ -21,9 +21,20 @@ jest.mock('next/navigation', () => ({
   usePathname: jest.fn(),
 }))
 
+// Mock the locale-aware navigation wrapper — it imports next-intl/navigation
+// (ESM) which Jest can't parse; mocking it avoids the parse cascade.
+jest.mock('@/navigation', () => ({
+  useRouter: jest.fn(() => ({ push: jest.fn(), replace: jest.fn() })),
+  usePathname: jest.fn(() => '/'),
+  Link: ({ children, ...props }: any) => <a {...props}>{children}</a>,
+  redirect: jest.fn(),
+}))
+
 // Mock next-intl
 jest.mock('next-intl', () => ({
   useLocale: jest.fn(() => 'en'),
+  useTranslations: jest.fn(() => (key: string) => key),
+  NextIntlClientProvider: ({ children }: any) => <>{children}</>,
 }))
 
 const mockRouter = {

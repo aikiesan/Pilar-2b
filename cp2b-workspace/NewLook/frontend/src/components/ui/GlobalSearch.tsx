@@ -16,7 +16,8 @@ import type { MunicipalityFeature } from '@/types/geospatial'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function formatBig(value: number): string {
+function formatBig(value: number | null | undefined): string {
+  if (value == null || Number.isNaN(value)) return '—'
   if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`
   if (value >= 1_000) return `${(value / 1_000).toFixed(0)}K`
   return value.toFixed(0)
@@ -152,7 +153,7 @@ export default function GlobalSearch({ variant = 'light' }: GlobalSearchProps) {
             <Search className={`w-4 h-4 shrink-0 ${variant === 'dark' ? 'text-green-300' : 'text-gray-400'}`} />
             <input
               ref={inputRef}
-              type="text"
+              type="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={onKeyDownList}
