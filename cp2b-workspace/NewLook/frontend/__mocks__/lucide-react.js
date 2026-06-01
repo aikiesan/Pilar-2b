@@ -14,18 +14,22 @@ const createMockIcon = (name) => {
   })
 }
 
-module.exports = {
-  Globe: createMockIcon("Globe"),
-  User: createMockIcon("User"),
-  Map: createMockIcon("Map"),
-  Settings: createMockIcon("Settings"),
-  Search: createMockIcon("Search"),
-  Menu: createMockIcon("Menu"),
-  X: createMockIcon("X"),
-  ChevronDown: createMockIcon("ChevronDown"),
-  ChevronUp: createMockIcon("ChevronUp"),
-  Home: createMockIcon("Home"),
-  Info: createMockIcon("Info"),
-  Mail: createMockIcon("Mail"),
-  Phone: createMockIcon("Phone"),
-}
+// Auto-generate a mock for ANY icon name lucide-react exports, so adding a new
+// icon to a component never silently breaks its tests with an "Element type is
+// invalid" (undefined import) error. A hardcoded allow-list was the root cause
+// of the UI a11y suite cascade (Moon, Sun, etc. were missing).
+const iconCache = new Map()
+
+module.exports = new Proxy(
+  {},
+  {
+    get(_target, prop) {
+      if (prop === "__esModule") return true
+      if (typeof prop !== "string") return undefined
+      if (!iconCache.has(prop)) {
+        iconCache.set(prop, createMockIcon(prop))
+      }
+      return iconCache.get(prop)
+    },
+  }
+)
