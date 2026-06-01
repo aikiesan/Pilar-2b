@@ -23,6 +23,14 @@ jest.mock('react-leaflet', () => ({
     </div>
   ),
   Tooltip: ({ children }: { children: React.ReactNode }) => <div data-testid="tooltip">{children}</div>,
+  useMap: () => ({
+    addLayer: jest.fn(),
+    removeLayer: jest.fn(),
+    on: jest.fn(),
+    off: jest.fn(),
+    getZoom: jest.fn(() => 10),
+  }),
+  useMapEvents: () => ({}),
 }));
 
 describe('HeatmapLayer', () => {

@@ -8,40 +8,13 @@ import { MapContainer } from 'react-leaflet';
 import MunicipalityLayer from './MunicipalityLayer';
 import type { MunicipalityCollection } from '@/types/geospatial';
 
-// Mock react-leaflet
-jest.mock('react-leaflet', () => ({
-  MapContainer: ({ children }: { children: React.ReactNode }) => <div data-testid="map-container">{children}</div>,
-  GeoJSON: ({ data, style, onEachFeature }: any) => {
-    // Simulate calling onEachFeature for the first feature
-    if (data?.features?.length > 0 && onEachFeature) {
-      const mockLayer = {
-        bindTooltip: jest.fn(),
-        bindPopup: jest.fn(),
-        on: jest.fn(),
-        setStyle: jest.fn(),
-        bringToFront: jest.fn()
-      };
-      onEachFeature(data.features[0], mockLayer);
-    }
-    return <div data-testid="geojson-layer" data-feature-count={data?.features?.length || 0} />;
-  },
-}));
-
-// Mock leaflet
-jest.mock('leaflet', () => ({
-  Path: class Path {},
-  DomUtil: {
-    create: jest.fn(() => document.createElement('div'))
-  }
-}));
-
-// Mock react-dom/client
-jest.mock('react-dom/client', () => ({
-  createRoot: jest.fn(() => ({
-    render: jest.fn(),
-    unmount: jest.fn()
-  }))
-}));
+// react-leaflet and leaflet are mocked globally via jest.config moduleNameMapper
+// (src/test/mocks/*) so the component and test share one mock instance.
+//
+// NOTE: react-dom/client must NOT be mocked here — @testing-library/react's
+// render() uses createRoot internally, so mocking it produces empty output. The
+// component only calls createRoot inside Leaflet popup callbacks, which the
+// mocked GeoJSON/leaflet layers already neutralise.
 
 describe('MunicipalityLayer', () => {
   const mockMunicipalityData: MunicipalityCollection = {

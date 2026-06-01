@@ -58,6 +58,10 @@ const config = {
     '\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$':
       '<rootDir>/src/test/__mocks__/fileMock.js',
     '^lucide-react$': '<rootDir>/__mocks__/lucide-react.js',
+    // react-leaflet/leaflet are ESM + need browser APIs jsdom lacks; force every
+    // importer (component AND test) onto one mock to avoid module-instance skew.
+    '^react-leaflet$': '<rootDir>/src/test/mocks/react-leaflet.js',
+    '^leaflet$': '<rootDir>/src/test/mocks/leaflet.js',
     '^@/(.*)$': '<rootDir>/src/$1',
     '^@/components/(.*)$': '<rootDir>/src/components/$1',
     '^@/lib/(.*)$': '<rootDir>/src/lib/$1',
