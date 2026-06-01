@@ -166,7 +166,9 @@ describe('Performance Utilities', () => {
       await expect(retryOperation(failOperation)).rejects.toThrow();
 
       expect(failOperation).toHaveBeenCalledTimes(4); // Initial + 3 retries
-    });
+      // Default backoff is 1000+2000+4000ms of real sleeps, which exceeds the
+      // 5s default; allow headroom rather than faking timers (sleep uses real ms).
+    }, 15000);
   });
 
   describe('sleep', () => {
@@ -214,23 +216,27 @@ describe('Performance Utilities', () => {
       expect(multiArgFn).toHaveBeenCalledTimes(2); // (1,2) and (2,3)
     });
 
-    it('should respect maxCacheSize', () => {
+    it('should respect maxCacheSize (FIFO eviction)', () => {
       const fn = jest.fn((x: number) => x);
       const memoized = memoize(fn, 2); // Max 2 entries
 
       memoized(1);
       memoized(2);
-      memoized(3); // Should evict 1
+      memoized(3); // cache full -> evicts oldest (1); cache now {2,3}
 
       expect(fn).toHaveBeenCalledTimes(3);
 
-      // Call 1 again - should not be cached
+      // 3 is the most recent entry -> still cached, no new call
+      memoized(3);
+      expect(fn).toHaveBeenCalledTimes(3);
+
+      // 1 was evicted -> recomputed; this evicts 2, cache now {3,1}
       memoized(1);
       expect(fn).toHaveBeenCalledTimes(4);
 
-      // Call 2 again - should be cached
+      // 2 was evicted by the previous call -> recomputed
       memoized(2);
-      expect(fn).toHaveBeenCalledTimes(4); // No additional call
+      expect(fn).toHaveBeenCalledTimes(5);
     });
 
     it('should handle complex objects as arguments', () => {
@@ -464,9 +470,25 @@ describe('Performance Utilities', () => {
         },
       };
 
-      (global as any).window = { performance: mockPerformance };
+      // Define performance on the real jsdom window (reassigning global.window
+      // to a plain object is unreliable and breaks subsequent tests).
+      const originalPerformance = window.performance;
+      Object.defineProperty(window, 'performance', {
+        value: mockPerformance,
+        configurable: true,
+        writable: true,
+      });
 
-      const result = logPerformanceMetrics();
+      let result;
+      try {
+        result = logPerformanceMetrics();
+      } finally {
+        Object.defineProperty(window, 'performance', {
+          value: originalPerformance,
+          configurable: true,
+          writable: true,
+        });
+      }
 
       expect(logger.info).toHaveBeenCalled();
       expect(result).toBeDefined();

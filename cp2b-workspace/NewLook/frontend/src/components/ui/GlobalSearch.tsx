@@ -158,6 +158,7 @@ export default function GlobalSearch({ variant = 'light' }: GlobalSearchProps) {
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={onKeyDownList}
               placeholder="Nome ou código IBGE..."
+              aria-label="Buscar município"
               className={`flex-1 bg-transparent text-sm outline-none ${
                 variant === 'dark' ? 'text-white placeholder-green-300/50' : 'text-gray-900 placeholder-gray-400'
               }`}
@@ -179,7 +180,7 @@ export default function GlobalSearch({ variant = 'light' }: GlobalSearchProps) {
                   Nenhum município encontrado para &quot;{query}&quot;
                 </div>
               ) : (
-                <ul role="listbox">
+                <ul role="listbox" aria-label="Resultados da busca">
                   {results.map((muni, idx) => {
                     const total = muni.properties.total_biogas_m3_year
                     return (
@@ -215,7 +216,7 @@ export default function GlobalSearch({ variant = 'light' }: GlobalSearchProps) {
                       </li>
                     )
                   })}
-                  <li className="px-4 py-2 bg-gray-50 dark:bg-slate-900/40 border-t border-gray-100 dark:border-slate-700">
+                  <li role="presentation" className="px-4 py-2 bg-gray-50 dark:bg-slate-900/40 border-t border-gray-100 dark:border-slate-700">
                     <p className="text-[10px] text-gray-400 text-center">
                       ↑↓ navegar · Enter selecionar · Esc fechar
                     </p>
