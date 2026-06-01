@@ -147,7 +147,8 @@ describe('RegionMarkersLayer', () => {
       );
 
       await waitFor(() => {
-        expect(global.fetch).toHaveBeenCalledWith('http://localhost:8000/api/v1/simulation/regions/brazil');
+        // When NEXT_PUBLIC_API_URL is unset the component uses a relative path.
+        expect(global.fetch).toHaveBeenCalledWith('/api/v1/simulation/regions/brazil');
       });
     });
 

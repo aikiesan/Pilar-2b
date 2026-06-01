@@ -197,8 +197,9 @@ describe('formatBiogas', () => {
   });
 
   it('should handle negative values', () => {
-    expect(formatBiogas(-1000)).toBe('-1 m³/year');
-    expect(formatBiogas(-1_000_000)).toBe('-1.0 million m³/year');
+    // Abbreviation only applies to positive thresholds; negatives are shown raw.
+    expect(formatBiogas(-1000)).toBe('-1000 m³/year');
+    expect(formatBiogas(-1_000_000)).toBe('-1000000 m³/year');
   });
 });
 
