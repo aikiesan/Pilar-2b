@@ -9,19 +9,42 @@ import userEvent from '@testing-library/user-event';
 import MapComponent from './MapComponent';
 import type { MunicipalityCollection, MunicipalityFeature } from '@/types/geospatial';
 
-// Mock Next.js dynamic imports
+// next/dynamic's loader returns a Promise (import('./X')), so calling it and
+// using the result as a component yields "Element type is invalid". The dynamic
+// children are individually jest.mock'd below, so render a lightweight stub that
+// resolves to the mocked module's default once the import settles.
 jest.mock('next/dynamic', () => ({
   __esModule: true,
-  default: (fn: () => any) => {
-    const Component = fn();
-    return Component;
+  default: (loader: () => Promise<any>) => {
+    const ReactLib = require('react');
+    const Dynamic = (props: any) => {
+      const [Comp, setComp] = ReactLib.useState(null);
+      ReactLib.useEffect(() => {
+        let active = true;
+        Promise.resolve(loader())
+          .then((mod: any) => { if (active) setComp(() => (mod && mod.default) || mod); })
+          .catch(() => {});
+        return () => { active = false; };
+      }, []);
+      return Comp ? ReactLib.createElement(Comp, props) : null;
+    };
+    return Dynamic;
   },
 }));
 
-// Mock next-intl
-jest.mock('next-intl', () => ({
-  useTranslations: () => (key: string) => key,
-}));
+// Mock next-intl. Resolve real pt-BR strings for the component's namespace so
+// text assertions (e.g. "Erro ao Carregar Mapa") match the shipped copy rather
+// than raw keys.
+jest.mock('next-intl', () => {
+  const messages = require('../../../messages/pt-BR.json');
+  return {
+    useTranslations: (namespace?: string) => (key: string) => {
+      const path = namespace ? `${namespace}.${key}` : key;
+      const value = path.split('.').reduce((acc: any, part) => (acc == null ? acc : acc[part]), messages);
+      return typeof value === 'string' ? value : key;
+    },
+  };
+});
 
 // Mock Leaflet CSS imports
 jest.mock('leaflet/dist/leaflet.css', () => ({}));

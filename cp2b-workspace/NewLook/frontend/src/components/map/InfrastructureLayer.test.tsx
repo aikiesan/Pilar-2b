@@ -28,7 +28,7 @@ jest.mock('react-leaflet', () => ({
   MapContainer: ({ children }: { children: React.ReactNode }) => <div data-testid="map-container">{children}</div>,
   GeoJSON: ({ data, style, pointToLayer, onEachFeature }: any) => {
     // Call pointToLayer for point features if provided
-    if (data?.features?.length > 0 && pointToLayer && data.features[0].geometry.type === 'Point') {
+    if (data?.features?.length > 0 && pointToLayer && data.features[0].geometry?.type === 'Point') {
       const mockLatLng = { lat: 0, lng: 0 } as any;
       pointToLayer(data.features[0], mockLatLng);
     }
@@ -659,13 +659,14 @@ describe('InfrastructureLayer', () => {
         isFetching: false
       });
 
-      const { getByTestId } = render(
+      const { queryByTestId } = render(
         <MapContainer center={[0, 0]} zoom={10}>
           <InfrastructureLayer layerType="railways" />
         </MapContainer>
       );
 
-      expect(getByTestId('infrastructure-geojson')).toHaveAttribute('data-feature-count', '0');
+      // With no features the layer renders nothing (perf: skips the GeoJSON).
+      expect(queryByTestId('infrastructure-geojson')).not.toBeInTheDocument();
     });
   });
 

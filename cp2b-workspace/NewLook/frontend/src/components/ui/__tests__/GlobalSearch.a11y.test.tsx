@@ -1,5 +1,5 @@
 import React from 'react'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { axe } from 'jest-axe'
 import GlobalSearch from '../GlobalSearch'
@@ -46,18 +46,23 @@ describe('GlobalSearch Accessibility', () => {
   })
 
   describe('Search input', () => {
-    it('search input has accessible label or placeholder', () => {
+    it('search input has accessible label or placeholder', async () => {
+      const user = userEvent.setup()
       render(<GlobalSearch />)
-      const input = screen.getByRole('searchbox') || screen.getByPlaceholderText(/search|municipality/i)
+      // The input only mounts once the search is opened.
+      await user.keyboard('/')
+      const input = await screen.findByRole('searchbox')
       expect(input).toBeInTheDocument()
+      expect(input).toHaveAccessibleName()
     })
 
     it('opens on "/" keyboard shortcut and focuses the input', async () => {
       const user = userEvent.setup()
       render(<GlobalSearch />)
       await user.keyboard('/')
-      const input = screen.queryByRole('combobox') || screen.queryByRole('searchbox')
-      if (input) expect(input).toHaveFocus()
+      const input = await screen.findByRole('searchbox')
+      // Focus is applied via a short setTimeout after opening.
+      await waitFor(() => expect(input).toHaveFocus())
     })
 
     it('closes on Escape and returns focus', async () => {

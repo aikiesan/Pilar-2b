@@ -122,6 +122,7 @@ export const getResidueBiomassTons = (
   residue: ResidueType
 ): number => {
   const config = BIOMASS_RESIDUES[residue];
+  if (!config) return 0; // unknown residue type — no biomass contribution
   const storedBiomass = numberValue(props[config.biomassField]);
   if (storedBiomass > 0) return storedBiomass;
 
