@@ -28,34 +28,45 @@ class ResidueBiomassConfig:
     vs_percent: float
 
 
-# Factors mirror backend/scripts/load_biomass_tons.py. Agricultural values are
-# weighted averages because the municipality columns aggregate multiple residue
-# streams per crop. All VS values are WET WEIGHT basis (see module docstring).
+# All values generated from data/canonical_parameters/feedstocks.yaml via
+# scripts/generate_from_canonical.py. BMP in NmL CH₄/gVS (dry-weight VS basis).
+# vs_percent = VS % wet weight = ts_medio × vs_of_ts_medio / 100 (see module docstring).
+# Re-run the generator after editing feedstocks.yaml — do NOT edit these values directly.
 #
-# BMP sources:
-#   sugarcane: weighted palha+vinhaça+torta aggregate; Velásquez Piñas et al. (2020)
-#   soybean:   avg palha+casca; Kafle & Chen (2016) Bioresour. Technol. 199:142-150
-#   corn:      avg palha+casca+sabugo; Herrmann et al. (2012) Bioresour. Technol. 107:235-243
-#   coffee:    avg casca+polpa; literature range 120-350 — 200 is conservative aggregate
-#   citrus:    bagaço; Wikandari et al. (2014) Bioresour. Technol. 170:64-70
-#   cattle:    esterco bovino solid; Amon et al. (2007) Bioresour. Technol. 98:3203-3212
-#   swine:     dejetos líquidos; Møller et al. (2004) J. Environ. Qual. 33:27-36
-#   poultry:   cama de aviário weighted; Abouelenien et al. (2014) Waste Mgmt 34:209-216
-#   rsu:       FORSU source-separated; Mata-Alvarez et al. (2014) Bioresour. Technol. 163:1-11
-#              corrected from 410 → 270 (migration 015); 410 was typical food-waste mono-digest
-#              not representative of the mixed FORSU stream modeled at municipality level
+# Primary DOI per feedstock:
+#   sugarcane: https://doi.org/10.15376/biores.11.3.6824-6841  (Talha et al. 2016)
+#   soybean:   https://doi.org/10.1016/j.wasman.2015.10.021   (Kafle & Chen 2016)
+#   corn:      https://doi.org/10.1016/j.biortech.2011.12.074 (Herrmann et al. 2012)
+#   coffee:    https://doi.org/10.1016/j.biteb.2021.100830    (Okonkwo et al. 2021)
+#   citrus:    https://doi.org/10.1016/j.biortech.2014.07.074 (Wikandari et al. 2014)
+#   cattle:    https://doi.org/10.1016/j.biortech.2006.07.016 (Amon et al. 2007)
+#   swine:     https://doi.org/10.2134/jeq2004.0027           (Møller et al. 2004)
+#   poultry:   https://doi.org/10.1016/j.wasman.2013.10.001   (Abouelenien et al. 2014)
+#   rsu/FORSU: https://doi.org/10.1016/j.biortech.2014.03.077 (Mata-Alvarez et al. 2014)
+#   rpo/lodo:  https://doi.org/10.1016/j.wasman.2019.04.025   (Heerenklage et al. 2019)
 RESIDUE_BIOMASS_CONFIGS: tuple[ResidueBiomassConfig, ...] = (
-    ResidueBiomassConfig("sugarcane", "agricultural", "sugarcane_biomass_tons_year", "sugarcane_biogas_m3_year", 210.0, 77.0),
-    ResidueBiomassConfig("soybean", "agricultural", "soybean_biomass_tons_year", "soybean_biogas_m3_year", 180.0, 84.0),
-    ResidueBiomassConfig("corn", "agricultural", "corn_biomass_tons_year", "corn_biogas_m3_year", 280.0, 77.0),
-    ResidueBiomassConfig("coffee", "agricultural", "coffee_biomass_tons_year", "coffee_biogas_m3_year", 200.0, 55.0),
-    ResidueBiomassConfig("citrus", "agricultural", "citrus_biomass_tons_year", "citrus_biogas_m3_year", 230.0, 20.0),
-    ResidueBiomassConfig("cattle", "livestock", "cattle_biomass_tons_year", "cattle_biogas_m3_year", 200.0, 12.5),
-    ResidueBiomassConfig("swine", "livestock", "swine_biomass_tons_year", "swine_biogas_m3_year", 210.0, 3.5),
-    ResidueBiomassConfig("poultry", "livestock", "poultry_biomass_tons_year", "poultry_biogas_m3_year", 270.0, 50.0),
+    # sugarcane: BAGACO representative (bmp=115); vs_wet = 58.9×90/100 = 53.0%
+    ResidueBiomassConfig("sugarcane", "agricultural", "sugarcane_biomass_tons_year", "sugarcane_biogas_m3_year", 115.0, 53.0),
+    # soybean: CASCA_SOJA representative (bmp=300); vs_wet = 90×93/100 = 83.7%
+    ResidueBiomassConfig("soybean", "agricultural", "soybean_biomass_tons_year", "soybean_biogas_m3_year", 300.0, 83.7),
+    # corn: PALHA_MILHO (bmp=230); vs_wet = 82×86/100 = 70.5%
+    ResidueBiomassConfig("corn", "agricultural", "corn_biomass_tons_year", "corn_biogas_m3_year", 230.0, 70.5),
+    # coffee: CASCA_CAFE (bmp=140); vs_wet = 88×93/100 = 81.8%
+    ResidueBiomassConfig("coffee", "agricultural", "coffee_biomass_tons_year", "coffee_biogas_m3_year", 140.0, 81.8),
+    # citrus: BAGACO_CITROS (bmp=230); vs_wet = 18×88/100 = 15.8%
+    ResidueBiomassConfig("citrus", "agricultural", "citrus_biomass_tons_year", "citrus_biogas_m3_year", 230.0, 15.8),
+    # cattle: ESTERCO_BOVINO (bmp=200); vs_wet = 25×78/100 = 19.5%
+    ResidueBiomassConfig("cattle", "livestock", "cattle_biomass_tons_year", "cattle_biogas_m3_year", 200.0, 19.5),
+    # swine: DEJETOS_SUINO liquid (bmp=210); vs_wet = 3×80/100 = 2.4%
+    ResidueBiomassConfig("swine", "livestock", "swine_biomass_tons_year", "swine_biogas_m3_year", 210.0, 2.4),
+    # poultry: CAMA_AVIARIO (bmp=280); vs_wet = 25×69.8/100 = 17.5%
+    ResidueBiomassConfig("poultry", "livestock", "poultry_biomass_tons_year", "poultry_biogas_m3_year", 280.0, 17.5),
+    # aquaculture: not yet in canonical YAML; placeholder retained
     ResidueBiomassConfig("aquaculture", "livestock", "aquaculture_biomass_tons_year", "aquaculture_biogas_m3_year", 200.0, 15.0),
-    ResidueBiomassConfig("rsu", "urban", "rsu_biomass_tons_year", "rsu_biogas_m3_year", 270.0, 17.0),
-    ResidueBiomassConfig("rpo", "urban", "rpo_biomass_tons_year", "rpo_biogas_m3_year", 210.0, 3.1),
+    # rsu/FORSU: bmp=310 (migration 015+016 corrected from 88); vs_wet = 30.58×85/100 = 26.0%
+    ResidueBiomassConfig("rsu", "urban", "rsu_biomass_tons_year", "rsu_biogas_m3_year", 310.0, 26.0),
+    # rpo/lodo primário: bmp=310; vs_wet = 15×68/100 = 10.2%
+    ResidueBiomassConfig("rpo", "urban", "rpo_biomass_tons_year", "rpo_biogas_m3_year", 310.0, 10.2),
 )
 
 RESIDUE_KEYS = tuple(config.key for config in RESIDUE_BIOMASS_CONFIGS)

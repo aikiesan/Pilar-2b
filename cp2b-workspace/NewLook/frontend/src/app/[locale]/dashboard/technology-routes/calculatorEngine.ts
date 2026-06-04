@@ -80,11 +80,16 @@ export const CAPEX_TIERS = SCENARIO_CAPEX_TIERS.avg
 // vs   = volatile solids fraction (0–1)
 // fde  = practical farm-level availability fraction
 // ch4  = CH4 content in raw biogas (vol fraction)
+// BMP values from canonical YAML (data/canonical_parameters/feedstocks.yaml).
+// vs = VS/TS fraction (dry-weight basis); rpr = residue-to-product ratio.
+// Sources: bagaco/torta Talha et al. 2016 https://doi.org/10.15376/biores.11.3.6824-6841
+//          palha Velásquez Piñas et al. 2020 https://doi.org/10.1016/j.biombioe.2020.105774
+//          vinhaca Bonomi et al. 2015 https://doi.org/10.1016/j.rser.2015.01.022
 export const SUGARCANE_STREAMS = {
-  bagaco:  { rpr: 0.28, bmp: 350, vs: 0.88, fde: 0.20, ch4: 0.55 },
-  palha:   { rpr: 0.14, bmp: 300, vs: 0.82, fde: 0.40, ch4: 0.55 },
-  vinhaca: { rpr: 0.12, bmp: 350, vs: 0.02, fde: 0.90, ch4: 0.65 },
-  torta:   { rpr: 0.03, bmp: 280, vs: 0.75, fde: 0.35, ch4: 0.60 },
+  bagaco:  { rpr: 0.28, bmp: 115, vs: 0.90, fde: 0.20, ch4: 0.55 },
+  palha:   { rpr: 0.14, bmp: 210, vs: 0.82, fde: 0.40, ch4: 0.55 },
+  vinhaca: { rpr: 0.12, bmp:  90, vs: 0.60, fde: 0.90, ch4: 0.65 },
+  torta:   { rpr: 0.03, bmp: 280, vs: 0.80, fde: 0.35, ch4: 0.60 },
 } as const
 
 // ── Livestock PPB (m³ biogas / head / year) ───────────────────────────────────
@@ -114,27 +119,32 @@ export const LIVESTOCK_CATEGORY_SPECIES: Record<'swine' | 'cattle' | 'poultry', 
 }
 
 // ── Crop residue params (single-stream BMP method) ───────────────────────────
-// Sources: Denis Miranda 2022 (corn), EMBRAPA/MAPA (soy, coffee, citrus)
-// bmp: m³ CH4 / tonne VS  |  vs: volatile solids fraction
+// BMP values from canonical YAML — do not edit here; run generate_from_canonical.py.
+// bmp: NmL CH4/gVS (dry-weight VS basis)  |  vs: VS/TS fraction (dry-weight)
 // avail: farm-level availability fraction  |  ch4: CH4 content in biogas
+// Sources per crop listed in data/canonical_parameters/feedstocks.yaml
 export type CropType = 'corn' | 'soy' | 'coffee' | 'citrus'
 
 export const CROP_PARAMS: Record<CropType, {
   bmp: number; vs: number; avail: number; ch4: number
   label: string; descLabel: string; source: string
 }> = {
-  corn:   { bmp: 320, vs: 0.83, avail: 0.50, ch4: 0.55,
+  // PALHA_MILHO: Herrmann et al. 2012 https://doi.org/10.1016/j.biortech.2011.12.074
+  corn:   { bmp: 230, vs: 0.86, avail: 0.50, ch4: 0.55,
             label: 'Milho (palha+sabugo)', descLabel: 'Palha e sabugo de milho',
-            source: 'Denis Miranda 2022; EMBRAPA Agroenergia' },
-  soy:    { bmp: 270, vs: 0.80, avail: 0.45, ch4: 0.55,
+            source: 'Herrmann et al. (2012) doi:10.1016/j.biortech.2011.12.074' },
+  // PALHA_SOJA: Kafle & Chen 2016 https://doi.org/10.1016/j.wasman.2015.10.021
+  soy:    { bmp: 220, vs: 0.85, avail: 0.45, ch4: 0.55,
             label: 'Soja (palha)', descLabel: 'Palha de soja pós-colheita',
-            source: 'MAPA 2021; Luca et al. 2020' },
-  coffee: { bmp: 380, vs: 0.78, avail: 0.70, ch4: 0.58,
-            label: 'Café (borra/casca)', descLabel: 'Casca e borra de café',
-            source: 'EMBRAPA Café 2022; Rocha et al. 2019' },
-  citrus: { bmp: 340, vs: 0.85, avail: 0.60, ch4: 0.56,
+            source: 'Kafle & Chen (2016) doi:10.1016/j.wasman.2015.10.021' },
+  // CASCA_CAFE: Okonkwo et al. 2021 https://doi.org/10.1016/j.biteb.2021.100830
+  coffee: { bmp: 140, vs: 0.93, avail: 0.70, ch4: 0.58,
+            label: 'Café (casca)', descLabel: 'Casca de café',
+            source: 'Okonkwo et al. (2021) doi:10.1016/j.biteb.2021.100830' },
+  // BAGACO_CITROS: Wikandari et al. 2014 https://doi.org/10.1016/j.biortech.2014.07.074
+  citrus: { bmp: 230, vs: 0.88, avail: 0.60, ch4: 0.56,
             label: 'Citros (bagaço)', descLabel: 'Bagaço de laranja/limão',
-            source: 'CEPEA/USP 2021; Silveira et al. 2020' },
+            source: 'Wikandari et al. (2014) doi:10.1016/j.biortech.2014.07.074' },
 }
 
 // Default harvest months per crop (used to pre-fill StepSazonalidade)

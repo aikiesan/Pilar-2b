@@ -1,0 +1,737 @@
+# =============================================================================
+# PILAR-2b Canonical Feedstock Parameter Database
+# =============================================================================
+# VERSION: 1.0  |  DATE: 2026-06-04  |  PLATFORM: PILAR-2b / CP2b — NIPE UNICAMP
+#
+# THIS FILE IS THE SINGLE SOURCE OF TRUTH for all biochemical parameters
+# used in PILAR-2b. Do NOT edit SQL migrations, Python configs, or TypeScript
+# constants directly — run scripts/generate_from_canonical.py instead.
+#
+# PARAMETER CONVENTIONS:
+#   bmp        — Biochemical Methane Potential, NmL CH₄ / g VS
+#                Measured on dry-weight VS basis (standard for BMP assays).
+#   ts         — Total Solids, % of wet weight (field/industry measurement basis).
+#   vs_of_ts   — Volatile Solids as % of Total Solids (dry-weight basis, lab basis).
+#   vs_wet     — DERIVED: ts × vs_of_ts / 100  (% wet weight; used in service layer).
+#   ch4_pct    — Methane content in produced biogas, % vol.
+#   cn_ratio   — Carbon:Nitrogen mass ratio.
+#
+# LAYER MAPPING (done by the generator):
+#   SQL residuos table  : bmp_min/medio/max, ts_min/medio/max, vs_min/medio/max (% of TS)
+#   Python service       : bmp (NmL/gVS), vs_percent (% wet weight = vs_wet)
+#   TypeScript frontend  : bmp (NmL/gVS), vs (VS/TS fraction = vs_of_ts/100)
+#   JSON fde_residues    : bmp_value (NmL/gVS)
+#
+# To add a feedstock: copy any entry, assign a unique code, fill all fields,
+# and add at least 2 refs per parameter. Run the generator to propagate.
+# =============================================================================
+
+feedstocks:
+
+  # ── Sugarcane sector ────────────────────────────────────────────────────────
+
+  BAGACO:
+    pt_name: "Bagaço de cana-de-açúcar"
+    en_name: "Sugarcane bagasse"
+    sector: "AG_AGRICULTURA"
+    subsector: "AG_CANA"
+    bmp:
+      min: 86.25
+      medio: 115.0
+      max: 220.0
+      refs:
+        - id: "talha2016_bagaco"
+          value: "86.25–143.75 NmL/gVS untreated batch"
+        - id: "velasquez2020_sugarcane"
+          value: "218 NmL/gVS steam-explosion pretreated"
+        - id: "unica2023_straw"
+          value: "115 NmL/gVS industry reference"
+    ts:
+      min: 50.0
+      medio: 58.9
+      max: 66.0
+      refs: ["talha2016_bagaco", "velasquez2020_sugarcane"]
+    vs_of_ts:
+      min: 76.5
+      medio: 90.0
+      max: 97.0
+      refs: ["talha2016_bagaco"]
+    ch4_pct: 55.0
+    cn_ratio: 29.6
+    # Service layer: aggregate used as-is (no competing streams in this code)
+    service_override:
+      note: "bagaço-only stream; vs_wet = 58.9 × 90/100 = 53.0%"
+
+  PALHA:
+    pt_name: "Palha de cana-de-açúcar"
+    en_name: "Sugarcane straw"
+    sector: "AG_AGRICULTURA"
+    subsector: "AG_CANA"
+    bmp:
+      min: 140.0
+      medio: 210.0
+      max: 280.0
+      refs:
+        - id: "velasquez2020_sugarcane"
+          value: "185–250 NmL/gVS mechanically collected straw"
+        - id: "talha2016_bagaco"
+          value: "~140 NmL/gVS (lower-end; dry harvest conditions)"
+    ts:
+      min: 18.0
+      medio: 30.0
+      max: 55.0
+      refs: ["velasquez2020_sugarcane"]
+    vs_of_ts:
+      min: 72.0
+      medio: 82.0
+      max: 92.0
+      refs: ["velasquez2020_sugarcane"]
+    ch4_pct: 55.0
+    cn_ratio: 75.0
+    notes: >
+      Collectible fraction capped at 35% of total palhiço (12 t/ha) per
+      EMBRAPA/CONAB guidelines (Tenelli et al. 2021, doi:10.1016/j.agee.2021.107458).
+      Used yield_t_ha = 4.2 t/ha in load_biomass_tons.py.
+    yield_refs: ["tenelli2021_straw", "unica2023_straw"]
+
+  VINHACA:
+    pt_name: "Vinhaça de cana-de-açúcar"
+    en_name: "Sugarcane vinasse"
+    sector: "AG_AGRICULTURA"
+    subsector: "AG_CANA"
+    bmp:
+      min: 40.0
+      medio: 90.0
+      max: 160.0
+      refs:
+        - id: "bonomi2015_vinhaca"
+          value: "50–130 NmL/gVS; typical SP vinhaça ~85 NmL/gVS at VS ~1.5% wet"
+    ts:
+      min: 1.0
+      medio: 3.0
+      max: 5.0
+      refs: ["bonomi2015_vinhaca"]
+    vs_of_ts:
+      min: 45.0
+      medio: 60.0
+      max: 75.0
+      refs: ["bonomi2015_vinhaca"]
+    ch4_pct: 65.0
+    cn_ratio: 5.0
+    notes: >
+      Current JSON (bmp=300) and frontend (bmp=350) are severely overestimated.
+      Vinhaça is very dilute (VS ~1–5% wet); BMP per gVS is moderate but energy density
+      per m³ liquid is low. CETESB P4.231 regulates fertigation as primary use (FCo ~0.89).
+    frontend_vs_convention: "decimal_wet_weight"
+
+  TORTA_FILTRO:
+    pt_name: "Torta de filtro"
+    en_name: "Sugarcane filter cake / press mud"
+    sector: "AG_AGRICULTURA"
+    subsector: "AG_CANA"
+    bmp:
+      min: 200.0
+      medio: 280.0
+      max: 380.0
+      refs:
+        - id: "talha2016_bagaco"
+          value: "Talha 2016 covers filter mud: 200–380 NmL/gVS (low lignin)"
+        - id: "velasquez2020_sugarcane"
+          value: "280 NmL/gVS CSTR mesophilic"
+    ts:
+      min: 28.0
+      medio: 38.0
+      max: 48.0
+      refs: ["talha2016_bagaco"]
+    vs_of_ts:
+      min: 68.0
+      medio: 80.0
+      max: 90.0
+      refs: ["talha2016_bagaco"]
+    ch4_pct: 60.0
+    cn_ratio: 22.0
+
+  # ── Citrus sector ───────────────────────────────────────────────────────────
+
+  BAGACO_CITROS:
+    pt_name: "Bagaço de citros"
+    en_name: "Citrus bagasse"
+    sector: "AG_AGRICULTURA"
+    subsector: "AG_CITRICULTURA"
+    bmp:
+      min: 170.0
+      medio: 230.0
+      max: 310.0
+      refs:
+        - id: "wikandari2014_citrus"
+          value: "170–200 NmL/gVS without pretreatment; limonene inhibition at >200 mg/L"
+        - id: "pourbafrani2010_citrus"
+          value: "Citrus characterization; BMP potential up to 310 with limonene removal"
+    ts:
+      min: 10.0
+      medio: 18.0
+      max: 26.0
+      refs: ["pourbafrani2010_citrus"]
+    vs_of_ts:
+      min: 82.0
+      medio: 88.0
+      max: 94.0
+      refs: ["wikandari2014_citrus"]
+    ch4_pct: 56.0
+    cn_ratio: 22.0
+    notes: >
+      D-limonene in peel (0.5–2.5% DM) inhibits methanogenesis above ~200 mg/kg.
+      Current frontend value (bmp=340) and service (bmp=300) are overestimates.
+      Without limonene pretreatment, median of 230 is appropriate for SP bulk processing.
+
+  CASCAS_CITROS:
+    pt_name: "Cascas de citros"
+    en_name: "Citrus peel"
+    sector: "AG_AGRICULTURA"
+    subsector: "AG_CITRICULTURA"
+    bmp:
+      min: 160.0
+      medio: 210.0
+      max: 290.0
+      refs:
+        - id: "wikandari2014_citrus"
+          value: "Peel BMP lower than bagasse due to higher limonene concentration"
+        - id: "pourbafrani2010_citrus"
+          value: "Peel TS ~20% wet; VS/TS ~88%"
+    ts:
+      min: 15.0
+      medio: 20.0
+      max: 28.0
+      refs: ["pourbafrani2010_citrus"]
+    vs_of_ts:
+      min: 80.0
+      medio: 88.0
+      max: 94.0
+      refs: ["wikandari2014_citrus"]
+    ch4_pct: 56.0
+    cn_ratio: 20.0
+
+  # ── Coffee sector ───────────────────────────────────────────────────────────
+
+  CASCA_CAFE:
+    pt_name: "Casca de café"
+    en_name: "Coffee husk"
+    sector: "AG_AGRICULTURA"
+    subsector: "AG_CAFEICULTURA"
+    bmp:
+      min: 90.0
+      medio: 140.0
+      max: 190.0
+      refs:
+        - id: "okonkwo2021_coffee"
+          value: "Husk BMP 120–180 NmL/gVS; high lignin (27% DM) limits biodegradability"
+        - id: "murto2004_substrates"
+          value: "~130–170 NmL/gVS in co-digestion"
+    ts:
+      min: 82.0
+      medio: 88.0
+      max: 93.0
+      refs: ["okonkwo2021_coffee"]
+    vs_of_ts:
+      min: 88.0
+      medio: 93.0
+      max: 97.0
+      refs: ["okonkwo2021_coffee"]
+    ch4_pct: 58.0
+    cn_ratio: 25.0
+    notes: "Current service layer (bmp=200) is slightly conservative — acceptable given lignin fraction."
+
+  POLPA_CAFE:
+    pt_name: "Polpa de café"
+    en_name: "Coffee pulp"
+    sector: "AG_AGRICULTURA"
+    subsector: "AG_CAFEICULTURA"
+    bmp:
+      min: 190.0
+      medio: 245.0
+      max: 290.0
+      refs:
+        - id: "okonkwo2021_coffee"
+          value: "Pulp BMP 200–280 NmL/gVS; more soluble organics than husk"
+    ts:
+      min: 14.0
+      medio: 20.0
+      max: 28.0
+      refs: ["okonkwo2021_coffee"]
+    vs_of_ts:
+      min: 78.0
+      medio: 86.0
+      max: 93.0
+      refs: ["okonkwo2021_coffee"]
+    ch4_pct: 58.0
+    cn_ratio: 18.0
+
+  MUCILAGEM_CAFE:
+    pt_name: "Mucilagem de café"
+    en_name: "Coffee mucilage"
+    sector: "AG_AGRICULTURA"
+    subsector: "AG_CAFEICULTURA"
+    bmp:
+      min: 260.0
+      medio: 320.0
+      max: 390.0
+      refs:
+        - id: "okonkwo2021_coffee"
+          value: "Mucilage BMP 280–360 NmL/gVS; high soluble sugars and pectin"
+    ts:
+      min: 3.0
+      medio: 8.0
+      max: 15.0
+      refs: ["okonkwo2021_coffee"]
+    vs_of_ts:
+      min: 82.0
+      medio: 90.0
+      max: 96.0
+      refs: ["okonkwo2021_coffee"]
+    ch4_pct: 60.0
+    cn_ratio: 12.0
+
+  # ── Soybean sector ──────────────────────────────────────────────────────────
+
+  CASCA_SOJA:
+    pt_name: "Casca de soja"
+    en_name: "Soybean hull"
+    sector: "AG_AGRICULTURA"
+    subsector: "AG_SOJA"
+    bmp:
+      min: 230.0
+      medio: 300.0
+      max: 380.0
+      refs:
+        - id: "kafle2016_soy"
+          value: "Soybean hull BMP 260–380 NmL/gVS; low lignin, high cellulose"
+    ts:
+      min: 86.0
+      medio: 90.0
+      max: 93.0
+      refs: ["kafle2016_soy"]
+    vs_of_ts:
+      min: 88.0
+      medio: 93.0
+      max: 97.0
+      refs: ["kafle2016_soy"]
+    ch4_pct: 55.0
+    cn_ratio: 32.0
+    notes: "Current JSON (bmp=400) overestimates; 300 is more appropriate for bulk hull."
+
+  PALHA_SOJA:
+    pt_name: "Palha de soja"
+    en_name: "Soybean straw"
+    sector: "AG_AGRICULTURA"
+    subsector: "AG_SOJA"
+    bmp:
+      min: 150.0
+      medio: 220.0
+      max: 280.0
+      refs:
+        - id: "kafle2016_soy"
+          value: "Soybean straw BMP 150–250 NmL/gVS; higher lignin than hull"
+        - id: "herrmann2012_corn"
+          value: "Comparable to corn straw; 180–280 NmL/gVS"
+    ts:
+      min: 80.0
+      medio: 84.0
+      max: 88.0
+      refs: ["kafle2016_soy"]
+    vs_of_ts:
+      min: 80.0
+      medio: 85.0
+      max: 90.0
+      refs: ["kafle2016_soy"]
+    ch4_pct: 55.0
+    cn_ratio: 55.0
+
+  # ── Corn sector ─────────────────────────────────────────────────────────────
+
+  PALHA_MILHO:
+    pt_name: "Palha de milho"
+    en_name: "Corn stover"
+    sector: "AG_AGRICULTURA"
+    subsector: "AG_MILHO"
+    bmp:
+      min: 150.0
+      medio: 230.0
+      max: 300.0
+      refs:
+        - id: "herrmann2012_corn"
+          value: "Corn stover BMP 180–300 NmL/gVS; silage enhances to 300"
+    ts:
+      min: 70.0
+      medio: 82.0
+      max: 90.0
+      refs: ["herrmann2012_corn"]
+    vs_of_ts:
+      min: 78.0
+      medio: 86.0
+      max: 92.0
+      refs: ["herrmann2012_corn"]
+    ch4_pct: 55.0
+    cn_ratio: 57.0
+    notes: "Current frontend (bmp=320) slightly overestimates for bulk field corn stover."
+
+  CASCA_MILHO:
+    pt_name: "Casca de milho"
+    en_name: "Corn husks"
+    sector: "AG_AGRICULTURA"
+    subsector: "AG_MILHO"
+    bmp:
+      min: 110.0
+      medio: 145.0
+      max: 185.0
+      refs:
+        - id: "herrmann2012_corn"
+          value: "Corn husk BMP 120–170 NmL/gVS; lower than stover due to cellulose/lignin ratio"
+    ts:
+      min: 82.0
+      medio: 88.0
+      max: 93.0
+      refs: ["herrmann2012_corn"]
+    vs_of_ts:
+      min: 78.0
+      medio: 85.0
+      max: 90.0
+      refs: ["herrmann2012_corn"]
+    ch4_pct: 55.0
+    cn_ratio: 50.0
+
+  # ── Livestock sector ────────────────────────────────────────────────────────
+
+  CAMA_AVIARIO:
+    pt_name: "Cama de aviário"
+    en_name: "Poultry litter (with bedding)"
+    sector: "PC_PECUARIA"
+    subsector: "PC_AVES"
+    bmp:
+      min: 200.0
+      medio: 280.0
+      max: 360.0
+      refs:
+        - id: "abouelenien2014_poultry"
+          value: "Poultry litter BMP 200–320 NmL/gVS (cama de aviário with sawdust bedding)"
+        - id: "angelidaki2003_manure"
+          value: "280 NmL/gVS reference for litter in co-digestion"
+    ts:
+      min: 21.25
+      medio: 25.0
+      max: 28.75
+      refs: ["abouelenien2014_poultry"]
+    vs_of_ts:
+      min: 62.82
+      medio: 69.8
+      max: 76.78
+      refs: ["abouelenien2014_poultry"]
+    ch4_pct: 62.5
+    cn_ratio: 10.0
+    notes: "Current SQL (290) is correct. Low C:N (~10–12) requires co-digestion to avoid NH3 inhibition."
+
+  DEJETOS_AVES:
+    pt_name: "Dejetos frescos de aves"
+    en_name: "Fresh poultry droppings"
+    sector: "PC_PECUARIA"
+    subsector: "PC_AVES"
+    bmp:
+      min: 150.0
+      medio: 250.0
+      max: 340.0
+      refs:
+        - id: "abouelenien2014_poultry"
+          value: "Fresh droppings BMP 150–340 NmL/gVS (higher than litter; no bedding dilution)"
+    ts:
+      min: 5.0
+      medio: 15.0
+      max: 30.0
+      refs: ["abouelenien2014_poultry"]
+    vs_of_ts:
+      min: 65.0
+      medio: 75.0
+      max: 86.0
+      refs: ["abouelenien2014_poultry"]
+    ch4_pct: 57.0
+    cn_ratio: 8.0
+
+  ESTERCO_BOVINO:
+    pt_name: "Esterco bovino"
+    en_name: "Cattle solid manure"
+    sector: "PC_PECUARIA"
+    subsector: "PC_BOVINOS"
+    bmp:
+      min: 120.0
+      medio: 200.0
+      max: 270.0
+      refs:
+        - id: "amon2007_cattle"
+          value: "Cattle solid manure BMP 120–270 NmL/gVS; mesophilic CSTR"
+        - id: "embrapa2015_cattle"
+          value: "150–250 NmL/gVS for Brazilian esterco bovino"
+    ts:
+      min: 15.0
+      medio: 25.0
+      max: 35.0
+      refs: ["amon2007_cattle"]
+    vs_of_ts:
+      min: 68.0
+      medio: 78.0
+      max: 85.0
+      refs: ["amon2007_cattle", "embrapa2015_cattle"]
+    ch4_pct: 57.0
+    cn_ratio: 14.7
+
+  DEJETOS_BOVINO:
+    pt_name: "Dejetos líquidos bovino"
+    en_name: "Cattle liquid slurry"
+    sector: "PC_PECUARIA"
+    subsector: "PC_BOVINOS"
+    bmp:
+      min: 90.0
+      medio: 155.0
+      max: 220.0
+      refs:
+        - id: "moller2004_manure"
+          value: "Cattle slurry BMP 90–220 NmL/gVS; degradation during pre-storage reduces yield"
+        - id: "embrapa2015_cattle"
+          value: "90–200 NmL/gVS for Brazilian liquid cattle waste"
+    ts:
+      min: 5.0
+      medio: 8.0
+      max: 12.0
+      refs: ["moller2004_manure"]
+    vs_of_ts:
+      min: 68.0
+      medio: 78.0
+      max: 85.0
+      refs: ["moller2004_manure"]
+    ch4_pct: 57.0
+    cn_ratio: 15.0
+
+  DEJETOS_SUINO:
+    pt_name: "Dejetos líquidos de suínos"
+    en_name: "Swine liquid slurry"
+    sector: "PC_PECUARIA"
+    subsector: "PC_SUINOS"
+    bmp:
+      min: 140.0
+      medio: 210.0
+      max: 280.0
+      refs:
+        - id: "moller2004_manure"
+          value: "Swine slurry BMP 140–280 NmL/gVS"
+        - id: "wall2014_swine"
+          value: "Mesophilic BMP 165–265 NmL/gVS"
+        - id: "embrapa2012_swine"
+          value: "170–280 NmL/gVS for SP-region intensive swine operations"
+    ts:
+      min: 1.5
+      medio: 3.0
+      max: 5.5
+      refs: ["moller2004_manure"]
+    vs_of_ts:
+      min: 70.0
+      medio: 80.0
+      max: 85.0
+      refs: ["moller2004_manure"]
+    ch4_pct: 65.0
+    cn_ratio: 12.0
+
+  ESTERCO_SUINO:
+    pt_name: "Esterco sólido de suínos"
+    en_name: "Swine solid manure"
+    sector: "PC_PECUARIA"
+    subsector: "PC_SUINOS"
+    bmp:
+      min: 150.0
+      medio: 235.0
+      max: 320.0
+      refs:
+        - id: "moller2004_manure"
+          value: "Swine solid BMP 150–320 NmL/gVS; higher than slurry due to VS concentration"
+        - id: "wall2014_swine"
+          value: "200–300 NmL/gVS thermophilic (mesophilic 10–15% lower)"
+    ts:
+      min: 20.0
+      medio: 28.0
+      max: 35.0
+      refs: ["moller2004_manure"]
+    vs_of_ts:
+      min: 72.0
+      medio: 83.0
+      max: 90.0
+      refs: ["moller2004_manure"]
+    ch4_pct: 65.0
+    cn_ratio: 12.0
+
+  # ── Urban / sanitation sector ────────────────────────────────────────────────
+
+  FORSU:
+    pt_name: "FORSU — Fração Orgânica dos Resíduos Sólidos Urbanos separada na fonte"
+    en_name: "Source-separated organic fraction of municipal solid waste"
+    sector: "UR_URBANO"
+    subsector: "UR_RSU"
+    bmp:
+      min: 200.0
+      medio: 310.0
+      max: 420.0
+      refs:
+        - id: "mata_alvarez2014_ofmsw"
+          value: "Source-separated OFMSW BMP 200–450 NmL/gVS; median ~310"
+        - id: "de_baere2012_forsu"
+          value: "Full-scale EU plants: 300–430 NmL/gVS"
+        - id: "snis2022_rsu"
+          value: "Brazilian FORSU characterization; 50–55% of MSW by weight"
+    ts:
+      min: 26.0
+      medio: 30.58
+      max: 35.17
+      refs: ["mata_alvarez2014_ofmsw"]
+    vs_of_ts:
+      min: 76.5
+      medio: 85.0
+      max: 93.5
+      refs: ["mata_alvarez2014_ofmsw"]
+    ch4_pct: 52.0
+    cn_ratio: 18.0
+    notes: >
+      CRITICAL FIX: Previous bmp_medio=88 was a value for mixed unsorted MSW landfill gas,
+      not source-separated FORSU. Source-separated FORSU is 3–5x higher.
+      Migration 015 corrected this in SQL. Current service layer also corrected.
+
+  ORGANICO_RSU:
+    pt_name: "Fração orgânica RSU"
+    en_name: "Mixed organic fraction of MSW (not source-separated)"
+    sector: "UR_URBANO"
+    subsector: "UR_RSU"
+    bmp:
+      min: 170.0
+      medio: 270.0
+      max: 360.0
+      refs:
+        - id: "mata_alvarez2014_ofmsw"
+          value: "Mixed OFMSW (less pure than FORSU): 170–360 NmL/gVS"
+    ts:
+      min: 26.0
+      medio: 30.58
+      max: 35.17
+      refs: ["mata_alvarez2014_ofmsw"]
+    vs_of_ts:
+      min: 73.8
+      medio: 82.0
+      max: 90.2
+      refs: ["mata_alvarez2014_ofmsw"]
+    ch4_pct: 52.0
+    cn_ratio: 25.0
+
+  LODO_PRIMARIO:
+    pt_name: "Lodo primário de ETE"
+    en_name: "Primary wastewater sludge"
+    sector: "UR_URBANO"
+    subsector: "UR_ETE"
+    bmp:
+      min: 190.0
+      medio: 310.0
+      max: 440.0
+      refs:
+        - id: "heerenklage2019_sludge"
+          value: "Primary sludge BMP 190–440 NmL/gVS; high readily biodegradable VS fraction"
+        - id: "cetesb2020_sludge"
+          value: "SP primary sludge characterization; ~310 NmL/gVS operational reference"
+    ts:
+      min: 2.0
+      medio: 15.0
+      max: 30.0
+      refs: ["heerenklage2019_sludge", "metcalf_eddy2014"]
+    vs_of_ts:
+      min: 55.0
+      medio: 68.0
+      max: 80.0
+      refs: ["heerenklage2019_sludge"]
+    ch4_pct: 68.0
+    cn_ratio: 18.0
+
+  LODO_SECUNDARIO:
+    pt_name: "Lodo secundário (lodo biológico) de ETE"
+    en_name: "Secondary (activated) sludge"
+    sector: "UR_URBANO"
+    subsector: "UR_ETE"
+    bmp:
+      min: 80.0
+      medio: 180.0
+      max: 260.0
+      refs:
+        - id: "heerenklage2019_sludge"
+          value: "Activated sludge BMP 80–260 NmL/gVS; recalcitrant microbial cell biomass"
+    ts:
+      min: 1.5
+      medio: 15.0
+      max: 25.0
+      refs: ["heerenklage2019_sludge", "metcalf_eddy2014"]
+    vs_of_ts:
+      min: 50.0
+      medio: 63.0
+      max: 75.0
+      refs: ["heerenklage2019_sludge"]
+    ch4_pct: 65.0
+    cn_ratio: 8.0
+    notes: >
+      CRITICAL FIX: Previous bmp_medio=303 was identical to primary sludge — incorrect.
+      Secondary sludge is significantly more recalcitrant due to EPS and cell-wall material.
+      Migration 015 corrected this: 303 → 180 NmL/gVS.
+
+  # ── Industrial sector ────────────────────────────────────────────────────────
+
+  GORDURA:
+    pt_name: "Gordura e sebo animal"
+    en_name: "Animal fat and tallow"
+    sector: "IN_INDUSTRIAL"
+    subsector: "IN_FRIGORIFICA"
+    bmp:
+      min: 700.0
+      medio: 850.0
+      max: 1050.0
+      refs:
+        - id: "sheets2015_fats"
+          value: "Animal fat BMP 700–1100 NmL/gVS"
+        - id: "davidsson2008_grease"
+          value: "Grease trap BMP 700–900 NmL/gVS"
+    ts:
+      min: 90.0
+      medio: 95.0
+      max: 99.0
+      refs: ["sheets2015_fats"]
+    vs_of_ts:
+      min: 96.0
+      medio: 98.0
+      max: 99.5
+      refs: ["sheets2015_fats"]
+    ch4_pct: 72.0
+    cn_ratio: 35.0
+    notes: "LCFA inhibition must be managed through co-digestion; limit lipid OLR to <5 g/L/day."
+
+  SANGUE:
+    pt_name: "Sangue animal"
+    en_name: "Animal blood"
+    sector: "IN_INDUSTRIAL"
+    subsector: "IN_FRIGORIFICA"
+    bmp:
+      min: 300.0
+      medio: 450.0
+      max: 620.0
+      refs:
+        - id: "sheets2015_fats"
+          value: "Blood BMP 300–600 NmL/gVS; high protein → NH3 inhibition risk"
+    ts:
+      min: 15.0
+      medio: 18.0
+      max: 22.0
+      refs: ["sheets2015_fats"]
+    vs_of_ts:
+      min: 88.0
+      medio: 93.0
+      max: 97.0
+      refs: ["sheets2015_fats"]
+    ch4_pct: 68.0
+    cn_ratio: 3.0
+    notes: "Very low C:N (~3); must be co-digested with high-C substrate. TAN >3 g/L is inhibitory."

@@ -1,0 +1,102 @@
+[
+  {
+    "codigo": "BAGACO",
+    "bmp_value": 115.0
+  },
+  {
+    "codigo": "PALHA",
+    "bmp_value": 210.0
+  },
+  {
+    "codigo": "VINHACA",
+    "bmp_value": 90.0
+  },
+  {
+    "codigo": "TORTA_FILTRO",
+    "bmp_value": 280.0
+  },
+  {
+    "codigo": "BAGACO_CITROS",
+    "bmp_value": 230.0
+  },
+  {
+    "codigo": "CASCAS_CITROS",
+    "bmp_value": 210.0
+  },
+  {
+    "codigo": "CASCA_CAFE",
+    "bmp_value": 140.0
+  },
+  {
+    "codigo": "POLPA_CAFE",
+    "bmp_value": 245.0
+  },
+  {
+    "codigo": "MUCILAGEM_CAFE",
+    "bmp_value": 320.0
+  },
+  {
+    "codigo": "CASCA_SOJA",
+    "bmp_value": 300.0
+  },
+  {
+    "codigo": "PALHA_SOJA",
+    "bmp_value": 220.0
+  },
+  {
+    "codigo": "PALHA_MILHO",
+    "bmp_value": 230.0
+  },
+  {
+    "codigo": "CASCA_MILHO",
+    "bmp_value": 145.0
+  },
+  {
+    "codigo": "CAMA_AVIARIO",
+    "bmp_value": 280.0
+  },
+  {
+    "codigo": "DEJETOS_AVES",
+    "bmp_value": 250.0
+  },
+  {
+    "codigo": "ESTERCO_BOVINO",
+    "bmp_value": 200.0
+  },
+  {
+    "codigo": "DEJETOS_BOVINO",
+    "bmp_value": 155.0
+  },
+  {
+    "codigo": "DEJETOS_SUINO",
+    "bmp_value": 210.0
+  },
+  {
+    "codigo": "ESTERCO_SUINO",
+    "bmp_value": 235.0
+  },
+  {
+    "codigo": "FORSU",
+    "bmp_value": 310.0
+  },
+  {
+    "codigo": "ORGANICO_RSU",
+    "bmp_value": 270.0
+  },
+  {
+    "codigo": "LODO_PRIMARIO",
+    "bmp_value": 310.0
+  },
+  {
+    "codigo": "LODO_SECUNDARIO",
+    "bmp_value": 180.0
+  },
+  {
+    "codigo": "GORDURA",
+    "bmp_value": 850.0
+  },
+  {
+    "codigo": "SANGUE",
+    "bmp_value": 450.0
+  }
+]
