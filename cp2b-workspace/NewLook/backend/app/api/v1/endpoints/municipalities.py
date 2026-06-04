@@ -4,6 +4,7 @@ Geometry and tabular data both served from local PostgreSQL / PostGIS.
 """
 import json
 import logging
+import os
 from typing import Optional
 
 from fastapi import APIRouter, HTTPException, Query, Depends
@@ -15,6 +16,12 @@ from app.services.biomass_availability import derive_biomass_fields
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
+
+# Once authoritative biomass tonnage is loaded (scripts/load_biomass_from_master.py),
+# set BIOMASS_REVERSE_FALLBACK=false so the biomass map uses real data only and
+# performs no biogas→biomass back-calculation. Defaults to true for safety until
+# the data is loaded.
+_ALLOW_REVERSE_FALLBACK = os.getenv("BIOMASS_REVERSE_FALLBACK", "true").lower() != "false"
 
 
 def _table_exists(cursor, table_name: str, schema: str = "public") -> bool:
@@ -114,7 +121,7 @@ async def get_municipalities_geojson(
     for row in rows:
         ibge_code = str(_f(row, "ibge_code", ""))
         tb = float(_f(row, "total_biogas_m3_year"))
-        biomass_fields = derive_biomass_fields(row)
+        biomass_fields = derive_biomass_fields(row, allow_reverse_fallback=_ALLOW_REVERSE_FALLBACK)
         features.append({
             "type": "Feature",
             "geometry": json.loads(row["geojson"]),

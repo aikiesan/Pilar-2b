@@ -96,11 +96,25 @@ def reverse_bmp_tons(biogas_m3: float, bmp: float, vs_percent: float) -> float:
     return biogas_m3 / denominator
 
 
-def get_residue_biomass_tons(row: Mapping[str, Any], residue_key: str) -> float:
+def get_residue_biomass_tons(
+    row: Mapping[str, Any],
+    residue_key: str,
+    *,
+    allow_reverse_fallback: bool = True,
+) -> float:
+    """Return stored per-residue biomass tonnage.
+
+    With authoritative biomass loaded (scripts/load_biomass_from_master.py),
+    stored values are the source of record. When `allow_reverse_fallback` is
+    False, NO biogas→biomass back-calculation is performed and a missing value
+    returns 0.0 (the biomass availability map shows only measured data).
+    """
     config = _CONFIG_BY_KEY[residue_key]
     stored = number_value(row.get(config.biomass_field))
     if stored > 0:
         return stored
+    if not allow_reverse_fallback:
+        return 0.0
     return reverse_bmp_tons(
         number_value(row.get(config.biogas_field)),
         config.bmp,
@@ -108,13 +122,25 @@ def get_residue_biomass_tons(row: Mapping[str, Any], residue_key: str) -> float:
     )
 
 
-def derive_biomass_fields(row: Mapping[str, Any]) -> dict[str, float]:
-    """Return per-residue, sector, and total biomass fields for one row."""
+def derive_biomass_fields(
+    row: Mapping[str, Any],
+    *,
+    allow_reverse_fallback: bool = True,
+) -> dict[str, float]:
+    """Return per-residue, sector, and total biomass fields for one row.
+
+    Set `allow_reverse_fallback=False` once authoritative biomass tonnage is
+    loaded so the map uses real data only (no reverse-BMP back-calculation)."""
     residue_values: dict[str, float] = {}
     sector_totals = {sector: 0.0 for sector in SECTOR_FIELDS}
 
     for config in RESIDUE_BIOMASS_CONFIGS:
-        value = round(get_residue_biomass_tons(row, config.key), 2)
+        value = round(
+            get_residue_biomass_tons(
+                row, config.key, allow_reverse_fallback=allow_reverse_fallback
+            ),
+            2,
+        )
         residue_values[config.biomass_field] = value
         sector_totals[config.sector] += value
 
