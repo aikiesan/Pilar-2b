@@ -20,7 +20,8 @@ Cross-validation:
   PAM-based (MapBiomas × yield) is stored as the authoritative value.
 
 Yield factors used (t biomass residue per ha harvested):
-  - Sugarcane (class 20):  12 t/ha  [80 t/ha cane × 15% straw — theoretical palhiço]
+  - Sugarcane (class 20):  4.2 t/ha  [12 t/ha palhiço × 0.35 collectible fraction;
+    ≥7-10 t/ha must remain on soil per EMBRAPA/CONAB (Tenelli et al. 2021)]
   - Soybean   (class 39):   4 t/ha  [~3.5 t/ha grain × 1.15 residue ratio]
   - Corn      (class 41*):  4.5 t/ha [mixed class — proxy for corn stover, noted in log]
   - Coffee    (class 46):   0.6 t/ha [1.5 t cherry/ha × 40% husks/pulp]
@@ -70,10 +71,23 @@ YEAR_COLUMN = "2024"
 VALIDATION_LOG = str(Path(__file__).parent / "biomass_validation_log.csv")
 DIVERGENCE_THRESHOLD = 0.20  # Flag if MapBiomas vs BMP methods differ > 20%
 
+# Fraction of total palhiço (sugarcane straw) that is practically collectible.
+# EMBRAPA/CONAB guidelines require ≥7–10 Mg/ha/yr to remain on the soil surface
+# for erosion control and soil-carbon maintenance (Tenelli, S. et al. (2021)
+# "Soil carbon and nitrogen responses to sugarcane straw removal in Brazil",
+# Agriculture, Ecosystems & Environment, 316, 107458.
+# https://doi.org/10.1016/j.agee.2021.107458).
+# With ~12 t/ha total palhiço production, practical collection is 2–5 t/ha
+# depending on soil type, slope and rainfall.
+# The 0.35 factor (= 4.2 t/ha) represents the mid-range conservative estimate
+# endorsed by UNICA/RenovaBio protocols for SP mechanically harvested fields.
+SUGARCANE_COLLECTIBLE_FRACTION = 0.35
+
 # MapBiomas class_id → residue type + yield factor (t biomass residue / ha)
 MAPBIOMAS_YIELD = {
-    20: {"key": "sugarcane", "yield_t_ha": 12.0,
-         "note": "80 t/ha cane × 15% straw (theoretical palhiço)"},
+    20: {"key": "sugarcane", "yield_t_ha": round(12.0 * SUGARCANE_COLLECTIBLE_FRACTION, 1),
+         "note": "80 t/ha cane × 15% straw × 35% collectible fraction (SUGARCANE_COLLECTIBLE_FRACTION); "
+                 "remainder retained for soil carbon per EMBRAPA/CONAB guidelines"},
     39: {"key": "soybean",   "yield_t_ha": 4.0,
          "note": "~3.5 t/ha grain × 1.15 residue ratio"},
     41: {"key": "corn",      "yield_t_ha": 4.5,
