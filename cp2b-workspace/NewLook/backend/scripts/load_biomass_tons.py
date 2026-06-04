@@ -98,15 +98,18 @@ MAPBIOMAS_YIELD = {
          "note": "40 t fruit/ha × 12.5% processing residue (peel + bagasse)"},
 }
 
-# Effective BMP parameters for reverse-BMP method (per municipality column)
+# Effective BMP parameters for reverse-BMP method (per municipality column).
 # biomass_tons = biogas_m3 / (BMP × VS/100)
+#
+# SOURCE OF TRUTH: these are derived from the canonical RESIDUE_BIOMASS_CONFIGS
+# in app.services.biomass_availability (generated from feedstocks.yaml). This
+# eliminates the previously-divergent local copy (rsu=410, poultry=270, etc.)
+# so the load script and the runtime service can never drift apart again.
+from app.services.biomass_availability import RESIDUE_BIOMASS_CONFIGS as _CANON
+
 BMP_PARAMS = {
-    "cattle":      {"bmp": 210.0, "vs": 12.5},   # esterco_bovino_fresco
-    "swine":       {"bmp": 210.0, "vs":  3.5},   # dejetos_suinos_liquidos
-    "poultry":     {"bmp": 270.0, "vs": 50.0},   # weighted: cama_aviario + aves_frescos
-    "aquaculture": {"bmp": 200.0, "vs": 15.0},   # estimated
-    "rsu":         {"bmp": 410.0, "vs": 17.0},   # forsu_ur_rsu
-    "rpo":         {"bmp": 210.0, "vs":  3.1},   # avg lodo_primario + lodo_secundario
+    cfg.key: {"bmp": cfg.bmp, "vs": cfg.vs_percent}
+    for cfg in _CANON
 }
 
 AGRICULTURAL_KEYS = ["sugarcane", "soybean", "corn", "coffee", "citrus"]
@@ -232,21 +235,12 @@ def main():
             mb_tons[key] = round(area_ha * cfg["yield_t_ha"], 2)
 
         # ── Reverse BMP estimates (cross-validation + livestock/urban) ────────
+        # BMP_PARAMS now covers ALL residue keys (crops + livestock + urban)
+        # from the canonical config, so a single loop handles every stream.
+        # The previous separate `bmp_params_crops` block (with inconsistent
+        # VS-of-TS values fed into a wet-basis formula) has been removed.
         bmp_tons: dict[str, float] = {}
         for key, params in BMP_PARAMS.items():
-            biogas_col = f"{key}_biogas_m3_year"
-            biogas_m3 = float(mun.get(biogas_col) or 0)
-            bmp_tons[key] = reverse_bmp(biogas_m3, params["bmp"], params["vs"])
-
-        # Also compute BMP-based estimates for MapBiomas crops (cross-validation)
-        bmp_params_crops = {
-            "sugarcane": {"bmp": 210.0, "vs": 77.0},  # weighted palha+vinhaça
-            "soybean":   {"bmp": 180.0, "vs": 84.0},  # avg palha_soja + casca_soja
-            "corn":      {"bmp": 280.0, "vs": 77.0},  # avg palha+casca+sabugo
-            "coffee":    {"bmp": 350.0, "vs": 89.0},  # avg casca+polpa
-            "citrus":    {"bmp": 300.0, "vs": 20.0},  # avg bagaço+cascas
-        }
-        for key, params in bmp_params_crops.items():
             biogas_col = f"{key}_biogas_m3_year"
             biogas_m3 = float(mun.get(biogas_col) or 0)
             bmp_tons[key] = reverse_bmp(biogas_m3, params["bmp"], params["vs"])
