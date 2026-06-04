@@ -43,9 +43,15 @@ class TestGetParams:
         assert p.bmp.min <= p.bmp.medio <= p.bmp.max
 
     def test_fde_defaults_to_one_when_absent(self):
-        # No fde block in canonical YAML yet → theoretical potential
-        p = get_params("BAGACO")
+        # GORDURA has no fde block → theoretical potential (FDE = 1.0)
+        p = get_params("GORDURA")
         assert p.fde.min == 1.0 and p.fde.medio == 1.0 and p.fde.max == 1.0
+
+    def test_fde_resolved_as_availability_times_eta(self):
+        # BAGACO: availability medio 0.1399 × eta 0.70 = 0.09793
+        p = get_params("BAGACO")
+        assert p.fde.medio == pytest.approx(0.1399 * 0.70, rel=1e-6)
+        assert p.fde.min < p.fde.medio < p.fde.max  # genuine envelope
 
     def test_unknown_code_raises(self):
         with pytest.raises(KeyError):

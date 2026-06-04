@@ -56,23 +56,52 @@ def load_raw(path: str | None = None) -> dict:
     return data["feedstocks"]
 
 
+def _eta_range(block) -> Range:
+    """Conversion efficiency as a Range. Accepts a scalar or a min/medio/max dict."""
+    if isinstance(block, dict) and {"min", "medio", "max"} <= set(block):
+        return _range_from(block)
+    if block is None:
+        return Range(1.0, 1.0, 1.0)
+    e = float(block)
+    return Range(e, e, e)
+
+
+def _resolve_fde(entry: dict) -> Range:
+    """Effective FDE = availability (FC×FCo×FS×FL) × eta (conversion efficiency).
+
+    Supports three YAML shapes for backward/forward compatibility:
+      1. structured:  fde: {availability: {min,medio,max}, eta: <scalar|range>, ...}
+      2. flat:        fde: {min, medio, max}   (already the product)
+      3. absent:      → 1.0 (theoretical potential)
+    """
+    block = entry.get("fde")
+    if not isinstance(block, dict):
+        return Range(1.0, 1.0, 1.0)
+    if "availability" in block:
+        avail = _range_from(block["availability"])
+        eta = _eta_range(block.get("eta"))
+        return Range(
+            avail.min * eta.min,
+            avail.medio * eta.medio,
+            avail.max * eta.max,
+        )
+    if {"min", "medio", "max"} <= set(block):
+        return _range_from(block)
+    return Range(1.0, 1.0, 1.0)
+
+
 def get_params(code: str, path: str | None = None) -> FeedstockParams:
     """Build FeedstockParams for a canonical feedstock code (e.g. 'BAGACO')."""
     fs = load_raw(path)
     if code not in fs:
         raise KeyError(f"unknown canonical feedstock code: {code!r}")
     entry = fs[code]
-    fde = (
-        _range_from(entry["fde"])
-        if isinstance(entry.get("fde"), dict) and {"min", "medio", "max"} <= set(entry["fde"])
-        else Range(1.0, 1.0, 1.0)
-    )
     return FeedstockParams(
         bmp=_range_from(entry["bmp"]),
         ts=_range_from(entry["ts"]),
         vs_of_ts=_range_from(entry["vs_of_ts"]),
         ch4_pct=float(entry.get("ch4_pct", 60.0)),
-        fde=fde,
+        fde=_resolve_fde(entry),
     )
 
 

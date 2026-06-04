@@ -61,6 +61,24 @@ feedstocks:
     # Service layer: aggregate used as-is (no competing streams in this code)
     service_override:
       note: "bagaço-only stream; vs_wet = 58.9 × 90/100 = 53.0%"
+    # Effective availability for the forward calculation. FDE = availability × eta.
+    # availability = FC×FCo×FS×FL (CP2B Panorama composite; ~82% of bagasse goes to
+    # cogeneration so FCo is low). eta = conversion efficiency (lignocellulosic).
+    fde:
+      availability: { min: 0.1259, medio: 0.1399, max: 0.1539 }
+      eta: 0.70
+      components:
+        fc:  { min: 0.90, medio: 0.95, max: 0.98 }
+        fco: { min: 0.1636, medio: 0.1818, max: 0.20 }   # FCp = fraction available (bagasse cogen competes)
+        fs:  { min: 0.70, medio: 0.90, max: 0.95 }
+        fl:  { min: 0.85, medio: 0.90, max: 0.98 }
+      refs:
+        - id: "unica2023_straw"
+          value: "~80% bagasse to cogeneration → low FCo availability"
+        - id: "abiogas2021_atlas"
+          value: "Brazilian availability methodology"
+        - id: "hashimoto1989_lignocellulosic"
+          value: "eta 0.70 lignocellulosic conversion efficiency"
 
   PALHA:
     pt_name: "Palha de cana-de-açúcar"
@@ -183,6 +201,19 @@ feedstocks:
       D-limonene in peel (0.5–2.5% DM) inhibits methanogenesis above ~200 mg/kg.
       Current frontend value (bmp=340) and service (bmp=300) are overestimates.
       Without limonene pretreatment, median of 230 is appropriate for SP bulk processing.
+    fde:
+      availability: { min: 0.0891, medio: 0.0990, max: 0.1089 }
+      eta: 0.78
+      components:
+        fc:  { min: 0.75, medio: 0.55, max: 0.95 }
+        fco: { min: 0.2571, medio: 0.2857, max: 0.3143 }
+        fs:  { min: 0.75, medio: 0.70, max: 0.95 }
+        fl:  { min: 0.70, medio: 0.90, max: 0.95 }
+      refs:
+        - id: "abiogas2021_atlas"
+          value: "Citrus residue availability (juice-processing concentrated)"
+        - id: "wikandari2014_citrus"
+          value: "eta 0.78; limonene constrains practical availability"
 
   CASCAS_CITROS:
     pt_name: "Cascas de citros"
@@ -240,6 +271,19 @@ feedstocks:
     ch4_pct: 58.0
     cn_ratio: 25.0
     notes: "Current service layer (bmp=200) is slightly conservative — acceptable given lignin fraction."
+    fde:
+      availability: { min: 0.14616, medio: 0.1624, max: 0.17864 }
+      eta: 0.70
+      components:
+        fc:  { min: 0.40, medio: 0.87, max: 0.80 }
+        fco: { min: 0.30, medio: 0.3333, max: 0.3667 }
+        fs:  { min: 0.75, medio: 0.70, max: 0.95 }
+        fl:  { min: 0.60, medio: 0.80, max: 0.90 }
+      refs:
+        - id: "abiogas2021_atlas"
+          value: "Coffee husk availability at processing units"
+        - id: "okonkwo2021_coffee"
+          value: "eta 0.70 (high-lignin husk)"
 
   POLPA_CAFE:
     pt_name: "Polpa de café"
@@ -318,6 +362,19 @@ feedstocks:
     ch4_pct: 55.0
     cn_ratio: 32.0
     notes: "Current JSON (bmp=400) overestimates; 300 is more appropriate for bulk hull."
+    fde:
+      availability: { min: 0.054, medio: 0.060, max: 0.066 }
+      eta: 0.70
+      components:
+        fc:  { min: 0.75, medio: 0.40, max: 0.95 }
+        fco: { min: 0.36, medio: 0.40, max: 0.44 }
+        fs:  { min: 0.85, medio: 0.75, max: 0.98 }
+        fl:  { min: 0.75, medio: 0.50, max: 0.95 }
+      refs:
+        - id: "abiogas2021_atlas"
+          value: "Soybean residue availability (low; mostly left on field / animal feed)"
+        - id: "kafle2016_soy"
+          value: "eta 0.70 soybean hull"
 
   PALHA_SOJA:
     pt_name: "Palha de soja"
@@ -373,6 +430,19 @@ feedstocks:
     ch4_pct: 55.0
     cn_ratio: 57.0
     notes: "Current frontend (bmp=320) slightly overestimates for bulk field corn stover."
+    fde:
+      availability: { min: 0.0427, medio: 0.04746, max: 0.05220 }
+      eta: 0.68
+      components:
+        fc:  { min: 0.25, medio: 0.50, max: 0.65 }
+        fco: { min: 0.15, medio: 0.1667, max: 0.1833 }
+        fs:  { min: 0.75, medio: 0.85, max: 0.95 }
+        fl:  { min: 0.35, medio: 0.67, max: 0.75 }
+      refs:
+        - id: "abiogas2021_atlas"
+          value: "Corn stover availability (much retained on field for soil)"
+        - id: "herrmann2012_corn"
+          value: "eta 0.68 corn stover/straw"
 
   CASCA_MILHO:
     pt_name: "Casca de milho"

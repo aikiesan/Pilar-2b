@@ -38,7 +38,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from app.services.biogas_forward import calculate_feedstock  # noqa: E402
+from app.services.biogas_forward import biogas_from_ch4, calculate_feedstock  # noqa: E402
 from app.services.canonical_loader import (  # noqa: E402
     STREAM_TO_CANONICAL,
     get_params_for_stream,
@@ -67,10 +67,11 @@ def recalc(csv_path: Path, out_dir: Path) -> dict:
     summary_path = out_dir / "biogas_canonical_state_summary.csv"
 
     # state-level accumulators per stream
-    legacy_total: dict[str, float] = defaultdict(float)
-    canon_min: dict[str, float] = defaultdict(float)
-    canon_med: dict[str, float] = defaultdict(float)
-    canon_max: dict[str, float] = defaultdict(float)
+    legacy_total: dict[str, float] = defaultdict(float)        # CSV biogas = theoretical/gross
+    canon_theo: dict[str, float] = defaultdict(float)          # canonical theoretical (FDE=1), medio
+    canon_min: dict[str, float] = defaultdict(float)           # canonical practical min
+    canon_med: dict[str, float] = defaultdict(float)           # canonical practical medio
+    canon_max: dict[str, float] = defaultdict(float)           # canonical practical max
     tons_total: dict[str, float] = defaultdict(float)
 
     rows_out = []
@@ -88,28 +89,32 @@ def recalc(csv_path: Path, out_dir: Path) -> dict:
                 "municipality_name": row.get("municipality_name", ""),
                 "residue_stream": stream,
                 "residue_tons_yr": round(tons, 2),
-                "legacy_biogas_m3_yr": round(legacy_biogas, 2),
+                "legacy_biogas_m3_yr": round(legacy_biogas, 2),   # theoretical/gross
                 "canonical_method": "",
-                "canonical_biogas_min": "",
-                "canonical_biogas_medio": "",
-                "canonical_biogas_max": "",
+                "canonical_theoretical_biogas": "",               # FDE=1 (chemistry comparison)
+                "canonical_practical_min": "",                    # × FDE (mobilisable)
+                "canonical_practical_medio": "",
+                "canonical_practical_max": "",
             }
 
             if stream in AGRICULTURAL_STREAMS and stream in STREAM_TO_CANONICAL:
                 params = get_params_for_stream(stream)
-                # Theoretical comparison to legacy (legacy has no FDE applied),
-                # so use FDE=1 by leaving canonical FDE default. biogas volume.
                 res = calculate_feedstock(tons, params)
+                # theoretical biogas (FDE=1) for chemistry-only comparison to legacy
+                theo_biogas = biogas_from_ch4(res.ch4_theoretical_m3["medio"], params.ch4_pct)
                 out["canonical_method"] = f"forward:{STREAM_TO_CANONICAL[stream]}"
-                out["canonical_biogas_min"] = res.biogas_practical_m3["min"]
-                out["canonical_biogas_medio"] = res.biogas_practical_m3["medio"]
-                out["canonical_biogas_max"] = res.biogas_practical_m3["max"]
+                out["canonical_theoretical_biogas"] = round(theo_biogas, 2)
+                out["canonical_practical_min"] = res.biogas_practical_m3["min"]
+                out["canonical_practical_medio"] = res.biogas_practical_m3["medio"]
+                out["canonical_practical_max"] = res.biogas_practical_m3["max"]
+                canon_theo[stream] += theo_biogas
                 canon_min[stream] += res.biogas_practical_m3["min"]
                 canon_med[stream] += res.biogas_practical_m3["medio"]
                 canon_max[stream] += res.biogas_practical_m3["max"]
             else:
                 # carried through unchanged; canonical per-head/per-capita TBD
                 out["canonical_method"] = "legacy_carried(head/precalc)"
+                canon_theo[stream] += legacy_biogas
                 canon_min[stream] += legacy_biogas
                 canon_med[stream] += legacy_biogas
                 canon_max[stream] += legacy_biogas
@@ -127,17 +132,19 @@ def recalc(csv_path: Path, out_dir: Path) -> dict:
     summary_rows = []
     for s in streams:
         leg = legacy_total[s]
+        theo = canon_theo[s]
         med = canon_med[s]
-        delta_pct = ((med - leg) / leg * 100.0) if leg else 0.0
+        chem_delta = ((theo - leg) / leg * 100.0) if leg else 0.0   # theoretical vs legacy
         summary_rows.append({
             "residue_stream": s,
             "method": "forward_canonical" if s in AGRICULTURAL_STREAMS else "legacy_carried",
             "total_tons_yr": round(tons_total[s], 1),
-            "legacy_biogas_m3_yr": round(leg, 1),
-            "canonical_biogas_min": round(canon_min[s], 1),
-            "canonical_biogas_medio": round(med, 1),
-            "canonical_biogas_max": round(canon_max[s], 1),
-            "delta_medio_vs_legacy_pct": round(delta_pct, 1),
+            "legacy_theoretical_biogas": round(leg, 1),
+            "canonical_theoretical_biogas": round(theo, 1),
+            "chemistry_delta_pct": round(chem_delta, 1),
+            "canonical_practical_min": round(canon_min[s], 1),
+            "canonical_practical_medio": round(med, 1),
+            "canonical_practical_max": round(canon_max[s], 1),
         })
 
     with open(summary_path, "w", newline="", encoding="utf-8") as f:
@@ -166,21 +173,26 @@ def main():
 
     result = recalc(csv_path, Path(args.out))
 
-    print("\nSTATE-LEVEL BIOGAS: legacy vs canonical (m³/yr)")
-    print("=" * 92)
-    print(f"{'stream':<14}{'method':<18}{'legacy':>16}{'canon_medio':>16}{'Δ% medio':>10}")
-    print("-" * 92)
-    agri_leg = agri_can = 0.0
+    print("\nSTATE-LEVEL BIOGAS (m³/yr): legacy=theoretical(gross) | canonical theoretical + practical")
+    print("=" * 104)
+    print(f"{'stream':<13}{'legacy_theo':>16}{'canon_theo':>16}{'chem Δ%':>9}{'canon_pract_medio':>20}")
+    print("-" * 104)
+    agri_leg = agri_theo = agri_prac = 0.0
     for r in result["summary_rows"]:
-        print(f"{r['residue_stream']:<14}{r['method']:<18}"
-              f"{r['legacy_biogas_m3_yr']:>16,.0f}{r['canonical_biogas_medio']:>16,.0f}"
-              f"{r['delta_medio_vs_legacy_pct']:>9.1f}%")
-        if r["method"] == "forward_canonical":
-            agri_leg += r["legacy_biogas_m3_yr"]
-            agri_can += r["canonical_biogas_medio"]
-    print("-" * 92)
-    delta = ((agri_can - agri_leg) / agri_leg * 100.0) if agri_leg else 0.0
-    print(f"{'AGRICULTURAL':<14}{'(forward only)':<18}{agri_leg:>16,.0f}{agri_can:>16,.0f}{delta:>9.1f}%")
+        if r["method"] != "forward_canonical":
+            continue
+        print(f"{r['residue_stream']:<13}{r['legacy_theoretical_biogas']:>16,.0f}"
+              f"{r['canonical_theoretical_biogas']:>16,.0f}{r['chemistry_delta_pct']:>8.1f}%"
+              f"{r['canonical_practical_medio']:>20,.0f}")
+        agri_leg += r["legacy_theoretical_biogas"]
+        agri_theo += r["canonical_theoretical_biogas"]
+        agri_prac += r["canonical_practical_medio"]
+    print("-" * 104)
+    chem = ((agri_theo - agri_leg) / agri_leg * 100.0) if agri_leg else 0.0
+    print(f"{'AGRI TOTAL':<13}{agri_leg:>16,.0f}{agri_theo:>16,.0f}{chem:>8.1f}%{agri_prac:>20,.0f}")
+    print(f"\n  legacy_theoretical : gross potential currently in the handoff CSV (no FDE)")
+    print(f"  canonical_theoretical: same gross basis, corrected BMP/TS/VS → isolates chemistry")
+    print(f"  canonical_practical  : × canonical FDE (FC×FCo×FS×FL×η) = mobilisable potential")
     print(f"\nWrote:\n  {result['comparison_path']}\n  {result['summary_path']}")
 
 
