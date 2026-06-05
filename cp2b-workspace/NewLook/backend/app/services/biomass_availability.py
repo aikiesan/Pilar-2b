@@ -48,8 +48,9 @@ RESIDUE_BIOMASS_CONFIGS: tuple[ResidueBiomassConfig, ...] = (
     # sugarcane: BAGACO representative (bmp=165); vs_wet = 58.9×90/100 = 53.0%
     # BMP raised from 115 to 165 NmL/gVS per Paulose et al. 2021 (187.9 untreated mesophilic)
     ResidueBiomassConfig("sugarcane", "agricultural", "sugarcane_biomass_tons_year", "sugarcane_biogas_m3_year", 165.0, 53.0),
-    # soybean: CASCA_SOJA representative (bmp=300); vs_wet = 90×93/100 = 83.7%
-    ResidueBiomassConfig("soybean", "agricultural", "soybean_biomass_tons_year", "soybean_biogas_m3_year", 300.0, 83.7),
+    # soybean: PALHA_SOJA representative (bmp=220, Kafle 2016); vs_wet = 84×85/100 = 71.4%
+    # MAPPING FIX 2026-06: CSV stream is field straw (PALHA_SOJA), NOT processing hull.
+    ResidueBiomassConfig("soybean", "agricultural", "soybean_biomass_tons_year", "soybean_biogas_m3_year", 220.0, 71.4),
     # corn: PALHA_MILHO (bmp=230); vs_wet = 82×86/100 = 70.5%
     ResidueBiomassConfig("corn", "agricultural", "corn_biomass_tons_year", "corn_biogas_m3_year", 230.0, 70.5),
     # coffee: CASCA_CAFE (bmp=140); vs_wet = 88×93/100 = 81.8%
@@ -66,8 +67,9 @@ RESIDUE_BIOMASS_CONFIGS: tuple[ResidueBiomassConfig, ...] = (
     ResidueBiomassConfig("aquaculture", "livestock", "aquaculture_biomass_tons_year", "aquaculture_biogas_m3_year", 200.0, 15.0),
     # rsu/FORSU: bmp=310 (migration 015+016 corrected from 88); vs_wet = 30.58×85/100 = 26.0%
     ResidueBiomassConfig("rsu", "urban", "rsu_biomass_tons_year", "rsu_biogas_m3_year", 310.0, 26.0),
-    # rpo/lodo primário: bmp=310; vs_wet = 15×68/100 = 10.2%
-    ResidueBiomassConfig("rpo", "urban", "rpo_biomass_tons_year", "rpo_biogas_m3_year", 310.0, 10.2),
+    # rpo/poda urbana: bmp=175 (Pognani 2011); vs_wet = 55×87/100 = 47.85%
+    # MAPPING FIX 2026-06: rpo is urban pruning waste (PODA_URBANA), NOT sewage sludge.
+    ResidueBiomassConfig("rpo", "urban", "rpo_biomass_tons_year", "rpo_biogas_m3_year", 175.0, 47.85),
 )
 
 RESIDUE_KEYS = tuple(config.key for config in RESIDUE_BIOMASS_CONFIGS)
