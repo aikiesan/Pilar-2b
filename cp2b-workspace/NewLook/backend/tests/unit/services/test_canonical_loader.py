@@ -66,7 +66,7 @@ class TestGetParamsForStream:
         ("sugarcane", "BAGACO"),
         ("coffee", "CASCA_CAFE"),
         ("corn", "PALHA_MILHO"),
-        ("soybean", "CASCA_SOJA"),
+        ("soybean", "PALHA_SOJA"),    # field straw mapping (confirmed 2026-06)
         ("citrus", "BAGACO_CITROS"),
     ])
     def test_agricultural_streams_map(self, stream, code):

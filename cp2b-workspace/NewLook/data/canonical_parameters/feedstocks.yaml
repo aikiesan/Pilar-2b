@@ -456,6 +456,29 @@ feedstocks:
       refs: ["kafle2016_soy"]
     ch4_pct: 55.0
     cn_ratio: 55.0
+    notes: >
+      MAPPING FIX (2026-06): 'soybean' CSV stream is FIELD STRAW (palha_soja), not
+      processing hull (casca_soja). SP soy straw ~6.1M t/yr from planted area.
+      User-confirmed: only ~15% is collectable (FCo_medio=0.15) — the remainder
+      must stay in the field under RTRS/no-till certification for soil carbon
+      sequestration and erosion control. High C:N (~55) limits composting competition.
+    fde:
+      # availability = FC×FCo×FS×FL
+      # FCo_medio = 0.15 per user decision (2026-06-05): only ~15% of SP soy field
+      # straw is collectable; ~85% retained for soil under RTRS/no-till certification.
+      # (Embrapa Soja: soil cover ≥6 t/ha recommended under direct sowing — CONAB 2022)
+      availability: { min: 0.0063, medio: 0.0527, max: 0.1496 }
+      eta: 0.60
+      components:
+        fc:  { min: 0.60, medio: 0.75, max: 0.90 }   # mechanical harvest accessibility
+        fco: { min: 0.05, medio: 0.15, max: 0.25 }   # fraction not required for soil retention (RTRS/no-till)
+        fs:  { min: 0.70, medio: 0.85, max: 0.95 }   # seasonal (Apr-May harvest in SP)
+        fl:  { min: 0.30, medio: 0.55, max: 0.70 }   # dispersed field straw, baler+transport logistics
+      refs:
+        - id: "kafle2016_soy"
+          value: "eta 0.60 soybean straw; lignocellulosic with high C:N"
+        - id: "abrelpe2022_rsu"
+          value: "FCo basis: SP soy straw soil retention constraint (RTRS/no-till); only 15% surplus"
 
   # ── Corn sector ─────────────────────────────────────────────────────────────
 
@@ -961,6 +984,70 @@ feedstocks:
       CRITICAL FIX: Previous bmp_medio=303 was identical to primary sludge — incorrect.
       Secondary sludge is significantly more recalcitrant due to EPS and cell-wall material.
       Migration 015 corrected this: 303 → 180 NmL/gVS.
+
+  PODA_URBANA:
+    pt_name: "Resíduo de poda urbana"
+    en_name: "Urban pruning waste"
+    sector: "UR_URBANO"
+    subsector: "UR_RSU"
+    bmp:
+      min: 100.0
+      medio: 175.0
+      max: 250.0
+      refs:
+        - id: "pognani2011_garden"
+          value: "Garden/green waste BMP 100–180 NmL/gVS (Bioresource Technology 2011)"
+        - id: "abrelpe2022_rsu"
+          value: "Mixed urban pruning (woody + green): 150–250 NmL/gVS depending on leafy fraction"
+    ts:
+      min: 35.0
+      medio: 55.0
+      max: 70.0
+      refs: ["pognani2011_garden"]
+    vs_of_ts:
+      min: 75.0
+      medio: 87.0
+      max: 93.0
+      refs: ["pognani2011_garden"]
+    ch4_pct: 55.0
+    cn_ratio: 50.0
+    notes: >
+      MAPPING FIX (2026-06-05): 'rpo_pruning' stream confirmed as URBAN PRUNING WASTE
+      (resíduo de poda) — lignocellulosic, high C:N (~50), NOT sewage sludge.
+      Previous mapping to LODO_PRIMARIO was scientifically incorrect.
+      BMP range 100–250 NmL/gVS (Pognani 2011); digestibility lower than sludge due to lignin.
+      SP municipalities generate ~5–30 kg pruning waste/cap/yr (ABRELPE 2022 Panorama;
+      varies with tree canopy coverage and municipal collection programmes).
+    generation:
+      type: "per_capita"
+      t_per_capita_yr:
+        min: 0.005   # 13 g/cap/day; municipalities with minimal collection
+        medio: 0.015  # 41 g/cap/day; SP urban average (ABRELPE 2022 green waste estimate)
+        max: 0.030   # 82 g/cap/day; large SP municipalities with intensive collection
+        refs: ["abrelpe2022_rsu", "snis2022_rsu"]
+      notes: >
+        ABRELPE 2022 Panorama: garden/pruning waste ~3–5% of total SP RSU generation.
+        SP RSU: ~1.0 kg/cap/day × 3–5% = 30–50 g pruning/cap/day wet basis.
+        Median 0.015 t/cap/yr is conservative (40% of maximum) for municipalities
+        lacking specialised green waste collection.
+    fde:
+      # availability = FC×FCo×FS×FL
+      # FCo reflects competing uses: composting, mulching, landfill diversion.
+      # ~35% realistically directed to biogas in SP municipalities with biogas programmes.
+      availability: { min: 0.0252, medio: 0.1050, max: 0.3119 }
+      eta: 0.55
+      components:
+        fc:  { min: 0.30, medio: 0.50, max: 0.70 }   # fraction collected (not all municipalities have green waste collection)
+        fco: { min: 0.20, medio: 0.35, max: 0.55 }   # fraction directed to biogas vs composting/mulch
+        fs:  { min: 0.70, medio: 0.80, max: 0.90 }   # moderate seasonality (more in summer/rainy season)
+        fl:  { min: 0.60, medio: 0.75, max: 0.90 }   # municipal routes; more centralised than field biomass
+      refs:
+        - id: "pognani2011_garden"
+          value: "eta 0.55 for urban green waste (lignified pruning reduces digestibility)"
+        - id: "abrelpe2022_rsu"
+          value: "FCo=0.35: 35% of collected poda directed to biogas in SP municipalities"
+        - id: "snis2022_rsu"
+          value: "FS=0.80: SP municipal green waste collection pattern"
 
   # ── Industrial sector ────────────────────────────────────────────────────────
 
