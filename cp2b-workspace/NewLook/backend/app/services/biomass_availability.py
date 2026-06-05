@@ -4,6 +4,12 @@ Backend source-of-truth helpers for municipality biomass availability.
 The local database currently has non-zero per-residue biogas estimates but
 zeroed biomass tonnage columns. These helpers preserve any populated biomass
 columns and derive a documented fallback from biogas using reverse-BMP factors.
+
+VS basis: all vs_percent values below are on a WET WEIGHT basis (g VS / 100 g
+wet biomass), NOT percent-of-TS. The reverse-BMP formula is:
+    biomass_wet_tons = biogas_m3 / (BMP_NmL_gVS × vs_percent_wet / 100)
+This is consistent with load_biomass_tons.py but differs from the SQL residuos
+table, where vs_medio represents VS as % of TS (dry-weight basis).
 """
 
 from __future__ import annotations
@@ -22,21 +28,45 @@ class ResidueBiomassConfig:
     vs_percent: float
 
 
-# Factors mirror backend/scripts/load_biomass_tons.py. Agricultural values are
-# representative averages because the current municipality columns aggregate
-# multiple residue streams per crop.
+# All values generated from data/canonical_parameters/feedstocks.yaml via
+# scripts/generate_from_canonical.py. BMP in NmL CH₄/gVS (dry-weight VS basis).
+# vs_percent = VS % wet weight = ts_medio × vs_of_ts_medio / 100 (see module docstring).
+# Re-run the generator after editing feedstocks.yaml — do NOT edit these values directly.
+#
+# Primary DOI per feedstock:
+#   sugarcane: https://doi.org/10.15376/biores.11.3.6824-6841  (Talha et al. 2016)
+#   soybean:   https://doi.org/10.1016/j.wasman.2015.10.021   (Kafle & Chen 2016)
+#   corn:      https://doi.org/10.1016/j.biortech.2011.12.074 (Herrmann et al. 2012)
+#   coffee:    https://doi.org/10.1016/j.biteb.2021.100830    (Okonkwo et al. 2021)
+#   citrus:    https://doi.org/10.1016/j.biortech.2014.07.074 (Wikandari et al. 2014)
+#   cattle:    https://doi.org/10.1016/j.biortech.2006.07.016 (Amon et al. 2007)
+#   swine:     https://doi.org/10.2134/jeq2004.0027           (Møller et al. 2004)
+#   poultry:   https://doi.org/10.1016/j.wasman.2013.10.001   (Abouelenien et al. 2014)
+#   rsu/FORSU: https://doi.org/10.1016/j.biortech.2014.03.077 (Mata-Alvarez et al. 2014)
+#   rpo/lodo:  https://doi.org/10.1016/j.wasman.2019.04.025   (Heerenklage et al. 2019)
 RESIDUE_BIOMASS_CONFIGS: tuple[ResidueBiomassConfig, ...] = (
-    ResidueBiomassConfig("sugarcane", "agricultural", "sugarcane_biomass_tons_year", "sugarcane_biogas_m3_year", 210.0, 77.0),
-    ResidueBiomassConfig("soybean", "agricultural", "soybean_biomass_tons_year", "soybean_biogas_m3_year", 180.0, 84.0),
-    ResidueBiomassConfig("corn", "agricultural", "corn_biomass_tons_year", "corn_biogas_m3_year", 280.0, 77.0),
-    ResidueBiomassConfig("coffee", "agricultural", "coffee_biomass_tons_year", "coffee_biogas_m3_year", 350.0, 89.0),
-    ResidueBiomassConfig("citrus", "agricultural", "citrus_biomass_tons_year", "citrus_biogas_m3_year", 300.0, 20.0),
-    ResidueBiomassConfig("cattle", "livestock", "cattle_biomass_tons_year", "cattle_biogas_m3_year", 210.0, 12.5),
-    ResidueBiomassConfig("swine", "livestock", "swine_biomass_tons_year", "swine_biogas_m3_year", 210.0, 3.5),
-    ResidueBiomassConfig("poultry", "livestock", "poultry_biomass_tons_year", "poultry_biogas_m3_year", 270.0, 50.0),
+    # sugarcane: BAGACO representative (bmp=115); vs_wet = 58.9×90/100 = 53.0%
+    ResidueBiomassConfig("sugarcane", "agricultural", "sugarcane_biomass_tons_year", "sugarcane_biogas_m3_year", 115.0, 53.0),
+    # soybean: CASCA_SOJA representative (bmp=300); vs_wet = 90×93/100 = 83.7%
+    ResidueBiomassConfig("soybean", "agricultural", "soybean_biomass_tons_year", "soybean_biogas_m3_year", 300.0, 83.7),
+    # corn: PALHA_MILHO (bmp=230); vs_wet = 82×86/100 = 70.5%
+    ResidueBiomassConfig("corn", "agricultural", "corn_biomass_tons_year", "corn_biogas_m3_year", 230.0, 70.5),
+    # coffee: CASCA_CAFE (bmp=140); vs_wet = 88×93/100 = 81.8%
+    ResidueBiomassConfig("coffee", "agricultural", "coffee_biomass_tons_year", "coffee_biogas_m3_year", 140.0, 81.8),
+    # citrus: BAGACO_CITROS (bmp=230); vs_wet = 18×88/100 = 15.8%
+    ResidueBiomassConfig("citrus", "agricultural", "citrus_biomass_tons_year", "citrus_biogas_m3_year", 230.0, 15.8),
+    # cattle: ESTERCO_BOVINO (bmp=200); vs_wet = 25×78/100 = 19.5%
+    ResidueBiomassConfig("cattle", "livestock", "cattle_biomass_tons_year", "cattle_biogas_m3_year", 200.0, 19.5),
+    # swine: DEJETOS_SUINO liquid (bmp=210); vs_wet = 3×80/100 = 2.4%
+    ResidueBiomassConfig("swine", "livestock", "swine_biomass_tons_year", "swine_biogas_m3_year", 210.0, 2.4),
+    # poultry: CAMA_AVIARIO (bmp=280); vs_wet = 25×69.8/100 = 17.5%
+    ResidueBiomassConfig("poultry", "livestock", "poultry_biomass_tons_year", "poultry_biogas_m3_year", 280.0, 17.5),
+    # aquaculture: not yet in canonical YAML; placeholder retained
     ResidueBiomassConfig("aquaculture", "livestock", "aquaculture_biomass_tons_year", "aquaculture_biogas_m3_year", 200.0, 15.0),
-    ResidueBiomassConfig("rsu", "urban", "rsu_biomass_tons_year", "rsu_biogas_m3_year", 410.0, 17.0),
-    ResidueBiomassConfig("rpo", "urban", "rpo_biomass_tons_year", "rpo_biogas_m3_year", 210.0, 3.1),
+    # rsu/FORSU: bmp=310 (migration 015+016 corrected from 88); vs_wet = 30.58×85/100 = 26.0%
+    ResidueBiomassConfig("rsu", "urban", "rsu_biomass_tons_year", "rsu_biogas_m3_year", 310.0, 26.0),
+    # rpo/lodo primário: bmp=310; vs_wet = 15×68/100 = 10.2%
+    ResidueBiomassConfig("rpo", "urban", "rpo_biomass_tons_year", "rpo_biogas_m3_year", 310.0, 10.2),
 )
 
 RESIDUE_KEYS = tuple(config.key for config in RESIDUE_BIOMASS_CONFIGS)
@@ -66,11 +96,25 @@ def reverse_bmp_tons(biogas_m3: float, bmp: float, vs_percent: float) -> float:
     return biogas_m3 / denominator
 
 
-def get_residue_biomass_tons(row: Mapping[str, Any], residue_key: str) -> float:
+def get_residue_biomass_tons(
+    row: Mapping[str, Any],
+    residue_key: str,
+    *,
+    allow_reverse_fallback: bool = True,
+) -> float:
+    """Return stored per-residue biomass tonnage.
+
+    With authoritative biomass loaded (scripts/load_biomass_from_master.py),
+    stored values are the source of record. When `allow_reverse_fallback` is
+    False, NO biogas→biomass back-calculation is performed and a missing value
+    returns 0.0 (the biomass availability map shows only measured data).
+    """
     config = _CONFIG_BY_KEY[residue_key]
     stored = number_value(row.get(config.biomass_field))
     if stored > 0:
         return stored
+    if not allow_reverse_fallback:
+        return 0.0
     return reverse_bmp_tons(
         number_value(row.get(config.biogas_field)),
         config.bmp,
@@ -78,13 +122,25 @@ def get_residue_biomass_tons(row: Mapping[str, Any], residue_key: str) -> float:
     )
 
 
-def derive_biomass_fields(row: Mapping[str, Any]) -> dict[str, float]:
-    """Return per-residue, sector, and total biomass fields for one row."""
+def derive_biomass_fields(
+    row: Mapping[str, Any],
+    *,
+    allow_reverse_fallback: bool = True,
+) -> dict[str, float]:
+    """Return per-residue, sector, and total biomass fields for one row.
+
+    Set `allow_reverse_fallback=False` once authoritative biomass tonnage is
+    loaded so the map uses real data only (no reverse-BMP back-calculation)."""
     residue_values: dict[str, float] = {}
     sector_totals = {sector: 0.0 for sector in SECTOR_FIELDS}
 
     for config in RESIDUE_BIOMASS_CONFIGS:
-        value = round(get_residue_biomass_tons(row, config.key), 2)
+        value = round(
+            get_residue_biomass_tons(
+                row, config.key, allow_reverse_fallback=allow_reverse_fallback
+            ),
+            2,
+        )
         residue_values[config.biomass_field] = value
         sector_totals[config.sector] += value
 

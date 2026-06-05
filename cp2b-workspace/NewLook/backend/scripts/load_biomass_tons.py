@@ -20,7 +20,8 @@ Cross-validation:
   PAM-based (MapBiomas × yield) is stored as the authoritative value.
 
 Yield factors used (t biomass residue per ha harvested):
-  - Sugarcane (class 20):  12 t/ha  [80 t/ha cane × 15% straw — theoretical palhiço]
+  - Sugarcane (class 20):  4.2 t/ha  [12 t/ha palhiço × 0.35 collectible fraction;
+    ≥7-10 t/ha must remain on soil per EMBRAPA/CONAB (Tenelli et al. 2021)]
   - Soybean   (class 39):   4 t/ha  [~3.5 t/ha grain × 1.15 residue ratio]
   - Corn      (class 41*):  4.5 t/ha [mixed class — proxy for corn stover, noted in log]
   - Coffee    (class 46):   0.6 t/ha [1.5 t cherry/ha × 40% husks/pulp]
@@ -70,10 +71,23 @@ YEAR_COLUMN = "2024"
 VALIDATION_LOG = str(Path(__file__).parent / "biomass_validation_log.csv")
 DIVERGENCE_THRESHOLD = 0.20  # Flag if MapBiomas vs BMP methods differ > 20%
 
+# Fraction of total palhiço (sugarcane straw) that is practically collectible.
+# EMBRAPA/CONAB guidelines require ≥7–10 Mg/ha/yr to remain on the soil surface
+# for erosion control and soil-carbon maintenance (Tenelli, S. et al. (2021)
+# "Soil carbon and nitrogen responses to sugarcane straw removal in Brazil",
+# Agriculture, Ecosystems & Environment, 316, 107458.
+# https://doi.org/10.1016/j.agee.2021.107458).
+# With ~12 t/ha total palhiço production, practical collection is 2–5 t/ha
+# depending on soil type, slope and rainfall.
+# The 0.35 factor (= 4.2 t/ha) represents the mid-range conservative estimate
+# endorsed by UNICA/RenovaBio protocols for SP mechanically harvested fields.
+SUGARCANE_COLLECTIBLE_FRACTION = 0.35
+
 # MapBiomas class_id → residue type + yield factor (t biomass residue / ha)
 MAPBIOMAS_YIELD = {
-    20: {"key": "sugarcane", "yield_t_ha": 12.0,
-         "note": "80 t/ha cane × 15% straw (theoretical palhiço)"},
+    20: {"key": "sugarcane", "yield_t_ha": round(12.0 * SUGARCANE_COLLECTIBLE_FRACTION, 1),
+         "note": "80 t/ha cane × 15% straw × 35% collectible fraction (SUGARCANE_COLLECTIBLE_FRACTION); "
+                 "remainder retained for soil carbon per EMBRAPA/CONAB guidelines"},
     39: {"key": "soybean",   "yield_t_ha": 4.0,
          "note": "~3.5 t/ha grain × 1.15 residue ratio"},
     41: {"key": "corn",      "yield_t_ha": 4.5,
@@ -84,15 +98,18 @@ MAPBIOMAS_YIELD = {
          "note": "40 t fruit/ha × 12.5% processing residue (peel + bagasse)"},
 }
 
-# Effective BMP parameters for reverse-BMP method (per municipality column)
+# Effective BMP parameters for reverse-BMP method (per municipality column).
 # biomass_tons = biogas_m3 / (BMP × VS/100)
+#
+# SOURCE OF TRUTH: these are derived from the canonical RESIDUE_BIOMASS_CONFIGS
+# in app.services.biomass_availability (generated from feedstocks.yaml). This
+# eliminates the previously-divergent local copy (rsu=410, poultry=270, etc.)
+# so the load script and the runtime service can never drift apart again.
+from app.services.biomass_availability import RESIDUE_BIOMASS_CONFIGS as _CANON
+
 BMP_PARAMS = {
-    "cattle":      {"bmp": 210.0, "vs": 12.5},   # esterco_bovino_fresco
-    "swine":       {"bmp": 210.0, "vs":  3.5},   # dejetos_suinos_liquidos
-    "poultry":     {"bmp": 270.0, "vs": 50.0},   # weighted: cama_aviario + aves_frescos
-    "aquaculture": {"bmp": 200.0, "vs": 15.0},   # estimated
-    "rsu":         {"bmp": 410.0, "vs": 17.0},   # forsu_ur_rsu
-    "rpo":         {"bmp": 210.0, "vs":  3.1},   # avg lodo_primario + lodo_secundario
+    cfg.key: {"bmp": cfg.bmp, "vs": cfg.vs_percent}
+    for cfg in _CANON
 }
 
 AGRICULTURAL_KEYS = ["sugarcane", "soybean", "corn", "coffee", "citrus"]
@@ -218,21 +235,12 @@ def main():
             mb_tons[key] = round(area_ha * cfg["yield_t_ha"], 2)
 
         # ── Reverse BMP estimates (cross-validation + livestock/urban) ────────
+        # BMP_PARAMS now covers ALL residue keys (crops + livestock + urban)
+        # from the canonical config, so a single loop handles every stream.
+        # The previous separate `bmp_params_crops` block (with inconsistent
+        # VS-of-TS values fed into a wet-basis formula) has been removed.
         bmp_tons: dict[str, float] = {}
         for key, params in BMP_PARAMS.items():
-            biogas_col = f"{key}_biogas_m3_year"
-            biogas_m3 = float(mun.get(biogas_col) or 0)
-            bmp_tons[key] = reverse_bmp(biogas_m3, params["bmp"], params["vs"])
-
-        # Also compute BMP-based estimates for MapBiomas crops (cross-validation)
-        bmp_params_crops = {
-            "sugarcane": {"bmp": 210.0, "vs": 77.0},  # weighted palha+vinhaça
-            "soybean":   {"bmp": 180.0, "vs": 84.0},  # avg palha_soja + casca_soja
-            "corn":      {"bmp": 280.0, "vs": 77.0},  # avg palha+casca+sabugo
-            "coffee":    {"bmp": 350.0, "vs": 89.0},  # avg casca+polpa
-            "citrus":    {"bmp": 300.0, "vs": 20.0},  # avg bagaço+cascas
-        }
-        for key, params in bmp_params_crops.items():
             biogas_col = f"{key}_biogas_m3_year"
             biogas_m3 = float(mun.get(biogas_col) or 0)
             bmp_tons[key] = reverse_bmp(biogas_m3, params["bmp"], params["vs"])

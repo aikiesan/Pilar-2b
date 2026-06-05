@@ -65,3 +65,6 @@ Thumbs.db
 *~# Shapefile data (large files, sourced from project_map repo)
 backend/data/shapefiles/
 backend/data/rasters/
+
+# Canonical recalculation outputs (regenerable via recalculate_biogas_canonical.py)
+backend/scripts/canonical_recalc_output/

@@ -4,6 +4,7 @@ Geometry and tabular data both served from local PostgreSQL / PostGIS.
 """
 import json
 import logging
+import os
 from typing import Optional
 
 from fastapi import APIRouter, HTTPException, Query, Depends
@@ -12,9 +13,16 @@ from app.core.database import get_db
 from app.middleware.auth import optional_auth
 from app.models.auth import UserProfile
 from app.services.biomass_availability import derive_biomass_fields
+from app.services.map_metrics import compute_municipality_map_metrics
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
+
+# Once authoritative biomass tonnage is loaded (scripts/load_biomass_from_master.py),
+# set BIOMASS_REVERSE_FALLBACK=false so the biomass map uses real data only and
+# performs no biogas→biomass back-calculation. Defaults to true for safety until
+# the data is loaded.
+_ALLOW_REVERSE_FALLBACK = os.getenv("BIOMASS_REVERSE_FALLBACK", "true").lower() != "false"
 
 
 def _table_exists(cursor, table_name: str, schema: str = "public") -> bool:
@@ -114,7 +122,12 @@ async def get_municipalities_geojson(
     for row in rows:
         ibge_code = str(_f(row, "ibge_code", ""))
         tb = float(_f(row, "total_biogas_m3_year"))
-        biomass_fields = derive_biomass_fields(row)
+        biomass_fields = derive_biomass_fields(row, allow_reverse_fallback=_ALLOW_REVERSE_FALLBACK)
+        try:
+            canonical_metrics = compute_municipality_map_metrics(row, ibge_code=ibge_code).to_flat_dict()
+        except Exception as exc:
+            logger.warning("canonical metrics failed for %s: %s", ibge_code, exc)
+            canonical_metrics = {}
         features.append({
             "type": "Feature",
             "geometry": json.loads(row["geojson"]),
@@ -160,6 +173,7 @@ async def get_municipalities_geojson(
                 "mun_n_streams":                 row.get("mun_n_streams"),
                 "mun_dominant_stream":           row.get("mun_dominant_stream"),
                 **biomass_fields,
+                **canonical_metrics,
             },
         })
 
@@ -170,8 +184,14 @@ async def get_municipalities_geojson(
         "metadata": {
             "total_municipalities":    len(features),
             "source_geometry":         "PostGIS municipalities.geometry",
-            "source_biogas_data":      "PostGIS municipalities table",
-            "source_biomass_data":     "Stored biomass columns with reverse-BMP fallback from biogas fields",
+            "source_biogas_data":      "PostGIS municipalities table (legacy V2 import)",
+            "source_biomass_data":     "Stored biomass columns (agricultural: authoritative from master CSV)",
+            "canonical_metrics":       (
+                "Properties prefixed biomass_gross_, biomass_corrected_, biogas_ch4_, biomethane_ "
+                "are canonical forward-calculated 4-metric × 3-scenario values. "
+                "Agricultural streams use authoritative biomass tonnage. "
+                "Livestock/urban streams without stored biomass use legacy biogas with ±FDE envelope."
+            ),
         },
     }
 

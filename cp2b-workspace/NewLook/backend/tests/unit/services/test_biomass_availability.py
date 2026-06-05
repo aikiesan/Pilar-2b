@@ -21,6 +21,12 @@ from app.services.biomass_availability import (
     reverse_bmp_tons,
 )
 
+# Lookup canonical config by key so tests validate the wiring (correct column,
+# config, and formula) without hardcoding BMP/VS magic numbers. These values are
+# generated from data/canonical_parameters/feedstocks.yaml and change with the
+# science; the pure-math tests in TestReverseBmpTons cover the arithmetic itself.
+_CONFIG_BY_KEY = {c.key: c for c in RESIDUE_BIOMASS_CONFIGS}
+
 
 @pytest.mark.unit
 class TestNumberValue:
@@ -108,8 +114,9 @@ class TestReverseBmpTons:
         result = reverse_bmp_tons(biogas_m3=16170.0, bmp=210.0, vs_percent=77.0)
         assert result == pytest.approx(100.0, rel=1e-4)
 
-    def test_known_rsu_values(self):
-        # rsu: bmp=410, vs_percent=17 → denominator = 410 * 0.17 = 69.7
+    def test_known_formula_with_literal_values(self):
+        # Pure-math check with literal inputs (not tied to any feedstock):
+        # denominator = 410 * 0.17 = 69.7 → 6970 / 69.7 = 100.0
         result = reverse_bmp_tons(biogas_m3=6970.0, bmp=410.0, vs_percent=17.0)
         assert result == pytest.approx(100.0, rel=1e-4)
 
@@ -128,15 +135,23 @@ class TestGetResidueBiomassTons:
         assert result == pytest.approx(5000.0)
 
     def test_falls_back_to_biogas_when_biomass_zero(self):
-        # sugarcane: bmp=210, vs=77 → 16170 / (210*0.77) = 100.0
-        row = {"sugarcane_biomass_tons_year": 0.0, "sugarcane_biogas_m3_year": 16170.0}
+        # When stored biomass is zero, fall back to reverse-BMP using the
+        # canonical sugarcane config (whatever its current BMP/VS values are).
+        cfg = _CONFIG_BY_KEY["sugarcane"]
+        biogas = 16170.0
+        expected = reverse_bmp_tons(biogas, cfg.bmp, cfg.vs_percent)
+        row = {"sugarcane_biomass_tons_year": 0.0, "sugarcane_biogas_m3_year": biogas}
         result = get_residue_biomass_tons(row, "sugarcane")
-        assert result == pytest.approx(100.0, rel=1e-4)
+        assert result == pytest.approx(expected, rel=1e-4)
+        assert result > 0  # sanity: fallback actually produced a value
 
     def test_falls_back_when_biomass_missing(self):
-        row = {"sugarcane_biogas_m3_year": 16170.0}
+        cfg = _CONFIG_BY_KEY["sugarcane"]
+        biogas = 16170.0
+        expected = reverse_bmp_tons(biogas, cfg.bmp, cfg.vs_percent)
+        row = {"sugarcane_biogas_m3_year": biogas}
         result = get_residue_biomass_tons(row, "sugarcane")
-        assert result == pytest.approx(100.0, rel=1e-4)
+        assert result == pytest.approx(expected, rel=1e-4)
 
     def test_returns_zero_when_both_missing(self):
         row = {}
@@ -151,10 +166,14 @@ class TestGetResidueBiomassTons:
             assert isinstance(val, float)
 
     def test_cattle_residue_fallback(self):
-        # cattle: bmp=210, vs_percent=12.5 → denominator = 210*0.125 = 26.25
-        row = {"cattle_biomass_tons_year": 0.0, "cattle_biogas_m3_year": 2625.0}
+        # Livestock fallback path uses the canonical cattle config.
+        cfg = _CONFIG_BY_KEY["cattle"]
+        biogas = 2625.0
+        expected = reverse_bmp_tons(biogas, cfg.bmp, cfg.vs_percent)
+        row = {"cattle_biomass_tons_year": 0.0, "cattle_biogas_m3_year": biogas}
         result = get_residue_biomass_tons(row, "cattle")
-        assert result == pytest.approx(100.0, rel=1e-4)
+        assert result == pytest.approx(expected, rel=1e-4)
+        assert result > 0
 
     def test_stored_biomass_takes_priority_over_biogas(self):
         """Stored positive biomass must win even when biogas would give a higher number."""
@@ -176,11 +195,13 @@ class TestDeriveBiomassFields:
 
     @pytest.fixture
     def row_with_biogas(self):
-        """Row that has biogas values but no biomass values (common DB state)."""
+        """Row that has biogas values but no biomass values (common DB state).
+        Tonnage results depend on the canonical BMP/VS config, so assertions
+        compute expected values from the config rather than hardcoding them."""
         return {
-            "sugarcane_biogas_m3_year": 16170.0,   # → ~100 tons
-            "cattle_biogas_m3_year": 2625.0,        # → ~100 tons
-            "rsu_biogas_m3_year": 6970.0,            # → ~100 tons
+            "sugarcane_biogas_m3_year": 16170.0,
+            "cattle_biogas_m3_year": 2625.0,
+            "rsu_biogas_m3_year": 6970.0,
         }
 
     def test_returns_dict_with_all_residue_biomass_fields(self, empty_row):
@@ -207,8 +228,12 @@ class TestDeriveBiomassFields:
         assert result["total_biomass_tons_year"] == pytest.approx(0.0)
 
     def test_biogas_fallback_computes_biomass(self, row_with_biogas):
+        cfg = _CONFIG_BY_KEY["sugarcane"]
+        expected = reverse_bmp_tons(
+            row_with_biogas["sugarcane_biogas_m3_year"], cfg.bmp, cfg.vs_percent
+        )
         result = derive_biomass_fields(row_with_biogas)
-        assert result["sugarcane_biomass_tons_year"] == pytest.approx(100.0, rel=1e-4)
+        assert result["sugarcane_biomass_tons_year"] == pytest.approx(expected, rel=1e-4)
 
     def test_sector_totals_are_sum_of_residues(self, row_with_biogas):
         result = derive_biomass_fields(row_with_biogas)

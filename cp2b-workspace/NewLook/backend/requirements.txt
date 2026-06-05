@@ -38,6 +38,7 @@ scipy==1.15.3
 scikit-learn>=1.7.2
 openpyxl==3.1.5
 xlrd>=2.0.2  # Required to read IBGE .xls workbooks such as POP2025
+PyYAML>=6.0.1  # Canonical parameter database (data/canonical_parameters/*.yaml) + generator
 
 # HTTP client
 httpx==0.28.1
