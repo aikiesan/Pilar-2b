@@ -34,7 +34,7 @@ class ResidueBiomassConfig:
 # Re-run the generator after editing feedstocks.yaml — do NOT edit these values directly.
 #
 # Primary DOI per feedstock:
-#   sugarcane: https://doi.org/10.15376/biores.11.3.6824-6841  (Talha et al. 2016)
+#   sugarcane: https://doi.org/10.1016/j.indcrop.2021.113498   (Paulose et al. 2021; BMP 187.9→165 practical)
 #   soybean:   https://doi.org/10.1016/j.wasman.2015.10.021   (Kafle & Chen 2016)
 #   corn:      https://doi.org/10.1016/j.biortech.2011.12.074 (Herrmann et al. 2012)
 #   coffee:    https://doi.org/10.1016/j.biteb.2021.100830    (Okonkwo et al. 2021)
@@ -45,8 +45,9 @@ class ResidueBiomassConfig:
 #   rsu/FORSU: https://doi.org/10.1016/j.biortech.2014.03.077 (Mata-Alvarez et al. 2014)
 #   rpo/lodo:  https://doi.org/10.1016/j.wasman.2019.04.025   (Heerenklage et al. 2019)
 RESIDUE_BIOMASS_CONFIGS: tuple[ResidueBiomassConfig, ...] = (
-    # sugarcane: BAGACO representative (bmp=115); vs_wet = 58.9×90/100 = 53.0%
-    ResidueBiomassConfig("sugarcane", "agricultural", "sugarcane_biomass_tons_year", "sugarcane_biogas_m3_year", 115.0, 53.0),
+    # sugarcane: BAGACO representative (bmp=165); vs_wet = 58.9×90/100 = 53.0%
+    # BMP raised from 115 to 165 NmL/gVS per Paulose et al. 2021 (187.9 untreated mesophilic)
+    ResidueBiomassConfig("sugarcane", "agricultural", "sugarcane_biomass_tons_year", "sugarcane_biogas_m3_year", 165.0, 53.0),
     # soybean: CASCA_SOJA representative (bmp=300); vs_wet = 90×93/100 = 83.7%
     ResidueBiomassConfig("soybean", "agricultural", "soybean_biomass_tons_year", "soybean_biogas_m3_year", 300.0, 83.7),
     # corn: PALHA_MILHO (bmp=230); vs_wet = 82×86/100 = 70.5%

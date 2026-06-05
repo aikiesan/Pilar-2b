@@ -68,3 +68,8 @@ backend/data/rasters/
 
 # Canonical recalculation outputs (regenerable via recalculate_biogas_canonical.py)
 backend/scripts/canonical_recalc_output/
+
+# Test coverage artifacts (regenerable via pytest --cov)
+.coverage
+coverage.xml
+htmlcov/
