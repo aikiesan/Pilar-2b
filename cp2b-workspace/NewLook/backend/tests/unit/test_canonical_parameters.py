@@ -164,7 +164,7 @@ class TestNoDriftWithRuntimeService:
     # service key -> canonical feedstock code used as its representative stream
     SERVICE_MAP = {
         "sugarcane": "BAGACO",
-        "soybean": "CASCA_SOJA",
+        "soybean": "PALHA_SOJA",    # field straw mapping (confirmed 2026-06)
         "corn": "PALHA_MILHO",
         "coffee": "CASCA_CAFE",
         "citrus": "BAGACO_CITROS",
@@ -172,7 +172,7 @@ class TestNoDriftWithRuntimeService:
         "swine": "DEJETOS_SUINO",
         "poultry": "CAMA_AVIARIO",
         "rsu": "FORSU",
-        "rpo": "LODO_PRIMARIO",
+        "rpo": "PODA_URBANA",       # urban pruning waste (confirmed 2026-06)
     }
 
     def test_service_bmp_matches_canonical(self, feedstocks):

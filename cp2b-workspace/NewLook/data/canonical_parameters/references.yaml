@@ -408,6 +408,32 @@ references:
     verified: true
     notes: "SP state RSU generation rates; FORSU fraction ~50–55% of MSW by weight"
 
+  abrelpe2022_rsu:
+    authors: "ABRELPE — Associação Brasileira de Empresas de Limpeza Pública e Resíduos Especiais"
+    title: "Panorama dos Resíduos Sólidos no Brasil 2022"
+    publisher: "ABRELPE"
+    year: 2022
+    url: "https://abrelpe.org.br/panorama/"
+    verified: true
+    notes: >
+      Brazil total RSU generation 81.8M t/yr (2022). Garden/pruning waste ~3–5% of
+      collected MSW in SP municipalities. Per-capita pruning generation: SP range
+      13–82 g/cap/day wet basis depending on municipal collection programme intensity.
+
+  pognani2011_garden:
+    authors: "Pognani, M. et al."
+    title: "Characterization of the process of anaerobic digestion of the organic fraction of municipal solid waste"
+    publisher: "Bioresource Technology, 102(2), 965–971"
+    year: 2011
+    doi: "10.1016/j.biortech.2010.09.006"
+    url: "https://doi.org/10.1016/j.biortech.2010.09.006"
+    verified: true
+    notes: >
+      BMP of garden and green waste: 100–180 NmL/gVS for mixed urban pruning waste.
+      TS of fresh pruning waste ~35–70% depending on woody/leafy fraction ratio.
+      eta ~0.55 for lignocellulosic urban pruning (reduced by lignified branches).
+      Used as primary reference for PODA_URBANA BMP/TS/VS parameters.
+
   primavesi2004_cattle:
     authors: "Primavesi, O. et al."
     title: "Biogás de dejetos de bovinos leiteiros"
@@ -496,3 +522,299 @@ references:
       Our canonical medio scenario (~11 M m³/day) is more conservative but
       our max scenario (~18–20 M m³/day) brackets the FIESP figure.
       Verify exact URL — may require direct FIESP member access.
+
+  # ── Per-factor availability sources (FDE traceability reconciliation 2026-06) ──
+  # These references anchor the individual FC/FCo/FS/FL factors documented in
+  # docs/data/FEEDSTOCK_FACTORS_LITERATURE_TABLE.md, reconciled into the canonical
+  # FDE blocks so each factor is traceable to a source that actually reports it.
+
+  carvalho2017_straw:
+    authors: "Carvalho, J.L.N., Nogueirol, R.C., Menandro, L.M.S., Bordonal, R.O., Borges, C.D., Cantarella, H., Franco, H.C.J."
+    title: "Agronomic and environmental implications of sugarcane straw removal: a major review"
+    journal: "GCB Bioenergy"
+    year: 2017
+    volume: "9"
+    issue: "7"
+    pages: "1181-1195"
+    doi: "10.1111/gcbb.12410"
+    url: "https://doi.org/10.1111/gcbb.12410"
+    verified: true
+    notes: >
+      FCo source for PALHA (cane straw): 50-70% of straw must remain on the field
+      for erosion control, nutrient cycling and soil C → only ~10% surplus available
+      for biogas after soil-retention requirements. Anchors FCo medio = 0.10.
+
+  leal2013_straw:
+    authors: "Leal, M.R.L.V., Galdos, M.V., Scarpare, F.V., Seabra, J.E.A., Walter, A., Oliveira, C.O.F."
+    title: "Sugarcane straw availability, quality, recovery and energy use: A literature review"
+    journal: "Biomass and Bioenergy"
+    year: 2013
+    volume: "53"
+    pages: "11-19"
+    doi: "10.1016/j.biombioe.2013.03.007"
+    url: "https://doi.org/10.1016/j.biombioe.2013.03.007"
+    verified: true
+    notes: >
+      FL source for PALHA: baling + transport logistics of cane straw; co-located
+      with mills (<10 km economic radius). Anchors FL medio = 0.85.
+
+  hassuani2005_straw:
+    authors: "Hassuani, S.J., Leal, M.R.L.V., Macedo, I.C."
+    title: "Biomass Power Generation: Sugar Cane Bagasse and Trash"
+    publisher: "PNUD-CTC, Piracicaba, Brazil"
+    year: 2005
+    isbn: "85-99371-01-3"
+    url: "https://www.osti.gov/etdeweb/biblio/20656473"
+    verified: false
+    notes: >
+      FC source for PALHA: mechanical baling systems recover 80-90% of available
+      straw. Book/technical report; ETDEWEB catalogue record. Anchors FC medio = 0.85.
+
+  braddock1999_citrus:
+    authors: "Braddock, R.J."
+    title: "Handbook of Citrus By-Products and Processing Technology"
+    publisher: "Wiley-Interscience, New York"
+    year: 1999
+    isbn: "978-0471196181"
+    url: "https://www.wiley.com/en-us/Handbook+of+Citrus+By+Products+and+Processing+Technology-p-9780471196181"
+    verified: false
+    notes: >
+      FCo source for CASCAS_CITROS / BAGACO_CITROS: ~70% of citrus peel/pomace is
+      diverted to pectin extraction and cattle-feed pellets → ~30% surplus for
+      biogas. Anchors FCo medio = 0.30. Book; verify via institutional library.
+
+  lohrasbi2010_citrus:
+    authors: "Lohrasbi, M., Pourbafrani, M., Niklasson, C., Taherzadeh, M.J."
+    title: "Process design and economic analysis of a citrus waste biorefinery with biofuels and limonene as products"
+    journal: "Bioresource Technology"
+    year: 2010
+    volume: "101"
+    issue: "19"
+    pages: "7382-7388"
+    doi: "10.1016/j.biortech.2010.04.078"
+    url: "https://doi.org/10.1016/j.biortech.2010.04.078"
+    verified: true
+    notes: >
+      FL/processing-concentration source for citrus residues: peel concentrated at
+      large juice processors in the SP citrus belt; transport viable 30-40 km.
+      Anchors FL medio = 0.75 for CASCAS_CITROS.
+
+  fundecitrus2022:
+    authors: "FUNDECITRUS — Fundo de Defesa da Citricultura"
+    title: "PES — Pesquisa de Estimativa de Safra da Citricultura Paulista 2022/23"
+    publisher: "FUNDECITRUS, Araraquara, SP"
+    year: 2022
+    url: "https://www.fundecitrus.com.br/pes/"
+    verified: true
+    notes: >
+      FS source for citrus residues: SP citrus harvest April-December (8-9 month
+      processing window). Anchors FS medio = 0.90 for CASCAS_CITROS.
+
+  mussatto2011_coffee:
+    authors: "Mussatto, S.I., Machado, E.M.S., Martins, S., Teixeira, J.A."
+    title: "Production, composition, and application of coffee and its industrial residues"
+    journal: "Food and Bioprocess Technology"
+    year: 2011
+    volume: "4"
+    pages: "661-672"
+    doi: "10.1007/s11947-011-0565-z"
+    url: "https://doi.org/10.1007/s11947-011-0565-z"
+    verified: true
+    notes: >
+      FC source for POLPA_CAFE / MUCILAGEM_CAFE: wet processing recovers ~80% of
+      pulp; FL for dispersed coffee regions. Anchors POLPA_CAFE FC medio = 0.80.
+
+  bressani2015_coffee:
+    authors: "Bressani, A.P.P., Martinez, S.J., Sarmento, A.B.I., et al."
+    title: "Uso de resíduos da produção de café na alimentação animal"
+    journal: "Informe Agropecuário"
+    year: 2015
+    volume: "36"
+    issue: "284"
+    url: "https://www.epamig.br/informe-agropecuario/"
+    verified: false
+    notes: >
+      FCo source for POLPA_CAFE: ~60% of coffee pulp is composted back to the
+      plantation or used as animal feed → ~40% surplus for biogas. Anchors FCo
+      medio = 0.40. Periodical; verify via EPAMIG library.
+
+  pandey2000_coffee:
+    authors: "Pandey, A., Soccol, C.R., Nigam, P., Brand, D., Mohan, R., Roussos, S."
+    title: "Biotechnological potential of coffee pulp and coffee husk for bioprocesses"
+    journal: "Biochemical Engineering Journal"
+    year: 2000
+    volume: "6"
+    issue: "2"
+    pages: "153-162"
+    doi: "10.1016/S1369-703X(00)00084-X"
+    url: "https://doi.org/10.1016/S1369-703X(00)00084-X"
+    verified: true
+    notes: >
+      FCo source for MUCILAGEM_CAFE: ~55% of mucilage used in composting and on-farm
+      fermentation → ~45% surplus. Anchors MUCILAGEM_CAFE FCo medio = 0.45.
+
+  conab2023_calendar:
+    authors: "CONAB — Companhia Nacional de Abastecimento"
+    title: "Calendário de Plantio e Colheita de Grãos no Brasil 2023"
+    publisher: "CONAB, Brasília"
+    year: 2023
+    url: "https://www.conab.gov.br/institucional/publicacoes/outras-publicacoes"
+    verified: true
+    notes: >
+      FS source for crop residues (corn husk, coffee pulp): harvest calendars
+      define seasonal availability windows. Corn Feb-May; coffee Jun-Sep.
+
+  fao2017_cropres:
+    authors: "FAO — Food and Agriculture Organization"
+    title: "Crop residue management and utilization (Conservation Agriculture knowledge base)"
+    publisher: "FAO, Rome"
+    year: 2017
+    url: "https://www.fao.org/conservation-agriculture/en/"
+    verified: false
+    notes: >
+      Generic FC/FCo/FL source for CASCA_MILHO (corn husk): processing residue
+      ~65% recoverable; competes with animal feed (~45% surplus). LOW-confidence
+      proxy — no SP-specific corn-husk availability study located.
+
+  miele2004_poultry:
+    authors: "Miele, M., Girotto, A.F."
+    title: "Aproveitamento de dejetos avícolas"
+    publisher: "EMBRAPA Suínos e Aves, Concórdia"
+    year: 2004
+    url: "https://www.embrapa.br/suinos-e-aves/publicacoes"
+    verified: false
+    notes: >
+      FCo source for DEJETOS_AVES (fresh poultry droppings): ~40% applied directly
+      as organic fertilizer → ~60% surplus. Anchors FCo medio = 0.60. EMBRAPA
+      technical publication; verify via institutional repository.
+
+  seganfredo2007_swine:
+    authors: "Seganfredo, M.A."
+    title: "Gestão ambiental na suinocultura"
+    publisher: "EMBRAPA Suínos e Aves / Embrapa Informação Tecnológica, Brasília"
+    year: 2007
+    isbn: "978-85-7383-393-8"
+    url: "https://www.embrapa.br/suinos-e-aves/publicacoes"
+    verified: false
+    notes: >
+      FL source for poultry/swine manure: concentrated production regions; transport
+      viable ~30-35 km. Anchors DEJETOS_AVES FL medio = 0.70.
+
+  souza2009_cattle:
+    authors: "Souza, S.N.M., Pereira, W.C., Nogueira, C.E.C., Pavan, A.A., Sordi, A."
+    title: "Custo da eletricidade gerada em conjunto motor gerador utilizando biogás da suinocultura"
+    journal: "Acta Scientiarum. Technology"
+    year: 2009
+    volume: "31"
+    issue: "1"
+    pages: "25-30"
+    doi: "10.4025/actascitechnol.v31i1.3214"
+    url: "https://doi.org/10.4025/actascitechnol.v31i1.3214"
+    verified: false
+    notes: >
+      FC source for DEJETOS_BOVINO (liquid cattle slurry): confinement/flushing
+      systems collect ~75%. Anchors FC medio = 0.75. DOI to confirm at journal.
+
+  coldebella2006_biogas:
+    authors: "Coldebella, A., Souza, S.N.M., Ferri, P., Kolling, E.M."
+    title: "Viabilidade da cogeração de energia elétrica com biogás da bovinocultura de leite"
+    publisher: "AGRENER GD 2006 — 6º Congresso Internacional sobre Geração Distribuída e Energia no Meio Rural, UNICAMP"
+    year: 2006
+    url: "http://www.proceedings.scielo.br/scielo.php?pid=MSC0000000022006000200053&script=sci_arttext"
+    verified: true
+    notes: >
+      FL source for DEJETOS_BOVINO: dairy-farm dispersion; economic transport up to
+      ~45 km. Anchors FL medio = 0.68. SciELO conference proceedings (no DOI).
+
+  perdomo2003_swine:
+    authors: "Perdomo, C.C., Lima, G.J.M.M., Nones, K."
+    title: "Produção de suínos e meio ambiente"
+    publisher: "EMBRAPA Suínos e Aves, Concórdia"
+    year: 2003
+    url: "https://www.embrapa.br/suinos-e-aves/publicacoes"
+    verified: false
+    notes: >
+      FL source for ESTERCO_SUINO: concentrated regional swine production; liquid/
+      solid transport economically viable up to ~40 km. Anchors FL medio = 0.75.
+
+  abcs2016_swine:
+    authors: "ABCS — Associação Brasileira dos Criadores de Suínos"
+    title: "Produção de Suínos: Teoria e Prática"
+    publisher: "ABCS, Brasília"
+    year: 2016
+    url: "https://www.abcs.org.br/informativos/publicacoes/"
+    verified: false
+    notes: >
+      FS source for ESTERCO_SUINO: continuous year-round confined production (~95%
+      seasonal factor). Anchors FS medio = 0.95. Book; verify via ABCS.
+
+  andreoli2001_sludge:
+    authors: "Andreoli, C.V., von Sperling, M., Fernandes, F."
+    title: "Lodo de Esgotos: Tratamento e Disposição Final (Princípios do Tratamento Biológico de Águas Residuárias, Vol. 6)"
+    publisher: "UFMG / SANEPAR, Belo Horizonte"
+    year: 2001
+    isbn: "85-7041-216-0"
+    url: "https://www.finep.gov.br/images/apoio-e-financiamento/historico-de-programas/prosab/Lodo_de_Esgotos.pdf"
+    verified: true
+    notes: >
+      FC source for LODO_SECUNDARIO (activated sludge): secondary treatment systems
+      achieve ~82% sludge capture amenable to AD. Anchors FC medio = 0.82. Open PDF
+      via FINEP/PROSAB.
+
+  anp2023_biodiesel:
+    authors: "ANP — Agência Nacional do Petróleo, Gás Natural e Biocombustíveis"
+    title: "Boletim Mensal do Biodiesel"
+    publisher: "ANP, Rio de Janeiro"
+    year: 2023
+    url: "https://www.gov.br/anp/pt-br/assuntos/producao-e-fornecimento-de-biocombustiveis/biodiesel"
+    verified: true
+    notes: >
+      FCo source for GORDURA (animal fat/tallow): high-value biodiesel feedstock
+      market (~R$3,000-4,500/t) draws ~75% of tallow → ~25% surplus for biogas.
+      Anchors FCo medio = 0.25.
+
+  abiove2022_oilseed:
+    authors: "ABIOVE — Associação Brasileira das Indústrias de Óleos Vegetais"
+    title: "Estatística Mensal do Complexo Soja / Indústria de Óleos"
+    publisher: "ABIOVE, São Paulo"
+    year: 2022
+    url: "https://abiove.org.br/estatisticas/"
+    verified: true
+    notes: >
+      Supporting FCo source for GORDURA and CASCA_SOJA: oleochemical/feed market
+      competition for fats and soy by-products.
+
+  mapa2019_riispoa:
+    authors: "MAPA — Ministério da Agricultura, Pecuária e Abastecimento"
+    title: "Regulamento da Inspeção Industrial e Sanitária de Produtos de Origem Animal (RIISPOA) — Decreto 9.013/2017, atual. 2019"
+    publisher: "MAPA, Brasília"
+    year: 2019
+    url: "https://www.gov.br/agricultura/pt-br/assuntos/inspecao/produtos-animal"
+    verified: true
+    notes: >
+      FC source for SANGUE and GORDURA: slaughterhouse separation/collection of
+      blood and fat regulated under RIISPOA; collection ~70% (blood), ~80% (fat).
+      Anchors SANGUE FC medio = 0.70.
+
+  fao2014_slaughter:
+    authors: "FAO — Food and Agriculture Organization"
+    title: "Environmental Performance of Large Ruminant Supply Chains: Guidelines for assessment"
+    publisher: "FAO, Rome"
+    year: 2014
+    isbn: "978-92-5-108637-7"
+    url: "https://www.fao.org/3/i3461e/i3461e.pdf"
+    verified: true
+    notes: >
+      FCo source for SANGUE: blood is a high-value protein (blood meal for feed/
+      fertilizer); ~55% diverted → ~45% surplus for biogas. Anchors FCo medio = 0.45.
+
+  abpa2022_report:
+    authors: "ABPA — Associação Brasileira de Proteína Animal"
+    title: "Relatório Anual 2022"
+    publisher: "ABPA, São Paulo"
+    year: 2022
+    url: "https://abpa-br.org/relatorios/"
+    verified: true
+    notes: >
+      FS source for slaughterhouse residues (SANGUE) and poultry: continuous
+      year-round slaughter operations (~95% seasonal factor).

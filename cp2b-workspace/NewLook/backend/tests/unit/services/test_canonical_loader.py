@@ -44,9 +44,25 @@ class TestGetParams:
         assert p.bmp.min <= p.bmp.medio <= p.bmp.max
 
     def test_fde_defaults_to_one_when_absent(self):
-        # GORDURA has no fde block → theoretical potential (FDE = 1.0)
-        p = get_params("GORDURA")
-        assert p.fde.min == 1.0 and p.fde.medio == 1.0 and p.fde.max == 1.0
+        # All 26 canonical feedstocks now carry an audited fde block, so the
+        # 1.0 fallback is exercised at the resolver level: an entry with no
+        # `fde` key must yield theoretical potential (FDE = 1.0).
+        from app.services.canonical_loader import _resolve_fde, _resolve_availability
+
+        entry_without_fde = {"bmp": {"min": 1, "medio": 2, "max": 3}}
+        fde = _resolve_fde(entry_without_fde)
+        avail = _resolve_availability(entry_without_fde)
+        assert fde.min == 1.0 and fde.medio == 1.0 and fde.max == 1.0
+        assert avail.min == 1.0 and avail.medio == 1.0 and avail.max == 1.0
+
+    def test_all_canonical_feedstocks_have_audited_fde(self):
+        # Coverage guard: every feedstock must carry a real availability×eta block
+        # (no feedstock silently falls back to theoretical FDE=1.0).
+        fs = load_raw()
+        for code in fs:
+            p = get_params(code)
+            assert 0.0 < p.fde.medio < 1.0, f"{code} has non-audited FDE {p.fde.medio}"
+            assert p.fde.min <= p.fde.medio <= p.fde.max, f"{code} FDE not ordered"
 
     def test_fde_resolved_as_availability_times_eta(self):
         # BAGACO: availability medio 0.1693 × eta 0.70 = 0.11851
@@ -66,7 +82,7 @@ class TestGetParamsForStream:
         ("sugarcane", "BAGACO"),
         ("coffee", "CASCA_CAFE"),
         ("corn", "PALHA_MILHO"),
-        ("soybean", "CASCA_SOJA"),
+        ("soybean", "PALHA_SOJA"),    # field straw mapping (confirmed 2026-06)
         ("citrus", "BAGACO_CITROS"),
     ])
     def test_agricultural_streams_map(self, stream, code):
