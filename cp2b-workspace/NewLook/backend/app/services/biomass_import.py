@@ -27,20 +27,43 @@ from app.services.biomass_availability import (
     number_value,
 )
 
-# Master-CSV stream key → canonical residue key used by the municipality columns.
-# forestry has no biomass column and is intentionally excluded.
-STREAM_TO_RESIDUE_KEY: dict[str, str] = {
+# IMPORTANT — the master CSV `residue_tons_yr` column is OVERLOADED by sector:
+#   * agricultural streams : tonnes of residue per year   (direct biomass tonnage)
+#   * livestock streams    : ANIMAL HEAD COUNT            (NOT tonnage!)
+#                            (verified: biogas = head × cf, cf in m³/head/yr)
+#   * urban streams        : 0  (biogas pre-calculated; biomass is population-derived)
+# Therefore only agricultural streams can be mapped to biomass tonnage directly.
+# Livestock tonnage = head × manure_generation (t/head/yr); urban tonnage =
+# population × per-capita generation (t/cap/yr). Those coefficients are supplied
+# via generation_coeffs to avoid silently storing head counts as tonnes.
+
+AGRICULTURAL_STREAM_TO_KEY: dict[str, str] = {
     "sugarcane": "sugarcane",
     "soybean": "soybean",
     "corn": "corn",
     "coffee": "coffee",
     "citrus": "citrus",
+}
+
+# Livestock streams: residue_tons_yr is HEAD COUNT. key → residue column key.
+LIVESTOCK_STREAM_TO_KEY: dict[str, str] = {
     "cattle": "cattle",
     "swine": "swine",
     "poultry": "poultry",
     "aquaculture": "aquaculture",
+}
+
+# Urban streams: tonnage is population-derived. key → residue column key.
+URBAN_STREAM_TO_KEY: dict[str, str] = {
     "rsu_organic": "rsu",
     "rpo_pruning": "rpo",
+}
+
+# Backwards-compatible full mapping (used only where a residue key is needed).
+STREAM_TO_RESIDUE_KEY: dict[str, str] = {
+    **AGRICULTURAL_STREAM_TO_KEY,
+    **LIVESTOCK_STREAM_TO_KEY,
+    **URBAN_STREAM_TO_KEY,
 }
 
 # Streams present in the master table that have no per-municipality biomass column.
@@ -76,29 +99,53 @@ def build_municipality_biomass(
     ibge_field: str = "ibge_code",
     stream_field: str = "residue_stream",
     tons_field: str = "residue_tons_yr",
+    population_field: str = "populacao_2022",
+    livestock_t_per_head: Mapping[str, float] | None = None,
+    urban_t_per_capita: Mapping[str, float] | None = None,
 ) -> dict[str, dict[str, float]]:
-    """Aggregate master-CSV rows into per-municipality biomass records.
+    """Aggregate master-CSV rows into per-municipality biomass TONNAGE records.
 
-    Returns {ibge_code: {<residue>_biomass_tons_year: tons, ...sector totals,
-    total_biomass_tons_year}}. Multiple rows for the same municipality+stream are
-    summed. Unknown/unmapped streams (e.g. forestry) are ignored.
+    - Agricultural streams: residue_tons_yr is used directly (tonnes).
+    - Livestock streams: residue_tons_yr is HEAD COUNT → tonnes only if
+      `livestock_t_per_head[key]` (t manure/head/yr) is provided; otherwise 0
+      (we never store head counts as tonnes).
+    - Urban streams: tonnes = population × `urban_t_per_capita[key]` (t/cap/yr)
+      if provided; otherwise 0.
+
+    Returns {ibge_code: {<residue>_biomass_tons_year, sector totals, total}}.
     """
+    livestock_t_per_head = livestock_t_per_head or {}
+    urban_t_per_capita = urban_t_per_capita or {}
     out: dict[str, dict[str, float]] = {}
+    pop_by_ibge: dict[str, float] = {}
+    urban_added: set[tuple[str, str]] = set()
+
     for row in rows:
         ibge = str(row.get(ibge_field, "")).strip()
         stream = str(row.get(stream_field, "")).strip()
         if not ibge or stream in UNMAPPED_STREAMS:
             continue
-        key = STREAM_TO_RESIDUE_KEY.get(stream)
-        if key is None:
-            continue
-        tons = number_value(row.get(tons_field))
-        if tons <= 0:
-            # still ensure the municipality exists in output with zeros
-            out.setdefault(ibge, empty_biomass_record())
-            continue
         rec = out.setdefault(ibge, empty_biomass_record())
-        rec[_CONFIG_BY_KEY[key].biomass_field] += tons
+        pop_by_ibge.setdefault(ibge, number_value(row.get(population_field)))
+        raw = number_value(row.get(tons_field))
+
+        if stream in AGRICULTURAL_STREAM_TO_KEY:
+            key = AGRICULTURAL_STREAM_TO_KEY[stream]
+            if raw > 0:
+                rec[_CONFIG_BY_KEY[key].biomass_field] += raw  # raw is tonnes
+        elif stream in LIVESTOCK_STREAM_TO_KEY:
+            key = LIVESTOCK_STREAM_TO_KEY[stream]
+            coeff = livestock_t_per_head.get(key, 0.0)  # t manure/head/yr
+            if raw > 0 and coeff > 0:
+                rec[_CONFIG_BY_KEY[key].biomass_field] += raw * coeff  # head × t/head
+        elif stream in URBAN_STREAM_TO_KEY:
+            key = URBAN_STREAM_TO_KEY[stream]
+            coeff = urban_t_per_capita.get(key, 0.0)  # t/cap/yr
+            pop = pop_by_ibge.get(ibge, 0.0)
+            # add once per municipality+stream to avoid double-counting on repeats
+            if coeff > 0 and pop > 0 and (ibge, stream) not in urban_added:
+                rec[_CONFIG_BY_KEY[key].biomass_field] += pop * coeff
+                urban_added.add((ibge, stream))
 
     for rec in out.values():
         roll_up(rec)

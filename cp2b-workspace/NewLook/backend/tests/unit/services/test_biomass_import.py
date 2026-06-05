@@ -5,8 +5,11 @@ Tests for biomass_import.py — direct authoritative biomass mapping (no reverse
 import pytest
 
 from app.services.biomass_import import (
+    AGRICULTURAL_STREAM_TO_KEY,
+    LIVESTOCK_STREAM_TO_KEY,
     STREAM_TO_RESIDUE_KEY,
     UNMAPPED_STREAMS,
+    URBAN_STREAM_TO_KEY,
     build_municipality_biomass,
     empty_biomass_record,
     roll_up,
@@ -14,8 +17,11 @@ from app.services.biomass_import import (
 from app.services.biomass_availability import RESIDUE_BIOMASS_CONFIGS, SECTOR_FIELDS
 
 
-def _rows(*triples):
-    return [{"ibge_code": i, "residue_stream": s, "residue_tons_yr": t} for i, s, t in triples]
+def _rows(*triples, pop=10000):
+    return [
+        {"ibge_code": i, "residue_stream": s, "residue_tons_yr": t, "populacao_2022": pop}
+        for i, s, t in triples
+    ]
 
 
 @pytest.mark.unit
@@ -44,19 +50,42 @@ class TestRollUp:
 
 @pytest.mark.unit
 class TestBuildMunicipalityBiomass:
-    def test_maps_streams_to_columns(self):
+    def test_agricultural_tonnage_direct(self):
         out = build_municipality_biomass(_rows(
             ("3500105", "sugarcane", 1000.0),
             ("3500105", "coffee", 200.0),
-            ("3500105", "cattle", 80.0),
         ))
         rec = out["3500105"]
         assert rec["sugarcane_biomass_tons_year"] == pytest.approx(1000.0)
         assert rec["coffee_biomass_tons_year"] == pytest.approx(200.0)
-        assert rec["cattle_biomass_tons_year"] == pytest.approx(80.0)
         assert rec["agricultural_biomass_tons_year"] == pytest.approx(1200.0)
-        assert rec["livestock_biomass_tons_year"] == pytest.approx(80.0)
-        assert rec["total_biomass_tons_year"] == pytest.approx(1280.0)
+
+    def test_livestock_head_not_counted_as_tons_without_coeff(self):
+        # residue_tons_yr for cattle is HEAD COUNT; without a coefficient it must NOT
+        # be stored as tonnage (the bug we are fixing).
+        out = build_municipality_biomass(_rows(("1", "cattle", 42748.0)))
+        assert out["1"]["cattle_biomass_tons_year"] == 0.0
+
+    def test_livestock_head_converted_with_coeff(self):
+        # 42748 head × 3.65 t manure/head/yr = 156030.2 t
+        out = build_municipality_biomass(
+            _rows(("1", "cattle", 42748.0)),
+            livestock_t_per_head={"cattle": 3.65},
+        )
+        assert out["1"]["cattle_biomass_tons_year"] == pytest.approx(42748.0 * 3.65)
+        assert out["1"]["livestock_biomass_tons_year"] == pytest.approx(42748.0 * 3.65)
+
+    def test_urban_population_derived(self):
+        # urban tonnage = population × per-capita coeff
+        out = build_municipality_biomass(
+            _rows(("1", "rsu_organic", 0.0), pop=50000),
+            urban_t_per_capita={"rsu": 0.1},
+        )
+        assert out["1"]["rsu_biomass_tons_year"] == pytest.approx(5000.0)
+
+    def test_urban_zero_without_coeff(self):
+        out = build_municipality_biomass(_rows(("1", "rsu_organic", 0.0), pop=50000))
+        assert out["1"]["rsu_biomass_tons_year"] == 0.0
 
     def test_sums_duplicate_rows(self):
         out = build_municipality_biomass(_rows(
@@ -64,15 +93,6 @@ class TestBuildMunicipalityBiomass:
             ("3500105", "corn", 50.0),
         ))
         assert out["3500105"]["corn_biomass_tons_year"] == pytest.approx(150.0)
-
-    def test_rsu_and_rpo_stream_names_map(self):
-        out = build_municipality_biomass(_rows(
-            ("1", "rsu_organic", 500.0),
-            ("1", "rpo_pruning", 300.0),
-        ))
-        assert out["1"]["rsu_biomass_tons_year"] == pytest.approx(500.0)
-        assert out["1"]["rpo_biomass_tons_year"] == pytest.approx(300.0)
-        assert out["1"]["urban_biomass_tons_year"] == pytest.approx(800.0)
 
     def test_forestry_is_ignored(self):
         assert "forestry" in UNMAPPED_STREAMS
@@ -87,6 +107,11 @@ class TestBuildMunicipalityBiomass:
         out = build_municipality_biomass(_rows(("1", "aquaculture", 0.0)))
         assert "1" in out
         assert out["1"]["total_biomass_tons_year"] == 0.0
+
+    def test_stream_maps_are_disjoint_and_cover(self):
+        a, l, u = set(AGRICULTURAL_STREAM_TO_KEY), set(LIVESTOCK_STREAM_TO_KEY), set(URBAN_STREAM_TO_KEY)
+        assert a.isdisjoint(l) and a.isdisjoint(u) and l.isdisjoint(u)
+        assert a | l | u == set(STREAM_TO_RESIDUE_KEY)
 
     def test_blank_ibge_skipped(self):
         out = build_municipality_biomass(_rows(("", "corn", 100.0)))
