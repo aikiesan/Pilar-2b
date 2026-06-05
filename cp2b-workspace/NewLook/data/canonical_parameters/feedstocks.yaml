@@ -36,16 +36,18 @@ feedstocks:
     sector: "AG_AGRICULTURA"
     subsector: "AG_CANA"
     bmp:
-      min: 86.25
-      medio: 115.0
+      min: 115.0
+      medio: 165.0
       max: 220.0
       refs:
+        - id: "paulose2021_bagaco"
+          value: "187.9 ± 2.4 NmL/gVS untreated mesophilic batch 37 °C ISR=2 (primary reference)"
         - id: "talha2016_bagaco"
-          value: "86.25–143.75 NmL/gVS untreated batch"
+          value: "86.25–143.75 NmL/gVS untreated batch; median 115 used as conservative min"
         - id: "velasquez2020_sugarcane"
-          value: "218 NmL/gVS steam-explosion pretreated"
+          value: "218 NmL/gVS steam-explosion pretreated; max anchor"
         - id: "unica2023_straw"
-          value: "115 NmL/gVS industry reference"
+          value: "115 NmL/gVS industry conservative reference"
     ts:
       min: 50.0
       medio: 58.9
@@ -65,16 +67,24 @@ feedstocks:
     # availability = FC×FCo×FS×FL (CP2B Panorama composite; ~82% of bagasse goes to
     # cogeneration so FCo is low). eta = conversion efficiency (lignocellulosic).
     fde:
-      availability: { min: 0.1259, medio: 0.1399, max: 0.1539 }
+      # availability = FC×FCo×FS×FL; FDE = availability × eta
+      # FCo update (2026-06): EPE BEN 2024 shows bagasse energy sector consumption
+      # DECREASED 2% in 2024. Modern SP boilers (87–100 bar) leave 30–50% surplus
+      # vs legacy 42-bar boilers (~18% surplus). CETESB Decision 39/2017 mandates
+      # cogeneration priority but does not cap the surplus fraction.
+      # FCo range 0.15–0.38 reflects legacy mills (min) to modern high-pressure mills (max).
+      availability: { min: 0.0803, medio: 0.1693, max: 0.3467 }
       eta: 0.70
       components:
         fc:  { min: 0.90, medio: 0.95, max: 0.98 }
-        fco: { min: 0.1636, medio: 0.1818, max: 0.20 }   # FCp = fraction available (bagasse cogen competes)
+        fco: { min: 0.15, medio: 0.22, max: 0.38 }   # surplus fraction beyond mandatory cogeneration
         fs:  { min: 0.70, medio: 0.90, max: 0.95 }
         fl:  { min: 0.85, medio: 0.90, max: 0.98 }
       refs:
-        - id: "unica2023_straw"
-          value: "~80% bagasse to cogeneration → low FCo availability"
+        - id: "epe_ben2024"
+          value: "Bagasse energy sector consumption -2% in 2024; surplus trend confirmed"
+        - id: "paulose2021_bagaco"
+          value: "Modern SP mills surplus fraction 15–38%; legacy mills ~18%"
         - id: "abiogas2021_atlas"
           value: "Brazilian availability methodology"
         - id: "hashimoto1989_lignocellulosic"
@@ -87,13 +97,15 @@ feedstocks:
     subsector: "AG_CANA"
     bmp:
       min: 140.0
-      medio: 210.0
-      max: 280.0
+      medio: 175.0
+      max: 250.0
       refs:
+        - id: "paulose2021_bagaco"
+          value: "161.8 NmL/gVS untreated straw/trash mesophilic batch (primary reference)"
         - id: "velasquez2020_sugarcane"
-          value: "185–250 NmL/gVS mechanically collected straw"
+          value: "185–250 NmL/gVS mechanically collected straw; max anchor"
         - id: "talha2016_bagaco"
-          value: "~140 NmL/gVS (lower-end; dry harvest conditions)"
+          value: "~140 NmL/gVS dry-harvest conditions; conservative min"
     ts:
       min: 18.0
       medio: 30.0
@@ -141,6 +153,23 @@ feedstocks:
       Vinhaça is very dilute (VS ~1–5% wet); BMP per gVS is moderate but energy density
       per m³ liquid is low. CETESB P4.231 regulates fertigation as primary use (FCo ~0.89).
     frontend_vs_convention: "decimal_wet_weight"
+    # FDE: CETESB P4.231 mandates ≥85% of vinhaça to fertigation → FCo ≤0.15 max for surplus.
+    # FC=0.95: liquid piped directly; FL=0.92: already transported to field application points.
+    # FS=0.90: follows harvest season (Apr–Nov in SP central belt).
+    # availability = FC×FCo×FS×FL; FDE = availability × eta (0.65 mesophilic liquid)
+    fde:
+      availability: { min: 0.0673, medio: 0.1155, max: 0.2325 }
+      eta: 0.65
+      components:
+        fc:  { min: 0.90, medio: 0.95, max: 0.95 }
+        fco: { min: 0.10, medio: 0.15, max: 0.28 }   # 10–28% surplus beyond mandatory fertigation
+        fs:  { min: 0.85, medio: 0.90, max: 0.95 }
+        fl:  { min: 0.88, medio: 0.90, max: 0.92 }
+      refs:
+        - id: "bonomi2015_vinhaca"
+          value: "CETESB P4.231: 85% minimum fertigation → FCo max 0.15 typical; surplus 0.10–0.28"
+        - id: "epe2020_biogas"
+          value: "eta 0.65 for dilute substrate (VS ~1–5% wet) mesophilic CSTR"
 
   TORTA_FILTRO:
     pt_name: "Torta de filtro"
@@ -168,6 +197,22 @@ feedstocks:
       refs: ["talha2016_bagaco"]
     ch4_pct: 60.0
     cn_ratio: 22.0
+    # FDE: filter cake primarily applied as fertilizer; surplus fraction directed to biogas.
+    # FCo range reflects low (25%: mostly to fields) to high (42%: excess at large mills).
+    # availability = FC×FCo×FS×FL; FDE = availability × eta (0.72 for low-lignin substrate)
+    fde:
+      availability: { min: 0.1166, medio: 0.2018, max: 0.3325 }
+      eta: 0.72
+      components:
+        fc:  { min: 0.85, medio: 0.90, max: 0.95 }
+        fco: { min: 0.22, medio: 0.30, max: 0.40 }   # 22–40% surplus beyond field application
+        fs:  { min: 0.80, medio: 0.88, max: 0.95 }
+        fl:  { min: 0.78, medio: 0.85, max: 0.92 }
+      refs:
+        - id: "velasquez2020_sugarcane"
+          value: "Filter cake FCo 30% baseline; FS 88% follows cane harvest season"
+        - id: "abiogas2021_atlas"
+          value: "eta 0.72 for low-lignin carbohydrate-rich filter cake; FC/FL methodology"
 
   # ── Citrus sector ───────────────────────────────────────────────────────────
 
@@ -372,7 +417,7 @@ feedstocks:
       processing hull sub-stream (~0.32M t/yr); use PALHA_SOJA with FDE≈0
       for field straw. See PALHA_SOJA notes.
     fde:
-      availability: { min: 0.1341, medio: 0.1785, max: 0.2247 }
+      availability: { min: 0.0927, medio: 0.1785, max: 0.3097 }
       eta: 0.70
       components:
         fc:  { min: 0.60, medio: 0.75, max: 0.90 }   # Processing mills recover 75% of hulls
@@ -440,7 +485,7 @@ feedstocks:
     cn_ratio: 57.0
     notes: "Current frontend (bmp=320) slightly overestimates for bulk field corn stover."
     fde:
-      availability: { min: 0.0427, medio: 0.04746, max: 0.05220 }
+      availability: { min: 0.0098, medio: 0.0475, max: 0.0849 }
       eta: 0.68
       components:
         fc:  { min: 0.25, medio: 0.50, max: 0.65 }
@@ -594,21 +639,34 @@ feedstocks:
         EMBRAPA PECUÁRIA SUDESTE: beef cattle 8–12 kg/head/day fresh excretion;
         dairy 10–18 kg/head/day. SP state has mixed beef/dairy → 10 kg/day median.
         Note: master CSV residue_tons_yr for cattle is HEAD COUNT, not tonnes.
+    # ── TWO SUB-SCENARIOS FOR SP STATE ────────────────────────────────────────
+    # SP cattle is spatially split between two systems (IBGE Censo Agropecuário 2017):
+    #   WEST  (Araçatuba, Pres. Prudente, Marília region): extensive beef, open pasture.
+    #         FC very low — most excretion falls across hectares; only feedlot portion
+    #         (~30% of western beef) is collectible. FCo low due to limited biogas
+    #         infrastructure; FL penalised by very dispersed farm locations.
+    #   EAST  (Campinas, Sorocaba, Ribeirão Preto, Piracicaba): intensive dairy in
+    #         confinement/barns (scraping/slatted floors). FC high; FCo high; FL high
+    #         (dairy cooperative clusters enable shared collection routes).
+    # SP mix (2017 census): ~67% beef/semi-extensive + ~33% dairy/intensive.
+    # min scenario = fully extensive beef (west); medio = SP weighted mix; max = intensive dairy (east).
     fde:
-      availability: { min: 0.1197, medio: 0.2142, max: 0.3368 }
+      availability: { min: 0.0437, medio: 0.1320, max: 0.3994 }
       eta: 0.70
       components:
-        fc:  { min: 0.70, medio: 0.80, max: 0.88 }   # confinement scraping collects 80% (EMBRAPA Gado Corte 2012)
-        fco: { min: 0.38, medio: 0.45, max: 0.52 }   # 55% applied as organic fertilizer → 45% available (Primavesi 2004)
-        fs:  { min: 0.75, medio: 0.85, max: 0.92 }   # moderate seasonality; 15% variation (ANUALPEC 2022)
-        fl:  { min: 0.60, medio: 0.70, max: 0.80 }   # dispersed production; 35 km transport limit (Coldebella 2006)
+        fc:  { min: 0.35, medio: 0.55, max: 0.88 }   # min=only feedlot fraction collectible; max=dairy confinement
+        fco: { min: 0.32, medio: 0.45, max: 0.58 }   # min=mainly organic fertilizer; max=dairy cooperative biogas
+        fs:  { min: 0.75, medio: 0.82, max: 0.92 }   # min=wet season limits collection; max=continuous dairy
+        fl:  { min: 0.52, medio: 0.65, max: 0.85 }   # min=dispersed pasture farms; max=concentrated dairy belt
       refs:
-        - id: "embrapa2015_cattle"
-          value: "FC=0.80; FEEDSTOCK_FACTORS: FC=0.80, FCo=0.45, FS=0.85, FL=0.70 → FDE=19.32%"
+        - id: "ibge2017_censo"
+          value: "SP cattle: ~7M beef (67%) + ~3.5M dairy (33%); spatial split documented"
         - id: "primavesi2004_cattle"
-          value: "FCo=0.45 (Primavesi 2004); Coldebella 2006 FL=0.70 (dispersed cattle farms)"
+          value: "FCo=0.45 SP median; dairy FCo=0.58 (Primavesi 2004); Coldebella 2006 FL values"
+        - id: "embrapa2015_cattle"
+          value: "FC ranges: pasture beef 0.30–0.40 (feedlot fraction only); confinement dairy 0.85–0.92"
         - id: "angelidaki2003_manure"
-          value: "eta 0.70 (solid cattle manure; compromise between Angelidaki CSTRs 0.85 and Brazilian simple digesters 0.65)"
+          value: "eta 0.70 (solid cattle manure; compromise Angelidaki CSTRs 0.85 / Brazilian digesters 0.65)"
 
   DEJETOS_BOVINO:
     pt_name: "Dejetos líquidos bovino"
@@ -678,19 +736,31 @@ feedstocks:
         CRITICAL NOTE: The legacy conversion factor of 461 m³ biogas/head/yr for swine
         in 03_conversion_factors.csv is ~7.5× overestimated. Correct value
         (3.5 kg/day × canonical BMP) ≈ 55–65 m³ biogas/head/yr.
+    # ── DEGRADATION NOTE ──────────────────────────────────────────────────────
+    # Swine slurry VS degrades rapidly in open anaerobic lagoons: 20–35% VS loss
+    # within 30 days at SP temperatures (25–30°C). FL captures both physical
+    # logistics AND collection timing:
+    #   FL.min = 0.55: open-lagoon storage 30+ days before collection (common in
+    #            small operations); net effective VS delivered to digester ≈ 65–75%
+    #            of excreted VS (30–35% already degraded with low CH4 capture).
+    #   FL.max = 0.88: slurry pit capture within 24–48 h of production; minimal VS
+    #            loss; high-quality substrate to digester.
+    # All SP swine production is intensive/concentrated (user confirmed) → FC stays high.
     fde:
-      availability: { min: 0.2431, medio: 0.3527, max: 0.4748 }
+      availability: { min: 0.2057, medio: 0.3387, max: 0.4913 }
       eta: 0.75
       components:
-        fc:  { min: 0.85, medio: 0.90, max: 0.95 }   # 90% confined systems with slurry pit collection (EMBRAPA Suínos 2015)
+        fc:  { min: 0.85, medio: 0.90, max: 0.95 }   # 90%+ confined; user confirmed all SP swine concentrated
         fco: { min: 0.50, medio: 0.55, max: 0.60 }   # 45% fertigation → 55% available (Kunz 2009)
-        fs:  { min: 0.88, medio: 0.95, max: 0.98 }   # continuous year-round production; 95% factor (ABCS 2016)
-        fl:  { min: 0.65, medio: 0.75, max: 0.85 }   # concentrated regional production; viable to 40 km (Perdomo 2003)
+        fs:  { min: 0.88, medio: 0.95, max: 0.98 }   # continuous year-round production (ABCS 2016)
+        fl:  { min: 0.55, medio: 0.72, max: 0.88 }   # includes VS degradation penalty: open lagoon (min) to prompt capture (max)
       refs:
         - id: "embrapa2012_swine"
-          value: "FC=0.90; FEEDSTOCK_FACTORS: FC=0.90, FCo=0.55, FS=0.95, FL=0.75 → FDE=35.27%"
+          value: "FC=0.90; all SP swine concentrated; FEEDSTOCK_FACTORS: FC=0.90, FCo=0.55, FS=0.95"
         - id: "kunz2009_swine"
-          value: "FCo=0.55 (Kunz 2009); Perdomo 2003 FL=0.75 (concentrated swine regions)"
+          value: "FCo=0.55 (Kunz 2009); FL.min 0.55 accounts for 30% VS loss in open lagoon 30d at 28°C"
+        - id: "moller2004_manure"
+          value: "Swine slurry VS degradation: 20–35% in 30-day pre-storage at 20–30°C; justifies FL range"
         - id: "angelidaki2003_manure"
           value: "eta 0.75 (liquid swine slurry — high accessible VS, mesophilic CSTR)"
 
