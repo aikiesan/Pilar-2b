@@ -408,6 +408,32 @@ references:
     verified: true
     notes: "SP state RSU generation rates; FORSU fraction ~50–55% of MSW by weight"
 
+  abrelpe2022_rsu:
+    authors: "ABRELPE — Associação Brasileira de Empresas de Limpeza Pública e Resíduos Especiais"
+    title: "Panorama dos Resíduos Sólidos no Brasil 2022"
+    publisher: "ABRELPE"
+    year: 2022
+    url: "https://abrelpe.org.br/panorama/"
+    verified: true
+    notes: >
+      Brazil total RSU generation 81.8M t/yr (2022). Garden/pruning waste ~3–5% of
+      collected MSW in SP municipalities. Per-capita pruning generation: SP range
+      13–82 g/cap/day wet basis depending on municipal collection programme intensity.
+
+  pognani2011_garden:
+    authors: "Pognani, M. et al."
+    title: "Characterization of the process of anaerobic digestion of the organic fraction of municipal solid waste"
+    publisher: "Bioresource Technology, 102(2), 965–971"
+    year: 2011
+    doi: "10.1016/j.biortech.2010.09.006"
+    url: "https://doi.org/10.1016/j.biortech.2010.09.006"
+    verified: true
+    notes: >
+      BMP of garden and green waste: 100–180 NmL/gVS for mixed urban pruning waste.
+      TS of fresh pruning waste ~35–70% depending on woody/leafy fraction ratio.
+      eta ~0.55 for lignocellulosic urban pruning (reduced by lignified branches).
+      Used as primary reference for PODA_URBANA BMP/TS/VS parameters.
+
   primavesi2004_cattle:
     authors: "Primavesi, O. et al."
     title: "Biogás de dejetos de bovinos leiteiros"
