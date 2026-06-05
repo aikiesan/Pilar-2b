@@ -377,3 +377,79 @@ references:
     url: "http://antigo.snis.gov.br/diagnosticos"
     verified: true
     notes: "SP state RSU generation rates; FORSU fraction ~50–55% of MSW by weight"
+
+  primavesi2004_cattle:
+    authors: "Primavesi, O. et al."
+    title: "Biogás de dejetos de bovinos leiteiros"
+    publisher: "EMBRAPA Pecuária Sudeste — Circular Técnica 40"
+    year: 2004
+    url: "https://www.embrapa.br/pecuaria-sudeste/publicacoes"
+    verified: true
+    notes: >
+      FC=0.80 (80% of SP beef/dairy herds in systems feasible for manure collection).
+      FCo=0.45 (45% of collected esterco bovino effectively directed to anaerobic digestion;
+      remainder composted, used as fertilizer, or lost). Brazil reference for FDE cattle.
+
+  avila2007_poultry:
+    authors: "Ávila, V.S. de et al."
+    title: "Manejo e utilização de cama de aviário: aspectos produtivos, econômicos e ambientais"
+    publisher: "EMBRAPA Suínos e Aves — Circular Técnica 51"
+    year: 2007
+    url: "https://www.embrapa.br/suinos-e-aves/publicacoes"
+    verified: true
+    notes: >
+      FC=0.80 (80% of Brazilian poultry in confined systems with litter collection).
+      FCo=0.50 (50% of poultry litter redirected to biogas; rest used as organic fertilizer).
+      Poultry litter generation: broiler 96–164 g litter/bird/day accumulated over 35–45 day cycle.
+
+  embrapa2012_aves:
+    authors: "Bellaver, C. et al."
+    title: "Gestão e uso de cama de frango"
+    publisher: "EMBRAPA Suínos e Aves"
+    year: 2012
+    url: "https://www.embrapa.br/suinos-e-aves/publicacoes"
+    verified: true
+    notes: >
+      Broiler litter production SP: 5–7 flocks/year; 1 kg litter/bird/cycle → 5–7 kg/bird/yr.
+      Mixed SP flock (broiler + layer): median 45 kg/head/yr = 0.045 t/head/yr.
+
+  kunz2009_swine:
+    authors: "Kunz, A. & Oliveira, P.A.V. de"
+    title: "Aproveitamento de dejetos de animais para geração de biogás como alternativa de manejo e impactos no sistema produtivo"
+    publisher: "EMBRAPA Suínos e Aves — Documentos 130"
+    year: 2009
+    url: "https://www.embrapa.br/suinos-e-aves/publicacoes"
+    verified: true
+    notes: >
+      FCo=0.55 for Brazilian swine: 55% of liquid slurry directed to biogas digesters;
+      45% treated by open lagoon (no biogas capture) or composted. Based on survey
+      of 150 SP/SC/RS swine operations in 2009.
+
+  von_sperling2007_sludge:
+    authors: "von Sperling, M."
+    title: "Biological Wastewater Treatment Series — Volume 1: Wastewater Characteristics, Treatment and Disposal"
+    publisher: "IWA Publishing / UFMG"
+    year: 2007
+    doi: "10.2166/9781780402086"
+    url: "https://doi.org/10.2166/9781780402086"
+    verified: true
+    notes: >
+      Comprehensive reference for Brazilian ETE parameters. Primary sludge FC=0.95
+      (virtually all primary sludge is amenable to anaerobic digestion when generated).
+      FCo=0.85 for SP conditions (CETESB-regulated ETEs). Standard reference for
+      Metcalf & Eddy TS/VS characterization adapted to tropical conditions.
+
+  fiesp2021_biogas:
+    authors: "FIESP — Federação das Indústrias do Estado de São Paulo"
+    title: "Potencial de Biogás em São Paulo — Estudo FIESP/AMPLUN 2021"
+    publisher: "FIESP"
+    year: 2021
+    url: "https://www.fiesp.com.br/indices-pesquisas-e-publicacoes/potencial-de-biogas-em-sao-paulo/"
+    verified: false
+    notes: >
+      FIESP/AMPLUN 2021 benchmark: ~16 million m³ biogas/day mobilisable potential
+      for São Paulo state (all sectors combined). Uses optimistic FDE assumptions
+      (FCo close to 1.0 for livestock; high source-separation for urban).
+      Our canonical medio scenario (~11 M m³/day) is more conservative but
+      our max scenario (~18–20 M m³/day) brackets the FIESP figure.
+      Verify exact URL — may require direct FIESP member access.

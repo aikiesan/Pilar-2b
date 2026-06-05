@@ -59,18 +59,22 @@ class Range:
 class FeedstockParams:
     """Canonical chemical + availability parameters for one feedstock.
 
-    bmp        : Range, NmL CH4/gVS (dry-weight VS basis)
-    ts         : Range, % wet weight
-    vs_of_ts   : Range, % of TS (dry-weight basis)
-    ch4_pct    : float, % methane in biogas (single value; used for biogas volume)
-    fde        : Range, effective availability factor in [0, 1]
-                 (FC×FCo×FS×FL×eta). Defaults to 1.0 → theoretical potential.
+    bmp          : Range, NmL CH4/gVS (dry-weight VS basis)
+    ts           : Range, % wet weight
+    vs_of_ts     : Range, % of TS (dry-weight basis)
+    ch4_pct      : float, % methane in biogas (single value; used for biogas volume)
+    fde          : Range, effective availability factor = FC×FCo×FS×FL×eta in [0, 1]
+                   Defaults to 1.0 → theoretical potential.
+    availability : Range, physical-availability factor = FC×FCo×FS×FL (without eta)
+                   Used to compute biomass_corrected (the fraction mobilisable for biogas).
+                   Defaults to 1.0 when FDE has no structured availability block.
     """
     bmp: Range
     ts: Range
     vs_of_ts: Range
     ch4_pct: float = 60.0
     fde: Range = Range(1.0, 1.0, 1.0)
+    availability: Range = Range(1.0, 1.0, 1.0)
 
 
 @dataclass(frozen=True)

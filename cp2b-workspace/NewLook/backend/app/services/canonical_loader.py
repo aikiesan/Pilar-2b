@@ -90,6 +90,24 @@ def _resolve_fde(entry: dict) -> Range:
     return Range(1.0, 1.0, 1.0)
 
 
+def _resolve_availability(entry: dict) -> Range:
+    """Physical availability = FC×FCo×FS×FL (without eta conversion efficiency).
+
+    Returns the fraction of biomass that is physically mobilisable for biogas,
+    independent of the digestion conversion efficiency. Used to compute
+    biomass_corrected = biomass_gross × availability.
+    """
+    block = entry.get("fde")
+    if not isinstance(block, dict):
+        return Range(1.0, 1.0, 1.0)
+    if "availability" in block:
+        return _range_from(block["availability"])
+    if {"min", "medio", "max"} <= set(block):
+        # flat FDE already includes η — can't separate; use as-is
+        return _range_from(block)
+    return Range(1.0, 1.0, 1.0)
+
+
 def get_params(code: str, path: str | None = None) -> FeedstockParams:
     """Build FeedstockParams for a canonical feedstock code (e.g. 'BAGACO')."""
     fs = load_raw(path)
@@ -102,6 +120,7 @@ def get_params(code: str, path: str | None = None) -> FeedstockParams:
         vs_of_ts=_range_from(entry["vs_of_ts"]),
         ch4_pct=float(entry.get("ch4_pct", 60.0)),
         fde=_resolve_fde(entry),
+        availability=_resolve_availability(entry),
     )
 
 
