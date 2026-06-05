@@ -31,9 +31,10 @@ class TestLoadRaw:
 @pytest.mark.unit
 class TestGetParams:
     def test_bagaco_values_match_canonical(self):
+        # BMP updated 2026-06: median raised to 165 NmL/gVS per Paulose 2021 (187.9 untreated)
         p = get_params("BAGACO")
         assert isinstance(p, FeedstockParams)
-        assert p.bmp.medio == pytest.approx(115.0)
+        assert p.bmp.medio == pytest.approx(165.0)
         assert p.ts.medio == pytest.approx(58.9)
         assert p.vs_of_ts.medio == pytest.approx(90.0)
         assert p.ch4_pct == pytest.approx(55.0)
@@ -48,9 +49,10 @@ class TestGetParams:
         assert p.fde.min == 1.0 and p.fde.medio == 1.0 and p.fde.max == 1.0
 
     def test_fde_resolved_as_availability_times_eta(self):
-        # BAGACO: availability medio 0.1399 × eta 0.70 = 0.09793
+        # BAGACO: availability medio 0.1693 × eta 0.70 = 0.11851
+        # (FCo updated 2026-06: surplus fraction raised from 0.1818 to 0.22 per EPE BEN 2024)
         p = get_params("BAGACO")
-        assert p.fde.medio == pytest.approx(0.1399 * 0.70, rel=1e-6)
+        assert p.fde.medio == pytest.approx(0.1693 * 0.70, rel=1e-3)
         assert p.fde.min < p.fde.medio < p.fde.max  # genuine envelope
 
     def test_unknown_code_raises(self):
