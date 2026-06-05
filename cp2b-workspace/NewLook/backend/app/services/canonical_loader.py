@@ -28,7 +28,7 @@ _FEEDSTOCKS_PATH = (
 # and SERVICE_MAP in tests/unit/test_canonical_parameters.py.
 STREAM_TO_CANONICAL: dict[str, str] = {
     "sugarcane": "BAGACO",
-    "soybean": "CASCA_SOJA",
+    "soybean": "PALHA_SOJA",      # field straw (confirmed 2026-06); NOT hull (CASCA_SOJA)
     "corn": "PALHA_MILHO",
     "coffee": "CASCA_CAFE",
     "citrus": "BAGACO_CITROS",
@@ -37,8 +37,8 @@ STREAM_TO_CANONICAL: dict[str, str] = {
     "poultry": "CAMA_AVIARIO",
     "rsu": "FORSU",
     "rsu_organic": "FORSU",
-    "rpo": "LODO_PRIMARIO",
-    "rpo_pruning": "LODO_PRIMARIO",
+    "rpo": "PODA_URBANA",          # urban pruning waste (confirmed 2026-06); NOT sludge
+    "rpo_pruning": "PODA_URBANA",  # idem
 }
 
 

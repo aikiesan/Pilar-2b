@@ -183,7 +183,8 @@ def main():
     print("\n─── Notas de provenance ────────────────────────────────────────────────────")
     print("  Pecuária: contagem de cabeças (CSV) × geração EMBRAPA (t/cabeça/ano) → forward.")
     print("  Urbano  : população SP (IBGE 2022) × geração per-capita (SNIS/CETESB) → forward.")
-    print("  Ressalvas em aberto: mapeamento 'soybean' (palha vs casca) e 'rpo' (poda vs lodo).")
+    print("  Agrícola: 'soybean' → PALHA_SOJA (palha de campo, FCo=0.15 RTRS/plantio direto).")
+    print("  Urbano  : 'rpo' → PODA_URBANA (resíduo de poda; não é lodo de ETE — corrigido 2026-06).")
     print(f"\n  Detalhe por stream: {stream_csv}")
 
 
