@@ -35,6 +35,10 @@ feedstocks:
     en_name: "Sugarcane bagasse"
     sector: "AG_AGRICULTURA"
     subsector: "AG_CANA"
+    # residue_fraction: 0.280 — kg wet bagasse per kg green cane (IBGE PAM units).
+    # Applied in compute_sp_canonical_totals.py before the forward engine.
+    # Source: UNICA/CONSECANA 2022 tabela de custo; range 0.25–0.30.
+    # Note: IBGE PAM 'sugarcane_biomass_tons_year' column = green cane production.
     bmp:
       min: 115.0
       medio: 165.0
@@ -96,6 +100,10 @@ feedstocks:
     en_name: "Sugarcane straw"
     sector: "AG_AGRICULTURA"
     subsector: "AG_CANA"
+    # residue_fraction: 0.053 — kg collectible straw per kg green cane.
+    # Derivation: 12 t straw/ha × 35% collectible fraction (Carvalho 2017,
+    # doi:10.1111/gcbb.12410) / 80 t cane/ha SP average yield = 0.0525.
+    # FCo=0.10 in FDE further accounts for soil-protection and cogeneration competition.
     bmp:
       min: 140.0
       medio: 175.0
@@ -153,6 +161,10 @@ feedstocks:
     en_name: "Sugarcane vinasse"
     sector: "AG_AGRICULTURA"
     subsector: "AG_CANA"
+    # residue_fraction: 0.420 — t vinhaça per t green cane.
+    # Derivation: SP ~12 Bn L EtOH/yr (UNICA 2023) × 12 L vinhaça/L × 1.01 kg/L
+    # / 340 Mt cane/yr = 0.428 t/t cane. Conservative round-down to 0.420.
+    # FCo=0.15 in FDE: 85% fertigated (CETESB Resolução SMA-39/2018 mandate).
     bmp:
       min: 40.0
       medio: 90.0
@@ -201,6 +213,8 @@ feedstocks:
     en_name: "Sugarcane filter cake / press mud"
     sector: "AG_AGRICULTURA"
     subsector: "AG_CANA"
+    # residue_fraction: 0.030 — kg wet filter cake per kg green cane (IBGE PAM units).
+    # Source: CONSECANA-SP tabela de custo operacional; range 0.028–0.035.
     bmp:
       min: 200.0
       medio: 280.0
@@ -247,6 +261,10 @@ feedstocks:
     en_name: "Citrus bagasse"
     sector: "AG_AGRICULTURA"
     subsector: "AG_CITRICULTURA"
+    # residue_fraction: 0.50 — kg wet peel+bagasse per kg whole fruit (IBGE PAM units).
+    # Source: FUNDECITRUS 2022; industrial juice extraction: flavedo+albedo = 45–55%
+    # of fruit weight. FCo=0.30 in FDE handles competing uses (feed pellets, pectin).
+    # Note: IBGE PAM 'citrus_biomass_tons_year' = whole orange/citrus fruit production.
     bmp:
       min: 170.0
       medio: 230.0
@@ -1169,16 +1187,16 @@ feedstocks:
     generation:
       type: "per_capita"
       t_per_capita_yr:
-        min: 0.015   # 41 g dry sludge/cap/day × 365 (low treatment coverage)
-        medio: 0.030  # 82 g dry sludge/cap/day (CETESB SP average primary + secondary)
-        max: 0.045   # 123 g dry sludge/cap/day (full sewerage + tertiary)
+        min: 0.037   # 15 g dry/cap/day ÷ TS=15% → 0.037 t WET/cap/yr (low SP coverage)
+        medio: 0.073  # CETESB 2020: 30 g dry/cap/day ÷ TS=15% → 0.073 t WET/cap/yr
+        max: 0.122   # von Sperling 2007 upper: 50 g dry/cap/day ÷ TS=15% → 0.122 t WET/cap/yr
         refs: ["cetesb2020_sludge", "von_sperling2007_sludge"]
       notes: >
         CETESB 2020: SP urban sewage treatment coverage ~88%; primary sludge
-        generation ~30 g dry solids/cap/day (combined primary + secondary thickened).
-        At TS=15% dewatered sludge, this is ~0.03/(0.15) = 0.20 t wet/cap/yr.
-        The t_per_capita_yr value above is expressed as WET sludge after dewatering.
-        Actual values: 0.030 dry = 0.200 wet at TS=15%. For forward calculation use wet.
+        generation ~30 g dry solids/cap/day. Engine expects WET sludge tonnes.
+        At dewatered TS=15%: 30 g dry/day ÷ 0.15 × 365/1000 = 0.073 t wet/cap/yr.
+        von Sperling (2007) range for Brazil: 30–50 g dry/cap/day primary sludge.
+        Previous entry (0.030) was entered as DRY mass but engine expects WET — corrected 2026-06.
     fde:
       confidence: HIGH
       availability: { min: 0.3659, medio: 0.5451, max: 0.7280 }
