@@ -1169,16 +1169,16 @@ feedstocks:
     generation:
       type: "per_capita"
       t_per_capita_yr:
-        min: 0.015   # 41 g dry sludge/cap/day × 365 (low treatment coverage)
-        medio: 0.030  # 82 g dry sludge/cap/day (CETESB SP average primary + secondary)
-        max: 0.045   # 123 g dry sludge/cap/day (full sewerage + tertiary)
+        min: 0.037   # 15 g dry/cap/day ÷ TS=15% → 0.037 t WET/cap/yr (low SP coverage)
+        medio: 0.073  # CETESB 2020: 30 g dry/cap/day ÷ TS=15% → 0.073 t WET/cap/yr
+        max: 0.122   # von Sperling 2007 upper: 50 g dry/cap/day ÷ TS=15% → 0.122 t WET/cap/yr
         refs: ["cetesb2020_sludge", "von_sperling2007_sludge"]
       notes: >
-        CETESB 2020: SP urban sewage treatment coverage ~88%; primary sludge
-        generation ~30 g dry solids/cap/day (combined primary + secondary thickened).
-        At TS=15% dewatered sludge, this is ~0.03/(0.15) = 0.20 t wet/cap/yr.
-        The t_per_capita_yr value above is expressed as WET sludge after dewatering.
-        Actual values: 0.030 dry = 0.200 wet at TS=15%. For forward calculation use wet.
+        Values are WET tonnes/capita/yr (as expected by the forward engine).
+        CETESB 2020 (SP): primary sludge generation ~30 g dry MS/cap/day at ~88% sewerage
+        coverage. At dewatered TS=15%: 30 g dry/day ÷ 0.15 × 365/1000 = 0.073 t wet/cap/yr.
+        von Sperling (2007) range for Brazil: 30–50 g dry/cap/day primary sludge.
+        Previous entry (0.030) was entered as DRY mass but engine expects WET — corrected 2026-06.
     fde:
       confidence: HIGH
       availability: { min: 0.3659, medio: 0.5451, max: 0.7280 }

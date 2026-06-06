@@ -1,7 +1,7 @@
 # Potencial de Biogás Mobilizável de SP — Estado Atual e Próximos Passos
 
-**Data:** 2026-06-05 (rev. Priority 2 — soja e RPO corrigidos)
-**Branch:** `claude/pilar2b-scientific-audit-AU4bW`
+**Data:** 2026-06-06 (rev. Priority 3 — todos os 26 FDEs auditados; LODO_PRIMARIO unit fix)
+**Branch:** `main` (mergeado via PR #95)
 **Fonte dos números:** `backend/scripts/compute_sp_canonical_totals.py` (100% forward, metodologia única)
 
 ---
@@ -73,17 +73,19 @@ A redução de ~0,9 M m³/dia é **correta e esperada**: antes inflávamos a soj
 - [x] `STREAM_TO_CANONICAL` em `canonical_loader.py` atualizado.
 - [x] `biomass_availability.py` atualizado (parâmetros do reverse-BMP para RPO corrigidos).
 
-### ⏳ Prioridade 3 — Completar cobertura de FDE (12 → 30)
-- [ ] Adicionar blocos FDE auditados aos 13 feedstocks sub-variantes restantes sem FDE:
-  POLPA_CAFE, MUCILAGEM_CAFE, CASCAS_CITROS, DEJETOS_AVES, ESTERCO_SUINO,
-  LODO_SECUNDARIO, GORDURA, SANGUE, PALHA, CASCA_MILHO, CASCA_CAFE, BAGACO_CITROS, FORSU.
-  Hoje esses feedstocks caem em FDE=1,0 (teórico) se ativados — nenhum aparece no mapa ativo.
+### ✅ Prioridade 3 — CONCLUÍDA: cobertura FDE completa (26/26 feedstocks)
+- [x] **Todos os 26 blocos FDE** auditados com traceabilidade por fator (FC/FCo/FS/FL).
+- [x] Cada fator cita a fonte que **de fato reporta** o valor (não citação contextual).
+- [x] 23 novas referências com URLs/DOIs; 5 DOIs verificados na web.
+- [x] Tiers de confiança: 6 HIGH / 17 MEDIUM / 3 LOW — todos documentados.
+- [x] `validate_fde_traceability.py` — guarda re-executável (aritmética, ordem, refs, URLs, confiança).
+- [x] `FDE_TRACEABILITY_MATRIX.md` — tabela per-factor gerada automaticamente (26 feedstocks, 53 refs).
+- [x] `test_fde_traceability.py` — 3 testes CI; 54 testes totais passando.
+- [x] GORDURA: corrigido erro aritmético legado (42,75% → 14,25%: `0,80×0,25×0,95×0,75`).
+- [x] LODO_PRIMARIO: corrigida inconsistência de unidade (valores DRY → WET equivalente, CETESB 30 g/dia).
 
 ### ⏳ Prioridade 4 — Validação empírica (usuário fará localmente)
 - [ ] Popular `010_create_validation_plants.sql` com dados de plantas reais de SP (previsto × medido).
-
-### Pendência técnica registrada (não bloqueia o headline)
-- [ ] **LODO_PRIMARIO** — possível inconsistência de unidade no `generation.t_per_capita_yr` (nota cita "30 g MS/cap/dia" ≈ 0,011 t/ano, mas o valor medio é 0,03). Impacto pequeno (stream não está no mapa ativo), mas revisar para fechar o rigor.
 
 ---
 
