@@ -868,6 +868,128 @@ feedstocks:
         - id: "angelidaki2003_manure"
           value: "eta 0.70 (solid cattle manure; compromise Angelidaki CSTRs 0.85 / Brazilian digesters 0.65)"
 
+  # ── SPATIAL SUB-TYPES: beef (extensive, western SP) and dairy (intensive, eastern SP) ─────────
+  # IBGE Censo Agropecuário 2017: ~67% of SP cattle = beef/semi-extensive (western mesoregions:
+  # Araçatuba, Presidente Prudente, Marília, Bauru, São José do Rio Preto). ~33% = dairy/intensive
+  # (eastern mesoregions: Campinas, Sorocaba, Piracicaba, Araraquara, Ribeirão Preto).
+  # These two codes implement the spatial split documented in the ESTERCO_BOVINO comments above.
+  ESTERCO_BOVINO_CORTE:
+    pt_name: "Esterco bovino — gado de corte extensivo (SP Oeste)"
+    en_name: "Cattle solid manure — extensive beef (western SP)"
+    sector: "PC_PECUARIA"
+    subsector: "PC_BOVINOS"
+    bmp:
+      min: 80.0
+      medio: 120.0
+      max: 180.0
+      refs:
+        - id: "amon2007_cattle"
+          value: "Degraded outdoor pasture manure BMP lower than confinement; 80–180 NmL/gVS"
+        - id: "embrapa2015_cattle"
+          value: "Extensive beef manure SP: 100–150 NmL/gVS (partial weathering on pasture)"
+    ts:
+      min: 15.0
+      medio: 22.0
+      max: 30.0
+      refs: ["amon2007_cattle"]
+    vs_of_ts:
+      min: 62.0
+      medio: 72.0
+      max: 80.0
+      refs: ["amon2007_cattle", "embrapa2015_cattle"]
+    ch4_pct: 57.0
+    cn_ratio: 14.0
+    generation:
+      type: "per_head"
+      t_per_head_yr:
+        min: 2.00   # 5.5 kg fresh manure/head/day × 365 (low-intensity pasture)
+        medio: 2.92  # 8 kg/head/day × 365 (EMBRAPA extensive beef SP reference)
+        max: 4.00   # 11 kg/head/day × 365 (semi-confined feedlot phase)
+        refs: ["embrapa2015_cattle", "primavesi2004_cattle"]
+      notes: >
+        Extensive beef in western SP: total physical excretion per animal (not collectible fraction).
+        ~67% of SP cattle (IBGE Censo 2017) in extensive/semi-extensive systems.
+        Only the feedlot fraction (~30% of western beef herd) yields collectable manure — handled via FC.
+    fde:
+      # availability = FC×FCo×FS×FL
+      # min: 0.25×0.28×0.70×0.38 = 0.0186 ; medio: 0.35×0.35×0.78×0.52 = 0.0497 ; max: 0.45×0.42×0.88×0.65 = 0.1081
+      confidence: MEDIUM
+      availability: { min: 0.0186, medio: 0.0497, max: 0.1081 }
+      eta: 0.65
+      components:
+        fc:  { min: 0.25, medio: 0.35, max: 0.45 }   # only feedlot fraction (~30%) collectible in extensive systems
+        fco: { min: 0.28, medio: 0.35, max: 0.42 }   # mostly direct soil amendment; limited biogas infra western SP
+        fs:  { min: 0.70, medio: 0.78, max: 0.88 }   # wet season limits collection on dispersed farms
+        fl:  { min: 0.38, medio: 0.52, max: 0.65 }   # very dispersed farms; poor road access in western SP
+      refs:
+        - id: "ibge2017_censo"
+          value: "SP beef ~7M head (67% of SP herd); Araçatuba/Pres.Prudente/Marília/SJRioPreto regions"
+        - id: "embrapa2015_cattle"
+          value: "FC=0.30–0.40: feedlot fraction only collectible from extensive beef (EMBRAPA PECUÁRIA)"
+        - id: "primavesi2004_cattle"
+          value: "FL=0.52: dispersed farm locations; road and logistics challenges in western SP"
+        - id: "amon2007_cattle"
+          value: "eta=0.65: variable manure quality in outdoor / semi-outdoor collection systems"
+
+  ESTERCO_BOVINO_LEITEIRO:
+    pt_name: "Esterco bovino — gado leiteiro intensivo (SP Leste)"
+    en_name: "Cattle solid manure — intensive dairy (eastern SP)"
+    sector: "PC_PECUARIA"
+    subsector: "PC_BOVINOS"
+    bmp:
+      min: 150.0
+      medio: 230.0
+      max: 300.0
+      refs:
+        - id: "amon2007_cattle"
+          value: "Fresh confinement dairy manure BMP 150–300 NmL/gVS; minimal pre-storage degradation"
+        - id: "embrapa2015_cattle"
+          value: "SP dairy manure 200–280 NmL/gVS (fresh scraping from slatted floors/barns)"
+    ts:
+      min: 15.0
+      medio: 25.0
+      max: 35.0
+      refs: ["amon2007_cattle"]
+    vs_of_ts:
+      min: 70.0
+      medio: 80.0
+      max: 87.0
+      refs: ["amon2007_cattle", "embrapa2015_cattle"]
+    ch4_pct: 57.0
+    cn_ratio: 15.0
+    generation:
+      type: "per_head"
+      t_per_head_yr:
+        min: 3.65   # 10 kg/day × 365 (smaller dairy, lower milk yield)
+        medio: 5.11  # 14 kg/head/day × 365 (EMBRAPA dairy confinement reference SP)
+        max: 6.57   # 18 kg/head/day × 365 (high-producing herds; >10,000 L/cow/yr)
+        refs: ["embrapa2015_cattle", "primavesi2004_cattle"]
+      notes: >
+        Intensive dairy in eastern SP: total physical excretion per lactating cow.
+        ~33% of SP cattle (IBGE Censo 2017) in intensive confinement/barn systems.
+        High-production dairy generates 12–20 kg manure/head/day; collected continuously
+        by scraping or hydraulic flush from slatted floors (near-100% capture).
+    fde:
+      # availability = FC×FCo×FS×FL
+      # min: 0.75×0.50×0.85×0.75 = 0.2391 ; medio: 0.88×0.58×0.90×0.85 = 0.3905 ; max: 0.92×0.68×0.95×0.90 = 0.5349
+      confidence: MEDIUM
+      availability: { min: 0.2391, medio: 0.3905, max: 0.5349 }
+      eta: 0.75
+      components:
+        fc:  { min: 0.75, medio: 0.88, max: 0.92 }   # slatted floors / scraping → near-complete collection
+        fco: { min: 0.50, medio: 0.58, max: 0.68 }   # biogas vs fertigation tradeoff; dairy cooperatives in SP
+        fs:  { min: 0.85, medio: 0.90, max: 0.95 }   # continuous year-round indoor production
+        fl:  { min: 0.75, medio: 0.85, max: 0.90 }   # eastern SP dairy belt; cooperative collection routes
+      refs:
+        - id: "ibge2017_censo"
+          value: "SP dairy ~3.5M head (33% of SP herd); Campinas/Sorocaba/Piracicaba/Araraquara/Ribeirão belt"
+        - id: "primavesi2004_cattle"
+          value: "FCo=0.58: dairy cooperatives active in SP (Primavesi 2004); FL=0.85 concentrated belt"
+        - id: "embrapa2015_cattle"
+          value: "FC=0.85–0.92: scraping/flush systems; confinement dairy 85–92% collectible"
+        - id: "angelidaki2003_manure"
+          value: "eta=0.75: fresh confinement dairy manure (high VS biodegradability vs outdoor beef)"
+
   DEJETOS_BOVINO:
     pt_name: "Dejetos líquidos bovino"
     en_name: "Cattle liquid slurry"
