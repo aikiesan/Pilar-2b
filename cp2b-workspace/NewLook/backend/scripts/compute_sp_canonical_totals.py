@@ -313,45 +313,90 @@ def compute() -> tuple[dict, list[dict]]:
     return totals, out_rows
 
 
-def _scenario_print(totals: dict) -> None:
+def _compute_fronteira(fs: dict) -> dict:
+    """
+    Fronteira do Biogás — policy-aspirational scenario (Phase 3).
+
+    Adds dormant ETE sludge streams (LODO_PRIMARIO + LODO_SECUNDARIO) to the
+    existing 'max' scenario totals. These streams require large infrastructure
+    investment (CAPEX barrier) and mandatory regulatory frameworks — not
+    achievable in the near term without public policy support.
+
+    Returns dict with ch4_m3_yr and biogas_m3_yr additions (yearly totals).
+    """
+    pop = float(SP_POPULATION)
+    additions = {"ch4_m3_yr": 0.0, "biogas_m3_yr": 0.0}
+
+    for code in ("LODO_PRIMARIO", "LODO_SECUNDARIO"):
+        params = get_params(code)
+        t_per_cap = fs[code]["generation"]["t_per_capita_yr"]
+        biomass_max = pop * float(t_per_cap["max"])
+        res = calculate_feedstock(biomass_max, params)
+        additions["ch4_m3_yr"] += res.ch4_practical_m3["max"]
+        additions["biogas_m3_yr"] += res.biogas_practical_m3["max"]
+        logger.info(
+            f"  Fronteira: {code:20s} CH4 max={res.ch4_practical_m3['max']/365/1e6:.3f} M m³/d"
+        )
+    return additions
+
+
+def _scenario_print(totals: dict, fronteira: dict) -> None:
+    """Print 4-scenario table: Linha de Base / Médio Prazo / Otimista / Fronteira do Biogás."""
     def md(metric: str) -> tuple:
         d = totals[metric]
         return tuple(d[sc] / 365 / 1e6 for sc in SCENARIOS)
 
-    print("\n" + "=" * 78)
-    print("SP STATE — 100% FORWARD Canonical Biogas Potential")
-    print("Methodology: IBGE PAM crop data → residue fractions → forward engine")
-    print("=" * 78)
-    print(f"\n{'Métrica':<32}{'MIN':>14}{'MÉDIO':>14}{'MAX':>14}")
-    print("-" * 78)
     ch4 = md("ch4_practical")
     big = md("biogas_practical")
     bm = md("biomethane")
-    print(f"{'CH₄ prático (M m³/dia)':<32}{ch4[0]:>14.2f}{ch4[1]:>14.2f}{ch4[2]:>14.2f}")
-    print(f"{'Biogás prático (M m³/dia)':<32}{big[0]:>14.2f}{big[1]:>14.2f}{big[2]:>14.2f}")
-    print(f"{'Biometano (M m³/dia)':<32}{bm[0]:>14.2f}{bm[1]:>14.2f}{bm[2]:>14.2f}")
+    fr_ch4 = (ch4[2] * 1e6 * 365 + fronteira["ch4_m3_yr"]) / 365 / 1e6
+    fr_big = (big[2] * 1e6 * 365 + fronteira["biogas_m3_yr"]) / 365 / 1e6
+    fr_bm = fr_ch4 * UPGRADING_EFFICIENCY
 
-    print("\n─── Benchmark FIESP ───────────────────────────────────────────────────────")
+    W = 100
+    print("\n" + "=" * W)
+    print("SP STATE — 100% FORWARD Canonical Biogas Potential — 4 Cenários")
+    print("Methodology: IBGE PAM crop data → residue fractions → forward engine")
+    print("=" * W)
+
+    hdr = f"\n{'Métrica':<30}{'Linha de Base':>16}{'Médio Prazo':>16}{'Otimista':>16}{'Fronteira do Biogás':>20}"
+    print(hdr)
+    note = "  (min FDE/geração)  (medio FDE/geração) (max FDE/geração)  (max + ETE sludge policy)"
+    print(note)
+    print("-" * W)
+    print(f"{'CH₄ prático (M m³/dia)':<30}{ch4[0]:>16.2f}{ch4[1]:>16.2f}{ch4[2]:>16.2f}{fr_ch4:>20.2f}")
+    print(f"{'Biogás prático (M m³/dia)':<30}{big[0]:>16.2f}{big[1]:>16.2f}{big[2]:>16.2f}{fr_big:>20.2f}")
+    print(f"{'Biometano (M m³/dia)':<30}{bm[0]:>16.2f}{bm[1]:>16.2f}{bm[2]:>16.2f}{fr_bm:>20.2f}")
+
+    print("\n─── Benchmark FIESP ─────────────────────────────────────────────────")
     print("  FIESP/AMPLUN 2021 (bruto, todos setores) : ~16,0 M m³/dia biogás")
     print("  SEMIL/FIESP 2024 (viável)                : ~11,4 M m³/dia biogás")
-    print(f"  PILAR-2b forward (Linha de Base/Médio/Otimista): "
-          f"{big[0]:.1f} / {big[1]:.1f} / {big[2]:.1f} M m³/dia biogás")
+    print(f"  PILAR-2b (Linha de Base/Médio Prazo/Otimista/Fronteira):")
+    print(f"    {big[0]:.1f} / {big[1]:.1f} / {big[2]:.1f} / {fr_big:.1f} M m³/dia biogás")
 
-    print("\n─── Correções de unidade aplicadas nesta revisão ───────────────────────────")
+    print("\n─── Fronteira do Biogás — premissas de política pública ────────────")
+    print("  Base: cenário Otimista (max FDE para todos os streams ativos)")
+    print("  Adiciona streams dormentes com política de investimento mandatório:")
+    print(f"    LODO_PRIMARIO  : AD obrigatório lodo ETEs SP (max FDE={0.7280*0.80:.4f})")
+    print(f"    LODO_SECUNDARIO: AD obrigatório lodo ativado ETEs (max FDE={0.6347*0.55:.4f})")
+    print("  Barreira: alto CAPEX de digestores; viável apenas com política pública e")
+    print("  incentivos regulatórios (e.g. PNRS, resolução CONAMA de bioenergia).")
+
+    print("\n─── Correções de unidade aplicadas ─────────────────────────────────")
     print("  Cana: CSV IBGE PAM (cana bruta) → 4 sub-fluxos com frações de resíduo")
     print("    bagaço × 0.28, torta × 0.030, palha × 0.053, vinhaça × 0.420")
     print("  Citros: CSV IBGE PAM (fruta inteira) → casca/bagaço × 0.50 (FUNDECITRUS)")
     print("  Soja/milho/café: já em toneladas de resíduo (MapBiomas × yield_t/ha)")
 
-    print("\n─── Notas de proveniência ───────────────────────────────────────────────────")
-    print("  Pecuária — bovinos (Phase 2 — split espacial):")
+    print("\n─── Notas de proveniência ───────────────────────────────────────────")
+    print("  Bovinos — split espacial (Phase 2):")
     print(f"    67% gado de corte extensivo (SP Oeste) → ESTERCO_BOVINO_CORTE (FDE médio={0.0497*0.65:.4f})")
     print(f"    33% gado leiteiro intensivo (SP Leste) → ESTERCO_BOVINO_LEITEIRO (FDE médio={0.3905*0.75:.4f})")
     print("    Fonte: IBGE Censo Agropecuário 2017 (ibge2017_censo).")
-    print("  Pecuária — suínos/aves: cabeças × geração EMBRAPA (t/cabeça/ano) → forward.")
-    print("  Urbano  : população SP (IBGE 2022) × geração per-capita (SNIS/CETESB).")
-    print("  Soja    : PALHA_SOJA (palha de campo, FCo=0,15 RTRS/plantio direto).")
-    print("  RPO     : PODA_URBANA (poda lignocelulósica, não lodo de ETE).")
+    print("  Suínos/aves: cabeças × geração EMBRAPA (t/cabeça/ano) → forward.")
+    print("  Urbano    : população SP (IBGE 2022) × geração per-capita (SNIS/CETESB).")
+    print("  Soja      : PALHA_SOJA (palha de campo, FCo=0,15 RTRS/plantio direto).")
+    print("  RPO       : PODA_URBANA (poda lignocelulósica, não lodo de ETE).")
 
 
 def main():
@@ -367,7 +412,12 @@ def main():
         w.writeheader()
         w.writerows(rows)
 
-    _scenario_print(totals)
+    # Fronteira do Biogás: load raw feedstocks YAML for generation factor access
+    fs = yaml.safe_load(_FEEDSTOCKS.read_text(encoding="utf-8"))["feedstocks"]
+    logger.info("Computing Fronteira do Biogás additions (ETE sludge, policy scenario)...")
+    fronteira = _compute_fronteira(fs)
+
+    _scenario_print(totals, fronteira)
     print(f"\n  Detalhe por stream: {stream_csv}")
 
 
