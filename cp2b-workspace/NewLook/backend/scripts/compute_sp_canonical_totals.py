@@ -103,12 +103,23 @@ SUGARCANE_SUBSTREAMS: list[tuple[str, str, float, str]] = [
     ),
 ]
 
+# ── Cattle spatial split (Phase 2) ───────────────────────────────────────────
+# IBGE Censo Agropecuário 2017 (ibge2017_censo): SP cattle ~10.5M head total.
+#   ~67% = beef/semi-extensive (western SP: Araçatuba, Pres. Prudente, Marília,
+#            Bauru, São José do Rio Preto) → ESTERCO_BOVINO_CORTE params.
+#   ~33% = dairy/intensive (eastern SP: Campinas, Sorocaba, Piracicaba,
+#            Araraquara, Ribeirão Preto) → ESTERCO_BOVINO_LEITEIRO params.
+# Using state-level proportions; per-municipality split requires SIDRA query.
+CATTLE_BEEF_FRACTION = 0.67   # beef/extensive, western SP
+CATTLE_DAIRY_FRACTION = 0.33  # dairy/intensive, eastern SP
+
 # ── Stream groupings ─────────────────────────────────────────────────────────
 # Sugarcane is handled separately (SUGARCANE_SUBSTREAMS).
 # Citrus is handled with CITRUS_RESIDUE_FRACTION.
+# Cattle split into beef + dairy sub-populations (see CATTLE_*_FRACTION above).
 # Other agricultural streams use CSV values as residue-equivalent tonnes directly.
 AGRICULTURAL_DIRECT = ("soybean", "corn", "coffee")  # MapBiomas × yield_t_ha → residue tonnes
-LIVESTOCK = ("cattle", "swine", "poultry")            # head counts → t/head/yr via generation
+LIVESTOCK_SIMPLE = ("swine", "poultry")               # head counts → t/head/yr via generation
 URBAN = ("rsu_organic", "rpo")                        # per-capita (SP pop)
 
 
@@ -119,6 +130,12 @@ def _csv_state_total(rows: list[dict], column: str) -> float:
 def _biomass_livestock(stream: str, head_count: float, fs: dict) -> dict:
     """Head count → wet tonnes/scenario using canonical t_per_head_yr."""
     code = STREAM_TO_CANONICAL[stream]
+    factor = fs[code]["generation"]["t_per_head_yr"]
+    return {sc: head_count * float(factor[sc]) for sc in SCENARIOS}
+
+
+def _biomass_livestock_by_code(code: str, head_count: float, fs: dict) -> dict:
+    """Head count → wet tonnes/scenario using t_per_head_yr from a direct canonical code."""
     factor = fs[code]["generation"]["t_per_head_yr"]
     return {sc: head_count * float(factor[sc]) for sc in SCENARIOS}
 
@@ -243,8 +260,31 @@ def compute() -> tuple[dict, list[dict]]:
             params=get_params_for_stream(stream),
         )
 
-    # ── 4. Livestock (head count × t_per_head_yr canonical generation) ───────
-    for stream in LIVESTOCK:
+    # ── 4. Livestock: cattle split (Phase 2 spatial split) + swine/poultry ──
+    total_cattle = _csv_state_total(rows, "cattle_biomass_tons_year")
+    beef_head = total_cattle * CATTLE_BEEF_FRACTION
+    dairy_head = total_cattle * CATTLE_DAIRY_FRACTION
+
+    _accumulate(
+        totals, out_rows,
+        stream="cattle_corte",
+        sector="livestock",
+        provenance=f"csv_cattle_head×{CATTLE_BEEF_FRACTION:.0%}_beef",
+        input_count=beef_head,
+        biomass=_biomass_livestock_by_code("ESTERCO_BOVINO_CORTE", beef_head, fs),
+        params=get_params("ESTERCO_BOVINO_CORTE"),
+    )
+    _accumulate(
+        totals, out_rows,
+        stream="cattle_leiteiro",
+        sector="livestock",
+        provenance=f"csv_cattle_head×{CATTLE_DAIRY_FRACTION:.0%}_dairy",
+        input_count=dairy_head,
+        biomass=_biomass_livestock_by_code("ESTERCO_BOVINO_LEITEIRO", dairy_head, fs),
+        params=get_params("ESTERCO_BOVINO_LEITEIRO"),
+    )
+
+    for stream in LIVESTOCK_SIMPLE:
         count = _csv_state_total(rows, f"{stream}_biomass_tons_year")
         biomass = _biomass_livestock(stream, count, fs)
         _accumulate(
@@ -304,7 +344,11 @@ def _scenario_print(totals: dict) -> None:
     print("  Soja/milho/café: já em toneladas de resíduo (MapBiomas × yield_t/ha)")
 
     print("\n─── Notas de proveniência ───────────────────────────────────────────────────")
-    print("  Pecuária: contagem de cabeças × geração EMBRAPA (t/cabeça/ano) → forward.")
+    print("  Pecuária — bovinos (Phase 2 — split espacial):")
+    print(f"    67% gado de corte extensivo (SP Oeste) → ESTERCO_BOVINO_CORTE (FDE médio={0.0497*0.65:.4f})")
+    print(f"    33% gado leiteiro intensivo (SP Leste) → ESTERCO_BOVINO_LEITEIRO (FDE médio={0.3905*0.75:.4f})")
+    print("    Fonte: IBGE Censo Agropecuário 2017 (ibge2017_censo).")
+    print("  Pecuária — suínos/aves: cabeças × geração EMBRAPA (t/cabeça/ano) → forward.")
     print("  Urbano  : população SP (IBGE 2022) × geração per-capita (SNIS/CETESB).")
     print("  Soja    : PALHA_SOJA (palha de campo, FCo=0,15 RTRS/plantio direto).")
     print("  RPO     : PODA_URBANA (poda lignocelulósica, não lodo de ETE).")
