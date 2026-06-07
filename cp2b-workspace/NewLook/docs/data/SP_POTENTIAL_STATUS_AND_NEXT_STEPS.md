@@ -1,6 +1,6 @@
 # Potencial de Biogás Mobilizável de SP — Estado Atual e Próximos Passos
 
-**Data:** 2026-06-06 (rev. Phase 1 — unidades IBGE PAM corrigidas para cana e citros)
+**Data:** 2026-06-06 (rev. Phase 3 — 4 cenários + Fronteira do Biogás)
 **Branch:** `claude/pilar2b-scientific-audit-AU4bW` → PRs separados por fase
 **Fonte dos números:** `backend/scripts/compute_sp_canonical_totals.py` (100% forward, metodologia única)
 
@@ -8,72 +8,75 @@
 
 ## 1. Onde estamos agora — número estadual defensável
 
-**Phase 1 foi concluída**: a interpretação das unidades do IBGE PAM foi corrigida.
-A cana-de-açúcar é agora decomposta em **4 sub-fluxos industriais** com frações de resíduo
-documentadas, e o citros aplica a fração de casca/bagaço (×0,50, FUNDECITRUS) antes do motor
-forward. Isso eliminou os dois maiores erros sistemáticos da metodologia anterior.
+**Fases 1, 2 e 3 concluídas.** O plataforma agora apresenta **4 cenários nomeados** alinhados
+com a estrutura científica do motor forward canônico:
 
-**Total estadual SP — 100% forward (cenário medio) — Phase 1 corrigido:**
+**Total estadual SP — 100% forward — 4 Cenários:**
 
-| Métrica | min | **medio** | max |
+| Cenário | CH₄ (M m³/dia) | **Biogás (M m³/dia)** | Biometano (M m³/dia) |
 |---|---:|---:|---:|
-| CH₄ prático (M m³/dia) | 0,74 | **3,57** | 14,45 |
-| **Biogás prático (M m³/dia)** | 1,32 | **6,39** | 25,78 |
-| Biometano (M m³/dia) | 0,71 | **3,46** | 14,02 |
+| **Linha de Base** (min FDE/geração) | 0,81 | 1,45 | 0,79 |
+| **Médio Prazo** (medio FDE/geração) | **3,90** | **6,97** | **3,78** |
+| **Otimista** (max FDE/geração) | 13,62 | 24,32 | 13,21 |
+| **Fronteira do Biogás** (Otimista + ETE sludge) | 14,66 | 25,85 | 14,22 |
 
-**Quebra por stream (CH₄ medio, M m³/dia):**
+**Quebra por stream (CH₄ Médio Prazo, M m³/dia) — com split espacial bovino (Phase 2):**
 
-| Stream | Setor | Fração de resíduo | Mapeamento canônico | CH₄ medio |
-|---|---|---:|---|---:|
-| cana_bagaco | agrícola | × 0,280 | BAGACO | **1,966** |
-| bovino | pecuária | — | ESTERCO_BOVINO | 0,403 |
-| RSU/FORSU | urbano | — | FORSU | 0,310 |
-| aves | pecuária | — | CAMA_AVIARIO | 0,234 |
-| cana_torta | agrícola | × 0,030 | TORTA_FILTRO | **0,251** |
-| citros | agrícola | × 0,500 | BAGACO_CITROS | 0,101 |
-| milho | agrícola | — | PALHA_MILHO | 0,093 |
-| soja | agrícola | — | PALHA_SOJA | 0,083 |
-| cana_palha | agrícola | × 0,053 | PALHA | **0,062** |
-| cana_vinhaca | agrícola | × 0,420 | VINHACA | **0,035** |
-| café | agrícola | — | CASCA_CAFE | 0,014 |
-| suíno | pecuária | — | DEJETOS_SUINO | 0,007 |
-| poda urbana | urbano | — | PODA_URBANA | 0,009 |
-| **TOTAL** | | | | **3,568** |
+| Stream | Setor | Mapeamento canônico | CH₄ Médio Prazo |
+|---|---|---|---:|
+| cana_bagaco (×0,280) | agrícola | BAGACO | **1,966** |
+| cattle_leiteiro (33% leiteiro SP Leste) | pecuária | ESTERCO_BOVINO_LEITEIRO | **0,696** |
+| RSU/FORSU | urbano | FORSU | 0,310 |
+| cana_torta (×0,030) | agrícola | TORTA_FILTRO | **0,251** |
+| aves | pecuária | CAMA_AVIARIO | 0,234 |
+| citros (×0,500) | agrícola | BAGACO_CITROS | 0,101 |
+| milho | agrícola | PALHA_MILHO | 0,093 |
+| soja | agrícola | PALHA_SOJA | 0,083 |
+| cana_palha (×0,053) | agrícola | PALHA | 0,062 |
+| cana_vinhaca (×0,420) | agrícola | VINHACA | 0,035 |
+| cattle_corte (67% corte SP Oeste) | pecuária | ESTERCO_BOVINO_CORTE | 0,037 |
+| café | agrícola | CASCA_CAFE | 0,014 |
+| poda urbana | urbano | PODA_URBANA | 0,009 |
+| suíno | pecuária | DEJETOS_SUINO | 0,007 |
+| **TOTAL** | | | **3,898** |
 
-**Complexo sucroalcooleiro (4 sub-fluxos):** 2,314 M m³/dia = **64,9%** do total.
+**Leiteiro (SP Leste):** 0,696 M m³/dia = 17,8% do total — **2º maior contribuinte** individual.
+**Gado de corte (SP Oeste):** apenas 0,037 M m³/dia apesar de 67% do rebanho — FDE disperso baixo.
+**Complexo sucroalcooleiro (4 sub-fluxos):** 2,314 M m³/dia = 59,4% do total.
 
-### O que mudou vs. pré-Phase-1
+### O que mudou em cada fase
 
-| Stream | Antes (mapeamento errado) | Depois (correto) | Mudança |
+| Fase | Antes | Depois (Médio Prazo) | Mudança |
 |---|---:|---:|---|
-| cana (total) | 7,02 (1 t verde → bagaço direto, fator 3,6×) | **2,31** (4 sub-fluxos × frações) | −4,71 |
-| citros | 0,201 (fruta inteira → BAGACO_CITROS) | **0,101** (casca ×0,50) | −0,100 |
-| **Total** | **8,38** | **3,57** | **−4,81** |
-| **Biogás** | **15,17** | **6,39** | **−8,78** |
+| Phase 1: cana (unit fix) | 7,02 (verde→bagaço direto) | **2,31** (4 sub-fluxos) | −4,71 |
+| Phase 1: citros (unit fix) | 0,201 (fruta inteira) | **0,101** (casca ×0,50) | −0,100 |
+| Phase 2: bovino split | 0,403 (medio único) | **0,733** (0,696 leiteiro + 0,037 corte) | +0,330 |
+| **Total CH₄ Médio Prazo** | **8,38** | **3,90** | **−4,48** |
+| **Biogás Médio Prazo** | **15,17** | **6,97** | **−8,20** |
 
-A redução é **metodologicamente correta e esperada**: o IBGE PAM registra produção de cana verde
-(t/ano), não bagaço. Aplicar BMP do bagaço (TS=58,9%) diretamente à cana verde produzia um
-**fator de superestimativa de 3,6×**. O citros IBGE PAM registra fruta inteira, não casca
-processada; a correção ×0,50 (FUNDECITRUS) elimina a superestimativa de ~2×.
+**Phase 1** corrigiu superestimativas sistemáticas nas fontes agrícolas dominantes.
+**Phase 2** revelou o hotspot leiteiro do SP Leste (gado intensivo, FDE 9× maior que o corte
+extensivo) — anteriormente oculto pelo FDE médio estadual único.
 
 ---
 
-## 2. Comparação com a FIESP
+## 2. Comparação com a FIESP — 4 cenários
 
-| Referência FIESP | Valor | Escopo |
+| Referência | Valor (M m³/dia biogás) | Escopo |
 |---|---:|---|
-| FIESP/AMPLUN **2021** (bruto) | ~16,0 M m³/dia biogás | Todos os setores; potencial teórico bruto |
-| SEMIL/FIESP **2024** (viável) | ~11,4 M m³/dia biogás | Técnica e economicamente viável |
-| SEMIL/FIESP **2024** (longo prazo) | ~42,5 M Nm³/dia biometano | Infraestrutura plena |
-| **PILAR-2b forward — medio (Phase 1)** | **6,39 M m³/dia biogás** | **FDE auditado; unidades IBGE PAM corrigidas** |
-| PILAR-2b forward — min/max | 1,3 / 25,8 | Envelope de incerteza |
+| FIESP/AMPLUN **2021** (bruto) | ~16,0 | Todos os setores; potencial teórico bruto |
+| SEMIL/FIESP **2024** (viável) | ~11,4 | Técnica e economicamente viável |
+| SEMIL/FIESP **2024** (longo prazo) | ~42,5 Nm³/dia biometano | Infraestrutura plena |
+| **PILAR-2b Linha de Base** | **1,45** | Min FDE/geração — máximas restrições |
+| **PILAR-2b Médio Prazo** | **6,97** | FDE canônico auditado; Phase 1+2 |
+| **PILAR-2b Otimista** | **24,32** | Max FDE — condições favoráveis |
+| **PILAR-2b Fronteira do Biogás** | **25,85** | Otimista + ETE sludge mandatório |
 
-**Interpretação honesta:** o PILAR-2b (6,4 Mm³/dia) é ~40% do benchmark bruto FIESP 2021 (16,0)
-e ~56% do viável SEMIL/FIESP 2024 (11,4). A diferença reflete que o PILAR-2b aplica fatores FDE
-conservadores-a-moderados sobre **frações de resíduo real** (bagaço=28% da cana, casca=50% do
-citros), enquanto as referências FIESP creditam biomassa bruta sem penalizar pela cadeia de
-disponibilização. O número 6,4 representa **o que é mobilizável sob restrições realistas de
-coleta, competição de uso e logística**, não o potencial teórico bruto.
+**Interpretação honesta:** o Médio Prazo (6,97 Mm³/dia) representa o mobilizável com
+restrições realistas documentadas. A distância do bruto FIESP 2021 (16,0) é metodológica:
+bagaço=28% da cana verde × FDE≈0,12, gado corte extensivo com FDE≈0,032, e frações de
+resíduo corrigidas. O Otimista (24,3) e a Fronteira (25,9) demonstram o teto com política
+pública e infraestrutura plena — mas exigem CAPEX e regulação mandatória.
 
 ---
 
@@ -97,16 +100,22 @@ coleta, competição de uso e logística**, não o potencial teórico bruto.
   para massa ÚMIDA equivalente (0,037/0,073/0,122 t WET/cap/ano). Stream não está no mapa ativo.
 - [x] `FOSS4G_PAPER_SUPPLEMENT.md` atualizado com números corrigidos e tabela de sub-fluxos.
 
-### ⏳ Phase 2 — Diferenciação espacial do gado
-- [ ] Diferenciar bovinos leste SP (leiteiro intensivo, FC/FCo alto) vs. oeste SP
-  (corte extensivo em pastagem, FC baixo) usando dados IBGE censo bovino confinamento/pastagem.
-- [ ] Dividir ESTERCO_BOVINO em ESTERCO_BOVINO_LEITEIRO e ESTERCO_BOVINO_CORTE com parâmetros FDE distintos.
-- [ ] PR separado: `pr/phase2-spatial-livestock`.
+### ✅ Phase 2 — CONCLUÍDA: Diferenciação espacial do gado
+- [x] ESTERCO_BOVINO_CORTE: gado de corte extensivo SP Oeste (FDE médio=0,032).
+- [x] ESTERCO_BOVINO_LEITEIRO: gado leiteiro intensivo SP Leste (FDE médio=0,293).
+- [x] Split 67%/33% baseado em IBGE Censo Agropecuário 2017.
+- [x] `test_spatial_livestock.py`: 10 testes incluindo FDE ordering e dairy hotspot.
+- [x] Resultado: leiteiro = 0,696 Mm³/dia CH₄ (2º maior contribuinte individual).
 
-### ⏳ Phase 3 — Renomeação de cenários + Fronteira do Biogás
-- [ ] Renomear min/medio/max → Linha de Base/Médio Prazo/Otimista na API, frontend, docs.
-- [ ] Definir cenário "Fronteira do Biogás" (além do max — cenário de política pública plena).
-- [ ] Atualizar visualização de mapa frontend para exibir os 4 cenários.
+### ✅ Phase 3 — CONCLUÍDA: 4 cenários + Fronteira do Biogás
+- [x] Renomeação de MIN/MÉDIO/MAX → Linha de Base/Médio Prazo/Otimista no script e docs.
+- [x] Fronteira do Biogás: Otimista + LODO_PRIMARIO(max) + LODO_SECUNDARIO(max).
+  - LODO_PRIMARIO: 0,913 Mm³/dia CH₄ (max); LODO_SECUNDARIO: 0,126 Mm³/dia CH₄ (max).
+  - Premissa: AD mandatório para lodo de ETE (PNRS + regulação específica).
+  - Barreira: alto CAPEX; não realizável sem política pública.
+- [x] LODO_SECUNDARIO: bloco `generation.t_per_capita_yr` adicionado ao YAML.
+- [x] `analysis.ts` frontend: `PREDEFINED_SCENARIOS` e `RESIDUE_SCENARIOS` renomeados para
+  Linha de Base/Médio Prazo/Otimista/Fronteira do Biogás (IDs preservados).
 
 ### ⏳ Prioridade — Validação empírica (usuário fará localmente)
 - [ ] Popular `010_create_validation_plants.sql` com dados de plantas reais de SP (previsto × medido).
@@ -115,4 +124,4 @@ coleta, competição de uso e logística**, não o potencial teórico bruto.
 
 ## 4. Resumo de uma linha
 
-> **Com metodologia 100% forward, FDE auditado e unidades IBGE PAM corrigidas (cana→4 sub-fluxos; citros→casca ×0,50), o potencial mobilizável de SP é 6,4 M m³/dia de biogás (medio; envelope 1,3–25,8)** — representando o substrato real disponível sob restrições documentadas de coleta e uso competitivo, verificado por 11 testes de regressão automatizados.
+> **Com 3 fases completas — unidades IBGE PAM corrigidas (Phase 1), split espacial bovino leiteiro/corte (Phase 2), e 4 cenários nomeados com Fronteira do Biogás (Phase 3) — o potencial mobilizável de SP é: Linha de Base 1,5 / Médio Prazo 7,0 / Otimista 24,3 / Fronteira 25,9 M m³/dia biogás.** O Médio Prazo representa o substrato real disponível sob restrições documentadas; o hotspot leiteiro do SP Leste (0,7 Mm³/dia, 2º maior contribuinte) foi revelado pela diferenciação espacial. Verificado por 21 testes de regressão automatizados.

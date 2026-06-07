@@ -1360,6 +1360,17 @@ feedstocks:
       refs: ["heerenklage2019_sludge"]
     ch4_pct: 65.0
     cn_ratio: 8.0
+    generation:
+      type: "per_capita"
+      t_per_capita_yr:
+        min: 0.017   # ~7 g dry/cap/day ÷ TS=15% → 0.017 t WET/cap/yr (low SP coverage)
+        medio: 0.037  # CETESB 2020: ~15 g dry/cap/day ÷ TS=15% → 0.037 t WET/cap/yr (~50% of primary)
+        max: 0.061   # 25 g dry/cap/day ÷ TS=15% → 0.061 t WET/cap/yr (full secondary treatment)
+        refs: ["cetesb2020_sludge", "heerenklage2019_sludge"]
+      notes: >
+        SP secondary (activated) sludge generation ~50% of primary by dry mass (CETESB 2020).
+        At dewatered TS=15%: 15 g dry/cap/day ÷ 0.15 × 365/1000 = 0.037 t WET/cap/yr.
+        Not currently on active municipality map; included only in Fronteira do Biogás scenario.
     notes: >
       CRITICAL FIX: Previous bmp_medio=303 was identical to primary sludge — incorrect.
       Secondary sludge is significantly more recalcitrant due to EPS and cell-wall material.

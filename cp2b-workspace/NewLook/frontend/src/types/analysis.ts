@@ -258,47 +258,53 @@ export interface Scenario {
   color: string
 }
 
-// Pre-defined scenarios
+// ── 4-Cenários PILAR-2b (Phase 3) ─────────────────────────────────────────────
+// Aligned with canonical forward engine scenarios (compute_sp_canonical_totals.py):
+//   Linha de Base   ≈ min FDE/geração  (FDE ~0.14 — máximas restrições)
+//   Médio Prazo     ≈ medio FDE/geração (FDE ~0.29 — restrições regionais)
+//   Otimista        ≈ max FDE/geração  (FDE ~0.57 — condições favoráveis)
+//   Fronteira do Biogás — política pública plena (FDE ~0.75 + ETE sludge)
+// IDs preserved for backwards-compatibility with UI components.
 export const PREDEFINED_SCENARIOS: Scenario[] = [
   {
-    id: 'optimistic',
-    name: 'Otimista',
-    description: 'Alta eficiencia de coleta, baixa competicao, disponibilidade constante',
-    nameKey: 'scenarios.optimistic_name',
-    descKey: 'scenarios.optimistic_desc',
-    // FDE = 0.95 × 0.90 × 0.95 × 0.92 = 0.748 → 74.8% → ~20.1B m³ CH₄/year
-    factors: { fc: 0.95, fcp: 0.10, fs: 0.95, fl: 0.92 },
-    color: '#22C55E'
-  },
-  {
-    id: 'realistic',
-    name: 'Realista',
-    description: 'Valores baseados em evidencias de literatura e validacao de campo',
-    nameKey: 'scenarios.realistic_name',
-    descKey: 'scenarios.realistic_desc',
-    // FDE = 0.90 × 0.80 × 0.90 × 0.88 = 0.570 → 57.0% → ~15.3B m³ CH₄/year (near FIESP ~16B)
-    factors: { fc: 0.90, fcp: 0.20, fs: 0.90, fl: 0.88 },
-    color: '#3B82F6'
+    id: 'pessimistic',
+    name: 'Linha de Base',
+    description: 'Cenário conservador com máximas restrições logísticas, competição de uso e sazonalidade (FDE ~0,14)',
+    nameKey: 'scenarios.pessimistic_name',
+    descKey: 'scenarios.pessimistic_desc',
+    // FDE = 0.60 × 0.50 × 0.72 × 0.65 = 0.140
+    factors: { fc: 0.60, fcp: 0.50, fs: 0.72, fl: 0.65 },
+    color: '#EF4444'
   },
   {
     id: 'conservative',
-    name: 'Conservador',
-    description: 'Considera todas as restricoes praticas de forma conservadora',
+    name: 'Médio Prazo',
+    description: 'Baseado em evidências de literatura regional e FDE auditado canônico; restrições práticas moderadas (FDE ~0,29)',
     nameKey: 'scenarios.conservative_name',
     descKey: 'scenarios.conservative_desc',
-    // FDE = 0.75 × 0.65 × 0.80 × 0.75 = 0.293 → 29.3%
+    // FDE = 0.75 × 0.65 × 0.80 × 0.75 = 0.293
     factors: { fc: 0.75, fcp: 0.35, fs: 0.80, fl: 0.75 },
     color: '#F59E0B'
   },
   {
-    id: 'pessimistic',
-    name: 'Pessimista',
-    description: 'Cenario com maiores perdas e competicao',
-    nameKey: 'scenarios.pessimistic_name',
-    descKey: 'scenarios.pessimistic_desc',
-    // FDE = 0.60 × 0.50 × 0.72 × 0.65 = 0.140 → 14.0%
-    factors: { fc: 0.60, fcp: 0.50, fs: 0.72, fl: 0.65 },
-    color: '#EF4444'
+    id: 'realistic',
+    name: 'Otimista',
+    description: 'Alta eficiência de coleta, baixa competição, plena disponibilidade sazonal; FDE máximo dos parâmetros canônicos (FDE ~0,57)',
+    nameKey: 'scenarios.realistic_name',
+    descKey: 'scenarios.realistic_desc',
+    // FDE = 0.90 × 0.80 × 0.90 × 0.88 = 0.570
+    factors: { fc: 0.90, fcp: 0.20, fs: 0.90, fl: 0.88 },
+    color: '#3B82F6'
+  },
+  {
+    id: 'optimistic',
+    name: 'Fronteira do Biogás',
+    description: 'Política pública plena: todos os streams ativos + AD mandatório para lodo de ETE. Barreira: CAPEX alto, exige regulação específica (FDE ~0,75)',
+    nameKey: 'scenarios.optimistic_name',
+    descKey: 'scenarios.optimistic_desc',
+    // FDE = 0.95 × 0.90 × 0.95 × 0.92 = 0.748 → + ETE sludge (policy mandate)
+    factors: { fc: 0.95, fcp: 0.10, fs: 0.95, fl: 0.92 },
+    color: '#22C55E'
   }
 ]
 
@@ -457,20 +463,20 @@ export interface ResidueScenario {
   multiplier?: number  // For conservative/optimistic scenarios
 }
 
-// Default scenarios for the new system
+// Default scenarios for the new system — aligned with PILAR-2b 4-scenario framework
 export const RESIDUE_SCENARIOS: Record<ScenarioType, Omit<ResidueScenario, 'type'>> = {
   baseline: {
-    name: 'Baseline',
+    name: 'Linha de Base',
     nameKey: 'residue_scenarios.baseline_name',
-    description: 'Fatores padrão baseados em dados da literatura (CSV)',
+    description: 'FDE canônico mediano (medio) — parâmetros auditados da literatura regional',
     descKey: 'residue_scenarios.baseline_desc',
     color: '#3B82F6',
     multiplier: 1.0
   },
   conservative: {
-    name: 'Conservador',
+    name: 'Médio Prazo',
     nameKey: 'residue_scenarios.conservative_name',
-    description: 'Reduz todos os fatores em 20% (pior cenário)',
+    description: 'Reduz fatores em 20% — variabilidade regional e restrições práticas',
     descKey: 'residue_scenarios.conservative_desc',
     color: '#F59E0B',
     multiplier: 0.8
@@ -478,7 +484,7 @@ export const RESIDUE_SCENARIOS: Record<ScenarioType, Omit<ResidueScenario, 'type
   optimistic: {
     name: 'Otimista',
     nameKey: 'residue_scenarios.optimistic_name',
-    description: 'Aumenta fatores em 15% (melhor cenário)',
+    description: 'Aumenta fatores em 15% — condições favoráveis de coleta e logística',
     descKey: 'residue_scenarios.optimistic_desc',
     color: '#22C55E',
     multiplier: 1.15
@@ -486,7 +492,7 @@ export const RESIDUE_SCENARIOS: Record<ScenarioType, Omit<ResidueScenario, 'type
   custom: {
     name: 'Personalizado',
     nameKey: 'residue_scenarios.custom_name',
-    description: 'Fatores ajustados manualmente por resíduo',
+    description: 'Fatores FDE ajustados manualmente por resíduo',
     descKey: 'residue_scenarios.custom_desc',
     color: '#8B5CF6'
   }

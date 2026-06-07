@@ -92,39 +92,50 @@ contributors and are flagged explicitly. Their combined share is < 4 % of the SP
 
 ## 2. SP state results
 
-### 2.1 Headline totals (all sectors, 645 municipalities)
+### 2.1 Headline totals (all sectors, 645 municipalities) — 4 cenários
 
-| Metric | min | **medio** | max |
-|---|---:|---:|---:|
-| CH₄ practical (M m³/day) | 0.74 | **3.57** | 14.45 |
-| **Biogas practical (M m³/day)** | 1.32 | **6.39** | 25.78 |
-| Biomethane (M m³/day) | 0.71 | **3.46** | 14.02 |
+The platform uses four named scenarios, each applying a self-consistent band of generation
+rates, chemistry parameters (BMP/TS/VS), and FDE (FC × FCo × FS × FL × η) simultaneously:
+
+| Scenario | Description | CH₄ (M m³/day) | **Biogas (M m³/day)** | Biomethane (M m³/day) |
+|---|---|---:|---:|---:|
+| **Linha de Base** | min FDE/generation — maximum restrictions | 0.81 | 1.45 | 0.79 |
+| **Médio Prazo** | medio FDE — regional literature values | **3.90** | **6.97** | **3.78** |
+| **Otimista** | max FDE — favorable conditions | 13.62 | 24.32 | 13.21 |
+| **Fronteira do Biogás** | Otimista + mandatory ETE sludge (policy) | 14.66 | 25.85 | 14.22 |
+
+_Fronteira do Biogás adds LODO_PRIMARIO (0.913 M m³/day CH₄) and LODO_SECUNDARIO
+(0.126 M m³/day CH₄) computed at max FDE, requiring large-scale investment and
+mandatory regulatory frameworks (PNRS, AD mandate for ETE sludge). Barrier: CAPEX._
 
 _Biogas and biomethane are different quantities: biogas is the raw digester output (CH₄ + CO₂ +
 traces); biomethane is the purified/upgraded product after membrane or PSA processing (97 %
-recovery assumed). These numbers reflect the Phase 1 corrected unit interpretation for
-sugarcane and citrus — see §1.2 for the pre-correction values and overestimate factors._
+recovery assumed). Results reflect Phase 1 (IBGE PAM unit correction) and Phase 2 (cattle
+spatial split — eastern SP dairy vs western SP beef) methodology corrections._
 
-### 2.2 Stream breakdown — medio scenario, CH₄ (M m³/day)
+### 2.2 Stream breakdown — Médio Prazo scenario, CH₄ (M m³/day)
 
-| Stream | Sector | Canonical feedstock | Residue fraction | CH₄ medio | Share |
+| Stream | Sector | Canonical feedstock | Residue fraction | CH₄ Médio Prazo | Share |
 |---|---|---|---:|---:|---:|
-| Sugarcane bagasse | Agricultural | BAGACO | × 0.280 | 1.966 | 55.1 % |
-| Cattle | Livestock | ESTERCO_BOVINO | — | 0.403 | 11.3 % |
-| MSW organic fraction | Urban | FORSU | — | 0.310 | 8.7 % |
-| Poultry litter | Livestock | CAMA_AVIARIO | — | 0.234 | 6.6 % |
-| Sugarcane filter cake | Agricultural | TORTA_FILTRO | × 0.030 | 0.251 | 7.0 % |
-| Citrus peel | Agricultural | BAGACO_CITROS | × 0.500 | 0.101 | 2.8 % |
-| Corn (stover/husk) | Agricultural | PALHA_MILHO | — | 0.093 | 2.6 % |
-| Soybean (field straw) | Agricultural | PALHA_SOJA | — | 0.083 | 2.3 % |
-| Sugarcane straw | Agricultural | PALHA | × 0.053 | 0.062 | 1.7 % |
+| Sugarcane bagasse | Agricultural | BAGACO | × 0.280 | 1.966 | 50.4 % |
+| Dairy cattle (eastern SP) | Livestock | ESTERCO_BOVINO_LEITEIRO | × 0.33 of herd | 0.696 | 17.8 % |
+| MSW organic fraction | Urban | FORSU | — | 0.310 | 7.9 % |
+| Sugarcane filter cake | Agricultural | TORTA_FILTRO | × 0.030 | 0.251 | 6.4 % |
+| Poultry litter | Livestock | CAMA_AVIARIO | — | 0.234 | 6.0 % |
+| Citrus peel | Agricultural | BAGACO_CITROS | × 0.500 | 0.101 | 2.6 % |
+| Corn (stover/husk) | Agricultural | PALHA_MILHO | — | 0.093 | 2.4 % |
+| Soybean (field straw) | Agricultural | PALHA_SOJA | — | 0.083 | 2.1 % |
+| Sugarcane straw | Agricultural | PALHA | × 0.053 | 0.062 | 1.6 % |
+| Sugarcane vinhaça | Agricultural | VINHACA | × 0.420 | 0.035 | 0.9 % |
+| Beef cattle (western SP) | Livestock | ESTERCO_BOVINO_CORTE | × 0.67 of herd | 0.037 | 0.9 % |
 | Coffee (husk) | Agricultural | CASCA_CAFE | — | 0.014 | 0.4 % |
-| Sugarcane vinhaça | Agricultural | VINHACA | × 0.420 | 0.035 | 1.0 % |
+| Urban pruning waste | Urban | PODA_URBANA | — | 0.009 | 0.2 % |
 | Swine | Livestock | DEJETOS_SUINO | — | 0.007 | 0.2 % |
-| Urban pruning waste | Urban | PODA_URBANA | — | 0.009 | 0.3 % |
-| **TOTAL** | | | | **3.568** | **100 %** |
+| **TOTAL** | | | | **3.898** | **100 %** |
 
-**Sugarcane complex total (4 sub-streams):** 2.314 M m³/day CH₄ = **64.9 %** of SP total.
+**Sugarcane complex (4 sub-streams):** 2.314 M m³/day = **59.4 %** of SP total.
+**Dairy cattle (Phase 2):** 0.696 M m³/day = **17.8 %** — eastern SP dairy belt is 2nd largest contributor.
+**Beef cattle:** only 0.037 M m³/day (0.9%) despite 67% of SP herd — dispersed pasture farms, low FDE=0.032.
 
 ### 2.3 Benchmark comparison
 
@@ -133,16 +144,18 @@ sugarcane and citrus — see §1.2 for the pre-correction values and overestimat
 | FIESP/AMPLUN 2021 (gross) | ~16.0 | All sectors; theoretical gross potential |
 | SEMIL/FIESP 2024 (viable) | ~11.4 | Technically and economically viable |
 | SEMIL/FIESP 2024 (long-term biomethane) | ~42.5 Mm³/day biomethane | Full infrastructure scenario |
-| **PILAR-2b forward — medio (Phase 1 corrected)** | **6.39** | **Single forward engine; audited FDE; corrected IBGE PAM units** |
-| PILAR-2b forward — min / max | 1.32 / 25.78 | Uncertainty envelope |
+| **PILAR-2b Linha de Base** | **1.45** | **min FDE/generation — maximum restrictions** |
+| **PILAR-2b Médio Prazo** | **6.97** | **canonical audited FDE; Phase 1+2 corrected** |
+| **PILAR-2b Otimista** | **24.32** | **max FDE/generation — favorable conditions** |
+| **PILAR-2b Fronteira do Biogás** | **25.85** | **Otimista + mandatory ETE sludge policy** |
 
-**Note on benchmark gap:** The FIESP 2021 gross potential (~16 Mm³/day) represents a theoretical
-ceiling under fully optimistic assumptions, while PILAR-2b uses audited FDE factors (conservative
-to moderate availability) applied to corrected residue fractions. The gap reflects genuine
-methodological conservatism: the collectible bagasse fraction (28% of green cane × FDE ≈ 0.118)
-is a significantly smaller substrate than the FIESP approach of crediting all cane biomass.
-The PILAR-2b medio estimate (6.4 Mm³/day) represents what is mobilizable under realistic
-collection, competition, and logistics constraints — not gross theoretical output.
+**Note on benchmark positioning:** The Médio Prazo scenario (6.97 Mm³/day) represents what is
+mobilizable under realistic collection, competition, and logistics constraints with audited,
+literature-validated FDE parameters. The gap from FIESP 2021 (16.0) reflects methodological
+conservatism: sugarcane bagasse fraction (28% of green cane × FDE ≈ 0.12), cattle split
+(67% beef/extensive with FDE ~0.032), and corrected IBGE PAM units — not inflated parameters.
+The Fronteira scenario (25.85 Mm³/day) shows the policy ambition ceiling with full ETE
+sludge mandate and optimistic infrastructure deployment.
 
 ---
 
