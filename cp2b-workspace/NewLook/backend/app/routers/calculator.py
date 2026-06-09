@@ -90,7 +90,7 @@ async def submit_calculator(payload: CalculatorSubmission, request: Request):
         row = cursor.fetchone()
 
     return {
-        "lead_id": str(row[0]),
-        "created_at": row[1].isoformat(),
+        "lead_id": str(row["id"]),
+        "created_at": row["created_at"].isoformat(),
         "results": payload.calc_results,
     }
