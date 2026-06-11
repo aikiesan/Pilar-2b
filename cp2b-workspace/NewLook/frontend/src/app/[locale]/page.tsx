@@ -382,14 +382,14 @@ export default function HomePage() {
                 </span>
               </Link>
 
-              <button
-                onClick={() => setIsVideoModalOpen(true)}
+              <Link
+                href="/guide"
                 className="group inline-flex items-center gap-2 px-10 py-4 text-base font-semibold text-cp2b-green bg-white/90 backdrop-blur-sm border-2 border-cp2b-green/20 hover:border-cp2b-green hover:bg-white rounded-2xl shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cp2b-lime"
                 aria-label={t('video_modal.aria_label')}
               >
-                <Play className="w-5 h-5 fill-current group-hover:scale-110 transition-transform duration-300" />
+                <BookOpen className="w-5 h-5 fill-current group-hover:scale-110 transition-transform duration-300" />
                 {t('hero.cta_demo')}
-              </button>
+              </Link>
             </div>
           </FadeIn>
 

@@ -53,11 +53,11 @@ const publicNavConfig: NavItemConfig[] = [
 
 const authenticatedNavConfig: NavItemConfig[] = [
   { href: '/dashboard', labelKey: 'hub', icon: <Home className="h-4 w-4" />, descriptionKey: 'hub' },
-  { href: '/map', labelKey: 'map', icon: <Map className="h-4 w-4" />, descriptionKey: 'map' },
-  { href: '/dashboard/advanced-analysis', labelKey: 'advanced', icon: <BarChart3 className="h-4 w-4" /> },
-  { href: '/dashboard/scientific-database', labelKey: 'scientific_database', icon: <BookOpen className="h-4 w-4" /> },
-  { href: '/dashboard/technology-routes', labelKey: 'technology_routes', icon: <Workflow className="h-4 w-4" /> },
-  { href: '/dashboard/proximity', labelKey: 'proximity', icon: <Target className="h-4 w-4" /> },
+  { href: '/map', labelKey: 'map', icon: <Map className="h-4 w-4 tour-map" />, descriptionKey: 'map' },
+  { href: '/dashboard/advanced-analysis', labelKey: 'advanced', icon: <BarChart3 className="h-4 w-4 tour-analysis" /> },
+  { href: '/dashboard/scientific-database', labelKey: 'scientific_database', icon: <BookOpen className="h-4 w-4 tour-science" /> },
+  { href: '/dashboard/technology-routes', labelKey: 'technology_routes', icon: <Workflow className="h-4 w-4 tour-calculator" /> },
+  { href: '/dashboard/proximity', labelKey: 'proximity', icon: <Target className="h-4 w-4 tour-proximity" /> },
 ]
 
 export default function UnifiedHeader({ variant = 'auto' }: UnifiedHeaderProps) {
