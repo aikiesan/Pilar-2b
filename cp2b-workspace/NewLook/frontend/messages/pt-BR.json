@@ -10,14 +10,16 @@
       "proximity": "Proximidade",
       "technology_routes": "Calculadora de Biogás",
       "scientific_database": "Base Científica",
-      "advanced": "Análises"
+      "advanced": "Análises",
+      "cite": "Como Citar"
     },
     "nav_descriptions": {
       "hub": "Central de Recursos",
       "map": "Mapa Interativo SP",
       "advanced": "MCDA e estatísticas",
       "scientific_database": "Base de dados científica",
-      "proximity": "Análise de proximidade"
+      "proximity": "Análise de proximidade",
+      "cite": "Como citar o PILAR-2b"
     },
     "auth": {
       "login": "Entrar",
@@ -319,6 +321,12 @@
       "heatmap": "Calor",
       "bubble": "Bolhas"
     },
+    "colorModes": {
+      "label": "Modo Coroplético",
+      "biogas": "Potencial Biogás",
+      "cn_profile": "Perfil C/N",
+      "cluster": "Clusters K4"
+    },
     "opacity": {
       "label": "Opacidade do Mapa"
     },
@@ -388,7 +396,15 @@
     "scenario_baseline": "Médio Prazo",
     "scenario_fronteira": "Fronteira",
     "scenario_otimista": "Otimista",
-    "scenario_fronteira_tip": "Fronteira do Biogás: mobilização realista-alta dos 31 resíduos — supera o benchmark FIESP (~6,4 Mm³/d de biometano)."
+    "scenario_fronteira_tip": "Fronteira do Biogás: mobilização realista-alta dos 31 resíduos — supera o benchmark FIESP (~6,4 Mm³/d de biometano).",
+    "cnLegend": {
+      "title": "Perfil de Relação C/N",
+      "c_rich": "Excesso de Carbono (> 60)",
+      "c_mod": "Mod. Rico em Carbono (40–60)",
+      "balanced": "Ótimo / Balanceado (20–40)",
+      "n_mod": "Mod. Rico em Nitrogênio (10–20)",
+      "n_rich": "Excesso de Nitrogênio (< 10)"
+    }
   },
   "Register": {
     "title": "Criar Conta",

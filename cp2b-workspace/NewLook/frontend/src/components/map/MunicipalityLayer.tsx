@@ -23,6 +23,7 @@ interface MunicipalityLayerProps {
   selectedResidues?: ResidueType[];
   displayMetric?: DisplayMetric;
   colorMode?: ColorMode;
+  mapScenario?: string;
   onMunicipalityClick?: (feature: MunicipalityFeature) => void;
   onMunicipalityHover?: (feature: MunicipalityFeature | null, e?: MouseEvent) => void;
 }
@@ -71,6 +72,7 @@ export default function MunicipalityLayer({
   selectedResidues = [],
   displayMetric = 'biomass_tons',
   colorMode = 'biogas',
+  mapScenario = 'baseline',
   onMunicipalityClick,
   onMunicipalityHover,
 }: MunicipalityLayerProps) {
@@ -257,7 +259,7 @@ export default function MunicipalityLayer({
 
   return (
     <GeoJSON
-      key={`${biomassType}-${displayMetric}-${opacity}-${colorMode}-${selectedResidues.join(',')}`}
+      key={`${biomassType}-${displayMetric}-${opacity}-${colorMode}-${mapScenario}-${selectedResidues.join(',')}`}
       data={data as GeoJsonObject}
       style={style}
       onEachFeature={onEachFeature}

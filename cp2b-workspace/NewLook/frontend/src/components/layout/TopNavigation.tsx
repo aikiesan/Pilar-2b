@@ -21,7 +21,8 @@ import {
   X,
   LogOut,
   User,
-  ChevronDown
+  ChevronDown,
+  Quote
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
@@ -58,6 +59,12 @@ const NAV_ITEMS: NavItem[] = [
     labelKey: 'nav.proximity',
     icon: <GitCompare className="h-4 w-4" />,
     descriptionKey: 'nav_descriptions.proximity'
+  },
+  {
+    href: '/cite',
+    labelKey: 'nav.cite',
+    icon: <Quote className="h-4 w-4" />,
+    descriptionKey: 'nav_descriptions.cite'
   },
 ]
 

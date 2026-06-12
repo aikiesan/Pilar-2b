@@ -6,6 +6,7 @@
       "dashboard": "Dashboard",
       "about": "About",
       "references": "References",
+      "cite": "How to Cite",
       "hub": "Hub",
       "proximity": "Proximity",
       "technology_routes": "Biogas Calculator",
@@ -17,7 +18,8 @@
       "map": "Interactive SP Map",
       "advanced": "MCDA and statistics",
       "scientific_database": "Scientific database",
-      "proximity": "Proximity analysis"
+      "proximity": "Proximity analysis",
+      "cite": "How to cite PILAR-2b"
     },
     "auth": {
       "login": "Login",
@@ -319,6 +321,12 @@
       "heatmap": "Heat",
       "bubble": "Bubbles"
     },
+    "colorModes": {
+      "label": "Choropleth Mode",
+      "biogas": "Biogas Potential",
+      "cn_profile": "C/N Profile",
+      "cluster": "K4 Clusters"
+    },
     "opacity": {
       "label": "Map Opacity"
     },
@@ -388,7 +396,15 @@
     "scenario_baseline": "Mid-term",
     "scenario_fronteira": "Frontier",
     "scenario_otimista": "Optimistic",
-    "scenario_fronteira_tip": "Biogas Frontier: realistic-high mobilisation of all 31 residues — surpasses the FIESP benchmark (~6.4 Mm³/d biomethane)."
+    "scenario_fronteira_tip": "Biogas Frontier: realistic-high mobilisation of all 31 residues — surpasses the FIESP benchmark (~6.4 Mm³/d biomethane).",
+    "cnLegend": {
+      "title": "C/N Ratio Profile",
+      "c_rich": "Carbon Excess (> 60)",
+      "c_mod": "Mod. Carbon-rich (40–60)",
+      "balanced": "Balanced / Optimal (20–40)",
+      "n_mod": "Mod. Nitrogen-rich (10–20)",
+      "n_rich": "Nitrogen Excess (< 10)"
+    }
   },
   "Register": {
     "title": "Create Account",
