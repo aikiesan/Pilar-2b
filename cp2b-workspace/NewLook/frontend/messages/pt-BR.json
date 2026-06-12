@@ -382,7 +382,13 @@
     "closePanel": "Fechar painel",
     "expandPanel": "Expandir painel de filtros",
     "vis": "Vis",
-    "clearAll": "Limpar"
+    "clearAll": "Limpar",
+    "scenario_label": "Cenário",
+    "scenario_conservador": "Conservador",
+    "scenario_baseline": "Médio Prazo",
+    "scenario_fronteira": "Fronteira",
+    "scenario_otimista": "Otimista",
+    "scenario_fronteira_tip": "Fronteira do Biogás: mobilização realista-alta dos 31 resíduos — supera o benchmark FIESP (~6,4 Mm³/d de biometano)."
   },
   "Register": {
     "title": "Criar Conta",

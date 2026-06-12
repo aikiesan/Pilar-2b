@@ -16,6 +16,7 @@ import { useGeospatialData, useCodigestionClusters, useResidueCNMatrix, useInter
 import { useCnProfiles } from '@/hooks/useCnProfiles';
 import type { FilterCriteria } from '@/components/dashboard/FilterPanel';
 import type { MunicipalityCollection, MunicipalityFeature, DisplayMetric, CodigestionCluster } from '@/types/geospatial';
+import { MAP_SCENARIOS, applyScenarioToProps, type MapScenarioKey } from '@/data/scenarioFactors';
 import type { BiomassType, ResidueType } from './FloatingControlPanel';
 import type { VisualizationMode } from './LeftFilterPanel';
 import MapToolbar, { type ColorMode } from './MapToolbar';
@@ -155,6 +156,7 @@ export default function MapComponent({
   const [selectedClusterId, setSelectedClusterId] = useState<string | null>(null);
   const [showClusterPanel, setShowClusterPanel] = useState(false);
   const [colorMode, setColorMode] = useState<ColorMode>('biogas');
+  const [mapScenario, setMapScenario] = useState<MapScenarioKey>('baseline');
 
   const { profilesMap: cnProfilesMap, isLoading: cnLoading } = useCnProfiles(colorMode === 'cn_profile');
   const [mapScope, setMapScope] = useState<'sp' | 'brazil'>(urlScope === 'brazil' ? 'brazil' : 'sp');
@@ -328,11 +330,28 @@ export default function MapComponent({
     ? `total_${metricSuffix}`
     : `${biomassType}_${metricSuffix}`;
 
+  // ── Scenario scaling (per-residue, per-municipality) ────────────────────────
+  // Baseline = "Médio Prazo". Other scenarios scale each *_biogas_m3_year field by
+  // its residue's canonical factor, so each municipality responds to its own mix.
+  const scaledData = useMemo(() => {
+    if (!data || mapScenario === 'baseline') return data;
+    return {
+      ...data,
+      features: data.features.map((f) => ({
+        ...f,
+        properties: applyScenarioToProps(
+          f.properties as unknown as Record<string, unknown>,
+          mapScenario
+        ) as unknown as MunicipalityFeature['properties'],
+      })),
+    } as MunicipalityCollection;
+  }, [data, mapScenario]);
+
   // ── Data filtering ──────────────────────────────────────────────────────────
   const filteredData = useMemo(() => {
-    if (!data) return data;
+    if (!scaledData) return scaledData;
 
-    const filtered: MunicipalityFeature[] = data.features.filter((feature) => {
+    const filtered: MunicipalityFeature[] = scaledData.features.filter((feature) => {
       const props = feature.properties;
 
       // Search query filter
@@ -384,8 +403,8 @@ export default function MapComponent({
       return true;
     });
 
-    return { ...data, features: filtered } as MunicipalityCollection;
-  }, [data, activeFilters, searchQuery, selectedResidues]);
+    return { ...scaledData, features: filtered } as MunicipalityCollection;
+  }, [scaledData, activeFilters, searchQuery, selectedResidues]);
 
   // ── Guard states ────────────────────────────────────────────────────────────
   if (!isMounted) return <MapLoadingSkeleton />;
@@ -430,7 +449,7 @@ export default function MapComponent({
     );
   }
 
-  const displayData = filteredData || data;
+  const displayData = filteredData || scaledData || data;
 
   return (
     <div className="flex w-full h-full">
@@ -463,6 +482,25 @@ export default function MapComponent({
       <div className="relative flex-1 min-w-0 h-full">
         {/* Color mode toggle — floats above the map */}
         <MapToolbar colorMode={colorMode} onColorModeChange={setColorMode} />
+
+        {/* Scenario toggle — per-municipality biogas potential by scenario */}
+        <div className="absolute top-3 left-1/2 -translate-x-1/2 z-[1000] flex items-center gap-1 rounded-full bg-white/95 px-1.5 py-1 shadow-lg ring-1 ring-black/5 backdrop-blur">
+          <span className="px-2 text-[11px] font-semibold text-gray-500">{t('scenario_label')}</span>
+          {MAP_SCENARIOS.map(({ key, color }) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setMapScenario(key)}
+              title={key === 'fronteira' ? t('scenario_fronteira_tip') : undefined}
+              className={`rounded-full px-3 py-1 text-[11px] font-medium transition-all ${
+                mapScenario === key ? 'text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100'
+              }`}
+              style={mapScenario === key ? { backgroundColor: color } : undefined}
+            >
+              {t(`scenario_${key}`)}
+            </button>
+          ))}
+        </div>
 
         <MapContainer
           center={mapCenter}
