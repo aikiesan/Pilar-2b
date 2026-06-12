@@ -48,6 +48,13 @@ export default function ScenarioSelector({
       borderColor: 'border-green-600'
     },
     {
+      type: 'frontier',
+      icon: TrendingUp,
+      color: 'text-emerald-700',
+      bgColor: 'bg-emerald-50',
+      borderColor: 'border-emerald-700'
+    },
+    {
       type: 'custom',
       icon: Sliders,
       color: 'text-purple-600',

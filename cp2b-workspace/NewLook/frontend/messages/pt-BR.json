@@ -382,7 +382,13 @@
     "closePanel": "Fechar painel",
     "expandPanel": "Expandir painel de filtros",
     "vis": "Vis",
-    "clearAll": "Limpar"
+    "clearAll": "Limpar",
+    "scenario_label": "Cenário",
+    "scenario_conservador": "Conservador",
+    "scenario_baseline": "Médio Prazo",
+    "scenario_fronteira": "Fronteira",
+    "scenario_otimista": "Otimista",
+    "scenario_fronteira_tip": "Fronteira do Biogás: mobilização realista-alta dos 31 resíduos — supera o benchmark FIESP (~6,4 Mm³/d de biometano)."
   },
   "Register": {
     "title": "Criar Conta",
@@ -401,6 +407,8 @@
     "back_to_dashboard": "Voltar ao Dashboard",
     "advanced_analysis": {
       "title": "Análises Avançadas",
+      "literature_base_link": "Base científica — 399 referências (revisão de literatura)",
+      "frontier_note": "Fronteira do Biogás: mobilização realista-alta dos 31 resíduos — supera o benchmark FIESP (~6,4 Mm³/d de biometano).",
       "category_agricultural": "Agrícola",
       "category_livestock": "Pecuário",
       "category_urban": "Urbano",
@@ -868,7 +876,9 @@
       "conservative_name": "Conservador",
       "conservative_desc": "Considera todas as restrições práticas de forma conservadora",
       "pessimistic_name": "Pessimista",
-      "pessimistic_desc": "Cenário com maiores perdas e competição"
+      "pessimistic_desc": "Cenário com maiores perdas e competição",
+      "frontier_name": "Fronteira do Biogás",
+      "frontier_desc": "Mobilização realista-alta dos 31 resíduos sob política dedicada; supera o benchmark FIESP (~6,4 Mm³/d de biometano)"
     },
     "residue_scenarios": {
       "baseline_name": "Baseline",
@@ -877,6 +887,8 @@
       "conservative_desc": "Reduz todos os fatores em 20% (pior cenário)",
       "optimistic_name": "Otimista",
       "optimistic_desc": "Aumenta fatores em 15% (melhor cenário)",
+      "frontier_name": "Fronteira do Biogás",
+      "frontier_desc": "Mobilização realista-alta dos 31 resíduos sob política dedicada (supera o benchmark FIESP)",
       "custom_name": "Personalizado",
       "custom_desc": "Fatores ajustados manualmente por resíduo"
     },

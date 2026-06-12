@@ -382,7 +382,13 @@
     "closePanel": "Close panel",
     "expandPanel": "Expand filter panel",
     "vis": "Vis",
-    "clearAll": "Clear"
+    "clearAll": "Clear",
+    "scenario_label": "Scenario",
+    "scenario_conservador": "Conservative",
+    "scenario_baseline": "Mid-term",
+    "scenario_fronteira": "Frontier",
+    "scenario_otimista": "Optimistic",
+    "scenario_fronteira_tip": "Biogas Frontier: realistic-high mobilisation of all 31 residues — surpasses the FIESP benchmark (~6.4 Mm³/d biomethane)."
   },
   "Register": {
     "title": "Create Account",
@@ -401,6 +407,8 @@
     "back_to_dashboard": "Back to Dashboard",
     "advanced_analysis": {
       "title": "Advanced Analysis",
+      "literature_base_link": "Scientific base — 399 references (literature review)",
+      "frontier_note": "Biogas Frontier: realistic-high mobilisation of all 31 residues — surpasses the FIESP benchmark (~6.4 Mm³/d biomethane).",
       "category_agricultural": "Agricultural",
       "category_livestock": "Livestock",
       "category_urban": "Urban",
@@ -868,7 +876,9 @@
       "conservative_name": "Conservative",
       "conservative_desc": "Considers all practical constraints conservatively",
       "pessimistic_name": "Pessimistic",
-      "pessimistic_desc": "Scenario with highest losses and competition"
+      "pessimistic_desc": "Scenario with highest losses and competition",
+      "frontier_name": "Biogas Frontier",
+      "frontier_desc": "Realistic-high mobilisation of all 31 residues under dedicated policy; surpasses the FIESP benchmark (~6.4 Mm³/d biomethane)"
     },
     "residue_scenarios": {
       "baseline_name": "Baseline",
@@ -877,6 +887,8 @@
       "conservative_desc": "Reduces all factors by 20% (worst case)",
       "optimistic_name": "Optimistic",
       "optimistic_desc": "Increases factors by 15% (best case)",
+      "frontier_name": "Biogas Frontier",
+      "frontier_desc": "Realistic-high mobilisation of all 31 residues under dedicated policy (surpasses the FIESP benchmark)",
       "custom_name": "Custom",
       "custom_desc": "Manually adjusted factors per residue"
     },
