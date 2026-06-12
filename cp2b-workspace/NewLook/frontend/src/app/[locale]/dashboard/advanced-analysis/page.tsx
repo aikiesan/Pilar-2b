@@ -799,6 +799,18 @@ export default function AdvancedAnalysisPage() {
                     onScenarioChange={handleScenarioChange}
                     hasCustomFactors={hasCustomFactors}
                   />
+                  {currentScenario === 'frontier' && (
+                    <p className="mt-2 text-xs text-emerald-700">
+                      {t('advanced_analysis.frontier_note')}
+                    </p>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => router.push('/dashboard/scientific-database')}
+                    className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-emerald-700 hover:text-emerald-900 hover:underline"
+                  >
+                    📚 {t('advanced_analysis.literature_base_link')}
+                  </button>
                 </div>
 
                 {/* View Mode Toggles */}

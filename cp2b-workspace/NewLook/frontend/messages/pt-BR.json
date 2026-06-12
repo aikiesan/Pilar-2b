@@ -401,6 +401,8 @@
     "back_to_dashboard": "Voltar ao Dashboard",
     "advanced_analysis": {
       "title": "Análises Avançadas",
+      "literature_base_link": "Base científica — 399 referências (revisão de literatura)",
+      "frontier_note": "Fronteira do Biogás: mobilização realista-alta dos 31 resíduos — supera o benchmark FIESP (~6,4 Mm³/d de biometano).",
       "category_agricultural": "Agrícola",
       "category_livestock": "Pecuário",
       "category_urban": "Urbano",
