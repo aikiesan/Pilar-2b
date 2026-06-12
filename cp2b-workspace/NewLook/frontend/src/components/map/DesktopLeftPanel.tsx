@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import type { ResidueType, BiomassType } from './FloatingControlPanel';
 import type { VisualizationMode } from './LeftFilterPanel';
-import type { DisplayMetric, ResidueCNMatrix } from '@/types/geospatial';
+import type { DisplayMetric, ResidueCNMatrix, ColorMode } from '@/types/geospatial';
 import { useSummaryStatistics } from '@/hooks/useGeospatialData';
 import { formatBiogasShort } from '@/lib/mapUtils';
 
@@ -51,6 +51,8 @@ interface DesktopLeftPanelProps {
   displayMetric?: DisplayMetric;
   onDisplayMetricChange?: (metric: DisplayMetric) => void;
   cnMatrix?: ResidueCNMatrix | null;
+  colorMode: ColorMode;
+  onColorModeChange: (mode: ColorMode) => void;
 }
 
 type TabId = 'filters' | 'layers' | 'data' | 'tools';
@@ -141,6 +143,7 @@ function FiltersSection({
   searchQuery, onSearchChange, visualizationMode, onVisualizationModeChange,
   biomassType, onBiomassTypeChange, selectedResidues, onResiduesChange,
   displayMetric = 'biomass_tons', onDisplayMetricChange, cnMatrix, t,
+  colorMode, onColorModeChange,
 }: {
   searchQuery: string;
   onSearchChange: (v: string) => void;
@@ -154,6 +157,8 @@ function FiltersSection({
   onDisplayMetricChange?: (metric: DisplayMetric) => void;
   cnMatrix?: ResidueCNMatrix | null;
   t: ReturnType<typeof useTranslations>;
+  colorMode: ColorMode;
+  onColorModeChange: (mode: ColorMode) => void;
 }) {
   const handleResidueToggle = (residue: ResidueType) => {
     const next = selectedResidues.includes(residue)
@@ -162,11 +167,11 @@ function FiltersSection({
     onResiduesChange(next);
   };
 
-  const vizModes: { value: VisualizationMode; label: string }[] = [
+  const vizModes: { value: VisualizationMode; label: string; disabled?: boolean }[] = [
     { value: 'choropleth', label: t('vizModes.choropleth') },
     { value: 'heatmap', label: t('vizModes.heatmap') },
     { value: 'bubble', label: t('vizModes.bubble') },
-    { value: 'clusters', label: '⚗️ Co-digestão' },
+    { value: 'clusters', label: '⚗️ Co-digestão', disabled: true },
   ];
 
   const biomassKeys: { value: BiomassType; icon: string; color: string }[] = [
@@ -235,20 +240,57 @@ function FiltersSection({
           {vizModes.map(opt => (
             <button
               key={opt.value}
-              onClick={() => onVisualizationModeChange(opt.value)}
+              onClick={() => !opt.disabled && onVisualizationModeChange(opt.value)}
+              disabled={opt.disabled}
               className={`py-1.5 px-2 rounded-lg border text-[11px] font-medium transition-all ${
-                visualizationMode === opt.value
-                  ? opt.value === 'clusters'
-                    ? 'border-violet-600 bg-violet-50 text-violet-800'
-                    : 'border-[#1E5128] bg-green-50 text-green-800'
-                  : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'
+                opt.disabled
+                  ? 'bg-gray-50 border-gray-150 text-gray-300 cursor-not-allowed'
+                  : visualizationMode === opt.value
+                    ? opt.value === 'clusters'
+                      ? 'border-violet-600 bg-violet-50 text-violet-800'
+                      : 'border-[#1E5128] bg-green-50 text-green-800'
+                    : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'
               }`}
+              title={opt.disabled ? 'Em desenvolvimento' : undefined}
             >
               {opt.label}
             </button>
           ))}
         </div>
       </div>
+
+      {/* Color mode selector (for choropleth mode) */}
+      {visualizationMode === 'choropleth' && (
+        <div>
+          <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-1">
+            {t('colorModes.label')}
+          </label>
+          <div className="flex flex-col gap-1 bg-gray-50 p-1.5 rounded-lg border border-gray-200">
+            {([
+              { value: 'biogas', label: displayMetric === 'biomass_tons' ? 'Potencial Biomassa' : t('colorModes.biogas') },
+              { value: 'cn_profile', label: t('colorModes.cn_profile') },
+              { value: 'cluster', label: t('colorModes.cluster') },
+            ] as const).map(opt => {
+              const active = colorMode === opt.value;
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => onColorModeChange(opt.value)}
+                  className={`w-full py-1 px-2.5 rounded-md text-[11px] font-semibold text-left transition-all flex items-center justify-between ${
+                    active
+                      ? 'bg-green-700 text-white shadow-sm'
+                      : 'text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  <span>{opt.label}</span>
+                  {active && <span className="text-[10px]">✓</span>}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Biomass type */}
       <div>
@@ -526,6 +568,7 @@ export default function DesktopLeftPanel({
   opacity, onOpacityChange, layers, onLayerToggle,
   municipalityCount, totalMunicipalities, onOpenComparison, onOpenExport,
   displayMetric, onDisplayMetricChange, cnMatrix,
+  colorMode, onColorModeChange,
 }: DesktopLeftPanelProps) {
   const t = useTranslations('Map');
   const [collapsed, setCollapsed] = useState(false);
@@ -635,6 +678,7 @@ export default function DesktopLeftPanel({
                 selectedResidues={selectedResidues} onResiduesChange={onResiduesChange}
                 displayMetric={displayMetric} onDisplayMetricChange={onDisplayMetricChange}
                 cnMatrix={cnMatrix} t={t}
+                colorMode={colorMode} onColorModeChange={onColorModeChange}
               />
             )}
             {activeTab === 'layers' && (

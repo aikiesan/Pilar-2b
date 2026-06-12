@@ -19,7 +19,7 @@ import type { MunicipalityCollection, MunicipalityFeature, DisplayMetric, Codige
 import { MAP_SCENARIOS, applyScenarioToProps, type MapScenarioKey } from '@/data/scenarioFactors';
 import type { BiomassType, ResidueType } from './FloatingControlPanel';
 import type { VisualizationMode } from './LeftFilterPanel';
-import MapToolbar, { type ColorMode } from './MapToolbar';
+import { type ColorMode } from '@/types/geospatial';
 import type { InfrastructureLayerStatus } from './InfrastructureLayer';
 import MapLegend from './MapLegend';
 import MapLoadingSkeleton from './MapLoadingSkeleton';
@@ -51,7 +51,6 @@ const ExportControl = dynamic(() => import('./ExportControl'), { ssr: false });
 
 // Visualization layers
 const BubbleChartLayer = dynamic(() => import('./BubbleChartLayer'), { ssr: false });
-const MapSearchBox = dynamic(() => import('./MapSearchBox'), { ssr: false });
 
 // Co-digestion clustering layers
 const CodigestionClusterLayer = dynamic(() => import('./CodigestionClusterLayer'), { ssr: false });
@@ -156,7 +155,7 @@ export default function MapComponent({
   const [selectedClusterId, setSelectedClusterId] = useState<string | null>(null);
   const [showClusterPanel, setShowClusterPanel] = useState(false);
   const [colorMode, setColorMode] = useState<ColorMode>('biogas');
-  const [mapScenario, setMapScenario] = useState<MapScenarioKey>('baseline');
+  const [mapScenario, setMapScenario] = useState<MapScenarioKey>('fronteira');
 
   const { profilesMap: cnProfilesMap, isLoading: cnLoading } = useCnProfiles(colorMode === 'cn_profile');
   const [mapScope, setMapScope] = useState<'sp' | 'brazil'>(urlScope === 'brazil' ? 'brazil' : 'sp');
@@ -475,13 +474,13 @@ export default function MapComponent({
           displayMetric={displayMetric}
           onDisplayMetricChange={handleDisplayMetricChange}
           cnMatrix={cnMatrix}
+          colorMode={colorMode}
+          onColorModeChange={setColorMode}
         />
       )}
 
       {/* ── Map area (flex-1 fills remaining width) ── */}
       <div className="relative flex-1 min-w-0 h-full">
-        {/* Color mode toggle — floats above the map */}
-        <MapToolbar colorMode={colorMode} onColorModeChange={setColorMode} />
 
         {/* Scenario toggle — per-municipality biogas potential by scenario */}
         <div className="absolute top-3 left-1/2 -translate-x-1/2 z-[1000] flex items-center gap-1 rounded-full bg-white/95 px-1.5 py-1 shadow-lg ring-1 ring-black/5 backdrop-blur">
@@ -514,7 +513,7 @@ export default function MapComponent({
             maxZoom={19}
           />
 
-          {displayData && <MapSearchBox data={displayData} />}
+
 
           {/* Municipality Layer */}
           {visibleLayerIds.includes('municipalities') && displayData && (
@@ -527,6 +526,7 @@ export default function MapComponent({
                   selectedResidues={selectedResidues}
                   displayMetric={displayMetric}
                   colorMode={colorMode}
+                  mapScenario={mapScenario}
                   onMunicipalityClick={visualizationMode === 'clusters' ? undefined : handleMunicipalityClick}
                   onMunicipalityHover={visualizationMode === 'clusters' ? undefined : handleMunicipalityHover}
                 />
@@ -650,9 +650,30 @@ export default function MapComponent({
           </div>
         )}
 
+        {/* C/N Profile legend — shown when cn_profile color mode is active */}
+        {colorMode === 'cn_profile' && (
+          <div className="absolute bottom-16 md:bottom-8 left-4 z-[500] bg-white/95 backdrop-blur-sm rounded-lg px-3 py-2 shadow-lg border border-gray-200 text-xs">
+            <p className="font-semibold text-gray-700 mb-1.5">{t('cnLegend.title')}</p>
+            {[
+              { color: '#1e40af', label: t('cnLegend.c_rich') },
+              { color: '#60a5fa', label: t('cnLegend.c_mod') },
+              { color: '#16a34a', label: t('cnLegend.balanced') },
+              { color: '#f97316', label: t('cnLegend.n_mod') },
+              { color: '#dc2626', label: t('cnLegend.n_rich') },
+            ].map(({ color, label }) => (
+              <div key={color} className="flex items-center gap-2 py-0.5">
+                <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
+                <span className="text-gray-700">{label}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* Legends */}
         {visibleLayerIds.includes('municipalities') && visualizationMode !== 'clusters' && (
-          visualizationMode === 'choropleth' ? <MapLegend displayMetric={displayMetric} /> : <HeatmapLegend />
+          visualizationMode === 'choropleth' ? (
+            colorMode === 'biogas' ? <MapLegend displayMetric={displayMetric} /> : null
+          ) : <HeatmapLegend />
         )}
 
         {visualizationMode === 'clusters' && clusterLoading && isMounted && (
@@ -685,6 +706,8 @@ export default function MapComponent({
           displayMetric={displayMetric}
           onDisplayMetricChange={handleDisplayMetricChange}
           cnMatrix={cnMatrix}
+          colorMode={colorMode}
+          onColorModeChange={setColorMode}
         />
       )}
     </div>

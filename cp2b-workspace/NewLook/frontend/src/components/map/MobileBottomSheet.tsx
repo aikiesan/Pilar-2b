@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl';
 import { Search, Layers, FlaskConical, ChevronDown, ChevronUp, X } from 'lucide-react';
 import type { ResidueType, BiomassType } from './FloatingControlPanel';
 import type { VisualizationMode } from './LeftFilterPanel';
-import type { DisplayMetric, ResidueCNMatrix } from '@/types/geospatial';
+import type { DisplayMetric, ResidueCNMatrix, ColorMode } from '@/types/geospatial';
 
 interface Layer {
   id: string;
@@ -32,6 +32,8 @@ interface MobileBottomSheetProps {
   displayMetric?: DisplayMetric;
   onDisplayMetricChange?: (metric: DisplayMetric) => void;
   cnMatrix?: ResidueCNMatrix | null;
+  colorMode: ColorMode;
+  onColorModeChange: (mode: ColorMode) => void;
 }
 
 type ActiveSheet = 'filters' | 'layers' | null;
@@ -75,6 +77,7 @@ export default function MobileBottomSheet({
   opacity, onOpacityChange, layers, onLayerToggle,
   municipalityCount, totalMunicipalities,
   displayMetric = 'biomass_tons', onDisplayMetricChange, cnMatrix,
+  colorMode, onColorModeChange,
 }: MobileBottomSheetProps) {
   const t = useTranslations('Map');
   const [activeSheet, setActiveSheet] = useState<ActiveSheet>(null);
@@ -174,25 +177,62 @@ export default function MobileBottomSheet({
                   </label>
                   <div className="grid grid-cols-2 gap-2">
                     {([
-                      { value: 'choropleth' as const, label: t('vizModes.choropleth'), color: 'bg-blue-600' },
-                      { value: 'heatmap' as const, label: t('vizModes.heatmap'), color: 'bg-orange-500' },
-                      { value: 'bubble' as const, label: t('vizModes.bubble'), color: 'bg-green-600' },
-                      { value: 'clusters' as const, label: '⚗️ Co-digestão', color: 'bg-violet-600' },
+                      { value: 'choropleth' as const, label: t('vizModes.choropleth'), color: 'bg-blue-600', disabled: false },
+                      { value: 'heatmap' as const, label: t('vizModes.heatmap'), color: 'bg-orange-500', disabled: false },
+                      { value: 'bubble' as const, label: t('vizModes.bubble'), color: 'bg-green-600', disabled: false },
+                      { value: 'clusters' as const, label: '⚗️ Co-digestão', color: 'bg-violet-600', disabled: true },
                     ] as const).map(opt => (
                       <button
                         key={opt.value}
-                        onClick={() => onVisualizationModeChange(opt.value)}
+                        onClick={() => !opt.disabled && onVisualizationModeChange(opt.value)}
+                        disabled={opt.disabled}
                         className={`py-2.5 rounded-xl text-xs font-medium border transition-colors ${
-                          visualizationMode === opt.value
-                            ? `${opt.color} text-white border-transparent`
-                            : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                          opt.disabled
+                            ? 'bg-gray-50 border-gray-200 text-gray-300 cursor-not-allowed'
+                            : visualizationMode === opt.value
+                              ? `${opt.color} text-white border-transparent`
+                              : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
                         }`}
+                        title={opt.disabled ? 'Em desenvolvimento' : undefined}
                       >
                         {opt.label}
                       </button>
                     ))}
                   </div>
                 </div>
+
+                {/* Color mode selector (for choropleth mode) */}
+                {visualizationMode === 'choropleth' && (
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">
+                      {t('colorModes.label')}
+                    </label>
+                    <div className="flex flex-col gap-1 bg-gray-50 p-2 rounded-xl border border-gray-200">
+                      {([
+                        { value: 'biogas', label: displayMetric === 'biomass_tons' ? 'Potencial Biomassa' : t('colorModes.biogas') },
+                        { value: 'cn_profile', label: t('colorModes.cn_profile') },
+                        { value: 'cluster', label: t('colorModes.cluster') },
+                      ] as const).map(opt => {
+                        const active = colorMode === opt.value;
+                        return (
+                          <button
+                            key={opt.value}
+                            type="button"
+                            onClick={() => onColorModeChange(opt.value)}
+                            className={`w-full py-2 px-3 rounded-lg text-xs font-semibold text-left transition-colors flex items-center justify-between ${
+                              active
+                                ? 'bg-green-700 text-white shadow-sm'
+                                : 'text-gray-700 hover:bg-gray-100'
+                            }`}
+                          >
+                            <span>{opt.label}</span>
+                            {active && <span className="text-xs">✓</span>}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
 
                 {/* Biomass type */}
                 <div>
@@ -378,15 +418,11 @@ export default function MobileBottomSheet({
           </span>
         </button>
 
-        {/* Co-digestão — sets viz mode, no sheet */}
+        {/* Co-digestão — disabled (under development) */}
         <button
-          onClick={() => {
-            onVisualizationModeChange(visualizationMode === 'clusters' ? 'choropleth' : 'clusters');
-            setActiveSheet(null);
-          }}
-          className={`flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors border-l border-gray-200 ${
-            visualizationMode === 'clusters' ? 'text-violet-700 bg-violet-50' : 'text-gray-500 hover:bg-gray-50'
-          }`}
+          disabled={true}
+          className="flex-1 flex flex-col items-center justify-center gap-0.5 border-l border-gray-200 text-gray-300 cursor-not-allowed bg-gray-50/50"
+          title="Em desenvolvimento"
         >
           <FlaskConical className="w-5 h-5" />
           <span className="text-[10px] font-semibold">Co-digestão</span>
