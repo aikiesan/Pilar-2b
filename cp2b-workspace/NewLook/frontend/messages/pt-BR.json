@@ -10,14 +10,16 @@
       "proximity": "Proximidade",
       "technology_routes": "Calculadora de Biogás",
       "scientific_database": "Base Científica",
-      "advanced": "Análises"
+      "advanced": "Análises",
+      "cite": "Como Citar"
     },
     "nav_descriptions": {
       "hub": "Central de Recursos",
       "map": "Mapa Interativo SP",
       "advanced": "MCDA e estatísticas",
       "scientific_database": "Base de dados científica",
-      "proximity": "Análise de proximidade"
+      "proximity": "Análise de proximidade",
+      "cite": "Como citar o PILAR-2b"
     },
     "auth": {
       "login": "Entrar",

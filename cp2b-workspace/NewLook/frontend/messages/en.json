@@ -6,6 +6,7 @@
       "dashboard": "Dashboard",
       "about": "About",
       "references": "References",
+      "cite": "How to Cite",
       "hub": "Hub",
       "proximity": "Proximity",
       "technology_routes": "Biogas Calculator",
@@ -17,7 +18,8 @@
       "map": "Interactive SP Map",
       "advanced": "MCDA and statistics",
       "scientific_database": "Scientific database",
-      "proximity": "Proximity analysis"
+      "proximity": "Proximity analysis",
+      "cite": "How to cite PILAR-2b"
     },
     "auth": {
       "login": "Login",

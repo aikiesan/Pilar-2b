@@ -129,11 +129,11 @@ def run_sql_validation() -> dict:
         print("\n[1] State aggregate — total biogas potential")
         cur.execute("""
             SELECT
-                ROUND(SUM(total_biogas_m3_year)::numeric, 0)              AS total_m3_ano,
-                ROUND(SUM(total_biogas_m3_year)::numeric / 365, 0)        AS total_m3_dia,
-                ROUND(SUM(total_biogas_m3_year)::numeric / 1e6, 4)        AS total_M_m3_ano,
-                ROUND(SUM(total_biogas_m3_year)::numeric / 365 / 1e6, 4)  AS total_M_m3_dia,
-                COUNT(*)                                                   AS n_municipalities
+                ROUND(SUM(total_biogas_m3_year)::numeric, 0)              AS "total_m3_ano",
+                ROUND(SUM(total_biogas_m3_year)::numeric / 365, 0)        AS "total_m3_dia",
+                ROUND(SUM(total_biogas_m3_year)::numeric / 1e6, 4)        AS "total_M_m3_ano",
+                ROUND(SUM(total_biogas_m3_year)::numeric / 365 / 1e6, 4)  AS "total_M_m3_dia",
+                COUNT(*)                                                   AS "n_municipalities"
             FROM municipalities
             WHERE total_biogas_m3_year > 0
         """)
@@ -167,10 +167,34 @@ def run_sql_validation() -> dict:
             GROUP BY 1
             ORDER BY
                 CASE
-                    WHEN total_biogas_m3_year >= 3650000 THEN 1
-                    WHEN total_biogas_m3_year >= 365000  THEN 2
-                    WHEN total_biogas_m3_year >= 36500   THEN 3
-                    WHEN total_biogas_m3_year >= 365     THEN 4
+                    WHEN CASE
+                        WHEN total_biogas_m3_year >= 3650000 THEN 'industrial_scale'
+                        WHEN total_biogas_m3_year >= 365000  THEN 'medium'
+                        WHEN total_biogas_m3_year >= 36500   THEN 'small'
+                        WHEN total_biogas_m3_year >= 365     THEN 'micro'
+                        ELSE                                      'non_viable'
+                    END = 'industrial_scale' THEN 1
+                    WHEN CASE
+                        WHEN total_biogas_m3_year >= 3650000 THEN 'industrial_scale'
+                        WHEN total_biogas_m3_year >= 365000  THEN 'medium'
+                        WHEN total_biogas_m3_year >= 36500   THEN 'small'
+                        WHEN total_biogas_m3_year >= 365     THEN 'micro'
+                        ELSE                                      'non_viable'
+                    END = 'medium' THEN 2
+                    WHEN CASE
+                        WHEN total_biogas_m3_year >= 3650000 THEN 'industrial_scale'
+                        WHEN total_biogas_m3_year >= 365000  THEN 'medium'
+                        WHEN total_biogas_m3_year >= 36500   THEN 'small'
+                        WHEN total_biogas_m3_year >= 365     THEN 'micro'
+                        ELSE                                      'non_viable'
+                    END = 'small' THEN 3
+                    WHEN CASE
+                        WHEN total_biogas_m3_year >= 3650000 THEN 'industrial_scale'
+                        WHEN total_biogas_m3_year >= 365000  THEN 'medium'
+                        WHEN total_biogas_m3_year >= 36500   THEN 'small'
+                        WHEN total_biogas_m3_year >= 365     THEN 'micro'
+                        ELSE                                      'non_viable'
+                    END = 'micro' THEN 4
                     ELSE 5
                 END
         """)
