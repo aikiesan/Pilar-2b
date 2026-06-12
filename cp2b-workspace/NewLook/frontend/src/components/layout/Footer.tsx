@@ -99,6 +99,7 @@ export default function Footer() {
     { href: '/map', label: tNav('map') },
     { href: '/dashboard', label: tNav('dashboard') },
     { href: '/about', label: tNav('about') },
+    { href: '/cite', label: t('footer.about') === 'About' ? 'How to Cite' : 'Como Citar' },
     { href: '/login', label: t('footer.about') === 'About' ? 'Login' : 'Entrar' },
   ]
 
