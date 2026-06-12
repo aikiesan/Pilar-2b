@@ -868,7 +868,9 @@
       "conservative_name": "Conservador",
       "conservative_desc": "Considera todas as restrições práticas de forma conservadora",
       "pessimistic_name": "Pessimista",
-      "pessimistic_desc": "Cenário com maiores perdas e competição"
+      "pessimistic_desc": "Cenário com maiores perdas e competição",
+      "frontier_name": "Fronteira do Biogás",
+      "frontier_desc": "Mobilização realista-alta dos 31 resíduos sob política dedicada; supera o benchmark FIESP (~6,4 Mm³/d de biometano)"
     },
     "residue_scenarios": {
       "baseline_name": "Baseline",
@@ -877,6 +879,8 @@
       "conservative_desc": "Reduz todos os fatores em 20% (pior cenário)",
       "optimistic_name": "Otimista",
       "optimistic_desc": "Aumenta fatores em 15% (melhor cenário)",
+      "frontier_name": "Fronteira do Biogás",
+      "frontier_desc": "Mobilização realista-alta dos 31 resíduos sob política dedicada (supera o benchmark FIESP)",
       "custom_name": "Personalizado",
       "custom_desc": "Fatores ajustados manualmente por resíduo"
     },
