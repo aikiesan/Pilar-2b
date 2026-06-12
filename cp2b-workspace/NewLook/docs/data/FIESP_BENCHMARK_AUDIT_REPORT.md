@@ -12,12 +12,31 @@
 |---|---:|---:|---:|
 | **Linha de Base** (conservador) | 0,75 | 1,35 | 0,73 |
 | **Médio Prazo** (realista) | 3,65 | 6,53 | 3,54 |
-| **Otimista** | 14,74 | 26,30 | 14,29 |
-| **Fronteira do Biogás** (mobilização plena / política) | ~14,9 | ~26,4 | ~14,5 |
+| **Fronteira do Biogás** (mobilização realista-alta) | **9,19** | **16,42** | **8,92** |
+| **Otimista** (teto técnico) | 14,74 | 26,30 | 14,29 |
 
 *Valores pós-recalibração de BMP (§3): VINHACA 90→160, FORSU 310→360, CASCA_CAFE 140→165,
-DEJETOS_SUINO 210→245 NmL CH₄/gVS, base mono-digestão sem pré-tratamento. Todos os 35 testes
-de regressão passam; valores propagados para SQL/serviço/frontend via `generate_from_canonical.py`.*
+DEJETOS_SUINO 210→245 NmL CH₄/gVS, base mono-digestão sem pré-tratamento. 35/35 testes de
+regressão passam; propagado a SQL/serviço/frontend via `generate_from_canonical.py`.*
+
+### "Fronteira do Biogás" — o caminho intermediário que supera a FIESP
+Construção transparente: **ponto médio por métrica entre Médio Prazo e Otimista**
+(`FRONTIER_ALPHA = 0,5` em `compute_sp_canonical_totals.py`). Representa o **relaxamento dos fatores
+de competição de uso e coleta sob política pública dedicada** — não o teto teórico (esse é o
+Otimista), mas a mobilização realista-alta quando se combinam **os 31 resíduos** mapeados.
+
+> **Fronteira = 8,92 Mm³/d de biometano (16,42 de biogás) — ~40% acima do benchmark FIESP (6,4).**
+
+Por que é defensável dizer que o potencial de SP é **maior** que o da FIESP:
+- A FIESP estima 6,4 Mm³/d usando **apenas 2 classes** (cana + aterro) com disponibilidade
+  plant-level alta. É um piso de cobertura, não o potencial do Estado.
+- O Pilar **soma 31 resíduos em 4 setores**. Só a paridade no recorte cana+aterro já alcança o
+  patamar FIESP (subset *max* 9,06 biometano, §2); ao **adicionar** pecuária, café, citros, soja,
+  milho, lodo de ETE, soro de queijo e abatedouro — que a FIESP ignora — o total mobilizável
+  realista-alto sobe para ~8,9 Mm³/d. O excedente sobre a FIESP **é exatamente a contribuição dos
+  resíduos que ela não contabiliza**.
+- Continua mais conservador que o Otimista (14,3): não credita biomassa bruta, mantém FC/FS/FL
+  auditados e só relaxa a competição de uso (FCo) — a premissa que mais restringia o número.
 
 *Fronteira* = envelope superior com disponibilidade plena (FC/FCo relaxados ao limite de coleta),
 representando o teto de política pública. Coincide com os números do handoff (14,66 / 25,85 / 14,22).

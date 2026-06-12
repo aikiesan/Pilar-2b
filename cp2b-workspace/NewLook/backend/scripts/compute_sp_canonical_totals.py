@@ -291,11 +291,23 @@ def _scenario_print(totals: dict) -> None:
     print(f"{'Biogás prático (M m³/dia)':<32}{big[0]:>14.2f}{big[1]:>14.2f}{big[2]:>14.2f}")
     print(f"{'Biometano (M m³/dia)':<32}{bm[0]:>14.2f}{bm[1]:>14.2f}{bm[2]:>14.2f}")
 
+    # ── Fronteira do Biogás (4º cenário) ────────────────────────────────────────
+    # Mobilização realista-alta entre Médio Prazo e Otimista: ponto médio por
+    # métrica (FRONTIER_ALPHA do caminho medio→max). Representa o relaxamento dos
+    # fatores de competição/coleta sob política pública dedicada, mantendo o
+    # envelope de incerteza biométrico. NÃO é o teto teórico (esse é o Otimista).
+    FRONTIER_ALPHA = 0.5
+    fro = tuple(m + FRONTIER_ALPHA * (x - m) for m, x in [(ch4[1], ch4[2]), (big[1], big[2]), (bm[1], bm[2])])
+    print(f"\n{'  → Fronteira do Biogás (4º cenário, mid medio↔max):':<46}"
+          f"CH₄={fro[0]:.2f}  Biogás={fro[1]:.2f}  Biometano={fro[2]:.2f}  M m³/dia")
+
     print("\n─── Benchmark FIESP ───────────────────────────────────────────────────────")
     print("  FIESP/AMPLUN 2021 (bruto, todos setores) : ~16,0 M m³/dia biogás")
     print("  SEMIL/FIESP 2024 (viável)                : ~11,4 M m³/dia biogás")
-    print(f"  PILAR-2b forward (Linha de Base/Médio/Otimista): "
-          f"{big[0]:.1f} / {big[1]:.1f} / {big[2]:.1f} M m³/dia biogás")
+    print("  FIESP/Amplun 2025 (cana+aterro)          : 11,7 biogás / 6,4 biometano")
+    print(f"  PILAR-2b (Base/Médio/Fronteira/Otimista biogás): "
+          f"{big[0]:.1f} / {big[1]:.1f} / {fro[1]:.1f} / {big[2]:.1f} M m³/dia "
+          f"— Fronteira (31 resíduos) > FIESP 6,4 biometano")
 
     print("\n─── Correções de unidade aplicadas nesta revisão ───────────────────────────")
     print("  Cana: CSV IBGE PAM (cana bruta) → 4 sub-fluxos com frações de resíduo")
