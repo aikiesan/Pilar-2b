@@ -166,9 +166,11 @@ feedstocks:
     # / 340 Mt cane/yr = 0.428 t/t cane. Conservative round-down to 0.420.
     # FCo=0.15 in FDE: 85% fertigated (CETESB Resolução SMA-39/2018 mandate).
     bmp:
-      min: 40.0
-      medio: 90.0
-      max: 160.0
+      # Revised 2026-06 to untreated mono-digestion basis from scientific_references
+      # corpus (Moura 2023 UFRJ MSc 165.5; Ferreira 2016 150-180; Moraes/Zaiat/Bonomi 2015).
+      min: 90.0
+      medio: 160.0
+      max: 200.0
       refs:
         - id: "bonomi2015_vinhaca"
           value: "50–130 NmL/gVS; typical SP vinhaça ~85 NmL/gVS at VS ~1.5% wet"
@@ -366,9 +368,11 @@ feedstocks:
     sector: "AG_AGRICULTURA"
     subsector: "AG_CAFEICULTURA"
     bmp:
-      min: 90.0
-      medio: 140.0
-      max: 190.0
+      # Revised 2026-06 from scientific_references corpus (coffee husk untreated:
+      # Gebremedhin 2016 131; Passos 2018 196; Czekala 2023; corpus median ~164).
+      min: 120.0
+      medio: 165.0
+      max: 220.0
       refs:
         - id: "okonkwo2021_coffee"
           value: "Husk BMP 120–180 NmL/gVS; high lignin (27% DM) limits biodegradability"
@@ -928,9 +932,11 @@ feedstocks:
     sector: "PC_PECUARIA"
     subsector: "PC_SUINOS"
     bmp:
-      min: 140.0
-      medio: 210.0
-      max: 280.0
+      # Revised 2026-06 from scientific_references corpus (untreated swine slurry mono
+      # median ~245; Moller 2004 140-280; Wall 2014 165-265). medio 210->245.
+      min: 150.0
+      medio: 245.0
+      max: 300.0
       refs:
         - id: "moller2004_manure"
           value: "Swine slurry BMP 140–280 NmL/gVS"
@@ -1054,9 +1060,11 @@ feedstocks:
     sector: "UR_URBANO"
     subsector: "UR_RSU"
     bmp:
-      min: 200.0
-      medio: 310.0
-      max: 420.0
+      # Revised 2026-06 from scientific_references corpus (untreated OFMSW: Fisgativa 2016;
+      # Mata-Alvarez 2014 200-450; corpus median ~472). medio raised 310->360, max ->500.
+      min: 250.0
+      medio: 360.0
+      max: 500.0
       refs:
         - id: "mata_alvarez2014_ofmsw"
           value: "Source-separated OFMSW BMP 200–450 NmL/gVS; median ~310"

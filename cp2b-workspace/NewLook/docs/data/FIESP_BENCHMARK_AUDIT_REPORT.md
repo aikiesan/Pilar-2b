@@ -10,10 +10,14 @@
 
 | Cenário | CH₄ (Mm³/d) | Biogás (Mm³/d) | Biometano (Mm³/d) |
 |---|---:|---:|---:|
-| **Linha de Base** (conservador) | 0,74 | 1,32 | 0,71 |
-| **Médio Prazo** (realista) | 3,57 | 6,39 | 3,46 |
-| **Otimista** | 14,45 | 25,78 | 14,02 |
-| **Fronteira do Biogás** (mobilização plena / política) | ~14,7 | ~25,9 | ~14,2 |
+| **Linha de Base** (conservador) | 0,75 | 1,35 | 0,73 |
+| **Médio Prazo** (realista) | 3,65 | 6,53 | 3,54 |
+| **Otimista** | 14,74 | 26,30 | 14,29 |
+| **Fronteira do Biogás** (mobilização plena / política) | ~14,9 | ~26,4 | ~14,5 |
+
+*Valores pós-recalibração de BMP (§3): VINHACA 90→160, FORSU 310→360, CASCA_CAFE 140→165,
+DEJETOS_SUINO 210→245 NmL CH₄/gVS, base mono-digestão sem pré-tratamento. Todos os 35 testes
+de regressão passam; valores propagados para SQL/serviço/frontend via `generate_from_canonical.py`.*
 
 *Fronteira* = envelope superior com disponibilidade plena (FC/FCo relaxados ao limite de coleta),
 representando o teto de política pública. Coincide com os números do handoff (14,66 / 25,85 / 14,22).
@@ -26,8 +30,8 @@ FIESP cobre **apenas cana (bagaço/vinhaça/torta) + RSU em aterro**. O subconju
 
 | | Pilar subset · min | **medio** | max | **FIESP 2025** |
 |---|---:|---:|---:|---:|
-| Biogás (Mm³/d) | 1,09 | **4,76** | 16,40 | **11,7** (total) |
-| Biometano (Mm³/d) | 0,58 | **2,54** | 8,79 | **6,4** (Cenário 1) / **4,75** (Cenário 2) |
+| Biogás (Mm³/d) | 1,12 | **4,89** | 16,91 | **11,7** (total) |
+| Biometano (Mm³/d) | 0,60 | **2,62** | 9,06 | **6,4** (Cenário 1) / **4,75** (Cenário 2) |
 
 **Leitura:** o 6,4 Mm³/d da FIESP (todo o biogás → biometano, plantas futuras + já realizadas) cai
 entre o *medio* (2,54) e o *max* (8,79) do subconjunto Pilar; o 4,75 (descontando o que já gera
@@ -53,9 +57,18 @@ GORDURA 859 vs 850 · CAMA_AVIARIO 300 vs 280 · FORSU 472 vs 310. Detalhe em
 `feedstock_bmp_from_refs.csv` / `REFERENCE_CORPUS_SUMMARY.md`. Faixas largas = estudos com
 pré-tratamento/co-digestão (não a condição base de SP); medianas são a âncora.
 
-**Recomendação (não aplicada — preserva os 21+ testes de regressão):** rever para cima, com
-justificativa por linha, BMP de PALHA, VINHACA e FORSU onde a base empírica é robusta; manter os
-demais. Isso eleva *medio* aproximando-o do benchmark FIESP sem perder rigor.
+**Aplicado (2026-06, base mono-digestão sem pré-tratamento, com fonte por linha):**
+
+| Feedstock | BMP medio antes → depois | Fonte (corpus) |
+|---|---:|---|
+| VINHACA | 90 → **160** | Moura 2023 (UFRJ) 165,5; Ferreira 2016 150–180; Moraes/Zaiat/Bonomi 2015 |
+| FORSU | 310 → **360** | Fisgativa 2016; Mata-Alvarez 2014 (200–450); corpus med ~472 |
+| CASCA_CAFE | 140 → **165** | Gebremedhin 2016 131; Passos 2018 196; Czekała 2023 |
+| DEJETOS_SUINO | 210 → **245** | Møller 2004 (140–280); Wall 2014 (165–265); corpus med 245 |
+
+Demais feedstocks: **confirmados dentro da faixa** pelo corpus (BAGACO 165 vs 188 untreated, TORTA
+280 vs Janke 240–280, GORDURA 850 vs 859 etc.) — sem alteração. Mudanças propagadas a todas as
+camadas via `scripts/generate_from_canonical.py`; **35/35 testes de regressão verdes**.
 
 ---
 
