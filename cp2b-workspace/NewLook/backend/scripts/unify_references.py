@@ -34,6 +34,21 @@ CODE_MAP = {
     'PEC_GORDURA_SEBO':'GORDURA','PEC_SANGUE_ANIMAL':'SANGUE','CARCACAS_AVES':'CAMA_AVIARIO',
     'URB_FORSU_SEPARADA':'FORSU','URB_FRACAO_ORGANICA':'ORGANICO_RSU',
     'URB_LODO_PRIMARIO':'LODO_PRIMARIO','URB_LODO_SECUNDARIO':'LODO_SECUNDARIO',
+    # scientific_references primary_residue scheme (lowercase)
+    'bagaco_cana':'BAGACO','palha_cana':'PALHA','vinhaca_cana':'VINHACA','torta_filtro':'TORTA_FILTRO',
+    'bagaco_citros':'BAGACO_CITROS','cascas_citros':'CASCAS_CITROS','cascas_citros_ind':'CASCAS_CITROS',
+    'casca_cafe':'CASCA_CAFE','polpa_cafe':'POLPA_CAFE','mucilagem_cafe':'MUCILAGEM_CAFE',
+    'casca_soja':'CASCA_SOJA','palha_soja':'PALHA_SOJA','vagem_soja':'VAGEM_SOJA',
+    'palha_milho':'PALHA_MILHO','casca_milho':'CASCA_MILHO','sabugo_milho':'SABUGO','sabugo':'SABUGO',
+    'cama_aviario':'CAMA_AVIARIO','dejetos_aves_frescos':'DEJETOS_AVES','carcacas_aves':'CAMA_AVIARIO',
+    'dejetos_bovinos_liquidos':'DEJETOS_BOVINO','esterco_bovino':'ESTERCO_BOVINO',
+    'dejetos_suinos':'DEJETOS_SUINO','dejetos_suinos_liquidos':'DEJETOS_SUINO',
+    'esterco_solido_suino':'ESTERCO_SUINO','esterco_suino':'ESTERCO_SUINO',
+    'gordura_sebo':'GORDURA','sangue_animal':'SANGUE','visceras_abatedouro':'VISCERAS',
+    'forsu_ur_rsu':'FORSU','fracao_organica_rsu':'ORGANICO_RSU',
+    'lodo_primario_ete':'LODO_PRIMARIO','lodo_secundario_ete':'LODO_SECUNDARIO',
+    'soro_queijo':'SORO_QUEIJO','levedura_residual':'LEVEDURA','casca_eucalipto':'CASCA_EUCALIPTO',
+    'bagaco_malte':'BAGACO_MALTE','residuo_abatedouro':'VISCERAS',
 }
 PEER = {'artigo', 'journal_article'}
 
