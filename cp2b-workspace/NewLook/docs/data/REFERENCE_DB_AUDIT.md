@@ -52,12 +52,32 @@ strip the resolver prefix, populate `url = https://doi.org/<doi>`.
 residue. Use `mapeamento_residuos_equivalentes` to map both to one canonical code so a residue's
 references aren't split across two keys. Reconcile to the `feedstocks.yaml` code set (single source).
 
-## Severity / counts (to confirm on full 399 via SQL §2 below)
-- A (trailing `>.`): ≥10 in sample → likely 20–40 across 399.
-- B (DOI≠title): ≥2 confirmed; the full title-vs-DOI check needs publisher resolution.
-- C (placeholder/incomplete): ≥2.
-- D (DOI in text, column NULL): widespread in `referencias_bibliograficas` rows.
-- E (dual codes): structural — affects every residue present in both streams.
+## Quantified counts — full `referencias_unificadas` view (148 rows, confirmed)
+> The `referencias_unificadas` **view returns 148 rows**, but the dashboard reports **399**. The 399
+> therefore live in a **larger source table** (candidates: `scientific_references`, `references`,
+> or the union of `referencias_bibliograficas` + `residuo_references`). **Tomorrow, export the
+> 399-row source table**, not just this view. (`SELECT count(*) FROM scientific_references;` etc.)
+
+| Defect | Count / 148 | Note |
+|---|---|---|
+| **Missing URL** | **94 (64%)** | URL is the operative access field → ~2/3 of refs are not clickable |
+| Has working URL | 54 (36%) | scielo / embrapa / doi.org |
+| DOI with trailing `>.` | ~14 | mechanical fix (SQL §3a) — affects `doi` column (url was null, so url_junk=0) |
+| Recoverable url from doi | 25 | SQL §3b back-fill `url = https://doi.org/<doi>` |
+| DOI ≠ cited title | ≥2 | id 11 AG_MILHO_PALHA; id 1 PEC_DEJETOS_LIQUIDOS_SUINO |
+| Author-only / incomplete stubs | ~9 | id 110, 114, 97, 112, 105, 99, 135, 128, 132 |
+| Placeholder | 1 | id 121 PC_BOVINOS_001 |
+| `journal` field misparsed | many | residuo_references: "Jaboticabal", "Solo", "Paulo", "RSER" = citation fragments |
+
+Cross-confirmation: id 115 BONOMI (VINHACA) = the vinasse paper flagged in CITATION_DOI_AUDIT.md
+(really **Moraes, Zaiat & Bonomi 2015, RSER 44:888-903**, DOI `10.1016/j.rser.2015.01.023`); here it
+carries **no DOI/URL**. The `residuo_references` BAGACO/PALHA/etc. entries overlap the
+`references.yaml` 32-DOI set — so the same wrong-DOI problems exist in both stores.
+
+## Residue-code bridge (confirmed)
+`mapeamento_residuos_equivalentes` maps the two schemes:
+`VINHACA↔AG_CANA_VINHACA`, `PALHA_MILHO↔AG_MILHO_PALHA`, `CASCA_CAFE↔AG_CAFE_CASCA`,
+`CASCAS_CITROS↔AG_CITROS_CASCAS`, `BAGACO_CITROS↔AG_CITROS_BAGACO`, … → use it to unify (defect E).
 
 ## Remediation plan (once full 399 CSV is in hand)
 1. Run mechanical cleanup (defect A + D) — deterministic SQL, no judgement (`fix_reference_dois.sql`).
