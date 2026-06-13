@@ -1,4 +1,4 @@
-review_status,corrected_doi,corrected_url,flags,feedstock_codes,citation,year,doi,url,peer_reviewed,source_ids,reviewer_notes
+﻿review_status,corrected_doi,corrected_url,flags,feedstock_codes,citation,year,doi,url,peer_reviewed,source_ids,reviewer_notes
 ,,,MISSING_DOI;NEEDS_URL;NOT_PEER_REVIEWED,CASCA_SOJA,"Valor nutricional da casca do grão de soja, farelo de soja, milho moído e farelo de trigo para bovinos",2001,,,False,90,
 ,,,MISSING_DOI;NEEDS_URL;NOT_PEER_REVIEWED,FORSU,Energia de Biogás da Digestão Anaeróbia de Resíduos Sólidos Orgânicos e de Aterros Sanitários,2016,,,False,314,
 ,,,MISSING_DOI;NEEDS_URL;NOT_PEER_REVIEWED,FORSU,Metanização de RSU - Túneis de Metanização de Batelada Sequenciais,2016,,,False,315,
