@@ -297,7 +297,43 @@ Features:
 | Gas pipelines | National | Pipeline network | Ready to load |
 | IBGE I-O tables (67 sectors) | National | Economic multipliers | Economics team |
 | ABIOVE | Municipal/Regional | Correction factors | Integrated (FDE) |
+| **ANP Dados Abertos (Biometano)** | **Plant-level + state monthly** | **Authorized capacity, processed volume, utilization %** | **Dataset committed (`analysis/data/05c–05f`); not yet in DB** |
+| **ANEEL Geração Distribuída (Biogás)** | **Plant/unit-level (546 units, 152 MW)** | **Installed kW, subtype, class, coords** | **Dataset committed (`analysis/data/05g–05h`); not yet in DB** |
 
 ---
 
-*Generated: April 25, 2026 | PILAR-2b v3.0.2*
+## Backlog — Real-World Validation Dataset (added June 2026)
+
+**Why this matters:** We now hold *scientifically usable, source-linked real-world data* on actual
+biogas/biomethane plants in Brazil (SP-first) — the empirical counterpart to the model's *potential*
+estimates. This is the foundation for a validation layer and for tracking real plant development in
+São Paulo. **Do not lose this.**
+
+**What exists now (committed, dataset-only — see `docs/data/BIOGAS_PLANTS_DATASET.md`):**
+- `analysis/data/05_biogas_plants_brazil.csv` — 28 plants (20 ANP biomethane + 8 power/planned).
+- ANP biomethane: latest snapshot (`05c`), state monthly production 2020→2026 (`05d`), plant monthly
+  volume/utilization (`05e`), fleet stats (`05f`). Raw sources vendored under `analysis/data/sources/`.
+- ANEEL GD electricity: 546 biogas units, 152 MW (`05g`, `05h`).
+- Schema is `validation_plants`-compatible (migration `010`).
+
+**Future work (deferred, in priority order):**
+1. **Load into `validation_plants` + wire the map** — build `backend/scripts/load_plants_data.py`
+   (pattern: `cp2b_load_data.py`) and surface via `/api/v1/infrastructure/biogas-plants/geojson` +
+   `InfrastructureLayer.tsx`. De-dup the 34 SP ANEEL-GD units against the existing
+   `Plantas_Biogas_SP.shp` layer (provenance unconfirmed) by coordinate proximity + capacity.
+2. **Validation comparison for research queries** — join ANP plant municipalities to the model's
+   predicted potential; produce *predicted potential vs authorized capacity vs actual output* per
+   municipality (Piracicaba, Narandiba, Caieiras, Paulínia, …). Key insight already visible: fleet
+   runs at **~21% median utilization**, so realized output ≪ potential — compare ceilings
+   (potential vs authorized capacity), with actual production as a reality-check column.
+3. **Track SP plant development over time** — the ANP monthly series enables a live "real plants vs
+   modeled potential" dashboard for São Paulo.
+4. **ANEEL centralized (SIGA) generation** — larger UTEs not in the GD file; 1.5 GB source is local
+   to the owner. Join key `CodGeracaoDistribuida`.
+
+**Strict rule carried forward:** electrical capacity (kW/MW) and gas volume (Nm³/day) stay in
+separate columns — never conflated; aggregates kept separate from plant-level rows.
+
+---
+
+*Generated: April 25, 2026 | PILAR-2b v3.0.2 · updated June 13, 2026 (real-world validation dataset)*
