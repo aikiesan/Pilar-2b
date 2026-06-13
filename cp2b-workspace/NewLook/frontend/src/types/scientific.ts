@@ -49,8 +49,10 @@ export interface KineticData {
 // Kinetic curve point for chart
 export interface KineticCurvePoint {
   time: number              // days
-  yield: number             // L CH₄/kg VS
+  yield: number             // L CH₄/kg VS (mean fit)
   cumulative_fraction: number  // fraction of FQ reached
+  yield_low?: number        // lower bound of experimental-variability band
+  yield_high?: number       // upper bound of experimental-variability band
 }
 
 // ==========================================
@@ -331,23 +333,66 @@ export function calculateKineticYield(
   return Y_CH4_STOICHIOMETRIC * (slowComponent + medComponent + fastComponent)
 }
 
+// Typical replicate variability of cumulative BMP assays (coefficient of variation).
+// Anaerobic BMP round-robins report CV ≈ 8–15% between labs/replicates
+// (Holliger et al., 2016, Water Sci. Technol. 74:2515). We use 12% as the
+// shaded experimental-variability band — this is an explicit assay-uncertainty
+// envelope, NOT fabricated data points.
+export const BMP_REPLICATE_CV = 0.12
+
 /**
- * Generate curve data points for a residue
+ * Generate a cumulative methane curve for a residue.
+ *
+ * The mean curve is a **modified Gompertz** model fitted to the residue's own
+ * reported half-life (t50) and t80 — so each residue's curve reflects its actual
+ * degradation speed (lag → exponential rise → plateau) instead of a shared,
+ * artificially-identical shape. A ±CV band (BMP_REPLICATE_CV) communicates the
+ * real experimental variability of BMP assays.
+ *
+ * Falls back to the three-fraction model when t50/t80 are unavailable.
  */
 export function generateKineticCurve(
   kinetics: KineticData,
   maxDays: number = 30
 ): KineticCurvePoint[] {
   const points: KineticCurvePoint[] = []
+  const maxYield = Y_CH4_STOICHIOMETRIC * kinetics.fq
+
+  const t50 = kinetics.t50
+  const t80 = kinetics.t80
+  const haveGompertz = typeof t50 === 'number' && typeof t80 === 'number' && t80 > t50 && t50 > 0
+
+  // Modified-Gompertz shape parameters derived from t50/t80:
+  //   F(t) = exp(-exp(a*(λ - t) + 1)),  with F(t50)=0.5, F(t80)=0.8
+  //   a = 1.13343 / (t80 - t50);  λ = t50 - 1.36651/a  (clamped ≥ 0)
+  let a = 0
+  let lag = 0
+  if (haveGompertz) {
+    a = 1.13343 / (t80 - t50)
+    lag = t50 - 1.36651 / a
+    if (lag < 0) {
+      lag = 0
+      a = 1.36651 / t50 // re-anchor so F(t50)=0.5 with zero lag
+    }
+  }
 
   for (let t = 0; t <= maxDays; t++) {
-    const yieldValue = calculateKineticYield(kinetics, t)
-    const maxYield = Y_CH4_STOICHIOMETRIC * kinetics.fq
+    let frac: number
+    if (haveGompertz) {
+      frac = Math.exp(-Math.exp(a * (lag - t) + 1))
+    } else {
+      const y = calculateKineticYield(kinetics, t)
+      frac = maxYield > 0 ? y / maxYield : 0
+    }
+    frac = Math.min(Math.max(frac, 0), 1)
+    const yieldValue = maxYield * frac
 
     points.push({
       time: t,
       yield: yieldValue,
-      cumulative_fraction: maxYield > 0 ? yieldValue / maxYield : 0
+      cumulative_fraction: frac,
+      yield_low: yieldValue * (1 - BMP_REPLICATE_CV),
+      yield_high: yieldValue * (1 + BMP_REPLICATE_CV),
     })
   }
 
