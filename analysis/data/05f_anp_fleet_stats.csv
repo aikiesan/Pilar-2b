@@ -1,0 +1,13 @@
+scope,uf,n_plants,cap_biometano_m3d,processed_biogas_m3d,pct_or_value
+by_state,SP,10,587816,171606,47.9
+by_state,RJ,2,222480,412689,18.1
+by_state,CE,1,110000,142800,9.0
+by_state,PE,1,108931,64147,8.9
+by_state,RS,2,100848,112817,8.2
+by_state,PR,1,40000,18613,3.3
+by_state,SC,1,31440,4180,2.6
+by_state,MG,1,16912,1905,1.4
+by_state,MS,1,8000,0,0.7
+national,BR,20,1226427,928757,100.0
+national_operating,BR,17,,,85.0
+national_median_utilization_pct,BR,,,,21.0
