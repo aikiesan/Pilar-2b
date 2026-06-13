@@ -40,10 +40,36 @@ ANP numbers are Brazilian-formatted (`.` thousands, `,` decimal in Capacidade). 
 `.` is decimal; Minas Gerais shows near-zero values (e.g. `32.009`) consistent with a nascent plant
 (ZEG Aroeira/Tupaciguara ramping) — flagged `mg_anomaly_flag` rather than reinterpreted.
 
-### Deferred — ANEEL electrical generation
-Biogas-fueled *electricity* UTEs live in ANEEL's SIGA / GD datasets. The owner's full file is ~1.5 GB
-(local only). The uploaded ANEEL `...termeletrica.csv` is a technical-attributes table (no fuel
-type/município); it joins to the big file via `CodGeracaoDistribuida`. Deferred to a later pass.
+## ANEEL distributed-generation (electricity-from-biogas) layer
+The owner filtered the 4.4 M-row ANEEL GD registry (ref 06/2026) down to **546 biogas units** and
+supplied them. This is the **electricity** layer (kW installed), kept **separate** from ANP
+biomethane (m³/d) — the two are never conflated.
+
+- `05g_aneel_biogas_gd_plants.csv` — one row per GD unit, geocoded (545/546 have ANEEL coords).
+  Columns: uf, municipality, ibge_code, operator (often ANEEL-redacted `(redacted)`), source_subtype,
+  feedstock, consumption_class, consumer_type, porte, `elec_capacity_kw`, connection_date, lat, lon,
+  sector=`electricity_gd`, source_url, `dup_group_size`.
+- `05h_aneel_biogas_gd_summary.csv` — by state / subtype / consumption class.
+
+**Totals (reconcile to source):** 546 units, **152.08 MW**, 16 states. Top by capacity: MG 30.1 MW,
+PR 26.4 MW, SP 20.5 MW (34 units), RJ 15.7 MW. Subtypes → feedstock: `Biogás - RA` (376,
+animal/agro), `Biogás - RU` (101, urban/landfill), `Biogás-AGR` (44, agricultural),
+`Biogás - Floresta` (25, forestry). Mostly small: ~59% microgeração (≤75 kW), rural/PF-dominated.
+
+### ⚠ Possible overlap with the existing map layer (verify at integration)
+The app already renders an SP biogas layer from `Plantas_Biogas_SP.shp` (served by
+`/api/v1/infrastructure/biogas-plants/geojson`). That shapefile is **not committed to this repo
+clone** (only `shapefiles/brazil/` is present), so a byte-level comparison wasn't possible here. The
+**34 SP GD units** may partially overlap those points. These are most likely **different universes**
+— ANEEL GD = small distributed *electrical* generators (median 75 kW, mostly rural micro/mini);
+the existing layer + ANP set = larger registered biomethane/power plants — but this must be
+de-duplicated (e.g. by coordinate proximity + capacity) when the GD layer is wired into the map.
+Flagged as a known integration task, not silently merged.
+
+### Deferred — ANEEL centralized generation (SIGA)
+Larger biogas UTEs in ANEEL's *centralized* SIGA dataset (and the full 1.5 GB GD file) remain a later
+pass. The uploaded `...termeletrica.csv` is a technical-attributes table (no fuel type/município);
+it joins via `CodGeracaoDistribuida`.
 
 ## Why two files
 Plant-level rows and state aggregates must never be mixed: the aggregates are edition-sensitive and
