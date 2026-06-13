@@ -1,14 +1,49 @@
 # Real-world Biogas/Biomethane Plants Dataset (Brazil, SP-first)
 
-**Files**
-- `analysis/data/05_biogas_plants_brazil.csv` — one row per plant (plant-level).
-- `analysis/data/05b_biogas_aggregates_by_state.csv` — state/national aggregate figures (kept separate).
-- `analysis/data/05_biogas_plants_brazil.xlsx` — both of the above as two sheets, for manual review.
-- `analysis/build_biogas_plants_dataset.py` — reproducible generator (geocodes SP plants from the
-  existing municipality centroids in `01_master_residue_streams_SP_2023.csv`).
+> **Expansion pass (2026-06): now built on official ANP "Dados Abertos" data.** The biomethane
+> plants are no longer web-sourced estimates — they come from the ANP plant-level registry (CNPJ,
+> authorized capacity, processed volume, utilization). See "ANP primary source" below.
 
-**Scope:** São Paulo exhaustive + major national plants. Gathered June 2026 via a multi-source web
-sweep, prioritizing official/operator sources. Currently **18 plants** (13 SP, 5 national).
+**Files**
+- `analysis/data/05_biogas_plants_brazil.csv` — one row per plant (**28 plants**: 20 ANP-authorized
+  biomethane + 8 retained non-ANP power/planned).
+- `analysis/data/05b_biogas_aggregates_by_state.csv` — state/national aggregate figures (kept separate).
+- `analysis/data/05c_anp_biometano_plants_latest.csv` — ANP latest monthly snapshot, one row/plant.
+- `analysis/data/05d_anp_biometano_production_state_monthly.csv` — ANP state×month×product production (m³).
+- `analysis/data/05e_anp_biometano_plant_volume_monthly.csv` — ANP plant×month processed volume + utilization.
+- `analysis/data/05f_anp_fleet_stats.csv` — fleet summary (capacity & count by state, SP share, utilization).
+- `analysis/data/05_biogas_plants_brazil.xlsx` — multi-sheet (plants, anp_latest, fleet_stats,
+  production_monthly, state_aggregates).
+- `analysis/data/sources/anp/` — vendored raw ANP CSVs (provenance).
+- `analysis/build_anp_biometano_dataset.py` — **current** generator (ANP integration + analysis).
+- `analysis/build_biogas_plants_dataset.py` — original web-research generator (superseded; kept for history).
+
+**Scope:** São Paulo exhaustive + major national plants. Biomethane plants from ANP Dados Abertos
+(monthly 2020→2026); landfill *power* UTEs and planned SABESP plants from web/operator sources.
+
+## ANP primary source (biomethane registry)
+The `05c`–`05f` files and all `anp_status=anp_authorized` rows derive from two official ANP files
+(vendored under `analysis/data/sources/anp/`): a plant-level **Capacidade** registry (authorized
+biomethane m³/d, biogas-processing m³/d, processed biogas m³/d, utilization %) and a state-level
+**Produção** series. Key facts (latest snapshot): **20 ANP-authorized biomethane plants, 10 in SP**;
+national authorized capacity **≈1.23 M m³/d**; **SP ≈48%** of national capacity; **17/20 operating**
+(processed>0); **median utilization ≈21%** — i.e. the fleet runs far below authorized capacity.
+
+### New ANP columns in `05_biogas_plants_brazil.csv`
+`cnpj`, `biogas_processing_nm3_day`, `processed_biogas_nm3_day_latest`, `utilization_pct_latest`,
+`anp_status` (`anp_authorized` | `not_in_anp_biomethane_registry`). `biomethane_nm3_day` for ANP rows
+= **authorized** capacity. `status` adds `authorized` (registered, no production yet) and `inactive`
+(reporting lapsed, e.g. Gasgrid — a 2021–22 SP authorization that never produced).
+
+### Parsing caveat (MG)
+ANP numbers are Brazilian-formatted (`.` thousands, `,` decimal in Capacidade). In the Produção file
+`.` is decimal; Minas Gerais shows near-zero values (e.g. `32.009`) consistent with a nascent plant
+(ZEG Aroeira/Tupaciguara ramping) — flagged `mg_anomaly_flag` rather than reinterpreted.
+
+### Deferred — ANEEL electrical generation
+Biogas-fueled *electricity* UTEs live in ANEEL's SIGA / GD datasets. The owner's full file is ~1.5 GB
+(local only). The uploaded ANEEL `...termeletrica.csv` is a technical-attributes table (no fuel
+type/município); it joins to the big file via `CodGeracaoDistribuida`. Deferred to a later pass.
 
 ## Why two files
 Plant-level rows and state aggregates must never be mixed: the aggregates are edition-sensitive and
