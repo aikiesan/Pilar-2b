@@ -3,7 +3,7 @@ Direct biomass import from the authoritative per-municipality tonnage table.
 
 The biomass availability map must show REAL available-biomass tonnage, not values
 reverse-derived from biogas. This module maps the master residue-streams table
-(CP2B_HANDOFF/01_master_residue_streams_SP_2023.csv, column `residue_tons_yr`)
+(analysis/data/01_master_residue_streams_SP_2023.csv, column `residue_tons_yr`)
 onto the municipality biomass columns, with sector and total roll-ups.
 
 Pure functions only (no I/O) so the mapping is unit-testable; the loader script

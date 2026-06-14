@@ -5,7 +5,7 @@ recalculate_biogas_canonical.py
 Non-destructive canonical recalculation of biogas potential for SP municipalities.
 
 Reads the per-municipality residue tonnage table
-(CP2B_HANDOFF/01_master_residue_streams_SP_2023.csv, column `residue_tons_yr`)
+(analysis/data/01_master_residue_streams_SP_2023.csv, column `residue_tons_yr`)
 and recomputes biogas potential using the canonical forward engine
 (app/services/biogas_forward.py) with parameters from the canonical YAML
 (data/canonical_parameters/feedstocks.yaml).
@@ -49,7 +49,8 @@ AGRICULTURAL_STREAMS = {"citrus", "coffee", "corn", "soybean", "sugarcane"}
 
 _DEFAULT_CSV = (
     Path(__file__).parent.parent.parent.parent.parent
-    / "CP2B_HANDOFF"
+    / "analysis"
+    / "data"
     / "01_master_residue_streams_SP_2023.csv"
 )
 
