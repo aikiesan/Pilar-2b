@@ -6,7 +6,7 @@ Populate municipality biomass columns DIRECTLY from the authoritative
 per-municipality residue tonnage table — no reverse-BMP backwards calculation.
 
 Source:
-  CP2B_HANDOFF/01_master_residue_streams_SP_2023.csv  (column residue_tons_yr)
+  analysis/data/01_master_residue_streams_SP_2023.csv  (column residue_tons_yr)
 
 This replaces the reverse-BMP approach in load_biomass_tons.py for the biomass
 availability map: real residue tonnage is the source of record.
@@ -41,7 +41,8 @@ logger = logging.getLogger(__name__)
 
 _DEFAULT_CSV = (
     Path(__file__).parent.parent.parent.parent.parent
-    / "CP2B_HANDOFF"
+    / "analysis"
+    / "data"
     / "01_master_residue_streams_SP_2023.csv"
 )
 

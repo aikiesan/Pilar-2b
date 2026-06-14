@@ -45,13 +45,13 @@ two `referencias_bibliograficas_backup_*` tables, and keep the rest as **views**
 
 | Duplicate | Verdict | Action |
 |---|---|---|
-| `CP2B_HANDOFF/{00..04}` **==** `analysis/data/{00..04}` (all 5 identical) | full copy of the SP-2023 handoff dataset in two dirs | keep one (e.g. `analysis/data/`), make the other a README pointer, or git-rm the copy |
-| `analysis/data/03_conversion_factors.csv` **==** `CP2B_HANDOFF/03_conversion_factors.csv` | (subset of above) | same |
+| `CP2B_HANDOFF/{00..04}` **==** `analysis/data/{00..04}` (all 5 identical) | full copy of the SP-2023 handoff dataset in two dirs | ✅ **RESOLVED** — `CP2B_HANDOFF/` removed; `analysis/data/` is the single source; backend scripts repointed |
+| `analysis/data/03_conversion_factors.csv` **==** `CP2B_HANDOFF/03_conversion_factors.csv` | (subset of above) | ✅ **RESOLVED** (see above) |
 
 ## D. Net consolidation actions (priority order)
 1. **References:** finish the 3-store manual review (xlsx) → reconcile into `references.yaml` as the single repo source; regenerate `scientificData.ts` refs from it (retire free-text). *(in progress)*
 2. **Frontend BMP drift:** merge `calculatorEngine.canonical.ts` → `calculatorEngine.ts`; reconcile `scientificData.ts` BMP to canonical.
 3. **Prod DB BMP:** ship a **slug-keyed** version of `016` so `scientific_references`/`residuos` actually update (`docs/data/CANONICAL_VERIFICATION_PLAN.md`).
-4. **Dedupe datasets:** collapse `CP2B_HANDOFF` ⇄ `analysis/data`.
+4. ~~**Dedupe datasets:** collapse `CP2B_HANDOFF` ⇄ `analysis/data`.~~ ✅ **DONE** — `CP2B_HANDOFF/` git-rm'd; scripts repointed to `analysis/data/`.
 5. **Delete** `references_template.json` (fake DOIs); retire `sql_insert_literature_references.sql`.
 6. **DB tidy:** drop `referencias_bibliograficas_backup_*`; keep one physical ref table + views (needs export).
