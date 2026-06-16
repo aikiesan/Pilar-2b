@@ -1,10 +1,21 @@
-# ✅ IBGE 67-Sector Leontief Model - Backend Integration Complete
+# IBGE 67-Sector Leontief Model — Integration **Design / Specification**
 
-## 📊 Summary
+> **⚠️ STATUS — DESIGN DOCUMENT, NOT A SHIPPED FEATURE.**
+> This document specifies the *intended* backend integration of an IBGE 67-sector Input-Output
+> (Leontief) economic model. **The service layer described below is not yet present in the
+> codebase** (no `leontief_calculator_67.py` / `economic_simulation_67.py`; the 67-sector IBGE
+> matrices are not loaded into the database). Treat it as the implementation plan, and describe the
+> economic model as *roadmapped* — do **not** claim a working 67-sector model in the manuscript
+> until the service is implemented and tested.
 
-Successfully integrated the **IBGE 67-sector Input-Output Leontief model** into the CP2B Maps V3 backend. The system now supports precise economic impact analysis using official IBGE data (2015) alongside the existing 4-sector model.
+## 📊 Summary (intended design)
 
-**Status**: ✅ **Backend Integration Complete** | 🔄 **Ready for Testing**
+This document specifies how the **IBGE 67-sector Input-Output Leontief model** would be integrated
+into the CP2B Maps V3 backend for economic impact analysis using official IBGE data (2015),
+alongside the existing 4-sector model. The sections below describe the planned services and
+endpoints, which are **pending implementation**.
+
+**Status**: 🔄 **Specification — implementation pending**
 
 ---
 
