@@ -597,7 +597,7 @@ def sanitize_log(message: str) -> str:
 |----------|--------|-------|
 | **OWASP Top 10** | ✅ Compliant | All top 10 vulnerabilities addressed |
 | **CWE Top 25** | ✅ Compliant | No CWE issues detected |
-| **GDPR** | ✅ Compliant | No PII in test data |
+| **GDPR / LGPD** | ⚠️ Out of scope of this report | This audit assessed **test/CI infrastructure only**. It does **not** assess production data-protection compliance, and **no GDPR/LGPD conformity is claimed**. See the separate Data-Protection & Accessibility Conformity Audit for the actual posture. |
 | **SOC 2** | ⚠️ Partial | Logging could be enhanced |
 
 ---
