@@ -255,9 +255,10 @@ export default function ExportControl({
             </div>
             <button
               onClick={onClose}
+              aria-label="Fechar"
               className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
             >
-              <X className="w-5 h-5 text-gray-500" />
+              <X className="w-5 h-5 text-gray-500" aria-hidden="true" />
             </button>
           </div>
 

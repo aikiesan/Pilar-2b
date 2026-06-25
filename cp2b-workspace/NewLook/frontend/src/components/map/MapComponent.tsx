@@ -501,11 +501,17 @@ export default function MapComponent({
           ))}
         </div>
 
+        {/* Keyboard instructions for the interactive map (WCAG 2.1.1). */}
+        <p id="map-keyboard-help" className="sr-only">{t('map_keyboard_help')}</p>
+
         <MapContainer
           center={mapCenter}
           zoom={mapZoom}
           scrollWheelZoom={true}
           style={MAP_CONTAINER_STYLE}
+          role="application"
+          aria-label={t('map_aria_label')}
+          aria-describedby="map-keyboard-help"
         >
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'

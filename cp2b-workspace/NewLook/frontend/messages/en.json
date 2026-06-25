@@ -392,6 +392,8 @@
     "vis": "Vis",
     "clearAll": "Clear",
     "scenario_label": "Scenario",
+    "map_aria_label": "Interactive map of biogas potential across São Paulo municipalities",
+    "map_keyboard_help": "Interactive map. With the map focused, use the arrow keys to pan and the plus and minus keys to zoom in and out. The same data is also available as tables and rankings on the analysis pages.",
     "scenario_conservador": "Conservative",
     "scenario_baseline": "Mid-term",
     "scenario_fronteira": "Frontier",

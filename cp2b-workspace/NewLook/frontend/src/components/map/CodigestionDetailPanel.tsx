@@ -141,8 +141,8 @@ export default function CodigestionDetailPanel({
           </div>
           <p className="text-violet-200 text-[11px] mt-0.5">{cluster.cluster_id} · {cluster.municipality_count} municípios</p>
         </div>
-        <button onClick={onClose} className="text-violet-200 hover:text-white transition-colors">
-          <X className="w-4 h-4" />
+        <button onClick={onClose} aria-label="Fechar" className="text-violet-200 hover:text-white transition-colors">
+          <X className="w-4 h-4" aria-hidden="true" />
         </button>
       </div>
 

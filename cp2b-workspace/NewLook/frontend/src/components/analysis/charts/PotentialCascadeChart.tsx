@@ -231,7 +231,7 @@ export default function PotentialCascadeChart({
         </div>
       </div>
 
-      <div className="h-[400px]">
+      <div className="h-[400px]" role="img" aria-label={title ?? t('cascade_title')}>
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
             data={chartData}

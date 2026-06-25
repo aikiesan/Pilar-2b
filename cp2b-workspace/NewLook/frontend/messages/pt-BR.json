@@ -392,6 +392,8 @@
     "vis": "Vis",
     "clearAll": "Limpar",
     "scenario_label": "Cenário",
+    "map_aria_label": "Mapa interativo do potencial de biogás dos municípios de São Paulo",
+    "map_keyboard_help": "Mapa interativo. Com o foco no mapa, use as setas do teclado para mover e as teclas mais e menos para aproximar e afastar. Os mesmos dados também estão disponíveis em tabelas e rankings nas páginas de análise.",
     "scenario_conservador": "Conservador",
     "scenario_baseline": "Médio Prazo",
     "scenario_fronteira": "Fronteira",
