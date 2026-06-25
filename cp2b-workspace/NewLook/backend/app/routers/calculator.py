@@ -29,7 +29,6 @@ CONSENT_TEXT_VERSION = "2026-06-25"
 class LeadData(BaseModel):
     nome: str
     email: str
-    cpf_cnpj: Optional[str] = None
     municipality_id: Optional[int] = None
     municipality_name: Optional[str] = None
     # Privacy by default: consent must be an explicit opt-in from the client.
@@ -88,14 +87,14 @@ async def submit_calculator(payload: CalculatorSubmission, request: Request):
         cursor.execute(
             """
             INSERT INTO calculator_leads (
-                nome, email, cpf_cnpj,
+                nome, email,
                 municipality_id, municipality_name, consent_lgpd,
                 consent_text_version, consented_at,
                 activity_type, quantity_input, active_months,
                 outputs_selected, calc_results,
                 ip_address, user_agent, referrer
             ) VALUES (
-                %s, %s, %s,
+                %s, %s,
                 %s, %s, %s,
                 %s, %s,
                 %s, %s::jsonb, %s::integer[],
@@ -107,7 +106,6 @@ async def submit_calculator(payload: CalculatorSubmission, request: Request):
             (
                 payload.lead.nome,
                 payload.lead.email,
-                payload.lead.cpf_cnpj,
                 payload.lead.municipality_id,
                 payload.lead.municipality_name,
                 payload.lead.consent_lgpd,
@@ -144,7 +142,7 @@ async def get_lead(lead_id: int):
         cursor = conn.cursor()
         cursor.execute(
             """
-            SELECT id, nome, email, cpf_cnpj,
+            SELECT id, nome, email,
                    municipality_id, municipality_name,
                    consent_lgpd, consent_text_version, consented_at,
                    activity_type, ip_address, user_agent, referrer, created_at

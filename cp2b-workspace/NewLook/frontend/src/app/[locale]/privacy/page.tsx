@@ -37,7 +37,7 @@ const PT: Doc = {
       h: '2. Quais dados tratamos',
       p: [
         'Navegação geral: a plataforma é de acesso aberto. Não há sistema de contas/autenticação ativo no momento — o acesso ocorre por um perfil de demonstração compartilhado, sem coleta de dados pessoais de cadastro.',
-        'Calculadora de Viabilidade (opcional): se você optar por usar o formulário de contato da calculadora, coletamos nome, e-mail e, opcionalmente, CPF/CNPJ e município, além de metadados técnicos da requisição (endereço IP, navegador). Estes dados só são armazenados mediante o seu consentimento explícito.',
+        'Calculadora de Viabilidade (opcional): se você optar por usar o formulário de contato da calculadora, coletamos nome, e-mail e, opcionalmente, município, além de metadados técnicos da requisição (endereço IP, navegador). Não coletamos CPF/CNPJ. Estes dados só são armazenados mediante o seu consentimento explícito.',
         'Cookies essenciais e logs de servidor padrão podem ser utilizados para o funcionamento e a segurança do serviço.',
       ],
     },
@@ -102,7 +102,7 @@ const EN: Doc = {
       h: '2. What data we process',
       p: [
         'General browsing: the platform is openly accessible. There is no active account/authentication system at this time — access is via a shared demonstration profile, with no collection of registration personal data.',
-        'Viability Calculator (optional): if you choose to use the calculator contact form, we collect your name, e-mail and, optionally, tax ID (CPF/CNPJ) and municipality, plus technical request metadata (IP address, browser). This data is stored only with your explicit consent.',
+        'Viability Calculator (optional): if you choose to use the calculator contact form, we collect your name, e-mail and, optionally, municipality, plus technical request metadata (IP address, browser). We do not collect tax IDs (CPF/CNPJ). This data is stored only with your explicit consent.',
         'Essential cookies and standard server logs may be used for the operation and security of the service.',
       ],
     },

@@ -41,7 +41,7 @@ export default function BiogasCalculator() {
   const [step, setStep] = useState<Step>(0)
 
   const [identificacao, setIdentificacao] = useState<IdentificacaoData>({
-    nome: '', email: '', cpf_cnpj: '',
+    nome: '', email: '',
     municipality_id: null, municipality_name: '', consent_lgpd: false,
   })
 
@@ -130,7 +130,6 @@ export default function BiogasCalculator() {
       lead: {
         nome: identificacao.nome,
         email: identificacao.email,
-        cpf_cnpj: identificacao.cpf_cnpj || undefined,
         municipality_id: identificacao.municipality_id ?? undefined,
         municipality_name: identificacao.municipality_name || undefined,
         consent_lgpd: identificacao.consent_lgpd,
@@ -149,7 +148,7 @@ export default function BiogasCalculator() {
 
   function reset() {
     setStep(0)
-    setIdentificacao({ nome:'', email:'', cpf_cnpj:'', municipality_id:null, municipality_name:'', consent_lgpd:false })
+    setIdentificacao({ nome:'', email:'', municipality_id:null, municipality_name:'', consent_lgpd:false })
     setAtividade({ activityType:null, sugarcaneType:'tons', sugarcaneValue:0, livestockHeads:{}, cropTonnes:0 })
     setActiveMonths(DEFAULT_CANE_MONTHS)
     setSelectedOutputs([])

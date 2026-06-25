@@ -21,10 +21,15 @@ from app.core.database import test_db_connection
 from app.api.v1.api import api_router
 from app.middleware.rate_limiter import rate_limit_middleware
 from app.middleware.response_compression import gzip_middleware
+from app.middleware.security_headers import security_headers_middleware
 from app.middleware.rate_limit import limiter, rate_limit_exceeded_handler
 from app.middleware.request_size_limit import request_size_limit_middleware
 from app.middleware.validation import validation_middleware
 from app.services.cache_service import get_all_cache_stats
+from app.core.log_sanitizer import PiiRedactingFilter
+
+# Redact PII (e-mails) from all log records — data minimisation in logs (LGPD Art. 46).
+logging.getLogger().addFilter(PiiRedactingFilter())
 
 # Create FastAPI app - disable docs in production
 _is_production = settings.APP_ENV == "production"
@@ -49,6 +54,9 @@ app.middleware("http")(rate_limit_middleware)
 
 # 3. Input validation & injection detection (blocks SQLi/CMDi in query params)
 app.middleware("http")(validation_middleware)
+
+# 3b. Security headers (X-Content-Type-Options, X-Frame-Options, HSTS, …)
+app.middleware("http")(security_headers_middleware)
 
 # 4. CORS middleware - Allow specific PILAR-2b deployments only
 app.add_middleware(

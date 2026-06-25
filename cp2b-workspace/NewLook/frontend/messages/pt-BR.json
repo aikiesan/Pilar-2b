@@ -1158,8 +1158,6 @@
       "email": "E-mail",
       "municipio": "Município (SP)",
       "municipioPlaceholder": "Digite o município...",
-      "cpfCnpj": "CPF / CNPJ",
-      "cpfNote": "Opcional. Usado para cruzamento com bases geoespaciais CP2B.",
       "lgpdConsent": "Concordo com o uso dos meus dados pelo CP2B/UNICAMP para fins de pesquisa e contato técnico, em conformidade com a LGPD."
     },
     "step2": {

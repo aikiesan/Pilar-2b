@@ -1158,8 +1158,6 @@
       "email": "Email",
       "municipio": "Municipality (SP)",
       "municipioPlaceholder": "Type municipality...",
-      "cpfCnpj": "CPF / CNPJ",
-      "cpfNote": "Optional. Used for cross-referencing with CP2B geospatial databases.",
       "lgpdConsent": "I consent to the use of my data by CP2B/UNICAMP for research and technical contact purposes, in accordance with LGPD."
     },
     "step2": {
