@@ -11,8 +11,10 @@ alembic==1.18.4
 
 # Authentication
 # python-jose removed: library is unmaintained and has unfixed CVEs (algorithm confusion).
-# JWT verification is handled by Supabase (supabase.auth.get_user) — no local JWT lib needed.
+# Local, self-hosted auth (UNICAMP VM): passlib[bcrypt] for password hashing and
+# PyJWT for signing/verifying HS256 access tokens with the local SECRET_KEY.
 passlib[bcrypt]==1.7.4
+PyJWT==2.10.1
 python-multipart==0.0.29  # Updated from 0.0.20 — fixes CVE-2026-24486
 
 # Environment and Configuration

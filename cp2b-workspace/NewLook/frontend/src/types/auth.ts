@@ -2,13 +2,15 @@
  * Authentication types for PILAR-2b V3
  */
 
-export type UserRole = 'visitante' | 'autenticado' | 'admin'
+export type UserRole = 'visitante' | 'autenticado' | 'interno' | 'admin'
 
 export interface UserProfile {
   id: string
   email: string
   full_name: string
   role: UserRole
+  clearance: number // 0 public · 1 internal · 2 confidential
+  is_active: boolean
   created_at: string
   updated_at: string
 }
@@ -40,4 +42,6 @@ export interface AuthContextType {
   isAuthenticated: boolean
   isAdmin: boolean
   isAutenticado: boolean
+  isInternal: boolean
+  hasClearance: (level: number) => boolean
 }

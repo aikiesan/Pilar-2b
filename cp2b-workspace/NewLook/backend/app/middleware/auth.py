@@ -79,11 +79,12 @@ async def require_role(
     Raises:
         HTTPException: If user doesn't have required role
     """
-    # Role hierarchy: admin > autenticado > visitante
+    # Role hierarchy: admin > interno > autenticado > visitante
     role_hierarchy = {
         "visitante": 0,
         "autenticado": 1,
-        "admin": 2
+        "interno": 2,
+        "admin": 3
     }
 
     user_level = role_hierarchy.get(current_user.role, 0)
@@ -138,6 +139,48 @@ def require_authenticated(
             detail="Authenticated access required. Please complete email verification."
         )
     return current_user
+
+def require_internal(
+    current_user: UserProfile = Depends(get_current_user)
+) -> UserProfile:
+    """
+    Dependency to require internal-staff access (role 'interno' or 'admin').
+
+    Gates in-development tools and internal-only features.
+
+    Raises:
+        HTTPException 403: if the user is not internal staff.
+    """
+    if current_user.role not in ("interno", "admin"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Internal access required"
+        )
+    return current_user
+
+
+def require_clearance(level: int):
+    """
+    Dependency factory to require a minimum data-clearance level.
+
+    Clearance tiers: 0 public · 1 internal · 2 confidential. Gated independently
+    of role so the most confidential data can require an explicit clearance.
+
+    Usage:
+        @router.get("/secret", dependencies=[Depends(require_clearance(2))])
+
+    Raises:
+        HTTPException 403: if the user's clearance is below `level`.
+    """
+    def _checker(current_user: UserProfile = Depends(get_current_user)) -> UserProfile:
+        if current_user.clearance < level:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Insufficient clearance. Required level: {level}"
+            )
+        return current_user
+    return _checker
+
 
 async def optional_auth(
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(HTTPBearer(auto_error=False))
