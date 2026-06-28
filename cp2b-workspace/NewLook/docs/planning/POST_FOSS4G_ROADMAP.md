@@ -70,6 +70,22 @@ interoperable API layer the platform needs (QGIS/GEE, World Biogas Atlas, DBFZ).
 - [ ] LGPD: UNICAMP DPO sign-off; ROPA + DPIA; retention TTL on `calculator_leads`
       and deactivated `auth_users`.
 
+## Track G — DBFZ collaboration & BEPE (from the Leipzig mission)
+Strong, recurring openness from DBFZ (GIS, Sustainability, DataLab) to host research
+and co-propose funded projects. Vehicle: a FAPESP **BEPE** (up to 12 months).
+- [ ] Align the BEPE research-plan scope with Dr. Friederike Naegeli de Torres (DBFZ WG GIS)
+      — confirm the anchor theme and the "moonshot" (global biogas profiles DB, Track E).
+- [ ] Request the **DBFZ acceptance letter** (host group + supervisor).
+- [ ] Draft the **FAPESP BEPE research plan** in the 3-front structure
+      (continuation → feasible 1-year → moonshot), emphasising the "why DBFZ / why there".
+- [ ] Agree a lightweight **Letter of Intent / MoU** and a GDPR-aware **data-sharing
+      protocol** (ranges/encryption/aggregation; Zenodo DOI) for the World Biogas Atlas.
+- [ ] Explore a **€20–30k co-funded micro-project** with the GIS group.
+- [ ] First joint artefact candidate: a shared **Biogas Data Dictionary** (units, parameter
+      definitions, range format) to fix the category-inconsistency problem they flagged.
+> Concept notes (personal, not in-repo): BEPE 3-front plan, strategic goals, the global
+> biogas database, and the iteration decks shared during the trip.
+
 ---
 
 ## Suggested sequencing
