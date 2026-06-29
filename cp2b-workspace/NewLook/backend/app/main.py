@@ -24,6 +24,7 @@ from app.middleware.response_compression import gzip_middleware
 from app.middleware.rate_limit import limiter, rate_limit_exceeded_handler
 from app.middleware.request_size_limit import request_size_limit_middleware
 from app.middleware.validation import validation_middleware
+from app.middleware.security_headers import security_headers_middleware
 from app.services.cache_service import get_all_cache_stats
 
 # Create FastAPI app - disable docs in production
@@ -67,6 +68,9 @@ app.add_middleware(
 
 # 5. Response compression (reduces bandwidth)
 app.middleware("http")(gzip_middleware)
+
+# 6. Security headers (LGPD Art. 46 — security of processing)
+app.middleware("http")(security_headers_middleware)
 
 # 6. Trusted host middleware - Prevents host header injection attacks
 # NOTE: TrustedHostMiddleware doesn't support wildcards in allowed_hosts
