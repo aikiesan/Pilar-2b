@@ -304,6 +304,18 @@ See: [docs/qa/TESTING.md](./cp2b-workspace/NewLook/docs/qa/TESTING.md)
 | [docs/data/FEEDSTOCK_FACTORS_LITERATURE_TABLE.md](./cp2b-workspace/NewLook/docs/data/FEEDSTOCK_FACTORS_LITERATURE_TABLE.md) | Literature table: 31 feedstocks × 4 factor types |
 | [docs/data/SAO_PAULO_BIOGAS_POTENTIAL_FDE.md](./cp2b-workspace/NewLook/docs/data/SAO_PAULO_BIOGAS_POTENTIAL_FDE.md) | State-level biogas potential analysis |
 
+### Open Data & Dynamics
+
+Public, open data sources behind the platform — and the move from a **static** to a **dynamic** (temporal) view of biomass.
+
+| Document | Description |
+|----------|-------------|
+| [docs/data/OPEN_DATA_API_LANDSCAPE.md](./cp2b-workspace/NewLook/docs/data/OPEN_DATA_API_LANDSCAPE.md) | Open-data & API landscape for biomass estimation (IBGE, MapBiomas, ANEEL, …) |
+| [docs/data/ENERGY_LOGISTICS_BIOECONOMY_DATA.md](./cp2b-workspace/NewLook/docs/data/ENERGY_LOGISTICS_BIOECONOMY_DATA.md) | Energy demand, logistics & bioeconomy municipal data layer |
+| [docs/data/dynamics/BIOMASS_SEASONALITY_SP.md](./cp2b-workspace/NewLook/docs/data/dynamics/BIOMASS_SEASONALITY_SP.md) | Biomass seasonality / temporal availability (SP) |
+| [docs/data/dynamics/ENERGY_PRICE_TEMPORAL_DYNAMICS_SP.md](./cp2b-workspace/NewLook/docs/data/dynamics/ENERGY_PRICE_TEMPORAL_DYNAMICS_SP.md) | Energy price & time-of-use dynamics (SP) |
+| [docs/data/dynamics/WASTE_FLOW_DYNAMICS_SP.md](./cp2b-workspace/NewLook/docs/data/dynamics/WASTE_FLOW_DYNAMICS_SP.md) | Waste generation & flow dynamics (SP) |
+
 ### Deployment
 
 | Document | Description |
