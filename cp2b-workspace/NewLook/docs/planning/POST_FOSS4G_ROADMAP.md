@@ -27,6 +27,16 @@ See the step-by-step in `docs/deployment/AUTH_VM_DEPLOYMENT.md`.
       tests/integration/endpoints/test_auth_endpoint.py` + frontend `npm test`.
 
 ## Track B — Code-review backlog (from the deep review)
+> Full Round-2 write-up + the "no-mock" test strategy:
+> `docs/qa/CODE_REVIEW_ROUND2_AND_DEMOCK_PLAN.md` (computational core verified
+> solid; real `validation_service` fixes queued DO-ON-VM; endpoint tests are
+> mock-theater — staged plan + ready CI PostGIS job to run them for real).
+- [ ] **De-mock the endpoint/integration tests** — stand up a PostGIS service in
+      CI (`TEST_DATABASE_URL`), seed minimal fixtures, re-point `test_geospatial.py`
+      first, then the rest (see the Round-2 doc, §4 / appendix).
+- [ ] **`validation_service.py` fixes (DO-ON-VM):** reconcile dead
+      `is_point_in_ocean()` with the live ocean check; fix the 111 km/deg longitude
+      approximation in `check_buffer_overlap` (scale by `cos(lat)` / use EPSG:31983).
 - [ ] **A3 — SQL identifier allowlist.** Several endpoints build SQL with f-strings
       interpolating column names (`analysis.py`, `geospatial.py`, `statistics.py`,
       `codigestion_service.py`, `proximity_service.py`). Values are currently
