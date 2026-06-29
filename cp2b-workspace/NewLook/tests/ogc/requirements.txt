@@ -1,0 +1,6 @@
+# Dependencies for the PILAR-2b OGC test suites (assembly + acceptance + CITE runner).
+# Install:  pip install -r tests/ogc/requirements.txt
+pytest>=8.0
+requests>=2.31
+Pillow>=10.0          # validate WMS GetMap PNGs are real, non-blank images
+# CITE runner parses EARL/XML with the stdlib (xml.etree) — no lxml required.
