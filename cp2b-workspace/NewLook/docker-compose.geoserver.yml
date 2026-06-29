@@ -1,0 +1,69 @@
+# PILAR-2b — GeoServer 3.0 overlay (ADDITIVE, local/testing only)
+# -----------------------------------------------------------------------------
+# GeoServer is an *optional, additive* map-serving layer on top of the existing
+# PostGIS database. It does NOT replace any FastAPI endpoint.
+#
+# Two ways to run it:
+#
+#   1) Alongside the existing dev stack (reuses the `db` service in
+#      docker-compose.yml — recommended):
+#
+#        docker compose -f docker-compose.yml -f docker-compose.geoserver.yml up
+#
+#      GeoServer reaches PostGIS at host `db` on the shared compose network.
+#
+#   2) Standalone, pointed at an external/existing dev DB — set
+#      GEOSERVER_DB_HOST (e.g. host.docker.internal) in .env.geoserver, then:
+#
+#        docker compose -f docker-compose.geoserver.yml up
+#
+# Config (admin user/password, JVM heap, DB target, PROXY_BASE_URL) comes from
+# .env.geoserver — copy .env.geoserver.example to .env.geoserver first.
+#
+# GeoServer 3.0 notes (differ from 2.x):
+#   - Requires JDK 17; the official image bundles a Jakarta-EE servlet runtime.
+#   - The embedded **H2 datastore was dropped** from the default build — this
+#     stack uses PostGIS only, so we are unaffected.
+#   - REST config API still lives at /geoserver/rest/** (paths unchanged).
+# Always confirm env-var names against the image's own README for the 3.0.x tag.
+
+services:
+  geoserver:
+    # Pin a concrete 3.0.x tag rather than the floating `3.0` for reproducibility.
+    image: docker.osgeo.org/geoserver:3.0.0
+    container_name: cp2b-geoserver
+    restart: unless-stopped
+    env_file:
+      - .env.geoserver            # copy from .env.geoserver.example
+    environment:
+      # --- Admin credentials (override the well-known admin/geoserver default) ---
+      GEOSERVER_ADMIN_USER: ${GEOSERVER_ADMIN_USER:-admin}
+      GEOSERVER_ADMIN_PASSWORD: ${GEOSERVER_ADMIN_PASSWORD:?set GEOSERVER_ADMIN_PASSWORD in .env.geoserver}
+      # --- JVM heap (tune to the VM; 2g/4g is sane for a few PostGIS layers) ---
+      INITIAL_MEMORY: ${GEOSERVER_INITIAL_MEMORY:-1G}
+      MAXIMUM_MEMORY: ${GEOSERVER_MAXIMUM_MEMORY:-2G}
+      # --- Behind a path-based reverse proxy, GeoServer must emit absolute URLs
+      #     (GetCapabilities, GetMap hrefs) that match the public path. ---
+      PROXY_BASE_URL: ${GEOSERVER_PROXY_BASE_URL:-http://localhost:8080/geoserver}
+      # --- CORS so the Next.js dev origin can fetch WMS/WFS during testing ---
+      CORS_ENABLED: ${GEOSERVER_CORS_ENABLED:-true}
+      # Drop the bundled demo workspaces/data — we publish our own PostGIS layers.
+      SKIP_DEMO_DATA: ${GEOSERVER_SKIP_DEMO_DATA:-true}
+    ports:
+      # Host:container. Only needed for direct/local access; in production the
+      # Apache proxy fronts this and the port need not be published publicly.
+      - "${GEOSERVER_PORT:-8080}:8080"
+    volumes:
+      # Persist the GeoServer data directory (workspaces, stores, styles, config)
+      # so provisioning survives container restarts/rebuilds.
+      - cp2b_geoserver_data:/opt/geoserver_data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8080/geoserver/web/ || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 90s   # cold JVM + data-dir init is slow on first boot
+
+volumes:
+  cp2b_geoserver_data:
+    driver: local
