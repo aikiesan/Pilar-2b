@@ -176,7 +176,7 @@ async def get_analysis_by_residue(
                 "note": "No DB stream mapping for selected residues",
             }
 
-        placeholders = ", ".join(f"%s" for _ in streams)
+        placeholders = ", ".join("%s" for _ in streams)
         sql = f"""
             SELECT
                 m.id,

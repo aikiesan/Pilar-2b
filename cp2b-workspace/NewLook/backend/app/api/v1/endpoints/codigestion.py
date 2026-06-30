@@ -6,7 +6,6 @@ laboratory validation is required before implementation.
 """
 
 import logging
-from functools import lru_cache
 from fastapi import APIRouter, HTTPException, Query
 
 logger = logging.getLogger(__name__)

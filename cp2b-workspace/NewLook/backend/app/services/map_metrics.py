@@ -34,11 +34,7 @@ from app.services.biogas_forward import (
     SCENARIOS,
     BiogasResult,
     FeedstockParams,
-    Range,
-    aggregate,
-    biogas_from_ch4,
     calculate_feedstock,
-    theoretical_ch4_m3,
 )
 from app.services.biomass_availability import number_value
 
@@ -147,9 +143,6 @@ def _compute_from_stored_biogas(
     else:
         biomass_gross = 0.0
 
-    avail_m = params.availability.medio if params.availability.medio > 0 else 1.0
-    avail_ratio_min = params.availability.min / avail_m if avail_m > 0 else 1.0
-    avail_ratio_max = params.availability.max / avail_m if avail_m > 0 else 1.0
     biomass_corrected: dict[str, float] = {
         "min": round(biomass_gross * params.availability.min, 2),
         "medio": round(biomass_gross * params.availability.medio, 2),
