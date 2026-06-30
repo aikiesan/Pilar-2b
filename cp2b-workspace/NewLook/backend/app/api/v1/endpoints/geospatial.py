@@ -11,7 +11,7 @@ import logging
 import psycopg2
 from pathlib import Path
 import geopandas as gpd
-from shapely.geometry import mapping, Point
+from shapely.geometry import Point
 
 from app.core.database import get_db
 from app.middleware.auth import optional_auth

@@ -3,7 +3,6 @@ Authentication service for PILAR-2b V3
 Mocked implementation since Authentication is disabled.
 """
 from typing import Dict
-from fastapi import HTTPException, status
 from datetime import datetime
 
 from app.models.auth import (

@@ -1,5 +1,5 @@
-from typing import Any, List, Optional
-from fastapi import APIRouter, HTTPException, Query
+from typing import Optional
+from fastapi import APIRouter, HTTPException
 from app.core.database import get_db
 import logging
 import json
