@@ -12,6 +12,11 @@ from datetime import datetime, timezone
 from slowapi.errors import RateLimitExceeded
 import logging
 
+from app.core.log_sanitizer import PiiRedactingFilter
+
+# Redact PII (e-mails, CPF/CNPJ) from all log records (LGPD data-minimisation).
+logging.getLogger().addFilter(PiiRedactingFilter())
+
 log = logging.getLogger(__name__)
 
 from app.core.config import settings
