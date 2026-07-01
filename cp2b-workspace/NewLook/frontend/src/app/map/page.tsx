@@ -59,6 +59,7 @@ export default function MapPage() {
   const fetchMunicipalities = async () => {
     try {
       setLoading(true)
+      setError(null)
       const response = await fetch('/api/v1/municipalities/')
 
       if (!response.ok) {
