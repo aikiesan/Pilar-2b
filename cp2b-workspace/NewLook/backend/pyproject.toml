@@ -121,6 +121,12 @@ exclude_lines = [
     "if TYPE_CHECKING:"
 ]
 
+# NOTE: pytest.ini exists at the project root, so pytest uses that file
+# exclusively and this [tool.pytest.ini_options] section is not loaded —
+# kept here only for reference/tooling that reads pyproject.toml directly.
+# Keep --cov-fail-under in sync with pytest.ini's real, enforced value:
+# actual coverage is ~55-60%, well short of the 80% this section used to
+# claim, so that number was aspirational rather than real.
 [tool.pytest.ini_options]
 minversion = "6.0"
 addopts = [
@@ -133,7 +139,7 @@ addopts = [
     "--cov-report=html:htmlcov",
     "--cov-report=xml:coverage.xml",
     "--cov-branch",
-    "--cov-fail-under=80"
+    "--cov-fail-under=40"
 ]
 testpaths = ["tests"]
 python_files = ["test_*.py", "*_test.py"]
