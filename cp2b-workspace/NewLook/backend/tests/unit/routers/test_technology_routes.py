@@ -10,16 +10,18 @@ conftest.py, so no real Postgres connection is needed.
 """
 
 import json
-import pytest
 from datetime import datetime, timezone
 from unittest.mock import MagicMock
-from fastapi.testclient import TestClient
 
+import pytest
+from fastapi.testclient import TestClient
 
 # ─── Helper: cursor row factory ──────────────────────────────────────────────
 
-def _tech_row(tech_id="biogas_digester", category="digestion",
-              name_pt="Biodigestor", name_en="Biodigester"):
+
+def _tech_row(
+    tech_id="biogas_digester", category="digestion", name_pt="Biodigestor", name_en="Biodigester"
+):
     """Return a dict-like mock row for technology_cards table."""
     row = MagicMock()
     row.__getitem__ = lambda self, key: {
@@ -38,16 +40,32 @@ def _tech_row(tech_id="biogas_digester", category="digestion",
         "created_at": datetime(2025, 1, 1),
         "updated_at": datetime(2025, 1, 1),
     }[key]
-    row.get = lambda key, default=None: row[key] if key in (
-        "id", "category", "name_pt", "name_en", "emoji",
-        "description_pt", "description_en", "color",
-        "can_connect_to", "can_receive_from", "is_custom",
-        "created_by", "created_at", "updated_at"
-    ) else default
+    row.get = lambda key, default=None: (
+        row[key]
+        if key
+        in (
+            "id",
+            "category",
+            "name_pt",
+            "name_en",
+            "emoji",
+            "description_pt",
+            "description_en",
+            "color",
+            "can_connect_to",
+            "can_receive_from",
+            "is_custom",
+            "created_by",
+            "created_at",
+            "updated_at",
+        )
+        else default
+    )
     return row
 
 
 # ─── Health check ─────────────────────────────────────────────────────────────
+
 
 @pytest.mark.unit
 class TestTechnologyHealthCheck:
@@ -89,6 +107,7 @@ class TestTechnologyHealthCheck:
 
 # ─── Get all technologies ─────────────────────────────────────────────────────
 
+
 @pytest.mark.unit
 class TestGetAllTechnologies:
 
@@ -116,6 +135,7 @@ class TestGetAllTechnologies:
 
 
 # ─── Get technology by ID ─────────────────────────────────────────────────────
+
 
 @pytest.mark.unit
 class TestGetTechnologyById:
@@ -165,6 +185,7 @@ class TestGetTechnologyById:
 
 
 # ─── Validate connection ──────────────────────────────────────────────────────
+
 
 @pytest.mark.unit
 class TestValidateConnection:
@@ -250,16 +271,24 @@ class TestValidateConnection:
         assert "valid" in data
 
     def test_invalid_payload_returns_422(self, client):
-        response = client.post("/api/v1/technology-routes/validate-connection",
-                               json={"source_tech_id": "a"})  # missing target
+        response = client.post(
+            "/api/v1/technology-routes/validate-connection", json={"source_tech_id": "a"}
+        )  # missing target
         assert response.status_code == 422
 
 
 # ─── Helper: user_routes row factory ─────────────────────────────────────────
 
-def _route_row(route_id="11111111-1111-1111-1111-111111111111",
-                user_id="test-uid", name="My Route", description=None,
-                is_public=False, share_token=None, tags=None):
+
+def _route_row(
+    route_id="11111111-1111-1111-1111-111111111111",
+    user_id="test-uid",
+    name="My Route",
+    description=None,
+    is_public=False,
+    share_token=None,
+    tags=None,
+):
     """Return a dict-like mock row for the user_routes table."""
     val = {
         "id": route_id,
@@ -297,6 +326,7 @@ def _make_authenticated_client(test_app, user_id="test-uid"):
 
 
 # ─── Create / delete custom technology ───────────────────────────────────────
+
 
 @pytest.mark.unit
 class TestCreateCustomTechnology:
@@ -362,6 +392,7 @@ class TestDeleteCustomTechnology:
 
 
 # ─── User routes CRUD ─────────────────────────────────────────────────────────
+
 
 @pytest.mark.unit
 class TestGetUserRoutes:
@@ -481,6 +512,7 @@ class TestDeleteRoute:
 
 
 # ─── Public sharing endpoints ─────────────────────────────────────────────────
+
 
 @pytest.mark.unit
 class TestGetPublicRoutes:

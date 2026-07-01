@@ -227,6 +227,7 @@ class TestValidateRadius:
 
     def test_large_radius_warning_logged(self, caplog):
         import logging
+
         with caplog.at_level(logging.WARNING, logger="app.services.validation_service"):
             is_valid, _, _ = ValidationService.validate_radius(75.0)
         assert is_valid is True

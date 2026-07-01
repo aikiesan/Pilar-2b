@@ -1,6 +1,7 @@
 """
 Check if technology_routes tables exist and have data
 """
+
 import os
 import sys
 from pathlib import Path
@@ -9,7 +10,9 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from sqlalchemy import create_engine, text
+
 from app.core.config import settings
+
 
 def check_tech_tables():
     """Check if technology_routes tables exist and have data"""
@@ -21,7 +24,7 @@ def check_tech_tables():
         print("=" * 60)
 
         # Check if tables exist
-        tables = ['technology_cards', 'technology_references', 'user_routes']
+        tables = ["technology_cards", "technology_references", "user_routes"]
 
         for table in tables:
             try:
@@ -65,6 +68,7 @@ def check_tech_tables():
             print("   Tables may not exist. Run migration 010_technology_routes.sql")
 
         print("=" * 60)
+
 
 if __name__ == "__main__":
     check_tech_tables()

@@ -6,13 +6,14 @@ These tests cover the remaining branches: summary arithmetic, by_category
 percentages, invalid category rejection, and the authenticated category endpoint.
 """
 
-import pytest
 from datetime import datetime, timezone
 from unittest.mock import MagicMock
+
+import pytest
 from fastapi.testclient import TestClient
 
-
 # ─── Summary row factory ──────────────────────────────────────────────────────
+
 
 def _summary_row(
     total=645,
@@ -42,10 +43,10 @@ def _summary_row(
     return mock
 
 
-def _category_row(count=400, total=500_000_000.0, avg=1_250_000.0,
-                  maximum=80_000_000.0, minimum=1_000.0):
-    row = {"count": count, "total": total, "avg": avg,
-           "maximum": maximum, "minimum": minimum}
+def _category_row(
+    count=400, total=500_000_000.0, avg=1_250_000.0, maximum=80_000_000.0, minimum=1_000.0
+):
+    row = {"count": count, "total": total, "avg": avg, "maximum": maximum, "minimum": minimum}
     mock = MagicMock()
     mock.__getitem__ = lambda self, k: row[k]
     mock.get = lambda k, default=None: row.get(k, default)
@@ -53,6 +54,7 @@ def _category_row(count=400, total=500_000_000.0, avg=1_250_000.0,
 
 
 # ─── Summary endpoint ─────────────────────────────────────────────────────────
+
 
 @pytest.mark.unit
 class TestSummaryStatistics:
@@ -152,6 +154,7 @@ class TestSummaryStatistics:
 
 # ─── Category endpoint ────────────────────────────────────────────────────────
 
+
 @pytest.mark.unit
 class TestCategoryStatistics:
 
@@ -176,33 +179,39 @@ class TestCategoryStatistics:
 
 # ─── Analysis module: duplicate mapping removed ───────────────────────────────
 
+
 @pytest.mark.unit
 class TestAnalysisDuplicateMapping:
 
     def test_frontend_code_to_stream_is_defined_once(self):
         """Importing analysis should not raise NameError; dict defined once."""
         from app.api.v1.endpoints.analysis import FRONTEND_CODE_TO_STREAM
+
         assert isinstance(FRONTEND_CODE_TO_STREAM, dict)
         assert len(FRONTEND_CODE_TO_STREAM) > 0
 
     def test_sugarcane_codes_map_to_sugarcane(self):
         from app.api.v1.endpoints.analysis import FRONTEND_CODE_TO_STREAM
+
         for code in ("AG_CANA_BAGACO", "AG_CANA_PALHA", "AG_CANA_TORTA_FILTRO", "AG_CANA_VINHACA"):
             assert FRONTEND_CODE_TO_STREAM[code] == "sugarcane"
 
     def test_livestock_codes_present(self):
         from app.api.v1.endpoints.analysis import FRONTEND_CODE_TO_STREAM
+
         assert FRONTEND_CODE_TO_STREAM["PEC_ESTERCO_BOVINO"] == "cattle"
         assert FRONTEND_CODE_TO_STREAM["PEC_DEJETOS_LIQUIDOS_SUINO"] == "swine"
         assert FRONTEND_CODE_TO_STREAM["PEC_CAMA_AVIARIO"] == "poultry"
 
     def test_unmapped_industrial_codes_are_none(self):
         from app.api.v1.endpoints.analysis import FRONTEND_CODE_TO_STREAM
+
         for code in ("IND_BAGACO_MALTE", "IND_TRUB_CERVEJA", "IND_SORO_LATICINIOS"):
             assert FRONTEND_CODE_TO_STREAM[code] is None
 
 
 # ─── Authenticated category endpoint ─────────────────────────────────────────
+
 
 def _make_authenticated_client(test_app):
     """Return a TestClient whose require_authenticated dep is bypassed."""
@@ -262,7 +271,9 @@ class TestCategoryStatisticsAuthenticated:
 
     def test_response_has_average_and_bounds(self, test_app, mock_db_connection):
         mock_conn, mock_cursor = mock_db_connection
-        mock_cursor.fetchone.return_value = _category_row(avg=1_250_000.0, maximum=80_000_000.0, minimum=1_000.0)
+        mock_cursor.fetchone.return_value = _category_row(
+            avg=1_250_000.0, maximum=80_000_000.0, minimum=1_000.0
+        )
         c = _make_authenticated_client(test_app)
         data = c.get("/api/v1/statistics/category/livestock").json()
         assert "average_m3_year" in data

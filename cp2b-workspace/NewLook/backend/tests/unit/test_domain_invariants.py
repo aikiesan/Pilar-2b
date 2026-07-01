@@ -29,26 +29,26 @@ import pytest
 
 _CROP_BIOGAS = {
     "sugarcane_biogas_m3_year": 60_000_000,
-    "soybean_biogas_m3_year":   10_000_000,
-    "corn_biogas_m3_year":       8_000_000,
-    "coffee_biogas_m3_year":     5_000_000,
-    "citrus_biogas_m3_year":     2_000_000,
+    "soybean_biogas_m3_year": 10_000_000,
+    "corn_biogas_m3_year": 8_000_000,
+    "coffee_biogas_m3_year": 5_000_000,
+    "citrus_biogas_m3_year": 2_000_000,
 }
 _LIVESTOCK_BIOGAS = {
-    "cattle_biogas_m3_year":    30_000_000,
-    "swine_biogas_m3_year":     20_000_000,
-    "poultry_biogas_m3_year":   10_000_000,
+    "cattle_biogas_m3_year": 30_000_000,
+    "swine_biogas_m3_year": 20_000_000,
+    "poultry_biogas_m3_year": 10_000_000,
     "aquaculture_biogas_m3_year": 2_000_000,
 }
 _URBAN_BIOGAS = {
-    "rsu_biogas_m3_year":       15_000_000,
-    "rpo_biogas_m3_year":        5_000_000,
+    "rsu_biogas_m3_year": 15_000_000,
+    "rpo_biogas_m3_year": 5_000_000,
 }
 
-_AGRICULTURAL_TOTAL = sum(_CROP_BIOGAS.values())    # 85_000_000
-_LIVESTOCK_TOTAL    = sum(_LIVESTOCK_BIOGAS.values()) # 62_000_000
-_URBAN_TOTAL        = sum(_URBAN_BIOGAS.values())     # 20_000_000
-_GRAND_TOTAL        = _AGRICULTURAL_TOTAL + _LIVESTOCK_TOTAL + _URBAN_TOTAL  # 167_000_000
+_AGRICULTURAL_TOTAL = sum(_CROP_BIOGAS.values())  # 85_000_000
+_LIVESTOCK_TOTAL = sum(_LIVESTOCK_BIOGAS.values())  # 62_000_000
+_URBAN_TOTAL = sum(_URBAN_BIOGAS.values())  # 20_000_000
+_GRAND_TOTAL = _AGRICULTURAL_TOTAL + _LIVESTOCK_TOTAL + _URBAN_TOTAL  # 167_000_000
 
 SP_MUNICIPALITY_FIXTURE: dict = {
     # ── Identity ────────────────────────────────────────────────────────────
@@ -56,56 +56,46 @@ SP_MUNICIPALITY_FIXTURE: dict = {
     "municipality_name": "Campinas",
     "ibge_code": "3509502",
     "state": "SP",
-
     # ── Demography / geography ──────────────────────────────────────────────
     "population": 1_200_000,
     "urban_population": 1_150_000,
     "rural_population": 50_000,
     "area_km2": 796.0,
-    "population_density": 1507.5,   # population / area_km2
+    "population_density": 1507.5,  # population / area_km2
     "gdp_total": 60_000_000_000.0,
     "gdp_per_capita": 50_000.0,
-
     # ── Spatial ─────────────────────────────────────────────────────────────
     "centroid_lat": -22.9056,
     "centroid_lng": -47.0608,
     "administrative_region": "Metropolitana de Campinas",
     "immediate_region": "Campinas",
     "intermediate_region": "Campinas",
-
     # ── Sector subtotals (must equal sum of residue streams below) ──────────
     "agricultural_biogas_m3_year": _AGRICULTURAL_TOTAL,
-    "livestock_biogas_m3_year":    _LIVESTOCK_TOTAL,
-    "urban_biogas_m3_year":        _URBAN_TOTAL,
-    "total_biogas_m3_year":        _GRAND_TOTAL,
-
+    "livestock_biogas_m3_year": _LIVESTOCK_TOTAL,
+    "urban_biogas_m3_year": _URBAN_TOTAL,
+    "total_biogas_m3_year": _GRAND_TOTAL,
     # ── Agricultural residue streams ─────────────────────────────────────────
     **_CROP_BIOGAS,
-
     # ── Livestock residue streams ────────────────────────────────────────────
     **_LIVESTOCK_BIOGAS,
-
     # ── Urban residue streams ────────────────────────────────────────────────
     **_URBAN_BIOGAS,
-
     # ── Derived energy / emissions ───────────────────────────────────────────
     # Rough conversion: 1 m³ biogas ≈ 0.005 MWh (50% CH4, LHV 35.8 MJ/m³, η=35%)
     # These are stored pre-computed in the DB; just needs to be in plausible range
-    "energy_potential_mwh_year": round(_GRAND_TOTAL * 0.005),   # ~835 000 MWh
-    "energy_potential_kwh_day":  round(_GRAND_TOTAL * 0.005 * 1000 / 365),
-    "co2_reduction_tons_year":   round(_GRAND_TOTAL * 0.005 * 0.4),  # 0.4 tCO2/MWh
+    "energy_potential_mwh_year": round(_GRAND_TOTAL * 0.005),  # ~835 000 MWh
+    "energy_potential_kwh_day": round(_GRAND_TOTAL * 0.005 * 1000 / 365),
+    "co2_reduction_tons_year": round(_GRAND_TOTAL * 0.005 * 0.4),  # 0.4 tCO2/MWh
     "ranking": 5,
-
     # ── Biomass fields (reverse-BMP derived; may be None in legacy rows) ─────
-    "total_biomass_tons_year":          None,
-    "agricultural_biomass_tons_year":   None,
-    "livestock_biomass_tons_year":      None,
-    "urban_biomass_tons_year":          None,
-
+    "total_biomass_tons_year": None,
+    "agricultural_biomass_tons_year": None,
+    "livestock_biomass_tons_year": None,
+    "urban_biomass_tons_year": None,
     # ── GeoJSON geometry placeholder ─────────────────────────────────────────
     "geojson": '{"type":"Polygon","coordinates":[[[-47.3,-23.0],[-46.8,-23.0],[-46.8,-22.8],[-47.3,-22.8],[-47.3,-23.0]]]}',
     "centroid": {"type": "Point", "coordinates": [-47.0608, -22.9056]},
-
     # ── Cluster data ─────────────────────────────────────────────────────────
     "cluster_id": None,
     "dominant_stream": "sugarcane",
@@ -117,6 +107,7 @@ SP_MUNICIPALITY_FIXTURE: dict = {
 _SUM_TOL = 0.01
 
 # ── Summation invariant tests ─────────────────────────────────────────────────
+
 
 @pytest.mark.unit
 class TestBiogasSummationInvariants:
@@ -133,9 +124,9 @@ class TestBiogasSummationInvariants:
     def test_total_biogas_equals_sum_of_three_sectors(self):
         row = SP_MUNICIPALITY_FIXTURE
         sector_sum = (
-            row["urban_biogas_m3_year"] +
-            row["agricultural_biogas_m3_year"] +
-            row["livestock_biogas_m3_year"]
+            row["urban_biogas_m3_year"]
+            + row["agricultural_biogas_m3_year"]
+            + row["livestock_biogas_m3_year"]
         )
         err = self._relative_error(sector_sum, row["total_biogas_m3_year"])
         assert err < _SUM_TOL, (
@@ -146,11 +137,11 @@ class TestBiogasSummationInvariants:
     def test_agricultural_equals_sum_of_crop_residue_streams(self):
         row = SP_MUNICIPALITY_FIXTURE
         crop_sum = (
-            row["sugarcane_biogas_m3_year"] +
-            row["soybean_biogas_m3_year"] +
-            row["corn_biogas_m3_year"] +
-            row["coffee_biogas_m3_year"] +
-            row["citrus_biogas_m3_year"]
+            row["sugarcane_biogas_m3_year"]
+            + row["soybean_biogas_m3_year"]
+            + row["corn_biogas_m3_year"]
+            + row["coffee_biogas_m3_year"]
+            + row["citrus_biogas_m3_year"]
         )
         err = self._relative_error(crop_sum, row["agricultural_biogas_m3_year"])
         assert err < _SUM_TOL, (
@@ -161,10 +152,10 @@ class TestBiogasSummationInvariants:
     def test_livestock_equals_sum_of_livestock_residue_streams(self):
         row = SP_MUNICIPALITY_FIXTURE
         livestock_sum = (
-            row["cattle_biogas_m3_year"] +
-            row["swine_biogas_m3_year"] +
-            row["poultry_biogas_m3_year"] +
-            row["aquaculture_biogas_m3_year"]
+            row["cattle_biogas_m3_year"]
+            + row["swine_biogas_m3_year"]
+            + row["poultry_biogas_m3_year"]
+            + row["aquaculture_biogas_m3_year"]
         )
         err = self._relative_error(livestock_sum, row["livestock_biogas_m3_year"])
         assert err < _SUM_TOL, (
@@ -174,15 +165,13 @@ class TestBiogasSummationInvariants:
 
     def test_urban_equals_sum_of_urban_residue_streams(self):
         row = SP_MUNICIPALITY_FIXTURE
-        urban_sum = (
-            row["rsu_biogas_m3_year"] +
-            row["rpo_biogas_m3_year"]
-        )
+        urban_sum = row["rsu_biogas_m3_year"] + row["rpo_biogas_m3_year"]
         err = self._relative_error(urban_sum, row["urban_biogas_m3_year"])
         assert err < _SUM_TOL
 
 
 # ── Non-negativity constraints ────────────────────────────────────────────────
+
 
 @pytest.mark.unit
 class TestBiogasNonNegativity:
@@ -213,13 +202,18 @@ class TestBiogasNonNegativity:
 
     def test_sector_totals_do_not_exceed_grand_total(self):
         row = SP_MUNICIPALITY_FIXTURE
-        for sector in ["agricultural_biogas_m3_year", "livestock_biogas_m3_year", "urban_biogas_m3_year"]:
-            assert row[sector] <= row["total_biogas_m3_year"], (
-                f"{sector} ({row[sector]:,}) exceeds total_biogas ({row['total_biogas_m3_year']:,})"
-            )
+        for sector in [
+            "agricultural_biogas_m3_year",
+            "livestock_biogas_m3_year",
+            "urban_biogas_m3_year",
+        ]:
+            assert (
+                row[sector] <= row["total_biogas_m3_year"]
+            ), f"{sector} ({row[sector]:,}) exceeds total_biogas ({row['total_biogas_m3_year']:,})"
 
 
 # ── Demographic consistency ───────────────────────────────────────────────────
+
 
 @pytest.mark.unit
 class TestDemographicConsistency:
@@ -249,6 +243,7 @@ class TestDemographicConsistency:
 
 # ── Energy and CO₂ plausibility ───────────────────────────────────────────────
 
+
 @pytest.mark.unit
 class TestEnergyPlausibility:
     """
@@ -261,10 +256,10 @@ class TestEnergyPlausibility:
     """
 
     # Conversion bounds — sources: SEEG Brasil 2023, IPCC AR6 energy sector
-    ENERGY_MWH_PER_M3_LOW  = 0.001   # pessimistic (low CH4, low efficiency)
-    ENERGY_MWH_PER_M3_HIGH = 0.010   # optimistic (high CH4, high efficiency)
-    CO2_TONS_PER_MWH_LOW   = 0.20    # recent grid mix (high renewables)
-    CO2_TONS_PER_MWH_HIGH  = 0.70    # older fossil baseline
+    ENERGY_MWH_PER_M3_LOW = 0.001  # pessimistic (low CH4, low efficiency)
+    ENERGY_MWH_PER_M3_HIGH = 0.010  # optimistic (high CH4, high efficiency)
+    CO2_TONS_PER_MWH_LOW = 0.20  # recent grid mix (high renewables)
+    CO2_TONS_PER_MWH_HIGH = 0.70  # older fossil baseline
 
     def test_energy_potential_within_physical_range(self):
         row = SP_MUNICIPALITY_FIXTURE
@@ -294,7 +289,7 @@ class TestEnergyPlausibility:
             return
         # MWh/yr × 1000 / 365 = kWh/day
         expected = row["energy_potential_mwh_year"] * 1000 / 365
-        actual   = row["energy_potential_kwh_day"]
+        actual = row["energy_potential_kwh_day"]
         err = abs(expected - actual) / expected
         assert err < 0.01, (
             f"energy_potential_kwh_day ({actual:.0f}) inconsistent with "
@@ -303,6 +298,7 @@ class TestEnergyPlausibility:
 
 
 # ── Geographic plausibility ───────────────────────────────────────────────────
+
 
 @pytest.mark.unit
 class TestGeographicPlausibility:

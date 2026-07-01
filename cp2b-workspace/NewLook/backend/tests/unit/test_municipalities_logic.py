@@ -6,6 +6,7 @@ Note: SAMPLE_MUNICIPALITIES was removed from the endpoint module when it was
 refactored to use Supabase/PostGIS. The constant is now defined here so these
 unit tests remain independent of the live database.
 """
+
 import pytest
 
 # Representative São Paulo state municipalities used exclusively by these unit tests.
@@ -69,7 +70,15 @@ class TestMunicipalityDataValidation:
 
         for municipality in SAMPLE_MUNICIPALITIES:
             # Test required fields
-            required_fields = ["id", "name", "code", "population", "area_km2", "biogas_potential", "coordinates"]
+            required_fields = [
+                "id",
+                "name",
+                "code",
+                "population",
+                "area_km2",
+                "biogas_potential",
+                "coordinates",
+            ]
             for field in required_fields:
                 assert field in municipality, f"Missing field: {field}"
 
@@ -127,10 +136,7 @@ class TestMunicipalityLogicFunctions:
         """Test search filtering logic"""
         # Test case insensitive search
         search_term = "são"
-        filtered = [
-            m for m in SAMPLE_MUNICIPALITIES
-            if search_term.lower() in m["name"].lower()
-        ]
+        filtered = [m for m in SAMPLE_MUNICIPALITIES if search_term.lower() in m["name"].lower()]
 
         # Should find São Paulo
         assert any(m["name"] == "São Paulo" for m in filtered)
@@ -165,7 +171,9 @@ class TestMunicipalityLogicFunctions:
         total_population = sum(m["population"] for m in SAMPLE_MUNICIPALITIES)
         total_area = sum(m["area_km2"] for m in SAMPLE_MUNICIPALITIES)
         total_biogas_potential = sum(m["biogas_potential"] for m in SAMPLE_MUNICIPALITIES)
-        average_biogas_potential = total_biogas_potential / total_municipalities if total_municipalities > 0 else 0
+        average_biogas_potential = (
+            total_biogas_potential / total_municipalities if total_municipalities > 0 else 0
+        )
 
         # Verify calculations
         assert total_municipalities > 0
@@ -225,7 +233,7 @@ class TestMunicipalityBusinessLogic:
                 "area_km2": municipality["area_km2"],
                 "biogas_potential_m3_year": municipality["biogas_potential"],
                 "latitude": municipality["coordinates"]["lat"],
-                "longitude": municipality["coordinates"]["lng"]
+                "longitude": municipality["coordinates"]["lng"],
             }
             export_data.append(export_record)
 
@@ -233,10 +241,18 @@ class TestMunicipalityBusinessLogic:
         assert len(export_data) == len(SAMPLE_MUNICIPALITIES)
 
         for record in export_data:
-            assert all(key in record for key in [
-                "municipality_name", "ibge_code", "population_2023",
-                "area_km2", "biogas_potential_m3_year", "latitude", "longitude"
-            ])
+            assert all(
+                key in record
+                for key in [
+                    "municipality_name",
+                    "ibge_code",
+                    "population_2023",
+                    "area_km2",
+                    "biogas_potential_m3_year",
+                    "latitude",
+                    "longitude",
+                ]
+            )
 
 
 @pytest.mark.unit
@@ -246,10 +262,7 @@ class TestMunicipalityErrorHandling:
     def test_empty_search_handling(self):
         """Test handling of empty search results"""
         search_term = "NonExistentMunicipality12345"
-        filtered = [
-            m for m in SAMPLE_MUNICIPALITIES
-            if search_term.lower() in m["name"].lower()
-        ]
+        filtered = [m for m in SAMPLE_MUNICIPALITIES if search_term.lower() in m["name"].lower()]
 
         assert filtered == []
 
@@ -283,8 +296,7 @@ class TestMunicipalityErrorHandling:
             # Should not crash
             try:
                 filtered = [
-                    m for m in SAMPLE_MUNICIPALITIES
-                    if search_term.lower() in m["name"].lower()
+                    m for m in SAMPLE_MUNICIPALITIES if search_term.lower() in m["name"].lower()
                 ]
                 assert isinstance(filtered, list)
             except Exception as e:

@@ -20,11 +20,12 @@ import os
 import sys
 from pathlib import Path
 
+import matplotlib
 import numpy as np
 import pandas as pd
 import psycopg2
 import psycopg2.extras
-import matplotlib
+
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -36,30 +37,39 @@ from sklearn.preprocessing import StandardScaler
 # ---------------------------------------------------------------------------
 # Paths
 # ---------------------------------------------------------------------------
-REPO_ROOT   = Path(__file__).resolve().parents[4]   # Pilar2b/
+REPO_ROOT = Path(__file__).resolve().parents[4]  # Pilar2b/
 OUTPUTS_DIR = REPO_ROOT / "analysis" / "outputs"
 OUTPUTS_DIR.mkdir(parents=True, exist_ok=True)
 
 GWH_COLS = [
-    "ghw_aquaculture", "ghw_cattle",   "ghw_citrus",  "ghw_coffee",
-    "ghw_corn",        "ghw_forestry", "ghw_poultry", "ghw_rpo_pruning",
-    "ghw_rsu_organic", "ghw_soybean",  "ghw_sugarcane", "ghw_swine",
+    "ghw_aquaculture",
+    "ghw_cattle",
+    "ghw_citrus",
+    "ghw_coffee",
+    "ghw_corn",
+    "ghw_forestry",
+    "ghw_poultry",
+    "ghw_rpo_pruning",
+    "ghw_rsu_organic",
+    "ghw_soybean",
+    "ghw_sugarcane",
+    "ghw_swine",
 ]
 
 # Human-readable short labels for plots
 STREAM_LABELS = {
     "ghw_aquaculture": "Aquaculture",
-    "ghw_cattle":      "Cattle",
-    "ghw_citrus":      "Citrus",
-    "ghw_coffee":      "Coffee",
-    "ghw_corn":        "Corn",
-    "ghw_forestry":    "Forestry",
-    "ghw_poultry":     "Poultry",
+    "ghw_cattle": "Cattle",
+    "ghw_citrus": "Citrus",
+    "ghw_coffee": "Coffee",
+    "ghw_corn": "Corn",
+    "ghw_forestry": "Forestry",
+    "ghw_poultry": "Poultry",
     "ghw_rpo_pruning": "RPO/Pruning",
     "ghw_rsu_organic": "RSU (urban)",
-    "ghw_soybean":     "Soybean",
-    "ghw_sugarcane":   "Sugarcane",
-    "ghw_swine":       "Swine",
+    "ghw_soybean": "Soybean",
+    "ghw_sugarcane": "Sugarcane",
+    "ghw_swine": "Swine",
 }
 
 
@@ -105,7 +115,7 @@ def run_kmeans(X_scaled: np.ndarray, k_range=(4, 5, 6)):
     for k in k_range:
         km = KMeans(n_clusters=k, n_init=20, random_state=42)
         labels = km.fit_predict(X_scaled)
-        score  = silhouette_score(X_scaled, labels)
+        score = silhouette_score(X_scaled, labels)
         print(f"  k={k}  silhouette={score:.4f}")
         if score > best_score:
             best_k, best_score, best_labels, best_model = k, score, labels, km
@@ -123,10 +133,10 @@ def make_cluster_labels(df: pd.DataFrame, labels: np.ndarray, model: KMeans) -> 
     """
     tmp = df[GWH_COLS].copy()
     tmp["cluster_id"] = labels
-    sizes       = tmp.groupby("cluster_id").size()
-    raw_means   = tmp.groupby("cluster_id")[GWH_COLS].mean()
+    sizes = tmp.groupby("cluster_id").size()
+    raw_means = tmp.groupby("cluster_id")[GWH_COLS].mean()
     global_mean = df[GWH_COLS].mean().clip(lower=0.01)
-    ratio       = raw_means.div(global_mean)   # how elevated vs state average
+    ratio = raw_means.div(global_mean)  # how elevated vs state average
 
     MIN_GWH = 1.0  # ignore streams where cluster mean < 1 GWh/yr (avoids near-zero inflation)
 
@@ -149,13 +159,13 @@ def print_cluster_profiles(df: pd.DataFrame):
     print("\n--- Cluster Profiles ---")
     global_mean = df[GWH_COLS].mean()
     for cid in sorted(df["cluster_id"].unique()):
-        sub  = df[df["cluster_id"] == cid]
+        sub = df[df["cluster_id"] == cid]
         label = sub["cluster_label"].iloc[0]
         print(f"\nCluster {cid} — {label} (n={len(sub)})")
         means = sub[GWH_COLS].mean().sort_values(ascending=False)
         for col, val in means.items():
             ratio = val / global_mean[col] if global_mean[col] > 0.01 else 0
-            bar   = "█" * min(int(ratio * 5), 30)
+            bar = "█" * min(int(ratio * 5), 30)
             print(f"  {STREAM_LABELS[col]:>12}  {val:8.1f} GWh/yr  x{ratio:.2f}  {bar}")
         if "nm_rgint" in sub.columns:
             top_regions = sub["nm_rgint"].value_counts().head(3).to_dict()
@@ -218,7 +228,9 @@ def plot_heatmap(df: pd.DataFrame):
         ax=ax,
         cbar_kws={"label": "log(1 + mean GWh/yr)"},
     )
-    ax.set_title("Mean Energy Potential per Cluster × Stream\n(annotation = raw GWh/yr)", fontsize=12)
+    ax.set_title(
+        "Mean Energy Potential per Cluster × Stream\n(annotation = raw GWh/yr)", fontsize=12
+    )
     ax.set_ylabel("Cluster")
     ax.set_xlabel("Residue Stream")
     plt.tight_layout()
@@ -250,21 +262,26 @@ def plot_sizes(df: pd.DataFrame):
 
 
 def plot_pca(df: pd.DataFrame, X_scaled: np.ndarray):
-    pca   = PCA(n_components=2, random_state=42)
+    pca = PCA(n_components=2, random_state=42)
     comps = pca.fit_transform(X_scaled)
-    ev    = pca.explained_variance_ratio_
+    ev = pca.explained_variance_ratio_
 
     unique_clusters = sorted(df["cluster_id"].unique())
     palette = plt.cm.tab10.colors
 
     fig, ax = plt.subplots(figsize=(10, 7))
     for i, cid in enumerate(unique_clusters):
-        mask  = df["cluster_id"] == cid
+        mask = df["cluster_id"] == cid
         label = df.loc[mask, "cluster_label"].iloc[0]
         ax.scatter(
-            comps[mask, 0], comps[mask, 1],
-            c=[palette[i % 10]], label=label,
-            alpha=0.65, s=40, edgecolors="white", linewidths=0.4,
+            comps[mask, 0],
+            comps[mask, 1],
+            c=[palette[i % 10]],
+            label=label,
+            alpha=0.65,
+            s=40,
+            edgecolors="white",
+            linewidths=0.4,
         )
 
     # Annotate notable municipalities
@@ -273,12 +290,20 @@ def plot_pca(df: pd.DataFrame, X_scaled: np.ndarray):
         idx = df.index[df["ibge_code"] == ibge]
         if len(idx):
             i = idx[0]
-            ax.annotate(name, (comps[i, 0], comps[i, 1]),
-                        fontsize=8, xytext=(5, 5), textcoords="offset points")
+            ax.annotate(
+                name,
+                (comps[i, 0], comps[i, 1]),
+                fontsize=8,
+                xytext=(5, 5),
+                textcoords="offset points",
+            )
 
     ax.set_xlabel(f"PC1 ({ev[0]*100:.1f}% var)")
     ax.set_ylabel(f"PC2 ({ev[1]*100:.1f}% var)")
-    ax.set_title("PCA Projection — K-Means Clusters\n(São Paulo municipalities, 2023 biogas potential)", fontsize=11)
+    ax.set_title(
+        "PCA Projection — K-Means Clusters\n(São Paulo municipalities, 2023 biogas potential)",
+        fontsize=11,
+    )
     ax.legend(loc="best", fontsize=9)
     plt.tight_layout()
     out = OUTPUTS_DIR / "cluster_pca.png"
@@ -299,16 +324,16 @@ def main():
 
         print("Scaling 12 GWh columns …")
         X = df[GWH_COLS].fillna(0).values
-        scaler   = StandardScaler()
+        scaler = StandardScaler()
         X_scaled = scaler.fit_transform(X)
 
         print("Running K-Means (k = 4, 5, 6) …")
         best_k, labels, model = run_kmeans(X_scaled)
 
         label_map = make_cluster_labels(df, labels, model)
-        df["cluster_id"]    = labels
+        df["cluster_id"] = labels
         df["cluster_label"] = df["cluster_id"].map(label_map)
-        df["cluster_k"]     = best_k
+        df["cluster_k"] = best_k
 
         print(f"\nCluster distribution:")
         print(df.groupby(["cluster_id", "cluster_label"]).size().to_string())

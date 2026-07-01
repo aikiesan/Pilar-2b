@@ -5,10 +5,12 @@ Safe to re-run (uses ON CONFLICT DO NOTHING).
 """
 
 import sys
-sys.path.append('.')
+
+sys.path.append(".")
+
+from sqlalchemy import text
 
 from app.core.database import get_db
-from sqlalchemy import text
 from data.seed_technologies import INITIAL_TECHNOLOGIES
 
 
@@ -45,7 +47,7 @@ def seed_technologies():
             # Show breakdown by category
             categories = {}
             for tech in INITIAL_TECHNOLOGIES:
-                cat = tech['category']
+                cat = tech["category"]
                 categories[cat] = categories.get(cat, 0) + 1
 
             print("\n📋 Breakdown by category:")
@@ -58,6 +60,7 @@ def seed_technologies():
             db.rollback()
             print(f"❌ Error seeding technologies: {e}")
             import traceback
+
             traceback.print_exc()
             return False
 
@@ -65,4 +68,3 @@ def seed_technologies():
 if __name__ == "__main__":
     success = seed_technologies()
     sys.exit(0 if success else 1)
-

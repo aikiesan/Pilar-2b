@@ -3,17 +3,18 @@ Tests for Proximity Service
 Tests geospatial proximity analysis and municipality name normalization
 """
 
-import pytest
-from unittest.mock import Mock, MagicMock, patch
-from shapely.geometry import Point, Polygon, mapping
+from unittest.mock import MagicMock, Mock, patch
+
 import pyproj
+import pytest
+from shapely.geometry import Point, Polygon, mapping
 
 from app.services.proximity_service import (
-    normalize_municipality_name,
-    ProximityService,
     MAPBIOMAS_RESIDUOS_MAPPING,
-    WGS84,
     UTM_23S,
+    WGS84,
+    ProximityService,
+    normalize_municipality_name,
 )
 
 
@@ -140,7 +141,9 @@ class TestMapBiomasResiduosMapping:
         """Test subsector_codigo field is a string"""
         for class_code, mapping in MAPBIOMAS_RESIDUOS_MAPPING.items():
             subsector = mapping["subsector_codigo"]
-            assert isinstance(subsector, str), f"Class {class_code} subsector_codigo should be string"
+            assert isinstance(
+                subsector, str
+            ), f"Class {class_code} subsector_codigo should be string"
             assert len(subsector) > 0, f"Class {class_code} subsector_codigo should not be empty"
 
     def test_mapping_production_factor_field(self):
@@ -153,7 +156,9 @@ class TestMapBiomasResiduosMapping:
 
             if factor is not None:
                 assert factor >= 0, f"Class {class_code} production_factor should be non-negative"
-                assert factor < 1.0, f"Class {class_code} production_factor seems unrealistically high"
+                assert (
+                    factor < 1.0
+                ), f"Class {class_code} production_factor seems unrealistically high"
 
     def test_mapping_description_field(self):
         """Test description field is a non-empty string"""

@@ -40,7 +40,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import yaml  # noqa: E402
 
-from app.services.biogas_forward import calculate_feedstock, SCENARIOS  # noqa: E402
+from app.services.biogas_forward import SCENARIOS, calculate_feedstock  # noqa: E402
 from app.services.canonical_loader import (  # noqa: E402
     STREAM_TO_CANONICAL,
     get_params,
@@ -108,8 +108,8 @@ SUGARCANE_SUBSTREAMS: list[tuple[str, str, float, str]] = [
 # Citrus is handled with CITRUS_RESIDUE_FRACTION.
 # Other agricultural streams use CSV values as residue-equivalent tonnes directly.
 AGRICULTURAL_DIRECT = ("soybean", "corn", "coffee")  # MapBiomas × yield_t_ha → residue tonnes
-LIVESTOCK = ("cattle", "swine", "poultry")            # head counts → t/head/yr via generation
-URBAN = ("rsu_organic", "rpo")                        # per-capita (SP pop)
+LIVESTOCK = ("cattle", "swine", "poultry")  # head counts → t/head/yr via generation
+URBAN = ("rsu_organic", "rpo")  # per-capita (SP pop)
 
 
 def _csv_state_total(rows: list[dict], column: str) -> float:
@@ -178,8 +178,7 @@ def _accumulate(
 
 def compute() -> tuple[dict, list[dict]]:
     rows = [
-        r for r in csv.DictReader(_CSV.open(encoding="utf-8"))
-        if (r.get("ibge_code") or "").strip()
+        r for r in csv.DictReader(_CSV.open(encoding="utf-8")) if (r.get("ibge_code") or "").strip()
     ]
     logger.info(f"Loaded {len(rows)} municipalities from {_CSV.name}")
     fs = yaml.safe_load(_FEEDSTOCKS.read_text(encoding="utf-8"))["feedstocks"]
@@ -202,7 +201,8 @@ def compute() -> tuple[dict, list[dict]]:
         params = get_params(code)
         biomass = {sc: sub_t for sc in SCENARIOS}  # constant across scenarios (observed data)
         _accumulate(
-            totals, out_rows,
+            totals,
+            out_rows,
             stream=sub_label,
             sector="agricultural",
             provenance=f"cana_PAM×{frac:.3f}",
@@ -221,7 +221,8 @@ def compute() -> tuple[dict, list[dict]]:
         f"peel residue: {citrus_peel_t/1e6:.2f} Mt/yr (×{CITRUS_RESIDUE_FRACTION})"
     )
     _accumulate(
-        totals, out_rows,
+        totals,
+        out_rows,
         stream="citrus",
         sector="agricultural",
         provenance=f"citrus_PAM×{CITRUS_RESIDUE_FRACTION}",
@@ -234,7 +235,8 @@ def compute() -> tuple[dict, list[dict]]:
     for stream in AGRICULTURAL_DIRECT:
         count = _csv_state_total(rows, f"{stream}_biomass_tons_year")
         _accumulate(
-            totals, out_rows,
+            totals,
+            out_rows,
             stream=stream,
             sector="agricultural",
             provenance="csv_residue_tonnes",
@@ -248,7 +250,8 @@ def compute() -> tuple[dict, list[dict]]:
         count = _csv_state_total(rows, f"{stream}_biomass_tons_year")
         biomass = _biomass_livestock(stream, count, fs)
         _accumulate(
-            totals, out_rows,
+            totals,
+            out_rows,
             stream=stream,
             sector="livestock",
             provenance="csv_head_count×EMBRAPA",
@@ -261,7 +264,8 @@ def compute() -> tuple[dict, list[dict]]:
     for stream in URBAN:
         biomass = _biomass_urban(stream, float(SP_POPULATION), fs)
         _accumulate(
-            totals, out_rows,
+            totals,
+            out_rows,
             stream=stream,
             sector="urban",
             provenance="sp_population_ibge2022",
@@ -297,17 +301,24 @@ def _scenario_print(totals: dict) -> None:
     # fatores de competição/coleta sob política pública dedicada, mantendo o
     # envelope de incerteza biométrico. NÃO é o teto teórico (esse é o Otimista).
     FRONTIER_ALPHA = 0.5
-    fro = tuple(m + FRONTIER_ALPHA * (x - m) for m, x in [(ch4[1], ch4[2]), (big[1], big[2]), (bm[1], bm[2])])
-    print(f"\n{'  → Fronteira do Biogás (4º cenário, mid medio↔max):':<46}"
-          f"CH₄={fro[0]:.2f}  Biogás={fro[1]:.2f}  Biometano={fro[2]:.2f}  M m³/dia")
+    fro = tuple(
+        m + FRONTIER_ALPHA * (x - m)
+        for m, x in [(ch4[1], ch4[2]), (big[1], big[2]), (bm[1], bm[2])]
+    )
+    print(
+        f"\n{'  → Fronteira do Biogás (4º cenário, mid medio↔max):':<46}"
+        f"CH₄={fro[0]:.2f}  Biogás={fro[1]:.2f}  Biometano={fro[2]:.2f}  M m³/dia"
+    )
 
     print("\n─── Benchmark FIESP ───────────────────────────────────────────────────────")
     print("  FIESP/AMPLUN 2021 (bruto, todos setores) : ~16,0 M m³/dia biogás")
     print("  SEMIL/FIESP 2024 (viável)                : ~11,4 M m³/dia biogás")
     print("  FIESP/Amplun 2025 (cana+aterro)          : 11,7 biogás / 6,4 biometano")
-    print(f"  PILAR-2b (Base/Médio/Fronteira/Otimista biogás): "
-          f"{big[0]:.1f} / {big[1]:.1f} / {fro[1]:.1f} / {big[2]:.1f} M m³/dia "
-          f"— Fronteira (31 resíduos) > FIESP 6,4 biometano")
+    print(
+        f"  PILAR-2b (Base/Médio/Fronteira/Otimista biogás): "
+        f"{big[0]:.1f} / {big[1]:.1f} / {fro[1]:.1f} / {big[2]:.1f} M m³/dia "
+        f"— Fronteira (31 resíduos) > FIESP 6,4 biometano"
+    )
 
     print("\n─── Correções de unidade aplicadas nesta revisão ───────────────────────────")
     print("  Cana: CSV IBGE PAM (cana bruta) → 4 sub-fluxos com frações de resíduo")

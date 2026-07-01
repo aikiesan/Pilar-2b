@@ -3,10 +3,13 @@ Integration tests for Scientific API endpoints
 Tests kinetic parameters endpoint with various filter combinations,
 empty results, and error conditions.
 """
+
 import json
+from unittest.mock import MagicMock, patch
+
 import pytest
 from fastapi.testclient import TestClient
-from unittest.mock import MagicMock, patch
+
 from app.main import app
 
 client = TestClient(app)
@@ -79,6 +82,7 @@ def _make_mock_db(rows):
 
 # ─── Tests ────────────────────────────────────────────────────────────────────
 
+
 @pytest.mark.integration
 class TestKineticsEndpoint:
     """Tests for GET /api/v1/scientific/kinetics"""
@@ -115,12 +119,24 @@ class TestKineticsEndpoint:
         item = response.json()["data"][0]
 
         required_fields = [
-            "residue_id", "residue_name", "sector",
-            "k_slow", "k_med", "k_fast",
-            "f_slow", "f_med", "f_fast", "fq",
+            "residue_id",
+            "residue_name",
+            "sector",
+            "k_slow",
+            "k_med",
+            "k_fast",
+            "f_slow",
+            "f_med",
+            "f_fast",
+            "fq",
             "classification",
-            "bmp_experimental", "bmp_simulated",
-            "t50", "t80", "test_standard", "temperature", "retention_time",
+            "bmp_experimental",
+            "bmp_simulated",
+            "t50",
+            "t80",
+            "test_standard",
+            "temperature",
+            "retention_time",
             "references",
         ]
         for field in required_fields:

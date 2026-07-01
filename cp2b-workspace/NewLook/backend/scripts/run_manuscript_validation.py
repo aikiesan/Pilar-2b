@@ -41,10 +41,10 @@ Environment variables
   SKIP_BENCHMARKS — Set to any non-empty value to skip HTTP benchmarks
 """
 
+import datetime
+import json
 import os
 import sys
-import json
-import datetime
 from pathlib import Path
 
 # ---------------------------------------------------------------------------
@@ -72,16 +72,17 @@ MANUSCRIPT = {
 
 # Tier thresholds (m³/ano → converted from m³/dia)
 TIER_THRESHOLDS = {
-    "industrial_scale": 10_000 * 365,   # ≥ 10 000 m³/dia
-    "medium":            1_000 * 365,   # 1 000 – 9 999 m³/dia
-    "small":               100 * 365,   # 100 – 999 m³/dia
-    "micro":                 1 * 365,   # 1 – 99 m³/dia
+    "industrial_scale": 10_000 * 365,  # ≥ 10 000 m³/dia
+    "medium": 1_000 * 365,  # 1 000 – 9 999 m³/dia
+    "small": 100 * 365,  # 100 – 999 m³/dia
+    "micro": 1 * 365,  # 1 – 99 m³/dia
 }
 
 
 # ---------------------------------------------------------------------------
 # SQL validation via psycopg2
 # ---------------------------------------------------------------------------
+
 
 def _get_db_connection():
     """Return a psycopg2 connection, trying DATABASE_URL then settings.py."""
@@ -92,6 +93,7 @@ def _get_db_connection():
     if not dsn:
         try:
             from app.core.config import settings
+
             dsn = settings.DATABASE_URL
         except Exception as exc:
             print(f"  Could not load settings.py: {exc}")
@@ -144,7 +146,9 @@ def run_sql_validation() -> dict:
             sign = "+" if delta >= 0 else ""
             print(f"    DB value : {db_val} M m³/dia")
             print(f"    Manuscript: {MANUSCRIPT['total_M_m3_dia']} M m³/dia")
-            print(f"    Delta    : {sign}{delta:.4f} M m³/dia ({sign}{delta/MANUSCRIPT['total_M_m3_dia']*100:.2f}%)")
+            print(
+                f"    Delta    : {sign}{delta:.4f} M m³/dia ({sign}{delta/MANUSCRIPT['total_M_m3_dia']*100:.2f}%)"
+            )
             print(f"    N muns   : {row['n_municipalities']}")
             results["state_aggregate"] = dict(row)
             results["state_aggregate"]["manuscript_M_m3_dia"] = MANUSCRIPT["total_M_m3_dia"]
@@ -207,8 +211,10 @@ def run_sql_validation() -> dict:
                 note = f" (manuscript: {MANUSCRIPT['industrial_scale_count']})"
             elif t["tier"] == "medium":
                 note = f" (manuscript: {MANUSCRIPT['medium_count']})"
-            print(f"    {t['tier']:<20} count={t['count']:>4}{note}  "
-                  f"total={int(t['total_m3_dia']):>12,} m³/dia")
+            print(
+                f"    {t['tier']:<20} count={t['count']:>4}{note}  "
+                f"total={int(t['total_m3_dia']):>12,} m³/dia"
+            )
         results["tier_counts"] = tier_data
 
         # 3. Feedstock composition
@@ -238,9 +244,11 @@ def run_sql_validation() -> dict:
         if fc:
             results["feedstock_composition"] = dict(fc)
             sc_pct = float(fc["sugarcane_pct"] or 0)
-            print(f"    Sugarcane  : {sc_pct}%  "
-                  f"(manuscript theoretical={MANUSCRIPT['sugarcane_pct_theoretical']}%, "
-                  f"practical={MANUSCRIPT['sugarcane_pct_practical']}%)")
+            print(
+                f"    Sugarcane  : {sc_pct}%  "
+                f"(manuscript theoretical={MANUSCRIPT['sugarcane_pct_theoretical']}%, "
+                f"practical={MANUSCRIPT['sugarcane_pct_practical']}%)"
+            )
             print(f"    Soybean    : {fc['soybean_pct']}%")
             print(f"    Corn       : {fc['corn_pct']}%")
             print(f"    Coffee     : {fc['coffee_pct']}%")
@@ -267,8 +275,10 @@ def run_sql_validation() -> dict:
         regional = cur.fetchall()
         results["regional"] = [dict(r) for r in regional]
         for r in regional:
-            print(f"    {r['region']:<30} n={r['n_municipalities']:>4}  "
-                  f"{int(r['total_m3_dia']):>12,} m³/dia  ({r['pct_of_state']}%)")
+            print(
+                f"    {r['region']:<30} n={r['n_municipalities']:>4}  "
+                f"{int(r['total_m3_dia']):>12,} m³/dia  ({r['pct_of_state']}%)"
+            )
 
         # 5. Column presence check (MAE validation)
         print("\n[5] Checking for validation/measured columns (MAE)")
@@ -332,6 +342,7 @@ def run_sql_validation() -> dict:
 # HTTP benchmark runner (delegates to benchmark_endpoints.py logic)
 # ---------------------------------------------------------------------------
 
+
 def run_benchmarks() -> dict:
     """Import and call the benchmark module."""
     try:
@@ -342,9 +353,9 @@ def run_benchmarks() -> dict:
 
         # Dynamically load benchmark_endpoints to avoid __name__ == __main__ guard
         import importlib.util
+
         spec = importlib.util.spec_from_file_location(
-            "benchmark_endpoints",
-            Path(__file__).parent / "benchmark_endpoints.py"
+            "benchmark_endpoints", Path(__file__).parent / "benchmark_endpoints.py"
         )
         bm = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(bm)
@@ -357,6 +368,7 @@ def run_benchmarks() -> dict:
 # ---------------------------------------------------------------------------
 # Entry point
 # ---------------------------------------------------------------------------
+
 
 def main():
     timestamp = datetime.datetime.utcnow().isoformat() + "Z"

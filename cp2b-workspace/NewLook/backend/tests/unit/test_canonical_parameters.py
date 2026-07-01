@@ -38,11 +38,11 @@ _REFERENCES = _CANON_DIR / "references.yaml"
 
 
 # ── Physical bounds (mirror test_residuos_bounds.py) ─────────────────────────
-BMP_MIN, BMP_MAX = 40.0, 1100.0      # NmL CH4/gVS; upper raised for fats (Sheets 2015)
-VS_MIN, VS_MAX = 0.0, 100.0          # % of TS
-TS_MIN, TS_MAX = 0.0, 100.0          # % wet weight
-CN_MIN, CN_MAX = 2.0, 100.0          # blood C:N ~3 (Sheets 2015) → lower than 5
-CH4_MIN, CH4_MAX = 45.0, 80.0        # % vol in biogas
+BMP_MIN, BMP_MAX = 40.0, 1100.0  # NmL CH4/gVS; upper raised for fats (Sheets 2015)
+VS_MIN, VS_MAX = 0.0, 100.0  # % of TS
+TS_MIN, TS_MAX = 0.0, 100.0  # % wet weight
+CN_MIN, CN_MAX = 2.0, 100.0  # blood C:N ~3 (Sheets 2015) → lower than 5
+CH4_MIN, CH4_MAX = 45.0, 80.0  # % vol in biogas
 
 
 @pytest.fixture(scope="module")
@@ -164,7 +164,7 @@ class TestNoDriftWithRuntimeService:
     # service key -> canonical feedstock code used as its representative stream
     SERVICE_MAP = {
         "sugarcane": "BAGACO",
-        "soybean": "PALHA_SOJA",    # field straw mapping (confirmed 2026-06)
+        "soybean": "PALHA_SOJA",  # field straw mapping (confirmed 2026-06)
         "corn": "PALHA_MILHO",
         "coffee": "CASCA_CAFE",
         "citrus": "BAGACO_CITROS",
@@ -172,11 +172,12 @@ class TestNoDriftWithRuntimeService:
         "swine": "DEJETOS_SUINO",
         "poultry": "CAMA_AVIARIO",
         "rsu": "FORSU",
-        "rpo": "PODA_URBANA",       # urban pruning waste (confirmed 2026-06)
+        "rpo": "PODA_URBANA",  # urban pruning waste (confirmed 2026-06)
     }
 
     def test_service_bmp_matches_canonical(self, feedstocks):
         from app.services.biomass_availability import RESIDUE_BIOMASS_CONFIGS
+
         by_key = {c.key: c for c in RESIDUE_BIOMASS_CONFIGS}
         for key, code in self.SERVICE_MAP.items():
             assert key in by_key, f"service missing key {key}"
@@ -188,6 +189,7 @@ class TestNoDriftWithRuntimeService:
 
     def test_service_vs_wet_matches_canonical(self, feedstocks):
         from app.services.biomass_availability import RESIDUE_BIOMASS_CONFIGS
+
         by_key = {c.key: c for c in RESIDUE_BIOMASS_CONFIGS}
         for key, code in self.SERVICE_MAP.items():
             fs = feedstocks[code]

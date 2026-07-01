@@ -43,11 +43,11 @@ Usage:
     MAPBIOMAS_CSV=/path/to/MB_col10_municipios.csv python scripts/load_biomass_tons.py
 """
 
+import csv
+import logging
+import math
 import os
 import sys
-import csv
-import math
-import logging
 from pathlib import Path
 from typing import Optional
 
@@ -61,11 +61,13 @@ logger = logging.getLogger(__name__)
 
 MAPBIOMAS_CSV = os.environ.get(
     "MAPBIOMAS_CSV",
-    str(Path(__file__).parent.parent.parent.parent.parent
+    str(
+        Path(__file__).parent.parent.parent.parent.parent
         / "FINAL_FILES-20260426T151225Z-3-001"
         / "FINAL_FILES"
         / "CSV"
-        / "MB_col10_municipios.csv")
+        / "MB_col10_municipios.csv"
+    ),
 )
 YEAR_COLUMN = "2024"
 VALIDATION_LOG = str(Path(__file__).parent / "biomass_validation_log.csv")
@@ -85,17 +87,24 @@ SUGARCANE_COLLECTIBLE_FRACTION = 0.35
 
 # MapBiomas class_id → residue type + yield factor (t biomass residue / ha)
 MAPBIOMAS_YIELD = {
-    20: {"key": "sugarcane", "yield_t_ha": round(12.0 * SUGARCANE_COLLECTIBLE_FRACTION, 1),
-         "note": "80 t/ha cane × 15% straw × 35% collectible fraction (SUGARCANE_COLLECTIBLE_FRACTION); "
-                 "remainder retained for soil carbon per EMBRAPA/CONAB guidelines"},
-    39: {"key": "soybean",   "yield_t_ha": 4.0,
-         "note": "~3.5 t/ha grain × 1.15 residue ratio"},
-    41: {"key": "corn",      "yield_t_ha": 4.5,
-         "note": "Other Temporary Crops proxy — corn is dominant in SP but class is mixed"},
-    46: {"key": "coffee",    "yield_t_ha": 0.6,
-         "note": "1.5 t cherry/ha × 40% husks/pulp dry matter"},
-    47: {"key": "citrus",    "yield_t_ha": 5.0,
-         "note": "40 t fruit/ha × 12.5% processing residue (peel + bagasse)"},
+    20: {
+        "key": "sugarcane",
+        "yield_t_ha": round(12.0 * SUGARCANE_COLLECTIBLE_FRACTION, 1),
+        "note": "80 t/ha cane × 15% straw × 35% collectible fraction (SUGARCANE_COLLECTIBLE_FRACTION); "
+        "remainder retained for soil carbon per EMBRAPA/CONAB guidelines",
+    },
+    39: {"key": "soybean", "yield_t_ha": 4.0, "note": "~3.5 t/ha grain × 1.15 residue ratio"},
+    41: {
+        "key": "corn",
+        "yield_t_ha": 4.5,
+        "note": "Other Temporary Crops proxy — corn is dominant in SP but class is mixed",
+    },
+    46: {"key": "coffee", "yield_t_ha": 0.6, "note": "1.5 t cherry/ha × 40% husks/pulp dry matter"},
+    47: {
+        "key": "citrus",
+        "yield_t_ha": 5.0,
+        "note": "40 t fruit/ha × 12.5% processing residue (peel + bagasse)",
+    },
 }
 
 # Effective BMP parameters for reverse-BMP method (per municipality column).
@@ -107,17 +116,15 @@ MAPBIOMAS_YIELD = {
 # so the load script and the runtime service can never drift apart again.
 from app.services.biomass_availability import RESIDUE_BIOMASS_CONFIGS as _CANON
 
-BMP_PARAMS = {
-    cfg.key: {"bmp": cfg.bmp, "vs": cfg.vs_percent}
-    for cfg in _CANON
-}
+BMP_PARAMS = {cfg.key: {"bmp": cfg.bmp, "vs": cfg.vs_percent} for cfg in _CANON}
 
 AGRICULTURAL_KEYS = ["sugarcane", "soybean", "corn", "coffee", "citrus"]
-LIVESTOCK_KEYS    = ["cattle", "swine", "poultry", "aquaculture"]
-URBAN_KEYS        = ["rsu", "rpo"]
+LIVESTOCK_KEYS = ["cattle", "swine", "poultry", "aquaculture"]
+URBAN_KEYS = ["rsu", "rpo"]
 
 
 # ─── Helpers ─────────────────────────────────────────────────────────────────
+
 
 def reverse_bmp(biogas_m3: float, bmp: float, vs_pct: float) -> float:
     """
@@ -172,6 +179,7 @@ def load_mapbiomas_sp(csv_path: str) -> dict[str, dict[int, float]]:
 def normalize_name(name: str) -> str:
     """Lowercase + strip for fuzzy name matching."""
     import unicodedata
+
     nfkd = unicodedata.normalize("NFKD", name)
     ascii_str = nfkd.encode("ASCII", "ignore").decode("ASCII")
     return ascii_str.strip().lower()
@@ -192,6 +200,7 @@ def match_municipality(db_name: str, mb_data: dict) -> Optional[dict[int, float]
 
 # ─── Main ─────────────────────────────────────────────────────────────────────
 
+
 def main():
     from app.services.supabase_client import get_supabase_client
 
@@ -204,13 +213,17 @@ def main():
 
     # Fetch all municipalities
     logger.info("Fetching municipalities from Supabase...")
-    result = supabase.table("municipalities").select(
-        "id, municipality_name, "
-        "sugarcane_biogas_m3_year, soybean_biogas_m3_year, corn_biogas_m3_year, "
-        "coffee_biogas_m3_year, citrus_biogas_m3_year, "
-        "cattle_biogas_m3_year, swine_biogas_m3_year, poultry_biogas_m3_year, "
-        "aquaculture_biogas_m3_year, rsu_biogas_m3_year, rpo_biogas_m3_year"
-    ).execute()
+    result = (
+        supabase.table("municipalities")
+        .select(
+            "id, municipality_name, "
+            "sugarcane_biogas_m3_year, soybean_biogas_m3_year, corn_biogas_m3_year, "
+            "coffee_biogas_m3_year, citrus_biogas_m3_year, "
+            "cattle_biogas_m3_year, swine_biogas_m3_year, poultry_biogas_m3_year, "
+            "aquaculture_biogas_m3_year, rsu_biogas_m3_year, rpo_biogas_m3_year"
+        )
+        .execute()
+    )
 
     municipalities = result.data or []
     logger.info(f"Processing {len(municipalities)} municipalities...")
@@ -252,14 +265,18 @@ def main():
             if mb_val > 0 and bmp_val > 0:
                 divergence = abs(mb_val - bmp_val) / max(mb_val, bmp_val)
                 if divergence > DIVERGENCE_THRESHOLD:
-                    validation_rows.append({
-                        "municipality": name,
-                        "residue": key,
-                        "mapbiomas_tons": mb_val,
-                        "bmp_reverse_tons": bmp_val,
-                        "divergence_pct": round(divergence * 100, 1),
-                        "flag": "HIGH_DIVERGENCE" if divergence > 0.5 else "MODERATE_DIVERGENCE",
-                    })
+                    validation_rows.append(
+                        {
+                            "municipality": name,
+                            "residue": key,
+                            "mapbiomas_tons": mb_val,
+                            "bmp_reverse_tons": bmp_val,
+                            "divergence_pct": round(divergence * 100, 1),
+                            "flag": (
+                                "HIGH_DIVERGENCE" if divergence > 0.5 else "MODERATE_DIVERGENCE"
+                            ),
+                        }
+                    )
 
         # ── Build final update (MapBiomas primary for crops; BMP for rest) ────
         # Use MapBiomas value if > 0, else fall back to BMP reverse
@@ -269,26 +286,26 @@ def main():
 
         final: dict[str, float] = {
             "sugarcane_biomass_tons_year": pick("sugarcane"),
-            "soybean_biomass_tons_year":   pick("soybean"),
-            "corn_biomass_tons_year":      pick("corn"),
-            "coffee_biomass_tons_year":    pick("coffee"),
-            "citrus_biomass_tons_year":    pick("citrus"),
-            "cattle_biomass_tons_year":    bmp_tons.get("cattle", 0.0),
-            "swine_biomass_tons_year":     bmp_tons.get("swine", 0.0),
-            "poultry_biomass_tons_year":   bmp_tons.get("poultry", 0.0),
+            "soybean_biomass_tons_year": pick("soybean"),
+            "corn_biomass_tons_year": pick("corn"),
+            "coffee_biomass_tons_year": pick("coffee"),
+            "citrus_biomass_tons_year": pick("citrus"),
+            "cattle_biomass_tons_year": bmp_tons.get("cattle", 0.0),
+            "swine_biomass_tons_year": bmp_tons.get("swine", 0.0),
+            "poultry_biomass_tons_year": bmp_tons.get("poultry", 0.0),
             "aquaculture_biomass_tons_year": bmp_tons.get("aquaculture", 0.0),
-            "rsu_biomass_tons_year":       bmp_tons.get("rsu", 0.0),
-            "rpo_biomass_tons_year":       bmp_tons.get("rpo", 0.0),
+            "rsu_biomass_tons_year": bmp_tons.get("rsu", 0.0),
+            "rpo_biomass_tons_year": bmp_tons.get("rpo", 0.0),
         }
 
-        ag  = sum(final[f"{k}_biomass_tons_year"] for k in AGRICULTURAL_KEYS)
-        lv  = sum(final[f"{k}_biomass_tons_year"] for k in LIVESTOCK_KEYS)
+        ag = sum(final[f"{k}_biomass_tons_year"] for k in AGRICULTURAL_KEYS)
+        lv = sum(final[f"{k}_biomass_tons_year"] for k in LIVESTOCK_KEYS)
         urb = sum(final[f"{k}_biomass_tons_year"] for k in URBAN_KEYS)
 
         final["agricultural_biomass_tons_year"] = round(ag, 2)
-        final["livestock_biomass_tons_year"]    = round(lv, 2)
-        final["urban_biomass_tons_year"]        = round(urb, 2)
-        final["total_biomass_tons_year"]        = round(ag + lv + urb, 2)
+        final["livestock_biomass_tons_year"] = round(lv, 2)
+        final["urban_biomass_tons_year"] = round(urb, 2)
+        final["total_biomass_tons_year"] = round(ag + lv + urb, 2)
 
         supabase.table("municipalities").update(final).eq("id", mun_id).execute()
         updated += 1
@@ -298,15 +315,19 @@ def main():
 
     # ── Write validation log ───────────────────────────────────────────────────
     if validation_rows:
-        fieldnames = ["municipality", "residue", "mapbiomas_tons",
-                      "bmp_reverse_tons", "divergence_pct", "flag"]
+        fieldnames = [
+            "municipality",
+            "residue",
+            "mapbiomas_tons",
+            "bmp_reverse_tons",
+            "divergence_pct",
+            "flag",
+        ]
         with open(VALIDATION_LOG, "w", newline="", encoding="utf-8") as f:
             writer = csv.DictWriter(f, fieldnames=fieldnames)
             writer.writeheader()
             writer.writerows(validation_rows)
-        logger.warning(
-            f"{len(validation_rows)} divergences logged to {VALIDATION_LOG}"
-        )
+        logger.warning(f"{len(validation_rows)} divergences logged to {VALIDATION_LOG}")
     else:
         logger.info("No significant divergences detected.")
 

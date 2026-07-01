@@ -2,9 +2,12 @@
 Integration tests for Analysis API endpoints
 Tests biogas residue analysis, statistics, and distribution endpoints
 """
+
+from unittest.mock import Mock, patch
+
 import pytest
 from fastapi.testclient import TestClient
-from unittest.mock import Mock, patch
+
 from app.main import app
 
 client = TestClient(app)
@@ -12,6 +15,7 @@ client = TestClient(app)
 
 class MockSupabaseResponse:
     """Mock Supabase response"""
+
     def __init__(self, data):
         self.data = data
 
@@ -61,13 +65,10 @@ class TestMCDAAnalysis:
             "biomass_availability": 0.4,
             "transportation_cost": 0.3,
             "land_availability": 0.2,
-            "grid_proximity": 0.1
+            "grid_proximity": 0.1,
         }
 
-        response = client.get(
-            "/api/v1/analysis/mcda",
-            params={"criteria_weights": custom_weights}
-        )
+        response = client.get("/api/v1/analysis/mcda", params={"criteria_weights": custom_weights})
 
         assert response.status_code == 200
         data = response.json()
@@ -109,16 +110,10 @@ class TestCustomAnalysis:
         """Test custom analysis with user-defined config"""
         analysis_config = {
             "analysis_type": "biomass_density",
-            "parameters": {
-                "radius_km": 50,
-                "min_threshold": 100000
-            }
+            "parameters": {"radius_km": 50, "min_threshold": 100000},
         }
 
-        response = client.post(
-            "/api/v1/analysis/custom",
-            json=analysis_config
-        )
+        response = client.post("/api/v1/analysis/custom", json=analysis_config)
 
         assert response.status_code == 200
         data = response.json()
@@ -139,26 +134,28 @@ class TestByResidueAnalysis:
         mock_select = Mock()
         mock_table.select.return_value = mock_select
 
-        mock_select.execute.return_value = MockSupabaseResponse([
-            {
-                "id": 1,
-                "municipality_name": "São Paulo",
-                "ibge_code": "3550308",
-                "administrative_region": "Metropolitana de São Paulo",
-                "population": 12000000,
-                "area_km2": 1521.0,
-                "agricultural_biogas_m3_year": 150000000
-            },
-            {
-                "id": 2,
-                "municipality_name": "Campinas",
-                "ibge_code": "3509502",
-                "administrative_region": "Metropolitana de Campinas",
-                "population": 1200000,
-                "area_km2": 795.0,
-                "agricultural_biogas_m3_year": 120000000
-            }
-        ])
+        mock_select.execute.return_value = MockSupabaseResponse(
+            [
+                {
+                    "id": 1,
+                    "municipality_name": "São Paulo",
+                    "ibge_code": "3550308",
+                    "administrative_region": "Metropolitana de São Paulo",
+                    "population": 12000000,
+                    "area_km2": 1521.0,
+                    "agricultural_biogas_m3_year": 150000000,
+                },
+                {
+                    "id": 2,
+                    "municipality_name": "Campinas",
+                    "ibge_code": "3509502",
+                    "administrative_region": "Metropolitana de Campinas",
+                    "population": 1200000,
+                    "area_km2": 795.0,
+                    "agricultural_biogas_m3_year": 120000000,
+                },
+            ]
+        )
 
         response = client.get("/api/v1/analysis/by-residue?category=agricultural")
 
@@ -186,25 +183,24 @@ class TestByResidueAnalysis:
         mock_select = Mock()
         mock_table.select.return_value = mock_select
 
-        mock_select.execute.return_value = MockSupabaseResponse([
-            {
-                "id": 1,
-                "municipality_name": "Ribeirão Preto",
-                "ibge_code": "3543402",
-                "administrative_region": "Ribeirão Preto",
-                "population": 700000,
-                "area_km2": 650.0,
-                "sugarcane_biogas_m3_year": 80000000,
-                "soybean_biogas_m3_year": 20000000
-            }
-        ])
+        mock_select.execute.return_value = MockSupabaseResponse(
+            [
+                {
+                    "id": 1,
+                    "municipality_name": "Ribeirão Preto",
+                    "ibge_code": "3543402",
+                    "administrative_region": "Ribeirão Preto",
+                    "population": 700000,
+                    "area_km2": 650.0,
+                    "sugarcane_biogas_m3_year": 80000000,
+                    "soybean_biogas_m3_year": 20000000,
+                }
+            ]
+        )
 
         response = client.get(
             "/api/v1/analysis/by-residue",
-            params={
-                "category": "agricultural",
-                "residue_types": ["sugarcane", "soybean"]
-            }
+            params={"category": "agricultural", "residue_types": ["sugarcane", "soybean"]},
         )
 
         assert response.status_code == 200
@@ -224,17 +220,19 @@ class TestByResidueAnalysis:
         mock_select = Mock()
         mock_table.select.return_value = mock_select
 
-        mock_select.execute.return_value = MockSupabaseResponse([
-            {
-                "id": 1,
-                "municipality_name": "Toledo",
-                "ibge_code": "4127700",
-                "administrative_region": "Oeste Paulista",
-                "population": 140000,
-                "area_km2": 1200.0,
-                "livestock_biogas_m3_year": 90000000
-            }
-        ])
+        mock_select.execute.return_value = MockSupabaseResponse(
+            [
+                {
+                    "id": 1,
+                    "municipality_name": "Toledo",
+                    "ibge_code": "4127700",
+                    "administrative_region": "Oeste Paulista",
+                    "population": 140000,
+                    "area_km2": 1200.0,
+                    "livestock_biogas_m3_year": 90000000,
+                }
+            ]
+        )
 
         response = client.get("/api/v1/analysis/by-residue?category=livestock")
 
@@ -251,17 +249,19 @@ class TestByResidueAnalysis:
         mock_select = Mock()
         mock_table.select.return_value = mock_select
 
-        mock_select.execute.return_value = MockSupabaseResponse([
-            {
-                "id": 1,
-                "municipality_name": "São Paulo",
-                "ibge_code": "3550308",
-                "administrative_region": "Metropolitana de São Paulo",
-                "population": 12000000,
-                "area_km2": 1521.0,
-                "urban_biogas_m3_year": 200000000
-            }
-        ])
+        mock_select.execute.return_value = MockSupabaseResponse(
+            [
+                {
+                    "id": 1,
+                    "municipality_name": "São Paulo",
+                    "ibge_code": "3550308",
+                    "administrative_region": "Metropolitana de São Paulo",
+                    "population": 12000000,
+                    "area_km2": 1521.0,
+                    "urban_biogas_m3_year": 200000000,
+                }
+            ]
+        )
 
         response = client.get("/api/v1/analysis/by-residue?category=urban")
 
@@ -286,7 +286,7 @@ class TestByResidueAnalysis:
                 "administrative_region": "Teste",
                 "population": 100000,
                 "area_km2": 500.0,
-                "agricultural_biogas_m3_year": 100000000 - (i * 1000000)
+                "agricultural_biogas_m3_year": 100000000 - (i * 1000000),
             }
             for i in range(50)
         ]
@@ -307,26 +307,28 @@ class TestByResidueAnalysis:
         mock_select = Mock()
         mock_table.select.return_value = mock_select
 
-        mock_select.execute.return_value = MockSupabaseResponse([
-            {
-                "id": 1,
-                "municipality_name": "High Value",
-                "ibge_code": "3550308",
-                "administrative_region": "Teste",
-                "population": 100000,
-                "area_km2": 500.0,
-                "agricultural_biogas_m3_year": 150000000
-            },
-            {
-                "id": 2,
-                "municipality_name": "Low Value",
-                "ibge_code": "3509502",
-                "administrative_region": "Teste",
-                "population": 50000,
-                "area_km2": 300.0,
-                "agricultural_biogas_m3_year": 50000000
-            }
-        ])
+        mock_select.execute.return_value = MockSupabaseResponse(
+            [
+                {
+                    "id": 1,
+                    "municipality_name": "High Value",
+                    "ibge_code": "3550308",
+                    "administrative_region": "Teste",
+                    "population": 100000,
+                    "area_km2": 500.0,
+                    "agricultural_biogas_m3_year": 150000000,
+                },
+                {
+                    "id": 2,
+                    "municipality_name": "Low Value",
+                    "ibge_code": "3509502",
+                    "administrative_region": "Teste",
+                    "population": 50000,
+                    "area_km2": 300.0,
+                    "agricultural_biogas_m3_year": 50000000,
+                },
+            ]
+        )
 
         response = client.get(
             "/api/v1/analysis/by-residue?category=agricultural&min_value=100000000"
@@ -360,10 +362,7 @@ class TestByResidueAnalysis:
         """Test error handling for invalid residue types"""
         response = client.get(
             "/api/v1/analysis/by-residue",
-            params={
-                "category": "agricultural",
-                "residue_types": ["invalid_residue"]
-            }
+            params={"category": "agricultural", "residue_types": ["invalid_residue"]},
         )
 
         assert response.status_code == 400
@@ -394,20 +393,22 @@ class TestStatisticsByCategory:
         mock_select = Mock()
         mock_table.select.return_value = mock_select
 
-        mock_select.execute.return_value = MockSupabaseResponse([
-            {
-                "agricultural_biogas_m3_year": 150000000,
-                "livestock_biogas_m3_year": 80000000,
-                "urban_biogas_m3_year": 120000000,
-                "total_biogas_m3_year": 350000000
-            },
-            {
-                "agricultural_biogas_m3_year": 100000000,
-                "livestock_biogas_m3_year": 60000000,
-                "urban_biogas_m3_year": 90000000,
-                "total_biogas_m3_year": 250000000
-            }
-        ])
+        mock_select.execute.return_value = MockSupabaseResponse(
+            [
+                {
+                    "agricultural_biogas_m3_year": 150000000,
+                    "livestock_biogas_m3_year": 80000000,
+                    "urban_biogas_m3_year": 120000000,
+                    "total_biogas_m3_year": 350000000,
+                },
+                {
+                    "agricultural_biogas_m3_year": 100000000,
+                    "livestock_biogas_m3_year": 60000000,
+                    "urban_biogas_m3_year": 90000000,
+                    "total_biogas_m3_year": 250000000,
+                },
+            ]
+        )
 
         response = client.get("/api/v1/analysis/statistics/by-category")
 
@@ -474,20 +475,22 @@ class TestStatisticsByRegion:
         mock_select = Mock()
         mock_table.select.return_value = mock_select
 
-        mock_select.execute.return_value = MockSupabaseResponse([
-            {
-                "administrative_region": "Metropolitana de São Paulo",
-                "total_biogas_m3_year": 400000000
-            },
-            {
-                "administrative_region": "Metropolitana de Campinas",
-                "total_biogas_m3_year": 200000000
-            },
-            {
-                "administrative_region": "Metropolitana de São Paulo",
-                "total_biogas_m3_year": 100000000
-            }
-        ])
+        mock_select.execute.return_value = MockSupabaseResponse(
+            [
+                {
+                    "administrative_region": "Metropolitana de São Paulo",
+                    "total_biogas_m3_year": 400000000,
+                },
+                {
+                    "administrative_region": "Metropolitana de Campinas",
+                    "total_biogas_m3_year": 200000000,
+                },
+                {
+                    "administrative_region": "Metropolitana de São Paulo",
+                    "total_biogas_m3_year": 100000000,
+                },
+            ]
+        )
 
         response = client.get("/api/v1/analysis/statistics/by-region")
 
@@ -518,12 +521,9 @@ class TestStatisticsByRegion:
         mock_select = Mock()
         mock_table.select.return_value = mock_select
 
-        mock_select.execute.return_value = MockSupabaseResponse([
-            {
-                "administrative_region": "Ribeirão Preto",
-                "agricultural_biogas_m3_year": 300000000
-            }
-        ])
+        mock_select.execute.return_value = MockSupabaseResponse(
+            [{"administrative_region": "Ribeirão Preto", "agricultural_biogas_m3_year": 300000000}]
+        )
 
         response = client.get("/api/v1/analysis/statistics/by-region?category=agricultural")
 
@@ -539,12 +539,9 @@ class TestStatisticsByRegion:
         mock_select = Mock()
         mock_table.select.return_value = mock_select
 
-        mock_select.execute.return_value = MockSupabaseResponse([
-            {
-                "administrative_region": None,
-                "total_biogas_m3_year": 50000000
-            }
-        ])
+        mock_select.execute.return_value = MockSupabaseResponse(
+            [{"administrative_region": None, "total_biogas_m3_year": 50000000}]
+        )
 
         response = client.get("/api/v1/analysis/statistics/by-region")
 
@@ -652,7 +649,10 @@ class TestDistribution:
         mock_table.select.return_value = mock_select
 
         municipalities = [
-            {"municipality_name": f"Mun{i}", "agricultural_biogas_m3_year": 50000000 + (i * 2000000)}
+            {
+                "municipality_name": f"Mun{i}",
+                "agricultural_biogas_m3_year": 50000000 + (i * 2000000),
+            }
             for i in range(15)
         ]
 
@@ -697,8 +697,7 @@ class TestDistribution:
         mock_table.select.return_value = mock_select
 
         municipalities = [
-            {"municipality_name": f"Mun{i}", "total_biogas_m3_year": 0}
-            for i in range(10)
+            {"municipality_name": f"Mun{i}", "total_biogas_m3_year": 0} for i in range(10)
         ]
 
         mock_select.execute.return_value = MockSupabaseResponse(municipalities)

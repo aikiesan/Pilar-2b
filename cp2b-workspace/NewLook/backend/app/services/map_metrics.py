@@ -53,6 +53,7 @@ ALL_STREAMS: tuple[str, ...] = AGRI_STREAMS + LIVESTOCK_STREAMS + URBAN_STREAMS
 @dataclass
 class StreamMetrics:
     """Per-scenario metrics for a single feedstock stream at one municipality."""
+
     stream: str
     has_biomass: bool  # True when authoritative biomass data is available
     biomass_gross: float  # t/yr (single value; measured input)
@@ -64,13 +65,20 @@ class StreamMetrics:
 @dataclass
 class MunicipalityMapMetrics:
     """All 4-metric × 3-scenario metrics for one municipality."""
+
     ibge_code: str
     streams: dict[str, StreamMetrics] = field(default_factory=dict)
     # Municipality-level totals (sum across streams, per scenario)
     biomass_gross_total: float = 0.0
-    biomass_corrected_total: dict[str, float] = field(default_factory=lambda: {sc: 0.0 for sc in SCENARIOS})
-    biogas_ch4_total: dict[str, float] = field(default_factory=lambda: {sc: 0.0 for sc in SCENARIOS})
-    biomethane_total: dict[str, float] = field(default_factory=lambda: {sc: 0.0 for sc in SCENARIOS})
+    biomass_corrected_total: dict[str, float] = field(
+        default_factory=lambda: {sc: 0.0 for sc in SCENARIOS}
+    )
+    biogas_ch4_total: dict[str, float] = field(
+        default_factory=lambda: {sc: 0.0 for sc in SCENARIOS}
+    )
+    biomethane_total: dict[str, float] = field(
+        default_factory=lambda: {sc: 0.0 for sc in SCENARIOS}
+    )
 
     def to_flat_dict(self) -> dict[str, Any]:
         """Flatten to property dict suitable for GeoJSON feature properties."""
@@ -104,8 +112,7 @@ def _compute_from_biomass(
     """
     result: BiogasResult = calculate_feedstock(biomass_tons, params)
     biomass_corrected = {
-        sc: round(biomass_tons * params.availability.get(sc), 2)
-        for sc in SCENARIOS
+        sc: round(biomass_tons * params.availability.get(sc), 2) for sc in SCENARIOS
     }
     biomethane = _biomethane_from_ch4(result.ch4_practical_m3)
     return biomass_corrected, result.ch4_practical_m3, biomethane

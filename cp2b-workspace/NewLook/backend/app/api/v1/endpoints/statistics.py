@@ -1,9 +1,11 @@
 """
 PILAR-2b V3 - Statistics API Endpoint
 """
-from fastapi import APIRouter, HTTPException, Depends
+
 import logging
-from typing import Dict, Any
+from typing import Any, Dict
+
+from fastapi import APIRouter, Depends, HTTPException
 
 from app.core.database import get_db
 from app.middleware.auth import require_authenticated
@@ -34,11 +36,11 @@ async def get_summary_statistics() -> Dict[str, Any]:
             row = cursor.fetchone()
             cursor.close()
 
-        n            = int(row["total_municipalities"] or 0)
+        n = int(row["total_municipalities"] or 0)
         total_biogas = float(row["total_biogas"] or 0)
-        total_urban  = float(row["total_urban"] or 0)
-        total_agri   = float(row["total_agricultural"] or 0)
-        total_live   = float(row["total_livestock"] or 0)
+        total_urban = float(row["total_urban"] or 0)
+        total_agri = float(row["total_agricultural"] or 0)
+        total_live = float(row["total_livestock"] or 0)
 
         def _pct(val):
             return round(val / total_biogas * 100, 2) if total_biogas > 0 else 0
@@ -52,9 +54,15 @@ async def get_summary_statistics() -> Dict[str, Any]:
             "total_population": int(row["total_population"] or 0),
             "average_biogas_m3_year": round(total_biogas / n, 2) if n > 0 else 0,
             "by_category": {
-                "urban":        {"total_m3_year": round(total_urban, 2), "percentage": _pct(total_urban)},
-                "agricultural": {"total_m3_year": round(total_agri,  2), "percentage": _pct(total_agri)},
-                "livestock":    {"total_m3_year": round(total_live,  2), "percentage": _pct(total_live)},
+                "urban": {"total_m3_year": round(total_urban, 2), "percentage": _pct(total_urban)},
+                "agricultural": {
+                    "total_m3_year": round(total_agri, 2),
+                    "percentage": _pct(total_agri),
+                },
+                "livestock": {
+                    "total_m3_year": round(total_live, 2),
+                    "percentage": _pct(total_live),
+                },
             },
             "metadata": {
                 "source": "Local PostgreSQL",
@@ -73,9 +81,9 @@ async def get_category_statistics(
     current_user: UserProfile = Depends(require_authenticated),
 ) -> Dict[str, Any]:
     category_columns = {
-        "urban":        "urban_biogas_m3_year",
+        "urban": "urban_biogas_m3_year",
         "agricultural": "agricultural_biogas_m3_year",
-        "livestock":    "livestock_biogas_m3_year",
+        "livestock": "livestock_biogas_m3_year",
     }
     if category not in category_columns:
         raise HTTPException(
@@ -102,12 +110,14 @@ async def get_category_statistics(
         return {
             "category": category,
             "municipalities_with_data": int(row["count"] or 0),
-            "total_m3_year":   round(float(row["total"]   or 0), 2),
-            "average_m3_year": round(float(row["avg"]     or 0), 2),
-            "max_m3_year":     round(float(row["maximum"] or 0), 2),
-            "min_m3_year":     round(float(row["minimum"] or 0), 2),
+            "total_m3_year": round(float(row["total"] or 0), 2),
+            "average_m3_year": round(float(row["avg"] or 0), 2),
+            "max_m3_year": round(float(row["maximum"] or 0), 2),
+            "min_m3_year": round(float(row["minimum"] or 0), 2),
         }
 
     except Exception as e:
         logger.error(f"Failed to fetch category statistics: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to fetch category statistics: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to fetch category statistics: {str(e)}"
+        )

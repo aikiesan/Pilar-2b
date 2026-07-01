@@ -20,11 +20,7 @@ async def security_headers_middleware(request: Request, call_next):
     # Don't leak full URLs as referrers to third parties.
     response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
     # Drop access to powerful browser features the API never needs.
-    response.headers.setdefault(
-        "Permissions-Policy", "geolocation=(), microphone=(), camera=()"
-    )
+    response.headers.setdefault("Permissions-Policy", "geolocation=(), microphone=(), camera=()")
     # Enforce HTTPS for a year (the platform is served over TLS in production).
-    response.headers.setdefault(
-        "Strict-Transport-Security", "max-age=31536000; includeSubDomains"
-    )
+    response.headers.setdefault("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
     return response

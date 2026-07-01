@@ -4,12 +4,14 @@ Unit tests for app.middleware.response_compression
 Covers gzip_middleware behaviour: compression of large responses, pass-through
 for small responses, accept-encoding negotiation, and already-compressed content.
 """
+
 import asyncio
 import gzip
 import json
+
 import pytest
 from fastapi import FastAPI
-from fastapi.responses import JSONResponse, Response, PlainTextResponse
+from fastapi.responses import JSONResponse, PlainTextResponse, Response
 from fastapi.testclient import TestClient
 from starlette.datastructures import Headers
 from starlette.requests import Request
@@ -17,13 +19,12 @@ from starlette.types import Scope
 
 from app.middleware.response_compression import gzip_middleware
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
-_THRESHOLD = 1024          # gzip_middleware only compresses bodies > 1 KB
-_SMALL_BODY = b"hi"        # well under threshold
+_THRESHOLD = 1024  # gzip_middleware only compresses bodies > 1 KB
+_SMALL_BODY = b"hi"  # well under threshold
 _LARGE_BODY = b"A" * 2048  # well over threshold
 
 
@@ -43,6 +44,7 @@ def _make_app(response_body: bytes = _LARGE_BODY, media_type: str = "text/plain"
 # Module-scoped clients for the most common scenarios
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture(scope="module")
 def large_response_client():
     """App returning a 2 KB plaintext body (above threshold)."""
@@ -60,6 +62,7 @@ def small_response_client():
 # ---------------------------------------------------------------------------
 # Direct async invocation helpers
 # ---------------------------------------------------------------------------
+
 
 def _make_mock_request(accept_encoding: str = "gzip") -> Request:
     """Build a minimal Starlette Request with the given Accept-Encoding header."""
@@ -82,6 +85,7 @@ def _run(coro):
 # Compression behaviour tests — direct middleware invocation
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.unit
 class TestGzipCompression:
     """
@@ -94,6 +98,7 @@ class TestGzipCompression:
 
     def test_large_response_is_compressed_directly(self):
         """Middleware must set Content-Encoding: gzip for a large Response."""
+
         async def call_next(request):
             return Response(content=_LARGE_BODY, media_type="text/plain")
 
@@ -103,6 +108,7 @@ class TestGzipCompression:
 
     def test_compressed_body_decodes_to_original(self):
         """Compressed body must decompress back to the original bytes."""
+
         async def call_next(request):
             return Response(content=_LARGE_BODY, media_type="text/plain")
 
@@ -112,6 +118,7 @@ class TestGzipCompression:
 
     def test_content_length_reflects_compressed_size(self):
         """Content-Length header must equal the compressed body length."""
+
         async def call_next(request):
             return Response(content=_LARGE_BODY, media_type="text/plain")
 
@@ -137,15 +144,14 @@ class TestGzipCompression:
 # No-compression scenarios
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.unit
 class TestNoCompression:
     """Responses should not be compressed when conditions aren't met."""
 
     def test_small_response_not_compressed(self, small_response_client):
         """Bodies at or below the 1 KB threshold must pass through uncompressed."""
-        response = small_response_client.get(
-            "/data", headers={"Accept-Encoding": "gzip"}
-        )
+        response = small_response_client.get("/data", headers={"Accept-Encoding": "gzip"})
         assert response.status_code == 200
         assert response.headers.get("content-encoding") != "gzip"
 
@@ -157,9 +163,7 @@ class TestNoCompression:
 
     def test_different_accept_encoding_not_compressed(self, large_response_client):
         """Accept-Encoding: identity (no gzip) must not trigger compression."""
-        response = large_response_client.get(
-            "/data", headers={"Accept-Encoding": "identity"}
-        )
+        response = large_response_client.get("/data", headers={"Accept-Encoding": "identity"})
         assert response.status_code == 200
         assert response.headers.get("content-encoding") != "gzip"
 
@@ -208,6 +212,7 @@ class TestNoCompression:
 # Edge-case: exactly at threshold
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.unit
 class TestCompressionThresholdBoundary:
     """Verify boundary behaviour around the 1 KB threshold."""
@@ -238,12 +243,14 @@ class TestCompressionThresholdBoundary:
 # Accept-Encoding header variations
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.unit
 class TestAcceptEncodingVariants:
     """gzip in a multi-value Accept-Encoding header must still trigger compression."""
 
     def test_gzip_in_multi_value_accept_encoding(self):
         """'deflate, gzip, br' must be recognised as accepting gzip (direct invocation)."""
+
         async def call_next(request):
             return Response(content=_LARGE_BODY, media_type="text/plain")
 
@@ -253,8 +260,6 @@ class TestAcceptEncodingVariants:
 
     def test_empty_accept_encoding_not_compressed(self, large_response_client):
         """An empty Accept-Encoding header must not trigger compression."""
-        response = large_response_client.get(
-            "/data", headers={"Accept-Encoding": ""}
-        )
+        response = large_response_client.get("/data", headers={"Accept-Encoding": ""})
         assert response.status_code == 200
         assert response.headers.get("content-encoding") != "gzip"

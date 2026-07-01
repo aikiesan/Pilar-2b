@@ -15,8 +15,8 @@ from pathlib import Path
 
 import psycopg2
 
-BACKEND_DIR = Path(__file__).resolve().parent.parent   # …/backend/
-MIGRATIONS  = [
+BACKEND_DIR = Path(__file__).resolve().parent.parent  # …/backend/
+MIGRATIONS = [
     BACKEND_DIR / "migrations" / "012_cp2b_residue_streams.sql",
     BACKEND_DIR / "migrations" / "013_cp2b_municipality_summary.sql",
 ]

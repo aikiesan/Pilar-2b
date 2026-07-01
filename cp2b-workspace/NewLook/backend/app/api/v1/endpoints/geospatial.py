@@ -4,13 +4,14 @@ Serve spatial data for interactive maps and spatial analysis.
 All geometry comes from local shapefiles; tabular data from local PostgreSQL.
 """
 
-from fastapi import APIRouter, HTTPException, Query, Depends
-from typing import List, Optional, Dict, Any
-from pydantic import BaseModel, Field
 import logging
-import psycopg2
 from pathlib import Path
+from typing import Any, Dict, List, Optional
+
 import geopandas as gpd
+import psycopg2
+from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel, Field
 from shapely.geometry import Point
 
 from app.core.database import get_db
@@ -20,8 +21,19 @@ from app.utils.shapefile_loader import get_shapefile_loader
 
 shapefile_loader = get_shapefile_loader()
 
-SHAPEFILE_PATH = Path(__file__).parent.parent.parent.parent.parent / "data" / "shapefiles" / "SP_Municipios_2024.shp"
-SHAPEFILE_PATH_ALT = Path(__file__).parent.parent.parent.parent.parent.parent.parent / "project_map" / "data" / "shapefile" / "SP_Municipios_2024.shp"
+SHAPEFILE_PATH = (
+    Path(__file__).parent.parent.parent.parent.parent
+    / "data"
+    / "shapefiles"
+    / "SP_Municipios_2024.shp"
+)
+SHAPEFILE_PATH_ALT = (
+    Path(__file__).parent.parent.parent.parent.parent.parent.parent
+    / "project_map"
+    / "data"
+    / "shapefile"
+    / "SP_Municipios_2024.shp"
+)
 
 _geo_gdf = None
 
@@ -33,17 +45,27 @@ logger = logging.getLogger(__name__)
 # ============================================================================
 
 VALID_REGIONS = {
-    "Central", "Bauru", "Araçatuba", "Ribeirão Preto",
-    "Campinas", "São José dos Campos", "Sorocaba",
-    "Santos", "São Paulo", "Presidente Prudente",
-    "Marília", "Registro", "Franca", "São José do Rio Preto"
+    "Central",
+    "Bauru",
+    "Araçatuba",
+    "Ribeirão Preto",
+    "Campinas",
+    "São José dos Campos",
+    "Sorocaba",
+    "Santos",
+    "São Paulo",
+    "Presidente Prudente",
+    "Marília",
+    "Registro",
+    "Franca",
+    "São José do Rio Preto",
 }
 
 ALLOWED_SORT_COLUMNS = {
     "biogas": "total_biogas_m3_year",
     "name": "municipality_name",
     "population": "population",
-    "area": "area_km2"
+    "area": "area_km2",
 }
 
 ALLOWED_ORDERS = {"asc": "ASC", "desc": "DESC"}
@@ -51,6 +73,7 @@ ALLOWED_ORDERS = {"asc": "ASC", "desc": "DESC"}
 # ============================================================================
 # PYDANTIC MODELS
 # ============================================================================
+
 
 class GeoJSONFeature(BaseModel):
     type: str = "Feature"
@@ -124,6 +147,7 @@ class MapBounds(BaseModel):
 # HELPERS
 # ============================================================================
 
+
 def _load_geo_gdf():
     """Load and cache the municipalities GeoDataFrame."""
     global _geo_gdf
@@ -137,7 +161,7 @@ def _load_geo_gdf():
         else:
             raise HTTPException(
                 status_code=500,
-                detail=f"Shapefile not found at {SHAPEFILE_PATH} or {SHAPEFILE_PATH_ALT}"
+                detail=f"Shapefile not found at {SHAPEFILE_PATH} or {SHAPEFILE_PATH_ALT}",
             )
         _geo_gdf = gpd.read_file(shapefile_to_use)
         logger.info(f"✅ Loaded {len(_geo_gdf)} municipality polygons from shapefile")
@@ -172,16 +196,19 @@ def _fetch_municipalities_db(columns: str) -> Dict[str, Dict]:
 # GEOJSON ENDPOINTS
 # ============================================================================
 
+
 @router.get(
     "/municipalities/geojson",
     summary="Get municipalities as GeoJSON",
-    description="Returns all municipalities with boundaries and biogas data as GeoJSON FeatureCollection"
+    description="Returns all municipalities with boundaries and biogas data as GeoJSON FeatureCollection",
 )
 async def get_municipalities_geojson(
     limit: Optional[int] = Query(None, ge=1, le=1000, description="Limit number of features"),
-    min_biogas: Optional[float] = Query(None, ge=0, description="Minimum biogas potential (m³/year)"),
+    min_biogas: Optional[float] = Query(
+        None, ge=0, description="Minimum biogas potential (m³/year)"
+    ),
     region: Optional[str] = Query(None, description="Filter by administrative region"),
-    current_user: Optional[UserProfile] = Depends(optional_auth)
+    current_user: Optional[UserProfile] = Depends(optional_auth),
 ):
     with get_db() as conn:
         cursor = conn.cursor()
@@ -281,10 +308,10 @@ async def get_municipalities_geojson(
             cursor.execute(query, params)
             result = cursor.fetchone()
 
-            if not result or not result.get('geojson'):
+            if not result or not result.get("geojson"):
                 return GeoJSONFeatureCollection(type="FeatureCollection", features=[])
 
-            return result['geojson']
+            return result["geojson"]
 
         except psycopg2.Error as e:
             logger.error(f"Database error in get_municipalities_geojson: {e}")
@@ -296,11 +323,11 @@ async def get_municipalities_geojson(
 @router.get(
     "/municipalities/centroids",
     summary="Get municipality centroids",
-    description="Returns municipality center points (faster than full polygons)"
+    description="Returns municipality center points (faster than full polygons)",
 )
 async def get_municipality_centroids(
     limit: Optional[int] = Query(None, ge=1, le=1000),
-    min_biogas: Optional[float] = Query(None, ge=0)
+    min_biogas: Optional[float] = Query(None, ge=0),
 ):
     try:
         gdf = _load_geo_gdf()
@@ -324,16 +351,18 @@ async def get_municipality_centroids(
             centroid = shp_row.geometry.centroid
             geometry = {"type": "Point", "coordinates": [centroid.x, centroid.y]}
 
-            features.append({
-                "type": "Feature",
-                "geometry": geometry,
-                "properties": {
-                    "id": biogas_data.get("id"),
-                    "name": biogas_data.get("municipality_name") or "",
-                    "biogas": round(total_biogas, 2),
-                },
-                "_sort_key": total_biogas
-            })
+            features.append(
+                {
+                    "type": "Feature",
+                    "geometry": geometry,
+                    "properties": {
+                        "id": biogas_data.get("id"),
+                        "name": biogas_data.get("municipality_name") or "",
+                        "biogas": round(total_biogas, 2),
+                    },
+                    "_sort_key": total_biogas,
+                }
+            )
 
         features.sort(key=lambda f: f["_sort_key"], reverse=True)
         if limit:
@@ -347,6 +376,7 @@ async def get_municipality_centroids(
         raise
     except Exception as e:
         import traceback as _tb
+
         logger.error(f"Error in get_municipality_centroids: {e}\n{_tb.format_exc()}")
         raise HTTPException(status_code=500, detail=f"Error: {type(e).__name__}: {str(e)}")
 
@@ -354,13 +384,12 @@ async def get_municipality_centroids(
 @router.get(
     "/municipalities/polygons",
     summary="Get municipalities with polygon boundaries from shapefile",
-    description="Returns municipality polygon boundaries from shapefile with biogas data"
+    description="Returns municipality polygon boundaries from shapefile with biogas data",
 )
 async def get_municipalities_polygons():
     try:
         shapefile_geojson = shapefile_loader.load_shapefile_as_geojson(
-            "SP_Municipios_2024",
-            simplify_tolerance=0.001
+            "SP_Municipios_2024", simplify_tolerance=0.001
         )
     except Exception as e:
         logger.error(f"Error loading municipality shapefile: {e}")
@@ -389,11 +418,19 @@ async def get_municipalities_polygons():
     for row in rows:
         ibge_code = str(row.get("ibge_code", "")).strip()
         name = str(row.get("municipality_name", "")).strip().upper()
-        data = {k: (row.get(k) or 0) for k in [
-            "total_biogas_m3_year", "urban_biogas_m3_year", "agricultural_biogas_m3_year",
-            "livestock_biogas_m3_year", "energy_potential_mwh_year", "co2_reduction_tons_year",
-            "population", "area_km2"
-        ]}
+        data = {
+            k: (row.get(k) or 0)
+            for k in [
+                "total_biogas_m3_year",
+                "urban_biogas_m3_year",
+                "agricultural_biogas_m3_year",
+                "livestock_biogas_m3_year",
+                "energy_potential_mwh_year",
+                "co2_reduction_tons_year",
+                "population",
+                "area_km2",
+            ]
+        }
         data["population_density"] = row.get("population_density")
         data["population_year"] = row.get("population_year")
         data["area_year"] = row.get("area_year")
@@ -438,47 +475,81 @@ async def get_municipalities_polygons():
                 cat = "BAIXO"
             else:
                 cat = "SEM DADOS"
-            enriched_props.update({
-                "total_biogas": round(tb, 2),
-                "total_biogas_m3_year": round(tb, 2),
-                "urban_biogas_m3_year": round(float(biogas_data["urban_biogas_m3_year"] or 0), 2),
-                "agricultural_biogas_m3_year": round(float(biogas_data["agricultural_biogas_m3_year"] or 0), 2),
-                "livestock_biogas_m3_year": round(float(biogas_data["livestock_biogas_m3_year"] or 0), 2),
-                "energy_potential_mwh_year": round(float(biogas_data["energy_potential_mwh_year"] or 0), 2),
-                "co2_reduction_tons_year": round(float(biogas_data["co2_reduction_tons_year"] or 0), 2),
-                "population": pop,
-                "region": biogas_data["administrative_region"],
-                "immediate_region": biogas_data["immediate_region"],
-                "intermediate_region": biogas_data["intermediate_region"],
-                "immediate_region_code": biogas_data["immediate_region_code"],
-                "intermediate_region_code": biogas_data["intermediate_region_code"],
-                "area_km2": round(area, 2),
-                "population_density": round(
-                    float(biogas_data.get("population_density") or (pop / area if area > 0 else 0)),
-                    2
-                ),
-                "population_year": biogas_data.get("population_year"),
-                "area_year": biogas_data.get("area_year"),
-                "gdp_total": round(float(biogas_data.get("gdp_total") or 0), 2),
-                "gdp_per_capita": round(float(biogas_data.get("gdp_per_capita") or 0), 2),
-                "gdp_year": biogas_data.get("gdp_year"),
-                "potential_category": cat,
-            })
+            enriched_props.update(
+                {
+                    "total_biogas": round(tb, 2),
+                    "total_biogas_m3_year": round(tb, 2),
+                    "urban_biogas_m3_year": round(
+                        float(biogas_data["urban_biogas_m3_year"] or 0), 2
+                    ),
+                    "agricultural_biogas_m3_year": round(
+                        float(biogas_data["agricultural_biogas_m3_year"] or 0), 2
+                    ),
+                    "livestock_biogas_m3_year": round(
+                        float(biogas_data["livestock_biogas_m3_year"] or 0), 2
+                    ),
+                    "energy_potential_mwh_year": round(
+                        float(biogas_data["energy_potential_mwh_year"] or 0), 2
+                    ),
+                    "co2_reduction_tons_year": round(
+                        float(biogas_data["co2_reduction_tons_year"] or 0), 2
+                    ),
+                    "population": pop,
+                    "region": biogas_data["administrative_region"],
+                    "immediate_region": biogas_data["immediate_region"],
+                    "intermediate_region": biogas_data["intermediate_region"],
+                    "immediate_region_code": biogas_data["immediate_region_code"],
+                    "intermediate_region_code": biogas_data["intermediate_region_code"],
+                    "area_km2": round(area, 2),
+                    "population_density": round(
+                        float(
+                            biogas_data.get("population_density") or (pop / area if area > 0 else 0)
+                        ),
+                        2,
+                    ),
+                    "population_year": biogas_data.get("population_year"),
+                    "area_year": biogas_data.get("area_year"),
+                    "gdp_total": round(float(biogas_data.get("gdp_total") or 0), 2),
+                    "gdp_per_capita": round(float(biogas_data.get("gdp_per_capita") or 0), 2),
+                    "gdp_year": biogas_data.get("gdp_year"),
+                    "potential_category": cat,
+                }
+            )
         else:
-            enriched_props.update({k: 0 for k in [
-                "total_biogas", "total_biogas_m3_year", "urban_biogas_m3_year",
-                "agricultural_biogas_m3_year", "livestock_biogas_m3_year",
-                "energy_potential_mwh_year", "co2_reduction_tons_year",
-                "population", "area_km2", "population_density"
-            ]})
-            enriched_props.update({"region": "", "immediate_region": "", "intermediate_region": "", "potential_category": "SEM DADOS"})
+            enriched_props.update(
+                {
+                    k: 0
+                    for k in [
+                        "total_biogas",
+                        "total_biogas_m3_year",
+                        "urban_biogas_m3_year",
+                        "agricultural_biogas_m3_year",
+                        "livestock_biogas_m3_year",
+                        "energy_potential_mwh_year",
+                        "co2_reduction_tons_year",
+                        "population",
+                        "area_km2",
+                        "population_density",
+                    ]
+                }
+            )
+            enriched_props.update(
+                {
+                    "region": "",
+                    "immediate_region": "",
+                    "intermediate_region": "",
+                    "potential_category": "SEM DADOS",
+                }
+            )
 
-        enriched_features.append({
-            "type": "Feature",
-            "id": enriched_props["id"],
-            "geometry": feature.get("geometry"),
-            "properties": enriched_props,
-        })
+        enriched_features.append(
+            {
+                "type": "Feature",
+                "id": enriched_props["id"],
+                "geometry": feature.get("geometry"),
+                "properties": enriched_props,
+            }
+        )
 
     logger.info(f"Matched {matched_count}/{len(enriched_features)} municipalities with biogas data")
 
@@ -489,7 +560,7 @@ async def get_municipalities_polygons():
             "total_features": len(enriched_features),
             "matched_with_biogas": matched_count,
             "source": "SP_Municipios_2024.shp + PostgreSQL municipalities table",
-        }
+        },
     }
 
 
@@ -497,17 +568,18 @@ async def get_municipalities_polygons():
 # MUNICIPALITY DATA ENDPOINTS
 # ============================================================================
 
+
 @router.get(
     "/municipalities",
     response_model=List[MunicipalityBasic],
     summary="List municipalities",
-    description="Get basic information for all municipalities"
+    description="Get basic information for all municipalities",
 )
 async def list_municipalities(
     limit: int = Query(100, ge=1, le=1000),
     offset: int = Query(0, ge=0),
     sort_by: str = Query("biogas", enum=["biogas", "name", "population"]),
-    order: str = Query("desc", enum=["asc", "desc"])
+    order: str = Query("desc", enum=["asc", "desc"]),
 ):
     sort_column = ALLOWED_SORT_COLUMNS.get(sort_by, "total_biogas_m3_year")
     sort_order = ALLOWED_ORDERS.get(order, "DESC")
@@ -516,14 +588,17 @@ async def list_municipalities(
         with get_db() as conn:
             cursor = conn.cursor()
             try:
-                cursor.execute(f"""
+                cursor.execute(
+                    f"""
                     SELECT id, municipality_name, total_biogas_m3_year, energy_potential_mwh_year,
                            ROW_NUMBER() OVER (ORDER BY total_biogas_m3_year DESC) AS ranking
                     FROM municipalities
                     WHERE total_biogas_m3_year > 0
                     ORDER BY {sort_column} {sort_order}
                     LIMIT %s OFFSET %s
-                """, (limit, offset))
+                """,
+                    (limit, offset),
+                )
                 rows = cursor.fetchall()
             finally:
                 cursor.close()
@@ -534,7 +609,7 @@ async def list_municipalities(
                 municipality_name=r["municipality_name"],
                 total_biogas_m3_year=float(r.get("total_biogas_m3_year") or 0),
                 energy_potential_mwh_year=float(r.get("energy_potential_mwh_year") or 0),
-                ranking=int(r["ranking"])
+                ranking=int(r["ranking"]),
             )
             for r in rows
         ]
@@ -548,7 +623,7 @@ async def list_municipalities(
     "/municipalities/{municipality_id}",
     response_model=MunicipalityDetail,
     summary="Get municipality details",
-    description="Get detailed information for a specific municipality"
+    description="Get detailed information for a specific municipality",
 )
 async def get_municipality(municipality_id: int):
     try:
@@ -572,7 +647,11 @@ async def get_municipality(municipality_id: int):
 
         _lat = row.get("centroid_lat")
         _lng = row.get("centroid_lng")
-        _centroid = {"lat": float(_lat), "lng": float(_lng)} if _lat is not None and _lng is not None else None
+        _centroid = (
+            {"lat": float(_lat), "lng": float(_lng)}
+            if _lat is not None and _lng is not None
+            else None
+        )
 
         return MunicipalityDetail(
             id=row["id"],
@@ -600,8 +679,12 @@ async def get_municipality(municipality_id: int):
             energy_potential_mwh_year=_f("energy_potential_mwh_year"),
             co2_reduction_tons_year=_f("co2_reduction_tons_year"),
             population=int(pop) if pop is not None else None,
-            urban_population=int(row["urban_population"]) if row.get("urban_population") is not None else None,
-            rural_population=int(row["rural_population"]) if row.get("rural_population") is not None else None,
+            urban_population=(
+                int(row["urban_population"]) if row.get("urban_population") is not None else None
+            ),
+            rural_population=(
+                int(row["rural_population"]) if row.get("rural_population") is not None else None
+            ),
             gdp_total=_f("gdp_total") or None,
             gdp_per_capita=_f("gdp_per_capita") or None,
             centroid=_centroid,
@@ -613,7 +696,11 @@ async def get_municipality(municipality_id: int):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error("Error in get_municipality %s: %s", str(municipality_id).replace('\n', ' ').replace('\r', ' ')[:50], e)
+        logger.error(
+            "Error in get_municipality %s: %s",
+            str(municipality_id).replace("\n", " ").replace("\r", " ")[:50],
+            e,
+        )
         raise HTTPException(status_code=500, detail="Failed to fetch municipality")
 
 
@@ -621,10 +708,11 @@ async def get_municipality(municipality_id: int):
 # SPATIAL ANALYSIS ENDPOINTS
 # ============================================================================
 
+
 @router.post(
     "/proximity",
     summary="Proximity analysis",
-    description="Find municipalities within radius of a point"
+    description="Find municipalities within radius of a point",
 )
 async def proximity_analysis(query: ProximityQuery):
     try:
@@ -633,6 +721,7 @@ async def proximity_analysis(query: ProximityQuery):
 
         gdf_proj = gdf.to_crs(epsg=3857)
         from pyproj import Transformer
+
         transformer = Transformer.from_crs("epsg:4326", "epsg:3857", always_xy=True)
         target_x, target_y = transformer.transform(query.longitude, query.latitude)
         target_pt = Point(target_x, target_y)
@@ -646,11 +735,13 @@ async def proximity_analysis(query: ProximityQuery):
             dist = shp_row.geometry.centroid.distance(target_pt)
             if dist <= radius_m:
                 biogas_data = biogas_lookup.get(ibge_code, {})
-                results.append({
-                    "municipality_id": biogas_data.get("id"),
-                    "municipality_name": biogas_data.get("municipality_name") or ibge_code,
-                    "distance_km": round(dist / 1000, 3),
-                })
+                results.append(
+                    {
+                        "municipality_id": biogas_data.get("id"),
+                        "municipality_name": biogas_data.get("municipality_name") or ibge_code,
+                        "distance_km": round(dist / 1000, 3),
+                    }
+                )
 
         results.sort(key=lambda r: r["distance_km"])
 
@@ -674,11 +765,11 @@ async def proximity_analysis(query: ProximityQuery):
 @router.get(
     "/rankings",
     summary="Municipality rankings",
-    description="Get ranked municipalities by different criteria"
+    description="Get ranked municipalities by different criteria",
 )
 async def get_rankings(
     criteria: str = Query("total", enum=["total", "urban", "agricultural", "livestock"]),
-    limit: int = Query(20, ge=1, le=100)
+    limit: int = Query(20, ge=1, le=100),
 ):
     column_map = {
         "total": "total_biogas_m3_year",
@@ -692,13 +783,16 @@ async def get_rankings(
         with get_db() as conn:
             cursor = conn.cursor()
             try:
-                cursor.execute(f"""
+                cursor.execute(
+                    f"""
                     SELECT municipality_name, {column}, energy_potential_mwh_year
                     FROM municipalities
                     WHERE {column} > 0
                     ORDER BY {column} DESC
                     LIMIT %s
-                """, (limit,))
+                """,
+                    (limit,),
+                )
                 rows = cursor.fetchall()
             finally:
                 cursor.close()
@@ -713,7 +807,7 @@ async def get_rankings(
                     "energy_mwh_year": float(r.get("energy_potential_mwh_year") or 0),
                 }
                 for idx, r in enumerate(rows)
-            ]
+            ],
         }
 
     except Exception as e:
@@ -724,7 +818,7 @@ async def get_rankings(
 @router.get(
     "/statistics/summary",
     summary="Overall statistics",
-    description="Get summary statistics for all municipalities"
+    description="Get summary statistics for all municipalities",
 )
 async def get_summary_statistics():
     logger.info("📊 Fetching summary statistics")
@@ -782,7 +876,10 @@ async def get_summary_statistics():
                 "biogas_m3_year": float(top5[0].get("total_biogas_m3_year") or 0) if top5 else 0,
             },
             "top_5_municipalities": [
-                {"name": m["municipality_name"], "biogas_m3_year": float(m.get("total_biogas_m3_year") or 0)}
+                {
+                    "name": m["municipality_name"],
+                    "biogas_m3_year": float(m.get("total_biogas_m3_year") or 0),
+                }
                 for m in top5
             ],
             "categories": {},
@@ -792,7 +889,9 @@ async def get_summary_statistics():
                 "urban": total_urban,
             },
             "sector_percentages": {
-                "agricultural": round((total_agri / total_biogas * 100) if total_biogas > 0 else 0, 2),
+                "agricultural": round(
+                    (total_agri / total_biogas * 100) if total_biogas > 0 else 0, 2
+                ),
                 "livestock": round((total_live / total_biogas * 100) if total_biogas > 0 else 0, 2),
                 "urban": round((total_urban / total_biogas * 100) if total_biogas > 0 else 0, 2),
             },
@@ -822,10 +921,11 @@ async def get_summary_statistics():
 # INFRASTRUCTURE LAYERS
 # ============================================================================
 
+
 @router.get(
     "/infrastructure/biogas-plants",
     summary="Get biogas plants",
-    description="Returns existing biogas plants as GeoJSON points"
+    description="Returns existing biogas plants as GeoJSON points",
 )
 async def get_biogas_plants():
     try:
@@ -849,16 +949,18 @@ async def get_biogas_plants():
             lng = row.get("longitude")
             if lat is None or lng is None:
                 continue
-            features.append({
-                "type": "Feature",
-                "geometry": {"type": "Point", "coordinates": [float(lng), float(lat)]},
-                "properties": {
-                    "name": row.get("plant_name"),
-                    "type": row.get("plant_type"),
-                    "status": row.get("status"),
-                    "capacity": row.get("installed_capacity_m3_day"),
-                },
-            })
+            features.append(
+                {
+                    "type": "Feature",
+                    "geometry": {"type": "Point", "coordinates": [float(lng), float(lat)]},
+                    "properties": {
+                        "name": row.get("plant_name"),
+                        "type": row.get("plant_type"),
+                        "status": row.get("status"),
+                        "capacity": row.get("installed_capacity_m3_day"),
+                    },
+                }
+            )
 
         return {"type": "FeatureCollection", "features": features}
 

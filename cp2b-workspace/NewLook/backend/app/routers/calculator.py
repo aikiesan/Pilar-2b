@@ -10,13 +10,14 @@ it is demonstrable (LGPD Art. 8 §1). Data subjects can access and erase their
 record via the endpoints below (LGPD Art. 18).
 """
 
-from fastapi import APIRouter, Request, HTTPException
-from pydantic import BaseModel
-from typing import Optional, Any
-from datetime import datetime, timezone
 import json
+from datetime import datetime, timezone
+from typing import Any, Optional
 
-from app.core.database import get_db_transaction, get_db
+from fastapi import APIRouter, HTTPException, Request
+from pydantic import BaseModel
+
+from app.core.database import get_db, get_db_transaction
 
 router = APIRouter()
 
@@ -26,6 +27,7 @@ CONSENT_TEXT_VERSION = "2026-06-25"
 
 
 # ── Schemas ──────────────────────────────────────────────────────────────────
+
 
 class LeadData(BaseModel):
     nome: str
@@ -37,7 +39,7 @@ class LeadData(BaseModel):
 
 
 class QuantityInput(BaseModel):
-    type: str   # 'tons' | 'hectares' | 'heads'
+    type: str  # 'tons' | 'hectares' | 'heads'
     value: float
     species_breakdown: Optional[dict[str, float]] = None
 
@@ -52,6 +54,7 @@ class CalculatorSubmission(BaseModel):
 
 
 # ── Endpoints ────────────────────────────────────────────────────────────────
+
 
 @router.post("/submit")
 async def submit_calculator(payload: CalculatorSubmission, request: Request):

@@ -35,27 +35,25 @@ Physical constraints that MUST hold for every valid kinetics record:
    a single-stage continuous system.
 """
 
-import pytest
-from unittest.mock import MagicMock
 from contextlib import contextmanager
+from unittest.mock import MagicMock
 
+import pytest
 
 # ── Representative valid kinetics records ─────────────────────────────────────
 
 VALID_KINETICS_ROW = {
     # Three-fraction kinetic model constants (VDI 4630)
-    "k_slow": 0.05,    # day⁻¹ — slow-biodegradable fraction rate
-    "k_med":  0.50,    # day⁻¹ — medium-biodegradable fraction rate
-    "k_fast": 5.00,    # day⁻¹ — fast-biodegradable fraction rate
-    "f_slow": 0.30,    # dimensionless — fraction of slow-degradable VS
-    "f_med":  0.50,    # dimensionless — fraction of medium-degradable VS
-    "f_fast": 0.20,    # dimensionless — fraction of fast-degradable VS
-    "FQ":     0.95,    # dimensionless — simulation quality factor
-
+    "k_slow": 0.05,  # day⁻¹ — slow-biodegradable fraction rate
+    "k_med": 0.50,  # day⁻¹ — medium-biodegradable fraction rate
+    "k_fast": 5.00,  # day⁻¹ — fast-biodegradable fraction rate
+    "f_slow": 0.30,  # dimensionless — fraction of slow-degradable VS
+    "f_med": 0.50,  # dimensionless — fraction of medium-degradable VS
+    "f_fast": 0.20,  # dimensionless — fraction of fast-degradable VS
+    "FQ": 0.95,  # dimensionless — simulation quality factor
     # BMP values (NmL CH₄/g VS)
     "bmp_experimental": 275.0,
-    "bmp_simulated":    280.5,
-
+    "bmp_simulated": 280.5,
     # Degradation time milestones (days, at 37°C mesophilic)
     "t50": 18.0,
     "t80": 32.0,
@@ -66,27 +64,48 @@ VALID_KINETICS_ROW = {
 
 VALID_KINETICS_VARIANT_SWINE = {
     # Swine manure — fast-dominant, low retention time
-    "k_slow": 0.03, "k_med": 0.40, "k_fast": 4.50,
-    "f_slow": 0.15, "f_med": 0.35, "f_fast": 0.50,
+    "k_slow": 0.03,
+    "k_med": 0.40,
+    "k_fast": 4.50,
+    "f_slow": 0.15,
+    "f_med": 0.35,
+    "f_fast": 0.50,
     "FQ": 0.92,
-    "bmp_experimental": 210.0, "bmp_simulated": 205.0,
-    "t50": 10.0, "t80": 22.0,
-    "retention_time": 15, "temperature": 37.0, "test_standard": "VDI 4630",
+    "bmp_experimental": 210.0,
+    "bmp_simulated": 205.0,
+    "t50": 10.0,
+    "t80": 22.0,
+    "retention_time": 15,
+    "temperature": 37.0,
+    "test_standard": "VDI 4630",
 }
 
 VALID_KINETICS_VARIANT_SUGARCANE = {
     # Sugarcane bagaço — lignocellulosic, slow-dominant
-    "k_slow": 0.08, "k_med": 0.60, "k_fast": 6.00,
-    "f_slow": 0.55, "f_med": 0.35, "f_fast": 0.10,
+    "k_slow": 0.08,
+    "k_med": 0.60,
+    "k_fast": 6.00,
+    "f_slow": 0.55,
+    "f_med": 0.35,
+    "f_fast": 0.10,
     "FQ": 0.88,
-    "bmp_experimental": 350.0, "bmp_simulated": 340.0,
-    "t50": 28.0, "t80": 45.0,
-    "retention_time": 30, "temperature": 37.0, "test_standard": "VDI 4630",
+    "bmp_experimental": 350.0,
+    "bmp_simulated": 340.0,
+    "t50": 28.0,
+    "t80": 45.0,
+    "retention_time": 30,
+    "temperature": 37.0,
+    "test_standard": "VDI 4630",
 }
 
-ALL_VALID_ROWS = [VALID_KINETICS_ROW, VALID_KINETICS_VARIANT_SWINE, VALID_KINETICS_VARIANT_SUGARCANE]
+ALL_VALID_ROWS = [
+    VALID_KINETICS_ROW,
+    VALID_KINETICS_VARIANT_SWINE,
+    VALID_KINETICS_VARIANT_SUGARCANE,
+]
 
 # ── Fraction summation tests ──────────────────────────────────────────────────
+
 
 @pytest.mark.unit
 class TestFractionSummation:
@@ -118,17 +137,18 @@ class TestFractionSummation:
     def test_each_fraction_is_non_negative(self):
         for row in ALL_VALID_ROWS:
             assert row["f_slow"] >= 0, "f_slow must be non-negative"
-            assert row["f_med"]  >= 0, "f_med must be non-negative"
+            assert row["f_med"] >= 0, "f_med must be non-negative"
             assert row["f_fast"] >= 0, "f_fast must be non-negative"
 
     def test_each_fraction_does_not_exceed_unity(self):
         for row in ALL_VALID_ROWS:
             assert row["f_slow"] <= 1.0
-            assert row["f_med"]  <= 1.0
+            assert row["f_med"] <= 1.0
             assert row["f_fast"] <= 1.0
 
 
 # ── Rate constant ordering ────────────────────────────────────────────────────
+
 
 @pytest.mark.unit
 class TestRateConstantOrdering:
@@ -141,28 +161,30 @@ class TestRateConstantOrdering:
 
     @pytest.mark.parametrize("row", ALL_VALID_ROWS)
     def test_rate_constants_are_monotonically_increasing(self, row):
-        assert row["k_slow"] < row["k_med"], (
-            f"k_slow ({row['k_slow']}) must be < k_med ({row['k_med']})"
-        )
-        assert row["k_med"] < row["k_fast"], (
-            f"k_med ({row['k_med']}) must be < k_fast ({row['k_fast']})"
-        )
+        assert (
+            row["k_slow"] < row["k_med"]
+        ), f"k_slow ({row['k_slow']}) must be < k_med ({row['k_med']})"
+        assert (
+            row["k_med"] < row["k_fast"]
+        ), f"k_med ({row['k_med']}) must be < k_fast ({row['k_fast']})"
 
-    @pytest.mark.parametrize("field,lo,hi", [
-        ("k_slow", 0.001, 10.0),    # Typical slow range (Gujer & Zehnder 1983)
-        ("k_med",  0.010, 50.0),
-        ("k_fast", 0.100, 200.0),
-    ])
+    @pytest.mark.parametrize(
+        "field,lo,hi",
+        [
+            ("k_slow", 0.001, 10.0),  # Typical slow range (Gujer & Zehnder 1983)
+            ("k_med", 0.010, 50.0),
+            ("k_fast", 0.100, 200.0),
+        ],
+    )
     def test_rate_constant_physical_range(self, field, lo, hi):
         # Source: Gujer & Zehnder 1983 (Water Research); Batstone et al. 2002
         for row in ALL_VALID_ROWS:
             val = row[field]
-            assert lo <= val <= hi, (
-                f"{field} = {val} outside physical range [{lo}, {hi}] day⁻¹"
-            )
+            assert lo <= val <= hi, f"{field} = {val} outside physical range [{lo}, {hi}] day⁻¹"
 
 
 # ── Time milestone ordering ───────────────────────────────────────────────────
+
 
 @pytest.mark.unit
 class TestTimeMilestoneOrdering:
@@ -174,9 +196,7 @@ class TestTimeMilestoneOrdering:
 
     @pytest.mark.parametrize("row", ALL_VALID_ROWS)
     def test_t50_is_less_than_t80(self, row):
-        assert row["t50"] < row["t80"], (
-            f"t50 ({row['t50']} d) must be < t80 ({row['t80']} d)"
-        )
+        assert row["t50"] < row["t80"], f"t50 ({row['t50']} d) must be < t80 ({row['t80']} d)"
 
     @pytest.mark.parametrize("row", ALL_VALID_ROWS)
     def test_t50_is_positive(self, row):
@@ -190,6 +210,7 @@ class TestTimeMilestoneOrdering:
 
 # ── Quality factor (FQ) bounds ────────────────────────────────────────────────
 
+
 @pytest.mark.unit
 class TestQualityFactor:
     """FQ is a dimensionless fraction: 0.0 ≤ FQ ≤ 1.0."""
@@ -200,6 +221,7 @@ class TestQualityFactor:
 
 
 # ── BMP physical bounds ───────────────────────────────────────────────────────
+
 
 @pytest.mark.unit
 class TestBMPBounds:
@@ -237,6 +259,7 @@ class TestBMPBounds:
 
 # ── Endpoint integration: kinetics data preserved through API layer ───────────
 
+
 @pytest.mark.unit
 class TestKineticsEndpointPreservation:
     """
@@ -251,11 +274,11 @@ class TestKineticsEndpointPreservation:
         sector, bmp_experimental, kinetics, references_list.
         """
         return {
-            "residue_id":      1,
-            "residue_name":    "Residue Under Test",
-            "sector":          "AGR",
+            "residue_id": 1,
+            "residue_name": "Residue Under Test",
+            "sector": "AGR",
             "bmp_experimental": row["bmp_experimental"],
-            "kinetics":         row,   # JSONB dict returned by psycopg2 RealDictCursor
+            "kinetics": row,  # JSONB dict returned by psycopg2 RealDictCursor
             "references_list": [],
         }
 
@@ -283,6 +306,6 @@ class TestKineticsEndpointPreservation:
         # Only check if the endpoint actually returned these fields
         if "f_slow" in row and "f_med" in row and "f_fast" in row:
             total = row["f_slow"] + row["f_med"] + row["f_fast"]
-            assert abs(total - 1.0) <= 0.02, (
-                f"Endpoint corrupted fraction values: f_slow+f_med+f_fast={total:.4f}"
-            )
+            assert (
+                abs(total - 1.0) <= 0.02
+            ), f"Endpoint corrupted fraction values: f_slow+f_med+f_fast={total:.4f}"

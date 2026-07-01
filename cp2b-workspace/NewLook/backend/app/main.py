@@ -3,26 +3,28 @@ PILAR-2b V3 Backend API
 FastAPI application for geospatial biogas potential analysis
 Sprint 4: Performance optimizations, error handling, and production deployment
 """
+
+import logging
+from datetime import datetime, timezone
+
+import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
-import uvicorn
-from datetime import datetime, timezone
 from slowapi.errors import RateLimitExceeded
-import logging
 
 log = logging.getLogger(__name__)
 
+from app.api.v1.api import api_router
 from app.core.config import settings
 from app.core.database import test_db_connection
-from app.api.v1.api import api_router
-from app.middleware.rate_limiter import rate_limit_middleware
-from app.middleware.response_compression import gzip_middleware
 from app.middleware.rate_limit import limiter, rate_limit_exceeded_handler
+from app.middleware.rate_limiter import rate_limit_middleware
 from app.middleware.request_size_limit import request_size_limit_middleware
-from app.middleware.validation import validation_middleware
+from app.middleware.response_compression import gzip_middleware
 from app.middleware.security_headers import security_headers_middleware
+from app.middleware.validation import validation_middleware
 from app.services.cache_service import get_all_cache_stats
 
 # Create FastAPI app - disable docs in production
@@ -86,7 +88,7 @@ if settings.APP_ENV == "production":
             "cp2b-maps-backend.onrender.com",
             "localhost",
             "127.0.0.1",
-        ]
+        ],
     )
 else:
     # Development: Allow all hosts
@@ -96,15 +98,12 @@ else:
 # Include API routes
 app.include_router(api_router, prefix="/api/v1")
 
+
 @app.get("/")
 async def root():
     """Root endpoint with API information"""
-    return {
-        "message": "PILAR-2b V3 API",
-        "version": "3.0.0",
-        "docs": "/docs",
-        "status": "running"
-    }
+    return {"message": "PILAR-2b V3 API", "version": "3.0.0", "docs": "/docs", "status": "running"}
+
 
 @app.get("/health")
 async def health_check():
@@ -116,7 +115,7 @@ async def health_check():
         "status": "healthy",
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "version": settings.VERSION,
-        "environment": settings.APP_ENV
+        "environment": settings.APP_ENV,
     }
 
     # Check database connectivity
@@ -127,18 +126,14 @@ async def health_check():
         if not db_healthy:
             health_status["status"] = "degraded"
             return JSONResponse(
-                status_code=200,  # Still return 200 for degraded state
-                content=health_status
+                status_code=200, content=health_status  # Still return 200 for degraded state
             )
 
     except Exception as e:
         health_status["status"] = "unhealthy"
         health_status["database"] = "disconnected"
         health_status["error"] = str(e)
-        return JSONResponse(
-            status_code=503,  # Service unavailable
-            content=health_status
-        )
+        return JSONResponse(status_code=503, content=health_status)  # Service unavailable
 
     return health_status
 
@@ -150,24 +145,19 @@ async def readiness_check():
         if test_db_connection():
             return {"ready": True, "timestamp": datetime.now(timezone.utc).isoformat()}
         return JSONResponse(
-            status_code=503,
-            content={"ready": False, "reason": "database_unavailable"}
+            status_code=503, content={"ready": False, "reason": "database_unavailable"}
         )
     except Exception as e:
         log.error("Readiness check failed: %s", e, exc_info=True)
         return JSONResponse(
-            status_code=503,
-            content={"ready": False, "reason": "Internal server error"}
+            status_code=503, content={"ready": False, "reason": "Internal server error"}
         )
 
 
 @app.get("/health/live")
 async def liveness_check():
     """Kubernetes-style liveness probe - checks if app process is alive"""
-    return {
-        "alive": True,
-        "timestamp": datetime.now(timezone.utc).isoformat()
-    }
+    return {"alive": True, "timestamp": datetime.now(timezone.utc).isoformat()}
 
 
 @app.get("/stats/cache")
@@ -177,16 +167,10 @@ async def cache_statistics():
     Shows hit rates and cache efficiency
     """
     stats = get_all_cache_stats()
-    return {
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-        "caches": stats
-    }
+    return {"timestamp": datetime.now(timezone.utc).isoformat(), "caches": stats}
+
 
 if __name__ == "__main__":
     uvicorn.run(
-        "main:app",
-        host=settings.HOST,
-        port=settings.PORT,
-        reload=settings.DEBUG,
-        log_level="info"
+        "main:app", host=settings.HOST, port=settings.PORT, reload=settings.DEBUG, log_level="info"
     )

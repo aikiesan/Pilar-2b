@@ -4,29 +4,30 @@ Educational tool for visualizing biogas technology pathways.
 Calculation-free, reference-based learning platform.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from typing import List, Optional
 import logging
 import secrets
+from typing import List, Optional
 from uuid import UUID
+
+from fastapi import APIRouter, Depends, HTTPException, status
 
 logger = logging.getLogger(__name__)
 import json
 
 from app.core.database import get_db, get_db_transaction
+from app.middleware.auth import get_current_user, optional_auth
 from app.schemas.technology_routes import (
+    ConnectionValidationRequest,
+    ConnectionValidationResponse,
     TechnologyCard,
     TechnologyCardCreate,
     TechnologyCardWithReferences,
     TechnologyReference,
     UserRoute,
     UserRouteCreate,
-    UserRouteUpdate,
     UserRoutePublic,
-    ConnectionValidationRequest,
-    ConnectionValidationResponse,
+    UserRouteUpdate,
 )
-from app.middleware.auth import get_current_user, optional_auth
 
 router = APIRouter()
 
@@ -34,6 +35,7 @@ router = APIRouter()
 # ============================================================================
 # HEALTH CHECK ENDPOINT
 # ============================================================================
+
 
 @router.get("/health")
 def health_check():
@@ -73,11 +75,11 @@ def health_check():
                 "technology_cards": {
                     "predefined": tech_count,
                     "custom": custom_count,
-                    "total": tech_count + custom_count
+                    "total": tech_count + custom_count,
                 },
                 "user_routes": routes_count,
                 "tables_exist": True,
-                "ready": tech_count > 0
+                "ready": tech_count > 0,
             }
 
     except Exception as e:
@@ -88,7 +90,7 @@ def health_check():
             "error": "Internal server error",
             "tables_exist": False,
             "ready": False,
-            "message": "Database tables may not exist. Run migration 010_technology_routes.sql and seed data."
+            "message": "Database tables may not exist. Run migration 010_technology_routes.sql and seed data.",
         }
 
 
@@ -96,11 +98,10 @@ def health_check():
 # TECHNOLOGY CARDS ENDPOINTS
 # ============================================================================
 
+
 @router.get("/technologies", response_model=List[TechnologyCardWithReferences])
 def get_all_technologies(
-    category: Optional[str] = None,
-    include_custom: bool = True,
-    current_user = Depends(optional_auth)
+    category: Optional[str] = None, include_custom: bool = True, current_user=Depends(optional_auth)
 ):
     """
     Get all available technology cards with their references.
@@ -124,17 +125,17 @@ def get_all_technologies(
 
             if category:
                 query += " AND tc.category = %(category)s"
-                params['category'] = category
+                params["category"] = category
 
             if not include_custom:
                 query += " AND tc.is_custom = FALSE"
             elif current_user:
                 # Include only user's custom cards
                 query += " AND (tc.is_custom = FALSE OR tc.created_by = %(user_id)s)"
-                params['user_id'] = str(current_user.id)
+                params["user_id"] = str(current_user.id)
             else:
-                 # No user, only return public cards
-                 query += " AND tc.is_custom = FALSE"
+                # No user, only return public cards
+                query += " AND tc.is_custom = FALSE"
 
             query += " ORDER BY tc.category, tc.name_pt"
 
@@ -154,39 +155,39 @@ def get_all_technologies(
                     WHERE tr.technology_id = %(tech_id)s
                     ORDER BY tr.display_order, tr.created_at
                 """
-                cursor.execute(ref_query, {'tech_id': row['id']})
+                cursor.execute(ref_query, {"tech_id": row["id"]})
                 ref_rows = cursor.fetchall()
 
                 references = [
                     TechnologyReference(
-                        reference_id=ref['reference_id'],
-                        title=ref['title'] or "Unknown",
-                        authors=json.loads(ref['authors']) if ref['authors'] else [],
-                        year=ref['year'] or 0,
-                        journal=ref['journal'],
-                        doi=ref['doi'],
-                        url=ref['url'],
-                        relevance_note=ref['relevance_note']
+                        reference_id=ref["reference_id"],
+                        title=ref["title"] or "Unknown",
+                        authors=json.loads(ref["authors"]) if ref["authors"] else [],
+                        year=ref["year"] or 0,
+                        journal=ref["journal"],
+                        doi=ref["doi"],
+                        url=ref["url"],
+                        relevance_note=ref["relevance_note"],
                     )
                     for ref in ref_rows
                 ]
 
                 tech = TechnologyCardWithReferences(
-                    id=row['id'],
-                    category=row['category'],
-                    name_pt=row['name_pt'],
-                    name_en=row['name_en'],
-                    emoji=row['emoji'],
-                    description_pt=row['description_pt'],
-                    description_en=row['description_en'],
-                    color=row['color'],
-                    can_connect_to=row['can_connect_to'] or [],
-                    can_receive_from=row['can_receive_from'] or [],
-                    is_custom=row['is_custom'],
-                    created_by=str(row['created_by']) if row['created_by'] else None,
-                    created_at=row['created_at'],
-                    updated_at=row['updated_at'],
-                    references=references
+                    id=row["id"],
+                    category=row["category"],
+                    name_pt=row["name_pt"],
+                    name_en=row["name_en"],
+                    emoji=row["emoji"],
+                    description_pt=row["description_pt"],
+                    description_en=row["description_en"],
+                    color=row["color"],
+                    can_connect_to=row["can_connect_to"] or [],
+                    can_receive_from=row["can_receive_from"] or [],
+                    is_custom=row["is_custom"],
+                    created_by=str(row["created_by"]) if row["created_by"] else None,
+                    created_at=row["created_at"],
+                    updated_at=row["updated_at"],
+                    references=references,
                 )
                 technologies.append(tech)
 
@@ -196,7 +197,7 @@ def get_all_technologies(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to fetch technologies: {str(e)}"
+            detail=f"Failed to fetch technologies: {str(e)}",
         )
 
 
@@ -217,14 +218,13 @@ def get_technology_by_id(tech_id: str):
                 FROM technology_cards
                 WHERE id = %(tech_id)s
             """
-            cursor.execute(query, {'tech_id': tech_id})
+            cursor.execute(query, {"tech_id": tech_id})
             row = cursor.fetchone()
 
             if not row:
                 cursor.close()
                 raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail=f"Technology {tech_id} not found"
+                    status_code=status.HTTP_404_NOT_FOUND, detail=f"Technology {tech_id} not found"
                 )
 
             # Get references
@@ -237,19 +237,19 @@ def get_technology_by_id(tech_id: str):
                 WHERE tr.technology_id = %(tech_id)s
                 ORDER BY tr.display_order, tr.created_at
             """
-            cursor.execute(ref_query, {'tech_id': tech_id})
+            cursor.execute(ref_query, {"tech_id": tech_id})
             ref_rows = cursor.fetchall()
 
             references = [
                 TechnologyReference(
-                    reference_id=ref['reference_id'],
-                    title=ref['title'] or "Unknown",
-                    authors=json.loads(ref['authors']) if ref['authors'] else [],
-                    year=ref['year'] or 0,
-                    journal=ref['journal'],
-                    doi=ref['doi'],
-                    url=ref['url'],
-                    relevance_note=ref['relevance_note']
+                    reference_id=ref["reference_id"],
+                    title=ref["title"] or "Unknown",
+                    authors=json.loads(ref["authors"]) if ref["authors"] else [],
+                    year=ref["year"] or 0,
+                    journal=ref["journal"],
+                    doi=ref["doi"],
+                    url=ref["url"],
+                    relevance_note=ref["relevance_note"],
                 )
                 for ref in ref_rows
             ]
@@ -257,21 +257,21 @@ def get_technology_by_id(tech_id: str):
             cursor.close()
 
             return TechnologyCardWithReferences(
-                id=row['id'],
-                category=row['category'],
-                name_pt=row['name_pt'],
-                name_en=row['name_en'],
-                emoji=row['emoji'],
-                description_pt=row['description_pt'],
-                description_en=row['description_en'],
-                color=row['color'],
-                can_connect_to=row['can_connect_to'] or [],
-                can_receive_from=row['can_receive_from'] or [],
-                is_custom=row['is_custom'],
-                created_by=str(row['created_by']) if row['created_by'] else None,
-                created_at=row['created_at'],
-                updated_at=row['updated_at'],
-                references=references
+                id=row["id"],
+                category=row["category"],
+                name_pt=row["name_pt"],
+                name_en=row["name_en"],
+                emoji=row["emoji"],
+                description_pt=row["description_pt"],
+                description_en=row["description_en"],
+                color=row["color"],
+                can_connect_to=row["can_connect_to"] or [],
+                can_receive_from=row["can_receive_from"] or [],
+                is_custom=row["is_custom"],
+                created_by=str(row["created_by"]) if row["created_by"] else None,
+                created_at=row["created_at"],
+                updated_at=row["updated_at"],
+                references=references,
             )
 
     except HTTPException:
@@ -279,14 +279,15 @@ def get_technology_by_id(tech_id: str):
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to fetch technology: {str(e)}"
+            detail=f"Failed to fetch technology: {str(e)}",
         )
 
 
-@router.post("/technologies/custom", response_model=TechnologyCard, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/technologies/custom", response_model=TechnologyCard, status_code=status.HTTP_201_CREATED
+)
 def create_custom_technology(
-    technology: TechnologyCardCreate,
-    current_user = Depends(get_current_user)
+    technology: TechnologyCardCreate, current_user=Depends(get_current_user)
 ):
     """Create a custom user-defined technology card."""
     try:
@@ -298,12 +299,12 @@ def create_custom_technology(
 
             # Check if ID already exists
             check_query = "SELECT id FROM technology_cards WHERE id = %(tech_id)s"
-            cursor.execute(check_query, {'tech_id': tech_id})
+            cursor.execute(check_query, {"tech_id": tech_id})
             existing = cursor.fetchone()
             if existing:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f"Technology ID {tech_id} already exists"
+                    detail=f"Technology ID {tech_id} already exists",
                 )
 
             # Insert technology
@@ -325,37 +326,40 @@ def create_custom_technology(
                           is_custom, created_by, created_at, updated_at
             """
 
-            cursor.execute(insert_query, {
-                'id': tech_id,
-                'category': technology.category.value,
-                'name_pt': technology.name_pt,
-                'name_en': technology.name_en,
-                'emoji': technology.emoji,
-                'description_pt': technology.description_pt,
-                'description_en': technology.description_en,
-                'color': technology.color,
-                'can_connect_to': technology.can_connect_to,
-                'can_receive_from': technology.can_receive_from,
-                'created_by': str(current_user.id)
-            })
+            cursor.execute(
+                insert_query,
+                {
+                    "id": tech_id,
+                    "category": technology.category.value,
+                    "name_pt": technology.name_pt,
+                    "name_en": technology.name_en,
+                    "emoji": technology.emoji,
+                    "description_pt": technology.description_pt,
+                    "description_en": technology.description_en,
+                    "color": technology.color,
+                    "can_connect_to": technology.can_connect_to,
+                    "can_receive_from": technology.can_receive_from,
+                    "created_by": str(current_user.id),
+                },
+            )
 
             row = cursor.fetchone()
 
         return TechnologyCard(
-            id=row['id'],
-            category=row['category'],
-            name_pt=row['name_pt'],
-            name_en=row['name_en'],
-            emoji=row['emoji'],
-            description_pt=row['description_pt'],
-            description_en=row['description_en'],
-            color=row['color'],
-            can_connect_to=row['can_connect_to'] or [],
-            can_receive_from=row['can_receive_from'] or [],
-            is_custom=row['is_custom'],
-            created_by=str(row['created_by']) if row['created_by'] else None,
-            created_at=row['created_at'],
-            updated_at=row['updated_at']
+            id=row["id"],
+            category=row["category"],
+            name_pt=row["name_pt"],
+            name_en=row["name_en"],
+            emoji=row["emoji"],
+            description_pt=row["description_pt"],
+            description_en=row["description_en"],
+            color=row["color"],
+            can_connect_to=row["can_connect_to"] or [],
+            can_receive_from=row["can_receive_from"] or [],
+            is_custom=row["is_custom"],
+            created_by=str(row["created_by"]) if row["created_by"] else None,
+            created_at=row["created_at"],
+            updated_at=row["updated_at"],
         )
 
     except HTTPException:
@@ -363,15 +367,12 @@ def create_custom_technology(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to create custom technology: {str(e)}"
+            detail=f"Failed to create custom technology: {str(e)}",
         )
 
 
 @router.delete("/technologies/custom/{tech_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_custom_technology(
-    tech_id: str,
-    current_user = Depends(get_current_user)
-):
+def delete_custom_technology(tech_id: str, current_user=Depends(get_current_user)):
     """Delete a custom technology card (only by owner)."""
     try:
         with get_db_transaction() as conn:
@@ -382,24 +383,24 @@ def delete_custom_technology(
                 SELECT created_by FROM technology_cards
                 WHERE id = %(tech_id)s AND is_custom = TRUE
             """
-            cursor.execute(check_query, {'tech_id': tech_id})
+            cursor.execute(check_query, {"tech_id": tech_id})
             row = cursor.fetchone()
 
             if not row:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
-                    detail=f"Custom technology {tech_id} not found"
+                    detail=f"Custom technology {tech_id} not found",
                 )
 
-            if str(row['created_by']) != str(current_user.id):
+            if str(row["created_by"]) != str(current_user.id):
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
-                    detail="You can only delete your own custom technologies"
+                    detail="You can only delete your own custom technologies",
                 )
 
             # Delete technology (cascade will handle references)
             delete_query = "DELETE FROM technology_cards WHERE id = %(tech_id)s"
-            cursor.execute(delete_query, {'tech_id': tech_id})
+            cursor.execute(delete_query, {"tech_id": tech_id})
 
         return None
 
@@ -408,7 +409,7 @@ def delete_custom_technology(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to delete technology: {str(e)}"
+            detail=f"Failed to delete technology: {str(e)}",
         )
 
 
@@ -416,10 +417,9 @@ def delete_custom_technology(
 # USER ROUTES ENDPOINTS
 # ============================================================================
 
+
 @router.get("/routes", response_model=List[UserRoute])
-def get_user_routes(
-    current_user = Depends(get_current_user)
-):
+def get_user_routes(current_user=Depends(get_current_user)):
     """Get all routes created by the current user."""
     try:
         with get_db() as conn:
@@ -431,38 +431,37 @@ def get_user_routes(
                 WHERE user_id = %(user_id)s
                 ORDER BY updated_at DESC
             """
-            cursor.execute(query, {'user_id': str(current_user.id)})
+            cursor.execute(query, {"user_id": str(current_user.id)})
             rows = cursor.fetchall()
 
         routes = []
         for row in rows:
-            routes.append(UserRoute(
-                id=str(row['id']),
-                user_id=str(row['user_id']),
-                name=row['name'],
-                description=row['description'],
-                canvas_data=row['canvas_data'],
-                is_public=row['is_public'],
-                share_token=row['share_token'],
-                tags=row['tags'] or [],
-                created_at=row['created_at'],
-                updated_at=row['updated_at']
-            ))
+            routes.append(
+                UserRoute(
+                    id=str(row["id"]),
+                    user_id=str(row["user_id"]),
+                    name=row["name"],
+                    description=row["description"],
+                    canvas_data=row["canvas_data"],
+                    is_public=row["is_public"],
+                    share_token=row["share_token"],
+                    tags=row["tags"] or [],
+                    created_at=row["created_at"],
+                    updated_at=row["updated_at"],
+                )
+            )
 
         return routes
 
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to fetch routes: {str(e)}"
+            detail=f"Failed to fetch routes: {str(e)}",
         )
 
 
 @router.get("/routes/{route_id}", response_model=UserRoute)
-def get_route_by_id(
-    route_id: UUID,
-    current_user = Depends(get_current_user)
-):
+def get_route_by_id(route_id: UUID, current_user=Depends(get_current_user)):
     """Get a specific route by ID (must be owner)."""
     try:
         with get_db() as conn:
@@ -473,29 +472,23 @@ def get_route_by_id(
                 FROM user_routes
                 WHERE id = %(route_id)s AND user_id = %(user_id)s
             """
-            cursor.execute(query, {
-                'route_id': str(route_id),
-                'user_id': str(current_user.id)
-            })
+            cursor.execute(query, {"route_id": str(route_id), "user_id": str(current_user.id)})
             row = cursor.fetchone()
 
         if not row:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Route not found"
-            )
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Route not found")
 
         return UserRoute(
-            id=str(row['id']),
-            user_id=str(row['user_id']),
-            name=row['name'],
-            description=row['description'],
-            canvas_data=row['canvas_data'],
-            is_public=row['is_public'],
-            share_token=row['share_token'],
-            tags=row['tags'] or [],
-            created_at=row['created_at'],
-            updated_at=row['updated_at']
+            id=str(row["id"]),
+            user_id=str(row["user_id"]),
+            name=row["name"],
+            description=row["description"],
+            canvas_data=row["canvas_data"],
+            is_public=row["is_public"],
+            share_token=row["share_token"],
+            tags=row["tags"] or [],
+            created_at=row["created_at"],
+            updated_at=row["updated_at"],
         )
 
     except HTTPException:
@@ -503,15 +496,12 @@ def get_route_by_id(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to fetch route: {str(e)}"
+            detail=f"Failed to fetch route: {str(e)}",
         )
 
 
 @router.post("/routes", response_model=UserRoute, status_code=status.HTTP_201_CREATED)
-def create_route(
-    route: UserRouteCreate,
-    current_user = Depends(get_current_user)
-):
+def create_route(route: UserRouteCreate, current_user=Depends(get_current_user)):
     """Create a new technology route."""
     try:
         # Generate share token if public
@@ -532,43 +522,44 @@ def create_route(
                           is_public, share_token, tags, created_at, updated_at
             """
 
-            cursor.execute(insert_query, {
-                'user_id': str(current_user.id),
-                'name': route.name,
-                'description': route.description,
-                'canvas_data': json.dumps(route.canvas_data.model_dump()),
-                'is_public': route.is_public,
-                'share_token': share_token,
-                'tags': route.tags
-            })
+            cursor.execute(
+                insert_query,
+                {
+                    "user_id": str(current_user.id),
+                    "name": route.name,
+                    "description": route.description,
+                    "canvas_data": json.dumps(route.canvas_data.model_dump()),
+                    "is_public": route.is_public,
+                    "share_token": share_token,
+                    "tags": route.tags,
+                },
+            )
 
             row = cursor.fetchone()
 
         return UserRoute(
-            id=str(row['id']),
-            user_id=str(row['user_id']),
-            name=row['name'],
-            description=row['description'],
-            canvas_data=row['canvas_data'],
-            is_public=row['is_public'],
-            share_token=row['share_token'],
-            tags=row['tags'] or [],
-            created_at=row['created_at'],
-            updated_at=row['updated_at']
+            id=str(row["id"]),
+            user_id=str(row["user_id"]),
+            name=row["name"],
+            description=row["description"],
+            canvas_data=row["canvas_data"],
+            is_public=row["is_public"],
+            share_token=row["share_token"],
+            tags=row["tags"] or [],
+            created_at=row["created_at"],
+            updated_at=row["updated_at"],
         )
 
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to create route: {str(e)}"
+            detail=f"Failed to create route: {str(e)}",
         )
 
 
 @router.put("/routes/{route_id}", response_model=UserRoute)
 def update_route(
-    route_id: UUID,
-    route_update: UserRouteUpdate,
-    current_user = Depends(get_current_user)
+    route_id: UUID, route_update: UserRouteUpdate, current_user=Depends(get_current_user)
 ):
     """Update an existing route (must be owner)."""
     try:
@@ -577,49 +568,46 @@ def update_route(
 
             # Check ownership
             check_query = "SELECT user_id, share_token FROM user_routes WHERE id = %(route_id)s"
-            cursor.execute(check_query, {'route_id': str(route_id)})
+            cursor.execute(check_query, {"route_id": str(route_id)})
             row = cursor.fetchone()
 
             if not row:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail="Route not found"
-                )
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Route not found")
 
-            if str(row['user_id']) != str(current_user.id):
+            if str(row["user_id"]) != str(current_user.id):
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
-                    detail="You can only update your own routes"
+                    detail="You can only update your own routes",
                 )
 
             # Build update query dynamically
             updates = []
-            params = {'route_id': str(route_id)}
+            params = {"route_id": str(route_id)}
 
             if route_update.name is not None:
                 updates.append("name = %(name)s")
-                params['name'] = route_update.name
+                params["name"] = route_update.name
 
             if route_update.description is not None:
                 updates.append("description = %(description)s")
-                params['description'] = route_update.description
+                params["description"] = route_update.description
 
             if route_update.canvas_data is not None:
                 updates.append("canvas_data = %(canvas_data)s::jsonb")
-                params['canvas_data'] = json.dumps(route_update.canvas_data.model_dump())
+                params["canvas_data"] = json.dumps(route_update.canvas_data.model_dump())
 
             if route_update.is_public is not None:
                 updates.append("is_public = %(is_public)s")
-                params['is_public'] = route_update.is_public
+                params["is_public"] = route_update.is_public
 
                 # Generate/remove share token based on public status
-                if route_update.is_public and not row['share_token']:
+                if route_update.is_public and not row["share_token"]:
                     updates.append("share_token = %(share_token)s")
-                    params['share_token'] = secrets.token_urlsafe(16)
+                    params["share_token"] = secrets.token_urlsafe(16)
 
             if route_update.tags is not None:
                 updates.append("tags = %(tags)s")
-                params['tags'] = route_update.tags
+                params["tags"] = route_update.tags
 
             if not updates:
                 # Nothing to update, return current state
@@ -637,16 +625,16 @@ def update_route(
             row = cursor.fetchone()
 
         return UserRoute(
-            id=str(row['id']),
-            user_id=str(row['user_id']),
-            name=row['name'],
-            description=row['description'],
-            canvas_data=row['canvas_data'],
-            is_public=row['is_public'],
-            share_token=row['share_token'],
-            tags=row['tags'] or [],
-            created_at=row['created_at'],
-            updated_at=row['updated_at']
+            id=str(row["id"]),
+            user_id=str(row["user_id"]),
+            name=row["name"],
+            description=row["description"],
+            canvas_data=row["canvas_data"],
+            is_public=row["is_public"],
+            share_token=row["share_token"],
+            tags=row["tags"] or [],
+            created_at=row["created_at"],
+            updated_at=row["updated_at"],
         )
 
     except HTTPException:
@@ -654,15 +642,12 @@ def update_route(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to update route: {str(e)}"
+            detail=f"Failed to update route: {str(e)}",
         )
 
 
 @router.delete("/routes/{route_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_route(
-    route_id: UUID,
-    current_user = Depends(get_current_user)
-):
+def delete_route(route_id: UUID, current_user=Depends(get_current_user)):
     """Delete a route (must be owner)."""
     try:
         with get_db_transaction() as conn:
@@ -670,24 +655,21 @@ def delete_route(
 
             # Check ownership
             check_query = "SELECT user_id FROM user_routes WHERE id = %(route_id)s"
-            cursor.execute(check_query, {'route_id': str(route_id)})
+            cursor.execute(check_query, {"route_id": str(route_id)})
             row = cursor.fetchone()
 
             if not row:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail="Route not found"
-                )
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Route not found")
 
-            if str(row['user_id']) != str(current_user.id):
+            if str(row["user_id"]) != str(current_user.id):
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
-                    detail="You can only delete your own routes"
+                    detail="You can only delete your own routes",
                 )
 
             # Delete route
             delete_query = "DELETE FROM user_routes WHERE id = %(route_id)s"
-            cursor.execute(delete_query, {'route_id': str(route_id)})
+            cursor.execute(delete_query, {"route_id": str(route_id)})
 
         return None
 
@@ -696,7 +678,7 @@ def delete_route(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to delete route: {str(e)}"
+            detail=f"Failed to delete route: {str(e)}",
         )
 
 
@@ -704,11 +686,9 @@ def delete_route(
 # PUBLIC SHARING ENDPOINTS
 # ============================================================================
 
+
 @router.get("/public/routes", response_model=List[UserRoutePublic])
-def get_public_routes(
-    limit: int = 20,
-    offset: int = 0
-):
+def get_public_routes(limit: int = 20, offset: int = 0):
     """Get all public routes (no authentication required)."""
     try:
         with get_db() as conn:
@@ -722,33 +702,33 @@ def get_public_routes(
                 ORDER BY ur.created_at DESC
                 LIMIT %(limit)s OFFSET %(offset)s
             """
-            cursor.execute(query, {'limit': limit, 'offset': offset})
+            cursor.execute(query, {"limit": limit, "offset": offset})
             rows = cursor.fetchall()
 
         routes = []
         for row in rows:
-            routes.append(UserRoutePublic(
-                id=str(row['id']),
-                name=row['name'],
-                description=row['description'],
-                canvas_data=row['canvas_data'],
-                created_at=row['created_at'],
-                tags=row['tags'] or []
-            ))
+            routes.append(
+                UserRoutePublic(
+                    id=str(row["id"]),
+                    name=row["name"],
+                    description=row["description"],
+                    canvas_data=row["canvas_data"],
+                    created_at=row["created_at"],
+                    tags=row["tags"] or [],
+                )
+            )
 
         return routes
 
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to fetch public routes: {str(e)}"
+            detail=f"Failed to fetch public routes: {str(e)}",
         )
 
 
 @router.get("/share/{share_token}", response_model=UserRoutePublic)
-def get_route_by_share_token(
-    share_token: str
-):
+def get_route_by_share_token(share_token: str):
     """Get a route by its public share token (no authentication required)."""
     try:
         with get_db() as conn:
@@ -760,22 +740,21 @@ def get_route_by_share_token(
                 FROM user_routes ur
                 WHERE ur.share_token = %(share_token)s AND ur.is_public = TRUE
             """
-            cursor.execute(query, {'share_token': share_token})
+            cursor.execute(query, {"share_token": share_token})
             row = cursor.fetchone()
 
         if not row:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Shared route not found"
+                status_code=status.HTTP_404_NOT_FOUND, detail="Shared route not found"
             )
 
         return UserRoutePublic(
-            id=str(row['id']),
-            name=row['name'],
-            description=row['description'],
-            canvas_data=row['canvas_data'],
-            created_at=row['created_at'],
-            tags=row['tags'] or []
+            id=str(row["id"]),
+            name=row["name"],
+            description=row["description"],
+            canvas_data=row["canvas_data"],
+            created_at=row["created_at"],
+            tags=row["tags"] or [],
         )
 
     except HTTPException:
@@ -783,13 +762,14 @@ def get_route_by_share_token(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to fetch shared route: {str(e)}"
+            detail=f"Failed to fetch shared route: {str(e)}",
         )
 
 
 # ============================================================================
 # VALIDATION ENDPOINTS
 # ============================================================================
+
 
 @router.post("/validate-connection", response_model=ConnectionValidationResponse)
 def validate_connection(request: ConnectionValidationRequest):
@@ -808,59 +788,57 @@ def validate_connection(request: ConnectionValidationRequest):
                 WHERE id = %(tech_id)s
             """
 
-            cursor.execute(query, {'tech_id': request.source_tech_id})
+            cursor.execute(query, {"tech_id": request.source_tech_id})
             source = cursor.fetchone()
 
-            cursor.execute(query, {'tech_id': request.target_tech_id})
+            cursor.execute(query, {"tech_id": request.target_tech_id})
             target = cursor.fetchone()
 
             cursor.close()
 
             if not source:
                 return ConnectionValidationResponse(
-                    valid=False,
-                    reason=f"Source technology '{request.source_tech_id}' not found"
+                    valid=False, reason=f"Source technology '{request.source_tech_id}' not found"
                 )
 
             if not target:
                 return ConnectionValidationResponse(
-                    valid=False,
-                    reason=f"Target technology '{request.target_tech_id}' not found"
+                    valid=False, reason=f"Target technology '{request.target_tech_id}' not found"
                 )
 
             # Check if connection is allowed
-            source_can_connect = source['can_connect_to'] or []
-            target_can_receive = target['can_receive_from'] or []
+            source_can_connect = source["can_connect_to"] or []
+            target_can_receive = target["can_receive_from"] or []
 
             # Validate both directions
-            source_allows = target['category'] in source_can_connect
-            target_allows = source['category'] in target_can_receive
+            source_allows = target["category"] in source_can_connect
+            target_allows = source["category"] in target_can_receive
 
             if not source_allows:
                 return ConnectionValidationResponse(
                     valid=False,
                     reason=f"{source['name_pt']} cannot connect to {target['category']} technologies",
-                    source_category=source['category'],
-                    target_category=target['category']
+                    source_category=source["category"],
+                    target_category=target["category"],
                 )
 
             if not target_allows:
                 return ConnectionValidationResponse(
                     valid=False,
                     reason=f"{target['name_pt']} cannot receive connections from {source['category']} technologies",
-                    source_category=source['category'],
-                    target_category=target['category']
+                    source_category=source["category"],
+                    target_category=target["category"],
                 )
 
             return ConnectionValidationResponse(
                 valid=True,
                 reason="Connection is valid",
-                source_category=source['category'],
-                target_category=target['category']
+                source_category=source["category"],
+                target_category=target["category"],
             )
 
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to validate connection: {str(e)}"
+            detail=f"Failed to validate connection: {str(e)}",
         )

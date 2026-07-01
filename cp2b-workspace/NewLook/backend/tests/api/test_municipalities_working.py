@@ -2,6 +2,7 @@
 PILAR-2b V3 Backend - Working Municipality API Tests
 Simplified tests that work with current sample data implementation
 """
+
 import pytest
 from fastapi.testclient import TestClient
 from httpx import AsyncClient
@@ -29,12 +30,20 @@ class TestMunicipalitiesWorking:
         assert isinstance(data["total"], int)
         assert data["total"] >= 0
         assert data["limit"] == 100  # default limit
-        assert data["offset"] == 0   # default offset
+        assert data["offset"] == 0  # default offset
 
         # Should have sample municipalities
         if data["data"]:
             municipality = data["data"][0]
-            required_fields = ["id", "name", "code", "population", "area_km2", "biogas_potential", "coordinates"]
+            required_fields = [
+                "id",
+                "name",
+                "code",
+                "population",
+                "area_km2",
+                "biogas_potential",
+                "coordinates",
+            ]
             for field in required_fields:
                 assert field in municipality
 
@@ -88,7 +97,15 @@ class TestMunicipalitiesWorking:
             municipality = response.json()
 
             # Verify required fields
-            required_fields = ["id", "name", "code", "population", "area_km2", "biogas_potential", "coordinates"]
+            required_fields = [
+                "id",
+                "name",
+                "code",
+                "population",
+                "area_km2",
+                "biogas_potential",
+                "coordinates",
+            ]
             for field in required_fields:
                 assert field in municipality
 
@@ -124,8 +141,11 @@ class TestMunicipalitiesWorking:
 
         # Verify required fields (using actual field names returned by the endpoint)
         required_fields = [
-            "total_municipalities", "total_population", "total_area_km2",
-            "total_biogas_m3_year", "timestamp"
+            "total_municipalities",
+            "total_population",
+            "total_area_km2",
+            "total_biogas_m3_year",
+            "timestamp",
         ]
         for field in required_fields:
             assert field in stats

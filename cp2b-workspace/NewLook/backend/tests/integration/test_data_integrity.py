@@ -4,15 +4,16 @@ Data integrity tests for geospatial and coordinate validation.
 DB-level tests require a real PostgreSQL connection (TEST_DATABASE_URL env var).
 Schema/validator tests run without a database and cover the Pydantic + Validators layer.
 """
+
 import pytest
 from fastapi import HTTPException
 
 from app.middleware.validation import Validators
 
-
 # ---------------------------------------------------------------------------
 # Validator-layer tests (no DB required)
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.unit
 class TestCoordinateBounds:
@@ -121,6 +122,7 @@ class TestMunicipalityCodeFormat:
 # DB-level tests (require TEST_DATABASE_URL)
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.database
 @pytest.mark.integration
 class TestDatabaseConstraints:
@@ -136,21 +138,17 @@ class TestDatabaseConstraints:
         import psycopg2
 
         with pytest.raises(psycopg2.IntegrityError):
-            db_transaction.execute(
-                """
+            db_transaction.execute("""
                 INSERT INTO municipalities (ibge_code, municipality_name, population, area_km2)
                 VALUES (NULL, 'Test City', 100000, 500.0)
-                """
-            )
+                """)
 
     def test_ibge_code_unique_constraint(self, db_transaction):
         """Inserting a duplicate ibge_code must raise IntegrityError."""
         import psycopg2
 
         # Try to find an existing ibge_code to trigger the duplicate
-        db_transaction.execute(
-            "SELECT ibge_code FROM municipalities LIMIT 1"
-        )
+        db_transaction.execute("SELECT ibge_code FROM municipalities LIMIT 1")
         row = db_transaction.fetchone()
         if row is None:
             pytest.skip("No municipalities in DB — cannot test uniqueness constraint")
@@ -163,23 +161,19 @@ class TestDatabaseConstraints:
                 INSERT INTO municipalities (ibge_code, municipality_name, population, area_km2)
                 VALUES (%s, 'Duplicate City', 50000, 250.0)
                 """,
-                (existing_code,)
+                (existing_code,),
             )
 
     def test_population_is_non_negative(self, db_transaction):
         """Verify that existing rows have non-negative population values."""
-        db_transaction.execute(
-            "SELECT COUNT(*) FROM municipalities WHERE population < 0"
-        )
+        db_transaction.execute("SELECT COUNT(*) FROM municipalities WHERE population < 0")
         row = db_transaction.fetchone()
         count = row[0] if not isinstance(row, dict) else row["count"]
         assert count == 0, f"Found {count} municipalities with negative population"
 
     def test_area_km2_is_positive(self, db_transaction):
         """Verify that existing rows have positive area values."""
-        db_transaction.execute(
-            "SELECT COUNT(*) FROM municipalities WHERE area_km2 <= 0"
-        )
+        db_transaction.execute("SELECT COUNT(*) FROM municipalities WHERE area_km2 <= 0")
         row = db_transaction.fetchone()
         count = row[0] if not isinstance(row, dict) else row["count"]
         assert count == 0, f"Found {count} municipalities with non-positive area_km2"

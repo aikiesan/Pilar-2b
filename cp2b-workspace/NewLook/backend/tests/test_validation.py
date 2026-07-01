@@ -2,16 +2,18 @@
 Tests for input validation middleware
 Ensures protection against injection attacks
 """
+
 import pytest
 from fastapi import HTTPException
+
 from app.middleware.validation import (
-    validate_string,
-    validate_integer,
-    validate_float,
-    detect_sql_injection,
+    Validators,
     detect_command_injection,
+    detect_sql_injection,
     sanitize_query_params,
-    Validators
+    validate_float,
+    validate_integer,
+    validate_string,
 )
 
 
@@ -103,11 +105,11 @@ class TestStringValidation:
 
     def test_pattern_validation_email(self):
         """Test email pattern validation"""
-        valid = validate_string("test@example.com", pattern_name='email')
+        valid = validate_string("test@example.com", pattern_name="email")
         assert valid == "test@example.com"
 
         with pytest.raises(HTTPException):
-            validate_string("not-an-email", pattern_name='email')
+            validate_string("not-an-email", pattern_name="email")
 
     def test_none_handling(self):
         """Test None value handling"""
@@ -178,20 +180,20 @@ class TestSanitizeQueryParams:
 
     def test_safe_params(self):
         """Test sanitization of safe parameters"""
-        params = {'name': 'John', 'age': '30', 'city': 'São Paulo'}
+        params = {"name": "John", "age": "30", "city": "São Paulo"}
         result = sanitize_query_params(params)
         assert result == params
 
     def test_sql_injection_in_params(self):
         """Test rejection of SQL injection in params"""
-        params = {'query': "' OR 1=1--"}
+        params = {"query": "' OR 1=1--"}
         with pytest.raises(HTTPException) as exc:
             sanitize_query_params(params)
         assert exc.value.status_code == 400
 
     def test_command_injection_in_params(self):
         """Test rejection of command injection in params"""
-        params = {'cmd': "ls; rm -rf"}
+        params = {"cmd": "ls; rm -rf"}
         with pytest.raises(HTTPException) as exc:
             sanitize_query_params(params)
         assert exc.value.status_code == 400
@@ -270,7 +272,7 @@ class TestEdgeCases:
 
     def test_unicode_characters(self):
         """Test handling of Unicode characters"""
-        result = validate_string("São Paulo", pattern_name='safe_string')
+        result = validate_string("São Paulo", pattern_name="safe_string")
         assert result == "São Paulo"
 
     def test_boundary_values_integer(self):

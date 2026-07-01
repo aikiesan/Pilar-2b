@@ -4,16 +4,17 @@ and branch coverage for the /kinetics endpoint filter params.
 """
 
 import json
-import pytest
 from unittest.mock import MagicMock
 
-
-# ─── Import helpers directly ──────────────────────────────────────────────────
+import pytest
 
 from app.api.v1.endpoints.scientific import safe_float, safe_int
 
+# ─── Import helpers directly ──────────────────────────────────────────────────
+
 
 # ─── safe_float ───────────────────────────────────────────────────────────────
+
 
 @pytest.mark.unit
 class TestSafeFloat:
@@ -60,6 +61,7 @@ class TestSafeFloat:
 
 # ─── safe_int ─────────────────────────────────────────────────────────────────
 
+
 @pytest.mark.unit
 class TestSafeInt:
 
@@ -90,6 +92,7 @@ class TestSafeInt:
 
 # ─── /kinetics endpoint — branch coverage ─────────────────────────────────────
 
+
 def _make_cursor(rows, mock_conn):
     cursor_mock = MagicMock()
     cursor_mock.fetchall.return_value = rows
@@ -100,11 +103,19 @@ def _make_cursor(rows, mock_conn):
 def _valid_db_row(kinetics=None):
     if kinetics is None:
         kinetics = {
-            "k_slow": 0.05, "k_med": 0.5, "k_fast": 5.0,
-            "f_slow": 0.3, "f_med": 0.5, "f_fast": 0.2,
-            "FQ": 0.95, "bmp_simulated": 280.0,
-            "t50": 18, "t80": 32, "temperature": 37.0,
-            "retention_time": 21, "test_standard": "VDI 4630",
+            "k_slow": 0.05,
+            "k_med": 0.5,
+            "k_fast": 5.0,
+            "f_slow": 0.3,
+            "f_med": 0.5,
+            "f_fast": 0.2,
+            "FQ": 0.95,
+            "bmp_simulated": 280.0,
+            "t50": 18,
+            "t80": 32,
+            "temperature": 37.0,
+            "retention_time": 21,
+            "test_standard": "VDI 4630",
             "classification": "medium",
         }
     return {
@@ -151,11 +162,19 @@ class TestKineticsEndpointBranches:
     def test_kinetics_as_json_string_is_parsed(self, client, mock_db_connection):
         mock_conn, _ = mock_db_connection
         valid_kinetics = {
-            "k_slow": 0.05, "k_med": 0.5, "k_fast": 5.0,
-            "f_slow": 0.3, "f_med": 0.5, "f_fast": 0.2,
-            "FQ": 0.95, "bmp_simulated": 280.0,
-            "t50": 18, "t80": 32, "temperature": 37.0,
-            "retention_time": 21, "test_standard": "VDI 4630",
+            "k_slow": 0.05,
+            "k_med": 0.5,
+            "k_fast": 5.0,
+            "f_slow": 0.3,
+            "f_med": 0.5,
+            "f_fast": 0.2,
+            "FQ": 0.95,
+            "bmp_simulated": 280.0,
+            "t50": 18,
+            "t80": 32,
+            "temperature": 37.0,
+            "retention_time": 21,
+            "test_standard": "VDI 4630",
             "classification": "medium",
         }
         row = _valid_db_row(kinetics=json.dumps(valid_kinetics))
@@ -173,6 +192,7 @@ class TestKineticsEndpointBranches:
 
 
 # ─── maps.py endpoint coverage ────────────────────────────────────────────────
+
 
 @pytest.mark.unit
 class TestMapsEndpoints:

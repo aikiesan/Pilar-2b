@@ -3,20 +3,21 @@ Database Connection Management
 PostgreSQL + PostGIS connection handling with connection pooling
 """
 
-import psycopg2
-from psycopg2 import pool
-from psycopg2.extras import RealDictCursor
-from contextlib import contextmanager
 import logging
 import os
 import threading
+from contextlib import contextmanager
+
+import psycopg2
+from psycopg2 import pool
+from psycopg2.extras import RealDictCursor
 
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
 # Fix for Windows UTF-8 encoding issues with psycopg2
-os.environ['PYTHONUTF8'] = '1'
+os.environ["PYTHONUTF8"] = "1"
 
 # Global connection pool (thread-safe)
 _connection_pool = None
@@ -50,7 +51,7 @@ def get_connection_pool():
                         dsn=settings.DATABASE_URL,  # Use DSN instead of individual params
                         cursor_factory=RealDictCursor,
                         connect_timeout=10,
-                        options='-c statement_timeout=30000 -c client_encoding=UTF8'
+                        options="-c statement_timeout=30000 -c client_encoding=UTF8",
                     )
                     logger.info("✅ Database connection pool initialized (min=2, max=20)")
                 except psycopg2.Error as e:
@@ -74,10 +75,10 @@ def get_db_connection():
             dsn=settings.DATABASE_URL,
             cursor_factory=RealDictCursor,  # Return rows as dictionaries
             connect_timeout=10,
-            options='-c statement_timeout=30000 -c client_encoding=UTF8'
+            options="-c statement_timeout=30000 -c client_encoding=UTF8",
         )
         # Ensure UTF-8 encoding
-        conn.set_client_encoding('UTF8')
+        conn.set_client_encoding("UTF8")
         return conn
     except psycopg2.Error as e:
         logger.error(f"Database connection error: {e}")
@@ -114,7 +115,7 @@ def get_db():
         conn = connection_pool.getconn()
 
         # Ensure UTF-8 encoding
-        conn.set_client_encoding('UTF8')
+        conn.set_client_encoding("UTF8")
         logger.debug(f"Connection acquired from pool (host: {settings.POSTGRES_HOST})")
 
         yield conn
@@ -176,7 +177,7 @@ def get_db_transaction():
         conn = connection_pool.getconn()
 
         # Ensure UTF-8 encoding
-        conn.set_client_encoding('UTF8')
+        conn.set_client_encoding("UTF8")
 
         # Explicitly disable autocommit for transaction management
         conn.autocommit = False
@@ -258,7 +259,9 @@ def test_db_connection() -> bool:
             cursor.close()
 
             logger.info("✓ Database connected successfully")
-            logger.info(f"✓ PostGIS version: {next(iter(version.values())) if version else 'Unknown'}")
+            logger.info(
+                f"✓ PostGIS version: {next(iter(version.values())) if version else 'Unknown'}"
+            )
 
             return result is not None
 

@@ -11,6 +11,7 @@ Scope = what is on `main` today. Items still in review (PII log-sanitizer,
 security headers, full WCAG-A page) get guardrails when they land — see
 docs/planning/COMPLIANCE_AND_ROADMAP.md.
 """
+
 from __future__ import annotations
 
 import re
@@ -37,60 +38,73 @@ def _read(p: Path) -> str:
 
 # ── Data minimisation: no CPF/CNPJ collection (LGPD Art. 6 III / 16) ──────────
 
+
 class TestDataMinimisation:
     def test_calculator_model_has_no_cpf_field(self):
         src = _read(CALCULATOR)
         # No Pydantic field / column / param named cpf or cnpj should remain.
         offenders = [
-            ln for ln in src.splitlines()
+            ln
+            for ln in src.splitlines()
             if re.search(r"\bcpf|\bcnpj", ln, re.I)
             and not re.search(r"NOT collected|não.*colet|data minimi|Art\. 6", ln, re.I)
         ]
-        assert not offenders, (
-            "CPF/CNPJ must not be collected (data minimisation). Offending lines:\n"
-            + "\n".join(offenders)
+        assert (
+            not offenders
+        ), "CPF/CNPJ must not be collected (data minimisation). Offending lines:\n" + "\n".join(
+            offenders
         )
 
     def test_a_migration_drops_cpf_column(self):
         drops = [
-            p.name for p in MIGRATIONS.glob("*.sql")
-            if re.search(r"drop\s+column\s+if\s+exists\s+cpf_cnpj", p.read_text(encoding="utf-8"), re.I)
+            p.name
+            for p in MIGRATIONS.glob("*.sql")
+            if re.search(
+                r"drop\s+column\s+if\s+exists\s+cpf_cnpj", p.read_text(encoding="utf-8"), re.I
+            )
         ]
         assert drops, "expected a migration that DROPs the cpf_cnpj column"
 
 
 # ── Consent: opt-in by default + an enforced gate (LGPD Art. 7/8) ─────────────
 
+
 class TestConsent:
     def test_consent_defaults_to_false(self):
         src = _read(CALCULATOR)
-        assert re.search(r"consent_lgpd\s*:\s*bool\s*=\s*False", src), (
-            "consent_lgpd must default to False (opt-in / privacy by default)"
-        )
+        assert re.search(
+            r"consent_lgpd\s*:\s*bool\s*=\s*False", src
+        ), "consent_lgpd must default to False (opt-in / privacy by default)"
 
     def test_consent_gate_rejects_without_consent(self):
         src = _read(CALCULATOR)
-        assert "LGPD_CONSENT_REQUIRED" in src and "403" in src, (
-            "submit endpoint must refuse to store data without explicit consent (403)"
-        )
+        assert (
+            "LGPD_CONSENT_REQUIRED" in src and "403" in src
+        ), "submit endpoint must refuse to store data without explicit consent (403)"
 
     def test_consent_is_versioned_and_timestamped(self):
         src = _read(CALCULATOR)
-        assert "consent_text_version" in src and "consented_at" in src, (
-            "consent must be demonstrable: store notice version + timestamp (Art. 8 §1)"
-        )
+        assert (
+            "consent_text_version" in src and "consented_at" in src
+        ), "consent must be demonstrable: store notice version + timestamp (Art. 8 §1)"
 
 
 # ── Data-subject rights: access + erasure endpoints (LGPD Art. 18) ────────────
 
+
 class TestDataSubjectRights:
     def test_access_and_erasure_endpoints_exist(self):
         src = _read(CALCULATOR)
-        assert re.search(r'@router\.get\(\s*["\']/leads/\{lead_id\}', src), "missing DSR access (GET) endpoint"
-        assert re.search(r'@router\.delete\(\s*["\']/leads/\{lead_id\}', src), "missing DSR erasure (DELETE) endpoint"
+        assert re.search(
+            r'@router\.get\(\s*["\']/leads/\{lead_id\}', src
+        ), "missing DSR access (GET) endpoint"
+        assert re.search(
+            r'@router\.delete\(\s*["\']/leads/\{lead_id\}', src
+        ), "missing DSR erasure (DELETE) endpoint"
 
 
 # ── Transparency: real privacy & terms pages with the required LGPD content ───
+
 
 class TestTransparencyPages:
     def test_privacy_page_declares_lgpd_basis_and_rights(self):
@@ -100,9 +114,9 @@ class TestTransparencyPages:
 
     def test_privacy_page_names_a_contact_for_rights(self):
         txt = _read(PRIVACY)
-        assert re.search(r"Encarregad|DPO|e-?mail|contato", txt, re.I), (
-            "privacy page should give a channel to exercise data-subject rights"
-        )
+        assert re.search(
+            r"Encarregad|DPO|e-?mail|contato", txt, re.I
+        ), "privacy page should give a channel to exercise data-subject rights"
 
     def test_terms_page_exists_and_is_not_a_stub(self):
         txt = _read(TERMS)
@@ -119,6 +133,7 @@ class TestTransparencyPages:
 
 # ── No secrets in committed example env files (the GitGuardian lesson) ────────
 
+
 class TestNoCommittedSecrets:
     PLACEHOLDER = re.compile(
         r"(change|example|placeholder|your|dummy|dev-only|replace|xxx|<|\$\{|\.\.\.)", re.I
@@ -126,7 +141,11 @@ class TestNoCommittedSecrets:
     SECRET_KEY = re.compile(r"(PASSWORD|SECRET|TOKEN|API_KEY|PASSWD)\b", re.I)
 
     def _example_env_files(self):
-        return [p for p in NEWLOOK.rglob("*.example") if ".env" in p.name and "node_modules" not in str(p)]
+        return [
+            p
+            for p in NEWLOOK.rglob("*.example")
+            if ".env" in p.name and "node_modules" not in str(p)
+        ]
 
     def test_example_env_files_have_no_real_secret_values(self):
         offenders = []
@@ -142,10 +161,9 @@ class TestNoCommittedSecrets:
                 if self.PLACEHOLDER.search(val) or len(val) < 8:
                     continue
                 offenders.append(f"{f.relative_to(NEWLOOK)}: {key.strip()}={val}")
-        assert not offenders, (
-            "example env files must not contain real-looking secret values:\n"
-            + "\n".join(offenders)
-        )
+        assert (
+            not offenders
+        ), "example env files must not contain real-looking secret values:\n" + "\n".join(offenders)
 
     def test_there_is_at_least_one_example_env_file(self):
         # Sanity: the scan above is meaningful only if it actually finds files.

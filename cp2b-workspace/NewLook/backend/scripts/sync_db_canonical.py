@@ -8,9 +8,10 @@ This ensures that the main map/sidebar summary and the Advanced Analysis page
 are fully consistent and show correct values from the updated database.
 """
 
-import sys
 import logging
+import sys
 from pathlib import Path
+
 import psycopg2
 from psycopg2.extras import RealDictCursor
 
@@ -23,8 +24,10 @@ from app.core.config import settings
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
 
+
 def get_db_connection():
     return psycopg2.connect(settings.DATABASE_URL)
+
 
 def _potential_category(total_biogas: float) -> str:
     if total_biogas > 100_000_000:
@@ -35,6 +38,7 @@ def _potential_category(total_biogas: float) -> str:
         return "BAIXO"
     return "SEM DADOS"
 
+
 def _float(v):
     if v is None:
         return 0.0
@@ -43,12 +47,13 @@ def _float(v):
     except (TypeError, ValueError):
         return 0.0
 
+
 def main():
     logger.info("Starting database synchronization (Option A)...")
-    
+
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
-    
+
     # 1. Fetch aggregated values per municipality from residue_streams_sp2023
     logger.info("Aggregating residue stream potentials from residue_streams_sp2023...")
     query = """
@@ -91,33 +96,34 @@ def main():
         FROM residue_streams_sp2023
         GROUP BY ibge_code
     """
-    
+
     cur.execute(query)
     rows = cur.fetchall()
     logger.info(f"Loaded aggregated data for {len(rows)} municipalities.")
-    
+
     # 2. Update the municipalities table
     logger.info("Updating municipalities table...")
     update_count = 0
-    
+
     for r in rows:
-        ibge_code = r['ibge_code']
-        total_biogas = _float(r['total_biogas_m3_year'])
-        
+        ibge_code = r["ibge_code"]
+        total_biogas = _float(r["total_biogas_m3_year"])
+
         # Calculate derived energy and CO2 metrics
         # Methane conversion: 1 m3 CH4 = 9.97 kWh = 0.00997 MWh
         # (biogas_m3_yr column is actually biomethane/CH4 equivalent)
         energy_mwh = total_biogas * 0.00997
         co2_reduction = energy_mwh * 0.4
-        
+
         # Calculate daily totals
         total_biogas_day = total_biogas / 365.0
         energy_kwh_day = (energy_mwh * 1000.0) / 365.0
-        
+
         # Determine potential category
         cat = _potential_category(total_biogas)
-        
-        cur.execute("""
+
+        cur.execute(
+            """
             UPDATE municipalities SET
                 total_biogas_m3_year = %s,
                 total_biogas_m3_day = %s,
@@ -164,55 +170,56 @@ def main():
                 potential_category = %s,
                 updated_at = NOW()
             WHERE ibge_code = %s
-        """, (
-            total_biogas, total_biogas_day,
-            _float(r['agricultural_biogas_m3_year']),
-            _float(r['livestock_biogas_m3_year']),
-            _float(r['urban_biogas_m3_year']),
-            _float(r['forestry_biogas_m3_year']),
-            
-            _float(r['sugarcane_biogas_m3_year']),
-            _float(r['soybean_biogas_m3_year']),
-            _float(r['corn_biogas_m3_year']),
-            _float(r['coffee_biogas_m3_year']),
-            _float(r['citrus_biogas_m3_year']),
-            _float(r['cattle_biogas_m3_year']),
-            _float(r['swine_biogas_m3_year']),
-            _float(r['poultry_biogas_m3_year']),
-            _float(r['aquaculture_biogas_m3_year']),
-            _float(r['rsu_biogas_m3_year']),
-            _float(r['rpo_biogas_m3_year']),
-            
-            _float(r['sugarcane_residues_tons_year']),
-            _float(r['sugarcane_residues_tons_year']),
-            _float(r['soybean_residues_tons_year']),
-            _float(r['soybean_residues_tons_year']),
-            _float(r['corn_residues_tons_year']),
-            _float(r['corn_residues_tons_year']),
-            _float(r['coffee_biomass_tons_year']),
-            _float(r['citrus_biomass_tons_year']),
-            _float(r['cattle_biomass_tons_year']),
-            _float(r['swine_biomass_tons_year']),
-            _float(r['poultry_biomass_tons_year']),
-            _float(r['aquaculture_biomass_tons_year']),
-            _float(r['rsu_biomass_tons_year']),
-            _float(r['rpo_biomass_tons_year']),
-            
-            _float(r['agricultural_biomass_tons_year']),
-            _float(r['livestock_biomass_tons_year']),
-            _float(r['urban_biomass_tons_year']),
-            _float(r['total_biomass_tons_year']),
-            
-            energy_mwh, energy_kwh_day, co2_reduction,
-            cat,
-            ibge_code
-        ))
-        
+        """,
+            (
+                total_biogas,
+                total_biogas_day,
+                _float(r["agricultural_biogas_m3_year"]),
+                _float(r["livestock_biogas_m3_year"]),
+                _float(r["urban_biogas_m3_year"]),
+                _float(r["forestry_biogas_m3_year"]),
+                _float(r["sugarcane_biogas_m3_year"]),
+                _float(r["soybean_biogas_m3_year"]),
+                _float(r["corn_biogas_m3_year"]),
+                _float(r["coffee_biogas_m3_year"]),
+                _float(r["citrus_biogas_m3_year"]),
+                _float(r["cattle_biogas_m3_year"]),
+                _float(r["swine_biogas_m3_year"]),
+                _float(r["poultry_biogas_m3_year"]),
+                _float(r["aquaculture_biogas_m3_year"]),
+                _float(r["rsu_biogas_m3_year"]),
+                _float(r["rpo_biogas_m3_year"]),
+                _float(r["sugarcane_residues_tons_year"]),
+                _float(r["sugarcane_residues_tons_year"]),
+                _float(r["soybean_residues_tons_year"]),
+                _float(r["soybean_residues_tons_year"]),
+                _float(r["corn_residues_tons_year"]),
+                _float(r["corn_residues_tons_year"]),
+                _float(r["coffee_biomass_tons_year"]),
+                _float(r["citrus_biomass_tons_year"]),
+                _float(r["cattle_biomass_tons_year"]),
+                _float(r["swine_biomass_tons_year"]),
+                _float(r["poultry_biomass_tons_year"]),
+                _float(r["aquaculture_biomass_tons_year"]),
+                _float(r["rsu_biomass_tons_year"]),
+                _float(r["rpo_biomass_tons_year"]),
+                _float(r["agricultural_biomass_tons_year"]),
+                _float(r["livestock_biomass_tons_year"]),
+                _float(r["urban_biomass_tons_year"]),
+                _float(r["total_biomass_tons_year"]),
+                energy_mwh,
+                energy_kwh_day,
+                co2_reduction,
+                cat,
+                ibge_code,
+            ),
+        )
+
         update_count += 1
-        
+
     conn.commit()
     logger.info(f"Successfully synchronized {update_count} municipalities.")
-    
+
     # 3. Print validation totals from municipalities table
     cur.execute("""
         SELECT 
@@ -232,10 +239,11 @@ def main():
     logger.info(f"  Livestock:           {totals['live_biogas']:,.2f}")
     logger.info(f"  Urban:               {totals['urb_biogas']:,.2f}")
     logger.info(f"  Forestry:            {totals['forestry_biogas']:,.2f}")
-    
+
     cur.close()
     conn.close()
     logger.info("Database synchronization finished successfully.")
+
 
 if __name__ == "__main__":
     main()

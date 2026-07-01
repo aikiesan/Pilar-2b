@@ -6,6 +6,7 @@ laboratory validation is required before implementation.
 """
 
 import logging
+
 from fastapi import APIRouter, HTTPException, Query
 
 logger = logging.getLogger(__name__)
@@ -23,19 +24,25 @@ def _cache_key(radius_km: float, min_biomass_tons: float, max_clusters: int) -> 
 
 # ─── Endpoints ────────────────────────────────────────────────────────────────
 
+
 @router.get("/clusters")
 async def get_codigestion_clusters(
     radius_km: float = Query(
-        default=30.0, ge=10.0, le=150.0,
-        description="Spatial proximity threshold for grouping municipalities (km)"
+        default=30.0,
+        ge=10.0,
+        le=150.0,
+        description="Spatial proximity threshold for grouping municipalities (km)",
     ),
     min_biomass_tons: float = Query(
-        default=1000.0, ge=0.0,
-        description="Minimum cluster-level biomass for a residue to qualify (t/yr)"
+        default=1000.0,
+        ge=0.0,
+        description="Minimum cluster-level biomass for a residue to qualify (t/yr)",
     ),
     max_clusters: int = Query(
-        default=20, ge=1, le=50,
-        description="Maximum number of clusters to return, ranked by improvement score"
+        default=20,
+        ge=1,
+        le=50,
+        description="Maximum number of clusters to return, ranked by improvement score",
     ),
 ):
     """
@@ -50,11 +57,15 @@ async def get_codigestion_clusters(
     """
     key = _cache_key(radius_km, min_biomass_tons, max_clusters)
     if key in _cluster_cache:
-        logger.info("Returning cached cluster result for %s", str(key).replace('\n', ' ').replace('\r', ' ')[:200])
+        logger.info(
+            "Returning cached cluster result for %s",
+            str(key).replace("\n", " ").replace("\r", " ")[:200],
+        )
         return _cluster_cache[key]
 
     try:
         from app.services.codigestion_service import find_codigestion_clusters
+
         result = find_codigestion_clusters(
             radius_km=radius_km,
             min_biomass_tons=min_biomass_tons,
@@ -82,6 +93,7 @@ async def get_cluster_detail(
         # Trigger full computation with max clusters to ensure target is included
         try:
             from app.services.codigestion_service import find_codigestion_clusters
+
             result = find_codigestion_clusters(
                 radius_km=radius_km,
                 min_biomass_tons=min_biomass_tons,
@@ -113,6 +125,7 @@ async def get_municipality_cn_profiles_endpoint():
     if _cn_profile_cache is None:
         try:
             from app.services.codigestion_service import get_municipality_cn_profiles
+
             _cn_profile_cache = get_municipality_cn_profiles()
         except Exception as e:
             logger.error(f"Error computing municipality C/N profiles: {e}", exc_info=True)
@@ -123,8 +136,7 @@ async def get_municipality_cn_profiles_endpoint():
 @router.get("/pairing-candidates")
 async def get_pairing_candidates_endpoint(
     ibge_code: str = Query(..., description="IBGE code of the target municipality"),
-    radius_km: float = Query(default=50.0, ge=5.0, le=200.0,
-                             description="Search radius in km"),
+    radius_km: float = Query(default=50.0, ge=5.0, le=200.0, description="Search radius in km"),
 ):
     """
     Top-ranked co-digestion partners for a municipality within radius_km.
@@ -136,6 +148,7 @@ async def get_pairing_candidates_endpoint(
     """
     try:
         from app.services.codigestion_service import get_pairing_candidates
+
         candidates = get_pairing_candidates(ibge_code=ibge_code, radius_km=radius_km)
     except Exception as e:
         logger.error(f"Error computing pairing candidates: {e}", exc_info=True)
@@ -157,6 +170,7 @@ async def get_residue_cn_matrix():
     """
     try:
         from app.services.codigestion_service import get_residue_cn_matrix
+
         return get_residue_cn_matrix()
     except Exception as e:
         logger.error(f"Error fetching C:N matrix: {e}", exc_info=True)

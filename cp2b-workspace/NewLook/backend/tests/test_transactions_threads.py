@@ -1,11 +1,14 @@
 """
 Tests for transaction management and thread safety
 """
-import pytest
-from unittest.mock import Mock, MagicMock, patch
+
+import os
 import threading
 import time
-import os
+from unittest.mock import MagicMock, Mock, patch
+
+import pytest
+
 from app.core.database import get_db_transaction
 
 
@@ -18,7 +21,7 @@ class TestTransactionManagement:
         mock_conn = MagicMock()
 
         mock_pool.getconn.return_value = mock_conn
-        monkeypatch.setattr('app.core.database.get_connection_pool', lambda: mock_pool)
+        monkeypatch.setattr("app.core.database.get_connection_pool", lambda: mock_pool)
 
         # Execute transaction
         with get_db_transaction() as conn:
@@ -41,7 +44,7 @@ class TestTransactionManagement:
         mock_conn = MagicMock()
 
         mock_pool.getconn.return_value = mock_conn
-        monkeypatch.setattr('app.core.database.get_connection_pool', lambda: mock_pool)
+        monkeypatch.setattr("app.core.database.get_connection_pool", lambda: mock_pool)
 
         # Execute transaction with error
         with pytest.raises(Exception):
@@ -65,7 +68,7 @@ class TestTransactionManagement:
         mock_conn = MagicMock()
 
         mock_pool.getconn.return_value = mock_conn
-        monkeypatch.setattr('app.core.database.get_connection_pool', lambda: mock_pool)
+        monkeypatch.setattr("app.core.database.get_connection_pool", lambda: mock_pool)
 
         with get_db_transaction() as conn:
             # Verify autocommit was set to False
@@ -80,13 +83,13 @@ class TestTransactionManagement:
         mock_conn = MagicMock()
 
         mock_pool.getconn.return_value = mock_conn
-        monkeypatch.setattr('app.core.database.get_connection_pool', lambda: mock_pool)
+        monkeypatch.setattr("app.core.database.get_connection_pool", lambda: mock_pool)
 
         with get_db_transaction() as conn:
             pass
 
         # Verify UTF-8 encoding was set
-        mock_conn.set_client_encoding.assert_called_once_with('UTF8')
+        mock_conn.set_client_encoding.assert_called_once_with("UTF8")
 
     def test_multiple_operations_atomic(self, monkeypatch):
         """Test that multiple operations are atomic (all or nothing)"""
@@ -94,7 +97,7 @@ class TestTransactionManagement:
         mock_conn = MagicMock()
 
         mock_pool.getconn.return_value = mock_conn
-        monkeypatch.setattr('app.core.database.get_connection_pool', lambda: mock_pool)
+        monkeypatch.setattr("app.core.database.get_connection_pool", lambda: mock_pool)
 
         # Successful transaction
         with get_db_transaction() as conn:
@@ -123,8 +126,8 @@ class TestTransactionManagement:
 class TestSupabaseClientThreadSafety:
     """Tests for thread-safe Supabase client"""
 
-    @patch('app.services.supabase_client.create_client')
-    @patch('app.services.supabase_client.settings')
+    @patch("app.services.supabase_client.create_client")
+    @patch("app.services.supabase_client.settings")
     def test_supabase_client_singleton(self, mock_settings, mock_create):
         """Test that Supabase client is a singleton"""
         from app.services.supabase_client import get_supabase_client
@@ -135,6 +138,7 @@ class TestSupabaseClientThreadSafety:
 
         # Reset global state
         import app.services.supabase_client as client_module
+
         with client_module._client_lock:
             client_module._supabase_client = None
 
@@ -155,8 +159,8 @@ class TestSupabaseClientThreadSafety:
         with client_module._client_lock:
             client_module._supabase_client = None
 
-    @patch('app.services.supabase_client.create_client')
-    @patch('app.services.supabase_client.settings')
+    @patch("app.services.supabase_client.create_client")
+    @patch("app.services.supabase_client.settings")
     def test_supabase_client_thread_safe_initialization(self, mock_settings, mock_create):
         """Test that concurrent initialization is thread-safe"""
         from app.services.supabase_client import get_supabase_client
@@ -167,6 +171,7 @@ class TestSupabaseClientThreadSafety:
 
         # Reset global state
         import app.services.supabase_client as client_module
+
         with client_module._client_lock:
             client_module._supabase_client = None
 
@@ -241,7 +246,7 @@ class TestCacheThreadSafety:
         # Create threads that will cause evictions
         threads = []
         for i in range(5):
-            thread = threading.Thread(target=add_items, args=(i*10, (i+1)*10))
+            thread = threading.Thread(target=add_items, args=(i * 10, (i + 1) * 10))
             threads.append(thread)
             thread.start()
 
@@ -250,10 +255,10 @@ class TestCacheThreadSafety:
 
         # Cache should not exceed max size
         stats = cache.get_stats()
-        assert stats['size'] <= cache.max_size
+        assert stats["size"] <= cache.max_size
 
         # Should have evictions
-        assert stats['evictions'] > 0
+        assert stats["evictions"] > 0
 
     def test_cache_stats_thread_safe(self):
         """Test that statistics are accurately maintained under concurrent access"""
@@ -280,9 +285,9 @@ class TestCacheThreadSafety:
 
         # Verify statistics are consistent
         stats = cache.get_stats()
-        assert stats['total_requests'] == stats['hits'] + stats['misses']
-        assert stats['hits'] == 20 * 5  # 20 hits per thread, 5 threads
-        assert stats['misses'] == 20 * 5  # 20 misses per thread, 5 threads
+        assert stats["total_requests"] == stats["hits"] + stats["misses"]
+        assert stats["hits"] == 20 * 5  # 20 hits per thread, 5 threads
+        assert stats["misses"] == 20 * 5  # 20 misses per thread, 5 threads
 
     def test_cache_cleanup_thread_safe(self):
         """Test that expired entry cleanup is thread-safe"""
@@ -315,7 +320,7 @@ class TestCacheThreadSafety:
 
         # Should not crash and cache should be cleaned
         stats = cache.get_stats()
-        assert stats['size'] == 0  # All expired
+        assert stats["size"] == 0  # All expired
 
 
 @pytest.mark.integration
@@ -334,7 +339,7 @@ class TestTransactionIntegration:
             cursor = conn.cursor()
             cursor.execute("SELECT 1 as test")
             result = cursor.fetchone()
-            assert result['test'] == 1
+            assert result["test"] == 1
             cursor.close()
 
     def test_real_transaction_rollback(self):
@@ -352,5 +357,5 @@ class TestTransactionIntegration:
             cursor = conn.cursor()
             cursor.execute("SELECT 1 as test")
             result = cursor.fetchone()
-            assert result['test'] == 1
+            assert result["test"] == 1
             cursor.close()

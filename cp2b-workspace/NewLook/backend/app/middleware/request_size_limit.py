@@ -4,11 +4,13 @@ Prevents DoS attacks via oversized request bodies
 
 Sprint 4: Production Security Hardening
 """
+
+import logging
+
 from fastapi import Request, Response
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
-import logging
 
 from app.core.config import settings
 
@@ -68,8 +70,8 @@ class RequestSizeLimitMiddleware(BaseHTTPMiddleware):
                     content={
                         "detail": "Request body too large",
                         "max_size_mb": self.max_size / 1_000_000,
-                        "received_size_mb": content_length / 1_000_000
-                    }
+                        "received_size_mb": content_length / 1_000_000,
+                    },
                 )
 
         # Process request
@@ -104,15 +106,12 @@ async def request_size_limit_middleware(request: Request, call_next):
                 content={
                     "detail": "Request body too large",
                     "max_size_mb": settings.MAX_REQUEST_SIZE / 1_000_000,
-                    "received_size_mb": content_length / 1_000_000
-                }
+                    "received_size_mb": content_length / 1_000_000,
+                },
             )
 
     response = await call_next(request)
     return response
 
 
-__all__ = [
-    "RequestSizeLimitMiddleware",
-    "request_size_limit_middleware"
-]
+__all__ = ["RequestSizeLimitMiddleware", "request_size_limit_middleware"]
