@@ -96,6 +96,7 @@ Standard open-source project files at `cp2b-workspace/NewLook/`:
 | File | Description |
 |---|---|
 | [`planning/DEVELOPMENT_ROADMAP_APR_AUG_2026.md`](planning/DEVELOPMENT_ROADMAP_APR_AUG_2026.md) | Development roadmap April–August 2026 — sprint targets, milestones |
+| [`planning/IMPROVEMENT_BACKLOG.md`](planning/IMPROVEMENT_BACKLOG.md) | Living lean-and-stable backlog — CI gate hardening status, dead code, large-file, and tech-debt tracker |
 
 ---
 
