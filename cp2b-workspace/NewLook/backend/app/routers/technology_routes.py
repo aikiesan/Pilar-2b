@@ -13,7 +13,8 @@ from uuid import UUID
 logger = logging.getLogger(__name__)
 import json
 
-from app.core.database import get_db, get_db_transaction
+from app.core.database import get_db
+from app.core.legacy_db_adapter import get_legacy_db, text
 from app.schemas.technology_routes import (
     TechnologyCard,
     TechnologyCardCreate,
@@ -286,6 +287,7 @@ def get_technology_by_id(tech_id: str):
 @router.post("/technologies/custom", response_model=TechnologyCard, status_code=status.HTTP_201_CREATED)
 def create_custom_technology(
     technology: TechnologyCardCreate,
+    db = Depends(get_legacy_db),
     current_user = Depends(get_current_user)
 ):
     """Create a custom user-defined technology card."""
@@ -368,6 +370,7 @@ def create_custom_technology(
 @router.delete("/technologies/custom/{tech_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_custom_technology(
     tech_id: str,
+    db = Depends(get_legacy_db),
     current_user = Depends(get_current_user)
 ):
     """Delete a custom technology card (only by owner)."""
@@ -415,7 +418,7 @@ def delete_custom_technology(
 
 @router.get("/routes", response_model=List[UserRoute])
 def get_user_routes(
-    
+    db = Depends(get_legacy_db),
     current_user = Depends(get_current_user)
 ):
     """Get all routes created by the current user."""
@@ -457,6 +460,7 @@ def get_user_routes(
 @router.get("/routes/{route_id}", response_model=UserRoute)
 def get_route_by_id(
     route_id: UUID,
+    db = Depends(get_legacy_db),
     current_user = Depends(get_current_user)
 ):
     """Get a specific route by ID (must be owner)."""
@@ -504,6 +508,7 @@ def get_route_by_id(
 @router.post("/routes", response_model=UserRoute, status_code=status.HTTP_201_CREATED)
 def create_route(
     route: UserRouteCreate,
+    db = Depends(get_legacy_db),
     current_user = Depends(get_current_user)
 ):
     """Create a new technology route."""
@@ -561,6 +566,7 @@ def create_route(
 def update_route(
     route_id: UUID,
     route_update: UserRouteUpdate,
+    db = Depends(get_legacy_db),
     current_user = Depends(get_current_user)
 ):
     """Update an existing route (must be owner)."""
@@ -653,6 +659,7 @@ def update_route(
 @router.delete("/routes/{route_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_route(
     route_id: UUID,
+    db = Depends(get_legacy_db),
     current_user = Depends(get_current_user)
 ):
     """Delete a route (must be owner)."""
@@ -698,7 +705,8 @@ def delete_route(
 @router.get("/public/routes", response_model=List[UserRoutePublic])
 def get_public_routes(
     limit: int = 20,
-    offset: int = 0
+    offset: int = 0,
+    db = Depends(get_legacy_db)
 ):
     """Get all public routes (no authentication required)."""
     try:
@@ -736,7 +744,8 @@ def get_public_routes(
 
 @router.get("/share/{share_token}", response_model=UserRoutePublic)
 def get_route_by_share_token(
-    share_token: str
+    share_token: str,
+    db = Depends(get_legacy_db)
 ):
     """Get a route by its public share token (no authentication required)."""
     try:
