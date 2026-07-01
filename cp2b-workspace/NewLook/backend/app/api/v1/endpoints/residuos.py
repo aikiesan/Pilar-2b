@@ -49,7 +49,8 @@ async def get_sectors():
             residuos = _rows(
                 conn,
                 """
-                SELECT sector_codigo, bmp_medio, ts_medio, vs_medio, chemical_cn_ratio, chemical_ch4_content
+                SELECT sector_codigo, bmp_medio, ts_medio, vs_medio, chemical_cn_ratio,
+                       chemical_ch4_content
                 FROM residuos
             """,
             )
@@ -298,7 +299,8 @@ async def get_conversion_factors(category: Optional[str] = None):
                     conn,
                     """
                     SELECT id, category, subcategory, factor_value, unit, literature_reference,
-                           reference_url, real_data_validation, safety_margin_percent, final_factor, notes
+                           reference_url, real_data_validation, safety_margin_percent,
+                           final_factor, notes
                     FROM conversion_factors WHERE category = %s ORDER BY category, subcategory
                 """,
                     [category],
@@ -308,7 +310,8 @@ async def get_conversion_factors(category: Optional[str] = None):
                     conn,
                     """
                     SELECT id, category, subcategory, factor_value, unit, literature_reference,
-                           reference_url, real_data_validation, safety_margin_percent, final_factor, notes
+                           reference_url, real_data_validation, safety_margin_percent,
+                           final_factor, notes
                     FROM conversion_factors ORDER BY category, subcategory
                 """,
                 )

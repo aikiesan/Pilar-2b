@@ -119,7 +119,9 @@ async def rate_limit_middleware(request: Request, call_next):
         return JSONResponse(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             content={
-                "detail": f"Taxa de requisições excedida. Tente novamente em {retry_after} segundos.",
+                "detail": (
+                    f"Taxa de requisições excedida. Tente novamente em {retry_after} segundos."
+                ),
                 "error_code": "RATE_LIMIT_EXCEEDED",
                 "retry_after": retry_after,
                 "limit": rate_limiter.max_requests,

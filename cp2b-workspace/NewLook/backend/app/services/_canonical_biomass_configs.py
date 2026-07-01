@@ -48,7 +48,8 @@ RESIDUE_BIOMASS_CONFIGS_CANONICAL: tuple[ResidueBiomassConfig, ...] = (
     ResidueBiomassConfig(
         "swine", "livestock", "swine_biomass_tons_year", "swine_biogas_m3_year", 245.0, 2.4
     ),
-    # FORSU — Fração Orgânica dos Resíduos Sólidos Urbanos separada na fonte — https://doi.org/10.1016/j.biortech.2014.03.077
+    # FORSU — Fração Orgânica dos Resíduos Sólidos Urbanos separada na fonte
+    # — https://doi.org/10.1016/j.biortech.2014.03.077
     ResidueBiomassConfig(
         "rsu", "urban", "rsu_biomass_tons_year", "rsu_biogas_m3_year", 360.0, 25.99
     ),

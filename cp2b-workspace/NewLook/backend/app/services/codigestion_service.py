@@ -216,7 +216,8 @@ def find_codigestion_clusters(
         with get_db() as conn:
             cursor = conn.cursor()
             cursor.execute(f"""
-                SELECT id, municipality_name, ibge_code, centroid_lat, centroid_lng, {weight_cols_sql}
+                SELECT id, municipality_name, ibge_code, centroid_lat, centroid_lng,
+                       {weight_cols_sql}
                 FROM municipalities
                 WHERE centroid_lat IS NOT NULL AND centroid_lng IS NOT NULL
             """)
