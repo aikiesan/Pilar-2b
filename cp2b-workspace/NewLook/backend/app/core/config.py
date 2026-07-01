@@ -243,11 +243,7 @@ except ValidationError as e:
     print("=" * 60)
     print("\nEnvironment Variables Check:")
     print(f"  APP_ENV: {os.getenv('APP_ENV', 'NOT SET')}")
-    secret_key_len = len(os.getenv("SECRET_KEY", ""))
-    print(
-        f"  SECRET_KEY: {'SET' if os.getenv('SECRET_KEY') else 'NOT SET'} "
-        f"(length: {secret_key_len})"
-    )
+    print(f"  SECRET_KEY: {'SET' if os.getenv('SECRET_KEY') else 'NOT SET'}")
     print(f"  DATABASE_URL: {'SET' if os.getenv('DATABASE_URL') else 'NOT SET'}")
     print(f"  POSTGRES_PASSWORD: {'SET' if os.getenv('POSTGRES_PASSWORD') else 'NOT SET'}")
     print("=" * 60 + "\n")
