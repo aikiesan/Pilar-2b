@@ -293,72 +293,74 @@ def create_custom_technology(
         # Generate ID if not provided
         tech_id = technology.id or f"custom_{secrets.token_hex(8)}"
 
-        # Check if ID already exists
-        check_query = "SELECT id FROM technology_cards WHERE id = :tech_id"
-        existing = db.execute(text(check_query), {'tech_id': tech_id}).fetchone()
-        if existing:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Technology ID {tech_id} already exists"
-            )
+        with get_db_transaction() as conn:
+            cursor = conn.cursor()
 
-        # Insert technology
-        insert_query = """
-            INSERT INTO technology_cards (
-                id, category, name_pt, name_en, emoji,
-                description_pt, description_en, color,
-                can_connect_to, can_receive_from,
-                is_custom, created_by
-            ) VALUES (
-                :id, :category, :name_pt, :name_en, :emoji,
-                :description_pt, :description_en, :color,
-                :can_connect_to, :can_receive_from,
-                TRUE, :created_by
-            )
-            RETURNING id, category, name_pt, name_en, emoji,
-                      description_pt, description_en, color,
-                      can_connect_to, can_receive_from,
-                      is_custom, created_by, created_at, updated_at
-        """
+            # Check if ID already exists
+            check_query = "SELECT id FROM technology_cards WHERE id = %(tech_id)s"
+            cursor.execute(check_query, {'tech_id': tech_id})
+            existing = cursor.fetchone()
+            if existing:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Technology ID {tech_id} already exists"
+                )
 
-        result = db.execute(text(insert_query), {
-            'id': tech_id,
-            'category': technology.category.value,
-            'name_pt': technology.name_pt,
-            'name_en': technology.name_en,
-            'emoji': technology.emoji,
-            'description_pt': technology.description_pt,
-            'description_en': technology.description_en,
-            'color': technology.color,
-            'can_connect_to': technology.can_connect_to,
-            'can_receive_from': technology.can_receive_from,
-            'created_by': str(current_user['id'])
-        })
+            # Insert technology
+            insert_query = """
+                INSERT INTO technology_cards (
+                    id, category, name_pt, name_en, emoji,
+                    description_pt, description_en, color,
+                    can_connect_to, can_receive_from,
+                    is_custom, created_by
+                ) VALUES (
+                    %(id)s, %(category)s, %(name_pt)s, %(name_en)s, %(emoji)s,
+                    %(description_pt)s, %(description_en)s, %(color)s,
+                    %(can_connect_to)s, %(can_receive_from)s,
+                    TRUE, %(created_by)s
+                )
+                RETURNING id, category, name_pt, name_en, emoji,
+                          description_pt, description_en, color,
+                          can_connect_to, can_receive_from,
+                          is_custom, created_by, created_at, updated_at
+            """
 
-        db.commit()
-        row = result.fetchone()
+            cursor.execute(insert_query, {
+                'id': tech_id,
+                'category': technology.category.value,
+                'name_pt': technology.name_pt,
+                'name_en': technology.name_en,
+                'emoji': technology.emoji,
+                'description_pt': technology.description_pt,
+                'description_en': technology.description_en,
+                'color': technology.color,
+                'can_connect_to': technology.can_connect_to,
+                'can_receive_from': technology.can_receive_from,
+                'created_by': str(current_user.id)
+            })
+
+            row = cursor.fetchone()
 
         return TechnologyCard(
-            id=row.id,
-            category=row.category,
-            name_pt=row.name_pt,
-            name_en=row.name_en,
-            emoji=row.emoji,
-            description_pt=row.description_pt,
-            description_en=row.description_en,
-            color=row.color,
-            can_connect_to=row.can_connect_to or [],
-            can_receive_from=row.can_receive_from or [],
-            is_custom=row.is_custom,
-            created_by=str(row.created_by) if row.created_by else None,
-            created_at=row.created_at,
-            updated_at=row.updated_at
+            id=row['id'],
+            category=row['category'],
+            name_pt=row['name_pt'],
+            name_en=row['name_en'],
+            emoji=row['emoji'],
+            description_pt=row['description_pt'],
+            description_en=row['description_en'],
+            color=row['color'],
+            can_connect_to=row['can_connect_to'] or [],
+            can_receive_from=row['can_receive_from'] or [],
+            is_custom=row['is_custom'],
+            created_by=str(row['created_by']) if row['created_by'] else None,
+            created_at=row['created_at'],
+            updated_at=row['updated_at']
         )
 
     except HTTPException:
         raise
     except Exception as e:
-        db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to create custom technology: {str(e)}"
@@ -372,37 +374,38 @@ def delete_custom_technology(
 ):
     """Delete a custom technology card (only by owner)."""
     try:
-        # Check ownership
-        check_query = """
-            SELECT created_by FROM technology_cards
-            WHERE id = :tech_id AND is_custom = TRUE
-        """
-        result = db.execute(text(check_query), {'tech_id': tech_id})
-        row = result.fetchone()
+        with get_db_transaction() as conn:
+            cursor = conn.cursor()
 
-        if not row:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Custom technology {tech_id} not found"
-            )
+            # Check ownership
+            check_query = """
+                SELECT created_by FROM technology_cards
+                WHERE id = %(tech_id)s AND is_custom = TRUE
+            """
+            cursor.execute(check_query, {'tech_id': tech_id})
+            row = cursor.fetchone()
 
-        if str(row.created_by) != str(current_user['id']):
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="You can only delete your own custom technologies"
-            )
+            if not row:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Custom technology {tech_id} not found"
+                )
 
-        # Delete technology (cascade will handle references)
-        delete_query = "DELETE FROM technology_cards WHERE id = :tech_id"
-        db.execute(text(delete_query), {'tech_id': tech_id})
-        db.commit()
+            if str(row['created_by']) != str(current_user.id):
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="You can only delete your own custom technologies"
+                )
+
+            # Delete technology (cascade will handle references)
+            delete_query = "DELETE FROM technology_cards WHERE id = %(tech_id)s"
+            cursor.execute(delete_query, {'tech_id': tech_id})
 
         return None
 
     except HTTPException:
         raise
     except Exception as e:
-        db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to delete technology: {str(e)}"
@@ -415,34 +418,35 @@ def delete_custom_technology(
 
 @router.get("/routes", response_model=List[UserRoute])
 def get_user_routes(
-    
     current_user = Depends(get_current_user)
 ):
     """Get all routes created by the current user."""
     try:
-        query = """
-            SELECT id, user_id, name, description, canvas_data,
-                   is_public, share_token, tags, created_at, updated_at
-            FROM user_routes
-            WHERE user_id = :user_id
-            ORDER BY updated_at DESC
-        """
-        result = db.execute(text(query), {'user_id': str(current_user['id'])})
-        rows = result.fetchall()
+        with get_db() as conn:
+            cursor = conn.cursor()
+            query = """
+                SELECT id, user_id, name, description, canvas_data,
+                       is_public, share_token, tags, created_at, updated_at
+                FROM user_routes
+                WHERE user_id = %(user_id)s
+                ORDER BY updated_at DESC
+            """
+            cursor.execute(query, {'user_id': str(current_user.id)})
+            rows = cursor.fetchall()
 
         routes = []
         for row in rows:
             routes.append(UserRoute(
-                id=str(row.id),
-                user_id=str(row.user_id),
-                name=row.name,
-                description=row.description,
-                canvas_data=row.canvas_data,
-                is_public=row.is_public,
-                share_token=row.share_token,
-                tags=row.tags or [],
-                created_at=row.created_at,
-                updated_at=row.updated_at
+                id=str(row['id']),
+                user_id=str(row['user_id']),
+                name=row['name'],
+                description=row['description'],
+                canvas_data=row['canvas_data'],
+                is_public=row['is_public'],
+                share_token=row['share_token'],
+                tags=row['tags'] or [],
+                created_at=row['created_at'],
+                updated_at=row['updated_at']
             ))
 
         return routes
@@ -461,17 +465,19 @@ def get_route_by_id(
 ):
     """Get a specific route by ID (must be owner)."""
     try:
-        query = """
-            SELECT id, user_id, name, description, canvas_data,
-                   is_public, share_token, tags, created_at, updated_at
-            FROM user_routes
-            WHERE id = :route_id AND user_id = :user_id
-        """
-        result = db.execute(text(query), {
-            'route_id': str(route_id),
-            'user_id': str(current_user['id'])
-        })
-        row = result.fetchone()
+        with get_db() as conn:
+            cursor = conn.cursor()
+            query = """
+                SELECT id, user_id, name, description, canvas_data,
+                       is_public, share_token, tags, created_at, updated_at
+                FROM user_routes
+                WHERE id = %(route_id)s AND user_id = %(user_id)s
+            """
+            cursor.execute(query, {
+                'route_id': str(route_id),
+                'user_id': str(current_user.id)
+            })
+            row = cursor.fetchone()
 
         if not row:
             raise HTTPException(
@@ -480,16 +486,16 @@ def get_route_by_id(
             )
 
         return UserRoute(
-            id=str(row.id),
-            user_id=str(row.user_id),
-            name=row.name,
-            description=row.description,
-            canvas_data=row.canvas_data,
-            is_public=row.is_public,
-            share_token=row.share_token,
-            tags=row.tags or [],
-            created_at=row.created_at,
-            updated_at=row.updated_at
+            id=str(row['id']),
+            user_id=str(row['user_id']),
+            name=row['name'],
+            description=row['description'],
+            canvas_data=row['canvas_data'],
+            is_public=row['is_public'],
+            share_token=row['share_token'],
+            tags=row['tags'] or [],
+            created_at=row['created_at'],
+            updated_at=row['updated_at']
         )
 
     except HTTPException:
@@ -511,46 +517,47 @@ def create_route(
         # Generate share token if public
         share_token = secrets.token_urlsafe(16) if route.is_public else None
 
-        insert_query = """
-            INSERT INTO user_routes (
-                user_id, name, description, canvas_data,
-                is_public, share_token, tags
-            ) VALUES (
-                :user_id, :name, :description, :canvas_data,
-                :is_public, :share_token, :tags
-            )
-            RETURNING id, user_id, name, description, canvas_data,
-                      is_public, share_token, tags, created_at, updated_at
-        """
+        with get_db_transaction() as conn:
+            cursor = conn.cursor()
 
-        result = db.execute(text(insert_query), {
-            'user_id': str(current_user['id']),
-            'name': route.name,
-            'description': route.description,
-            'canvas_data': json.dumps(route.canvas_data.model_dump()),
-            'is_public': route.is_public,
-            'share_token': share_token,
-            'tags': route.tags
-        })
+            insert_query = """
+                INSERT INTO user_routes (
+                    user_id, name, description, canvas_data,
+                    is_public, share_token, tags
+                ) VALUES (
+                    %(user_id)s, %(name)s, %(description)s, %(canvas_data)s::jsonb,
+                    %(is_public)s, %(share_token)s, %(tags)s
+                )
+                RETURNING id, user_id, name, description, canvas_data,
+                          is_public, share_token, tags, created_at, updated_at
+            """
 
-        db.commit()
-        row = result.fetchone()
+            cursor.execute(insert_query, {
+                'user_id': str(current_user.id),
+                'name': route.name,
+                'description': route.description,
+                'canvas_data': json.dumps(route.canvas_data.model_dump()),
+                'is_public': route.is_public,
+                'share_token': share_token,
+                'tags': route.tags
+            })
+
+            row = cursor.fetchone()
 
         return UserRoute(
-            id=str(row.id),
-            user_id=str(row.user_id),
-            name=row.name,
-            description=row.description,
-            canvas_data=row.canvas_data,
-            is_public=row.is_public,
-            share_token=row.share_token,
-            tags=row.tags or [],
-            created_at=row.created_at,
-            updated_at=row.updated_at
+            id=str(row['id']),
+            user_id=str(row['user_id']),
+            name=row['name'],
+            description=row['description'],
+            canvas_data=row['canvas_data'],
+            is_public=row['is_public'],
+            share_token=row['share_token'],
+            tags=row['tags'] or [],
+            created_at=row['created_at'],
+            updated_at=row['updated_at']
         )
 
     except Exception as e:
-        db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to create route: {str(e)}"
@@ -565,85 +572,86 @@ def update_route(
 ):
     """Update an existing route (must be owner)."""
     try:
-        # Check ownership
-        check_query = "SELECT user_id, share_token FROM user_routes WHERE id = :route_id"
-        result = db.execute(text(check_query), {'route_id': str(route_id)})
-        row = result.fetchone()
+        with get_db_transaction() as conn:
+            cursor = conn.cursor()
 
-        if not row:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Route not found"
-            )
+            # Check ownership
+            check_query = "SELECT user_id, share_token FROM user_routes WHERE id = %(route_id)s"
+            cursor.execute(check_query, {'route_id': str(route_id)})
+            row = cursor.fetchone()
 
-        if str(row.user_id) != str(current_user['id']):
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="You can only update your own routes"
-            )
+            if not row:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Route not found"
+                )
 
-        # Build update query dynamically
-        updates = []
-        params = {'route_id': str(route_id)}
+            if str(row['user_id']) != str(current_user.id):
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="You can only update your own routes"
+                )
 
-        if route_update.name is not None:
-            updates.append("name = :name")
-            params['name'] = route_update.name
+            # Build update query dynamically
+            updates = []
+            params = {'route_id': str(route_id)}
 
-        if route_update.description is not None:
-            updates.append("description = :description")
-            params['description'] = route_update.description
+            if route_update.name is not None:
+                updates.append("name = %(name)s")
+                params['name'] = route_update.name
 
-        if route_update.canvas_data is not None:
-            updates.append("canvas_data = :canvas_data")
-            params['canvas_data'] = json.dumps(route_update.canvas_data.model_dump())
+            if route_update.description is not None:
+                updates.append("description = %(description)s")
+                params['description'] = route_update.description
 
-        if route_update.is_public is not None:
-            updates.append("is_public = :is_public")
-            params['is_public'] = route_update.is_public
+            if route_update.canvas_data is not None:
+                updates.append("canvas_data = %(canvas_data)s::jsonb")
+                params['canvas_data'] = json.dumps(route_update.canvas_data.model_dump())
 
-            # Generate/remove share token based on public status
-            if route_update.is_public and not row.share_token:
-                updates.append("share_token = :share_token")
-                params['share_token'] = secrets.token_urlsafe(16)
+            if route_update.is_public is not None:
+                updates.append("is_public = %(is_public)s")
+                params['is_public'] = route_update.is_public
 
-        if route_update.tags is not None:
-            updates.append("tags = :tags")
-            params['tags'] = route_update.tags
+                # Generate/remove share token based on public status
+                if route_update.is_public and not row['share_token']:
+                    updates.append("share_token = %(share_token)s")
+                    params['share_token'] = secrets.token_urlsafe(16)
 
-        if not updates:
-            # Nothing to update, return current state
-            return get_route_by_id(route_id, db, current_user)
+            if route_update.tags is not None:
+                updates.append("tags = %(tags)s")
+                params['tags'] = route_update.tags
 
-        update_query = f"""
-            UPDATE user_routes
-            SET {', '.join(updates)}
-            WHERE id = :route_id
-            RETURNING id, user_id, name, description, canvas_data,
-                      is_public, share_token, tags, created_at, updated_at
-        """
+            if not updates:
+                # Nothing to update, return current state
+                return get_route_by_id(route_id, current_user)
 
-        result = db.execute(text(update_query), params)
-        db.commit()
-        row = result.fetchone()
+            update_query = f"""
+                UPDATE user_routes
+                SET {', '.join(updates)}
+                WHERE id = %(route_id)s
+                RETURNING id, user_id, name, description, canvas_data,
+                          is_public, share_token, tags, created_at, updated_at
+            """
+
+            cursor.execute(update_query, params)
+            row = cursor.fetchone()
 
         return UserRoute(
-            id=str(row.id),
-            user_id=str(row.user_id),
-            name=row.name,
-            description=row.description,
-            canvas_data=row.canvas_data,
-            is_public=row.is_public,
-            share_token=row.share_token,
-            tags=row.tags or [],
-            created_at=row.created_at,
-            updated_at=row.updated_at
+            id=str(row['id']),
+            user_id=str(row['user_id']),
+            name=row['name'],
+            description=row['description'],
+            canvas_data=row['canvas_data'],
+            is_public=row['is_public'],
+            share_token=row['share_token'],
+            tags=row['tags'] or [],
+            created_at=row['created_at'],
+            updated_at=row['updated_at']
         )
 
     except HTTPException:
         raise
     except Exception as e:
-        db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to update route: {str(e)}"
@@ -657,34 +665,35 @@ def delete_route(
 ):
     """Delete a route (must be owner)."""
     try:
-        # Check ownership
-        check_query = "SELECT user_id FROM user_routes WHERE id = :route_id"
-        result = db.execute(text(check_query), {'route_id': str(route_id)})
-        row = result.fetchone()
+        with get_db_transaction() as conn:
+            cursor = conn.cursor()
 
-        if not row:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Route not found"
-            )
+            # Check ownership
+            check_query = "SELECT user_id FROM user_routes WHERE id = %(route_id)s"
+            cursor.execute(check_query, {'route_id': str(route_id)})
+            row = cursor.fetchone()
 
-        if str(row.user_id) != str(current_user['id']):
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="You can only delete your own routes"
-            )
+            if not row:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Route not found"
+                )
 
-        # Delete route
-        delete_query = "DELETE FROM user_routes WHERE id = :route_id"
-        db.execute(text(delete_query), {'route_id': str(route_id)})
-        db.commit()
+            if str(row['user_id']) != str(current_user.id):
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="You can only delete your own routes"
+                )
+
+            # Delete route
+            delete_query = "DELETE FROM user_routes WHERE id = %(route_id)s"
+            cursor.execute(delete_query, {'route_id': str(route_id)})
 
         return None
 
     except HTTPException:
         raise
     except Exception as e:
-        db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to delete route: {str(e)}"
@@ -702,27 +711,29 @@ def get_public_routes(
 ):
     """Get all public routes (no authentication required)."""
     try:
-        query = """
-            SELECT
-                ur.id, ur.name, ur.description, ur.canvas_data,
-                ur.created_at, ur.tags
-            FROM user_routes ur
-            WHERE ur.is_public = TRUE
-            ORDER BY ur.created_at DESC
-            LIMIT :limit OFFSET :offset
-        """
-        result = db.execute(text(query), {'limit': limit, 'offset': offset})
-        rows = result.fetchall()
+        with get_db() as conn:
+            cursor = conn.cursor()
+            query = """
+                SELECT
+                    ur.id, ur.name, ur.description, ur.canvas_data,
+                    ur.created_at, ur.tags
+                FROM user_routes ur
+                WHERE ur.is_public = TRUE
+                ORDER BY ur.created_at DESC
+                LIMIT %(limit)s OFFSET %(offset)s
+            """
+            cursor.execute(query, {'limit': limit, 'offset': offset})
+            rows = cursor.fetchall()
 
         routes = []
         for row in rows:
             routes.append(UserRoutePublic(
-                id=str(row.id),
-                name=row.name,
-                description=row.description,
-                canvas_data=row.canvas_data,
-                created_at=row.created_at,
-                tags=row.tags or []
+                id=str(row['id']),
+                name=row['name'],
+                description=row['description'],
+                canvas_data=row['canvas_data'],
+                created_at=row['created_at'],
+                tags=row['tags'] or []
             ))
 
         return routes
@@ -740,15 +751,17 @@ def get_route_by_share_token(
 ):
     """Get a route by its public share token (no authentication required)."""
     try:
-        query = """
-            SELECT
-                ur.id, ur.name, ur.description, ur.canvas_data,
-                ur.created_at, ur.tags
-            FROM user_routes ur
-            WHERE ur.share_token = :share_token AND ur.is_public = TRUE
-        """
-        result = db.execute(text(query), {'share_token': share_token})
-        row = result.fetchone()
+        with get_db() as conn:
+            cursor = conn.cursor()
+            query = """
+                SELECT
+                    ur.id, ur.name, ur.description, ur.canvas_data,
+                    ur.created_at, ur.tags
+                FROM user_routes ur
+                WHERE ur.share_token = %(share_token)s AND ur.is_public = TRUE
+            """
+            cursor.execute(query, {'share_token': share_token})
+            row = cursor.fetchone()
 
         if not row:
             raise HTTPException(
@@ -757,12 +770,12 @@ def get_route_by_share_token(
             )
 
         return UserRoutePublic(
-            id=str(row.id),
-            name=row.name,
-            description=row.description,
-            canvas_data=row.canvas_data,
-            created_at=row.created_at,
-            tags=row.tags or []
+            id=str(row['id']),
+            name=row['name'],
+            description=row['description'],
+            canvas_data=row['canvas_data'],
+            created_at=row['created_at'],
+            tags=row['tags'] or []
         )
 
     except HTTPException:

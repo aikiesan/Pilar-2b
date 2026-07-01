@@ -25,6 +25,11 @@ def _shared_get_db():
     yield _SHARED_MOCK_CONN
 
 
+@contextmanager
+def _shared_get_db_transaction():
+    yield _SHARED_MOCK_CONN
+
+
 @pytest.fixture(autouse=True)
 def mock_db_connection(monkeypatch):
     """Mock database connections for all tests"""
@@ -35,6 +40,7 @@ def mock_db_connection(monkeypatch):
     _SHARED_MOCK_CONN.cursor.return_value = _SHARED_MOCK_CURSOR
 
     monkeypatch.setattr("app.core.database.get_db", _shared_get_db)
+    monkeypatch.setattr("app.core.database.get_db_transaction", _shared_get_db_transaction)
     # Patch every call site that may have been imported before the fixture ran.
     # Integration tests do `from app.main import app` at module level, which
     # pulls in all endpoint modules at collection time — before any monkeypatch
@@ -53,6 +59,7 @@ def mock_db_connection(monkeypatch):
     ]
     for _mod in _call_sites:
         monkeypatch.setattr(f"{_mod}.get_db", _shared_get_db, raising=False)
+        monkeypatch.setattr(f"{_mod}.get_db_transaction", _shared_get_db_transaction, raising=False)
     return _SHARED_MOCK_CONN, _SHARED_MOCK_CURSOR
 
 
