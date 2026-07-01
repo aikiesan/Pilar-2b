@@ -183,7 +183,7 @@ jobs:
       - name: Safety check
         run: safety check
       - name: Bandit SAST scan
-        run: bandit -r app/ -f json -o bandit-report.json
+        run: bandit -r app/ -f json -o bandit-report.json -c pyproject.toml
         continue-on-error: true
       - name: Upload Bandit report
         uses: actions/upload-artifact@v7
