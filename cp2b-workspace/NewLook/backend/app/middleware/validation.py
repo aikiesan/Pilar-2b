@@ -2,23 +2,25 @@
 Input validation middleware for API endpoints
 Prevents injection attacks and ensures data integrity
 """
-from fastapi import Request, HTTPException, status
-from fastapi.responses import JSONResponse
-from typing import Any, Dict, Optional
-import re
+
 import logging
+import re
+from typing import Any, Dict, Optional
+
+from fastapi import HTTPException, Request, status
+from fastapi.responses import JSONResponse
 
 logger = logging.getLogger(__name__)
 
 # Validation patterns
 PATTERNS = {
-    'email': re.compile(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'),
-    'alphanumeric': re.compile(r'^[a-zA-Z0-9_-]+$'),
-    'numeric': re.compile(r'^\d+$'),
-    'float': re.compile(r'^-?\d+\.?\d*$'),
-    'municipality_code': re.compile(r'^\d{7}$'),  # 7-digit IBGE code
-    'sector_code': re.compile(r'^[A-Z0-9]{2,10}$'),
-    'safe_string': re.compile(r'^[a-zA-Z0-9\s.,;:!?()\-_áàâãéèêíïóôõöúçñÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑ]+$'),
+    "email": re.compile(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"),
+    "alphanumeric": re.compile(r"^[a-zA-Z0-9_-]+$"),
+    "numeric": re.compile(r"^\d+$"),
+    "float": re.compile(r"^-?\d+\.?\d*$"),
+    "municipality_code": re.compile(r"^\d{7}$"),  # 7-digit IBGE code
+    "sector_code": re.compile(r"^[A-Z0-9]{2,10}$"),
+    "safe_string": re.compile(r"^[a-zA-Z0-9\s.,;:!?()\-_áàâãéèêíïóôõöúçñÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑ]+$"),
 }
 
 # SQL injection patterns to detect
@@ -36,8 +38,8 @@ SQL_INJECTION_PATTERNS = [
 # Command injection patterns
 COMMAND_INJECTION_PATTERNS = [
     re.compile(r"[;&|`$]"),  # Shell metacharacters
-    re.compile(r"\$\("),     # Command substitution
-    re.compile(r"`"),        # Backticks
+    re.compile(r"\$\("),  # Command substitution
+    re.compile(r"`"),  # Backticks
 ]
 
 
@@ -84,7 +86,7 @@ def validate_string(
     pattern_name: Optional[str] = None,
     min_length: int = 0,
     max_length: int = 10000,
-    allow_none: bool = False
+    allow_none: bool = False,
 ) -> str:
     """
     Validate string input.
@@ -105,28 +107,25 @@ def validate_string(
     if value is None:
         if allow_none:
             return None
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Value cannot be None"
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Value cannot be None")
 
     if not isinstance(value, str):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Expected string, got {type(value).__name__}"
+            detail=f"Expected string, got {type(value).__name__}",
         )
 
     # Check length
     if len(value) < min_length:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"String too short (minimum {min_length} characters)"
+            detail=f"String too short (minimum {min_length} characters)",
         )
 
     if len(value) > max_length:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"String too long (maximum {max_length} characters)"
+            detail=f"String too long (maximum {max_length} characters)",
         )
 
     # Check for injection attacks
@@ -134,22 +133,21 @@ def validate_string(
         logger.warning(f"SQL injection attempt detected: {value[:100]}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid input: potential SQL injection detected"
+            detail="Invalid input: potential SQL injection detected",
         )
 
     if detect_command_injection(value):
         logger.warning(f"Command injection attempt detected: {value[:100]}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid input: potential command injection detected"
+            detail="Invalid input: potential command injection detected",
         )
 
     # Validate against pattern if provided
     if pattern_name and pattern_name in PATTERNS:
         if not PATTERNS[pattern_name].match(value):
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Invalid format for {pattern_name}"
+                status_code=status.HTTP_400_BAD_REQUEST, detail=f"Invalid format for {pattern_name}"
             )
 
     return value
@@ -159,7 +157,7 @@ def validate_integer(
     value: Any,
     min_value: Optional[int] = None,
     max_value: Optional[int] = None,
-    allow_none: bool = False
+    allow_none: bool = False,
 ) -> int:
     """
     Validate integer input.
@@ -179,29 +177,23 @@ def validate_integer(
     if value is None:
         if allow_none:
             return None
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Value cannot be None"
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Value cannot be None")
 
     try:
         int_value = int(value)
     except (ValueError, TypeError):
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Expected integer, got {value}"
+            status_code=status.HTTP_400_BAD_REQUEST, detail=f"Expected integer, got {value}"
         )
 
     if min_value is not None and int_value < min_value:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Value must be at least {min_value}"
+            status_code=status.HTTP_400_BAD_REQUEST, detail=f"Value must be at least {min_value}"
         )
 
     if max_value is not None and int_value > max_value:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Value must be at most {max_value}"
+            status_code=status.HTTP_400_BAD_REQUEST, detail=f"Value must be at most {max_value}"
         )
 
     return int_value
@@ -211,7 +203,7 @@ def validate_float(
     value: Any,
     min_value: Optional[float] = None,
     max_value: Optional[float] = None,
-    allow_none: bool = False
+    allow_none: bool = False,
 ) -> float:
     """
     Validate float input.
@@ -231,29 +223,23 @@ def validate_float(
     if value is None:
         if allow_none:
             return None
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Value cannot be None"
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Value cannot be None")
 
     try:
         float_value = float(value)
     except (ValueError, TypeError):
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Expected float, got {value}"
+            status_code=status.HTTP_400_BAD_REQUEST, detail=f"Expected float, got {value}"
         )
 
     if min_value is not None and float_value < min_value:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Value must be at least {min_value}"
+            status_code=status.HTTP_400_BAD_REQUEST, detail=f"Value must be at least {min_value}"
         )
 
     if max_value is not None and float_value > max_value:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Value must be at most {max_value}"
+            status_code=status.HTTP_400_BAD_REQUEST, detail=f"Value must be at most {max_value}"
         )
 
     return float_value
@@ -278,7 +264,7 @@ def sanitize_query_params(params: Dict[str, Any]) -> Dict[str, Any]:
                 logger.warning(f"Injection attempt in param '{key}': {value[:100]}")
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f"Invalid value for parameter '{key}'"
+                    detail=f"Invalid value for parameter '{key}'",
                 )
             sanitized[key] = value
         else:
@@ -312,7 +298,7 @@ async def validation_middleware(request: Request, call_next):
     except HTTPException as e:
         logger.warning(
             f"Validation failed for {request.method} {request.url.path}",
-            extra={"params": dict(request.query_params)}
+            extra={"params": dict(request.query_params)},
         )
         return JSONResponse(status_code=e.status_code, content={"detail": e.detail})
 
@@ -328,17 +314,17 @@ class Validators:
     @staticmethod
     def email(value: str) -> str:
         """Validate email address"""
-        return validate_string(value, pattern_name='email', max_length=255)
+        return validate_string(value, pattern_name="email", max_length=255)
 
     @staticmethod
     def municipality_code(value: str) -> str:
         """Validate IBGE municipality code (7 digits)"""
-        return validate_string(value, pattern_name='municipality_code')
+        return validate_string(value, pattern_name="municipality_code")
 
     @staticmethod
     def sector_code(value: str) -> str:
         """Validate sector code"""
-        return validate_string(value, pattern_name='sector_code', max_length=10)
+        return validate_string(value, pattern_name="sector_code", max_length=10)
 
     @staticmethod
     def limit(value: int) -> int:
@@ -368,20 +354,16 @@ class Validators:
     @staticmethod
     def safe_text(value: str, max_length: int = 1000) -> str:
         """Validate safe text input (no injection)"""
-        return validate_string(
-            value,
-            pattern_name='safe_string',
-            max_length=max_length
-        )
+        return validate_string(value, pattern_name="safe_string", max_length=max_length)
 
 
 __all__ = [
-    'validate_string',
-    'validate_integer',
-    'validate_float',
-    'sanitize_query_params',
-    'validation_middleware',
-    'Validators',
-    'detect_sql_injection',
-    'detect_command_injection',
+    "validate_string",
+    "validate_integer",
+    "validate_float",
+    "sanitize_query_params",
+    "validation_middleware",
+    "Validators",
+    "detect_sql_injection",
+    "detect_command_injection",
 ]

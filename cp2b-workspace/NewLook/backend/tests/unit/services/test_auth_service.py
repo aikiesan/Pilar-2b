@@ -3,19 +3,20 @@ Tests for Authentication Service
 Tests user registration, login, logout, and profile management
 """
 
-import pytest
-from unittest.mock import Mock, MagicMock, patch, AsyncMock
 from datetime import datetime
+from unittest.mock import AsyncMock, MagicMock, Mock, patch
+
+import pytest
 from fastapi import HTTPException, status
 
-from app.services.auth_service import AuthService
 from app.models.auth import (
-    UserRegistration,
-    UserLogin,
-    UserProfile,
     AuthResponse,
     UpdateProfile,
+    UserLogin,
+    UserProfile,
+    UserRegistration,
 )
+from app.services.auth_service import AuthService
 
 
 class TestAuthService:
@@ -225,9 +226,7 @@ class TestAuthService:
         assert "Invalid email or password" in exc_info.value.detail
 
     @pytest.mark.asyncio
-    async def test_login_user_no_profile(
-        self, auth_service, mock_supabase, sample_user_login
-    ):
+    async def test_login_user_no_profile(self, auth_service, mock_supabase, sample_user_login):
         """Test login fails when profile not found"""
         # Setup mock auth success
         mock_auth_response = Mock()
@@ -280,9 +279,7 @@ class TestAuthService:
         assert result["message"] == "Logout successful"
 
     @pytest.mark.asyncio
-    async def test_get_current_user_success(
-        self, auth_service, mock_supabase, sample_user_profile
-    ):
+    async def test_get_current_user_success(self, auth_service, mock_supabase, sample_user_profile):
         """Test getting current user profile"""
         # Setup mock user response
         mock_user_response = Mock()

@@ -12,6 +12,7 @@ Usage (from repo root or backend/):
 The V2 database is expected at A:/CP2B_Maps_V2/data/database/cp2b_maps.db by
 default (Windows dev machine).  Override with the SQLITE_PATH env var.
 """
+
 from __future__ import annotations
 
 import os
@@ -60,42 +61,46 @@ def main() -> None:
     for r in rows:
         ibge = str(int(r["cd_mun"])) if r["cd_mun"] else str(r["codigo_municipio"])
         total_biogas = float(r["total_final_m_ano"] or 0)
-        records.append((
-            r["nome_municipio"],
-            ibge,
-            float(r["lat"]) if r["lat"] else None,
-            float(r["lon"]) if r["lon"] else None,
-            float(r["area_km2"]) if r["area_km2"] else None,
-            int(r["populacao_2022"]) if r["populacao_2022"] else None,
-            float(r["densidade_demografica"]) if r["densidade_demografica"] else None,
-            r["nm_rgi"],
-            r["nm_rgint"],
-            str(r["cd_rgi"]) if r["cd_rgi"] else None,
-            str(r["cd_rgint"]) if r["cd_rgint"] else None,
-            total_biogas,
-            float(r["total_agricola_m_ano"] or 0),
-            float(r["total_pecuaria_m_ano"] or 0),
-            float(r["total_urbano_m_ano"] or 0),
-            float(r["rsu_potencial_m_ano"] or 0),
-            float(r["rpo_potencial_m_ano"] or 0),
-            float(r["biogas_cana_m_ano"] or 0),
-            float(r["biogas_soja_m_ano"] or 0),
-            float(r["biogas_milho_m_ano"] or 0),
-            float(r["biogas_cafe_m_ano"] or 0),
-            float(r["biogas_citros_m_ano"] or 0),
-            float(r["biogas_bovinos_m_ano"] or 0),
-            float(r["biogas_suino_m_ano"] or 0),
-            float(r["biogas_aves_m_ano"] or 0),
-            float(r["biogas_piscicultura_m_ano"] or 0),
-            float(r["biogas_silvicultura_m_ano"] or 0),
-            # residues (substrate quantities before conversion)
-            float(r["residuos_cana_ton_ano"] or 0),
-            float(r["residuos_soja_ton_ano"] or 0),
-            float(r["residuos_milho_ton_ano"] or 0),
-            _potential_category(total_biogas),
-        ))
+        records.append(
+            (
+                r["nome_municipio"],
+                ibge,
+                float(r["lat"]) if r["lat"] else None,
+                float(r["lon"]) if r["lon"] else None,
+                float(r["area_km2"]) if r["area_km2"] else None,
+                int(r["populacao_2022"]) if r["populacao_2022"] else None,
+                float(r["densidade_demografica"]) if r["densidade_demografica"] else None,
+                r["nm_rgi"],
+                r["nm_rgint"],
+                str(r["cd_rgi"]) if r["cd_rgi"] else None,
+                str(r["cd_rgint"]) if r["cd_rgint"] else None,
+                total_biogas,
+                float(r["total_agricola_m_ano"] or 0),
+                float(r["total_pecuaria_m_ano"] or 0),
+                float(r["total_urbano_m_ano"] or 0),
+                float(r["rsu_potencial_m_ano"] or 0),
+                float(r["rpo_potencial_m_ano"] or 0),
+                float(r["biogas_cana_m_ano"] or 0),
+                float(r["biogas_soja_m_ano"] or 0),
+                float(r["biogas_milho_m_ano"] or 0),
+                float(r["biogas_cafe_m_ano"] or 0),
+                float(r["biogas_citros_m_ano"] or 0),
+                float(r["biogas_bovinos_m_ano"] or 0),
+                float(r["biogas_suino_m_ano"] or 0),
+                float(r["biogas_aves_m_ano"] or 0),
+                float(r["biogas_piscicultura_m_ano"] or 0),
+                float(r["biogas_silvicultura_m_ano"] or 0),
+                # residues (substrate quantities before conversion)
+                float(r["residuos_cana_ton_ano"] or 0),
+                float(r["residuos_soja_ton_ano"] or 0),
+                float(r["residuos_milho_ton_ano"] or 0),
+                _potential_category(total_biogas),
+            )
+        )
 
-    execute_values(cur, """
+    execute_values(
+        cur,
+        """
         INSERT INTO municipalities (
             municipality_name, ibge_code,
             centroid_lat, centroid_lng,
@@ -143,7 +148,9 @@ def main() -> None:
             soybean_residues_tons_year = EXCLUDED.soybean_residues_tons_year,
             corn_residues_tons_year    = EXCLUDED.corn_residues_tons_year,
             potential_category         = EXCLUDED.potential_category
-    """, records)
+    """,
+        records,
+    )
 
     dst.commit()
     cur.execute("SELECT COUNT(*) FROM municipalities")

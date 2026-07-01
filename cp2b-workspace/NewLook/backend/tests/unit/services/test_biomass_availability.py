@@ -5,11 +5,12 @@ derive_biomass_fields, and biomass_select_columns.
 """
 
 import math
+
 import pytest
 
 from app.services.biomass_availability import (
-    BIOMASS_FIELDS,
     BIOGAS_FIELDS,
+    BIOMASS_FIELDS,
     RESIDUE_BIOMASS_CONFIGS,
     RESIDUE_KEYS,
     SECTOR_FIELDS,

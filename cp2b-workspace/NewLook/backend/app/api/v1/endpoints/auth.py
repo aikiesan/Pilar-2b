@@ -2,29 +2,31 @@
 Authentication API endpoints
 Handles user registration, login, logout, and profile management
 """
-from fastapi import APIRouter, Depends, status, Request
+
+from fastapi import APIRouter, Depends, Request, status
 from fastapi.security import HTTPAuthorizationCredentials
 
+from app.middleware.auth import get_current_user, security
+from app.middleware.rate_limit import auth_limiter, login_limiter, read_limiter
 from app.models.auth import (
-    UserRegistration,
-    UserLogin,
     AuthResponse,
-    UserProfile,
+    MessageResponse,
     UpdateProfile,
-    MessageResponse
+    UserLogin,
+    UserProfile,
+    UserRegistration,
 )
 from app.services.auth_service import auth_service
-from app.middleware.auth import get_current_user, security
-from app.middleware.rate_limit import login_limiter, auth_limiter, read_limiter
 
 router = APIRouter()
+
 
 @router.post(
     "/register",
     response_model=AuthResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Register new user",
-    description="Create a new user account with email and password"
+    description="Create a new user account with email and password",
 )
 @auth_limiter.limit("5/minute")
 async def register(request: Request, registration: UserRegistration):
@@ -41,11 +43,12 @@ async def register(request: Request, registration: UserRegistration):
     """
     return await auth_service.register_user(registration)
 
+
 @router.post(
     "/login",
     response_model=AuthResponse,
     summary="Login user",
-    description="Authenticate user and create session"
+    description="Authenticate user and create session",
 )
 @login_limiter.limit("3/minute")
 async def login(request: Request, login_data: UserLogin):
@@ -61,11 +64,12 @@ async def login(request: Request, login_data: UserLogin):
     """
     return await auth_service.login_user(login_data)
 
+
 @router.post(
     "/logout",
     response_model=MessageResponse,
     summary="Logout user",
-    description="Invalidate user session"
+    description="Invalidate user session",
 )
 @auth_limiter.limit("10/minute")
 async def logout(request: Request, credentials: HTTPAuthorizationCredentials = Depends(security)):
@@ -79,11 +83,12 @@ async def logout(request: Request, credentials: HTTPAuthorizationCredentials = D
     access_token = credentials.credentials
     return await auth_service.logout_user(access_token)
 
+
 @router.get(
     "/me",
     response_model=UserProfile,
     summary="Get current user",
-    description="Get authenticated user's profile information"
+    description="Get authenticated user's profile information",
 )
 @read_limiter.limit("100/minute")
 async def get_me(request: Request, current_user: UserProfile = Depends(get_current_user)):
@@ -98,17 +103,18 @@ async def get_me(request: Request, current_user: UserProfile = Depends(get_curre
     """
     return current_user
 
+
 @router.put(
     "/me",
     response_model=UserProfile,
     summary="Update user profile",
-    description="Update authenticated user's profile information"
+    description="Update authenticated user's profile information",
 )
 @auth_limiter.limit("10/minute")
 async def update_me(
     request: Request,
     update_data: UpdateProfile,
-    credentials: HTTPAuthorizationCredentials = Depends(security)
+    credentials: HTTPAuthorizationCredentials = Depends(security),
 ):
     """
     Update current user's profile
@@ -124,11 +130,12 @@ async def update_me(
     access_token = credentials.credentials
     return await auth_service.update_user_profile(access_token, update_data)
 
+
 @router.get(
     "/verify",
     response_model=MessageResponse,
     summary="Verify token",
-    description="Verify if authentication token is valid"
+    description="Verify if authentication token is valid",
 )
 @read_limiter.limit("100/minute")
 async def verify_token(request: Request, current_user: UserProfile = Depends(get_current_user)):

@@ -6,25 +6,54 @@
 from app.services.biomass_availability import ResidueBiomassConfig
 
 RESIDUE_BIOMASS_CONFIGS_CANONICAL: tuple[ResidueBiomassConfig, ...] = (
-
     # Bagaço de cana-de-açúcar — https://doi.org/10.1016/j.indcrop.2021.113498
-    ResidueBiomassConfig("sugarcane", "agricultural", "sugarcane_biomass_tons_year", "sugarcane_biogas_m3_year", 165.0, 53.01),
+    ResidueBiomassConfig(
+        "sugarcane",
+        "agricultural",
+        "sugarcane_biomass_tons_year",
+        "sugarcane_biogas_m3_year",
+        165.0,
+        53.01,
+    ),
     # Bagaço de citros — https://doi.org/10.1016/j.biortech.2014.07.074
-    ResidueBiomassConfig("citrus", "agricultural", "citrus_biomass_tons_year", "citrus_biogas_m3_year", 230.0, 15.84),
+    ResidueBiomassConfig(
+        "citrus", "agricultural", "citrus_biomass_tons_year", "citrus_biogas_m3_year", 230.0, 15.84
+    ),
     # Casca de café — https://doi.org/10.1016/j.biteb.2021.100830
-    ResidueBiomassConfig("coffee", "agricultural", "coffee_biomass_tons_year", "coffee_biogas_m3_year", 165.0, 81.84),
+    ResidueBiomassConfig(
+        "coffee", "agricultural", "coffee_biomass_tons_year", "coffee_biogas_m3_year", 165.0, 81.84
+    ),
     # Casca de soja — https://doi.org/10.1016/j.wasman.2015.10.021
-    ResidueBiomassConfig("soybean", "agricultural", "soybean_biomass_tons_year", "soybean_biogas_m3_year", 300.0, 83.7),
+    ResidueBiomassConfig(
+        "soybean",
+        "agricultural",
+        "soybean_biomass_tons_year",
+        "soybean_biogas_m3_year",
+        300.0,
+        83.7,
+    ),
     # Palha de milho — https://doi.org/10.1016/j.biortech.2011.12.074
-    ResidueBiomassConfig("corn", "agricultural", "corn_biomass_tons_year", "corn_biogas_m3_year", 230.0, 70.52),
+    ResidueBiomassConfig(
+        "corn", "agricultural", "corn_biomass_tons_year", "corn_biogas_m3_year", 230.0, 70.52
+    ),
     # Cama de aviário — https://doi.org/10.1016/j.wasman.2013.10.001
-    ResidueBiomassConfig("poultry", "livestock", "poultry_biomass_tons_year", "poultry_biogas_m3_year", 280.0, 17.45),
+    ResidueBiomassConfig(
+        "poultry", "livestock", "poultry_biomass_tons_year", "poultry_biogas_m3_year", 280.0, 17.45
+    ),
     # Esterco bovino — https://doi.org/10.1016/j.biortech.2006.07.016
-    ResidueBiomassConfig("cattle", "livestock", "cattle_biomass_tons_year", "cattle_biogas_m3_year", 200.0, 19.5),
+    ResidueBiomassConfig(
+        "cattle", "livestock", "cattle_biomass_tons_year", "cattle_biogas_m3_year", 200.0, 19.5
+    ),
     # Dejetos líquidos de suínos — https://doi.org/10.2134/jeq2004.0027
-    ResidueBiomassConfig("swine", "livestock", "swine_biomass_tons_year", "swine_biogas_m3_year", 245.0, 2.4),
+    ResidueBiomassConfig(
+        "swine", "livestock", "swine_biomass_tons_year", "swine_biogas_m3_year", 245.0, 2.4
+    ),
     # FORSU — Fração Orgânica dos Resíduos Sólidos Urbanos separada na fonte — https://doi.org/10.1016/j.biortech.2014.03.077
-    ResidueBiomassConfig("rsu", "urban", "rsu_biomass_tons_year", "rsu_biogas_m3_year", 360.0, 25.99),
+    ResidueBiomassConfig(
+        "rsu", "urban", "rsu_biomass_tons_year", "rsu_biogas_m3_year", 360.0, 25.99
+    ),
     # Lodo primário de ETE — https://doi.org/10.1016/j.wasman.2019.04.025
-    ResidueBiomassConfig("rpo", "urban", "rpo_biomass_tons_year", "rpo_biogas_m3_year", 310.0, 10.2),
+    ResidueBiomassConfig(
+        "rpo", "urban", "rpo_biomass_tons_year", "rpo_biogas_m3_year", 310.0, 10.2
+    ),
 )

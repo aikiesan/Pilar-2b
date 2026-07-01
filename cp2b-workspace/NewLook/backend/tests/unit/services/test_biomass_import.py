@@ -4,6 +4,7 @@ Tests for biomass_import.py — direct authoritative biomass mapping (no reverse
 
 import pytest
 
+from app.services.biomass_availability import RESIDUE_BIOMASS_CONFIGS, SECTOR_FIELDS
 from app.services.biomass_import import (
     AGRICULTURAL_STREAM_TO_KEY,
     LIVESTOCK_STREAM_TO_KEY,
@@ -14,7 +15,6 @@ from app.services.biomass_import import (
     empty_biomass_record,
     roll_up,
 )
-from app.services.biomass_availability import RESIDUE_BIOMASS_CONFIGS, SECTOR_FIELDS
 
 
 def _rows(*triples, pop=10000):
@@ -39,9 +39,9 @@ class TestEmptyRecord:
 class TestRollUp:
     def test_sector_and_total(self):
         rec = empty_biomass_record()
-        rec["sugarcane_biomass_tons_year"] = 100.0   # agricultural
-        rec["corn_biomass_tons_year"] = 50.0          # agricultural
-        rec["cattle_biomass_tons_year"] = 30.0        # livestock
+        rec["sugarcane_biomass_tons_year"] = 100.0  # agricultural
+        rec["corn_biomass_tons_year"] = 50.0  # agricultural
+        rec["cattle_biomass_tons_year"] = 30.0  # livestock
         roll_up(rec)
         assert rec["agricultural_biomass_tons_year"] == pytest.approx(150.0)
         assert rec["livestock_biomass_tons_year"] == pytest.approx(30.0)
@@ -51,10 +51,12 @@ class TestRollUp:
 @pytest.mark.unit
 class TestBuildMunicipalityBiomass:
     def test_agricultural_tonnage_direct(self):
-        out = build_municipality_biomass(_rows(
-            ("3500105", "sugarcane", 1000.0),
-            ("3500105", "coffee", 200.0),
-        ))
+        out = build_municipality_biomass(
+            _rows(
+                ("3500105", "sugarcane", 1000.0),
+                ("3500105", "coffee", 200.0),
+            )
+        )
         rec = out["3500105"]
         assert rec["sugarcane_biomass_tons_year"] == pytest.approx(1000.0)
         assert rec["coffee_biomass_tons_year"] == pytest.approx(200.0)
@@ -88,18 +90,22 @@ class TestBuildMunicipalityBiomass:
         assert out["1"]["rsu_biomass_tons_year"] == 0.0
 
     def test_sums_duplicate_rows(self):
-        out = build_municipality_biomass(_rows(
-            ("3500105", "corn", 100.0),
-            ("3500105", "corn", 50.0),
-        ))
+        out = build_municipality_biomass(
+            _rows(
+                ("3500105", "corn", 100.0),
+                ("3500105", "corn", 50.0),
+            )
+        )
         assert out["3500105"]["corn_biomass_tons_year"] == pytest.approx(150.0)
 
     def test_forestry_is_ignored(self):
         assert "forestry" in UNMAPPED_STREAMS
-        out = build_municipality_biomass(_rows(
-            ("1", "forestry", 9999.0),
-            ("1", "corn", 10.0),
-        ))
+        out = build_municipality_biomass(
+            _rows(
+                ("1", "forestry", 9999.0),
+                ("1", "corn", 10.0),
+            )
+        )
         # forestry contributes nothing; only corn counts
         assert out["1"]["total_biomass_tons_year"] == pytest.approx(10.0)
 
@@ -109,7 +115,11 @@ class TestBuildMunicipalityBiomass:
         assert out["1"]["total_biomass_tons_year"] == 0.0
 
     def test_stream_maps_are_disjoint_and_cover(self):
-        a, l, u = set(AGRICULTURAL_STREAM_TO_KEY), set(LIVESTOCK_STREAM_TO_KEY), set(URBAN_STREAM_TO_KEY)
+        a, l, u = (
+            set(AGRICULTURAL_STREAM_TO_KEY),
+            set(LIVESTOCK_STREAM_TO_KEY),
+            set(URBAN_STREAM_TO_KEY),
+        )
         assert a.isdisjoint(l) and a.isdisjoint(u) and l.isdisjoint(u)
         assert a | l | u == set(STREAM_TO_RESIDUE_KEY)
 
@@ -129,17 +139,22 @@ class TestNoReverseFallback:
 
     def test_fallback_disabled_returns_zero_without_stored(self):
         from app.services.biomass_availability import get_residue_biomass_tons
+
         # Only biogas present, no stored biomass → with fallback OFF, returns 0
         row = {"sugarcane_biogas_m3_year": 16170.0}
         assert get_residue_biomass_tons(row, "sugarcane", allow_reverse_fallback=False) == 0.0
 
     def test_fallback_disabled_uses_stored(self):
         from app.services.biomass_availability import get_residue_biomass_tons
+
         row = {"sugarcane_biomass_tons_year": 4242.0, "sugarcane_biogas_m3_year": 16170.0}
-        assert get_residue_biomass_tons(row, "sugarcane", allow_reverse_fallback=False) == pytest.approx(4242.0)
+        assert get_residue_biomass_tons(
+            row, "sugarcane", allow_reverse_fallback=False
+        ) == pytest.approx(4242.0)
 
     def test_derive_fields_no_fallback_zero_for_biogas_only(self):
         from app.services.biomass_availability import derive_biomass_fields
+
         row = {"sugarcane_biogas_m3_year": 16170.0}
         derived = derive_biomass_fields(row, allow_reverse_fallback=False)
         assert derived["sugarcane_biomass_tons_year"] == 0.0

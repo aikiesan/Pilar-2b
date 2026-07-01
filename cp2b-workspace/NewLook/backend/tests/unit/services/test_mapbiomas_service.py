@@ -2,17 +2,15 @@
 Unit tests for MapBiomas Service
 Tests land use analysis from raster data within analysis buffers
 """
-import pytest
-from unittest.mock import Mock, patch, MagicMock
-import numpy as np
+
 from collections import Counter
 from pathlib import Path
+from unittest.mock import MagicMock, Mock, patch
 
-from app.services.mapbiomas_service import (
-    MapBiomasService,
-    MAPBIOMAS_CLASSES,
-    RASTERIO_AVAILABLE
-)
+import numpy as np
+import pytest
+
+from app.services.mapbiomas_service import MAPBIOMAS_CLASSES, RASTERIO_AVAILABLE, MapBiomasService
 
 
 @pytest.fixture
@@ -32,14 +30,14 @@ def mock_rasterio_not_available():
 @pytest.fixture
 def mock_raster_exists():
     """Mock raster file exists"""
-    with patch.object(Path, 'exists', return_value=True):
+    with patch.object(Path, "exists", return_value=True):
         yield
 
 
 @pytest.fixture
 def mock_raster_not_exists():
     """Mock raster file does not exist"""
-    with patch.object(Path, 'exists', return_value=False):
+    with patch.object(Path, "exists", return_value=False):
         yield
 
 
@@ -80,7 +78,9 @@ class TestGetRasterInfo:
         assert info is None
 
     @patch("app.services.mapbiomas_service.rasterio")
-    def test_get_raster_info_caches_metadata(self, mock_rasterio, mock_rasterio_available, mock_raster_exists):
+    def test_get_raster_info_caches_metadata(
+        self, mock_rasterio, mock_rasterio_available, mock_raster_exists
+    ):
         """Test raster metadata is cached after first read"""
         # Mock rasterio.open
         mock_src = MagicMock()
@@ -104,7 +104,9 @@ class TestGetRasterInfo:
         # rasterio.open should only be called once
         assert mock_rasterio.open.call_count == 1
 
-    def test_get_raster_info_when_file_not_exists(self, mock_rasterio_available, mock_raster_not_exists):
+    def test_get_raster_info_when_file_not_exists(
+        self, mock_rasterio_available, mock_raster_not_exists
+    ):
         """Test returns None when raster file doesn't exist"""
         service = MapBiomasService()
 
@@ -128,7 +130,9 @@ class TestAnalyzeBuffer:
         assert result["by_class"] == {}
         assert result["agricultural_percent"] == 0
 
-    def test_analyze_buffer_without_raster_file(self, mock_rasterio_available, mock_raster_not_exists):
+    def test_analyze_buffer_without_raster_file(
+        self, mock_rasterio_available, mock_raster_not_exists
+    ):
         """Test returns error message when raster file not available"""
         service = MapBiomasService()
 
@@ -140,8 +144,14 @@ class TestAnalyzeBuffer:
     @patch("app.services.mapbiomas_service.rasterio")
     @patch("app.services.mapbiomas_service.mask")
     @patch("app.services.mapbiomas_service.transform")
-    def test_analyze_buffer_with_data(self, mock_transform, mock_mask_func, mock_rasterio,
-                                     mock_rasterio_available, mock_raster_exists):
+    def test_analyze_buffer_with_data(
+        self,
+        mock_transform,
+        mock_mask_func,
+        mock_rasterio,
+        mock_rasterio_available,
+        mock_raster_exists,
+    ):
         """Test successful buffer analysis with land use data"""
         # Mock raster data
         mock_src = MagicMock()
@@ -171,8 +181,14 @@ class TestAnalyzeBuffer:
     @patch("app.services.mapbiomas_service.rasterio")
     @patch("app.services.mapbiomas_service.mask")
     @patch("app.services.mapbiomas_service.transform")
-    def test_analyze_buffer_multiple_classes(self, mock_transform, mock_mask_func, mock_rasterio,
-                                            mock_rasterio_available, mock_raster_exists):
+    def test_analyze_buffer_multiple_classes(
+        self,
+        mock_transform,
+        mock_mask_func,
+        mock_rasterio,
+        mock_rasterio_available,
+        mock_raster_exists,
+    ):
         """Test buffer analysis with multiple land use classes"""
         mock_src = MagicMock()
         mock_src.__enter__.return_value.crs = "EPSG:4326"
@@ -195,7 +211,7 @@ class TestAnalyzeBuffer:
         assert "20" in result["by_class"]  # Sugarcane
         assert "46" in result["by_class"]  # Coffee
         assert "47" in result["by_class"]  # Citrus
-        assert "3" in result["by_class"]   # Forest
+        assert "3" in result["by_class"]  # Forest
 
         # Agricultural classes: 20, 46, 47 = 90%
         assert result["agricultural_percent"] == 90.0
@@ -203,8 +219,14 @@ class TestAnalyzeBuffer:
     @patch("app.services.mapbiomas_service.rasterio")
     @patch("app.services.mapbiomas_service.mask")
     @patch("app.services.mapbiomas_service.transform")
-    def test_analyze_buffer_no_valid_data(self, mock_transform, mock_mask_func, mock_rasterio,
-                                         mock_rasterio_available, mock_raster_exists):
+    def test_analyze_buffer_no_valid_data(
+        self,
+        mock_transform,
+        mock_mask_func,
+        mock_rasterio,
+        mock_rasterio_available,
+        mock_raster_exists,
+    ):
         """Test buffer with no valid pixels (all nodata)"""
         mock_src = MagicMock()
         mock_src.__enter__.return_value.crs = "EPSG:4326"
@@ -229,8 +251,9 @@ class TestAnalyzeBuffer:
 
     @patch("app.services.mapbiomas_service.rasterio")
     @patch("app.services.mapbiomas_service.mask")
-    def test_analyze_buffer_mask_exception(self, mock_mask_func, mock_rasterio,
-                                          mock_rasterio_available, mock_raster_exists):
+    def test_analyze_buffer_mask_exception(
+        self, mock_mask_func, mock_rasterio, mock_rasterio_available, mock_raster_exists
+    ):
         """Test graceful handling of mask operation failure"""
         mock_src = MagicMock()
         mock_src.__enter__.return_value.crs = "EPSG:4326"
@@ -246,8 +269,9 @@ class TestAnalyzeBuffer:
         assert result["dominant_class"] == "no_data"
 
     @patch("app.services.mapbiomas_service.rasterio")
-    def test_analyze_buffer_general_exception(self, mock_rasterio,
-                                             mock_rasterio_available, mock_raster_exists):
+    def test_analyze_buffer_general_exception(
+        self, mock_rasterio, mock_rasterio_available, mock_raster_exists
+    ):
         """Test error handling for unexpected exceptions"""
         mock_rasterio.open.side_effect = Exception("Unexpected error")
 
@@ -261,8 +285,14 @@ class TestAnalyzeBuffer:
     @patch("app.services.mapbiomas_service.rasterio")
     @patch("app.services.mapbiomas_service.mask")
     @patch("app.services.mapbiomas_service.transform")
-    def test_analyze_buffer_unknown_class(self, mock_transform, mock_mask_func, mock_rasterio,
-                                         mock_rasterio_available, mock_raster_exists):
+    def test_analyze_buffer_unknown_class(
+        self,
+        mock_transform,
+        mock_mask_func,
+        mock_rasterio,
+        mock_rasterio_available,
+        mock_raster_exists,
+    ):
         """Test handling of unknown land use class"""
         mock_src = MagicMock()
         mock_src.__enter__.return_value.crs = "EPSG:4326"
@@ -288,8 +318,14 @@ class TestAnalyzeBuffer:
     @patch("app.services.mapbiomas_service.rasterio")
     @patch("app.services.mapbiomas_service.mask")
     @patch("app.services.mapbiomas_service.transform")
-    def test_analyze_buffer_crs_transformation(self, mock_transform, mock_mask_func, mock_rasterio,
-                                              mock_rasterio_available, mock_raster_exists):
+    def test_analyze_buffer_crs_transformation(
+        self,
+        mock_transform,
+        mock_mask_func,
+        mock_rasterio,
+        mock_rasterio_available,
+        mock_raster_exists,
+    ):
         """Test buffer handles different raster CRS"""
         mock_src = MagicMock()
         mock_src.__enter__.return_value.crs = "EPSG:31983"  # UTM instead of WGS84
@@ -429,8 +465,14 @@ class TestPixelCalculations:
     @patch("app.services.mapbiomas_service.rasterio")
     @patch("app.services.mapbiomas_service.mask")
     @patch("app.services.mapbiomas_service.transform")
-    def test_pixel_area_calculation(self, mock_transform, mock_mask_func, mock_rasterio,
-                                   mock_rasterio_available, mock_raster_exists):
+    def test_pixel_area_calculation(
+        self,
+        mock_transform,
+        mock_mask_func,
+        mock_rasterio,
+        mock_rasterio_available,
+        mock_raster_exists,
+    ):
         """Test pixel area calculation is reasonable"""
         mock_src = MagicMock()
         mock_src.__enter__.return_value.crs = "EPSG:4326"
@@ -454,8 +496,14 @@ class TestPixelCalculations:
     @patch("app.services.mapbiomas_service.rasterio")
     @patch("app.services.mapbiomas_service.mask")
     @patch("app.services.mapbiomas_service.transform")
-    def test_percentage_calculation(self, mock_transform, mock_mask_func, mock_rasterio,
-                                   mock_rasterio_available, mock_raster_exists):
+    def test_percentage_calculation(
+        self,
+        mock_transform,
+        mock_mask_func,
+        mock_rasterio,
+        mock_rasterio_available,
+        mock_raster_exists,
+    ):
         """Test percentage calculations sum to 100"""
         mock_src = MagicMock()
         mock_src.__enter__.return_value.crs = "EPSG:4326"
@@ -480,8 +528,14 @@ class TestPixelCalculations:
     @patch("app.services.mapbiomas_service.rasterio")
     @patch("app.services.mapbiomas_service.mask")
     @patch("app.services.mapbiomas_service.transform")
-    def test_dominant_class_detection(self, mock_transform, mock_mask_func, mock_rasterio,
-                                     mock_rasterio_available, mock_raster_exists):
+    def test_dominant_class_detection(
+        self,
+        mock_transform,
+        mock_mask_func,
+        mock_rasterio,
+        mock_rasterio_available,
+        mock_raster_exists,
+    ):
         """Test dominant class is correctly identified"""
         mock_src = MagicMock()
         mock_src.__enter__.return_value.crs = "EPSG:4326"

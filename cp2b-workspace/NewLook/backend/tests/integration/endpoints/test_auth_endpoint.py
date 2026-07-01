@@ -10,15 +10,18 @@ status codes, response shapes, and correct delegation to auth_service methods.
 For error paths the auth_service methods are patched to raise HTTPException
 so that the full request → endpoint → service error path is exercised.
 """
-import pytest
-from fastapi.testclient import TestClient
-from fastapi import HTTPException, status
-from unittest.mock import patch, AsyncMock, MagicMock
+
 from datetime import datetime, timezone
+from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
+from fastapi import HTTPException, status
+from fastapi.testclient import TestClient
 
 # Disable slowapi response-header injection before importing app.
 # Auth endpoints lack a Response parameter, causing header injection to crash.
 import app.middleware.rate_limit as _rl_module
+
 _rl_module.auth_limiter._headers_enabled = False
 _rl_module.login_limiter._headers_enabled = False
 _rl_module.read_limiter._headers_enabled = False
@@ -57,6 +60,7 @@ AUTH_HEADERS = {"Authorization": "Bearer mock-jwt-token"}
 
 # ─── Helper ──────────────────────────────────────────────────────────────────
 
+
 def _make_auth_response(email: str = "alice@example.com", full_name: str = "Alice Example"):
     """Build an AuthResponse-compatible dict for assertion helpers."""
     return {
@@ -74,6 +78,7 @@ def _make_auth_response(email: str = "alice@example.com", full_name: str = "Alic
 
 
 # ─── Tests ───────────────────────────────────────────────────────────────────
+
 
 @pytest.mark.integration
 class TestRegisterEndpoint:
@@ -201,9 +206,7 @@ class TestLoginEndpoint:
 
     def test_login_missing_password_returns_422(self):
         """Login request without password produces 422."""
-        response = client.post(
-            "/api/v1/auth/login", json={"email": "alice@example.com"}
-        )
+        response = client.post("/api/v1/auth/login", json={"email": "alice@example.com"})
 
         assert response.status_code == 422
 
@@ -309,6 +312,7 @@ class TestGetMeEndpoint:
 
     def test_get_me_auth_failure_raises_401(self):
         """get_current_user raising HTTPException(401) propagates correctly."""
+
         async def _fail():
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -405,6 +409,7 @@ class TestVerifyTokenEndpoint:
 
     def test_verify_invalid_token_returns_401(self):
         """get_current_user raising 401 reaches the caller."""
+
         async def _fail():
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,

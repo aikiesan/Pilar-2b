@@ -5,11 +5,12 @@ Tests GET /geospatial/municipalities/{id} after the centroid=None bug fix.
 All DB access is intercepted by the autouse mock_db_connection fixture.
 """
 
-import pytest
 from unittest.mock import MagicMock
 
+import pytest
 
 # ─── Mock row factory ─────────────────────────────────────────────────────────
+
 
 def _municipality_row(
     mun_id=1,
@@ -64,6 +65,7 @@ def _municipality_row(
 
 # ─── 404 path ────────────────────────────────────────────────────────────────
 
+
 @pytest.mark.unit
 class TestGetMunicipalityNotFound:
 
@@ -81,6 +83,7 @@ class TestGetMunicipalityNotFound:
 
 
 # ─── Centroid fix ─────────────────────────────────────────────────────────────
+
 
 @pytest.mark.unit
 class TestGetMunicipalityCentroid:
@@ -119,6 +122,7 @@ class TestGetMunicipalityCentroid:
 
 # ─── Response shape ───────────────────────────────────────────────────────────
 
+
 @pytest.mark.unit
 class TestGetMunicipalityShape:
 
@@ -147,9 +151,7 @@ class TestGetMunicipalityShape:
     def test_population_density_computed(self, client, mock_db_connection):
         """population_density = population / area_km2"""
         mock_conn, mock_cursor = mock_db_connection
-        mock_cursor.fetchone.return_value = _municipality_row(
-            area_km2=796.61, population=1_213_792
-        )
+        mock_cursor.fetchone.return_value = _municipality_row(area_km2=796.61, population=1_213_792)
         data = client.get("/api/v1/geospatial/municipalities/1").json()
         expected = 1_213_792 / 796.61
         assert data["population_density"] == pytest.approx(expected, rel=1e-3)

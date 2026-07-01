@@ -2,11 +2,13 @@
 Rate limiting middleware for API endpoints
 Prevents brute force attacks and API abuse
 """
-from slowapi import Limiter, _rate_limit_exceeded_handler
-from slowapi.util import get_remote_address
-from slowapi.errors import RateLimitExceeded
-from fastapi import Request
+
 import logging
+
+from fastapi import Request
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
 
 logger = logging.getLogger(__name__)
 
@@ -18,6 +20,7 @@ limiter = Limiter(
     strategy="fixed-window",  # or "moving-window" for more accuracy
     headers_enabled=True,  # Include rate limit headers in response
 )
+
 
 def get_client_ip(request: Request) -> str:
     """
@@ -36,6 +39,7 @@ def get_client_ip(request: Request) -> str:
         return forwarded.split(",")[0].strip()
     return request.client.host if request.client else "unknown"
 
+
 def rate_limit_key_func(request: Request) -> str:
     """
     Generate rate limit key based on client IP and endpoint.
@@ -49,6 +53,7 @@ def rate_limit_key_func(request: Request) -> str:
     client_ip = get_client_ip(request)
     endpoint = request.url.path
     return f"{client_ip}:{endpoint}"
+
 
 # Auth-specific limiter with stricter limits
 auth_limiter = Limiter(
@@ -77,6 +82,7 @@ read_limiter = Limiter(
     headers_enabled=True,
 )
 
+
 async def rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded):
     """
     Custom handler for rate limit exceeded errors.
@@ -95,10 +101,11 @@ async def rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded):
             "client_ip": client_ip,
             "endpoint": request.url.path,
             "method": request.method,
-        }
+        },
     )
 
     return await _rate_limit_exceeded_handler(request, exc)
+
 
 # Export limiter instances
 __all__ = [

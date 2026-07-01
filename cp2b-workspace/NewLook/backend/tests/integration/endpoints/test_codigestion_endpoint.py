@@ -3,9 +3,12 @@ Integration tests for Co-digestion API endpoints
 Tests cluster discovery, cluster detail lookup, C:N profiles, pairing
 candidates, residue C:N matrix, and cache management endpoints.
 """
+
+from unittest.mock import MagicMock, patch
+
 import pytest
 from fastapi.testclient import TestClient
-from unittest.mock import patch, MagicMock
+
 from app.main import app
 
 client = TestClient(app)
@@ -56,9 +59,24 @@ SAMPLE_CLUSTERS_RESULT = {
 }
 
 SAMPLE_CN_PROFILES = [
-    {"ibge_code": "3550308", "municipality": "São Paulo",  "weighted_cn": 18.3, "dominant_role": "nitrogen_donor"},
-    {"ibge_code": "3509502", "municipality": "Campinas",   "weighted_cn": 31.7, "dominant_role": "carbon_donor"},
-    {"ibge_code": "3547809", "municipality": "Santo André","weighted_cn": 24.5, "dominant_role": "balanced"},
+    {
+        "ibge_code": "3550308",
+        "municipality": "São Paulo",
+        "weighted_cn": 18.3,
+        "dominant_role": "nitrogen_donor",
+    },
+    {
+        "ibge_code": "3509502",
+        "municipality": "Campinas",
+        "weighted_cn": 31.7,
+        "dominant_role": "carbon_donor",
+    },
+    {
+        "ibge_code": "3547809",
+        "municipality": "Santo André",
+        "weighted_cn": 24.5,
+        "dominant_role": "balanced",
+    },
 ]
 
 SAMPLE_PAIRING_CANDIDATES = [
@@ -75,8 +93,8 @@ SAMPLE_PAIRING_CANDIDATES = [
 SAMPLE_CN_MATRIX = {
     "residues": [
         {"key": "sugarcane", "label": "Palha de Cana", "cn_ratio": 80.0, "role": "carbon_donor"},
-        {"key": "swine",     "label": "Dejetos de Suínos", "cn_ratio": 6.5, "role": "nitrogen_donor"},
-        {"key": "cattle",    "label": "Esterco Bovino", "cn_ratio": 14.0, "role": "nitrogen_donor"},
+        {"key": "swine", "label": "Dejetos de Suínos", "cn_ratio": 6.5, "role": "nitrogen_donor"},
+        {"key": "cattle", "label": "Esterco Bovino", "cn_ratio": 14.0, "role": "nitrogen_donor"},
     ],
     "optimal_range": {"low": 20.0, "high": 30.0},
 }
@@ -84,13 +102,16 @@ SAMPLE_CN_MATRIX = {
 
 # ─── Helper to clear module-level caches between tests ───────────────────────
 
+
 def _clear_codigestion_caches():
     import app.api.v1.endpoints.codigestion as mod
+
     mod._cluster_cache.clear()
     mod._cn_profile_cache = None
 
 
 # ─── Tests ───────────────────────────────────────────────────────────────────
+
 
 @pytest.mark.integration
 class TestGetCodigestionClusters:
@@ -259,9 +280,7 @@ class TestGetClusterDetail:
             "app.api.v1.endpoints.codigestion.find_codigestion_clusters",
             return_value=SAMPLE_CLUSTERS_RESULT,
         ) as mock_fn:
-            response = client.get(
-                "/api/v1/codigestion/clusters/cluster-001?radius_km=45.0"
-            )
+            response = client.get("/api/v1/codigestion/clusters/cluster-001?radius_km=45.0")
 
         assert response.status_code == 200
         call_kwargs = mock_fn.call_args.kwargs
@@ -345,9 +364,7 @@ class TestPairingCandidates:
             "app.api.v1.endpoints.codigestion.get_pairing_candidates",
             return_value=SAMPLE_PAIRING_CANDIDATES,
         ):
-            response = client.get(
-                "/api/v1/codigestion/pairing-candidates?ibge_code=3550308"
-            )
+            response = client.get("/api/v1/codigestion/pairing-candidates?ibge_code=3550308")
 
         assert response.status_code == 200
         body = response.json()
@@ -366,9 +383,7 @@ class TestPairingCandidates:
             "app.api.v1.endpoints.codigestion.get_pairing_candidates",
             return_value=None,
         ):
-            response = client.get(
-                "/api/v1/codigestion/pairing-candidates?ibge_code=9999999"
-            )
+            response = client.get("/api/v1/codigestion/pairing-candidates?ibge_code=9999999")
 
         assert response.status_code == 404
         assert "9999999" in response.json()["detail"]
@@ -379,9 +394,7 @@ class TestPairingCandidates:
             "app.api.v1.endpoints.codigestion.get_pairing_candidates",
             side_effect=RuntimeError("data unavailable"),
         ):
-            response = client.get(
-                "/api/v1/codigestion/pairing-candidates?ibge_code=3550308"
-            )
+            response = client.get("/api/v1/codigestion/pairing-candidates?ibge_code=3550308")
 
         assert response.status_code == 500
 
@@ -423,6 +436,7 @@ class TestClearClusterCache:
     def test_clear_cache_returns_cleared_count(self):
         """DELETE /clusters/cache clears caches and returns count."""
         import app.api.v1.endpoints.codigestion as mod
+
         mod._cluster_cache[("30.0", "1000.0", 20)] = SAMPLE_CLUSTERS_RESULT
         mod._cn_profile_cache = SAMPLE_CN_PROFILES
 

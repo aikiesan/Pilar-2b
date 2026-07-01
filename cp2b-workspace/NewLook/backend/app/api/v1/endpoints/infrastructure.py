@@ -3,9 +3,11 @@ PILAR-2b V3 - Infrastructure Endpoints
 Provides GeoJSON data for infrastructure layers from real shapefiles
 """
 
-from fastapi import APIRouter, HTTPException
-from typing import Dict, Any
 import logging
+from typing import Any, Dict
+
+from fastapi import APIRouter, HTTPException
+
 from app.utils.shapefile_loader import SHAPEFILE_DIR, get_shapefile_loader
 
 router = APIRouter()
@@ -22,6 +24,7 @@ def _sanitize_geojson_response(geojson: Dict[str, Any]) -> Dict[str, Any]:
     if isinstance(metadata, dict):
         metadata.pop("error", None)
     return geojson
+
 
 REQUIRED_SHAPEFILES = {
     "railways": ["Rodovias_Estaduais_SP"],
@@ -47,8 +50,7 @@ async def get_railways_geojson() -> Dict[str, Any]:
     """
     try:
         geojson = shapefile_loader.load_shapefile_as_geojson(
-            "Rodovias_Estaduais_SP",
-            simplify_tolerance=0.001
+            "Rodovias_Estaduais_SP", simplify_tolerance=0.001
         )
         geojson["metadata"]["layer_type"] = "railways"
         return geojson
@@ -67,12 +69,10 @@ async def get_pipelines_geojson() -> Dict[str, Any]:
     """
     try:
         dist_geojson = shapefile_loader.load_shapefile_as_geojson(
-            "Gasodutos_Distribuicao_SP",
-            simplify_tolerance=0.001
+            "Gasodutos_Distribuicao_SP", simplify_tolerance=0.001
         )
         transp_geojson = shapefile_loader.load_shapefile_as_geojson(
-            "Gasodutos_Transporte_SP",
-            simplify_tolerance=0.001
+            "Gasodutos_Transporte_SP", simplify_tolerance=0.001
         )
         combined_features = dist_geojson["features"] + transp_geojson["features"]
         return {
@@ -82,8 +82,8 @@ async def get_pipelines_geojson() -> Dict[str, Any]:
                 "source": "Gasodutos_Distribuicao_SP.shp + Gasodutos_Transporte_SP.shp",
                 "total_features": len(combined_features),
                 "layer_type": "pipelines",
-                "note": f"Dados de gasodutos - {len(combined_features)} segmentos"
-            }
+                "note": f"Dados de gasodutos - {len(combined_features)} segmentos",
+            },
         }
     except Exception as e:
         logger.error("Error loading pipelines shapefile: %s", e)
@@ -134,8 +134,7 @@ async def get_transmission_lines_geojson() -> Dict[str, Any]:
     """
     try:
         geojson = shapefile_loader.load_shapefile_as_geojson(
-            "Linhas_De_Transmissao_Energia",
-            simplify_tolerance=0.001
+            "Linhas_De_Transmissao_Energia", simplify_tolerance=0.001
         )
         geojson["metadata"]["layer_type"] = "transmission_lines"
         return _sanitize_geojson_response(geojson)
@@ -171,8 +170,7 @@ async def get_admin_regions_geojson() -> Dict[str, Any]:
     """
     try:
         geojson = shapefile_loader.load_shapefile_as_geojson(
-            "Regiao_Adm_SP",
-            simplify_tolerance=0.001
+            "Regiao_Adm_SP", simplify_tolerance=0.001
         )
         geojson["metadata"]["layer_type"] = "administrative_regions"
         return _sanitize_geojson_response(geojson)
@@ -191,8 +189,7 @@ async def get_intermediate_regions_geojson() -> Dict[str, Any]:
     """
     try:
         geojson = shapefile_loader.load_shapefile_as_geojson(
-            "SP_RG_Intermediarias_2024",
-            simplify_tolerance=0.001
+            "SP_RG_Intermediarias_2024", simplify_tolerance=0.001
         )
         geojson["metadata"]["layer_type"] = "intermediate_regions"
         return _sanitize_geojson_response(geojson)
@@ -211,8 +208,7 @@ async def get_immediate_regions_geojson() -> Dict[str, Any]:
     """
     try:
         geojson = shapefile_loader.load_shapefile_as_geojson(
-            "SP_RG_Imediatas_2024",
-            simplify_tolerance=0.001
+            "SP_RG_Imediatas_2024", simplify_tolerance=0.001
         )
         geojson["metadata"]["layer_type"] = "immediate_regions"
         return geojson
@@ -230,10 +226,7 @@ async def get_sp_boundary_geojson() -> Dict[str, Any]:
         GeoJSON FeatureCollection with state boundary polygon
     """
     try:
-        geojson = shapefile_loader.load_shapefile_as_geojson(
-            "Limite_SP",
-            simplify_tolerance=0.002
-        )
+        geojson = shapefile_loader.load_shapefile_as_geojson("Limite_SP", simplify_tolerance=0.002)
         geojson["metadata"]["layer_type"] = "state_boundary"
         return geojson
     except Exception as e:

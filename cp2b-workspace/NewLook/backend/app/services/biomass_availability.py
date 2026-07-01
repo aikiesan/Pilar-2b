@@ -47,29 +47,66 @@ class ResidueBiomassConfig:
 RESIDUE_BIOMASS_CONFIGS: tuple[ResidueBiomassConfig, ...] = (
     # sugarcane: BAGACO representative (bmp=165); vs_wet = 58.9×90/100 = 53.0%
     # BMP raised from 115 to 165 NmL/gVS per Paulose et al. 2021 (187.9 untreated mesophilic)
-    ResidueBiomassConfig("sugarcane", "agricultural", "sugarcane_biomass_tons_year", "sugarcane_biogas_m3_year", 165.0, 53.0),
+    ResidueBiomassConfig(
+        "sugarcane",
+        "agricultural",
+        "sugarcane_biomass_tons_year",
+        "sugarcane_biogas_m3_year",
+        165.0,
+        53.0,
+    ),
     # soybean: PALHA_SOJA representative (bmp=220, Kafle 2016); vs_wet = 84×85/100 = 71.4%
     # MAPPING FIX 2026-06: CSV stream is field straw (PALHA_SOJA), NOT processing hull.
-    ResidueBiomassConfig("soybean", "agricultural", "soybean_biomass_tons_year", "soybean_biogas_m3_year", 220.0, 71.4),
+    ResidueBiomassConfig(
+        "soybean",
+        "agricultural",
+        "soybean_biomass_tons_year",
+        "soybean_biogas_m3_year",
+        220.0,
+        71.4,
+    ),
     # corn: PALHA_MILHO (bmp=230); vs_wet = 82×86/100 = 70.5%
-    ResidueBiomassConfig("corn", "agricultural", "corn_biomass_tons_year", "corn_biogas_m3_year", 230.0, 70.5),
+    ResidueBiomassConfig(
+        "corn", "agricultural", "corn_biomass_tons_year", "corn_biogas_m3_year", 230.0, 70.5
+    ),
     # coffee: CASCA_CAFE (bmp=165, corpus-revised 2026-06); vs_wet = 88×93/100 = 81.8%
-    ResidueBiomassConfig("coffee", "agricultural", "coffee_biomass_tons_year", "coffee_biogas_m3_year", 165.0, 81.8),
+    ResidueBiomassConfig(
+        "coffee", "agricultural", "coffee_biomass_tons_year", "coffee_biogas_m3_year", 165.0, 81.8
+    ),
     # citrus: BAGACO_CITROS (bmp=230); vs_wet = 18×88/100 = 15.8%
-    ResidueBiomassConfig("citrus", "agricultural", "citrus_biomass_tons_year", "citrus_biogas_m3_year", 230.0, 15.8),
+    ResidueBiomassConfig(
+        "citrus", "agricultural", "citrus_biomass_tons_year", "citrus_biogas_m3_year", 230.0, 15.8
+    ),
     # cattle: ESTERCO_BOVINO (bmp=200); vs_wet = 25×78/100 = 19.5%
-    ResidueBiomassConfig("cattle", "livestock", "cattle_biomass_tons_year", "cattle_biogas_m3_year", 200.0, 19.5),
+    ResidueBiomassConfig(
+        "cattle", "livestock", "cattle_biomass_tons_year", "cattle_biogas_m3_year", 200.0, 19.5
+    ),
     # swine: DEJETOS_SUINO liquid (bmp=245, corpus-revised 2026-06); vs_wet = 3×80/100 = 2.4%
-    ResidueBiomassConfig("swine", "livestock", "swine_biomass_tons_year", "swine_biogas_m3_year", 245.0, 2.4),
+    ResidueBiomassConfig(
+        "swine", "livestock", "swine_biomass_tons_year", "swine_biogas_m3_year", 245.0, 2.4
+    ),
     # poultry: CAMA_AVIARIO (bmp=280); vs_wet = 25×69.8/100 = 17.5%
-    ResidueBiomassConfig("poultry", "livestock", "poultry_biomass_tons_year", "poultry_biogas_m3_year", 280.0, 17.5),
+    ResidueBiomassConfig(
+        "poultry", "livestock", "poultry_biomass_tons_year", "poultry_biogas_m3_year", 280.0, 17.5
+    ),
     # aquaculture: not yet in canonical YAML; placeholder retained
-    ResidueBiomassConfig("aquaculture", "livestock", "aquaculture_biomass_tons_year", "aquaculture_biogas_m3_year", 200.0, 15.0),
+    ResidueBiomassConfig(
+        "aquaculture",
+        "livestock",
+        "aquaculture_biomass_tons_year",
+        "aquaculture_biogas_m3_year",
+        200.0,
+        15.0,
+    ),
     # rsu/FORSU: bmp=360 (corpus-revised 2026-06; was 310); vs_wet = 30.58×85/100 = 26.0%
-    ResidueBiomassConfig("rsu", "urban", "rsu_biomass_tons_year", "rsu_biogas_m3_year", 360.0, 26.0),
+    ResidueBiomassConfig(
+        "rsu", "urban", "rsu_biomass_tons_year", "rsu_biogas_m3_year", 360.0, 26.0
+    ),
     # rpo/poda urbana: bmp=175 (Pognani 2011); vs_wet = 55×87/100 = 47.85%
     # MAPPING FIX 2026-06: rpo is urban pruning waste (PODA_URBANA), NOT sewage sludge.
-    ResidueBiomassConfig("rpo", "urban", "rpo_biomass_tons_year", "rpo_biogas_m3_year", 175.0, 47.85),
+    ResidueBiomassConfig(
+        "rpo", "urban", "rpo_biomass_tons_year", "rpo_biogas_m3_year", 175.0, 47.85
+    ),
 )
 
 RESIDUE_KEYS = tuple(config.key for config in RESIDUE_BIOMASS_CONFIGS)
@@ -153,7 +190,11 @@ def derive_biomass_fields(
         derived[field] = round(stored if stored > 0 else sector_totals[sector], 2)
 
     stored_total = number_value(row.get("total_biomass_tons_year"))
-    total = stored_total if stored_total > 0 else sum(derived[field] for field in SECTOR_FIELDS.values())
+    total = (
+        stored_total
+        if stored_total > 0
+        else sum(derived[field] for field in SECTOR_FIELDS.values())
+    )
     derived["total_biomass_tons_year"] = round(total, 2)
     return derived
 

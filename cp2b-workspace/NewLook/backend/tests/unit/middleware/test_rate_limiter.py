@@ -4,11 +4,13 @@ Unit tests for app.middleware.rate_limiter
 Covers RateLimiter.is_allowed(), RateLimiter.reset(), global instance
 configuration, and the rate_limit_middleware ASGI handler.
 """
+
 import threading
 import time
-import pytest
 from datetime import datetime, timedelta
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
+import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
@@ -19,10 +21,10 @@ from app.middleware.rate_limiter import (
     rate_limit_middleware,
 )
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def make_limiter(max_requests: int = 5, window_minutes: int = 1) -> RateLimiter:
     """Return a fresh RateLimiter with the given settings."""
@@ -33,6 +35,7 @@ def make_limiter(max_requests: int = 5, window_minutes: int = 1) -> RateLimiter:
 # Mini app fixture (module-scoped so the limiter state carries across tests
 # only within classes that manage it; per-test limiters are created inline)
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture(scope="module")
 def rate_limited_client():
@@ -55,6 +58,7 @@ def rate_limited_client():
 # ---------------------------------------------------------------------------
 # RateLimiter unit tests
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.unit
 class TestRateLimiterAllowsUpToLimit:
@@ -97,7 +101,7 @@ class TestRateLimiterBlocksAfterLimit:
 
     def test_blocked_response_includes_retry_after(self):
         limiter = make_limiter(max_requests=1)
-        limiter.is_allowed("key_x")          # consume the single slot
+        limiter.is_allowed("key_x")  # consume the single slot
         allowed, _, retry_after = limiter.is_allowed("key_x")
         assert allowed is False
         assert isinstance(retry_after, int)
@@ -222,9 +226,7 @@ class TestRateLimiterThreadSafety:
         # The limiter may allow slightly more than max due to non-atomic
         # read-modify-write, but it must not allow far more than max_requests.
         # A generous bound of 2x catches gross failures without flaking.
-        assert allowed_count <= 20, (
-            f"Too many requests allowed concurrently: {allowed_count}"
-        )
+        assert allowed_count <= 20, f"Too many requests allowed concurrently: {allowed_count}"
 
 
 @pytest.mark.unit
@@ -250,6 +252,7 @@ class TestGlobalInstances:
 # ---------------------------------------------------------------------------
 # rate_limit_middleware ASGI integration tests
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.unit
 class TestRateLimitMiddlewareIntegration:

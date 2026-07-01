@@ -2,10 +2,12 @@
 PILAR-2b V3 Backend - Municipality API Tests
 Tests for municipality endpoints including data validation and error handling
 """
+
+import json
+
 import pytest
 from fastapi.testclient import TestClient
 from httpx import AsyncClient
-import json
 
 
 @pytest.mark.api
@@ -30,7 +32,7 @@ class TestMunicipalitiesEndpoints:
         assert isinstance(data["total"], int)
         assert data["total"] >= 0
         assert data["limit"] == 100  # default limit
-        assert data["offset"] == 0   # default offset
+        assert data["offset"] == 0  # default offset
 
     def test_get_municipalities_with_limit(self, client: TestClient):
         """Test municipalities list with custom limit"""
@@ -98,8 +100,15 @@ class TestMunicipalitiesEndpoints:
             data = response.json()
 
             # Verify required fields
-            required_fields = ["id", "name", "code", "population", "area_km2",
-                              "biogas_potential", "coordinates"]
+            required_fields = [
+                "id",
+                "name",
+                "code",
+                "population",
+                "area_km2",
+                "biogas_potential",
+                "coordinates",
+            ]
             for field in required_fields:
                 assert field in data
 
@@ -148,8 +157,11 @@ class TestMunicipalitiesEndpoints:
 
         # Verify required fields (field names from the actual endpoint)
         required_fields = [
-            "total_municipalities", "total_population", "total_area_km2",
-            "total_biogas_m3_year", "timestamp"
+            "total_municipalities",
+            "total_population",
+            "total_area_km2",
+            "total_biogas_m3_year",
+            "timestamp",
         ]
         for field in required_fields:
             assert field in data
@@ -248,7 +260,7 @@ class TestMunicipalitiesValidation:
             ("/api/v1/municipalities/?offset=0", 200),
             # Invalid cases
             # limit=0 has no ge=1 constraint so may return 200; accept both
-            ("/api/v1/municipalities/?limit=0", None),   # 200 or 422
+            ("/api/v1/municipalities/?limit=0", None),  # 200 or 422
             ("/api/v1/municipalities/?limit=1001", 422),
             ("/api/v1/municipalities/?offset=-1", 422),
             ("/api/v1/municipalities/?limit=abc", 422),

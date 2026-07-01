@@ -3,16 +3,21 @@
 """
 Inspect BR intermediary regions shapefile structure
 """
-import geopandas as gpd
+
 import os
 import sys
 
-# Set UTF-8 encoding for Windows console
-if sys.platform == 'win32':
-    import io
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+import geopandas as gpd
 
-shapefile_path = r"C:\Users\Lucas\Downloads\Extrato\BR_RG_Intermediarias_2024\BR_RG_Intermediarias_2024.shp"
+# Set UTF-8 encoding for Windows console
+if sys.platform == "win32":
+    import io
+
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
+
+shapefile_path = (
+    r"C:\Users\Lucas\Downloads\Extrato\BR_RG_Intermediarias_2024\BR_RG_Intermediarias_2024.shp"
+)
 
 if os.path.exists(shapefile_path):
     print(f"OK Shapefile found: {shapefile_path}")
@@ -29,9 +34,9 @@ if os.path.exists(shapefile_path):
     print(gdf.head())
 
     print(f"\nREGION COUNT:")
-    if 'NM_RGINT' in gdf.columns:
+    if "NM_RGINT" in gdf.columns:
         print(f"   Total intermediary regions: {gdf['NM_RGINT'].nunique()}")
-    elif 'NM_RGI' in gdf.columns:
+    elif "NM_RGI" in gdf.columns:
         print(f"   Total intermediary regions: {gdf['NM_RGI'].nunique()}")
 
     print(f"\nMEMORY USAGE:")

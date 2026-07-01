@@ -4,16 +4,17 @@ Unit tests for app.middleware.request_size_limit
 Covers both RequestSizeLimitMiddleware (class-based) and the standalone
 request_size_limit_middleware function via mini FastAPI apps.
 """
+
+from unittest.mock import patch
+
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from unittest.mock import patch
 
 from app.middleware.request_size_limit import (
     RequestSizeLimitMiddleware,
     request_size_limit_middleware,
 )
-
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -21,13 +22,14 @@ from app.middleware.request_size_limit import (
 
 _1MB = 1_000_000
 _10MB = 10_000_000
-_SMALL = 512          # well under any realistic limit
+_SMALL = 512  # well under any realistic limit
 _OVER_LIMIT = _10MB + 1
 
 
 # ---------------------------------------------------------------------------
 # Fixtures — class-based middleware
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture(scope="module")
 def class_middleware_client():
@@ -50,6 +52,7 @@ def class_middleware_client():
 # ---------------------------------------------------------------------------
 # Fixtures — function-based middleware
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture(scope="module")
 def func_middleware_client():
@@ -75,6 +78,7 @@ def func_middleware_client():
 # ---------------------------------------------------------------------------
 # RequestSizeLimitMiddleware — class-based tests
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.unit
 class TestRequestSizeLimitMiddlewareClass:
@@ -144,8 +148,9 @@ class TestRequestSizeLimitMiddlewareClass:
 
             app = FastAPI()
             # Cannot add middleware again to an existing app easily; test directly
-            from starlette.testclient import TestClient as StarletteTestClient
             import asyncio
+
+            from starlette.testclient import TestClient as StarletteTestClient
 
             # Instantiate the middleware around a trivial ASGI app
             async def trivial_app(scope, receive, send):  # pragma: no cover
@@ -158,6 +163,7 @@ class TestRequestSizeLimitMiddlewareClass:
 # ---------------------------------------------------------------------------
 # request_size_limit_middleware — function-based tests
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.unit
 class TestRequestSizeLimitMiddlewareFunction:
@@ -208,9 +214,11 @@ class TestRequestSizeLimitMiddlewareFunction:
 # Module-level __all__ check
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.unit
 class TestModuleExports:
     def test_all_exports_present(self):
         from app.middleware import request_size_limit as mod
+
         assert "RequestSizeLimitMiddleware" in mod.__all__
         assert "request_size_limit_middleware" in mod.__all__

@@ -37,7 +37,9 @@ def _make_params(
 @pytest.mark.unit
 class TestComputeFromBiomass:
     def test_basic_formula_matches_theoretical(self):
-        params = _make_params(bmp=115.0, ts=58.9, vs_of_ts=90.0, ch4_pct=55.0, avail=0.1399, fde_full=0.09793)
+        params = _make_params(
+            bmp=115.0, ts=58.9, vs_of_ts=90.0, ch4_pct=55.0, avail=0.1399, fde_full=0.09793
+        )
         bio_c, ch4, biometh = _compute_from_biomass(100.0, params)
         # biomass_corrected = 100 × 0.1399 = 13.99
         assert bio_c["medio"] == pytest.approx(13.99, rel=1e-3)
@@ -188,11 +190,23 @@ class TestCanonicalIntegration:
         """All canonical streams with FDE blocks must have availability < 1."""
         from app.services.canonical_loader import get_params_for_stream
 
-        for stream in ("sugarcane", "corn", "coffee", "citrus", "soybean",
-                       "cattle", "swine", "poultry", "rsu", "rpo"):
+        for stream in (
+            "sugarcane",
+            "corn",
+            "coffee",
+            "citrus",
+            "soybean",
+            "cattle",
+            "swine",
+            "poultry",
+            "rsu",
+            "rpo",
+        ):
             try:
                 params = get_params_for_stream(stream)
                 assert params.availability.medio <= 1.0, f"{stream} availability > 1"
-                assert params.availability.min <= params.availability.medio, f"{stream} availability not ordered"
+                assert (
+                    params.availability.min <= params.availability.medio
+                ), f"{stream} availability not ordered"
             except KeyError:
                 pass  # some streams may not have canonical mapping yet

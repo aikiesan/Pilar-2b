@@ -2,16 +2,18 @@
 PILAR-2b V3 Backend - Test Configuration
 Pytest configuration and fixtures for comprehensive testing
 """
-import pytest
+
 import asyncio
 import os
 from contextlib import contextmanager
 from typing import AsyncGenerator, Generator
+from unittest.mock import MagicMock, Mock
+
+import psycopg2
+import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from unittest.mock import Mock, MagicMock
-import psycopg2
-from httpx import AsyncClient, ASGITransport
+from httpx import ASGITransport, AsyncClient
 
 # Singleton mock objects — endpoint modules capture get_db at import time.
 # Using a persistent object means all tests configure the SAME connection
@@ -20,8 +22,14 @@ _SHARED_MOCK_CONN = MagicMock(name="shared_db_conn")
 _SHARED_MOCK_CURSOR = MagicMock(name="shared_db_cursor")
 _SHARED_MOCK_CONN.cursor.return_value = _SHARED_MOCK_CURSOR
 
+
 @contextmanager
 def _shared_get_db():
+    yield _SHARED_MOCK_CONN
+
+
+@contextmanager
+def _shared_get_db_transaction():
     yield _SHARED_MOCK_CONN
 
 
@@ -35,6 +43,7 @@ def mock_db_connection(monkeypatch):
     _SHARED_MOCK_CONN.cursor.return_value = _SHARED_MOCK_CURSOR
 
     monkeypatch.setattr("app.core.database.get_db", _shared_get_db)
+    monkeypatch.setattr("app.core.database.get_db_transaction", _shared_get_db_transaction)
     # Patch every call site that may have been imported before the fixture ran.
     # Integration tests do `from app.main import app` at module level, which
     # pulls in all endpoint modules at collection time — before any monkeypatch
@@ -53,6 +62,7 @@ def mock_db_connection(monkeypatch):
     ]
     for _mod in _call_sites:
         monkeypatch.setattr(f"{_mod}.get_db", _shared_get_db, raising=False)
+        monkeypatch.setattr(f"{_mod}.get_db_transaction", _shared_get_db_transaction, raising=False)
     return _SHARED_MOCK_CONN, _SHARED_MOCK_CURSOR
 
 
@@ -97,12 +107,14 @@ def mock_supabase_autouse(monkeypatch):
 
 def create_test_app():
     """Create a FastAPI app for testing without middleware restrictions."""
-    from app.api.v1.api import api_router
-    from fastapi.responses import JSONResponse
     from datetime import datetime, timezone
 
+    from fastapi.responses import JSONResponse
+
+    from app.api.v1.api import api_router
+
     test_app = FastAPI(
-        title="PILAR-2b V3 API",          # Match production title for schema assertions
+        title="PILAR-2b V3 API",  # Match production title for schema assertions
         description="Test version without middleware restrictions",
         version="3.0.0",
         docs_url="/docs",
@@ -131,16 +143,19 @@ def create_test_app():
 
     return test_app
 
+
 @pytest.fixture(scope="function")
 def test_app() -> FastAPI:
     """Create a FastAPI app instance for testing"""
     return create_test_app()
+
 
 @pytest.fixture(scope="function")
 def client(test_app: FastAPI) -> Generator[TestClient, None, None]:
     """Create a TestClient for synchronous API testing"""
     with TestClient(test_app, base_url="http://testserver") as test_client:
         yield test_client
+
 
 @pytest.fixture
 async def async_client(test_app: FastAPI) -> AsyncGenerator[AsyncClient, None]:
@@ -153,11 +168,13 @@ async def async_client(test_app: FastAPI) -> AsyncGenerator[AsyncClient, None]:
     async with AsyncClient(transport=transport, base_url="http://testserver") as ac:
         yield ac
 
+
 @pytest.fixture
 def mock_supabase_client():
     """Mock Supabase client for testing"""
     mock_client = MagicMock()
     return mock_client
+
 
 @pytest.fixture
 def sample_municipality():
@@ -171,6 +188,7 @@ def sample_municipality():
         "population": 12396372,
     }
 
+
 @pytest.fixture
 def sample_residue():
     """Sample residue data for testing"""
@@ -180,6 +198,7 @@ def sample_residue():
         "category": "agroindustrial",
         "biogas_potential": 25.5,
     }
+
 
 @pytest.fixture
 def sample_user():
@@ -191,12 +210,12 @@ def sample_user():
         "role": "autenticado",
     }
 
+
 @pytest.fixture
 def auth_headers():
     """Authentication headers for testing"""
-    return {
-        "Authorization": "Bearer mock-jwt-token"
-    }
+    return {"Authorization": "Bearer mock-jwt-token"}
+
 
 @pytest.fixture
 def mock_jwt_decode(monkeypatch):
@@ -208,6 +227,7 @@ def mock_jwt_decode(monkeypatch):
     that requests it by name.
     """
     pass  # no-op: jose is no longer a dependency
+
 
 # Database test fixtures
 @pytest.fixture
@@ -224,6 +244,7 @@ def db_connection():
     yield conn
     conn.close()
 
+
 @pytest.fixture
 def db_transaction(db_connection):
     """
@@ -235,18 +256,22 @@ def db_transaction(db_connection):
     db_connection.rollback()
     cursor.close()
 
+
 # Advanced testing fixtures
 class TestSettings:
     """Test configuration settings"""
+
     DEBUG = True
     TESTING = True
     DATABASE_URL = "sqlite:///:memory:"
     SECRET_KEY = "test-secret-key-do-not-use-in-production"
 
+
 @pytest.fixture
 def test_settings() -> TestSettings:
     """Test application settings"""
     return TestSettings()
+
 
 # Event loop fixture for async tests
 @pytest.fixture(scope="session")
@@ -255,6 +280,7 @@ def event_loop():
     loop = asyncio.get_event_loop_policy().new_event_loop()
     yield loop
     loop.close()
+
 
 # Markers for test categorization
 pytest.mark.unit = pytest.mark.unit

@@ -10,18 +10,20 @@ Required environment variables:
     SUPABASE_DB_URL or DATABASE_URL
 """
 
-import sys
 import os
-sys.path.append('.')
+import sys
 
-from data.seed_technologies import INITIAL_TECHNOLOGIES
+sys.path.append(".")
+
 import psycopg2
 from psycopg2.extras import RealDictCursor
+
+from data.seed_technologies import INITIAL_TECHNOLOGIES
 
 
 def get_db_url():
     """Get database URL from environment."""
-    db_url = os.getenv('SUPABASE_DB_URL') or os.getenv('DATABASE_URL')
+    db_url = os.getenv("SUPABASE_DB_URL") or os.getenv("DATABASE_URL")
 
     if not db_url:
         print("❌ Error: No database URL found in environment variables")
@@ -52,7 +54,8 @@ def seed_technologies():
 
         for tech in INITIAL_TECHNOLOGIES:
             try:
-                cursor.execute("""
+                cursor.execute(
+                    """
                     INSERT INTO technology_cards (
                         id, category, name_pt, name_en, emoji,
                         description_pt, description_en, color,
@@ -64,7 +67,9 @@ def seed_technologies():
                     )
                     ON CONFLICT (id) DO NOTHING
                     RETURNING id
-                """, tech)
+                """,
+                    tech,
+                )
 
                 result = cursor.fetchone()
                 if result:
@@ -87,7 +92,7 @@ def seed_technologies():
         # Show breakdown by category
         categories = {}
         for tech in INITIAL_TECHNOLOGIES:
-            cat = tech['category']
+            cat = tech["category"]
             categories[cat] = categories.get(cat, 0) + 1
 
         print("\n📋 Breakdown by category:")
@@ -111,6 +116,7 @@ def seed_technologies():
     except Exception as e:
         print(f"❌ Error seeding technologies: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 

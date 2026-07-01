@@ -10,14 +10,16 @@ All tests use the `client` fixture from conftest.py (mocked DB).
 Endpoints that depend on shapefile or heavy DB queries may legitimately return
 4xx (e.g. 404/503) when data is absent — those are not failures here.
 """
+
 import time
+
 import pytest
 from fastapi.testclient import TestClient
-
 
 # ---------------------------------------------------------------------------
 # Helper
 # ---------------------------------------------------------------------------
+
 
 def _get(client: TestClient, path: str, params: dict | None = None):
     """Timed GET; returns (response, elapsed_seconds)."""
@@ -32,6 +34,7 @@ LATENCY_LIMIT = 5.0  # seconds
 # ---------------------------------------------------------------------------
 # Root & health endpoints
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.api
 class TestHealthEndpoints:
@@ -53,6 +56,7 @@ class TestHealthEndpoints:
 # ---------------------------------------------------------------------------
 # Municipalities endpoints
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.api
 class TestMunicipalitiesSanity:
@@ -76,7 +80,9 @@ class TestMunicipalitiesSanity:
         assert elapsed < LATENCY_LIMIT
 
     def test_list_pagination_params_not_5xx(self, client: TestClient):
-        response, elapsed = _get(client, "/api/v1/municipalities/", params={"limit": 10, "offset": 0})
+        response, elapsed = _get(
+            client, "/api/v1/municipalities/", params={"limit": 10, "offset": 0}
+        )
         assert response.status_code < 500
         assert elapsed < LATENCY_LIMIT
 
@@ -89,6 +95,7 @@ class TestMunicipalitiesSanity:
 # ---------------------------------------------------------------------------
 # Statistics endpoint
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.api
 class TestStatisticsSanity:
@@ -103,6 +110,7 @@ class TestStatisticsSanity:
 # Residuos endpoint
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.api
 class TestResiduosSanity:
 
@@ -115,6 +123,7 @@ class TestResiduosSanity:
 # ---------------------------------------------------------------------------
 # Scientific endpoint
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.api
 class TestScientificSanity:
@@ -129,6 +138,7 @@ class TestScientificSanity:
 # Technology routes endpoint
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.api
 class TestTechnologyRoutesSanity:
 
@@ -141,6 +151,7 @@ class TestTechnologyRoutesSanity:
 # ---------------------------------------------------------------------------
 # Cache stats (internal monitoring endpoint on main app)
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.api
 class TestCacheSanity:

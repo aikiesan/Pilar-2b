@@ -3,17 +3,18 @@ Tests for Cache Service
 Tests LRU cache implementation with TTL and thread safety
 """
 
-import pytest
-import time
 import threading
+import time
 from datetime import datetime, timedelta
+
+import pytest
 
 from app.services.cache_service import (
     CacheEntry,
     LRUCache,
-    get_proximity_cache_key,
-    get_mapbiomas_cache_key,
     get_all_cache_stats,
+    get_mapbiomas_cache_key,
+    get_proximity_cache_key,
 )
 
 

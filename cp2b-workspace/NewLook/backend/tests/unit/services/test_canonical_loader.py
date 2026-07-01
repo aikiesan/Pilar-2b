@@ -47,7 +47,7 @@ class TestGetParams:
         # All 26 canonical feedstocks now carry an audited fde block, so the
         # 1.0 fallback is exercised at the resolver level: an entry with no
         # `fde` key must yield theoretical potential (FDE = 1.0).
-        from app.services.canonical_loader import _resolve_fde, _resolve_availability
+        from app.services.canonical_loader import _resolve_availability, _resolve_fde
 
         entry_without_fde = {"bmp": {"min": 1, "medio": 2, "max": 3}}
         fde = _resolve_fde(entry_without_fde)
@@ -78,13 +78,16 @@ class TestGetParams:
 
 @pytest.mark.unit
 class TestGetParamsForStream:
-    @pytest.mark.parametrize("stream,code", [
-        ("sugarcane", "BAGACO"),
-        ("coffee", "CASCA_CAFE"),
-        ("corn", "PALHA_MILHO"),
-        ("soybean", "PALHA_SOJA"),    # field straw mapping (confirmed 2026-06)
-        ("citrus", "BAGACO_CITROS"),
-    ])
+    @pytest.mark.parametrize(
+        "stream,code",
+        [
+            ("sugarcane", "BAGACO"),
+            ("coffee", "CASCA_CAFE"),
+            ("corn", "PALHA_MILHO"),
+            ("soybean", "PALHA_SOJA"),  # field straw mapping (confirmed 2026-06)
+            ("citrus", "BAGACO_CITROS"),
+        ],
+    )
     def test_agricultural_streams_map(self, stream, code):
         p = get_params_for_stream(stream)
         expected = get_params(code)

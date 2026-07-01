@@ -43,6 +43,7 @@ SCENARIOS: tuple[Scenario, ...] = ("min", "medio", "max")
 @dataclass(frozen=True)
 class Range:
     """A parameter expressed as a conservative/realistic/optimistic triple."""
+
     min: float
     medio: float
     max: float
@@ -69,6 +70,7 @@ class FeedstockParams:
                    Used to compute biomass_corrected (the fraction mobilisable for biogas).
                    Defaults to 1.0 when FDE has no structured availability block.
     """
+
     bmp: Range
     ts: Range
     vs_of_ts: Range
@@ -80,6 +82,7 @@ class FeedstockParams:
 @dataclass(frozen=True)
 class BiogasResult:
     """Per-scenario biogas/methane output for one feedstock at one location."""
+
     ch4_theoretical_m3: dict[Scenario, float]
     ch4_practical_m3: dict[Scenario, float]
     biogas_practical_m3: dict[Scenario, float]
@@ -89,7 +92,9 @@ def _round(x: float, ndigits: int = 2) -> float:
     return round(x, ndigits)
 
 
-def theoretical_ch4_m3(biomass_tons_wet: float, bmp: float, ts_pct: float, vs_of_ts_pct: float) -> float:
+def theoretical_ch4_m3(
+    biomass_tons_wet: float, bmp: float, ts_pct: float, vs_of_ts_pct: float
+) -> float:
     """m3 CH4 = biomass_wet_tons × (TS/100) × (VS_of_TS/100) × BMP. Never negative."""
     if biomass_tons_wet <= 0 or bmp <= 0 or ts_pct <= 0 or vs_of_ts_pct <= 0:
         return 0.0

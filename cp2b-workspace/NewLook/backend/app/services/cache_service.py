@@ -8,28 +8,28 @@ Thread-safe implementation using locks for concurrent access.
 Production note: Replace with Redis for multi-server deployments
 """
 
-from typing import Any, Optional
-from datetime import datetime, timedelta
-from collections import OrderedDict
 import hashlib
 import json
 import logging
 import threading
+from collections import OrderedDict
+from datetime import datetime, timedelta
+from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
 
 
 class CacheEntry:
     """Single cache entry with expiration"""
-    
+
     def __init__(self, value: Any, ttl_seconds: int):
         self.value = value
         self.created_at = datetime.now()
         self.expires_at = self.created_at + timedelta(seconds=ttl_seconds)
-    
+
     def is_expired(self) -> bool:
         return datetime.now() > self.expires_at
-    
+
     def get_age_seconds(self) -> int:
         return int((datetime.now() - self.created_at).total_seconds())
 
@@ -66,15 +66,15 @@ class LRUCache:
         self.hits = 0
         self.misses = 0
         self.evictions = 0
-    
+
     def _generate_key(self, prefix: str, **kwargs) -> str:
         """
         Generate cache key from parameters
-        
+
         Args:
             prefix: Cache key prefix (e.g., "proximity", "mapbiomas")
             **kwargs: Parameters to include in key
-            
+
         Returns:
             Hash-based cache key
         """
@@ -82,7 +82,7 @@ class LRUCache:
         params = json.dumps(kwargs, sort_keys=True)
         hash_value = hashlib.sha256(f"{prefix}:{params}".encode()).hexdigest()[:16]
         return f"{prefix}:{hash_value}"
-    
+
     def get(self, key: str) -> Optional[Any]:
         """
         Get value from cache (thread-safe)
@@ -110,7 +110,7 @@ class LRUCache:
 
             logger.debug(f"Cache hit: {key} (age: {entry.get_age_seconds()}s)")
             return entry.value
-    
+
     def set(self, key: str, value: Any, ttl: Optional[int] = None):
         """
         Store value in cache (thread-safe)
@@ -137,7 +137,7 @@ class LRUCache:
             self.cache[key] = CacheEntry(value, ttl_seconds)
 
             logger.debug(f"Cache set: {key} (TTL: {ttl_seconds}s)")
-    
+
     def delete(self, key: str):
         """Delete specific cache entry (thread-safe)"""
         with self._lock:
@@ -152,7 +152,7 @@ class LRUCache:
             self.misses = 0
             self.evictions = 0
             logger.info("Cache cleared")
-    
+
     def get_stats(self) -> dict:
         """Get cache statistics (thread-safe)"""
         with self._lock:
@@ -166,16 +166,13 @@ class LRUCache:
                 "misses": self.misses,
                 "evictions": self.evictions,
                 "hit_rate_percent": round(hit_rate, 2),
-                "total_requests": total_requests
+                "total_requests": total_requests,
             }
-    
+
     def cleanup_expired(self) -> int:
         """Remove all expired entries (periodic maintenance, thread-safe)"""
         with self._lock:
-            expired_keys = [
-                key for key, entry in self.cache.items()
-                if entry.is_expired()
-            ]
+            expired_keys = [key for key, entry in self.cache.items() if entry.is_expired()]
 
             for key in expired_keys:
                 del self.cache[key]
@@ -199,17 +196,14 @@ def get_proximity_cache_key(lat: float, lng: float, radius_km: float) -> str:
         "proximity",
         lat=round(lat, 4),  # Round to ~11m precision
         lng=round(lng, 4),
-        radius=round(radius_km, 1)
+        radius=round(radius_km, 1),
     )
 
 
 def get_mapbiomas_cache_key(lat: float, lng: float, radius_km: float) -> str:
     """Generate cache key for MapBiomas analysis"""
     return mapbiomas_cache._generate_key(
-        "mapbiomas",
-        lat=round(lat, 4),
-        lng=round(lng, 4),
-        radius=round(radius_km, 1)
+        "mapbiomas", lat=round(lat, 4), lng=round(lng, 4), radius=round(radius_km, 1)
     )
 
 
@@ -219,7 +213,7 @@ def get_all_cache_stats() -> dict:
         "proximity": proximity_cache.get_stats(),
         "mapbiomas": mapbiomas_cache.get_stats(),
         "municipality": municipality_cache.get_stats(),
-        "economic": economic_cache.get_stats()
+        "economic": economic_cache.get_stats(),
     }
 
 
@@ -231,4 +225,3 @@ def get_cache_service() -> LRUCache:
         LRUCache instance for economic simulation caching
     """
     return economic_cache
-

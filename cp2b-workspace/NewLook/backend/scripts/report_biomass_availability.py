@@ -37,11 +37,13 @@ def main() -> None:
         biomass = derive_biomass_fields(row)
         total = biomass["total_biomass_tons_year"]
         if total > 0:
-            top_municipalities.append({
-                "ibge_code": row.get("ibge_code"),
-                "name": row.get("municipality_name"),
-                "total_biomass_tons_year": round(total, 2),
-            })
+            top_municipalities.append(
+                {
+                    "ibge_code": row.get("ibge_code"),
+                    "name": row.get("municipality_name"),
+                    "total_biomass_tons_year": round(total, 2),
+                }
+            )
 
         for config in RESIDUE_BIOMASS_CONFIGS:
             value = biomass[config.biomass_field]

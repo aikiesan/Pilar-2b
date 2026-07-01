@@ -1,20 +1,24 @@
 """
 Tests for database connection pooling and management
 """
+
 import os
-import pytest
-from unittest.mock import Mock, patch, MagicMock
-from app.core.database import get_connection_pool, get_db
+from unittest.mock import MagicMock, Mock, patch
+
 import psycopg2
+import pytest
+
+from app.core.database import get_connection_pool, get_db
 
 
 class TestConnectionPooling:
     """Tests for database connection pool"""
 
-    @patch('app.core.database.pool.ThreadedConnectionPool')
+    @patch("app.core.database.pool.ThreadedConnectionPool")
     def test_connection_pool_singleton(self, mock_pool_cls):
         """Test that connection pool is a singleton"""
         import app.core.database as db_module
+
         with db_module._pool_lock:
             db_module._connection_pool = None
 
@@ -30,11 +34,13 @@ class TestConnectionPooling:
         with db_module._pool_lock:
             db_module._connection_pool = None
 
-    @patch('app.core.database.pool.ThreadedConnectionPool')
+    @patch("app.core.database.pool.ThreadedConnectionPool")
     def test_connection_pool_thread_safe(self, mock_pool_cls):
         """Test that connection pool initialization is thread-safe"""
         import threading
+
         import app.core.database as db_module
+
         with db_module._pool_lock:
             db_module._connection_pool = None
 
@@ -58,10 +64,11 @@ class TestConnectionPooling:
         with db_module._pool_lock:
             db_module._connection_pool = None
 
-    @patch('app.core.database.pool.ThreadedConnectionPool')
+    @patch("app.core.database.pool.ThreadedConnectionPool")
     def test_connection_pool_configuration(self, mock_pool_cls):
         """Test that connection pool is configured correctly"""
         import app.core.database as db_module
+
         with db_module._pool_lock:
             db_module._connection_pool = None
 
@@ -73,10 +80,10 @@ class TestConnectionPooling:
         mock_pool_cls.assert_called_once()
         call_kwargs = mock_pool_cls.call_args.kwargs
 
-        assert call_kwargs['minconn'] == 2
-        assert call_kwargs['maxconn'] == 20
-        assert 'dsn' in call_kwargs          # connection via DSN
-        assert 'connect_timeout' in call_kwargs
+        assert call_kwargs["minconn"] == 2
+        assert call_kwargs["maxconn"] == 20
+        assert "dsn" in call_kwargs  # connection via DSN
+        assert "connect_timeout" in call_kwargs
 
         with db_module._pool_lock:
             db_module._connection_pool = None
@@ -87,7 +94,7 @@ class TestConnectionPooling:
         mock_conn = MagicMock()
 
         mock_pool.getconn.return_value = mock_conn
-        monkeypatch.setattr('app.core.database.get_connection_pool', lambda: mock_pool)
+        monkeypatch.setattr("app.core.database.get_connection_pool", lambda: mock_pool)
 
         # Use connection
         with get_db() as conn:
@@ -102,7 +109,7 @@ class TestConnectionPooling:
         mock_conn = MagicMock()
 
         mock_pool.getconn.return_value = mock_conn
-        monkeypatch.setattr('app.core.database.get_connection_pool', lambda: mock_pool)
+        monkeypatch.setattr("app.core.database.get_connection_pool", lambda: mock_pool)
 
         # Only psycopg2.Error triggers the rollback branch in get_db()
         with pytest.raises(psycopg2.OperationalError):
@@ -121,13 +128,13 @@ class TestConnectionPooling:
         mock_conn = MagicMock()
 
         mock_pool.getconn.return_value = mock_conn
-        monkeypatch.setattr('app.core.database.get_connection_pool', lambda: mock_pool)
+        monkeypatch.setattr("app.core.database.get_connection_pool", lambda: mock_pool)
 
         with get_db() as conn:
             pass
 
         # Verify UTF-8 encoding was set
-        mock_conn.set_client_encoding.assert_called_once_with('UTF8')
+        mock_conn.set_client_encoding.assert_called_once_with("UTF8")
 
 
 class TestDatabaseTransactions:
@@ -139,7 +146,7 @@ class TestDatabaseTransactions:
         mock_conn = MagicMock()
 
         mock_pool.getconn.return_value = mock_conn
-        monkeypatch.setattr('app.core.database.get_connection_pool', lambda: mock_pool)
+        monkeypatch.setattr("app.core.database.get_connection_pool", lambda: mock_pool)
 
         # Normal operation
         with get_db() as conn:
@@ -154,7 +161,7 @@ class TestDatabaseTransactions:
         connections = [MagicMock() for _ in range(3)]
 
         mock_pool.getconn.side_effect = connections
-        monkeypatch.setattr('app.core.database.get_connection_pool', lambda: mock_pool)
+        monkeypatch.setattr("app.core.database.get_connection_pool", lambda: mock_pool)
 
         # Acquire multiple connections
         acquired = []
@@ -189,19 +196,20 @@ class TestDatabaseIntegration:
             cursor = conn.cursor()
             cursor.execute("SELECT 1 as test")
             result = cursor.fetchone()
-            assert result['test'] == 1
+            assert result["test"] == 1
             cursor.close()
 
     def test_concurrent_connections(self):
         """Test multiple concurrent connections"""
         import threading
+
         results = []
 
         def query_db():
             with get_db() as conn:
                 cursor = conn.cursor()
                 cursor.execute("SELECT 1 as test")
-                results.append(cursor.fetchone()['test'])
+                results.append(cursor.fetchone()["test"])
                 cursor.close()
 
         # Create 5 concurrent connections

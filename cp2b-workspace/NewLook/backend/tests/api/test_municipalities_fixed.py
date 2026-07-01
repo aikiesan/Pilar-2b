@@ -2,9 +2,10 @@
 PILAR-2b V3 Backend - Fixed Municipality API Tests
 API tests with proper host configuration for testing
 """
+
 import pytest
-from fastapi.testclient import TestClient
 from fastapi import FastAPI
+from fastapi.testclient import TestClient
 
 
 def create_test_app():

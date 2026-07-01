@@ -6,6 +6,7 @@ constrained sandbox alike. Supports LGPD Art. 46 (security of processing). When
 the test app can be imported in CI, this can be promoted to a live response-header
 assertion; here it pins the configuration so it can't be silently dropped.
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -45,9 +46,9 @@ def test_clickjacking_protection_value():
 
 def test_middleware_is_wired_in_main():
     main = _read(MAIN)
-    assert "security_headers_middleware" in main, (
-        "security_headers_middleware must be imported and registered in main.py"
-    )
-    assert 'app.middleware("http")(security_headers_middleware)' in main, (
-        "security-headers middleware must be registered on the app"
-    )
+    assert (
+        "security_headers_middleware" in main
+    ), "security_headers_middleware must be imported and registered in main.py"
+    assert (
+        'app.middleware("http")(security_headers_middleware)' in main
+    ), "security-headers middleware must be registered on the app"
