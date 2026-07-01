@@ -207,7 +207,8 @@ class ProximityService:
                 with get_db() as conn:
                     cursor = conn.cursor()
                     cursor.execute(
-                        "SELECT municipality_name, ibge_code, population, area_km2, total_biogas_m3_year FROM municipalities"
+                        "SELECT municipality_name, ibge_code, population, area_km2, "
+                        "total_biogas_m3_year FROM municipalities"
                     )
                     for row in cursor.fetchall():
                         r = dict(row)
@@ -258,7 +259,8 @@ class ProximityService:
                     # Log if we still couldn't find data
                     if not muni_biogas:
                         logger.debug(
-                            f"No biogas data found for municipality: {muni_name} (IBGE: {muni_ibge})"
+                            f"No biogas data found for municipality: {muni_name} "
+                            f"(IBGE: {muni_ibge})"
                         )
 
                     muni_id += 1
@@ -328,7 +330,8 @@ class ProximityService:
                     rsu_biogas_m3_year, rpo_biogas_m3_year,
                     sugarcane_biogas_m3_year, soybean_biogas_m3_year, corn_biogas_m3_year,
                     coffee_biogas_m3_year, citrus_biogas_m3_year,
-                    cattle_biogas_m3_year, swine_biogas_m3_year, poultry_biogas_m3_year, aquaculture_biogas_m3_year
+                    cattle_biogas_m3_year, swine_biogas_m3_year, poultry_biogas_m3_year,
+                    aquaculture_biogas_m3_year
                     FROM municipalities
                     WHERE municipality_name IN ({placeholders})
                 """
@@ -407,7 +410,8 @@ class ProximityService:
             with get_db() as conn:
                 cursor = conn.cursor()
                 cursor.execute("""
-                    SELECT id, codigo, nome, nome_en, sector_codigo, subsector_codigo, categoria_nome,
+                    SELECT id, codigo, nome, nome_en, sector_codigo, subsector_codigo,
+                    categoria_nome,
                     bmp_min, bmp_medio, bmp_max, bmp_unidade,
                     ts_min, ts_medio, ts_max, vs_min, vs_medio, vs_max,
                     chemical_cn_ratio, chemical_ch4_content, fator_realista, icon

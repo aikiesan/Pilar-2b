@@ -74,9 +74,12 @@ def _geojson_select_sql(include_municipality_summary: bool) -> str:
                     m.total_biomass_tons_year, m.agricultural_biomass_tons_year,
                     m.livestock_biomass_tons_year, m.urban_biomass_tons_year,
                     m.sugarcane_biomass_tons_year, m.soybean_biomass_tons_year,
-                    m.corn_biomass_tons_year, m.coffee_biomass_tons_year, m.citrus_biomass_tons_year,
-                    m.cattle_biomass_tons_year, m.swine_biomass_tons_year, m.poultry_biomass_tons_year,
-                    m.aquaculture_biomass_tons_year, m.rsu_biomass_tons_year, m.rpo_biomass_tons_year,
+                    m.corn_biomass_tons_year, m.coffee_biomass_tons_year,
+                    m.citrus_biomass_tons_year,
+                    m.cattle_biomass_tons_year, m.swine_biomass_tons_year,
+                    m.poultry_biomass_tons_year,
+                    m.aquaculture_biomass_tons_year, m.rsu_biomass_tons_year,
+                    m.rpo_biomass_tons_year,
                     {cluster_cols}
                 FROM municipalities m{join}
                 WHERE m.geometry IS NOT NULL
@@ -190,12 +193,15 @@ async def get_municipalities_geojson(
             "total_municipalities": len(features),
             "source_geometry": "PostGIS municipalities.geometry",
             "source_biogas_data": "PostGIS municipalities table (legacy V2 import)",
-            "source_biomass_data": "Stored biomass columns (agricultural: authoritative from master CSV)",
+            "source_biomass_data": (
+                "Stored biomass columns (agricultural: authoritative from master CSV)"
+            ),
             "canonical_metrics": (
                 "Properties prefixed biomass_gross_, biomass_corrected_, biogas_ch4_, biomethane_ "
                 "are canonical forward-calculated 4-metric × 3-scenario values. "
                 "Agricultural streams use authoritative biomass tonnage. "
-                "Livestock/urban streams without stored biomass use legacy biogas with ±FDE envelope."
+                "Livestock/urban streams without stored biomass use legacy biogas "
+                "with ±FDE envelope."
             ),
         },
     }
@@ -261,7 +267,8 @@ async def get_municipalities(
             cursor = conn.cursor()
             if search:
                 cursor.execute(
-                    "SELECT * FROM municipalities WHERE municipality_name ILIKE %s LIMIT %s OFFSET %s",
+                    "SELECT * FROM municipalities WHERE municipality_name ILIKE %s "
+                    "LIMIT %s OFFSET %s",
                     [f"%{search}%", limit, offset],
                 )
             else:

@@ -34,7 +34,8 @@ class ResidueBiomassConfig:
 # Re-run the generator after editing feedstocks.yaml — do NOT edit these values directly.
 #
 # Primary DOI per feedstock:
-#   sugarcane: https://doi.org/10.1016/j.indcrop.2021.113498   (Paulose et al. 2021; BMP 187.9→165 practical)
+#   sugarcane: https://doi.org/10.1016/j.indcrop.2021.113498
+#     (Paulose et al. 2021; BMP 187.9→165 practical)
 #   soybean:   https://doi.org/10.1016/j.wasman.2015.10.021   (Kafle & Chen 2016)
 #   corn:      https://doi.org/10.1016/j.biortech.2011.12.074 (Herrmann et al. 2012)
 #   coffee:    https://doi.org/10.1016/j.biteb.2021.100830    (Okonkwo et al. 2021)

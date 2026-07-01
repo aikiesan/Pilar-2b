@@ -23,7 +23,8 @@ async def get_summary_statistics() -> Dict[str, Any]:
             cursor.execute("""
                 SELECT
                     COUNT(*)                                              AS total_municipalities,
-                    COUNT(*) FILTER (WHERE total_biogas_m3_year > 0)     AS municipalities_with_data,
+                    COUNT(*) FILTER (WHERE total_biogas_m3_year > 0)
+                        AS municipalities_with_data,
                     COALESCE(SUM(total_biogas_m3_year), 0)               AS total_biogas,
                     COALESCE(SUM(energy_potential_mwh_year), 0)          AS total_energy,
                     COALESCE(SUM(co2_reduction_tons_year), 0)            AS total_co2,

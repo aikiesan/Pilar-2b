@@ -231,7 +231,8 @@ def _fetch_all_from_db(state_code: Optional[str] = None) -> list[dict]:
             cursor = conn.cursor()
             if state_code:
                 cursor.execute(
-                    "SELECT * FROM intermediate_regions WHERE state_code = %s ORDER BY total_biogas_m3_year DESC",
+                    "SELECT * FROM intermediate_regions WHERE state_code = %s "
+                    "ORDER BY total_biogas_m3_year DESC",
                     (state_code.strip(),),
                 )
             else:
