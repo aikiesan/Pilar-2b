@@ -51,8 +51,12 @@ const GeoJSON = ({ data, onEachFeature, pointToLayer, ...props }) => {
   })
 }
 
-const passthrough = (testid) => ({ children, ...props }) =>
-  React.createElement('div', { 'data-testid': testid, ...sanitize(props) }, children)
+const passthrough = (testid) => {
+  const Component = ({ children, ...props }) =>
+    React.createElement('div', { 'data-testid': testid, ...sanitize(props) }, children)
+  Component.displayName = `Passthrough(${testid})`
+  return Component
+}
 
 // Strip non-DOM props (functions / objects) so React doesn't warn on the div.
 function sanitize(props) {
