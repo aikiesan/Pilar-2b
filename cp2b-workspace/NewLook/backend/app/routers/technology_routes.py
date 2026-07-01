@@ -4,15 +4,13 @@ Educational tool for visualizing biogas technology pathways.
 Calculation-free, reference-based learning platform.
 """
 
+import json
 import logging
 import secrets
 from typing import List, Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
-
-logger = logging.getLogger(__name__)
-import json
 
 from app.core.database import get_db, get_db_transaction
 from app.middleware.auth import get_current_user, optional_auth
@@ -28,6 +26,8 @@ from app.schemas.technology_routes import (
     UserRoutePublic,
     UserRouteUpdate,
 )
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -90,7 +90,10 @@ def health_check():
             "error": "Internal server error",
             "tables_exist": False,
             "ready": False,
-            "message": "Database tables may not exist. Run migration 010_technology_routes.sql and seed data.",
+            "message": (
+                "Database tables may not exist. Run migration "
+                "010_technology_routes.sql and seed data."
+            ),
         }
 
 
@@ -817,7 +820,10 @@ def validate_connection(request: ConnectionValidationRequest):
             if not source_allows:
                 return ConnectionValidationResponse(
                     valid=False,
-                    reason=f"{source['name_pt']} cannot connect to {target['category']} technologies",
+                    reason=(
+                        f"{source['name_pt']} cannot connect to "
+                        f"{target['category']} technologies"
+                    ),
                     source_category=source["category"],
                     target_category=target["category"],
                 )
@@ -825,7 +831,10 @@ def validate_connection(request: ConnectionValidationRequest):
             if not target_allows:
                 return ConnectionValidationResponse(
                     valid=False,
-                    reason=f"{target['name_pt']} cannot receive connections from {source['category']} technologies",
+                    reason=(
+                        f"{target['name_pt']} cannot receive connections from "
+                        f"{source['category']} technologies"
+                    ),
                     source_category=source["category"],
                     target_category=target["category"],
                 )
