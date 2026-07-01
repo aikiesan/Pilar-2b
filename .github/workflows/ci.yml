@@ -50,7 +50,6 @@ jobs:
         run: npm ci
       - name: Run unit tests
         run: npm test -- --ci --maxWorkers=2
-        continue-on-error: true
       - name: Run accessibility tests
         run: npm run test:a11y -- --ci --passWithNoTests
 
@@ -92,7 +91,6 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Run E2E tests (public pages)
         run: npm run test:e2e:public
-        continue-on-error: true
         env:
           PLAYWRIGHT_BASE_URL: http://localhost:3000
           NEXT_PUBLIC_API_URL: https://newlook-production.up.railway.app
