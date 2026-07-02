@@ -46,6 +46,7 @@ data/rasters/*.tif
 .env
 .env.local
 .env.docker
+.env.geoserver
 
 # Logs
 logs/

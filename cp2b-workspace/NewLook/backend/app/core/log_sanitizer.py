@@ -40,9 +40,7 @@ class PiiRedactingFilter(logging.Filter):
             if isinstance(record.msg, str):
                 record.msg = redact(record.msg)
             if record.args:
-                record.args = tuple(
-                    redact(a) if isinstance(a, str) else a for a in record.args
-                )
+                record.args = tuple(redact(a) if isinstance(a, str) else a for a in record.args)
         except Exception:
             # Never let logging hygiene break logging itself.
             pass

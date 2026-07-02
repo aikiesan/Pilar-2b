@@ -68,9 +68,10 @@ export default function MethodologyPanel({
           </div>
           <button
             onClick={onClose}
+            aria-label={t('methodology_panel.close')}
             className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
           >
-            <X className="h-5 w-5 text-gray-500 dark:text-slate-400" />
+            <X className="h-5 w-5 text-gray-500 dark:text-slate-400" aria-hidden="true" />
           </button>
         </div>
 

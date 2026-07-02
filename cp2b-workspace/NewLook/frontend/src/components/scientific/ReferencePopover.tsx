@@ -58,9 +58,10 @@ export default function ReferencePopover({ references, onClose, title, parameter
           </div>
           <button
             onClick={onClose}
+            aria-label="Fechar"
             className="p-2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
           >
-            <X className="h-5 w-5" />
+            <X className="h-5 w-5" aria-hidden="true" />
           </button>
         </div>
 

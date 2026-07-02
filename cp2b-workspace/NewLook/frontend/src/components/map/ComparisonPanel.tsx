@@ -127,9 +127,10 @@ export default function ComparisonPanel({
             </div>
             <button
               onClick={onClose}
+              aria-label="Fechar"
               className="p-2 rounded-lg hover:bg-white/20 transition-colors"
             >
-              <X className="w-6 h-6" />
+              <X className="w-6 h-6" aria-hidden="true" />
             </button>
           </div>
         </div>

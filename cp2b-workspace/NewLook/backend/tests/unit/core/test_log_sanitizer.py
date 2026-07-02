@@ -3,6 +3,7 @@ Tests for the PII log sanitiser (LGPD data-minimisation in logs).
 
 Pure unit tests — no DB / network / jwt — so they run in CI and the sandbox.
 """
+
 import logging
 
 import pytest
@@ -46,8 +47,13 @@ class TestRedact:
 class TestFilter:
     def _record(self, msg, *args):
         return logging.LogRecord(
-            name="t", level=logging.INFO, pathname=__file__, lineno=1,
-            msg=msg, args=args, exc_info=None,
+            name="t",
+            level=logging.INFO,
+            pathname=__file__,
+            lineno=1,
+            msg=msg,
+            args=args,
+            exc_info=None,
         )
 
     def test_filter_returns_true(self):

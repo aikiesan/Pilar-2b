@@ -9,7 +9,6 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || ''
 export interface LeadData {
   nome: string
   email: string
-  cpf_cnpj?: string
   municipality_id?: number
   municipality_name?: string
   consent_lgpd: boolean

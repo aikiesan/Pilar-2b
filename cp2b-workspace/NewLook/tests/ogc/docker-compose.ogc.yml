@@ -1,0 +1,70 @@
+# Self-contained stack for OGC testing (PostGIS + GeoServer [+ TEAM Engine]).
+# Slim on purpose: it does NOT build the FastAPI/Next.js app — only what the
+# OGC suites need. Used locally and by .github/workflows/ogc-compliance.yml.
+#
+#   # assembly + acceptance (fast): db + geoserver only
+#   docker compose -f tests/ogc/docker-compose.ogc.yml up -d
+#
+#   # add CITE conformance (heavy): also start TEAM Engine
+#   docker compose -f tests/ogc/docker-compose.ogc.yml --profile cite up -d
+#
+# The DB auto-loads tests/ogc/fixtures/seed_min.sql on first init, so GeoServer
+# has real features to publish immediately.
+
+services:
+  db:
+    image: postgis/postgis:15-3.4
+    environment:
+      POSTGRES_USER: postgres
+      # Throwaway password for the ephemeral CI/test DB — provided via the
+      # environment (CI generates it per-run; locally export it — see README).
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD (see tests/ogc/README.md)}
+      POSTGRES_DB: cp2b_maps
+    volumes:
+      - ./fixtures/seed_min.sql:/docker-entrypoint-initdb.d/10_seed_min.sql:ro
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d cp2b_maps"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  geoserver:
+    image: docker.osgeo.org/geoserver:3.0.0
+    environment:
+      GEOSERVER_ADMIN_USER: admin
+      GEOSERVER_ADMIN_PASSWORD: ${GEOSERVER_ADMIN_PASSWORD:?set GEOSERVER_ADMIN_PASSWORD (see tests/ogc/README.md)}
+      INITIAL_MEMORY: 1G
+      MAXIMUM_MEMORY: 2G
+      PROXY_BASE_URL: http://localhost:8080/geoserver
+      CORS_ENABLED: "true"
+      SKIP_DEMO_DATA: "true"
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8080/geoserver/web/ || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 20
+      start_period: 90s
+
+  # OGC TEAM Engine — runs the official CITE Executable Test Suites.
+  # Heavy image + slow boot; only started with `--profile cite`.
+  teamengine:
+    image: ogccite/teamengine-production:latest
+    profiles: ["cite"]
+    ports:
+      - "8088:8080"
+    depends_on:
+      geoserver:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8080/teamengine/ || exit 1"]
+      interval: 20s
+      timeout: 10s
+      retries: 20
+      start_period: 120s

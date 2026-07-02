@@ -203,6 +203,15 @@ export default function ResidueSelector({
                 className={`flex items-center gap-2 p-3 cursor-pointer transition-colors ${
                   isExpanded ? 'bg-green-50' : 'bg-gray-50 hover:bg-gray-100'
                 }`}
+                role="button"
+                tabIndex={0}
+                aria-expanded={isExpanded}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    (e.currentTarget as HTMLElement).click();
+                  }
+                }}
                 onClick={() => {
                   const newExpanded = new Set(expandedGroups);
                   if (newExpanded.has(group.id)) {
@@ -269,16 +278,19 @@ export default function ResidueSelector({
                         }`}
                       >
                         {/* Checkbox */}
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => toggleResidue(residue.code)}
+                          className="sr-only peer"
+                        />
                         <div
-                          className={`mt-0.5 w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all flex-shrink-0 ${
+                          aria-hidden="true"
+                          className={`mt-0.5 w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all flex-shrink-0 peer-focus-visible:ring-2 peer-focus-visible:ring-green-500 peer-focus-visible:ring-offset-1 ${
                             isSelected
                               ? 'bg-green-600 border-green-600 scale-105'
                               : 'border-gray-300 group-hover:border-green-400'
                           }`}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            toggleResidue(residue.code);
-                          }}
                         >
                           {isSelected && (
                             <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />

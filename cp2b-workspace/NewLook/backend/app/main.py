@@ -55,6 +55,9 @@ app.middleware("http")(rate_limit_middleware)
 # 3. Input validation & injection detection (blocks SQLi/CMDi in query params)
 app.middleware("http")(validation_middleware)
 
+# 3b. Security headers (X-Content-Type-Options, X-Frame-Options, HSTS, …)
+app.middleware("http")(security_headers_middleware)
+
 # 4. CORS middleware - Allow specific PILAR-2b deployments only
 app.add_middleware(
     CORSMiddleware,
@@ -75,9 +78,6 @@ app.add_middleware(
 
 # 5. Response compression (reduces bandwidth)
 app.middleware("http")(gzip_middleware)
-
-# 6. Security headers (LGPD Art. 46 — security of processing)
-app.middleware("http")(security_headers_middleware)
 
 # 6. Trusted host middleware - Prevents host header injection attacks
 # NOTE: TrustedHostMiddleware doesn't support wildcards in allowed_hosts
