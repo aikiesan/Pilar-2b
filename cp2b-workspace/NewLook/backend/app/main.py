@@ -17,6 +17,7 @@ from slowapi.errors import RateLimitExceeded
 from app.api.v1.api import api_router
 from app.core.config import settings
 from app.core.database import test_db_connection
+from app.core.log_sanitizer import PiiRedactingFilter
 from app.middleware.rate_limit import limiter, rate_limit_exceeded_handler
 from app.middleware.rate_limiter import rate_limit_middleware
 from app.middleware.request_size_limit import request_size_limit_middleware
@@ -24,6 +25,9 @@ from app.middleware.response_compression import gzip_middleware
 from app.middleware.security_headers import security_headers_middleware
 from app.middleware.validation import validation_middleware
 from app.services.cache_service import get_all_cache_stats
+
+# Redact PII (e-mails, CPF/CNPJ) from all log records (LGPD data-minimisation).
+logging.getLogger().addFilter(PiiRedactingFilter())
 
 log = logging.getLogger(__name__)
 
