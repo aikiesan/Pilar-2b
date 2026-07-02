@@ -183,6 +183,18 @@ class TestGetTechnologyById:
         data = client.get("/api/v1/technology-routes/technologies/biogas_digester").json()
         assert isinstance(data["references"], list)
 
+    def test_reference_query_joins_a_real_table(self, client, mock_db_connection):
+        """Regression: the join used a table literally named "references",
+        which no migration creates — every call 500'd against a real DB.
+        The reference data lives in residuo_references (migration 001)."""
+        mock_conn, mock_cursor = mock_db_connection
+        mock_cursor.fetchone.return_value = _tech_row()
+        mock_cursor.fetchall.return_value = []
+        client.get("/api/v1/technology-routes/technologies/biogas_digester")
+        ref_sql = mock_cursor.execute.call_args_list[-1][0][0]
+        assert '"references"' not in ref_sql
+        assert "residuo_references" in ref_sql
+
 
 # ─── Validate connection ──────────────────────────────────────────────────────
 
