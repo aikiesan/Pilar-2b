@@ -344,8 +344,13 @@ export default function AdvancedAnalysisPage() {
   // Check if there are custom factors
   const hasCustomFactors = Object.keys(residueFactorOverrides).length > 0
 
+  // Monotonically increasing id so a stale fetch can't overwrite the state
+  // written by a newer one (two filter changes within one round-trip race)
+  const fetchIdRef = useRef(0)
+
   // Fetch all data — all independent requests fire in parallel via Promise.allSettled
   const fetchAllData = useCallback(async () => {
+    const fetchId = ++fetchIdRef.current
     setError(null)
     setLoadingMunicipalities(true)
     setLoadingStats(true)
@@ -368,6 +373,9 @@ export default function AdvancedAnalysisPage() {
         getDistribution(apiCategory, 15),
         residueCodes.length > 0 ? getStatisticsByStream(residueCodes) : Promise.resolve(null),
       ])
+
+    // A newer fetch started while this one was in flight — drop these results
+    if (fetchId !== fetchIdRef.current) return
 
     // Municipalities
     if (munResult.status === 'fulfilled' && munResult.value) {

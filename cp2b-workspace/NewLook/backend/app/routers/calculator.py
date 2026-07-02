@@ -8,13 +8,21 @@ collected — they are unnecessary for a viability tool. Consent is opt-in by de
 (privacy by default) and is stored with the notice version and a timestamp so
 it is demonstrable (LGPD Art. 8 §1). Data subjects can access and erase their
 record via the endpoints below (LGPD Art. 18).
+
+Access/erasure verification: there is no user auth system in this app, so the
+data-subject endpoints require the e-mail stored on the lead as a verification
+factor. lead_id alone is a guessable sequential integer; requiring the matching
+e-mail keeps the endpoints exercisable by the data subject (who knows their own
+e-mail and received the lead_id at submission time) but not by an enumerating
+third party. Mismatches return the same 404 / deleted=false as a nonexistent
+id, so the endpoints do not leak which lead_ids exist.
 """
 
 import json
 from datetime import datetime, timezone
 from typing import Any, Optional
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Query, Request
 from pydantic import BaseModel
 
 from app.core.database import get_db, get_db_transaction
@@ -136,11 +144,21 @@ async def submit_calculator(payload: CalculatorSubmission, request: Request):
 
 
 @router.get("/leads/{lead_id}")
-async def get_lead(lead_id: int):
+async def get_lead(
+    lead_id: int,
+    email: str = Query(
+        ...,
+        description=(
+            "E-mail stored on the lead — identity verification for the data "
+            "subject. Must match the e-mail submitted with the lead."
+        ),
+    ),
+):
     """
     Data-subject ACCESS right (LGPD Art. 18 II).
     Returns the personal data stored for a given lead_id so the data subject can
-    review exactly what is held about them.
+    review exactly what is held about them. Requires the lead's own e-mail as a
+    verification factor; a mismatch is indistinguishable from a nonexistent id.
     """
     with get_db() as conn:
         cursor = conn.cursor()
@@ -151,9 +169,9 @@ async def get_lead(lead_id: int):
                    consent_lgpd, consent_text_version, consented_at,
                    activity_type, ip_address, user_agent, referrer, created_at
             FROM calculator_leads
-            WHERE id = %s
+            WHERE id = %s AND LOWER(email) = LOWER(%s)
             """,
-            (lead_id,),
+            (lead_id, email.strip()),
         )
         row = cursor.fetchone()
         cursor.close()
@@ -170,17 +188,28 @@ async def get_lead(lead_id: int):
 
 
 @router.delete("/leads/{lead_id}")
-async def delete_lead(lead_id: int):
+async def delete_lead(
+    lead_id: int,
+    email: str = Query(
+        ...,
+        description=(
+            "E-mail stored on the lead — identity verification for the data "
+            "subject. Must match the e-mail submitted with the lead."
+        ),
+    ),
+):
     """
     Data-subject ERASURE right (LGPD Art. 18 VI).
-    Hard-deletes the lead record. Idempotent: returns deleted=false if the record
-    did not exist.
+    Hard-deletes the lead record. Requires the lead's own e-mail as a
+    verification factor. Idempotent: returns deleted=false if the record did
+    not exist — or if the e-mail does not match (indistinguishable on purpose).
     """
     with get_db_transaction() as conn:
         cursor = conn.cursor()
         cursor.execute(
-            "DELETE FROM calculator_leads WHERE id = %s RETURNING id",
-            (lead_id,),
+            "DELETE FROM calculator_leads WHERE id = %s AND LOWER(email) = LOWER(%s) "
+            "RETURNING id",
+            (lead_id, email.strip()),
         )
         deleted = cursor.fetchone()
 

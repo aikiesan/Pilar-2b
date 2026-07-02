@@ -3,9 +3,39 @@ Co-digestion endpoint — unit tests for all five routes.
 The service functions are patched so no real DB or computation is needed.
 """
 
+from datetime import datetime, timezone
 from unittest.mock import MagicMock, patch
 
 import pytest
+from fastapi.testclient import TestClient
+
+
+@pytest.fixture(autouse=True)
+def _reset_codigestion_caches():
+    """Module-level caches persist across tests — reset them directly."""
+    import app.api.v1.endpoints.codigestion as mod
+
+    mod._cluster_cache.clear()
+    mod._cn_profile_cache = None
+    yield
+
+
+def _make_authenticated_client(test_app):
+    """Return a TestClient whose get_current_user dependency is bypassed."""
+    from app.middleware.auth import get_current_user
+    from app.models.auth import UserProfile
+
+    fake_user = UserProfile(
+        id="test-uid",
+        email="test@example.com",
+        full_name="Test User",
+        role="autenticado",
+        created_at=datetime(2025, 1, 1, tzinfo=timezone.utc),
+        updated_at=datetime(2025, 1, 1, tzinfo=timezone.utc),
+    )
+    test_app.dependency_overrides[get_current_user] = lambda: fake_user
+    return TestClient(test_app, base_url="http://testserver")
+
 
 # ─── Fixture: mock the service layer ─────────────────────────────────────────
 
@@ -50,16 +80,25 @@ FAKE_CANDIDATES = [
 @pytest.mark.unit
 class TestClearClusterCache:
 
-    def test_delete_cache_returns_200(self, client):
+    def test_unauthenticated_delete_is_rejected(self, client):
+        """Cache flush is an operational endpoint — anonymous callers must
+        not be able to force repeated O(n²) recomputation."""
         response = client.delete("/api/v1/codigestion/clusters/cache")
+        assert response.status_code in (401, 403)
+
+    def test_authenticated_delete_returns_200(self, test_app):
+        auth_client = _make_authenticated_client(test_app)
+        response = auth_client.delete("/api/v1/codigestion/clusters/cache")
         assert response.status_code == 200
 
-    def test_delete_cache_has_cleared_entries(self, client):
-        data = client.delete("/api/v1/codigestion/clusters/cache").json()
+    def test_delete_cache_has_cleared_entries(self, test_app):
+        auth_client = _make_authenticated_client(test_app)
+        data = auth_client.delete("/api/v1/codigestion/clusters/cache").json()
         assert "cleared_entries" in data
 
-    def test_delete_cache_has_message(self, client):
-        data = client.delete("/api/v1/codigestion/clusters/cache").json()
+    def test_delete_cache_has_message(self, test_app):
+        auth_client = _make_authenticated_client(test_app)
+        data = auth_client.delete("/api/v1/codigestion/clusters/cache").json()
         assert "message" in data
 
 
@@ -89,6 +128,21 @@ class TestGetClusters:
         ):
             response = client.get("/api/v1/codigestion/clusters?min_biomass_tons=500.0")
         assert response.status_code == 200
+
+    def test_min_biomass_above_upper_bound_returns_422(self, client):
+        """min_biomass_tons feeds the cache key — it must be bounded, or a
+        caller can mint unlimited cache entries by varying it."""
+        response = client.get("/api/v1/codigestion/clusters?min_biomass_tons=1000001")
+        assert response.status_code == 422
+
+    def test_cluster_cache_is_bounded(self):
+        """The cache key is derived from caller-supplied params, so the cache
+        itself must have a size limit (was an unbounded module-level dict)."""
+        import app.api.v1.endpoints.codigestion as mod
+        from app.services.cache_service import LRUCache
+
+        assert isinstance(mod._cluster_cache, LRUCache)
+        assert mod._cluster_cache.max_size <= 1024
 
 
 # ─── GET /municipality-cn-profiles ───────────────────────────────────────────
@@ -192,8 +246,7 @@ class TestGetClusterDetail:
         assert response.status_code == 200
 
     def test_missing_cluster_returns_404(self, client):
-        # Clear cache first so the service is called, then return empty
-        client.delete("/api/v1/codigestion/clusters/cache")
+        # Cache is cleared by the autouse fixture, so the service is called
         empty = {"clusters": [], "total_clusters": 0}
         with patch(
             "app.services.codigestion_service.find_codigestion_clusters", return_value=empty
@@ -205,7 +258,6 @@ class TestGetClusterDetail:
         with patch(
             "app.services.codigestion_service.find_codigestion_clusters", return_value=FAKE_CLUSTERS
         ) as mock_svc:
-            client.delete("/api/v1/codigestion/clusters/cache")
             client.get("/api/v1/codigestion/clusters")  # first call — populates cache
             client.get("/api/v1/codigestion/clusters")  # second call — cache hit
         # Service should only be called once (first populate), not twice

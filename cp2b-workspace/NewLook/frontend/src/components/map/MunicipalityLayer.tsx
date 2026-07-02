@@ -201,6 +201,11 @@ export default function MunicipalityLayer({
             properties={props}
           />
         );
+        // Leaflet re-invokes this factory (new container + root) on every
+        // open — unmount when the popup closes, or each open leaks a root.
+        layer.once('popupclose', () => {
+          setTimeout(() => root.unmount(), 0);
+        });
         return container;
       }, {
         maxWidth: popupWidth,

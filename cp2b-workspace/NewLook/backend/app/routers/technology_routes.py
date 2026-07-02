@@ -145,35 +145,38 @@ def get_all_technologies(
             cursor.execute(query, params)
             rows = cursor.fetchall()
 
-            technologies = []
-            for row in rows:
-                # Get references for this technology
+            # Batch-fetch references for every returned technology in one
+            # query (was one query per row — N+1).
+            refs_by_tech: dict = {}
+            if rows:
                 ref_query = """
                     SELECT
-                        tr.reference_id, tr.relevance_note,
+                        tr.technology_id, tr.reference_id, tr.relevance_note,
                         r.title, r.authors, r.year, r.journal,
                         NULL::text AS doi, NULL::text AS url
                     FROM technology_references tr
                     LEFT JOIN residuo_references r ON tr.reference_id = r.id
-                    WHERE tr.technology_id = %(tech_id)s
-                    ORDER BY tr.display_order, tr.created_at
+                    WHERE tr.technology_id = ANY(%(tech_ids)s)
+                    ORDER BY tr.technology_id, tr.display_order, tr.created_at
                 """
-                cursor.execute(ref_query, {"tech_id": row["id"]})
-                ref_rows = cursor.fetchall()
-
-                references = [
-                    TechnologyReference(
-                        reference_id=ref["reference_id"],
-                        title=ref["title"] or "Unknown",
-                        authors=json.loads(ref["authors"]) if ref["authors"] else [],
-                        year=ref["year"] or 0,
-                        journal=ref["journal"],
-                        doi=ref["doi"],
-                        url=ref["url"],
-                        relevance_note=ref["relevance_note"],
+                cursor.execute(ref_query, {"tech_ids": [row["id"] for row in rows]})
+                for ref in cursor.fetchall():
+                    refs_by_tech.setdefault(ref["technology_id"], []).append(
+                        TechnologyReference(
+                            reference_id=ref["reference_id"],
+                            title=ref["title"] or "Unknown",
+                            authors=json.loads(ref["authors"]) if ref["authors"] else [],
+                            year=ref["year"] or 0,
+                            journal=ref["journal"],
+                            doi=ref["doi"],
+                            url=ref["url"],
+                            relevance_note=ref["relevance_note"],
+                        )
                     )
-                    for ref in ref_rows
-                ]
+
+            technologies = []
+            for row in rows:
+                references = refs_by_tech.get(row["id"], [])
 
                 tech = TechnologyCardWithReferences(
                     id=row["id"],
@@ -236,7 +239,7 @@ def get_technology_by_id(tech_id: str):
                     tr.reference_id, tr.relevance_note,
                     r.title, r.authors, r.year, r.journal, r.doi, r.url
                 FROM technology_references tr
-                LEFT JOIN "references" r ON tr.reference_id = r.id
+                LEFT JOIN residuo_references r ON tr.reference_id = r.id
                 WHERE tr.technology_id = %(tech_id)s
                 ORDER BY tr.display_order, tr.created_at
             """
