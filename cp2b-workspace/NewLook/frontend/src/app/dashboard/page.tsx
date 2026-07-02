@@ -39,6 +39,7 @@ export default function DashboardPage() {
   const fetchData = async () => {
     try {
       setLoading(true)
+      setError(null)
 
       // Fetch municipalities
       const municipalitiesResponse = await fetch('/api/v1/municipalities/')

@@ -14,8 +14,6 @@ from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
 from slowapi.errors import RateLimitExceeded
 
-log = logging.getLogger(__name__)
-
 from app.api.v1.api import api_router
 from app.core.config import settings
 from app.core.database import test_db_connection
@@ -26,6 +24,8 @@ from app.middleware.response_compression import gzip_middleware
 from app.middleware.security_headers import security_headers_middleware
 from app.middleware.validation import validation_middleware
 from app.services.cache_service import get_all_cache_stats
+
+log = logging.getLogger(__name__)
 
 # Create FastAPI app - disable docs in production
 _is_production = settings.APP_ENV == "production"
@@ -58,7 +58,10 @@ app.add_middleware(
     # Restrict to PILAR-2b specific subdomains only
     # Vercel: new-look*.vercel.app, cp2b-maps*.vercel.app
     # Cloudflare: cp2bmaps.pages.dev and numbered previews
-    allow_origin_regex=r"https://(new-look.*|cp2b-maps.*)\.vercel\.app|https://(cp2bmaps|\w{8}\.cp2bmaps)\.pages\.dev",
+    allow_origin_regex=(
+        r"https://(new-look.*|cp2b-maps.*)\.vercel\.app"
+        r"|https://(cp2bmaps|\w{8}\.cp2bmaps)\.pages\.dev"
+    ),
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],  # Explicit methods
     allow_headers=["*"],  # Allow all headers for preflight compatibility

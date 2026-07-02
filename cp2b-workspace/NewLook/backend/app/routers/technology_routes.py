@@ -4,15 +4,13 @@ Educational tool for visualizing biogas technology pathways.
 Calculation-free, reference-based learning platform.
 """
 
+import json
 import logging
 import secrets
 from typing import List, Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
-
-logger = logging.getLogger(__name__)
-import json
 
 from app.core.database import get_db, get_db_transaction
 from app.middleware.auth import get_current_user, optional_auth
@@ -28,6 +26,8 @@ from app.schemas.technology_routes import (
     UserRoutePublic,
     UserRouteUpdate,
 )
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -90,7 +90,10 @@ def health_check():
             "error": "Internal server error",
             "tables_exist": False,
             "ready": False,
-            "message": "Database tables may not exist. Run migration 010_technology_routes.sql and seed data.",
+            "message": (
+                "Database tables may not exist. Run migration "
+                "010_technology_routes.sql and seed data."
+            ),
         }
 
 
@@ -142,35 +145,38 @@ def get_all_technologies(
             cursor.execute(query, params)
             rows = cursor.fetchall()
 
-            technologies = []
-            for row in rows:
-                # Get references for this technology
+            # Batch-fetch references for every returned technology in one
+            # query (was one query per row — N+1).
+            refs_by_tech: dict = {}
+            if rows:
                 ref_query = """
                     SELECT
-                        tr.reference_id, tr.relevance_note,
+                        tr.technology_id, tr.reference_id, tr.relevance_note,
                         r.title, r.authors, r.year, r.journal,
                         NULL::text AS doi, NULL::text AS url
                     FROM technology_references tr
                     LEFT JOIN residuo_references r ON tr.reference_id = r.id
-                    WHERE tr.technology_id = %(tech_id)s
-                    ORDER BY tr.display_order, tr.created_at
+                    WHERE tr.technology_id = ANY(%(tech_ids)s)
+                    ORDER BY tr.technology_id, tr.display_order, tr.created_at
                 """
-                cursor.execute(ref_query, {"tech_id": row["id"]})
-                ref_rows = cursor.fetchall()
-
-                references = [
-                    TechnologyReference(
-                        reference_id=ref["reference_id"],
-                        title=ref["title"] or "Unknown",
-                        authors=json.loads(ref["authors"]) if ref["authors"] else [],
-                        year=ref["year"] or 0,
-                        journal=ref["journal"],
-                        doi=ref["doi"],
-                        url=ref["url"],
-                        relevance_note=ref["relevance_note"],
+                cursor.execute(ref_query, {"tech_ids": [row["id"] for row in rows]})
+                for ref in cursor.fetchall():
+                    refs_by_tech.setdefault(ref["technology_id"], []).append(
+                        TechnologyReference(
+                            reference_id=ref["reference_id"],
+                            title=ref["title"] or "Unknown",
+                            authors=json.loads(ref["authors"]) if ref["authors"] else [],
+                            year=ref["year"] or 0,
+                            journal=ref["journal"],
+                            doi=ref["doi"],
+                            url=ref["url"],
+                            relevance_note=ref["relevance_note"],
+                        )
                     )
-                    for ref in ref_rows
-                ]
+
+            technologies = []
+            for row in rows:
+                references = refs_by_tech.get(row["id"], [])
 
                 tech = TechnologyCardWithReferences(
                     id=row["id"],
@@ -233,7 +239,7 @@ def get_technology_by_id(tech_id: str):
                     tr.reference_id, tr.relevance_note,
                     r.title, r.authors, r.year, r.journal, r.doi, r.url
                 FROM technology_references tr
-                LEFT JOIN "references" r ON tr.reference_id = r.id
+                LEFT JOIN residuo_references r ON tr.reference_id = r.id
                 WHERE tr.technology_id = %(tech_id)s
                 ORDER BY tr.display_order, tr.created_at
             """
@@ -817,7 +823,10 @@ def validate_connection(request: ConnectionValidationRequest):
             if not source_allows:
                 return ConnectionValidationResponse(
                     valid=False,
-                    reason=f"{source['name_pt']} cannot connect to {target['category']} technologies",
+                    reason=(
+                        f"{source['name_pt']} cannot connect to "
+                        f"{target['category']} technologies"
+                    ),
                     source_category=source["category"],
                     target_category=target["category"],
                 )
@@ -825,7 +834,10 @@ def validate_connection(request: ConnectionValidationRequest):
             if not target_allows:
                 return ConnectionValidationResponse(
                     valid=False,
-                    reason=f"{target['name_pt']} cannot receive connections from {source['category']} technologies",
+                    reason=(
+                        f"{target['name_pt']} cannot receive connections from "
+                        f"{source['category']} technologies"
+                    ),
                     source_category=source["category"],
                     target_category=target["category"],
                 )

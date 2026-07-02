@@ -190,7 +190,8 @@ async def get_analysis_by_residue(
     limit: int = Query(default=20, le=100),
     min_value: float = Query(default=0),
 ):
-    # Detect if caller passed frontend codes (AG_CANA_BAGACO style) vs legacy stream keys (sugarcane)
+    # Detect if caller passed frontend codes (AG_CANA_BAGACO style) vs legacy stream
+    # keys (sugarcane)
     use_streams = bool(residue_types and any(rt in FRONTEND_CODE_TO_STREAM for rt in residue_types))
 
     if use_streams:
@@ -332,7 +333,8 @@ async def get_analysis_by_residue(
 
 @router.get("/statistics/by-category")
 async def get_statistics_by_category():
-    """Return total biogas potential per sector from residue_streams_sp2023 (authoritative source)."""
+    """Return total biogas potential per sector from residue_streams_sp2023 (authoritative
+    source)."""
     try:
         with get_db() as conn:
             cursor = conn.cursor()
@@ -349,7 +351,8 @@ async def get_statistics_by_category():
             n_total = int(cursor.fetchone()["n"] or 0)
             cursor.close()
 
-        # forestry is stored as its own sector in DB but belongs to the industrial category in the frontend
+        # forestry is stored as its own sector in DB but belongs to the industrial
+        # category in the frontend
         SECTOR_TO_CATEGORY = {
             "agricultural": "agricultural",
             "livestock": "livestock",
@@ -390,7 +393,8 @@ async def get_statistics_by_category():
 async def get_statistics_by_stream(
     residue_codes: List[str] = Query(...),
 ):
-    """Return total biogas potential from residue_streams_sp2023 for a set of frontend residue codes."""
+    """Return total biogas potential from residue_streams_sp2023 for a set of frontend
+    residue codes."""
     streams = list(
         {
             FRONTEND_CODE_TO_STREAM[code]

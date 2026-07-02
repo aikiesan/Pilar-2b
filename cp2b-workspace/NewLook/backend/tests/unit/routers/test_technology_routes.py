@@ -133,6 +133,34 @@ class TestGetAllTechnologies:
         response = client.get("/api/v1/technology-routes/technologies?include_custom=false")
         assert response.status_code == 200
 
+    def test_references_fetched_in_single_batched_query(self, client, mock_db_connection):
+        """Regression: references used to be fetched one query per technology
+        row (N+1); they must come back in one ANY(...) query for all rows."""
+        mock_conn, mock_cursor = mock_db_connection
+        tech_rows = [_tech_row(tech_id="tech_a"), _tech_row(tech_id="tech_b")]
+        ref_rows = [
+            {
+                "technology_id": "tech_a",
+                "reference_id": 1,
+                "relevance_note": None,
+                "title": "Paper A",
+                "authors": '["Silva, J."]',
+                "year": 2020,
+                "journal": "J. Biogas",
+                "doi": None,
+                "url": None,
+            }
+        ]
+        mock_cursor.fetchall.side_effect = [tech_rows, ref_rows]
+        data = client.get("/api/v1/technology-routes/technologies").json()
+        assert mock_cursor.execute.call_count == 2  # cards + one batched ref query
+        ref_sql, ref_params = mock_cursor.execute.call_args_list[1][0]
+        assert "ANY(%(tech_ids)s)" in ref_sql
+        assert ref_params == {"tech_ids": ["tech_a", "tech_b"]}
+        by_id = {t["id"]: t for t in data}
+        assert [r["title"] for r in by_id["tech_a"]["references"]] == ["Paper A"]
+        assert by_id["tech_b"]["references"] == []
+
 
 # ─── Get technology by ID ─────────────────────────────────────────────────────
 
@@ -182,6 +210,18 @@ class TestGetTechnologyById:
         mock_cursor.fetchall.return_value = []
         data = client.get("/api/v1/technology-routes/technologies/biogas_digester").json()
         assert isinstance(data["references"], list)
+
+    def test_reference_query_joins_a_real_table(self, client, mock_db_connection):
+        """Regression: the join used a table literally named "references",
+        which no migration creates — every call 500'd against a real DB.
+        The reference data lives in residuo_references (migration 001)."""
+        mock_conn, mock_cursor = mock_db_connection
+        mock_cursor.fetchone.return_value = _tech_row()
+        mock_cursor.fetchall.return_value = []
+        client.get("/api/v1/technology-routes/technologies/biogas_digester")
+        ref_sql = mock_cursor.execute.call_args_list[-1][0][0]
+        assert '"references"' not in ref_sql
+        assert "residuo_references" in ref_sql
 
 
 # ─── Validate connection ──────────────────────────────────────────────────────

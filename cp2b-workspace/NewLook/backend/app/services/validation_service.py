@@ -127,7 +127,8 @@ class ValidationService:
             return (
                 False,
                 "❌ Raio muito grande",
-                "💡 O raio máximo permitido é 100 km. Raios maiores podem resultar em dados imprecisos.",
+                "💡 O raio máximo permitido é 100 km. Raios maiores podem "
+                "resultar em dados imprecisos.",
             )
 
         # Warning for large radius

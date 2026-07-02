@@ -50,7 +50,6 @@ jobs:
         run: npm ci
       - name: Run unit tests
         run: npm test -- --ci --maxWorkers=2
-        continue-on-error: true
       - name: Run accessibility tests
         run: npm run test:a11y -- --ci --passWithNoTests
 
@@ -90,6 +89,14 @@ jobs:
         run: npm ci
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
+      # Soft gate (continue-on-error): the suite is not reliably green in CI
+      # because NEXT_PUBLIC_API_URL below points the localhost:3000 frontend
+      # at the live production backend, whose CORS policy rejects localhost —
+      # map-load tests then time out (verified in run logs: 28568906651,
+      # and PR #135's earlier run: 3 failed + 6 flaky). Re-harden by removing
+      # continue-on-error once E2E targets a non-production backend with
+      # permissive CORS for the test origin (needs a seeded DB — a real
+      # project, tracked in docs/planning/IMPROVEMENT_BACKLOG.md).
       - name: Run E2E tests (public pages)
         run: npm run test:e2e:public
         continue-on-error: true
@@ -128,7 +135,6 @@ jobs:
         run: isort . --check-only
       - name: Flake8 lint
         run: flake8 app/ --max-line-length=100 --extend-ignore=E203,W503
-        continue-on-error: true
 
   backend-test:
     name: Backend - Unit Tests
@@ -186,7 +192,7 @@ jobs:
       - name: Safety check
         run: safety check
       - name: Bandit SAST scan
-        run: bandit -r app/ -f json -o bandit-report.json
+        run: bandit -r app/ -f json -o bandit-report.json -c pyproject.toml
         continue-on-error: true
       - name: Upload Bandit report
         uses: actions/upload-artifact@v7

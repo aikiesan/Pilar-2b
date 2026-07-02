@@ -263,7 +263,8 @@ async def analyze_proximity(request: ProximityAnalysisRequest):
                 land_use_data=land_use_result
             )
             logger.info(
-                f"Found {residuos_correlation.get('total_potential_sources', 0)} land use to residuos correlations"
+                f"Found {residuos_correlation.get('total_potential_sources', 0)} "
+                "land use to residuos correlations"
             )
 
         # 6. Get detailed residuos data for analysis context

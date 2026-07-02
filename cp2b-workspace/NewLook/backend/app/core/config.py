@@ -42,7 +42,11 @@ class Settings(BaseSettings):
     # Production origins - comma-separated, includes main and preview deployments
     # Supports both Vercel and Cloudflare Pages deployments
     PRODUCTION_ORIGINS: str = (
-        "https://cp2b.unicamp.br,https://new-look-nu.vercel.app,https://new-look-delta.vercel.app,https://cp2bmaps.pages.dev,https://541792a2.cp2bmaps.pages.dev"
+        "https://cp2b.unicamp.br,"
+        "https://new-look-nu.vercel.app,"
+        "https://new-look-delta.vercel.app,"
+        "https://cp2bmaps.pages.dev,"
+        "https://541792a2.cp2bmaps.pages.dev"
     )
     ALLOWED_HOSTS: List[str] = [
         "localhost",
@@ -239,9 +243,7 @@ except ValidationError as e:
     print("=" * 60)
     print("\nEnvironment Variables Check:")
     print(f"  APP_ENV: {os.getenv('APP_ENV', 'NOT SET')}")
-    print(
-        f"  SECRET_KEY: {'SET' if os.getenv('SECRET_KEY') else 'NOT SET'} (length: {len(os.getenv('SECRET_KEY', ''))})"
-    )
+    print(f"  SECRET_KEY: {'SET' if os.getenv('SECRET_KEY') else 'NOT SET'}")
     print(f"  DATABASE_URL: {'SET' if os.getenv('DATABASE_URL') else 'NOT SET'}")
     print(f"  POSTGRES_PASSWORD: {'SET' if os.getenv('POSTGRES_PASSWORD') else 'NOT SET'}")
     print("=" * 60 + "\n")

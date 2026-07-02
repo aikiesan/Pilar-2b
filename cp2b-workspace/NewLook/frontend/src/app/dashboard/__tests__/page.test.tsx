@@ -62,7 +62,7 @@ describe('DashboardPage', () => {
 
       // Check statistics values
       expect(screen.getByText('2')).toBeInTheDocument() // total municipalities
-      expect(screen.getByText('175.000')).toBeInTheDocument() // total population
+      expect(screen.getByText('175,000')).toBeInTheDocument() // total population
     })
 
     it('displays municipalities table with correct data', async () => {
@@ -199,25 +199,23 @@ describe('DashboardPage', () => {
       global.URL.createObjectURL = mockCreateObjectURL
       global.URL.revokeObjectURL = mockRevokeObjectURL
 
-      // Mock DOM methods to avoid jsdom issues
+      // Spy on DOM methods instead of replacing them outright: spies call
+      // through to the real implementation (so RTL's own container
+      // append/remove keeps working) and `restoreMocks` in jest.config.js
+      // reverts them after this test — a plain reassignment would leak into
+      // every later test in this file and break their render() calls.
       const mockClick = jest.fn()
-      const mockAppendChild = jest.fn()
-      const mockRemoveChild = jest.fn()
-
-      // Mock createElement to return a proper anchor element
-      const originalCreateElement = document.createElement
-      document.createElement = jest.fn((tagName) => {
+      const originalCreateElement = document.createElement.bind(document)
+      jest.spyOn(document, 'createElement').mockImplementation((tagName: string) => {
+        const el = originalCreateElement(tagName)
         if (tagName === 'a') {
-          const mockAnchor = originalCreateElement.call(document, 'a')
-          mockAnchor.click = mockClick
-          return mockAnchor
+          el.click = mockClick
         }
-        return originalCreateElement.call(document, tagName)
+        return el
       })
 
-      // Mock appendChild and removeChild to avoid jsdom DOM issues
-      document.body.appendChild = mockAppendChild
-      document.body.removeChild = mockRemoveChild
+      const appendChildSpy = jest.spyOn(document.body, 'appendChild')
+      const removeChildSpy = jest.spyOn(document.body, 'removeChild')
 
       const user = userEvent.setup()
       await act(async () => {
@@ -233,8 +231,8 @@ describe('DashboardPage', () => {
 
       expect(mockCreateObjectURL).toHaveBeenCalled()
       expect(mockClick).toHaveBeenCalled()
-      expect(mockAppendChild).toHaveBeenCalled()
-      expect(mockRemoveChild).toHaveBeenCalled()
+      expect(appendChildSpy).toHaveBeenCalled()
+      expect(removeChildSpy).toHaveBeenCalled()
     })
   })
 
@@ -346,7 +344,7 @@ describe('DashboardPage', () => {
 
       await waitFor(() => {
         // Check if numbers are properly formatted (with locale formatting)
-        expect(screen.getByText('175.000')).toBeInTheDocument() // total population
+        expect(screen.getByText('175,000')).toBeInTheDocument() // total population
       })
     })
   })

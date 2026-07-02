@@ -32,7 +32,7 @@ def safe_float(value, default=0.0):
         if match:
             return float(match.group(1))
         return default
-    except:
+    except (ValueError, TypeError, AttributeError):
         return default
 
 
@@ -44,7 +44,7 @@ def safe_int(value, default=0):
         if isinstance(value, (int, float)):
             return int(value)
         return int(float(str(value)))
-    except:
+    except (ValueError, TypeError):
         return default
 
 
@@ -62,23 +62,25 @@ async def get_kinetics(sector_codigo: Optional[str] = None, classification: Opti
 
             # Base query
             query = """
-                SELECT 
+                SELECT
                     r.id as residue_id,
                     r.nome as residue_name,
                     r.sector_codigo as sector,
                     r.bmp_medio as bmp_experimental,
                     r.kinetics,
-                    
+
                     -- Aggregated references
                     COALESCE(
                         (
-                            SELECT array_agg(DISTINCT CONCAT(sr.authors, ' (', sr.publication_year::text, ')'))
+                            SELECT array_agg(
+                                DISTINCT CONCAT(sr.authors, ' (', sr.publication_year::text, ')')
+                            )
                             FROM scientific_references sr
                             WHERE sr.primary_residue = r.codigo
                         ),
                         ARRAY[]::text[]
                     ) as references_list
-                    
+
                 FROM residuos r
                 WHERE r.kinetics IS NOT NULL
             """
@@ -113,7 +115,7 @@ async def get_kinetics(sector_codigo: Optional[str] = None, classification: Opti
                 if isinstance(kinetics_data, str):
                     try:
                         kinetics_data = json.loads(kinetics_data)
-                    except:
+                    except json.JSONDecodeError:
                         logger.error(
                             f"Failed to parse kinetics JSON for residue {row_dict['residue_id']}"
                         )

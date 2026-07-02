@@ -207,7 +207,8 @@ class ProximityService:
                 with get_db() as conn:
                     cursor = conn.cursor()
                     cursor.execute(
-                        "SELECT municipality_name, ibge_code, population, area_km2, total_biogas_m3_year FROM municipalities"
+                        "SELECT municipality_name, ibge_code, population, area_km2, "
+                        "total_biogas_m3_year FROM municipalities"
                     )
                     for row in cursor.fetchall():
                         r = dict(row)
@@ -258,7 +259,8 @@ class ProximityService:
                     # Log if we still couldn't find data
                     if not muni_biogas:
                         logger.debug(
-                            f"No biogas data found for municipality: {muni_name} (IBGE: {muni_ibge})"
+                            f"No biogas data found for municipality: {muni_name} "
+                            f"(IBGE: {muni_ibge})"
                         )
 
                     muni_id += 1
@@ -328,7 +330,8 @@ class ProximityService:
                     rsu_biogas_m3_year, rpo_biogas_m3_year,
                     sugarcane_biogas_m3_year, soybean_biogas_m3_year, corn_biogas_m3_year,
                     coffee_biogas_m3_year, citrus_biogas_m3_year,
-                    cattle_biogas_m3_year, swine_biogas_m3_year, poultry_biogas_m3_year, aquaculture_biogas_m3_year
+                    cattle_biogas_m3_year, swine_biogas_m3_year, poultry_biogas_m3_year,
+                    aquaculture_biogas_m3_year
                     FROM municipalities
                     WHERE municipality_name IN ({placeholders})
                 """
@@ -407,7 +410,8 @@ class ProximityService:
             with get_db() as conn:
                 cursor = conn.cursor()
                 cursor.execute("""
-                    SELECT id, codigo, nome, nome_en, sector_codigo, subsector_codigo, categoria_nome,
+                    SELECT id, codigo, nome, nome_en, sector_codigo, subsector_codigo,
+                    categoria_nome,
                     bmp_min, bmp_medio, bmp_max, bmp_unidade,
                     ts_min, ts_medio, ts_max, vs_min, vs_medio, vs_max,
                     chemical_cn_ratio, chemical_ch4_content, fator_realista, icon
@@ -487,91 +491,111 @@ class ProximityService:
         correlations = []
         by_class = land_use_data.get("by_class", {})
 
+        # Resolve every mapped class up front so all residue rows can be
+        # fetched in a single query (was one query per class — N+1).
+        class_entries = []
+        all_residuo_names: set = set()
+        for class_id_str, class_data in by_class.items():
+            try:
+                class_id = int(class_id_str)
+            except (TypeError, ValueError):
+                continue
+
+            mapping_entry = MAPBIOMAS_RESIDUOS_MAPPING.get(class_id)
+            if not mapping_entry:
+                continue
+
+            class_entries.append((class_id, class_data, mapping_entry))
+            all_residuo_names.update(mapping_entry["residuos"])
+
         try:
             from app.core.database import get_db
 
             with get_db() as conn:
                 cursor = conn.cursor()
                 cursor.execute("SELECT codigo, nome FROM sectors")
-                sectors_data = [dict(row) for row in cursor.fetchall()]
-                sector_nome_map = {s["codigo"]: s["nome"] for s in sectors_data}
+                sector_nome_map = {row["codigo"]: row["nome"] for row in cursor.fetchall()}
 
-                for class_id_str, class_data in by_class.items():
-                    class_id = int(class_id_str)
-
-                    mapping_entry = MAPBIOMAS_RESIDUOS_MAPPING.get(class_id)
-                    if not mapping_entry:
-                        continue
-
-                    residuo_names = mapping_entry["residuos"]
-                    matched_residuos = []
-                    if residuo_names:
-                        placeholders = ", ".join(["%s"] * len(residuo_names))
-                        cursor.execute(
-                            f"""
-                            SELECT id, nome, bmp_medio, ts_medio, vs_medio, chemical_cn_ratio,
-                            chemical_ch4_content, bmp_unidade, sector_codigo
-                            FROM residuos
-                            WHERE nome IN ({placeholders})
-                        """,
-                            residuo_names,
-                        )
-                        res_data = [dict(row) for row in cursor.fetchall()]
-
-                        for residuo in res_data:
-                            item = {
-                                k: (float(v) if hasattr(v, "__float__") else v)
-                                for k, v in residuo.items()
-                            }
-                            item["sector_nome"] = sector_nome_map.get(
-                                residuo.get("sector_codigo", ""), ""
-                            )
-                            matched_residuos.append(item)
-
-                    area_km2 = class_data.get("area_km2", 0)
-                    area_ha = area_km2 * 100
-                    production_factor = mapping_entry.get("production_factor")
-                    estimated_residue_tons = None
-                    estimated_biogas_m3 = None
-
-                    if production_factor and matched_residuos:
-                        estimated_residue_tons = area_ha * production_factor
-                        avg_bmp = sum(
-                            float(res.get("bmp_medio") or 0) for res in matched_residuos
-                        ) / len(matched_residuos)
-                        avg_ts = sum(
-                            float(res.get("ts_medio") or 0) for res in matched_residuos
-                        ) / len(matched_residuos)
-                        avg_vs = sum(
-                            float(res.get("vs_medio") or 0) for res in matched_residuos
-                        ) / len(matched_residuos)
-                        if avg_ts > 0 and avg_vs > 0:
-                            vs_tons = estimated_residue_tons * (avg_ts / 100) * (avg_vs / 100)
-                            estimated_biogas_m3 = vs_tons * avg_bmp
-
-                    correlations.append(
-                        {
-                            "mapbiomas_class_id": class_id,
-                            "mapbiomas_class_name": class_data.get("name", f"Classe {class_id}"),
-                            "area_km2": round(area_km2, 4),
-                            "area_ha": round(area_ha, 2),
-                            "percent_of_buffer": class_data.get("percent", 0),
-                            "color": class_data.get("color", "#808080"),
-                            "description": mapping_entry.get("description", ""),
-                            "subsector_codigo": mapping_entry.get("subsector_codigo"),
-                            "matched_residuos": matched_residuos,
-                            "production_factor": production_factor,
-                            "estimated_residue_tons": (
-                                round(estimated_residue_tons, 2) if estimated_residue_tons else None
-                            ),
-                            "estimated_biogas_m3_year": (
-                                round(estimated_biogas_m3, 2) if estimated_biogas_m3 else None
-                            ),
-                        }
+                residuos_by_name: Dict[str, Dict[str, Any]] = {}
+                if all_residuo_names:
+                    placeholders = ", ".join(["%s"] * len(all_residuo_names))
+                    cursor.execute(
+                        f"""
+                        SELECT id, nome, bmp_medio, ts_medio, vs_medio, chemical_cn_ratio,
+                        chemical_ch4_content, bmp_unidade, sector_codigo
+                        FROM residuos
+                        WHERE nome IN ({placeholders})
+                    """,
+                        sorted(all_residuo_names),
                     )
-
+                    residuos_by_name = {row["nome"]: dict(row) for row in cursor.fetchall()}
         except Exception as e:
+            # Correlation is supplementary to the proximity analysis — degrade
+            # to an EXPLICITLY empty result rather than failing the whole call,
+            # but never return silently partial data (the DB work above is
+            # all-or-nothing; the loop below is pure Python).
             logger.error(f"Error correlating MapBiomas with residuos: {e}")
+            return {
+                "correlations": [],
+                "total_potential_sources": 0,
+                "total_estimated_biogas_m3_year": 0.0,
+                "error": "Residue correlation unavailable (database error)",
+                "note": (
+                    "Estimates based on MapBiomas land use areas and residue " "production factors"
+                ),
+            }
+
+        for class_id, class_data, mapping_entry in class_entries:
+            matched_residuos = []
+            for residuo_name in mapping_entry["residuos"]:
+                residuo = residuos_by_name.get(residuo_name)
+                if residuo is None:
+                    continue
+                item = {k: (float(v) if hasattr(v, "__float__") else v) for k, v in residuo.items()}
+                item["sector_nome"] = sector_nome_map.get(residuo.get("sector_codigo", ""), "")
+                matched_residuos.append(item)
+
+            area_km2 = class_data.get("area_km2", 0)
+            area_ha = area_km2 * 100
+            production_factor = mapping_entry.get("production_factor")
+            estimated_residue_tons = None
+            estimated_biogas_m3 = None
+
+            if production_factor and matched_residuos:
+                estimated_residue_tons = area_ha * production_factor
+                avg_bmp = sum(float(res.get("bmp_medio") or 0) for res in matched_residuos) / len(
+                    matched_residuos
+                )
+                avg_ts = sum(float(res.get("ts_medio") or 0) for res in matched_residuos) / len(
+                    matched_residuos
+                )
+                avg_vs = sum(float(res.get("vs_medio") or 0) for res in matched_residuos) / len(
+                    matched_residuos
+                )
+                if avg_ts > 0 and avg_vs > 0:
+                    vs_tons = estimated_residue_tons * (avg_ts / 100) * (avg_vs / 100)
+                    estimated_biogas_m3 = vs_tons * avg_bmp
+
+            correlations.append(
+                {
+                    "mapbiomas_class_id": class_id,
+                    "mapbiomas_class_name": class_data.get("name", f"Classe {class_id}"),
+                    "area_km2": round(area_km2, 4),
+                    "area_ha": round(area_ha, 2),
+                    "percent_of_buffer": class_data.get("percent", 0),
+                    "color": class_data.get("color", "#808080"),
+                    "description": mapping_entry.get("description", ""),
+                    "subsector_codigo": mapping_entry.get("subsector_codigo"),
+                    "matched_residuos": matched_residuos,
+                    "production_factor": production_factor,
+                    "estimated_residue_tons": (
+                        round(estimated_residue_tons, 2) if estimated_residue_tons else None
+                    ),
+                    "estimated_biogas_m3_year": (
+                        round(estimated_biogas_m3, 2) if estimated_biogas_m3 else None
+                    ),
+                }
+            )
 
         # Sort by area (largest first)
         correlations.sort(key=lambda x: x.get("area_km2", 0), reverse=True)

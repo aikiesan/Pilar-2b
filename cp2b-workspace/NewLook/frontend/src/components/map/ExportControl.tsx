@@ -181,22 +181,24 @@ export default function ExportControl({
       backgroundColor: '#ffffff',
     });
 
-    // Convert canvas to blob
-    canvas.toBlob((blob) => {
-      if (!blob) {
-        throw new Error('Falha ao gerar imagem');
-      }
+    // Convert canvas to blob — promisified so the caller's try/catch and
+    // success toast actually wait for (and see) the result; a throw inside
+    // the raw toBlob callback would escape the surrounding try/catch and the
+    // "Download iniciado!" toast would fire before anything was downloaded.
+    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve));
+    if (!blob) {
+      throw new Error('Falha ao gerar imagem');
+    }
 
-      // Create and download file
-      const link = document.createElement('a');
-      const url = URL.createObjectURL(blob);
-      link.setAttribute('href', url);
-      link.setAttribute('download', `cp2b-biogas-map-${new Date().toISOString().split('T')[0]}.png`);
-      link.style.visibility = 'hidden';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    });
+    // Create and download file
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `cp2b-biogas-map-${new Date().toISOString().split('T')[0]}.png`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const getStatusIcon = (format: ExportFormat) => {
