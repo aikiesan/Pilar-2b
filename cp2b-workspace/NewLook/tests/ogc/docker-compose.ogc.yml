@@ -17,8 +17,10 @@ services:
     environment:
       POSTGRES_USER: postgres
       # Throwaway password for the ephemeral CI/test DB — provided via the
-      # environment (CI generates it per-run; locally export it — see README).
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD (see tests/ogc/README.md)}
+      # environment (CI generates it per-run; locally export it — see
+      # tests/ogc/README.md). Bare ${VAR:?} form so secret scanners don't
+      # mistake the error message for a literal password.
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?}
       POSTGRES_DB: cp2b_maps
     volumes:
       - ./fixtures/seed_min.sql:/docker-entrypoint-initdb.d/10_seed_min.sql:ro
@@ -34,7 +36,8 @@ services:
     image: docker.osgeo.org/geoserver:3.0.0
     environment:
       GEOSERVER_ADMIN_USER: admin
-      GEOSERVER_ADMIN_PASSWORD: ${GEOSERVER_ADMIN_PASSWORD:?set GEOSERVER_ADMIN_PASSWORD (see tests/ogc/README.md)}
+      # Required from the environment — see tests/ogc/README.md.
+      GEOSERVER_ADMIN_PASSWORD: ${GEOSERVER_ADMIN_PASSWORD:?}
       INITIAL_MEMORY: 1G
       MAXIMUM_MEMORY: 2G
       PROXY_BASE_URL: http://localhost:8080/geoserver

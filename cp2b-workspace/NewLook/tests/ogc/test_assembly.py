@@ -58,13 +58,18 @@ class TestWmsCapabilitiesShape:
 
     @pytest.mark.parametrize("layer", EXPECTED_LAYERS)
     def test_layer_is_published(self, wms_capabilities, layer):
-        # Layer <Name> in caps is workspace-qualified, e.g. "cp2b:municipalities".
+        # The workspace-scoped WMS endpoint (/geoserver/<ws>/wms) advertises
+        # layer <Name>s WITHOUT the workspace prefix ("municipalities"); the
+        # global endpoint qualifies them ("cp2b:municipalities"). Accept both.
         published = {
             e.text.strip()
             for e in wms_capabilities.iter()
             if local(e.tag) == "Name" and e.text
         }
-        assert layer in published, f"{layer} not advertised in WMS capabilities"
+        unqualified = layer.split(":", 1)[-1]
+        assert (
+            layer in published or unqualified in published
+        ), f"{layer} not advertised in WMS capabilities"
 
 
 class TestWfsCapabilitiesShape:

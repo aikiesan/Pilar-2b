@@ -36,9 +36,11 @@ services:
     env_file:
       - .env.geoserver            # copy from .env.geoserver.example
     environment:
-      # --- Admin credentials (override the well-known admin/geoserver default) ---
+      # --- Admin credentials (override the well-known admin/geoserver default).
+      #     Password is required from .env.geoserver; bare ${VAR:?} form so
+      #     secret scanners don't mistake the error message for a literal. ---
       GEOSERVER_ADMIN_USER: ${GEOSERVER_ADMIN_USER:-admin}
-      GEOSERVER_ADMIN_PASSWORD: ${GEOSERVER_ADMIN_PASSWORD:?set GEOSERVER_ADMIN_PASSWORD in .env.geoserver}
+      GEOSERVER_ADMIN_PASSWORD: ${GEOSERVER_ADMIN_PASSWORD:?}
       # --- JVM heap (tune to the VM; 2g/4g is sane for a few PostGIS layers) ---
       INITIAL_MEMORY: ${GEOSERVER_INITIAL_MEMORY:-1G}
       MAXIMUM_MEMORY: ${GEOSERVER_MAXIMUM_MEMORY:-2G}
