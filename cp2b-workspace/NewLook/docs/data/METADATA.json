@@ -120,6 +120,16 @@
       "notes": "Assembled; not yet ingested into validation_plants (P0)."
     },
     {
+      "id": "aneel_siga",
+      "name": "ANEEL — SIGA (Sistema de Informacoes de Geracao), empreendimentos em operacao",
+      "role": "Real-world validation: biomass/biogas generation plants (CEG code, capacity kW, fuel origin/source) -> validation_plants cross-check",
+      "reference_year": "2025 (VERIFY on snapshot)",
+      "url": "https://dadosabertos.aneel.gov.br/dataset/siga-sistema-de-informacoes-de-geracao-da-aneel",
+      "doi": null,
+      "retrieved": "VERIFY — fill in the day the snapshot is taken; the ingest lineage gate blocks promotion until then",
+      "notes": "Ingested via backend/ingest/sources/aneel_siga (the ingestion-contract template). MdaPotenciaOutorgadaKw is kW; the loader converts kW->MW exactly once. The 19.69 vs 6.39 discrepancy is a units-audit item — certify against ANEEL's published per-fuel totals via the aggregation gate on first real run."
+    },
+    {
       "id": "aneel_gd",
       "name": "ANEEL — Geracao Distribuida (biogas units)",
       "role": "Real-world validation: distributed biogas-to-electricity units (kW)",
