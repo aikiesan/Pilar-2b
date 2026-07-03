@@ -516,6 +516,12 @@ export default function MapComponent({
           center={mapCenter}
           zoom={mapZoom}
           scrollWheelZoom={true}
+          // Canvas renderer: one <canvas> instead of one SVG node per polygon.
+          // SVG re-transforms all 645 municipality paths on every zoom frame
+          // (the source of the zoom stutter); canvas redraws once per frame
+          // and is the required headroom for the 5,570-municipality national
+          // dataset until the MapLibre migration (roadmap §3.3).
+          preferCanvas={true}
           style={MAP_CONTAINER_STYLE}
         >
           <TileLayer

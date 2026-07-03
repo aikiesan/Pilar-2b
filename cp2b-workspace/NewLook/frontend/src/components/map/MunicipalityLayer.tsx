@@ -5,7 +5,7 @@
 
 'use client';
 
-import React from 'react';
+import React, { useCallback, useRef } from 'react';
 import { GeoJSON } from 'react-leaflet';
 import type { GeoJsonObject, Feature } from 'geojson';
 import type { MunicipalityCollection, MunicipalityFeature, DisplayMetric } from '@/types/geospatial';
@@ -79,6 +79,15 @@ export default function MunicipalityLayer({
 
   const suffix = displayMetric === 'biomass_tons' ? 'biomass_tons_year' : 'biogas_m3_year';
 
+  // Opacity changes (the slider — the most frequent map interaction) restyle
+  // the existing layer via react-leaflet's setStyle instead of remounting all
+  // polygons: `opacity` is deliberately NOT in the <GeoJSON> key below, and a
+  // new `style` identity (useCallback dep) triggers the restyle. The hover
+  // handlers are bound once per mount, so they read this ref rather than a
+  // stale closed-over prop.
+  const opacityRef = useRef(opacity);
+  opacityRef.current = opacity;
+
   // Get display value based on selected residues or biomass type
   const getBiogasValue = (props: any): number => {
     if (displayMetric === 'biomass_tons') {
@@ -107,8 +116,11 @@ export default function MunicipalityLayer({
     }
   };
 
-  // Style function for polygons (choropleth)
-  const style = (feature?: Feature) => {
+  // Style function for polygons (choropleth). Memoized so its identity only
+  // changes when the visual inputs change — react-leaflet calls setStyle on
+  // the mounted layer whenever the `style` prop identity changes.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const style = useCallback((feature?: Feature) => {
     if (!feature || !feature.properties) return {};
 
     const fillColor = colorMode === 'cluster'
@@ -122,7 +134,9 @@ export default function MunicipalityLayer({
       color: '#666666',
       fillOpacity: opacity,
     };
-  };
+    // getBiogasValue is recreated per render but only depends on the deps
+    // listed here, so listing them directly keeps the identity stable.
+  }, [colorMode, displayMetric, biomassType, selectedResidues, opacity]);
 
   // Format biogas value for display
   const formatBiogas = (value: number): string => {
@@ -226,7 +240,7 @@ export default function MunicipalityLayer({
           target.setStyle({
             weight: 2,
             color: '#000000',
-            fillOpacity: Math.min(opacity + 0.2, 1),
+            fillOpacity: Math.min(opacityRef.current + 0.2, 1),
           });
           target.bringToFront();
 
@@ -243,7 +257,7 @@ export default function MunicipalityLayer({
           target.setStyle({
             weight: 1,
             color: '#666666',
-            fillOpacity: opacity,
+            fillOpacity: opacityRef.current,
             fillColor: resetColor,
           });
 
@@ -264,7 +278,12 @@ export default function MunicipalityLayer({
 
   return (
     <GeoJSON
-      key={`${biomassType}-${displayMetric}-${opacity}-${colorMode}-${mapScenario}-${selectedResidues.join(',')}`}
+      // The key remounts the layer when anything bound at creation time
+      // changes: tooltip/popup content (biomassType, displayMetric, colorMode,
+      // selectedResidues) or the data itself (mapScenario — react-leaflet only
+      // reads `data` on mount). Opacity is intentionally absent: it flows
+      // through the memoized `style` -> setStyle without a remount.
+      key={`${biomassType}-${displayMetric}-${colorMode}-${mapScenario}-${selectedResidues.join(',')}`}
       data={data as GeoJsonObject}
       style={style}
       onEachFeature={onEachFeature}
