@@ -501,6 +501,17 @@ export default function MapComponent({
           ))}
         </div>
 
+        {/* Keyboard instructions for the interactive map (WCAG 2.1.1). */}
+        <p id="map-keyboard-help" className="sr-only">{t('map_keyboard_help')}</p>
+
+        {/* ARIA attributes live on a wrapper div: react-leaflet's MapContainer
+            forwards unknown props to Leaflet's options, not the DOM. */}
+        <div
+          role="application"
+          aria-label={t('map_aria_label')}
+          aria-describedby="map-keyboard-help"
+          style={MAP_CONTAINER_STYLE}
+        >
         <MapContainer
           center={mapCenter}
           zoom={mapZoom}
@@ -571,6 +582,7 @@ export default function MapComponent({
               : <IntermediateRegionBoundaryLayer visible={true} />
           )}
         </MapContainer>
+        </div>
 
         {/* Overlays — all absolute-positioned within the map area */}
         {infrastructureAlerts.length > 0 && (

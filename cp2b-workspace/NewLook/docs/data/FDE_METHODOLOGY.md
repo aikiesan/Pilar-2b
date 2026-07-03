@@ -341,6 +341,46 @@ Improvement: 70-80% prediction accuracy
 
 ---
 
+## ⚠️ Limitations & Caveats
+
+These limitations should be stated explicitly in any publication using FDE. They are not flaws in the
+framework but boundaries of the current parameterisation, and they define the validation agenda.
+
+### 1. FCo (competing use) reflects a **regulatory/literature allowance, not measured diversion**
+The competing-use factor is derived from regulatory mandates and literature (e.g. CETESB Decision
+39/2017 for bagasse cogeneration; CETESB P4.231 ~85% mandatory vinasse fertigation; Carvalho 2017
+50–70% straw soil-retention). These define the *surplus that is legally/agronomically permissible*,
+**not** an operationally measured fraction actually diverted to biogas. Real diversion may be lower
+(plants use their surplus elsewhere) or higher (non-compliance). **FCo is therefore an upper bound on
+mobilisable surplus, pending field validation against operational plant data (ANP/ANEEL).**
+
+### 2. FS and FL are applied as **independent factors**, which understates **seasonality coupling**
+The formula treats seasonal availability (FS) and logistics (FL) as independent multipliers in [0,1].
+For **harvest-only residues** (e.g. sugarcane straw, available ~Apr–Nov, ~236 days/yr) this implicitly
+assumes either year-round digester feeding via **storage** (with attendant cost and dry-matter loss) or
+seasonal operation. The current parameterisation does **not** include a storage cost/spoilage penalty,
+nor does it model the interaction whereby transport (FL) is only viable *during* the harvest window.
+**Seasonal residues' effective availability may be overstated; an explicit storage/seasonality
+treatment is a planned refinement.**
+
+### 3. η (conversion efficiency) is **literature/global-average, not Brazil-field-validated**
+η values (e.g. bagasse 0.70 from Paulose 2021 lab BMP; straw 0.62 from lignocellulose literature) are
+defensible estimates but are **not** calibrated to operational Brazilian plant performance. η should be
+treated as a **sensitivity variable**; a sensitivity sweep (low/medio/high η) is recommended to bound
+its effect on state totals.
+
+### 4. No operational validation **yet**
+The forward FDE estimates are **not yet** compared against metered production. Real-world ANP biomethane
+(monthly, 2020–2026) and ANEEL distributed-generation records have been assembled (`analysis/data/05*`)
+and the validation schema exists (`backend/migrations/010_create_validation_plants.sql`), but the
+predicted-vs-measured comparison (and the resulting MAE) is **pending** and is the priority next step.
+
+> **In short:** FDE is transparent and factor-attributable, but its factors are *literature-derived
+> ceilings*. Operational validation against ANP/ANEEL data is the corrective and the strongest planned
+> improvement.
+
+---
+
 ## 📚 References
 
 ### **Methodology Development**

@@ -90,8 +90,8 @@ This study addresses identified gaps through three interconnected contributions:
 
 ### Advanced Analysis
 - **Sankey flow diagrams** for multi-residue split-flow visualization
-- **Co-digestion C:N ratio** clustering and optimization
-- **IBGE Leontief model** (67-sector Input-Output economic analysis)
+- **Co-digestion C:N ratio** clustering — backend service implemented; UI in development
+- **Economic impact modelling** (IBGE 67-sector Leontief) — _roadmapped (not yet in the backend service layer)_
 - **Payback calculator** for biogas plant investment viability
 
 ### Bilingual Interface
@@ -446,8 +446,7 @@ git push origin main
 - [x] FDE methodology implementation and validation
 - [x] Performance optimization (LRU cache, gzip, rate limiting, connection pooling)
 - [x] Sankey flow diagrams for multi-residue visualization
-- [x] Co-digestion C:N ratio clustering
-- [x] IBGE 67-sector Leontief Input-Output model
+- [x] Co-digestion C:N ratio clustering (backend service; UI in development)
 - [x] Payback calculator for biogas plant viability
 - [x] Bilingual interface (pt-BR / en) via next-intl
 - [x] Unicamp VM deployment (Apache2 + PM2 at cp2b.unicamp.br/pilar2b)
@@ -456,8 +455,10 @@ git push origin main
 - [x] ESLint 9 flat config + comprehensive E2E tests
 - [x] Comprehensive documentation (~43 files, ~18,500+ lines)
 
-### In Progress
-- [ ] MCDA multi-criteria decision analysis module
+### In Progress / Roadmapped
+- [ ] IBGE 67-sector Leontief economic model (designed; backend service pending — see `docs/data/IBGE_67_SECTOR_INTEGRATION_COMPLETE.md`)
+- [ ] MCDA multi-criteria decision analysis module (proximity + C:N screening exist; full optimizer pending)
+- [ ] Co-digestion analysis exposed in the UI/API
 - [ ] WCAG 2.1 AA full compliance
 - [ ] Sentry observability integration (frontend + backend)
 

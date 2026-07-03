@@ -1,0 +1,150 @@
+name: OGC Compliance
+
+# Runs the GeoServer OGC test tiers on every PR to main (and pushes to main):
+#   1. assembly + acceptance  — fast, BLOCKING: stack comes up, layers serve,
+#                               real non-blank maps + correct WFS attributes.
+#   2. CITE conformance       — heavy, NON-BLOCKING (for now): official OGC
+#                               Executable Test Suites via TEAM Engine.
+#
+# Scope: this runs on all PRs. To save minutes you can later add a `paths:`
+# filter (e.g. geoserver/compose/migrations/map dirs). The CITE job is marked
+# continue-on-error until the ETS version/param defaults are confirmed live
+# (see tests/ogc/cite/run_cite.py); promote it to required once green.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  COMPOSE: cp2b-workspace/NewLook/tests/ogc/docker-compose.ogc.yml
+  GS_URL: http://localhost:8080/geoserver
+# Credentials for the throwaway CI containers are generated per-run at runtime
+# (see the "Generate ephemeral test credentials" step) — never hard-coded.
+
+jobs:
+  ogc-assembly-acceptance:
+    name: OGC – Assembly & Acceptance
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install test deps
+        run: pip install -r cp2b-workspace/NewLook/tests/ogc/requirements.txt
+
+      - name: Generate ephemeral test credentials
+        run: |
+          PW=$(openssl rand -hex 16)
+          echo "::add-mask::$PW"
+          ADMIN=$(openssl rand -base64 18)
+          echo "::add-mask::$ADMIN"
+          # DB password is shared by Postgres + the provisioning step (same DB).
+          echo "POSTGRES_PASSWORD=$PW" >> "$GITHUB_ENV"
+          echo "GEOSERVER_DB_PASSWORD=$PW" >> "$GITHUB_ENV"
+          echo "GEOSERVER_ADMIN_PASSWORD=$ADMIN" >> "$GITHUB_ENV"
+
+      - name: Start PostGIS + GeoServer (auto-seeded)
+        run: docker compose -f "$COMPOSE" up -d --wait --wait-timeout 300
+
+      - name: Provision GeoServer layers
+        env:
+          GEOSERVER_REST_URL: ${{ env.GS_URL }}
+          GEOSERVER_ADMIN_USER: admin
+          GEOSERVER_WORKSPACE: cp2b
+          GEOSERVER_DATASTORE: cp2b_postgis
+          # Datastore connection is resolved INSIDE the geoserver container,
+          # so the DB host is the compose service name, not localhost.
+          GEOSERVER_DB_HOST: db
+          GEOSERVER_DB_PORT: '5432'
+          GEOSERVER_DB_NAME: cp2b_maps
+          GEOSERVER_DB_SCHEMA: public
+          GEOSERVER_DB_USER: postgres
+          # GEOSERVER_ADMIN_PASSWORD / GEOSERVER_DB_PASSWORD inherited from the
+          # job env (set above), so no secret literal appears in this file.
+        run: python cp2b-workspace/NewLook/scripts/geoserver/provision_geoserver.py
+
+      - name: Run assembly + acceptance tests
+        env:
+          GEOSERVER_URL: ${{ env.GS_URL }}
+          GEOSERVER_WORKSPACE: cp2b
+        working-directory: cp2b-workspace/NewLook/tests/ogc
+        run: pytest -v
+
+      - name: GeoServer logs (on failure)
+        if: failure()
+        run: docker compose -f "$COMPOSE" logs --no-color geoserver db | tail -200
+
+      - name: Tear down
+        if: always()
+        run: docker compose -f "$COMPOSE" down -v
+
+  ogc-cite:
+    name: OGC – CITE Conformance (TEAM Engine)
+    runs-on: ubuntu-latest
+    # Heavy + ETS version/param defaults need a first live confirmation.
+    # Non-blocking until validated; then drop continue-on-error to gate merges.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install test deps
+        run: pip install -r cp2b-workspace/NewLook/tests/ogc/requirements.txt
+
+      - name: Generate ephemeral test credentials
+        run: |
+          PW=$(openssl rand -hex 16)
+          echo "::add-mask::$PW"
+          ADMIN=$(openssl rand -base64 18)
+          echo "::add-mask::$ADMIN"
+          echo "POSTGRES_PASSWORD=$PW" >> "$GITHUB_ENV"
+          echo "GEOSERVER_DB_PASSWORD=$PW" >> "$GITHUB_ENV"
+          echo "GEOSERVER_ADMIN_PASSWORD=$ADMIN" >> "$GITHUB_ENV"
+
+      - name: Start PostGIS + GeoServer + TEAM Engine
+        run: docker compose -f "$COMPOSE" --profile cite up -d --wait --wait-timeout 420
+
+      - name: Provision GeoServer layers
+        env:
+          GEOSERVER_REST_URL: ${{ env.GS_URL }}
+          GEOSERVER_ADMIN_USER: admin
+          GEOSERVER_DB_HOST: db
+          GEOSERVER_DB_NAME: cp2b_maps
+          GEOSERVER_DB_USER: postgres
+          # GEOSERVER_ADMIN_PASSWORD / GEOSERVER_DB_PASSWORD inherited from job env.
+        run: python cp2b-workspace/NewLook/scripts/geoserver/provision_geoserver.py
+
+      - name: Run CITE suites (WMS 1.3.0, WFS 2.0)
+        env:
+          TEAMENGINE_URL: http://localhost:8088/teamengine
+          # IUT must be reachable FROM the TEAM Engine container → service name.
+          GEOSERVER_INTERNAL_URL: http://geoserver:8080/geoserver
+          GEOSERVER_WORKSPACE: cp2b
+          CITE_REPORT_DIR: ${{ github.workspace }}/cite-reports
+        working-directory: cp2b-workspace/NewLook/tests/ogc/cite
+        run: python run_cite.py
+
+      - name: Upload EARL reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cite-earl-reports
+          path: cite-reports/
+          retention-days: 14
+
+      - name: TEAM Engine logs (on failure)
+        if: failure()
+        run: docker compose -f "$COMPOSE" --profile cite logs --no-color teamengine | tail -200
+
+      - name: Tear down
+        if: always()
+        run: docker compose -f "$COMPOSE" --profile cite down -v

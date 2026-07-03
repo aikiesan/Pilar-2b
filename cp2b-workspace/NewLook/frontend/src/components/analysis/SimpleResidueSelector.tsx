@@ -186,16 +186,19 @@ export default function SimpleResidueSelector({
                           isSelected ? 'bg-green-100 border border-green-300' : 'hover:bg-gray-50'
                         }`}
                       >
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => toggleResidue(residue.code)}
+                          className="sr-only peer"
+                        />
                         <div
-                          className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-all ${
+                          aria-hidden="true"
+                          className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-all peer-focus-visible:ring-2 peer-focus-visible:ring-green-500 peer-focus-visible:ring-offset-1 ${
                             isSelected
                               ? 'bg-green-600 border-green-600'
                               : 'border-gray-300'
                           }`}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            toggleResidue(residue.code);
-                          }}
                         >
                           {isSelected && (
                             <Check className="w-3 h-3 text-white" strokeWidth={3} />
@@ -218,6 +221,15 @@ export default function SimpleResidueSelector({
                 className={`flex items-center gap-2 p-3 cursor-pointer transition-colors ${
                   isExpanded ? 'bg-gray-50' : 'hover:bg-gray-50'
                 }`}
+                role="button"
+                tabIndex={0}
+                aria-expanded={isExpanded}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    (e.currentTarget as HTMLElement).click();
+                  }
+                }}
                 onClick={() => {
                   const newExpanded = new Set(expandedGroups);
                   if (newExpanded.has(group.id)) {
@@ -236,13 +248,24 @@ export default function SimpleResidueSelector({
 
                 {selectedCategory === 'agricultural' && (
                   <div
-                    className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-all ${
+                    role="checkbox"
+                    aria-checked={allSelected}
+                    aria-label="Selecionar todos os resíduos"
+                    tabIndex={0}
+                    className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-all focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-1 ${
                       allSelected
                         ? 'bg-green-600 border-green-600'
                         : selectedCount > 0
                         ? 'bg-green-200 border-green-600'
                         : 'border-gray-300'
                     }`}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        (e.currentTarget as HTMLElement).click();
+                      }
+                    }}
                     onClick={(e) => {
                       e.stopPropagation();
                       toggleGroupSelection(group.id);
@@ -277,16 +300,19 @@ export default function SimpleResidueSelector({
                           isSelected ? 'bg-green-100 border border-green-300' : 'hover:bg-white'
                         }`}
                       >
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => toggleResidue(residue.code)}
+                          className="sr-only peer"
+                        />
                         <div
-                          className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-all ${
+                          aria-hidden="true"
+                          className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-all peer-focus-visible:ring-2 peer-focus-visible:ring-green-500 peer-focus-visible:ring-offset-1 ${
                             isSelected
                               ? 'bg-green-600 border-green-600'
                               : 'border-gray-300'
                           }`}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            toggleResidue(residue.code);
-                          }}
                         >
                           {isSelected && (
                             <Check className="w-3 h-3 text-white" strokeWidth={3} />

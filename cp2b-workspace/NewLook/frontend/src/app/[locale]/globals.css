@@ -813,3 +813,19 @@ input[type="range"]::-moz-range-thumb:active {
 .stat-highlight:hover::before {
   left: 100%;
 }
+
+/* =============================================================================
+   Reduced motion (WCAG 2.1 — 2.3.3 / 2.2.2; respects user vestibular settings).
+   When the user requests reduced motion, neutralise animations and transitions
+   (e.g. the loading shimmer and hover sweeps) instead of removing functionality.
+   ============================================================================= */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

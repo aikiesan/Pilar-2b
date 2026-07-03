@@ -168,7 +168,7 @@ export default function RegionalPieChart({
 
   return (
     <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100 hover:shadow-lg transition-shadow">
-      <div className="h-[400px]">
+      <div className="h-[400px]" role="img" aria-label="Distribuição regional do potencial de biogás">
         <Doughnut data={chartData} options={options} />
       </div>
     </div>

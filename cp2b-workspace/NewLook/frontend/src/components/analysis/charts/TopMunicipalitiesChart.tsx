@@ -155,7 +155,7 @@ export default function TopMunicipalitiesChart({
 
   return (
     <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100 hover:shadow-lg transition-shadow">
-      <div className="h-[450px]">
+      <div className="h-[450px]" role="img" aria-label={t('top_municipalities_title')}>
         <Bar data={chartData} options={options} />
       </div>
     </div>
