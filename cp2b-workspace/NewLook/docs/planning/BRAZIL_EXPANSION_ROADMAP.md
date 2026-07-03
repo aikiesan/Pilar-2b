@@ -213,6 +213,11 @@ Test layers, mapped to the existing suites:
 
 ## 6. Month-by-month plan (solo dev, arriving Brazil 2026-07-09)
 
+> Each month below is expanded into a full step-by-step checklist (commands,
+> file paths, verification queries, exit criteria) in
+> [`playbooks/`](playbooks/README.md) — execute those top to bottom; this
+> section stays the strategic summary.
+
 ### July 2026 — Consolidation & foundations ("make the base boring")
 - ✅ *(done 2026-07-03, remote)* PR #137 CI unblocked: PyJWT CVE bump, OGC WMS
   fix, compose placeholder fix. **Remaining manual step:** mark GitGuardian
