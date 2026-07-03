@@ -107,6 +107,10 @@ Replace Leaflet+SVG with **MapLibre GL JS** (WebGL vector-tile rendering):
 
 ### 3.4 Ingestion framework (the "ingestion contract")
 
+> **Status: implemented 2026-07-03** — `backend/ingest/` (gates, CLI runner,
+> report writer) with `sources/aneel_siga/` as the copyable template and 48
+> unit tests. Operational manual: `docs/data/INGESTION_GUIDE.md`.
+
 One pattern for all sources, replacing one-off scripts:
 
 ```
@@ -220,9 +224,11 @@ Test layers, mapped to the existing suites:
   one-page note in `docs/data/` and a METADATA.json update.
 - Leaflet interim perf pass (canvas renderer, kill remount key, memoize
   styles, zoom tuning) — measurable smoothness win before MapLibre.
-- Stand up the ingestion framework skeleton (`backend/ingest/`, runner, gate
-  battery as shared pytest fixtures) with **one** migrated source as the
-  template: ANEEL SIGA → `validation_plants` (also closes the P0 flag).
+- ✅ *(done 2026-07-03, remote)* Ingestion framework (`backend/ingest/`: 8-gate
+  battery, CLI runner, report writer, ANEEL SIGA template source, 48 tests,
+  `INGESTION_GUIDE.md`, PR template with data-lineage checklist). **Remaining
+  July part:** run it on the real SIGA snapshot → `validation_plants`
+  (closes the P0 flag), which requires the data — first week back.
 - **Exit criteria:** #137 + dependabot merged, main green; ANEEL ingested &
   validated; discrepancy notes merged; zoom no longer stutters on SP data.
 
@@ -289,6 +295,43 @@ Test layers, mapped to the existing suites:
   cp2b.unicamp.br; 2027 siting-analysis design doc merged.
 
 ---
+
+### Progress indicators (review at each month's end)
+
+Numbers, not vibes. Each month closes with these measured and written into
+this file (edit the table in place — it is the scoreboard):
+
+| Indicator | Baseline (2026-07-03) | Jul | Aug | Sep | Oct | Nov | Dec target |
+|---|---|---|---|---|---|---|---|
+| Sources promoted through the contract (of 14 in §4) | 0 | | | | | | ≥ 10 |
+| METADATA.json `VERIFY` placeholders | >10 | | | | | | **0** |
+| Municipalities with a biomass profile | 645 | | | | | | 5,570 |
+| Backend tests passing / coverage | 1,028 / 60.98% | | | | | | grow / ≥ 65% |
+| Frontend tests passing | 597 | | | | | | grow |
+| Hard CI gates (of 9 jobs) | 7 (E2E, Bandit soft) | | | | | | 9 |
+| Map: municipal layer render path | GeoJSON+SVG | | | | | | PMTiles+MapLibre |
+| Map zoom (national dataset) | n/a (SP only) | | | | | | ≥ 30 fps |
+| Filter-change latency on the map | full remount | | | | | | < 100 ms |
+| Restricted-area layers live | 0 | | | | | | ≥ 4 |
+| Ingest reports committed | 0 | | | | | | 1 per promoted source-year |
+| Papers submitted | 0 | | | | | | 2 |
+
+How to measure: tests/coverage from the pytest/jest summaries; fps + filter
+latency from the Playwright trace budget (September deliverable); the rest
+are counted directly in the repo (grep `VERIFY` in METADATA.json, count
+`docs/data/ingest_reports/*.md`, count `ingest/sources/*/`).
+
+### Working rhythm (the month loop)
+
+1. **Month start:** pick the month's §6 block; open one tracking issue per
+   deliverable; sequence so a releasable state exists every ~2 weeks.
+2. **Every ingest** follows `docs/data/INGESTION_GUIDE.md` steps 0–5 — no
+   shortcuts, one source per PR, report committed.
+3. **Every PR** uses the template's checklists (data-lineage section for
+   ingests); merge only on green hard gates.
+4. **Month end:** fill the indicator row above; move anything unfinished
+   explicitly into the next month or the §7 parking lot (never silently);
+   update IMPROVEMENT_BACKLOG.md with new findings.
 
 ## 7. Beyond 2026 (parking lot, do not start early)
 
