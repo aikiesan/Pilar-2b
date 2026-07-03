@@ -98,6 +98,7 @@ Standard open-source project files at `cp2b-workspace/NewLook/`:
 | File | Description |
 |---|---|
 | [`planning/BRAZIL_EXPANSION_ROADMAP.md`](planning/BRAZIL_EXPANSION_ROADMAP.md) | **Master plan Jul–Dec 2026: national coverage** — code-analysis snapshot, ingestion contract, per-source plan, month-by-month milestones, progress indicators |
+| [`planning/playbooks/`](planning/playbooks/README.md) | **Month playbooks Jul–Dec 2026** — executable step-by-step checklists per month: commands, file paths, verification queries, exit criteria |
 | [`planning/DEVELOPMENT_ROADMAP_APR_AUG_2026.md`](planning/DEVELOPMENT_ROADMAP_APR_AUG_2026.md) | Development roadmap April–August 2026 — sprint targets, milestones |
 | [`planning/IMPROVEMENT_BACKLOG.md`](planning/IMPROVEMENT_BACKLOG.md) | Living lean-and-stable backlog — CI gate hardening status, dead code, large-file, and tech-debt tracker |
 

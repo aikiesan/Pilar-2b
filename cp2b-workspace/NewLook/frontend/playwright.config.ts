@@ -22,8 +22,12 @@ export default defineConfig({
   // Fail the build on CI if you accidentally left test.only in the source code
   forbidOnly: !!process.env.CI,
 
-  // Retry on CI only
-  retries: process.env.CI ? 2 : 0,
+  // Retry on CI only. One retry, not two: with workers=1 each consistently
+  // failing test burned 3 × timeout serially — the bulk of the ~10-minute
+  // E2E wall time while the suite ran against the CORS-blocked production
+  // backend. (The seeded-backend project in the August playbook removes the
+  // block entirely; then this can be revisited.)
+  retries: process.env.CI ? 1 : 0,
 
   // Limit parallel workers on CI
   workers: process.env.CI ? 1 : undefined,

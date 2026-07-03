@@ -40,7 +40,7 @@ export default function MapBiomasLegend({ visible = true }: MapBiomasLegendProps
   if (!visible) return null;
 
   return (
-    <div className="absolute bottom-20 right-4 z-[1000] bg-white dark:bg-slate-800 rounded-lg shadow-lg overflow-hidden max-w-[240px]">
+    <div className="bg-white dark:bg-slate-800 rounded-lg shadow-lg overflow-hidden max-w-[240px]">
       {/* Header */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}

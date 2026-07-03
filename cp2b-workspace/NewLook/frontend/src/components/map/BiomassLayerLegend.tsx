@@ -79,7 +79,7 @@ export default function BiomassLayerLegend({ visible = false }: BiomassLayerLege
     return (
       <button
         onClick={() => setIsHidden(false)}
-        className="absolute bottom-20 left-4 z-[400] bg-white/95 backdrop-blur-sm shadow-lg rounded-lg px-3 py-2 text-xs text-gray-600 hover:bg-white transition-colors flex items-center gap-1"
+        className="bg-white/95 backdrop-blur-sm shadow-lg rounded-lg px-3 py-2 text-xs text-gray-600 hover:bg-white transition-colors flex items-center gap-1"
       >
         <Info size={14} />
         Legenda Plantas
@@ -88,7 +88,7 @@ export default function BiomassLayerLegend({ visible = false }: BiomassLayerLege
   }
 
   return (
-    <div className="absolute bottom-20 left-4 z-[400] w-72">
+    <div className="w-72">
       <div className="bg-white/95 backdrop-blur-sm shadow-lg rounded-lg overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between bg-gradient-to-r from-green-600 to-green-700 px-3 py-2">

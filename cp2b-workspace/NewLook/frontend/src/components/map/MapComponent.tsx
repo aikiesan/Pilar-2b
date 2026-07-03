@@ -409,46 +409,15 @@ export default function MapComponent({
   if (!isMounted) return <MapLoadingSkeleton />;
   if (loading || (data && isRendering)) return <MapLoadingSkeleton />;
 
-  if (error) {
-    return (
-      <div className="w-full h-full bg-gray-100 dark:bg-slate-900 flex items-center justify-center p-8">
-        <div className="bg-white dark:bg-slate-800 rounded-lg shadow-xl p-8 max-w-2xl text-center">
-          <div className="text-6xl mb-4">❌</div>
-          <h2 className="text-2xl font-bold text-red-600 dark:text-red-400 mb-4">
-            {t('errors.loadingError')}
-          </h2>
-          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 rounded p-4 mb-6 text-left">
-            <p className="font-mono text-sm text-red-800 break-words">{error.message}</p>
-          </div>
-          <button
-            onClick={() => window.location.reload()}
-            className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
-          >
-            {t('errors.reloadPage')}
-          </button>
-        </div>
-      </div>
-    );
-  }
+  // Data problems no longer blank the whole page: the base map (OSM tiles,
+  // independent of our backend) always renders, with an alert banner floating
+  // over it. Graceful degradation — the user keeps a working, zoomable map,
+  // sees exactly what failed, and can retry.
+  const noData = !error && (!data || data.features.length === 0);
 
-  if (!data || data.features.length === 0) {
-    return (
-      <div className="w-full h-full bg-gray-100 dark:bg-slate-900 flex items-center justify-center p-8">
-        <div className="bg-white dark:bg-slate-800 rounded-lg shadow-xl p-8 max-w-2xl text-center">
-          <div className="text-6xl mb-4">📭</div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">{t('errors.noData')}</h2>
-          <button
-            onClick={() => window.location.reload()}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
-          >
-            {t('errors.tryAgain')}
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  const displayData = filteredData || scaledData || data;
+  const displayData: MunicipalityCollection =
+    filteredData || scaledData || data
+    || ({ type: 'FeatureCollection', features: [] } as MunicipalityCollection);
 
   return (
     <div className="flex w-full h-full">
@@ -468,7 +437,7 @@ export default function MapComponent({
           layers={layers}
           onLayerToggle={handleLayerToggle}
           municipalityCount={displayData.features.length}
-          totalMunicipalities={data.features.length}
+          totalMunicipalities={data?.features.length ?? 0}
           onOpenComparison={() => setShowComparison(true)}
           onOpenExport={() => setShowExport(true)}
           displayMetric={displayMetric}
@@ -481,6 +450,36 @@ export default function MapComponent({
 
       {/* ── Map area (flex-1 fills remaining width) ── */}
       <div className="relative flex-1 min-w-0 h-full">
+
+        {/* Data-issue banner: floats over the (always-rendered) base map.
+            Keeps the raw error message + reload affordance the old
+            full-screen card had, without hiding the map. */}
+        {(error || noData) && (
+          <div
+            role="alert"
+            className="absolute top-16 left-1/2 z-[1100] w-[min(92%,560px)] -translate-x-1/2 rounded-lg bg-white/95 p-4 shadow-xl ring-1 ring-black/10 backdrop-blur dark:bg-slate-800/95"
+          >
+            <div className="flex items-start gap-3">
+              <span aria-hidden="true" className="text-2xl leading-none">{error ? '❌' : '📭'}</span>
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold text-red-600 dark:text-red-400">
+                  {error ? t('errors.loadingError') : t('errors.noData')}
+                </p>
+                {error && (
+                  <p className="mt-1 break-words font-mono text-xs text-red-800 dark:text-red-300">
+                    {error.message}
+                  </p>
+                )}
+              </div>
+              <button
+                onClick={() => window.location.reload()}
+                className="shrink-0 rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-700"
+              >
+                {error ? t('errors.reloadPage') : t('errors.tryAgain')}
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Scenario toggle — per-municipality biogas potential by scenario */}
         <div className="absolute top-3 left-1/2 -translate-x-1/2 z-[1000] flex items-center gap-1 rounded-full bg-white/95 px-1.5 py-1 shadow-lg ring-1 ring-black/5 backdrop-blur">
@@ -516,6 +515,12 @@ export default function MapComponent({
           center={mapCenter}
           zoom={mapZoom}
           scrollWheelZoom={true}
+          // Canvas renderer: one <canvas> instead of one SVG node per polygon.
+          // SVG re-transforms all 645 municipality paths on every zoom frame
+          // (the source of the zoom stutter); canvas redraws once per frame
+          // and is the required headroom for the 5,570-municipality national
+          // dataset until the MapLibre migration (roadmap §3.3).
+          preferCanvas={true}
           style={MAP_CONTAINER_STYLE}
         >
           <TileLayer
@@ -643,9 +648,17 @@ export default function MapComponent({
           <ExportControl data={displayData} visible={showExport} onClose={() => setShowExport(false)} />
         )}
 
+        {/* ── Bottom-left overlay stack ──
+            One container per corner: overlays flow upward with a fixed gap,
+            so legends can never overlap each other regardless of which
+            combination is visible (previously each overlay hardcoded its own
+            bottom-offset and collided). pointer-events pass through the empty
+            container; children remain interactive. */}
+        <div className="absolute bottom-16 md:bottom-4 left-4 z-[500] flex flex-col-reverse items-start gap-2 pointer-events-none [&>*]:pointer-events-auto">
+
         {/* Cluster K4 legend — shown when cluster color mode is active */}
         {colorMode === 'cluster' && (
-          <div className="absolute bottom-16 md:bottom-8 left-4 z-[500] bg-white/95 backdrop-blur-sm rounded-lg px-3 py-2 shadow-lg border border-gray-200 text-xs">
+          <div className="bg-white/95 backdrop-blur-sm rounded-lg px-3 py-2 shadow-lg border border-gray-200 text-xs">
             <p className="font-semibold text-gray-700 mb-1.5">Clusters K=4 (2023)</p>
             {[
               { color: '#4daf4a', label: 'Cana dominante', n: 599 },
@@ -664,7 +677,7 @@ export default function MapComponent({
 
         {/* C/N Profile legend — shown when cn_profile color mode is active */}
         {colorMode === 'cn_profile' && (
-          <div className="absolute bottom-16 md:bottom-8 left-4 z-[500] bg-white/95 backdrop-blur-sm rounded-lg px-3 py-2 shadow-lg border border-gray-200 text-xs">
+          <div className="bg-white/95 backdrop-blur-sm rounded-lg px-3 py-2 shadow-lg border border-gray-200 text-xs">
             <p className="font-semibold text-gray-700 mb-1.5">{t('cnLegend.title')}</p>
             {[
               { color: '#1e40af', label: t('cnLegend.c_rich') },
@@ -681,6 +694,13 @@ export default function MapComponent({
           </div>
         )}
 
+        {isMounted && <BiomassLayerLegend visible={showBiomassLayerLegend} />}
+
+        </div>{/* end bottom-left overlay stack */}
+
+        {/* ── Bottom-right overlay stack (same non-overlapping flow) ── */}
+        <div className="absolute bottom-16 md:bottom-4 right-2 md:right-4 z-[500] flex flex-col-reverse items-end gap-2 pointer-events-none [&>*]:pointer-events-auto">
+
         {/* Legends */}
         {visibleLayerIds.includes('municipalities') && visualizationMode !== 'clusters' && (
           visualizationMode === 'choropleth' ? (
@@ -689,13 +709,14 @@ export default function MapComponent({
         )}
 
         {visualizationMode === 'clusters' && clusterLoading && isMounted && (
-          <div className="absolute bottom-16 md:bottom-8 right-4 z-[500] bg-white/90 backdrop-blur-sm rounded-lg px-3 py-2 shadow text-xs text-violet-700 flex items-center gap-2">
+          <div className="bg-white/90 backdrop-blur-sm rounded-lg px-3 py-2 shadow text-xs text-violet-700 flex items-center gap-2">
             <span className="animate-spin">⚗️</span> Calculando clusters...
           </div>
         )}
 
         {isMounted && <MapBiomasLegend visible={showMapBiomasLegend} />}
-        {isMounted && <BiomassLayerLegend visible={showBiomassLayerLegend} />}
+
+        </div>{/* end bottom-right overlay stack */}
       </div>
 
       {/* ── Mobile Tab Bar + Sheet (hidden on desktop, fixed position) ── */}
@@ -714,7 +735,7 @@ export default function MapComponent({
           layers={layers}
           onLayerToggle={handleLayerToggle}
           municipalityCount={displayData.features.length}
-          totalMunicipalities={data.features.length}
+          totalMunicipalities={data?.features.length ?? 0}
           displayMetric={displayMetric}
           onDisplayMetricChange={handleDisplayMetricChange}
           cnMatrix={cnMatrix}
