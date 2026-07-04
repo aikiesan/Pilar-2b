@@ -304,8 +304,8 @@ global.localStorage = {
 ## Related Documentation
 
 - **[TESTING.md](./TESTING.md)**: Detailed testing strategy and guidelines
-- **[CONTRIBUTING.md](./CONTRIBUTING.md)**: Contribution guidelines
-- **[README.md](./README.md)**: Project overview
+- **[CONTRIBUTING.md](../../CONTRIBUTING.md)**: Contribution guidelines
+- **[README.md](../../README.md)**: Project overview
 - **CI Configuration**: `.github/workflows/ci.yml`
 
 ## Statistics
