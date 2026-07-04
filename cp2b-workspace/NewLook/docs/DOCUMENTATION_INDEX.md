@@ -141,6 +141,7 @@ Standard open-source project files at `cp2b-workspace/NewLook/`:
 | [`planning/COMPLIANCE_AND_ROADMAP.md`](planning/COMPLIANCE_AND_ROADMAP.md) | 157 | Month round-up & forward plan — compliance, cadence, sandbox limits |
 | [`planning/FUTURE_VISION_AND_POSSIBILITIES.md`](planning/FUTURE_VISION_AND_POSSIBILITIES.md) | 184 | Future vision & full possibility map (strategy) |
 | [`planning/IMPROVEMENT_BACKLOG.md`](planning/IMPROVEMENT_BACKLOG.md) | 152 | Living lean-and-stable backlog — CI gate hardening, dead code, tech-debt tracker |
+| [`planning/UI_UX_REVIEW_2026-07.md`](planning/UI_UX_REVIEW_2026-07.md) | — | Frontend UI/UX review — municipality panel/popup/tooltip, mobile bottom sheet, prioritized P0–P2 backlog |
 
 ---
 
