@@ -62,7 +62,8 @@ describe('DashboardPage', () => {
 
       // Check statistics values
       expect(screen.getByText('2')).toBeInTheDocument() // total municipalities
-      expect(screen.getByText('175,000')).toBeInTheDocument() // total population
+      // Page formats with host-locale toLocaleString(); compute expectation the same way
+      expect(screen.getByText((175000).toLocaleString())).toBeInTheDocument() // total population
     })
 
     it('displays municipalities table with correct data', async () => {
@@ -343,8 +344,8 @@ describe('DashboardPage', () => {
       })
 
       await waitFor(() => {
-        // Check if numbers are properly formatted (with locale formatting)
-        expect(screen.getByText('175,000')).toBeInTheDocument() // total population
+        // Check if numbers are properly formatted (with host-locale formatting)
+        expect(screen.getByText((175000).toLocaleString())).toBeInTheDocument() // total population
       })
     })
   })
