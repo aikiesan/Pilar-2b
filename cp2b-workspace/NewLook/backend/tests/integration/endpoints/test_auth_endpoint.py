@@ -15,18 +15,24 @@ from unittest.mock import AsyncMock
 import pytest
 from fastapi.testclient import TestClient
 
-# Disable slowapi response-header injection before importing the app
-# (auth endpoints have no Response param; header injection would crash).
+# headers_enabled=False is now the PRODUCTION config (app/middleware/rate_limit.py)
+# — this test file used to patch _headers_enabled at import time as a workaround,
+# which masked the fact that live logins crashed with the same error the comment
+# described (found live 2026-07-09). The guard below asserts the production
+# config stays fixed so that workaround can never silently return.
 import app.middleware.rate_limit as _rl_module
 
-_rl_module.auth_limiter._headers_enabled = False
-_rl_module.login_limiter._headers_enabled = False
-_rl_module.read_limiter._headers_enabled = False
+for _lim in (_rl_module.auth_limiter, _rl_module.login_limiter, _rl_module.read_limiter):
+    assert _lim._headers_enabled is False, (
+        "slowapi headers_enabled must stay False unless every decorated auth "
+        "endpoint declares a `response: Response` parameter — with it True and "
+        "no Response param, every SUCCESSFUL call 500s (live find 2026-07-09)."
+    )
 
-from app.main import app
-from app.middleware.auth import get_current_user as _get_current_user
-from app.models.auth import AuthResponse, UserProfile
-from app.services.auth_service import auth_service
+from app.main import app  # noqa: E402
+from app.middleware.auth import get_current_user as _get_current_user  # noqa: E402
+from app.models.auth import AuthResponse, UserProfile  # noqa: E402
+from app.services.auth_service import auth_service  # noqa: E402
 
 client = TestClient(app, raise_server_exceptions=False)
 
