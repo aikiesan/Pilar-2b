@@ -297,7 +297,7 @@ describe('MapPage', () => {
 
       // Check for municipality details
       expect(screen.getByText('1234567')).toBeInTheDocument() // IBGE code
-      expect(screen.getByText('100,000')).toBeInTheDocument() // Population formatted
+      expect(screen.getByText((100000).toLocaleString())).toBeInTheDocument() // Population formatted
       expect(screen.getByText('500 km²')).toBeInTheDocument() // Area
     })
 
@@ -319,8 +319,8 @@ describe('MapPage', () => {
       })
 
       await waitFor(() => {
-        // Check locale formatting
-        expect(screen.getByText('100,000')).toBeInTheDocument() // Population
+        // Check host-locale formatting (pt-BR machines render 100.000, en-US 100,000)
+        expect(screen.getByText((100000).toLocaleString())).toBeInTheDocument() // Population
         expect(screen.getByText('500 km²')).toBeInTheDocument() // Area
       })
     })

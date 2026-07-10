@@ -20,7 +20,8 @@ id, so the endpoints do not leak which lead_ids exist.
 
 import json
 from datetime import datetime, timezone
-from typing import Any, Optional
+from typing import Any, Literal, Optional
+from uuid import UUID
 
 from fastapi import APIRouter, HTTPException, Query, Request
 from pydantic import BaseModel
@@ -54,7 +55,17 @@ class QuantityInput(BaseModel):
 
 class CalculatorSubmission(BaseModel):
     lead: LeadData
-    activity_type: str
+    # Mirrors the calculator_leads_activity_type_check DB constraint so invalid
+    # values are rejected as 422 at the schema instead of a 500 CheckViolation.
+    activity_type: Literal[
+        "sugarcane",
+        "swine",
+        "cattle_beef",
+        "cattle_dairy",
+        "poultry_eggs",
+        "poultry_meat",
+        "mixed",
+    ]
     quantity_input: QuantityInput
     active_months: list[int]
     outputs_selected: list[str]
@@ -145,7 +156,9 @@ async def submit_calculator(payload: CalculatorSubmission, request: Request):
 
 @router.get("/leads/{lead_id}")
 async def get_lead(
-    lead_id: int,
+    # calculator_leads.id is a UUID (see /submit, which returns it as a string);
+    # typing it as int made every real access request fail with 422.
+    lead_id: UUID,
     email: str = Query(
         ...,
         description=(
@@ -171,7 +184,7 @@ async def get_lead(
             FROM calculator_leads
             WHERE id = %s AND LOWER(email) = LOWER(%s)
             """,
-            (lead_id, email.strip()),
+            (str(lead_id), email.strip()),
         )
         row = cursor.fetchone()
         cursor.close()
@@ -189,7 +202,7 @@ async def get_lead(
 
 @router.delete("/leads/{lead_id}")
 async def delete_lead(
-    lead_id: int,
+    lead_id: UUID,
     email: str = Query(
         ...,
         description=(
@@ -209,7 +222,7 @@ async def delete_lead(
         cursor.execute(
             "DELETE FROM calculator_leads WHERE id = %s AND LOWER(email) = LOWER(%s) "
             "RETURNING id",
-            (lead_id, email.strip()),
+            (str(lead_id), email.strip()),
         )
         deleted = cursor.fetchone()
 

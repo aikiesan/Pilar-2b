@@ -55,13 +55,21 @@ def rate_limit_key_func(request: Request) -> str:
     return f"{client_ip}:{endpoint}"
 
 
+# NOTE on headers_enabled: with headers_enabled=True, slowapi's decorator must
+# inject X-RateLimit-* headers after the endpoint returns, which requires every
+# decorated endpoint to declare a `response: Response` parameter (or return a
+# Response). Ours return Pydantic models without one, so slowapi raised
+# "parameter `response` must be an instance of starlette.responses.Response"
+# on EVERY successful call — login could never succeed on a live server
+# (found live 2026-07-09). Limits are still fully enforced without the headers.
+
 # Auth-specific limiter with stricter limits
 auth_limiter = Limiter(
     key_func=rate_limit_key_func,
     default_limits=["5/minute"],  # 5 requests per minute for auth endpoints
     storage_uri="memory://",
     strategy="fixed-window",
-    headers_enabled=True,
+    headers_enabled=False,
 )
 
 # Login-specific limiter (most restrictive)
@@ -70,7 +78,7 @@ login_limiter = Limiter(
     default_limits=["3/minute", "20/hour"],  # 3 per minute, 20 per hour
     storage_uri="memory://",
     strategy="fixed-window",
-    headers_enabled=True,
+    headers_enabled=False,
 )
 
 # Read-only endpoint limiter (more permissive)
@@ -79,7 +87,7 @@ read_limiter = Limiter(
     default_limits=["100/minute"],  # 100 requests per minute for read operations
     storage_uri="memory://",
     strategy="fixed-window",
-    headers_enabled=True,
+    headers_enabled=False,
 )
 
 
@@ -104,7 +112,10 @@ async def rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded):
         },
     )
 
-    return await _rate_limit_exceeded_handler(request, exc)
+    # slowapi's default handler is synchronous and returns a JSONResponse —
+    # awaiting it raised TypeError, turning every 429 into a 500 (live find,
+    # 2026-07-09).
+    return _rate_limit_exceeded_handler(request, exc)
 
 
 # Export limiter instances

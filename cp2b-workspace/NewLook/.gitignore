@@ -74,3 +74,6 @@ backend/scripts/canonical_recalc_output/
 .coverage
 coverage.xml
 htmlcov/
+
+# CITE EARL reports (regenerable via tests/ogc/cite/run_cite.py; CI uploads as artifacts)
+tests/ogc/cite/reports/

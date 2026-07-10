@@ -73,8 +73,14 @@ def main(argv: list[str] | None = None) -> int:
     if args.step == "load":
         return 0
 
-    results, ctx = source.validate(df)
-    from ingest.report import write_report  # local import keeps CLI startup cheap
+    # Build the default context here so it carries the real year — sources
+    # fall back to IngestContext(year=0) when given None, which mislabels the
+    # report filename (<source>_0.md instead of <source>_<year>.md).
+    from ingest.contract import IngestContext  # local import keeps CLI startup cheap
+
+    ctx = IngestContext(spec=source.SPEC, year=args.year)
+    results, ctx = source.validate(df, ctx)
+    from ingest.report import write_report
 
     report_path = write_report(results, ctx, args.reports_dir)
     for r in results:

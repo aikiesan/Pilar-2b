@@ -24,13 +24,36 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || ''
 const AUTH = `${API_BASE_URL}/api/v1/auth`
 
+// Offline mode (pre-VM phase): with NEXT_PUBLIC_DISABLE_AUTH=true the app makes
+// NO backend auth calls at all — every visitor is transparently signed in as
+// TEST_USER. Flip the env back to 'false' (the default) to restore real,
+// invite-only VM auth. See docs/deployment/AUTH_VM_DEPLOYMENT.md.
+const AUTH_DISABLED = process.env.NEXT_PUBLIC_DISABLE_AUTH === 'true'
+
+// Synthetic user used ONLY in offline mode. 'interno' + clearance 2 opens every
+// research/analysis tool and confidential data tier so the whole app is
+// explorable locally; it deliberately is NOT 'admin', so the admin-only account
+// management UI (which needs the real backend) stays hidden rather than 401-ing.
+const TEST_USER: UserProfile = {
+  id: '00000000-0000-0000-0000-000000000000',
+  email: 'test@example.org',
+  full_name: 'Usuário de Teste',
+  role: 'interno',
+  clearance: 2,
+  is_active: true,
+  created_at: new Date(0).toISOString(),
+  updated_at: new Date(0).toISOString(),
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<UserProfile | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [user, setUser] = useState<UserProfile | null>(AUTH_DISABLED ? TEST_USER : null)
+  const [loading, setLoading] = useState(!AUTH_DISABLED)
   const queryClient = useQueryClient()
 
   // On mount: if a token exists, validate it by loading the profile.
   useEffect(() => {
+    // Offline mode: nothing to load — TEST_USER is already the initial state.
+    if (AUTH_DISABLED) return
     let cancelled = false
     async function loadSession() {
       // Clean up any stale Supabase tokens from the previous (mock) auth.
@@ -61,6 +84,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const login = useCallback(async (credentials: LoginCredentials) => {
+    if (AUTH_DISABLED) { setUser(TEST_USER); return }
     const res = await authenticatedFetch(`${AUTH}/login`, {
       method: 'POST',
       body: JSON.stringify(credentials),
@@ -77,6 +101,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Invite-only: hits the admin create-user endpoint (403 unless the caller is admin).
   const register = useCallback(async (data: RegistrationData) => {
+    if (AUTH_DISABLED) return
     const res = await authenticatedFetch(`${AUTH}/users`, {
       method: 'POST',
       body: JSON.stringify(data),
@@ -88,6 +113,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const logout = useCallback(async () => {
+    // Offline mode: there is no session — stay signed in as the test user.
+    if (AUTH_DISABLED) { setUser(TEST_USER); return }
     try {
       await authenticatedFetch(`${AUTH}/logout`, { method: 'POST' })
     } catch (e) {
@@ -99,6 +126,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [queryClient])
 
   const updateProfile = useCallback(async (full_name: string) => {
+    if (AUTH_DISABLED) { setUser((u) => (u ? { ...u, full_name } : u)); return }
     const res = await authenticatedFetch(`${AUTH}/me`, {
       method: 'PUT',
       body: JSON.stringify({ full_name }),

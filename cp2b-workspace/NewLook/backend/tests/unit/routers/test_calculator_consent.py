@@ -27,7 +27,7 @@ def _payload(consent: bool) -> dict:
             "email": "test@example.com",
             "consent_lgpd": consent,
         },
-        "activity_type": "livestock",
+        "activity_type": "cattle_dairy",
         "quantity_input": {"type": "heads", "value": 100},
         "active_months": [1, 2, 3],
         "outputs_selected": ["biogas"],
