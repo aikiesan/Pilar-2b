@@ -111,7 +111,22 @@ jobs:
           echo "GEOSERVER_ADMIN_PASSWORD=$ADMIN" >> "$GITHUB_ENV"
 
       - name: Start PostGIS + GeoServer + TEAM Engine
+        env:
+          # CITE follows the operation URLs advertised in the capabilities
+          # document from INSIDE the teamengine container — they must use the
+          # compose service name, not localhost (validated live 2026-07-09:
+          # with localhost, WMS13 fails ~116 assertions and WFS20 aborts on
+          # SuitePreconditions "No valid data available from WFS").
+          GEOSERVER_PROXY_BASE_URL: http://geoserver:8080/geoserver
         run: docker compose -f "$COMPOSE" --profile cite up -d --wait --wait-timeout 420
+
+      - name: Register TEAM Engine user
+        # ogccite/teamengine-production ships with no accounts; the REST API
+        # returns 401 until a user is registered (validated live 2026-07-09).
+        run: |
+          curl -sf -o /dev/null -X POST \
+            "http://localhost:8088/teamengine/registrationHandler" \
+            --data "firstName=CI&lastName=Runner&organization=PILAR2b&username=teamengine&password=teamengine&repeat_password=teamengine&email=ci@example.org&disclaimer=on&acceptPrivacy=on"
 
       - name: Provision GeoServer layers
         env:

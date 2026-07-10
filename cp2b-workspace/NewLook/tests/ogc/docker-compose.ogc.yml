@@ -40,7 +40,11 @@ services:
       GEOSERVER_ADMIN_PASSWORD: ${GEOSERVER_ADMIN_PASSWORD:?}
       INITIAL_MEMORY: 1G
       MAXIMUM_MEMORY: 2G
-      PROXY_BASE_URL: http://localhost:8080/geoserver
+      # Base URL advertised in WMS/WFS capabilities. CITE follows these
+      # advertised URLs from *inside* the teamengine container, where
+      # localhost is TEAM Engine itself — override to the service name
+      # (http://geoserver:8080/geoserver) when running the cite profile.
+      PROXY_BASE_URL: ${GEOSERVER_PROXY_BASE_URL:-http://localhost:8080/geoserver}
       CORS_ENABLED: "true"
       SKIP_DEMO_DATA: "true"
     ports:

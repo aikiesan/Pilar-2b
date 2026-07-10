@@ -49,16 +49,18 @@ EARL = "{http://www.w3.org/ns/earl#}"
 
 # Per-suite REST config. `iut_param` is the query key the ETS expects for the
 # capabilities URL; `version` is the ETS version segment in the REST path.
-# Confirm/override via --list before trusting these in a required gate.
+# Validated live 2026-07-09 against ogccite/teamengine-production: this build
+# uses versionless run paths (/rest/suites/<name>/run), so `version` defaults
+# to empty. Set ETS_*_VERSION if a future image reintroduces the segment.
 SUITES = {
     "wms13": {
-        "version": os.getenv("ETS_WMS13_VERSION", "1.20"),
+        "version": os.getenv("ETS_WMS13_VERSION", ""),
         "iut_param": os.getenv("ETS_WMS13_IUT_PARAM", "capabilities-url"),
         "iut": f"{GS_INTERNAL}/{WORKSPACE}/wms?service=WMS&version=1.3.0&request=GetCapabilities",
         "extra": {},
     },
     "wfs20": {
-        "version": os.getenv("ETS_WFS20_VERSION", "1.36"),
+        "version": os.getenv("ETS_WFS20_VERSION", ""),
         "iut_param": os.getenv("ETS_WFS20_IUT_PARAM", "iut"),
         "iut": f"{GS_INTERNAL}/{WORKSPACE}/wfs?service=WFS&version=2.0.0&request=GetCapabilities",
         "extra": {},
@@ -76,7 +78,8 @@ def list_suites() -> int:
 
 def run_suite(name: str, cfg: dict) -> tuple[int, int, int]:
     """Run one ETS; return (passed, failed, other)."""
-    url = f"{TEAMENGINE_URL}/rest/suites/{name}/{cfg['version']}/run"
+    seg = f"{cfg['version']}/" if cfg["version"] else ""
+    url = f"{TEAMENGINE_URL}/rest/suites/{name}/{seg}run"
     params = {cfg["iut_param"]: cfg["iut"], **cfg["extra"]}
     print(f"▶ {name}: GET {url}")
     print(f"    IUT: {cfg['iut']}")

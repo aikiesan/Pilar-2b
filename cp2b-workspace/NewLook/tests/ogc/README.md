@@ -64,6 +64,21 @@ python tests/ogc/cite/run_cite.py             # run WMS13 + WFS20, fail on failu
 
 - ✅ pytest suites collect (29 tests) and skip-gate correctly in a plain env.
 - ✅ `run_cite.py` compiles; `docker-compose.ogc.yml` and the workflow YAML parse.
-- ⚠️ The live stack (`docker compose up`, GeoServer/TEAM Engine boot, actual
-  conformance run) was **not** executed in the authoring sandbox (no Docker
-  daemon). First green run happens in CI / on the VM.
+- ✅ **First live run (2026-07-09, local Docker Desktop):** stack boots healthy,
+  provisioning publishes all 6 layers, assembly + acceptance **29/29 pass**.
+- ✅ CITE executed live. Three fixes were needed and are now in the repo:
+  1. `ogccite/teamengine-production` ships **no user accounts** — REST returns
+     401 until one is registered via `POST /teamengine/registrationHandler`
+     (the CI workflow now has a "Register TEAM Engine user" step).
+  2. This TEAM Engine build uses **versionless** run paths
+     (`/rest/suites/wms13/run`); the ETS version segment defaults to empty in
+     `run_cite.py` (override via `ETS_*_VERSION` if a future image needs it).
+  3. `PROXY_BASE_URL` must be `http://geoserver:8080/geoserver` for CITE runs —
+     the ETS follows capabilities-advertised URLs from inside the teamengine
+     container (set `GEOSERVER_PROXY_BASE_URL`; the cite CI job does).
+- ⚠️ CITE live tally (2026-07-09): WMS13 172 passed / 17 failed · WFS20
+  274 passed / 102 failed. Remaining failures are largely conformance classes
+  that require the **official CITE reference dataset** (fixtures like
+  `gml:name = "Pellentesque Arcu Lorem"`) and **WFS-T transactions**, which our
+  read-only layers don't serve. Full certification would need that dataset
+  loaded; keep the CITE job non-blocking until then.
