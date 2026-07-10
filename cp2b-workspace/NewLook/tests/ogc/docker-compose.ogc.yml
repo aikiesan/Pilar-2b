@@ -24,8 +24,10 @@ services:
       POSTGRES_DB: cp2b_maps
     volumes:
       - ./fixtures/seed_min.sql:/docker-entrypoint-initdb.d/10_seed_min.sql:ro
-    ports:
-      - "5432:5432"
+    # No host port published on purpose: only GeoServer talks to this DB, over
+    # the compose network. Publishing 5432 collided with the main dev stack's
+    # Postgres (docker-compose.yml), so the OGC stack could not be brought up
+    # while the dev stack was running.
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d cp2b_maps"]
       interval: 5s
