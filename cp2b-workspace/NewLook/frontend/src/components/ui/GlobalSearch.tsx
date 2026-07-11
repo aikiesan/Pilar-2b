@@ -126,7 +126,7 @@ export default function GlobalSearch({ variant = 'light' }: GlobalSearchProps) {
       : 'flex items-center gap-2 px-3 py-1.5 rounded-lg text-gray-500 bg-gray-100 hover:bg-gray-200 border border-gray-200 text-sm transition-colors cursor-pointer'
 
   return (
-    <div ref={containerRef} className="relative">
+    <div ref={containerRef} className="relative tour-search-bar">
       {/* Collapsed trigger */}
       {!open && (
         <button

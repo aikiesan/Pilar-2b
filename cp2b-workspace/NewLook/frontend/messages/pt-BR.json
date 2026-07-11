@@ -106,7 +106,7 @@
       "title_highlight": "Biogás e Bioprodutos",
       "subtitle": "Plataforma geoespacial para análise do potencial de produção de biogás a partir de resíduos orgânicos no estado de São Paulo",
       "cta_explore": "Explorar Mapa Interativo",
-      "cta_demo": "Ver Demonstração",
+      "cta_demo": "Abrir guia da plataforma",
       "showcase_badge": "Veja a plataforma em ação",
       "showcase_description": "Explore exemplos reais de análises geoespaciais e relatórios gerados pela plataforma PILAR-2b."
     },
@@ -1259,5 +1259,35 @@
       "feedback": "Enviar feedback / Reportar inconsistência",
       "newCalculation": "Nova simulação"
     }
+  },
+  "guide_articles": {
+    "sidebar": {
+      "back_button": "Todos os tópicos",
+      "on_this_page": "NESTA PÁGINA",
+      "other_topics": "OUTROS TÓPICOS"
+    },
+    "mapa": {
+      "title": "Mapa Interativo",
+      "subtitle": "Explore visualmente o potencial de biogás em cada município paulista.",
+      "sections": [
+        {
+          "id": "o-que-e",
+          "title": "O que é",
+          "content": "O Mapa Interativo apresenta a distribuição geográfica do potencial estimado de produção de biogás a partir de resíduos orgânicos urbanos nos 645 municípios do estado de São Paulo."
+        },
+        {
+          "id": "para-que-serve",
+          "title": "Para que serve",
+          "content": "Serve para identificar regiões com maior densidade de potencial energético, cruzar dados com a localização de aterros sanitários ativos e apoiar estudos de viabilidade para novos empreendimentos."
+        },
+        {
+          "id": "como-usar",
+          "title": "Como usar",
+          "content": "1. Selecione o município na barra de busca do topo.\n2. Ative as camadas de resíduos no painel lateral.\n3. Visualize os indicadores de geração."
+        }
+      ]
+    }
+  
   }
+  
 }
