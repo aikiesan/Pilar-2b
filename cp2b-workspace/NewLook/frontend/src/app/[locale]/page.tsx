@@ -10,10 +10,8 @@ import AnimatedCounter from '@/components/ui/AnimatedCounter'
 
 // Lazy load below-fold and conditional components
 const VideoModal = dynamic(() => import('@/components/ui/VideoModal'), { ssr: false })
-const NewsletterSignup = dynamic(() => import('@/components/ui/NewsletterSignup'), { ssr: false })
 import {
   ArrowRight,
-  Play,
   Map,
   MapPin,
   BarChart3,
@@ -21,9 +19,7 @@ import {
   Layers,
   BookOpen,
   Check,
-  Lock,
   UserPlus,
-  ExternalLink,
   ChevronLeft,
   ChevronRight,
   Sparkles,
@@ -504,7 +500,7 @@ export default function HomePage() {
               />
 
               <StatCard
-                number="AA"
+                number="A"
                 label={t('stats.wcag.label')}
                 description={t('stats.wcag.description')}
                 icon={<Check className="w-7 h-7 text-cp2b-green" />}
@@ -602,7 +598,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <FadeIn>
             <div className="max-w-3xl mx-auto bg-gradient-to-r from-cp2b-green to-cp2b-lime rounded-2xl p-8 text-center text-white shadow-xl hover:shadow-2xl transition-shadow duration-500 hover:scale-[1.02] transform">
-              <Lock className="w-12 h-12 mx-auto mb-4 opacity-90 animate-pulse" />
+              <Map className="w-12 h-12 mx-auto mb-4 opacity-90" aria-hidden="true" />
               <h3 className="text-2xl font-bold mb-3">
                 {t('cta_section.heading')}
               </h3>
@@ -610,19 +606,21 @@ export default function HomePage() {
                 {t('cta_section.description')}
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                {/* Primary action: the map + guide work with no account (data is open, CC-BY). */}
+                <Link
+                  href="/map"
+                  className="group inline-flex items-center justify-center gap-2 px-8 py-4 text-base font-semibold text-cp2b-green bg-white hover:bg-gray-50 dark:bg-white dark:hover:bg-gray-100 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+                >
+                  {t('hero.cta_explore')}
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform duration-300" />
+                </Link>
+                {/* Register kept as a secondary action (real on the VM; no-op in offline-auth dev). */}
                 <Link
                   href="/register"
-                  className="group inline-flex items-center justify-center gap-2 px-8 py-4 text-base font-semibold text-cp2b-green bg-white hover:bg-gray-50 dark:bg-white dark:hover:bg-gray-100 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+                  className="group inline-flex items-center justify-center gap-2 px-8 py-4 text-base font-semibold text-white bg-cp2b-dark-green/30 hover:bg-cp2b-dark-green/50 border-2 border-white rounded-xl transition-all duration-300 hover:scale-105"
                 >
                   {t('cta_section.button_register')}
                   <UserPlus className="w-5 h-5 group-hover:rotate-12 transition-transform duration-300" />
-                </Link>
-                <Link
-                  href="/about"
-                  className="group inline-flex items-center justify-center gap-2 px-8 py-4 text-base font-semibold text-white bg-cp2b-dark-green/30 hover:bg-cp2b-dark-green/50 border-2 border-white rounded-xl transition-all duration-300 hover:scale-105"
-                >
-                  {t('cta_section.button_learn_more')}
-                  <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform duration-300" />
                 </Link>
               </div>
             </div>
@@ -652,7 +650,7 @@ export default function HomePage() {
                 </div>
                 <div className="grid grid-cols-3 gap-3 shrink-0">
                   <a
-                    href="https://github.com/aikiesan/NewLook"
+                    href="https://github.com/aikiesan/Pilar-2b"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex flex-col items-center gap-1.5 px-4 py-3 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-medium transition-colors text-center"
@@ -661,7 +659,7 @@ export default function HomePage() {
                     CSV
                   </a>
                   <a
-                    href="https://github.com/aikiesan/NewLook"
+                    href="https://github.com/aikiesan/Pilar-2b"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex flex-col items-center gap-1.5 px-4 py-3 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-medium transition-colors text-center"
@@ -670,7 +668,7 @@ export default function HomePage() {
                     GeoJSON
                   </a>
                   <a
-                    href="https://github.com/aikiesan/NewLook"
+                    href="https://github.com/aikiesan/Pilar-2b"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex flex-col items-center gap-1.5 px-4 py-3 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-medium transition-colors text-center"
@@ -689,18 +687,6 @@ export default function HomePage() {
                 ))}
               </div>
             </div>
-          </FadeIn>
-        </div>
-      </section>
-
-      {/* Newsletter Section */}
-      <section className="py-20 bg-gradient-to-br from-gray-50 to-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <FadeIn>
-            <NewsletterSignup
-              title={t('newsletter.title')}
-              description={t('newsletter.description')}
-            />
           </FadeIn>
         </div>
       </section>
