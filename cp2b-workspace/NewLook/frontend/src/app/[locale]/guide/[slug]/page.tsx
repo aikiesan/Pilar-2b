@@ -16,7 +16,7 @@ export default async function GuideArticlePage({ params }: { params: Promise<{ s
     return (
       <div className="max-w-7xl mx-auto py-20 px-4 text-center">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Tópico não encontrado</h1>
-        <p className="text-gray-600 dark:text-gray-400 mb-8">O artigo "{slug}" não existe no guia ou ainda está sendo escrito.</p>
+        <p className="text-gray-600 dark:text-gray-400 mb-8">O artigo &ldquo;{slug}&rdquo; não existe no guia ou ainda está sendo escrito.</p>
         <Link href="/guide" className="text-cp2b-green font-semibold hover:underline flex items-center justify-center gap-2">
           <ArrowLeft className="w-4 h-4" />
           Voltar para todos os tópicos
