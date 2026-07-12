@@ -89,6 +89,17 @@ export default function MunicipalityProfilePanel({
     return `${formatBigNumber(value)} t/ano`;
   };
 
+  // IBGE Cidades uses deburred, hyphenated slugs (e.g. "Ribeirão Preto" →
+  // "ribeirao-preto"). A bare toLowerCase() keeps accents/spaces and 404s.
+  const ibgeSlug = (name: string) =>
+    name
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+
   // Calculate totals
   const agriculturalBiomass = getSectorBiomassTons(props, 'agricultural');
   const livestockBiomass = getSectorBiomassTons(props, 'livestock');
@@ -335,7 +346,7 @@ export default function MunicipalityProfilePanel({
               <FileText className="w-4 h-4 text-green-600 group-hover:text-green-800 dark:text-green-400" />
             </a>
             <a
-              href={`https://cidades.ibge.gov.br/brasil/sp/${props.name.toLowerCase()}/panorama`}
+              href={`https://cidades.ibge.gov.br/brasil/sp/${ibgeSlug(props.name)}/panorama`}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center justify-between p-4 rounded-lg bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors group"

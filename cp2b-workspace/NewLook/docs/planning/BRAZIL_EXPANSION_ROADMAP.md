@@ -15,8 +15,8 @@ _Created: 2026-07-03. Owner: Lucas Nakamura Cerejo (NIPE/CP2B UNICAMP)._
 **Working and verified:**
 
 - Backend: FastAPI + raw psycopg2 over PostGIS; 14 endpoint modules, 13
-  services, migrations 001–020. 944 unit/integration tests pass; coverage
-  ~58.7% (enforced floor 40%).
+  services, migrations 001–020. 1,028 unit/integration tests pass; coverage
+  ~61% (60.98%; enforced floor 40%). These match the §6 scoreboard baseline.
 - Frontend: Next.js 16 + React, Leaflet 1.9 / react-leaflet 4. 597 tests in
   24 suites pass; a11y suite green (49/49).
 - CI: root `.github/workflows/ci.yml` gates lint, build, unit tests, safety,
