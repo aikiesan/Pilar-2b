@@ -72,29 +72,49 @@ CREATE INDEX IF NOT EXISTS idx_auth_access_log_user ON auth_access_log (user_id)
 CREATE INDEX IF NOT EXISTS idx_auth_access_log_time ON auth_access_log (occurred_at DESC);
 
 -- -----------------------------------------------------------------------------
--- 4. Repoint FKs that referenced Supabase's auth.users → local auth_users
---    Guarded: only runs where the table + FK constraint actually exist, so the
---    migration is safe on a fresh local DB that never had Supabase tables.
+-- 4. Repoint OUR app FKs that referenced Supabase's auth.users → local auth_users
+--    Guarded on three counts so it is safe against a DB that still carries the
+--    full Supabase `auth` schema (which is the real state of the UNICAMP VM):
+--      * table_schema = 'public' — only our own tables; NEVER Supabase's internal
+--        auth.* tables (identities, sessions, mfa_factors, ...), which legitimately
+--        reference auth.users and must be left untouched.
+--      * schema-qualified ALTER (%I.%I) — the previous version used an unqualified
+--        table name and died with `relation "identities" does not exist`.
+--      * the new FK is added NOT VALID — pre-existing rows may still carry legacy
+--        Supabase user ids not present in auth_users; NOT VALID adopts the local FK
+--        for new/updated rows without failing on that historical data. Validate
+--        later (ALTER TABLE ... VALIDATE CONSTRAINT) once users are migrated.
+--    Each table is repointed in its own sub-block so one failure only skips that
+--    table instead of aborting the whole migration. No-op on a fresh local DB.
 -- -----------------------------------------------------------------------------
 DO $$
 DECLARE
     rec RECORD;
 BEGIN
     FOR rec IN
-        SELECT tc.table_name, tc.constraint_name, kcu.column_name
+        SELECT tc.table_schema, tc.table_name, tc.constraint_name, kcu.column_name
         FROM information_schema.table_constraints tc
         JOIN information_schema.key_column_usage kcu
           ON tc.constraint_name = kcu.constraint_name
+         AND tc.table_schema    = kcu.table_schema
         JOIN information_schema.constraint_column_usage ccu
           ON tc.constraint_name = ccu.constraint_name
         WHERE tc.constraint_type = 'FOREIGN KEY'
           AND ccu.table_schema = 'auth'
-          AND ccu.table_name = 'users'
+          AND ccu.table_name   = 'users'
+          AND tc.table_schema  = 'public'
     LOOP
-        EXECUTE format('ALTER TABLE %I DROP CONSTRAINT %I', rec.table_name, rec.constraint_name);
-        EXECUTE format(
-            'ALTER TABLE %I ADD CONSTRAINT %I FOREIGN KEY (%I) REFERENCES auth_users(id) ON DELETE SET NULL',
-            rec.table_name, rec.constraint_name || '_local', rec.column_name);
-        RAISE NOTICE 'Repointed %.% → auth_users', rec.table_name, rec.column_name;
+        BEGIN
+            EXECUTE format('ALTER TABLE %I.%I DROP CONSTRAINT %I',
+                           rec.table_schema, rec.table_name, rec.constraint_name);
+            EXECUTE format(
+                'ALTER TABLE %I.%I ADD CONSTRAINT %I '
+                'FOREIGN KEY (%I) REFERENCES auth_users(id) ON DELETE SET NULL NOT VALID',
+                rec.table_schema, rec.table_name, rec.constraint_name || '_local', rec.column_name);
+            RAISE NOTICE 'Repointed %.%.% → auth_users', rec.table_schema, rec.table_name, rec.column_name;
+        EXCEPTION WHEN OTHERS THEN
+            RAISE NOTICE 'Skipped %.%.% (%); original FK left in place.',
+                         rec.table_schema, rec.table_name, rec.column_name, SQLERRM;
+        END;
     END LOOP;
 END $$;

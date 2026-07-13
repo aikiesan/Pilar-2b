@@ -1,5 +1,5 @@
 -- =============================================================================
--- Migration 021: National spine + staging schema + validation_plants
+-- Migration 021: National spine + staging schema + validation_plants_registry
 -- =============================================================================
 -- Prepared in advance (2026-07-03) for the August-2026 national expansion —
 -- see docs/planning/BRAZIL_EXPANSION_ROADMAP.md §3.1/§6 and the August
@@ -10,7 +10,7 @@
 --   2. municipalities.uf     — UF column, backfilled from the ibge_code prefix
 --   3. staging schema        — landing zone for the ingestion contract
 --   4. staging.ingest_runs   — bookkeeping: every promote is recorded
---   5. validation_plants     — real-world plant registry (ANEEL SIGA / GD, ANP)
+--   5. validation_plants_registry — real-world plant registry (ANEEL SIGA/GD, ANP)
 --
 -- Safe to apply BEFORE the national data exists: it only adds structures and
 -- backfills uf for the 645 SP rows already present. Idempotent: safe to re-run.
@@ -115,10 +115,16 @@ CREATE TABLE IF NOT EXISTS staging.ingest_runs (
 );
 
 -- -----------------------------------------------------------------------------
--- 5. validation_plants — real-world registry for cross-checking model outputs
---    (ANEEL SIGA + ANEEL GD + ANP biometano; roadmap §4.1 / METADATA.json P0)
+-- 5. validation_plants_registry — real-world registry for cross-checking model
+--    outputs (ANEEL SIGA + ANEEL GD + ANP biometano; roadmap §4.1 / METADATA P0)
+--    NOTE: named *_registry to avoid colliding with the pre-existing
+--    `validation_plants` table (backend/migrations/010_create_validation_plants.sql
+--    — a richer 42-column table with geometry + FDE params that holds real data).
+--    `CREATE TABLE IF NOT EXISTS validation_plants` would silently skip against that
+--    table, then the index build on the missing `uf` column would abort the whole
+--    migration. These are two different concerns; keep the names distinct.
 -- -----------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS validation_plants (
+CREATE TABLE IF NOT EXISTS validation_plants_registry (
     id                SERIAL PRIMARY KEY,
     source_id         VARCHAR(40) NOT NULL,    -- 'aneel_siga' | 'aneel_gd' | 'anp_biometano'
     registry_code     VARCHAR(60) NOT NULL,    -- CEG code / ANP plant id
@@ -139,9 +145,9 @@ CREATE TABLE IF NOT EXISTS validation_plants (
     UNIQUE (source_id, registry_code, reference_year)
 );
 
-CREATE INDEX IF NOT EXISTS idx_validation_plants_uf ON validation_plants (uf);
-CREATE INDEX IF NOT EXISTS idx_validation_plants_ibge ON validation_plants (ibge_code);
-CREATE INDEX IF NOT EXISTS idx_validation_plants_source ON validation_plants (source_id);
+CREATE INDEX IF NOT EXISTS idx_validation_plants_registry_uf ON validation_plants_registry (uf);
+CREATE INDEX IF NOT EXISTS idx_validation_plants_registry_ibge ON validation_plants_registry (ibge_code);
+CREATE INDEX IF NOT EXISTS idx_validation_plants_registry_source ON validation_plants_registry (source_id);
 
 -- =============================================================================
 -- Verification queries (run after applying):

@@ -3,7 +3,7 @@ ANEEL SIGA — biogas/biomass generation plants (the ingestion-contract template
 
 This is the reference implementation new sources should copy. It also closes
 the P0 flag from METADATA.json: ingest SIGA into the validation pipeline
-(`validation_plants`) and settle the 19.69 vs 6.39 unit discrepancy.
+(`validation_plants_registry`) and settle the 19.69 vs 6.39 unit discrepancy.
 
 Raw data: SIGA "empreendimentos em operação" CSV export from
 https://dadosabertos.aneel.gov.br/dataset/siga-sistema-de-informacoes-de-geracao-da-aneel
@@ -125,7 +125,7 @@ def validate(
 
 
 def promote(df: pd.DataFrame, conn) -> None:
-    """staging.aneel_siga_plants -> public.validation_plants. Blocked until
+    """staging.aneel_siga_plants -> public.validation_plants_registry. Blocked until
     the staging schema lands (migration 021+, roadmap §3.1) — promotion must
     be a reviewed transaction against the real DB, not a CLI side effect."""
     raise NotImplementedError(
