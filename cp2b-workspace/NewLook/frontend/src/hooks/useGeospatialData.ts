@@ -136,18 +136,43 @@ export function useRankings(
  * @param layerType - Type of infrastructure layer
  * @param enabled - Whether the query should run (for conditional loading)
  */
+/**
+ * National layers live in PostGIS (`infrastructure_features`, migration 023) and
+ * are served from /infrastructure/features/{id}/geojson. The older São Paulo
+ * layers are still read straight off shapefiles at /infrastructure/{id}/geojson.
+ * Routing on the id keeps both working while the SP-only ones are retired.
+ */
+const NATIONAL_INFRA_LAYERS = new Set([
+  'biogas_plant',
+  'biodiesel_plant',
+  'ethanol_plant',
+  'slaughterhouse',
+  'biomass_thermal_plant',
+  'substation',
+  'transmission_line',
+  'gas_pipeline_transport',
+  'gas_pipeline_distribution',
+]);
+
 export function useInfrastructureLayer(
   layerType: string,
-  enabled: boolean = true
+  enabled: boolean = true,
+  uf?: string
 ) {
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
   const queryResult = useQuery({
-    queryKey: queryKeys.infrastructure.layer(layerType),
+    queryKey: [...queryKeys.infrastructure.layer(layerType), uf ?? 'BR'],
     queryFn: async () => {
-      const response = await fetch(
-        `${API_BASE_URL}/api/v1/infrastructure/${layerType}/geojson`
-      );
+      const isNational = NATIONAL_INFRA_LAYERS.has(layerType);
+      const path = isNational
+        ? `/api/v1/infrastructure/features/${layerType}/geojson`
+        : `/api/v1/infrastructure/${layerType}/geojson`;
+      // The UF filter is a server-side WHERE on an indexed column, not a client
+      // filter — SP biogas plants come back as 51 of 543 rather than all 543.
+      const qs = isNational && uf ? `?uf=${encodeURIComponent(uf)}` : '';
+
+      const response = await fetch(`${API_BASE_URL}${path}${qs}`);
 
       if (!response.ok) {
         throw new Error(`Failed to fetch ${layerType} data: ${response.statusText}`);

@@ -38,7 +38,22 @@ def _table_exists(cursor, table_name: str, schema: str = "public") -> bool:
     return cursor.fetchone() is not None
 
 
-def _geojson_select_sql(include_municipality_summary: bool) -> str:
+# detail level -> (geometry column, ST_AsGeoJSON precision). Mirrors the
+# geospatial.py endpoint so the two never drift. The LOD columns come from
+# migration 022 and are pre-simplified with ST_SimplifyPreserveTopology, which
+# — unlike the ST_Simplify this used to call inline — cannot self-intersect or
+# collapse small municipalities (52 polygons self-intersected at national scale
+# under the old ST_Simplify(geometry, 0.001)).
+_GEOM_LOD = {
+    "overview": ("geometry_overview", 4),  # ~2.2 km, ~1.9 MB nationally
+    "detail": ("geometry_detail", 5),  # ~550 m,  ~6.7 MB nationally
+    "full": ("geometry", 9),  # unsimplified; pair with a limit
+}
+
+
+def _geojson_select_sql(
+    include_municipality_summary: bool, geom_column: str, geom_precision: int, has_limit: bool
+) -> str:
     """Build SELECT for GeoJSON rows; omit JOIN if municipality_summary is not deployed."""
     cluster_cols = (
         "ms.cluster_id, ms.cluster_label,\n"
@@ -55,10 +70,14 @@ def _geojson_select_sql(include_municipality_summary: bool) -> str:
         if include_municipality_summary
         else ""
     )
+    limit_clause = "LIMIT %s" if has_limit else ""
     return f"""
                 SELECT
                     m.ibge_code, m.municipality_name, m.id,
-                    ST_AsGeoJSON(ST_Simplify(m.geometry, 0.001)) AS geojson,
+                    ST_AsGeoJSON(
+                        COALESCE(m.{geom_column}, ST_Buffer(m.centroid::geography, 5000)::geometry),
+                        {geom_precision}
+                    ) AS geojson,
                     m.total_biogas_m3_year, m.urban_biogas_m3_year,
                     m.agricultural_biogas_m3_year, m.livestock_biogas_m3_year,
                     m.energy_potential_mwh_year, m.co2_reduction_tons_year,
@@ -83,7 +102,8 @@ def _geojson_select_sql(include_municipality_summary: bool) -> str:
                     {cluster_cols}
                 FROM municipalities m{join}
                 WHERE m.geometry IS NOT NULL
-                LIMIT %s
+                ORDER BY m.total_biogas_m3_year DESC NULLS LAST
+                {limit_clause}
                 """
 
 
@@ -99,9 +119,23 @@ def _cat(total_biogas: float) -> str:
 
 @router.get("/geojson")
 async def get_municipalities_geojson(
-    limit: int = Query(default=1000, le=1000),
+    limit: Optional[int] = Query(
+        default=None,
+        ge=1,
+        le=6000,
+        description="Max features. Default None serves all 5,571 (the old le=1000 "
+        "cap silently truncated the national dataset to the first 1,000).",
+    ),
+    detail: str = Query(
+        "overview",
+        pattern="^(overview|detail|full)$",
+        description="Geometry level of detail (migration 022). 'overview' ~2.2 km "
+        "(default, national choropleth); 'detail' ~550 m; 'full' unsimplified "
+        "(pair with limit — 471 MB exceeds PostgreSQL's jsonb ceiling nationally).",
+    ),
     current_user: Optional[UserProfile] = Depends(optional_auth),
 ):
+    geom_column, geom_precision = _GEOM_LOD[detail]
     try:
         with get_db() as conn:
             cursor = conn.cursor()
@@ -111,7 +145,10 @@ async def get_municipalities_geojson(
                     "municipality_summary missing — GeoJSON served without cluster columns "
                     "(apply backend/migrations/013_cp2b_municipality_summary.sql)."
                 )
-            cursor.execute(_geojson_select_sql(has_summary), (limit,))
+            sql = _geojson_select_sql(
+                has_summary, geom_column, geom_precision, has_limit=limit is not None
+            )
+            cursor.execute(sql, (limit,) if limit is not None else ())
             rows = cursor.fetchall()
             cursor.close()
     except Exception as e:
@@ -134,54 +171,76 @@ async def get_municipalities_geojson(
         except Exception as exc:
             logger.warning("canonical metrics failed for %s: %s", ibge_code, exc)
             canonical_metrics = {}
+        # Identity, geography, and cluster context: always present. Small, and
+        # either non-zero or semantically meaningful when zero (a cluster_id of 0
+        # is a real cluster), so these are never trimmed.
+        properties = {
+            "ibge_code": ibge_code,
+            "name": _f(row, "municipality_name", "Unknown"),
+            "id": _f(row, "id"),
+            "municipality_name": _f(row, "municipality_name"),
+            "area_km2": _f(row, "area_km2"),
+            "population_year": _f(row, "population_year"),
+            "area_year": _f(row, "area_year"),
+            "administrative_region": _f(row, "administrative_region", ""),
+            "immediate_region": _f(row, "immediate_region", ""),
+            "intermediate_region": _f(row, "intermediate_region", ""),
+            "immediate_region_code": _f(row, "immediate_region_code", ""),
+            "intermediate_region_code": _f(row, "intermediate_region_code", ""),
+            "potential_category": _cat(tb),
+        }
+
+        # Cluster context exists only for SP (LEFT JOIN on municipality_summary);
+        # it is NULL for the 4,926 non-SP rows. Drop the NULLs — but keep a real
+        # cluster_id of 0, which is a valid cluster, not missing data.
+        cluster_fields = {
+            "cluster_id": row.get("cluster_id"),
+            "cluster_label": row.get("cluster_label"),
+            "mun_total_GWh": row.get("mun_total_gwh"),
+            "mun_n_streams": row.get("mun_n_streams"),
+            "mun_dominant_stream": row.get("mun_dominant_stream"),
+        }
+        properties.update({k: v for k, v in cluster_fields.items() if v is not None})
+
+        # Numeric metric fields: OMITTED when zero/None. At 5,571 municipalities,
+        # 65% of these entries are zero (only SP's 645 rows carry biogas data yet),
+        # which was ~5.8 MB of "field":0 pairs per national response. Every frontend
+        # reader accesses these as `Number(props[key]) || 0` (verified in
+        # MunicipalityLayer.getBiogasValue and the dashboard/municipality pages),
+        # so an absent key is read as exactly 0 — same value, far less payload.
+        metric_fields = {
+            "population": _f(row, "population"),
+            "population_density": _f(row, "population_density"),
+            "gdp_total": _f(row, "gdp_total"),
+            "gdp_per_capita": _f(row, "gdp_per_capita"),
+            "gdp_year": _f(row, "gdp_year"),
+            "total_biogas_m3_year": tb,
+            "agricultural_biogas_m3_year": _f(row, "agricultural_biogas_m3_year"),
+            "livestock_biogas_m3_year": _f(row, "livestock_biogas_m3_year"),
+            "urban_biogas_m3_year": _f(row, "urban_biogas_m3_year"),
+            "energy_potential_mwh_year": _f(row, "energy_potential_mwh_year"),
+            "co2_reduction_tons_year": _f(row, "co2_reduction_tons_year"),
+            "sugarcane_biogas_m3_year": _f(row, "sugarcane_biogas_m3_year"),
+            "soybean_biogas_m3_year": _f(row, "soybean_biogas_m3_year"),
+            "corn_biogas_m3_year": _f(row, "corn_biogas_m3_year"),
+            "coffee_biogas_m3_year": _f(row, "coffee_biogas_m3_year"),
+            "citrus_biogas_m3_year": _f(row, "citrus_biogas_m3_year"),
+            "cattle_biogas_m3_year": _f(row, "cattle_biogas_m3_year"),
+            "swine_biogas_m3_year": _f(row, "swine_biogas_m3_year"),
+            "poultry_biogas_m3_year": _f(row, "poultry_biogas_m3_year"),
+            "aquaculture_biogas_m3_year": _f(row, "aquaculture_biogas_m3_year"),
+            "rsu_biogas_m3_year": _f(row, "rsu_biogas_m3_year"),
+            "rpo_biogas_m3_year": _f(row, "rpo_biogas_m3_year"),
+            **biomass_fields,
+            **canonical_metrics,
+        }
+        properties.update({k: v for k, v in metric_fields.items() if v})
+
         features.append(
             {
                 "type": "Feature",
                 "geometry": json.loads(row["geojson"]),
-                "properties": {
-                    "ibge_code": ibge_code,
-                    "name": _f(row, "municipality_name", "Unknown"),
-                    "id": _f(row, "id"),
-                    "municipality_name": _f(row, "municipality_name"),
-                    "population": _f(row, "population"),
-                    "area_km2": _f(row, "area_km2"),
-                    "population_density": _f(row, "population_density"),
-                    "population_year": _f(row, "population_year"),
-                    "area_year": _f(row, "area_year"),
-                    "gdp_total": _f(row, "gdp_total"),
-                    "gdp_per_capita": _f(row, "gdp_per_capita"),
-                    "gdp_year": _f(row, "gdp_year"),
-                    "total_biogas_m3_year": tb,
-                    "agricultural_biogas_m3_year": _f(row, "agricultural_biogas_m3_year"),
-                    "livestock_biogas_m3_year": _f(row, "livestock_biogas_m3_year"),
-                    "urban_biogas_m3_year": _f(row, "urban_biogas_m3_year"),
-                    "energy_potential_mwh_year": _f(row, "energy_potential_mwh_year"),
-                    "co2_reduction_tons_year": _f(row, "co2_reduction_tons_year"),
-                    "administrative_region": _f(row, "administrative_region", ""),
-                    "immediate_region": _f(row, "immediate_region", ""),
-                    "intermediate_region": _f(row, "intermediate_region", ""),
-                    "immediate_region_code": _f(row, "immediate_region_code", ""),
-                    "intermediate_region_code": _f(row, "intermediate_region_code", ""),
-                    "potential_category": _cat(tb),
-                    "sugarcane_biogas_m3_year": _f(row, "sugarcane_biogas_m3_year"),
-                    "soybean_biogas_m3_year": _f(row, "soybean_biogas_m3_year"),
-                    "corn_biogas_m3_year": _f(row, "corn_biogas_m3_year"),
-                    "coffee_biogas_m3_year": _f(row, "coffee_biogas_m3_year"),
-                    "citrus_biogas_m3_year": _f(row, "citrus_biogas_m3_year"),
-                    "cattle_biogas_m3_year": _f(row, "cattle_biogas_m3_year"),
-                    "swine_biogas_m3_year": _f(row, "swine_biogas_m3_year"),
-                    "poultry_biogas_m3_year": _f(row, "poultry_biogas_m3_year"),
-                    "aquaculture_biogas_m3_year": _f(row, "aquaculture_biogas_m3_year"),
-                    "rsu_biogas_m3_year": _f(row, "rsu_biogas_m3_year"),
-                    "rpo_biogas_m3_year": _f(row, "rpo_biogas_m3_year"),
-                    "cluster_id": row.get("cluster_id"),
-                    "cluster_label": row.get("cluster_label"),
-                    "mun_total_GWh": row.get("mun_total_gwh"),
-                    "mun_n_streams": row.get("mun_n_streams"),
-                    "mun_dominant_stream": row.get("mun_dominant_stream"),
-                    **biomass_fields,
-                    **canonical_metrics,
-                },
+                "properties": properties,
             }
         )
 

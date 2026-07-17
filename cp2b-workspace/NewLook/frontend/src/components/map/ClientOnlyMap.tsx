@@ -16,7 +16,7 @@ const MapComponent = dynamic(() => import('./MapComponent'), {
       <div className="text-center">
         <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-[#1E5128] mx-auto"></div>
         <p className="mt-6 text-gray-600 font-medium text-lg">Carregando mapa interativo...</p>
-        <p className="mt-2 text-gray-500 text-sm">645 municípios de São Paulo</p>
+        <p className="mt-2 text-gray-500 text-sm">5.571 municípios do Brasil</p>
       </div>
     </div>
   ),

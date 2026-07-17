@@ -204,18 +204,57 @@ def _fetch_municipalities_db(columns: str) -> Dict[str, Dict]:
     "FeatureCollection",
 )
 async def get_municipalities_geojson(
-    limit: Optional[int] = Query(None, ge=1, le=1000, description="Limit number of features"),
+    limit: Optional[int] = Query(
+        None, ge=1, le=6000, description="Limit number of features (national total is 5,571)"
+    ),
+    detail: str = Query(
+        "overview",
+        pattern="^(overview|detail|full)$",
+        description=(
+            "Level of detail. 'overview' ~2.2 km simplification (~1.9 MB national, "
+            "use below zoom 8); 'detail' ~550 m (~6.7 MB, zoom 8+); 'full' is "
+            "unsimplified and CANNOT be served nationally — 471 MB exceeds "
+            "PostgreSQL's 256 MB jsonb ceiling. Pair 'full' with bbox or limit."
+        ),
+    ),
+    bbox: Optional[str] = Query(
+        None,
+        description="Viewport filter 'min_lng,min_lat,max_lng,max_lat' (EPSG:4326)",
+    ),
     min_biogas: Optional[float] = Query(
         None, ge=0, description="Minimum biogas potential (m³/year)"
     ),
     region: Optional[str] = Query(None, description="Filter by administrative region"),
     current_user: Optional[UserProfile] = Depends(optional_auth),
 ):
+    # Level-of-detail geometry (migration 022). Serving full-resolution geometry
+    # for all 5,571 municipalities produced a hard failure, not a slow response:
+    # "total size of jsonb array elements exceeds the maximum of 268435455 bytes".
+    # Coordinate precision is trimmed to match each tolerance — decimals below the
+    # simplification threshold are pure payload with no visible effect.
+    geom_column, geom_precision = {
+        "overview": ("geometry_overview", 4),  # ~2.2 km -> 4 decimals (~11 m)
+        "detail": ("geometry_detail", 5),  # ~550 m  -> 5 decimals (~1.1 m)
+        "full": ("geometry", 9),
+    }[detail]
+
+    bbox_geom = None
+    if bbox:
+        try:
+            min_lng, min_lat, max_lng, max_lat = (float(v) for v in bbox.split(","))
+        except ValueError:
+            raise HTTPException(
+                status_code=422, detail="bbox must be 'min_lng,min_lat,max_lng,max_lat'"
+            )
+        if min_lng >= max_lng or min_lat >= max_lat:
+            raise HTTPException(status_code=422, detail="bbox min must be less than max")
+        bbox_geom = (min_lng, min_lat, max_lng, max_lat)
+
     with get_db() as conn:
         cursor = conn.cursor()
 
         try:
-            query = """
+            query = f"""
             SELECT jsonb_build_object(
                 'type', 'FeatureCollection',
                 'features', jsonb_agg(feature)
@@ -225,7 +264,8 @@ async def get_municipalities_geojson(
                     'type', 'Feature',
                     'id', id,
                     'geometry', ST_AsGeoJSON(
-                        COALESCE(geometry, ST_Buffer(centroid::geography, 5000)::geometry)
+                        COALESCE({geom_column}, ST_Buffer(centroid::geography, 5000)::geometry),
+                        {geom_precision}
                     )::jsonb,
                     'properties', jsonb_build_object(
                         'id', id,
@@ -316,6 +356,13 @@ async def get_municipalities_geojson(
 
             params = []
 
+            if bbox_geom:
+                # && is the index-backed bbox overlap operator, so this rides the
+                # GIST index on the LOD column (migration 022) rather than
+                # scanning every polygon.
+                query += f" AND {geom_column} && ST_MakeEnvelope(%s, %s, %s, %s, 4326)"
+                params.extend(bbox_geom)
+
             if min_biogas is not None:
                 query += " AND total_biogas_m3_year >= %s"
                 params.append(min_biogas)
@@ -324,7 +371,10 @@ async def get_municipalities_geojson(
                 query += " AND administrative_region = %s"
                 params.append(region)
 
-            query += " ORDER BY total_biogas_m3_year DESC"
+            # NULLS LAST matters now: the 4,926 non-SP municipalities seeded from
+            # the IBGE mesh have no biogas figures yet, and DESC would otherwise
+            # sort them to the front and hand a `limit` nothing but empty rows.
+            query += " ORDER BY total_biogas_m3_year DESC NULLS LAST"
 
             if limit:
                 query += " LIMIT %s"

@@ -258,16 +258,27 @@ export default function MapComponent({
   }, []);
 
   // ── Layer state ─────────────────────────────────────────────────────────────
+  // Snake_case ids are national PostGIS layers (migration 023, MapBiomas 10.1);
+  // hyphenated ids are the remaining São Paulo shapefile layers. The national
+  // layers supersede their SP counterparts (they cover SP too — e.g. 51 of the
+  // 543 biogas plants are in SP), so the SP versions of plants/substations/
+  // transmission/pipelines are retired here rather than listed twice.
+  // ETEs and Rodovias stay SP-only: there is no national equivalent loaded yet.
   const [layers, setLayers] = useState([
-    { id: 'municipalities', name: 'Municípios SP', visible: true, icon: '📍' },
+    { id: 'municipalities', name: 'Municípios', visible: true, icon: '📍' },
     { id: 'intermediate-regions', name: 'Regiões Intermediárias (IBGE)', visible: false, icon: '🗺️' },
     { id: 'mapbiomas', name: 'MapBiomas 2024', visible: false, icon: '🌳' },
-    { id: 'biogas-plants', name: 'Plantas de Biomassa (MapBiomas+ANP, 2024)', visible: false, icon: '🏭' },
-    { id: 'pipelines', name: 'Gasodutos (EPE, 2024)', visible: false, icon: '🔧' },
-    { id: 'substations', name: 'Subestações (EPE, 2024)', visible: false, icon: '⚡' },
-    { id: 'transmission-lines', name: 'Linhas de Transmissão (EPE, 2023)', visible: false, icon: '🔌' },
-    { id: 'etes', name: 'ETEs (SNIS, 2023)', visible: false, icon: '💧' },
-    { id: 'railways', name: 'Rodovias (EPE, 2023)', visible: false, icon: '🛣️' },
+    { id: 'biogas_plant', name: 'Usinas de Biogás (MapBiomas, BR)', visible: false, icon: '🏭' },
+    { id: 'ethanol_plant', name: 'Usinas de Etanol (MapBiomas, BR)', visible: false, icon: '🌾' },
+    { id: 'biomass_thermal_plant', name: 'UTEs a Biomassa (MapBiomas, BR)', visible: false, icon: '🔥' },
+    { id: 'biodiesel_plant', name: 'Usinas de Biodiesel (MapBiomas, BR)', visible: false, icon: '🛢️' },
+    { id: 'slaughterhouse', name: 'Frigoríficos (MapBiomas, BR)', visible: false, icon: '🥩' },
+    { id: 'substation', name: 'Subestações (MapBiomas, BR)', visible: false, icon: '⚡' },
+    { id: 'transmission_line', name: 'Linhas de Transmissão (MapBiomas, BR)', visible: false, icon: '🔌' },
+    { id: 'gas_pipeline_transport', name: 'Gasodutos de Transporte (MapBiomas, BR)', visible: false, icon: '🔧' },
+    { id: 'gas_pipeline_distribution', name: 'Gasodutos de Distribuição (MapBiomas, BR)', visible: false, icon: '🔩' },
+    { id: 'etes', name: 'ETEs (SNIS, 2023 — SP)', visible: false, icon: '💧' },
+    { id: 'railways', name: 'Rodovias (EPE, 2023 — SP)', visible: false, icon: '🛣️' },
   ]);
   const [infrastructureStatuses, setInfrastructureStatuses] = useState<Record<string, InfrastructureLayerStatus>>({});
 
@@ -516,10 +527,10 @@ export default function MapComponent({
           zoom={mapZoom}
           scrollWheelZoom={true}
           // Canvas renderer: one <canvas> instead of one SVG node per polygon.
-          // SVG re-transforms all 645 municipality paths on every zoom frame
-          // (the source of the zoom stutter); canvas redraws once per frame
-          // and is the required headroom for the 5,570-municipality national
-          // dataset until the MapLibre migration (roadmap §3.3).
+          // SVG re-transformed every municipality path on each zoom frame (the
+          // source of the zoom stutter); canvas redraws once per frame and is
+          // the required headroom for the national dataset — now 5,571 polygons
+          // — until the MapLibre migration (roadmap §3.3).
           preferCanvas={true}
           style={MAP_CONTAINER_STYLE}
         >
@@ -572,11 +583,22 @@ export default function MapComponent({
           )}
 
           {visibleLayerIds.includes('mapbiomas') && <MapBiomasLayer opacity={0.7} />}
-          {visibleLayerIds.includes('biogas-plants') && <InfrastructureLayer layerType="biogas-plants" onStatus={handleInfrastructureStatus} />}
+
+          {/* National layers (PostGIS, migration 023). Each is small — the
+              largest is 1,712 transmission lines — so they load at full
+              resolution with no LOD, unlike the municipality choropleth. */}
+          {visibleLayerIds.includes('biogas_plant') && <InfrastructureLayer layerType="biogas_plant" onStatus={handleInfrastructureStatus} />}
+          {visibleLayerIds.includes('ethanol_plant') && <InfrastructureLayer layerType="ethanol_plant" onStatus={handleInfrastructureStatus} />}
+          {visibleLayerIds.includes('biomass_thermal_plant') && <InfrastructureLayer layerType="biomass_thermal_plant" onStatus={handleInfrastructureStatus} />}
+          {visibleLayerIds.includes('biodiesel_plant') && <InfrastructureLayer layerType="biodiesel_plant" onStatus={handleInfrastructureStatus} />}
+          {visibleLayerIds.includes('slaughterhouse') && <InfrastructureLayer layerType="slaughterhouse" onStatus={handleInfrastructureStatus} />}
+          {visibleLayerIds.includes('substation') && <InfrastructureLayer layerType="substation" onStatus={handleInfrastructureStatus} />}
+          {visibleLayerIds.includes('transmission_line') && <InfrastructureLayer layerType="transmission_line" onStatus={handleInfrastructureStatus} />}
+          {visibleLayerIds.includes('gas_pipeline_transport') && <InfrastructureLayer layerType="gas_pipeline_transport" onStatus={handleInfrastructureStatus} />}
+          {visibleLayerIds.includes('gas_pipeline_distribution') && <InfrastructureLayer layerType="gas_pipeline_distribution" onStatus={handleInfrastructureStatus} />}
+
+          {/* São Paulo shapefile layers with no national equivalent loaded yet */}
           {visibleLayerIds.includes('railways') && <InfrastructureLayer layerType="railways" onStatus={handleInfrastructureStatus} />}
-          {visibleLayerIds.includes('pipelines') && <InfrastructureLayer layerType="pipelines" onStatus={handleInfrastructureStatus} />}
-          {visibleLayerIds.includes('substations') && <InfrastructureLayer layerType="substations" onStatus={handleInfrastructureStatus} />}
-          {visibleLayerIds.includes('transmission-lines') && <InfrastructureLayer layerType="transmission-lines" onStatus={handleInfrastructureStatus} />}
           {visibleLayerIds.includes('etes') && <InfrastructureLayer layerType="etes" onStatus={handleInfrastructureStatus} />}
           {visibleLayerIds.includes('intermediate-regions') && (
             intermediateRegionsGeoJSON
