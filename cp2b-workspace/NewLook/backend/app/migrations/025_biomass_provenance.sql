@@ -67,14 +67,35 @@ COMMENT ON COLUMN municipality_biomass_provenance.quality IS
 CREATE INDEX IF NOT EXISTS idx_mbp_stream
     ON municipality_biomass_provenance (stream) INCLUDE (ibge_code, quality);
 
--- ── Backfill: São Paulo, all 11 streams, from the master CSV ─────────────────
+-- ── Backfill: São Paulo, AGRICULTURAL streams only, from the master CSV ──────
+--
+-- Only the crop columns hold biomass. The livestock columns
+-- ({cattle,swine,poultry}_biomass_tons_year) hold IBGE HEAD COUNTS despite their
+-- name — verified 2026-07-17: they track PPM head at ratios 1.040 / 1.003 /
+-- 1.072, the CSV loads verbatim without conversion, and as tonnes they would
+-- imply every species excreting an identical 2.74 kg/day (a laying hen weighs
+-- ~2 kg). scripts/compute_sp_canonical_totals.py reads the same columns as
+-- `count` and converts them with EMBRAPA factors; only the map ever mistook them
+-- for tonnage.
+--
+-- So livestock is NOT backfilled here: its tonnage does not exist in any column
+-- and is derived at read time from PPM head counts via
+-- canonical_loader.biomass_tons_from_units(). Same for urban — those columns are
+-- 0 for all 645 SP municipalities despite 46M residents. Marking either
+-- 'measured' from these columns would assert we had measured something we never
+-- did, which is the exact failure this table exists to prevent.
 INSERT INTO municipality_biomass_provenance (ibge_code, stream, source_id, reference_year, quality)
 SELECT m.ibge_code, s.stream, 'sp_master_csv', 2023, 'measured'
 FROM municipalities m
 CROSS JOIN (VALUES
-    ('sugarcane'), ('soybean'), ('corn'), ('coffee'), ('citrus'),
-    ('cattle'), ('swine'), ('poultry'), ('aquaculture'),
-    ('rsu'), ('rpo')
+    ('sugarcane'), ('soybean'), ('corn'), ('coffee'), ('citrus')
 ) AS s(stream)
 WHERE left(m.ibge_code, 2) = '35'
 ON CONFLICT (ibge_code, stream) DO NOTHING;
+
+-- Undo the first cut of this migration, which backfilled all 11 streams before
+-- the head-count discovery. Harmless on a fresh database; required on any that
+-- already applied it (including the local dev DB).
+DELETE FROM municipality_biomass_provenance
+WHERE source_id = 'sp_master_csv'
+  AND stream IN ('cattle', 'swine', 'poultry', 'aquaculture', 'rsu', 'rpo');
