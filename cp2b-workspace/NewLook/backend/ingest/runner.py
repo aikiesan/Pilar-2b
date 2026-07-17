@@ -21,6 +21,8 @@ from pathlib import Path
 # a sources/<id>/source.py implementing the contract (see contract.py).
 SOURCES: dict[str, str] = {
     "aneel_siga": "ingest.sources.aneel_siga.source",
+    "ibge_ppm": "ingest.sources.ibge_ppm.source",
+    "snis": "ingest.sources.snis.source",
 }
 
 BACKEND_DIR = Path(__file__).resolve().parent.parent

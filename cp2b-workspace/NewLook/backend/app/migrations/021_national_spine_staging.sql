@@ -26,8 +26,10 @@ CREATE TABLE IF NOT EXISTS states (
     name        VARCHAR(30) NOT NULL,
     region      VARCHAR(12) NOT NULL           -- macrorregião
                   CHECK (region IN ('Norte','Nordeste','Sudeste','Sul','Centro-Oeste')),
-    -- Official municipality count (IBGE DTB 2022) — mirrors
+    -- Official municipality count (IBGE Malha Municipal Digital 2025) — mirrors
     -- backend/ingest/ibge.py; the coverage gate depends on both staying in sync.
+    -- MT is 142 (not DTB 2022's 141): Boa Esperança do Norte (5101837) was split
+    -- off Nova Ubiratã. It is the only delta vs 5,570; nothing was merged.
     municipality_count INTEGER NOT NULL
 );
 
@@ -56,7 +58,7 @@ INSERT INTO states (code, uf, name, region, municipality_count) VALUES
     ('42','SC','Santa Catarina',     'Sul',          295),
     ('43','RS','Rio Grande do Sul',  'Sul',          497),
     ('50','MS','Mato Grosso do Sul', 'Centro-Oeste',  79),
-    ('51','MT','Mato Grosso',        'Centro-Oeste', 141),
+    ('51','MT','Mato Grosso',        'Centro-Oeste', 142),
     ('52','GO','Goiás',              'Centro-Oeste', 246),
     ('53','DF','Distrito Federal',   'Centro-Oeste',   1)
 ON CONFLICT (code) DO UPDATE
@@ -152,7 +154,7 @@ CREATE INDEX IF NOT EXISTS idx_validation_plants_registry_source ON validation_p
 -- =============================================================================
 -- Verification queries (run after applying):
 --   SELECT count(*) FROM states;                          -- 27
---   SELECT sum(municipality_count) FROM states;           -- 5570
+--   SELECT sum(municipality_count) FROM states;           -- 5571 (MMD 2025)
 --   SELECT count(*) FROM municipalities WHERE uf = 'SP';  -- 645
 --   SELECT count(*) FROM municipalities WHERE uf IS NULL; -- 0
 -- =============================================================================
