@@ -302,7 +302,7 @@ async def get_municipalities_geojson(
         )
         try:
             canonical_metrics = compute_municipality_map_metrics(
-                row, ibge_code=ibge_code
+                row, ibge_code=ibge_code, derived_tons=derived_tons
             ).to_flat_dict()
         except Exception as exc:
             canonical_failures += 1
