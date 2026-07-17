@@ -1,0 +1,109 @@
+/**
+ * Coverage-aware map value accessors.
+ *
+ * The choropleth must distinguish three states per municipality: a value we
+ * measured, a value we modelled, and *no data at all*. The backend now sends
+ * biomass as `number | null` plus a `*_coverage` flag exactly so the map can
+ * tell "we looked and there is none" (0, measured) from "we never loaded this"
+ * (null, no_data) — see backend migration 025.
+ *
+ * This deliberately does NOT reuse lib/biomassAvailability.ts: that helper
+ * re-derives biomass client-side with reverse-BMP, which reintroduces the very
+ * invented tonnage the backend now refuses to emit. Here we trust the served
+ * values and their coverage, nothing more.
+ */
+
+import type { BiomassCoverage, MunicipalityProperties } from '@/types/geospatial';
+import type { BiomassType, ResidueType } from '@/components/map/FloatingControlPanel';
+import type { MapScenarioKey } from '@/data/scenarioFactors';
+
+export const NO_DATA: BiomassCoverage = 'no_data';
+
+export type MapValue = { value: number | null; coverage: BiomassCoverage };
+
+const num = (v: unknown): number | null => {
+  if (v === null || v === undefined) return null;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+};
+
+const asRecord = (props: MunicipalityProperties): Record<string, unknown> =>
+  props as unknown as Record<string, unknown>;
+
+const covOf = (props: MunicipalityProperties, key: string): BiomassCoverage => {
+  const c = asRecord(props)[`${key}_biomass_coverage`];
+  return (c as BiomassCoverage) ?? NO_DATA;
+};
+
+const tonsOf = (props: MunicipalityProperties, key: string): number | null =>
+  num(asRecord(props)[`${key}_biomass_tons_year`]);
+
+/**
+ * Coverage of a sum, from the coverage of its parts. Mirrors the backend's
+ * _aggregate_coverage: a total built from some known and some unknown parts is
+ * `partial` — a floor, not a total — and must never be painted as an ordinary
+ * value, because outside São Paulo the missing (agricultural) part is ~77% of it.
+ */
+export function aggregateCoverage(covs: BiomassCoverage[]): BiomassCoverage {
+  if (covs.length === 0 || covs.every((c) => c === NO_DATA)) return NO_DATA;
+  if (covs.some((c) => c === NO_DATA)) return 'partial';
+  const nonMeasured = covs.find((c) => c !== 'measured');
+  return nonMeasured ?? 'measured';
+}
+
+/** Biomass availability (tons/year) for the selected sector or residue set. */
+export function getBiomassMapValue(
+  props: MunicipalityProperties,
+  biomassType: BiomassType,
+  selectedResidues: ResidueType[]
+): MapValue {
+  if (selectedResidues.length > 0) {
+    const covs = selectedResidues.map((r) => covOf(props, r));
+    const known = selectedResidues
+      .map((r) => tonsOf(props, r))
+      .filter((v): v is number => v !== null);
+    return {
+      value: known.length ? known.reduce((a, b) => a + b, 0) : null,
+      coverage: aggregateCoverage(covs),
+    };
+  }
+  return { value: tonsOf(props, biomassType), coverage: covOf(props, biomassType) };
+}
+
+/**
+ * Canonical biogas potential (m³ CH4/year, municipality total) at one scenario.
+ *
+ * The backend propagates min/medio/max. The map's four named scenarios map onto
+ * them: conservador→min, baseline→medio, otimista→max. 'fronteira' — the
+ * "Fronteira do Biogás", the platform's headline optimistic-but-defensible band —
+ * is the midpoint between medio and max, computed here from the served bands so
+ * it works nationally rather than via the old SP-only factor scaling.
+ */
+export function getBiogasScenarioValue(
+  props: MunicipalityProperties,
+  scenario: MapScenarioKey
+): MapValue {
+  const min = num(props.biogas_ch4_min_m3_yr);
+  const medio = num(props.biogas_ch4_medio_m3_yr);
+  const max = num(props.biogas_ch4_max_m3_yr);
+  if (medio === null) return { value: null, coverage: NO_DATA };
+
+  const coverage = (props.total_biomass_coverage as BiomassCoverage) ?? 'estimated';
+  let value: number | null;
+  switch (scenario) {
+    case 'conservador':
+      value = min;
+      break;
+    case 'otimista':
+      value = max;
+      break;
+    case 'fronteira':
+      value = max !== null ? medio + 0.5 * (max - medio) : medio;
+      break;
+    case 'baseline':
+    default:
+      value = medio;
+      break;
+  }
+  return { value, coverage };
+}
