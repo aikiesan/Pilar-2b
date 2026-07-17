@@ -68,7 +68,7 @@ export default function LayerControl({ onLayerToggle }: LayerControlProps) {
     {
       id: 'municipalities',
       name: 'Limites Municipais',
-      description: '645 municípios de SP',
+      description: '5.571 municípios do Brasil',
       visible: true,
       category: 'administrative',
       icon: '🗺️',

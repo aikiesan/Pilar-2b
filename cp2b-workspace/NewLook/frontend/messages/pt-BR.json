@@ -335,7 +335,7 @@
       "label": "municípios"
     },
     "layers": {
-      "municipalitiesSP": "Municípios SP",
+      "municipalitiesSP": "Municípios",
       "intermediateRegions": "Regiões Intermediárias (IBGE)",
       "mapbiomas": "MapBiomas 2024",
       "biogasPlants": "Plantas de Biomassa (MapBiomas+ANP, 2024)",
