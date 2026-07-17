@@ -143,6 +143,35 @@ class TestAggregateCoverage:
 
 
 @pytest.mark.unit
+class TestDerivedTons:
+    """Livestock/urban tonnage does not live in a column — it is supplied by the
+    caller, computed from head counts/population. The stored column (a head count
+    mislabelled as tonnes) must be ignored when a derived value is present."""
+
+    def test_derived_overrides_the_stored_column(self):
+        # Stored cattle column holds a head count (117402); derived tonnage is the
+        # truth. The derived value must win, and the head count must never surface.
+        row = {f"{s}_biomass_tons_year": 0 for s in ALL_STREAMS}
+        row["cattle_biomass_tons_year"] = 117402  # head count masquerading as tonnes
+        out = derive_biomass_with_coverage(
+            row,
+            provenance={"cattle": "estimated"},
+            derived_tons={"cattle": 428_517.3},
+        )
+        assert out["cattle_biomass_tons_year"] == 428_517.3
+        assert out["cattle_biomass_coverage"] == "estimated"
+
+    def test_derived_without_provenance_is_no_data(self):
+        # A derived value still needs provenance; coverage never comes from the value.
+        row = {f"{s}_biomass_tons_year": 0 for s in ALL_STREAMS}
+        out = derive_biomass_with_coverage(
+            row, provenance={}, derived_tons={"cattle": 428_517.3}
+        )
+        assert out["cattle_biomass_tons_year"] is None
+        assert out["cattle_biomass_coverage"] == COVERAGE_NO_DATA
+
+
+@pytest.mark.unit
 class TestReverseFallback:
     """Reverse-BMP invents tonnage from legacy biogas. For an availability map an
     invented number is worse than an honest gap, so it is off by default."""

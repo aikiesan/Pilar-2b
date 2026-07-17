@@ -250,6 +250,7 @@ def derive_biomass_with_coverage(
     row: Mapping[str, Any],
     *,
     provenance: Mapping[str, str],
+    derived_tons: Mapping[str, float] | None = None,
     allow_reverse_fallback: bool = False,
 ) -> dict[str, Any]:
     """Per-residue/sector/total biomass, each paired with an explicit coverage.
@@ -260,17 +261,29 @@ def derive_biomass_with_coverage(
     point: the stored column cannot tell us, because every unloaded municipality
     was seeded with 0 (see migration 025).
 
+    `derived_tons` supplies tonnage that is NOT in a stored column, keyed by
+    stream. Livestock and urban tonnage live nowhere in `municipalities` — the
+    {cattle,swine,poultry}_biomass_tons_year columns hold IBGE head COUNTS, not
+    tonnes — so the endpoint computes them from PPM head counts / population via
+    canonical_loader.biomass_tons_from_units() and passes them here. When a
+    stream is present in `derived_tons`, that value is authoritative and the
+    stored column is ignored; its coverage must come from `provenance` as usual.
+
     `allow_reverse_fallback` back-calculates tonnage from legacy biogas for
     streams with no provenance, tagging them 'estimated'. Off by default: for an
     availability map, an invented tonnage is worse than an honest gap.
     """
+    derived_tons = derived_tons or {}
     values: dict[str, float | None] = {}
     coverage: dict[str, str] = {}
     by_sector: dict[str, list[str]] = {sector: [] for sector in SECTOR_FIELDS}
 
     for config in RESIDUE_BIOMASS_CONFIGS:
         quality = provenance.get(config.key)
-        stored = raw_value(row.get(config.biomass_field))
+        if config.key in derived_tons:
+            stored: float | None = raw_value(derived_tons[config.key])
+        else:
+            stored = raw_value(row.get(config.biomass_field))
 
         if quality is not None and stored is not None:
             value, cov = round(stored, 2), quality

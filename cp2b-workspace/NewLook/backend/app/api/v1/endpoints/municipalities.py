@@ -13,7 +13,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from app.core.database import get_db
 from app.middleware.auth import optional_auth
 from app.models.auth import UserProfile
-from app.services.biomass_availability import derive_biomass_with_coverage
+from app.services.biomass_availability import derive_biomass_with_coverage, raw_value
+from app.services.canonical_loader import biomass_tons_from_units
 from app.services.map_metrics import compute_municipality_map_metrics
 
 logger = logging.getLogger(__name__)
@@ -48,6 +49,76 @@ def _load_biomass_provenance(cursor, ibge_codes: list[str]) -> dict[str, dict[st
     for r in cursor.fetchall():
         out.setdefault(str(r["ibge_code"]), {})[r["stream"]] = r["quality"]
     return out
+
+
+# Activity counts that drive derived tonnage, keyed by (source_id, variable).
+# PPM counts animals; SNIS counts residents. The manure/waste tonnage they imply
+# is derived, not stored (see migration 025 / canonical_loader). "population" is a
+# synthetic key consumed by the urban streams, not a livestock stream itself.
+_ACTIVITY_VARIABLES = {
+    ("ibge_ppm", "bovino"): "cattle",
+    ("ibge_ppm", "suino_total"): "swine",
+    ("ibge_ppm", "galinaceos_total"): "poultry",
+    ("snis", "populacao_total"): "population",
+}
+# Livestock streams derived from PPM head counts (per-head generation).
+_PPM_STREAMS = ("cattle", "swine", "poultry")
+# Urban streams modelled from resident population (per-capita generation).
+_URBAN_STREAMS = ("rsu", "rpo")
+
+
+def _load_activity_counts(cursor, ibge_codes: list[str]) -> dict[str, dict[str, float]]:
+    """ibge_code -> {stream|'population': count} from the latest year of each source.
+
+    One batched query for the page, like _load_biomass_provenance. Counts are
+    converted to tonnes at read time via the canonical generation factor — the
+    `municipalities` columns cannot be used: the livestock ones hold these same
+    head counts mislabelled as tonnes, and population is NULL nationally.
+    """
+    if not ibge_codes:
+        return {}
+    # Variable names are unique across the two sources, so filtering on variable
+    # alone is unambiguous and avoids a fragile composite-tuple ANY().
+    by_variable = {var: key for (_src, var), key in _ACTIVITY_VARIABLES.items()}
+    cursor.execute(
+        """
+        SELECT DISTINCT ON (ibge_code, variable)
+               ibge_code, variable, value
+        FROM municipality_timeseries
+        WHERE variable = ANY(%s)
+          AND ibge_code = ANY(%s)
+        ORDER BY ibge_code, variable, year DESC
+        """,
+        (list(by_variable), ibge_codes),
+    )
+    out: dict[str, dict[str, float]] = {}
+    for r in cursor.fetchall():
+        key = by_variable[r["variable"]]
+        if r["value"] is not None:
+            out.setdefault(str(r["ibge_code"]), {})[key] = float(r["value"])
+    return out
+
+
+def _derive_activity_biomass(
+    *, head: dict[str, float], population: float | None
+) -> tuple[dict[str, float], dict[str, str]]:
+    """Livestock/urban tonnage + provenance from activity counts.
+
+    Livestock manure = head x generation; urban waste = population x generation,
+    both via the single canonical conversion. Returns the 'medio' scenario for the
+    displayed value, tagged 'estimated' (modelled from an activity count, not
+    directly reported). A stream with no activity data is simply absent -> no_data.
+    """
+    tons: dict[str, float] = {}
+    prov: dict[str, str] = {}
+    for stream, count in head.items():
+        tons[stream] = biomass_tons_from_units(stream, count).medio
+        prov[stream] = "estimated"
+    if population is not None and population > 0:
+        for stream in _URBAN_STREAMS:
+            tons[stream] = biomass_tons_from_units(stream, population).medio
+            prov[stream] = "estimated"
+    return tons, prov
 
 
 def _table_exists(cursor, table_name: str, schema: str = "public") -> bool:
@@ -174,11 +245,14 @@ async def get_municipalities_geojson(
             )
             cursor.execute(sql, (limit,) if limit is not None else ())
             rows = cursor.fetchall()
+            page_ibge = [str(r["ibge_code"]) for r in rows]
             has_provenance = _table_exists(cursor, "municipality_biomass_provenance")
             provenance = (
-                _load_biomass_provenance(cursor, [str(r["ibge_code"]) for r in rows])
-                if has_provenance
-                else {}
+                _load_biomass_provenance(cursor, page_ibge) if has_provenance else {}
+            )
+            has_timeseries = _table_exists(cursor, "municipality_timeseries")
+            activity_counts = (
+                _load_activity_counts(cursor, page_ibge) if has_timeseries else {}
             )
             cursor.close()
     except Exception as e:
@@ -205,12 +279,25 @@ async def get_municipalities_geojson(
     for row in rows:
         ibge_code = str(_f(row, "ibge_code", ""))
         tb = float(_f(row, "total_biogas_m3_year"))
-        # Coverage comes from provenance, never from the stored value: outside SP
-        # every biomass column holds a seeded 0 that means "never loaded", which is
-        # indistinguishable from a real zero. See migration 025.
+        # Livestock and urban tonnage are DERIVED, not stored: PPM head counts and
+        # resident population times a canonical generation factor. This is what the
+        # map was missing — it read head counts straight from the *_biomass columns
+        # as though they were tonnes (205M birds -> 205M t; real 9.3M). Agricultural
+        # tonnage still comes from the row's columns inside the helper.
+        activity = activity_counts.get(ibge_code, {})
+        derived_tons, derived_prov = _derive_activity_biomass(
+            head={s: activity[s] for s in _PPM_STREAMS if s in activity},
+            population=activity.get("population") or raw_value(row.get("population")),
+        )
+        # provenance: agricultural (measured, from the DB table) + livestock/urban
+        # (estimated, synthesised here from activity data). Coverage never comes
+        # from the stored value — outside SP every column holds a seeded 0 that
+        # means "never loaded", indistinguishable from a real zero. See migration 025.
+        row_provenance = {**provenance.get(ibge_code, {}), **derived_prov}
         biomass_fields = derive_biomass_with_coverage(
             row,
-            provenance=provenance.get(ibge_code, {}),
+            provenance=row_provenance,
+            derived_tons=derived_tons,
             allow_reverse_fallback=_ALLOW_REVERSE_FALLBACK,
         )
         try:
