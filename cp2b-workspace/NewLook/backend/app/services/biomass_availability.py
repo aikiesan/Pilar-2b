@@ -130,6 +130,33 @@ def number_value(value: Any) -> float:
     return parsed if parsed == parsed else 0.0
 
 
+# Coverage of one stream at one municipality. Mirrors the `quality` vocabulary of
+# municipality_timeseries / municipality_biomass_provenance, plus NO_DATA, which
+# is not a quality but the absence of a provenance row.
+COVERAGE_NO_DATA = "no_data"
+# Aggregates only: some contributing streams are known and some are not, so the
+# sum is a floor rather than a total. Never let this render as an ordinary value.
+COVERAGE_PARTIAL = "partial"
+
+
+def raw_value(value: Any) -> float | None:
+    """Parse to float, preserving the difference between absent and zero.
+
+    number_value() collapses None and 0 to the same 0.0. That is exactly what
+    makes a municipality we never loaded indistinguishable from one that
+    genuinely has no biomass — 5,059 municipalities carry a seeded 0 for
+    sugarcane and only 133 of those zeros are real. Use this wherever the
+    distinction matters; use number_value() where a float is genuinely wanted.
+    """
+    if value is None:
+        return None
+    try:
+        parsed = float(value)
+    except (TypeError, ValueError):
+        return None
+    return parsed if parsed == parsed else None  # NaN is not a measurement
+
+
 def reverse_bmp_tons(biogas_m3: float, bmp: float, vs_percent: float) -> float:
     denominator = bmp * (vs_percent / 100.0)
     if denominator <= 0 or biogas_m3 <= 0:
@@ -197,6 +224,87 @@ def derive_biomass_fields(
         else sum(derived[field] for field in SECTOR_FIELDS.values())
     )
     derived["total_biomass_tons_year"] = round(total, 2)
+    return derived
+
+
+def _aggregate_coverage(coverages: Iterable[str]) -> str:
+    """Coverage of a sum, from the coverage of its parts.
+
+    `partial` is the load-bearing state: a total built from some known and some
+    unknown streams is a floor, not a total. Outside São Paulo the agricultural
+    sector is entirely no_data while livestock may be known, so the biomass
+    TOTAL there is partial — and must never be painted as though it were the
+    whole picture, because the missing part is ~77% of it.
+    """
+    seen = list(coverages)
+    if not seen or all(c == COVERAGE_NO_DATA for c in seen):
+        return COVERAGE_NO_DATA
+    if any(c == COVERAGE_NO_DATA for c in seen):
+        return COVERAGE_PARTIAL
+    if any(c != "measured" for c in seen):
+        return next(c for c in seen if c != "measured")
+    return "measured"
+
+
+def derive_biomass_with_coverage(
+    row: Mapping[str, Any],
+    *,
+    provenance: Mapping[str, str],
+    allow_reverse_fallback: bool = False,
+) -> dict[str, Any]:
+    """Per-residue/sector/total biomass, each paired with an explicit coverage.
+
+    `provenance` maps stream key -> quality ('measured', 'estimated', ...) and
+    comes from municipality_biomass_provenance. A stream absent from it is
+    no_data, and its value is emitted as None — never 0.0. This is the whole
+    point: the stored column cannot tell us, because every unloaded municipality
+    was seeded with 0 (see migration 025).
+
+    `allow_reverse_fallback` back-calculates tonnage from legacy biogas for
+    streams with no provenance, tagging them 'estimated'. Off by default: for an
+    availability map, an invented tonnage is worse than an honest gap.
+    """
+    values: dict[str, float | None] = {}
+    coverage: dict[str, str] = {}
+    by_sector: dict[str, list[str]] = {sector: [] for sector in SECTOR_FIELDS}
+
+    for config in RESIDUE_BIOMASS_CONFIGS:
+        quality = provenance.get(config.key)
+        stored = raw_value(row.get(config.biomass_field))
+
+        if quality is not None and stored is not None:
+            value, cov = round(stored, 2), quality
+        elif allow_reverse_fallback:
+            biogas = raw_value(row.get(config.biogas_field))
+            if biogas is not None and biogas > 0:
+                value = round(reverse_bmp_tons(biogas, config.bmp, config.vs_percent), 2)
+                cov = "estimated"
+            else:
+                value, cov = None, COVERAGE_NO_DATA
+        else:
+            value, cov = None, COVERAGE_NO_DATA
+
+        values[config.biomass_field] = value
+        coverage[config.key] = cov
+        by_sector[config.sector].append(cov)
+
+    derived: dict[str, Any] = dict(values)
+    for key, cov in coverage.items():
+        derived[f"{key}_biomass_coverage"] = cov
+
+    sector_totals: dict[str, float | None] = {}
+    for sector, field in SECTOR_FIELDS.items():
+        members = [c for c in RESIDUE_BIOMASS_CONFIGS if c.sector == sector]
+        known = [values[m.biomass_field] for m in members if values[m.biomass_field] is not None]
+        cov = _aggregate_coverage(by_sector[sector])
+        total = round(sum(known), 2) if known else None
+        derived[field] = total
+        derived[f"{sector}_biomass_coverage"] = cov
+        sector_totals[sector] = total
+
+    known_totals = [t for t in sector_totals.values() if t is not None]
+    derived["total_biomass_tons_year"] = round(sum(known_totals), 2) if known_totals else None
+    derived["total_biomass_coverage"] = _aggregate_coverage(coverage.values())
     return derived
 
 

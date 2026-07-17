@@ -13,17 +13,41 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from app.core.database import get_db
 from app.middleware.auth import optional_auth
 from app.models.auth import UserProfile
-from app.services.biomass_availability import derive_biomass_fields
+from app.services.biomass_availability import derive_biomass_with_coverage
 from app.services.map_metrics import compute_municipality_map_metrics
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
-# Once authoritative biomass tonnage is loaded (scripts/load_biomass_from_master.py),
-# set BIOMASS_REVERSE_FALLBACK=false so the biomass map uses real data only and
-# performs no biogas→biomass back-calculation. Defaults to true for safety until
-# the data is loaded.
-_ALLOW_REVERSE_FALLBACK = os.getenv("BIOMASS_REVERSE_FALLBACK", "true").lower() != "false"
+# Back-calculating biomass from legacy V2 biogas (reverse-BMP) invents tonnage for
+# streams we have no provenance for. On an availability map that is worse than an
+# honest gap — it made SP show derived numbers while the rest of Brazil showed real
+# zeros. Now defaults OFF; set BIOMASS_REVERSE_FALLBACK=true to restore the old
+# behaviour, in which case the values are tagged 'estimated', never 'measured'.
+_ALLOW_REVERSE_FALLBACK = os.getenv("BIOMASS_REVERSE_FALLBACK", "false").lower() == "true"
+
+
+def _load_biomass_provenance(cursor, ibge_codes: list[str]) -> dict[str, dict[str, str]]:
+    """ibge_code -> {stream: quality} for the rows being served.
+
+    One query for the whole page rather than per-municipality: the national
+    slice is 5,571 rows, and a per-row lookup there is 5,571 round trips.
+    A stream absent from the result is no_data — that is the contract.
+    """
+    if not ibge_codes:
+        return {}
+    cursor.execute(
+        """
+        SELECT ibge_code, stream, quality
+        FROM municipality_biomass_provenance
+        WHERE ibge_code = ANY(%s)
+        """,
+        (ibge_codes,),
+    )
+    out: dict[str, dict[str, str]] = {}
+    for r in cursor.fetchall():
+        out.setdefault(str(r["ibge_code"]), {})[r["stream"]] = r["quality"]
+    return out
 
 
 def _table_exists(cursor, table_name: str, schema: str = "public") -> bool:
@@ -150,10 +174,23 @@ async def get_municipalities_geojson(
             )
             cursor.execute(sql, (limit,) if limit is not None else ())
             rows = cursor.fetchall()
+            has_provenance = _table_exists(cursor, "municipality_biomass_provenance")
+            provenance = (
+                _load_biomass_provenance(cursor, [str(r["ibge_code"]) for r in rows])
+                if has_provenance
+                else {}
+            )
             cursor.close()
     except Exception as e:
         logger.error(f"Error fetching municipalities GeoJSON: {e}")
         raise HTTPException(status_code=500, detail=f"Database error: {e}")
+
+    if not has_provenance:
+        logger.error(
+            "municipality_biomass_provenance missing — biomass coverage cannot be "
+            "determined, so every municipality is served as no_data. Apply "
+            "backend/app/migrations/025_biomass_provenance.sql."
+        )
 
     def _f(row, key, default=0):
         v = row.get(key)
@@ -163,7 +200,14 @@ async def get_municipalities_geojson(
     for row in rows:
         ibge_code = str(_f(row, "ibge_code", ""))
         tb = float(_f(row, "total_biogas_m3_year"))
-        biomass_fields = derive_biomass_fields(row, allow_reverse_fallback=_ALLOW_REVERSE_FALLBACK)
+        # Coverage comes from provenance, never from the stored value: outside SP
+        # every biomass column holds a seeded 0 that means "never loaded", which is
+        # indistinguishable from a real zero. See migration 025.
+        biomass_fields = derive_biomass_with_coverage(
+            row,
+            provenance=provenance.get(ibge_code, {}),
+            allow_reverse_fallback=_ALLOW_REVERSE_FALLBACK,
+        )
         try:
             canonical_metrics = compute_municipality_map_metrics(
                 row, ibge_code=ibge_code
@@ -231,10 +275,20 @@ async def get_municipalities_geojson(
             "aquaculture_biogas_m3_year": _f(row, "aquaculture_biogas_m3_year"),
             "rsu_biogas_m3_year": _f(row, "rsu_biogas_m3_year"),
             "rpo_biogas_m3_year": _f(row, "rpo_biogas_m3_year"),
-            **biomass_fields,
             **canonical_metrics,
         }
         properties.update({k: v for k, v in metric_fields.items() if v})
+
+        # Biomass is emitted WHOLE — nulls and zeros included — and must never go
+        # through the `if v` omission above. That optimisation is correct for biogas,
+        # where the frontend's `Number(props[key]) || 0` reads an absent key as 0 and
+        # 0 is what was meant. Biomass now distinguishes 0.0 ("we looked; there is
+        # none") from null ("we never loaded this municipality"), and omitting either
+        # collapses them straight back into the 0 that made a 77% data gap render as
+        # a finding about Brazilian agriculture. Explicit costs bytes; implicit costs
+        # correctness, and silently — any consumer that missed the memo defaults to
+        # the wrong reading. See migration 025.
+        properties.update(biomass_fields)
 
         features.append(
             {
