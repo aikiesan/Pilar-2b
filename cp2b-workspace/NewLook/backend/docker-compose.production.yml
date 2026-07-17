@@ -6,8 +6,11 @@ version: '3.8'
 services:
   backend:
     build:
-      context: .
-      dockerfile: Dockerfile
+      # Context is the NewLook root, not backend/: the image must include
+      # data/canonical_parameters/feedstocks.yaml, which lives outside backend/.
+      # See ../.dockerignore for what that context excludes.
+      context: ..
+      dockerfile: backend/Dockerfile
     image: cp2b-maps-backend:latest
     container_name: cp2b-backend
     restart: unless-stopped

@@ -5,6 +5,7 @@ Sprint 4: Performance optimizations, error handling, and production deployment
 """
 
 import logging
+from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 
 import uvicorn
@@ -31,6 +32,37 @@ logging.getLogger().addFilter(PiiRedactingFilter())
 
 log = logging.getLogger(__name__)
 
+
+def canonical_parameters_available() -> bool:
+    """Whether feedstocks.yaml can be found in this deployment's layout."""
+    from app.services.canonical_loader import resolve_feedstocks_path
+
+    return resolve_feedstocks_path().is_file()
+
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    # A missing feedstocks.yaml is a deployment misconfiguration, not a per-request
+    # condition, but the map endpoints catch it per-municipality — which once turned a
+    # total loss of canonical data into ~105k warnings and no visible failure. Say it
+    # once, at boot, where it is actually actionable. Not fatal: map_metrics is
+    # deliberately usable without the YAML.
+    from app.services.canonical_loader import resolve_feedstocks_path
+
+    path = resolve_feedstocks_path()
+    if path.is_file():
+        log.info("Canonical parameters loaded from %s", path)
+    else:
+        log.error(
+            "Canonical parameters NOT FOUND at %s — every biogas metric will be absent "
+            "from API responses and the map will silently fall back to legacy columns. "
+            "In Docker, mount data/canonical_parameters into the container; otherwise "
+            "set CANONICAL_PARAMETERS_PATH.",
+            path,
+        )
+    yield
+
+
 # Create FastAPI app - disable docs in production
 _is_production = settings.APP_ENV == "production"
 app = FastAPI(
@@ -39,6 +71,7 @@ app = FastAPI(
     version="3.0.0",
     docs_url=None if _is_production else "/docs",
     redoc_url=None if _is_production else "/redoc",
+    lifespan=lifespan,
 )
 
 # Register slowapi limiter with FastAPI app
@@ -124,6 +157,14 @@ async def health_check():
         "version": settings.VERSION,
         "environment": settings.APP_ENV,
     }
+
+    # Canonical parameters: without them the API still serves, but every biogas
+    # metric is missing — degraded, not unhealthy.
+    if canonical_parameters_available():
+        health_status["canonical_parameters"] = "available"
+    else:
+        health_status["canonical_parameters"] = "missing"
+        health_status["status"] = "degraded"
 
     # Check database connectivity
     try:
