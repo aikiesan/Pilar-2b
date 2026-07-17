@@ -43,6 +43,7 @@ import yaml  # noqa: E402
 from app.services.biogas_forward import SCENARIOS, calculate_feedstock  # noqa: E402
 from app.services.canonical_loader import (  # noqa: E402
     STREAM_TO_CANONICAL,
+    biomass_tons_from_units,
     get_params,
     get_params_for_stream,
 )
@@ -117,17 +118,21 @@ def _csv_state_total(rows: list[dict], column: str) -> float:
 
 
 def _biomass_livestock(stream: str, head_count: float, fs: dict) -> dict:
-    """Head count → wet tonnes/scenario using canonical t_per_head_yr."""
-    code = STREAM_TO_CANONICAL[stream]
-    factor = fs[code]["generation"]["t_per_head_yr"]
-    return {sc: head_count * float(factor[sc]) for sc in SCENARIOS}
+    """Head count → wet tonnes/scenario using canonical t_per_head_yr.
+
+    Delegates to canonical_loader. This used to read fs[code]["generation"]
+    directly, reaching past the loader — and because that made the conversion
+    private to this script, the map never performed it and rendered IBGE head
+    counts as tonnes. One accessor, so the two cannot diverge again.
+    """
+    rng = biomass_tons_from_units(stream, head_count)
+    return {sc: rng.get(sc) for sc in SCENARIOS}
 
 
 def _biomass_urban(stream: str, population: float, fs: dict) -> dict:
     """Population → wet tonnes/scenario using canonical t_per_capita_yr."""
-    code = STREAM_TO_CANONICAL[stream]
-    factor = fs[code]["generation"]["t_per_capita_yr"]
-    return {sc: population * float(factor[sc]) for sc in SCENARIOS}
+    rng = biomass_tons_from_units(stream, population)
+    return {sc: rng.get(sc) for sc in SCENARIOS}
 
 
 def _accumulate(
