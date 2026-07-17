@@ -35,6 +35,10 @@ services:
     volumes:
       # Bind-mount source — changes in your IDE are visible instantly
       - ./backend:/app
+      # feedstocks.yaml — single source of truth for every BMP/TS/VS/FDE value.
+      # It lives at <NewLook>/data/, and the bind above only exposes backend/,
+      # so without this the container has no canonical parameters at all.
+      - ./data/canonical_parameters:/app/data/canonical_parameters:ro
     ports:
       - "8000:8000"
     depends_on:
