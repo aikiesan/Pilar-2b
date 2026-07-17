@@ -123,6 +123,11 @@ async def get_municipalities_geojson(
         return v if v is not None else default
 
     features = []
+    # A systemic cause (e.g. feedstocks.yaml not reachable) fails on every row, so
+    # logging per-municipality buries the signal under thousands of identical lines.
+    # Count them and report once below.
+    canonical_failures = 0
+    first_canonical_error: Optional[str] = None
     for row in rows:
         ibge_code = str(_f(row, "ibge_code", ""))
         tb = float(_f(row, "total_biogas_m3_year"))
@@ -132,7 +137,9 @@ async def get_municipalities_geojson(
                 row, ibge_code=ibge_code
             ).to_flat_dict()
         except Exception as exc:
-            logger.warning("canonical metrics failed for %s: %s", ibge_code, exc)
+            canonical_failures += 1
+            if first_canonical_error is None:
+                first_canonical_error = f"{ibge_code}: {exc}"
             canonical_metrics = {}
         features.append(
             {
@@ -183,6 +190,16 @@ async def get_municipalities_geojson(
                     **canonical_metrics,
                 },
             }
+        )
+
+    if canonical_failures:
+        logger.error(
+            "canonical metrics failed for %d/%d municipalities (first: %s). Responses are "
+            "missing their biomass_/biogas_/biomethane_ properties; check GET /health for "
+            "canonical_parameters status.",
+            canonical_failures,
+            len(rows),
+            first_canonical_error,
         )
 
     logger.info(f"Returning {len(features)} municipalities from PostGIS")

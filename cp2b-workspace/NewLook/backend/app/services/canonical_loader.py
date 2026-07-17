@@ -13,15 +13,39 @@ usable before the availability factors are canonicalised.
 from __future__ import annotations
 
 import functools
+import os
 from pathlib import Path
 
 from app.services.biogas_forward import FeedstockParams, Range
 
-# <NewLook>/data/canonical_parameters/feedstocks.yaml
-# this file: <NewLook>/backend/app/services/canonical_loader.py → parents[3] = NewLook
-_FEEDSTOCKS_PATH = (
-    Path(__file__).resolve().parents[3] / "data" / "canonical_parameters" / "feedstocks.yaml"
-)
+# feedstocks.yaml sits at <NewLook>/data/, outside backend/, and how many parent
+# hops reach it depends on the runtime layout — no single parents[N] works for both:
+#
+#   repo checkout: <NewLook>/backend/app/services/  → parents[3] = <NewLook>
+#   Docker:        /app/app/services/               → parents[3] = /   (compose
+#                  binds ./backend as /app, so the tree is one level shallower)
+#
+# So resolve by looking, not by counting.
+_RELATIVE = Path("data") / "canonical_parameters" / "feedstocks.yaml"
+_PATH_ENV_VAR = "CANONICAL_PARAMETERS_PATH"
+
+
+def resolve_feedstocks_path() -> Path:
+    """Locate feedstocks.yaml across the repo and container layouts.
+
+    Falls back to the repo-layout path when nothing is found, so the resulting
+    error names the location a developer most likely expects.
+    """
+    override = os.environ.get(_PATH_ENV_VAR)
+    if override:
+        return Path(override)
+    here = Path(__file__).resolve()
+    for hop in (3, 2):  # 3 = repo checkout root; 2 = backend/, which is /app in Docker
+        candidate = here.parents[hop] / _RELATIVE
+        if candidate.is_file():
+            return candidate
+    return here.parents[3] / _RELATIVE
+
 
 # Aggregate stream key (as used in municipality data) → representative canonical
 # feedstock code. Mirrors SERVICE_LAYER_MAP in scripts/generate_from_canonical.py
@@ -51,7 +75,15 @@ def load_raw(path: str | None = None) -> dict:
     """Load and cache the raw feedstocks mapping from YAML."""
     import yaml  # imported lazily so non-canonical code paths don't require PyYAML
 
-    p = Path(path) if path else _FEEDSTOCKS_PATH
+    p = Path(path) if path else resolve_feedstocks_path()
+    if not p.is_file():
+        raise FileNotFoundError(
+            f"canonical parameters not found at {p}. feedstocks.yaml is the single "
+            "source of truth for every BMP/TS/VS/FDE value — without it no canonical "
+            "metric can be computed at all. In Docker, mount data/canonical_parameters "
+            "into the image (compose binds only backend/ as /app, so nothing under "
+            f"data/ is visible by default), or set {_PATH_ENV_VAR}."
+        )
     data = yaml.safe_load(p.read_text(encoding="utf-8"))
     return data["feedstocks"]
 

@@ -6,17 +6,90 @@ representative feedstock codes, defaults FDE to 1.0 when no availability block i
 present, and raises clearly on unknown codes/streams.
 """
 
+from pathlib import Path
+
 import pytest
 
 yaml = pytest.importorskip("yaml", reason="PyYAML required for canonical loader tests")
 
+from app.services import canonical_loader  # noqa: E402
 from app.services.biogas_forward import FeedstockParams, Range  # noqa: E402
 from app.services.canonical_loader import (  # noqa: E402
     STREAM_TO_CANONICAL,
     get_params,
     get_params_for_stream,
     load_raw,
+    resolve_feedstocks_path,
 )
+
+
+def _plant(services_dir: Path, yaml_root: Path) -> Path:
+    """Create a fake canonical_loader.py plus a feedstocks.yaml under yaml_root."""
+    services_dir.mkdir(parents=True, exist_ok=True)
+    module = services_dir / "canonical_loader.py"
+    module.touch()
+    target = yaml_root / "data" / "canonical_parameters" / "feedstocks.yaml"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text("feedstocks: {}\n", encoding="utf-8")
+    return module
+
+
+@pytest.mark.unit
+class TestResolveFeedstocksPath:
+    """feedstocks.yaml lives outside backend/, and how many parent hops reach it
+    depends on the runtime layout. Getting this wrong is silent: callers catch the
+    error per-municipality, so the map renders on legacy columns and only the
+    canonical properties vanish. These tests pin both layouts."""
+
+    @pytest.fixture(autouse=True)
+    def _clear(self, monkeypatch):
+        monkeypatch.delenv("CANONICAL_PARAMETERS_PATH", raising=False)
+        load_raw.cache_clear()
+        yield
+        load_raw.cache_clear()
+
+    def test_repo_layout_resolves(self, tmp_path, monkeypatch):
+        # <NewLook>/backend/app/services/canonical_loader.py -> parents[3] = <NewLook>
+        newlook = tmp_path / "NewLook"
+        module = _plant(newlook / "backend" / "app" / "services", newlook)
+        monkeypatch.setattr(canonical_loader, "__file__", str(module))
+
+        assert resolve_feedstocks_path() == newlook / "data" / "canonical_parameters" / (
+            "feedstocks.yaml"
+        )
+
+    def test_docker_layout_resolves(self, tmp_path, monkeypatch):
+        # Compose binds backend/ as /app, so the tree is one level shallower:
+        # /app/app/services/canonical_loader.py -> parents[2] = /app
+        app = tmp_path / "app"
+        module = _plant(app / "app" / "services", app)
+        monkeypatch.setattr(canonical_loader, "__file__", str(module))
+
+        assert resolve_feedstocks_path() == app / "data" / "canonical_parameters" / (
+            "feedstocks.yaml"
+        )
+
+    def test_env_override_wins(self, tmp_path, monkeypatch):
+        elsewhere = tmp_path / "somewhere" / "feedstocks.yaml"
+        monkeypatch.setenv("CANONICAL_PARAMETERS_PATH", str(elsewhere))
+
+        assert resolve_feedstocks_path() == elsewhere
+
+    def test_real_checkout_resolves(self):
+        """The unmocked module must find the file it actually ships with."""
+        assert resolve_feedstocks_path().is_file()
+
+    def test_missing_file_raises_with_actionable_message(self, tmp_path, monkeypatch):
+        # Nothing planted anywhere: the loader must fail loudly rather than return {}.
+        services = tmp_path / "nowhere" / "backend" / "app" / "services"
+        services.mkdir(parents=True)
+        module = services / "canonical_loader.py"
+        module.touch()
+        monkeypatch.setattr(canonical_loader, "__file__", str(module))
+
+        with pytest.raises(FileNotFoundError) as exc:
+            load_raw()
+        assert "CANONICAL_PARAMETERS_PATH" in str(exc.value)
 
 
 @pytest.mark.unit
