@@ -116,7 +116,9 @@ export default function MunicipalityProfilePanel({
             <div className="flex-1">
               <div className="flex items-center space-x-2 mb-1">
                 <MapPin className="w-4 h-4" />
-                <span className="text-xs font-medium opacity-80">Município de São Paulo</span>
+                <span className="text-xs font-medium opacity-80">
+                  {props.intermediate_region ? `Município · ${props.intermediate_region}` : 'Município'}
+                </span>
               </div>
               <h2 className="text-xl font-bold mb-1">{props.name}</h2>
               <div className="flex items-center space-x-4 text-sm opacity-90">
