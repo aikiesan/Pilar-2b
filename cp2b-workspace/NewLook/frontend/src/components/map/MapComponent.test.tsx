@@ -467,14 +467,14 @@ describe('MapComponent', () => {
       act(() => { jest.advanceTimersByTime(1500); });
 
       await waitFor(() => {
-        expect(screen.queryByTestId('infrastructure-layer-biogas-plants')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('infrastructure-layer-biogas_plant')).not.toBeInTheDocument();
       });
 
-      const biogasToggle = await waitFor(() => screen.getByTestId('layer-toggle-biogas-plants'));
+      const biogasToggle = await waitFor(() => screen.getByTestId('layer-toggle-biogas_plant'));
       await user.click(biogasToggle);
 
       await waitFor(() => {
-        expect(screen.getByTestId('infrastructure-layer-biogas-plants')).toBeInTheDocument();
+        expect(screen.getByTestId('infrastructure-layer-biogas_plant')).toBeInTheDocument();
         expect(screen.getByTestId('biomass-layer-legend')).toBeInTheDocument();
       });
     });
@@ -484,18 +484,18 @@ describe('MapComponent', () => {
       render(<MapComponent />);
       act(() => { jest.advanceTimersByTime(1500); });
 
-      const pipelinesToggle = await waitFor(() => screen.getByTestId('layer-toggle-pipelines'));
+      const pipelinesToggle = await waitFor(() => screen.getByTestId('layer-toggle-gas_pipeline_transport'));
       await user.click(pipelinesToggle);
 
       await waitFor(() => {
-        expect(screen.getByTestId('infrastructure-layer-pipelines')).toBeInTheDocument();
+        expect(screen.getByTestId('infrastructure-layer-gas_pipeline_transport')).toBeInTheDocument();
       });
 
-      const substationsToggle = await waitFor(() => screen.getByTestId('layer-toggle-substations'));
+      const substationsToggle = await waitFor(() => screen.getByTestId('layer-toggle-substation'));
       await user.click(substationsToggle);
 
       await waitFor(() => {
-        expect(screen.getByTestId('infrastructure-layer-substations')).toBeInTheDocument();
+        expect(screen.getByTestId('infrastructure-layer-substation')).toBeInTheDocument();
       });
     });
 

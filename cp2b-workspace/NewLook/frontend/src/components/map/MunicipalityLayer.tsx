@@ -8,13 +8,14 @@
 import React, { useCallback, useRef } from 'react';
 import { GeoJSON } from 'react-leaflet';
 import type { GeoJsonObject, Feature } from 'geojson';
-import type { MunicipalityCollection, MunicipalityFeature, DisplayMetric } from '@/types/geospatial';
+import type { MunicipalityCollection, MunicipalityFeature, MunicipalityProperties, DisplayMetric } from '@/types/geospatial';
 import type { ColorMode } from '@/types/geospatial';
 import type { BiomassType, ResidueType } from './FloatingControlPanel';
 import MunicipalityPopup from '../dashboard/MunicipalityPopup';
 import L from 'leaflet';
 import { createRoot } from 'react-dom/client';
-import { getBiomassTonsByType, getResidueBiomassTons } from '@/lib/biomassAvailability';
+import { getBiomassMapValue, getBiogasScenarioValue, type MapValue } from '@/lib/mapValues';
+import type { MapScenarioKey } from '@/data/scenarioFactors';
 
 interface MunicipalityLayerProps {
   data: MunicipalityCollection;
@@ -65,6 +66,19 @@ const getColorForBiomassTons = (value: number): string => {
 const getColorForValue = (value: number, metric: DisplayMetric = 'biogas_m3'): string =>
   metric === 'biomass_tons' ? getColorForBiomassTons(value) : getColorForBiogas(value);
 
+// "No data" is not the bottom of the ramp. A distinct medium grey (well clear of
+// both the YlGnBu ramp and the near-white zero swatch) says "we never loaded this
+// municipality", so a data gap can never be misread as a low value — the whole
+// reason the API stopped coercing null to 0 (migration 025). The legend labels it.
+export const NO_DATA_FILL = '#cbd5e1';
+const NO_DATA_STYLE = {
+  fillColor: NO_DATA_FILL,
+  weight: 0.5,
+  opacity: 0.5,
+  color: '#94a3b8',
+  fillOpacity: 0.55,
+} as const;
+
 export default function MunicipalityLayer({
   data,
   opacity = 0.7,
@@ -77,8 +91,6 @@ export default function MunicipalityLayer({
   onMunicipalityHover,
 }: MunicipalityLayerProps) {
 
-  const suffix = displayMetric === 'biomass_tons' ? 'biomass_tons_year' : 'biogas_m3_year';
-
   // Opacity changes (the slider — the most frequent map interaction) restyle
   // the existing layer via react-leaflet's setStyle instead of remounting all
   // polygons: `opacity` is deliberately NOT in the <GeoJSON> key below, and a
@@ -88,33 +100,13 @@ export default function MunicipalityLayer({
   const opacityRef = useRef(opacity);
   opacityRef.current = opacity;
 
-  // Get display value based on selected residues or biomass type
-  const getBiogasValue = (props: any): number => {
-    if (displayMetric === 'biomass_tons') {
-      if (selectedResidues.length > 0) {
-        return selectedResidues.reduce(
-          (sum, residue) => sum + getResidueBiomassTons(props, residue),
-          0
-        );
-      }
-
-      return getBiomassTonsByType(props, biomassType);
-    }
-
-    if (selectedResidues.length > 0) {
-      return selectedResidues.reduce((sum, residue) => {
-        const val = Number(props[`${residue}_${suffix}`]) || 0;
-        return sum + val;
-      }, 0);
-    }
-    switch (biomassType) {
-      case 'agricultural': return Number(props[`agricultural_${suffix}`]) || 0;
-      case 'livestock':    return Number(props[`livestock_${suffix}`])    || 0;
-      case 'urban':        return Number(props[`urban_${suffix}`])        || 0;
-      case 'total':
-      default:             return Number(props[`total_${suffix}`])        || 0;
-    }
-  };
+  // Display value + coverage. Biomass reads served per-sector tonnage; biogas reads
+  // the canonical municipality total at the chosen scenario. Both preserve null so
+  // the style can render no_data distinctly instead of as a zero.
+  const getMapValue = (props: MunicipalityProperties): MapValue =>
+    displayMetric === 'biomass_tons'
+      ? getBiomassMapValue(props, biomassType, selectedResidues)
+      : getBiogasScenarioValue(props, mapScenario as MapScenarioKey);
 
   // Style function for polygons (choropleth). Memoized so its identity only
   // changes when the visual inputs change — react-leaflet calls setStyle on
@@ -123,23 +115,38 @@ export default function MunicipalityLayer({
   const style = useCallback((feature?: Feature) => {
     if (!feature || !feature.properties) return {};
 
-    const fillColor = colorMode === 'cluster'
-      ? getColorForCluster((feature.properties as any).cluster_id)
-      : getColorForValue(getBiogasValue(feature.properties), displayMetric);
+    if (colorMode === 'cluster') {
+      return {
+        fillColor: getColorForCluster((feature.properties as any).cluster_id),
+        weight: 1,
+        opacity: 0.8,
+        color: '#666666',
+        fillOpacity: opacity,
+      };
+    }
+
+    const { value, coverage } = getMapValue(feature.properties as MunicipalityProperties);
+    // no_data is rendered as a distinct grey, never as a ramp value. This is where
+    // the backend's null/coverage distinction becomes visible on the map.
+    if (value === null || coverage === 'no_data') {
+      return { ...NO_DATA_STYLE };
+    }
 
     return {
-      fillColor,
+      fillColor: getColorForValue(value, displayMetric),
       weight: 1,
       opacity: 0.8,
       color: '#666666',
       fillOpacity: opacity,
     };
-    // getBiogasValue is recreated per render but only depends on the deps
-    // listed here, so listing them directly keeps the identity stable.
-  }, [colorMode, displayMetric, biomassType, selectedResidues, opacity]);
+    // getMapValue is recreated per render but only depends on the deps listed here,
+    // so listing them directly keeps the identity stable.
+  }, [colorMode, displayMetric, biomassType, selectedResidues, mapScenario, opacity]);
 
-  // Format biogas value for display
-  const formatBiogas = (value: number): string => {
+  // Format a value for display. null -> "sem dados" so the tooltip never shows a
+  // fabricated 0 for a municipality we have no data for.
+  const formatBiogas = (value: number | null): string => {
+    if (value === null) return 'sem dados';
     if (value >= 1000000000) return `${(value / 1000000000).toFixed(1)}B`;
     if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`;
     if (value >= 1000) return `${(value / 1000).toFixed(1)}K`;
@@ -182,7 +189,7 @@ export default function MunicipalityLayer({
     if (!feature || !feature.properties) return;
 
     const props = feature.properties;
-    const biogasValue = getBiogasValue(props);
+    const biogasValue = getMapValue(props).value;
     const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
 
     // Tooltip (hover) — only bind HTML tooltip when no hover handler (mobile fallback)
@@ -251,9 +258,17 @@ export default function MunicipalityLayer({
         },
         mouseout: (e) => {
           const target = e.target;
+          if (colorMode !== 'cluster') {
+            const { value, coverage } = getMapValue(feature.properties as MunicipalityProperties);
+            if (value === null || coverage === 'no_data') {
+              target.setStyle(NO_DATA_STYLE);
+              if (onMunicipalityHover) onMunicipalityHover(null);
+              return;
+            }
+          }
           const resetColor = colorMode === 'cluster'
             ? getColorForCluster((feature.properties as any).cluster_id)
-            : getColorForValue(getBiogasValue(feature.properties), displayMetric);
+            : getColorForValue(getMapValue(feature.properties as MunicipalityProperties).value ?? 0, displayMetric);
           target.setStyle({
             weight: 1,
             color: '#666666',

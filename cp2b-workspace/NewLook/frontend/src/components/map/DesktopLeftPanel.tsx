@@ -590,7 +590,7 @@ export default function DesktopLeftPanel({
       <div className="flex items-center border-b border-gray-100 flex-shrink-0 h-12 px-2">
         {!collapsed && (
           <span className="text-sm font-semibold text-gray-700 truncate flex-1 px-1">
-            Biomassa SP
+            Biomassa Brasil
           </span>
         )}
         <button

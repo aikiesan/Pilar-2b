@@ -19,9 +19,24 @@ export type InfrastructureLayerStatus = {
   featureCount?: number;
 };
 
+// Hyphenated ids are the legacy São Paulo shapefile layers; snake_case ids are
+// the national PostGIS layers (migration 023 / MapBiomas 10.1 INFRAESTRUTURA).
+// The id shape is what useInfrastructureLayer routes on, so keep them distinct.
+type LegacySpLayer =
+  | 'railways' | 'pipelines' | 'substations' | 'biogas-plants'
+  | 'transmission-lines' | 'etes'
+  | 'admin-regions' | 'intermediate-regions' | 'immediate-regions';
+
+type NationalLayer =
+  | 'biogas_plant' | 'biodiesel_plant' | 'ethanol_plant' | 'slaughterhouse'
+  | 'biomass_thermal_plant' | 'substation' | 'transmission_line'
+  | 'gas_pipeline_transport' | 'gas_pipeline_distribution';
+
 interface InfrastructureLayerProps {
-  layerType: 'railways' | 'pipelines' | 'substations' | 'biogas-plants' | 'transmission-lines' | 'etes' | 'admin-regions' | 'intermediate-regions' | 'immediate-regions';
+  layerType: LegacySpLayer | NationalLayer;
   onStatus?: (status: InfrastructureLayerStatus) => void;
+  /** Server-side UF filter; national layers only. */
+  uf?: string;
 }
 
 // Layer styling configurations
@@ -71,10 +86,60 @@ const layerStyles: Record<string, any> = {
   },
   etes: {
     // Point features use markers instead of styles
-  }
+  },
+
+  // ── National layers (migration 023) ──────────────────────────────────────
+  // Line layers need a style; the point layers below fall through to markers.
+  transmission_line: {
+    color: '#FFD700',
+    weight: 2,
+    opacity: 0.7,
+    dashArray: '5, 5'
+  },
+  gas_pipeline_transport: {
+    color: '#FF6B35',
+    weight: 3,
+    opacity: 0.8
+  },
+  gas_pipeline_distribution: {
+    color: '#FFA07A',
+    weight: 2,
+    opacity: 0.8,
+    dashArray: '4, 4'
+  },
+  biogas_plant: {},
+  biodiesel_plant: {},
+  ethanol_plant: {},
+  slaughterhouse: {},
+  biomass_thermal_plant: {},
+  substation: {}
 };
 
 // Custom icons for point features
+// Slaughterhouses are a national layer (frigorificos, 207 sites): they mark
+// concentrated livestock-residue supply, so they matter for co-location.
+const createSlaughterhouseIcon = () => {
+  return L.divIcon({
+    className: 'custom-slaughterhouse-icon',
+    html: `
+      <div style="
+        background-color: #B22222;
+        border: 2px solid #7F1414;
+        border-radius: 50%;
+        width: 16px;
+        height: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      ">
+        <span style="color: #fff; font-size: 10px; font-weight: bold;">🥩</span>
+      </div>
+    `,
+    iconSize: [16, 16],
+    iconAnchor: [8, 8]
+  });
+};
+
 const createSubstationIcon = () => {
   return L.divIcon({
     className: 'custom-substation-icon',
@@ -277,8 +342,19 @@ export default function InfrastructureLayer({ layerType, onStatus }: Infrastruct
   const pointToLayer = (feature: any, latlng: L.LatLng) => {
     let icon: L.DivIcon;
 
-    if (layerType === 'substations') {
+    if (layerType === 'substations' || layerType === 'substation') {
       icon = createSubstationIcon();
+    } else if (layerType === 'biogas_plant') {
+      // National layer: one icon per layer, since the layer itself is the type.
+      icon = createBiogasPlantIcon();
+    } else if (layerType === 'ethanol_plant') {
+      icon = createEthanolPlantIcon();
+    } else if (layerType === 'biomass_thermal_plant') {
+      icon = createBiomassUTEIcon();
+    } else if (layerType === 'biodiesel_plant') {
+      icon = createBiomethaneIcon();
+    } else if (layerType === 'slaughterhouse') {
+      icon = createSlaughterhouseIcon();
     } else if (layerType === 'biogas-plants') {
       // Differentiate biomass plants by type
       const props = feature.properties;

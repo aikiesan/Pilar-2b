@@ -186,6 +186,32 @@ class TestCanonicalIntegration:
         assert sm.has_biomass is False
         assert sm.biogas_ch4_m3["medio"] > 0
 
+    def test_biomass_override_ignores_the_head_count_column(self):
+        """Livestock columns hold head counts. With an override, biogas potential
+        is computed from real tonnage, not the head count read as tonnes."""
+        from app.services.canonical_loader import get_params_for_stream
+
+        # Column says 205,686,533 (birds). Real manure tonnage is ~9.26M.
+        row = {"poultry_biomass_tons_year": 205_686_533}
+        params = get_params_for_stream("poultry")
+
+        from_column = compute_stream_metrics("poultry", row, params)
+        from_override = compute_stream_metrics("poultry", row, params, biomass_override=9_255_894.0)
+        assert from_override.biomass_gross == 9_255_894.0
+        # The override yields ~22x less biogas than the head count would.
+        assert from_override.biogas_ch4_m3["medio"] < from_column.biogas_ch4_m3["medio"] / 10
+
+    def test_override_makes_a_zero_column_stream_computable(self):
+        """Outside SP the columns are 0, so without an override no metric exists.
+        The override is what makes biogas potential national."""
+        from app.services.canonical_loader import get_params_for_stream
+
+        row = {"cattle_biomass_tons_year": 0}
+        params = get_params_for_stream("cattle")
+        assert compute_stream_metrics("cattle", row, params) is None
+        sm = compute_stream_metrics("cattle", row, params, biomass_override=40_000.0)
+        assert sm is not None and sm.biogas_ch4_m3["medio"] > 0
+
     def test_params_availability_lt_one(self):
         """All canonical streams with FDE blocks must have availability < 1."""
         from app.services.canonical_loader import get_params_for_stream

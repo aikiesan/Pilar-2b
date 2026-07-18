@@ -89,10 +89,17 @@ export class MapPage {
     // Wait for at least one tile to load
     await this.page.waitForSelector('.leaflet-tile-loaded', { timeout: 30000 })
 
-    // Wait for any loading spinners to disappear
+    // A lingering *data* spinner (the municipality fetch) must not block or fail
+    // map-load: when the API is unreachable — e.g. CI's localhost frontend hitting
+    // the CORS-blocked production backend — the spinner never clears. The map
+    // itself is already rendered (container + tiles above), so cap the wait short
+    // and treat a timeout as non-fatal instead of burning 30s per test.
     const spinner = this.page.locator('[class*="animate-spin"]:visible')
     if ((await spinner.count()) > 0) {
-      await spinner.first().waitFor({ state: 'hidden', timeout: 30000 })
+      await spinner
+        .first()
+        .waitFor({ state: 'hidden', timeout: 5000 })
+        .catch(() => {})
     }
   }
 

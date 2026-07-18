@@ -78,7 +78,7 @@ export default function MapLoadingSkeleton() {
               </div>
 
               <p className="text-sm text-gray-500 dark:text-gray-500">
-                645 municípios de São Paulo
+                5.571 municípios do Brasil
               </p>
             </div>
 

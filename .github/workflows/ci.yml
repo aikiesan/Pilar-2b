@@ -74,7 +74,7 @@ jobs:
   frontend-e2e:
     name: Frontend - E2E Tests
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: ./cp2b-workspace/NewLook/frontend

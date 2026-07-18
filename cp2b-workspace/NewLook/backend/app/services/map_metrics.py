@@ -163,15 +163,26 @@ def compute_stream_metrics(
     stream: str,
     row: Mapping[str, Any],
     params: FeedstockParams,
+    *,
+    biomass_override: float | None = None,
 ) -> StreamMetrics | None:
     """Compute metrics for one stream at one municipality.
 
     Returns None if no data (both biomass and biogas are absent/zero).
+
+    `biomass_override` supplies tonnage that is not in a stored column — livestock
+    and urban, whose columns hold head counts/are empty. When given, it is used as
+    the gross biomass instead of the column, so biogas potential is computed from
+    real tonnage rather than a head count read as tonnes. See the endpoint's
+    _derive_activity_biomass / canonical_loader.biomass_tons_from_units.
     """
     biomass_field = f"{stream}_biomass_tons_year"
     biogas_field = f"{stream}_biogas_m3_year"
 
-    biomass_tons = number_value(row.get(biomass_field))
+    if biomass_override is not None:
+        biomass_tons = biomass_override
+    else:
+        biomass_tons = number_value(row.get(biomass_field))
     biogas_m3 = number_value(row.get(biogas_field))
 
     if biomass_tons <= 0 and biogas_m3 <= 0:
@@ -206,14 +217,21 @@ def compute_municipality_map_metrics(
     *,
     ibge_code: str = "",
     streams: tuple[str, ...] = ALL_STREAMS,
+    derived_tons: Mapping[str, float] | None = None,
 ) -> MunicipalityMapMetrics:
     """Compute 4-metric × 3-scenario metrics for all streams at one municipality.
+
+    `derived_tons` maps stream -> gross tonnage for streams not held in a stored
+    column (livestock from head counts, urban from population). Passing it makes
+    biogas potential national and correct; without it, livestock streams fall back
+    to their columns, which hold head counts and yield inflated biogas.
 
     Lazy-imports canonical loader to keep this module lightweight and testable
     without requiring the YAML file to be present in all environments.
     """
     from app.services.canonical_loader import get_params_for_stream
 
+    derived_tons = derived_tons or {}
     metrics = MunicipalityMapMetrics(ibge_code=ibge_code)
 
     for stream in streams:
@@ -222,7 +240,7 @@ def compute_municipality_map_metrics(
         except KeyError:
             continue  # stream has no canonical mapping (e.g. aquaculture placeholder)
 
-        sm = compute_stream_metrics(stream, row, params)
+        sm = compute_stream_metrics(stream, row, params, biomass_override=derived_tons.get(stream))
         if sm is None:
             continue
 

@@ -339,40 +339,43 @@ async def analyze_proximity(request: ProximityAnalysisRequest):
 @router.get(
     "/validate-point",
     summary="Validate Analysis Point",
-    description="Check if a point is within São Paulo state bounds",
+    description="Check if a point is within Brazil's national bounds",
 )
 async def validate_point(
     latitude: float = Query(..., ge=-90, le=90), longitude: float = Query(..., ge=-180, le=180)
 ):
     """
-    Validate if a point is within São Paulo state and suitable for analysis.
+    Validate if a point is within Brazil and suitable for analysis.
 
     Returns validation status and any warnings.
     """
-    # São Paulo state approximate bounds
-    SP_BOUNDS = {"min_lat": -25.3, "max_lat": -19.8, "min_lng": -53.1, "max_lng": -44.2}
+    # Brazil's extreme points (IBGE): Monte Caburaí/RR (N), Arroio Chuí/RS (S),
+    # Ponta do Seixas/PB (E), Serra do Divisor/AC (W). This replaces the former
+    # São Paulo-only gate (roadmap §3.1 limit #4 — single-state assumptions).
+    #
+    # A national bbox necessarily contains open Atlantic, so it cannot separate
+    # land from sea the way the old SP-coast heuristic attempted to. The
+    # authoritative check is point-in-municipality (ST_Contains against
+    # municipalities.geometry) — wire that here once the national mesh is loaded.
+    BR_BOUNDS = {"min_lat": -33.76, "max_lat": 5.28, "min_lng": -73.99, "max_lng": -34.79}
 
-    within_sp = (
-        SP_BOUNDS["min_lat"] <= latitude <= SP_BOUNDS["max_lat"]
-        and SP_BOUNDS["min_lng"] <= longitude <= SP_BOUNDS["max_lng"]
+    within_br = (
+        BR_BOUNDS["min_lat"] <= latitude <= BR_BOUNDS["max_lat"]
+        and BR_BOUNDS["min_lng"] <= longitude <= BR_BOUNDS["max_lng"]
     )
 
     warnings = []
 
-    if not within_sp:
-        warnings.append("Ponto fora dos limites do Estado de São Paulo")
-
-    # Check for ocean/coastal areas (rough check)
-    if longitude > -44.5 and latitude > -24:
-        warnings.append("Ponto possivelmente em área oceânica")
+    if not within_br:
+        warnings.append("Ponto fora dos limites do Brasil")
 
     return {
-        "valid": within_sp,
+        "valid": within_br,
         "latitude": latitude,
         "longitude": longitude,
-        "within_sao_paulo": within_sp,
+        "within_brazil": within_br,
         "warnings": warnings,
-        "bounds": SP_BOUNDS,
+        "bounds": BR_BOUNDS,
     }
 
 

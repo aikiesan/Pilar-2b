@@ -333,3 +333,38 @@ class TestDataIntegrity:
             # Should have reasonable precision (not more than 4 decimal places needed)
             assert isinstance(lat, (int, float))
             assert isinstance(lng, (int, float))
+
+
+@pytest.mark.unit
+class TestDeriveActivityBiomass:
+    """The endpoint helper that turns PPM head counts and population into tonnes.
+
+    This is the step the map was missing: without it, livestock columns (head
+    counts) were served as tonnes. See canonical_loader.biomass_tons_from_units.
+    """
+
+    def test_head_and_population_become_estimated_tonnes(self):
+        from app.api.v1.endpoints.municipalities import _derive_activity_biomass
+
+        tons, prov = _derive_activity_biomass(
+            head={"cattle": 10_756_815, "poultry": 205_686_533}, population=44_411_238
+        )
+        # Poultry must not come back as its bird count.
+        assert tons["poultry"] < 205_686_533 / 10
+        assert tons["cattle"] > tons["poultry"]  # fewer cattle, but far more per head
+        assert prov["cattle"] == "estimated"
+        assert set(("rsu", "rpo")) <= set(tons)  # urban modelled from population
+        assert prov["rsu"] == "estimated"
+
+    def test_no_population_means_no_urban(self):
+        from app.api.v1.endpoints.municipalities import _derive_activity_biomass
+
+        tons, prov = _derive_activity_biomass(head={"cattle": 1000}, population=None)
+        assert "cattle" in tons
+        assert "rsu" not in tons and "rpo" not in tons
+
+    def test_empty_activity_yields_nothing(self):
+        from app.api.v1.endpoints.municipalities import _derive_activity_biomass
+
+        tons, prov = _derive_activity_biomass(head={}, population=0)
+        assert tons == {} and prov == {}
