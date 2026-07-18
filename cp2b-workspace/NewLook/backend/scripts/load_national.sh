@@ -137,10 +137,14 @@ say "Promoting SNIS (urban waste + sewage + population)"
 pyrun scripts/promote_snis.py --years 2008-2022 "${DRY[@]}"
 
 # ── 6. Intermediate regions (CSV is in git) ──────────────────────────────────
+# The intermediate_regions table lives in backend/migrations/007 (a different
+# dir than app/migrations/, so the loop above does not create it). It is
+# idempotent (IF NOT EXISTS), so applying it here is safe on a re-run.
 say "Loading intermediate regions"
 if [[ "$MODE" == "dry" ]]; then
-  DRY_RUN=true pyrun scripts/load_national_intermediate_data.py
+  ok "dry-run: skipping intermediate-regions migration + load"
 else
+  psql_file backend/migrations/007_intermediate_regions.sql
   pyrun scripts/load_national_intermediate_data.py
 fi
 

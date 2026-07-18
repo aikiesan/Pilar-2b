@@ -234,20 +234,37 @@ Test layers, mapped to the existing suites:
   `INGESTION_GUIDE.md`, PR template with data-lineage checklist). **Remaining
   July part:** run it on the real SIGA snapshot → `validation_plants`
   (closes the P0 flag), which requires the data — first week back.
+- ✅ *(done early, #147 + #148)* **National spine pulled forward from August:**
+  5,571-municipality mesh + livestock (IBGE PPM) and urban-waste (SNIS)
+  national biomass + derived biogas, coverage-aware map, canonical head→tonnes
+  fix (livestock was ~4.2× too high), turnkey local-load runbook. See the
+  August block for the full item list.
 - **Exit criteria:** #137 + dependabot merged, main green; ANEEL ingested &
   validated; discrepancy notes merged; zoom no longer stutters on SP data.
 
-### August 2026 — National spine + core sources
-- Migration 021: `states`, national `municipalities` (5,570), `uf`/RGint keys;
-  national shapefile/geobr geometry import at 2 simplification levels.
-- Seeded national test DB (fixtures for CI) → **re-harden E2E gate** and
-  backend integration tests against it.
-- Ingest under the contract: **IBGE PAM 2023 national**, **Censo Agro/PPM
-  livestock national**, **SNIS national**.
-- First national choropleth behind a feature flag (Leaflet, RGint level only —
-  133 polygons render fine pre-MapLibre).
-- **Exit criteria:** national spine tables live; 3 national sources promoted
-  with reports; E2E hard gate again; RGint national map demo.
+### August 2026 — National spine + core sources — *pulled forward into July*
+
+Most of this block landed early via **PR #147 + #148** (merged 2026-07):
+
+- ✅ *(done early, #148)* Migrations 021–025: `states`, national
+  `municipalities` (5,571), `uf`/RGint keys, geometry LOD (022), infrastructure
+  (023), `municipality_timeseries` (024), biomass provenance/coverage (025).
+  National mesh seeded from IBGE Malha Municipal Digital 2025.
+- ✅ *(done early, #148)* Ingest under the contract: **IBGE PPM livestock
+  national** and **SNIS national** promoted into `municipality_timeseries`;
+  biogas potential derived nationally at read time; "no data" is now a
+  first-class, visible state (not a silent zero).
+- ✅ *(done early, #148)* First national choropleth — 5,571 municipalities
+  render coverage-aware (Leaflet, pre-MapLibre); local-load runbook +
+  orchestrator (`scripts/load_national.sh`, `docs/NATIONAL_DATA_LOAD.md`).
+- ☐ **IBGE PAM 2023 national (crops)** — the one remaining core source;
+  agriculture is still SP-only until this lands (~77% of potential). Next up.
+- ☐ Seeded national test DB (fixtures for CI) → **re-harden E2E gate** and
+  backend integration tests against it. (E2E runtime already cut — the
+  30-min timeout was fixed in #148.)
+- **Exit criteria:** ~~national spine tables live; 3 national sources~~ →
+  **2 of 3 sources promoted** (livestock + urban done; PAM/crops remaining);
+  E2E hard gate once the seeded DB exists.
 
 ### September 2026 — Rendering at scale (MapLibre + tiles)
 - Tile build pipeline (PostGIS → tippecanoe → PMTiles per layer-year), served
@@ -308,12 +325,12 @@ this file (edit the table in place — it is the scoreboard):
 
 | Indicator | Baseline (2026-07-03) | Jul | Aug | Sep | Oct | Nov | Dec target |
 |---|---|---|---|---|---|---|---|
-| Sources promoted through the contract (of 14 in §4) | 0 | | | | | | ≥ 10 |
+| Sources promoted through the contract (of 14 in §4) | 0 | 2 (PPM, SNIS) | | | | | ≥ 10 |
 | METADATA.json `VERIFY` placeholders | >10 | | | | | | **0** |
-| Municipalities with a biomass profile | 645 | | | | | | 5,570 |
-| Backend tests passing / coverage | 1,028 / 60.98% | | | | | | grow / ≥ 65% |
-| Frontend tests passing | 597 | | | | | | grow |
-| Hard CI gates (of 9 jobs) | 7 (E2E, Bandit soft) | | | | | | 9 |
+| Municipalities with a biomass profile | 645 | 5,571 (livestock+urban; crops SP-only) | | | | | 5,570 |
+| Backend tests passing / coverage | 1,028 / 60.98% | 948 (#148) | | | | | grow / ≥ 65% |
+| Frontend tests passing | 597 | 599 | | | | | grow |
+| Hard CI gates (of 9 jobs) | 7 (E2E, Bandit soft) | 7 | | | | | 9 |
 | Map: municipal layer render path | GeoJSON+SVG | | | | | | PMTiles+MapLibre |
 | Map zoom (national dataset) | n/a (SP only) | | | | | | ≥ 30 fps |
 | Filter-change latency on the map | full remount | | | | | | < 100 ms |
