@@ -247,13 +247,9 @@ async def get_municipalities_geojson(
             rows = cursor.fetchall()
             page_ibge = [str(r["ibge_code"]) for r in rows]
             has_provenance = _table_exists(cursor, "municipality_biomass_provenance")
-            provenance = (
-                _load_biomass_provenance(cursor, page_ibge) if has_provenance else {}
-            )
+            provenance = _load_biomass_provenance(cursor, page_ibge) if has_provenance else {}
             has_timeseries = _table_exists(cursor, "municipality_timeseries")
-            activity_counts = (
-                _load_activity_counts(cursor, page_ibge) if has_timeseries else {}
-            )
+            activity_counts = _load_activity_counts(cursor, page_ibge) if has_timeseries else {}
             cursor.close()
     except Exception as e:
         logger.error(f"Error fetching municipalities GeoJSON: {e}")

@@ -90,9 +90,9 @@ class TestPhysicalPlausibility:
         f = get_generation_for_stream("poultry").per_unit_yr
         for scenario, value in (("min", f.min), ("medio", f.medio), ("max", f.max)):
             kg_day = _kg_per_day(value)
-            assert POULTRY_KG_DAY_MIN <= kg_day <= POULTRY_KG_DAY_MAX, (
-                f"poultry {scenario} = {kg_day:.2f} kg/bird/day; a hen weighs ~2 kg"
-            )
+            assert (
+                POULTRY_KG_DAY_MIN <= kg_day <= POULTRY_KG_DAY_MAX
+            ), f"poultry {scenario} = {kg_day:.2f} kg/bird/day; a hen weighs ~2 kg"
 
     def test_a_head_count_is_not_a_tonnage(self):
         """If any factor ever drifts to ~1.0 t/head/yr, head counts and tonnes

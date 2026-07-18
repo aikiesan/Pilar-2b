@@ -241,12 +241,16 @@ def main() -> int:
                 )
                 total, with_muni = cur.fetchone()
             conn.commit()
-            print(f"{'':26s}   -> stored {total}, municipality-keyed {with_muni} "
-                  f"(contains={resolved}, snapped<={SNAP_TOLERANCE_M}m={snapped})")
+            print(
+                f"{'':26s}   -> stored {total}, municipality-keyed {with_muni} "
+                f"(contains={resolved}, snapped<={SNAP_TOLERANCE_M}m={snapped})"
+            )
             for name, nearest, km, claims in suspects:
-                print(f"{'':26s}   !! UNRESOLVED {name!r}: {km} km from {nearest}"
-                      f"{f', source claims {claims!r}' if claims else ''}"
-                      " — suspect source coordinate")
+                print(
+                    f"{'':26s}   !! UNRESOLVED {name!r}: {km} km from {nearest}"
+                    f"{f', source claims {claims!r}' if claims else ''}"
+                    " — suspect source coordinate"
+                )
         if args.dry_run:
             print("\n[dry-run] nothing written")
     finally:

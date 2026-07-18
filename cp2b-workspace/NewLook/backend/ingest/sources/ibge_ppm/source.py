@@ -419,9 +419,7 @@ def _fish_method_gate(year: int, raw_dir: Path, df: pd.DataFrame) -> GateResult:
     if not raw:
         return GateResult("fish-total-method", True, f"{year}: table 3940 has no data (pre-2013)")
 
-    published = sum(
-        v for cells in raw.values() if (v := cells.get(FISH_DIRECT_COLUMN)) is not None
-    )
+    published = sum(v for cells in raw.values() if (v := cells.get(FISH_DIRECT_COLUMN)) is not None)
     summed = float(pd.to_numeric(df.get(FISH_VARIABLE), errors="coerce").fillna(0).sum())
 
     if published > 0:

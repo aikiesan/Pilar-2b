@@ -196,9 +196,7 @@ class TestCanonicalIntegration:
         params = get_params_for_stream("poultry")
 
         from_column = compute_stream_metrics("poultry", row, params)
-        from_override = compute_stream_metrics(
-            "poultry", row, params, biomass_override=9_255_894.0
-        )
+        from_override = compute_stream_metrics("poultry", row, params, biomass_override=9_255_894.0)
         assert from_override.biomass_gross == 9_255_894.0
         # The override yields ~22x less biogas than the head count would.
         assert from_override.biogas_ch4_m3["medio"] < from_column.biogas_ch4_m3["medio"] / 10

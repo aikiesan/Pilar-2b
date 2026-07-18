@@ -309,7 +309,7 @@ export default function MapComponent({
       });
     }
     if (layerId === 'mapbiomas') setShowMapBiomasLegend(visible);
-    if (layerId === 'biogas-plants') setShowBiomassLayerLegend(visible);
+    if (layerId === 'biogas_plant') setShowBiomassLayerLegend(visible);
     if (layerId === 'intermediate-regions') {
       setIntermediateRegionsEnabled(visible);
       if (visible) setMapScope('brazil');

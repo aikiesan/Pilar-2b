@@ -142,7 +142,9 @@ def main() -> int:
                     (snis.SPEC.source_id,),
                 )
                 n, muni, var, y0, y1 = cur.fetchone()
-                print(f"\npromoted: {n:,} rows | {muni:,} municipalities | {var} variables | {y0}-{y1}")
+                print(
+                    f"\npromoted: {n:,} rows | {muni:,} municipalities | {var} variables | {y0}-{y1}"
+                )
     finally:
         conn.close()
     return 0

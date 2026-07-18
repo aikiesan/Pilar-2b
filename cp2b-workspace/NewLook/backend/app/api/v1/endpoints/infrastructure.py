@@ -253,8 +253,7 @@ async def list_infrastructure_layers() -> Dict[str, Any]:
     try:
         with get_db() as conn:
             cur = conn.cursor()
-            cur.execute(
-                """
+            cur.execute("""
                 SELECT layer_id,
                        count(*)                     AS features,
                        count(ibge_code)             AS municipality_keyed,
@@ -263,8 +262,7 @@ async def list_infrastructure_layers() -> Dict[str, Any]:
                 FROM infrastructure_features
                 GROUP BY layer_id
                 ORDER BY layer_id
-                """
-            )
+                """)
             rows = cur.fetchall()
             cur.close()
     except Exception as e:
@@ -285,7 +283,9 @@ async def list_infrastructure_layers() -> Dict[str, Any]:
 )
 async def get_infrastructure_layer_geojson(
     layer_id: str,
-    uf: Optional[str] = Query(None, min_length=2, max_length=2, description="Filter by UF, e.g. SP"),
+    uf: Optional[str] = Query(
+        None, min_length=2, max_length=2, description="Filter by UF, e.g. SP"
+    ),
     bbox: Optional[str] = Query(None, description="'min_lng,min_lat,max_lng,max_lat' (EPSG:4326)"),
     limit: Optional[int] = Query(None, ge=1, le=20000),
 ) -> Dict[str, Any]:
@@ -343,7 +343,11 @@ async def get_infrastructure_layer_geojson(
             result = cur.fetchone()
             cur.close()
     except Exception as e:
-        logger.error("Error loading infrastructure layer %s: %s", layer_id, e)
+        logger.error(
+            "Error loading infrastructure layer %s: %s",
+            layer_id.replace("\n", " ").replace("\r", " ")[:50],
+            e,
+        )
         raise HTTPException(status_code=500, detail="Internal server error")
 
     geojson = result["geojson"] if result else None

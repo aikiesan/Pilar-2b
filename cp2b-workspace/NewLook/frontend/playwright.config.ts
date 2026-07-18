@@ -29,8 +29,10 @@ export default defineConfig({
   // block entirely; then this can be revisited.)
   retries: process.env.CI ? 1 : 0,
 
-  // Limit parallel workers on CI
-  workers: process.env.CI ? 1 : undefined,
+  // Run a few workers in parallel on CI. The public specs are independent and
+  // the map-load wait no longer hangs 30s on the CORS-blocked backend, so
+  // parallelism cuts wall time ~3x and keeps the suite well under its job timeout.
+  workers: process.env.CI ? 3 : undefined,
 
   // Reporter configuration
   reporter: [

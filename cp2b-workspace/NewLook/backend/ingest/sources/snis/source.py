@@ -317,7 +317,9 @@ def _sample_total_gate(year: int, raw_dir: Path, df: pd.DataFrame) -> GateResult
         got = float(pd.to_numeric(df[variable], errors="coerce").fillna(0).sum())
         drift = abs(got - published) / published
         if drift > 0.01:
-            problems.append(f"{indicator}: ours {got:,.0f} vs SNIS total {published:,.0f} ({drift:.2%})")
+            problems.append(
+                f"{indicator}: ours {got:,.0f} vs SNIS total {published:,.0f} ({drift:.2%})"
+            )
         else:
             checked.append(f"{indicator} {drift:.2%}")
     if problems:

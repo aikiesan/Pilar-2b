@@ -240,9 +240,7 @@ def compute_municipality_map_metrics(
         except KeyError:
             continue  # stream has no canonical mapping (e.g. aquaculture placeholder)
 
-        sm = compute_stream_metrics(
-            stream, row, params, biomass_override=derived_tons.get(stream)
-        )
+        sm = compute_stream_metrics(stream, row, params, biomass_override=derived_tons.get(stream))
         if sm is None:
             continue
 

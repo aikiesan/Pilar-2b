@@ -94,7 +94,7 @@ TOTAL_MUNICIPALITIES = 5571
 # `municipalities` (they also surface as phantom "municipalities" in MapBiomas'
 # municipal exports, e.g. Lagoa dos Patos ~1.02 Mha).
 NON_MUNICIPAL_MESH_CODES: dict[str, str] = {
-    "4300001": 'Área Operacional "Lagoa Mirim"',      # RS, 2,884.34 km²
+    "4300001": 'Área Operacional "Lagoa Mirim"',  # RS, 2,884.34 km²
     "4300002": 'Área Operacional "Lagoa dos Patos"',  # RS, 10,199.39 km²
 }
 
