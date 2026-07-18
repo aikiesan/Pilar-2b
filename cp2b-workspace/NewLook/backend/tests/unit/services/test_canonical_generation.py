@@ -131,3 +131,55 @@ class TestBiomassFromUnits:
         must not be handed the raw count back as though it were tonnes."""
         with pytest.raises(KeyError, match="generation"):
             biomass_tons_from_units("sugarcane", 1_000_000)
+
+
+# IBGE PPM 2024 published national head counts (ingest.sources.ibge_ppm.PUBLISHED_NATIONAL):
+# "o efetivo bovino atingiu 238,2 milhões de cabeças" / "galinhas a 277,5 milhões".
+BOVINO_HEAD_2024 = 238_200_000
+GALINHAS_HEAD_2024 = 277_500_000
+
+
+@pytest.mark.unit
+class TestNationalReconciliation:
+    """Real-number sanity check: published national head counts × canonical factors
+    must land in a defensible tonnage band. This is the aggregate guard against
+    silently OVERSHOOTING — the head-as-tonnes bug made poultry ~22× too high, and a
+    per-head envelope test alone would not catch a national total drifting off.
+    Anchors: cattle ~869 Mt/yr (10 kg/head/day, EMBRAPA median), poultry ~12.5 Mt/yr;
+    together consistent with the PR's national livestock ~997 Mt/yr (adds swine +
+    broilers). Every number here traces to a published IBGE figure × feedstocks.yaml.
+    """
+
+    def test_cattle_national_tonnage_lands_in_published_band(self):
+        t = biomass_tons_from_units("cattle", BOVINO_HEAD_2024)  # Range, tonnes/yr
+        mt = {s: getattr(t, s) / 1e6 for s in ("min", "medio", "max")}
+        assert 700 <= mt["medio"] <= 1000, (
+            f"cattle national medio {mt['medio']:.0f} Mt/yr outside the defensible "
+            "700–1000 Mt band (238.2M head × ~3.65 t/head ≈ 869 Mt)"
+        )
+        assert mt["min"] < mt["medio"] < mt["max"]
+        assert mt["max"] < 1300, "cattle national max overshoots the physical ceiling"
+
+    def test_poultry_national_tonnage_does_not_overshoot(self):
+        t = biomass_tons_from_units("poultry", GALINHAS_HEAD_2024)
+        medio_mt = t.medio / 1e6
+        assert 5 <= medio_mt <= 25, (
+            f"poultry national medio {medio_mt:.1f} Mt/yr implausible "
+            "(277.5M hens × ~0.045 t/head ≈ 12.5 Mt)"
+        )
+        # The regression tripwire: tonnage must stay well below the head count, or a
+        # head-as-tonnes reversion (277.5M birds → 277.5 Mt) has crept back in.
+        assert medio_mt < GALINHAS_HEAD_2024 / 1e6 / 10, (
+            "poultry national tonnage is within 10× of the head count — the "
+            "head-as-tonnes bug has regressed"
+        )
+
+    def test_national_livestock_medio_is_hundreds_not_thousands_of_Mt(self):
+        """Cattle + poultry alone (the two published-anchored streams) sit near
+        ~880 Mt/yr. The full livestock total (with swine + broilers) should be in
+        the high hundreds of Mt — never thousands (which would signal a unit error)."""
+        total_mt = (
+            biomass_tons_from_units("cattle", BOVINO_HEAD_2024).medio
+            + biomass_tons_from_units("poultry", GALINHAS_HEAD_2024).medio
+        ) / 1e6
+        assert 800 <= total_mt <= 950, f"cattle+poultry national medio {total_mt:.0f} Mt off-anchor"
