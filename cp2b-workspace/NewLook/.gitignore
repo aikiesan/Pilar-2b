@@ -70,7 +70,9 @@ backend/data/rasters/
 # large source exports (IBGE SIDRA workbooks, SNIS CSVs) that are downloaded
 # deliberately and recorded in docs/data/METADATA.json — the lineage lives there,
 # not in git. The rule at line 36 only covers NewLook/data/raw, not this one.
-backend/data/raw/
+# Ignore the drops themselves but keep the manifest that documents them.
+backend/data/raw/*
+!backend/data/raw/README.md
 
 # Canonical recalculation outputs (regenerable via recalculate_biogas_canonical.py)
 backend/scripts/canonical_recalc_output/

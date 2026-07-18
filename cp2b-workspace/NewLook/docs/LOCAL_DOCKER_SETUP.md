@@ -31,8 +31,27 @@ Subsequent starts reuse cached layers and are fast.
 
 ## Database seeding (one-time, after first `docker compose up --build`)
 
-The PostgreSQL container starts empty.  Run the migrations and import the
-municipality data to make the map show real biogas data.
+The PostgreSQL container starts empty. There are two seeding paths:
+
+### National dataset (5,571 municipalities) — recommended
+
+Run the orchestrator, which applies migrations, seeds the national municipality
+spine + geometry, and promotes the livestock (IBGE PPM) and urban-waste (SNIS)
+data. It first checks that the required raw files are present and tells you
+exactly what's missing if not.
+
+```bash
+# 1. drop the raw files at the paths in backend/data/raw/README.md, then:
+./backend/scripts/load_national.sh --check     # verify inputs are present
+./backend/scripts/load_national.sh             # do the load
+```
+
+Full instructions, the data manifest, and troubleshooting live in
+[`docs/NATIONAL_DATA_LOAD.md`](./NATIONAL_DATA_LOAD.md).
+
+### SP-only dataset (645 municipalities) — legacy / quick start
+
+If you only need São Paulo (no national raw drops required):
 
 ```bash
 # Run all schema migrations in order
