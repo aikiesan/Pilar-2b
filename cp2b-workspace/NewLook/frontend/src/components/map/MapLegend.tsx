@@ -8,35 +8,23 @@
 import React, { useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import type { DisplayMetric } from '@/types/geospatial';
+import { getMetricSpec, legendItems as buildLegendItems } from '@/lib/mapMetrics';
 
 // 'Zero' and 'Sem dados' are deliberately separate: the near-white swatch is a
 // real zero (we looked; there is none), the grey is no_data (never loaded). The
 // map keeps them distinct — see MunicipalityLayer NO_DATA_STYLE / migration 025.
-const biogasItems = [
-  { color: '#253494', label: '> 500M m³' },
-  { color: '#2c7fb8', label: '100M – 500M m³' },
-  { color: '#41b6c4', label: '50M – 100M m³' },
-  { color: '#7fcdbb', label: '10M – 50M m³' },
-  { color: '#c7e9b4', label: '1M – 10M m³' },
-  { color: '#ffffcc', label: '< 1M m³' },
-  { color: '#f7f7f7', label: 'Zero' },
-  { color: '#cbd5e1', label: 'Sem dados' },
-];
-
-const biomassItems = [
-  { color: '#253494', label: '> 5M t' },
-  { color: '#2c7fb8', label: '1M – 5M t' },
-  { color: '#41b6c4', label: '200K – 1M t' },
-  { color: '#7fcdbb', label: '50K – 200K t' },
-  { color: '#c7e9b4', label: '5K – 50K t' },
-  { color: '#ffffcc', label: '< 5K t' },
-  { color: '#f7f7f7', label: 'Zero' },
-  { color: '#cbd5e1', label: 'Sem dados' },
-];
-
-export default function MapLegend({ displayMetric = 'biomass_tons' }: { displayMetric?: DisplayMetric }) {
-  const legendItems = displayMetric === 'biomass_tons' ? biomassItems : biogasItems;
-  const title = displayMetric === 'biomass_tons' ? 'Biomassa (t/ano)' : 'Biogás (m³/ano)';
+// Ranges, colours and units all come from the metric registry (lib/mapMetrics),
+// so the legend can never drift from the choropleth it explains.
+export default function MapLegend({
+  displayMetric = 'biomass_tons',
+  daltonic = false,
+}: {
+  displayMetric?: DisplayMetric;
+  daltonic?: boolean;
+}) {
+  const spec = getMetricSpec(displayMetric);
+  const legendItems = buildLegendItems(spec, daltonic);
+  const title = spec.legendTitle;
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   return (
