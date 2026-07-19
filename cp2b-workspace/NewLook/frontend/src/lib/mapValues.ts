@@ -79,31 +79,75 @@ export function getBiomassMapValue(
  * is the midpoint between medio and max, computed here from the served bands so
  * it works nationally rather than via the old SP-only factor scaling.
  */
+/**
+ * Pick one scenario off a served min/medio/max band. Shared by every canonical
+ * per-scenario metric (biogas CH4, biomethane) so they map the four named map
+ * scenarios onto the bands identically: conservador→min, baseline→medio,
+ * otimista→max, fronteira→midpoint(medio,max).
+ */
+function pickScenario(
+  scenario: MapScenarioKey,
+  min: number | null,
+  medio: number | null,
+  max: number | null
+): number | null {
+  switch (scenario) {
+    case 'conservador':
+      return min;
+    case 'otimista':
+      return max;
+    case 'fronteira':
+      return max !== null && medio !== null ? medio + 0.5 * (max - medio) : medio;
+    case 'baseline':
+    default:
+      return medio;
+  }
+}
+
 export function getBiogasScenarioValue(
   props: MunicipalityProperties,
   scenario: MapScenarioKey
 ): MapValue {
-  const min = num(props.biogas_ch4_min_m3_yr);
   const medio = num(props.biogas_ch4_medio_m3_yr);
-  const max = num(props.biogas_ch4_max_m3_yr);
   if (medio === null) return { value: null, coverage: NO_DATA };
-
   const coverage = (props.total_biomass_coverage as BiomassCoverage) ?? 'estimated';
-  let value: number | null;
-  switch (scenario) {
-    case 'conservador':
-      value = min;
-      break;
-    case 'otimista':
-      value = max;
-      break;
-    case 'fronteira':
-      value = max !== null ? medio + 0.5 * (max - medio) : medio;
-      break;
-    case 'baseline':
-    default:
-      value = medio;
-      break;
-  }
-  return { value, coverage };
+  return {
+    value: pickScenario(scenario, num(props.biogas_ch4_min_m3_yr), medio, num(props.biogas_ch4_max_m3_yr)),
+    coverage,
+  };
+}
+
+/**
+ * Canonical biomethane potential (m³/year) at one scenario — the CH4 upgraded to
+ * pipeline quality (backend map_metrics applies the 0.97 upgrading efficiency;
+ * we read the served band, not re-derive it).
+ */
+export function getBiomethaneScenarioValue(
+  props: MunicipalityProperties,
+  scenario: MapScenarioKey
+): MapValue {
+  const medio = num(props.biomethane_medio_m3_yr);
+  if (medio === null) return { value: null, coverage: NO_DATA };
+  const coverage = (props.total_biomass_coverage as BiomassCoverage) ?? 'estimated';
+  return {
+    value: pickScenario(scenario, num(props.biomethane_min_m3_yr), medio, num(props.biomethane_max_m3_yr)),
+    coverage,
+  };
+}
+
+/** 1 m³ CH4 ≈ 9.97 kWh = 0.00997 MWh (matches backend sync_db_canonical.py). */
+export const MWH_PER_M3_CH4 = 0.00997;
+
+/**
+ * Bioenergy potential (MWh/year) from converting the biogas CH4 to electricity —
+ * the "biogas → electricity" pathway. Derived from the served biogas CH4 band so
+ * it is scenario- and coverage-aware for free. NOTE: this is NOT combustion of
+ * dry residue (a separate pathway that needs calorific factors + PAM crop data).
+ */
+export function getBioenergyScenarioValue(
+  props: MunicipalityProperties,
+  scenario: MapScenarioKey
+): MapValue {
+  const g = getBiogasScenarioValue(props, scenario);
+  return { value: g.value === null ? null : g.value * MWH_PER_M3_CH4, coverage: g.coverage };
 }

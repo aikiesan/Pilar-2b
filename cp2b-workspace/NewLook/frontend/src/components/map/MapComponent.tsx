@@ -17,6 +17,7 @@ import { useCnProfiles } from '@/hooks/useCnProfiles';
 import type { FilterCriteria } from '@/components/dashboard/FilterPanel';
 import type { MunicipalityCollection, MunicipalityFeature, DisplayMetric, CodigestionCluster } from '@/types/geospatial';
 import { MAP_SCENARIOS, applyScenarioToProps, type MapScenarioKey } from '@/data/scenarioFactors';
+import { DISPLAY_METRICS } from '@/lib/mapMetrics';
 import type { BiomassType, ResidueType } from './FloatingControlPanel';
 import type { VisualizationMode } from './LeftFilterPanel';
 import { type ColorMode } from '@/types/geospatial';
@@ -78,7 +79,7 @@ const VALID_RESIDUES: ResidueType[] = [
 ];
 const VALID_BIOMASS: BiomassType[] = ['total', 'agricultural', 'livestock', 'urban'];
 const VALID_VIZ: VisualizationMode[] = ['choropleth', 'heatmap', 'bubble', 'clusters'];
-const VALID_METRICS: DisplayMetric[] = ['biogas_m3', 'biomass_tons'];
+const VALID_METRICS: DisplayMetric[] = DISPLAY_METRICS;
 
 interface MapComponentProps {
   activeFilters?: FilterCriteria;
@@ -156,6 +157,28 @@ export default function MapComponent({
   const [showClusterPanel, setShowClusterPanel] = useState(false);
   const [colorMode, setColorMode] = useState<ColorMode>('biogas');
   const [mapScenario, setMapScenario] = useState<MapScenarioKey>('fronteira');
+
+  // Daltonic (colour-vision-deficiency) mode: swaps the choropleth ramp for a
+  // CVD-safe single-hue palette. Persisted in localStorage like the theme.
+  const [daltonic, setDaltonic] = useState(false);
+  useEffect(() => {
+    try {
+      if (localStorage.getItem('pilar2b-daltonic') === 'true') setDaltonic(true);
+    } catch {
+      /* localStorage unavailable (SSR / privacy mode) */
+    }
+  }, []);
+  const toggleDaltonic = () => {
+    setDaltonic((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem('pilar2b-daltonic', String(next));
+      } catch {
+        /* ignore persist failure */
+      }
+      return next;
+    });
+  };
 
   const { profilesMap: cnProfilesMap, isLoading: cnLoading } = useCnProfiles(colorMode === 'cn_profile');
   const [mapScope, setMapScope] = useState<'sp' | 'brazil'>(urlScope === 'brazil' ? 'brazil' : 'sp');
@@ -509,6 +532,18 @@ export default function MapComponent({
               {t(`scenario_${key}`)}
             </button>
           ))}
+          <span className="mx-0.5 h-4 w-px bg-gray-200" aria-hidden="true" />
+          <button
+            type="button"
+            onClick={toggleDaltonic}
+            aria-pressed={daltonic}
+            title="Modo daltônico — paleta segura para daltonismo"
+            className={`rounded-full px-2.5 py-1 text-[11px] font-medium transition-all ${
+              daltonic ? 'bg-slate-700 text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            👁 Daltônico
+          </button>
         </div>
 
         {/* Keyboard instructions for the interactive map (WCAG 2.1.1). */}
@@ -554,6 +589,7 @@ export default function MapComponent({
                   displayMetric={displayMetric}
                   colorMode={colorMode}
                   mapScenario={mapScenario}
+                  daltonic={daltonic}
                   onMunicipalityClick={visualizationMode === 'clusters' ? undefined : handleMunicipalityClick}
                   onMunicipalityHover={visualizationMode === 'clusters' ? undefined : handleMunicipalityHover}
                 />
@@ -726,7 +762,7 @@ export default function MapComponent({
         {/* Legends */}
         {visibleLayerIds.includes('municipalities') && visualizationMode !== 'clusters' && (
           visualizationMode === 'choropleth' ? (
-            colorMode === 'biogas' ? <MapLegend displayMetric={displayMetric} /> : null
+            colorMode === 'biogas' ? <MapLegend displayMetric={displayMetric} daltonic={daltonic} /> : null
           ) : <HeatmapLegend />
         )}
 
