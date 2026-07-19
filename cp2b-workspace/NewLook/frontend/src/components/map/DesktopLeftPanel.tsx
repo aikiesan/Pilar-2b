@@ -74,7 +74,14 @@ const LAYER_KEY_MAP: Record<string, string> = {
 const LAYER_GROUPS = [
   { labelKey: 'layerGroups.base', ids: ['municipalities', 'intermediate-regions'] },
   { labelKey: 'layerGroups.environmental', ids: ['mapbiomas'] },
-  { labelKey: 'layerGroups.infrastructure', ids: ['biogas-plants', 'pipelines', 'substations', 'transmission-lines', 'etes', 'railways'] },
+  {
+    labelKey: 'layerGroups.infrastructure',
+    ids: [
+      'biogas_plant', 'ethanol_plant', 'biomass_thermal_plant', 'biodiesel_plant',
+      'slaughterhouse', 'substation', 'transmission_line',
+      'gas_pipeline_transport', 'gas_pipeline_distribution', 'etes', 'railways',
+    ],
+  },
 ] as const;
 
 const RESIDUE_META = [
@@ -387,9 +394,12 @@ function LayersSection({
   onLayerToggle: (id: string, visible: boolean) => void;
   t: ReturnType<typeof useTranslations>;
 }) {
-  const getLayerName = (id: string) => {
-    const key = LAYER_KEY_MAP[id];
-    return key ? t(key) : id;
+  // Prefer the i18n label for the (SP) layers that have one; otherwise fall back
+  // to the layer's own name (the national MapBiomas layers carry a Portuguese
+  // name from MapComponent) rather than showing a raw snake_case id.
+  const getLayerName = (layer: Layer) => {
+    const key = LAYER_KEY_MAP[layer.id];
+    return key ? t(key) : layer.name;
   };
 
   const getGroupedLayers = () => {
@@ -448,7 +458,7 @@ function LayersSection({
               {group.items.map(layer => (
                 <div key={layer.id} className="flex items-center justify-between py-1">
                   <span className="text-[11px] text-gray-700 font-medium truncate mr-2">
-                    {layer.icon} {getLayerName(layer.id)}
+                    {layer.icon} {getLayerName(layer)}
                   </span>
                   <button
                     role="switch"

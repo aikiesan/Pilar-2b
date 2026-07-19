@@ -98,9 +98,11 @@ export default function MobileBottomSheet({
     setActiveSheet(prev => prev === tab ? null : tab);
   };
 
-  const getLayerName = (id: string) => {
-    const key = LAYER_KEY_MAP[id];
-    return key ? t(key) : id;
+  // i18n label where one exists (the SP layers); otherwise the layer's own
+  // Portuguese name, never a raw snake_case id (the national MapBiomas layers).
+  const getLayerName = (layer: Layer) => {
+    const key = LAYER_KEY_MAP[layer.id];
+    return key ? t(key) : layer.name;
   };
 
   return (
@@ -376,7 +378,7 @@ export default function MobileBottomSheet({
                           className="w-4 h-4 text-green-600 rounded"
                         />
                         <span className="text-sm text-gray-700 font-medium leading-tight">
-                          {layer.icon} {getLayerName(layer.id)}
+                          {layer.icon} {getLayerName(layer)}
                         </span>
                       </label>
                     ))}
