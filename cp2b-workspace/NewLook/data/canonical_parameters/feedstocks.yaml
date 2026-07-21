@@ -35,10 +35,54 @@ feedstocks:
     en_name: "Sugarcane bagasse"
     sector: "AG_AGRICULTURA"
     subsector: "AG_CANA"
-    # residue_fraction: 0.280 — kg wet bagasse per kg green cane (IBGE PAM units).
-    # Applied in compute_sp_canonical_totals.py before the forward engine.
-    # Source: UNICA/CONSECANA 2022 tabela de custo; range 0.25–0.30.
-    # Note: IBGE PAM 'sugarcane_biomass_tons_year' column = green cane production.
+    # Residue-to-product ratio: tonnes of wet bagasse (50% moisture) per tonne of
+    # cane CRUSHED. Multi-source validated 2026-07-21: CONAB / EPE 2023 / UNICA
+    # 0.25–0.28 (250–280 kg/t milled); IEA Task 37 / FAO 2020 0.25–0.30;
+    # Moraes et al. 2015 / Talha et al. 2016 / Velásquez et al. 2020 0.26–0.28.
+    #
+    # THE DENOMINATOR IS MILLED CANE, NOT CANE PRODUCED — see
+    # mill_delivery_fraction below. Bagasse only exists for cane that reached a
+    # mill; applying this straight to PAM production overstates it.
+    rpr:
+      min: 0.25
+      medio: 0.28
+      max: 0.30
+      basis: "t wet bagasse / t cane MILLED"
+      refs: ["epe_ben2024", "talha2016_bagaco", "velasquez2020_sugarcane"]
+      notes: >
+        50% moisture, as delivered from the mill. Gross ratio; collectability and
+        the competing use as boiler fuel live in the fde block.
+    # Share of PAM-reported cane production that actually reaches a mill.
+    #
+    # PAM measures cane PRODUCED; UNICA measures cane CRUSHED (moagem). The two
+    # are consistently different, and the gap is real: cachaça production, mills
+    # outside UNICA's reporting, seed cane, animal feed and field losses.
+    # Comparing the two national series 2008–2024 (17 years):
+    #
+    #     moagem / PAM production = 0.76 – 0.92, mean ~0.85
+    #     2023: 716.3 / 782.1 = 0.916    2022: 607.4 / 726.1 = 0.837
+    #     2011 (poor harvest, the low outlier): 558.0 / 734.0 = 0.760
+    #
+    # Applies to the INDUSTRIAL sub-streams only — bagaço, torta de filtro and
+    # vinhaça, which are generated inside the mill. Palha (field straw) is left
+    # in the field at harvest and therefore uses PAM production undiminished.
+    #
+    # This is a national ratio standing in for per-state data. The UNICA/CONAB
+    # state series (moagem and ethanol by UF, 2002–2021) is the refinement:
+    # sugar-dominant states deliver a different share than ethanol-dominant ones,
+    # and vinhaça should ultimately be driven off ethanol volume directly
+    # (12 m³ per m³ of ethanol) rather than off cane at all.
+    mill_delivery_fraction:
+      min: 0.76
+      medio: 0.85
+      max: 0.92
+      basis: "t cane milled / t cane produced (PAM)"
+      refs: ["unica2023_straw"]
+      notes: >
+        UNICA histórico de moagem vs IBGE PAM production, national, 2008–2024.
+        Band spans the observed range rather than a confidence interval — the
+        year-to-year variation is genuine (harvest quality, sugar/ethanol mix),
+        not measurement error.
     bmp:
       min: 115.0
       medio: 165.0

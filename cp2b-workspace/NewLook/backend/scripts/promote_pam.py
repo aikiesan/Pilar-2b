@@ -37,16 +37,24 @@ retention and competing uses live in the fde block and are applied downstream.
 Folding either into the other double-discounts the residue — the bug that made
 cana palha 0.053 instead of its gross 0.14 t DM/t.
 
-SUGARCANE IS DELIBERATELY EXCLUDED (--include-sugarcane to override)
-Cane does not have one denominator. Its sub-streams are physically generated at
-different stages:
+SUGARCANE GOES THROUGH A SECOND FACTOR
+Cane does not share one denominator with the other crops. Its sub-streams are
+physically generated at different stages:
     bagaço, torta   <- cane CRUSHED at a mill (UNICA moagem)
     vinhaça         <- ETHANOL distilled (m³ × 12 m³/m³)
     palha           <- cane HARVESTED in the field (PAM production)
-PAM production overstates the milled fraction by ~15% (17-year UNICA series:
-moagem/production = 0.76–0.92, mean ~0.85), so driving bagaço and vinhaça off it
-inflates the largest stream on the platform. Cane lands in a follow-up once the
-moagem and ethanol series are ingested.
+
+The `sugarcane` stream maps to BAGACO, an industrial residue, so its tonnage is
+    PAM production × mill_delivery_fraction × rpr
+where mill_delivery_fraction (0.85 medio) is the 17-year UNICA moagem/production
+ratio recorded in feedstocks.yaml. Without it, bagasse would be computed for cane
+that never reached a mill — an ~18% overstatement of the platform's largest
+stream. Sanity check: 782 Mt × 0.85 × 0.28 ≈ 186 Mt of bagasse, consistent with
+Brazil's ~180–200 Mt/yr.
+
+This is a NATIONAL ratio standing in for per-state data, and vinhaça should
+eventually come off ethanol volume directly rather than off cane. The UNICA/CONAB
+state series (moagem and ethanol by UF, 2002–2021) is the refinement.
 
 CONFIDENTIAL VALUES ARE NOT ZERO
 IBGE withholds ('X') ~19.8k municipality-years to protect informants, heavily
@@ -67,7 +75,10 @@ import psycopg2
 
 sys.path.insert(0, "/app")
 
-from app.services.canonical_loader import residue_tons_from_production  # noqa: E402
+from app.services.canonical_loader import (  # noqa: E402
+    mill_delivery_fraction,
+    residue_tons_from_production,
+)
 from ingest.contract import IngestContext  # noqa: E402
 from ingest.sources.pam_1612 import source as pam1612  # noqa: E402
 from ingest.sources.pam_1613 import source as pam1613  # noqa: E402
@@ -82,7 +93,7 @@ CROPS: dict[str, tuple[object, str, str]] = {
     "citrus": (pam1613, "citrus_production_t", "pam_1613"),
     "sugarcane": (pam1612, "sugarcane_production_t", "pam_1612"),
 }
-DEFAULT_CROPS = ("soybean", "corn", "coffee", "citrus")
+DEFAULT_CROPS = ("soybean", "corn", "coffee", "citrus", "sugarcane")
 
 TIMESERIES_SQL = """
 INSERT INTO municipality_timeseries
@@ -140,13 +151,19 @@ def build_rows(year: int, crops: tuple[str, ...]) -> tuple[list[dict], list[dict
             frames[module] = module.load(year, RAW_DIR)
         frame = frames[module]
 
+        mill_fraction = mill_delivery_fraction(stream)
         produced = residue = 0.0
         written = 0
         for code, value in zip(frame["ibge_code"], frame[production_column]):
             if pd.isna(value):
                 continue  # '..' not surveyed, or 'X' withheld — never a zero
             production = float(value)
-            residue_tons = residue_tons_from_production(stream, production).medio
+            # Cane's industrial residues exist only for the fraction that reaches
+            # a mill; field residues (and every other crop) use production as-is.
+            delivered = production
+            if mill_fraction is not None:
+                delivered = production * mill_fraction.medio
+            residue_tons = residue_tons_from_production(stream, delivered).medio
 
             timeseries.append(
                 {
