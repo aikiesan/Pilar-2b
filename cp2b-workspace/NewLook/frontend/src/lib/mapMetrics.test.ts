@@ -5,6 +5,7 @@
  * mis-wired (e.g. biomethane reading biogas), these fail.
  */
 
+import type { DisplayMetric } from '@/types/geospatial';
 import type { MunicipalityProperties } from '@/types/geospatial';
 import {
   DISPLAY_METRICS,
@@ -29,14 +30,20 @@ const ctx = (scenario = 'baseline' as const) => ({
 });
 
 describe('mapMetrics — registry wiring', () => {
-  it('exposes exactly the five metrics', () => {
+  it('offers four toggles — methane is served but not surfaced', () => {
     expect(DISPLAY_METRICS).toEqual([
       'biomass_tons',
       'biogas_m3',
-      'methane_m3',
       'biomethane_m3',
       'bioenergy_mwh',
     ]);
+  });
+
+  it('keeps the methane spec resolvable for bookmarked URLs', () => {
+    // Not a toggle, but ?metric=methane_m3 must not fall over, and bioenergia
+    // reads this band.
+    expect(METRIC_SPECS.methane_m3.rawValue).toBeDefined();
+    expect(getMetricSpec('methane_m3' as DisplayMetric).unit).toBe('Nm³/dia');
   });
 
   it('biomass reads served tonnage (t/ano, no conversion)', () => {
