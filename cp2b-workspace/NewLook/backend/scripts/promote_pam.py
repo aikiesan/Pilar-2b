@@ -67,7 +67,9 @@ from __future__ import annotations
 
 import argparse
 import os
+import re
 import sys
+import unicodedata
 from pathlib import Path
 
 import pandas as pd
@@ -80,6 +82,7 @@ from app.services.canonical_loader import (  # noqa: E402
     residue_tons_from_production,
 )
 from ingest.contract import IngestContext  # noqa: E402
+from ingest.sources.pam import _sidra  # noqa: E402
 from ingest.sources.pam_1612 import source as pam1612  # noqa: E402
 from ingest.sources.pam_1613 import source as pam1613  # noqa: E402
 
@@ -233,10 +236,60 @@ def promote(year: int, crops: tuple[str, ...], dry_run: bool) -> int:
     return 0
 
 
+def build_all_crop_rows(year: int) -> tuple[list[dict], dict[str, float]]:
+    """Every PAM product -> municipality_timeseries, production tonnes.
+
+    The five modelled streams reach the map through the biomass columns; this
+    preserves the REST of PAM (~60 further crops) as an auditable record so the
+    data does not have to be re-extracted when canonical parameters exist for
+    them. Nothing here touches the biomass columns or provenance: a crop with no
+    BMP/TS/VS/FDE/RPR block cannot be turned into biogas potential, and writing
+    one as though it could is the invention this codebase keeps removing.
+
+    Scale, for context: the 5 modelled crops are 1,087 Mt of the 1,183 Mt PAM
+    reports for 2023 — 92%. Everything below is the remaining 96 Mt, spread thin
+    (mandioca 18.4, arroz 10.3, trigo 7.7, algodão 7.5, and a long tail).
+    """
+    rows: list[dict] = []
+    totals: dict[str, float] = {}
+    for module, source_id in ((pam1612, "pam_1612"), (pam1613, "pam_1613")):
+        base = module.fetch(year, RAW_DIR)
+        reading = _sidra.read_year(_sidra.select_workbook(base, module.TABLE, year), year)
+        for code, products in reading.items():
+            for product, value in products.items():
+                if value is None:
+                    continue  # '..' not surveyed / 'X' withheld — never a zero
+                rows.append(
+                    {
+                        "ibge_code": str(code),
+                        "year": year,
+                        "source_id": source_id,
+                        "variable": f"pam_{_slug(product)}",
+                        "value": float(value),
+                    }
+                )
+                totals[product] = totals.get(product, 0.0) + float(value)
+    return rows, totals
+
+
+def _slug(product: str) -> str:
+    """PAM product label -> a stable, ASCII variable name."""
+    text = unicodedata.normalize("NFKD", product).encode("ascii", "ignore").decode()
+    keep = [c.lower() if c.isalnum() else "_" for c in text]
+    return re.sub(r"_+", "_", "".join(keep)).strip("_")[:70]
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--year", type=int, required=True)
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument(
+        "--all-crops",
+        action="store_true",
+        help="also record every other PAM product in municipality_timeseries "
+        "(production only — they have no canonical parameters, so they do not "
+        "become biomass or biogas potential)",
+    )
     parser.add_argument(
         "--include-sugarcane",
         action="store_true",
@@ -261,7 +314,29 @@ def main() -> int:
             return 1
         print(f"gates green: {module.SPEC.source_id}")
 
-    return promote(args.year, crops, args.dry_run)
+    rc = promote(args.year, crops, args.dry_run)
+    if rc or not args.all_crops:
+        return rc
+
+    rows, totals = build_all_crop_rows(args.year)
+    modelled = {"Cana-de-açúcar", "Soja (em grão)", "Milho (em grão)", "Laranja"}
+    extra = {k: v for k, v in totals.items() if k not in modelled and "Café (em grão)" not in k}
+    print(f"\nALL CROPS — {len(totals)} PAM products, {len(rows):,} timeseries rows")
+    print(f"  modelled as biomass streams : {len(modelled) + 1}")
+    print(f"  recorded as production only : {len(extra)}  ({sum(extra.values())/1e6:,.1f} Mt)")
+
+    if args.dry_run:
+        print("dry run — nothing written")
+        return 0
+
+    connection = psycopg2.connect(dsn())
+    try:
+        with connection, connection.cursor() as cursor:
+            cursor.executemany(TIMESERIES_SQL, rows)
+        print("committed (single transaction)")
+    finally:
+        connection.close()
+    return 0
 
 
 if __name__ == "__main__":
