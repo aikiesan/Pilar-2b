@@ -54,6 +54,8 @@ const PerResidueFactorEditor = dynamic(() => import('@/components/analysis/PerRe
 const ScenarioSelector = dynamic(() => import('@/components/analysis/ScenarioSelector'), { ssr: false })
 const ReferencesModal = dynamic(() => import('@/components/analysis/ReferencesModal'), { ssr: false })
 
+import { DATA_EXPORT_ENABLED } from '@/lib/featureFlags';
+
 // API
 import {
   getAnalysisByResidue,
@@ -479,6 +481,7 @@ export default function AdvancedAnalysisPage() {
 
   // Export to CSV
   const handleExportCSV = useCallback(() => {
+    if (!DATA_EXPORT_ENABLED) return;  // beta: see lib/featureFlags
     const headers = ['Posicao', 'Municipio', 'Regiao', 'Biogas (m3/ano)', 'Populacao', 'FDE (%)', 'Cenario']
     const fdePercent = (calculateFDE(effectiveFactors) * 100).toFixed(1)
     const scenarioName = RESIDUE_SCENARIOS[currentScenario].name

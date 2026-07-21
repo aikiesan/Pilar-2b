@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { BarChart3, Map, Users, TrendingUp, AlertCircle, Download } from 'lucide-react'
+import { DATA_EXPORT_ENABLED } from '@/lib/featureFlags';
 
 interface Municipality {
   id: number
@@ -69,6 +70,7 @@ export default function DashboardPage() {
   )
 
   const handleExportData = () => {
+    if (!DATA_EXPORT_ENABLED) return;  // beta: see lib/featureFlags
     if (municipalities.length === 0) return
 
     const csvContent = [
@@ -134,6 +136,7 @@ export default function DashboardPage() {
             </div>
             <button
               onClick={handleExportData}
+              hidden={!DATA_EXPORT_ENABLED}
               className="flex items-center gap-2 bg-cp2b-primary text-white px-4 py-2 rounded-lg hover:bg-cp2b-secondary transition-colors"
             >
               <Download className="h-4 w-4" />

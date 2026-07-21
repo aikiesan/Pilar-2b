@@ -18,6 +18,7 @@ import type { FilterCriteria } from '@/components/dashboard/FilterPanel';
 import type { MunicipalityCollection, MunicipalityFeature, DisplayMetric, CodigestionCluster } from '@/types/geospatial';
 import { MAP_SCENARIOS, applyScenarioToProps, type MapScenarioKey } from '@/data/scenarioFactors';
 import { DISPLAY_METRICS } from '@/lib/mapMetrics';
+import { DATA_EXPORT_ENABLED } from '@/lib/featureFlags';
 import type { BiomassType, ResidueType } from './FloatingControlPanel';
 import type { VisualizationMode } from './LeftFilterPanel';
 import { type ColorMode } from '@/types/geospatial';
@@ -261,7 +262,10 @@ export default function MapComponent({
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
       if (e.key === 'Escape') { setSelectedMunicipality(null); return; }
       if (e.key === 'c' || e.key === 'C') { setShowComparison(true); return; }
-      if (e.key === 'e' || e.key === 'E') { setShowExport(true); return; }
+      if (e.key === 'e' || e.key === 'E') {
+        if (DATA_EXPORT_ENABLED) setShowExport(true);
+        return;
+      }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -710,7 +714,7 @@ export default function MapComponent({
           />
         )}
 
-        {isMounted && (
+        {isMounted && DATA_EXPORT_ENABLED && (
           <ExportControl data={displayData} visible={showExport} onClose={() => setShowExport(false)} />
         )}
 

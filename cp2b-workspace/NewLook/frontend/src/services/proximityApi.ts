@@ -1,3 +1,4 @@
+import { DATA_EXPORT_ENABLED, DATA_EXPORT_DISABLED_REASON } from '@/lib/featureFlags';
 /**
  * Proximity Analysis API service for PILAR-2b V3
  * Handles spatial analysis with MapBiomas integration
@@ -340,6 +341,12 @@ export function exportAnalysisToCSV(analysis: ProximityAnalysisResponse): void {
  * Helper function to trigger CSV download
  */
 function downloadCSV(content: string, filename: string): void {
+  // Beta: no dataset leaves the browser. Gated at the primitive so every caller
+  // is covered, including any added later. See lib/featureFlags.
+  if (!DATA_EXPORT_ENABLED) {
+    console.warn(DATA_EXPORT_DISABLED_REASON);
+    return;
+  }
   const blob = new Blob(['\uFEFF' + content], { type: 'text/csv;charset=utf-8;' });
   const link = document.createElement('a');
   link.href = URL.createObjectURL(blob);

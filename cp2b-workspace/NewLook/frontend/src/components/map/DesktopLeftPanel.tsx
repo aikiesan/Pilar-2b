@@ -22,6 +22,7 @@ import type { DisplayMetric, ResidueCNMatrix, ColorMode } from '@/types/geospati
 import { useSummaryStatistics } from '@/hooks/useGeospatialData';
 import { formatBiogasShort } from '@/lib/mapUtils';
 import { DISPLAY_METRICS, METRIC_SPECS } from '@/lib/mapMetrics';
+import { DATA_EXPORT_ENABLED } from '@/lib/featureFlags';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -515,9 +516,15 @@ function ToolsSection({
   onOpenExport: () => void;
   t: ReturnType<typeof useTranslations>;
 }) {
+  // Export is withheld during beta (lib/featureFlags). The tool is removed from
+  // the list rather than disabled in place: a greyed-out button invites people to
+  // ask when it returns, and the honest answer is "when the data is validated",
+  // which the beta banner already says.
   const tools = [
     { icon: <BarChart3 className="w-5 h-5" />, titleKey: 'tools.compare', descKey: 'tools.compareDesc', ctaKey: 'tools.open', onClick: onOpenComparison },
-    { icon: <Download className="w-5 h-5" />, titleKey: 'tools.export', descKey: 'tools.exportDesc', ctaKey: 'tools.open', onClick: onOpenExport },
+    ...(DATA_EXPORT_ENABLED
+      ? [{ icon: <Download className="w-5 h-5" />, titleKey: 'tools.export', descKey: 'tools.exportDesc', ctaKey: 'tools.open', onClick: onOpenExport }]
+      : []),
     {
       icon: <Link className="w-5 h-5" />, titleKey: 'tools.share', descKey: 'tools.shareDesc', ctaKey: 'tools.copyUrl',
       onClick: () => { if (typeof window !== 'undefined') navigator.clipboard.writeText(window.location.href); },
