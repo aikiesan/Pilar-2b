@@ -14,7 +14,10 @@ from app.core.database import get_db
 from app.middleware.auth import optional_auth
 from app.models.auth import UserProfile
 from app.services.biomass_availability import derive_biomass_with_coverage, raw_value
-from app.services.canonical_loader import biomass_tons_from_units
+from app.services.canonical_loader import (
+    biomass_tons_from_collected_waste,
+    biomass_tons_from_units,
+)
 from app.services.map_metrics import compute_municipality_map_metrics
 
 logger = logging.getLogger(__name__)
@@ -60,6 +63,10 @@ _ACTIVITY_VARIABLES = {
     ("ibge_ppm", "suino_total"): "swine",
     ("ibge_ppm", "galinaceos_total"): "poultry",
     ("snis", "populacao_total"): "population",
+    # Household waste a municipality REPORTS collecting (SNIS CO111). ~5,060 of
+    # 5,571 municipalities report it, and where they do it beats modelling the
+    # tonnage from population — a measurement instead of an estimate.
+    ("snis", "rdo_coletado"): "rdo_coletado",
 }
 # Livestock streams derived from PPM head counts (per-head generation).
 _PPM_STREAMS = ("cattle", "swine", "poultry")
@@ -100,22 +107,45 @@ def _load_activity_counts(cursor, ibge_codes: list[str]) -> dict[str, dict[str, 
 
 
 def _derive_activity_biomass(
-    *, head: dict[str, float], population: float | None
+    *,
+    head: dict[str, float],
+    population: float | None,
+    collected_waste: float | None = None,
 ) -> tuple[dict[str, float], dict[str, str]]:
     """Livestock/urban tonnage + provenance from activity counts.
 
-    Livestock manure = head x generation; urban waste = population x generation,
-    both via the single canonical conversion. Returns the 'medio' scenario for the
-    displayed value, tagged 'estimated' (modelled from an activity count, not
-    directly reported). A stream with no activity data is simply absent -> no_data.
+    Livestock manure = head x generation, always modelled ('estimated') — IBGE
+    counts animals, not manure.
+
+    Urban waste prefers MEASUREMENT over modelling:
+      * rsu, where SNIS reports collected household waste (CO111) -> that tonnage
+        x the canonical organic fraction, tagged 'measured'. ~5,060 municipalities.
+      * rsu elsewhere, and rpo always -> population x per-capita generation,
+        tagged 'estimated'.
+
+    rpo (urban pruning) stays modelled even where SNIS reports public-cleaning
+    waste (CO115): RPU bundles street sweeping with pruning and there is no cited
+    factor for the pruning share of it. Inventing one to reach a 'measured' tag
+    would be worse than an honest estimate — the per-capita figure is at least
+    grounded in ABRELPE's 3-5%-of-RSU characterization.
+
+    Returns the 'medio' scenario for the displayed value. A stream with no
+    activity data is simply absent -> no_data.
     """
     tons: dict[str, float] = {}
     prov: dict[str, str] = {}
     for stream, count in head.items():
         tons[stream] = biomass_tons_from_units(stream, count).medio
         prov[stream] = "estimated"
+
+    if collected_waste is not None and collected_waste > 0:
+        tons["rsu"] = biomass_tons_from_collected_waste("rsu", collected_waste).medio
+        prov["rsu"] = "measured"
+
     if population is not None and population > 0:
         for stream in _URBAN_STREAMS:
+            if stream in tons:
+                continue  # a measured value already won
             tons[stream] = biomass_tons_from_units(stream, population).medio
             prov[stream] = "estimated"
     return tons, prov
@@ -284,6 +314,7 @@ async def get_municipalities_geojson(
         derived_tons, derived_prov = _derive_activity_biomass(
             head={s: activity[s] for s in _PPM_STREAMS if s in activity},
             population=activity.get("population") or raw_value(row.get("population")),
+            collected_waste=activity.get("rdo_coletado"),
         )
         # provenance: agricultural (measured, from the DB table) + livestock/urban
         # (estimated, synthesised here from activity data). Coverage never comes
