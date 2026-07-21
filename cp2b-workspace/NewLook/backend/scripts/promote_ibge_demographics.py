@@ -112,9 +112,7 @@ def load_pib() -> tuple[pd.DataFrame, int]:
     frame = pd.read_excel(PIB_FILE, sheet_name="PIB dos Municípios")
     # Column headers carry embedded newlines and unit suffixes; match on prefix.
     per_capita = next(c for c in frame.columns if "per capita" in c)
-    total = next(
-        c for c in frame.columns if c.strip().startswith("Produto Interno Bruto,")
-    )
+    total = next(c for c in frame.columns if c.strip().startswith("Produto Interno Bruto,"))
     year = int(frame[PIB_YEAR_COL].max())
     latest = frame[frame[PIB_YEAR_COL] == year]
     out = pd.DataFrame(
@@ -148,7 +146,9 @@ def main() -> int:
         return 1
 
     merged = censo.merge(pib, on="ibge_code", how="left")
-    print(f"censo municipalities: {len(censo):,}   with PIB {pib_year}: {merged.gdp_per_capita.notna().sum():,}")
+    print(
+        f"censo municipalities: {len(censo):,}   with PIB {pib_year}: {merged.gdp_per_capita.notna().sum():,}"
+    )
 
     rows = [
         {

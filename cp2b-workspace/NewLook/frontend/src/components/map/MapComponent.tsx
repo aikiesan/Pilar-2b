@@ -669,7 +669,13 @@ export default function MapComponent({
 
         {isMounted && hoveredMunicipality && (
           <div className="hidden md:block">
-            <EnhancedTooltip municipality={hoveredMunicipality} position={mousePosition} visible={true} />
+            <EnhancedTooltip
+              municipality={hoveredMunicipality}
+              position={mousePosition}
+              visible={true}
+              metric={displayMetric}
+              scenario={mapScenario}
+            />
           </div>
         )}
 

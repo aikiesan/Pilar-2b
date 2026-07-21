@@ -7,18 +7,26 @@
 
 import React from 'react';
 import { TrendingUp, Users, Maximize, Factory, Leaf, Droplets } from 'lucide-react';
-import type { MunicipalityFeature } from '@/types/geospatial';
+import type { DisplayMetric, MunicipalityFeature } from '@/types/geospatial';
+import type { MapScenarioKey } from '@/data/scenarioFactors';
+import { getSectorMetricValue } from '@/lib/mapValues';
+import { getMetricSpec, formatCompact } from '@/lib/mapMetrics';
 
 interface EnhancedTooltipProps {
   municipality: MunicipalityFeature;
   position: { x: number; y: number };
   visible: boolean;
+  /** Metric the map is currently showing — the tooltip mirrors it. */
+  metric?: DisplayMetric;
+  scenario?: MapScenarioKey;
 }
 
 export default function EnhancedTooltip({
   municipality,
   position,
   visible,
+  metric = 'biomass_tons',
+  scenario = 'baseline',
 }: EnhancedTooltipProps) {
   if (!visible) return null;
 
@@ -31,14 +39,32 @@ export default function EnhancedTooltip({
     return value.toLocaleString('pt-BR');
   };
 
-  const totalBiogas = props.total_biogas_m3_year || 0;
-  const agriculturalBiogas = props.agricultural_biogas_m3_year || 0;
-  const livestockBiogas = props.livestock_biogas_m3_year || 0;
-  const urbanBiogas = props.urban_biogas_m3_year || 0;
+  // Follows the ACTIVE MAP METRIC, from the served canonical payload.
+  //
+  // This used to read `total_biogas_m3_year` and the `{sector}_biogas_m3_year`
+  // columns, which are populated for 645 São Paulo municipalities and nobody
+  // else — so every municipality outside SP showed "Potencial de Biogás: 0" with
+  // an empty composition, and the heading never changed because it was hardcoded
+  // to biogás regardless of the toggle. Same legacy-column family as the
+  // statistics/summary endpoint.
+  const spec = getMetricSpec(metric);
+  const sectors = {
+    agricultural: getSectorMetricValue(props, 'agricultural', metric, scenario),
+    livestock: getSectorMetricValue(props, 'livestock', metric, scenario),
+    urban: getSectorMetricValue(props, 'urban', metric, scenario),
+  };
+  const toDisplay = (v: number | null) => (v === null ? null : spec.toDisplay(v));
+  const agriculturalValue = toDisplay(sectors.agricultural);
+  const livestockValue = toDisplay(sectors.livestock);
+  const urbanValue = toDisplay(sectors.urban);
 
-  const agriculturePercent = totalBiogas > 0 ? (agriculturalBiogas / totalBiogas) * 100 : 0;
-  const livestockPercent = totalBiogas > 0 ? (livestockBiogas / totalBiogas) * 100 : 0;
-  const urbanPercent = totalBiogas > 0 ? (urbanBiogas / totalBiogas) * 100 : 0;
+  const metricTotal =
+    (agriculturalValue ?? 0) + (livestockValue ?? 0) + (urbanValue ?? 0);
+  const share = (v: number | null) =>
+    metricTotal > 0 && v !== null ? (v / metricTotal) * 100 : 0;
+  const agriculturePercent = share(agriculturalValue);
+  const livestockPercent = share(livestockValue);
+  const urbanPercent = share(urbanValue);
 
   return (
     <div
@@ -82,14 +108,14 @@ export default function EnhancedTooltip({
           <div className="flex items-center space-x-2 mb-2">
             <Factory className="w-4 h-4 text-blue-600 dark:text-blue-400" />
             <span className="text-xs font-semibold text-blue-700 dark:text-blue-300">
-              Potencial de Biogás
+              {spec.icon} {spec.toggleLabel}
             </span>
           </div>
           <div className="text-2xl font-bold text-blue-900 dark:text-blue-100">
-            {formatNumber(totalBiogas)}
+            {metricTotal > 0 ? formatCompact(metricTotal) : 'Sem dados'}
           </div>
           <div className="text-xs text-blue-600 dark:text-blue-400">
-            m³/ano
+            {spec.unit}
           </div>
         </div>
 
