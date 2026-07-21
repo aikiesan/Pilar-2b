@@ -109,7 +109,33 @@ function pickScenario(
   }
 }
 
+/**
+ * RAW BIOGAS (m³/year) — methane plus the CO2 it comes with.
+ *
+ * Distinct from methane: BMP is measured in NmL CH4/gVS, so the forward chain
+ * yields CH4, and raw biogas is that divided by the feedstock's CH4 fraction
+ * (52–72% across the corpus, median 57%) — roughly 1.8x larger.
+ *
+ * The map used to serve CH4 under a "Biogás" label. That made
+ * biomethane/"biogás" read 0.97, which is the methane RECOVERY of an upgrading
+ * unit, not the volumetric yield a reader expects from biogas. Against real raw
+ * biogas the ratio is ~0.53, because upgrading strips the CO2.
+ */
 export function getBiogasScenarioValue(
+  props: MunicipalityProperties,
+  scenario: MapScenarioKey
+): MapValue {
+  const medio = num(props.biogas_medio_m3_yr);
+  if (medio === null) return { value: null, coverage: NO_DATA };
+  const coverage = (props.total_biomass_coverage as BiomassCoverage) ?? 'estimated';
+  return {
+    value: pickScenario(scenario, num(props.biogas_min_m3_yr), medio, num(props.biogas_max_m3_yr)),
+    coverage,
+  };
+}
+
+/** Methane only (m³ CH4/year) — the quantity BMP actually predicts. */
+export function getMethaneScenarioValue(
   props: MunicipalityProperties,
   scenario: MapScenarioKey
 ): MapValue {
@@ -153,7 +179,11 @@ export function getBioenergyScenarioValue(
   props: MunicipalityProperties,
   scenario: MapScenarioKey
 ): MapValue {
-  const g = getBiogasScenarioValue(props, scenario);
+  // MWH_PER_M3_CH4 is the calorific value of pure METHANE, so it must be applied
+  // to the CH4 band — never to raw biogas, which is ~45% CO2 and carries no
+  // energy. Reading getBiogasScenarioValue here (as this did while that function
+  // still returned CH4) would now silently inflate bioenergy by ~1.8x.
+  const g = getMethaneScenarioValue(props, scenario);
   return { value: g.value === null ? null : g.value * MWH_PER_M3_CH4, coverage: g.coverage };
 }
 
@@ -214,4 +244,22 @@ export function getSectorMetricValue(
     default:
       return getSectorBiomassTons(props, sector);
   }
+}
+
+/**
+ * One residue's served tonnage, or null when we have no data for it.
+ *
+ * `biomassAvailability.getResidueBiomassTons` coerces null to 0 for arithmetic,
+ * which is right for summing but wrong for display: sugarcane outside São Paulo
+ * has never been promoted, so its column is NULL, and rendering that as
+ * "0 t/ano" states the municipality grows no cane. Detail rows must use this and
+ * show "Sem dados" instead — the same distinction the choropleth already makes
+ * with its no_data grey.
+ */
+export function getResidueTonsOrNull(
+  props: MunicipalityProperties,
+  residue: ResidueType
+): number | null {
+  if (covOf(props, residue) === NO_DATA) return null;
+  return tonsOf(props, residue);
 }

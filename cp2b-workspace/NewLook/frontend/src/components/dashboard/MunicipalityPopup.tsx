@@ -17,17 +17,18 @@ import {
   getCategoryLabel,
 } from '@/lib/mapUtils';
 import { BookOpen } from 'lucide-react';
-import {
-  BIOMASS_RESIDUES,
-  getResidueBiomassTons,
-  getSectorBiomassTons,
-  getTotalBiomassTons,
-  numberValue,
-} from '@/lib/biomassAvailability';
+import { BIOMASS_RESIDUES, numberValue } from '@/lib/biomassAvailability';
+import { getSectorMetricValue, getResidueTonsOrNull } from '@/lib/mapValues';
+import { getMetricSpec, formatCompact } from '@/lib/mapMetrics';
 import type { ResidueType } from '@/components/map/FloatingControlPanel';
+import type { DisplayMetric } from '@/types/geospatial';
+import type { MapScenarioKey } from '@/data/scenarioFactors';
 
 interface MunicipalityPopupProps {
   properties: MunicipalityProperties;
+  /** Metric the map is currently showing — the popup mirrors it. */
+  metric?: DisplayMetric;
+  scenario?: MapScenarioKey;
 }
 
 const residuePillClass: Record<ResidueType, string> = {
@@ -58,7 +59,11 @@ const formatTonsShort = (value: unknown): string => {
   return `${tons.toFixed(0)} t`;
 };
 
-function MunicipalityPopup({ properties }: MunicipalityPopupProps) {
+function MunicipalityPopup({
+  properties,
+  metric = 'biomass_tons',
+  scenario = 'baseline',
+}: MunicipalityPopupProps) {
   // Defensive checks for required properties
   if (!properties || !properties.name) {
     return (
@@ -68,10 +73,18 @@ function MunicipalityPopup({ properties }: MunicipalityPopupProps) {
     );
   }
 
-  const agriculturalBiomass = getSectorBiomassTons(properties, 'agricultural');
-  const livestockBiomass = getSectorBiomassTons(properties, 'livestock');
-  const urbanBiomass = getSectorBiomassTons(properties, 'urban');
-  const totalBiomass = getTotalBiomassTons(properties);
+  // Sector figures follow the ACTIVE MAP METRIC, read from the served payload
+  // through the metric registry — same accessor the panel and tooltip use, so
+  // the three can never disagree about the same municipality.
+  const spec = getMetricSpec(metric);
+  const toDisplay = (v: number | null) => (v === null ? null : spec.toDisplay(v));
+  const agriculturalBiomass =
+    toDisplay(getSectorMetricValue(properties, 'agricultural', metric, scenario)) ?? 0;
+  const livestockBiomass =
+    toDisplay(getSectorMetricValue(properties, 'livestock', metric, scenario)) ?? 0;
+  const urbanBiomass =
+    toDisplay(getSectorMetricValue(properties, 'urban', metric, scenario)) ?? 0;
+  const totalBiomass = agriculturalBiomass + livestockBiomass + urbanBiomass;
   const agriPercentage = calculatePercentage(agriculturalBiomass, totalBiomass);
   const livestockPercentage = calculatePercentage(livestockBiomass, totalBiomass);
   const urbanPercentage = calculatePercentage(urbanBiomass, totalBiomass);
@@ -108,11 +121,11 @@ function MunicipalityPopup({ properties }: MunicipalityPopupProps) {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
               <span className="text-[10px] font-medium text-green-900">
-                Biomassa Disponível
+                {spec.icon} {spec.toggleLabel}
               </span>
             </div>
             <p className="text-sm font-bold text-green-900">
-              {formatTons(totalBiomass)}
+              {totalBiomass > 0 ? `${formatCompact(totalBiomass)} ${spec.unit}` : 'Sem dados'}
             </p>
           </div>
 
@@ -202,8 +215,11 @@ function MunicipalityPopup({ properties }: MunicipalityPopupProps) {
         </h4>
         <div className="flex flex-wrap gap-1.5">
           {(Object.keys(BIOMASS_RESIDUES) as ResidueType[]).map((residue) => {
-            const value = getResidueBiomassTons(properties, residue);
-            if (value <= 0) return null;
+            // null (no data) and 0 (measured none) are both omitted from these
+            // pills — they list what a municipality HAS. The panel's detail rows
+            // are where the two are distinguished explicitly.
+            const value = getResidueTonsOrNull(properties, residue);
+            if (value === null || value <= 0) return null;
 
             return (
               <div key={residue} className={`px-2 py-0.5 border rounded text-[9px] ${residuePillClass[residue]}`}>

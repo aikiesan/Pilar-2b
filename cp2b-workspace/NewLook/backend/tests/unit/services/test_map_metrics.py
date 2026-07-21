@@ -40,7 +40,7 @@ class TestComputeFromBiomass:
         params = _make_params(
             bmp=115.0, ts=58.9, vs_of_ts=90.0, ch4_pct=55.0, avail=0.1399, fde_full=0.09793
         )
-        bio_c, ch4, biometh = _compute_from_biomass(100.0, params)
+        bio_c, biogas, ch4, biometh = _compute_from_biomass(100.0, params)
         # biomass_corrected = 100 × 0.1399 = 13.99
         assert bio_c["medio"] == pytest.approx(13.99, rel=1e-3)
         # CH4 = 100 × 0.589 × 0.90 × 115 × 0.09793
@@ -49,9 +49,32 @@ class TestComputeFromBiomass:
         # biomethane = ch4 × 0.97
         assert biometh["medio"] == pytest.approx(ch4["medio"] * UPGRADING_EFFICIENCY, rel=1e-3)
 
+    def test_raw_biogas_is_methane_divided_by_ch4_fraction(self):
+        """Biogás and CH4 are different quantities and must not be conflated.
+
+        BMP is NmL CH4/gVS, so the forward chain yields METHANE. Raw biogas is
+        larger by 1/ch4_pct because it still carries the CO2. The map used to
+        serve CH4 under a "Biogás" label, which made biomethane/biogás read 0.97
+        — a methane-recovery figure — instead of the ~0.53 a reader expects from
+        a biogas-to-biomethane ratio.
+        """
+        params = _make_params(
+            bmp=115.0, ts=58.9, vs_of_ts=90.0, ch4_pct=55.0, avail=0.1399, fde_full=0.09793
+        )
+        _, biogas, ch4, biometh = _compute_from_biomass(100.0, params)
+
+        # Raw biogas carries the CO2 the methane figure does not.
+        assert biogas["medio"] == pytest.approx(ch4["medio"] / 0.55, rel=1e-3)
+        assert biogas["medio"] > ch4["medio"]
+
+        # Upgrading recovers 97% of the METHANE...
+        assert biometh["medio"] / ch4["medio"] == pytest.approx(0.97, rel=1e-3)
+        # ...which is only ~53% of the raw biogas VOLUME.
+        assert biometh["medio"] / biogas["medio"] == pytest.approx(0.534, rel=1e-2)
+
     def test_zero_biomass_returns_zeros(self):
         params = _make_params()
-        bio_c, ch4, biometh = _compute_from_biomass(0.0, params)
+        bio_c, biogas, ch4, biometh = _compute_from_biomass(0.0, params)
         assert all(v == 0.0 for v in bio_c.values())
         assert all(v == 0.0 for v in ch4.values())
 
@@ -64,7 +87,7 @@ class TestComputeFromBiomass:
             fde=Range(0.10, 0.20, 0.30),
             availability=Range(0.15, 0.30, 0.45),
         )
-        bio_c, ch4, biometh = _compute_from_biomass(1000.0, params)
+        bio_c, biogas, ch4, biometh = _compute_from_biomass(1000.0, params)
         assert bio_c["min"] < bio_c["medio"] < bio_c["max"]
         assert ch4["min"] < ch4["medio"] < ch4["max"]
         assert biometh["min"] < biometh["medio"] < biometh["max"]

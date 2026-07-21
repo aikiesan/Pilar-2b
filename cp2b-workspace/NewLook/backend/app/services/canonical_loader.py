@@ -255,6 +255,20 @@ def residue_tons_from_production(
     )
 
 
+def mill_delivery_fraction(stream: str, path: str | None = None) -> Range | None:
+    """Share of reported crop production that reaches industrial processing.
+
+    Only sugarcane has one today: PAM reports cane PRODUCED, but bagaço, torta
+    and vinhaça are generated inside the mill, so they exist only for the cane
+    actually crushed. Returns None for streams where production and processing
+    are the same thing.
+    """
+    if stream not in STREAM_TO_CANONICAL:
+        raise KeyError(f"no canonical mapping for stream {stream!r}")
+    block = load_raw(path)[STREAM_TO_CANONICAL[stream]].get("mill_delivery_fraction")
+    return _range_from(block) if block else None
+
+
 def biomass_tons_from_collected_waste(
     stream: str, collected_tons: float, path: str | None = None
 ) -> Range:

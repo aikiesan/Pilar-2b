@@ -8,7 +8,12 @@
  * and nobody else.
  */
 
-import { getSectorMetricValue, getSectorScenarioValue, MWH_PER_M3_CH4 } from './mapValues';
+import {
+  getSectorMetricValue,
+  getSectorScenarioValue,
+  getResidueTonsOrNull,
+  MWH_PER_M3_CH4,
+} from './mapValues';
 import type { MunicipalityProperties } from '@/types/geospatial';
 
 const props = {
@@ -78,5 +83,36 @@ describe('getSectorMetricValue', () => {
     const empty = {} as MunicipalityProperties;
     expect(getSectorMetricValue(empty, 'agricultural', 'biogas_m3', 'baseline')).toBeNull();
     expect(getSectorMetricValue(empty, 'agricultural', 'bioenergy_mwh', 'baseline')).toBeNull();
+  });
+});
+
+describe('getResidueTonsOrNull', () => {
+  const withCoverage = {
+    sugarcane_biomass_tons_year: null,
+    sugarcane_biomass_coverage: 'no_data',
+    // A municipality that genuinely grows no coffee: measured, and the value is 0.
+    coffee_biomass_tons_year: 0,
+    coffee_biomass_coverage: 'measured',
+    soybean_biomass_tons_year: 43_400,
+    soybean_biomass_coverage: 'measured',
+  } as unknown as MunicipalityProperties;
+
+  it('returns null for a residue we have no data for', () => {
+    // Sugarcane is not promoted nationally yet, so outside São Paulo its column
+    // is NULL. Rendering that as "0 t/ano" would state the municipality grows
+    // no cane — the exact claim migration 025 exists to prevent.
+    expect(getResidueTonsOrNull(withCoverage, 'sugarcane')).toBeNull();
+  });
+
+  it('returns 0 — not null — for a measured zero', () => {
+    expect(getResidueTonsOrNull(withCoverage, 'coffee')).toBe(0);
+  });
+
+  it('returns the served tonnage when present', () => {
+    expect(getResidueTonsOrNull(withCoverage, 'soybean')).toBe(43_400);
+  });
+
+  it('treats a missing coverage flag as no_data, not as zero', () => {
+    expect(getResidueTonsOrNull({} as MunicipalityProperties, 'corn')).toBeNull();
   });
 });

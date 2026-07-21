@@ -66,8 +66,16 @@ class StreamMetrics:
     has_biomass: bool  # True when authoritative biomass data is available
     biomass_gross: float  # t/yr (single value; measured input)
     biomass_corrected: dict[str, float]  # t/yr per scenario (× availability)
-    biogas_ch4_m3: dict[str, float]  # m³/yr per scenario
-    biomethane_m3: dict[str, float]  # m³/yr per scenario
+    # RAW BIOGAS vs METHANE ARE DIFFERENT QUANTITIES — keep them apart.
+    # BMP is measured in NmL CH4/gVS, so the forward chain yields METHANE. Raw
+    # biogas is that methane divided by the feedstock's CH4 fraction (52–72% in
+    # the canonical corpus, median 57%), i.e. roughly 1.8x larger.
+    # Conflating them made biomethane/"biogás" read 0.97 — a methane-recovery
+    # figure wearing a biogas label — when the physically meaningful
+    # biomethane/biogas ratio is ~0.53.
+    biogas_m3: dict[str, float]  # m³/yr per scenario — RAW biogas (CH4 + CO2)
+    biogas_ch4_m3: dict[str, float]  # m³/yr per scenario — methane only
+    biomethane_m3: dict[str, float]  # m³/yr per scenario — upgraded methane
 
 
 @dataclass
@@ -81,6 +89,7 @@ class MunicipalityMapMetrics:
     biomass_corrected_total: dict[str, float] = field(
         default_factory=lambda: {sc: 0.0 for sc in SCENARIOS}
     )
+    biogas_total: dict[str, float] = field(default_factory=lambda: {sc: 0.0 for sc in SCENARIOS})
     biogas_ch4_total: dict[str, float] = field(
         default_factory=lambda: {sc: 0.0 for sc in SCENARIOS}
     )
@@ -95,6 +104,7 @@ class MunicipalityMapMetrics:
         }
         for sc in SCENARIOS:
             out[f"biomass_corrected_{sc}_tons_yr"] = round(self.biomass_corrected_total[sc], 2)
+            out[f"biogas_{sc}_m3_yr"] = round(self.biogas_total[sc], 2)
             out[f"biogas_ch4_{sc}_m3_yr"] = round(self.biogas_ch4_total[sc], 2)
             out[f"biomethane_{sc}_m3_yr"] = round(self.biomethane_total[sc], 2)
 
@@ -116,6 +126,7 @@ class MunicipalityMapMetrics:
             if not members:
                 continue
             for sc in SCENARIOS:
+                out[f"{sector}_biogas_{sc}_m3_yr"] = round(sum(m.biogas_m3[sc] for m in members), 2)
                 out[f"{sector}_biogas_ch4_{sc}_m3_yr"] = round(
                     sum(m.biogas_ch4_m3[sc] for m in members), 2
                 )
@@ -136,17 +147,25 @@ def _biomethane_from_ch4(ch4_dict: dict[str, float]) -> dict[str, float]:
 def _compute_from_biomass(
     biomass_tons: float,
     params: FeedstockParams,
-) -> tuple[dict[str, float], dict[str, float], dict[str, float]]:
+) -> tuple[dict[str, float], dict[str, float], dict[str, float], dict[str, float]]:
     """Full forward calculation from authoritative biomass tonnage.
 
-    Returns (biomass_corrected, biogas_ch4_m3, biomethane_m3) each as scenario dicts.
+    Returns (biomass_corrected, biogas_m3, biogas_ch4_m3, biomethane_m3), each a
+    scenario dict. `biogas_practical_m3` was already computed here and thrown
+    away; it is the raw biogas volume (CH4 + CO2), derived from the methane via
+    the feedstock's own ch4_pct.
     """
     result: BiogasResult = calculate_feedstock(biomass_tons, params)
     biomass_corrected = {
         sc: round(biomass_tons * params.availability.get(sc), 2) for sc in SCENARIOS
     }
     biomethane = _biomethane_from_ch4(result.ch4_practical_m3)
-    return biomass_corrected, result.ch4_practical_m3, biomethane
+    return (
+        biomass_corrected,
+        result.biogas_practical_m3,
+        result.ch4_practical_m3,
+        biomethane,
+    )
 
 
 def _compute_from_stored_biogas(
@@ -220,12 +239,13 @@ def compute_stream_metrics(
         return None
 
     if biomass_tons > 0:
-        biomass_corrected, ch4, biomethane = _compute_from_biomass(biomass_tons, params)
+        biomass_corrected, biogas, ch4, biomethane = _compute_from_biomass(biomass_tons, params)
         return StreamMetrics(
             stream=stream,
             has_biomass=True,
             biomass_gross=round(biomass_tons, 2),
             biomass_corrected=biomass_corrected,
+            biogas_m3=biogas,
             biogas_ch4_m3=ch4,
             biomethane_m3=biomethane,
         )
@@ -233,11 +253,18 @@ def compute_stream_metrics(
         biomass_gross, biomass_corrected, ch4, biomethane = _compute_from_stored_biogas(
             biogas_m3, params
         )
+        # Legacy path: only a stored CH4 figure exists, so raw biogas is
+        # reconstructed from the same ch4_pct the forward engine would have used.
+        ch4_fraction = (params.ch4_pct or 0.0) / 100.0
+        biogas = {
+            sc: round(ch4[sc] / ch4_fraction, 2) if ch4_fraction > 0 else 0.0 for sc in SCENARIOS
+        }
         return StreamMetrics(
             stream=stream,
             has_biomass=False,
             biomass_gross=biomass_gross,
             biomass_corrected=biomass_corrected,
+            biogas_m3=biogas,
             biogas_ch4_m3=ch4,
             biomethane_m3=biomethane,
         )
@@ -279,6 +306,7 @@ def compute_municipality_map_metrics(
         metrics.biomass_gross_total += sm.biomass_gross
         for sc in SCENARIOS:
             metrics.biomass_corrected_total[sc] += sm.biomass_corrected[sc]
+            metrics.biogas_total[sc] += sm.biogas_m3[sc]
             metrics.biogas_ch4_total[sc] += sm.biogas_ch4_m3[sc]
             metrics.biomethane_total[sc] += sm.biomethane_m3[sc]
 

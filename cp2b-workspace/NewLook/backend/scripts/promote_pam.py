@@ -37,16 +37,24 @@ retention and competing uses live in the fde block and are applied downstream.
 Folding either into the other double-discounts the residue — the bug that made
 cana palha 0.053 instead of its gross 0.14 t DM/t.
 
-SUGARCANE IS DELIBERATELY EXCLUDED (--include-sugarcane to override)
-Cane does not have one denominator. Its sub-streams are physically generated at
-different stages:
+SUGARCANE GOES THROUGH A SECOND FACTOR
+Cane does not share one denominator with the other crops. Its sub-streams are
+physically generated at different stages:
     bagaço, torta   <- cane CRUSHED at a mill (UNICA moagem)
     vinhaça         <- ETHANOL distilled (m³ × 12 m³/m³)
     palha           <- cane HARVESTED in the field (PAM production)
-PAM production overstates the milled fraction by ~15% (17-year UNICA series:
-moagem/production = 0.76–0.92, mean ~0.85), so driving bagaço and vinhaça off it
-inflates the largest stream on the platform. Cane lands in a follow-up once the
-moagem and ethanol series are ingested.
+
+The `sugarcane` stream maps to BAGACO, an industrial residue, so its tonnage is
+    PAM production × mill_delivery_fraction × rpr
+where mill_delivery_fraction (0.85 medio) is the 17-year UNICA moagem/production
+ratio recorded in feedstocks.yaml. Without it, bagasse would be computed for cane
+that never reached a mill — an ~18% overstatement of the platform's largest
+stream. Sanity check: 782 Mt × 0.85 × 0.28 ≈ 186 Mt of bagasse, consistent with
+Brazil's ~180–200 Mt/yr.
+
+This is a NATIONAL ratio standing in for per-state data, and vinhaça should
+eventually come off ethanol volume directly rather than off cane. The UNICA/CONAB
+state series (moagem and ethanol by UF, 2002–2021) is the refinement.
 
 CONFIDENTIAL VALUES ARE NOT ZERO
 IBGE withholds ('X') ~19.8k municipality-years to protect informants, heavily
@@ -59,7 +67,9 @@ from __future__ import annotations
 
 import argparse
 import os
+import re
 import sys
+import unicodedata
 from pathlib import Path
 
 import pandas as pd
@@ -67,8 +77,12 @@ import psycopg2
 
 sys.path.insert(0, "/app")
 
-from app.services.canonical_loader import residue_tons_from_production  # noqa: E402
+from app.services.canonical_loader import (  # noqa: E402
+    mill_delivery_fraction,
+    residue_tons_from_production,
+)
 from ingest.contract import IngestContext  # noqa: E402
+from ingest.sources.pam import _sidra  # noqa: E402
 from ingest.sources.pam_1612 import source as pam1612  # noqa: E402
 from ingest.sources.pam_1613 import source as pam1613  # noqa: E402
 
@@ -82,7 +96,7 @@ CROPS: dict[str, tuple[object, str, str]] = {
     "citrus": (pam1613, "citrus_production_t", "pam_1613"),
     "sugarcane": (pam1612, "sugarcane_production_t", "pam_1612"),
 }
-DEFAULT_CROPS = ("soybean", "corn", "coffee", "citrus")
+DEFAULT_CROPS = ("soybean", "corn", "coffee", "citrus", "sugarcane")
 
 TIMESERIES_SQL = """
 INSERT INTO municipality_timeseries
@@ -140,13 +154,19 @@ def build_rows(year: int, crops: tuple[str, ...]) -> tuple[list[dict], list[dict
             frames[module] = module.load(year, RAW_DIR)
         frame = frames[module]
 
+        mill_fraction = mill_delivery_fraction(stream)
         produced = residue = 0.0
         written = 0
         for code, value in zip(frame["ibge_code"], frame[production_column]):
             if pd.isna(value):
                 continue  # '..' not surveyed, or 'X' withheld — never a zero
             production = float(value)
-            residue_tons = residue_tons_from_production(stream, production).medio
+            # Cane's industrial residues exist only for the fraction that reaches
+            # a mill; field residues (and every other crop) use production as-is.
+            delivered = production
+            if mill_fraction is not None:
+                delivered = production * mill_fraction.medio
+            residue_tons = residue_tons_from_production(stream, delivered).medio
 
             timeseries.append(
                 {
@@ -216,10 +236,60 @@ def promote(year: int, crops: tuple[str, ...], dry_run: bool) -> int:
     return 0
 
 
+def build_all_crop_rows(year: int) -> tuple[list[dict], dict[str, float]]:
+    """Every PAM product -> municipality_timeseries, production tonnes.
+
+    The five modelled streams reach the map through the biomass columns; this
+    preserves the REST of PAM (~60 further crops) as an auditable record so the
+    data does not have to be re-extracted when canonical parameters exist for
+    them. Nothing here touches the biomass columns or provenance: a crop with no
+    BMP/TS/VS/FDE/RPR block cannot be turned into biogas potential, and writing
+    one as though it could is the invention this codebase keeps removing.
+
+    Scale, for context: the 5 modelled crops are 1,087 Mt of the 1,183 Mt PAM
+    reports for 2023 — 92%. Everything below is the remaining 96 Mt, spread thin
+    (mandioca 18.4, arroz 10.3, trigo 7.7, algodão 7.5, and a long tail).
+    """
+    rows: list[dict] = []
+    totals: dict[str, float] = {}
+    for module, source_id in ((pam1612, "pam_1612"), (pam1613, "pam_1613")):
+        base = module.fetch(year, RAW_DIR)
+        reading = _sidra.read_year(_sidra.select_workbook(base, module.TABLE, year), year)
+        for code, products in reading.items():
+            for product, value in products.items():
+                if value is None:
+                    continue  # '..' not surveyed / 'X' withheld — never a zero
+                rows.append(
+                    {
+                        "ibge_code": str(code),
+                        "year": year,
+                        "source_id": source_id,
+                        "variable": f"pam_{_slug(product)}",
+                        "value": float(value),
+                    }
+                )
+                totals[product] = totals.get(product, 0.0) + float(value)
+    return rows, totals
+
+
+def _slug(product: str) -> str:
+    """PAM product label -> a stable, ASCII variable name."""
+    text = unicodedata.normalize("NFKD", product).encode("ascii", "ignore").decode()
+    keep = [c.lower() if c.isalnum() else "_" for c in text]
+    return re.sub(r"_+", "_", "".join(keep)).strip("_")[:70]
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--year", type=int, required=True)
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument(
+        "--all-crops",
+        action="store_true",
+        help="also record every other PAM product in municipality_timeseries "
+        "(production only — they have no canonical parameters, so they do not "
+        "become biomass or biogas potential)",
+    )
     parser.add_argument(
         "--include-sugarcane",
         action="store_true",
@@ -244,7 +314,29 @@ def main() -> int:
             return 1
         print(f"gates green: {module.SPEC.source_id}")
 
-    return promote(args.year, crops, args.dry_run)
+    rc = promote(args.year, crops, args.dry_run)
+    if rc or not args.all_crops:
+        return rc
+
+    rows, totals = build_all_crop_rows(args.year)
+    modelled = {"Cana-de-açúcar", "Soja (em grão)", "Milho (em grão)", "Laranja"}
+    extra = {k: v for k, v in totals.items() if k not in modelled and "Café (em grão)" not in k}
+    print(f"\nALL CROPS — {len(totals)} PAM products, {len(rows):,} timeseries rows")
+    print(f"  modelled as biomass streams : {len(modelled) + 1}")
+    print(f"  recorded as production only : {len(extra)}  ({sum(extra.values())/1e6:,.1f} Mt)")
+
+    if args.dry_run:
+        print("dry run — nothing written")
+        return 0
+
+    connection = psycopg2.connect(dsn())
+    try:
+        with connection, connection.cursor() as cursor:
+            cursor.executemany(TIMESERIES_SQL, rows)
+        print("committed (single transaction)")
+    finally:
+        connection.close()
+    return 0
 
 
 if __name__ == "__main__":

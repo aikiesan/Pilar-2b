@@ -18,6 +18,7 @@ import type { MapScenarioKey } from '@/data/scenarioFactors';
 import {
   getBiomassMapValue,
   getBiogasScenarioValue,
+  getMethaneScenarioValue,
   getBiomethaneScenarioValue,
   getBioenergyScenarioValue,
   type MapValue,
@@ -26,6 +27,7 @@ import {
 export const DISPLAY_METRICS: DisplayMetric[] = [
   'biomass_tons',
   'biogas_m3',
+  'methane_m3',
   'biomethane_m3',
   'bioenergy_mwh',
 ];
@@ -80,6 +82,10 @@ export const METRIC_SPECS: Record<DisplayMetric, MetricSpec> = {
     toDisplay: (v) => v,
     breaks: [5_000, 50_000, 200_000, 1_000_000, 5_000_000],
   },
+  // Raw biogas: methane + the CO2 it comes with. Roughly 1.8x the methane
+  // figure, so its breaks are scaled accordingly. Until this existed the map
+  // showed CH4 under this label, which made biomethane/biogás read 0.97 (a
+  // methane-recovery number) instead of the ~0.53 volumetric yield.
   biogas_m3: {
     key: 'biogas_m3',
     toggleLabel: 'Biogás',
@@ -88,6 +94,18 @@ export const METRIC_SPECS: Record<DisplayMetric, MetricSpec> = {
     legendTitle: 'Biogás (Nm³/dia)',
     unit: 'Nm³/dia',
     rawValue: (p, c) => getBiogasScenarioValue(p, c.scenario),
+    toDisplay: perDay,
+    breaks: [4_500, 45_000, 180_000, 450_000, 1_800_000],
+  },
+  // Methane only — what BMP actually predicts, and the basis for bioenergia.
+  methane_m3: {
+    key: 'methane_m3',
+    toggleLabel: 'Metano',
+    icon: '🔬',
+    activeClass: 'bg-cyan-600',
+    legendTitle: 'Metano CH₄ (Nm³/dia)',
+    unit: 'Nm³/dia',
+    rawValue: (p, c) => getMethaneScenarioValue(p, c.scenario),
     toDisplay: perDay,
     breaks: [2_500, 25_000, 100_000, 250_000, 1_000_000],
   },

@@ -23,13 +23,10 @@ import {
 } from 'lucide-react';
 import type { DisplayMetric, MunicipalityFeature } from '@/types/geospatial';
 import type { MapScenarioKey } from '@/data/scenarioFactors';
-import {
-  getResidueBiomassTons,
-  getSectorBiomassTons,
-  getTotalBiomassTons,
-} from '@/lib/biomassAvailability';
-import { getSectorMetricValue } from '@/lib/mapValues';
+import { getTotalBiomassTons } from '@/lib/biomassAvailability';
+import { getSectorMetricValue, getResidueTonsOrNull } from '@/lib/mapValues';
 import { getMetricSpec, formatCompact } from '@/lib/mapMetrics';
+import type { ResidueType } from '@/components/map/FloatingControlPanel';
 
 interface MunicipalityProfilePanelProps {
   municipality: MunicipalityFeature | null;
@@ -95,6 +92,16 @@ export default function MunicipalityProfilePanel({
   const formatTons = (value: number | undefined | null) => {
     if (value === undefined || value === null) return 'N/A';
     return `${formatBigNumber(value)} t/ano`;
+  };
+
+  // Per-residue rows must separate "we measured none" from "we have no data".
+  // Sugarcane outside São Paulo has never been promoted, so its column is NULL,
+  // and the old formatTons(getResidueBiomassTons(...)) rendered that as
+  // "0 t/ano" — stating the municipality grows no cane. Same distinction the
+  // choropleth already makes with its no_data grey.
+  const formatResidue = (p: typeof props, residue: ResidueType) => {
+    const tons = getResidueTonsOrNull(p, residue);
+    return tons === null ? 'Sem dados' : `${formatBigNumber(tons)} t/ano`;
   };
 
   // Biomass tonnage is still needed for the per-residue rows further down, which
@@ -318,11 +325,11 @@ export default function MunicipalityProfilePanel({
             onToggle={() => toggleSection('agriculture')}
           >
             <div className="space-y-2">
-              <DetailRow label="Cana-de-açúcar" value={formatTons(getResidueBiomassTons(props, 'sugarcane'))} />
-              <DetailRow label="Soja" value={formatTons(getResidueBiomassTons(props, 'soybean'))} />
-              <DetailRow label="Milho" value={formatTons(getResidueBiomassTons(props, 'corn'))} />
-              <DetailRow label="Café" value={formatTons(getResidueBiomassTons(props, 'coffee'))} />
-              <DetailRow label="Citros" value={formatTons(getResidueBiomassTons(props, 'citrus'))} />
+              <DetailRow label="Cana-de-açúcar" value={formatResidue(props, 'sugarcane')} />
+              <DetailRow label="Soja" value={formatResidue(props, 'soybean')} />
+              <DetailRow label="Milho" value={formatResidue(props, 'corn')} />
+              <DetailRow label="Café" value={formatResidue(props, 'coffee')} />
+              <DetailRow label="Citros" value={formatResidue(props, 'citrus')} />
             </div>
           </Section>
 
@@ -334,10 +341,10 @@ export default function MunicipalityProfilePanel({
             onToggle={() => toggleSection('livestock')}
           >
             <div className="space-y-2">
-              <DetailRow label="Bovinos" value={formatTons(getResidueBiomassTons(props, 'cattle'))} />
-              <DetailRow label="Suínos" value={formatTons(getResidueBiomassTons(props, 'swine'))} />
-              <DetailRow label="Aves" value={formatTons(getResidueBiomassTons(props, 'poultry'))} />
-              <DetailRow label="Aquicultura" value={formatTons(getResidueBiomassTons(props, 'aquaculture'))} />
+              <DetailRow label="Bovinos" value={formatResidue(props, 'cattle')} />
+              <DetailRow label="Suínos" value={formatResidue(props, 'swine')} />
+              <DetailRow label="Aves" value={formatResidue(props, 'poultry')} />
+              <DetailRow label="Aquicultura" value={formatResidue(props, 'aquaculture')} />
             </div>
           </Section>
 
@@ -349,8 +356,8 @@ export default function MunicipalityProfilePanel({
             onToggle={() => toggleSection('urban')}
           >
             <div className="space-y-2">
-              <DetailRow label="RSU (Resíduos Sólidos)" value={formatTons(getResidueBiomassTons(props, 'rsu'))} />
-              <DetailRow label="RPO (Resíduos Orgânicos)" value={formatTons(getResidueBiomassTons(props, 'rpo'))} />
+              <DetailRow label="RSU (Resíduos Sólidos)" value={formatResidue(props, 'rsu')} />
+              <DetailRow label="RPO (Resíduos Orgânicos)" value={formatResidue(props, 'rpo')} />
             </div>
           </Section>
 
