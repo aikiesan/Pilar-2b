@@ -29,8 +29,14 @@ const ctx = (scenario = 'baseline' as const) => ({
 });
 
 describe('mapMetrics — registry wiring', () => {
-  it('exposes exactly the four metrics', () => {
-    expect(DISPLAY_METRICS).toEqual(['biomass_tons', 'biogas_m3', 'biomethane_m3', 'bioenergy_mwh']);
+  it('exposes exactly the five metrics', () => {
+    expect(DISPLAY_METRICS).toEqual([
+      'biomass_tons',
+      'biogas_m3',
+      'methane_m3',
+      'biomethane_m3',
+      'bioenergy_mwh',
+    ]);
   });
 
   it('biomass reads served tonnage (t/ano, no conversion)', () => {
@@ -40,11 +46,38 @@ describe('mapMetrics — registry wiring', () => {
     expect(METRIC_SPECS.biomass_tons.toDisplay(12_000)).toBe(12_000);
   });
 
-  it('biogas reads biogas_ch4 band and displays as Nm³/dia (÷365)', () => {
-    const p = props({ biogas_ch4_medio_m3_yr: 365_000, total_biomass_coverage: 'estimated' });
+  it('biogas reads the RAW biogas band, not the methane band', () => {
+    // These are different quantities: raw biogas still carries the CO2, so it is
+    // ~1.8x the methane figure. Reading biogas_ch4 here is what made
+    // biomethane/"biogás" look like 0.97 instead of ~0.53.
+    const p = props({
+      biogas_medio_m3_yr: 365_000,
+      biogas_ch4_medio_m3_yr: 200_000,
+      total_biomass_coverage: 'estimated',
+    });
     const v = METRIC_SPECS.biogas_m3.rawValue(p, ctx());
     expect(v.value).toBe(365_000);
     expect(METRIC_SPECS.biogas_m3.toDisplay(365_000)).toBe(1_000); // 365k/yr → 1000/day
+  });
+
+  it('metano reads the CH4 band', () => {
+    const p = props({
+      biogas_medio_m3_yr: 365_000,
+      biogas_ch4_medio_m3_yr: 200_000,
+      total_biomass_coverage: 'estimated',
+    });
+    expect(METRIC_SPECS.methane_m3.rawValue(p, ctx()).value).toBe(200_000);
+  });
+
+  it('bioenergia converts METHANE, never raw biogas', () => {
+    // 9.97 kWh/m³ is the calorific value of pure methane; raw biogas is ~45% CO2
+    // and carries no energy, so applying it there would inflate by ~1.8x.
+    const p = props({
+      biogas_medio_m3_yr: 365_000,
+      biogas_ch4_medio_m3_yr: 200_000,
+      total_biomass_coverage: 'estimated',
+    });
+    expect(METRIC_SPECS.bioenergy_mwh.rawValue(p, ctx()).value).toBeCloseTo(200_000 * 0.00997, 6);
   });
 
   it('biomethane reads its OWN served field, not biogas', () => {
@@ -72,9 +105,9 @@ describe('mapMetrics — registry wiring', () => {
 
 describe('mapMetrics — scenario band picking (via biogas)', () => {
   const p = props({
-    biogas_ch4_min_m3_yr: 100,
-    biogas_ch4_medio_m3_yr: 200,
-    biogas_ch4_max_m3_yr: 400,
+    biogas_min_m3_yr: 100,
+    biogas_medio_m3_yr: 200,
+    biogas_max_m3_yr: 400,
     total_biomass_coverage: 'estimated',
   });
   const raw = (s: 'conservador' | 'baseline' | 'otimista' | 'fronteira') =>

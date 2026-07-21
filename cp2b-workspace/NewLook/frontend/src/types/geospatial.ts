@@ -77,9 +77,19 @@ export interface MunicipalityProperties {
   livestock_biomass_coverage?: BiomassCoverage;
   urban_biomass_coverage?: BiomassCoverage;
 
-  // Canonical biogas potential per scenario (municipality total, m³ CH4/year) and
-  // biomethane. NULL when no canonical metric could be computed. Min/medio/max are
-  // the propagated uncertainty bands; the map's 'fronteira' is derived from them.
+  // Canonical potential per scenario (municipality totals). NULL when no canonical
+  // metric could be computed. Min/medio/max are the propagated uncertainty bands;
+  // the map's 'fronteira' is derived from them.
+  //
+  // THREE DISTINCT QUANTITIES — do not substitute one for another:
+  //   biogas_*      raw biogas, m³/year (CH4 + CO2)
+  //   biogas_ch4_*  methane only, m³ CH4/year — what BMP predicts
+  //   biomethane_*  upgraded methane, m³/year (CH4 × 0.97 recovery)
+  // biomethane/biogas_ch4 ≈ 0.97 (methane recovery); biomethane/biogas ≈ 0.53
+  // (volumetric yield, since upgrading strips the CO2).
+  biogas_min_m3_yr?: number | null;
+  biogas_medio_m3_yr?: number | null;
+  biogas_max_m3_yr?: number | null;
   biogas_ch4_min_m3_yr?: number | null;
   biogas_ch4_medio_m3_yr?: number | null;
   biogas_ch4_max_m3_yr?: number | null;
@@ -106,7 +116,12 @@ export interface MunicipalityProperties {
 }
 
 // Display metric — controls whether map shows biogas potential or biomass availability
-export type DisplayMetric = 'biomass_tons' | 'biogas_m3' | 'biomethane_m3' | 'bioenergy_mwh';
+export type DisplayMetric =
+  | 'biomass_tons'
+  | 'biogas_m3'
+  | 'methane_m3'
+  | 'biomethane_m3'
+  | 'bioenergy_mwh';
 
 // Color mode — controls the choropleth styling (biogas/biomass, C/N profile, or clusters)
 export type ColorMode = 'biogas' | 'cn_profile' | 'cluster';
