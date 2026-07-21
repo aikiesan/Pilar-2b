@@ -18,6 +18,7 @@ import {
 import type { MunicipalityCollection } from '@/types/geospatial';
 import html2canvas from 'html2canvas';
 import { logger } from '@/lib/logger';
+import { DATA_EXPORT_ENABLED } from '@/lib/featureFlags';
 
 interface ExportControlProps {
   data: MunicipalityCollection | null;
@@ -37,6 +38,11 @@ export default function ExportControl({
   const [selectedFormat, setSelectedFormat] = useState<ExportFormat | null>(null);
   const [errorMessage, setErrorMessage] = useState<string>('');
 
+  // Beta: the dataset is still being validated, so no copy leaves the browser.
+  // MapComponent and DesktopLeftPanel already withhold this control; this guard
+  // is here so the component cannot export even if something renders it
+  // directly. See lib/featureFlags for the reasoning and the re-enable switch.
+  if (!DATA_EXPORT_ENABLED) return null;
   if (!visible) return null;
 
   const handleExport = async (format: ExportFormat) => {
