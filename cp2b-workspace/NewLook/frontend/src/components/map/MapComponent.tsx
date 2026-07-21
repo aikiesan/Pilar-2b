@@ -678,6 +678,8 @@ export default function MapComponent({
             municipality={selectedMunicipality}
             onClose={() => setSelectedMunicipality(null)}
             visible={selectedMunicipality !== null}
+            metric={displayMetric}
+            scenario={mapScenario}
           />
         )}
 

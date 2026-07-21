@@ -21,23 +21,31 @@ import {
   ExternalLink,
   FileText,
 } from 'lucide-react';
-import type { MunicipalityFeature } from '@/types/geospatial';
+import type { DisplayMetric, MunicipalityFeature } from '@/types/geospatial';
+import type { MapScenarioKey } from '@/data/scenarioFactors';
 import {
   getResidueBiomassTons,
   getSectorBiomassTons,
   getTotalBiomassTons,
 } from '@/lib/biomassAvailability';
+import { getSectorMetricValue } from '@/lib/mapValues';
+import { getMetricSpec, formatCompact } from '@/lib/mapMetrics';
 
 interface MunicipalityProfilePanelProps {
   municipality: MunicipalityFeature | null;
   onClose: () => void;
   visible: boolean;
+  /** Metric the map is currently showing — the panel mirrors it. */
+  metric?: DisplayMetric;
+  scenario?: MapScenarioKey;
 }
 
 export default function MunicipalityProfilePanel({
   municipality,
   onClose,
   visible,
+  metric = 'biomass_tons',
+  scenario = 'baseline',
 }: MunicipalityProfilePanelProps) {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
     new Set(['overview', 'biomass'])
@@ -89,16 +97,37 @@ export default function MunicipalityProfilePanel({
     return `${formatBigNumber(value)} t/ano`;
   };
 
-  // Calculate totals
-  const agriculturalBiomass = getSectorBiomassTons(props, 'agricultural');
-  const livestockBiomass = getSectorBiomassTons(props, 'livestock');
-  const urbanBiomass = getSectorBiomassTons(props, 'urban');
+  // Biomass tonnage is still needed for the per-residue rows further down, which
+  // are always expressed in tonnes regardless of the metric on show.
   const totalBiomass = getTotalBiomassTons(props);
 
-  // Calculate percentages
-  const agriculturePercent = totalBiomass > 0 ? (agriculturalBiomass / totalBiomass) * 100 : 0;
-  const livestockPercent = totalBiomass > 0 ? (livestockBiomass / totalBiomass) * 100 : 0;
-  const urbanPercent = totalBiomass > 0 ? (urbanBiomass / totalBiomass) * 100 : 0;
+  // The headline figure and the sector split follow the ACTIVE MAP METRIC, so the
+  // panel always answers the question the choropleth is currently asking. Every
+  // value is read from the served payload through the metric registry — the panel
+  // derives nothing itself (see mapValues.getSectorMetricValue).
+  const spec = getMetricSpec(metric);
+  const sectorRaw = {
+    agricultural: getSectorMetricValue(props, 'agricultural', metric, scenario),
+    livestock: getSectorMetricValue(props, 'livestock', metric, scenario),
+    urban: getSectorMetricValue(props, 'urban', metric, scenario),
+  };
+
+  // Display units (t/ano, Nm³/dia, MWh/ano) come from the registry, so the panel
+  // and the legend can never disagree about what a number means.
+  const toDisplay = (v: number | null) => (v === null ? null : spec.toDisplay(v));
+  const agriculturalValue = toDisplay(sectorRaw.agricultural);
+  const livestockValue = toDisplay(sectorRaw.livestock);
+  const urbanValue = toDisplay(sectorRaw.urban);
+
+  // Percentages come off the sector sum, not a separately-served total: a sector
+  // with no data must not be counted as a zero share of a larger denominator.
+  const metricTotal =
+    (agriculturalValue ?? 0) + (livestockValue ?? 0) + (urbanValue ?? 0);
+  const share = (v: number | null) =>
+    metricTotal > 0 && v !== null ? (v / metricTotal) * 100 : 0;
+  const agriculturePercent = share(agriculturalValue);
+  const livestockPercent = share(livestockValue);
+  const urbanPercent = share(urbanValue);
 
   return (
     <>
@@ -221,24 +250,24 @@ export default function MunicipalityProfilePanel({
             </div>
           </Section>
 
-          {/* Biomass Availability Section */}
+          {/* Potential section — follows whichever metric the map is showing */}
           <Section
-            title="Disponibilidade de Biomassa"
+            title={`Potencial de ${spec.toggleLabel}`}
             icon={<Factory className="w-5 h-5" />}
             expanded={expandedSections.has('biomass')}
             onToggle={() => toggleSection('biomass')}
           >
             <div className="space-y-4">
-              {/* Total Biomass */}
+              {/* Headline figure in the active metric */}
               <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-lg p-4 border border-green-200 dark:border-green-800">
                 <div className="text-xs text-green-700 dark:text-green-300 font-medium mb-1">
-                  Biomassa Disponível Total
+                  {spec.icon} {spec.toggleLabel} — Total
                 </div>
                 <div className="text-2xl font-bold text-green-900 dark:text-green-100 mb-0.5">
-                  {formatBigNumber(totalBiomass)}
+                  {metricTotal > 0 ? formatCompact(metricTotal) : 'Sem dados'}
                 </div>
                 <div className="text-xs text-green-600 dark:text-green-400">
-                  toneladas/ano de biomassa
+                  {spec.unit}
                 </div>
               </div>
 
@@ -251,31 +280,31 @@ export default function MunicipalityProfilePanel({
                 {/* Agricultural */}
                 <ProgressBar
                   label="Agrícola"
-                  value={agriculturalBiomass}
+                  value={agriculturalValue ?? 0}
                   percentage={agriculturePercent}
                   color="green"
                   icon={<Leaf className="w-4 h-4" />}
-                  unit="t/ano"
+                  unit={spec.unit}
                 />
 
                 {/* Livestock */}
                 <ProgressBar
                   label="Pecuária"
-                  value={livestockBiomass}
+                  value={livestockValue ?? 0}
                   percentage={livestockPercent}
                   color="yellow"
                   icon={<Factory className="w-4 h-4" />}
-                  unit="t/ano"
+                  unit={spec.unit}
                 />
 
                 {/* Urban */}
                 <ProgressBar
                   label="Urbano"
-                  value={urbanBiomass}
+                  value={urbanValue ?? 0}
                   percentage={urbanPercent}
                   color="blue"
                   icon={<Droplets className="w-4 h-4" />}
-                  unit="t/ano"
+                  unit={spec.unit}
                 />
               </div>
             </div>
