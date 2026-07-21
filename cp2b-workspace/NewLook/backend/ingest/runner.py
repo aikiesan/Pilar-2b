@@ -22,6 +22,8 @@ from pathlib import Path
 SOURCES: dict[str, str] = {
     "aneel_siga": "ingest.sources.aneel_siga.source",
     "ibge_ppm": "ingest.sources.ibge_ppm.source",
+    "pam_1612": "ingest.sources.pam_1612.source",
+    "pam_1613": "ingest.sources.pam_1613.source",
     "snis": "ingest.sources.snis.source",
 }
 

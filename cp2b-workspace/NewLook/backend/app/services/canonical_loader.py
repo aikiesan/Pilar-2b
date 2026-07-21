@@ -224,6 +224,69 @@ def biomass_tons_from_units(stream: str, units: float, path: str | None = None) 
     return Range(units * factor.min, units * factor.medio, units * factor.max)
 
 
+def residue_tons_from_production(
+    stream: str, production_tons: float, path: str | None = None
+) -> Range:
+    """Crop production tonnes → residue tonnes/year, via the canonical RPR.
+
+    IBGE PAM reports what was HARVESTED (grain, green coffee); the platform models
+    what is left over. `rpr` is that bridge, and it lives in feedstocks.yaml so the
+    map, the canonical state totals and the ingest gates cannot drift apart —
+    before this it existed only as a hardcoded constant in one frontend page.
+
+    The ratio is GROSS: collectability (how much may actually be removed without
+    stripping soil cover) is the fde/FCo block's job. Applying both here would
+    discount the residue twice.
+    """
+    if stream not in STREAM_TO_CANONICAL:
+        raise KeyError(f"no canonical mapping for stream {stream!r}")
+    block = load_raw(path)[STREAM_TO_CANONICAL[stream]].get("rpr")
+    if block is None:
+        raise KeyError(
+            f"stream {stream!r} has no canonical `rpr` block, so crop production "
+            "cannot be converted to residue. Add one to feedstocks.yaml rather than "
+            "treating production tonnage as though it were residue."
+        )
+    ratio = _range_from(block)
+    return Range(
+        production_tons * ratio.min,
+        production_tons * ratio.medio,
+        production_tons * ratio.max,
+    )
+
+
+def biomass_tons_from_collected_waste(
+    stream: str, collected_tons: float, path: str | None = None
+) -> Range:
+    """Collected municipal waste tonnage → digestible substrate tonnes/year.
+
+    The measured counterpart of biomass_tons_from_units: where a municipality
+    REPORTS what it collected (SNIS CO111), that beats modelling the tonnage from
+    population. Only the composition step remains — collected household waste is
+    the whole stream, of which 50–55% is organic (feedstocks.yaml
+    FORSU.organic_fraction_of_rdo, ref snis2022_rsu).
+
+    Raises rather than guessing, for the same reason as biomass_tons_from_units:
+    passing collected MSW through as if it were all digestible substrate would
+    overstate the organic fraction by roughly 2x.
+    """
+    if stream not in STREAM_TO_CANONICAL:
+        raise KeyError(f"no canonical mapping for stream {stream!r}")
+    block = load_raw(path)[STREAM_TO_CANONICAL[stream]].get("organic_fraction_of_rdo")
+    if block is None:
+        raise KeyError(
+            f"stream {stream!r} has no `organic_fraction_of_rdo` block, so collected "
+            "waste tonnage cannot be converted to digestible substrate. Add one to "
+            "feedstocks.yaml rather than treating collected MSW as all-organic."
+        )
+    fraction = _range_from(block)
+    return Range(
+        collected_tons * fraction.min,
+        collected_tons * fraction.medio,
+        collected_tons * fraction.max,
+    )
+
+
 def get_params_for_stream(stream: str, path: str | None = None) -> FeedstockParams:
     """Build FeedstockParams for an aggregate municipality stream key.
 
