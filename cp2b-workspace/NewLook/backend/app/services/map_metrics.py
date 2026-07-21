@@ -49,6 +49,14 @@ URBAN_STREAMS: tuple[str, ...] = ("rsu", "rpo")
 
 ALL_STREAMS: tuple[str, ...] = AGRI_STREAMS + LIVESTOCK_STREAMS + URBAN_STREAMS
 
+# Sector key -> its streams. Keys match the `{sector}_biomass_tons_year` columns
+# and the panel's Agrícola/Pecuária/Urbano breakdown.
+SECTOR_STREAMS: dict[str, tuple[str, ...]] = {
+    "agricultural": AGRI_STREAMS,
+    "livestock": LIVESTOCK_STREAMS,
+    "urban": URBAN_STREAMS,
+}
+
 
 @dataclass
 class StreamMetrics:
@@ -89,8 +97,31 @@ class MunicipalityMapMetrics:
             out[f"biomass_corrected_{sc}_tons_yr"] = round(self.biomass_corrected_total[sc], 2)
             out[f"biogas_ch4_{sc}_m3_yr"] = round(self.biogas_ch4_total[sc], 2)
             out[f"biomethane_{sc}_m3_yr"] = round(self.biomethane_total[sc], 2)
-        # Derived: biogas (total, not just CH4) using stream-weighted CH4 fraction
-        # Expose CH4 as canonical metric; biogas_total available via /CH4_pct
+
+        # Per-sector totals, so the municipality panel can break any metric down
+        # by agrícola/pecuária/urbano without deriving anything client-side.
+        #
+        # Only biomass had a sector split before this, and it came from the legacy
+        # `{sector}_biogas_m3_year` columns, which are populated for 645 São Paulo
+        # municipalities and nobody else. Biomethane had no sector split at all and
+        # bioenergy had none. The panel therefore either showed São Paulo-shaped
+        # numbers or fell back to inventing them — the reverse-BMP class of bug
+        # that #151 removed from the popup.
+        #
+        # Bioenergy is deliberately NOT emitted: it is biogas CH4 × a fixed
+        # MWh/m³ factor, so serving it separately would duplicate a value that can
+        # be converted exactly, and invite the two to drift.
+        for sector, streams in SECTOR_STREAMS.items():
+            members = [self.streams[s] for s in streams if s in self.streams]
+            if not members:
+                continue
+            for sc in SCENARIOS:
+                out[f"{sector}_biogas_ch4_{sc}_m3_yr"] = round(
+                    sum(m.biogas_ch4_m3[sc] for m in members), 2
+                )
+                out[f"{sector}_biomethane_{sc}_m3_yr"] = round(
+                    sum(m.biomethane_m3[sc] for m in members), 2
+                )
         return out
 
 

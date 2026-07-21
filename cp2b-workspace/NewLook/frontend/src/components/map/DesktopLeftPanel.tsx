@@ -21,6 +21,7 @@ import type { VisualizationMode } from './LeftFilterPanel';
 import type { DisplayMetric, ResidueCNMatrix, ColorMode } from '@/types/geospatial';
 import { useSummaryStatistics } from '@/hooks/useGeospatialData';
 import { formatBiogasShort } from '@/lib/mapUtils';
+import { DISPLAY_METRICS, METRIC_SPECS } from '@/lib/mapMetrics';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -212,29 +213,28 @@ function FiltersSection({
         </div>
       </div>
 
-      {/* Mode toggle — BIOGAS POTENTIAL / BIOMASS MONITORING */}
+      {/* Metric toggle — Biomassa / Biogás / Biometano / Bioenergia */}
       {onDisplayMetricChange && (
-        <div className="flex rounded-xl overflow-hidden border-2 border-gray-200">
-          <button
-            onClick={() => onDisplayMetricChange('biogas_m3')}
-            className={`flex-1 py-2 text-[11px] font-bold uppercase tracking-wide transition-colors ${
-              displayMetric === 'biogas_m3'
-                ? 'bg-blue-600 text-white'
-                : 'bg-white text-gray-500 hover:bg-gray-50'
-            }`}
-          >
-            ⚡ Biogás
-          </button>
-          <button
-            onClick={() => onDisplayMetricChange('biomass_tons')}
-            className={`flex-1 py-2 text-[11px] font-bold uppercase tracking-wide border-l-2 border-gray-200 transition-colors ${
-              displayMetric === 'biomass_tons'
-                ? 'bg-green-600 text-white'
-                : 'bg-white text-gray-500 hover:bg-gray-50'
-            }`}
-          >
-            🌿 Biomassa
-          </button>
+        <div className="grid grid-cols-2 gap-1">
+          {DISPLAY_METRICS.map((m) => {
+            const spec = METRIC_SPECS[m];
+            const active = displayMetric === m;
+            return (
+              <button
+                key={m}
+                onClick={() => onDisplayMetricChange(m)}
+                aria-pressed={active}
+                title={spec.legendTitle}
+                className={`py-2 text-[11px] font-bold uppercase tracking-wide rounded-lg transition-colors ${
+                  active
+                    ? `${spec.activeClass} text-white`
+                    : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-200'
+                }`}
+              >
+                {spec.icon} {spec.toggleLabel}
+              </button>
+            );
+          })}
         </div>
       )}
 

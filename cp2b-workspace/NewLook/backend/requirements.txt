@@ -23,7 +23,9 @@ python-multipart==0.0.32  # >=0.0.31 fixes CVE-2026-53537/53539/53540 (DoS / req
 # Environment and Configuration
 python-dotenv==1.2.2
 pydantic>=2.13.4
-pydantic-settings==2.14.1
+# 2.14.2 is the fix for SFTY-20260619-43815 (path traversal via symlink
+# handling); the advisory covers >=2.12.0,<2.14.2.
+pydantic-settings==2.14.2
 email-validator==2.3.0
 
 # Geospatial

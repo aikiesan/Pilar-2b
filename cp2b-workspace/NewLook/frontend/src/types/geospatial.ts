@@ -106,7 +106,7 @@ export interface MunicipalityProperties {
 }
 
 // Display metric — controls whether map shows biogas potential or biomass availability
-export type DisplayMetric = 'biogas_m3' | 'biomass_tons';
+export type DisplayMetric = 'biomass_tons' | 'biogas_m3' | 'biomethane_m3' | 'bioenergy_mwh';
 
 // Color mode — controls the choropleth styling (biogas/biomass, C/N profile, or clusters)
 export type ColorMode = 'biogas' | 'cn_profile' | 'cluster';

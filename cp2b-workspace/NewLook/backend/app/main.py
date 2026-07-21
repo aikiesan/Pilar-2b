@@ -11,6 +11,7 @@ from datetime import datetime, timezone
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
 from slowapi.errors import RateLimitExceeded
@@ -22,7 +23,6 @@ from app.core.log_sanitizer import PiiRedactingFilter
 from app.middleware.rate_limit import limiter, rate_limit_exceeded_handler
 from app.middleware.rate_limiter import rate_limit_middleware
 from app.middleware.request_size_limit import request_size_limit_middleware
-from app.middleware.response_compression import gzip_middleware
 from app.middleware.security_headers import security_headers_middleware
 from app.middleware.validation import validation_middleware
 from app.services.cache_service import get_all_cache_stats
@@ -110,7 +110,13 @@ app.add_middleware(
 )
 
 # 5. Response compression (reduces bandwidth)
-app.middleware("http")(gzip_middleware)
+#
+# Starlette's GZipMiddleware, not a hand-rolled one: `call_next` hands back a
+# StreamingResponse, which has no `.body`. The previous middleware guarded on
+# `hasattr(response, "body")`, so its compression branch was unreachable and
+# nothing was ever compressed — /municipalities/geojson shipped its 12.1 MB
+# uncompressed even when the client sent `Accept-Encoding: gzip`.
+app.add_middleware(GZipMiddleware, minimum_size=1024)
 
 # 6. Trusted host middleware - Prevents host header injection attacks
 # NOTE: TrustedHostMiddleware doesn't support wildcards in allowed_hosts

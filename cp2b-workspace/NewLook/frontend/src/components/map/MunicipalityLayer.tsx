@@ -14,7 +14,8 @@ import type { BiomassType, ResidueType } from './FloatingControlPanel';
 import MunicipalityPopup from '../dashboard/MunicipalityPopup';
 import L from 'leaflet';
 import { createRoot } from 'react-dom/client';
-import { getBiomassMapValue, getBiogasScenarioValue, type MapValue } from '@/lib/mapValues';
+import type { MapValue } from '@/lib/mapValues';
+import { getMetricSpec, getMetricColor } from '@/lib/mapMetrics';
 import type { MapScenarioKey } from '@/data/scenarioFactors';
 
 interface MunicipalityLayerProps {
@@ -25,6 +26,7 @@ interface MunicipalityLayerProps {
   displayMetric?: DisplayMetric;
   colorMode?: ColorMode;
   mapScenario?: string;
+  daltonic?: boolean;
   onMunicipalityClick?: (feature: MunicipalityFeature) => void;
   onMunicipalityHover?: (feature: MunicipalityFeature | null, e?: MouseEvent) => void;
 }
@@ -40,31 +42,8 @@ const CLUSTER_COLORS: Record<number, string> = {
 const getColorForCluster = (clusterId: number | null | undefined): string =>
   clusterId != null && clusterId in CLUSTER_COLORS ? CLUSTER_COLORS[clusterId] : '#aaaaaa';
 
-// YlGnBu color scale for biogas (m³/year)
-const getColorForBiogas = (value: number): string => {
-  if (value === 0) return '#f7f7f7';
-  if (value < 1000000)   return '#ffffcc';   // < 1M
-  if (value < 10000000)  return '#c7e9b4';   // 1M–10M
-  if (value < 50000000)  return '#7fcdbb';   // 10M–50M
-  if (value < 100000000) return '#41b6c4';   // 50M–100M
-  if (value < 500000000) return '#2c7fb8';   // 100M–500M
-  return '#253494';                           // > 500M
-};
-
-// YlGnBu color scale for biomass availability (t/year)
-// Breaks tuned for SP municipalities: nearly none fall below 5K t; top tier splits >500K
-const getColorForBiomassTons = (value: number): string => {
-  if (value === 0)          return '#f7f7f7';
-  if (value < 5_000)        return '#ffffcc';   // < 5K t
-  if (value < 50_000)       return '#c7e9b4';   // 5K–50K t
-  if (value < 200_000)      return '#7fcdbb';   // 50K–200K t
-  if (value < 1_000_000)    return '#41b6c4';   // 200K–1M t
-  if (value < 5_000_000)    return '#2c7fb8';   // 1M–5M t
-  return '#253494';                              // > 5M t
-};
-
-const getColorForValue = (value: number, metric: DisplayMetric = 'biogas_m3'): string =>
-  metric === 'biomass_tons' ? getColorForBiomassTons(value) : getColorForBiogas(value);
+// Choropleth colours (per-metric ramps, display-unit breaks, daltonic palette)
+// live in one place — lib/mapMetrics.ts — so the layer, legend and popup agree.
 
 // "No data" is not the bottom of the ramp. A distinct medium grey (well clear of
 // both the YlGnBu ramp and the near-white zero swatch) says "we never loaded this
@@ -87,9 +66,11 @@ export default function MunicipalityLayer({
   displayMetric = 'biomass_tons',
   colorMode = 'biogas',
   mapScenario = 'baseline',
+  daltonic = false,
   onMunicipalityClick,
   onMunicipalityHover,
 }: MunicipalityLayerProps) {
+  const metricSpec = getMetricSpec(displayMetric);
 
   // Opacity changes (the slider — the most frequent map interaction) restyle
   // the existing layer via react-leaflet's setStyle instead of remounting all
@@ -104,9 +85,11 @@ export default function MunicipalityLayer({
   // the canonical municipality total at the chosen scenario. Both preserve null so
   // the style can render no_data distinctly instead of as a zero.
   const getMapValue = (props: MunicipalityProperties): MapValue =>
-    displayMetric === 'biomass_tons'
-      ? getBiomassMapValue(props, biomassType, selectedResidues)
-      : getBiogasScenarioValue(props, mapScenario as MapScenarioKey);
+    metricSpec.rawValue(props, {
+      biomassType,
+      selectedResidues,
+      scenario: mapScenario as MapScenarioKey,
+    });
 
   // Style function for polygons (choropleth). Memoized so its identity only
   // changes when the visual inputs change — react-leaflet calls setStyle on
@@ -133,7 +116,7 @@ export default function MunicipalityLayer({
     }
 
     return {
-      fillColor: getColorForValue(value, displayMetric),
+      fillColor: getMetricColor(value, metricSpec, daltonic),
       weight: 1,
       opacity: 0.8,
       color: '#666666',
@@ -141,7 +124,7 @@ export default function MunicipalityLayer({
     };
     // getMapValue is recreated per render but only depends on the deps listed here,
     // so listing them directly keeps the identity stable.
-  }, [colorMode, displayMetric, biomassType, selectedResidues, mapScenario, opacity]);
+  }, [colorMode, displayMetric, biomassType, selectedResidues, mapScenario, daltonic, opacity]);
 
   // Format a value for display. null -> "sem dados" so the tooltip never shows a
   // fabricated 0 for a municipality we have no data for.
@@ -268,7 +251,7 @@ export default function MunicipalityLayer({
           }
           const resetColor = colorMode === 'cluster'
             ? getColorForCluster((feature.properties as any).cluster_id)
-            : getColorForValue(getMapValue(feature.properties as MunicipalityProperties).value ?? 0, displayMetric);
+            : getMetricColor(getMapValue(feature.properties as MunicipalityProperties).value ?? 0, metricSpec, daltonic);
           target.setStyle({
             weight: 1,
             color: '#666666',
