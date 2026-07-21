@@ -24,10 +24,23 @@ import {
   type MapValue,
 } from './mapValues';
 
+/**
+ * The metrics offered as toggles, in bar order.
+ *
+ * `methane_m3` is deliberately NOT here. Raw biogás, methane and biomethane are
+ * three distinct quantities and all three are served (see mapValues), but the
+ * map only needs to OFFER the two a reader reasons about — what the digester
+ * produces, and what you get after upgrading. Methane is the intermediate step,
+ * and putting it in the toggle bar asked users to care about a distinction the
+ * platform should just get right on their behalf.
+ *
+ * Its METRIC_SPECS entry is kept so bookmarked ?metric=methane_m3 URLs still
+ * resolve, and because bioenergia is computed from the CH₄ band — 9.97 kWh/m³ is
+ * methane's calorific value, not biogas's.
+ */
 export const DISPLAY_METRICS: DisplayMetric[] = [
   'biomass_tons',
   'biogas_m3',
-  'methane_m3',
   'biomethane_m3',
   'bioenergy_mwh',
 ];
