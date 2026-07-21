@@ -89,9 +89,7 @@ class MunicipalityMapMetrics:
     biomass_corrected_total: dict[str, float] = field(
         default_factory=lambda: {sc: 0.0 for sc in SCENARIOS}
     )
-    biogas_total: dict[str, float] = field(
-        default_factory=lambda: {sc: 0.0 for sc in SCENARIOS}
-    )
+    biogas_total: dict[str, float] = field(default_factory=lambda: {sc: 0.0 for sc in SCENARIOS})
     biogas_ch4_total: dict[str, float] = field(
         default_factory=lambda: {sc: 0.0 for sc in SCENARIOS}
     )
@@ -128,9 +126,7 @@ class MunicipalityMapMetrics:
             if not members:
                 continue
             for sc in SCENARIOS:
-                out[f"{sector}_biogas_{sc}_m3_yr"] = round(
-                    sum(m.biogas_m3[sc] for m in members), 2
-                )
+                out[f"{sector}_biogas_{sc}_m3_yr"] = round(sum(m.biogas_m3[sc] for m in members), 2)
                 out[f"{sector}_biogas_ch4_{sc}_m3_yr"] = round(
                     sum(m.biogas_ch4_m3[sc] for m in members), 2
                 )
@@ -243,9 +239,7 @@ def compute_stream_metrics(
         return None
 
     if biomass_tons > 0:
-        biomass_corrected, biogas, ch4, biomethane = _compute_from_biomass(
-            biomass_tons, params
-        )
+        biomass_corrected, biogas, ch4, biomethane = _compute_from_biomass(biomass_tons, params)
         return StreamMetrics(
             stream=stream,
             has_biomass=True,
@@ -263,8 +257,7 @@ def compute_stream_metrics(
         # reconstructed from the same ch4_pct the forward engine would have used.
         ch4_fraction = (params.ch4_pct or 0.0) / 100.0
         biogas = {
-            sc: round(ch4[sc] / ch4_fraction, 2) if ch4_fraction > 0 else 0.0
-            for sc in SCENARIOS
+            sc: round(ch4[sc] / ch4_fraction, 2) if ch4_fraction > 0 else 0.0 for sc in SCENARIOS
         }
         return StreamMetrics(
             stream=stream,
