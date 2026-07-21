@@ -6,6 +6,7 @@ Geometry and tabular data both served from local PostgreSQL / PostGIS.
 import json
 import logging
 import os
+import re
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -68,6 +69,36 @@ _ACTIVITY_VARIABLES = {
     # tonnage from population — a measurement instead of an estimate.
     ("snis", "rdo_coletado"): "rdo_coletado",
 }
+# Properties served only for a single municipality (fields=detail), never across
+# the whole collection. See the trim in get_municipalities_geojson for the
+# measurements that motivated this.
+_DETAIL_ONLY_KEYS = frozenset(
+    {
+        "municipality_name",  # duplicate of `name`
+        "id",
+        "population",
+        "population_density",
+        "population_year",
+        "gdp_total",
+        "gdp_per_capita",
+        "gdp_year",
+        "area_km2",
+        "area_year",
+        "administrative_region",
+        "immediate_region_code",
+        "intermediate_region_code",
+        "energy_potential_mwh_year",
+        "co2_reduction_tons_year",
+        "biomass_gross_total_tons_yr",
+    }
+)
+
+# {sector}_biogas_*/{sector}_biomethane_* (the tooltip/panel breakdown) and the
+# legacy per-stream *_biogas_m3_year columns.
+_DETAIL_ONLY_RE = re.compile(
+    r"^(agricultural|livestock|urban)_(biogas|biomethane)_|^\w+_biogas_m3_year$"
+)
+
 # Livestock streams derived from PPM head counts (per-head generation).
 _PPM_STREAMS = ("cattle", "swine", "poultry")
 # Urban streams modelled from resident population (per-capita generation).
@@ -258,6 +289,16 @@ async def get_municipalities_geojson(
         "(default, national choropleth); 'detail' ~550 m; 'full' unsimplified "
         "(pair with limit — 471 MB exceeds PostgreSQL's jsonb ceiling nationally).",
     ),
+    fields: str = Query(
+        "map",
+        pattern="^(map|full)$",
+        description="Property set. 'map' (default) carries only what the choropleth "
+        "paints — per-residue tonnage and coverage, sector tonnage, the four metric "
+        "scenario bands, cluster context. 'full' adds the per-municipality detail "
+        "(sector biogas/biomethane breakdown, demographics, legacy columns) that the "
+        "tooltip and panel need; those are better fetched per municipality from "
+        "/municipalities/{id}/metrics than 5,571 times up front.",
+    ),
     current_user: Optional[UserProfile] = Depends(optional_auth),
 ):
     geom_column, geom_precision = _GEOM_LOD[detail]
@@ -399,6 +440,31 @@ async def get_municipalities_geojson(
             **canonical_metrics,
         }
         properties.update({k: v for k, v in metric_fields.items() if v})
+
+        # ── Trim to what the choropleth actually paints (fields=map, default) ────
+        #
+        # Measured on the national payload: 106 keys × 5,571 features is 15.05 MB of
+        # repeated KEY NAMES against 4.13 MB of actual values, and 590k property
+        # slots for the browser to allocate. Gzip hides most of the bytes, but not
+        # the parse and memory cost — that is what makes pan and zoom sluggish.
+        #
+        # These groups are read only when a single municipality is opened (hover
+        # tooltip, click popup, profile panel), so they are served per-municipality
+        # from /municipalities/{id}/metrics instead of 5,571 times up front:
+        #   * {sector}_biogas/_biomethane bands — 6.18 MB, 35% of the payload
+        #   * demographics (population, gdp, area, density)
+        #   * the legacy *_biogas_m3_year columns, which nothing on the map reads
+        #   * municipality_name, a byte-for-byte duplicate of name
+        #
+        # Everything the map itself needs stays: per-residue tonnage and coverage
+        # (residue filtering), sector tonnage (biomass-type switching), the four
+        # metric scenario bands, and cluster context.
+        if fields == "map":
+            properties = {
+                k: v
+                for k, v in properties.items()
+                if k not in _DETAIL_ONLY_KEYS and not _DETAIL_ONLY_RE.match(k)
+            }
 
         # Biomass is emitted WHOLE — nulls and zeros included — and must never go
         # through the `if v` omission above. That optimisation is correct for biogas,
@@ -562,6 +628,86 @@ async def get_municipality_names(
     except Exception as e:
         logger.error(f"Error fetching municipality names: {e}")
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
+
+@router.get("/{ibge_code}/metrics")
+async def get_municipality_metrics(ibge_code: str):
+    """Full computed properties for ONE municipality — the detail the collection omits.
+
+    The choropleth payload carries only what it paints (`fields=map`). Everything
+    the hover tooltip and profile panel additionally show — the sector
+    biogas/biomethane breakdown, demographics, legacy columns — is served here,
+    one municipality at a time, instead of 5,571 times up front. That trade is
+    worth roughly 6.2 MB and ~340k property slots on the initial load.
+
+    Deliberately reuses the same derivation the collection uses (provenance,
+    activity-count conversion, canonical metrics) rather than re-deriving: the
+    tooltip and the polygon under it must never disagree about a municipality.
+    """
+    try:
+        with get_db() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM municipalities WHERE ibge_code = %s", (ibge_code,))
+            row = cursor.fetchone()
+            if not row:
+                cursor.close()
+                raise HTTPException(status_code=404, detail=f"Municipality {ibge_code} not found")
+
+            has_provenance = _table_exists(cursor, "municipality_biomass_provenance")
+            provenance = (
+                _load_biomass_provenance(cursor, [ibge_code]).get(ibge_code, {})
+                if has_provenance
+                else {}
+            )
+            has_timeseries = _table_exists(cursor, "municipality_timeseries")
+            activity = (
+                _load_activity_counts(cursor, [ibge_code]).get(ibge_code, {})
+                if has_timeseries
+                else {}
+            )
+            cursor.close()
+
+        derived_tons, derived_prov = _derive_activity_biomass(
+            head={s: activity[s] for s in _PPM_STREAMS if s in activity},
+            population=activity.get("population") or raw_value(row.get("population")),
+            collected_waste=activity.get("rdo_coletado"),
+        )
+        biomass_fields = derive_biomass_with_coverage(
+            row,
+            provenance={**provenance, **derived_prov},
+            derived_tons=derived_tons,
+            allow_reverse_fallback=_ALLOW_REVERSE_FALLBACK,
+        )
+        try:
+            canonical = compute_municipality_map_metrics(
+                row, ibge_code=ibge_code, derived_tons=derived_tons
+            ).to_flat_dict()
+        except Exception as exc:
+            logger.error(f"canonical metrics failed for {ibge_code}: {exc}")
+            canonical = {}
+
+        return {
+            "ibge_code": ibge_code,
+            "name": row.get("municipality_name"),
+            "uf": row.get("uf"),
+            "population": row.get("population"),
+            "population_density": row.get("population_density"),
+            "population_year": row.get("population_year"),
+            "area_km2": row.get("area_km2"),
+            "area_year": row.get("area_year"),
+            "gdp_total": row.get("gdp_total"),
+            "gdp_per_capita": row.get("gdp_per_capita"),
+            "gdp_year": row.get("gdp_year"),
+            "immediate_region": row.get("immediate_region"),
+            "intermediate_region": row.get("intermediate_region"),
+            **biomass_fields,
+            **canonical,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching municipality metrics: {e}")
+        raise HTTPException(status_code=500, detail=f"Error fetching metrics: {e}")
 
 
 @router.get("/{municipality_id}")

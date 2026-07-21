@@ -121,8 +121,25 @@ class GeospatialClient {
    * Get all municipalities as GeoJSON FeatureCollection
    * Uses local PostGIS via FastAPI backend, with IBGE API as geometry fallback
    */
+  /**
+   * Full computed properties for ONE municipality.
+   *
+   * The collection is served with `fields=map` — only what the choropleth paints.
+   * The sector biogas/biomethane breakdown, demographics and legacy columns that
+   * the tooltip and panel additionally show come from here, per municipality,
+   * rather than 5,571 times up front (worth ~6.2 MB and ~325k property slots).
+   */
+  async getMunicipalityMetrics(ibgeCode: string): Promise<Record<string, unknown>> {
+    const url = `${this.baseUrl}/api/v1/municipalities/${ibgeCode}/metrics`;
+    const response = await fetch(url, { headers: { 'Content-Type': 'application/json' } });
+    if (!response.ok) throw new Error(`metrics ${ibgeCode}: HTTP ${response.status}`);
+    return response.json();
+  }
+
   async getMunicipalitiesGeoJSON(): Promise<MunicipalityCollection> {
-    const url = `${this.baseUrl}/api/v1/municipalities/geojson`;
+    // fields=map keeps the payload to what the choropleth reads; detail comes
+    // from getMunicipalityMetrics on hover/click.
+    const url = `${this.baseUrl}/api/v1/municipalities/geojson?fields=map`;
 
     try {
       logger.info('🗺️ Fetching municipality data from local backend (PostGIS)');

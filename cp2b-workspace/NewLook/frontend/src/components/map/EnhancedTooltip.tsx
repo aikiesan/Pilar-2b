@@ -10,6 +10,7 @@ import { TrendingUp, Users, Maximize, Factory, Leaf, Droplets } from 'lucide-rea
 import type { DisplayMetric, MunicipalityFeature } from '@/types/geospatial';
 import type { MapScenarioKey } from '@/data/scenarioFactors';
 import { getSectorMetricValue } from '@/lib/mapValues';
+import { useMunicipalityMetrics } from '@/hooks/useGeospatialData';
 import { getMetricSpec, formatCompact } from '@/lib/mapMetrics';
 
 interface EnhancedTooltipProps {
@@ -28,9 +29,18 @@ export default function EnhancedTooltip({
   metric = 'biomass_tons',
   scenario = 'baseline',
 }: EnhancedTooltipProps) {
+  // The collection is served slim, so the sector breakdown and demographics are
+  // fetched for whichever municipality is under the cursor. React Query caches
+  // per ibge_code, so re-hovering is free. Hooks must run before any early
+  // return, hence the null-safe access here.
+  const rawCode = visible ? municipality?.properties?.ibge_code : null;
+  const hoveredCode = rawCode == null ? null : String(rawCode);
+  const { data: detail } = useMunicipalityMetrics(hoveredCode);
+
   if (!visible) return null;
 
-  const props = municipality.properties;
+  // Served collection values first, detail merged over them when it arrives.
+  const props = { ...municipality.properties, ...(detail ?? {}) } as typeof municipality.properties;
 
   const formatNumber = (value: number | undefined | null) => {
     if (value === undefined || value === null) return 'N/A';

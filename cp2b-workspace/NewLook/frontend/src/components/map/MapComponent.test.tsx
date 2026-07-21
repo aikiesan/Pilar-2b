@@ -60,6 +60,9 @@ jest.mock('@/hooks/useGeospatialData', () => ({
   useCodigestionClusters: () => ({ data: null, loading: false, error: null, isFetching: false, refetch: jest.fn() }),
   useResidueCNMatrix: () => ({ data: null, loading: false, error: null }),
   useIntermediateRegionsGeoJSON: () => ({ data: null, loading: false, error: null, isFetching: false, refetch: jest.fn() }),
+  // Tooltip/panel top up from the per-municipality detail endpoint; the
+  // collection is served slim (fields=map).
+  useMunicipalityMetrics: () => ({ data: undefined, isLoading: false, error: null }),
 }));
 
 // useCnProfiles lives in a separate module and also calls React Query —
