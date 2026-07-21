@@ -25,6 +25,7 @@ import type { DisplayMetric, MunicipalityFeature } from '@/types/geospatial';
 import type { MapScenarioKey } from '@/data/scenarioFactors';
 import { getTotalBiomassTons } from '@/lib/biomassAvailability';
 import { getSectorMetricValue, getResidueTonsOrNull } from '@/lib/mapValues';
+import { useMunicipalityMetrics } from '@/hooks/useGeospatialData';
 import { getMetricSpec, formatCompact } from '@/lib/mapMetrics';
 import type { ResidueType } from '@/components/map/FloatingControlPanel';
 
@@ -48,9 +49,15 @@ export default function MunicipalityProfilePanel({
     new Set(['overview', 'biomass'])
   );
 
+  // Demographics and the sector breakdown are not in the slim collection payload
+  // — fetch them for the municipality being shown. Hook runs before the early
+  // return, so the null-safe access is deliberate.
+  const rawCode = visible ? municipality?.properties?.ibge_code : null;
+  const { data: detail } = useMunicipalityMetrics(rawCode == null ? null : String(rawCode));
+
   if (!visible || !municipality) return null;
 
-  const props = municipality.properties;
+  const props = { ...municipality.properties, ...(detail ?? {}) } as typeof municipality.properties;
 
   const toggleSection = (section: string) => {
     setExpandedSections((prev) => {

@@ -316,3 +316,25 @@ export function usePrefetchCriticalData() {
   };
 }
 
+
+/**
+ * Full properties for one municipality, fetched on demand.
+ *
+ * The collection is served slim (`fields=map`), so the tooltip and panel top up
+ * from here when a municipality is actually pointed at. React Query caches per
+ * ibge_code, so hovering the same polygon twice costs one request; `enabled`
+ * keeps it from firing until there is something to fetch.
+ *
+ * Long staleTime because these values only change when the data is re-promoted,
+ * which is a deliberate deploy step, not something that drifts under the user.
+ */
+export function useMunicipalityMetrics(ibgeCode: string | null) {
+  return useQuery({
+    queryKey: ['municipality-metrics', ibgeCode],
+    queryFn: () => geospatialClient.getMunicipalityMetrics(ibgeCode as string),
+    enabled: Boolean(ibgeCode),
+    staleTime: 30 * 60 * 1000,
+    gcTime: 60 * 60 * 1000,
+    retry: 1,
+  });
+}
