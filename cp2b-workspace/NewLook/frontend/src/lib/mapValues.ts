@@ -215,3 +215,21 @@ export function getSectorMetricValue(
       return getSectorBiomassTons(props, sector);
   }
 }
+
+/**
+ * One residue's served tonnage, or null when we have no data for it.
+ *
+ * `biomassAvailability.getResidueBiomassTons` coerces null to 0 for arithmetic,
+ * which is right for summing but wrong for display: sugarcane outside São Paulo
+ * has never been promoted, so its column is NULL, and rendering that as
+ * "0 t/ano" states the municipality grows no cane. Detail rows must use this and
+ * show "Sem dados" instead — the same distinction the choropleth already makes
+ * with its no_data grey.
+ */
+export function getResidueTonsOrNull(
+  props: MunicipalityProperties,
+  residue: ResidueType
+): number | null {
+  if (covOf(props, residue) === NO_DATA) return null;
+  return tonsOf(props, residue);
+}

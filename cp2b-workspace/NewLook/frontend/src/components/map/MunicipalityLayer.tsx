@@ -203,6 +203,8 @@ export default function MunicipalityLayer({
         root.render(
           <MunicipalityPopup
             properties={props}
+            metric={displayMetric}
+            scenario={mapScenario as MapScenarioKey}
           />
         );
         // Leaflet re-invokes this factory (new container + root) on every
