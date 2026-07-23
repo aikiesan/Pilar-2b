@@ -16,6 +16,7 @@ import L from 'leaflet';
 import { createRoot } from 'react-dom/client';
 import type { MapValue } from '@/lib/mapValues';
 import { getMetricSpec, getMetricColor } from '@/lib/mapMetrics';
+import { useCvdPalette } from '@/hooks/useCvdPalette';
 import type { MapScenarioKey } from '@/data/scenarioFactors';
 
 interface MunicipalityLayerProps {
@@ -71,6 +72,9 @@ export default function MunicipalityLayer({
   onMunicipalityHover,
 }: MunicipalityLayerProps) {
   const metricSpec = getMetricSpec(displayMetric);
+  // Selected CVD palette (only used when `daltonic` is on). Reading it here means
+  // changing the palette in the legend restyles the choropleth reactively.
+  const [cvdPalette] = useCvdPalette();
 
   // Opacity changes (the slider — the most frequent map interaction) restyle
   // the existing layer via react-leaflet's setStyle instead of remounting all
@@ -116,7 +120,7 @@ export default function MunicipalityLayer({
     }
 
     return {
-      fillColor: getMetricColor(value, metricSpec, daltonic),
+      fillColor: getMetricColor(value, metricSpec, daltonic, cvdPalette),
       weight: 1,
       opacity: 0.8,
       color: '#666666',
@@ -124,7 +128,7 @@ export default function MunicipalityLayer({
     };
     // getMapValue is recreated per render but only depends on the deps listed here,
     // so listing them directly keeps the identity stable.
-  }, [colorMode, displayMetric, biomassType, selectedResidues, mapScenario, daltonic, opacity]);
+  }, [colorMode, displayMetric, biomassType, selectedResidues, mapScenario, daltonic, cvdPalette, opacity]);
 
   // Format a value for display. null -> "sem dados" so the tooltip never shows a
   // fabricated 0 for a municipality we have no data for.
@@ -253,7 +257,7 @@ export default function MunicipalityLayer({
           }
           const resetColor = colorMode === 'cluster'
             ? getColorForCluster((feature.properties as any).cluster_id)
-            : getMetricColor(getMapValue(feature.properties as MunicipalityProperties).value ?? 0, metricSpec, daltonic);
+            : getMetricColor(getMapValue(feature.properties as MunicipalityProperties).value ?? 0, metricSpec, daltonic, cvdPalette);
           target.setStyle({
             weight: 1,
             color: '#666666',
