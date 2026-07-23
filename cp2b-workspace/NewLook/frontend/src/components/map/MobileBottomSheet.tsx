@@ -7,6 +7,7 @@ import type { ResidueType, BiomassType } from './FloatingControlPanel';
 import type { VisualizationMode } from './LeftFilterPanel';
 import type { DisplayMetric, ResidueCNMatrix, ColorMode } from '@/types/geospatial';
 import { DISPLAY_METRICS, METRIC_SPECS } from '@/lib/mapMetrics';
+import { MAP_SCENARIOS, type MapScenarioKey } from '@/data/scenarioFactors';
 
 interface Layer {
   id: string;
@@ -35,9 +36,22 @@ interface MobileBottomSheetProps {
   cnMatrix?: ResidueCNMatrix | null;
   colorMode: ColorMode;
   onColorModeChange: (mode: ColorMode) => void;
+  /** False when the current scope has no per-residue breakdown (outside SP). */
+  residueBreakdownAvailable?: boolean;
+  scenario: MapScenarioKey;
+  onScenarioChange: (s: MapScenarioKey) => void;
+  daltonic: boolean;
+  onToggleDaltonic: () => void;
 }
 
 type ActiveSheet = 'filters' | 'layers' | null;
+
+const SCENARIO_LABELS: Record<MapScenarioKey, string> = {
+  baseline: 'Médio Prazo',
+  conservador: 'Conservador',
+  fronteira: 'Fronteira',
+  otimista: 'Otimista',
+};
 
 const RESIDUE_META = [
   { value: 'sugarcane' as const, category: 'agricultural' as const, icon: '🌾' },
@@ -79,6 +93,8 @@ export default function MobileBottomSheet({
   municipalityCount, totalMunicipalities,
   displayMetric = 'biomass_tons', onDisplayMetricChange, cnMatrix,
   colorMode, onColorModeChange,
+  residueBreakdownAvailable = true,
+  scenario, onScenarioChange, daltonic, onToggleDaltonic,
 }: MobileBottomSheetProps) {
   const t = useTranslations('Map');
   const [activeSheet, setActiveSheet] = useState<ActiveSheet>(null);
@@ -280,6 +296,11 @@ export default function MobileBottomSheet({
                   </button>
                   {showResidues && (
                     <div className="space-y-3">
+                      {!residueBreakdownAvailable && (
+                        <p className="rounded-md bg-amber-50 px-3 py-2 text-[11px] leading-snug text-amber-800 ring-1 ring-amber-200">
+                          ⓘ Filtros por resíduo específico disponíveis apenas em São Paulo. Fora de SP, use as camadas agregadas.
+                        </p>
+                      )}
                       {filterCount > 0 && (
                         <button
                           onClick={() => onResiduesChange([])}
@@ -288,6 +309,7 @@ export default function MobileBottomSheet({
                           {t('residueFilter.clearFilters')} ({filterCount})
                         </button>
                       )}
+                      <div className={!residueBreakdownAvailable ? 'pointer-events-none opacity-40' : ''}>
                       {(['agricultural', 'livestock', 'urban'] as const).map(cat => {
                         const catIcon = cat === 'agricultural' ? '🌾' : cat === 'livestock' ? '🐄' : '🏙️';
                         const activeColor = cat === 'agricultural'
@@ -320,8 +342,48 @@ export default function MobileBottomSheet({
                           </div>
                         );
                       })}
+                      </div>
                     </div>
                   )}
+                </div>
+
+                {/* Scenario selector — analytical control, lives in the sheet
+                    on mobile (not floating over the map). */}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">
+                    {t('scenario_label')}
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {MAP_SCENARIOS.map(({ key, color }) => (
+                      <button
+                        key={key}
+                        onClick={() => onScenarioChange(key)}
+                        aria-pressed={scenario === key}
+                        className={`py-2.5 rounded-xl text-xs font-medium border transition-colors ${
+                          scenario === key ? 'text-white border-transparent' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                        }`}
+                        style={scenario === key ? { backgroundColor: color } : undefined}
+                      >
+                        {SCENARIO_LABELS[key]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Accessibility — daltonic (CVD-safe) palette toggle. */}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">
+                    Acessibilidade
+                  </label>
+                  <button
+                    onClick={onToggleDaltonic}
+                    aria-pressed={daltonic}
+                    className={`w-full py-2.5 rounded-xl text-xs font-medium border transition-colors ${
+                      daltonic ? 'bg-slate-700 text-white border-transparent' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                    }`}
+                  >
+                    👁 Modo daltônico {daltonic ? '· ativo' : ''}
+                  </button>
                 </div>
               </>
             )}

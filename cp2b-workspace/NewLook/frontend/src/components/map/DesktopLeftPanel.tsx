@@ -55,6 +55,8 @@ interface DesktopLeftPanelProps {
   cnMatrix?: ResidueCNMatrix | null;
   colorMode: ColorMode;
   onColorModeChange: (mode: ColorMode) => void;
+  /** False when the current scope has no per-residue breakdown (outside SP). */
+  residueBreakdownAvailable?: boolean;
 }
 
 type TabId = 'filters' | 'layers' | 'data' | 'tools';
@@ -152,7 +154,7 @@ function FiltersSection({
   searchQuery, onSearchChange, visualizationMode, onVisualizationModeChange,
   biomassType, onBiomassTypeChange, selectedResidues, onResiduesChange,
   displayMetric = 'biomass_tons', onDisplayMetricChange, cnMatrix, t,
-  colorMode, onColorModeChange,
+  colorMode, onColorModeChange, residueBreakdownAvailable = true,
 }: {
   searchQuery: string;
   onSearchChange: (v: string) => void;
@@ -168,6 +170,7 @@ function FiltersSection({
   t: ReturnType<typeof useTranslations>;
   colorMode: ColorMode;
   onColorModeChange: (mode: ColorMode) => void;
+  residueBreakdownAvailable?: boolean;
 }) {
   const handleResidueToggle = (residue: ResidueType) => {
     const next = selectedResidues.includes(residue)
@@ -338,7 +341,12 @@ function FiltersSection({
             </button>
           )}
         </div>
-        <div className="space-y-2">
+        {!residueBreakdownAvailable && (
+          <p className="mb-2 rounded-md bg-amber-50 px-2 py-1.5 text-[10px] leading-snug text-amber-800 ring-1 ring-amber-200">
+            ⓘ Filtros por resíduo específico disponíveis apenas em São Paulo. Fora de SP, use as camadas agregadas (agrícola / pecuária / urbano).
+          </p>
+        )}
+        <div className={`space-y-2 ${!residueBreakdownAvailable ? 'pointer-events-none opacity-40' : ''}`}>
           {(['agricultural', 'livestock', 'urban'] as const).map(cat => {
             const meta = CATEGORY_META[cat];
             return (
@@ -357,6 +365,7 @@ function FiltersSection({
                     return (
                       <button
                         key={r.value}
+                        disabled={!residueBreakdownAvailable}
                         onClick={() => handleResidueToggle(r.value)}
                         className={`flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-medium border transition-all ${
                           isSelected ? meta.activeClass : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
@@ -585,7 +594,7 @@ export default function DesktopLeftPanel({
   opacity, onOpacityChange, layers, onLayerToggle,
   municipalityCount, totalMunicipalities, onOpenComparison, onOpenExport,
   displayMetric, onDisplayMetricChange, cnMatrix,
-  colorMode, onColorModeChange,
+  colorMode, onColorModeChange, residueBreakdownAvailable = true,
 }: DesktopLeftPanelProps) {
   const t = useTranslations('Map');
   const [collapsed, setCollapsed] = useState(false);
@@ -696,6 +705,7 @@ export default function DesktopLeftPanel({
                 displayMetric={displayMetric} onDisplayMetricChange={onDisplayMetricChange}
                 cnMatrix={cnMatrix} t={t}
                 colorMode={colorMode} onColorModeChange={onColorModeChange}
+                residueBreakdownAvailable={residueBreakdownAvailable}
               />
             )}
             {activeTab === 'layers' && (
