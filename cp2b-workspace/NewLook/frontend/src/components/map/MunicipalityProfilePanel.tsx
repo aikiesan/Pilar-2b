@@ -145,16 +145,29 @@ export default function MunicipalityProfilePanel({
 
   return (
     <>
-      {/* Backdrop */}
+      {/* Backdrop — only in the side-drawer layout (landscape phones + desktop).
+          In portrait the panel is a partial bottom sheet, so we deliberately
+          render NO blocking backdrop: the map above the sheet stays visible and
+          fully interactive (pan/zoom, tap another município). */}
       <div
-        className="fixed inset-0 bg-black/30 backdrop-blur-sm z-[1100] transition-opacity"
+        className="hidden landscape:block fixed inset-0 bg-black/30 backdrop-blur-sm z-[1100] transition-opacity"
         onClick={onClose}
       />
 
-      {/* Profile Panel - Slide in from right */}
-      <div className="fixed right-0 top-0 bottom-0 w-full md:w-[360px] lg:w-[400px] bg-white dark:bg-slate-900 shadow-2xl z-[1101] overflow-y-auto transform transition-transform">
+      {/* Profile Panel.
+          Portrait  → bottom sheet: fixed to the bottom, ~62vh tall, rounded top.
+          Landscape → right-side drawer, full height (matches desktop). */}
+      <div
+        className="fixed z-[1101] bg-white dark:bg-slate-900 shadow-2xl overflow-y-auto transform transition-transform
+                   inset-x-0 bottom-0 max-h-[62vh] rounded-t-2xl
+                   landscape:inset-x-auto landscape:right-0 landscape:top-0 landscape:bottom-0 landscape:max-h-none landscape:w-[min(85vw,400px)] landscape:rounded-none"
+      >
+        {/* Drag-handle affordance (bottom-sheet only) */}
+        <div className="landscape:hidden flex justify-center pt-2 pb-1">
+          <span className="h-1.5 w-10 rounded-full bg-gray-300 dark:bg-slate-600" aria-hidden="true" />
+        </div>
         {/* Header */}
-        <div className="sticky top-0 bg-gradient-to-r from-[#1B5E20] to-[#2F7D32] text-white p-4 shadow-lg z-10">
+        <div className="sticky top-0 bg-gradient-to-r from-[#1B5E20] to-[#2F7D32] text-white p-4 shadow-lg z-10 rounded-t-2xl landscape:rounded-none">
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <div className="flex items-center space-x-2 mb-1">

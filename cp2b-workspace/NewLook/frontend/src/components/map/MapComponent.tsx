@@ -10,7 +10,7 @@
 
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
-import { MapContainer, TileLayer } from 'react-leaflet';
+import { MapContainer, TileLayer, useMap } from 'react-leaflet';
 import dynamic from 'next/dynamic';
 import { useGeospatialData, useCodigestionClusters, useResidueCNMatrix, useIntermediateRegionsGeoJSON } from '@/hooks/useGeospatialData';
 import { useCnProfiles } from '@/hooks/useCnProfiles';
@@ -23,12 +23,35 @@ import type { BiomassType, ResidueType } from './FloatingControlPanel';
 import type { VisualizationMode } from './LeftFilterPanel';
 import { type ColorMode } from '@/types/geospatial';
 import type { InfrastructureLayerStatus } from './InfrastructureLayer';
+import {
+  BRAZIL_STATES,
+  SAO_PAULO_UF,
+  SCOPE_BRAZIL,
+  getState,
+  scopeView,
+  scopeHasResidueBreakdown,
+  ufOf,
+  type MapScope,
+} from '@/data/brazilStates';
+import ScopeSwitcher from './ScopeSwitcher';
 import MapLegend from './MapLegend';
 import MapLoadingSkeleton from './MapLoadingSkeleton';
 import 'leaflet/dist/leaflet.css';
 import '@/lib/leafletConfig';
 
 const MAP_CONTAINER_STYLE = { height: '100%', width: '100%' } as const;
+
+// Recenters the Leaflet map when the scope (SP / state / Brazil) changes.
+// MapContainer's `center`/`zoom` props apply only on mount, so scope changes
+// need an imperative flyTo via the map instance.
+function ScopeViewController({ center, zoom }: { center: [number, number]; zoom: number }) {
+  const map = useMap();
+  useEffect(() => {
+    map.flyTo(center, zoom, { duration: 0.6 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [center[0], center[1], zoom]);
+  return null;
+}
 
 // Dynamically import components to avoid SSR issues
 const MunicipalityLayer = dynamic(() => import('./MunicipalityLayer'), { ssr: false });
@@ -67,11 +90,18 @@ const IntermediateRegionsMapLayer = dynamic(
   { ssr: false }
 );
 
-// Map center / zoom by scope
-const SAO_PAULO_CENTER: [number, number] = [-22.0, -48.5];
-const BRAZIL_CENTER: [number, number] = [-15.0, -53.0];
-const DEFAULT_ZOOM = 7;   // SP scope
-const BRAZIL_ZOOM = 4;    // Brazil scope
+// Parse the ?scope= URL param into a scope value (a UF code or SCOPE_BRAZIL).
+// Accepts legacy 'brazil'/'sp', a 2-digit UF code ('41'), or a sigla ('PR').
+function parseScopeParam(raw: string | null): MapScope {
+  if (!raw) return SAO_PAULO_UF;
+  const v = raw.trim().toLowerCase();
+  if (v === 'brazil' || v === 'br' || v === 'todos') return SCOPE_BRAZIL;
+  if (v === 'sp') return SAO_PAULO_UF;
+  if (/^\d{2}$/.test(v) && getState(v)) return v;
+  const bySigla = BRAZIL_STATES.find((s) => s.sigla.toLowerCase() === v);
+  if (bySigla) return bySigla.code;
+  return SAO_PAULO_UF;
+}
 
 // Valid residue values for URL parsing
 const VALID_RESIDUES: ResidueType[] = [
@@ -182,10 +212,10 @@ export default function MapComponent({
   };
 
   const { profilesMap: cnProfilesMap, isLoading: cnLoading } = useCnProfiles(colorMode === 'cn_profile');
-  const [mapScope, setMapScope] = useState<'sp' | 'brazil'>(urlScope === 'brazil' ? 'brazil' : 'sp');
+  const [scope, setScope] = useState<MapScope>(parseScopeParam(urlScope));
 
-  const mapCenter = mapScope === 'brazil' ? BRAZIL_CENTER : SAO_PAULO_CENTER;
-  const mapZoom = mapScope === 'brazil' ? BRAZIL_ZOOM : DEFAULT_ZOOM;
+  const { center: mapCenter, zoom: mapZoom } = scopeView(scope);
+  const residueBreakdownAvailable = scopeHasResidueBreakdown(scope);
 
   // ── Enhanced interaction state (Phase 2+3) ────────────────────────────────
   const [selectedMunicipality, setSelectedMunicipality] = useState<MunicipalityFeature | null>(null);
@@ -211,6 +241,16 @@ export default function MapComponent({
     if (query) params.set('q', query); else params.delete('q');
     if (metric !== 'biomass_tons') params.set('metric', metric); else params.delete('metric');
     window.history.replaceState(null, '', `${window.location.pathname}?${params.toString()}`);
+  }, []);
+
+  const handleScopeChange = useCallback((next: MapScope) => {
+    setScope(next);
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (next === SAO_PAULO_UF) params.delete('scope');
+      else params.set('scope', next === SCOPE_BRAZIL ? 'brazil' : next);
+      window.history.replaceState(null, '', `${window.location.pathname}?${params.toString()}`);
+    }
   }, []);
 
   const handleVisualizationModeChange = (mode: VisualizationMode) => {
@@ -311,6 +351,9 @@ export default function MapComponent({
 
   const [showMapBiomasLegend, setShowMapBiomasLegend] = useState(false);
   const [showBiomassLayerLegend, setShowBiomassLayerLegend] = useState(false);
+  // Mobile: the choropleth legend is collapsed to a chip by default and
+  // expands on tap, so it doesn't crowd the small screen.
+  const [legendOpenMobile, setLegendOpenMobile] = useState(false);
 
   useEffect(() => { setIsMounted(true); }, []);
 
@@ -339,7 +382,7 @@ export default function MapComponent({
     if (layerId === 'biogas_plant') setShowBiomassLayerLegend(visible);
     if (layerId === 'intermediate-regions') {
       setIntermediateRegionsEnabled(visible);
-      if (visible) setMapScope('brazil');
+      if (visible) handleScopeChange(SCOPE_BRAZIL);
     }
   };
 
@@ -391,6 +434,11 @@ export default function MapComponent({
     const filtered: MunicipalityFeature[] = scaledData.features.filter((feature) => {
       const props = feature.properties;
 
+      // Scope filter: keep only the selected state (SP by default), or all of
+      // Brazil. The UF is the first two digits of the IBGE code. This also
+      // trims the rendered polygon count without any backend change.
+      if (scope !== SCOPE_BRAZIL && ufOf(props.ibge_code) !== scope) return false;
+
       // Search query filter
       const query = activeFilters?.searchQuery || searchQuery;
       if (query) {
@@ -413,8 +461,10 @@ export default function MapComponent({
         if (!ok) return false;
       }
 
-      // Specific residue filter
-      if (selectedResidues.length > 0) {
+      // Specific residue filter — only meaningful where the per-residue
+      // breakdown exists (SP today). Elsewhere the fields are zero, so applying
+      // it would blank the map; skip it and let the aggregate bands show.
+      if (residueBreakdownAvailable && selectedResidues.length > 0) {
         const residueKey: Record<ResidueType, keyof typeof props> = {
           sugarcane: 'sugarcane_biogas_m3_year',
           soybean: 'soybean_biogas_m3_year',
@@ -441,7 +491,7 @@ export default function MapComponent({
     });
 
     return { ...scaledData, features: filtered } as MunicipalityCollection;
-  }, [scaledData, activeFilters, searchQuery, selectedResidues]);
+  }, [scaledData, activeFilters, searchQuery, selectedResidues, scope, residueBreakdownAvailable]);
 
   // ── Guard states ────────────────────────────────────────────────────────────
   if (!isMounted) return <MapLoadingSkeleton />;
@@ -483,6 +533,7 @@ export default function MapComponent({
           cnMatrix={cnMatrix}
           colorMode={colorMode}
           onColorModeChange={setColorMode}
+          residueBreakdownAvailable={residueBreakdownAvailable}
         />
       )}
 
@@ -519,8 +570,21 @@ export default function MapComponent({
           </div>
         )}
 
-        {/* Scenario toggle — per-municipality biogas potential by scenario */}
-        <div className="absolute top-3 left-1/2 -translate-x-1/2 z-[1000] flex items-center gap-1 rounded-full bg-white/95 px-1.5 py-1 shadow-lg ring-1 ring-black/5 backdrop-blur">
+        {/* ── Scope switcher — top-left on every viewport. Picks SP (default),
+            any single state, or all of Brazil. On mobile this is the primary
+            navigation affordance and sits alone at the top so nothing wraps. */}
+        <div className="absolute top-3 left-3 z-[1000]">
+          <ScopeSwitcher
+            scope={scope}
+            onScopeChange={handleScopeChange}
+            count={displayData.features.length}
+          />
+        </div>
+
+        {/* Scenario toggle — per-municipality biogas potential by scenario.
+            Desktop only: on mobile it moves into the bottom sheet (it's a
+            specific analytical control, not something you switch constantly). */}
+        <div className="absolute top-3 left-1/2 -translate-x-1/2 z-[1000] hidden md:flex items-center gap-1 rounded-full bg-white/95 px-1.5 py-1 shadow-lg ring-1 ring-black/5 backdrop-blur">
           <span className="px-2 text-[11px] font-semibold text-gray-500">{t('scenario_label')}</span>
           {MAP_SCENARIOS.map(({ key, color }) => (
             <button
@@ -578,6 +642,8 @@ export default function MapComponent({
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             maxZoom={19}
           />
+
+          <ScopeViewController center={mapCenter} zoom={mapZoom} />
 
 
 
@@ -771,10 +837,44 @@ export default function MapComponent({
         {/* ── Bottom-right overlay stack (same non-overlapping flow) ── */}
         <div className="absolute bottom-16 md:bottom-4 right-2 md:right-4 z-[500] flex flex-col-reverse items-end gap-2 pointer-events-none [&>*]:pointer-events-auto">
 
-        {/* Legends */}
+        {/* Legends.
+            Desktop: shown in full. Mobile: the choropleth legend collapses to a
+            chip (tap to expand) so it doesn't crowd the screen. */}
         {visibleLayerIds.includes('municipalities') && visualizationMode !== 'clusters' && (
           visualizationMode === 'choropleth' ? (
-            colorMode === 'biogas' ? <MapLegend displayMetric={displayMetric} daltonic={daltonic} /> : null
+            colorMode === 'biogas' ? (
+              <>
+                {/* Desktop — always expanded */}
+                <div className="hidden md:block">
+                  <MapLegend displayMetric={displayMetric} daltonic={daltonic} />
+                </div>
+                {/* Mobile — chip + expandable legend */}
+                <div className="md:hidden">
+                  {legendOpenMobile ? (
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={() => setLegendOpenMobile(false)}
+                        aria-label="Recolher legenda"
+                        className="absolute -top-2 -right-2 z-10 rounded-full bg-white p-1 shadow ring-1 ring-black/10"
+                      >
+                        <span className="block h-3 w-3 text-[10px] leading-3 text-gray-500">×</span>
+                      </button>
+                      <MapLegend displayMetric={displayMetric} daltonic={daltonic} />
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setLegendOpenMobile(true)}
+                      className="flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-xs font-semibold text-gray-700 shadow-lg ring-1 ring-black/5 backdrop-blur"
+                    >
+                      <span className="h-2.5 w-8 rounded-full bg-gradient-to-r from-[#eff3ff] via-[#6baed6] to-[#08519c]" aria-hidden="true" />
+                      Legenda
+                    </button>
+                  )}
+                </div>
+              </>
+            ) : null
           ) : <HeatmapLegend />
         )}
 
@@ -811,6 +911,11 @@ export default function MapComponent({
           cnMatrix={cnMatrix}
           colorMode={colorMode}
           onColorModeChange={setColorMode}
+          residueBreakdownAvailable={residueBreakdownAvailable}
+          scenario={mapScenario}
+          onScenarioChange={setMapScenario}
+          daltonic={daltonic}
+          onToggleDaltonic={toggleDaltonic}
         />
       )}
     </div>
