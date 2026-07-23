@@ -20,8 +20,8 @@ Exit code 0 = all checks pass; 1 = at least one failure (CI-friendly).
 
 from __future__ import annotations
 
-import sys
 import os
+import sys
 from pathlib import Path
 
 import yaml
