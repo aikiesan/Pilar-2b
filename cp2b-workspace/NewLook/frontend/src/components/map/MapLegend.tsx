@@ -8,7 +8,8 @@
 import React, { useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import type { DisplayMetric } from '@/types/geospatial';
-import { getMetricSpec, legendItems as buildLegendItems } from '@/lib/mapMetrics';
+import { getMetricSpec, legendItems as buildLegendItems, CVD_PALETTES, type CvdPaletteId } from '@/lib/mapMetrics';
+import { useCvdPalette } from '@/hooks/useCvdPalette';
 
 // 'Zero' and 'Sem dados' are deliberately separate: the near-white swatch is a
 // real zero (we looked; there is none), the grey is no_data (never loaded). The
@@ -22,8 +23,9 @@ export default function MapLegend({
   displayMetric?: DisplayMetric;
   daltonic?: boolean;
 }) {
+  const [cvdPalette, setCvdPalette] = useCvdPalette();
   const spec = getMetricSpec(displayMetric);
-  const legendItems = buildLegendItems(spec, daltonic);
+  const legendItems = buildLegendItems(spec, daltonic, cvdPalette);
   const title = spec.legendTitle;
   const [isCollapsed, setIsCollapsed] = useState(false);
 
@@ -48,6 +50,42 @@ export default function MapLegend({
             )}
           </button>
         </div>
+
+        {/* Palette selector — only in daltonic mode. Lets the user pick a
+            CVD-safe palette instead of being locked to one blue ramp. */}
+        {!isCollapsed && daltonic && (
+          <div className="px-3 pt-2.5">
+            <span className="mb-1 block text-[9px] font-bold uppercase tracking-wide text-gray-400">
+              Paleta (daltônico)
+            </span>
+            <div className="flex gap-1" role="radiogroup" aria-label="Paleta para daltonismo">
+              {(Object.keys(CVD_PALETTES) as CvdPaletteId[]).map((id) => {
+                const p = CVD_PALETTES[id];
+                const active = cvdPalette === id;
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    role="radio"
+                    aria-checked={active}
+                    onClick={() => setCvdPalette(id)}
+                    title={`${p.label} — ${p.note}`}
+                    className={`flex-1 rounded-md border p-1 transition-all ${
+                      active ? 'border-gray-800 ring-1 ring-gray-800' : 'border-gray-200 hover:border-gray-400'
+                    }`}
+                  >
+                    <span className="flex h-3 w-full overflow-hidden rounded-sm" aria-hidden="true">
+                      {p.ramp.map((c) => (
+                        <span key={c} className="flex-1" style={{ backgroundColor: c }} />
+                      ))}
+                    </span>
+                    <span className="mt-0.5 block text-[8px] font-semibold text-gray-600">{p.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Legend Items */}
         {!isCollapsed && (

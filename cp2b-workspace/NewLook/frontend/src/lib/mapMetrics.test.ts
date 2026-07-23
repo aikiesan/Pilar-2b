@@ -16,6 +16,8 @@ import {
   formatMetricValue,
   RAMP_DEFAULT,
   RAMP_DALTONIC,
+  CVD_PALETTES,
+  DEFAULT_CVD_PALETTE,
   ZERO_FILL,
 } from './mapMetrics';
 import { MWH_PER_M3_CH4 } from './mapValues';
@@ -143,18 +145,27 @@ describe('mapMetrics — colour bucketing + daltonic', () => {
     expect(getMetricColor(0, spec, false)).toBe(ZERO_FILL);
   });
 
-  it('daltonic mode swaps in the CVD-safe palette', () => {
-    expect(getMetricColor(9_000_000, spec, true)).toBe(RAMP_DALTONIC[5]);
-    expect(RAMP_DALTONIC).not.toEqual(RAMP_DEFAULT);
-    expect(RAMP_DALTONIC).toHaveLength(6);
+  it('daltonic mode swaps in a CVD-safe palette (default: viridis)', () => {
+    // With no palette id, daltonic uses the default CVD palette.
+    expect(getMetricColor(9_000_000, spec, true)).toBe(CVD_PALETTES[DEFAULT_CVD_PALETTE].ramp[5]);
+    expect(CVD_PALETTES[DEFAULT_CVD_PALETTE].ramp).not.toEqual(RAMP_DEFAULT);
+    expect(CVD_PALETTES[DEFAULT_CVD_PALETTE].ramp).toHaveLength(6);
+  });
+
+  it('daltonic mode honours the selected CVD palette', () => {
+    expect(getMetricColor(9_000_000, spec, true, 'blues')).toBe(CVD_PALETTES.blues.ramp[5]);
+    expect(getMetricColor(9_000_000, spec, true, 'cividis')).toBe(CVD_PALETTES.cividis.ramp[5]);
+    expect(getMetricColor(1_000, spec, true, 'cividis')).toBe(CVD_PALETTES.cividis.ramp[0]);
+    // Back-compat: RAMP_DALTONIC still points at the blues palette.
+    expect(RAMP_DALTONIC).toEqual(CVD_PALETTES.blues.ramp);
   });
 });
 
 describe('mapMetrics — legend + formatting', () => {
   it('legend has six ramp tiers + zero + no_data, in the daltonic palette when on', () => {
-    const items = legendItems(METRIC_SPECS.biogas_m3, true);
+    const items = legendItems(METRIC_SPECS.biogas_m3, true, 'blues');
     expect(items).toHaveLength(8);
-    expect(items[0].color).toBe(RAMP_DALTONIC[5]);
+    expect(items[0].color).toBe(CVD_PALETTES.blues.ramp[5]);
     expect(items[0].label).toContain('>');
     expect(items[7].label).toBe('Sem dados');
   });
