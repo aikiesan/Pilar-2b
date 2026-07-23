@@ -46,7 +46,9 @@ interface UnifiedHeaderProps {
 
 // Navigation item configurations (label keys map to i18n)
 const publicNavConfig: NavItemConfig[] = [
-  { href: '/', labelKey: 'home', icon: <Home className="h-4 w-4" /> },
+  // The map is now the landing page ("/"), reached via the logo. The former
+  // marketing home became the guide hub, so it takes the first nav slot.
+  { href: '/guide', labelKey: 'guide', icon: <BookOpen className="h-4 w-4" /> },
   { href: '/map', labelKey: 'map', icon: <Map className="h-4 w-4" /> },
   { href: '/dashboard', labelKey: 'dashboard', icon: <BarChart3 className="h-4 w-4" /> },
   { href: '/about', labelKey: 'about', icon: <Info className="h-4 w-4" /> },

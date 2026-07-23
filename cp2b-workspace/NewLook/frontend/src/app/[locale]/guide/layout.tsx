@@ -22,15 +22,33 @@ export default function GuideLayout({
             Tópicos principais
           </span>
           
-          <Link 
-            href="/guide" 
+          <Link
+            href="/guide"
             className="block px-3 py-2 rounded-lg hover:bg-cp2b-lime-light dark:hover:bg-slate-800 text-gray-700 dark:text-slate-300 hover:text-cp2b-green font-medium transition-colors"
           >
             Introdução
           </Link>
-          
-          <Link 
-            href="/guide/mapa" 
+
+          <Link
+            href="/sobre"
+            className="block px-3 py-2 rounded-lg hover:bg-cp2b-lime-light dark:hover:bg-slate-800 text-gray-700 dark:text-slate-300 hover:text-cp2b-green font-medium transition-colors"
+          >
+            Sobre a plataforma
+          </Link>
+
+          <Link
+            href="/map"
+            className="block px-3 py-2 rounded-lg bg-cp2b-green/10 dark:bg-emerald-500/10 text-cp2b-green dark:text-emerald-300 hover:bg-cp2b-green/20 font-semibold transition-colors"
+          >
+            → Abrir o Mapa
+          </Link>
+
+          <span className="block text-[10px] font-bold text-gray-400 tracking-wider uppercase mt-4 mb-2 px-3">
+            Tópicos
+          </span>
+
+          <Link
+            href="/guide/mapa"
             className="block px-3 py-2 rounded-lg hover:bg-cp2b-lime-light dark:hover:bg-slate-800 text-gray-700 dark:text-slate-300 hover:text-cp2b-green font-medium transition-colors"
           >
             Como usar o Mapa
