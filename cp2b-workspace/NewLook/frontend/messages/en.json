@@ -399,7 +399,7 @@
     "scenario_baseline": "Mid-term",
     "scenario_fronteira": "Frontier",
     "scenario_otimista": "Optimistic",
-    "scenario_fronteira_tip": "Biogas Frontier: realistic-high mobilisation of all 31 residues — surpasses the FIESP benchmark (~6.4 Mm³/d biomethane).",
+    "scenario_fronteira_tip": "Biogas Frontier: realistic-high mobilisation of the 26 parameterised residues under dedicated policy. Scenario under methodological review.",
     "cnLegend": {
       "title": "C/N Ratio Profile",
       "c_rich": "Carbon Excess (> 60)",
@@ -427,7 +427,7 @@
     "advanced_analysis": {
       "title": "Advanced Analysis",
       "literature_base_link": "Scientific base — 399 references (literature review)",
-      "frontier_note": "Biogas Frontier: realistic-high mobilisation of all 31 residues — surpasses the FIESP benchmark (~6.4 Mm³/d biomethane).",
+      "frontier_note": "Biogas Frontier: realistic-high mobilisation of the 26 parameterised residues under dedicated policy. Scenario under methodological review.",
       "category_agricultural": "Agricultural",
       "category_livestock": "Livestock",
       "category_urban": "Urban",
@@ -897,7 +897,7 @@
       "pessimistic_name": "Pessimistic",
       "pessimistic_desc": "Scenario with highest losses and competition",
       "frontier_name": "Biogas Frontier",
-      "frontier_desc": "Realistic-high mobilisation of all 31 residues under dedicated policy; surpasses the FIESP benchmark (~6.4 Mm³/d biomethane)"
+      "frontier_desc": "Realistic-high mobilisation of the 26 parameterised residues under dedicated policy; scenario under methodological review"
     },
     "residue_scenarios": {
       "baseline_name": "Baseline",
@@ -907,7 +907,7 @@
       "optimistic_name": "Optimistic",
       "optimistic_desc": "Increases factors by 15% (best case)",
       "frontier_name": "Biogas Frontier",
-      "frontier_desc": "Realistic-high mobilisation of all 31 residues under dedicated policy (surpasses the FIESP benchmark)",
+      "frontier_desc": "Realistic-high mobilisation of the 26 parameterised residues under dedicated policy (under methodological review)",
       "custom_name": "Custom",
       "custom_desc": "Manually adjusted factors per residue"
     },

@@ -659,9 +659,10 @@ describe('MapComponent', () => {
       );
       act(() => { jest.advanceTimersByTime(1500); });
 
-      // Biogas totals are scenario-scaled (default scenario is "fronteira", not
-      // "baseline") — switch to "Médio Prazo" (baseline) so the fixture's raw
-      // total_biogas_m3_year values are what the minBiogas filter compares against.
+      // Biogas totals are scenario-scaled. Since 2026-07-25 (Lote 1d) the default
+      // scenario IS "baseline" (Médio Prazo, factor 1.0), so this click is a no-op
+      // kept deliberately: it pins the scenario the assertion depends on, instead
+      // of relying on whatever the default happens to be.
       fireEvent.click(screen.getByText('Médio Prazo'));
 
       // Should filter to 1 municipality (São Paulo with 100M) out of 3 total
@@ -816,8 +817,10 @@ describe('MapComponent', () => {
       );
       act(() => { jest.advanceTimersByTime(1500); });
 
-      // Switch to baseline so the fixture's total_biogas_m3_year isn't
-      // scenario-scaled (default scenario is "fronteira").
+      // Pin the scenario to baseline (factor 1.0) so the fixture's
+      // total_biogas_m3_year isn't scenario-scaled. Since 2026-07-25 (Lote 1d)
+      // baseline is already the default; the click keeps the test independent
+      // of that default.
       fireEvent.click(screen.getByText('Médio Prazo'));
 
       // Should show 0 / 1

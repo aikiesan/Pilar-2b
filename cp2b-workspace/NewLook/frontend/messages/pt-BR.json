@@ -399,7 +399,7 @@
     "scenario_baseline": "Médio Prazo",
     "scenario_fronteira": "Fronteira",
     "scenario_otimista": "Otimista",
-    "scenario_fronteira_tip": "Fronteira do Biogás: mobilização realista-alta dos 31 resíduos — supera o benchmark FIESP (~6,4 Mm³/d de biometano).",
+    "scenario_fronteira_tip": "Fronteira do Biogás: mobilização realista-alta dos 26 resíduos parametrizados sob política dedicada. Cenário em revisão metodológica.",
     "cnLegend": {
       "title": "Perfil de Relação C/N",
       "c_rich": "Excesso de Carbono (> 60)",
@@ -427,7 +427,7 @@
     "advanced_analysis": {
       "title": "Análises Avançadas",
       "literature_base_link": "Base científica — 399 referências (revisão de literatura)",
-      "frontier_note": "Fronteira do Biogás: mobilização realista-alta dos 31 resíduos — supera o benchmark FIESP (~6,4 Mm³/d de biometano).",
+      "frontier_note": "Fronteira do Biogás: mobilização realista-alta dos 26 resíduos parametrizados sob política dedicada. Cenário em revisão metodológica.",
       "category_agricultural": "Agrícola",
       "category_livestock": "Pecuário",
       "category_urban": "Urbano",
@@ -897,7 +897,7 @@
       "pessimistic_name": "Pessimista",
       "pessimistic_desc": "Cenário com maiores perdas e competição",
       "frontier_name": "Fronteira do Biogás",
-      "frontier_desc": "Mobilização realista-alta dos 31 resíduos sob política dedicada; supera o benchmark FIESP (~6,4 Mm³/d de biometano)"
+      "frontier_desc": "Mobilização realista-alta dos 26 resíduos parametrizados sob política dedicada; cenário em revisão metodológica"
     },
     "residue_scenarios": {
       "baseline_name": "Baseline",
@@ -907,7 +907,7 @@
       "optimistic_name": "Otimista",
       "optimistic_desc": "Aumenta fatores em 15% (melhor cenário)",
       "frontier_name": "Fronteira do Biogás",
-      "frontier_desc": "Mobilização realista-alta dos 31 resíduos sob política dedicada (supera o benchmark FIESP)",
+      "frontier_desc": "Mobilização realista-alta dos 26 resíduos parametrizados sob política dedicada (em revisão metodológica)",
       "custom_name": "Personalizado",
       "custom_desc": "Fatores ajustados manualmente por resíduo"
     },

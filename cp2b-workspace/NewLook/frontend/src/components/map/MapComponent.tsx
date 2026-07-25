@@ -187,7 +187,11 @@ export default function MapComponent({
   const [selectedClusterId, setSelectedClusterId] = useState<string | null>(null);
   const [showClusterPanel, setShowClusterPanel] = useState(false);
   const [colorMode, setColorMode] = useState<ColorMode>('biogas');
-  const [mapScenario, setMapScenario] = useState<MapScenarioKey>('fronteira');
+  // 'baseline' É o cenário Médio Prazo (medio) — ver scenarioFactors.ts, onde a
+  // normalização define baseline = medio = 1.0 por resíduo. Era 'fronteira' até
+  // 2026-07-25 (Lote 1d); o cenário Fronteira foi suspenso e o padrão passou a
+  // ser o medio, que é o que o manuscrito reporta.
+  const [mapScenario, setMapScenario] = useState<MapScenarioKey>('baseline');
 
   // Daltonic (colour-vision-deficiency) mode: swaps the choropleth ramp for a
   // CVD-safe single-hue palette. Persisted in localStorage like the theme.
