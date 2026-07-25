@@ -1,0 +1,25 @@
+{
+  "_about": "Caminhos isentos do validador de documentação do Lote 4, que proíbe números canônicos digitados à mão em docs/. Consumido pelo validador; não editar sem registrar o motivo abaixo.",
+  "_created": "2026-07-25",
+  "_lote": "0d",
+  "exclusions": [
+    {
+      "path": "docs/archive/2026-05-pre-squash/",
+      "recursive": true,
+      "reason": "Material histórico imutável, anterior ao squash de 2026-05-19. Os números divergem dos canônicos por definição — é isso que os torna evidência do estado anterior. Reconciliá-los destruiria o valor de rastreabilidade. Ver o README do diretório.",
+      "authorized_by": "Lote 0d"
+    },
+    {
+      "path": "AUDITORIA_PILAR2B_2026-07-25.md",
+      "recursive": false,
+      "reason": "Laudo de auditoria datado. Cita valores divergentes de propósito, lado a lado com sua localização, para documentar as divergências. Congelado junto com a tag pre-fix-2026-07-25.",
+      "authorized_by": "Lote 0d"
+    },
+    {
+      "path": "cp2b-workspace/NewLook/docs/data/baseline_2026-07-25.json",
+      "recursive": false,
+      "reason": "Linha de base congelada, gerada por execução do pipeline canônico. É a referência contra a qual o validador mede — não pode ser alvo dele.",
+      "authorized_by": "Lote 0d"
+    }
+  ]
+}

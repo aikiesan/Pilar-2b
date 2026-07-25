@@ -1,0 +1,15 @@
+**Cronograma de Metas e Entregas (combinadas com os órgãos governamentais parceiros)**
+
+| Eixo | Metas | Ano 1 |  |  | Ano 2 |  |  | Ano 3 |  |  | Ano 4 |  |  | Ano 5 |  |  | Entregas (E) |
+| :---: | ----- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | ----- |
+|  |  | **Q1** | **Q2** | **Q3** | **Q1** | **Q2** | **Q3** | **Q1** | **Q2** | **Q3** | **Q1** | **Q2** | **Q3** | **Q1** | **Q2** | **Q3** |  |
+| CP2B | Definição e estabelecimento da dinâmica de comunicacão interna do CP2B e entre os parceiros  | E11 |  | E22 | E31 |  | E42 | E51 |  | E62 | E71 |  | E82 | E91 |  | E102 | Workshops internos1 e públicos2 (E1 \- E10)  |
+| 1 | Inventário de Resíduos e Mapeamento de Tecnologias |  |  |  |  |  | E1 | E2 | E3 |  | E4 | E5 |  | E6 | E7 |  | Diagnóstico (E1 \- resíduos; E2 \- tecnologias; E3 \- clusters); Painel Dinâmico de Tecnologias (E4 \- preliminar; E6 \- consolidado); Ferramenta digital de resíduos (E5 \- preliminar; E7 \- consolidado)  |
+| 2 | Ciência e Tecnologia de Base |  |  |  | E1 |  |  | E2 |  |  | E3 |  |  |  |  |  | Protótipos de laboratório (E1); Parâmetros de processo (E2 \- preliminar; E3 \- consolidado) |
+| 3 | Engenharia de Processos e Bioprocessos |  |  |  |  |  | E1 |  |  | E2 |  |  | E3 |  |  |  | Protótipos piloto (E1); Parâmetros de processo (E2 \- preliminar; E3 \- consolidado) |
+| 4 | Avaliação Integrada Socioeconômica, Ambiental e Energética |  |  |  |  |  |  | E1 |  |  | E2 |  |  | E3 |  | E4 | Diagnóstico e cenarização (E1); Indicadores (E2 \- preliminar; E3 \- consolidado); Subsídios para tomadores de decisão (E4) |
+| 5 | Inovação em Bioprodutos na Cadeia do Biogás |  |  |  |  |  | E1 | E2 |  |  | E3 | E4 |  |  |  | E5 | Sistema integrado para produção de Bioprodutos gasosos (E1 \- preliminar; E3 \- consolidado); Consolidação da plataforma de carboxilatos (E2 \- preliminar; E4 \- consolidado); Propostas de biorrefinarias com bases técnicas (E5) |
+| 6 | Educação e Capacitação para o Desenvolvimento Sustentável |  |  |  | E1 | E2 | E3 |  |  |  | E4 | E5 | E6 |  |  | E7 | Ações educativas em escolas (E1 \- preliminar; E4 \- consolidada); Proposta de oficinas em comunidades periféricas (E2 \- preliminar; E5 \- consolidada); Propostas de cursos de capacitação (E3 \- preliminar; E6 \- consolidado); Metodologias de ensino consolidadas (E7)  |
+| 7 | Difusão Científica e Comunicação |  |  |  | E1; E4 |  | E2 | E1 |  | E3; E5 | E1 |  |  | E1 |  | E1 | Compilado anual das publicações científicas (E1); Metodologia para prestação de serviços (E2 \- preliminar; E3 \- consolidado); Consolidação nas redes sociais (E4); Consolidação das plataformas de comunicação (E5) |
+| 8 | Políticas Públicas e Inovação Regulatória |  |  |  | E1 |  | E2 |  |  | E3 |  |  | E4 |  |  | E5; E6 | Diagnóstico (E1 \- preliminar; E6 \- consolidado); Proposta de Framework (E2 \- preliminar; E3 \- consolidado); Possibilidades de aplicação do framework (E4 \- preliminar; E5 \- consolidado) |
+
