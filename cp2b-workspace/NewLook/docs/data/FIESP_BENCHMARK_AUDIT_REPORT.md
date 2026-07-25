@@ -1,5 +1,59 @@
 # Pilar-2b × FIESP/Amplun — Recalibration & Comparison Report
 
+> # ⚠️ DOCUMENTO SUPERADO — NENHUM NÚMERO AQUI É CANÔNICO
+>
+> **Marcado em 2026-07-25 (Lote 1a-ter).** Este documento não é fonte para o
+> manuscrito, para o relatório FAPESP nem para o projeto BEPE. Ele permanece no
+> repositório como registro histórico da comparação feita em 2026-06-12.
+>
+> ## Por quê: a "Fronteira do Biogás" foi definida duas vezes, e este arquivo contém as duas
+>
+> | | Definição A | Definição B |
+> |---|---|---|
+> | Commit | `8c2d8f3` (PR #98) | `154cfae` (PR #101) |
+> | Data | **2026-06-07** | **2026-06-12**, cinco dias depois |
+> | Método | Otimista **+ lodo de ETE** (`LODO_PRIMARIO` + `LODO_SECUNDARIO` a FDE máximo), sob premissa de mandato regulatório PNRS/CONAMA. Construto físico, implementado em `_compute_fronteira()` | **Ponto médio aritmético** entre Médio Prazo e Otimista (`FRONTIER_ALPHA = 0.5`). Nenhum feedstock acrescentado, nenhuma premissa física |
+> | CH₄ / Biogás / Biometano (Mm³/d) | **14,66 / 25,85 / 14,22** | **9,19 / 16,42 / 8,92** |
+> | Chegou a `main`? | **Não** (`git log origin/main -S"_compute_fronteira"` é vazio) | Sim |
+>
+> **Onde as duas convivem neste arquivo:** a tabela da §1 e a §1.1 afirmam a
+> Definição B (9,19 / 16,42 / 8,92); as duas últimas linhas da §1.1 —
+> *"**Fronteira** = envelope superior com disponibilidade plena … Coincide com os
+> números do handoff (14,66 / 25,85 / 14,22)"* — são resquício da Definição A,
+> nunca removido. O mesmo documento afirma que a Fronteira é 9,19 e que é 14,66.
+>
+> ## Estado das decisões (2026-07-25)
+>
+> - **`FRONTIER_ALPHA = 0.5` foi ELIMINADO.** Não vai para a submissão. O valor
+>   não tinha referência bibliográfica nem análise de sensibilidade, e a
+>   cronologia de 2026-06-12 — benchmark FIESP extraído às 01:55, BMPs elevados às
+>   09:48, `FRONTIER_ALPHA` introduzido às 09:58 num commit intitulado
+>   `(>FIESP benchmark)`, cenário tornado padrão do mapa às 10:47 — o torna
+>   indefensável em revisão por pares.
+> - **O cenário Fronteira está SUSPENSO.** O manuscrito passa a reportar
+>   min / medio / max e a taxa de retenção medio/medio.
+> - **A Definição A fica registrada como candidata a cenário de política**
+>   (lodo de ETE sob mandato PNRS/CONAMA), para decisão posterior. Não está
+>   implementada e não deve ser reimplementada sem essa decisão.
+> - Nenhuma das duas definições é canônica a partir de agora.
+>
+> ## Fonte de verdade que substitui este documento
+>
+> | Grandeza | Onde |
+> |---|---|
+> | Estado numérico congelado | `docs/data/baseline_2026-07-25.json` |
+> | Parâmetros | `data/canonical_parameters/feedstocks.yaml` |
+> | Totais estaduais | `backend/scripts/compute_sp_canonical_totals.py` |
+> | Rastreamento da calibração | `docs/data/AUDITORIA_CIRCULARIDADE_2026-07-25.md` |
+>
+> **A §3 (validação empírica de BMP contra o corpus de 367 artigos) permanece
+> factualmente útil** e é insumo da regra única de BMP especificada no Lote
+> 1a-quater. Os números de cenário das §§1, 2 e 4 não são.
+>
+> Este arquivo **não** deve ser editado para "corrigir" seus números: a
+> divergência interna é o registro. As correções de citação em outros arquivos
+> são escopo do Lote 5.
+
 **Date:** 2026-06-12 · **Branch:** `claude/dreamy-wright-icxmfp`
 **Benchmark:** FIESP/Instituto17/PSR/Amplun, *"O Biometano em São Paulo"*, Relatório Técnico, Jun/2025.
 **Model source of truth:** `backend/scripts/compute_sp_canonical_totals.py` + `data/canonical_parameters/feedstocks.yaml`.
