@@ -879,7 +879,6 @@
     "chart_regional": "Regional Distribution",
     "sankey_ch4_label": "CH₄ Equivalent",
     "sankey_ch4_fraction": "Based on {pct}% CH₄ in biogas",
-    "sankey_benchmark_label": "FIESP benchmark: ~16 B m³ CH₄/year",
     "sankey_unit": "m³/year",
     "sankey_summary_ch4": "CH₄ Equivalent",
     "sankey_alluvial_title": "Biomass Flow — Proportional",

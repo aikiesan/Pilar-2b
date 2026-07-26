@@ -564,10 +564,20 @@ export default function BiomassFlowSankey({
         </div>
       </div>
 
-      {/* Legend + Benchmark */}
+      {/* Legend.
+          A linha de referência FIESP foi REMOVIDA em 2026-07-25 (Lote 1e-c).
+          Dizia "~16 bilhões m³ CH₄/ano", magnitude que não corresponde a nenhum
+          valor publicado pela FIESP: o relatório de 2025 reporta 4,3 bilhões
+          Nm³/ano de biogás e 2,3 bilhões Nm³/ano de biometano (extração
+          página a página em docs/data/FIESP_BENCHMARK_EXTRACTION.md:130-150),
+          e o estudo de 2021 citado no repositório reporta ~16,0 M m³/DIA de
+          biogás — mesmo numeral, outra unidade e outra grandeza.
+          Não foi possível determinar, a partir do que está versionado, a qual
+          das duas o rótulo se referia, e converter seria adivinhar. Ver
+          docs/data/VERIFICACAO_BENCHMARK_FIESP_2026-07-25.md. */}
       <div className="mt-4 p-4 bg-gray-50 rounded-lg">
         <h4 className="text-sm font-semibold text-gray-700 mb-3">{t('sankey_legend_title')}</h4>
-        <div className="grid grid-cols-2 gap-3 text-xs mb-3">
+        <div className="grid grid-cols-2 gap-3 text-xs">
           <div className="flex items-center gap-2">
             <div className="w-8 h-2 bg-green-600 rounded opacity-80" />
             <span className="text-gray-600">{t('sankey_legend_useful')}</span>
@@ -576,10 +586,6 @@ export default function BiomassFlowSankey({
             <div className="w-8 h-2 bg-red-400 rounded opacity-80" />
             <span className="text-gray-600">{t('sankey_legend_losses')}</span>
           </div>
-        </div>
-        <div className="flex items-start gap-2 pt-2 border-t border-gray-200">
-          <Info className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
-          <p className="text-xs text-blue-700 font-medium">{t('sankey_benchmark_label')}</p>
         </div>
       </div>
     </div>
