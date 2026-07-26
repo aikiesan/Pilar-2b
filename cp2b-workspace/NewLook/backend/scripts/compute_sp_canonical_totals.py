@@ -32,8 +32,12 @@ Outputs:
 from __future__ import annotations
 
 import csv
+import hashlib
+import json
 import logging
+import subprocess
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -50,6 +54,10 @@ from app.services.canonical_loader import (  # noqa: E402
     get_params_for_stream,
     mill_delivery_fraction,
 )
+from scripts.compute_spatial_concentration import (  # noqa: E402
+    compute_spatial_concentration,
+    quantity,
+)
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
@@ -59,7 +67,12 @@ UPGRADING_EFFICIENCY = 0.97  # biogas → biomethane upgrading (membrane/PSA)
 # <NewLook> root: this file is backend/scripts/<here>
 _NEWLOOK = Path(__file__).resolve().parents[2]
 _CSV = _NEWLOOK / "docs" / "data" / "municipality_biomass_tons.csv"
+_MUNICIPALITY_CONTEXT = (
+    _NEWLOOK.parents[1] / "analysis" / "data" / "02_municipality_summary_SP_2023.csv"
+)
 _FEEDSTOCKS = _NEWLOOK / "data" / "canonical_parameters" / "feedstocks.yaml"
+_CANONICAL_JSON = _NEWLOOK / "docs" / "data" / "canonical_results.json"
+FRONTIER_ALPHA = 0.5
 
 # São Paulo state resident population — IBGE Censo Demográfico 2022.
 # https://censo2022.ibge.gov.br/  (SP: 44,411,238)
@@ -334,6 +347,224 @@ def compute() -> tuple[dict, list[dict]]:
     return totals, out_rows
 
 
+def _forward_values(biomass: dict, params) -> tuple[dict, dict, dict]:
+    ch4: dict = {}
+    biogas: dict = {}
+    for scenario in SCENARIOS:
+        result = calculate_feedstock(biomass[scenario], params)
+        ch4[scenario] = result.ch4_practical_m3[scenario]
+        biogas[scenario] = result.biogas_practical_m3[scenario]
+    biomethane = {
+        scenario: ch4[scenario] * UPGRADING_EFFICIENCY for scenario in SCENARIOS
+    }
+    return ch4, biogas, biomethane
+
+
+def _compute_municipality(row: dict, context: dict) -> dict:
+    """Run the identical canonical equations for one municipality."""
+    metrics = {
+        metric: {scenario: 0.0 for scenario in SCENARIOS}
+        for metric in ("ch4_practical", "biogas_practical", "biomethane")
+    }
+    stream_values: dict[str, dict] = {}
+
+    def add(stream: str, biomass: dict, params) -> None:
+        ch4, biogas, biomethane = _forward_values(biomass, params)
+        stream_values[stream] = ch4
+        for scenario in SCENARIOS:
+            metrics["ch4_practical"][scenario] += ch4[scenario]
+            metrics["biogas_practical"][scenario] += biogas[scenario]
+            metrics["biomethane"][scenario] += biomethane[scenario]
+
+    cane_raw = float(row.get("sugarcane_biomass_tons_year") or 0)
+    mdf = mill_delivery_fraction("sugarcane")
+    if mdf is None:
+        raise RuntimeError("sugarcane has no mill_delivery_fraction")
+    for label, code, fraction, mill_delivered, _note in SUGARCANE_SUBSTREAMS:
+        base = cane_raw * fraction
+        biomass = {
+            scenario: base * mdf.get(scenario) if mill_delivered else base
+            for scenario in SCENARIOS
+        }
+        add(label, biomass, get_params(code))
+
+    citrus = float(row.get("citrus_biomass_tons_year") or 0) * CITRUS_RESIDUE_FRACTION
+    add("citrus", {scenario: citrus for scenario in SCENARIOS}, get_params_for_stream("citrus"))
+
+    for stream in AGRICULTURAL_DIRECT:
+        amount = float(row.get(f"{stream}_biomass_tons_year") or 0)
+        add(stream, {scenario: amount for scenario in SCENARIOS}, get_params_for_stream(stream))
+
+    for stream in SPLIT_LIVESTOCK:
+        count = float(row.get(f"{stream}_biomass_tons_year") or 0)
+        for label, code, fraction in STREAM_SUBPOPULATIONS[stream]:
+            generated = biomass_tons_from_code(code, count * fraction)
+            add(
+                label,
+                {scenario: generated.get(scenario) for scenario in SCENARIOS},
+                get_params(code),
+            )
+
+    for stream in LIVESTOCK_SIMPLE:
+        count = float(row.get(f"{stream}_biomass_tons_year") or 0)
+        add(stream, _biomass_livestock(stream, count, {}), get_params_for_stream(stream))
+
+    population = float(context["populacao_2022"])
+    for stream in URBAN:
+        add(stream, _biomass_urban(stream, population, {}), get_params_for_stream(stream))
+
+    return {
+        "ibge_code": row["ibge_code"],
+        "municipality_name": row["municipality_name"],
+        "intermediate_region_code": context["cd_rgint"],
+        "intermediate_region_name": context["nm_rgint"],
+        "metrics": metrics,
+        "stream_ch4": stream_values,
+    }
+
+
+def compute_municipalities() -> list[dict]:
+    contexts = {
+        row["ibge_code"]: row
+        for row in csv.DictReader(_MUNICIPALITY_CONTEXT.open(encoding="utf-8-sig"))
+    }
+    rows = [
+        row
+        for row in csv.DictReader(_CSV.open(encoding="utf-8"))
+        if (row.get("ibge_code") or "").strip()
+    ]
+    missing = sorted({row["ibge_code"] for row in rows} - contexts.keys())
+    if missing:
+        raise RuntimeError(f"Missing IBGE regional/population context for: {missing[:5]}")
+    return [_compute_municipality(row, contexts[row["ibge_code"]]) for row in rows]
+
+
+def _frontier(values: dict) -> float:
+    return values["medio"] + FRONTIER_ALPHA * (values["max"] - values["medio"])
+
+
+def _metric_quantities(metrics: dict) -> dict:
+    units = {
+        "ch4_practical": "m3_CH4/year",
+        "biogas_practical": "m3_biogas/year",
+        "biomethane": "m3_biomethane/year",
+    }
+    return {
+        metric: {
+            "medio": quantity(values["medio"], units[metric]),
+            "frontier": quantity(_frontier(values), units[metric]),
+        }
+        for metric, values in metrics.items()
+        if metric in units
+    }
+
+
+def _git_sha() -> str:
+    return subprocess.check_output(
+        ["git", "rev-parse", "HEAD"], cwd=_NEWLOOK, text=True
+    ).strip()
+
+
+def build_canonical_results(
+    totals: dict, feedstocks: list[dict], municipalities: list[dict]
+) -> dict:
+    municipal_totals = {
+        metric: {
+            scenario: sum(row["metrics"][metric][scenario] for row in municipalities)
+            for scenario in SCENARIOS
+        }
+        for metric in ("ch4_practical", "biogas_practical", "biomethane")
+    }
+    for metric in municipal_totals:
+        for scenario in SCENARIOS:
+            if not abs(municipal_totals[metric][scenario] - totals[metric][scenario]) <= 1e-6 * max(
+                1.0, totals[metric][scenario]
+            ):
+                raise RuntimeError(f"Municipal/state reconciliation failed: {metric}/{scenario}")
+
+    ch4_medio_mm3_day = totals["ch4_practical"]["medio"] / 365 / 1e6
+    if round(ch4_medio_mm3_day, 4) != 3.6367:
+        raise RuntimeError(
+            "REFACTORING REGRESSION: CH4 medio is "
+            f"{ch4_medio_mm3_day:.10f} Mm3/day; expected 3.6367 Mm3/day"
+        )
+
+    by_feedstock = []
+    for row in feedstocks:
+        ch4_values = {
+            scenario: float(row[f"ch4_practical_{scenario}_m3_yr"]) for scenario in SCENARIOS
+        }
+        biogas_values = {
+            scenario: float(row[f"biogas_practical_{scenario}_m3_yr"]) for scenario in SCENARIOS
+        }
+        by_feedstock.append(
+            {
+                "feedstock": row["stream"],
+                "sector": row["sector"],
+                "biomass_medio": quantity(row["biomass_medio_t_yr"], "tonne_wet/year"),
+                "ch4_practical": {
+                    "medio": quantity(ch4_values["medio"], "m3_CH4/year"),
+                    "frontier": quantity(_frontier(ch4_values), "m3_CH4/year"),
+                },
+                "biogas_practical": {
+                    "medio": quantity(biogas_values["medio"], "m3_biogas/year"),
+                    "frontier": quantity(_frontier(biogas_values), "m3_biogas/year"),
+                },
+                "provenance": row["provenance"],
+            }
+        )
+
+    by_municipality = []
+    spatial_input = []
+    for row in municipalities:
+        ch4_medio = row["metrics"]["ch4_practical"]["medio"]
+        ch4_frontier = _frontier(row["metrics"]["ch4_practical"])
+        by_municipality.append(
+            {
+                "ibge_code": row["ibge_code"],
+                "municipality_name": row["municipality_name"],
+                "intermediate_region_code": row["intermediate_region_code"],
+                "intermediate_region_name": row["intermediate_region_name"],
+                "totals": _metric_quantities(row["metrics"]),
+            }
+        )
+        spatial_input.append(
+            {
+                **row,
+                "ch4_medio": ch4_medio,
+                "ch4_frontier": ch4_frontier,
+            }
+        )
+
+    feedstocks_hash = hashlib.sha256(_FEEDSTOCKS.read_bytes()).hexdigest()
+    return {
+        "schema_version": "1.0.0",
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "git_sha": _git_sha(),
+        "feedstocks_yaml_sha256": feedstocks_hash,
+        "scenario": {
+            "medio": "canonical coupled medio parameter band",
+            "frontier": "medio + 0.5 * (max - medio), calculated per metric",
+        },
+        "totals": _metric_quantities(totals),
+        "by_feedstock": by_feedstock,
+        "by_municipality": by_municipality,
+        "spatial_concentration": {
+            "medio": compute_spatial_concentration(spatial_input, value_key="ch4_medio"),
+            "frontier": compute_spatial_concentration(spatial_input, value_key="ch4_frontier"),
+        },
+        "provenance": {
+            "generator": "backend/scripts/compute_sp_canonical_totals.py",
+            "spatial_analysis": "backend/scripts/compute_spatial_concentration.py",
+            "municipal_activity_input": "docs/data/municipality_biomass_tons.csv",
+            "municipal_context_input": "analysis/data/02_municipality_summary_SP_2023.csv",
+            "canonical_parameters": "data/canonical_parameters/feedstocks.yaml",
+            "municipalities": quantity(len(municipalities), "municipality"),
+            "reference_total_ch4_medio": quantity(3.6367, "Mm3_CH4/day"),
+        },
+    }
+
+
 def _scenario_print(totals: dict) -> None:
     def md(metric: str) -> tuple:
         d = totals[metric]
@@ -357,7 +588,6 @@ def _scenario_print(totals: dict) -> None:
     # métrica (FRONTIER_ALPHA do caminho medio→max). Representa o relaxamento dos
     # fatores de competição/coleta sob política pública dedicada, mantendo o
     # envelope de incerteza biométrico. NÃO é o teto teórico (esse é o Otimista).
-    FRONTIER_ALPHA = 0.5
     fro = tuple(
         m + FRONTIER_ALPHA * (x - m)
         for m, x in [(ch4[1], ch4[2]), (big[1], big[2]), (bm[1], bm[2])]
@@ -396,6 +626,12 @@ def main():
 
     logger.info("Computing SP canonical FORWARD biogas totals...")
     totals, rows = compute()
+    municipalities = compute_municipalities()
+    canonical = build_canonical_results(totals, rows, municipalities)
+    _CANONICAL_JSON.write_text(
+        json.dumps(canonical, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
 
     stream_csv = out_dir / "sp_canonical_by_stream.csv"
     with stream_csv.open("w", newline="", encoding="utf-8") as f:
@@ -405,6 +641,7 @@ def main():
 
     _scenario_print(totals)
     print(f"\n  Detalhe por stream: {stream_csv}")
+    print(f"  Fonte canônica JSON: {_CANONICAL_JSON}")
 
 
 if __name__ == "__main__":
