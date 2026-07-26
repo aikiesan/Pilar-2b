@@ -3,16 +3,23 @@
 **AUTO-GENERATED** by `backend/scripts/validate_fde_traceability.py --emit`.
 Do NOT edit by hand — edit `feedstocks.yaml`/`references.yaml` and regenerate.
 
-`FDE = availability × η` where `availability = FC × FCo × FS × FL`.
-All values are the **medio** scenario; each factor lists the reference id that
-reports it (full citation + URL in `references.yaml`). Confidence tiers: HIGH =
+`FDE = availability × η` where `availability = FC × FCo_available × FS × FL`.
+`availability` is **derived on read** — it is not a field of `feedstocks.yaml`.
+`FCo_available` is the AVAILABLE share, by the convention
+`fco_available == 1 - fcp_committed`.
+
+All values are the **medio** scenario. The source column is the `reference:`
+declared on that factor in `feedstocks.yaml` (full citation + URL in
+`references.yaml`). **`—` means no versioned reference reports that factor** —
+until 2026-07-26 these cells silently borrowed the block's first reference, so
+the matrix appeared fully sourced when it was not. Confidence tiers: HIGH =
 regulatory/measured per-factor sources; MEDIUM = regional studies/proxy; LOW =
 generic or no-direct-study proxy.
 
-| Feedstock | Conf. | FC (src) | FCo (src) | FS (src) | FL (src) | η | avail | FDE |
+| Feedstock | Conf. | FC (src) | FCo_av (src) | FS (src) | FL (src) | η | avail | FDE |
 |---|---|---|---|---|---|---:|---:|---:|
-| **BAGACO** | HIGH | 0.95 (epe_ben2024) | 0.22 (epe_ben2024) | 0.90 (epe_ben2024) | 0.90 (epe_ben2024) | 0.7 | 0.1693 | 0.1185 |
-| **BAGACO_CITROS** | MEDIUM | 0.85 (abiogas2021_atlas) | 0.30 (abiogas2021_atlas) | 0.90 (abiogas2021_atlas) | 0.75 (abiogas2021_atlas) | 0.78 | 0.1721 | 0.1342 |
+| **BAGACO** | HIGH | 0.95 (abiogas2021_atlas) | 0.22 (epe_ben2024) | 0.90 (abiogas2021_atlas) | 0.90 (abiogas2021_atlas) | 0.7 | 0.1693 | 0.1185 |
+| **BAGACO_CITROS** | MEDIUM | 0.85 (abiogas2021_atlas) | 0.30 (abiogas2021_atlas) | 0.90 (abiogas2021_atlas) | 0.75 (abiogas2021_atlas) | 0.78 | 0.1721 | 0.1343 |
 | **CAMA_AVIARIO** | MEDIUM | 0.80 (avila2007_poultry) | 0.50 (avila2007_poultry) | 0.90 (avila2007_poultry) | 0.75 (avila2007_poultry) | 0.7 | 0.2700 | 0.1890 |
 | **CASCAS_CITROS** | MEDIUM | 0.80 (braddock1999_citrus) | 0.30 (braddock1999_citrus) | 0.90 (fundecitrus2022) | 0.75 (lohrasbi2010_citrus) | 0.78 | 0.1620 | 0.1264 |
 | **CASCA_CAFE** | MEDIUM | 0.70 (abiogas2021_atlas) | 0.50 (abiogas2021_atlas) | 0.85 (abiogas2021_atlas) | 0.65 (abiogas2021_atlas) | 0.7 | 0.1934 | 0.1354 |
@@ -20,23 +27,25 @@ generic or no-direct-study proxy.
 | **CASCA_SOJA** | MEDIUM | 0.75 (abiogas2021_atlas) | 0.40 (abiogas2021_atlas) | 0.85 (abiogas2021_atlas) | 0.70 (abiogas2021_atlas) | 0.7 | 0.1785 | 0.1249 |
 | **DEJETOS_AVES** | MEDIUM | 0.75 (abpa2022_report) | 0.60 (miele2004_poultry) | 0.92 (embrapa2012_aves) | 0.70 (seganfredo2007_swine) | 0.72 | 0.2898 | 0.2087 |
 | **DEJETOS_BOVINO** | MEDIUM | 0.75 (souza2009_cattle) | 0.50 (embrapa2015_cattle) | 0.88 (primavesi2004_cattle) | 0.68 (coldebella2006_biogas) | 0.68 | 0.2244 | 0.1526 |
-| **DEJETOS_SUINO** | MEDIUM | 0.90 (embrapa2012_swine) | 0.55 (kunz2009_swine) | 0.95 (embrapa2012_swine) | 0.72 (embrapa2012_swine) | 0.75 | 0.3387 | 0.2540 |
-| **ESTERCO_BOVINO** | MEDIUM | 0.55 (primavesi2004_cattle) | 0.45 (primavesi2004_cattle) | 0.82 (ibge2017_censo) | 0.65 (ibge2017_censo) | 0.7 | 0.1320 | 0.0924 |
+| **DEJETOS_SUINO** | MEDIUM | 0.90 (embrapa2012_swine) | 0.55 (kunz2009_swine) | 0.95 (embrapa2012_swine) | 0.72 (moller2004_manure) | 0.75 | 0.3386 | 0.2539 |
+| **ESTERCO_BOVINO** | MEDIUM | 0.55 (embrapa2015_cattle) | 0.45 (primavesi2004_cattle) | 0.82 (primavesi2004_cattle) | 0.65 (coldebella2006_biogas) | 0.7 | 0.1319 | 0.0923 |
+| **ESTERCO_BOVINO_CORTE** | MEDIUM | 0.35 (embrapa2015_cattle) | 0.35 (primavesi2004_cattle) | 0.78 (primavesi2004_cattle) | 0.52 (coldebella2006_biogas) | 0.65 | 0.0497 | 0.0323 |
+| **ESTERCO_BOVINO_LEITEIRO** | MEDIUM | 0.88 (embrapa2015_cattle) | 0.58 (primavesi2004_cattle) | 0.90 (primavesi2004_cattle) | 0.85 (coldebella2006_biogas) | 0.75 | 0.3905 | 0.2928 |
 | **ESTERCO_SUINO** | MEDIUM | 0.90 (embrapa2012_swine) | 0.55 (kunz2009_swine) | 0.95 (abcs2016_swine) | 0.75 (perdomo2003_swine) | 0.75 | 0.3527 | 0.2645 |
-| **FORSU** | MEDIUM | 0.90 (cetesb2020_sludge) | 0.65 (cetesb2020_sludge) | 0.90 (mata_alvarez2014_ofmsw) | 0.80 (mata_alvarez2014_ofmsw) | 0.75 | 0.4212 | 0.3159 |
+| **FORSU** | MEDIUM | 0.90 (mata_alvarez2014_ofmsw) | 0.65 (mata_alvarez2014_ofmsw) | 0.90 (mata_alvarez2014_ofmsw) | 0.80 (mata_alvarez2014_ofmsw) | 0.75 | 0.4212 | 0.3159 |
 | **GORDURA** | MEDIUM | 0.80 (mapa2019_riispoa) | 0.25 (anp2023_biodiesel) | 0.95 (abpa2022_report) | 0.75 (abiove2022_oilseed) | 0.85 | 0.1425 | 0.1211 |
-| **LODO_PRIMARIO** | HIGH | 0.85 (von_sperling2007_sludge) | 0.75 (cetesb2020_sludge) | 0.95 (von_sperling2007_sludge) | 0.90 (von_sperling2007_sludge) | 0.8 | 0.5451 | 0.4361 |
+| **LODO_PRIMARIO** | HIGH | 0.85 (von_sperling2007_sludge) | 0.75 (cetesb2020_sludge) | 0.95 (von_sperling2007_sludge) | 0.90 (cetesb2020_sludge) | 0.8 | 0.5451 | 0.4361 |
 | **LODO_SECUNDARIO** | HIGH | 0.82 (andreoli2001_sludge) | 0.70 (cetesb2020_sludge) | 0.95 (snis2022_rsu) | 0.85 (abiogas2021_atlas) | 0.55 | 0.4635 | 0.2549 |
 | **MUCILAGEM_CAFE** | MEDIUM | 0.85 (mussatto2011_coffee) | 0.45 (pandey2000_coffee) | 0.80 (conab2023_calendar) | 0.70 (mussatto2011_coffee) | 0.82 | 0.2142 | 0.1756 |
-| **ORGANICO_RSU** | LOW | 0.90 (abrelpe2022_rsu) | 0.12 (abrelpe2022_rsu) | 0.92 (snis2022_rsu) | 0.82 (abrelpe2022_rsu) | 0.62 | 0.0815 | 0.0505 |
+| **ORGANICO_RSU** | LOW | 0.90 (abrelpe2022_rsu) | 0.12 (abrelpe2022_rsu) | 0.92 (snis2022_rsu) | 0.82 (snis2022_rsu) | 0.62 | 0.0815 | 0.0505 |
 | **PALHA** | HIGH | 0.85 (hassuani2005_straw) | 0.10 (carvalho2017_straw) | 0.90 (unica2023_straw) | 0.85 (leal2013_straw) | 0.62 | 0.0650 | 0.0403 |
 | **PALHA_MILHO** | MEDIUM | 0.50 (abiogas2021_atlas) | 0.17 (abiogas2021_atlas) | 0.85 (abiogas2021_atlas) | 0.67 (abiogas2021_atlas) | 0.68 | 0.0475 | 0.0323 |
-| **PALHA_SOJA** | HIGH | 0.75 (abrelpe2022_rsu) | 0.15 (abrelpe2022_rsu) | 0.85 (kafle2016_soy) | 0.55 (kafle2016_soy) | 0.6 | 0.0527 | 0.0316 |
-| **PODA_URBANA** | LOW | 0.50 (abrelpe2022_rsu) | 0.35 (abrelpe2022_rsu) | 0.80 (snis2022_rsu) | 0.75 (pognani2011_garden) | 0.55 | 0.1050 | 0.0578 |
+| **PALHA_SOJA** | HIGH | 0.75 (—) | 0.15 (abrelpe2022_rsu) | 0.85 (—) | 0.55 (—) | 0.6 | 0.0526 | 0.0316 |
+| **PODA_URBANA** | LOW | 0.50 (abrelpe2022_rsu) | 0.35 (abrelpe2022_rsu) | 0.80 (snis2022_rsu) | 0.75 (—) | 0.55 | 0.1050 | 0.0577 |
 | **POLPA_CAFE** | MEDIUM | 0.80 (mussatto2011_coffee) | 0.40 (bressani2015_coffee) | 0.85 (conab2023_calendar) | 0.70 (mussatto2011_coffee) | 0.72 | 0.1904 | 0.1371 |
 | **SANGUE** | MEDIUM | 0.70 (mapa2019_riispoa) | 0.45 (fao2014_slaughter) | 0.95 (abpa2022_report) | 0.70 (mapa2019_riispoa) | 0.78 | 0.2095 | 0.1634 |
-| **TORTA_FILTRO** | MEDIUM | 0.90 (velasquez2020_sugarcane) | 0.30 (velasquez2020_sugarcane) | 0.88 (velasquez2020_sugarcane) | 0.85 (velasquez2020_sugarcane) | 0.72 | 0.2018 | 0.1453 |
-| **VINHACA** | HIGH | 0.95 (bonomi2015_vinhaca) | 0.15 (bonomi2015_vinhaca) | 0.90 (bonomi2015_vinhaca) | 0.90 (bonomi2015_vinhaca) | 0.65 | 0.1155 | 0.0751 |
+| **TORTA_FILTRO** | MEDIUM | 0.90 (abiogas2021_atlas) | 0.30 (velasquez2020_sugarcane) | 0.88 (velasquez2020_sugarcane) | 0.85 (abiogas2021_atlas) | 0.72 | 0.2020 | 0.1454 |
+| **VINHACA** | HIGH | 0.95 (bonomi2015_vinhaca) | 0.15 (bonomi2015_vinhaca) | 0.90 (unica2023_straw) | 0.90 (bonomi2015_vinhaca) | 0.65 | 0.1154 | 0.0750 |
 
 ## Cited reference URLs
 
@@ -46,6 +55,7 @@ generic or no-direct-study proxy.
 - `abouelenien2014_poultry` — [https://doi.org/10.1016/j.wasman.2013.10.001](https://doi.org/10.1016/j.wasman.2013.10.001) ✓verified
 - `abpa2022_report` — [https://abpa-br.org/relatorios/](https://abpa-br.org/relatorios/) ✓verified
 - `abrelpe2022_rsu` — [https://abrelpe.org.br/panorama/](https://abrelpe.org.br/panorama/) ✓verified
+- `amon2007_cattle` — [https://doi.org/10.1016/j.biortech.2006.07.016](https://doi.org/10.1016/j.biortech.2006.07.016) ✓verified
 - `andreoli2001_sludge` — [https://www.finep.gov.br/images/apoio-e-financiamento/historico-de-programas/prosab/Lodo_de_Esgotos.pdf](https://www.finep.gov.br/images/apoio-e-financiamento/historico-de-programas/prosab/Lodo_de_Esgotos.pdf) ✓verified
 - `angelidaki2003_manure` — [https://doi.org/10.1385/ABAB:109:1-3:95](https://doi.org/10.1385/ABAB:109:1-3:95) ✓verified
 - `anp2023_biodiesel` — [https://www.gov.br/anp/pt-br/assuntos/producao-e-fornecimento-de-biocombustiveis/biodiesel](https://www.gov.br/anp/pt-br/assuntos/producao-e-fornecimento-de-biocombustiveis/biodiesel) ✓verified

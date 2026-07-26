@@ -42,10 +42,13 @@ import yaml  # noqa: E402
 
 from app.services.biogas_forward import SCENARIOS, calculate_feedstock  # noqa: E402
 from app.services.canonical_loader import (  # noqa: E402
+    STREAM_SUBPOPULATIONS,
     STREAM_TO_CANONICAL,
+    biomass_tons_from_code,
     biomass_tons_from_units,
     get_params,
     get_params_for_stream,
+    mill_delivery_fraction,
 )
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
@@ -76,30 +79,43 @@ CITRUS_RESIDUE_FRACTION = 0.50  # range 0.45–0.55; conservative mid-point
 # Sugarcane industrial chain: 1 t green cane → 4 co-product streams.
 # Residue fractions sum: 0.28 + 0.030 + 0.053 + 0.42 = 0.783 t/t cane
 # (remaining ~22% = juice extracted as sugar/ethanol, water losses, etc.)
-# Each entry: (stream_label, canonical_code, fraction_per_t_green_cane, provenance_note)
-SUGARCANE_SUBSTREAMS: list[tuple[str, str, float, str]] = [
+#
+# `mill_delivered` decides whether mill_delivery_fraction applies. IBGE PAM reports
+# cane PRODUCED; bagaço, torta and vinhaça are generated INSIDE the mill and so exist
+# only for the cane actually crushed. Straw is a FIELD residue — it exists on every
+# hectare harvested, crushed or not — and multiplying it by the delivery ratio would
+# discard straw that never entered a mill to begin with. promote_pam.py has applied
+# the fraction on the national crop path since 2026-07-21; this closes D6, the state
+# path that never did.
+#
+# Each entry: (stream_label, canonical_code, fraction_per_t_green_cane, mill_delivered, note)
+SUGARCANE_SUBSTREAMS: list[tuple[str, str, float, bool, str]] = [
     (
         "cana_bagaco",
         "BAGACO",
         0.280,
+        True,
         "28% wet pressed bagasse/t green cane (UNICA/CONSECANA 2022; range 0.25–0.30)",
     ),
     (
         "cana_torta",
         "TORTA_FILTRO",
         0.030,
+        True,
         "3.0% wet filter cake/t green cane (CONSECANA-SP tabela de custo; range 0.028–0.035)",
     ),
     (
         "cana_palha",
         "PALHA",
         0.053,
+        False,  # field residue: generated in the field, not in the mill
         "12 t straw/ha × 35% collectible (Carvalho 2017, doi:10.1111/gcbb.12410) / 80 t cane/ha SP avg",
     ),
     (
         "cana_vinhaca",
         "VINHACA",
         0.420,
+        True,
         "~12 Bn L EtOH/yr (UNICA SP) × 12 L vinhaça/L × 1.01 kg/L / 340 Mt cane = 0.428 t/t cane",
     ),
 ]
@@ -109,7 +125,11 @@ SUGARCANE_SUBSTREAMS: list[tuple[str, str, float, str]] = [
 # Citrus is handled with CITRUS_RESIDUE_FRACTION.
 # Other agricultural streams use CSV values as residue-equivalent tonnes directly.
 AGRICULTURAL_DIRECT = ("soybean", "corn", "coffee")  # MapBiomas × yield_t_ha → residue tonnes
-LIVESTOCK = ("cattle", "swine", "poultry")  # head counts → t/head/yr via generation
+# 'cattle' is NOT here: its head count splits across two canonical feedstocks, and the
+# split is declared once in canonical_loader.STREAM_SUBPOPULATIONS. Listing it in both
+# places is exactly how the two representations would drift apart.
+LIVESTOCK_SIMPLE = ("swine", "poultry")  # head counts → t/head/yr via generation
+SPLIT_LIVESTOCK = ("cattle",)  # head counts → sub-populations via STREAM_SUBPOPULATIONS
 URBAN = ("rsu_organic", "rpo")  # per-capita (SP pop)
 
 
@@ -201,16 +221,30 @@ def compute() -> tuple[dict, list[dict]]:
     # Decomposed into 4 processing sub-streams using documented residue fractions.
     cane_raw_t = _csv_state_total(rows, "sugarcane_biomass_tons_year")
     logger.info(f"Sugarcane raw (IBGE PAM green cane): {cane_raw_t/1e6:.2f} Mt/yr")
-    for sub_label, code, frac, note in SUGARCANE_SUBSTREAMS:
+    mdf = mill_delivery_fraction("sugarcane")
+    if mdf is None:
+        raise RuntimeError(
+            "sugarcane has no mill_delivery_fraction in feedstocks.yaml — the industrial "
+            "sub-streams would silently be computed from cane produced rather than crushed"
+        )
+    logger.info(f"Mill delivery fraction: {mdf.min} / {mdf.medio} / {mdf.max} (crushed ÷ produced)")
+    for sub_label, code, frac, mill_delivered, note in SUGARCANE_SUBSTREAMS:
         sub_t = cane_raw_t * frac
         params = get_params(code)
-        biomass = {sc: sub_t for sc in SCENARIOS}  # constant across scenarios (observed data)
+        if mill_delivered:
+            # Scenario-coupled, like every other factor: the sc band of the delivery
+            # ratio pairs with the sc band of chemistry and FDE.
+            biomass = {sc: sub_t * mdf.get(sc) for sc in SCENARIOS}
+            provenance = f"cana_PAM×{frac:.3f}×mdf"
+        else:
+            biomass = {sc: sub_t for sc in SCENARIOS}  # field residue, all harvested cane
+            provenance = f"cana_PAM×{frac:.3f}"
         _accumulate(
             totals,
             out_rows,
             stream=sub_label,
             sector="agricultural",
-            provenance=f"cana_PAM×{frac:.3f}",
+            provenance=provenance,
             input_count=cane_raw_t,
             biomass=biomass,
             params=params,
@@ -250,8 +284,26 @@ def compute() -> tuple[dict, list[dict]]:
             params=get_params_for_stream(stream),
         )
 
-    # ── 4. Livestock (head count × t_per_head_yr canonical generation) ───────
-    for stream in LIVESTOCK:
+    # ── 4a. Split livestock: one head count → several canonical feedstocks ───
+    for stream in SPLIT_LIVESTOCK:
+        count = _csv_state_total(rows, f"{stream}_biomass_tons_year")
+        subpops = STREAM_SUBPOPULATIONS[stream]
+        for sub_label, code, fraction in subpops:
+            sub_count = count * fraction
+            rng = biomass_tons_from_code(code, sub_count)
+            _accumulate(
+                totals,
+                out_rows,
+                stream=sub_label,
+                sector="livestock",
+                provenance=f"csv_head_count×{fraction:.0%}×EMBRAPA",
+                input_count=sub_count,
+                biomass={sc: rng.get(sc) for sc in SCENARIOS},
+                params=get_params(code),
+            )
+
+    # ── 4b. Livestock with a single canonical code ──────────────────────────
+    for stream in LIVESTOCK_SIMPLE:
         count = _csv_state_total(rows, f"{stream}_biomass_tons_year")
         biomass = _biomass_livestock(stream, count, fs)
         _accumulate(

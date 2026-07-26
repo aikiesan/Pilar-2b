@@ -1,6 +1,6 @@
 # PILAR-2b Parameter Citation Table
 
-> Auto-generated on 2026-06-12 from `data/canonical_parameters/feedstocks.yaml`
+> Auto-generated on 2026-07-26 from `data/canonical_parameters/feedstocks.yaml`
 > and `data/canonical_parameters/references.yaml`.
 > Edit those YAML files — do not edit this document directly.
 
@@ -10,7 +10,7 @@
 | BAGACO | BMP | 115.0 | 165.0 | 220.0 | NmL CH₄/gVS | Paulose et al. (2021) | [https://doi.org/10.1016/j.indcrop.2021.113498](https://doi.org/10.1016/j.indcrop.2021.113498) |
 | BAGACO | TS | 50.0 | 58.9 | 66.0 | % wet weight | Talha et al. (2016) | [https://doi.org/10.15376/biores.11.3.6824-6841](https://doi.org/10.15376/biores.11.3.6824-6841) |
 | BAGACO | VS/TS | 76.5 | 90.0 | 97.0 | % of TS | Talha et al. (2016) | [https://doi.org/10.15376/biores.11.3.6824-6841](https://doi.org/10.15376/biores.11.3.6824-6841) |
-| PALHA | BMP | 140.0 | 175.0 | 250.0 | NmL CH₄/gVS | Paulose et al. (2021) | [https://doi.org/10.1016/j.indcrop.2021.113498](https://doi.org/10.1016/j.indcrop.2021.113498) |
+| PALHA | BMP | 140.0 | 175.0 | 293.5 | NmL CH₄/gVS | Paulose et al. (2021) | [https://doi.org/10.1016/j.indcrop.2021.113498](https://doi.org/10.1016/j.indcrop.2021.113498) |
 | PALHA | TS | 18.0 | 30.0 | 55.0 | % wet weight | Velásquez Piñas et al. (2020) | [https://doi.org/10.1016/j.biombioe.2020.105774](https://doi.org/10.1016/j.biombioe.2020.105774) |
 | PALHA | VS/TS | 72.0 | 82.0 | 92.0 | % of TS | Velásquez Piñas et al. (2020) | [https://doi.org/10.1016/j.biombioe.2020.105774](https://doi.org/10.1016/j.biombioe.2020.105774) |
 | VINHACA | BMP | 90.0 | 160.0 | 200.0 | NmL CH₄/gVS | Bonomi et al. (2015) | [https://doi.org/10.1016/j.rser.2015.01.022](https://doi.org/10.1016/j.rser.2015.01.022) |
@@ -40,10 +40,10 @@
 | PALHA_SOJA | BMP | 150.0 | 220.0 | 280.0 | NmL CH₄/gVS | Kafle et al. (2016) | [https://doi.org/10.1016/j.wasman.2015.10.021](https://doi.org/10.1016/j.wasman.2015.10.021) |
 | PALHA_SOJA | TS | 80.0 | 84.0 | 88.0 | % wet weight | Kafle et al. (2016) | [https://doi.org/10.1016/j.wasman.2015.10.021](https://doi.org/10.1016/j.wasman.2015.10.021) |
 | PALHA_SOJA | VS/TS | 80.0 | 85.0 | 90.0 | % of TS | Kafle et al. (2016) | [https://doi.org/10.1016/j.wasman.2015.10.021](https://doi.org/10.1016/j.wasman.2015.10.021) |
-| PALHA_MILHO | BMP | 150.0 | 230.0 | 300.0 | NmL CH₄/gVS | Herrmann et al. (2012) | [https://doi.org/10.1016/j.biortech.2011.12.074](https://doi.org/10.1016/j.biortech.2011.12.074) |
+| PALHA_MILHO | BMP | 150.0 | 230.0 | 390.0 | NmL CH₄/gVS | Herrmann et al. (2012) | [https://doi.org/10.1016/j.biortech.2011.12.074](https://doi.org/10.1016/j.biortech.2011.12.074) |
 | PALHA_MILHO | TS | 70.0 | 82.0 | 90.0 | % wet weight | Herrmann et al. (2012) | [https://doi.org/10.1016/j.biortech.2011.12.074](https://doi.org/10.1016/j.biortech.2011.12.074) |
 | PALHA_MILHO | VS/TS | 78.0 | 86.0 | 92.0 | % of TS | Herrmann et al. (2012) | [https://doi.org/10.1016/j.biortech.2011.12.074](https://doi.org/10.1016/j.biortech.2011.12.074) |
-| CASCA_MILHO | BMP | 110.0 | 145.0 | 185.0 | NmL CH₄/gVS | Herrmann et al. (2012) | [https://doi.org/10.1016/j.biortech.2011.12.074](https://doi.org/10.1016/j.biortech.2011.12.074) |
+| CASCA_MILHO | BMP | 110.0 | 145.0 | 307.0 | NmL CH₄/gVS | Herrmann et al. (2012) | [https://doi.org/10.1016/j.biortech.2011.12.074](https://doi.org/10.1016/j.biortech.2011.12.074) |
 | CASCA_MILHO | TS | 82.0 | 88.0 | 93.0 | % wet weight | Herrmann et al. (2012) | [https://doi.org/10.1016/j.biortech.2011.12.074](https://doi.org/10.1016/j.biortech.2011.12.074) |
 | CASCA_MILHO | VS/TS | 78.0 | 85.0 | 90.0 | % of TS | Herrmann et al. (2012) | [https://doi.org/10.1016/j.biortech.2011.12.074](https://doi.org/10.1016/j.biortech.2011.12.074) |
 | CAMA_AVIARIO | BMP | 200.0 | 280.0 | 360.0 | NmL CH₄/gVS | Abouelenien et al. (2014) | [https://doi.org/10.1016/j.wasman.2013.10.001](https://doi.org/10.1016/j.wasman.2013.10.001) |
@@ -55,6 +55,12 @@
 | ESTERCO_BOVINO | BMP | 120.0 | 200.0 | 270.0 | NmL CH₄/gVS | Amon et al. (2007) | [https://doi.org/10.1016/j.biortech.2006.07.016](https://doi.org/10.1016/j.biortech.2006.07.016) |
 | ESTERCO_BOVINO | TS | 15.0 | 25.0 | 35.0 | % wet weight | Amon et al. (2007) | [https://doi.org/10.1016/j.biortech.2006.07.016](https://doi.org/10.1016/j.biortech.2006.07.016) |
 | ESTERCO_BOVINO | VS/TS | 68.0 | 78.0 | 85.0 | % of TS | Amon et al. (2007) | [https://doi.org/10.1016/j.biortech.2006.07.016](https://doi.org/10.1016/j.biortech.2006.07.016) |
+| ESTERCO_BOVINO_CORTE | BMP | 80.0 | 120.0 | 180.0 | NmL CH₄/gVS | Amon et al. (2007) | [https://doi.org/10.1016/j.biortech.2006.07.016](https://doi.org/10.1016/j.biortech.2006.07.016) |
+| ESTERCO_BOVINO_CORTE | TS | 15.0 | 22.0 | 30.0 | % wet weight | Amon et al. (2007) | [https://doi.org/10.1016/j.biortech.2006.07.016](https://doi.org/10.1016/j.biortech.2006.07.016) |
+| ESTERCO_BOVINO_CORTE | VS/TS | 62.0 | 72.0 | 80.0 | % of TS | Amon et al. (2007) | [https://doi.org/10.1016/j.biortech.2006.07.016](https://doi.org/10.1016/j.biortech.2006.07.016) |
+| ESTERCO_BOVINO_LEITEIRO | BMP | 150.0 | 230.0 | 300.0 | NmL CH₄/gVS | Amon et al. (2007) | [https://doi.org/10.1016/j.biortech.2006.07.016](https://doi.org/10.1016/j.biortech.2006.07.016) |
+| ESTERCO_BOVINO_LEITEIRO | TS | 15.0 | 25.0 | 35.0 | % wet weight | Amon et al. (2007) | [https://doi.org/10.1016/j.biortech.2006.07.016](https://doi.org/10.1016/j.biortech.2006.07.016) |
+| ESTERCO_BOVINO_LEITEIRO | VS/TS | 70.0 | 80.0 | 87.0 | % of TS | Amon et al. (2007) | [https://doi.org/10.1016/j.biortech.2006.07.016](https://doi.org/10.1016/j.biortech.2006.07.016) |
 | DEJETOS_BOVINO | BMP | 90.0 | 155.0 | 220.0 | NmL CH₄/gVS | Møller et al. (2004) | [https://doi.org/10.2134/jeq2004.0027](https://doi.org/10.2134/jeq2004.0027) |
 | DEJETOS_BOVINO | TS | 5.0 | 8.0 | 12.0 | % wet weight | Møller et al. (2004) | [https://doi.org/10.2134/jeq2004.0027](https://doi.org/10.2134/jeq2004.0027) |
 | DEJETOS_BOVINO | VS/TS | 68.0 | 78.0 | 85.0 | % of TS | Møller et al. (2004) | [https://doi.org/10.2134/jeq2004.0027](https://doi.org/10.2134/jeq2004.0027) |
@@ -73,7 +79,7 @@
 | LODO_PRIMARIO | BMP | 190.0 | 310.0 | 440.0 | NmL CH₄/gVS | Heerenklage et al. (2019) | [https://doi.org/10.1016/j.wasman.2019.04.025](https://doi.org/10.1016/j.wasman.2019.04.025) |
 | LODO_PRIMARIO | TS | 2.0 | 15.0 | 30.0 | % wet weight | Heerenklage et al. (2019) | [https://doi.org/10.1016/j.wasman.2019.04.025](https://doi.org/10.1016/j.wasman.2019.04.025) |
 | LODO_PRIMARIO | VS/TS | 55.0 | 68.0 | 80.0 | % of TS | Heerenklage et al. (2019) | [https://doi.org/10.1016/j.wasman.2019.04.025](https://doi.org/10.1016/j.wasman.2019.04.025) |
-| LODO_SECUNDARIO | BMP | 80.0 | 180.0 | 260.0 | NmL CH₄/gVS | Heerenklage et al. (2019) | [https://doi.org/10.1016/j.wasman.2019.04.025](https://doi.org/10.1016/j.wasman.2019.04.025) |
+| LODO_SECUNDARIO | BMP | 80.0 | 180.0 | 310.0 | NmL CH₄/gVS | Heerenklage et al. (2019) | [https://doi.org/10.1016/j.wasman.2019.04.025](https://doi.org/10.1016/j.wasman.2019.04.025) |
 | LODO_SECUNDARIO | TS | 1.5 | 15.0 | 25.0 | % wet weight | Heerenklage et al. (2019) | [https://doi.org/10.1016/j.wasman.2019.04.025](https://doi.org/10.1016/j.wasman.2019.04.025) |
 | LODO_SECUNDARIO | VS/TS | 50.0 | 63.0 | 75.0 | % of TS | Heerenklage et al. (2019) | [https://doi.org/10.1016/j.wasman.2019.04.025](https://doi.org/10.1016/j.wasman.2019.04.025) |
 | PODA_URBANA | BMP | 100.0 | 175.0 | 250.0 | NmL CH₄/gVS | Pognani et al. (2011) | [https://doi.org/10.1016/j.biortech.2010.09.006](https://doi.org/10.1016/j.biortech.2010.09.006) |

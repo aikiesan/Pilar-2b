@@ -36,7 +36,7 @@ class TestSugarcaneResidueFramework:
 
     def test_substream_codes_are_valid_canonical_feedstocks(self):
         """Every sub-stream code must exist in the canonical YAML."""
-        for _, code, _, _ in SUGARCANE_SUBSTREAMS:
+        for _, code, _, _, _ in SUGARCANE_SUBSTREAMS:
             params = get_params(code)
             assert params.bmp.medio > 0, f"{code} has zero BMP"
 
@@ -48,15 +48,43 @@ class TestSugarcaneResidueFramework:
             "PALHA": (0.040, 0.075),  # 12 t/ha × [25-45]% / 80 t/ha
             "VINHACA": (0.350, 0.550),  # 12 Bn L EtOH × [10-15] L/L / 340 Mt
         }
-        for _, code, frac, _ in SUGARCANE_SUBSTREAMS:
+        for _, code, frac, _, _ in SUGARCANE_SUBSTREAMS:
             lo, hi = fraction_bounds[code]
             assert (
                 lo <= frac <= hi
             ), f"{code}: residue_fraction {frac} outside literature range [{lo}, {hi}]"
 
+    def test_mill_delivery_applies_to_industrial_substreams_only(self):
+        """Bagaço, torta and vinhaça are made inside the mill; palha is not.
+
+        IBGE PAM reports cane PRODUCED. The three industrial co-products exist only
+        for the cane actually crushed, so they carry mill_delivery_fraction. Straw is
+        a field residue: it exists on every hectare harvested whether or not the cane
+        reached a mill, and multiplying it by the delivery ratio would discard straw
+        that was never in the mill to begin with.
+
+        Pinned because the flag is one boolean per row and flipping it silently moves
+        the state total by ~9% (Lote 2, 2026-07-26 — divergência D6 da auditoria).
+        """
+        delivered = {code: flag for _, code, _, flag, _ in SUGARCANE_SUBSTREAMS}
+        assert delivered == {
+            "BAGACO": True,
+            "TORTA_FILTRO": True,
+            "VINHACA": True,
+            "PALHA": False,
+        }
+
+    def test_sugarcane_has_a_mill_delivery_fraction_to_apply(self):
+        """The pipeline raises rather than skipping it, so it must resolve."""
+        from app.services.canonical_loader import mill_delivery_fraction
+
+        mdf = mill_delivery_fraction("sugarcane")
+        assert mdf is not None, "sugarcane lost its mill_delivery_fraction"
+        assert 0.0 < mdf.min <= mdf.medio <= mdf.max <= 1.0
+
     def test_sugarcane_substream_fractions_are_partial_mass_balance(self):
         """Substream fractions should sum < 1.0 (remaining mass = juice + water losses)."""
-        total_frac = sum(frac for _, _, frac, _ in SUGARCANE_SUBSTREAMS)
+        total_frac = sum(frac for _, _, frac, _, _ in SUGARCANE_SUBSTREAMS)
         assert total_frac < 1.0, f"Fractions sum to {total_frac:.3f} >= 1.0 — mass balance violated"
         # Remaining fraction (~22%) = sucrose/water extracted as juice
         remaining = 1.0 - total_frac
@@ -114,7 +142,7 @@ class TestSugarcaneResidueFramework:
 
         # New (correct): sum over 4 sub-streams
         ch4_corrected = 0.0
-        for _, code, frac, _ in SUGARCANE_SUBSTREAMS:
+        for _, code, frac, _, _ in SUGARCANE_SUBSTREAMS:
             params = get_params(code)
             res = calculate_feedstock(one_t_raw_cane * frac, params)
             ch4_corrected += res.ch4_practical_m3["medio"]

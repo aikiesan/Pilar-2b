@@ -16,6 +16,37 @@
 #   ch4_pct    — Methane content in produced biogas, % vol.
 #   cn_ratio   — Carbon:Nitrogen mass ratio.
 #
+# AVAILABILITY CONVENTIONS (fde.components) — Lote 2, 2026-07-26:
+#   fc              — Collection factor: share of generated residue physically collected.
+#   fco_available   — Competing-use factor, expressed as the AVAILABLE share.
+#                     CONVENTION: fco_available == 1 - fcp_committed.
+#                     The name carries the direction on purpose. The field used to be
+#                     `fco`, and the platform disagreed with itself about which way it
+#                     pointed: the backend multiplied it as the available share while
+#                     the frontend computed `1 - fcp` from the same idea, so the same
+#                     residue produced two different FDEs (divergência D1 da auditoria
+#                     de 2026-07-25). Only `fco_available` exists now; there is no
+#                     `fcp` field, and any code that wants the committed share must
+#                     write `1 - fco_available` explicitly.
+#   fs              — Seasonality factor: share available across the year.
+#   fl              — Logistics factor: share economically deliverable to a digester.
+#   reference       — REQUIRED on every factor: an id from references.yaml, or an
+#                     explicit `null` when no versioned reference reports that factor.
+#                     Never borrow a neighbouring reference to fill the field.
+#
+#   availability and FDE are DERIVED, NEVER PERSISTED:
+#     availability = fc × fco_available × fs × fl        (canonical_loader on read)
+#     FDE          = availability × eta
+#   Neither appears as a field, and neither is restated in a comment. A stored
+#   aggregate had drifted out of step with its own components in 11 of 78
+#   feedstock×scenario pairs before it was removed.
+#
+# BMP CORPUS (bmp.corpus) — regra R2 de docs/data/POLITICA_BMP.md:
+#   coverage: sufficient (n ≥ 3) | insufficient (n = 1..2) | none
+#   For `sufficient`, the declared band must contain the corpus median:
+#   bmp.min ≤ corpus.median ≤ bmp.max. The band widens to satisfy it; `bmp.medio`
+#   is never moved by the rule.
+#
 # LAYER MAPPING (done by the generator):
 #   SQL residuos table  : bmp_min/medio/max, ts_min/medio/max, vs_min/medio/max (% of TS)
 #   Python service       : bmp (NmL/gVS), vs_percent (% wet weight = vs_wet)
@@ -87,6 +118,10 @@ feedstocks:
       min: 115.0
       medio: 165.0
       max: 220.0
+      corpus:
+        n: 6
+        median: 191.9
+        coverage: sufficient
       refs:
         - id: "paulose2021_bagaco"
           value: "187.9 ± 2.4 NmL/gVS untreated mesophilic batch 37 °C ISR=2 (primary reference)"
@@ -122,13 +157,12 @@ feedstocks:
       # cogeneration priority but does not cap the surplus fraction.
       # FCo range 0.15–0.38 reflects legacy mills (min) to modern high-pressure mills (max).
       confidence: HIGH
-      availability: { min: 0.0803, medio: 0.1693, max: 0.3467 }
       eta: 0.70
       components:
-        fc:  { min: 0.90, medio: 0.95, max: 0.98 }
-        fco: { min: 0.15, medio: 0.22, max: 0.38 }   # surplus fraction beyond mandatory cogeneration
-        fs:  { min: 0.70, medio: 0.90, max: 0.95 }
-        fl:  { min: 0.85, medio: 0.90, max: 0.98 }
+        fc:            { min: 0.90, medio: 0.95, max: 0.98, reference: "abiogas2021_atlas" }
+        fco_available: { min: 0.15, medio: 0.22, max: 0.38, reference: "epe_ben2024" }   # surplus fraction beyond mandatory cogeneration
+        fs:            { min: 0.70, medio: 0.90, max: 0.95, reference: "abiogas2021_atlas" }
+        fl:            { min: 0.85, medio: 0.90, max: 0.98, reference: "abiogas2021_atlas" }
       refs:
         - id: "epe_ben2024"
           value: "Bagasse energy sector consumption -2% in 2024; surplus trend confirmed"
@@ -151,7 +185,14 @@ feedstocks:
     bmp:
       min: 140.0
       medio: 175.0
-      max: 250.0
+      max: 293.5
+      # R2 (2026-07-26, docs/data/POLITICA_BMP.md §4): alargado de 250.0 para conter a
+      # mediana do corpus (293.5; n=14). O medio permanece — a regra alarga a banda,
+      # nunca move o centro.
+      corpus:
+        n: 14
+        median: 293.5
+        coverage: sufficient
       refs:
         - id: "paulose2021_bagaco"
           value: "161.8 NmL/gVS untreated straw/trash mesophilic batch (primary reference)"
@@ -182,13 +223,12 @@ feedstocks:
       # source that reports it (all refs have a URL in references.yaml). min/max = study
       # range or ±confidence-tier interval, bounded to [0,1]; availability is coupled.
       confidence: HIGH
-      availability: { min: 0.0259, medio: 0.0650, max: 0.1447 }
       eta: 0.62
       components:
-        fc:  { min: 0.78, medio: 0.85, max: 0.92 }   # baling recovers 80–90% of straw (Hassuani 2005)
-        fco: { min: 0.05, medio: 0.10, max: 0.18 }   # 50–70% must remain on field for soil C/erosion (Carvalho 2017)
-        fs:  { min: 0.85, medio: 0.90, max: 0.95 }   # cane harvest Apr–Nov (UNICA 2023)
-        fl:  { min: 0.78, medio: 0.85, max: 0.92 }   # baling+transport, co-located <10 km (Leal 2013)
+        fc:            { min: 0.78, medio: 0.85, max: 0.92, reference: "hassuani2005_straw" }   # baling recovers 80–90% of straw (Hassuani 2005)
+        fco_available: { min: 0.05, medio: 0.10, max: 0.18, reference: "carvalho2017_straw" }   # 50–70% must remain on field for soil C/erosion (Carvalho 2017)
+        fs:            { min: 0.85, medio: 0.90, max: 0.95, reference: "unica2023_straw" }   # cane harvest Apr–Nov (UNICA 2023)
+        fl:            { min: 0.78, medio: 0.85, max: 0.92, reference: "leal2013_straw" }   # baling+transport, co-located <10 km (Leal 2013)
       refs:
         - id: "hassuani2005_straw"
           value: "FC=0.85: mechanical baling recovers 80–90% of straw"
@@ -215,6 +255,10 @@ feedstocks:
       min: 90.0
       medio: 160.0
       max: 200.0
+      corpus:
+        n: 7
+        median: 180.0
+        coverage: sufficient
       refs:
         - id: "bonomi2015_vinhaca"
           value: "50–130 NmL/gVS; typical SP vinhaça ~85 NmL/gVS at VS ~1.5% wet"
@@ -241,13 +285,12 @@ feedstocks:
     # availability = FC×FCo×FS×FL; FDE = availability × eta (0.65 mesophilic liquid)
     fde:
       confidence: HIGH
-      availability: { min: 0.0673, medio: 0.1155, max: 0.2325 }
       eta: 0.65
       components:
-        fc:  { min: 0.90, medio: 0.95, max: 0.95 }
-        fco: { min: 0.10, medio: 0.15, max: 0.28 }   # 10–28% surplus beyond mandatory fertigation
-        fs:  { min: 0.85, medio: 0.90, max: 0.95 }
-        fl:  { min: 0.88, medio: 0.90, max: 0.92 }
+        fc:            { min: 0.90, medio: 0.95, max: 0.95, reference: "bonomi2015_vinhaca" }
+        fco_available: { min: 0.10, medio: 0.15, max: 0.28, reference: "bonomi2015_vinhaca" }   # 10–28% surplus beyond mandatory fertigation
+        fs:            { min: 0.85, medio: 0.90, max: 0.95, reference: "unica2023_straw" }
+        fl:            { min: 0.88, medio: 0.90, max: 0.92, reference: "bonomi2015_vinhaca" }
       refs:
         - id: "bonomi2015_vinhaca"
           value: "CETESB P4.231: 85% minimum fertigation → FCo max 0.15 typical; surplus 0.10–0.28"
@@ -265,6 +308,10 @@ feedstocks:
       min: 200.0
       medio: 280.0
       max: 380.0
+      corpus:
+        n: 14
+        median: 365.0
+        coverage: sufficient
       refs:
         - id: "talha2016_bagaco"
           value: "Talha 2016 covers filter mud: 200–380 NmL/gVS (low lignin)"
@@ -287,13 +334,12 @@ feedstocks:
     # availability = FC×FCo×FS×FL; FDE = availability × eta (0.72 for low-lignin substrate)
     fde:
       confidence: MEDIUM
-      availability: { min: 0.1166, medio: 0.2018, max: 0.3325 }
       eta: 0.72
       components:
-        fc:  { min: 0.85, medio: 0.90, max: 0.95 }
-        fco: { min: 0.22, medio: 0.30, max: 0.40 }   # 22–40% surplus beyond field application
-        fs:  { min: 0.80, medio: 0.88, max: 0.95 }
-        fl:  { min: 0.78, medio: 0.85, max: 0.92 }
+        fc:            { min: 0.85, medio: 0.90, max: 0.95, reference: "abiogas2021_atlas" }
+        fco_available: { min: 0.22, medio: 0.30, max: 0.40, reference: "velasquez2020_sugarcane" }   # 22–40% surplus beyond field application
+        fs:            { min: 0.80, medio: 0.88, max: 0.95, reference: "velasquez2020_sugarcane" }
+        fl:            { min: 0.78, medio: 0.85, max: 0.92, reference: "abiogas2021_atlas" }
       refs:
         - id: "velasquez2020_sugarcane"
           value: "Filter cake FCo 30% baseline; FS 88% follows cane harvest season"
@@ -332,6 +378,10 @@ feedstocks:
       min: 170.0
       medio: 230.0
       max: 310.0
+      corpus:
+        n: 10
+        median: 289.0
+        coverage: sufficient
       refs:
         - id: "wikandari2014_citrus"
           value: "170–200 NmL/gVS without pretreatment; limonene inhibition at >200 mg/L"
@@ -355,13 +405,12 @@ feedstocks:
       Without limonene pretreatment, median of 230 is appropriate for SP bulk processing.
     fde:
       confidence: MEDIUM
-      availability: { min: 0.0975, medio: 0.1721, max: 0.2600 }
       eta: 0.78
       components:
-        fc:  { min: 0.75, medio: 0.85, max: 0.92 }   # juice processing recovers 85% of pomace (Lohrasbi 2010)
-        fco: { min: 0.25, medio: 0.30, max: 0.35 }   # 70% to pectin/cattle feed → 30% available (Braddock 1999)
-        fs:  { min: 0.80, medio: 0.90, max: 0.95 }   # citrus harvest April–Dec (FUNDECITRUS 2022)
-        fl:  { min: 0.65, medio: 0.75, max: 0.85 }   # "citrus belt" concentration; 30–40 km transport
+        fc:            { min: 0.75, medio: 0.85, max: 0.92, reference: "abiogas2021_atlas" }   # juice processing recovers 85% of pomace (Lohrasbi 2010)
+        fco_available: { min: 0.25, medio: 0.30, max: 0.35, reference: "abiogas2021_atlas" }   # 70% to pectin/cattle feed → 30% available (Braddock 1999)
+        fs:            { min: 0.80, medio: 0.90, max: 0.95, reference: "abiogas2021_atlas" }   # citrus harvest April–Dec (FUNDECITRUS 2022)
+        fl:            { min: 0.65, medio: 0.75, max: 0.85, reference: "abiogas2021_atlas" }   # "citrus belt" concentration; 30–40 km transport
       refs:
         - id: "abiogas2021_atlas"
           value: "Citrus residue availability: FEEDSTOCK_FACTORS FC=0.85, FCo=0.30, FS=0.90, FL=0.75 → FDE=17.21%"
@@ -377,6 +426,10 @@ feedstocks:
       min: 160.0
       medio: 210.0
       max: 290.0
+      corpus:
+        n: 1
+        median: 398.0
+        coverage: insufficient
       refs:
         - id: "wikandari2014_citrus"
           value: "Peel BMP lower than bagasse due to higher limonene concentration"
@@ -405,13 +458,12 @@ feedstocks:
       # source that reports it (all refs have a URL in references.yaml). min/max = study
       # range or ±confidence-tier interval, bounded to [0,1]; availability is coupled.
       confidence: MEDIUM
-      availability: { min: 0.0916, medio: 0.1620, max: 0.2742 }
       eta: 0.78
       components:
-        fc:  { min: 0.72, medio: 0.80, max: 0.88 }   # peeling/processing recovery ~80% (Braddock 1999)
-        fco: { min: 0.22, medio: 0.30, max: 0.40 }   # ~70% to pectin/feed → 30% surplus (Braddock 1999)
-        fs:  { min: 0.85, medio: 0.90, max: 0.95 }   # citrus harvest Apr–Dec (FUNDECITRUS 2022)
-        fl:  { min: 0.68, medio: 0.75, max: 0.82 }   # concentrated at processors, 30–40 km (Lohrasbi 2010)
+        fc:            { min: 0.72, medio: 0.80, max: 0.88, reference: "braddock1999_citrus" }   # peeling/processing recovery ~80% (Braddock 1999)
+        fco_available: { min: 0.22, medio: 0.30, max: 0.40, reference: "braddock1999_citrus" }   # ~70% to pectin/feed → 30% surplus (Braddock 1999)
+        fs:            { min: 0.85, medio: 0.90, max: 0.95, reference: "fundecitrus2022" }   # citrus harvest Apr–Dec (FUNDECITRUS 2022)
+        fl:            { min: 0.68, medio: 0.75, max: 0.82, reference: "lohrasbi2010_citrus" }   # concentrated at processors, 30–40 km (Lohrasbi 2010)
       refs:
         - id: "braddock1999_citrus"
           value: "FC=0.80, FCo=0.30: 70% diverted to pectin/cattle feed"
@@ -457,6 +509,10 @@ feedstocks:
       min: 120.0
       medio: 165.0
       max: 220.0
+      corpus:
+        n: 2
+        median: 163.8
+        coverage: insufficient
       refs:
         - id: "okonkwo2021_coffee"
           value: "Husk BMP 120–180 NmL/gVS; high lignin (27% DM) limits biodegradability"
@@ -477,13 +533,12 @@ feedstocks:
     notes: "Current service layer (bmp=200) is slightly conservative — acceptable given lignin fraction."
     fde:
       confidence: MEDIUM
-      availability: { min: 0.0990, medio: 0.1934, max: 0.3420 }
       eta: 0.70
       components:
-        fc:  { min: 0.60, medio: 0.70, max: 0.80 }   # 70% of husks collectible at dry-process units (Mussatto 2011)
-        fco: { min: 0.40, medio: 0.50, max: 0.60 }   # 50% to biogas; 50% burned/composted (Nunes 2017)
-        fs:  { min: 0.75, medio: 0.85, max: 0.95 }   # coffee season June–Sept; year-round partial availability
-        fl:  { min: 0.55, medio: 0.65, max: 0.75 }   # dispersed coffee muns; 60–80 km transport
+        fc:            { min: 0.60, medio: 0.70, max: 0.80, reference: "abiogas2021_atlas" }   # 70% of husks collectible at dry-process units (Mussatto 2011)
+        fco_available: { min: 0.40, medio: 0.50, max: 0.60, reference: "abiogas2021_atlas" }   # 50% to biogas; 50% burned/composted (Nunes 2017)
+        fs:            { min: 0.75, medio: 0.85, max: 0.95, reference: "abiogas2021_atlas" }   # coffee season June–Sept; year-round partial availability
+        fl:            { min: 0.55, medio: 0.65, max: 0.75, reference: "abiogas2021_atlas" }   # dispersed coffee muns; 60–80 km transport
       refs:
         - id: "abiogas2021_atlas"
           value: "Coffee husk availability: FEEDSTOCK_FACTORS_LITERATURE_TABLE FC=0.70, FCo=0.50, FS=0.85, FL=0.65 → FDE=19.34%"
@@ -499,6 +554,10 @@ feedstocks:
       min: 190.0
       medio: 245.0
       max: 290.0
+      corpus:
+        n: 1
+        median: 317.0
+        coverage: insufficient
       refs:
         - id: "okonkwo2021_coffee"
           value: "Pulp BMP 200–280 NmL/gVS; more soluble organics than husk"
@@ -524,13 +583,12 @@ feedstocks:
       # source that reports it (all refs have a URL in references.yaml). min/max = study
       # range or ±confidence-tier interval, bounded to [0,1]; availability is coupled.
       confidence: MEDIUM
-      availability: { min: 0.1114, medio: 0.1904, max: 0.3157 }
       eta: 0.72
       components:
-        fc:  { min: 0.72, medio: 0.80, max: 0.88 }   # wet processing ~80% recoverable (Mussatto 2011)
-        fco: { min: 0.32, medio: 0.40, max: 0.50 }   # ~60% composted/feed → 40% surplus (Bressani 2015)
-        fs:  { min: 0.78, medio: 0.85, max: 0.92 }   # coffee harvest Jun–Sep (CONAB 2023)
-        fl:  { min: 0.62, medio: 0.70, max: 0.78 }   # dispersed coffee regions 40–60 km (Mussatto 2011)
+        fc:            { min: 0.72, medio: 0.80, max: 0.88, reference: "mussatto2011_coffee" }   # wet processing ~80% recoverable (Mussatto 2011)
+        fco_available: { min: 0.32, medio: 0.40, max: 0.50, reference: "bressani2015_coffee" }   # ~60% composted/feed → 40% surplus (Bressani 2015)
+        fs:            { min: 0.78, medio: 0.85, max: 0.92, reference: "conab2023_calendar" }   # coffee harvest Jun–Sep (CONAB 2023)
+        fl:            { min: 0.62, medio: 0.70, max: 0.78, reference: "mussatto2011_coffee" }   # dispersed coffee regions 40–60 km (Mussatto 2011)
       refs:
         - id: "mussatto2011_coffee"
           value: "FC=0.80, FL=0.70: 80% pulp recoverable; dispersed regions"
@@ -549,6 +607,10 @@ feedstocks:
       min: 260.0
       medio: 320.0
       max: 390.0
+      corpus:
+        n: 0
+        median: null
+        coverage: none
       refs:
         - id: "okonkwo2021_coffee"
           value: "Mucilage BMP 280–360 NmL/gVS; high soluble sugars and pectin"
@@ -574,13 +636,12 @@ feedstocks:
       # source that reports it (all refs have a URL in references.yaml). min/max = study
       # range or ±confidence-tier interval, bounded to [0,1]; availability is coupled.
       confidence: MEDIUM
-      availability: { min: 0.1323, medio: 0.2142, max: 0.3473 }
       eta: 0.82
       components:
-        fc:  { min: 0.78, medio: 0.85, max: 0.92 }   # wet depulping ~85% recovery (Mussatto 2011)
-        fco: { min: 0.38, medio: 0.45, max: 0.55 }   # ~55% composting/fermentation → 45% surplus (Pandey 2000)
-        fs:  { min: 0.72, medio: 0.80, max: 0.88 }   # only ~30% SP coffee wet-processed; harvest window (CONAB)
-        fl:  { min: 0.62, medio: 0.70, max: 0.78 }   # wet-processing facilities 45–65 km (Mussatto 2011)
+        fc:            { min: 0.78, medio: 0.85, max: 0.92, reference: "mussatto2011_coffee" }   # wet depulping ~85% recovery (Mussatto 2011)
+        fco_available: { min: 0.38, medio: 0.45, max: 0.55, reference: "pandey2000_coffee" }   # ~55% composting/fermentation → 45% surplus (Pandey 2000)
+        fs:            { min: 0.72, medio: 0.80, max: 0.88, reference: "conab2023_calendar" }   # only ~30% SP coffee wet-processed; harvest window (CONAB)
+        fl:            { min: 0.62, medio: 0.70, max: 0.78, reference: "mussatto2011_coffee" }   # wet-processing facilities 45–65 km (Mussatto 2011)
       refs:
         - id: "mussatto2011_coffee"
           value: "FC=0.85, FL=0.70: wet depulping recovery; facility dispersion"
@@ -601,6 +662,10 @@ feedstocks:
       min: 230.0
       medio: 300.0
       max: 380.0
+      corpus:
+        n: 0
+        median: null
+        coverage: none
       refs:
         - id: "kafle2016_soy"
           value: "Soybean hull BMP 260–380 NmL/gVS; low lignin, high cellulose"
@@ -628,13 +693,12 @@ feedstocks:
       for field straw. See PALHA_SOJA notes.
     fde:
       confidence: MEDIUM
-      availability: { min: 0.0927, medio: 0.1785, max: 0.3097 }
       eta: 0.70
       components:
-        fc:  { min: 0.60, medio: 0.75, max: 0.90 }   # Processing mills recover 75% of hulls
-        fco: { min: 0.36, medio: 0.40, max: 0.44 }   # 40% to biogas; 60% to animal feed (high-value)
-        fs:  { min: 0.78, medio: 0.85, max: 0.92 }   # follows soy crushing season
-        fl:  { min: 0.55, medio: 0.70, max: 0.85 }   # concentrated at crushing facilities; transport viable
+        fc:            { min: 0.60, medio: 0.75, max: 0.90, reference: "abiogas2021_atlas" }   # Processing mills recover 75% of hulls
+        fco_available: { min: 0.36, medio: 0.40, max: 0.44, reference: "abiogas2021_atlas" }   # 40% to biogas; 60% to animal feed (high-value)
+        fs:            { min: 0.78, medio: 0.85, max: 0.92, reference: "abiogas2021_atlas" }   # follows soy crushing season
+        fl:            { min: 0.55, medio: 0.70, max: 0.85, reference: "abiogas2021_atlas" }   # concentrated at crushing facilities; transport viable
       refs:
         - id: "abiogas2021_atlas"
           value: "Soybean hull availability: 40% available after animal feed allocation"
@@ -668,6 +732,10 @@ feedstocks:
       min: 150.0
       medio: 220.0
       max: 280.0
+      corpus:
+        n: 0
+        median: null
+        coverage: none
       refs:
         - id: "kafle2016_soy"
           value: "Soybean straw BMP 150–250 NmL/gVS; higher lignin than hull"
@@ -697,13 +765,12 @@ feedstocks:
       # straw is collectable; ~85% retained for soil under RTRS/no-till certification.
       # (Embrapa Soja: soil cover ≥6 t/ha recommended under direct sowing — CONAB 2022)
       confidence: HIGH
-      availability: { min: 0.0063, medio: 0.0527, max: 0.1496 }
       eta: 0.60
       components:
-        fc:  { min: 0.60, medio: 0.75, max: 0.90 }   # mechanical harvest accessibility
-        fco: { min: 0.05, medio: 0.15, max: 0.25 }   # fraction not required for soil retention (RTRS/no-till)
-        fs:  { min: 0.70, medio: 0.85, max: 0.95 }   # seasonal (Apr-May harvest in SP)
-        fl:  { min: 0.30, medio: 0.55, max: 0.70 }   # dispersed field straw, baler+transport logistics
+        fc:            { min: 0.60, medio: 0.75, max: 0.90, reference: null }   # SEM REFERENCIA VERSIONADA (Lote 2) mechanical harvest accessibility
+        fco_available: { min: 0.05, medio: 0.15, max: 0.25, reference: "abrelpe2022_rsu" }   # fraction not required for soil retention (RTRS/no-till)
+        fs:            { min: 0.70, medio: 0.85, max: 0.95, reference: null }   # SEM REFERENCIA VERSIONADA (Lote 2) seasonal (Apr-May harvest in SP)
+        fl:            { min: 0.30, medio: 0.55, max: 0.70, reference: null }   # SEM REFERENCIA VERSIONADA (Lote 2) dispersed field straw, baler+transport logistics
       refs:
         - id: "kafle2016_soy"
           value: "eta 0.60 soybean straw; lignocellulosic with high C:N"
@@ -743,7 +810,14 @@ feedstocks:
     bmp:
       min: 150.0
       medio: 230.0
-      max: 300.0
+      max: 390.0
+      # R2 (2026-07-26, docs/data/POLITICA_BMP.md §4): alargado de 300.0 para conter a
+      # mediana do corpus (390.0; n=31). O medio permanece — a regra alarga a banda,
+      # nunca move o centro.
+      corpus:
+        n: 31
+        median: 390.0
+        coverage: sufficient
       refs:
         - id: "herrmann2012_corn"
           value: "Corn stover BMP 180–300 NmL/gVS; silage enhances to 300"
@@ -762,13 +836,12 @@ feedstocks:
     notes: "Current frontend (bmp=320) slightly overestimates for bulk field corn stover."
     fde:
       confidence: MEDIUM
-      availability: { min: 0.0098, medio: 0.0475, max: 0.0849 }
       eta: 0.68
       components:
-        fc:  { min: 0.25, medio: 0.50, max: 0.65 }
-        fco: { min: 0.15, medio: 0.1667, max: 0.1833 }
-        fs:  { min: 0.75, medio: 0.85, max: 0.95 }
-        fl:  { min: 0.35, medio: 0.67, max: 0.75 }
+        fc:            { min: 0.25, medio: 0.50, max: 0.65, reference: "abiogas2021_atlas" }
+        fco_available: { min: 0.15, medio: 0.1667, max: 0.1833, reference: "abiogas2021_atlas" }
+        fs:            { min: 0.75, medio: 0.85, max: 0.95, reference: "abiogas2021_atlas" }
+        fl:            { min: 0.35, medio: 0.67, max: 0.75, reference: "abiogas2021_atlas" }
       refs:
         - id: "abiogas2021_atlas"
           value: "Corn stover availability (much retained on field for soil)"
@@ -783,7 +856,14 @@ feedstocks:
     bmp:
       min: 110.0
       medio: 145.0
-      max: 185.0
+      max: 307.0
+      # R2 (2026-07-26, docs/data/POLITICA_BMP.md §4): alargado de 185.0 para conter a
+      # mediana do corpus (307.0; n=30). O medio permanece — a regra alarga a banda,
+      # nunca move o centro.
+      corpus:
+        n: 30
+        median: 307.0
+        coverage: sufficient
       refs:
         - id: "herrmann2012_corn"
           value: "Corn husk BMP 120–170 NmL/gVS; lower than stover due to cellulose/lignin ratio"
@@ -809,13 +889,12 @@ feedstocks:
       # source that reports it (all refs have a URL in references.yaml). min/max = study
       # range or ±confidence-tier interval, bounded to [0,1]; availability is coupled.
       confidence: LOW
-      availability: { min: 0.0920, medio: 0.1521, max: 0.2372 }
       eta: 0.65
       components:
-        fc:  { min: 0.58, medio: 0.65, max: 0.72 }   # processing residue ~65% recoverable (FAO 2017)
-        fco: { min: 0.38, medio: 0.45, max: 0.52 }   # competes with animal feed → ~45% surplus (FAO 2017)
-        fs:  { min: 0.72, medio: 0.80, max: 0.88 }   # corn harvest Feb–May + safrinha (CONAB 2023)
-        fl:  { min: 0.58, medio: 0.65, max: 0.72 }   # mills moderately dispersed ~40 km (FAO 2017)
+        fc:            { min: 0.58, medio: 0.65, max: 0.72, reference: "fao2017_cropres" }   # processing residue ~65% recoverable (FAO 2017)
+        fco_available: { min: 0.38, medio: 0.45, max: 0.52, reference: "fao2017_cropres" }   # competes with animal feed → ~45% surplus (FAO 2017)
+        fs:            { min: 0.72, medio: 0.80, max: 0.88, reference: "conab2023_calendar" }   # corn harvest Feb–May + safrinha (CONAB 2023)
+        fl:            { min: 0.58, medio: 0.65, max: 0.72, reference: "fao2017_cropres" }   # mills moderately dispersed ~40 km (FAO 2017)
       refs:
         - id: "fao2017_cropres"
           value: "FC=0.65, FCo=0.45, FL=0.65: husk recovery, feed competition (proxy)"
@@ -834,6 +913,10 @@ feedstocks:
       min: 200.0
       medio: 280.0
       max: 360.0
+      corpus:
+        n: 1
+        median: 300.0
+        coverage: insufficient
       refs:
         - id: "abouelenien2014_poultry"
           value: "Poultry litter BMP 200–320 NmL/gVS (cama de aviário with sawdust bedding)"
@@ -865,13 +948,12 @@ feedstocks:
         t/head/yr is appropriate for a mixed SP composition.
     fde:
       confidence: MEDIUM
-      availability: { min: 0.1529, medio: 0.2700, max: 0.4165 }
       eta: 0.70
       components:
-        fc:  { min: 0.70, medio: 0.80, max: 0.88 }   # commercial confined systems collect 80% litter (Oliveira 2016)
-        fco: { min: 0.42, medio: 0.50, max: 0.58 }   # 50% to animal feed → 50% available (Avila 2007)
-        fs:  { min: 0.80, medio: 0.90, max: 0.96 }   # continuous poultry production; ~10% seasonal variation (ABPA 2022)
-        fl:  { min: 0.65, medio: 0.75, max: 0.85 }   # concentrated regions; 30 km average transport (Seganfredo 2007)
+        fc:            { min: 0.70, medio: 0.80, max: 0.88, reference: "avila2007_poultry" }   # commercial confined systems collect 80% litter (Oliveira 2016)
+        fco_available: { min: 0.42, medio: 0.50, max: 0.58, reference: "avila2007_poultry" }   # 50% to animal feed → 50% available (Avila 2007)
+        fs:            { min: 0.80, medio: 0.90, max: 0.96, reference: "avila2007_poultry" }   # continuous poultry production; ~10% seasonal variation (ABPA 2022)
+        fl:            { min: 0.65, medio: 0.75, max: 0.85, reference: "avila2007_poultry" }   # concentrated regions; 30 km average transport (Seganfredo 2007)
       refs:
         - id: "avila2007_poultry"
           value: "FC=0.80, FCo=0.50; FEEDSTOCK_FACTORS: FC=0.80, FCo=0.50, FS=0.90, FL=0.75 → FDE=27.00%"
@@ -887,6 +969,10 @@ feedstocks:
       min: 150.0
       medio: 250.0
       max: 340.0
+      corpus:
+        n: 2
+        median: 414.0
+        coverage: insufficient
       refs:
         - id: "abouelenien2014_poultry"
           value: "Fresh droppings BMP 150–340 NmL/gVS (higher than litter; no bedding dilution)"
@@ -912,13 +998,12 @@ feedstocks:
       # source that reports it (all refs have a URL in references.yaml). min/max = study
       # range or ±confidence-tier interval, bounded to [0,1]; availability is coupled.
       confidence: MEDIUM
-      availability: { min: 0.1929, medio: 0.2898, max: 0.4175 }
       eta: 0.72
       components:
-        fc:  { min: 0.68, medio: 0.75, max: 0.82 }   # cage-system fresh manure collection ~75% (ABPA 2022)
-        fco: { min: 0.52, medio: 0.60, max: 0.68 }   # ~40% to organic fertilizer → 60% surplus (Miele 2004)
-        fs:  { min: 0.88, medio: 0.92, max: 0.96 }   # continuous layer/broiler production (EMBRAPA 2012)
-        fl:  { min: 0.62, medio: 0.70, max: 0.78 }   # concentrated farms ~30–35 km (Seganfredo 2007)
+        fc:            { min: 0.68, medio: 0.75, max: 0.82, reference: "abpa2022_report" }   # cage-system fresh manure collection ~75% (ABPA 2022)
+        fco_available: { min: 0.52, medio: 0.60, max: 0.68, reference: "miele2004_poultry" }   # ~40% to organic fertilizer → 60% surplus (Miele 2004)
+        fs:            { min: 0.88, medio: 0.92, max: 0.96, reference: "embrapa2012_aves" }   # continuous layer/broiler production (EMBRAPA 2012)
+        fl:            { min: 0.62, medio: 0.70, max: 0.78, reference: "seganfredo2007_swine" }   # concentrated farms ~30–35 km (Seganfredo 2007)
       refs:
         - id: "abpa2022_report"
           value: "FC=0.75: cage-system fresh droppings collection"
@@ -939,6 +1024,10 @@ feedstocks:
       min: 120.0
       medio: 200.0
       max: 270.0
+      corpus:
+        n: 0
+        median: null
+        coverage: none
       refs:
         - id: "amon2007_cattle"
           value: "Cattle solid manure BMP 120–270 NmL/gVS; mesophilic CSTR"
@@ -980,13 +1069,12 @@ feedstocks:
     # min scenario = fully extensive beef (west); medio = SP weighted mix; max = intensive dairy (east).
     fde:
       confidence: MEDIUM
-      availability: { min: 0.0437, medio: 0.1320, max: 0.3994 }
       eta: 0.70
       components:
-        fc:  { min: 0.35, medio: 0.55, max: 0.88 }   # min=only feedlot fraction collectible; max=dairy confinement
-        fco: { min: 0.32, medio: 0.45, max: 0.58 }   # min=mainly organic fertilizer; max=dairy cooperative biogas
-        fs:  { min: 0.75, medio: 0.82, max: 0.92 }   # min=wet season limits collection; max=continuous dairy
-        fl:  { min: 0.52, medio: 0.65, max: 0.85 }   # min=dispersed pasture farms; max=concentrated dairy belt
+        fc:            { min: 0.35, medio: 0.55, max: 0.88, reference: "embrapa2015_cattle" }   # min=only feedlot fraction collectible; max=dairy confinement
+        fco_available: { min: 0.32, medio: 0.45, max: 0.58, reference: "primavesi2004_cattle" }   # min=mainly organic fertilizer; max=dairy cooperative biogas
+        fs:            { min: 0.75, medio: 0.82, max: 0.92, reference: "primavesi2004_cattle" }   # min=wet season limits collection; max=continuous dairy
+        fl:            { min: 0.52, medio: 0.65, max: 0.85, reference: "coldebella2006_biogas" }   # min=dispersed pasture farms; max=concentrated dairy belt
       refs:
         - id: "ibge2017_censo"
           value: "SP cattle: ~7M beef (67%) + ~3.5M dairy (33%); spatial split documented"
@@ -997,6 +1085,144 @@ feedstocks:
         - id: "angelidaki2003_manure"
           value: "eta 0.70 (solid cattle manure; compromise Angelidaki CSTRs 0.85 / Brazilian digesters 0.65)"
 
+  # ── SPATIAL SUB-TYPES of ESTERCO_BOVINO — Fase 2 (b279978, 2026-06-07) ──────────
+  # Ported into main by Lote 2 (2026-07-26); the branch it lived on had diverged too
+  # far to merge. The split itself is declared once, in canonical_loader:
+  # STREAM_SUBPOPULATIONS['cattle'] — 67% corte / 33% dairy (ibge2017_censo).
+  #
+  # ESTERCO_BOVINO above stays the AGGREGATE code, still mapped from the 'cattle'
+  # stream for the map and the availability service. These two codes are read only by
+  # the state pipeline, through the sub-population table. They are never summed with
+  # the aggregate — that would double-count the herd.
+  #
+  # The FC centrals are not new numbers: ESTERCO_BOVINO already declared fc
+  # min 0.35 / max 0.88, sourced to embrapa2015_cattle ("pasture beef 0.30–0.40
+  # (feedlot fraction only); confinement dairy 0.85–0.92"). The split turns that
+  # declared min–max spread into two named populations instead of one average.
+  ESTERCO_BOVINO_CORTE:
+    pt_name: "Esterco bovino — gado de corte extensivo (SP Oeste)"
+    en_name: "Cattle solid manure — extensive beef (western SP)"
+    sector: "PC_PECUARIA"
+    subsector: "PC_BOVINOS"
+    bmp:
+      min: 80.0
+      medio: 120.0
+      max: 180.0
+      refs:
+        - id: "amon2007_cattle"
+          value: "Degraded outdoor pasture manure BMP lower than confinement; 80–180 NmL/gVS"
+        - id: "embrapa2015_cattle"
+          value: "Extensive beef manure SP: 100–150 NmL/gVS (partial weathering on pasture)"
+      corpus:
+        n: 0
+        median: null
+        coverage: none
+    ts:
+      min: 15.0
+      medio: 22.0
+      max: 30.0
+      refs: ["amon2007_cattle"]
+    vs_of_ts:
+      min: 62.0
+      medio: 72.0
+      max: 80.0
+      refs: ["amon2007_cattle", "embrapa2015_cattle"]
+    ch4_pct: 57.0
+    cn_ratio: 14.0
+    generation:
+      type: "per_head"
+      t_per_head_yr:
+        min: 2.00   # 5.5 kg fresh manure/head/day × 365 (low-intensity pasture)
+        medio: 2.92  # 8 kg/head/day × 365 (EMBRAPA extensive beef SP reference)
+        max: 4.00   # 11 kg/head/day × 365 (semi-confined feedlot phase)
+        refs: ["embrapa2015_cattle", "primavesi2004_cattle"]
+      notes: >
+        Extensive beef in western SP: total physical excretion per animal (not the
+        collectible fraction). ~67% of SP cattle (IBGE Censo 2017) in extensive or
+        semi-extensive systems. Only the feedlot fraction (~30% of the western beef
+        herd) yields collectable manure — that restriction lives in fc, not here.
+    fde:
+      confidence: MEDIUM
+      eta: 0.65
+      components:
+        fc:            { min: 0.25, medio: 0.35, max: 0.45, reference: "embrapa2015_cattle" }   # feedlot fraction only; pasture excretion is not collectible
+        fco_available: { min: 0.28, medio: 0.35, max: 0.42, reference: "primavesi2004_cattle" }   # mostly direct soil amendment; little biogas infra in western SP
+        fs:            { min: 0.70, medio: 0.78, max: 0.88, reference: "primavesi2004_cattle" }   # wet season limits collection on dispersed farms
+        fl:            { min: 0.38, medio: 0.52, max: 0.65, reference: "coldebella2006_biogas" }   # very dispersed farms; poor road access
+      refs:
+        - id: "ibge2017_censo"
+          value: "SP beef ~7M head (67% of SP herd); Araçatuba/Pres.Prudente/Marília/SJRioPreto"
+        - id: "embrapa2015_cattle"
+          value: "FC=0.30–0.40: feedlot fraction only collectible from extensive beef"
+        - id: "primavesi2004_cattle"
+          value: "FCo=0.35, FS=0.78: soil amendment competition; seasonal collection on pasture"
+        - id: "coldebella2006_biogas"
+          value: "FL=0.52: dispersed farm locations, transport economics in western SP"
+        - id: "amon2007_cattle"
+          value: "eta=0.65: variable manure quality in outdoor/semi-outdoor collection"
+
+  ESTERCO_BOVINO_LEITEIRO:
+    pt_name: "Esterco bovino — gado leiteiro intensivo (SP Leste)"
+    en_name: "Cattle solid manure — intensive dairy (eastern SP)"
+    sector: "PC_PECUARIA"
+    subsector: "PC_BOVINOS"
+    bmp:
+      min: 150.0
+      medio: 230.0
+      max: 300.0
+      refs:
+        - id: "amon2007_cattle"
+          value: "Fresh confinement dairy manure BMP 150–300 NmL/gVS; minimal pre-storage degradation"
+        - id: "embrapa2015_cattle"
+          value: "SP dairy manure 200–280 NmL/gVS (fresh scraping from slatted floors/barns)"
+      corpus:
+        n: 0
+        median: null
+        coverage: none
+    ts:
+      min: 15.0
+      medio: 25.0
+      max: 35.0
+      refs: ["amon2007_cattle"]
+    vs_of_ts:
+      min: 70.0
+      medio: 80.0
+      max: 87.0
+      refs: ["amon2007_cattle", "embrapa2015_cattle"]
+    ch4_pct: 57.0
+    cn_ratio: 15.0
+    generation:
+      type: "per_head"
+      t_per_head_yr:
+        min: 3.65   # 10 kg/day × 365 (smaller dairy, lower milk yield)
+        medio: 5.11  # 14 kg/head/day × 365 (EMBRAPA dairy confinement reference SP)
+        max: 6.57   # 18 kg/head/day × 365 (high-producing herds; >10,000 L/cow/yr)
+        refs: ["embrapa2015_cattle", "primavesi2004_cattle"]
+      notes: >
+        Intensive dairy in eastern SP: total physical excretion per lactating cow.
+        ~33% of SP cattle (IBGE Censo 2017) in confinement/barn systems. High-production
+        dairy generates 12–20 kg manure/head/day, collected continuously by scraping or
+        hydraulic flush from slatted floors.
+    fde:
+      confidence: MEDIUM
+      eta: 0.75
+      components:
+        fc:            { min: 0.75, medio: 0.88, max: 0.92, reference: "embrapa2015_cattle" }   # slatted floors / scraping → near-complete collection
+        fco_available: { min: 0.50, medio: 0.58, max: 0.68, reference: "primavesi2004_cattle" }   # biogas vs fertigation tradeoff; SP dairy cooperatives
+        fs:            { min: 0.85, medio: 0.90, max: 0.95, reference: "primavesi2004_cattle" }   # continuous year-round indoor production
+        fl:            { min: 0.75, medio: 0.85, max: 0.90, reference: "coldebella2006_biogas" }   # eastern SP dairy belt; cooperative collection routes
+      refs:
+        - id: "ibge2017_censo"
+          value: "SP dairy ~3.5M head (33% of SP herd); Campinas/Sorocaba/Piracicaba/Araraquara/Ribeirão belt"
+        - id: "embrapa2015_cattle"
+          value: "FC=0.85–0.92: scraping/flush systems; confinement dairy 85–92% collectible"
+        - id: "primavesi2004_cattle"
+          value: "FCo=0.58, FS=0.90: SP dairy cooperatives active; continuous confinement production"
+        - id: "coldebella2006_biogas"
+          value: "FL=0.85: concentrated eastern dairy belt, shared collection routes"
+        - id: "angelidaki2003_manure"
+          value: "eta=0.75: fresh confinement dairy manure (high VS biodegradability vs outdoor beef)"
+
   DEJETOS_BOVINO:
     pt_name: "Dejetos líquidos bovino"
     en_name: "Cattle liquid slurry"
@@ -1006,6 +1232,10 @@ feedstocks:
       min: 90.0
       medio: 155.0
       max: 220.0
+      corpus:
+        n: 0
+        median: null
+        coverage: none
       refs:
         - id: "moller2004_manure"
           value: "Cattle slurry BMP 90–220 NmL/gVS; degradation during pre-storage reduces yield"
@@ -1033,13 +1263,12 @@ feedstocks:
       # source that reports it (all refs have a URL in references.yaml). min/max = study
       # range or ±confidence-tier interval, bounded to [0,1]; availability is coupled.
       confidence: MEDIUM
-      availability: { min: 0.1405, medio: 0.2244, max: 0.3398 }
       eta: 0.68
       components:
-        fc:  { min: 0.68, medio: 0.75, max: 0.82 }   # dairy confinement slurry collection ~75% (Souza 2009)
-        fco: { min: 0.42, medio: 0.50, max: 0.58 }   # ~50% fertigation → 50% surplus (EMBRAPA 2015)
-        fs:  { min: 0.82, medio: 0.88, max: 0.94 }   # dairy ~12% lactation-curve variation (Primavesi 2004)
-        fl:  { min: 0.60, medio: 0.68, max: 0.76 }   # dispersed dairies ~45 km (Coldebella 2006)
+        fc:            { min: 0.68, medio: 0.75, max: 0.82, reference: "souza2009_cattle" }   # dairy confinement slurry collection ~75% (Souza 2009)
+        fco_available: { min: 0.42, medio: 0.50, max: 0.58, reference: "embrapa2015_cattle" }   # ~50% fertigation → 50% surplus (EMBRAPA 2015)
+        fs:            { min: 0.82, medio: 0.88, max: 0.94, reference: "primavesi2004_cattle" }   # dairy ~12% lactation-curve variation (Primavesi 2004)
+        fl:            { min: 0.60, medio: 0.68, max: 0.76, reference: "coldebella2006_biogas" }   # dispersed dairies ~45 km (Coldebella 2006)
       refs:
         - id: "souza2009_cattle"
           value: "FC=0.75: liquid confinement/flushing collection"
@@ -1062,6 +1291,10 @@ feedstocks:
       min: 150.0
       medio: 245.0
       max: 300.0
+      corpus:
+        n: 10
+        median: 265.0
+        coverage: sufficient
       refs:
         - id: "moller2004_manure"
           value: "Swine slurry BMP 140–280 NmL/gVS"
@@ -1106,13 +1339,12 @@ feedstocks:
     # All SP swine production is intensive/concentrated (user confirmed) → FC stays high.
     fde:
       confidence: MEDIUM
-      availability: { min: 0.2057, medio: 0.3387, max: 0.4913 }
       eta: 0.75
       components:
-        fc:  { min: 0.85, medio: 0.90, max: 0.95 }   # 90%+ confined; user confirmed all SP swine concentrated
-        fco: { min: 0.50, medio: 0.55, max: 0.60 }   # 45% fertigation → 55% available (Kunz 2009)
-        fs:  { min: 0.88, medio: 0.95, max: 0.98 }   # continuous year-round production (ABCS 2016)
-        fl:  { min: 0.55, medio: 0.72, max: 0.88 }   # includes VS degradation penalty: open lagoon (min) to prompt capture (max)
+        fc:            { min: 0.85, medio: 0.90, max: 0.95, reference: "embrapa2012_swine" }   # 90%+ confined; user confirmed all SP swine concentrated
+        fco_available: { min: 0.50, medio: 0.55, max: 0.60, reference: "kunz2009_swine" }   # 45% fertigation → 55% available (Kunz 2009)
+        fs:            { min: 0.88, medio: 0.95, max: 0.98, reference: "embrapa2012_swine" }   # continuous year-round production (ABCS 2016)
+        fl:            { min: 0.55, medio: 0.72, max: 0.88, reference: "moller2004_manure" }   # includes VS degradation penalty: open lagoon (min) to prompt capture (max)
       refs:
         - id: "embrapa2012_swine"
           value: "FC=0.90; all SP swine concentrated; FEEDSTOCK_FACTORS: FC=0.90, FCo=0.55, FS=0.95"
@@ -1132,6 +1364,10 @@ feedstocks:
       min: 150.0
       medio: 235.0
       max: 320.0
+      corpus:
+        n: 0
+        median: null
+        coverage: none
       refs:
         - id: "moller2004_manure"
           value: "Swine solid BMP 150–320 NmL/gVS; higher than slurry due to VS concentration"
@@ -1159,13 +1395,12 @@ feedstocks:
       # source that reports it (all refs have a URL in references.yaml). min/max = study
       # range or ±confidence-tier interval, bounded to [0,1]; availability is coupled.
       confidence: MEDIUM
-      availability: { min: 0.2409, medio: 0.3527, max: 0.4733 }
       eta: 0.75
       components:
-        fc:  { min: 0.82, medio: 0.90, max: 0.95 }   # confined collection ~90% (EMBRAPA 2012)
-        fco: { min: 0.48, medio: 0.55, max: 0.62 }   # ~45% fertigation → 55% surplus (Kunz 2009)
-        fs:  { min: 0.90, medio: 0.95, max: 0.98 }   # continuous confined production (ABCS 2016)
-        fl:  { min: 0.68, medio: 0.75, max: 0.82 }   # concentrated regions ~40 km; solid handling (Perdomo 2003)
+        fc:            { min: 0.82, medio: 0.90, max: 0.95, reference: "embrapa2012_swine" }   # confined collection ~90% (EMBRAPA 2012)
+        fco_available: { min: 0.48, medio: 0.55, max: 0.62, reference: "kunz2009_swine" }   # ~45% fertigation → 55% surplus (Kunz 2009)
+        fs:            { min: 0.90, medio: 0.95, max: 0.98, reference: "abcs2016_swine" }   # continuous confined production (ABCS 2016)
+        fl:            { min: 0.68, medio: 0.75, max: 0.82, reference: "perdomo2003_swine" }   # concentrated regions ~40 km; solid handling (Perdomo 2003)
       refs:
         - id: "embrapa2012_swine"
           value: "FC=0.90: confined swine collection efficiency"
@@ -1190,6 +1425,10 @@ feedstocks:
       min: 250.0
       medio: 360.0
       max: 500.0
+      corpus:
+        n: 9
+        median: 472.0
+        coverage: sufficient
       refs:
         - id: "mata_alvarez2014_ofmsw"
           value: "Source-separated OFMSW BMP 200–450 NmL/gVS; median ~310"
@@ -1250,13 +1489,12 @@ feedstocks:
         inorganic fraction twice.
     fde:
       confidence: MEDIUM
-      availability: { min: 0.2215, medio: 0.4212, max: 0.6566 }
       eta: 0.75
       components:
-        fc:  { min: 0.78, medio: 0.90, max: 0.95 }   # source-separated collection 90% purity (ABRELPE 2022)
-        fco: { min: 0.52, medio: 0.65, max: 0.80 }   # 35% animal feed/home composting → 65% available (PNRS 2010)
-        fs:  { min: 0.78, medio: 0.90, max: 0.96 }   # ~10% seasonal variation in selective collection (SP 2021)
-        fl:  { min: 0.70, medio: 0.80, max: 0.90 }   # distributed collection points; 25 km transport (Reichert 2013)
+        fc:            { min: 0.78, medio: 0.90, max: 0.95, reference: "mata_alvarez2014_ofmsw" }   # source-separated collection 90% purity (ABRELPE 2022)
+        fco_available: { min: 0.52, medio: 0.65, max: 0.80, reference: "mata_alvarez2014_ofmsw" }   # 35% animal feed/home composting → 65% available (PNRS 2010)
+        fs:            { min: 0.78, medio: 0.90, max: 0.96, reference: "mata_alvarez2014_ofmsw" }   # ~10% seasonal variation in selective collection (SP 2021)
+        fl:            { min: 0.70, medio: 0.80, max: 0.90, reference: "mata_alvarez2014_ofmsw" }   # distributed collection points; 25 km transport (Reichert 2013)
       refs:
         - id: "mata_alvarez2014_ofmsw"
           value: "FEEDSTOCK_FACTORS: FC=0.90, FCo=0.65, FS=0.90, FL=0.80 → FDE=42.12%; eta 0.75 (full-scale EU plants)"
@@ -1274,6 +1512,10 @@ feedstocks:
       min: 170.0
       medio: 270.0
       max: 360.0
+      corpus:
+        n: 0
+        median: null
+        coverage: none
       refs:
         - id: "mata_alvarez2014_ofmsw"
           value: "Mixed OFMSW (less pure than FORSU): 170–360 NmL/gVS"
@@ -1300,13 +1542,12 @@ feedstocks:
       # source that reports it (all refs have a URL in references.yaml). min/max = study
       # range or ±confidence-tier interval, bounded to [0,1]; availability is coupled.
       confidence: LOW
-      availability: { min: 0.0238, medio: 0.0815, max: 0.2095 }
       eta: 0.62
       components:
-        fc:  { min: 0.80, medio: 0.90, max: 0.96 }   # MSW collection coverage high in SP (ABRELPE 2022)
-        fco: { min: 0.05, medio: 0.12, max: 0.25 }   # ~88% landfilled → low AD/MBT diversion (ABRELPE 2022)
-        fs:  { min: 0.85, medio: 0.92, max: 0.97 }   # continuous urban generation (SNIS 2022)
-        fl:  { min: 0.70, medio: 0.82, max: 0.90 }   # urban centralized collection (SNIS 2022)
+        fc:            { min: 0.80, medio: 0.90, max: 0.96, reference: "abrelpe2022_rsu" }   # MSW collection coverage high in SP (ABRELPE 2022)
+        fco_available: { min: 0.05, medio: 0.12, max: 0.25, reference: "abrelpe2022_rsu" }   # ~88% landfilled → low AD/MBT diversion (ABRELPE 2022)
+        fs:            { min: 0.85, medio: 0.92, max: 0.97, reference: "snis2022_rsu" }   # continuous urban generation (SNIS 2022)
+        fl:            { min: 0.70, medio: 0.82, max: 0.90, reference: "snis2022_rsu" }   # urban centralized collection (SNIS 2022)
       refs:
         - id: "abrelpe2022_rsu"
           value: "FC=0.90, FCo=0.12: high collection but ~88% landfilled"
@@ -1323,6 +1564,10 @@ feedstocks:
       min: 190.0
       medio: 310.0
       max: 440.0
+      corpus:
+        n: 11
+        median: 370.0
+        coverage: sufficient
       refs:
         - id: "heerenklage2019_sludge"
           value: "Primary sludge BMP 190–440 NmL/gVS; high readily biodegradable VS fraction"
@@ -1355,13 +1600,12 @@ feedstocks:
         Previous entry (0.030) was entered as DRY mass but engine expects WET — corrected 2026-06.
     fde:
       confidence: HIGH
-      availability: { min: 0.3659, medio: 0.5451, max: 0.7280 }
       eta: 0.80
       components:
-        fc:  { min: 0.78, medio: 0.85, max: 0.92 }   # primary sludge amenable to AD: 82–88% (von Sperling 2007)
-        fco: { min: 0.65, medio: 0.75, max: 0.85 }   # 25% composting/agri → 75% available for biogas (CETESB 2020)
-        fs:  { min: 0.88, medio: 0.95, max: 0.98 }   # continuous sludge generation; 5% drought reduction (SNIS 2022)
-        fl:  { min: 0.82, medio: 0.90, max: 0.95 }   # ETEs centralized; 15–20 km average (Possetti 2015)
+        fc:            { min: 0.78, medio: 0.85, max: 0.92, reference: "von_sperling2007_sludge" }   # primary sludge amenable to AD: 82–88% (von Sperling 2007)
+        fco_available: { min: 0.65, medio: 0.75, max: 0.85, reference: "cetesb2020_sludge" }   # 25% composting/agri → 75% available for biogas (CETESB 2020)
+        fs:            { min: 0.88, medio: 0.95, max: 0.98, reference: "von_sperling2007_sludge" }   # continuous sludge generation; 5% drought reduction (SNIS 2022)
+        fl:            { min: 0.82, medio: 0.90, max: 0.95, reference: "cetesb2020_sludge" }   # ETEs centralized; 15–20 km average (Possetti 2015)
       refs:
         - id: "von_sperling2007_sludge"
           value: "FC=0.85 (von Sperling 2007); FEEDSTOCK_FACTORS: FC=0.85, FCo=0.75, FS=0.95, FL=0.90 → FDE=54.51%"
@@ -1378,7 +1622,14 @@ feedstocks:
     bmp:
       min: 80.0
       medio: 180.0
-      max: 260.0
+      max: 310.0
+      # R2 (2026-07-26, docs/data/POLITICA_BMP.md §4): alargado de 260.0 para conter a
+      # mediana do corpus (310.0; n=8). O medio permanece — a regra alarga a banda,
+      # nunca move o centro.
+      corpus:
+        n: 8
+        median: 310.0
+        coverage: sufficient
       refs:
         - id: "heerenklage2019_sludge"
           value: "Activated sludge BMP 80–260 NmL/gVS; recalcitrant microbial cell biomass"
@@ -1404,13 +1655,12 @@ feedstocks:
       # source that reports it (all refs have a URL in references.yaml). min/max = study
       # range or ±confidence-tier interval, bounded to [0,1]; availability is coupled.
       confidence: HIGH
-      availability: { min: 0.3308, medio: 0.4635, max: 0.6347 }
       eta: 0.55
       components:
-        fc:  { min: 0.76, medio: 0.82, max: 0.88 }   # secondary treatment ~82% amenable to AD (Andreoli 2001)
-        fco: { min: 0.62, medio: 0.70, max: 0.80 }   # ~30% land application → 70% surplus (CETESB 2020)
-        fs:  { min: 0.90, medio: 0.95, max: 0.98 }   # continuous generation (SNIS 2022)
-        fl:  { min: 0.78, medio: 0.85, max: 0.92 }   # ETEs centralized 15–25 km (ABIOGAS 2021)
+        fc:            { min: 0.76, medio: 0.82, max: 0.88, reference: "andreoli2001_sludge" }   # secondary treatment ~82% amenable to AD (Andreoli 2001)
+        fco_available: { min: 0.62, medio: 0.70, max: 0.80, reference: "cetesb2020_sludge" }   # ~30% land application → 70% surplus (CETESB 2020)
+        fs:            { min: 0.90, medio: 0.95, max: 0.98, reference: "snis2022_rsu" }   # continuous generation (SNIS 2022)
+        fl:            { min: 0.78, medio: 0.85, max: 0.92, reference: "abiogas2021_atlas" }   # ETEs centralized 15–25 km (ABIOGAS 2021)
       refs:
         - id: "andreoli2001_sludge"
           value: "FC=0.82: activated sludge amenable to AD"
@@ -1431,6 +1681,10 @@ feedstocks:
       min: 100.0
       medio: 175.0
       max: 250.0
+      corpus:
+        n: 0
+        median: null
+        coverage: none
       refs:
         - id: "pognani2011_garden"
           value: "Garden/green waste BMP 100–180 NmL/gVS (Bioresource Technology 2011)"
@@ -1472,13 +1726,12 @@ feedstocks:
       # FCo reflects competing uses: composting, mulching, landfill diversion.
       # ~35% realistically directed to biogas in SP municipalities with biogas programmes.
       confidence: LOW
-      availability: { min: 0.0252, medio: 0.1050, max: 0.3119 }
       eta: 0.55
       components:
-        fc:  { min: 0.30, medio: 0.50, max: 0.70 }   # fraction collected (not all municipalities have green waste collection)
-        fco: { min: 0.20, medio: 0.35, max: 0.55 }   # fraction directed to biogas vs composting/mulch
-        fs:  { min: 0.70, medio: 0.80, max: 0.90 }   # moderate seasonality (more in summer/rainy season)
-        fl:  { min: 0.60, medio: 0.75, max: 0.90 }   # municipal routes; more centralised than field biomass
+        fc:            { min: 0.30, medio: 0.50, max: 0.70, reference: "abrelpe2022_rsu" }   # fraction collected (not all municipalities have green waste collection)
+        fco_available: { min: 0.20, medio: 0.35, max: 0.55, reference: "abrelpe2022_rsu" }   # fraction directed to biogas vs composting/mulch
+        fs:            { min: 0.70, medio: 0.80, max: 0.90, reference: "snis2022_rsu" }   # moderate seasonality (more in summer/rainy season)
+        fl:            { min: 0.60, medio: 0.75, max: 0.90, reference: null }   # SEM REFERENCIA VERSIONADA (Lote 2) municipal routes; more centralised than field biomass
       refs:
         - id: "pognani2011_garden"
           value: "eta 0.55 for urban green waste (lignified pruning reduces digestibility)"
@@ -1498,6 +1751,10 @@ feedstocks:
       min: 700.0
       medio: 850.0
       max: 1050.0
+      corpus:
+        n: 2
+        median: 859.0
+        coverage: insufficient
       refs:
         - id: "sheets2015_fats"
           value: "Animal fat BMP 700–1100 NmL/gVS"
@@ -1522,13 +1779,12 @@ feedstocks:
       # source that reports it (all refs have a URL in references.yaml). min/max = study
       # range or ±confidence-tier interval, bounded to [0,1]; availability is coupled.
       confidence: MEDIUM
-      availability: { min: 0.0793, medio: 0.1425, max: 0.2475 }
       eta: 0.85
       components:
-        fc:  { min: 0.72, medio: 0.80, max: 0.88 }   # rendering captures ~80% of fat/tallow (MAPA 2019)
-        fco: { min: 0.18, medio: 0.25, max: 0.35 }   # ~75% to biodiesel market → 25% surplus (ANP 2023)
-        fs:  { min: 0.90, medio: 0.95, max: 0.98 }   # continuous slaughter (ABPA 2022)
-        fl:  { min: 0.68, medio: 0.75, max: 0.82 }   # industrial rendering concentrated (ABIOVE 2022)
+        fc:            { min: 0.72, medio: 0.80, max: 0.88, reference: "mapa2019_riispoa" }   # rendering captures ~80% of fat/tallow (MAPA 2019)
+        fco_available: { min: 0.18, medio: 0.25, max: 0.35, reference: "anp2023_biodiesel" }   # ~75% to biodiesel market → 25% surplus (ANP 2023)
+        fs:            { min: 0.90, medio: 0.95, max: 0.98, reference: "abpa2022_report" }   # continuous slaughter (ABPA 2022)
+        fl:            { min: 0.68, medio: 0.75, max: 0.82, reference: "abiove2022_oilseed" }   # industrial rendering concentrated (ABIOVE 2022)
       refs:
         - id: "mapa2019_riispoa"
           value: "FC=0.80: rendering/grease-trap capture at frigoríficos"
@@ -1549,6 +1805,10 @@ feedstocks:
       min: 300.0
       medio: 450.0
       max: 620.0
+      corpus:
+        n: 0
+        median: null
+        coverage: none
       refs:
         - id: "sheets2015_fats"
           value: "Blood BMP 300–600 NmL/gVS; high protein → NH3 inhibition risk"
@@ -1571,13 +1831,12 @@ feedstocks:
       # source that reports it (all refs have a URL in references.yaml). min/max = study
       # range or ±confidence-tier interval, bounded to [0,1]; availability is coupled.
       confidence: MEDIUM
-      availability: { min: 0.1315, medio: 0.2095, max: 0.3100 }
       eta: 0.78
       components:
-        fc:  { min: 0.62, medio: 0.70, max: 0.78 }   # slaughterhouse blood collection ~70% (MAPA 2019)
-        fco: { min: 0.38, medio: 0.45, max: 0.52 }   # ~55% to blood meal → 45% surplus (FAO 2014)
-        fs:  { min: 0.90, medio: 0.95, max: 0.98 }   # continuous slaughter (ABPA 2022)
-        fl:  { min: 0.62, medio: 0.70, max: 0.78 }   # slaughterhouse clusters ~30 km (MAPA 2019)
+        fc:            { min: 0.62, medio: 0.70, max: 0.78, reference: "mapa2019_riispoa" }   # slaughterhouse blood collection ~70% (MAPA 2019)
+        fco_available: { min: 0.38, medio: 0.45, max: 0.52, reference: "fao2014_slaughter" }   # ~55% to blood meal → 45% surplus (FAO 2014)
+        fs:            { min: 0.90, medio: 0.95, max: 0.98, reference: "abpa2022_report" }   # continuous slaughter (ABPA 2022)
+        fl:            { min: 0.62, medio: 0.70, max: 0.78, reference: "mapa2019_riispoa" }   # slaughterhouse clusters ~30 km (MAPA 2019)
       refs:
         - id: "mapa2019_riispoa"
           value: "FC=0.70, FL=0.70: RIISPOA blood collection; clusters ~30 km"
