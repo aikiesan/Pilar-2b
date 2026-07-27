@@ -16,6 +16,11 @@
  *   money    → BRL/year
  */
 
+import {
+  CROP_PARAMS_CANONICAL,
+  SUGARCANE_STREAMS_CANONICAL,
+} from './calculatorEngine.canonical'
+
 // ── SP tariff constants (update periodically) ────────────────────────────────
 export const SP_ENERGY_TARIFF_BRL_KWH   = 0.85   // CPFL/Enel residential avg 2025
 export const SP_DIESEL_BRL_LITER        = 6.50   // SP diesel pump price 2025
@@ -86,10 +91,10 @@ export const CAPEX_TIERS = SCENARIO_CAPEX_TIERS.avg
 //          palha Velásquez Piñas et al. 2020 https://doi.org/10.1016/j.biombioe.2020.105774
 //          vinhaca Bonomi et al. 2015 https://doi.org/10.1016/j.rser.2015.01.022
 export const SUGARCANE_STREAMS = {
-  bagaco:  { rpr: 0.28, bmp: 115, vs: 0.90, fde: 0.20, ch4: 0.55 },
-  palha:   { rpr: 0.14, bmp: 210, vs: 0.82, fde: 0.40, ch4: 0.55 },
-  vinhaca: { rpr: 0.12, bmp:  90, vs: 0.60, fde: 0.90, ch4: 0.65 },
-  torta:   { rpr: 0.03, bmp: 280, vs: 0.80, fde: 0.35, ch4: 0.60 },
+  bagaco:  { rpr: 0.28, ...SUGARCANE_STREAMS_CANONICAL.bagaco,  fde: 0.20 },
+  palha:   { rpr: 0.14, ...SUGARCANE_STREAMS_CANONICAL.palha,   fde: 0.40 },
+  vinhaca: { rpr: 0.12, ...SUGARCANE_STREAMS_CANONICAL.vinhaca, fde: 0.90 },
+  torta:   { rpr: 0.03, ...SUGARCANE_STREAMS_CANONICAL.torta,   fde: 0.35 },
 } as const
 
 // ── Livestock PPB (m³ biogas / head / year) ───────────────────────────────────
@@ -138,7 +143,7 @@ export const CROP_PARAMS: Record<CropType, {
             label: 'Soja (palha)', descLabel: 'Palha de soja pós-colheita',
             source: 'Kafle & Chen (2016) doi:10.1016/j.wasman.2015.10.021' },
   // CASCA_CAFE: Okonkwo et al. 2021 https://doi.org/10.1016/j.biteb.2021.100830
-  coffee: { bmp: 140, vs: 0.93, avail: 0.70, ch4: 0.58,
+  coffee: { ...CROP_PARAMS_CANONICAL.coffee, avail: 0.70,
             label: 'Café (casca)', descLabel: 'Casca de café',
             source: 'Okonkwo et al. (2021) doi:10.1016/j.biteb.2021.100830' },
   // BAGACO_CITROS: Wikandari et al. 2014 https://doi.org/10.1016/j.biortech.2014.07.074
