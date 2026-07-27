@@ -1,168 +1,178 @@
 # Documentation Index — PILAR-2b
 
-> **~43 documentation files | ~18,500+ lines** organized in `docs/` subdirectories.
-> Last updated: May 2026
+> Master repository documentation index for **PILAR-2b** (*Plataforma Inteligente de Localização e Aproveitamento de Resíduos para Biogás e Bioprodutos*).
+> Fully organized into modular subdirectories under `docs/`.
+> Last updated: July 2026
 
 ---
 
 ## Quick Navigation
 
-- [Project Root](#1-project-root)
-- [docs/ Root Files](#1b-docs-root-files)
-- [docs/api/](#2-api)
-- [docs/architecture/](#3-architecture)
-- [docs/data/](#4-data--scientific-methodology)
-- [docs/deployment/](#5-deployment)
-- [docs/planning/](#6-planning)
-- [docs/qa/](#7-qa--testing)
-- [docs/security/](#8-security)
-- [docs/sql/](#9-sql-scripts)
-- [Backend READMEs](#10-backend-readmes)
+- [1. Root & Core Project Docs](#1-root--core-project-docs)
+- [2. API Reference](#2-api-reference)
+- [3. Architecture & System Design](#3-architecture--system-design)
+- [4. Data, Methodology & Data Ingestion](#4-data-methodology--data-ingestion)
+- [5. Deployment & Operations](#5-deployment--operations)
+- [6. Planning, Roadmaps & Playbooks](#6-planning-roadmaps--playbooks)
+- [7. QA, Testing & Accessibility](#7-qa-testing--accessibility)
+- [8. Security & Compliance](#8-security--compliance)
+- [9. Manuscripts & Scientific Publications](#9-manuscripts--scientific-publications)
+- [10. Audits & Consistency Records](#10-audits--consistency-records)
+- [11. SQL Scripts & Database Seeds](#11-sql-scripts--database-seeds)
+- [12. Datasets & Baseline Artefacts](#12-datasets--baseline-artefacts)
 
 ---
 
-## 1. Project Root
+## 1. Root & Core Project Docs
 
-Standard open-source project files at `cp2b-workspace/NewLook/`:
-
-| File | Lines | Description |
-|---|---|---|
-| `README.md` | — | **Main entry point** — project overview, features, quick start, live URLs, tech stack, INPI registration |
-| `CHANGELOG.md` | — | Version history following Keep a Changelog format (v3.0.3 current) |
-| `CONTRIBUTING.md` | 454 | Contribution guidelines, code standards, PR process for external contributors |
-| `LICENSE` | 675 | GPL-3.0 License (2025) |
-| `.cursorrules` | 53 | AI assistant coding rules — project context, patterns, SOLID principles |
-
----
-
-## 1b. docs/ Root Files
+Standard repository entry points located at project root `cp2b-workspace/NewLook/`:
 
 | File | Description |
 |---|---|
-| [`DOCUMENTATION_INDEX.md`](DOCUMENTATION_INDEX.md) | This file — master index of all documentation |
-| [`LOCAL_DOCKER_SETUP.md`](LOCAL_DOCKER_SETUP.md) | Local development with Docker Compose — backend + frontend + PostgreSQL |
-| [`VM_UPDATE_GUIDE.md`](VM_UPDATE_GUIDE.md) | Unicamp VM update guide — Apache2/PM2 deployment for `cp2b.unicamp.br` |
-| [`BIOMASS_PAIRING_ROADMAP.md`](BIOMASS_PAIRING_ROADMAP.md) | Biomass data pairing plan — MapBiomas integration roadmap |
+| [`README.md`](../README.md) | **Main entry point** — project overview, features, live URLs, tech stack, INPI registration |
+| [`CHANGELOG.md`](../CHANGELOG.md) | Version history following Keep a Changelog format (v3.0.3 current) |
+| [`CONTRIBUTING.md`](../CONTRIBUTING.md) | Contribution guidelines, code standards, PR process for external contributors |
+| [`LICENSE`](../LICENSE) | GPL-3.0 License |
+| [`docs/README.md`](README.md) | `docs/` landing page for GitHub rendering |
+| [`docs/DOCUMENTATION_INDEX.md`](DOCUMENTATION_INDEX.md) | Master index of all documentation |
 
 ---
 
-## 2. API
+## 2. API Reference
 
 | File | Description |
 |---|---|
-| [`api/API_DOCUMENTATION.md`](api/API_DOCUMENTATION.md) | **Complete API reference** — all endpoints, request/response schemas, auth, examples (628 lines) |
+| [`api/API_DOCUMENTATION.md`](api/API_DOCUMENTATION.md) | **Complete API reference** — all endpoints, request/response schemas, auth, examples |
 
 ---
 
-## 3. Architecture
+## 3. Architecture & System Design
 
 | File | Description |
 |---|---|
-| [`architecture/TECHNOLOGY_ROUTES_IMPLEMENTATION_GUIDE.md`](architecture/TECHNOLOGY_ROUTES_IMPLEMENTATION_GUIDE.md) | Technology routes implementation guide (594 lines) |
-| [`architecture/HOW_TO_ADD_TECHNOLOGIES.md`](architecture/HOW_TO_ADD_TECHNOLOGIES.md) | Quick start: add new technology cards via SQL (154 lines) |
-| [`architecture/ENHANCED_MAP_INTEGRATION_GUIDE.md`](architecture/ENHANCED_MAP_INTEGRATION_GUIDE.md) | Enhanced map visualization integration guide (478 lines) |
-| [`architecture/PERFORMANCE_OPTIMIZATIONS.md`](architecture/PERFORMANCE_OPTIMIZATIONS.md) | Performance optimization details — map loading, caching, bundle size (525 lines) |
-| [`architecture/REFERENCES_SYSTEM.md`](architecture/REFERENCES_SYSTEM.md) | Bibliographic references system — FDE factors, scientific database (368 lines) |
+| [`architecture/PLATFORM_OVERVIEW_AND_DEVELOPMENT_HISTORY.md`](architecture/PLATFORM_OVERVIEW_AND_DEVELOPMENT_HISTORY.md) | Comprehensive architecture overview, platform history, and evolution |
+| [`architecture/CALCULATOR_METHODOLOGY.md`](architecture/CALCULATOR_METHODOLOGY.md) | Payback & economic feasibility calculator mathematical formulation |
+| [`architecture/GEOSERVER_INTEGRATION.md`](architecture/GEOSERVER_INTEGRATION.md) | GeoServer WMS/WFS layer integration and GIS server setup guide |
+| [`architecture/TECHNOLOGY_ROUTES_IMPLEMENTATION_GUIDE.md`](architecture/TECHNOLOGY_ROUTES_IMPLEMENTATION_GUIDE.md) | Biogas & bioproduct conversion technology routes architecture guide |
+| [`architecture/HOW_TO_ADD_TECHNOLOGIES.md`](architecture/HOW_TO_ADD_TECHNOLOGIES.md) | Quick start guide for registering new technology pathways via database seeds |
+| [`architecture/ENHANCED_MAP_INTEGRATION_GUIDE.md`](architecture/ENHANCED_MAP_INTEGRATION_GUIDE.md) | Interactive map visualization engine and Leaflet integration details |
+| [`architecture/PERFORMANCE_OPTIMIZATIONS.md`](architecture/PERFORMANCE_OPTIMIZATIONS.md) | Map tile loading, caching strategies, and frontend bundle size optimizations |
+| [`architecture/REFERENCES_SYSTEM.md`](architecture/REFERENCES_SYSTEM.md) | Bibliographic reference mapping system for scientific parameters and FDE factors |
 
 ---
 
-## 4. Data & Scientific Methodology
+## 4. Data, Methodology & Data Ingestion
 
 | File | Description |
 |---|---|
-| [`data/FDE_METHODOLOGY.md`](data/FDE_METHODOLOGY.md) | FDE (Fator de Disponibilidade Efetivo) methodology — V2.0 (365 lines) |
-| [`data/FEEDSTOCK_FACTORS_LITERATURE_TABLE.md`](data/FEEDSTOCK_FACTORS_LITERATURE_TABLE.md) | Feedstock availability factors (FC, FCo, FS, FL) with scientific references — 31 feedstocks (701 lines) |
-| [`data/README_FEEDSTOCK_FACTORS_SYNC.md`](data/README_FEEDSTOCK_FACTORS_SYNC.md) | Guide for syncing feedstock availability factors to the database (310 lines) |
-| [`data/SAO_PAULO_BIOGAS_POTENTIAL_FDE.md`](data/SAO_PAULO_BIOGAS_POTENTIAL_FDE.md) | Realistic biogas potential analysis for SP using FDE (285 lines) |
-| [`data/IBGE_IO_DATA_PROCESSING_GUIDE.md`](data/IBGE_IO_DATA_PROCESSING_GUIDE.md) | Processing 15 IBGE Input-Output tables (2015, 67 sectors) into PostgreSQL (925 lines) |
-| [`data/IBGE_67_SECTOR_INTEGRATION_COMPLETE.md`](data/IBGE_67_SECTOR_INTEGRATION_COMPLETE.md) | IBGE 67-sector Leontief model integration — economic impact analysis (608 lines) |
-| [`data/INGESTION_GUIDE.md`](data/INGESTION_GUIDE.md) | **Step-by-step manual for ingesting any new data source** — the ingestion contract lifecycle, gates, fixtures, yearly refresh |
-| [`data/METADATA.json`](data/METADATA.json) | Formal data lineage — every upstream dataset with version, reference year, URL/DOI, retrieval date |
+| [`data/NATIONAL_DATA_LOAD.md`](data/NATIONAL_DATA_LOAD.md) | National biomass dataset loading pipeline and automated processing rules |
+| [`data/FDE_METHODOLOGY.md`](data/FDE_METHODOLOGY.md) | FDE (*Fator de Disponibilidade Efetivo*) methodology formulation (V2.0) |
+| [`data/FEEDSTOCK_FACTORS_LITERATURE_TABLE.md`](data/FEEDSTOCK_FACTORS_LITERATURE_TABLE.md) | Feedstock availability factors (FC, FCo, FS, FL) across 31 agricultural & urban residues |
+| [`data/README_FEEDSTOCK_FACTORS_SYNC.md`](data/README_FEEDSTOCK_FACTORS_SYNC.md) | Guide for synchronizing feedstock availability factors to PostgreSQL |
+| [`data/SAO_PAULO_BIOGAS_POTENTIAL_FDE.md`](data/SAO_PAULO_BIOGAS_POTENTIAL_FDE.md) | Realistic biogas potential assessment for São Paulo State using FDE metrics |
+| [`data/IBGE_IO_DATA_PROCESSING_GUIDE.md`](data/IBGE_IO_DATA_PROCESSING_GUIDE.md) | IBGE Input-Output matrix (67 sectors) ETL processing pipeline |
+| [`data/IBGE_67_SECTOR_INTEGRATION_COMPLETE.md`](data/IBGE_67_SECTOR_INTEGRATION_COMPLETE.md) | IBGE Leontief economic multiplier model integration specifications |
+| [`data/INGESTION_GUIDE.md`](data/INGESTION_GUIDE.md) | **Ingestion Manual** — lifecycle contracts, verification gates, and source refresh guidelines |
+| [`data/CANONICAL_VERIFICATION_PLAN.md`](data/CANONICAL_VERIFICATION_PLAN.md) | Verification plan for canonical biomass potential calculations |
+| [`data/SCIENTIFIC_AUDIT_REPORT.md`](data/SCIENTIFIC_AUDIT_REPORT.md) | Detailed scientific audit report for residue parameters and literature citations |
+| [`data/dynamics/BIOMASS_SEASONALITY_SP.md`](data/dynamics/BIOMASS_SEASONALITY_SP.md) | Crop harvesting seasonality and biomass availability curves for SP State |
+| [`data/dynamics/ENERGY_PRICE_TEMPORAL_DYNAMICS_SP.md`](data/dynamics/ENERGY_PRICE_TEMPORAL_DYNAMICS_SP.md) | Electricity, natural gas, and diesel temporal pricing dynamics |
+| [`data/dynamics/WASTE_FLOW_DYNAMICS_SP.md`](data/dynamics/WASTE_FLOW_DYNAMICS_SP.md) | Temporal and spatial waste flow dynamics across SP municipalities |
 
 ---
 
-## 5. Deployment
+## 5. Deployment & Operations
 
 | File | Description |
 |---|---|
-| [`deployment/DEPLOYMENT_GUIDE.md`](deployment/DEPLOYMENT_GUIDE.md) | Deployment guide for Unicamp VM (primary), Cloudflare/Vercel (frontend) (184 lines) |
-| [`deployment/DEPLOYMENT_CHECKLIST.md`](deployment/DEPLOYMENT_CHECKLIST.md) | Step-by-step deployment checklist (514 lines) |
-| [`deployment/PRODUCTION_SETUP_GUIDE.md`](deployment/PRODUCTION_SETUP_GUIDE.md) | Complete production setup — PostgreSQL + PostGIS (354 lines) |
-| [`deployment/DOCKER_RESOURCE_LIMITS.md`](deployment/DOCKER_RESOURCE_LIMITS.md) | Docker resource limits config — **CRITICAL**: must configure before production (546 lines) |
-| [`VM_UPDATE_GUIDE.md`](VM_UPDATE_GUIDE.md) | Unicamp Apache2 + PM2 VM update guide — primary production deployment procedure |
+| [`deployment/LOCAL_DOCKER_SETUP.md`](deployment/LOCAL_DOCKER_SETUP.md) | Local development setup with Docker Compose (FastAPI, Next.js, PostgreSQL/PostGIS) |
+| [`deployment/VM_UPDATE_GUIDE.md`](deployment/VM_UPDATE_GUIDE.md) | **Primary deployment guide** — Unicamp VM production update procedure (Apache2 + PM2) |
+| [`deployment/VM_DEPLOY_CHECK.md`](deployment/VM_DEPLOY_CHECK.md) | Production server deployment verification checklist and health checks |
+| [`deployment/DEPLOYMENT_GUIDE.md`](deployment/DEPLOYMENT_GUIDE.md) | Overview of deployment targets (Unicamp VM, Cloudflare Pages, Vercel) |
+| [`deployment/DEPLOYMENT_CHECKLIST.md`](deployment/DEPLOYMENT_CHECKLIST.md) | Comprehensive step-by-step production release checklist |
+| [`deployment/PRODUCTION_SETUP_GUIDE.md`](deployment/PRODUCTION_SETUP_GUIDE.md) | Production database installation & configuration guide (PostgreSQL 15 + PostGIS 3.4) |
+| [`deployment/DOCKER_RESOURCE_LIMITS.md`](deployment/DOCKER_RESOURCE_LIMITS.md) | Container resource limits and memory optimization tuning |
 
 ---
 
-## 6. Planning
+## 6. Planning, Roadmaps & Playbooks
 
 | File | Description |
 |---|---|
-| [`planning/BRAZIL_EXPANSION_ROADMAP.md`](planning/BRAZIL_EXPANSION_ROADMAP.md) | **Master plan Jul–Dec 2026: national coverage** — code-analysis snapshot, ingestion contract, per-source plan, month-by-month milestones, progress indicators |
-| [`planning/playbooks/`](planning/playbooks/README.md) | **Month playbooks Jul–Dec 2026** — executable step-by-step checklists per month: commands, file paths, verification queries, exit criteria |
-| [`planning/DEVELOPMENT_ROADMAP_APR_AUG_2026.md`](planning/DEVELOPMENT_ROADMAP_APR_AUG_2026.md) | Development roadmap April–August 2026 — sprint targets, milestones |
-| [`planning/IMPROVEMENT_BACKLOG.md`](planning/IMPROVEMENT_BACKLOG.md) | Living lean-and-stable backlog — CI gate hardening status, dead code, large-file, and tech-debt tracker |
+| [`planning/BRAZIL_EXPANSION_ROADMAP.md`](planning/BRAZIL_EXPANSION_ROADMAP.md) | **Master expansion plan**: National coverage roadmap across Brazilian states |
+| [`planning/BIOMASS_PAIRING_ROADMAP.md`](planning/BIOMASS_PAIRING_ROADMAP.md) | MapBiomas integration and spatial biomass pairing roadmap |
+| [`planning/DEVELOPMENT_ROADMAP_APR_AUG_2026.md`](planning/DEVELOPMENT_ROADMAP_APR_AUG_2026.md) | Mid-term development roadmap and sprint milestones |
+| [`planning/IMPROVEMENT_BACKLOG.md`](planning/IMPROVEMENT_BACKLOG.md) | Technical debt, code cleanup, and CI gate hardening backlog |
+| [`planning/HANDOFF_2026-07-21.md`](planning/HANDOFF_2026-07-21.md) | System state handoff report (July 2026) |
+| [`planning/playbooks/README.md`](planning/playbooks/README.md) | Monthly executable sprint playbooks index |
 
 ---
 
-## 7. QA & Testing
+## 7. QA, Testing & Accessibility
 
 | File | Description |
 |---|---|
-| [`qa/TESTING.md`](qa/TESTING.md) | **Testing strategy** — what to test, how to test, coverage status (530 lines) |
-| [`qa/TEST_STRUCTURE.md`](qa/TEST_STRUCTURE.md) | Test structure reference — Pytest (backend) and Jest (frontend) organization (322 lines) |
-| [`qa/COVERAGE_STATUS.md`](qa/COVERAGE_STATUS.md) | Test coverage status report — ~10,650 lines of test code (359 lines) |
-| [`qa/QA_GUIDE_LUCAS.md`](qa/QA_GUIDE_LUCAS.md) | QA onboarding guide — setup, test plan, bug reporting template (512 lines) |
-| [`qa/ACCESSIBILITY.md`](qa/ACCESSIBILITY.md) | WCAG 2.1 Level AA accessibility standards and testing procedures (389 lines) |
+| [`qa/TESTING.md`](qa/TESTING.md) | **Master testing strategy** — unit, integration, and e2e testing procedures |
+| [`qa/TEST_STRUCTURE.md`](qa/TEST_STRUCTURE.md) | Pytest (backend) and Jest/Playwright (frontend) suite architecture |
+| [`qa/COVERAGE_STATUS.md`](qa/COVERAGE_STATUS.md) | Code coverage reports and critical test path tracking |
+| [`qa/QA_GUIDE_LUCAS.md`](qa/QA_GUIDE_LUCAS.md) | Quality assurance onboarding guide and bug reporting standards |
+| [`qa/ACCESSIBILITY.md`](qa/ACCESSIBILITY.md) | WCAG 2.1 AA & eMAG accessibility compliance test guidelines |
 
 ---
 
-## 8. Security
+## 8. Security & Compliance
 
 | File | Description |
 |---|---|
-| [`security/SECURITY.md`](security/SECURITY.md) | Security policy — supported versions, vulnerability reporting (178 lines) |
-| [`security/SECURITY_AUDIT_REPORT.md`](security/SECURITY_AUDIT_REPORT.md) | Security audit report (Dec 24, 2025) — findings, testing infrastructure (686 lines) |
-| [`security/CSRF_PROTECTION.md`](security/CSRF_PROTECTION.md) | CSRF analysis — conclusion: **NOT NEEDED** for this API (151 lines) |
-| [`security/DATABASE_AUDIT_LOGGING.md`](security/DATABASE_AUDIT_LOGGING.md) | Audit logging setup — **CRITICAL**: must enable before production (422 lines) |
+| [`security/SECURITY.md`](security/SECURITY.md) | Security vulnerability disclosure policy and supported versions |
+| [`security/SECURITY_AUDIT_REPORT.md`](security/SECURITY_AUDIT_REPORT.md) | Formal security audit findings, CVE analysis, and remediation logs |
+| [`security/CSRF_PROTECTION.md`](security/CSRF_PROTECTION.md) | Token authentication and CSRF threat analysis |
+| [`security/DATABASE_AUDIT_LOGGING.md`](security/DATABASE_AUDIT_LOGGING.md) | PostgreSQL audit logging (pgaudit) configuration and security rules |
+| [`compliance/PROCEDENCIA.md`](compliance/PROCEDENCIA.md) | Data provenance, licensing compliance, and official data source citations |
+| [`compliance/DPIA_RIPD.md`](compliance/DPIA_RIPD.md) | Data Protection Impact Assessment (DPIA / RIPD - LGPD) |
+| [`compliance/ROPA.md`](compliance/ROPA.md) | Record of Processing Activities (ROPA - LGPD Article 37) |
+| [`compliance/INTERNAL_AUTH_LGPD.md`](compliance/INTERNAL_AUTH_LGPD.md) | LGPD compliance evaluation for internal user authentication |
 
 ---
 
-## 9. SQL Scripts
+## 9. Manuscripts & Scientific Publications
 
 | File | Description |
 |---|---|
-| [`sql/REMOVE_ECONOMIC_TABLES.sql`](sql/REMOVE_ECONOMIC_TABLES.sql) | Remove economic simulation tables from database |
-| [`sql/sql_insert_literature_references.sql`](sql/sql_insert_literature_references.sql) | Insert literature references for feedstock factors |
-| [`sql/sql_sync_factors_to_database.sql`](sql/sql_sync_factors_to_database.sql) | Sync feedstock factors to database |
+| [`manuscrito/PILAR-2b_CEUS_2026-04.md`](manuscrito/PILAR-2b_CEUS_2026-04.md) | Complete scientific manuscript draft submitted for journal publication |
+| [`manuscrito/FOSS4G_2026.md`](manuscrito/FOSS4G_2026.md) | FOSS4G 2026 conference paper abstract and presentation outline |
 
 ---
 
-## 10. Backend READMEs
-
-These remain in their respective directories for context:
+## 10. Audits & Consistency Records
 
 | File | Description |
 |---|---|
-| `backend/data/README.md` | Geospatial data directory — shapefiles, rasters (104 lines) |
-| `backend/data/shapefiles/brazil/README.md` | Brazil intermediary regions shapefile — 133 regions (224 lines) |
-| `backend/migrations/README.md` | Migrations directory overview (146 lines) |
-| `backend/app/migrations/README.md` | V2 to V3 migration guide — schema migration history (355 lines) |
-| `backend/scripts/archive/README.md` | Archived scripts — kept for reference (85 lines) |
+| [`auditorias/README.md`](auditorias/README.md) | Canonical consistency audits index and audit trail documentation |
+| [`auditorias/2026-07-consistencia-canonica/README.md`](auditorias/2026-07-consistencia-canonica/README.md) | July 2026 canonical consistency audit campaign documentation |
 
 ---
 
-## Summary by Category
+## 11. SQL Scripts & Database Seeds
 
-| Category | Files | Key Docs |
-|---|---|---|
-| **Project Root** | 4 | `README.md`, `CHANGELOG.md`, `CONTRIBUTING.md` |
-| **API Reference** | 1 | `api/API_DOCUMENTATION.md` |
-| **Architecture** | 8 | `architecture/DEVELOPMENT_STRATEGY.md`, `architecture/BIOROUTE_COMPREHENSIVE_ANALYSIS.md` |
-| **QA & Testing** | 5 | `qa/TESTING.md`, `qa/QA_GUIDE_LUCAS.md` |
-| **Security** | 5 | `security/SECURITY_AUDIT_REPORT.md`, `security/SECURITY.md` |
-| **Deployment** | 5 | `deployment/DEPLOYMENT_GUIDE.md`, `deployment/DEPLOYMENT_CHECKLIST.md` |
-| **Data / Methodology** | 6 | `data/FDE_METHODOLOGY.md`, `data/FEEDSTOCK_FACTORS_LITERATURE_TABLE.md` |
-| **Planning** | 2 | `planning/IMPROVEMENT_ROADMAP.md`, `planning/DEVELOPMENT_ROADMAP_APR_AUG_2026.md` |
-| **SQL Scripts** | 3 | `sql/REMOVE_ECONOMIC_TABLES.sql` |
-| **Backend READMEs** | 5 | `backend/migrations/README.md` |
-| **Total** | **~48** | |
+| File | Description |
+|---|---|
+| [`sql/sql_sync_factors_to_database.sql`](sql/sql_sync_factors_to_database.sql) | SQL seed script for syncing feedstock availability factors into PostgreSQL |
+| [`sql/sql_insert_literature_references.sql`](sql/sql_insert_literature_references.sql) | SQL seed script for populating bibliographic references and DOIs |
+| [`sql/audit_and_fix_reference_urls.sql`](sql/audit_and_fix_reference_urls.sql) | SQL maintenance script for repairing reference URL links |
+| [`sql/REMOVE_ECONOMIC_TABLES.sql`](sql/REMOVE_ECONOMIC_TABLES.sql) | SQL cleanup script for deprecated economic tables |
+
+---
+
+## 12. Datasets & Baseline Artefacts
+
+Located at `docs/data/datasets/`:
+
+| File | Description |
+|---|---|
+| [`data/datasets/METADATA.json`](data/datasets/METADATA.json) | Data lineage catalog for all imported upstream datasets |
+| [`data/datasets/baseline_2026-07-25.json`](data/datasets/baseline_2026-07-25.json) | Canonical state baseline snapshot (July 2026) |
+| [`data/datasets/canonical_results.json`](data/datasets/canonical_results.json) | Full canonical calculation output dataset for SP municipalities |
+| [`data/datasets/biogas_canonical_state_summary.csv`](data/datasets/biogas_canonical_state_summary.csv) | State-wide biogas potential summary CSV |
+| [`data/datasets/municipality_biomass_tons.csv`](data/datasets/municipality_biomass_tons.csv) | Municipal biomass tonnage matrix for São Paulo State |
+| [`data/datasets/validator_exclusions.json`](data/datasets/validator_exclusions.json) | Validator exclusion definitions and outlier rule overrides |

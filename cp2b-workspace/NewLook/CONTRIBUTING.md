@@ -438,7 +438,7 @@ WIP
 - [Project README](./README.md)
 - [Architecture Documentation](./STRUCTURE.md)
 - [API Documentation](https://cp2b.unicamp.br/pilar2b/api/docs)
-- [Deployment Guide](./docs/VM_UPDATE_GUIDE.md)
+- [Deployment Guide](./docs/deployment/VM_UPDATE_GUIDE.md)
 
 ---
 
