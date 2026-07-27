@@ -39,7 +39,7 @@ export const BIOMASS_RESIDUES: Record<ResidueType, ResidueConfig> = {
   poultry: { label: 'Aves', sector: 'livestock', biomassField: 'poultry_biomass_tons_year' },
   aquaculture: { label: 'Aquicultura', sector: 'livestock', biomassField: 'aquaculture_biomass_tons_year' },
   rsu: { label: 'RSU', sector: 'urban', biomassField: 'rsu_biomass_tons_year' },
-  rpo: { label: 'RPO', sector: 'urban', biomassField: 'rpo_biomass_tons_year' },
+  rpo: { label: 'Poda urbana', sector: 'urban', biomassField: 'rpo_biomass_tons_year' },
 };
 
 export const RESIDUES_BY_SECTOR: Record<Exclude<BiomassType, 'total'>, ResidueType[]> = {

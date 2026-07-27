@@ -192,7 +192,7 @@ export default function MunicipalityPage() {
     { name: 'Aves', value: p.poultry_biogas_m3_year || 0 },
     { name: 'Aquicult.', value: p.aquaculture_biogas_m3_year || 0 },
     { name: 'RSU', value: p.rsu_biogas_m3_year || 0 },
-    { name: 'RPO', value: p.rpo_biogas_m3_year || 0 },
+    { name: tMap('residues.rpo'), value: p.rpo_biogas_m3_year || 0 },
   ].filter((d) => d.value > 0).sort((a, b) => b.value - a.value)
 
   const density =
@@ -408,7 +408,7 @@ export default function MunicipalityPage() {
               Resíduos Urbanos
             </h2>
             <ResidueRow label="RSU (Resíduos Sólidos)" value={p.rsu_biogas_m3_year || 0} />
-            <ResidueRow label="RPO (Resíduos Orgânicos)" value={p.rpo_biogas_m3_year || 0} />
+            <ResidueRow label={t('municipality.residue_rpo')} value={p.rpo_biogas_m3_year || 0} />
             <div className="mt-3 pt-2 border-t border-gray-100 dark:border-slate-700">
               <div className="flex justify-between text-xs font-bold text-blue-700 dark:text-blue-400">
                 <span>Subtotal Urbano</span>

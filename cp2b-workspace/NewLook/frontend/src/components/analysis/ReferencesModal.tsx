@@ -127,7 +127,7 @@ const REFERENCES: ReferenceCategory[] = [
         description: 'Diagnóstico dos Resíduos Sólidos Urbanos - Relatório de Pesquisa'
       },
       {
-        residue: 'Lodo de ETE',
+        residue: 'Poda urbana',
         authors: 'SNIS',
         year: 2023,
         url: 'https://www.gov.br/cidades/pt-br/acesso-a-informacao/acoes-e-programas/saneamento/snis',

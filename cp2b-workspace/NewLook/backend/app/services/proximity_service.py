@@ -357,7 +357,7 @@ class ProximityService:
                 },
                 "by_residue": {
                     "RSU (Resíduos Sólidos Urbanos)": _sum("rsu_biogas_m3_year"),
-                    "RPO (Resíduos Orgânicos)": _sum("rpo_biogas_m3_year"),
+                    "Poda urbana": _sum("rpo_biogas_m3_year"),
                     "Cana-de-açúcar": _sum("sugarcane_biogas_m3_year"),
                     "Soja": _sum("soybean_biogas_m3_year"),
                     "Milho": _sum("corn_biogas_m3_year"),

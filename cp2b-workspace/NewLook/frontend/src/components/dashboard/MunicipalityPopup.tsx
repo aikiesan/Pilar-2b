@@ -23,6 +23,7 @@ import { getMetricSpec, formatCompact } from '@/lib/mapMetrics';
 import type { ResidueType } from '@/components/map/FloatingControlPanel';
 import type { DisplayMetric } from '@/types/geospatial';
 import type { MapScenarioKey } from '@/data/scenarioFactors';
+import { useTranslations } from 'next-intl';
 
 interface MunicipalityPopupProps {
   properties: MunicipalityProperties;
@@ -64,6 +65,7 @@ function MunicipalityPopup({
   metric = 'biomass_tons',
   scenario = 'baseline',
 }: MunicipalityPopupProps) {
+  const t = useTranslations('Map');
   // Defensive checks for required properties
   if (!properties || !properties.name) {
     return (
@@ -223,7 +225,10 @@ function MunicipalityPopup({
 
             return (
               <div key={residue} className={`px-2 py-0.5 border rounded text-[9px] ${residuePillClass[residue]}`}>
-                <span className="font-medium">{BIOMASS_RESIDUES[residue].label}:</span> {formatTonsShort(value)}
+                <span className="font-medium">
+                  {residue === 'rpo' ? t('residues.rpo') : BIOMASS_RESIDUES[residue].label}:
+                </span>{' '}
+                {formatTonsShort(value)}
               </div>
             );
           })}

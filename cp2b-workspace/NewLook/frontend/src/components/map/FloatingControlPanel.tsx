@@ -7,6 +7,7 @@
 
 import React, { useState } from 'react';
 import { ChevronDown, ChevronUp, Search, Layers, Minus, Plus } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 export type BiomassType = 'total' | 'agricultural' | 'livestock' | 'urban';
 
@@ -45,6 +46,7 @@ export default function FloatingControlPanel({
   selectedResidues = [],
   onResiduesChange
 }: FloatingControlPanelProps) {
+  const t = useTranslations('Map');
   const [isMinimized, setIsMinimized] = useState(false);
   const [showLayers, setShowLayers] = useState(false);
   const [showResidues, setShowResidues] = useState(false);
@@ -68,7 +70,7 @@ export default function FloatingControlPanel({
     { value: 'poultry', label: 'Aves', category: 'livestock', icon: '🐔' },
     { value: 'aquaculture', label: 'Aquicultura', category: 'livestock', icon: '🐟' },
     { value: 'rsu', label: 'RSU', category: 'urban', icon: '🗑️' },
-    { value: 'rpo', label: 'RPO', category: 'urban', icon: '♻️' },
+    { value: 'rpo', label: t('residues.rpo'), category: 'urban', icon: '♻️' },
   ] as const;
 
   const handleResidueToggle = (residue: ResidueType) => {

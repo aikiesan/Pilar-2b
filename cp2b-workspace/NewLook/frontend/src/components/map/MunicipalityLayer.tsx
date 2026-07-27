@@ -18,6 +18,7 @@ import type { MapValue } from '@/lib/mapValues';
 import { getMetricSpec, getMetricColor } from '@/lib/mapMetrics';
 import { useCvdPalette } from '@/hooks/useCvdPalette';
 import type { MapScenarioKey } from '@/data/scenarioFactors';
+import { useTranslations } from 'next-intl';
 
 interface MunicipalityLayerProps {
   data: MunicipalityCollection;
@@ -71,6 +72,7 @@ export default function MunicipalityLayer({
   onMunicipalityClick,
   onMunicipalityHover,
 }: MunicipalityLayerProps) {
+  const t = useTranslations('Map');
   const metricSpec = getMetricSpec(displayMetric);
   // Selected CVD palette (only used when `daltonic` is on). Reading it here means
   // changing the palette in the legend restyles the choropleth reactively.
@@ -154,7 +156,7 @@ export default function MunicipalityLayer({
         poultry: 'Aves',
         aquaculture: 'Aquicultura',
         rsu: 'RSU',
-        rpo: 'RPO'
+        rpo: t('residues.rpo')
       };
 
       if (selectedResidues.length === 1) {

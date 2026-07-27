@@ -297,7 +297,7 @@
       "poultry": "Poultry",
       "aquaculture": "Aquaculture",
       "rsu": "MSW",
-      "rpo": "POW"
+      "rpo": "Urban pruning waste"
     },
     "categories": {
       "agricultural": "Agricultural",
@@ -643,7 +643,7 @@
       "subtotal_livestock": "Livestock Subtotal",
       "residue_urban": "Urban Residues",
       "residue_rsu": "MSW (Municipal Solid Waste)",
-      "residue_rpo": "POW (Putrescible Organic Waste)",
+      "residue_rpo": "Urban pruning waste (green waste)",
       "subtotal_urban": "Urban Subtotal",
       "print_header": "PILAR-2b BiogasAtlas · NIPE-UNICAMP · FAPESP 2025/08745-2",
       "print_title": "Biogas Profile"

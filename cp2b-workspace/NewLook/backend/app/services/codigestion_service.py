@@ -49,7 +49,7 @@ RESIDUE_META = {
     "poultry": {"label": "Cama de Aviário", "sector": "livestock", "codigo": "cama_aviario"},
     "aquaculture": {"label": "Resíduo Aquicultura", "sector": "livestock", "codigo": None},
     "rsu": {"label": "FORSU (RSU Orgânico)", "sector": "urban", "codigo": "forsu_ur_rsu"},
-    "rpo": {"label": "Lodo de ETE", "sector": "urban", "codigo": "lodo_primario_ete"},
+    "rpo": {"label": "Poda urbana", "sector": "urban", "codigo": "lodo_primario_ete"},
 }
 
 RESIDUE_KEYS = list(RESIDUE_META.keys())

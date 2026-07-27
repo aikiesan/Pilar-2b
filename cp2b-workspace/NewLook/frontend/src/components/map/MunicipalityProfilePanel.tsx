@@ -28,6 +28,7 @@ import { getSectorMetricValue, getResidueTonsOrNull } from '@/lib/mapValues';
 import { useMunicipalityMetrics } from '@/hooks/useGeospatialData';
 import { getMetricSpec, formatCompact } from '@/lib/mapMetrics';
 import type { ResidueType } from '@/components/map/FloatingControlPanel';
+import { useTranslations } from 'next-intl';
 
 interface MunicipalityProfilePanelProps {
   municipality: MunicipalityFeature | null;
@@ -45,6 +46,7 @@ export default function MunicipalityProfilePanel({
   metric = 'biomass_tons',
   scenario = 'baseline',
 }: MunicipalityProfilePanelProps) {
+  const t = useTranslations('Map');
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
     new Set(['overview', 'biomass'])
   );
@@ -377,7 +379,7 @@ export default function MunicipalityProfilePanel({
           >
             <div className="space-y-2">
               <DetailRow label="RSU (Resíduos Sólidos)" value={formatResidue(props, 'rsu')} />
-              <DetailRow label="RPO (Resíduos Orgânicos)" value={formatResidue(props, 'rpo')} />
+              <DetailRow label={t('residues.rpo')} value={formatResidue(props, 'rpo')} />
             </div>
           </Section>
 

@@ -9,6 +9,7 @@ import React, { useState } from 'react';
 import { ChevronDown, ChevronUp, Search, Minus, Plus } from 'lucide-react';
 import type { ResidueType, BiomassType } from './FloatingControlPanel';
 import type { DisplayMetric, ResidueCNMatrix } from '@/types/geospatial';
+import { useTranslations } from 'next-intl';
 
 export type VisualizationMode = 'choropleth' | 'heatmap' | 'bubble' | 'clusters';
 
@@ -39,6 +40,7 @@ export default function LeftFilterPanel({
   onDisplayMetricChange,
   cnMatrix,
 }: LeftFilterPanelProps) {
+  const t = useTranslations('Map');
   const [isMinimized, setIsMinimized] = useState(true);
   const [showResidues, setShowResidues] = useState(false);
   const [showVisualization, setShowVisualization] = useState(false);
@@ -55,7 +57,7 @@ export default function LeftFilterPanel({
     { value: 'poultry', label: 'Aves', category: 'livestock', icon: '🐔' },
     { value: 'aquaculture', label: 'Aquicultura', category: 'livestock', icon: '🐟' },
     { value: 'rsu', label: 'RSU', category: 'urban', icon: '🗑️' },
-    { value: 'rpo', label: 'RPO', category: 'urban', icon: '♻️' },
+    { value: 'rpo', label: t('residues.rpo'), category: 'urban', icon: '♻️' },
   ] as const;
 
   const biomassOptions = [

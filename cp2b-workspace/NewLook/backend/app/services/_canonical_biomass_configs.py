@@ -25,6 +25,7 @@ RESIDUE_BIOMASS_CONFIGS_CANONICAL: tuple[ResidueBiomassConfig, ...] = (
     ResidueBiomassConfig("swine", "livestock", "swine_biomass_tons_year", "swine_biogas_m3_year", 245.0, 2.4),
     # FORSU — Fração Orgânica dos Resíduos Sólidos Urbanos separada na fonte — https://doi.org/10.1016/j.biortech.2014.03.077
     ResidueBiomassConfig("rsu", "urban", "rsu_biomass_tons_year", "rsu_biogas_m3_year", 360.0, 25.99),
-    # Lodo primário de ETE — https://doi.org/10.1016/j.wasman.2019.04.025
+    # LEGADO — associação rpo/lodo anterior à decisão B-URG-4c.
+    # Não importar/publicar este registro; rpo representa PODA_URBANA.
     ResidueBiomassConfig("rpo", "urban", "rpo_biomass_tons_year", "rpo_biogas_m3_year", 310.0, 10.2),
 )

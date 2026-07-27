@@ -297,7 +297,7 @@
       "poultry": "Aves",
       "aquaculture": "Aquicultura",
       "rsu": "RSU",
-      "rpo": "RPO"
+      "rpo": "Poda urbana"
     },
     "categories": {
       "agricultural": "Agrícola",
@@ -643,7 +643,7 @@
       "subtotal_livestock": "Subtotal Pecuária",
       "residue_urban": "Resíduos Urbanos",
       "residue_rsu": "RSU (Resíduos Sólidos Urbanos)",
-      "residue_rpo": "RPO (Resíduos Putrescíveis Orgânicos)",
+      "residue_rpo": "Poda urbana (resíduo verde)",
       "subtotal_urban": "Subtotal Urbano",
       "print_header": "PILAR-2b BiogasAtlas · NIPE-UNICAMP · FAPESP 2025/08745-2",
       "print_title": "Perfil de Biogás"

@@ -575,7 +575,7 @@ async def get_residue_config():
                         "label": "RSU (Resíduos Sólidos)",
                         "column": "rsu_biogas_m3_year",
                     },
-                    {"key": "rpo", "label": "Resíduos Orgânicos", "column": "rpo_biogas_m3_year"},
+                    {"key": "rpo", "label": "Poda urbana", "column": "rpo_biogas_m3_year"},
                 ],
             },
         }
