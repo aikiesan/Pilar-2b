@@ -8,8 +8,37 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, HTTPException, Query
 
 from app.core.database import get_db
+from app.services.map_metrics import (
+    SECTOR_STREAMS,
+    compute_published_municipality_metrics,
+    load_activity_counts,
+)
 
 router = APIRouter()
+
+
+def _canonical_stream_key(stream: Optional[str]) -> Optional[str]:
+    """Translate legacy 2023 stream names without reading their persisted values."""
+    return {"rsu_organic": "rsu", "rpo_pruning": "rpo"}.get(stream or "", stream)
+
+
+def _load_canonical_municipalities() -> list[tuple[dict[str, Any], Any]]:
+    """Load rows, then run the same request-time canonical route as the main map."""
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM municipalities")
+        rows = [dict(row) for row in cursor.fetchall()]
+        activity = load_activity_counts(cursor, [str(row["ibge_code"]) for row in rows])
+        cursor.close()
+    return [
+        (
+            row,
+            compute_published_municipality_metrics(
+                row, activity=activity.get(str(row["ibge_code"]), {})
+            ),
+        )
+        for row in rows
+    ]
 
 
 class ResidueCategory(str, Enum):
@@ -47,8 +76,8 @@ RESIDUE_COLUMNS = {
     },
 }
 
-# Maps frontend residue codes (from residueFactors.ts) → residue_streams_sp2023.residue_stream
-# None = residue exists in frontend but has no DB stream (not yet in residue_streams_sp2023)
+# Legacy name aliases only. Public values are never read from residue_streams_sp2023
+# after DEC-020; the names are normalized to map_metrics stream keys.
 FRONTEND_CODE_TO_STREAM: Dict[str, Optional[str]] = {
     # Agricultural — Cana (4 sub-residues all map to the sugarcane stream)
     "AG_CANA_BAGACO": "sugarcane",
@@ -83,8 +112,7 @@ FRONTEND_CODE_TO_STREAM: Dict[str, Optional[str]] = {
     "IND_RESIDUO_PROCESSAMENTO_VEGETAL": None,
 }
 
-# Maps frontend residue codes (from residueFactors.ts) → residue_streams_sp2023.residue_stream
-# None = residue exists in frontend but has no DB stream (not yet in residue_streams_sp2023)
+# Duplicate legacy alias block retained for compatibility; not a value-source map.
 FRONTEND_CODE_TO_STREAM: Dict[str, Optional[str]] = {
     # Agricultural — Cana (4 sub-residues all map to the sugarcane stream)
     "AG_CANA_BAGACO": "sugarcane",
@@ -190,6 +218,13 @@ async def get_analysis_by_residue(
     limit: int = Query(default=20, le=100),
     min_value: float = Query(default=0),
 ):
+    # DEC-020: this older ranked-list implementation still contains two legacy
+    # reads below. Suppress it until it is migrated to the canonical row helper.
+    raise HTTPException(
+        status_code=503,
+        detail="Residue ranking temporarily unavailable during methodological review (DEC-020).",
+    )
+
     # Detect if caller passed frontend codes (AG_CANA_BAGACO style) vs legacy stream
     # keys (sugarcane)
     use_streams = bool(residue_types and any(rt in FRONTEND_CODE_TO_STREAM for rt in residue_types))
@@ -333,57 +368,41 @@ async def get_analysis_by_residue(
 
 @router.get("/statistics/by-category")
 async def get_statistics_by_category():
-    """Return total biogas potential per sector from residue_streams_sp2023 (authoritative
-    source)."""
+    """Return request-time canonical biogas totals per sector (DEC-020)."""
     try:
-        with get_db() as conn:
-            cursor = conn.cursor()
-            cursor.execute("""
-                SELECT
-                    sector,
-                    COALESCE(SUM(biogas_m3_yr), 0) AS total,
-                    COUNT(DISTINCT ibge_code)       AS n_municipalities
-                FROM residue_streams_sp2023
-                GROUP BY sector
-            """)
-            sector_rows = cursor.fetchall()
-            cursor.execute("SELECT COUNT(*) AS n FROM municipalities")
-            n_total = int(cursor.fetchone()["n"] or 0)
-            cursor.close()
-
-        # forestry is stored as its own sector in DB but belongs to the industrial
-        # category in the frontend
-        SECTOR_TO_CATEGORY = {
-            "agricultural": "agricultural",
-            "livestock": "livestock",
-            "urban": "urban",
-            "industrial": "industrial",
-            "forestry": "industrial",
-        }
+        canonical_rows = _load_canonical_municipalities()
         categories: Dict[str, Any] = {}
-        grand_total = 0.0
-        for row in sector_rows:
-            sector = (row["sector"] or "").lower()
-            key = SECTOR_TO_CATEGORY.get(sector, sector)
-            val = float(row["total"] or 0)
-            categories[key] = {
-                "total": round(val, 2),
-                "average": 0,
-                "min": 0,
-                "max": 0,
-                "count": int(row["n_municipalities"] or 0),
+        for sector in SECTOR_STREAMS:
+            values = []
+            for _, metrics in canonical_rows:
+                value = sum(
+                    metrics.streams[stream].biogas_m3["medio"]
+                    for stream in SECTOR_STREAMS[sector]
+                    if stream in metrics.streams
+                )
+                values.append(value)
+            categories[sector] = {
+                "total": round(sum(values), 2),
+                "average": round(sum(values) / len(values), 2) if values else 0,
+                "min": round(min(values), 2) if values else 0,
+                "max": round(max(values), 2) if values else 0,
+                "count": len(values),
             }
-            grand_total += val
 
+        totals = [metrics.biogas_total["medio"] for _, metrics in canonical_rows]
         categories["total"] = {
-            "total": round(grand_total, 2),
-            "average": 0,
-            "min": 0,
-            "max": 0,
-            "count": n_total,
+            "total": round(sum(totals), 2),
+            "average": round(sum(totals) / len(totals), 2) if totals else 0,
+            "min": round(min(totals), 2) if totals else 0,
+            "max": round(max(totals), 2) if totals else 0,
+            "count": len(totals),
         }
 
-        return {"categories": categories, "total_municipalities": n_total}
+        return {
+            "categories": categories,
+            "total_municipalities": len(canonical_rows),
+            "source": "map_metrics.py + canonical_loader.py (DEC-020)",
+        }
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching category statistics: {str(e)}")
@@ -393,11 +412,10 @@ async def get_statistics_by_category():
 async def get_statistics_by_stream(
     residue_codes: List[str] = Query(...),
 ):
-    """Return total biogas potential from residue_streams_sp2023 for a set of frontend
-    residue codes."""
+    """Return canonical biogas potential for a set of frontend residue codes."""
     streams = list(
         {
-            FRONTEND_CODE_TO_STREAM[code]
+            _canonical_stream_key(FRONTEND_CODE_TO_STREAM[code])
             for code in residue_codes
             if code in FRONTEND_CODE_TO_STREAM and FRONTEND_CODE_TO_STREAM[code] is not None
         }
@@ -411,29 +429,37 @@ async def get_statistics_by_stream(
             "note": "No DB stream mapping for requested codes",
         }
 
-    placeholders = ", ".join("%s" for _ in streams)
     try:
-        with get_db() as conn:
-            cursor = conn.cursor()
-            cursor.execute(
-                f"SELECT residue_stream, "
-                f"COALESCE(SUM(biogas_m3_yr), 0) AS total, "
-                f"COALESCE(SUM(residue_tons_yr), 0) AS total_tons "
-                f"FROM residue_streams_sp2023 WHERE residue_stream IN ({placeholders}) "
-                f"GROUP BY residue_stream",
-                streams,
+        canonical_rows = _load_canonical_municipalities()
+        stream_totals = {
+            stream: round(
+                sum(
+                    metrics.streams[stream].biogas_m3["medio"]
+                    for _, metrics in canonical_rows
+                    if stream in metrics.streams
+                ),
+                2,
             )
-            rows = cursor.fetchall()
-            cursor.close()
-
-        stream_totals = {row["residue_stream"]: round(float(row["total"]), 2) for row in rows}
-        stream_tons = {row["residue_stream"]: round(float(row["total_tons"]), 2) for row in rows}
+            for stream in streams
+        }
+        stream_tons = {
+            stream: round(
+                sum(
+                    metrics.streams[stream].biomass_gross
+                    for _, metrics in canonical_rows
+                    if stream in metrics.streams
+                ),
+                2,
+            )
+            for stream in streams
+        }
         grand_total = sum(stream_totals.values())
         return {
             "total": round(grand_total, 2),
             "streams": stream_totals,
             "stream_tons": stream_tons,
             "residue_codes": residue_codes,
+            "source": "map_metrics.py + canonical_loader.py (DEC-020)",
         }
 
     except Exception as e:
@@ -444,6 +470,12 @@ async def get_statistics_by_stream(
 async def get_statistics_by_region(
     category: Optional[ResidueCategory] = Query(default=None),
 ):
+    # DEC-020: do not publish the legacy regional aggregate.
+    raise HTTPException(
+        status_code=503,
+        detail="Regional aggregate temporarily unavailable during methodological review (DEC-020).",
+    )
+
     col = RESIDUE_COLUMNS[category.value]["_total"] if category else "total_biogas_m3_year"
     try:
         with get_db() as conn:
@@ -481,6 +513,12 @@ async def get_distribution(
     category: Optional[ResidueCategory] = Query(default=None),
     bins: int = Query(default=10, ge=5, le=50),
 ):
+    # DEC-020: do not publish the legacy distribution.
+    raise HTTPException(
+        status_code=503,
+        detail="Distribution temporarily unavailable during methodological review (DEC-020).",
+    )
+
     col = RESIDUE_COLUMNS[category.value]["_total"] if category else "total_biogas_m3_year"
     try:
         with get_db() as conn:

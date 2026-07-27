@@ -86,3 +86,12 @@
 - **Escopo:** `feedstock_bmp_from_refs.csv`, os blocos `bmp.corpus` de `feedstocks.yaml` e a Regra R2 de `POLITICA_BMP.md`.
 - **Decisão:** Colocar o CSV agregado em `data/quarantine/` porque não existe script gerador versionado nem linhagem observacional reproduzível. Manter os blocos `bmp.corpus`, marcados com `provenance: "quarantined_unversioned_source"`, exclusivamente como evidência histórica. Suspender R2: nenhuma mediana desse artefato pode criar, ampliar, validar ou reprovar uma banda BMP. Os valores numéricos vigentes permanecem inalterados; eventual reversão ou requalificação será decidida no B1 mediante tabela de delta.
 - **Rastreabilidade:** `docs/data/B-Q1_QUARENTENA_CORPUS_2026-07-28.md`, `data/quarantine/README.md` e A8b §§5 e 8.
+
+---
+
+### [DEC-020] Métricas canônicas em tempo de consulta nas superfícies públicas
+- **Data:** 2026-07-29 (ADVENTURE B / B-URG-4c, item 3)
+- **Status:** Ativo
+- **Escopo:** Export do mapa, comparador, card municipal, proximidade e agregações da análise avançada.
+- **Decisão:** Campos públicos de biogás com nomes de compatibilidade (`*_biogas_m3_year`) passam a ser produzidos em tempo de consulta por `map_metrics.py` e `canonical_loader.py`, pela mesma rota do mapa principal. As colunas homônimas de `municipalities` e a tabela `residue_streams_sp2023` são snapshots legados e não constituem fonte de valor publicado. O script `sync_db_canonical.py`, que copiava o snapshot 2023 para as colunas municipais, fica bloqueado contra execução.
+- **Rastreabilidade:** `docs/data/B-URG-4c_SUPERFICIES_FINAL_2026-07-29.md`.

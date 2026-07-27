@@ -15,6 +15,11 @@ import pyproj
 from shapely.geometry import Point
 from shapely.ops import transform
 
+from app.services.map_metrics import (
+    compute_published_municipality_metrics,
+    load_activity_counts,
+)
+
 logger = logging.getLogger(__name__)
 
 
@@ -325,25 +330,30 @@ class ProximityService:
                 cursor = conn.cursor()
                 placeholders = ", ".join(["%s"] * len(muni_names))
                 query = f"""
-                    SELECT total_biogas_m3_year, energy_potential_mwh_year, co2_reduction_tons_year,
-                    urban_biogas_m3_year, agricultural_biogas_m3_year, livestock_biogas_m3_year,
-                    rsu_biogas_m3_year, rpo_biogas_m3_year,
-                    sugarcane_biogas_m3_year, soybean_biogas_m3_year, corn_biogas_m3_year,
-                    coffee_biogas_m3_year, citrus_biogas_m3_year,
-                    cattle_biogas_m3_year, swine_biogas_m3_year, poultry_biogas_m3_year,
-                    aquaculture_biogas_m3_year
+                    SELECT *
                     FROM municipalities
                     WHERE municipality_name IN ({placeholders})
                 """
                 cursor.execute(query, muni_names)
                 rows = [dict(r) for r in cursor.fetchall()]
+                activity_by_ibge = load_activity_counts(
+                    cursor, [str(row["ibge_code"]) for row in rows]
+                )
                 cursor.close()
 
             if not rows:
                 return self._empty_biogas_result()
 
+            canonical_rows = [
+                compute_published_municipality_metrics(
+                    row,
+                    activity=activity_by_ibge.get(str(row["ibge_code"]), {}),
+                ).to_published_biogas_dict()
+                for row in rows
+            ]
+
             def _sum(key):
-                return sum(float(r.get(key) or 0) for r in rows)
+                return sum(float(r.get(key) or 0) for r in canonical_rows)
 
             total_energy = _sum("energy_potential_mwh_year")
             homes_powered = int(total_energy * 1000 / (150 * 12)) if total_energy > 0 else 0
@@ -366,7 +376,6 @@ class ProximityService:
                     "Bovinos": _sum("cattle_biogas_m3_year"),
                     "Suínos": _sum("swine_biogas_m3_year"),
                     "Aves": _sum("poultry_biogas_m3_year"),
-                    "Aquicultura": _sum("aquaculture_biogas_m3_year"),
                 },
                 "energy_potential_mwh_year": total_energy,
                 "co2_reduction_tons_year": _sum("co2_reduction_tons_year"),

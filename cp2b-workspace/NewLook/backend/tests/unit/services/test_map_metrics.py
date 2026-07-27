@@ -13,6 +13,7 @@ from app.services.map_metrics import (
     _compute_from_biomass,
     _compute_from_stored_biogas,
     compute_stream_metrics,
+    derive_activity_biomass,
 )
 
 
@@ -180,6 +181,44 @@ class TestMunicipalityMapMetrics:
         assert "sugarcane" in AGRI_STREAMS
         assert "citrus" in AGRI_STREAMS
         assert "cattle" not in AGRI_STREAMS
+
+    def test_compatibility_fields_are_derived_from_canonical_metrics(self):
+        stream = StreamMetrics(
+            stream="rsu",
+            has_biomass=True,
+            biomass_gross=100.0,
+            biomass_corrected={"min": 10.0, "medio": 20.0, "max": 30.0},
+            biogas_m3={"min": 40.0, "medio": 50.0, "max": 60.0},
+            biogas_ch4_m3={"min": 20.0, "medio": 25.0, "max": 30.0},
+            biomethane_m3={"min": 19.4, "medio": 24.25, "max": 29.1},
+        )
+        metrics = MunicipalityMapMetrics(
+            ibge_code="3500105",
+            streams={"rsu": stream},
+            biogas_total={"min": 40.0, "medio": 50.0, "max": 60.0},
+            biogas_ch4_total={"min": 20.0, "medio": 25.0, "max": 30.0},
+        )
+        published = metrics.to_published_biogas_dict()
+        assert published["total_biogas_m3_year"] == 50.0
+        assert published["urban_biogas_m3_year"] == 50.0
+        assert published["rsu_biogas_m3_year"] == 50.0
+        assert "rpo_biogas_m3_year" not in published
+
+
+@pytest.mark.unit
+class TestActivityDerivation:
+    def test_population_drives_both_canonical_urban_streams(self):
+        tons, provenance = derive_activity_biomass(head={}, population=10_000)
+        assert tons["rsu"] > 0
+        assert tons["rpo"] > 0
+        assert provenance == {"rsu": "estimated", "rpo": "estimated"}
+
+    def test_collected_waste_wins_for_rsu_only(self):
+        tons, provenance = derive_activity_biomass(
+            head={}, population=10_000, collected_waste=2_000
+        )
+        assert provenance["rsu"] == "measured"
+        assert provenance["rpo"] == "estimated"
 
 
 @pytest.mark.unit

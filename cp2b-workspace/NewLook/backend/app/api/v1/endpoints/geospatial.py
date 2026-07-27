@@ -17,6 +17,10 @@ from shapely.geometry import Point
 from app.core.database import get_db
 from app.middleware.auth import optional_auth
 from app.models.auth import UserProfile
+from app.services.map_metrics import (
+    compute_published_municipality_metrics,
+    load_activity_counts,
+)
 from app.utils.shapefile_loader import get_shapefile_loader
 
 shapefile_loader = get_shapefile_loader()
@@ -115,7 +119,7 @@ class MunicipalityDetail(BaseModel):
     cattle_biogas_m3_year: float
     swine_biogas_m3_year: float
     poultry_biogas_m3_year: float
-    aquaculture_biogas_m3_year: float
+    aquaculture_biogas_m3_year: Optional[float] = None
     energy_potential_kwh_day: float
     energy_potential_mwh_year: float
     co2_reduction_tons_year: float
@@ -709,11 +713,22 @@ async def get_municipality(municipality_id: int):
             try:
                 cursor.execute("SELECT * FROM municipalities WHERE id = %s", (municipality_id,))
                 row = cursor.fetchone()
+                activity = (
+                    load_activity_counts(cursor, [str(row["ibge_code"])]).get(
+                        str(row["ibge_code"]), {}
+                    )
+                    if row
+                    else {}
+                )
             finally:
                 cursor.close()
 
         if not row:
             raise HTTPException(status_code=404, detail="Municipality not found")
+
+        published = compute_published_municipality_metrics(
+            row, activity=activity
+        ).to_published_biogas_dict()
 
         def _f(key: str) -> float:
             return float(row.get(key) or 0)
@@ -736,25 +751,25 @@ async def get_municipality(municipality_id: int):
             ibge_code=row.get("ibge_code"),
             area_km2=area or None,
             population_density=pop_density,
-            total_biogas_m3_year=_f("total_biogas_m3_year"),
-            total_biogas_m3_day=_f("total_biogas_m3_day"),
-            urban_biogas_m3_year=_f("urban_biogas_m3_year"),
-            agricultural_biogas_m3_year=_f("agricultural_biogas_m3_year"),
-            livestock_biogas_m3_year=_f("livestock_biogas_m3_year"),
-            rsu_biogas_m3_year=_f("rsu_biogas_m3_year"),
-            rpo_biogas_m3_year=_f("rpo_biogas_m3_year"),
-            sugarcane_biogas_m3_year=_f("sugarcane_biogas_m3_year"),
-            soybean_biogas_m3_year=_f("soybean_biogas_m3_year"),
-            corn_biogas_m3_year=_f("corn_biogas_m3_year"),
-            coffee_biogas_m3_year=_f("coffee_biogas_m3_year"),
-            citrus_biogas_m3_year=_f("citrus_biogas_m3_year"),
-            cattle_biogas_m3_year=_f("cattle_biogas_m3_year"),
-            swine_biogas_m3_year=_f("swine_biogas_m3_year"),
-            poultry_biogas_m3_year=_f("poultry_biogas_m3_year"),
-            aquaculture_biogas_m3_year=_f("aquaculture_biogas_m3_year"),
-            energy_potential_kwh_day=_f("energy_potential_kwh_day"),
-            energy_potential_mwh_year=_f("energy_potential_mwh_year"),
-            co2_reduction_tons_year=_f("co2_reduction_tons_year"),
+            total_biogas_m3_year=published["total_biogas_m3_year"],
+            total_biogas_m3_day=published["total_biogas_m3_day"],
+            urban_biogas_m3_year=published["urban_biogas_m3_year"],
+            agricultural_biogas_m3_year=published["agricultural_biogas_m3_year"],
+            livestock_biogas_m3_year=published["livestock_biogas_m3_year"],
+            rsu_biogas_m3_year=published["rsu_biogas_m3_year"],
+            rpo_biogas_m3_year=published["rpo_biogas_m3_year"],
+            sugarcane_biogas_m3_year=published["sugarcane_biogas_m3_year"],
+            soybean_biogas_m3_year=published["soybean_biogas_m3_year"],
+            corn_biogas_m3_year=published["corn_biogas_m3_year"],
+            coffee_biogas_m3_year=published["coffee_biogas_m3_year"],
+            citrus_biogas_m3_year=published["citrus_biogas_m3_year"],
+            cattle_biogas_m3_year=published["cattle_biogas_m3_year"],
+            swine_biogas_m3_year=published["swine_biogas_m3_year"],
+            poultry_biogas_m3_year=published["poultry_biogas_m3_year"],
+            aquaculture_biogas_m3_year=published.get("aquaculture_biogas_m3_year"),
+            energy_potential_kwh_day=published["energy_potential_kwh_day"],
+            energy_potential_mwh_year=published["energy_potential_mwh_year"],
+            co2_reduction_tons_year=published["co2_reduction_tons_year"],
             population=int(pop) if pop is not None else None,
             urban_population=(
                 int(row["urban_population"]) if row.get("urban_population") is not None else None

@@ -1,4 +1,5 @@
--- Migration 012: CP2B 2023 long-format residue streams
+-- Migration 012: LEGACY CP2B 2023 long-format residue streams.
+-- DEC-020: historical/research snapshot only; never a source of published values.
 -- Source: 01_master_residue_streams_SP_2023.csv (5,769 rows)
 -- Run: psql $DATABASE_URL -f migrations/012_cp2b_residue_streams.sql
 
@@ -35,6 +36,9 @@ CREATE TABLE IF NOT EXISTS residue_streams_sp2023 (
     notes                   TEXT,
     created_at              TIMESTAMPTZ DEFAULT NOW()
 );
+
+COMMENT ON TABLE residue_streams_sp2023 IS
+  'LEGACY 2023 snapshot. Historical/research use only; not a source of published values (DEC-020).';
 
 CREATE INDEX IF NOT EXISTS idx_rss_ibge    ON residue_streams_sp2023 (ibge_code);
 CREATE INDEX IF NOT EXISTS idx_rss_stream  ON residue_streams_sp2023 (residue_stream);
