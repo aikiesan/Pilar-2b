@@ -1,7 +1,12 @@
 # Regra única de BMP — especificação para aprovação
 
-**Data:** 2026-07-25 · **Lote:** 1a-quater · **Estado:** ESPECIFICAÇÃO, NÃO APLICADA
+**Data:** 2026-07-25 · **Lote:** 1a-quater · **Estado:** SUSPENSA por DEC-015 / B-Q1
 **`feedstocks.yaml` não foi alterado.** Nenhum valor mudou.
+
+> Este documento preserva a especificação histórica. Não executar sua regra ou
+> seu trecho de verificação enquanto o agregado estiver em quarentena; a decisão
+> normativa vigente está em `POLITICA_BMP.md` §4 e `DECISOES_METODOLOGICAS.md`
+> `[DEC-015]`.
 
 Problema que motiva a regra, apurado no Lote 1a: a revisão de BMP de `24b4095`
 elevou quatro feedstocks e deixou outros quatro inalterados, com o mesmo tipo de
@@ -15,7 +20,7 @@ que separasse os dois grupos**. O commit rotula os não alterados como
 
 ### 1.1 O intervalo interquartil NÃO É DERIVÁVEL
 
-O corpus versionado é `data/canonical_parameters/feedstock_bmp_from_refs.csv`, com
+O corpus agregado está preservado em `data/quarantine/feedstock_bmp_from_refs.csv`, com
 uma linha por feedstock e cinco campos: `n_bmp_obs`, `bmp_min`, `bmp_median`,
 `bmp_max`, `example_source_url`.
 
@@ -311,7 +316,7 @@ from pathlib import Path
 NL = Path("cp2b-workspace/NewLook")
 fs = yaml.safe_load((NL/"data/canonical_parameters/feedstocks.yaml").read_text())["feedstocks"]
 corpus = {r["feedstock"]: r for r in
-          csv.DictReader((NL/"data/canonical_parameters/feedstock_bmp_from_refs.csv").open(encoding="utf-8-sig"))}
+          csv.DictReader((NL/"data/quarantine/feedstock_bmp_from_refs.csv").open(encoding="utf-8-sig"))}
 for code in sorted(fs):
     b = fs[code].get("bmp"); c = corpus.get(code)
     if not b or not c or int(c["n_bmp_obs"]) < 3: continue

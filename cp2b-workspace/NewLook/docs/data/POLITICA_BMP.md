@@ -1,8 +1,8 @@
 # Política de BMP — ancoragem, base experimental e cobertura de corpus
 
 **Vigência:** a partir de 2026-07-25 · **Lote:** 1e-a
-**Escopo:** os 26 feedstocks de `data/canonical_parameters/feedstocks.yaml`.
-**Estado:** política declarada. A regra R2 da §4 aguarda aplicação no Lote 2.
+**Escopo:** os 28 feedstocks de `data/canonical_parameters/feedstocks.yaml`.
+**Estado:** política declarada. A regra R2 da §4 está suspensa desde o B-Q1.
 
 Este documento existe porque a política **já era praticada e nunca havia sido
 escrita**. A ausência de um critério declarado permitiu, em 2026-06-12, que quatro
@@ -73,9 +73,9 @@ aplica.
 
 | Regime | Condição | Verificação aplicável | Feedstocks |
 |---|---|---|---:|
-| `sufficient` | tem entrada no corpus **e** `n ≥ 3` | **R2** (§4), automática em CI | **11** |
+| `sufficient` | tem entrada no corpus **e** `n ≥ 3` | **R2 suspensa** (§4); não aplicar em CI | **11** |
 | `insufficient` | tem entrada no corpus, `n = 1` ou `2` | R2 não se aplica — uma "mediana" de uma ou duas observações não é mediana. Exige ≥ 2 referências primárias | **6** |
-| `none` | sem entrada no corpus | R2 não se aplica. Exige ≥ 2 referências primárias e figura nas limitações do manuscrito | **9** |
+| `none` | sem entrada no corpus | R2 não se aplica. Exige ≥ 2 referências primárias e figura nas limitações do manuscrito | **11** |
 
 `sufficient` (11): `BAGACO`, `BAGACO_CITROS`, `CASCA_MILHO`, `DEJETOS_SUINO`,
 `FORSU`, `LODO_PRIMARIO`, `LODO_SECUNDARIO`, `PALHA`, `PALHA_MILHO`,
@@ -84,7 +84,8 @@ aplica.
 `insufficient` (6): `CAMA_AVIARIO` (n=1), `CASCAS_CITROS` (n=1), `POLPA_CAFE` (n=1),
 `CASCA_CAFE` (n=2), `DEJETOS_AVES` (n=2), `GORDURA` (n=2).
 
-`none` (9): `CASCA_SOJA`, `DEJETOS_BOVINO`, `ESTERCO_BOVINO`, `ESTERCO_SUINO`,
+`none` (11): `CASCA_SOJA`, `DEJETOS_BOVINO`, `ESTERCO_BOVINO`,
+`ESTERCO_BOVINO_CORTE`, `ESTERCO_BOVINO_LEITEIRO`, `ESTERCO_SUINO`,
 `MUCILAGEM_CAFE`, `ORGANICO_RSU`, `PALHA_SOJA`, `PODA_URBANA`, `SANGUE`.
 
 > **Dois dos `none` entram no total estadual:** `PALHA_SOJA` e `ESTERCO_BOVINO`.
@@ -97,6 +98,20 @@ tal em `REGRA_BMP_ESPECIFICACAO_2026-07-25.md` §6.
 ---
 
 ## 4. R2 — a regra única
+
+> **SUSPENSA — ADVENTURE B / B-Q1, 2026-07-28.**
+>
+> O agregado que fornece `n` e `median`, agora preservado em
+> `data/quarantine/feedstock_bmp_from_refs.csv`, não possui script gerador
+> versionado nem linhagem das observações declaradas. Os 28 blocos
+> `bmp.corpus` estão marcados como
+> `provenance: "quarantined_unversioned_source"`. Até que a proveniência seja
+> reconstruída, R2 não pode criar, ampliar, validar ou reprovar bandas BMP.
+>
+> A suspensão não reverte os quatro `bmp.max` alterados por `c64a64f`:
+> `PALHA=293,5`, `PALHA_MILHO=390`, `CASCA_MILHO=307` e
+> `LODO_SECUNDARIO=310`. Reversão ou requalificação pertence ao B1 e exige
+> tabela de delta.
 
 > **A banda declarada tem de conter a mediana do corpus.**
 >
@@ -186,7 +201,7 @@ coincidência temporal é factual e não implica atribuição de causa.
 Apurado no Lote 1e-b e registrado aqui porque afeta o que esta política pode
 afirmar.
 
-`data/canonical_parameters/feedstock_bmp_from_refs.csv` contém uma linha por
+`data/quarantine/feedstock_bmp_from_refs.csv` contém uma linha por
 feedstock — `feedstock`, `n_bmp_obs`, `bmp_min`, `bmp_median`, `bmp_max`,
 `example_source_url` — para 24 feedstocks, declarando **196 observações**.
 
@@ -220,8 +235,9 @@ que R2 lhe atribui.
 2. Declarar `bmp.min` e `bmp.max` como envelope de incerteza, não como extremos
    observados na literatura.
 3. Atribuir `coverage` conforme a §3.
-4. Se `coverage: sufficient`, verificar R2. Se falhar, alargar a banda com
-   justificativa escrita — nunca mover o `medio`.
+4. Enquanto R2 estiver suspensa, não usar `corpus.median` para verificar ou
+   alargar a banda. Após eventual reativação formal, aplicar a regra então
+   vigente com justificativa escrita — nunca mover o `medio`.
 5. Nunca elevar um valor para aproximá-lo de um benchmark externo. Se um benchmark
    e a base divergem, a divergência é resultado, não defeito.
 
@@ -235,4 +251,4 @@ que R2 lhe atribui.
 | `docs/auditorias/2026-07-consistencia-canonica/00_linha-de-base_2026-07-25/BUSCA_OBSERVACOES_BMP_2026-07-25.md` | Onde as 196 observações foram procuradas e não encontradas |
 | `docs/auditorias/2026-07-consistencia-canonica/00_linha-de-base_2026-07-25/AUDITORIA_CIRCULARIDADE_2026-07-25.md` | Parâmetros calibrados × independentes; cronologia de 2026-06-12 |
 | `baseline_2026-07-25.json` | Estado numérico congelado, anterior a qualquer correção |
-| `feedstock_bmp_from_refs.csv` | Corpus agregado — delimitador de faixa, não fonte de valor |
+| `data/quarantine/feedstock_bmp_from_refs.csv` | Corpus agregado em quarentena; uso paramétrico suspenso |

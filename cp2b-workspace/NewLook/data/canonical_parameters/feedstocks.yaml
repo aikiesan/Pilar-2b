@@ -43,6 +43,8 @@
 #
 # BMP CORPUS (bmp.corpus) — regra R2 de docs/data/POLITICA_BMP.md:
 #   coverage: sufficient (n ≥ 3) | insufficient (n = 1..2) | none
+#   provenance: quarantined_unversioned_source marks the aggregate as quarantined
+#   under B-Q1; R2 is suspended and no numeric value may be derived from it.
 #   For `sufficient`, the declared band must contain the corpus median:
 #   bmp.min ≤ corpus.median ≤ bmp.max. The band widens to satisfy it; `bmp.medio`
 #   is never moved by the rule.
@@ -122,6 +124,7 @@ feedstocks:
         n: 6
         median: 191.9
         coverage: sufficient
+        provenance: "quarantined_unversioned_source"
       refs:
         - id: "paulose2021_bagaco"
           value: "187.9 ± 2.4 NmL/gVS untreated mesophilic batch 37 °C ISR=2 (primary reference)"
@@ -193,6 +196,7 @@ feedstocks:
         n: 14
         median: 293.5
         coverage: sufficient
+        provenance: "quarantined_unversioned_source"
       refs:
         - id: "paulose2021_bagaco"
           value: "161.8 NmL/gVS untreated straw/trash mesophilic batch (primary reference)"
@@ -259,6 +263,7 @@ feedstocks:
         n: 7
         median: 180.0
         coverage: sufficient
+        provenance: "quarantined_unversioned_source"
       refs:
         - id: "bonomi2015_vinhaca"
           value: "50–130 NmL/gVS; typical SP vinhaça ~85 NmL/gVS at VS ~1.5% wet"
@@ -312,6 +317,7 @@ feedstocks:
         n: 14
         median: 365.0
         coverage: sufficient
+        provenance: "quarantined_unversioned_source"
       refs:
         - id: "talha2016_bagaco"
           value: "Talha 2016 covers filter mud: 200–380 NmL/gVS (low lignin)"
@@ -382,6 +388,7 @@ feedstocks:
         n: 10
         median: 289.0
         coverage: sufficient
+        provenance: "quarantined_unversioned_source"
       refs:
         - id: "wikandari2014_citrus"
           value: "170–200 NmL/gVS without pretreatment; limonene inhibition at >200 mg/L"
@@ -430,6 +437,7 @@ feedstocks:
         n: 1
         median: 398.0
         coverage: insufficient
+        provenance: "quarantined_unversioned_source"
       refs:
         - id: "wikandari2014_citrus"
           value: "Peel BMP lower than bagasse due to higher limonene concentration"
@@ -513,6 +521,7 @@ feedstocks:
         n: 2
         median: 163.8
         coverage: insufficient
+        provenance: "quarantined_unversioned_source"
       refs:
         - id: "okonkwo2021_coffee"
           value: "Husk BMP 120–180 NmL/gVS; high lignin (27% DM) limits biodegradability"
@@ -558,6 +567,7 @@ feedstocks:
         n: 1
         median: 317.0
         coverage: insufficient
+        provenance: "quarantined_unversioned_source"
       refs:
         - id: "okonkwo2021_coffee"
           value: "Pulp BMP 200–280 NmL/gVS; more soluble organics than husk"
@@ -611,6 +621,7 @@ feedstocks:
         n: 0
         median: null
         coverage: none
+        provenance: "quarantined_unversioned_source"
       refs:
         - id: "okonkwo2021_coffee"
           value: "Mucilage BMP 280–360 NmL/gVS; high soluble sugars and pectin"
@@ -666,6 +677,7 @@ feedstocks:
         n: 0
         median: null
         coverage: none
+        provenance: "quarantined_unversioned_source"
       refs:
         - id: "kafle2016_soy"
           value: "Soybean hull BMP 260–380 NmL/gVS; low lignin, high cellulose"
@@ -736,6 +748,7 @@ feedstocks:
         n: 0
         median: null
         coverage: none
+        provenance: "quarantined_unversioned_source"
       refs:
         - id: "kafle2016_soy"
           value: "Soybean straw BMP 150–250 NmL/gVS; higher lignin than hull"
@@ -818,6 +831,7 @@ feedstocks:
         n: 31
         median: 390.0
         coverage: sufficient
+        provenance: "quarantined_unversioned_source"
       refs:
         - id: "herrmann2012_corn"
           value: "Corn stover BMP 180–300 NmL/gVS; silage enhances to 300"
@@ -864,6 +878,7 @@ feedstocks:
         n: 30
         median: 307.0
         coverage: sufficient
+        provenance: "quarantined_unversioned_source"
       refs:
         - id: "herrmann2012_corn"
           value: "Corn husk BMP 120–170 NmL/gVS; lower than stover due to cellulose/lignin ratio"
@@ -917,6 +932,7 @@ feedstocks:
         n: 1
         median: 300.0
         coverage: insufficient
+        provenance: "quarantined_unversioned_source"
       refs:
         - id: "abouelenien2014_poultry"
           value: "Poultry litter BMP 200–320 NmL/gVS (cama de aviário with sawdust bedding)"
@@ -973,6 +989,7 @@ feedstocks:
         n: 2
         median: 414.0
         coverage: insufficient
+        provenance: "quarantined_unversioned_source"
       refs:
         - id: "abouelenien2014_poultry"
           value: "Fresh droppings BMP 150–340 NmL/gVS (higher than litter; no bedding dilution)"
@@ -1028,6 +1045,7 @@ feedstocks:
         n: 0
         median: null
         coverage: none
+        provenance: "quarantined_unversioned_source"
       refs:
         - id: "amon2007_cattle"
           value: "Cattle solid manure BMP 120–270 NmL/gVS; mesophilic CSTR"
@@ -1117,6 +1135,7 @@ feedstocks:
         n: 0
         median: null
         coverage: none
+        provenance: "quarantined_unversioned_source"
     ts:
       min: 15.0
       medio: 22.0
@@ -1179,6 +1198,7 @@ feedstocks:
         n: 0
         median: null
         coverage: none
+        provenance: "quarantined_unversioned_source"
     ts:
       min: 15.0
       medio: 25.0
@@ -1236,6 +1256,7 @@ feedstocks:
         n: 0
         median: null
         coverage: none
+        provenance: "quarantined_unversioned_source"
       refs:
         - id: "moller2004_manure"
           value: "Cattle slurry BMP 90–220 NmL/gVS; degradation during pre-storage reduces yield"
@@ -1295,6 +1316,7 @@ feedstocks:
         n: 10
         median: 265.0
         coverage: sufficient
+        provenance: "quarantined_unversioned_source"
       refs:
         - id: "moller2004_manure"
           value: "Swine slurry BMP 140–280 NmL/gVS"
@@ -1368,6 +1390,7 @@ feedstocks:
         n: 0
         median: null
         coverage: none
+        provenance: "quarantined_unversioned_source"
       refs:
         - id: "moller2004_manure"
           value: "Swine solid BMP 150–320 NmL/gVS; higher than slurry due to VS concentration"
@@ -1429,6 +1452,7 @@ feedstocks:
         n: 9
         median: 472.0
         coverage: sufficient
+        provenance: "quarantined_unversioned_source"
       refs:
         - id: "mata_alvarez2014_ofmsw"
           value: "Source-separated OFMSW BMP 200–450 NmL/gVS; median ~310"
@@ -1516,6 +1540,7 @@ feedstocks:
         n: 0
         median: null
         coverage: none
+        provenance: "quarantined_unversioned_source"
       refs:
         - id: "mata_alvarez2014_ofmsw"
           value: "Mixed OFMSW (less pure than FORSU): 170–360 NmL/gVS"
@@ -1568,6 +1593,7 @@ feedstocks:
         n: 11
         median: 370.0
         coverage: sufficient
+        provenance: "quarantined_unversioned_source"
       refs:
         - id: "heerenklage2019_sludge"
           value: "Primary sludge BMP 190–440 NmL/gVS; high readily biodegradable VS fraction"
@@ -1630,6 +1656,7 @@ feedstocks:
         n: 8
         median: 310.0
         coverage: sufficient
+        provenance: "quarantined_unversioned_source"
       refs:
         - id: "heerenklage2019_sludge"
           value: "Activated sludge BMP 80–260 NmL/gVS; recalcitrant microbial cell biomass"
@@ -1685,6 +1712,7 @@ feedstocks:
         n: 0
         median: null
         coverage: none
+        provenance: "quarantined_unversioned_source"
       refs:
         - id: "pognani2011_garden"
           value: "Garden/green waste BMP 100–180 NmL/gVS (Bioresource Technology 2011)"
@@ -1755,6 +1783,7 @@ feedstocks:
         n: 2
         median: 859.0
         coverage: insufficient
+        provenance: "quarantined_unversioned_source"
       refs:
         - id: "sheets2015_fats"
           value: "Animal fat BMP 700–1100 NmL/gVS"
@@ -1809,6 +1838,7 @@ feedstocks:
         n: 0
         median: null
         coverage: none
+        provenance: "quarantined_unversioned_source"
       refs:
         - id: "sheets2015_fats"
           value: "Blood BMP 300–600 NmL/gVS; high protein → NH3 inhibition risk"

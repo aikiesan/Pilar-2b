@@ -4,7 +4,7 @@
 **Pipeline:** `backend/scripts/unify_references.py` (deterministic clean + unify + dedupe + flag).
 **Outputs:**
 - `data/canonical_parameters/references_unified.csv` — 367 unique refs
-- `data/canonical_parameters/feedstock_bmp_from_refs.csv` — BMP observations mined from `notes`
+- `data/quarantine/feedstock_bmp_from_refs.csv` — agregado BMP em quarentena; uso paramétrico suspenso
 
 ## Corpus health (367 unique refs)
 | Metric | Value |

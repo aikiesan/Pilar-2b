@@ -76,3 +76,13 @@
 - **Escopo:** Página pública `scientific-database` e componentes de apresentação de parâmetros científicos.
 - **Decisão:** Não exibir uma contagem `n` ao lado do BMP enquanto não existir linhagem por observação que vincule esse número ao valor apresentado. `reference_count` é uma contagem bibliográfica geral por resíduo e só pode ser exibido com rótulo explícito de referências, separado do BMP; não pode ser reinterpretado como número de estudos, ensaios, amostras ou observações. Menções a medianas de corpus em registros metodológicos não autorizam inferir lastro observacional para o valor servido pela API.
 - **Rastreabilidade:** Documentado em `docs/auditorias/2026-07-consistencia-canonica/03_adventure-b_2026-07-28/B-URG-2_ROTULO_NSTUDIES_2026-07-28.md`.
+
+---
+
+### [DEC-015] Quarentena do Corpus BMP Agregado e Suspensão da Regra R2
+- **Data:** 2026-07-28 (ADVENTURE B / B-Q1)
+- **Status:** Ativo
+- **Revisa:** a autoridade atribuída ao corpus em `[DEC-001]`; preserva a decisão anterior como registro histórico.
+- **Escopo:** `feedstock_bmp_from_refs.csv`, os blocos `bmp.corpus` de `feedstocks.yaml` e a Regra R2 de `POLITICA_BMP.md`.
+- **Decisão:** Colocar o CSV agregado em `data/quarantine/` porque não existe script gerador versionado nem linhagem observacional reproduzível. Manter os blocos `bmp.corpus`, marcados com `provenance: "quarantined_unversioned_source"`, exclusivamente como evidência histórica. Suspender R2: nenhuma mediana desse artefato pode criar, ampliar, validar ou reprovar uma banda BMP. Os valores numéricos vigentes permanecem inalterados; eventual reversão ou requalificação será decidida no B1 mediante tabela de delta.
+- **Rastreabilidade:** `docs/data/B-Q1_QUARENTENA_CORPUS_2026-07-28.md`, `data/quarantine/README.md` e A8b §§5 e 8.
