@@ -10,6 +10,7 @@ authors = [
     {name = "CP2B Team", email = "contact@detecta.org"}
 ]
 readme = "README.md"
+license = {text = "GPL-3.0-only"}
 requires-python = ">=3.10"
 classifiers = [
     "Development Status :: 4 - Beta",

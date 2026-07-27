@@ -165,13 +165,13 @@
 
 ---
 
-## D11 — Licença do projeto (ABERTA)
+## D11 — Licença do projeto (RESOLVIDA)
 
-**Problema.** O registro institucional declara GPL-3.0; o repositório e parte da documentação declaram MIT.
+**Problema resolvido.** O registro institucional e o repositório declaram GPL-3.0. A referência anterior a outra licença estava incorreta e foi removida no lote B-URG-3.
 
 **Classificação.** Discrepância jurídica, não editorial. A submissão do manuscrito declara a licença do software descrito, e o registro de propriedade intelectual é o documento vinculante.
 
-**Ação.** Resolver antes da submissão, independentemente do cronograma dos demais lotes. Verificar todas as declarações de licença: arquivo `LICENSE`, cabeçalhos de código, README, texto da interface, metadados do repositório e do conjunto de dados publicado.
+**Ação concluída.** O lote B-URG-3 alinhou o arquivo `LICENSE`, cabeçalhos de código e metadados locais. O conjunto de dados publicado foi verificado sem alteração do registro externo; a divergência encontrada está documentada em `docs/data/B-URG-3_LICENCA_GPL3_2026-07-30.md`.
 
 ---
 

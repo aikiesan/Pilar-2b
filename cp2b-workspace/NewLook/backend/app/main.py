@@ -2,6 +2,21 @@
 PILAR-2b V3 Backend API
 FastAPI application for geospatial biogas potential analysis
 Sprint 4: Performance optimizations, error handling, and production deployment
+
+Copyright (C) 2025-2026 PILAR-2b Contributors
+
+This program is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the Free
+Software Foundation, version 3.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <https://www.gnu.org/licenses/>.
+
+SPDX-License-Identifier: GPL-3.0-only
 """
 
 import logging
