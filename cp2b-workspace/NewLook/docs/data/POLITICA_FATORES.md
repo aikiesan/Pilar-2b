@@ -29,10 +29,30 @@ Nenhum parâmetro pode ser definido por calibração contra alvos estaduais ou p
 - **Regra na Ausência de Fonte**: Declarar como **NÃO PARAMETRIZADO**.
 
 ### 2.3 Fator de Sazonalidade (FS)
-- **Definição**: Fração adimensional $[0{,}0 \text{ a } 1{,}0]$ que reflete a distribuição cronológica da oferta ao longo dos 365 dias do ano.
-- **Insumo Exigido**: Calendário oficial de safra agrícola ou regime cronológico de operação industrial/pecuária.
-- **Unidade**: Adimensional (dias operacionais / 365 dias).
-- **Regra na Ausência de Fonte**: Para atividades contínuas urbanas/pecuárias permanentes, $FS = 1{,}00$. Para safras sem calendário citado, declarar como **NÃO PARAMETRIZADO**.
+- **Definição operacional vigente após B5-FS**: Fração adimensional
+  $[0{,}0 \text{ a } 1{,}0]$ da massa anual que permanece aproveitável após
+  perdas físico-químicas documentadas por degradação durante a estocagem entre
+  geração/colheita e alimentação do digestor. Apesar do nome histórico
+  `fs`, o fator **não representa mais dias de oferta/365 nem janela de safra**.
+- **Por que a definição mudou**: PAM, PPM e SNIS fornecem atividade anual, já
+  integrada ao longo dos 365 dias. Multiplicar essa massa por dias
+  operacionais/365 desconta novamente uma produção que já ocorreu.
+- **Insumo exigido para $FS<1$**: ensaio ou balanço de massa que relacione
+  duração e condição de estocagem à perda de massa seca, sólidos voláteis ou
+  potencial metanogênico do mesmo substrato. A fonte deve sustentar cada limite
+  `min`/`medio`/`max`.
+- **Unidade**: adimensional
+  ($t_{\text{aproveitável após estocagem}}/t_{\text{atividade anual}}$).
+- **Regra na ausência de fonte específica de estocagem**: $FS=1{,}00$ nos três
+  cenários. Calendário de safra, continuidade operacional, feriados, chuva ou
+  número de ciclos por ano não são evidência de perda de massa.
+- **Capacidade de planta**: limite de processamento durante uma janela de safra
+  é uma restrição de dimensionamento, não FS. Deve ser modelado em fator
+  próprio ou, quando fisicamente justificado, em logística; não é transferido
+  automaticamente para FL.
+- **Não sobreposição**: interrupção de coleta/manejo já refletida em FC ou
+  dificuldade de transporte já refletida em FL não pode ser descontada outra
+  vez em FS.
 
 ### 2.4 Fator Logístico (FL)
 - **Definição**: Fração adimensional $[0{,}0 \text{ a } 1{,}0]$ que representa a viabilidade de transporte do resíduo sem perda do balanço energético líquido (EROEI > 1).

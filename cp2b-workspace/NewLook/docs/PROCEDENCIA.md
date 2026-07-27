@@ -1,6 +1,6 @@
 # Procedência dos resultados canônicos
 
-**Estado:** rascunho da seção de métodos · **vigência:** B4-MINIMO
+**Estado:** rascunho da seção de métodos · **vigência:** B5-FS
 
 ## Cadeia de cálculo e publicação
 
@@ -54,8 +54,10 @@ A biomassa mobilizável é calculada, sem fator oculto, por:
 - **FC — coleta:** parcela fisicamente recolhida ou acessível, sustentada por
   prática/setor ou dado medido.
 - **FCo — concorrência:** parcela restante após usos concorrentes documentados.
-- **FS — sazonalidade:** fração temporal de oferta; atividades urbanas ou
-  pecuárias contínuas podem usar 1, desde que a continuidade seja declarada.
+- **FS — retenção após estocagem:** fração da massa anual que permanece
+  aproveitável após perda físico-química documentada entre geração/colheita e
+  digestão. Não representa dias de oferta/365. Sem fonte específica de perda em
+  estocagem, FS=1,00.
 - **FL — logística:** parcela transportável sob restrição física/energética.
 
 Na ausência da evidência exigida, o fator deve ser não parametrizado, nunca
@@ -116,13 +118,16 @@ histórica, não ao cálculo em tempo de consulta.
 ## Independência de alvos externos
 
 Nenhum parâmetro foi movido para compensar a regressão B2 ou aproximar benchmark
-externo. O intervalo Git **`cd039da..commit B3-CONSOLIDA`** não altera
-`data/canonical_parameters/feedstocks.yaml`; o arquivo consumido conserva
-SHA-256 `ea1f23b52ff4eb37703271df2cb4771dcc8aec0e14ed97449b88860180b07e48`,
-gravado também no JSON. O B2 alterou código, atividade medida e procedência,
-mantendo o catálogo fixo. Esta declaração é limitada a esse intervalo: a
-auditoria A8 preserva separadamente a coincidência cronológica de alterações
-mais antigas com comparações externas, sem inferir causalidade.
+externo. De `cd039da` até B4, `feedstocks.yaml` permaneceu no SHA-256
+`ea1f23b52ff4eb37703271df2cb4771dcc8aec0e14ed97449b88860180b07e48`.
+O B5 realiza a única e última alteração paramétrica posterior: muda
+exclusivamente FS para 1,00 nos 15 subfluxos instanciados, reconciliando a
+operação com atividades anuais, e produz o SHA-256
+`a18c23e555c5c3477e07bb27eb210b7972adb80d4a546c1fc0b8ae6a73f3f412`.
+FC, FCo, FL, BMP, TS, VS, atividade e rota VS/BMP permanecem intocados. Esta
+declaração é limitada a esse intervalo: a auditoria A8 preserva separadamente a
+coincidência cronológica de alterações mais antigas com comparações externas,
+sem inferir causalidade.
 
 ## Limitações declaradas
 
@@ -139,7 +144,7 @@ confiança nem distribuições de probabilidade; correlações e probabilidades 
 parâmetros não são modeladas. Essa é uma limitação explícita. Propagação por
 Monte Carlo fica adiada para depois da submissão.
 
-O relatório A16 registra ainda, sem alterar parâmetros, possíveis sobreposições
-estruturais entre FC/FCo/FS/FL e o desconto de FS sobre bases anuais. Seus
-totais numéricos pertencem a um baseline anterior e estão superados; o
-diagnóstico é preservado apenas como agenda de refinamento metodológico.
+O B5 resolve a tarefa 1 do A16 ao eliminar o desconto temporal de FS sobre bases
+anuais. As possíveis sobreposições entre FC/FCo/FL da tarefa 2 e a comparação
+VS/BMP×DQO da tarefa 3 permanecem apenas na discussão do manuscrito. Os totais
+numéricos do A16 pertencem a um baseline anterior e estão superados.

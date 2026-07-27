@@ -82,10 +82,10 @@ feedstocks:
           max: 0.18
           reference: bonomi2015_bagasse_surplus
         fs:
-          min: 0.7
-          medio: 0.9
-          max: 0.95
-          reference: abiogas2021_atlas
+          min: 1.0
+          medio: 1.0
+          max: 1.0
+          reference: IBGE PAM annual activity; B5-FS class (a)
         fl:
           min: 0.85
           medio: 0.9
@@ -158,10 +158,10 @@ feedstocks:
           max: 0.18
           reference: carvalho2017_straw
         fs:
-          min: 0.85
-          medio: 0.9
-          max: 0.95
-          reference: unica2023_straw
+          min: 1.0
+          medio: 1.0
+          max: 1.0
+          reference: IBGE PAM annual activity; B5-FS class (a)
         fl:
           min: 0.78
           medio: 0.85
@@ -232,10 +232,10 @@ feedstocks:
           reference: bonomi2015_vinhaca (doi:10.1016/j.rser.2015.04.098); moraes2014_vinhaca
             (doi:10.1016/j.rser.2014.07.032)
         fs:
-          min: 0.85
-          medio: 0.9
-          max: 0.95
-          reference: unica2023_straw
+          min: 1.0
+          medio: 1.0
+          max: 1.0
+          reference: IBGE PAM annual activity; B5-FS class (a)
         fl:
           min: 0.88
           medio: 0.9
@@ -296,10 +296,10 @@ feedstocks:
           reference: velasquez2020_sugarcane (doi:10.1016/j.renene.2019.09.045); janke2015_filtermud
             (doi:10.1016/j.renene.2014.11.086)
         fs:
-          min: 0.8
-          medio: 0.88
-          max: 0.95
-          reference: velasquez2020_sugarcane
+          min: 1.0
+          medio: 1.0
+          max: 1.0
+          reference: IBGE PAM annual activity; B5-FS class (a)
         fl:
           min: 0.78
           medio: 0.85
@@ -375,10 +375,10 @@ feedstocks:
           max: 0.35
           reference: abiogas2021_atlas
         fs:
-          min: 0.8
-          medio: 0.9
-          max: 0.95
-          reference: abiogas2021_atlas
+          min: 1.0
+          medio: 1.0
+          max: 1.0
+          reference: IBGE PAM annual activity; B5-FS class (a)
         fl:
           min: 0.65
           medio: 0.75
@@ -524,10 +524,10 @@ feedstocks:
           max: 0.6
           reference: abiogas2021_atlas
         fs:
-          min: 0.75
-          medio: 0.85
-          max: 0.95
-          reference: abiogas2021_atlas
+          min: 1.0
+          medio: 1.0
+          max: 1.0
+          reference: IBGE PAM annual activity; B5-FS class (a)
         fl:
           min: 0.55
           medio: 0.65
@@ -814,10 +814,10 @@ feedstocks:
           max: 0.25
           reference: abrelpe2022_rsu
         fs:
-          min: 0.7
-          medio: 0.85
-          max: 0.95
-          reference: null
+          min: 1.0
+          medio: 1.0
+          max: 1.0
+          reference: IBGE PAM annual activity; B5-FS class (a)
         fl:
           min: 0.3
           medio: 0.55
@@ -887,10 +887,10 @@ feedstocks:
           max: 0.1833
           reference: abiogas2021_atlas
         fs:
-          min: 0.75
-          medio: 0.85
-          max: 0.95
-          reference: abiogas2021_atlas
+          min: 1.0
+          medio: 1.0
+          max: 1.0
+          reference: IBGE PAM annual activity; B5-FS class (a)
         fl:
           min: 0.35
           medio: 0.67
@@ -1033,10 +1033,10 @@ feedstocks:
           max: 0.5
           reference: avila2007_poultry
         fs:
-          min: 0.8
-          medio: 0.9
-          max: 0.96
-          reference: avila2007_poultry
+          min: 1.0
+          medio: 1.0
+          max: 1.0
+          reference: A16 task 1; B5-FS class (d), overlap with FC
         fl:
           min: 0.65
           medio: 0.75
@@ -1269,10 +1269,10 @@ feedstocks:
           max: 0.42
           reference: primavesi2004_cattle
         fs:
-          min: 0.7
-          medio: 0.78
-          max: 0.88
-          reference: primavesi2004_cattle
+          min: 1.0
+          medio: 1.0
+          max: 1.0
+          reference: A16 task 1; B5-FS class (d), overlap with FC/FL
         fl:
           min: 0.38
           medio: 0.52
@@ -1360,10 +1360,10 @@ feedstocks:
           max: 0.68
           reference: primavesi2004_cattle
         fs:
-          min: 0.85
-          medio: 0.9
-          max: 0.95
-          reference: primavesi2004_cattle
+          min: 1.0
+          medio: 1.0
+          max: 1.0
+          reference: A16 task 1; B5-FS class (d), overlap with FC
         fl:
           min: 0.75
           medio: 0.85
@@ -1524,10 +1524,10 @@ feedstocks:
           max: 0.6
           reference: kunz2009_swine
         fs:
-          min: 0.88
-          medio: 0.95
-          max: 0.98
-          reference: embrapa2012_swine
+          min: 1.0
+          medio: 1.0
+          max: 1.0
+          reference: A16 task 1; B5-FS class (d), overlap with FC
         fl:
           min: 0.55
           medio: 0.72
@@ -1703,10 +1703,10 @@ feedstocks:
           max: 0.8
           reference: mata_alvarez2014_ofmsw
         fs:
-          min: 0.78
-          medio: 0.9
-          max: 0.96
-          reference: mata_alvarez2014_ofmsw
+          min: 1.0
+          medio: 1.0
+          max: 1.0
+          reference: A16 task 1; B5-FS class (d), overlap with FC
         fl:
           min: 0.7
           medio: 0.8
@@ -1854,10 +1854,10 @@ feedstocks:
           max: 0.85
           reference: cetesb2020_sludge
         fs:
-          min: 0.88
-          medio: 0.95
-          max: 0.98
-          reference: von_sperling2007_sludge
+          min: 1.0
+          medio: 1.0
+          max: 1.0
+          reference: SNIS 2022 ES006 annual activity; B5-FS class (a)
         fl:
           min: 0.82
           medio: 0.9
@@ -1925,10 +1925,10 @@ feedstocks:
           max: 0.8
           reference: cetesb2020_sludge
         fs:
-          min: 0.9
-          medio: 0.95
-          max: 0.98
-          reference: snis2022_rsu
+          min: 1.0
+          medio: 1.0
+          max: 1.0
+          reference: SNIS 2022 ES006 annual activity; B5-FS class (a)
         fl:
           min: 0.78
           medio: 0.85

@@ -1,6 +1,6 @@
 # Log final de decisões metodológicas — PILAR-2b
 
-**Estado:** normativo · **Consolidação:** B4-MINIMO · **Data:** 2026-08-02
+**Estado:** normativo · **Consolidação:** B5-FS · **Data:** 2026-08-03
 
 Este é o log consecutivo vigente. Relatórios anteriores permanecem no arquivo de
 auditorias; uma decisão revista não é apagada, mas recebe estado e sucessora.
@@ -19,6 +19,7 @@ de `canonical_results.json`.
 | — | DEC-010 | decisão produzida pelo B2-CLOSE |
 | — | DEC-011 | decisão produzida pelo B3-CONSOLIDA |
 | — | DEC-012 | decisão produzida pelo B4-MINIMO |
+| — | DEC-013 | decisão produzida pelo B5-FS |
 
 ## Log consecutivo
 
@@ -119,3 +120,14 @@ de `canonical_results.json`.
   cobertura FORSU; e tratar min/médio/max como extremos determinísticos
   acoplados, não incerteza estatística.
 - **Rastreabilidade:** B4-MINIMO e `canonical_results.json`.
+
+### [DEC-013] FS sobre atividade anual
+
+- **Data:** 2026-08-03.
+- **Estado:** **ATIVA; FECHAMENTO PARAMÉTRICO**.
+- **Decisão:** FS representa somente retenção de massa após perda documentada
+  em estocagem, nunca dias de oferta/365. Sem fonte específica de perda,
+  FS=1,00. Os 15 subfluxos instanciados passam a 1,00 nos três cenários.
+  Nenhum FC, FCo, FL, BMP, TS ou VS foi alterado.
+- **Rastreabilidade:** B5-FS, `POLITICA_FATORES.md`, `feedstocks.yaml` e
+  `canonical_results.json`.

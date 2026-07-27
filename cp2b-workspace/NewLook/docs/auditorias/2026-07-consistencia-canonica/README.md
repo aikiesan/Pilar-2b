@@ -125,6 +125,19 @@ organização. O A8 foi originalmente commitado em `afa9e3b`.
 O B3-CONSOLIDA acrescenta o [documento de procedência](../../PROCEDENCIA.md), o
 [log final de decisões](../../data/DECISOES_METODOLOGICAS.md) e o gate do CI.
 
+### 08 — Conservadorismo e fechamento de publicação (2026-08-02)
+
+| Ordem | Relatório | Estado | Commit original |
+|---:|---|---|---|
+| 08.01 | [A16 — conservadorismo estrutural](08_adventure-a-conservadorismo_2026-08-02/A16_CONSERVADORISMO_ESTRUTURAL_2026-08-02.md) | Diagnóstico; tarefa 1 resolvida pelo B5 | `9e1930e` |
+| 08.02 | [B4-MINIMO](../../data/B4-MINIMO_2026-08-02.md) | Aplicado; baseline superado pelo B5 | `6d52343` |
+
+### 09 — Fechamento paramétrico (2026-08-03)
+
+| Ordem | Relatório | Estado | Commit original |
+|---:|---|---|---|
+| 09.01 | [B5-FS](09_fechamento_2026-08-03/B5-FS_2026-08-03.md) | Aplicado; fechamento paramétrico final | commit B5-FS |
+
 ## Regras de preservação
 
 - Não editar conclusões antigas para fazê-las coincidir com descobertas novas.

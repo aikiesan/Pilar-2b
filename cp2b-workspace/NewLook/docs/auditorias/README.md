@@ -6,7 +6,7 @@ completo, relatório por relatório e com o commit original, está em
 
 ## O que foi auditado
 
-Entre 25/07 e 01/08/2026 foram auditados: origem dos números estaduais,
+Entre 25/07 e 03/08/2026 foram auditados: origem dos números estaduais,
 parâmetros BMP/FDE, atividade municipal, FORSU, lodos, banco legado, API, mapa,
 UI, manuscrito, licença, atribuição, corpus bibliográfico e histórico Git.
 
@@ -21,7 +21,9 @@ UI, manuscrito, licença, atribuição, corpus bibliográfico e histórico Git.
    anterior do total tenha vindo de mudanças paramétricas em `cb7967a`;
 5. FORSU modelado por população coexistia com massa medida SNIS;
 6. licença GPL-3.0 estava correta, mas atribuições FAPESP exibiam apenas um dos
-   dois processos em superfícies diferentes.
+   dois processos em superfícies diferentes;
+7. FS era definido como fração temporal e aplicado sobre atividades anuais,
+   descontando novamente massa já integrada ao longo do ano.
 
 ## O que foi decidido
 
@@ -34,6 +36,8 @@ UI, manuscrito, licença, atribuição, corpus bibliográfico e histórico Git.
 - o log metodológico é consecutivo e registra estados e sucessoras;
 - GPL-3.0 é a licença do software; ambos os processos FAPESP são atribuídos;
 - o CI rejeita afirmações numéricas canônicas copiadas à mão.
+- FS representa apenas retenção após perda documentada em estocagem; sem fonte
+  específica, FS=1,00.
 
 ## Estados históricos
 
