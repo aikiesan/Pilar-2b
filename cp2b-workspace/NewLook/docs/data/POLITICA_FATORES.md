@@ -5,7 +5,7 @@
 ---
 
 ## 1. Diretriz de Governança
-Esta política estabelece os critérios obrigatórios para a atribuição dos quatro componentes do Fator de Disponibilidade e Eficiência (FDE) e do Potencial Bioquímico de Metano (BMP) na plataforma PILAR-2b.
+Esta política estabelece os critérios obrigatórios para a atribuição dos três componentes multiplicativos do Fator de Disponibilidade e Eficiência (FDE), do atributo não multiplicativo de disponibilidade temporal e do Potencial Bioquímico de Metano (BMP) na plataforma PILAR-2b.
 Nenhum parâmetro pode ser definido por calibração contra alvos estaduais ou palpites de calibração. Cada componente deve derivar exclusivamente de evidências físicas e balanços operacionais documentados no setor.
 
 ---
@@ -28,34 +28,36 @@ Nenhum parâmetro pode ser definido por calibração contra alvos estaduais ou p
 - **Unidade**: Adimensional ($t_{\text{excedente}} / t_{\text{coletada}}$).
 - **Regra na Ausência de Fonte**: Declarar como **NÃO PARAMETRIZADO**.
 
-### 2.3 Fator de Sazonalidade (FS)
-- **Definição operacional vigente após B5-FS**: Fração adimensional
-  $[0{,}0 \text{ a } 1{,}0]$ da massa anual que permanece aproveitável após
-  perdas físico-químicas documentadas por degradação durante a estocagem entre
-  geração/colheita e alimentação do digestor. Apesar do nome histórico
-  `fs`, o fator **não representa mais dias de oferta/365 nem janela de safra**.
-- **Por que a definição mudou**: PAM, PPM e SNIS fornecem atividade anual, já
-  integrada ao longo dos 365 dias. Multiplicar essa massa por dias
-  operacionais/365 desconta novamente uma produção que já ocorreu.
-- **Insumo exigido para $FS<1$**: ensaio ou balanço de massa que relacione
-  duração e condição de estocagem à perda de massa seca, sólidos voláteis ou
-  potencial metanogênico do mesmo substrato. A fonte deve sustentar cada limite
-  `min`/`medio`/`max`.
-- **Unidade**: adimensional
-  ($t_{\text{aproveitável após estocagem}}/t_{\text{atividade anual}}$).
-- **Regra na ausência de fonte específica de estocagem**: $FS=1{,}00$ nos três
-  cenários. Calendário de safra, continuidade operacional, feriados, chuva ou
-  número de ciclos por ano não são evidência de perda de massa.
-- **Capacidade de planta**: limite de processamento durante uma janela de safra
-  é uma restrição de dimensionamento, não FS. Deve ser modelado em fator
-  próprio ou, quando fisicamente justificado, em logística; não é transferido
-  automaticamente para FL.
-- **Não sobreposição**: interrupção de coleta/manejo já refletida em FC ou
-  dificuldade de transporte já refletida em FL não pode ser descontada outra
-  vez em FS.
+### 2.3 Disponibilidade temporal (`availability_profile`)
+- **Natureza**: atributo descritivo, não multiplicativo. Registra
+  `window_months`, `days_available_yr`, `storable`, `max_storage_days`,
+  `point_of_availability` e a fonte da janela.
+- **Interpretação**: PAM, PPM e SNIS fornecem massas anuais já integradas.
+  Sazonalidade redistribui essa massa no calendário e afeta vazão instantânea,
+  armazenamento e dimensionamento; não reduz o potencial anual.
+- **FS removido**: o componente histórico `fde.components.fs` foi retirado do
+  catálogo e do motor no B6. Após o B5 todos os seus valores eram 1,00, isto é,
+  um multiplicador identidade. Mantê-lo sugeriria falsamente que dias de
+  safra/365 devem descontar uma base anual.
+- **Estocagem**: `storable` informa se o fluxo pode atravessar parte da
+  entressafra; `max_storage_days` é obrigatório quando verdadeiro. Perdas de
+  estocagem não são implicitamente descontadas no potencial e exigem modelo
+  físico próprio para aplicação futura.
+- **Capacidade implícita**: para fluxo não estocável, calcula-se
+  `days_available_yr/365`. É métrica de engenharia, nunca fator do potencial.
 
 ### 2.4 Fator Logístico (FL)
 - **Definição**: Fração adimensional $[0{,}0 \text{ a } 1{,}0]$ que representa a viabilidade de transporte do resíduo sem perda do balanço energético líquido (EROEI > 1).
 - **Insumo Exigido**: Densidade da biomassa in natura ($kg/m^3$) e raio máximo de transporte econômico e operacional.
 - **Unidade**: Adimensional.
 - **Regra na Ausência de Fonte**: Declarar como **NÃO PARAMETRIZADO**.
+
+## 3. Equação vigente
+
+O produto físico de disponibilidade é:
+
+`availability = FC × FCo_available × FL`
+
+e o FDE efetivo permanece `availability × η`. O perfil temporal é aplicado
+apenas para distribuir o CH₄ anual entre meses; sua soma deve reproduzir
+exatamente o total canônico anual.

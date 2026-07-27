@@ -125,13 +125,13 @@ def _eta_range(block) -> Range:
     return Range(e, e, e)
 
 
-_FACTOR_KEYS = ("fc", "fco_available", "fs", "fl")
+_FACTOR_KEYS = ("fc", "fco_available", "fl")
 
 
 def _resolve_availability(entry: dict) -> Range:
-    """Physical availability = FC × FCo_available × FS × FL, DERIVED, never read.
+    """Physical availability = FC × FCo_available × FL, DERIVED, never read.
 
-    The four factors in `fde.components` are the data of record; availability is
+    The three factors in `fde.components` are the data of record; availability is
     their product and is deliberately absent from the YAML. It used to be stored
     alongside them and had drifted out of step in 11 of 78 feedstock×scenario
     pairs (Lote 2, 2026-07-26) — a stored aggregate cannot contradict its own
@@ -142,7 +142,7 @@ def _resolve_availability(entry: dict) -> Range:
     two cannot be silently swapped again (divergência D1 da auditoria).
 
     Shapes still accepted:
-      1. components: fde: {components: {fc, fco_available, fs, fl}, eta, ...}
+      1. components: fde: {components: {fc, fco_available, fl}, eta, ...}
       2. flat:       fde: {min, medio, max}   (already the product, includes η)
       3. absent:     → 1.0 (theoretical potential)
     """
@@ -165,7 +165,7 @@ def _resolve_availability(entry: dict) -> Range:
 
 
 def _resolve_fde(entry: dict) -> Range:
-    """Effective FDE = availability (FC×FCo×FS×FL) × eta (conversion efficiency).
+    """Effective FDE = availability (FC×FCo×FL) × eta (conversion efficiency).
 
     Derived on read from `fde.components` and `fde.eta`. Never persisted — no
     YAML field, no comment, holds an FDE or an availability product.
@@ -222,6 +222,42 @@ class Generation:
 
     type: str
     per_unit_yr: Range
+
+
+@dataclass(frozen=True)
+class AvailabilityProfile:
+    """Temporal generation profile; descriptive and never multiplied into FDE."""
+
+    window_months: tuple[int, ...]
+    days_available_yr: int
+    storable: bool
+    max_storage_days: int | None
+    point_of_availability: str
+    source: str
+
+
+def get_availability_profile(
+    code: str, path: str | None = None
+) -> AvailabilityProfile:
+    """Return the non-multiplicative temporal profile for an instantiated code."""
+    fs = load_raw(path)
+    if code not in fs:
+        raise KeyError(f"unknown canonical feedstock code: {code!r}")
+    block = fs[code].get("availability_profile")
+    if not isinstance(block, dict):
+        raise KeyError(f"feedstock {code!r} has no `availability_profile`")
+    return AvailabilityProfile(
+        window_months=tuple(int(month) for month in block["window_months"]),
+        days_available_yr=int(block["days_available_yr"]),
+        storable=bool(block["storable"]),
+        max_storage_days=(
+            int(block["max_storage_days"])
+            if block.get("max_storage_days") is not None
+            else None
+        ),
+        point_of_availability=str(block["point_of_availability"]),
+        source=str(block["source"]),
+    )
 
 
 def get_generation(code: str, path: str | None = None) -> Generation | None:

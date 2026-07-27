@@ -5,7 +5,7 @@ validate_fde_traceability.py
 Reproducibility guard for the canonical FDE dataset.
 
 Checks, for every feedstock in data/canonical_parameters/feedstocks.yaml:
-  1. the four components fc / fco_available / fs / fl are present
+  1. the three multiplicative components fc / fco_available / fl are present
   2. min ≤ medio ≤ max for every component and for the derived availability
   3. every referenced id exists in references.yaml AND carries a non-empty url
   4. each fde block cites ≥2 references
@@ -14,7 +14,7 @@ Checks, for every feedstock in data/canonical_parameters/feedstocks.yaml:
      explicit null. There is no fallback: a factor with no source that reports
      it prints "—" in the matrix instead of borrowing the block's first ref.
 
-Check 1 used to be `availability == FC×FCo×FS×FL`. It is gone because
+Check 1 used to be `availability == FC×FCo×FL`. It is gone because
 `availability` is no longer stored: the loader derives it from the components on
 read (Lote 2, 2026-07-26), so the identity holds by construction and cannot be
 violated. What replaced it is check 6 — the traceability the matrix claims.
@@ -68,8 +68,9 @@ _REFERENCES = _CANONICAL / "references.yaml"
 _MATRIX = _CANONICAL.parent.parent / "docs" / "data" / "FDE_TRACEABILITY_MATRIX.md"
 
 SCEN = ("min", "medio", "max")
-FACTORS = ("fc", "fco_available", "fs", "fl")
+FACTORS = ("fc", "fco_available", "fl")
 TIERS = {"HIGH", "MEDIUM", "LOW"}
+POINTS = {"campo", "unidade industrial", "propriedade", "urbano difuso"}
 
 
 def load():
@@ -79,9 +80,9 @@ def load():
 
 
 def availability(blk: dict) -> dict:
-    """FC × FCo_available × FS × FL, derived. Mirrors canonical_loader."""
+    """FC × FCo_available × FL, derived. Mirrors canonical_loader."""
     c = blk["components"]
-    return {sc: c["fc"][sc] * c["fco_available"][sc] * c["fs"][sc] * c["fl"][sc] for sc in SCEN}
+    return {sc: c["fc"][sc] * c["fco_available"][sc] * c["fl"][sc] for sc in SCEN}
 
 
 def validate(fs: dict, refs: dict) -> list[str]:
@@ -131,6 +132,37 @@ def validate(fs: dict, refs: dict) -> list[str]:
     return errors
 
 
+def validate_availability_profiles(fs: dict) -> list[str]:
+    """Validate every declared profile without requiring one on dormant entries."""
+    errors: list[str] = []
+    for code, entry in fs.items():
+        profile = entry.get("availability_profile")
+        if profile is None:
+            continue
+        months = profile.get("window_months")
+        if (
+            not isinstance(months, list)
+            or not months
+            or len(months) != len(set(months))
+            or any(not isinstance(month, int) or month < 1 or month > 12 for month in months)
+        ):
+            errors.append(f"{code}.availability_profile: invalid window_months")
+        days = profile.get("days_available_yr")
+        if not isinstance(days, int) or not 1 <= days <= 365:
+            errors.append(f"{code}.availability_profile: days_available_yr outside 1..365")
+        if not isinstance(profile.get("storable"), bool):
+            errors.append(f"{code}.availability_profile: storable must be boolean")
+        if profile.get("storable") and not isinstance(profile.get("max_storage_days"), int):
+            errors.append(f"{code}.availability_profile: storable profile needs max_storage_days")
+        if not profile.get("storable") and "max_storage_days" in profile:
+            errors.append(f"{code}.availability_profile: non-storable profile has max_storage_days")
+        if profile.get("point_of_availability") not in POINTS:
+            errors.append(f"{code}.availability_profile: invalid point_of_availability")
+        if not str(profile.get("source") or "").strip():
+            errors.append(f"{code}.availability_profile: source is empty")
+    return errors
+
+
 def emit_matrix(fs: dict, refs: dict) -> None:
     def url(rid: str) -> str:
         return (refs.get(rid, {}) or {}).get("url", "")
@@ -148,7 +180,7 @@ def emit_matrix(fs: dict, refs: dict) -> None:
         def src_for(fk: str) -> str:
             return c[fk].get("reference") or "—"
 
-        fc_s, fco_s, fs_s, fl_s = (src_for(fk) for fk in FACTORS)
+        fc_s, fco_s, fl_s = (src_for(fk) for fk in FACTORS)
         rows.append(
             (
                 code,
@@ -158,8 +190,6 @@ def emit_matrix(fs: dict, refs: dict) -> None:
                 fc_s,
                 c["fco_available"]["medio"],
                 fco_s,
-                c["fs"]["medio"],
-                fs_s,
                 c["fl"]["medio"],
                 fl_s,
                 eta,
@@ -175,7 +205,7 @@ def emit_matrix(fs: dict, refs: dict) -> None:
         "**AUTO-GENERATED** by `backend/scripts/validate_fde_traceability.py --emit`.",
         "Do NOT edit by hand — edit `feedstocks.yaml`/`references.yaml` and regenerate.",
         "",
-        "`FDE = availability × η` where `availability = FC × FCo_available × FS × FL`.",
+        "`FDE = availability × η` where `availability = FC × FCo_available × FL`.",
         "`availability` is **derived on read** — it is not a field of `feedstocks.yaml`.",
         "`FCo_available` is the AVAILABLE share, by the convention",
         "`fco_available == 1 - fcp_committed`.",
@@ -188,14 +218,14 @@ def emit_matrix(fs: dict, refs: dict) -> None:
         "regulatory/measured per-factor sources; MEDIUM = regional studies/proxy; LOW =",
         "generic or no-direct-study proxy.",
         "",
-        "| Feedstock | Conf. | FC (src) | FCo_av (src) | FS (src) | FL (src) | η | avail | FDE |",
-        "|---|---|---|---|---|---|---:|---:|---:|",
+        "| Feedstock | Conf. | FC (src) | FCo_av (src) | FL (src) | η | avail | FDE |",
+        "|---|---|---|---|---|---:|---:|---:|",
     ]
-    for code, pt, conf, fc, fcs, fco, fcos, fsv, fss, fl, fls, eta, avm, fdem, _r in rows:
+    for code, pt, conf, fc, fcs, fco, fcos, fl, fls, eta, avm, fdem, _r in rows:
         etas = eta if isinstance(eta, (int, float)) else eta.get("medio")
         lines.append(
             f"| **{code}** | {conf} | {fc:.2f} ({fcs}) | {fco:.2f} ({fcos}) | "
-            f"{fsv:.2f} ({fss}) | {fl:.2f} ({fls}) | {etas} | {avm:.4f} | {fdem:.4f} |"
+            f"{fl:.2f} ({fls}) | {etas} | {avm:.4f} | {fdem:.4f} |"
         )
 
     # reference URL appendix (only refs actually cited by an fde block)
@@ -216,7 +246,7 @@ def emit_matrix(fs: dict, refs: dict) -> None:
 
 def main() -> int:
     fs, refs = load()
-    errors = validate(fs, refs)
+    errors = validate(fs, refs) + validate_availability_profiles(fs)
     if "--emit" in sys.argv and not errors:
         emit_matrix(fs, refs)
     if errors:

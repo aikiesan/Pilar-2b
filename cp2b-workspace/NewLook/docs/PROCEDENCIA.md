@@ -1,6 +1,6 @@
 # Procedência dos resultados canônicos
 
-**Estado:** rascunho da seção de métodos · **vigência:** B5-FS
+**Estado:** rascunho da seção de métodos · **vigência:** B6-SAZONALIDADE
 
 ## Cadeia de cálculo e publicação
 
@@ -49,16 +49,17 @@ paramétrica. A antiga Regra R2 está suspensa pela DEC-007.
 
 A biomassa mobilizável é calculada, sem fator oculto, por:
 
-`biomassa bruta × FC × FCo × FS × FL`.
+`biomassa bruta × FC × FCo × FL`.
 
 - **FC — coleta:** parcela fisicamente recolhida ou acessível, sustentada por
   prática/setor ou dado medido.
 - **FCo — concorrência:** parcela restante após usos concorrentes documentados.
-- **FS — retenção após estocagem:** fração da massa anual que permanece
-  aproveitável após perda físico-química documentada entre geração/colheita e
-  digestão. Não representa dias de oferta/365. Sem fonte específica de perda em
-  estocagem, FS=1,00.
 - **FL — logística:** parcela transportável sob restrição física/energética.
+
+O antigo FS foi removido do produto. A sazonalidade passa a ser descrita por
+`availability_profile`, com janela mensal, dias efetivos, estocabilidade, limite
+de armazenamento, ponto de disponibilidade e fonte. Esse atributo distribui o
+CH₄ anual no tempo e informa dimensionamento; não multiplica a massa anual.
 
 Na ausência da evidência exigida, o fator deve ser não parametrizado, nunca
 preenchido para aproximar um total desejado. As regras completas estão em
@@ -124,6 +125,8 @@ O B5 realiza a única e última alteração paramétrica posterior: muda
 exclusivamente FS para 1,00 nos 15 subfluxos instanciados, reconciliando a
 operação com atividades anuais, e produz o SHA-256
 `a18c23e555c5c3477e07bb27eb210b7972adb80d4a546c1fc0b8ae6a73f3f412`.
+O B6 remove esse multiplicador identidade e acrescenta apenas perfis temporais
+não multiplicativos, produzindo o SHA-256 registrado no resultado canônico.
 FC, FCo, FL, BMP, TS, VS, atividade e rota VS/BMP permanecem intocados. Esta
 declaração é limitada a esse intervalo: a auditoria A8 preserva separadamente a
 coincidência cronológica de alterações mais antigas com comparações externas,
@@ -144,7 +147,8 @@ confiança nem distribuições de probabilidade; correlações e probabilidades 
 parâmetros não são modeladas. Essa é uma limitação explícita. Propagação por
 Monte Carlo fica adiada para depois da submissão.
 
-O B5 resolve a tarefa 1 do A16 ao eliminar o desconto temporal de FS sobre bases
-anuais. As possíveis sobreposições entre FC/FCo/FL da tarefa 2 e a comparação
+O B5 elimina o desconto temporal de FS sobre bases anuais; o B6 conclui a
+separação ao remover FS e representar a sazonalidade como perfil temporal. As
+possíveis sobreposições entre FC/FCo/FL da tarefa 2 e a comparação
 VS/BMP×DQO da tarefa 3 permanecem apenas na discussão do manuscrito. Os totais
 numéricos do A16 pertencem a um baseline anterior e estão superados.

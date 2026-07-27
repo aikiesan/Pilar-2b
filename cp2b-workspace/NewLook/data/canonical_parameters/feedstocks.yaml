@@ -67,6 +67,14 @@ feedstocks:
     cn_ratio: 29.6
     service_override:
       note: bagaço-only stream; vs_wet = 58.9 × 90/100 = 53.0%
+    availability_profile:
+      window_months: [4, 5, 6, 7, 8, 9, 10, 11]
+      days_available_yr: 208
+      storable: true
+      max_storage_days: 150
+      point_of_availability: "unidade industrial"
+      source: >-
+        UNICA/Moreira et al. (2016), moagem abril-novembro e 208 dias efetivos; Santos et al. (2011), pilha por 150 dias
     fde:
       confidence: HIGH
       eta: 0.7
@@ -80,12 +88,7 @@ feedstocks:
           min: 0.15
           medio: 0.165
           max: 0.18
-          reference: bonomi2015_bagasse_surplus
-        fs:
-          min: 1.0
-          medio: 1.0
-          max: 1.0
-          reference: IBGE PAM annual activity; B5-FS class (a)
+          reference: epe_ben2024
         fl:
           min: 0.85
           medio: 0.9
@@ -143,6 +146,13 @@ feedstocks:
     yield_refs:
     - tenelli2021_straw
     - unica2023_straw
+    availability_profile:
+      window_months: [4, 5, 6, 7, 8, 9, 10, 11]
+      days_available_yr: 208
+      storable: false
+      point_of_availability: "campo"
+      source: >-
+        CONAB, calendário de colheita da cana-de-açúcar em São Paulo
     fde:
       confidence: HIGH
       eta: 0.62
@@ -157,11 +167,6 @@ feedstocks:
           medio: 0.1
           max: 0.18
           reference: carvalho2017_straw
-        fs:
-          min: 1.0
-          medio: 1.0
-          max: 1.0
-          reference: IBGE PAM annual activity; B5-FS class (a)
         fl:
           min: 0.78
           medio: 0.85
@@ -216,6 +221,13 @@ feedstocks:
 
       '
     frontend_vs_convention: decimal_wet_weight
+    availability_profile:
+      window_months: [4, 5, 6, 7, 8, 9, 10, 11]
+      days_available_yr: 208
+      storable: false
+      point_of_availability: "unidade industrial"
+      source: >-
+        UNICA, janela de moagem do Centro-Sul (abril-novembro)
     fde:
       confidence: HIGH
       eta: 0.65
@@ -229,13 +241,7 @@ feedstocks:
           min: 0.6
           medio: 0.8
           max: 0.95
-          reference: bonomi2015_vinhaca (doi:10.1016/j.rser.2015.04.098); moraes2014_vinhaca
-            (doi:10.1016/j.rser.2014.07.032)
-        fs:
-          min: 1.0
-          medio: 1.0
-          max: 1.0
-          reference: IBGE PAM annual activity; B5-FS class (a)
+          reference: bonomi2015_vinhaca
         fl:
           min: 0.88
           medio: 0.9
@@ -280,6 +286,13 @@ feedstocks:
       - talha2016_bagaco
     ch4_pct: 60.0
     cn_ratio: 22.0
+    availability_profile:
+      window_months: [4, 5, 6, 7, 8, 9, 10, 11]
+      days_available_yr: 208
+      storable: false
+      point_of_availability: "unidade industrial"
+      source: >-
+        UNICA, janela de moagem do Centro-Sul (abril-novembro)
     fde:
       confidence: MEDIUM
       eta: 0.72
@@ -293,13 +306,7 @@ feedstocks:
           min: 0.2
           medio: 0.35
           max: 0.5
-          reference: velasquez2020_sugarcane (doi:10.1016/j.renene.2019.09.045); janke2015_filtermud
-            (doi:10.1016/j.renene.2014.11.086)
-        fs:
-          min: 1.0
-          medio: 1.0
-          max: 1.0
-          reference: IBGE PAM annual activity; B5-FS class (a)
+          reference: velasquez2020_sugarcane
         fl:
           min: 0.78
           medio: 0.85
@@ -360,6 +367,13 @@ feedstocks:
       limonene pretreatment, median of 230 is appropriate for SP bulk processing.
 
       '
+    availability_profile:
+      window_months: [1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 12]
+      days_available_yr: 334
+      storable: false
+      point_of_availability: "unidade industrial"
+      source: >-
+        Fundecitrus, metodologia PES: acompanhamento da colheita de junho ao fechamento em abril
     fde:
       confidence: MEDIUM
       eta: 0.78
@@ -374,11 +388,6 @@ feedstocks:
           medio: 0.3
           max: 0.35
           reference: abiogas2021_atlas
-        fs:
-          min: 1.0
-          medio: 1.0
-          max: 1.0
-          reference: IBGE PAM annual activity; B5-FS class (a)
         fl:
           min: 0.65
           medio: 0.75
@@ -444,11 +453,6 @@ feedstocks:
           medio: 0.3
           max: 0.4
           reference: braddock1999_citrus
-        fs:
-          min: 0.85
-          medio: 0.9
-          max: 0.95
-          reference: fundecitrus2022
         fl:
           min: 0.68
           medio: 0.75
@@ -509,6 +513,13 @@ feedstocks:
     cn_ratio: 25.0
     notes: Current service layer (bmp=200) is slightly conservative — acceptable given
       lignin fraction.
+    availability_profile:
+      window_months: [5, 6, 7, 8, 9]
+      days_available_yr: 153
+      storable: false
+      point_of_availability: "unidade industrial"
+      source: >-
+        CONAB, Compêndio de Estudos 2018, colheita paulista de café maio-setembro
     fde:
       confidence: MEDIUM
       eta: 0.7
@@ -523,11 +534,6 @@ feedstocks:
           medio: 0.5
           max: 0.6
           reference: abiogas2021_atlas
-        fs:
-          min: 1.0
-          medio: 1.0
-          max: 1.0
-          reference: IBGE PAM annual activity; B5-FS class (a)
         fl:
           min: 0.55
           medio: 0.65
@@ -589,11 +595,6 @@ feedstocks:
           medio: 0.4
           max: 0.5
           reference: bressani2015_coffee
-        fs:
-          min: 0.78
-          medio: 0.85
-          max: 0.92
-          reference: conab2023_calendar
         fl:
           min: 0.62
           medio: 0.7
@@ -658,11 +659,6 @@ feedstocks:
           medio: 0.45
           max: 0.55
           reference: pandey2000_coffee
-        fs:
-          min: 0.72
-          medio: 0.8
-          max: 0.88
-          reference: conab2023_calendar
         fl:
           min: 0.62
           medio: 0.7
@@ -732,11 +728,6 @@ feedstocks:
           medio: 0.4
           max: 0.44
           reference: abiogas2021_atlas
-        fs:
-          min: 0.78
-          medio: 0.85
-          max: 0.92
-          reference: abiogas2021_atlas
         fl:
           min: 0.55
           medio: 0.7
@@ -799,6 +790,13 @@ feedstocks:
       and erosion control. High C:N (~55) limits composting competition.
 
       '
+    availability_profile:
+      window_months: [1, 2, 3, 4]
+      days_available_yr: 120
+      storable: false
+      point_of_availability: "campo"
+      source: >-
+        CONAB, calendário de colheita de soja em São Paulo; atividade modelada é palha de campo, não casca do esmagamento
     fde:
       confidence: HIGH
       eta: 0.6
@@ -813,11 +811,6 @@ feedstocks:
           medio: 0.15
           max: 0.25
           reference: abrelpe2022_rsu
-        fs:
-          min: 1.0
-          medio: 1.0
-          max: 1.0
-          reference: IBGE PAM annual activity; B5-FS class (a)
         fl:
           min: 0.3
           medio: 0.55
@@ -872,6 +865,13 @@ feedstocks:
     ch4_pct: 55.0
     cn_ratio: 57.0
     notes: Current frontend (bmp=320) slightly overestimates for bulk field corn stover.
+    availability_profile:
+      window_months: [6, 7, 8, 9]
+      days_available_yr: 122
+      storable: false
+      point_of_availability: "campo"
+      source: >-
+        CONAB, calendário de colheita do milho segunda safra em São Paulo (junho a setembro). PAM 1612 agrega 1ª safra (verão, fev-maio) e 2ª safra (safrinha, jun-set) sem distinção municipal; a janela adota a safrinha (75% da produção).
     fde:
       confidence: MEDIUM
       eta: 0.68
@@ -886,11 +886,6 @@ feedstocks:
           medio: 0.1667
           max: 0.1833
           reference: abiogas2021_atlas
-        fs:
-          min: 1.0
-          medio: 1.0
-          max: 1.0
-          reference: IBGE PAM annual activity; B5-FS class (a)
         fl:
           min: 0.35
           medio: 0.67
@@ -952,11 +947,6 @@ feedstocks:
           medio: 0.45
           max: 0.52
           reference: fao2017_cropres
-        fs:
-          min: 0.72
-          medio: 0.8
-          max: 0.88
-          reference: conab2023_calendar
         fl:
           min: 0.58
           medio: 0.65
@@ -1018,6 +1008,13 @@ feedstocks:
         t/head/yr is appropriate for a mixed SP composition.
 
         '
+    availability_profile:
+      window_months: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+      days_available_yr: 365
+      storable: false
+      point_of_availability: "propriedade"
+      source: >-
+        IBGE PPM, plantel anual; geração distribuída ao longo do ano
     fde:
       confidence: MEDIUM
       eta: 0.7
@@ -1032,11 +1029,6 @@ feedstocks:
           medio: 0.4
           max: 0.5
           reference: avila2007_poultry
-        fs:
-          min: 1.0
-          medio: 1.0
-          max: 1.0
-          reference: A16 task 1; B5-FS class (d), overlap with FC
         fl:
           min: 0.65
           medio: 0.75
@@ -1099,11 +1091,6 @@ feedstocks:
           medio: 0.6
           max: 0.68
           reference: miele2004_poultry
-        fs:
-          min: 0.88
-          medio: 0.92
-          max: 0.96
-          reference: embrapa2012_aves
         fl:
           min: 0.62
           medio: 0.7
@@ -1182,11 +1169,6 @@ feedstocks:
           medio: 0.45
           max: 0.58
           reference: primavesi2004_cattle
-        fs:
-          min: 0.75
-          medio: 0.82
-          max: 0.92
-          reference: primavesi2004_cattle
         fl:
           min: 0.52
           medio: 0.65
@@ -1254,6 +1236,13 @@ feedstocks:
         beef herd) yields collectable manure — that restriction lives in fc, not here.
 
         '
+    availability_profile:
+      window_months: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+      days_available_yr: 365
+      storable: false
+      point_of_availability: "propriedade"
+      source: >-
+        IBGE PPM, rebanho anual; geração contínua de dejetos
     fde:
       confidence: MEDIUM
       eta: 0.65
@@ -1268,11 +1257,6 @@ feedstocks:
           medio: 0.35
           max: 0.42
           reference: primavesi2004_cattle
-        fs:
-          min: 1.0
-          medio: 1.0
-          max: 1.0
-          reference: A16 task 1; B5-FS class (d), overlap with FC/FL
         fl:
           min: 0.38
           medio: 0.52
@@ -1343,6 +1327,13 @@ feedstocks:
         or hydraulic flush from slatted floors.
 
         '
+    availability_profile:
+      window_months: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+      days_available_yr: 365
+      storable: false
+      point_of_availability: "propriedade"
+      source: >-
+        IBGE PPM, rebanho anual; geração contínua de dejetos
     fde:
       confidence: MEDIUM
       eta: 0.75
@@ -1351,19 +1342,12 @@ feedstocks:
           min: 0.1
           medio: 0.14
           max: 0.18
-          reference: primavesi2004_cattle (Embrapa Pecuária Sudeste Doc 39, pp. 18-24);
-            coldebella2006. Fraction of daily excreta deposited on washable/scrapable
-            concrete floor (holding pen, milking parlor & feeding aisle)
+          reference: primavesi2004_cattle
         fco_available:
           min: 0.5
           medio: 0.58
           max: 0.68
           reference: primavesi2004_cattle
-        fs:
-          min: 1.0
-          medio: 1.0
-          max: 1.0
-          reference: A16 task 1; B5-FS class (d), overlap with FC
         fl:
           min: 0.75
           medio: 0.85
@@ -1437,11 +1421,6 @@ feedstocks:
           medio: 0.5
           max: 0.58
           reference: embrapa2015_cattle
-        fs:
-          min: 0.82
-          medio: 0.88
-          max: 0.94
-          reference: primavesi2004_cattle
         fl:
           min: 0.6
           medio: 0.68
@@ -1509,6 +1488,13 @@ feedstocks:
         m³ biogas/head/yr.
 
         '
+    availability_profile:
+      window_months: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+      days_available_yr: 365
+      storable: false
+      point_of_availability: "propriedade"
+      source: >-
+        IBGE PPM, rebanho anual; geração contínua de dejetos
     fde:
       confidence: MEDIUM
       eta: 0.75
@@ -1523,11 +1509,6 @@ feedstocks:
           medio: 0.55
           max: 0.6
           reference: kunz2009_swine
-        fs:
-          min: 1.0
-          medio: 1.0
-          max: 1.0
-          reference: A16 task 1; B5-FS class (d), overlap with FC
         fl:
           min: 0.55
           medio: 0.72
@@ -1598,11 +1579,6 @@ feedstocks:
           medio: 0.55
           max: 0.62
           reference: kunz2009_swine
-        fs:
-          min: 0.9
-          medio: 0.95
-          max: 0.98
-          reference: abcs2016_swine
         fl:
           min: 0.68
           medio: 0.75
@@ -1687,6 +1663,13 @@ feedstocks:
         so removing recyclables beforehand would discount the inorganic fraction twice.
 
         '
+    availability_profile:
+      window_months: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+      days_available_yr: 365
+      storable: false
+      point_of_availability: "urbano difuso"
+      source: >-
+        SNIS 2022 CO111 e fallback IBGE 2022; coleta domiciliar contínua
     fde:
       confidence: MEDIUM
       eta: 0.75
@@ -1695,18 +1678,12 @@ feedstocks:
           min: 0.8
           medio: 0.9
           max: 0.95
-          reference: snis2022_rsu / abrelpe2022; generation 0.100 t/cap/yr already
-            is source-separated organic fraction
+          reference: snis2022_rsu
         fco_available:
           min: 0.52
           medio: 0.65
           max: 0.8
           reference: mata_alvarez2014_ofmsw
-        fs:
-          min: 1.0
-          medio: 1.0
-          max: 1.0
-          reference: A16 task 1; B5-FS class (d), overlap with FC
         fl:
           min: 0.7
           medio: 0.8
@@ -1772,11 +1749,6 @@ feedstocks:
           medio: 0.12
           max: 0.25
           reference: abrelpe2022_rsu
-        fs:
-          min: 0.85
-          medio: 0.92
-          max: 0.97
-          reference: snis2022_rsu
         fl:
           min: 0.7
           medio: 0.82
@@ -1839,6 +1811,13 @@ feedstocks:
         entry (0.030) was entered as DRY mass but engine expects WET — corrected 2026-06.
 
         '
+    availability_profile:
+      window_months: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+      days_available_yr: 365
+      storable: false
+      point_of_availability: "urbano difuso"
+      source: >-
+        SNIS 2022 ES006; tratamento de esgoto contínuo
     fde:
       confidence: HIGH
       eta: 0.8
@@ -1853,11 +1832,6 @@ feedstocks:
           medio: 0.75
           max: 0.85
           reference: cetesb2020_sludge
-        fs:
-          min: 1.0
-          medio: 1.0
-          max: 1.0
-          reference: SNIS 2022 ES006 annual activity; B5-FS class (a)
         fl:
           min: 0.82
           medio: 0.9
@@ -1910,6 +1884,13 @@ feedstocks:
       cell-wall material. Migration 015 corrected this: 303 → 180 NmL/gVS.
 
       '
+    availability_profile:
+      window_months: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+      days_available_yr: 365
+      storable: false
+      point_of_availability: "urbano difuso"
+      source: >-
+        SNIS 2022 ES006; tratamento de esgoto contínuo
     fde:
       confidence: HIGH
       eta: 0.55
@@ -1924,11 +1905,6 @@ feedstocks:
           medio: 0.7
           max: 0.8
           reference: cetesb2020_sludge
-        fs:
-          min: 1.0
-          medio: 1.0
-          max: 1.0
-          reference: SNIS 2022 ES006 annual activity; B5-FS class (a)
         fl:
           min: 0.78
           medio: 0.85
@@ -2016,11 +1992,6 @@ feedstocks:
           medio: 0.35
           max: 0.55
           reference: abrelpe2022_rsu
-        fs:
-          min: 0.7
-          medio: 0.8
-          max: 0.9
-          reference: snis2022_rsu
         fl:
           min: 0.6
           medio: 0.75
@@ -2082,11 +2053,6 @@ feedstocks:
           medio: 0.25
           max: 0.35
           reference: anp2023_biodiesel
-        fs:
-          min: 0.9
-          medio: 0.95
-          max: 0.98
-          reference: abpa2022_report
         fl:
           min: 0.68
           medio: 0.75
@@ -2152,11 +2118,6 @@ feedstocks:
           medio: 0.45
           max: 0.52
           reference: fao2014_slaughter
-        fs:
-          min: 0.9
-          medio: 0.95
-          max: 0.98
-          reference: abpa2022_report
         fl:
           min: 0.62
           medio: 0.7

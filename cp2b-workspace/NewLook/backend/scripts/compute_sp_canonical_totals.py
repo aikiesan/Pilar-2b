@@ -19,7 +19,10 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 import yaml  # noqa: E402
 
 from app.services.biogas_forward import SCENARIOS  # noqa: E402
-from app.services.canonical_loader import STREAM_SUBPOPULATIONS  # noqa: E402
+from app.services.canonical_loader import (  # noqa: E402
+    STREAM_SUBPOPULATIONS,
+    get_availability_profile,
+)
 from app.services.canonical_municipality import (  # noqa: E402
     CITRUS_RESIDUE_FRACTION,
     SUGARCANE_SUBSTREAMS as _PIPELINE_SUGARCANE_SUBSTREAMS,
@@ -219,6 +222,165 @@ def _aggregate(municipalities: list[dict]) -> tuple[dict, dict, dict]:
     return totals, by_feedstock, by_sector
 
 
+_MONTH_NAMES = (
+    "janeiro",
+    "fevereiro",
+    "março",
+    "abril",
+    "maio",
+    "junho",
+    "julho",
+    "agosto",
+    "setembro",
+    "outubro",
+    "novembro",
+    "dezembro",
+)
+
+
+def _monthly_summary(values: list[float]) -> dict:
+    peak = max(range(12), key=values.__getitem__)
+    valley = min(range(12), key=values.__getitem__)
+    return {
+        "monthly_ch4_available": [
+            {
+                "month": month + 1,
+                "month_name": _MONTH_NAMES[month],
+                "ch4_available": quantity(value, "m3_CH4/month"),
+            }
+            for month, value in enumerate(values)
+        ],
+        "peak_month": {"month": peak + 1, "month_name": _MONTH_NAMES[peak]},
+        "valley_month": {"month": valley + 1, "month_name": _MONTH_NAMES[valley]},
+        "peak_to_valley_ratio": values[peak] / values[valley],
+    }
+
+
+def _temporal_availability(
+    municipalities: list[dict],
+    feedstocks: dict[str, dict],
+    sectors: dict[str, dict],
+) -> tuple[dict, dict[str, list[dict]]]:
+    """Allocate annual medium CH4 uniformly over each generation window.
+
+    This is availability at the point of generation, before storage dispatch.
+    It is intentionally separate from FC × FCo × FL and conserves annual CH4.
+    """
+    profiles = {
+        row["canonical_code"]: get_availability_profile(row["canonical_code"])
+        for row in feedstocks.values()
+    }
+    state = [0.0] * 12
+    regions: dict[tuple[str, str], list[float]] = {}
+    by_municipality: dict[str, list[dict]] = {}
+    for item in municipalities:
+        canonical = item["canonical"]
+        context = item["context"]
+        municipal = [0.0] * 12
+        region_key = (context["cd_rgint"], context["nm_rgint"])
+        regional = regions.setdefault(region_key, [0.0] * 12)
+        for metric in canonical.feedstocks.values():
+            profile = profiles[metric.canonical_code]
+            monthly = metric.ch4["medio"] / len(profile.window_months)
+            for month in profile.window_months:
+                municipal[month - 1] += monthly
+                regional[month - 1] += monthly
+                state[month - 1] += monthly
+        by_municipality[canonical.ibge_code] = _monthly_summary(municipal)[
+            "monthly_ch4_available"
+        ]
+
+    annual = sum(row["ch4"]["medio"] for row in feedstocks.values())
+    if not math.isclose(sum(state), annual, rel_tol=1e-12, abs_tol=0.01):
+        raise RuntimeError(
+            f"B6 temporal allocation changed annual CH4: monthly={sum(state)}, annual={annual}"
+        )
+
+    capacity_feedstocks = []
+    for row in sorted(
+        feedstocks.values(), key=lambda value: value["ch4"]["medio"], reverse=True
+    ):
+        profile = profiles[row["canonical_code"]]
+        factor = 1.0 if profile.storable else profile.days_available_yr / 365.0
+        capacity_feedstocks.append(
+            {
+                "feedstock": row["feedstock"],
+                "canonical_code": row["canonical_code"],
+                "sector": row["sector"],
+                "days_available_yr": profile.days_available_yr,
+                "storable": profile.storable,
+                "max_storage_days": profile.max_storage_days,
+                "point_of_availability": profile.point_of_availability,
+                "window_months": list(profile.window_months),
+                "source": profile.source,
+                "implicit_capacity_factor": factor,
+                "ch4_medio": quantity(row["ch4"]["medio"], "m3_CH4/year"),
+            }
+        )
+
+    def weighted(rows: list[dict]) -> float:
+        denominator = sum(row["ch4"]["medio"] for row in rows)
+        return sum(
+            row["ch4"]["medio"]
+            * (
+                1.0
+                if profiles[row["canonical_code"]].storable
+                else profiles[row["canonical_code"]].days_available_yr / 365.0
+            )
+            for row in rows
+        ) / denominator
+
+    capacity_sectors = []
+    for sector in sorted(sectors):
+        rows = [row for row in feedstocks.values() if row["sector"] == sector]
+        capacity_sectors.append(
+            {
+                "sector": sector,
+                "implicit_capacity_factor": weighted(rows),
+                "weight": "CH4 medio anual",
+            }
+        )
+
+    regional_output = []
+    for (code, name), values in sorted(regions.items()):
+        regional_output.append(
+            {
+                "intermediate_region_code": code,
+                "intermediate_region_name": name,
+                **_monthly_summary(values),
+            }
+        )
+    return (
+        {
+            "interpretation": (
+                "generation at the point of availability, uniformly distributed "
+                "within window_months; before storage dispatch"
+            ),
+            "annual_invariance": {
+                "monthly_sum_m3_year": sum(state),
+                "canonical_ch4_medio_m3_year": annual,
+                "delta_m3_year": sum(state) - annual,
+                "absolute_tolerance_m3_year": 0.01,
+                "status": "pass",
+            },
+            "state": _monthly_summary(state),
+            "by_intermediate_region": regional_output,
+            "implicit_capacity_factor": {
+                "interpretation": (
+                    "engineering utilisation metric, never a discount of potential; "
+                    "days_available_yr/365 for non-storable streams and 1.0 where "
+                    "declared storage bridges the off-season"
+                ),
+                "aggregation_weight": "CH4 medio anual",
+                "state": weighted(list(feedstocks.values())),
+                "by_sector": capacity_sectors,
+                "by_feedstock": capacity_feedstocks,
+            },
+        },
+        by_municipality,
+    )
+
+
 def _baseline_expected(path: Path) -> float | None:
     if not path.is_file():
         return None
@@ -319,6 +481,9 @@ def build_results(
     totals, feedstocks, sectors = _aggregate(municipalities)
     expected = _baseline_expected(_CANONICAL_JSON)
     guard = _guard(totals["ch4"]["medio"], expected, update_baseline)
+    temporal, monthly_by_municipality = _temporal_availability(
+        municipalities, feedstocks, sectors
+    )
     instantiated = {row["canonical_code"] for row in feedstocks.values()}
 
     def serialise_rank(rows: list[dict]) -> list[dict]:
@@ -381,6 +546,9 @@ def build_results(
                 "snis_es006_1000m3_year": item["activity"][
                     "es006_treated_sewage_1000m3_2022"
                 ],
+                "monthly_ch4_available": monthly_by_municipality[
+                    canonical.ibge_code
+                ],
                 "totals": metrics,
             }
         )
@@ -440,7 +608,7 @@ def build_results(
         "co111_co115_co119_reconciliation": _co_reconciliation(),
     }
     results = {
-        "schema_version": "2.0.0",
+        "schema_version": "2.1.0",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "git_sha": _git_sha(),
         "feedstocks_yaml_sha256": hashlib.sha256(_FEEDSTOCKS.read_bytes()).hexdigest(),
@@ -489,6 +657,7 @@ def build_results(
                 spatial_input, value_key="ch4_frontier"
             ),
         },
+        "temporal_availability": temporal,
         "provenance": {
             "generator": "backend/scripts/compute_sp_canonical_totals.py",
             "municipal_activity_input": "docs/data/municipality_biomass_tons.csv",
@@ -628,7 +797,7 @@ def _write_report(results: dict) -> None:
         "Cada feedstock agora carrega, na mesma instância municipal, biomassa bruta, "
         "biomassa mobilizável, CH4, biogás e biometano. A disponibilidade implícita "
         "`mobilizável/bruta` é gravada no ranking e é exatamente "
-        "`FC × FCo × FS × FL`; para FORSU médio: 0,90 × 0,65 × 0,90 × 0,80 = 0,4212.",
+        "`FC × FCo × FL`; para FORSU médio: 0,90 × 0,65 × 0,80 = 0,4680.",
         "",
         "## SNIS 2022",
         "",
