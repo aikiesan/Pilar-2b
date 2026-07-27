@@ -1,12 +1,19 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-07-27T12:21:14.840639+00:00",
-  "git_sha": "4d7e253f487b01152677cb470320cd69dde30a74",
+  "generated_at": "2026-07-27T13:28:55.876981+00:00",
+  "git_sha": "9e1930e767c2de2802c036439146c63714bd8d15",
   "feedstocks_yaml_sha256": "ea1f23b52ff4eb37703271df2cb4771dcc8aec0e14ed97449b88860180b07e48",
+  "energy_parameters_sha256": "5d664a583c4fc9e8de6110b1c09f102dc4c7fbc5593a7c71475556df95a07c0e",
   "scenario": {
-    "min": "coupled minimum parameter band",
-    "medio": "coupled medium parameter band",
-    "max": "coupled maximum parameter band"
+    "min": "coupled deterministic lower parameter extreme",
+    "medio": "coupled deterministic central parameter set",
+    "max": "coupled deterministic upper parameter extreme"
+  },
+  "uncertainty_interpretation": {
+    "method": "coupled_parameter_extremes",
+    "statistical_propagation": false,
+    "monte_carlo": false,
+    "limitation": "not confidence intervals, quantiles, or probability distributions"
   },
   "totals": {
     "biomass_gross": {
@@ -95,9 +102,16 @@
     }
   },
   "efficiencies": {
+    "route": {
+      "id": "chp_cogeneration",
+      "label": "Cogeração a biogás",
+      "mode": "simultaneous_outputs",
+      "description": "O metano disponível alimenta uma única unidade CHP. Eletricidade e calor útil são coprodutos simultâneos da mesma máquina, não rotas alternativas."
+    },
     "methane_lhv_kwh_m3": 9.97,
     "electrical": 0.4,
     "thermal": 0.45,
+    "total_useful": 0.85,
     "biomethane_upgrading": 0.97
   },
   "by_feedstock": [
@@ -53788,12 +53802,25 @@
   "coverage": {
     "snis_series_year": 2022,
     "forsu": {
-      "population_fallback": 431,
-      "snis_co111": 214
+      "series_year": 2022,
+      "measured_field": "CO111",
+      "measured_co111_municipalities": 214,
+      "population_fallback_municipalities": 431,
+      "total_municipalities": 645,
+      "measured_share_percent": 33.17829457364341,
+      "route_counts": {
+        "population_fallback": 431,
+        "snis_co111": 214
+      }
     },
     "es006_reported_municipalities": 612,
     "es006_not_reported_municipalities": 33,
-    "poda_urbana": "coverage:none; not instantiated",
+    "poda_urbana": {
+      "coverage": "none",
+      "instantiated": false,
+      "public_interface": "removed",
+      "reason": "corpus and canonical municipal activity are absent"
+    },
     "co111_co115_co119_reconciliation": {
       "query": "SNIS RS 2022, Tabela CO02, same municipality row",
       "identity": "CO119 = CO111 + CO115",
@@ -60438,6 +60465,26 @@
           },
           "state_total_cumulative": {
             "value": 70.35257334436197,
+            "unit": "percent"
+          }
+        }
+      ],
+      "concentration_thresholds": [
+        {
+          "target": {
+            "value": 67.0,
+            "unit": "percent"
+          },
+          "municipalities_required": {
+            "value": 183,
+            "unit": "municipality"
+          },
+          "ch4_cumulative": {
+            "value": 670549236.57,
+            "unit": "m3_CH4/year"
+          },
+          "state_total_cumulative": {
+            "value": 67.03711347400362,
             "unit": "percent"
           }
         }
@@ -67163,6 +67210,26 @@
           }
         }
       ],
+      "concentration_thresholds": [
+        {
+          "target": {
+            "value": 67.0,
+            "unit": "percent"
+          },
+          "municipalities_required": {
+            "value": 186,
+            "unit": "municipality"
+          },
+          "ch4_cumulative": {
+            "value": 1561053788.9399998,
+            "unit": "m3_CH4/year"
+          },
+          "state_total_cumulative": {
+            "value": 67.03686621087246,
+            "unit": "percent"
+          }
+        }
+      ],
       "by_ibge_intermediate_region": [
         {
           "intermediate_region_code": "3508",
@@ -67348,6 +67415,7 @@
     "municipal_activity_input": "docs/data/municipality_biomass_tons.csv",
     "snis_activity_input": "data/canonical_parameters/snis_sp_activity_2022.csv",
     "canonical_parameters": "data/canonical_parameters/feedstocks.yaml",
+    "energy_parameters": "data/canonical_parameters/energy.yaml",
     "municipalities": {
       "value": 645,
       "unit": "municipality"

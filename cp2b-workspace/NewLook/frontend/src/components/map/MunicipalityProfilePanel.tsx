@@ -379,7 +379,6 @@ export default function MunicipalityProfilePanel({
           >
             <div className="space-y-2">
               <DetailRow label="RSU (Resíduos Sólidos)" value={formatResidue(props, 'rsu')} />
-              <DetailRow label={t('residues.rpo')} value={formatResidue(props, 'rpo')} />
             </div>
           </Section>
 

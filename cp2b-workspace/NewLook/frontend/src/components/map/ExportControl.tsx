@@ -107,7 +107,6 @@ export default function ExportControl({
       'Poultry Biogas (m³/year)',
       'Aquaculture Biogas (m³/year)',
       'RSU Biogas (m³/year)',
-      `${t('residues.rpo')} Biogas (m³/year)`,
     ];
 
     // Prepare CSV rows
@@ -133,7 +132,6 @@ export default function ExportControl({
         p.poultry_biogas_m3_year || 0,
         p.aquaculture_biogas_m3_year || 0,
         p.rsu_biogas_m3_year || 0,
-        p.rpo_biogas_m3_year || 0,
       ];
     });
 

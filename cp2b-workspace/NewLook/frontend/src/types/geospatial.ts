@@ -276,6 +276,14 @@ export interface SummaryStatistics {
     livestock: number;
     urban: number;
   };
+  forsu_coverage?: {
+    series_year: number;
+    measured_field: string;
+    measured_co111_municipalities: number;
+    population_fallback_municipalities: number;
+    total_municipalities: number;
+    measured_share_percent: number;
+  } | null;
   note?: string;
 }
 

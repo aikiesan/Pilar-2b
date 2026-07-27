@@ -1,6 +1,6 @@
 # Procedência dos resultados canônicos
 
-**Estado:** rascunho da seção de métodos · **vigência:** B3-CONSOLIDA
+**Estado:** rascunho da seção de métodos · **vigência:** B4-MINIMO
 
 ## Cadeia de cálculo e publicação
 
@@ -21,6 +21,13 @@ com atividade municipal, cria uma instância por município e feedstock e só en
 agrega biomassa, CH₄, biogás, biometano e energia. O JSON grava o SHA-256 exato
 do YAML consumido. As superfícies públicas usam `canonical_municipality.py` e
 `map_metrics.py`; snapshots SQL históricos não são fontes publicáveis.
+
+Os parâmetros da conversão energética ficam em
+`data/canonical_parameters/energy.yaml`. A rota representada é **cogeração
+(CHP)**: ηel=0,40 e ηth=0,45 pertencem à mesma máquina e geram eletricidade e
+calor útil simultaneamente; não são alternativas. O upgrading a biometano
+(recuperação 0,97) é uma rota separada da CHP. O JSON grava também o SHA-256
+desse arquivo energético.
 
 O gate `scripts/validate_canonical_consistency.py` extrai todas as folhas
 numéricas do JSON. Afirmações publicadas referenciam o caminho da folha com
@@ -63,10 +70,18 @@ está em quarentena, esses rótulos são limitações históricas e não autoriz
 reparametrização.
 
 - **Insuficiente:** CAMA_AVIARIO, CASCAS_CITROS, POLPA_CAFE, CASCA_CAFE,
-  DEJETOS_AVES e GORDURA.
+  DEJETOS_AVES, GORDURA e PALHA_SOJA (n=1).
 - **Sem cobertura:** CASCA_SOJA, DEJETOS_BOVINO, ESTERCO_BOVINO,
-  ESTERCO_BOVINO_CORTE, ESTERCO_BOVINO_LEITEIRO, ESTERCO_SUINO,
-  MUCILAGEM_CAFE, ORGANICO_RSU, PALHA_SOJA, PODA_URBANA e SANGUE.
+  ESTERCO_BOVINO_CORTE, MUCILAGEM_CAFE, ORGANICO_RSU, PODA_URBANA e SANGUE.
+
+O B4 **corrige o documento, sem reverter as atribuições diretas** já presentes
+no YAML: ESTERCO_SUINO tem n=10 por sinonímia com DEJETOS_SUINO;
+PALHA_SOJA tem n=1 por atribuição direta; e ESTERCO_BOVINO_LEITEIRO tem n=6
+por sinonímia com ESTERCO_BOVINO_FRESCO. Nesta última, a atribuição registra a
+correção de base de sólidos totais (TS) entre esterco fresco de curral e a
+atividade de vacas em ordenha. O agregado ESTERCO_BOVINO e
+ESTERCO_BOVINO_CORTE continuam `none`. Como todos esses blocos de corpus seguem
+em quarentena, a reconciliação é documental e não autoriza reparametrização.
 
 ## Parametrizados e não instanciados
 
@@ -80,7 +95,7 @@ Estes códigos existem no catálogo, mas não entram no resultado vigente:
 | ESTERCO_BOVINO | agregado substituído pela divisão corte/leite |
 | DEJETOS_BOVINO, ESTERCO_SUINO | sem campo de atividade municipal mapeado |
 | ORGANICO_RSU | rota alternativa excluída; FORSU usa CO111 e fallback explícito |
-| PODA_URBANA | `coverage:none`; exclusão deliberada |
+| PODA_URBANA | `coverage:none`; não instanciada e camada removida da interface pública no B4 |
 | GORDURA, SANGUE | sem campo de atividade municipal mapeado |
 
 A lista legível por máquina e o motivo individual estão em
@@ -116,3 +131,15 @@ populacional marcado por município. ES006 não cobre todos os 645. Lodos usam
 conversão explícita de volume tratado para massa seca e depois para base úmida.
 PODA_URBANA não é instanciada. Cobertura, contagens, conversões e validações
 vigentes são emitidas pelo mesmo comando que gera `canonical_results.json`.
+
+As bandas `min`/`medio`/`max` são **extremos determinísticos acoplados dos
+parâmetros**: cada execução aplica conjuntamente o conjunto inferior, central
+ou superior. Elas não são propagação estatística, quantis, intervalos de
+confiança nem distribuições de probabilidade; correlações e probabilidades dos
+parâmetros não são modeladas. Essa é uma limitação explícita. Propagação por
+Monte Carlo fica adiada para depois da submissão.
+
+O relatório A16 registra ainda, sem alterar parâmetros, possíveis sobreposições
+estruturais entre FC/FCo/FS/FL e o desconto de FS sobre bases anuais. Seus
+totais numéricos pertencem a um baseline anterior e estão superados; o
+diagnóstico é preservado apenas como agenda de refinamento metodológico.

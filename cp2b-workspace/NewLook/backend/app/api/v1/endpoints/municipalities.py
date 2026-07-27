@@ -102,7 +102,7 @@ _DETAIL_ONLY_RE = re.compile(
 # Livestock streams derived from PPM head counts (per-head generation).
 _PPM_STREAMS = ("cattle", "swine", "poultry")
 # Urban streams modelled from resident population (per-capita generation).
-_URBAN_STREAMS = ("rsu", "rpo")
+_URBAN_STREAMS = ("rsu",)
 
 
 def _load_activity_counts(cursor, ibge_codes: list[str]) -> dict[str, dict[str, float]]:
@@ -151,14 +151,12 @@ def _derive_activity_biomass(
     Urban waste prefers MEASUREMENT over modelling:
       * rsu, where SNIS reports collected household waste (CO111) -> that tonnage
         x the canonical organic fraction, tagged 'measured'. ~5,060 municipalities.
-      * rsu elsewhere, and rpo always -> population x per-capita generation,
-        tagged 'estimated'.
+      * rsu elsewhere -> population x per-capita generation, tagged 'estimated'.
 
-    rpo (urban pruning) stays modelled even where SNIS reports public-cleaning
-    waste (CO115): RPU bundles street sweeping with pruning and there is no cited
-    factor for the pruning share of it. Inventing one to reach a 'measured' tag
-    would be worse than an honest estimate — the per-capita figure is at least
-    grounded in ABRELPE's 3-5%-of-RSU characterization.
+    rpo/PODA_URBANA is deliberately absent: CO115 bundles street sweeping with
+    pruning, no cited pruning share is available, and the canonical corpus has
+    coverage=none. B4 removes that layer from publication rather than inventing
+    a municipal value.
 
     Returns the 'medio' scenario for the displayed value. A stream with no
     activity data is simply absent -> no_data.

@@ -18,8 +18,8 @@ from app.services.canonical_loader import (
     get_params_for_stream,
     mill_delivery_fraction,
 )
+from app.services.energy_parameters import UPGRADING_EFFICIENCY
 
-UPGRADING_EFFICIENCY = 0.97
 CITRUS_RESIDUE_FRACTION = 0.50
 SUGARCANE_SUBSTREAMS: tuple[tuple[str, str, float, bool], ...] = (
     ("cana_bagaco", "BAGACO", 0.280, True),

@@ -106,7 +106,7 @@ function parseScopeParam(raw: string | null): MapScope {
 // Valid residue values for URL parsing
 const VALID_RESIDUES: ResidueType[] = [
   'sugarcane', 'soybean', 'corn', 'coffee', 'citrus',
-  'cattle', 'swine', 'poultry', 'aquaculture', 'rsu', 'rpo',
+  'cattle', 'swine', 'poultry', 'aquaculture', 'rsu',
 ];
 const VALID_BIOMASS: BiomassType[] = ['total', 'agricultural', 'livestock', 'urban'];
 const VALID_VIZ: VisualizationMode[] = ['choropleth', 'heatmap', 'bubble', 'clusters'];

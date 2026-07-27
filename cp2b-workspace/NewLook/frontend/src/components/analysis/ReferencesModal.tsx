@@ -125,13 +125,6 @@ const REFERENCES: ReferenceCategory[] = [
         year: 2012,
         url: 'https://www.ipea.gov.br/portal/publicacao-item?id=34419',
         description: 'Diagnóstico dos Resíduos Sólidos Urbanos - Relatório de Pesquisa'
-      },
-      {
-        residue: 'Poda urbana',
-        authors: 'SNIS',
-        year: 2023,
-        url: 'https://www.gov.br/cidades/pt-br/acesso-a-informacao/acoes-e-programas/saneamento/snis',
-        description: 'Sistema Nacional de Informações sobre Saneamento - Diagnóstico Anual'
       }
     ]
   },

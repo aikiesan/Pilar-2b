@@ -70,7 +70,6 @@ export default function FloatingControlPanel({
     { value: 'poultry', label: 'Aves', category: 'livestock', icon: '🐔' },
     { value: 'aquaculture', label: 'Aquicultura', category: 'livestock', icon: '🐟' },
     { value: 'rsu', label: 'RSU', category: 'urban', icon: '🗑️' },
-    { value: 'rpo', label: t('residues.rpo'), category: 'urban', icon: '♻️' },
   ] as const;
 
   const handleResidueToggle = (residue: ResidueType) => {

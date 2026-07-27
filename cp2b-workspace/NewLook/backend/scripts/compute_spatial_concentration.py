@@ -6,6 +6,7 @@ from __future__ import annotations
 from collections import defaultdict
 
 TOP_N = (10, 50, 100, 203)
+CONCENTRATION_THRESHOLDS_PERCENT = (67.0,)
 
 
 def quantity(value: float | int, unit: str) -> dict:
@@ -73,6 +74,27 @@ def compute_spatial_concentration(
             }
         )
 
+    concentration_thresholds = []
+    for threshold in CONCENTRATION_THRESHOLDS_PERCENT:
+        cumulative = 0.0
+        included = 0
+        for row in descending:
+            cumulative += float(row[value_key])
+            included += 1
+            if not state_total or 100.0 * cumulative / state_total >= threshold:
+                break
+        concentration_thresholds.append(
+            {
+                "target": quantity(threshold, "percent"),
+                "municipalities_required": quantity(included, "municipality"),
+                "ch4_cumulative": quantity(cumulative, "m3_CH4/year"),
+                "state_total_cumulative": quantity(
+                    100.0 * cumulative / state_total if state_total else 0.0,
+                    "percent",
+                ),
+            }
+        )
+
     region_totals: dict[tuple[str, str], float] = defaultdict(float)
     region_counts: dict[tuple[str, str], int] = defaultdict(int)
     for row in municipalities:
@@ -98,5 +120,6 @@ def compute_spatial_concentration(
         "lorenz_curve": lorenz_curve(values),
         "gini": quantity(gini(values), "dimensionless_0_to_1"),
         "top_n": top_n,
+        "concentration_thresholds": concentration_thresholds,
         "by_ibge_intermediate_region": regions,
     }

@@ -37,15 +37,19 @@ _NEWLOOK = Path(__file__).resolve().parents[2]
 _CSV = _NEWLOOK / "docs" / "data" / "municipality_biomass_tons.csv"
 _CONTEXT = _NEWLOOK.parents[1] / "analysis" / "data" / "02_municipality_summary_SP_2023.csv"
 _FEEDSTOCKS = _NEWLOOK / "data" / "canonical_parameters" / "feedstocks.yaml"
+_ENERGY = _NEWLOOK / "data" / "canonical_parameters" / "energy.yaml"
 _SNIS = _NEWLOOK / "data" / "canonical_parameters" / "snis_sp_activity_2022.csv"
 _CANONICAL_JSON = _NEWLOOK / "docs" / "data" / "canonical_results.json"
-_REPORT = _NEWLOOK / "docs" / "data" / "B2-CLOSE_2026-08-01.md"
+_REPORT = (
+    _NEWLOOK
+    / "docs"
+    / "auditorias"
+    / "2026-07-consistencia-canonica"
+    / "06_adventure-b-canonico_2026-07-30-08-01"
+    / "B2-CLOSE_2026-08-01.md"
+)
 _STREAM_CSV = Path(__file__).parent / "canonical_recalc_output" / "sp_canonical_by_stream.csv"
 
-UPGRADING_EFFICIENCY = 0.97
-METHANE_LHV_KWH_M3 = 9.97
-ELECTRICAL_EFFICIENCY = 0.40
-THERMAL_EFFICIENCY = 0.45
 GUARD_ABSOLUTE_TOLERANCE_M3_YEAR = 0.01
 GUARD_RELATIVE_TOLERANCE = 1e-12
 FRONTIER_ALPHA = 0.5
@@ -103,6 +107,20 @@ def _load_inputs() -> tuple[list[dict], dict[str, dict], dict[str, dict[str, flo
     if missing:
         raise RuntimeError(f"Missing regional context for {missing[:5]}")
     return rows, contexts, activity
+
+
+def _load_energy_parameters() -> dict:
+    with _ENERGY.open(encoding="utf-8") as handle:
+        parameters = yaml.safe_load(handle)
+    chp = parameters["chp"]
+    if not math.isclose(
+        float(chp["electrical_efficiency"]) + float(chp["thermal_efficiency"]),
+        float(chp["total_useful_efficiency"]),
+        rel_tol=0.0,
+        abs_tol=1e-12,
+    ):
+        raise RuntimeError("CHP electrical + thermal efficiencies must equal total")
+    return parameters
 
 
 def compute() -> tuple[list[dict], list, dict]:
@@ -293,6 +311,11 @@ def build_results(
     *,
     update_baseline: bool,
 ) -> tuple[dict, list[dict]]:
+    energy_parameters = _load_energy_parameters()
+    methane_lhv = float(energy_parameters["methane"]["lower_heating_value_kwh_m3"])
+    electrical_efficiency = float(energy_parameters["chp"]["electrical_efficiency"])
+    thermal_efficiency = float(energy_parameters["chp"]["thermal_efficiency"])
+    upgrading_recovery = float(energy_parameters["biomethane"]["upgrading_recovery"])
     totals, feedstocks, sectors = _aggregate(municipalities)
     expected = _baseline_expected(_CANONICAL_JSON)
     guard = _guard(totals["ch4"]["medio"], expected, update_baseline)
@@ -377,17 +400,29 @@ def build_results(
         methane = totals["ch4"][scenario]
         energy[scenario] = {
             "electricity_twh_year": methane
-            * METHANE_LHV_KWH_M3
-            * ELECTRICAL_EFFICIENCY
+            * methane_lhv
+            * electrical_efficiency
             / 1e9,
             "thermal_pj_year": methane
-            * METHANE_LHV_KWH_M3
-            * THERMAL_EFFICIENCY
+            * methane_lhv
+            * thermal_efficiency
             * 3.6e-9,
         }
+    measured_forsu = int(route_counts.get("snis_co111", 0))
+    fallback_forsu = int(route_counts.get("population_fallback", 0))
     coverage = {
         "snis_series_year": 2022,
-        "forsu": dict(route_counts),
+        "forsu": {
+            "series_year": 2022,
+            "measured_field": "CO111",
+            "measured_co111_municipalities": measured_forsu,
+            "population_fallback_municipalities": fallback_forsu,
+            "total_municipalities": measured_forsu + fallback_forsu,
+            "measured_share_percent": 100.0
+            * measured_forsu
+            / (measured_forsu + fallback_forsu),
+            "route_counts": dict(route_counts),
+        },
         "es006_reported_municipalities": sum(
             item["activity"]["es006_treated_sewage_1000m3_2022"] > 0
             for item in municipalities
@@ -396,7 +431,12 @@ def build_results(
             item["activity"]["es006_treated_sewage_1000m3_2022"] <= 0
             for item in municipalities
         ),
-        "poda_urbana": "coverage:none; not instantiated",
+        "poda_urbana": {
+            "coverage": "none",
+            "instantiated": False,
+            "public_interface": "removed",
+            "reason": "corpus and canonical municipal activity are absent",
+        },
         "co111_co115_co119_reconciliation": _co_reconciliation(),
     }
     results = {
@@ -404,10 +444,17 @@ def build_results(
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "git_sha": _git_sha(),
         "feedstocks_yaml_sha256": hashlib.sha256(_FEEDSTOCKS.read_bytes()).hexdigest(),
+        "energy_parameters_sha256": hashlib.sha256(_ENERGY.read_bytes()).hexdigest(),
         "scenario": {
-            "min": "coupled minimum parameter band",
-            "medio": "coupled medium parameter band",
-            "max": "coupled maximum parameter band",
+            "min": "coupled deterministic lower parameter extreme",
+            "medio": "coupled deterministic central parameter set",
+            "max": "coupled deterministic upper parameter extreme",
+        },
+        "uncertainty_interpretation": {
+            "method": "coupled_parameter_extremes",
+            "statistical_propagation": False,
+            "monte_carlo": False,
+            "limitation": "not confidence intervals, quantiles, or probability distributions",
         },
         "totals": {
             "biomass_gross": _quantity_range(totals["biomass_gross"], "tonne_wet/year"),
@@ -420,10 +467,12 @@ def build_results(
             "energy": energy,
         },
         "efficiencies": {
-            "methane_lhv_kwh_m3": METHANE_LHV_KWH_M3,
-            "electrical": ELECTRICAL_EFFICIENCY,
-            "thermal": THERMAL_EFFICIENCY,
-            "biomethane_upgrading": UPGRADING_EFFICIENCY,
+            "route": energy_parameters["route"],
+            "methane_lhv_kwh_m3": methane_lhv,
+            "electrical": electrical_efficiency,
+            "thermal": thermal_efficiency,
+            "total_useful": float(energy_parameters["chp"]["total_useful_efficiency"]),
+            "biomethane_upgrading": upgrading_recovery,
         },
         "by_feedstock": serialise_rank(feedstock_rows),
         "by_sector": serialise_rank(sector_rows),
@@ -445,6 +494,7 @@ def build_results(
             "municipal_activity_input": "docs/data/municipality_biomass_tons.csv",
             "snis_activity_input": "data/canonical_parameters/snis_sp_activity_2022.csv",
             "canonical_parameters": "data/canonical_parameters/feedstocks.yaml",
+            "energy_parameters": "data/canonical_parameters/energy.yaml",
             "municipalities": quantity(len(municipalities), "municipality"),
             "snis_fields": {
                 "CO111": "Quantidade de resíduos domiciliares coletados — Total (t/year)",
@@ -508,6 +558,7 @@ def _write_report(results: dict) -> None:
     coverage = results["coverage"]
     comparison = results["validation"]["public_route_vs_canonical"]
     energy = totals["energy"]
+    efficiencies = results["efficiencies"]
     lines = [
         "# B2-CLOSE — fechamento canônico",
         "",
@@ -533,10 +584,11 @@ def _write_report(results: dict) -> None:
         f"{_fmt_range(totals['biomethane'], 1e6)} Mm³/ano",
         "- Bioenergia elétrica: "
         + " / ".join(f"{energy[s]['electricity_twh_year']:.4f}" for s in SCENARIOS)
-        + f" TWh/ano (PCI CH4={METHANE_LHV_KWH_M3} kWh/m³; ηel={ELECTRICAL_EFFICIENCY:.0%})",
+        + f" TWh/ano (PCI CH4={efficiencies['methane_lhv_kwh_m3']} kWh/m³; "
+        + f"ηel={efficiencies['electrical']:.0%})",
         "- Bioenergia térmica: "
         + " / ".join(f"{energy[s]['thermal_pj_year']:.4f}" for s in SCENARIOS)
-        + f" PJ/ano (ηth={THERMAL_EFFICIENCY:.0%})",
+        + f" PJ/ano (ηth={efficiencies['thermal']:.0%})",
         "",
         "## Blocker 1 — regressão e guard",
         "",
@@ -580,8 +632,8 @@ def _write_report(results: dict) -> None:
         "",
         "## SNIS 2022",
         "",
-        f"- FORSU por CO111 medido: {coverage['forsu'].get('snis_co111', 0)} municípios.",
-        f"- Fallback populacional explícito: {coverage['forsu'].get('population_fallback', 0)} municípios.",
+        f"- FORSU por CO111 medido: {coverage['forsu']['measured_co111_municipalities']} municípios.",
+        f"- Fallback populacional explícito: {coverage['forsu']['population_fallback_municipalities']} municípios.",
         f"- ES006 com reporte positivo: {coverage['es006_reported_municipalities']}/645; "
         f"sem reporte: {coverage['es006_not_reported_municipalities']}/645.",
         "- CO111 é RDO coletado; CO115 é RPU coletado; CO119 é o total RDO+RPU. "
@@ -663,6 +715,11 @@ def main() -> None:
         action="store_true",
         help="accept an intentional methodology change and replace canonical_results.json",
     )
+    parser.add_argument(
+        "--write-b2-report",
+        action="store_true",
+        help="regenerate the archived B2 report explicitly (off by default)",
+    )
     args = parser.parse_args()
     _, municipalities, comparison = compute()
     results, feedstocks = build_results(
@@ -672,13 +729,14 @@ def main() -> None:
         json.dumps(results, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )
     _write_stream_csv(feedstocks)
-    _write_report(results)
+    if args.write_b2_report:
+        _write_report(results)
     print(json.dumps({
         "ch4_medio_mm3_day": results["totals"]["ch4_practical"]["medio"]["value"] / 365e6,
         "municipalities_equal": comparison["municipalities_equal"],
         "feedstocks_yaml_sha256": results["feedstocks_yaml_sha256"],
         "canonical_results": str(_CANONICAL_JSON),
-        "report": str(_REPORT),
+        "archived_b2_report_regenerated": bool(args.write_b2_report),
     }, ensure_ascii=False, indent=2))
 
 

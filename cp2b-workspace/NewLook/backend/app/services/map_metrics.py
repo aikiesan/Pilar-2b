@@ -41,8 +41,7 @@ from app.services.canonical_loader import (
     biomass_tons_from_units,
 )
 from app.services.biomass_availability import number_value
-
-UPGRADING_EFFICIENCY: float = 0.97  # membrane / PSA biomethane upgrading
+from app.services.energy_parameters import UPGRADING_EFFICIENCY
 
 # Streams with authoritative biomass tonnage loaded from master CSV (agricultural)
 AGRI_STREAMS: tuple[str, ...] = ("sugarcane", "soybean", "corn", "coffee", "citrus")

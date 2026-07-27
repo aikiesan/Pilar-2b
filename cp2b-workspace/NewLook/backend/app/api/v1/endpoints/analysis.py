@@ -67,7 +67,6 @@ RESIDUE_COLUMNS = {
     },
     "urban": {
         "rsu": "rsu_biogas_m3_year",
-        "rpo": "rpo_biogas_m3_year",
         "_total": "urban_biogas_m3_year",
     },
     "industrial": {
@@ -613,7 +612,6 @@ async def get_residue_config():
                         "label": "RSU (Resíduos Sólidos)",
                         "column": "rsu_biogas_m3_year",
                     },
-                    {"key": "rpo", "label": "Poda urbana", "column": "rpo_biogas_m3_year"},
                 ],
             },
         }

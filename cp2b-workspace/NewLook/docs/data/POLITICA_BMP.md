@@ -73,24 +73,25 @@ aplica.
 
 | Regime | Condição | Verificação aplicável | Feedstocks |
 |---|---|---|---:|
-| `sufficient` | tem entrada no corpus **e** `n ≥ 3` | **R2 suspensa** (§4); não aplicar em CI | **11** |
-| `insufficient` | tem entrada no corpus, `n = 1` ou `2` | R2 não se aplica — uma "mediana" de uma ou duas observações não é mediana. Exige ≥ 2 referências primárias | **6** |
-| `none` | sem entrada no corpus | R2 não se aplica. Exige ≥ 2 referências primárias e figura nas limitações do manuscrito | **11** |
+| `sufficient` | tem entrada no corpus **e** `n ≥ 3` | **R2 suspensa** (§4); não aplicar em CI | **13** |
+| `insufficient` | tem entrada no corpus, `n = 1` ou `2` | R2 não se aplica — uma "mediana" de uma ou duas observações não é mediana. Exige ≥ 2 referências primárias | **7** |
+| `none` | sem entrada no corpus | R2 não se aplica. Exige ≥ 2 referências primárias e figura nas limitações do manuscrito | **8** |
 
-`sufficient` (11): `BAGACO`, `BAGACO_CITROS`, `CASCA_MILHO`, `DEJETOS_SUINO`,
+`sufficient` (13): `BAGACO`, `BAGACO_CITROS`, `CASCA_MILHO`, `DEJETOS_SUINO`,
 `FORSU`, `LODO_PRIMARIO`, `LODO_SECUNDARIO`, `PALHA`, `PALHA_MILHO`,
-`TORTA_FILTRO`, `VINHACA`.
+`TORTA_FILTRO`, `VINHACA`, `ESTERCO_SUINO`, `ESTERCO_BOVINO_LEITEIRO`.
 
-`insufficient` (6): `CAMA_AVIARIO` (n=1), `CASCAS_CITROS` (n=1), `POLPA_CAFE` (n=1),
-`CASCA_CAFE` (n=2), `DEJETOS_AVES` (n=2), `GORDURA` (n=2).
+`insufficient` (7): `CAMA_AVIARIO` (n=1), `CASCAS_CITROS` (n=1), `POLPA_CAFE` (n=1),
+`CASCA_CAFE` (n=2), `DEJETOS_AVES` (n=2), `GORDURA` (n=2), `PALHA_SOJA` (n=1).
 
-`none` (11): `CASCA_SOJA`, `DEJETOS_BOVINO`, `ESTERCO_BOVINO`,
-`ESTERCO_BOVINO_CORTE`, `ESTERCO_BOVINO_LEITEIRO`, `ESTERCO_SUINO`,
-`MUCILAGEM_CAFE`, `ORGANICO_RSU`, `PALHA_SOJA`, `PODA_URBANA`, `SANGUE`.
+`none` (8): `CASCA_SOJA`, `DEJETOS_BOVINO`, `ESTERCO_BOVINO`,
+`ESTERCO_BOVINO_CORTE`, `MUCILAGEM_CAFE`, `ORGANICO_RSU`, `PODA_URBANA`,
+`SANGUE`.
 
-> **Dois dos `none` entram no total estadual:** `PALHA_SOJA` e `ESTERCO_BOVINO`.
-> O número publicado depende de dois feedstocks que o corpus não cobre. Isso é
-> limitação declarada, não pendência silenciosa.
+> O total estadual instancia `PALHA_SOJA` (`insufficient`, n=1) e
+> `ESTERCO_BOVINO_CORTE` (`none`). Essa cobertura limitada é declarada, não uma
+> pendência silenciosa. ESTERCO_BOVINO_LEITEIRO recebe a atribuição por sinonímia
+> com ESTERCO_BOVINO_FRESCO e nota explícita de correção de TS.
 
 O limiar `n ≥ 3` é escolha de projeto, não da literatura, e está registrado como
 tal em `REGRA_BMP_ESPECIFICACAO_2026-07-25.md` §6.

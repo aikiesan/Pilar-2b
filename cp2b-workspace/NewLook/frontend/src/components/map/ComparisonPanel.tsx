@@ -99,7 +99,6 @@ export default function ComparisonPanel({
       case 'urban':
         return [
           { label: 'RSU', key: 'rsu_biogas_m3_year', unit: 'm³/ano' },
-          { label: t('residues.rpo'), key: 'rpo_biogas_m3_year', unit: 'm³/ano' },
         ];
       default:
         return [];

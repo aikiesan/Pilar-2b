@@ -1,0 +1,24 @@
+schema_version: "1.0.0"
+
+route:
+  id: chp_cogeneration
+  label: Cogeração a biogás
+  mode: simultaneous_outputs
+  description: >-
+    O metano disponível alimenta uma única unidade CHP. Eletricidade e calor
+    útil são coprodutos simultâneos da mesma máquina, não rotas alternativas.
+
+methane:
+  lower_heating_value_kwh_m3: 9.97
+
+chp:
+  electrical_efficiency: 0.40
+  thermal_efficiency: 0.45
+  total_useful_efficiency: 0.85
+
+biomethane:
+  upgrading_recovery: 0.97
+
+notes:
+  - As eficiências são determinísticas e aplicadas aos três cenários canônicos.
+  - A rota de upgrading é reportada separadamente da rota CHP.

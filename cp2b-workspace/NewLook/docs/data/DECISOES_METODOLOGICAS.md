@@ -1,6 +1,6 @@
 # Log final de decisões metodológicas — PILAR-2b
 
-**Estado:** normativo · **Consolidação:** B3-CONSOLIDA · **Data:** 2026-08-01
+**Estado:** normativo · **Consolidação:** B4-MINIMO · **Data:** 2026-08-02
 
 Este é o log consecutivo vigente. Relatórios anteriores permanecem no arquivo de
 auditorias; uma decisão revista não é apagada, mas recebe estado e sucessora.
@@ -18,6 +18,7 @@ de `canonical_results.json`.
 | DEC-021 | DEC-009 | sequência final |
 | — | DEC-010 | decisão produzida pelo B2-CLOSE |
 | — | DEC-011 | decisão produzida pelo B3-CONSOLIDA |
+| — | DEC-012 | decisão produzida pelo B4-MINIMO |
 
 ## Log consecutivo
 
@@ -107,3 +108,14 @@ de `canonical_results.json`.
   aplica escala/arredondamento e rejeita literal divergente. Tolerância absoluta
   máxima `1e-6` e relativa declarada `1e-9`.
 - **Rastreabilidade:** `scripts/validate_canonical_consistency.py` e workflow CI.
+
+### [DEC-012] Fechamento mínimo de publicação
+
+- **Data:** 2026-08-02.
+- **Estado:** **ATIVA**.
+- **Decisão:** publicar concentração espacial para CH4 médio; representar a
+  energia como cogeração com eficiências conjuntas em arquivo paramétrico;
+  retirar PODA_URBANA da interface enquanto `coverage:none`; publicar a
+  cobertura FORSU; e tratar min/médio/max como extremos determinísticos
+  acoplados, não incerteza estatística.
+- **Rastreabilidade:** B4-MINIMO e `canonical_results.json`.

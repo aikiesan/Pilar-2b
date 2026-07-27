@@ -45,7 +45,7 @@ export const BIOMASS_RESIDUES: Record<ResidueType, ResidueConfig> = {
 export const RESIDUES_BY_SECTOR: Record<Exclude<BiomassType, 'total'>, ResidueType[]> = {
   agricultural: ['sugarcane', 'soybean', 'corn', 'coffee', 'citrus'],
   livestock: ['cattle', 'swine', 'poultry', 'aquaculture'],
-  urban: ['rsu', 'rpo'],
+  urban: ['rsu'],
 };
 
 export const numberValue = (value: unknown): number => {

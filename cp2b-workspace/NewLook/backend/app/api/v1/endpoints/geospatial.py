@@ -4,6 +4,7 @@ Serve spatial data for interactive maps and spatial analysis.
 All geometry comes from local shapefiles; tabular data from local PostgreSQL.
 """
 
+import json
 import logging
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -43,6 +44,15 @@ _geo_gdf = None
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
+CANONICAL_RESULTS_PATH = (
+    Path(__file__).resolve().parents[5] / "docs" / "data" / "canonical_results.json"
+)
+
+
+def _forsu_publication_coverage() -> dict:
+    """Read publication coverage from the artifact that carries the value."""
+    with CANONICAL_RESULTS_PATH.open(encoding="utf-8") as handle:
+        return json.load(handle)["coverage"]["forsu"]
 
 # ============================================================================
 # SECURITY: Input Validation Constants
@@ -987,6 +997,7 @@ async def get_summary_statistics():
                 "livestock": round((total_live / total_biogas * 100) if total_biogas > 0 else 0, 2),
                 "urban": round((total_urban / total_biogas * 100) if total_biogas > 0 else 0, 2),
             },
+            "forsu_coverage": _forsu_publication_coverage(),
             "note": f"Dados de {n} municípios do estado de São Paulo",
         }
 
@@ -1004,6 +1015,7 @@ async def get_summary_statistics():
             "categories": {},
             "sector_breakdown": {"agricultural": 0, "livestock": 0, "urban": 0},
             "sector_percentages": {"agricultural": 0, "livestock": 0, "urban": 0},
+            "forsu_coverage": None,
             "error": "Failed to load data",
             "note": "Erro ao carregar dados - usando valores padrão",
         }
