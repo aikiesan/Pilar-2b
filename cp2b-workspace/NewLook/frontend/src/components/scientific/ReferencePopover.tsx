@@ -52,7 +52,7 @@ export default function ReferencePopover({ references, onClose, title, parameter
                 Referências para {title}
               </h3>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                {references.length} {references.length === 1 ? 'estudo' : 'estudos'} encontrado{references.length !== 1 ? 's' : ''}
+                {references.length} {references.length === 1 ? 'referência encontrada' : 'referências encontradas'}
               </p>
             </div>
           </div>

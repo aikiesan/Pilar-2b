@@ -17,8 +17,6 @@ interface ParameterWithReferenceProps {
   min?: number | null
   /** Maximum value for range display */
   max?: number | null
-  /** Number of studies/samples (displayed as n=X) */
-  nStudies?: number | null
 }
 
 /**
@@ -51,7 +49,6 @@ export default function ParameterWithReference({
   unit,
   min,
   max,
-  nStudies,
 }: ParameterWithReferenceProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -99,11 +96,6 @@ export default function ParameterWithReference({
         <span className="font-mono font-semibold text-gray-900 dark:text-white">
           {formattedValue}
         </span>
-        {nStudies && nStudies > 0 && (
-          <span className="text-xs text-gray-500 dark:text-gray-400 font-normal">
-            (n={nStudies})
-          </span>
-        )}
       </div>
 
       {isOpen && (

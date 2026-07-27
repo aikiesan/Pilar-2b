@@ -61,3 +61,12 @@
 - **Escopo:** Governança documental do repositório PILAR-2b.
 - **Decisão:** Instituir o presente log `DECISOES_METODOLOGICAS.md` como registro obrigatório de governança. Todos os números passam a ser referenciados via marcadores `{{chave}}` resolvidos a partir de `canonical_results.json`.
 - **Rastreabilidade:** Commit isolado (ADVENTURE B / BX).
+
+---
+
+### [DEC-013] Separação entre Contagem Bibliográfica e Lastro Observacional de BMP
+- **Data:** 2026-07-28 (ADVENTURE B / B-URG-2)
+- **Status:** Ativo
+- **Escopo:** Página pública `scientific-database` e componentes de apresentação de parâmetros científicos.
+- **Decisão:** Não exibir uma contagem `n` ao lado do BMP enquanto não existir linhagem por observação que vincule esse número ao valor apresentado. `reference_count` é uma contagem bibliográfica geral por resíduo e só pode ser exibido com rótulo explícito de referências, separado do BMP; não pode ser reinterpretado como número de estudos, ensaios, amostras ou observações. Menções a medianas de corpus em registros metodológicos não autorizam inferir lastro observacional para o valor servido pela API.
+- **Rastreabilidade:** Documentado em `B-URG-2_ROTULO_NSTUDIES_2026-07-28.md`.
