@@ -171,7 +171,7 @@
 
 **Classificação.** Discrepância jurídica, não editorial. A submissão do manuscrito declara a licença do software descrito, e o registro de propriedade intelectual é o documento vinculante.
 
-**Ação concluída.** O lote B-URG-3 alinhou o arquivo `LICENSE`, cabeçalhos de código e metadados locais. O conjunto de dados publicado foi verificado sem alteração do registro externo; a divergência encontrada está documentada em `docs/data/B-URG-3_LICENCA_GPL3_2026-07-30.md`.
+**Ação concluída.** O lote B-URG-3 alinhou o arquivo `LICENSE`, cabeçalhos de código e metadados locais. O conjunto de dados publicado foi verificado sem alteração do registro externo; a divergência encontrada está documentada em `docs/auditorias/2026-07-consistencia-canonica/07_governanca_2026-07-30-08-01/B-URG-3_LICENCA_GPL3_2026-07-30.md`.
 
 ---
 

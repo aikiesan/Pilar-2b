@@ -105,7 +105,7 @@
   "landing": {
     "skip_to_content": "Pular para o conteúdo principal",
     "hero": {
-      "badge": "CP2b - FAPESP 2024/01112-1 NIPE-Unicamp",
+      "badge": "CP2b · FAPESP 2024/01112-1 · 2025/08745-2 · NIPE-Unicamp",
       "title": "PILAR-2b: Plataforma Inteligente de Localização e Aproveitamento de Resíduos para",
       "title_highlight": "Biogás e Bioprodutos",
       "subtitle": "Plataforma geoespacial para análise do potencial de produção de biogás a partir de resíduos orgânicos no estado de São Paulo",
@@ -222,7 +222,7 @@
       "description": "Inscreva-se para receber atualizações sobre novos recursos, análises e insights sobre o setor de biogás em São Paulo."
     },
     "footer": {
-      "fapesp_project": "FAPESP 2024/01112-1 · CP2Bsd",
+      "fapesp_project": "FAPESP 2024/01112-1 · 2025/08745-2",
       "about": "Sobre",
       "copyright": "© 2025 NIPE-UNICAMP",
       "newsletter_heading": "Receba Nossas Novidades",
@@ -648,12 +648,12 @@
       "residue_rsu": "RSU (Resíduos Sólidos Urbanos)",
       "residue_rpo": "Poda urbana (resíduo verde)",
       "subtotal_urban": "Subtotal Urbano",
-      "print_header": "PILAR-2b BiogasAtlas · NIPE-UNICAMP · FAPESP 2025/08745-2",
+      "print_header": "PILAR-2b BiogasAtlas · NIPE-UNICAMP · FAPESP 2024/01112-1 · 2025/08745-2",
       "print_title": "Perfil de Biogás"
     },
     "about": {
       "back": "Voltar",
-      "fapesp_badge": "FAPESP 2025/08745-2",
+      "fapesp_badge": "FAPESP 2024/01112-1 · 2025/08745-2",
       "title": "PILAR-2b",
       "full_name": "Plataforma Inteligente de Localização e Aproveitamento de Resíduos para Biogás e Bioprodutos",
       "subtitle": "Centro de Excelência vinculado ao NIPE/UNICAMP, financiado pela FAPESP",

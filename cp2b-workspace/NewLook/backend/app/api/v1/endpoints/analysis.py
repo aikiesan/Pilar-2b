@@ -77,7 +77,7 @@ RESIDUE_COLUMNS = {
 }
 
 # Legacy name aliases only. Public values are never read from residue_streams_sp2023
-# after DEC-020; the names are normalized to map_metrics stream keys.
+# after DEC-008; the names are normalized to map_metrics stream keys.
 FRONTEND_CODE_TO_STREAM: Dict[str, Optional[str]] = {
     # Agricultural — Cana (4 sub-residues all map to the sugarcane stream)
     "AG_CANA_BAGACO": "sugarcane",
@@ -218,11 +218,11 @@ async def get_analysis_by_residue(
     limit: int = Query(default=20, le=100),
     min_value: float = Query(default=0),
 ):
-    # DEC-020: this older ranked-list implementation still contains two legacy
+    # DEC-008: this older ranked-list implementation still contains two legacy
     # reads below. Suppress it until it is migrated to the canonical row helper.
     raise HTTPException(
         status_code=503,
-        detail="Residue ranking temporarily unavailable during methodological review (DEC-020).",
+        detail="Residue ranking temporarily unavailable during methodological review (DEC-008).",
     )
 
     # Detect if caller passed frontend codes (AG_CANA_BAGACO style) vs legacy stream
@@ -368,7 +368,7 @@ async def get_analysis_by_residue(
 
 @router.get("/statistics/by-category")
 async def get_statistics_by_category():
-    """Return request-time canonical biogas totals per sector (DEC-020)."""
+    """Return request-time canonical biogas totals per sector (DEC-008)."""
     try:
         canonical_rows = _load_canonical_municipalities()
         categories: Dict[str, Any] = {}
@@ -401,7 +401,7 @@ async def get_statistics_by_category():
         return {
             "categories": categories,
             "total_municipalities": len(canonical_rows),
-            "source": "map_metrics.py + canonical_loader.py (DEC-020)",
+            "source": "map_metrics.py + canonical_loader.py (DEC-008)",
         }
 
     except Exception as e:
@@ -459,7 +459,7 @@ async def get_statistics_by_stream(
             "streams": stream_totals,
             "stream_tons": stream_tons,
             "residue_codes": residue_codes,
-            "source": "map_metrics.py + canonical_loader.py (DEC-020)",
+            "source": "map_metrics.py + canonical_loader.py (DEC-008)",
         }
 
     except Exception as e:
@@ -470,10 +470,10 @@ async def get_statistics_by_stream(
 async def get_statistics_by_region(
     category: Optional[ResidueCategory] = Query(default=None),
 ):
-    # DEC-020: do not publish the legacy regional aggregate.
+    # DEC-008: do not publish the legacy regional aggregate.
     raise HTTPException(
         status_code=503,
-        detail="Regional aggregate temporarily unavailable during methodological review (DEC-020).",
+        detail="Regional aggregate temporarily unavailable during methodological review (DEC-008).",
     )
 
     col = RESIDUE_COLUMNS[category.value]["_total"] if category else "total_biogas_m3_year"
@@ -513,10 +513,10 @@ async def get_distribution(
     category: Optional[ResidueCategory] = Query(default=None),
     bins: int = Query(default=10, ge=5, le=50),
 ):
-    # DEC-020: do not publish the legacy distribution.
+    # DEC-008: do not publish the legacy distribution.
     raise HTTPException(
         status_code=503,
-        detail="Distribution temporarily unavailable during methodological review (DEC-020).",
+        detail="Distribution temporarily unavailable during methodological review (DEC-008).",
     )
 
     col = RESIDUE_COLUMNS[category.value]["_total"] if category else "total_biogas_m3_year"

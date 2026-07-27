@@ -158,6 +158,6 @@
   "reproducibility": {
     "zenodo_doi": "TODO — deposit canonical_parameters/ + analysis/data/0*.csv and record DOI here and in CITATION.cff",
     "inpi": "BR512026003115-0",
-    "funding": "FAPESP 2024/01112-1 (CP2Bsd)"
+    "funding": "FAPESP 2024/01112-1 (CP2Bsd); FAPESP 2025/08745-2"
   }
 }

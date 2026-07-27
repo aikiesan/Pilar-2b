@@ -491,7 +491,7 @@ async def get_municipalities_geojson(
             "total_municipalities": len(features),
             "source_geometry": "PostGIS municipalities.geometry",
             "source_biogas_data": (
-                "Request-time map_metrics.py + canonical_loader.py (DEC-020); "
+                "Request-time map_metrics.py + canonical_loader.py (DEC-008); "
                 "municipalities.*_biogas_m3_year columns are legacy inputs only"
             ),
             "source_biomass_data": (

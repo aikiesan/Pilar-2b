@@ -241,7 +241,7 @@ export default function MethodologyPanel({
                 rel="noopener noreferrer"
                 className="text-blue-600 hover:underline"
               >
-                FAPESP 2025/08745-2
+                FAPESP 2024/01112-1 · 2025/08745-2
               </a>
             </div>
           </div>

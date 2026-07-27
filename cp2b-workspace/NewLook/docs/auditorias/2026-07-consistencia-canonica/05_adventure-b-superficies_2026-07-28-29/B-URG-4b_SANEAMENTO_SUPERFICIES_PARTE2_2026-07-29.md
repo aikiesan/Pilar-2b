@@ -119,7 +119,7 @@ ao “antes”. Não há fonte de valor novo porque nenhuma mudança foi autoriz
 Não há ocorrência de `RPO` nos READMEs rastreados. Os documentos com sentido
 orgânico, putrescível, lodo ou mistura semântica são:
 
-- `docs/data/A2c_DECOMPOSICAO_DIVERGENCIA_2026-07-28.md:62-77,119`
+- `docs/auditorias/2026-07-consistencia-canonica/04_adventure-a-fechamento_2026-07-28-29/A2c_DECOMPOSICAO_DIVERGENCIA_2026-07-28.md:62-77,119`
 - `docs/auditorias/2026-07-consistencia-canonica/02_adventure-a_2026-07-27-28/A2b_CAMINHOS_CONSUMO_FORSU_2026-07-28.md:90-91`
 - `docs/data/SCIENTIFIC_AUDIT_REPORT.md:193,195,403,407,467-470`
 - `docs/data/OPEN_DATA_API_LANDSCAPE.md:30,100,229`

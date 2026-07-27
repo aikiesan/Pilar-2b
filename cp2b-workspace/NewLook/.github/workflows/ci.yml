@@ -7,6 +7,22 @@ on:
     branches: [main]
 
 jobs:
+  canonical-consistency:
+    name: Canonical results - document and UI guard
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Reject divergent published numbers
+        run: python scripts/validate_canonical_consistency.py
+
   frontend-lint-and-build:
     name: Frontend - Lint & Build
     runs-on: ubuntu-latest

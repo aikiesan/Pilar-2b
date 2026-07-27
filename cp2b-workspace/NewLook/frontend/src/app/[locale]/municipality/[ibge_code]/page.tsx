@@ -213,7 +213,7 @@ export default function MunicipalityPage() {
     <div className="min-h-screen bg-gray-50 dark:bg-slate-900 print:bg-white">
       {/* Print header — only in print */}
       <div className="hidden print:block px-8 pt-6 pb-2 border-b">
-        <p className="text-xs text-gray-500">PILAR-2b BiogasAtlas · NIPE-UNICAMP · FAPESP 2025/08745-2</p>
+        <p className="text-xs text-gray-500">PILAR-2b BiogasAtlas · NIPE-UNICAMP · FAPESP 2024/01112-1 · 2025/08745-2</p>
         <h1 className="text-2xl font-bold mt-1">{p.name} · Perfil de Biogás</h1>
         <p className="text-sm text-gray-500">IBGE: {p.ibge_code} · {p.intermediate_region}</p>
       </div>

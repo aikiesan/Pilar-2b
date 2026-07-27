@@ -1,106 +1,109 @@
-# Log de Decisões Metodológicas — PILAR-2b
+# Log final de decisões metodológicas — PILAR-2b
 
-**Propósito:** Registro cronológico, imutável e auditável de todas as decisões metodológicas e parametrizações do repositório PILAR-2b.
+**Estado:** normativo · **Consolidação:** B3-CONSOLIDA · **Data:** 2026-08-01
 
-> **Arquivo histórico relacionado:** o rascunho paralelo `D01–D11`, produzido durante
-> a campanha de auditoria, foi preservado em
-> `docs/auditorias/2026-07-consistencia-canonica/00_linha-de-base_2026-07-25/DECISOES_METODOLOGICAS_RASCUNHO_D01-D11.md`.
-> Ele é evidência histórica e lista pendências; este arquivo permanece como o log
-> normativo vigente.
+Este é o log consecutivo vigente. Relatórios anteriores permanecem no arquivo de
+auditorias; uma decisão revista não é apagada, mas recebe estado e sucessora.
+Resultados derivados devem usar marcadores `{{canonical:<caminho>}}`, resolvidos <!-- canonical-ignore: sintaxe ilustrativa -->
+de `canonical_results.json`.
 
----
+## Mapa de renumeração
 
-## Diretrizes Absolutas de Manutenção
+| Identificador histórico | Identificador final | Motivo |
+|---|---|---|
+| DEC-001…DEC-005 | DEC-001…DEC-005 | sequência original preservada |
+| DEC-013 | DEC-006 | fechamento do intervalo 006–012 |
+| DEC-015 (colidente) | DEC-007 | colisão removida e lacuna 014 fechada |
+| DEC-020 | DEC-008 | fechamento do intervalo 008–019 |
+| DEC-021 | DEC-009 | sequência final |
+| — | DEC-010 | decisão produzida pelo B2-CLOSE |
+| — | DEC-011 | decisão produzida pelo B3-CONSOLIDA |
 
-1. **Atualização por Lote:** O log deve ser atualizado ao fim de cada lote, integrando o mesmo commit do lote.
-2. **Imutabilidade e Rastreabilidade:** Nenhuma entrada pode ser removida ou alterada retroativamente. Se uma decisão for revista, cria-se uma nova entrada que referencia a anterior pelo identificador (ex.: `[DEC-001]`).
-3. **Valores Dinâmicos:** Nenhum valor numérico derivado ou publicado pode ser digitado à mão neste log. Todos os valores numéricos utilizam marcadores da forma `{{chave}}`, resolvidos em tempo de documentação/build a partir da fonte única da verdade (`canonical_results.json` ou `feedstocks.yaml`).
-4. **Registro Completo:** Se um lote não gerar nova decisão metodológica, esse fato deve ser registrado explicitamente como uma entrada nula (ex.: "Nenhuma decisão metodológica alterada neste lote").
+## Log consecutivo
 
----
+### [DEC-001] Política inicial de BMP por corpus
 
-## Log de Decisões (Cronológico)
+- **Data:** 2026-07-25.
+- **Estado:** **SUPERADA por DEC-007**.
+- **Decisão histórica:** usar o corpus agregado para enquadrar BMP.
+- **Motivo da superação:** o corpus não possui gerador nem observações versionadas.
 
-### [DEC-001] Política de BMP: Centralidade e Preservação de Medidas de Batelada
-- **Data:** 2026-07-25 (Lote 1)
-- **Status:** Ativo
-- **Escopo:** Todos os 28 feedstocks canônicos (`feedstocks.yaml`).
-- **Decisão:** Definir a mediana das observações experimentais do corpus compilado ($n$ amostras em batelada) como o `bmp.medio` canônico de cada substrato. Manter a separação estrita entre o BMP de batelada (caracterização de laboratório) e o fator FDE/disponibilidade agrícola e logística.
-- **Rastreabilidade:** Documentado em `POLITICA_BMP.md` e `REGRA_BMP_ESPECIFICACAO_2026-07-25.md`.
+### [DEC-002] Motor canônico como fonte dos totais estaduais
 
----
+- **Data:** 2026-07-26.
+- **Estado:** **ATIVA, ampliada por DEC-010 e DEC-011**.
+- **Decisão:** `compute_sp_canonical_totals.py` e
+  `canonical_results.json` são a fonte única dos resultados publicados.
+- **Rastreabilidade:** `c64a64f`; B2-CLOSE.
 
-### [DEC-002] Saneamento da Afirmação Pública e Números Canônicos do Lote 2
-- **Data:** 2026-07-26 (Lote 2 / Lote 2b)
-- **Status:** Ativo
-- **Escopo:** Totais estaduais de CH₄, Biogás e Biometano para São Paulo.
-- **Decisão:** Adotar a fonte de verdade canônica do motor `biogas_forward.py` e `compute_sp_canonical_totals.py` para todos os números publicados. Corrigir o cálculo da taxa de retenção médio/médio para confrontar o Biometano Médio Estadual contra o CH₄ Teórico Médio Estadual.
-- **Valores Canônicos Vigentes:**
-  - CH₄ Médio Estadual: `{{ch4_medio_m3_day}}` Mm³/d
-  - Biometano Médio Estadual: `{{biometano_medio_m3_day}}` Mm³/d
-  - Taxa de Retenção Médio/Médio: `{{retencao_medio_pct}}` %
-- **Rastreabilidade:** Commit `c64a64f`, documentado em `docs/auditorias/2026-07-consistencia-canonica/01_reconciliacao_2026-07-26/DELTA_LOTE2_2026-07-26.md` e `docs/auditorias/2026-07-consistencia-canonica/01_reconciliacao_2026-07-26/ESTADO_2026-07-26.md`.
+### [DEC-003] Rotas físico-químicas da vinhaça
 
----
+- **Data:** 2026-07-27.
+- **Estado:** **ATIVA**.
+- **Decisão:** manter separadas as rotas VS e DQO, com base experimental e
+  conversões explícitas; divergências não autorizam ajuste por alvo.
 
-### [DEC-003] Reconciliação Físico-Química e Representatividade da Vinhaça
-- **Data:** 2026-07-27 (ADVENTURE A / A1 & A1b)
-- **Status:** Ativo (Pendente de decisão de parâmetros no Lote 2c)
-- **Escopo:** Caracterização da Vinhaça (`feedstocks.yaml:VINHACA`).
-- **Decisão:** Reconhecer que a faixa de literatura (6–10 Nm³ CH₄/m³) decorre da rota de remoção de DQO ($30 \text{ kg DQO/m}^3 \times \eta_{\text{DQO}} \times 0{,}35$), enquanto os parâmetros vigentes (`ts=3,0%`, `vs_of_ts=60,0%`) refletem especificamente a vinhaça diluída de caldo de destilarias autônomas (15% da produção de SP). Para o parque paulista (85% usinas anexas com mosto misto), a caracterização média ponderada resulta em `TS = {{vinhaca_ts_ponderado_pct}}%` e `VS/TS = {{vinhaca_vs_ts_ponderado_pct}}%`, produzindo `{{vinhaca_rendimento_vs_m3}}` Nm³ CH₄/m³ via rota VS. As duas rotas devem coexistir de forma rastreável sem forçar convergência artificial.
-- **Rastreabilidade:** Documentado em `docs/auditorias/2026-07-consistencia-canonica/02_adventure-a_2026-07-27-28/A1_BASE_VINHACA_2026-07-27.md` e `docs/auditorias/2026-07-consistencia-canonica/02_adventure-a_2026-07-27-28/A1b_REPRESENTATIVIDADE_VINHACA_2026-07-27.md`.
+### [DEC-004] Rota única de FORSU
 
----
+- **Data:** 2026-07-27.
+- **Estado:** **IMPLEMENTADA por DEC-010**.
+- **Decisão:** eliminar caminhos concorrentes e haircut implícito.
 
-### [DEC-004] Unificação da Rota FORSU e Eliminação do Haircut Velado
-- **Data:** 2026-07-27 (ADVENTURE A / A2)
-- **Status:** Ativo (Mapeado para correção no Lote 2c / Lote 3)
-- **Escopo:** Fração Orgânica dos Resíduos Sólidos Urbanos (`feedstocks.yaml:FORSU` e `ORGANICO_RSU`).
-- **Decisão:** Registrar a inconsistência entre o parâmetro `t_per_capita_yr = 0,100` (que impõe um haircut velado de 47,6% ao representar 27,4% do RDO) e `organic_fraction_of_rdo = 0,525` (52,5% gravimétrico bruto). Definir que a plataforma adotará uma rota única e coerente entre o somatório municipal e o consolidado estadual.
-- **Rastreabilidade:** Documentado em `docs/auditorias/2026-07-consistencia-canonica/02_adventure-a_2026-07-27-28/A2_FORSU_2026-07-27.md`.
+### [DEC-005] Governança pelo log metodológico
 
----
+- **Data:** 2026-07-27.
+- **Estado:** **ATIVA**.
+- **Decisão:** toda mudança metodológica integra o log e aponta para dados,
+  código, relatório e commit.
 
-### [DEC-005] ADVENTURE B / BX — Log de Decisões Metodológicas
-- **Data:** 2026-07-27 (ADVENTURE B / BX)
-- **Status:** Ativo
-- **Escopo:** Governança documental do repositório PILAR-2b.
-- **Decisão:** Instituir o presente log `DECISOES_METODOLOGICAS.md` como registro obrigatório de governança. Todos os números passam a ser referenciados via marcadores `{{chave}}` resolvidos a partir de `canonical_results.json`.
-- **Rastreabilidade:** Commit isolado (ADVENTURE B / BX).
+### [DEC-006] Contagem bibliográfica não é lastro observacional
 
----
+- **Data:** 2026-07-28.
+- **Estado:** **ATIVA**.
+- **Decisão:** `reference_count` não pode ser apresentado como número de
+  estudos, ensaios, amostras ou observações de BMP.
+- **Rastreabilidade:** B-URG-2, commit `3ff2356`.
 
-### [DEC-013] Separação entre Contagem Bibliográfica e Lastro Observacional de BMP
-- **Data:** 2026-07-28 (ADVENTURE B / B-URG-2)
-- **Status:** Ativo
-- **Escopo:** Página pública `scientific-database` e componentes de apresentação de parâmetros científicos.
-- **Decisão:** Não exibir uma contagem `n` ao lado do BMP enquanto não existir linhagem por observação que vincule esse número ao valor apresentado. `reference_count` é uma contagem bibliográfica geral por resíduo e só pode ser exibido com rótulo explícito de referências, separado do BMP; não pode ser reinterpretado como número de estudos, ensaios, amostras ou observações. Menções a medianas de corpus em registros metodológicos não autorizam inferir lastro observacional para o valor servido pela API.
-- **Rastreabilidade:** Documentado em `docs/auditorias/2026-07-consistencia-canonica/03_adventure-b_2026-07-28/B-URG-2_ROTULO_NSTUDIES_2026-07-28.md`.
+### [DEC-007] Quarentena do corpus BMP agregado
 
----
+- **Data:** 2026-07-28.
+- **Estado:** **ATIVA**.
+- **Decisão:** `data/quarantine/feedstock_bmp_from_refs.csv` e os campos
+  `bmp.corpus` são evidência histórica, proibida como entrada paramétrica; R2
+  fica suspensa até reconstrução observacional reproduzível.
+- **Rastreabilidade:** B-Q1, commit `69243a3`.
 
-### [DEC-015] Quarentena do Corpus BMP Agregado e Suspensão da Regra R2
-- **Data:** 2026-07-28 (ADVENTURE B / B-Q1)
-- **Status:** Ativo
-- **Revisa:** a autoridade atribuída ao corpus em `[DEC-001]`; preserva a decisão anterior como registro histórico.
-- **Escopo:** `feedstock_bmp_from_refs.csv`, os blocos `bmp.corpus` de `feedstocks.yaml` e a Regra R2 de `POLITICA_BMP.md`.
-- **Decisão:** Colocar o CSV agregado em `data/quarantine/` porque não existe script gerador versionado nem linhagem observacional reproduzível. Manter os blocos `bmp.corpus`, marcados com `provenance: "quarantined_unversioned_source"`, exclusivamente como evidência histórica. Suspender R2: nenhuma mediana desse artefato pode criar, ampliar, validar ou reprovar uma banda BMP. Os valores numéricos vigentes permanecem inalterados; eventual reversão ou requalificação será decidida no B1 mediante tabela de delta.
-- **Rastreabilidade:** `docs/data/B-Q1_QUARENTENA_CORPUS_2026-07-28.md`, `data/quarantine/README.md` e A8b §§5 e 8.
+### [DEC-008] Métricas públicas calculadas pela rota canônica
 
----
+- **Data:** 2026-07-29.
+- **Estado:** **ATIVA, corrigida por DEC-010**.
+- **Decisão:** snapshots SQL legados não são fonte publicada; mapa, API e
+  agregações usam o mesmo pipeline canônico.
+- **Rastreabilidade:** `0c0d38a`, com regressão corrigida no B2-CLOSE.
 
-### [DEC-020] Métricas canônicas em tempo de consulta nas superfícies públicas
-- **Data:** 2026-07-29 (ADVENTURE B / B-URG-4c, item 3)
-- **Status:** Ativo
-- **Escopo:** Export do mapa, comparador, card municipal, proximidade e agregações da análise avançada.
-- **Decisão:** Campos públicos de biogás com nomes de compatibilidade (`*_biogas_m3_year`) passam a ser produzidos em tempo de consulta por `map_metrics.py` e `canonical_loader.py`, pela mesma rota do mapa principal. As colunas homônimas de `municipalities` e a tabela `residue_streams_sp2023` são snapshots legados e não constituem fonte de valor publicado. O script `sync_db_canonical.py`, que copiava o snapshot 2023 para as colunas municipais, fica bloqueado contra execução.
-- **Rastreabilidade:** `docs/data/B-URG-4c_SUPERFICIES_FINAL_2026-07-29.md`.
+### [DEC-009] Marca provisória de revisão metodológica
 
----
+- **Data:** 2026-07-29.
+- **Estado:** **SUPERADA por DEC-010**.
+- **Decisão histórica:** marcar agregados enquanto B1/B2 estivessem abertos.
+- **Rastreabilidade:** commit `56bfc84`.
 
-### [DEC-021] Marca provisória dos agregados em revisão metodológica
-- **Data:** 2026-07-29 (ADVENTURE B / B-URG-4c, item 4)
-- **Status:** Provisório, até conclusão da recalibração B1.
-- **Escopo:** Superfícies públicas que exibem agregados estaduais, regionais ou setoriais.
-- **Decisão:** Exibir uma marca visível, curta, bilíngue e datada de revisão metodológica nos agregados publicados. Valores estritamente municipais e parâmetros físico-químicos ficam fora da marca. Uma banda `min/medio/max` só pode ser exibida quando o contrato da superfície trouxer uma banda canônica agregada; extremos de distribuição municipal não podem ser reinterpretados como incerteza e nenhum intervalo pode ser inventado.
-- **Rastreabilidade:** `docs/data/B-URG-4c_SUPERFICIES_FINAL_2026-07-29.md`.
+### [DEC-010] Atividade medida, biomassa e superfícies reconciliadas
+
+- **Data:** 2026-08-01.
+- **Estado:** **ATIVA**.
+- **Decisão:** usar SNIS 2022 CO111 para FORSU com fallback populacional
+  municipal explícito; instanciar lodos por ES006; derivar biomassa e gases da
+  mesma instância por feedstock; exigir igualdade dos 645 municípios entre
+  rota pública e script.
+- **Rastreabilidade:** B2-CLOSE e `canonical_results.json`.
+
+### [DEC-011] Gate automático de consistência canônica
+
+- **Data:** 2026-08-01.
+- **Estado:** **ATIVA**.
+- **Decisão:** toda afirmação numérica canônica em README, documentação,
+  manuscrito ou UI usa caminho do JSON; o CI extrai todas as folhas numéricas,
+  aplica escala/arredondamento e rejeita literal divergente. Tolerância absoluta
+  máxima `1e-6` e relativa declarada `1e-9`.
+- **Rastreabilidade:** `scripts/validate_canonical_consistency.py` e workflow CI.

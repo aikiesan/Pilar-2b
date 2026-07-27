@@ -420,7 +420,7 @@ async def get_radius_recommendations():
         "default_radius_km": 20,
         "min_radius_km": 1,
         "max_radius_km": 100,
-        "methodology_reference": "CP2B FAPESP Project 2025/08745-2",
+        "methodology_reference": "CP2B FAPESP 2024/01112-1 (CP2Bsd) and 2025/08745-2",
     }
 
 

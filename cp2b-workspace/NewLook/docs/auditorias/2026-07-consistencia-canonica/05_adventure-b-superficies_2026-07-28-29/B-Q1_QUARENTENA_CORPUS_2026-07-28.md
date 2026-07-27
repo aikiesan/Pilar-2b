@@ -170,7 +170,7 @@ A decisão:
 | `docs/data/REGRA_BMP_ESPECIFICACAO_2026-07-25.md` | marcada como especificação histórica suspensa |
 | `docs/data/REFERENCE_CORPUS_SUMMARY.md` | caminho e estado de quarentena atualizados |
 | `docs/data/DECISOES_METODOLOGICAS.md` | `[DEC-015]` adicionada |
-| `docs/data/B-Q1_QUARENTENA_CORPUS_2026-07-28.md` | relatório criado |
+| `docs/auditorias/2026-07-consistencia-canonica/05_adventure-b-superficies_2026-07-28-29/B-Q1_QUARENTENA_CORPUS_2026-07-28.md` | relatório arquivado |
 
 ## 10. Critério de saída
 

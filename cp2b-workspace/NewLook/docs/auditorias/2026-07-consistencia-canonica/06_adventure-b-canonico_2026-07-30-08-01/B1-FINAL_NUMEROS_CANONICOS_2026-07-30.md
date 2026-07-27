@@ -1,4 +1,10 @@
 # Relatório B1-FINAL — Números Canônicos Oficiais de Biogás e Bioenergia do Estado de São Paulo
+
+> **STATUS: SUPERADO — TOTAL NÃO REPRODUZÍVEL.** Os valores deste relatório não
+> são reproduzidos pelo pipeline vigente e não podem ser publicados. O
+> B2-CLOSE substitui este fechamento com um comando único, igualdade 645/645 e
+> `canonical_results.json`. O corpo permanece intacto como registro histórico.
+
 **Data de Emissão**: 2026-07-30  
 **Escopo**: Parametrização Canônica Consolidada — Lote B1-FINAL  
 **Branch**: `fix/canonical-consistency-2026-07`  

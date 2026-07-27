@@ -25,7 +25,7 @@ This study addresses identified gaps through three interconnected contributions:
 | **Research Unit** | NIPE-UNICAMP · Campinas, SP |
 | **Authors** | Lucas Nakamura Cerejo · Rubens Augusto Camargo Lamparelli · Bruna de Souza Moraes · Ana Beatriz Soares Aguiar |
 | **Facilitation** | INOVA Unicamp |
-| **Research Funding** | FAPESP 2024/01112-1 (CP2Bsd) |
+| **Research Funding** | FAPESP 2024/01112-1 (CP2Bsd) · 2025/08745-2 |
 | **Registry** | MINISTÉRIO DO DESENVOLVIMENTO, INDÚSTRIA, COMÉRCIO E SERVIÇOS — INPI — Diretoria de Patentes, Programas de Computador e Topografias de Circuitos |
 
 > Registered under Law 9.609/1998 (§2°, art. 2°) as a Computer Program with SHA-512 integrity hash.
@@ -407,7 +407,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for full guidelines.
 
 **PILAR-2b** is open-source software released under the **GNU General Public License v3.0 (GPL-3.0)**.
 
-This project was developed as part of research funded by FAPESP (Grant 2024/01112-1 / CP2Bsd) at NIPE-UNICAMP and is freely available for use, modification, and distribution under the terms of the GPL-3.0.
+This project was developed as part of research funded by FAPESP (Processes 2024/01112-1 / CP2Bsd and 2025/08745-2) at NIPE-UNICAMP and is freely available for use, modification, and distribution under the terms of the GPL-3.0.
 
 See [LICENSE](./LICENSE) for full details.
 
@@ -423,7 +423,7 @@ We believe in making research and technology accessible to everyone. By open-sou
 
 ## Acknowledgments
 
-- **FAPESP**: Research funding (Grant 2024/01112-1 / CP2Bsd)
+- **FAPESP**: Research funding (Processes 2024/01112-1 / CP2Bsd and 2025/08745-2)
 - **INOVA Unicamp**: Support for INPI registration process
 - **NIPE-UNICAMP**: Institutional support and research infrastructure
 - **MapBiomas**: Land-use classification data ([mapbiomas.org](https://mapbiomas.org))

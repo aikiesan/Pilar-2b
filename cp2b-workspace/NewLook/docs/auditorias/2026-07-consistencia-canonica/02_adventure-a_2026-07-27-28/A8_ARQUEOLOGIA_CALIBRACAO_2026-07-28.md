@@ -65,7 +65,7 @@ Other feedstocks confirmed within corpus range (no change).
 | `DEJETOS_SUINO` | `bmp.max` | 280,0 | 300,0 | +7,14 % | `[COM JUSTIFICATIVA]` | Corpus 367 artigos |
 | `FORSU` | `bmp.min` | 200,0 | 250,0 | +25,00 % | `[COM JUSTIFICATIVA]` | Corpus 367 artigos |
 | `FORSU` | `bmp.medio` | 310,0 | 360,0 | +16,13 % | `[COM JUSTIFICATIVA]` | Corpus 367 artigos (elevação de 310 para 360 NmL/gVS) |
-| `FORSU` | `bmp.max` | 400,0 | 420,0 | +5,00 % | `[COM JUSTIFICATIVA]` | Corpus 367 artigos |
+| `FORSU` | `bmp.max` | 400,0 | 420,0 | +5,00 % | **`[SUPERADO]`** | A atribuição ao corpus agregado não é reproduzível; B-Q1/DEC-007 colocou a fonte em quarentena. Linha preservada como achado histórico. |
 
 ### 3.3 Arquivos Co-alterados no Commit 24b4095
 1. `cp2b-workspace/NewLook/data/canonical_parameters/feedstocks.yaml` (banco de origem)

@@ -160,7 +160,7 @@ class MunicipalityMapMetrics:
 
         Older public surfaces still consume ``*_biogas_m3_year``.  Serving those
         names is safe only when their values are produced here, at request time;
-        the identically named database columns are legacy snapshots (DEC-020).
+        the identically named database columns are legacy snapshots (DEC-008).
         """
         out = {
             "total_biogas_m3_year": round(self.biogas_total["medio"], 2),

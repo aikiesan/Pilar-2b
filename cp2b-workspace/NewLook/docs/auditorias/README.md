@@ -1,31 +1,47 @@
-# Arquivo de auditorias do PILAR-2b
+# Auditorias do PILAR-2b
 
-Esta pasta reúne campanhas de auditoria concluídas ou em andamento. Ela existe para
-preservar a sequência de investigação, as evidências produzidas e a relação entre
-diagnósticos, decisões e correções sem misturar histórico com o estado canônico vigente.
+Este diretório separa evidência histórica de fontes normativas. O índice
+completo, relatório por relatório e com o commit original, está em
+[2026-07 — consistência canônica](2026-07-consistencia-canonica/README.md).
 
-## Campanhas
+## O que foi auditado
 
-| Período | Campanha | Escopo | Índice |
-|---|---|---|---|
-| 2026-07-25 a 2026-07-28 | Consistência canônica | Auditoria técnica, reconciliação de parâmetros, Adventure A e correções urgentes de superfície | [Abrir registro cronológico](2026-07-consistencia-canonica/README.md) |
+Entre 25/07 e 01/08/2026 foram auditados: origem dos números estaduais,
+parâmetros BMP/FDE, atividade municipal, FORSU, lodos, banco legado, API, mapa,
+UI, manuscrito, licença, atribuição, corpus bibliográfico e histórico Git.
 
-## Convenção para novas campanhas
+## O que foi encontrado
 
-1. Criar uma pasta `AAAA-MM-tema` ou `AAAA-MM-DD-tema`.
-2. Manter dentro dela um `README.md` com ordem de leitura, data, lote, status e commit.
-3. Usar subpastas numeradas quando houver fases dependentes.
-4. Preservar os relatórios como evidência histórica; correções posteriores ganham novo
-   artefato em vez de apagar conclusões antigas.
-5. Manter fontes normativas e resultados canônicos em `docs/data`; a auditoria deve
-   apontar para eles, não duplicá-los.
-6. Atualizar caminhos de scripts geradores e referências operacionais quando um
-   artefato for arquivado.
+1. números concorrentes e snapshots legados eram publicados por caminhos
+   diferentes;
+2. o corpus agregado de BMP não tinha observações nem gerador versionados;
+3. A2c endereçava a tabela legada, B1-FINAL não era reproduzível e a atribuição
+   do `bmp.max` de FORSU em A8 não era auditável;
+4. o refactor `0c0d38a` quebrou a equivalência da rota pública, embora a queda
+   anterior do total tenha vindo de mudanças paramétricas em `cb7967a`;
+5. FORSU modelado por população coexistia com massa medida SNIS;
+6. licença GPL-3.0 estava correta, mas atribuições FAPESP exibiam apenas um dos
+   dois processos em superfícies diferentes.
 
-## Separação de responsabilidades
+## O que foi decidido
 
-- `docs/auditorias`: evidência, diagnóstico, deltas e histórico de execução.
-- `docs/data/DECISOES_METODOLOGICAS.md`: decisões normativas vigentes.
-- `docs/data/canonical_results.json`: resultados publicados gerados pelo pipeline.
-- `data/canonical_parameters/feedstocks.yaml`: parâmetros canônicos.
-- `docs/manuscrito`: versões de trabalho do artigo.
+- `feedstocks.yaml → pipeline → canonical_results.json` é a cadeia única;
+- SNIS 2022 CO111 é a atividade preferencial de FORSU, com fallback municipal
+  explícito; ES006 instancia os dois lodos;
+- biomassa e gases vêm da mesma instância e as rotas pública/canônica devem ser
+  iguais em 645/645 municípios;
+- o corpus agregado fica em quarentena e R2 suspensa;
+- o log metodológico é consecutivo e registra estados e sucessoras;
+- GPL-3.0 é a licença do software; ambos os processos FAPESP são atribuídos;
+- o CI rejeita afirmações numéricas canônicas copiadas à mão.
+
+## Estados históricos
+
+- **ATIVO/APLICADO:** decisão ou correção vigente.
+- **HISTÓRICO:** fotografia preservada, não fonte atual.
+- **SUPERADO:** conclusão preservada, mas explicitamente inválida para uso.
+- **QUARENTENA:** evidência preservada e proibida como entrada paramétrica.
+
+Fontes atuais: [procedência](../PROCEDENCIA.md),
+[decisões](../data/DECISOES_METODOLOGICAS.md) e
+[resultados](../data/canonical_results.json).

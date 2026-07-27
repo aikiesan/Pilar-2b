@@ -85,7 +85,7 @@ agregada sem escolher uma composição de entrada; nenhum valor-alvo foi adotado
 
 - `frontend/src/app/[locale]/dashboard/technology-routes/calculatorEngine.ts`
 - `frontend/src/data/residueFactors.ts`
-- `docs/data/B-URG-4_SANEAMENTO_SUPERFICIES_2026-07-28.md`
+- `docs/auditorias/2026-07-consistencia-canonica/05_adventure-b-superficies_2026-07-28-29/B-URG-4_SANEAMENTO_SUPERFICIES_2026-07-28.md`
 
 `feedstocks.yaml` não foi alterado.
 

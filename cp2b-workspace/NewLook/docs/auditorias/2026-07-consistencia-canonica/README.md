@@ -1,4 +1,4 @@
-# Registro cronológico — consistência canônica (2026-07-25 a 2026-07-28)
+# Registro cronológico — consistência canônica (2026-07-25 a 2026-08-01)
 
 ## Como usar este histórico
 
@@ -86,6 +86,44 @@ organização. O A8 foi originalmente commitado em `afa9e3b`.
    duplicidade FORSU e auditou a linhagem banco–API–UI.
 4. A Adventure B começou a reconciliar superfícies públicas; B-URG-1 parou por expansão
    de escopo e B-URG-2 removeu uma alegação observacional indevida.
+
+### 04 — Adventure A: fechamento de procedência (2026-07-28 a 2026-07-29)
+
+| Ordem | Relatório | Estado | Commit original |
+|---:|---|---|---|
+| 04.01 | [A2c — decomposição FORSU](04_adventure-a-fechamento_2026-07-28-29/A2c_DECOMPOSICAO_DIVERGENCIA_2026-07-28.md) | **SUPERADO: endereçamento inválido** | `501dfb6` |
+| 04.02 | [A2d — identidade FORSU](04_adventure-a-fechamento_2026-07-28-29/A2d_IDENTIDADE_GERACAO_FORSU_2026-07-28.md) | Histórico | `d740aae` |
+| 04.03 | [A8b — fronteira e proveniência](04_adventure-a-fechamento_2026-07-28-29/A8b_FRONTEIRA_E_PROVENIENCIA_2026-07-28.md) | Histórico/aplicado | `44a5f64` |
+| 04.04 | [A13 — ranking, cobertura e duplicidade](04_adventure-a-fechamento_2026-07-28-29/A13_RANKING_COBERTURA_DUPLICIDADE_2026-07-29.md) | Histórico | `41862f4` |
+| 04.05 | [A15 — nomenclatura e corpus](04_adventure-a-fechamento_2026-07-28-29/A15_NOMENCLATURA_E_RECUPERACAO_CORPUS_2026-07-29.md) | Histórico | `e4debf1` |
+
+### 05 — Adventure B: quarentena e superfícies (2026-07-28 a 2026-07-29)
+
+| Ordem | Relatório | Estado | Commit original |
+|---:|---|---|---|
+| 05.01 | [B-Q1 — quarentena do corpus](05_adventure-b-superficies_2026-07-28-29/B-Q1_QUARENTENA_CORPUS_2026-07-28.md) | Aplicado | `69243a3` |
+| 05.02 | [B-URG-4 — saneamento](05_adventure-b-superficies_2026-07-28-29/B-URG-4_SANEAMENTO_SUPERFICIES_2026-07-28.md) | Histórico | `1b8f3ab` |
+| 05.03 | [B-URG-4b — parte 2](05_adventure-b-superficies_2026-07-28-29/B-URG-4b_SANEAMENTO_SUPERFICIES_PARTE2_2026-07-29.md) | Aplicado | `1a90c48` |
+| 05.04 | [B-URG-4c — superfícies](05_adventure-b-superficies_2026-07-28-29/B-URG-4c_SUPERFICIES_FINAL_2026-07-29.md) | Aplicado; regressão corrigida no B2 | `56bfc84` |
+
+### 06 — Adventure B: cânone reproduzível (2026-07-30 a 2026-08-01)
+
+| Ordem | Relatório | Estado | Commit original |
+|---:|---|---|---|
+| 06.01 | [B1-PILOT](06_adventure-b-canonico_2026-07-30-08-01/B1-PILOT_DELTA_2026-07-30.md) | Histórico | `3662c4b` |
+| 06.02 | [B1-FINAL](06_adventure-b-canonico_2026-07-30-08-01/B1-FINAL_NUMEROS_CANONICOS_2026-07-30.md) | **SUPERADO: total não reproduzível** | `cb7967a` |
+| 06.03 | [B1-VERIFY](06_adventure-b-canonico_2026-07-30-08-01/B1-VERIFY_2026-07-31.md) | Superado pelo B2 | `cd039da` |
+| 06.04 | [B2-CLOSE](06_adventure-b-canonico_2026-07-30-08-01/B2-CLOSE_2026-08-01.md) | Aplicado | commit B2/B3 |
+
+### 07 — Governança (2026-07-30 a 2026-08-01)
+
+| Ordem | Relatório | Estado | Commit original |
+|---:|---|---|---|
+| 07.01 | [B-URG-3 — licença GPL-3.0](07_governanca_2026-07-30-08-01/B-URG-3_LICENCA_GPL3_2026-07-30.md) | Aplicado; dataset externo divergente apenas reportado | `4d7e253` |
+| 07.02 | [Lote 6 — atribuição FAPESP](07_governanca_2026-07-30-08-01/FAPESP_ATRIBUICAO_2026-08-01.md) | Aplicado | commit B3-CONSOLIDA |
+
+O B3-CONSOLIDA acrescenta o [documento de procedência](../../PROCEDENCIA.md), o
+[log final de decisões](../../data/DECISOES_METODOLOGICAS.md) e o gate do CI.
 
 ## Regras de preservação
 

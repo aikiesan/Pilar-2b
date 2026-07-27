@@ -50,6 +50,11 @@ references:
       name: "Fundação de Amparo à Pesquisa do Estado de São Paulo (FAPESP)"
     number: "2024/01112-1"
     description: "CP2Bsd — research funding"
+  - type: grant
+    institution:
+      name: "Fundação de Amparo à Pesquisa do Estado de São Paulo (FAPESP)"
+    number: "2025/08745-2"
+    description: "Research funding — national expansion"
 identifiers:
   - type: other
     value: "BR512026003115-0"

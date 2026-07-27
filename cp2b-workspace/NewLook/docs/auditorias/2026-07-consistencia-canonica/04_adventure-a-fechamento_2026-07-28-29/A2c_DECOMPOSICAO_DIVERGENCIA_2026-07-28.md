@@ -1,4 +1,10 @@
 # Relatório A2c — Decomposição da Divergência de FORSU, Reconciliação D08 e Audit Estrutural
+
+> **STATUS: SUPERADO — ENDEREÇAMENTO INVÁLIDO.** Este laudo reconstruiu o
+> snapshot legado `residue_streams_sp2023`, que não é a fonte da rota pública
+> atual. A identidade vigente usa SNIS CO111/fallback municipal e está
+> documentada no B2-CLOSE. O texto abaixo é preservado como evidência histórica.
+
 **Data de Emissão**: 2026-07-28  
 **Escopo**: Somente Leitura (Auditoria Diagnóstica) — Lote A2c  
 **Branch**: `fix/canonical-consistency-2026-07`  

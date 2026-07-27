@@ -4,6 +4,12 @@
   "_lote": "0d",
   "exclusions": [
     {
+      "path": "docs/auditorias/2026-07-consistencia-canonica/",
+      "recursive": true,
+      "reason": "Laudos datados preservam deliberadamente valores anteriores, divergentes e superados. O estado vigente é validado nas fontes normativas, README, UI e manuscrito; o índice cronológico identifica o estado de cada laudo.",
+      "authorized_by": "B3-CONSOLIDA / Lote 4"
+    },
+    {
       "path": "docs/archive/2026-05-pre-squash/",
       "recursive": true,
       "reason": "Material histórico imutável, anterior ao squash de 2026-05-19. Os números divergem dos canônicos por definição — é isso que os torna evidência do estado anterior. Reconciliá-los destruiria o valor de rastreabilidade. Ver o README do diretório.",

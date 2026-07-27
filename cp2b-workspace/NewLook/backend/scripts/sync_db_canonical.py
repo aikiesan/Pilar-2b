@@ -12,11 +12,11 @@ import logging
 import sys
 from pathlib import Path
 
-# DEC-020 / B-URG-4c: block CLI execution before database dependencies are
+# DEC-008 / B-URG-4c: block CLI execution before database dependencies are
 # imported or a connection can be opened.
 if __name__ == "__main__":
     raise SystemExit(
-        "BLOCKED by DEC-020: sync_db_canonical.py consumes legacy "
+        "BLOCKED by DEC-008: sync_db_canonical.py consumes legacy "
         "residue_streams_sp2023 and cannot update published municipality values."
     )
 
@@ -57,10 +57,10 @@ def _float(v):
 
 
 def main():
-    # DEC-020 / B-URG-4c: residue_streams_sp2023 is a legacy 2023 snapshot and
+    # DEC-008 / B-URG-4c: residue_streams_sp2023 is a legacy 2023 snapshot and
     # must never overwrite request-time canonical public metrics.
     raise SystemExit(
-        "BLOCKED by DEC-020: sync_db_canonical.py consumes legacy "
+        "BLOCKED by DEC-008: sync_db_canonical.py consumes legacy "
         "residue_streams_sp2023 and cannot update published municipality values."
     )
 

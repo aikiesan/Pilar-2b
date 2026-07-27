@@ -1,12 +1,12 @@
 # Regra única de BMP — especificação para aprovação
 
-**Data:** 2026-07-25 · **Lote:** 1a-quater · **Estado:** SUSPENSA por DEC-015 / B-Q1
+**Data:** 2026-07-25 · **Lote:** 1a-quater · **Estado:** SUSPENSA por DEC-007 / B-Q1
 **`feedstocks.yaml` não foi alterado.** Nenhum valor mudou.
 
 > Este documento preserva a especificação histórica. Não executar sua regra ou
 > seu trecho de verificação enquanto o agregado estiver em quarentena; a decisão
 > normativa vigente está em `POLITICA_BMP.md` §4 e `DECISOES_METODOLOGICAS.md`
-> `[DEC-015]`.
+> `[DEC-007]`.
 
 Problema que motiva a regra, apurado no Lote 1a: a revisão de BMP de `24b4095`
 elevou quatro feedstocks e deixou outros quatro inalterados, com o mesmo tipo de
