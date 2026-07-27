@@ -175,7 +175,7 @@ delimita a banda, não move o centro.
 A revisão ocorreu no mesmo dia e nas mesmas horas em que o benchmark FIESP foi
 extraído (01:55), o relatório de comparação reescrito (09:38) e o cenário Fronteira
 redefinido (09:58). A cronologia completa está em
-`docs/data/AUDITORIA_CIRCULARIDADE_2026-07-25.md` §1.4. A justificativa citada em
+`docs/auditorias/2026-07-consistencia-canonica/00_linha-de-base_2026-07-25/AUDITORIA_CIRCULARIDADE_2026-07-25.md` §1.4. A justificativa citada em
 `24b4095` é o corpus de literatura primária, **não** o FIESP; o registro da
 coincidência temporal é factual e não implica atribuição de causa.
 
@@ -192,7 +192,7 @@ feedstock — `feedstock`, `n_bmp_obs`, `bmp_min`, `bmp_median`, `bmp_max`,
 
 **As 196 observações individuais não estão versionadas em lugar nenhum**, e o CSV
 agregado **não é gerado por nenhum script do repositório**. Detalhe da busca em
-`docs/data/BUSCA_OBSERVACOES_BMP_2026-07-25.md`.
+`docs/auditorias/2026-07-consistencia-canonica/00_linha-de-base_2026-07-25/BUSCA_OBSERVACOES_BMP_2026-07-25.md`.
 
 Consequências para o que se pode afirmar:
 
@@ -232,7 +232,7 @@ que R2 lhe atribui.
 | Documento | Papel |
 |---|---|
 | `REGRA_BMP_ESPECIFICACAO_2026-07-25.md` | Especificação de R2, R1 rejeitada, efeito projetado, teste de CI |
-| `BUSCA_OBSERVACOES_BMP_2026-07-25.md` | Onde as 196 observações foram procuradas e não encontradas |
-| `AUDITORIA_CIRCULARIDADE_2026-07-25.md` | Parâmetros calibrados × independentes; cronologia de 2026-06-12 |
+| `docs/auditorias/2026-07-consistencia-canonica/00_linha-de-base_2026-07-25/BUSCA_OBSERVACOES_BMP_2026-07-25.md` | Onde as 196 observações foram procuradas e não encontradas |
+| `docs/auditorias/2026-07-consistencia-canonica/00_linha-de-base_2026-07-25/AUDITORIA_CIRCULARIDADE_2026-07-25.md` | Parâmetros calibrados × independentes; cronologia de 2026-06-12 |
 | `baseline_2026-07-25.json` | Estado numérico congelado, anterior a qualquer correção |
 | `feedstock_bmp_from_refs.csv` | Corpus agregado — delimitador de faixa, não fonte de valor |

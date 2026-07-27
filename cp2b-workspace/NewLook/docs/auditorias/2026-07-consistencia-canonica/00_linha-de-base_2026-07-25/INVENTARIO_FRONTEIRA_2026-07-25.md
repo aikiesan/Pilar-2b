@@ -148,7 +148,7 @@ Nenhum deles testa o **valor** de α; testam a seleção e a propagação do cen
 
 | Arquivo | Linhas | Conteúdo |
 |---|---:|---|
-| `docs/data/FIESP_BENCHMARK_AUDIT_REPORT.md` | 15 | `\| **Fronteira do Biogás** (mobilização realista-alta) \| **9,19** \| **16,42** \| **8,92** \|` |
+| `docs/auditorias/2026-07-consistencia-canonica/00_linha-de-base_2026-07-25/FIESP_BENCHMARK_AUDIT_REPORT.md` | 15 | `\| **Fronteira do Biogás** (mobilização realista-alta) \| **9,19** \| **16,42** \| **8,92** \|` |
 | idem | 22-25 | Seção *"o caminho intermediário que supera a FIESP"*; cita `FRONTIER_ALPHA = 0,5` |
 | idem | **28** | `> **Fronteira = 8,92 Mm³/d de biometano (16,42 de biogás) — ~40% acima do benchmark FIESP (6,4).**` |
 | idem | 30-38 | *"Por que é defensável dizer que o potencial de SP é maior que o da FIESP"* |

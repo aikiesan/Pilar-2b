@@ -2,6 +2,12 @@
 
 **Propósito:** Registro cronológico, imutável e auditável de todas as decisões metodológicas e parametrizações do repositório PILAR-2b.
 
+> **Arquivo histórico relacionado:** o rascunho paralelo `D01–D11`, produzido durante
+> a campanha de auditoria, foi preservado em
+> `docs/auditorias/2026-07-consistencia-canonica/00_linha-de-base_2026-07-25/DECISOES_METODOLOGICAS_RASCUNHO_D01-D11.md`.
+> Ele é evidência histórica e lista pendências; este arquivo permanece como o log
+> normativo vigente.
+
 ---
 
 ## Diretrizes Absolutas de Manutenção
@@ -33,7 +39,7 @@
   - CH₄ Médio Estadual: `{{ch4_medio_m3_day}}` Mm³/d
   - Biometano Médio Estadual: `{{biometano_medio_m3_day}}` Mm³/d
   - Taxa de Retenção Médio/Médio: `{{retencao_medio_pct}}` %
-- **Rastreabilidade:** Commit `c64a64f`, documentado em `DELTA_LOTE2_2026-07-26.md` e `ESTADO_2026-07-26.md`.
+- **Rastreabilidade:** Commit `c64a64f`, documentado em `docs/auditorias/2026-07-consistencia-canonica/01_reconciliacao_2026-07-26/DELTA_LOTE2_2026-07-26.md` e `docs/auditorias/2026-07-consistencia-canonica/01_reconciliacao_2026-07-26/ESTADO_2026-07-26.md`.
 
 ---
 
@@ -42,7 +48,7 @@
 - **Status:** Ativo (Pendente de decisão de parâmetros no Lote 2c)
 - **Escopo:** Caracterização da Vinhaça (`feedstocks.yaml:VINHACA`).
 - **Decisão:** Reconhecer que a faixa de literatura (6–10 Nm³ CH₄/m³) decorre da rota de remoção de DQO ($30 \text{ kg DQO/m}^3 \times \eta_{\text{DQO}} \times 0{,}35$), enquanto os parâmetros vigentes (`ts=3,0%`, `vs_of_ts=60,0%`) refletem especificamente a vinhaça diluída de caldo de destilarias autônomas (15% da produção de SP). Para o parque paulista (85% usinas anexas com mosto misto), a caracterização média ponderada resulta em `TS = {{vinhaca_ts_ponderado_pct}}%` e `VS/TS = {{vinhaca_vs_ts_ponderado_pct}}%`, produzindo `{{vinhaca_rendimento_vs_m3}}` Nm³ CH₄/m³ via rota VS. As duas rotas devem coexistir de forma rastreável sem forçar convergência artificial.
-- **Rastreabilidade:** Documentado em `A1_BASE_VINHACA_2026-07-27.md` e `A1b_REPRESENTATIVIDADE_VINHACA_2026-07-27.md`.
+- **Rastreabilidade:** Documentado em `docs/auditorias/2026-07-consistencia-canonica/02_adventure-a_2026-07-27-28/A1_BASE_VINHACA_2026-07-27.md` e `docs/auditorias/2026-07-consistencia-canonica/02_adventure-a_2026-07-27-28/A1b_REPRESENTATIVIDADE_VINHACA_2026-07-27.md`.
 
 ---
 
@@ -51,7 +57,7 @@
 - **Status:** Ativo (Mapeado para correção no Lote 2c / Lote 3)
 - **Escopo:** Fração Orgânica dos Resíduos Sólidos Urbanos (`feedstocks.yaml:FORSU` e `ORGANICO_RSU`).
 - **Decisão:** Registrar a inconsistência entre o parâmetro `t_per_capita_yr = 0,100` (que impõe um haircut velado de 47,6% ao representar 27,4% do RDO) e `organic_fraction_of_rdo = 0,525` (52,5% gravimétrico bruto). Definir que a plataforma adotará uma rota única e coerente entre o somatório municipal e o consolidado estadual.
-- **Rastreabilidade:** Documentado em `A2_FORSU_2026-07-27.md`.
+- **Rastreabilidade:** Documentado em `docs/auditorias/2026-07-consistencia-canonica/02_adventure-a_2026-07-27-28/A2_FORSU_2026-07-27.md`.
 
 ---
 
@@ -69,4 +75,4 @@
 - **Status:** Ativo
 - **Escopo:** Página pública `scientific-database` e componentes de apresentação de parâmetros científicos.
 - **Decisão:** Não exibir uma contagem `n` ao lado do BMP enquanto não existir linhagem por observação que vincule esse número ao valor apresentado. `reference_count` é uma contagem bibliográfica geral por resíduo e só pode ser exibido com rótulo explícito de referências, separado do BMP; não pode ser reinterpretado como número de estudos, ensaios, amostras ou observações. Menções a medianas de corpus em registros metodológicos não autorizam inferir lastro observacional para o valor servido pela API.
-- **Rastreabilidade:** Documentado em `B-URG-2_ROTULO_NSTUDIES_2026-07-28.md`.
+- **Rastreabilidade:** Documentado em `docs/auditorias/2026-07-consistencia-canonica/03_adventure-b_2026-07-28/B-URG-2_ROTULO_NSTUDIES_2026-07-28.md`.

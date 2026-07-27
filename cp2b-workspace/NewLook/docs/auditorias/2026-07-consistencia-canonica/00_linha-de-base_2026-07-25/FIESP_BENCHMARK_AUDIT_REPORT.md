@@ -44,7 +44,7 @@
 > | Estado numérico congelado | `docs/data/baseline_2026-07-25.json` |
 > | Parâmetros | `data/canonical_parameters/feedstocks.yaml` |
 > | Totais estaduais | `backend/scripts/compute_sp_canonical_totals.py` |
-> | Rastreamento da calibração | `docs/data/AUDITORIA_CIRCULARIDADE_2026-07-25.md` |
+> | Rastreamento da calibração | `docs/auditorias/2026-07-consistencia-canonica/00_linha-de-base_2026-07-25/AUDITORIA_CIRCULARIDADE_2026-07-25.md` |
 >
 > **A §3 (validação empírica de BMP contra o corpus de 367 artigos) permanece
 > factualmente útil** e é insumo da regra única de BMP especificada no Lote

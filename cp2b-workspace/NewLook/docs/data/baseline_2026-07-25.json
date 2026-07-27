@@ -1,5 +1,5 @@
 {
-  "_about": "Linha de base congelada do pipeline canônico de SP, capturada ANTES de qualquer correção das divergências registradas em AUDITORIA_PILAR2B_2026-07-25.md. Todo delta numérico dos lotes seguintes é medido contra este arquivo. Gerado por execução do script de registro sem modificá-lo.",
+  "_about": "Linha de base congelada do pipeline canônico de SP, capturada ANTES de qualquer correção das divergências registradas em docs/auditorias/2026-07-consistencia-canonica/00_linha-de-base_2026-07-25/AUDITORIA_PILAR2B_2026-07-25.md. Todo delta numérico dos lotes seguintes é medido contra este arquivo. Gerado por execução do script de registro sem modificá-lo.",
   "_generated_utc": "2026-07-25T18:27:12Z",
   "_lote": "0 — linha de base",
   "provenance": {

@@ -74,7 +74,7 @@ O outline recuperado do pré-squash desfaz isso
 central do manuscrito, não capacidade elétrica. Contra o valor canônico congelado
 (**3,6488 M m³/dia**, cenário medio): razão **5,40×**.
 
-Detalhamento completo em `docs/data/FORENSE_VALIDACAO_2026-07-25.md`.
+Detalhamento completo em `docs/auditorias/2026-07-consistencia-canonica/00_linha-de-base_2026-07-25/FORENSE_VALIDACAO_2026-07-25.md`.
 
 ### E5 — Bloco B: `mill_delivery_fraction` "definida mas não aplicada" (IMPRECISO)
 

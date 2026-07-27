@@ -172,7 +172,7 @@ O diff substitui a linha da tabela:
 
 ### DIVERGÊNCIA VIVA — o arquivo publicado contém as duas definições
 
-`docs/data/FIESP_BENCHMARK_AUDIT_REPORT.md` hoje:
+`docs/auditorias/2026-07-consistencia-canonica/00_linha-de-base_2026-07-25/FIESP_BENCHMARK_AUDIT_REPORT.md` hoje:
 
 - **linha 13-16**: tabela com Fronteira = **9,19 / 16,42 / 8,92** (Definição B);
 - **linha 22-25**: `"ponto médio por métrica entre Médio Prazo e Otimista (FRONTIER_ALPHA = 0,5)"` (Definição B);

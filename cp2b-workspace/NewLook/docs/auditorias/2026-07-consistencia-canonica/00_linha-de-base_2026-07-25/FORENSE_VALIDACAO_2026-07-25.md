@@ -311,7 +311,7 @@ alcançou por ter sido feita sobre clone raso:
    recuperado mostra que 19,69 é o potencial de CH₄/dia de São Paulo — 5,40× o
    valor canônico corrente.
 
-Errata formal em `docs/data/ATIVIDADE_GIT_COMPLETA_2026-07-25.md` (Lote 0c).
+Errata formal em `docs/auditorias/2026-07-consistencia-canonica/00_linha-de-base_2026-07-25/ATIVIDADE_GIT_COMPLETA_2026-07-25.md` (Lote 0c).
 
 ---
 

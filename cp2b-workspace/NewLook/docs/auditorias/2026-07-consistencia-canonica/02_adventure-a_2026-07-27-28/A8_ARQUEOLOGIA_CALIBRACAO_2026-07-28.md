@@ -74,7 +74,7 @@ Other feedstocks confirmed within corpus range (no change).
 4. `cp2b-workspace/NewLook/frontend/src/app/[locale]/dashboard/technology-routes/calculatorEngine.canonical.ts` (espelho TS)
 5. `cp2b-workspace/NewLook/data/fde_all_residues_patch.json` (patch FDE)
 6. `cp2b-workspace/NewLook/docs/data/PARAMETER_CITATIONS.md` (tabela de citações de parâmetros)
-7. `cp2b-workspace/NewLook/docs/data/FIESP_BENCHMARK_AUDIT_REPORT.md` (relatório de benchmark FIESP)
+7. `cp2b-workspace/NewLook/docs/auditorias/2026-07-consistencia-canonica/00_linha-de-base_2026-07-25/FIESP_BENCHMARK_AUDIT_REPORT.md` (relatório de benchmark FIESP)
 
 ---
 

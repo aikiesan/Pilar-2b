@@ -149,7 +149,7 @@ anteriores como evidência do defeito; não é código nem superfície pública.
 - `frontend/src/services/scientificApi.ts`
 - `frontend/src/types/scientific.ts`
 - `docs/data/DECISOES_METODOLOGICAS.md`
-- `docs/data/B-URG-2_ROTULO_NSTUDIES_2026-07-28.md`
+- `docs/auditorias/2026-07-consistencia-canonica/03_adventure-b_2026-07-28/B-URG-2_ROTULO_NSTUDIES_2026-07-28.md`
 
 ## 7. Verificações
 

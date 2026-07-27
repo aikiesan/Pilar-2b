@@ -574,7 +574,7 @@ export default function BiomassFlowSankey({
           biogás — mesmo numeral, outra unidade e outra grandeza.
           Não foi possível determinar, a partir do que está versionado, a qual
           das duas o rótulo se referia, e converter seria adivinhar. Ver
-          docs/data/VERIFICACAO_BENCHMARK_FIESP_2026-07-25.md. */}
+          docs/auditorias/2026-07-consistencia-canonica/00_linha-de-base_2026-07-25/VERIFICACAO_BENCHMARK_FIESP_2026-07-25.md. */}
       <div className="mt-4 p-4 bg-gray-50 rounded-lg">
         <h4 className="text-sm font-semibold text-gray-700 mb-3">{t('sankey_legend_title')}</h4>
         <div className="grid grid-cols-2 gap-3 text-xs">

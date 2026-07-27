@@ -9,7 +9,8 @@
 # prosa. Nenhum valor daqui pode ser copiado para `feedstocks.yaml`: a política
 # de BMP (docs/data/POLITICA_BMP.md §7.5) proíbe elevar um parâmetro para
 # aproximá-lo de um benchmark, e a auditoria de circularidade
-# (AUDITORIA_CIRCULARIDADE_2026-07-25.md) registra o que aconteceu da última vez.
+# (docs/auditorias/2026-07-consistencia-canonica/00_linha-de-base_2026-07-25/AUDITORIA_CIRCULARIDADE_2026-07-25.md)
+# registra o que aconteceu da última vez.
 #
 # `source` em cada bloco aponta para a tabela/página do relatório, conforme
 # transcrito em docs/data/FIESP_BENCHMARK_EXTRACTION.md.
@@ -51,7 +52,8 @@ scope:
     note: >
       Plantas abaixo do corte não entram. O PILAR-2b não aplica corte de escala:
       é potencial municipal, não potencial por planta elegível. As duas grandezas
-      não são diretamente comparáveis — ver CONFRONTO_FIESP_2026-07-26.md §4.
+      não são diretamente comparáveis — ver
+      docs/auditorias/2026-07-consistencia-canonica/01_reconciliacao_2026-07-26/CONFRONTO_FIESP_2026-07-26.md §4.
     source: "extrato do usuário, 2026-07-26"
 
 headline:
@@ -80,7 +82,8 @@ headline:
 generation_factors:
   # ATENÇÃO: o rótulo de coluna da FIESP para a vinhaça — "por tonelada de cana
   # processada" — não sobrevive ao teste de consistência com os próprios totais
-  # da FIESP. Ver CONFRONTO_FIESP_2026-07-26.md §2.1.
+  # da FIESP. Ver
+  # docs/auditorias/2026-07-consistencia-canonica/01_reconciliacao_2026-07-26/CONFRONTO_FIESP_2026-07-26.md §2.1.
   vinhaca:
     residue_factor:
       value_m3_per_t_cane: 0.80

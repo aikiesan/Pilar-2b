@@ -1,5 +1,5 @@
 {
-  "_about": "Estado do pipeline canonico de SP APOS o Lote 2 (recalculo unico: mill_delivery_fraction, porte da Fase 2, regra R2 e migracao estrutural do feedstocks.yaml). Medido contra docs/data/baseline_2026-07-25.json, que permanece congelado. Delta comentado em docs/data/DELTA_LOTE2_2026-07-26.md.",
+  "_about": "Estado do pipeline canonico de SP APOS o Lote 2 (recalculo unico: mill_delivery_fraction, porte da Fase 2, regra R2 e migracao estrutural do feedstocks.yaml). Medido contra docs/data/baseline_2026-07-25.json, que permanece congelado. Delta comentado em docs/auditorias/2026-07-consistencia-canonica/01_reconciliacao_2026-07-26/DELTA_LOTE2_2026-07-26.md.",
   "_generated_utc": "2026-07-26T10:41:49Z",
   "_lote": "2 — recalculo unico",
   "_baseline": "docs/data/baseline_2026-07-25.json",

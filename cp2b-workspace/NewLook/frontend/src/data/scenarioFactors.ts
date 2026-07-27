@@ -32,8 +32,8 @@
  *      mantido de propósito, porque removê-lo altera a assinatura usada pelo
  *      mapa, pelos painéis e por três arquivos de teste.
  *
- * Contexto: docs/data/AUDITORIA_CIRCULARIDADE_2026-07-25.md e
- * docs/data/INVENTARIO_FRONTEIRA_2026-07-25.md.
+ * Contexto: docs/auditorias/2026-07-consistencia-canonica/00_linha-de-base_2026-07-25/AUDITORIA_CIRCULARIDADE_2026-07-25.md e
+ * docs/auditorias/2026-07-consistencia-canonica/00_linha-de-base_2026-07-25/INVENTARIO_FRONTEIRA_2026-07-25.md.
  * ─────────────────────────────────────────────────────────────────────────────
  */
 export type MapScenarioKey = 'baseline' | 'conservador' | 'fronteira' | 'otimista';
