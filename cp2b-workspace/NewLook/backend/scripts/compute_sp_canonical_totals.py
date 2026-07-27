@@ -16,9 +16,9 @@ Input of record:
       converted to manure tonnes via canonical generation factors (t/head/yr).
     * Urban streams are derived from SP population × canonical per-capita factors.
 
-Crop → residue conversions (IBGE PAM units → actual substrate):
-  sugarcane_biomass_tons_year = raw green cane → decomposed into 4 industrial sub-streams
-  citrus_biomass_tons_year    = whole fruit   → × 0.50 wet peel (FUNDECITRUS; FCo handles competing uses)
+Crop -> residue conversions (IBGE PAM units -> actual substrate):
+  sugarcane_biomass_tons_year = raw green cane -> decomposed into 4 industrial sub-streams
+  citrus_biomass_tons_year    = whole fruit   -> × 0.50 wet peel (FUNDECITRUS; FCo handles competing uses)
   soybean/corn/coffee: CSV already contains residue-equivalent tonnes from MapBiomas × yield_t_ha
 
 Uncertainty is propagated coupled: scenario `sc` uses the `sc` band of every
@@ -62,7 +62,7 @@ from scripts.compute_spatial_concentration import (  # noqa: E402
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
 
-UPGRADING_EFFICIENCY = 0.97  # biogas → biomethane upgrading (membrane/PSA)
+UPGRADING_EFFICIENCY = 0.97  # biogas -> biomethane upgrading (membrane/PSA)
 
 # <NewLook> root: this file is backend/scripts/<here>
 _NEWLOOK = Path(__file__).resolve().parents[2]
@@ -78,18 +78,18 @@ FRONTIER_ALPHA = 0.5
 # https://censo2022.ibge.gov.br/  (SP: 44,411,238)
 SP_POPULATION = 44_411_238
 
-# ── Raw-crop → processing-residue conversion factors ────────────────────────
+# -- Raw-crop -> processing-residue conversion factors ------------------------
 # The municipality CSV stores IBGE PAM raw production data (green cane tonnes,
 # whole fruit tonnes). These factors convert to the actual wet substrate fed to
 # the digester. Each factor is documented in feedstocks.yaml (residue_fraction
 # notes) and must have a literature source.
 
-# Citrus: whole fruit → wet processing peel/bagasse (FUNDECITRUS 2022)
+# Citrus: whole fruit -> wet processing peel/bagasse (FUNDECITRUS 2022)
 # FCo in BAGACO_CITROS FDE (0.30) accounts for competing uses (feed pellets, pectin).
 # Using 50% peel fraction ensures FCo is not double-applied.
 CITRUS_RESIDUE_FRACTION = 0.50  # range 0.45–0.55; conservative mid-point
 
-# Sugarcane industrial chain: 1 t green cane → 4 co-product streams.
+# Sugarcane industrial chain: 1 t green cane -> 4 co-product streams.
 # Residue fractions sum: 0.28 + 0.030 + 0.053 + 0.42 = 0.783 t/t cane
 # (remaining ~22% = juice extracted as sugar/ethanol, water losses, etc.)
 #
@@ -133,16 +133,16 @@ SUGARCANE_SUBSTREAMS: list[tuple[str, str, float, bool, str]] = [
     ),
 ]
 
-# ── Stream groupings ─────────────────────────────────────────────────────────
+# -- Stream groupings ---------------------------------------------------------
 # Sugarcane is handled separately (SUGARCANE_SUBSTREAMS).
 # Citrus is handled with CITRUS_RESIDUE_FRACTION.
 # Other agricultural streams use CSV values as residue-equivalent tonnes directly.
-AGRICULTURAL_DIRECT = ("soybean", "corn", "coffee")  # MapBiomas × yield_t_ha → residue tonnes
+AGRICULTURAL_DIRECT = ("soybean", "corn", "coffee")  # MapBiomas × yield_t_ha -> residue tonnes
 # 'cattle' is NOT here: its head count splits across two canonical feedstocks, and the
 # split is declared once in canonical_loader.STREAM_SUBPOPULATIONS. Listing it in both
 # places is exactly how the two representations would drift apart.
-LIVESTOCK_SIMPLE = ("swine", "poultry")  # head counts → t/head/yr via generation
-SPLIT_LIVESTOCK = ("cattle",)  # head counts → sub-populations via STREAM_SUBPOPULATIONS
+LIVESTOCK_SIMPLE = ("swine", "poultry")  # head counts -> t/head/yr via generation
+SPLIT_LIVESTOCK = ("cattle",)  # head counts -> sub-populations via STREAM_SUBPOPULATIONS
 URBAN = ("rsu_organic", "rpo")  # per-capita (SP pop)
 
 
@@ -151,7 +151,7 @@ def _csv_state_total(rows: list[dict], column: str) -> float:
 
 
 def _biomass_livestock(stream: str, head_count: float, fs: dict) -> dict:
-    """Head count → wet tonnes/scenario using canonical t_per_head_yr.
+    """Head count -> wet tonnes/scenario using canonical t_per_head_yr.
 
     Delegates to canonical_loader. This used to read fs[code]["generation"]
     directly, reaching past the loader — and because that made the conversion
@@ -163,7 +163,7 @@ def _biomass_livestock(stream: str, head_count: float, fs: dict) -> dict:
 
 
 def _biomass_urban(stream: str, population: float, fs: dict) -> dict:
-    """Population → wet tonnes/scenario using canonical t_per_capita_yr."""
+    """Population -> wet tonnes/scenario using canonical t_per_capita_yr."""
     rng = biomass_tons_from_units(stream, population)
     return {sc: rng.get(sc) for sc in SCENARIOS}
 
@@ -229,7 +229,7 @@ def compute() -> tuple[dict, list[dict]]:
     }
     out_rows: list[dict] = []
 
-    # ── 1. Sugarcane complex ─────────────────────────────────────────────────
+    # -- 1. Sugarcane complex -------------------------------------------------
     # IBGE PAM column = raw green cane tonnes.
     # Decomposed into 4 processing sub-streams using documented residue fractions.
     cane_raw_t = _csv_state_total(rows, "sugarcane_biomass_tons_year")
@@ -263,13 +263,13 @@ def compute() -> tuple[dict, list[dict]]:
             params=params,
         )
 
-    # ── 2. Citrus with peel residue fraction ─────────────────────────────────
+    # -- 2. Citrus with peel residue fraction ---------------------------------
     # IBGE PAM column = whole fruit tonnes.
-    # × CITRUS_RESIDUE_FRACTION (0.50) → wet processing peel/bagasse tonnes.
+    # × CITRUS_RESIDUE_FRACTION (0.50) -> wet processing peel/bagasse tonnes.
     citrus_raw_t = _csv_state_total(rows, "citrus_biomass_tons_year")
     citrus_peel_t = citrus_raw_t * CITRUS_RESIDUE_FRACTION
     logger.info(
-        f"Citrus raw fruit: {citrus_raw_t/1e6:.2f} Mt/yr → "
+        f"Citrus raw fruit: {citrus_raw_t/1e6:.2f} Mt/yr -> "
         f"peel residue: {citrus_peel_t/1e6:.2f} Mt/yr (×{CITRUS_RESIDUE_FRACTION})"
     )
     _accumulate(
@@ -283,7 +283,7 @@ def compute() -> tuple[dict, list[dict]]:
         params=get_params_for_stream("citrus"),
     )
 
-    # ── 3. Other agricultural (MapBiomas × yield_t_ha → residue tonnes) ─────
+    # -- 3. Other agricultural (MapBiomas × yield_t_ha -> residue tonnes) -----
     for stream in AGRICULTURAL_DIRECT:
         count = _csv_state_total(rows, f"{stream}_biomass_tons_year")
         _accumulate(
@@ -297,7 +297,7 @@ def compute() -> tuple[dict, list[dict]]:
             params=get_params_for_stream(stream),
         )
 
-    # ── 4a. Split livestock: one head count → several canonical feedstocks ───
+    # -- 4a. Split livestock: one head count -> several canonical feedstocks ---
     for stream in SPLIT_LIVESTOCK:
         count = _csv_state_total(rows, f"{stream}_biomass_tons_year")
         subpops = STREAM_SUBPOPULATIONS[stream]
@@ -315,7 +315,7 @@ def compute() -> tuple[dict, list[dict]]:
                 params=get_params(code),
             )
 
-    # ── 4b. Livestock with a single canonical code ──────────────────────────
+    # -- 4b. Livestock with a single canonical code --------------------------
     for stream in LIVESTOCK_SIMPLE:
         count = _csv_state_total(rows, f"{stream}_biomass_tons_year")
         biomass = _biomass_livestock(stream, count, fs)
@@ -330,7 +330,7 @@ def compute() -> tuple[dict, list[dict]]:
             params=get_params_for_stream(stream),
         )
 
-    # ── 5. Urban (SP population × t_per_capita_yr canonical generation) ─────
+    # -- 5. Urban (SP population × t_per_capita_yr canonical generation) -----
     for stream in URBAN:
         biomass = _biomass_urban(stream, float(SP_POPULATION), fs)
         _accumulate(
@@ -483,10 +483,10 @@ def build_canonical_results(
                 raise RuntimeError(f"Municipal/state reconciliation failed: {metric}/{scenario}")
 
     ch4_medio_mm3_day = totals["ch4_practical"]["medio"] / 365 / 1e6
-    if round(ch4_medio_mm3_day, 4) != 3.6367:
+    if round(ch4_medio_mm3_day, 4) != 2.4808:
         raise RuntimeError(
             "REFACTORING REGRESSION: CH4 medio is "
-            f"{ch4_medio_mm3_day:.10f} Mm3/day; expected 3.6367 Mm3/day"
+            f"{ch4_medio_mm3_day:.10f} Mm3/day; expected 2.4808 Mm3/day"
         )
 
     by_feedstock = []
@@ -560,7 +560,7 @@ def build_canonical_results(
             "municipal_context_input": "analysis/data/02_municipality_summary_SP_2023.csv",
             "canonical_parameters": "data/canonical_parameters/feedstocks.yaml",
             "municipalities": quantity(len(municipalities), "municipality"),
-            "reference_total_ch4_medio": quantity(3.6367, "Mm3_CH4/day"),
+            "reference_total_ch4_medio": quantity(2.4808, "Mm3_CH4/day"),
         },
     }
 
@@ -572,20 +572,20 @@ def _scenario_print(totals: dict) -> None:
 
     print("\n" + "=" * 78)
     print("SP STATE — 100% FORWARD Canonical Biogas Potential")
-    print("Methodology: IBGE PAM crop data → residue fractions → forward engine")
+    print("Methodology: IBGE PAM crop data -> residue fractions -> forward engine")
     print("=" * 78)
-    print(f"\n{'Métrica':<32}{'MIN':>14}{'MÉDIO':>14}{'MAX':>14}")
+    print(f"\n{'Metrica':<32}{'MIN':>14}{'MEDIO':>14}{'MAX':>14}")
     print("-" * 78)
     ch4 = md("ch4_practical")
     big = md("biogas_practical")
     bm = md("biomethane")
-    print(f"{'CH₄ prático (M m³/dia)':<32}{ch4[0]:>14.2f}{ch4[1]:>14.2f}{ch4[2]:>14.2f}")
-    print(f"{'Biogás prático (M m³/dia)':<32}{big[0]:>14.2f}{big[1]:>14.2f}{big[2]:>14.2f}")
+    print(f"{'CH4 pratico (M m³/dia)':<32}{ch4[0]:>14.2f}{ch4[1]:>14.2f}{ch4[2]:>14.2f}")
+    print(f"{'Biogas pratico (M m³/dia)':<32}{big[0]:>14.2f}{big[1]:>14.2f}{big[2]:>14.2f}")
     print(f"{'Biometano (M m³/dia)':<32}{bm[0]:>14.2f}{bm[1]:>14.2f}{bm[2]:>14.2f}")
 
-    # ── Fronteira do Biogás (4º cenário) ────────────────────────────────────────
+    # -- Fronteira do Biogas (4º cenário) ----------------------------------------
     # Mobilização realista-alta entre Médio Prazo e Otimista: ponto médio por
-    # métrica (FRONTIER_ALPHA do caminho medio→max). Representa o relaxamento dos
+    # métrica (FRONTIER_ALPHA do caminho medio->max). Representa o relaxamento dos
     # fatores de competição/coleta sob política pública dedicada, mantendo o
     # envelope de incerteza biométrico. NÃO é o teto teórico (esse é o Otimista).
     fro = tuple(
@@ -593,11 +593,11 @@ def _scenario_print(totals: dict) -> None:
         for m, x in [(ch4[1], ch4[2]), (big[1], big[2]), (bm[1], bm[2])]
     )
     print(
-        f"\n{'  → Fronteira do Biogás (4º cenário, mid medio↔max):':<46}"
-        f"CH₄={fro[0]:.2f}  Biogás={fro[1]:.2f}  Biometano={fro[2]:.2f}  M m³/dia"
+        f"\n{'  -> Fronteira do Biogas (4º cenário, mid medio<->max):':<46}"
+        f"CH4={fro[0]:.2f}  Biogas={fro[1]:.2f}  Biometano={fro[2]:.2f}  M m³/dia"
     )
 
-    print("\n─── Benchmark FIESP ───────────────────────────────────────────────────────")
+    print("\n--- Benchmark FIESP -------------------------------------------------------")
     print("  FIESP/AMPLUN 2021 (bruto, todos setores) : ~16,0 M m³/dia biogás")
     print("  SEMIL/FIESP 2024 (viável)                : ~11,4 M m³/dia biogás")
     print("  FIESP/Amplun 2025 (cana+aterro)          : 11,7 biogás / 6,4 biometano")
@@ -607,14 +607,14 @@ def _scenario_print(totals: dict) -> None:
         f"— Fronteira (31 resíduos) > FIESP 6,4 biometano"
     )
 
-    print("\n─── Correções de unidade aplicadas nesta revisão ───────────────────────────")
-    print("  Cana: CSV IBGE PAM (cana bruta) → 4 sub-fluxos com frações de resíduo")
+    print("\n--- Correções de unidade aplicadas nesta revisão ---------------------------")
+    print("  Cana: CSV IBGE PAM (cana bruta) -> 4 sub-fluxos com frações de resíduo")
     print("    bagaço × 0.28, torta × 0.030, palha × 0.053, vinhaça × 0.420")
-    print("  Citros: CSV IBGE PAM (fruta inteira) → casca/bagaço × 0.50 (FUNDECITRUS)")
+    print("  Citros: CSV IBGE PAM (fruta inteira) -> casca/bagaço × 0.50 (FUNDECITRUS)")
     print("  Soja/milho/café: já em toneladas de resíduo (MapBiomas × yield_t/ha)")
 
-    print("\n─── Notas de proveniência ───────────────────────────────────────────────────")
-    print("  Pecuária: contagem de cabeças × geração EMBRAPA (t/cabeça/ano) → forward.")
+    print("\n--- Notas de proveniência ---------------------------------------------------")
+    print("  Pecuária: contagem de cabeças × geração EMBRAPA (t/cabeça/ano) -> forward.")
     print("  Urbano  : população SP (IBGE 2022) × geração per-capita (SNIS/CETESB).")
     print("  Soja    : PALHA_SOJA (palha de campo, FCo=0,15 RTRS/plantio direto).")
     print("  RPO     : PODA_URBANA (poda lignocelulósica, não lodo de ETE).")

@@ -226,10 +226,11 @@ feedstocks:
           max: 0.95
           reference: bonomi2015_vinhaca
         fco_available:
-          min: 0.9
-          medio: 1.0
-          max: 1.0
-          reference: bonomi2015_vinhaca
+          min: 0.6
+          medio: 0.8
+          max: 0.95
+          reference: bonomi2015_vinhaca (doi:10.1016/j.rser.2015.04.098); moraes2014_vinhaca
+            (doi:10.1016/j.rser.2014.07.032)
         fs:
           min: 0.85
           medio: 0.9
@@ -289,10 +290,11 @@ feedstocks:
           max: 0.95
           reference: abiogas2021_atlas
         fco_available:
-          min: 0.8
-          medio: 1.0
-          max: 1.0
-          reference: velasquez2020_sugarcane
+          min: 0.2
+          medio: 0.35
+          max: 0.5
+          reference: velasquez2020_sugarcane (doi:10.1016/j.renene.2019.09.045); janke2015_filtermud
+            (doi:10.1016/j.renene.2014.11.086)
         fs:
           min: 0.8
           medio: 0.88
@@ -1349,7 +1351,9 @@ feedstocks:
           min: 0.1
           medio: 0.14
           max: 0.18
-          reference: primavesi2004_cattle
+          reference: primavesi2004_cattle (Embrapa Pecuária Sudeste Doc 39, pp. 18-24);
+            coldebella2006. Fraction of daily excreta deposited on washable/scrapable
+            concrete floor (holding pen, milking parlor & feeding aisle)
         fco_available:
           min: 0.5
           medio: 0.58
@@ -1688,10 +1692,11 @@ feedstocks:
       eta: 0.75
       components:
         fc:
-          min: 0.2
-          medio: 0.3
-          max: 0.4
-          reference: snis2022_rsu
+          min: 0.8
+          medio: 0.9
+          max: 0.95
+          reference: snis2022_rsu / abrelpe2022; generation 0.100 t/cap/yr already
+            is source-separated organic fraction
         fco_available:
           min: 0.52
           medio: 0.65
