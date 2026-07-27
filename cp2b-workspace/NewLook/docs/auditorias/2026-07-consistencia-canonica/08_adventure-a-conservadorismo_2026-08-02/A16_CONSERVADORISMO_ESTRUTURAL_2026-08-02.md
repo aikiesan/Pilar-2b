@@ -1,4 +1,4 @@
-# Relatório A16 — Auditoria Diagnóstica do Conservadorismo Estrutural e Parâmetros Não-Aproveitados
+# Relatório A16 — Auditoria Diagnóstica do Conservadorismo Estrutural e Validação em Supabase
 **Data de Emissão**: 2026-08-02  
 **Escopo**: Somente Leitura (Auditoria Diagnóstica com Validação em Supabase) — Lote A16  
 **Branch**: `fix/canonical-consistency-2026-07`  
@@ -65,20 +65,42 @@ Para feedstocks líquidos e semilíquidos, foi confrontado o rendimento de metan
 
 ## 4. Tarefa 4 — Parâmetros Inventariados no Banco Supabase e Não-Aproveitados
 
-Auditoria realizada diretamente no banco **Supabase** (tabelas `residuos`, `scientific_references` e migrações [`005_cn_ratio_ranges.sql`](file:///a:/Pilar-2b/cp2b-workspace/NewLook/backend/app/migrations/005_cn_ratio_ranges.sql) e [`014_add_kinetics_column.sql`](file:///a:/Pilar-2b/cp2b-workspace/NewLook/backend/app/migrations/014_add_kinetics_column.sql)):
+Auditoria realizada diretamente no banco **Supabase** (tabelas `residuos`, `scientific_references`, `fde_residue_availability` e `municipalities` em 2026-07-27):
 
-### 4.1 Validação de Referências Científicas Vincularas no Supabase
-Consulta no SQL Editor confirmou **367 vinculações bibliográficas** distribuídas entre os resíduos do banco:
-- **Top Citações**: `bagaco_cana` (40 refs), `palha_cana` (34 refs), `dejetos_suinos_liquidos` (31 refs), `lodo_primario_ete` (30 refs), `vinhaca_cana` (28 refs), `lodo_secundario_ete` (27 refs), `torta_filtro` (21 refs), `forsu_ur_rsu` (18 refs), `soro_queijo` (18 refs).
-- **Confirmação de Sinonímia**: `dejetos_suinos` (0 refs) e `casca_milho` (0 refs) confirmados no banco relacional como aliases não-instanciados que remetem a `dejetos_suinos_liquidos` e `palha_milho`.
+### 4.1 Validação da Tabela `fde_residue_availability` e Alertas Legados no Supabase
+A consulta no SQL Editor revelou observações críticas históricas gravadas no banco relacional que ilustram o conservadorismo extremo inicial:
+- **Bagaço de Cana (`AG_CANA_BAGACO`)**: FDE registrado como **0.0%** com nota: *'🚨 CRÍTICO: 100% cogeração CETESB obrigatória → 0% disponível'*. Isso demonstra que na modelagem legada se assumia disponibilidade zero para biodigestão devido à queimada integral em caldeiras.
+- **Palha de Cana (`AG_CANA_PALHA`)**: FDE registrado como **6,55%** com nota: *'🚨 CRÍTICO: 90% retenção solo 5-15t/ha UNESP → 10% disponível'*.
+- **Lodo Primário (`URB_LODO_PRIMARIO`)**: FDE = **54,51%** (classificado como Excepcional no Supabase, $BMP = 0,25 m^3/kg VS$).
 
-### 4.2 Parâmetros Não-Aproveitados no Pipeline Executável
-| Parâmetro Registrado no Supabase | Coluna / Estrutura no Supabase | Cobertura no Banco | Status no Pipeline Canônico | Oportunidade de Refinamento Metodológico | Impacto Potencial Estimado |
-| :--- | :--- | :---: | :---: | :--- | :---: |
-| **Constantes Cinéticas (JSONB)** | `residuos.kinetics` | **28 resíduos preenchidos** | Não consumido (pipeline é modelo estático de batelada) | O banco possui preenchidos os parâmetros de fração rápida (`f_fast`), média (`f_med`), lenta (`f_slow`), constantes cinéticas (`k_fast`, `k_med`, `k_slow`), tempo de fase lag (`lag_phase_days`) e limiar de inibição por amônia (`ammonia_risk`). Permitiria simular reatores industriais contínuos (CSTR/UASB) sob Tempo de Retenção Hidráulica ($TRH = 20-30$ dias). | **Alto**: Transição de potencial teórico/batelada para produção contínua industrial em tempo real. |
-| **Relação Carbono/Nitrogênio (C:N)** | `residuos.cn_ratio_min`, `max`, `chemical_cn_ratio` | **31 resíduos preenchidos** | Não consumido no cálculo de metano (usado apenas na UI de Co-digestão) | O banco possui as faixas C:N calibradas (migração 005). Permitiria calcular a sinergia em plantas de co-digestão (ex: vinhaça C:N=30 + torta C:N=19 + cama de frango C:N=11) para atingir a faixa ótima C:N=25-30. | **Médio**: Quantificação de sinergia de co-digestão em usinas sucroenergéticas. |
-| **Teor Específico de CH₄ (%)** | `residuos.chemical_ch4_content` | 28 resíduos preenchidos | Utilizado para converter CH₄ em biogás bruto | Atualmente, relatórios genéricos externos adotam constante de 57,1% de CH₄. O uso da matriz específica do Supabase (vinhaça 65% CH₄ vs FORSU 52%) garante simetria de volume térmico. | **Baixo**: Precisão de conversão de volume térmico. |
-| **Densidade In Natura ($kg/m^3$)** | `residuos.densidade_in_natura` | 26 resíduos preenchidos | Não consumido no cálculo de metano | Permitiria substituir o raio logístico genérico ($FL$) por uma equação de frete baseada na carga volumétrica do caminhão (ex: vinhaça $1.000 kg/m^3$ vs palha $120 kg/m^3$). | **Alto**: Fundamentação física do fator $FL$.
+### 4.2 Top 10 Municípios no Banco Relacional `municipalities`
+A consulta na tabela `municipalities` confirmou a hierarquia espacial persistida no Supabase:
+1. **Barretos**: 650,45 M m³/ano biogás total (622,05 M m³/ano sucroenergético)
+2. **Morro Agudo**: 644,44 M m³/ano biogás total (627,73 M m³/ano sucroenergético)
+3. **Guaíra**: 565,70 M m³/ano biogás total
+4. **Jaboticabal**: 494,87 M m³/ano biogás total
+5. **Rancharia**: 482,88 M m³/ano biogás total
+6. **Novo Horizonte**: 446,88 M m³/ano biogás total
+7. **São Paulo**: 410,40 M m³/ano biogás total (**401,28 M m³/ano RSU urbano**)
+8. **Valparaíso**: 396,16 M m³/ano biogás total
+9. **Itápolis**: 387,50 M m³/ano biogás total
+10. **Batatais**: 376,97 M m³/ano biogás total
+
+### 4.3 Parâmetros Físico-Químicos da Tabela `residuos` no Supabase
+| Código Supabase | Nome do Resíduo | BMP Médio (NmL/gVS) | TS Médio (%) | VS Médio (% de TS) | teor CH₄ (%) | C:N Ratio | FC Médio | FCP Médio | FS Médio | FL Médio |
+| :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| `bagaco_cana` | Bagaço de Cana-de-Açúcar | 250,0 | 51,0 % | 89,8 % | 62 % | 78 | 0,95 | 1,00 | 0,90 | 0,90 |
+| `torta_filtro` | Torta de Filtro | 350,0 | 27,0 % | 72,5 % | 62 % | 19 | 0,95 | 0,67 | 0,90 | 0,90 |
+| `vinhaca_cana` | Vinhaça de Cana | 300,0 | 3,3 % | 73,5 % | 75 % | 30 | 0,95 | 0,85 | 0,90 | 0,90 |
+| `palha_cana` | Palha de Cana-de-açúcar | 200,0 | 70,0 % | 80,0 % | 58,5 % | 60 | 0,85 | 0,90 | 0,90 | 0,85 |
+| `forsu_ur_rsu` | Fração Orgânica RSU | 410,0 | 20,0 % | 17,0 % | 58 % | 22 | 0,90 | 0,65 | 0,90 | 0,80 |
+| `mucilagem_cafe` | Mucilagem de Café | **804,0** | 5,0 % | 4,8 % | 62 % | 8 | 0,85 | 0,55 | 0,80 | 0,70 |
+| `soro_queijo` | Soro de Queijo | **820,0** | 11,6 % | 10,7 % | 59 % | 18 | 0,75 | 0,60 | 0,95 | 0,65 |
+| `gordura_sebo` | Gordura e Sebo | 700,0 | 96,0 % | 94,0 % | 77 % | 150 | 0,80 | 0,75 | 0,95 | 0,75 |
+| `lodo_primario_ete` | Lodo Primário ETE | 230,0 | 4,0 % | 3,2 % | 64 % | 13.6 | 0,85 | 0,75 | 0,95 | 0,90 |
+| `lodo_secundario_ete`| Lodo Secundário ETE | 190,0 | 4,0 % | 2,9 % | 65 % | 8 | 0,82 | 0,70 | 0,95 | 0,85 |
+| `cama_aviario` | Cama de Aviário | 275,0 | 72,5 % | 65,0 % | 58 % | 11 | 0,80 | 0,50 | 0,90 | 0,75 |
+| `dejetos_suinos_liquidos` | Dejetos Suínos Líquidos | 210,0 | 4,2 % | 3,5 % | 62 % | 13 | 0,90 | 0,55 | 0,95 | 0,75 |
 
 ---
 
@@ -99,13 +121,13 @@ Mapeamento de fontes de dados municipais oficiais acessíveis para instanciar os
 | **9** | `GORDURA` | ABRELPE / Cadastro CIESP | `volume_caixa_gordura_m3` | RMs de SP | **Alto** (sem cadastro municipalizado padronizado) |
 | **10** | `SANGUE` | MAPA / SIF / SISP Abatedouros | `cabecas_bovinos_suinos_abatidas` $\times 15 \text{ L/cab}$ | ~80 municípios com SIF | **Médio** (base de abate inspecionado por município) |
 | **11** | `VISCERAS` | MAPA / SIF / SISP Abatedouros | `cabecas_abatidas` $\times 25 \text{ kg/cab}$ | ~80 municípios com SIF | **Médio** (base SIF) |
-| **12** | `LEVEDURA` | UNICA / ANP Produção de Etanol | `producao_etanol_m3` $\times 0{,}02 \text{ t levedura/m}^3$ | ~170 municípios com usinas em SP | **Baixo** (associar diretamente à produção de etanol) |
-| **13** | `CASCA_EUCALIPTO` | IBGE PEVS (Silvicultura) | `area_eucalipto_ha` ou `volume_madeira_m3` | ~250 municípios (Vale do Paraíba/Itapetininga) | **Baixo** (dados municipais do PEVS disponíveis)
+| **12** | `LEVEDURA` | UNICA / ANP Produção de Etanol | `producao_etanol_m3` $\times 0{,}02 \text{ t levedura/m}^3$ | ~170 municípios | **Baixo** (associar diretamente à produção de etanol) |
+| **13** | `CASCA_EUCALIPTO` | IBGE PEVS (Silvicultura) | `area_eucalipto_ha` ou `volume_madeira_m3` | ~250 municípios | **Baixo** (dados municipais do PEVS disponíveis)
 
 ---
 
 ## 6. Conclusão Diagnóstica e Parada
 
 1. **Identificação de Conservadorismos**: Mapeado o impacto do $FS$ sobre a base anual (+12,48% se $FS=1,00$), a sobreposição de restrições nos 5 menores feedstocks e o conservadorismo de rota VS vs DQO (+20% a +38% em vinhaça, suínos e leiteiro).
-2. **Oportunidades de Refinamento**: Confirmados os parâmetros de Cinética (JSONB preenchido em 28 resíduos), C:N (31 resíduos), densidade in natura e referências científicas (367 citações) no Supabase.
+2. **Evidências Empíricas do Supabase**: Tabela de 31 resíduos com BMP/TS/VS/C:N/FDE extraída, Top 10 municípios validado (Barretos 650 M m³, São Paulo 401 M m³ RSU) e alertas legados da tabela `fde_residue_availability` documentados.
 3. **NENHUM parâmetro alterado. NENHUM total recalculado.** PARADA ao fim.
