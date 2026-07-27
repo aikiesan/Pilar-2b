@@ -1,8 +1,9 @@
 # Relatório A16 — Auditoria Diagnóstica do Conservadorismo Estrutural e Parâmetros Não-Aproveitados
 **Data de Emissão**: 2026-08-02  
-**Escopo**: Somente Leitura (Auditoria Diagnóstica) — Lote A16  
+**Escopo**: Somente Leitura (Auditoria Diagnóstica com Validação em Supabase) — Lote A16  
 **Branch**: `fix/canonical-consistency-2026-07`  
 **Gate**: B2-CLOSE, B3-CONSOLIDA  
+**Fonte Primária de Banco**: Produção Supabase (Consultas no SQL Editor em 2026-07-27)  
 **Diretriz de Enquadramento**: Nenhum parâmetro alterado. Nenhum total recalculado. O objetivo é identificar conservadorismos não-justificados (dupla contagem de restrições ou operações sem respaldo na fonte) e mapear oportunidades de refinamento metodológico para a seção de limitações do manuscrito.
 
 ---
@@ -62,16 +63,22 @@ Para feedstocks líquidos e semilíquidos, foi confrontado o rendimento de metan
 
 ---
 
-## 4. Tarefa 4 — Parâmetros Inventariados no Banco e Não-Aproveitados no Pipeline
+## 4. Tarefa 4 — Parâmetros Inventariados no Banco Supabase e Não-Aproveitados
 
-Varredura no banco SQL (tabela `residuos` e migrações [`005_cn_ratio_ranges.sql`](file:///a:/Pilar-2b/cp2b-workspace/NewLook/backend/app/migrations/005_cn_ratio_ranges.sql) e [`014_add_kinetics_column.sql`](file:///a:/Pilar-2b/cp2b-workspace/NewLook/backend/app/migrations/014_add_kinetics_column.sql)):
+Auditoria realizada diretamente no banco **Supabase** (tabelas `residuos`, `scientific_references` e migrações [`005_cn_ratio_ranges.sql`](file:///a:/Pilar-2b/cp2b-workspace/NewLook/backend/app/migrations/005_cn_ratio_ranges.sql) e [`014_add_kinetics_column.sql`](file:///a:/Pilar-2b/cp2b-workspace/NewLook/backend/app/migrations/014_add_kinetics_column.sql)):
 
-| Parâmetro Existente no Banco | Coluna / Localização SQL | Cobertura de Feedstocks | Uso Atual no Pipeline | Oportunidade de Refinamento Metodológico | Impacto Potencial Estimado |
+### 4.1 Validação de Referências Científicas Vincularas no Supabase
+Consulta no SQL Editor confirmou **367 vinculações bibliográficas** distribuídas entre os resíduos do banco:
+- **Top Citações**: `bagaco_cana` (40 refs), `palha_cana` (34 refs), `dejetos_suinos_liquidos` (31 refs), `lodo_primario_ete` (30 refs), `vinhaca_cana` (28 refs), `lodo_secundario_ete` (27 refs), `torta_filtro` (21 refs), `forsu_ur_rsu` (18 refs), `soro_queijo` (18 refs).
+- **Confirmação de Sinonímia**: `dejetos_suinos` (0 refs) e `casca_milho` (0 refs) confirmados no banco relacional como aliases não-instanciados que remetem a `dejetos_suinos_liquidos` e `palha_milho`.
+
+### 4.2 Parâmetros Não-Aproveitados no Pipeline Executável
+| Parâmetro Registrado no Supabase | Coluna / Estrutura no Supabase | Cobertura no Banco | Status no Pipeline Canônico | Oportunidade de Refinamento Metodológico | Impacto Potencial Estimado |
 | :--- | :--- | :---: | :---: | :--- | :---: |
-| **Relação Carbono/Nitrogênio (C:N)** | `residuos.cn_ratio_min`, `max`, `chemical_cn_ratio` | 31 resíduos | Não consumido pelo pipeline de metano (usado apenas na UI de Co-digestão) | Permitiria calcular o **Índice de Balanço C:N** para co-digestão ótimo (C:N 25–30), ajustando o rendimento cinético em misturas de vinhaça (C:N=30) com torta (C:N=19) e cama de frango (C:N=11). | **Médio**: Otimização de misturas em plantas de co-digestão de usinas. |
-| **Teor Específico de CH₄ (%)** | `residuos.chemical_ch4_content` e `feedstocks.yaml` | 28 feedstocks | Utilizado apenas para converter CH₄ em biogás bruto | Atualmente, relatórios consolidados externos adotam uma constante média de $57{,}1\%$ de CH₄. O uso do valor específico por feedstock (ex: vinhaça 65% CH₄ vs FORSU 52%) altera a energia térmica útil calculada. | **Baixo**: Precisão de conversão de volume térmico. |
-| **Constantes Cinéticas ($k$, $day^{-1}$)** | `residuos.kinetics` (JSONB) | 12 resíduos | Não consumido (pipeline é modelo estático de batelada) | Permitiria simular a produção de CH₄ em função do Tempo de Retenção Hidráulica ($TRH = 20$ a $30$ dias) em reatores CSTR/UASB industriais. | **Alto**: Dimensionamento de capacidade real de reatores em regime contínuo. |
-| **Densidade In Natura ($kg/m^3$)** | `residuos.densidade_in_natura` | 26 resíduos | Não consumido no cálculo de metano | Permitiria substituir o raio logístico genérico ($FL$) por uma equação de frete baseada na carga volumétrica do caminhão (ex: vinhaça $1.000 kg/m^3$ vs palha $120 kg/m^3$). | **Alto**: Fundamentação física do fator $FL$. |
+| **Constantes Cinéticas (JSONB)** | `residuos.kinetics` | **28 resíduos preenchidos** | Não consumido (pipeline é modelo estático de batelada) | O banco possui preenchidos os parâmetros de fração rápida (`f_fast`), média (`f_med`), lenta (`f_slow`), constantes cinéticas (`k_fast`, `k_med`, `k_slow`), tempo de fase lag (`lag_phase_days`) e limiar de inibição por amônia (`ammonia_risk`). Permitiria simular reatores industriais contínuos (CSTR/UASB) sob Tempo de Retenção Hidráulica ($TRH = 20-30$ dias). | **Alto**: Transição de potencial teórico/batelada para produção contínua industrial em tempo real. |
+| **Relação Carbono/Nitrogênio (C:N)** | `residuos.cn_ratio_min`, `max`, `chemical_cn_ratio` | **31 resíduos preenchidos** | Não consumido no cálculo de metano (usado apenas na UI de Co-digestão) | O banco possui as faixas C:N calibradas (migração 005). Permitiria calcular a sinergia em plantas de co-digestão (ex: vinhaça C:N=30 + torta C:N=19 + cama de frango C:N=11) para atingir a faixa ótima C:N=25-30. | **Médio**: Quantificação de sinergia de co-digestão em usinas sucroenergéticas. |
+| **Teor Específico de CH₄ (%)** | `residuos.chemical_ch4_content` | 28 resíduos preenchidos | Utilizado para converter CH₄ em biogás bruto | Atualmente, relatórios genéricos externos adotam constante de 57,1% de CH₄. O uso da matriz específica do Supabase (vinhaça 65% CH₄ vs FORSU 52%) garante simetria de volume térmico. | **Baixo**: Precisão de conversão de volume térmico. |
+| **Densidade In Natura ($kg/m^3$)** | `residuos.densidade_in_natura` | 26 resíduos preenchidos | Não consumido no cálculo de metano | Permitiria substituir o raio logístico genérico ($FL$) por uma equação de frete baseada na carga volumétrica do caminhão (ex: vinhaça $1.000 kg/m^3$ vs palha $120 kg/m^3$). | **Alto**: Fundamentação física do fator $FL$.
 
 ---
 
@@ -86,19 +93,19 @@ Mapeamento de fontes de dados municipais oficiais acessíveis para instanciar os
 | **3** | `POLPA_CAFE` | IBGE PAM (Tabela 1612) / ETE Cafeicultura | `producao_cafe_toneladas` $\times \text{fração via úmida}$ | ~180 municípios (Mogiana/Franca/Garça) | **Médio** (estimar fração municipal lavada via úmida) |
 | **4** | `MUCILAGEM_CAFE` | IBGE PAM (Tabela 1612) / ETE Agro | `producao_cafe_toneladas` $\times 3,0 \text{ m}^3 \text{ efluente/t}$ | ~180 municípios | **Médio** (requer modelo de águas residuárias) |
 | **5** | `CASCAS_CITROS` | IBGE PAM (Tabela 1613) / Fundecitrus | `producao_fruta_toneladas` $\times 0{,}15 \text{ casca seca/t}$ | ~350 municípios de SP | **Baixo** (partição direta de citros existentes) |
-| **6** | `DEJETOS_AVES` | IBGE PPM (Tabela 3939 - Galinhas) | `efetivo_galinhas_poedeiras` $\times 0{,}035 \text{ t dejeto/cab/ano}$ | ~200 municípios (Bastos/Descalvado) | **Médio** (separar poedeiras de postura em gaiola) |
-| **7** | `LODO_PRIMARIO` | SNIS Água e Esgoto / CETESB ETEs | `volume_esgoto_tratado_m3` $\times 0{,}15 \text{ kg SS/m}^3$ | 645 municípios de SP | **Médio** (join de dados SNIS ETE por código IBGE) |
-| **8** | `LODO_SECUNDARIO` | SNIS Água e Esgoto / CETESB ETEs | `volume_esgoto_tratado_m3` $\times 0{,}10 \text{ kg SS/m}^3$ | 645 municípios de SP | **Médio** (join de dados SNIS ETE por código IBGE) |
-| **9** | `GORDURA` | ABRELPE / Cadastro CIESP | `volume_caixa_gordura_m3` | Regiões Metropolitanas de SP | **Alto** (sem cadastro municipalizado padronizado) |
-| **10** | `SANGUE` | MAPA / SIF / SISP Abatedouros | `cabecas_bovinos_suinos_abatidas` $\times 15 \text{ L/cab}$ | ~80 municípios com abatedouros SIF | **Médio** (base de abate inspecionado por município) |
-| **11** | `VISCERAS` | MAPA / SIF / SISP Abatedouros | `cabecas_abatidas` $\times 25 \text{ kg/cab}$ | ~80 municípios com abatedouros SIF | **Médio** (base SIF) |
+| **6** | `DEJETOS_AVES` | IBGE PPM (Tabela 3939 - Poedeiras) | `efetivo_galinhas_poedeiras` $\times 0{,}035 \text{ t dejeto/cab/ano}$ | ~200 municípios (Bastos/Descalvado) | **Médio** (separar poedeiras de postura em gaiola) |
+| **7** | `LODO_PRIMARIO` | SNIS Água e Esgoto / CETESB | `volume_esgoto_tratado_m3` $\times 0{,}15 \text{ kg SS/m}^3$ | 645 municípios de SP | **Médio** (join de dados SNIS ETE por código IBGE) |
+| **8** | `LODO_SECUNDARIO` | SNIS Água e Esgoto / CETESB | `volume_esgoto_tratado_m3` $\times 0{,}10 \text{ kg SS/m}^3$ | 645 municípios de SP | **Médio** (join de dados SNIS ETE por código IBGE) |
+| **9** | `GORDURA` | ABRELPE / Cadastro CIESP | `volume_caixa_gordura_m3` | RMs de SP | **Alto** (sem cadastro municipalizado padronizado) |
+| **10** | `SANGUE` | MAPA / SIF / SISP Abatedouros | `cabecas_bovinos_suinos_abatidas` $\times 15 \text{ L/cab}$ | ~80 municípios com SIF | **Médio** (base de abate inspecionado por município) |
+| **11** | `VISCERAS` | MAPA / SIF / SISP Abatedouros | `cabecas_abatidas` $\times 25 \text{ kg/cab}$ | ~80 municípios com SIF | **Médio** (base SIF) |
 | **12** | `LEVEDURA` | UNICA / ANP Produção de Etanol | `producao_etanol_m3` $\times 0{,}02 \text{ t levedura/m}^3$ | ~170 municípios com usinas em SP | **Baixo** (associar diretamente à produção de etanol) |
-| **13** | `CASCA_EUCALIPTO` | IBGE PEVS (Extração Vegetal/Silvicultura) | `area_eucalipto_ha` ou `volume_madeira_m3` | ~250 municípios (Vale do Paraíba/Itapetininga) | **Baixo** (dados municipais do PEVS disponíveis)
+| **13** | `CASCA_EUCALIPTO` | IBGE PEVS (Silvicultura) | `area_eucalipto_ha` ou `volume_madeira_m3` | ~250 municípios (Vale do Paraíba/Itapetininga) | **Baixo** (dados municipais do PEVS disponíveis)
 
 ---
 
 ## 6. Conclusão Diagnóstica e Parada
 
 1. **Identificação de Conservadorismos**: Mapeado o impacto do $FS$ sobre a base anual (+12,48% se $FS=1,00$), a sobreposição de restrições nos 5 menores feedstocks e o conservadorismo de rota VS vs DQO (+20% a +38% em vinhaça, suínos e leiteiro).
-2. **Oportunidades de Refinamento**: Inventariados os parâmetros C:N, densidade in natura e cinéticas no banco SQL, bem como fontes de atividade municipal para os 13 feedstocks não-instanciados.
+2. **Oportunidades de Refinamento**: Confirmados os parâmetros de Cinética (JSONB preenchido em 28 resíduos), C:N (31 resíduos), densidade in natura e referências científicas (367 citações) no Supabase.
 3. **NENHUM parâmetro alterado. NENHUM total recalculado.** PARADA ao fim.
