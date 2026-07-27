@@ -37,6 +37,9 @@ data/raw/*
 data/rasters/*.tif
 *.sqlite
 *.db
+docs/data/datasets/*.json
+docs/data/datasets/*.csv
+!docs/data/datasets/README.md
 
 # Exceções (manter alguns dados)
 !data/raw/.gitkeep
