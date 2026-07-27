@@ -11,6 +11,7 @@ import { useTranslations } from 'next-intl'
 import dynamic from 'next/dynamic'
 import type { FilterCriteria } from '@/components/dashboard/FilterPanel'
 import type { BiomassType } from '@/components/map/FloatingControlPanel'
+import MethodologyReviewNotice from '@/components/ui/MethodologyReviewNotice'
 
 function MapLoadingSkeleton() {
   const t = useTranslations('Map')
@@ -51,6 +52,7 @@ export default function PublicMapPage() {
     <div className="h-[calc(100vh-64px)] flex flex-col bg-gray-50 dark:bg-slate-900 transition-colors overflow-hidden">
       {/* Full-Page Map */}
       <main className="flex-1 relative">
+        <MethodologyReviewNotice className="absolute left-1/2 top-3 z-[1000] -translate-x-1/2 shadow-sm" />
         <MapComponent
           activeFilters={activeFilters}
           biomassType={biomassType}

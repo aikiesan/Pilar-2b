@@ -9,6 +9,7 @@ import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import { useRouter } from '@/navigation'
 import { useTranslations } from 'next-intl'
 import Breadcrumb from '@/components/ui/Breadcrumb'
+import MethodologyReviewNotice from '@/components/ui/MethodologyReviewNotice'
 import {
   TrendingUp,
   TrendingDown,
@@ -607,6 +608,8 @@ export default function AdvancedAnalysisPage() {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+        <MethodologyReviewNotice />
+
         {/* Error Banner */}
         {error && (
           <div className="bg-red-50 border-l-4 border-red-500 text-red-700 px-6 py-4 rounded-lg mb-6 shadow-sm flex items-start gap-3">

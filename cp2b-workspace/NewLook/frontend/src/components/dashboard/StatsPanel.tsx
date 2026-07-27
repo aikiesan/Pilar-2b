@@ -9,6 +9,7 @@ import React, { useState } from 'react';
 import { ChevronDown, ChevronUp, Zap, MapPin, Users, Trophy } from 'lucide-react';
 import { useSummaryStatistics } from '@/hooks/useGeospatialData';
 import { formatBiogasShort, formatPopulation, formatPercentage } from '@/lib/mapUtils';
+import MethodologyReviewNotice from '@/components/ui/MethodologyReviewNotice';
 
 export default function StatsPanel() {
   const { data, loading, error } = useSummaryStatistics();
@@ -31,6 +32,7 @@ export default function StatsPanel() {
 
   return (
     <div className="space-y-3">
+      <MethodologyReviewNotice compact />
       {/* Key Metrics Grid - Compact 2x2 */}
       <div className="grid grid-cols-2 gap-2">
         {/* Total Biogas */}

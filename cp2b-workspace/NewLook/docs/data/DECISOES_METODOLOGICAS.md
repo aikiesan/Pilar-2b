@@ -95,3 +95,12 @@
 - **Escopo:** Export do mapa, comparador, card municipal, proximidade e agregações da análise avançada.
 - **Decisão:** Campos públicos de biogás com nomes de compatibilidade (`*_biogas_m3_year`) passam a ser produzidos em tempo de consulta por `map_metrics.py` e `canonical_loader.py`, pela mesma rota do mapa principal. As colunas homônimas de `municipalities` e a tabela `residue_streams_sp2023` são snapshots legados e não constituem fonte de valor publicado. O script `sync_db_canonical.py`, que copiava o snapshot 2023 para as colunas municipais, fica bloqueado contra execução.
 - **Rastreabilidade:** `docs/data/B-URG-4c_SUPERFICIES_FINAL_2026-07-29.md`.
+
+---
+
+### [DEC-021] Marca provisória dos agregados em revisão metodológica
+- **Data:** 2026-07-29 (ADVENTURE B / B-URG-4c, item 4)
+- **Status:** Provisório, até conclusão da recalibração B1.
+- **Escopo:** Superfícies públicas que exibem agregados estaduais, regionais ou setoriais.
+- **Decisão:** Exibir uma marca visível, curta, bilíngue e datada de revisão metodológica nos agregados publicados. Valores estritamente municipais e parâmetros físico-químicos ficam fora da marca. Uma banda `min/medio/max` só pode ser exibida quando o contrato da superfície trouxer uma banda canônica agregada; extremos de distribuição municipal não podem ser reinterpretados como incerteza e nenhum intervalo pode ser inventado.
+- **Rastreabilidade:** `docs/data/B-URG-4c_SUPERFICIES_FINAL_2026-07-29.md`.

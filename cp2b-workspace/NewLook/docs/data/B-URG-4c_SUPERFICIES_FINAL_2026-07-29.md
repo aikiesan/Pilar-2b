@@ -171,4 +171,65 @@ recalibração foi feita neste lote.
 
 ## 3. Item 4 — marca de revisão metodológica
 
-Pendente neste ponto do histórico.
+### 3.1 Texto aplicado
+
+Foi criado um aviso visual curto e sóbrio, com ícone discreto e data:
+
+- pt-BR: `Valores agregados em revisão metodológica · 29/07/2026`
+- en: `Aggregate values under methodological review · 2026-07-29`
+
+O aviso é resolvido por `next-intl` nas rotas localizadas. A rota antiga
+`/dashboard`, que não possui locale nem provider de tradução, recebeu as duas
+strings lado a lado para não introduzir dependência incompatível.
+
+### 3.2 Cobertura das superfícies
+
+| Superfície | Arquivo/posição do aviso | Tipo de agregado marcado |
+| --- | --- | --- |
+| Mapa principal | `frontend/src/app/[locale]/map/page.tsx` | Estadual e regional, incluindo painéis e camadas sobrepostas |
+| Painel de estatísticas | `frontend/src/components/dashboard/StatsPanel.tsx` | Estadual e setorial |
+| Painel flutuante alternativo | `frontend/src/components/map/FloatingStatsPanel.tsx` | Estadual |
+| Proximidade | `frontend/src/components/proximity/ResultsCards.tsx` | Agregado de raio/região selecionada |
+| Análise avançada | `frontend/src/app/[locale]/dashboard/advanced-analysis/page.tsx` | Estadual, regional e setorial |
+| Dashboard legado sem locale | `frontend/src/app/dashboard/page.tsx` | Estadual |
+
+O aviso no topo do mapa cobre também o `DesktopLeftPanel`, a faixa estatística,
+os tooltips das regiões intermediárias e seus componentes mobile sem repetir a
+marca em cada cartão.
+
+### 3.3 Bandas e exclusões deliberadas
+
+Nenhum dos contratos consumidos pelas superfícies acima fornece hoje uma banda
+canônica agregada `min/medio/max`. Os campos `min` e `max` existentes na análise
+avançada descrevem extremos da distribuição municipal, não uma banda de
+incerteza do agregado. Portanto, este lote não os reinterpretou e não inventou
+uma banda.
+
+O arquivo de resultado estadual possui bandas, mas não foi usado como fonte
+substituta neste item: sua geração está bloqueada pela regressão registrada em
+§2.4. Publicar essa banda enquanto o guard falha criaria uma terceira fonte.
+
+Conforme a regra do lote, ficaram sem a marca:
+
+- páginas, cards, popups e comparações estritamente municipais;
+- a base científica e demais telas de BMP, TS, VS, composição química e outros
+  parâmetros;
+- resultados calculados exclusivamente a partir de entrada do próprio usuário,
+  quando não representam agregado geográfico ou setorial publicado.
+
+### 3.4 Validação e invariantes finais
+
+- JSON das duas traduções: válido.
+- ESLint dos arquivos TypeScript/TSX alterados: sem erro.
+- `git diff --check`: sem erro.
+- `feedstocks.yaml`: diff vazio.
+- Nenhum BMP, VS, FDE, mapeamento ou valor numérico canônico foi alterado nos
+  itens 2, 3 ou 4.
+
+## 4. Registro de commits isolados
+
+| Item | Commit | Conteúdo |
+| --- | --- | --- |
+| 2 | `540aaa7` | identidade pública de `rpo` corrigida para poda urbana |
+| 3 | `0c0d38a` | superfícies migradas da camada persistida para cálculo canônico |
+| 4 | commit deste relatório | marca provisória dos agregados e DEC-021 |
