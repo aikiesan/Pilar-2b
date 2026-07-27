@@ -49,7 +49,8 @@ AGRI_STREAMS: tuple[str, ...] = ("sugarcane", "soybean", "corn", "coffee", "citr
 # Streams with head count in master CSV — biomass requires generation coefficient
 LIVESTOCK_STREAMS: tuple[str, ...] = ("cattle", "swine", "poultry", "aquaculture")
 # Streams that are population-derived
-URBAN_STREAMS: tuple[str, ...] = ("rsu", "rpo")
+URBAN_STREAMS: tuple[str, ...] = ("rsu", "sludge_primary", "sludge_secondary")
+URBAN_ACTIVITY_STREAMS: tuple[str, ...] = ("rsu",)
 PPM_STREAMS: tuple[str, ...] = ("cattle", "swine", "poultry")
 
 ACTIVITY_VARIABLES: dict[str, str] = {
@@ -99,6 +100,9 @@ class MunicipalityMapMetrics:
     streams: dict[str, StreamMetrics] = field(default_factory=dict)
     # Municipality-level totals (sum across streams, per scenario)
     biomass_gross_total: float = 0.0
+    biomass_gross_total_by_scenario: dict[str, float] = field(
+        default_factory=lambda: {sc: 0.0 for sc in SCENARIOS}
+    )
     biomass_corrected_total: dict[str, float] = field(
         default_factory=lambda: {sc: 0.0 for sc in SCENARIOS}
     )
@@ -116,6 +120,9 @@ class MunicipalityMapMetrics:
             "biomass_gross_total_tons_yr": round(self.biomass_gross_total, 2),
         }
         for sc in SCENARIOS:
+            out[f"biomass_gross_{sc}_tons_yr"] = round(
+                self.biomass_gross_total_by_scenario[sc], 2
+            )
             out[f"biomass_corrected_{sc}_tons_yr"] = round(self.biomass_corrected_total[sc], 2)
             out[f"biogas_{sc}_m3_yr"] = round(self.biogas_total[sc], 2)
             out[f"biogas_ch4_{sc}_m3_yr"] = round(self.biogas_ch4_total[sc], 2)
@@ -233,7 +240,7 @@ def derive_activity_biomass(
         provenance["rsu"] = "measured"
 
     if population is not None and population > 0:
-        for stream in URBAN_STREAMS:
+        for stream in URBAN_ACTIVITY_STREAMS:
             if stream not in tons:
                 tons[stream] = biomass_tons_from_units(stream, population).medio
                 provenance[stream] = "estimated"
@@ -245,22 +252,58 @@ def compute_published_municipality_metrics(
     *,
     activity: Mapping[str, float] | None = None,
 ) -> MunicipalityMapMetrics:
-    """Run the main-map canonical route for one row and its activity drivers."""
-    activity = activity or {}
-    population_value = activity.get("population")
-    if population_value is None:
-        raw_population = row.get("population")
-        population_value = float(raw_population) if raw_population is not None else None
-    derived_tons, _ = derive_activity_biomass(
-        head={stream: activity[stream] for stream in PPM_STREAMS if stream in activity},
-        population=population_value,
-        collected_waste=activity.get("rdo_coletado"),
+    """Run the exact municipality pipeline used by the canonical batch script."""
+    from app.services.canonical_municipality import (
+        compute_canonical_municipality,
+        load_snis_activity_snapshot,
     )
-    return compute_municipality_map_metrics(
-        row,
-        ibge_code=str(row.get("ibge_code") or ""),
-        derived_tons=derived_tons,
-    )
+
+    code = str(row.get("ibge_code") or "")
+    merged_activity = dict(load_snis_activity_snapshot().get(code, {}))
+    merged_activity.update(activity or {})
+    if not merged_activity.get("population_2022") and row.get("population"):
+        merged_activity["population_2022"] = float(row["population"])
+    canonical = compute_canonical_municipality(row, activity=merged_activity)
+    metrics = MunicipalityMapMetrics(ibge_code=code)
+
+    grouped: dict[str, list[Any]] = {}
+    for feedstock in canonical.feedstocks.values():
+        grouped.setdefault(feedstock.public_stream, []).append(feedstock)
+    for stream, members in grouped.items():
+        gross = sum(member.biomass_gross["medio"] for member in members)
+        corrected = {
+            scenario: sum(member.biomass_mobilizable[scenario] for member in members)
+            for scenario in SCENARIOS
+        }
+        biogas = {
+            scenario: sum(member.biogas[scenario] for member in members)
+            for scenario in SCENARIOS
+        }
+        ch4 = {
+            scenario: sum(member.ch4[scenario] for member in members)
+            for scenario in SCENARIOS
+        }
+        biomethane = {
+            scenario: sum(member.biomethane[scenario] for member in members)
+            for scenario in SCENARIOS
+        }
+        metrics.streams[stream] = StreamMetrics(
+            stream=stream,
+            has_biomass=True,
+            biomass_gross=gross,
+            biomass_corrected=corrected,
+            biogas_m3=biogas,
+            biogas_ch4_m3=ch4,
+            biomethane_m3=biomethane,
+        )
+
+    metrics.biomass_gross_total = canonical.totals["biomass_gross"]["medio"]
+    metrics.biomass_gross_total_by_scenario = dict(canonical.totals["biomass_gross"])
+    metrics.biomass_corrected_total = dict(canonical.totals["biomass_mobilizable"])
+    metrics.biogas_total = dict(canonical.totals["biogas"])
+    metrics.biogas_ch4_total = dict(canonical.totals["ch4"])
+    metrics.biomethane_total = dict(canonical.totals["biomethane"])
+    return metrics
 
 
 def _compute_from_biomass(
@@ -431,6 +474,9 @@ def compute_municipality_map_metrics(
 
     # Round totals
     metrics.biomass_gross_total = round(metrics.biomass_gross_total, 2)
+    metrics.biomass_gross_total_by_scenario = {
+        sc: metrics.biomass_gross_total for sc in SCENARIOS
+    }
     for sc in SCENARIOS:
         metrics.biomass_corrected_total[sc] = round(metrics.biomass_corrected_total[sc], 2)
         metrics.biogas_ch4_total[sc] = round(metrics.biogas_ch4_total[sc], 2)

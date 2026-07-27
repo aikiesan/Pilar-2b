@@ -207,18 +207,18 @@ class TestMunicipalityMapMetrics:
 
 @pytest.mark.unit
 class TestActivityDerivation:
-    def test_population_drives_both_canonical_urban_streams(self):
+    def test_population_drives_forsu_but_not_uncovered_pruning(self):
         tons, provenance = derive_activity_biomass(head={}, population=10_000)
         assert tons["rsu"] > 0
-        assert tons["rpo"] > 0
-        assert provenance == {"rsu": "estimated", "rpo": "estimated"}
+        assert "rpo" not in tons
+        assert provenance == {"rsu": "estimated"}
 
     def test_collected_waste_wins_for_rsu_only(self):
         tons, provenance = derive_activity_biomass(
             head={}, population=10_000, collected_waste=2_000
         )
         assert provenance["rsu"] == "measured"
-        assert provenance["rpo"] == "estimated"
+        assert "rpo" not in provenance
 
 
 @pytest.mark.unit

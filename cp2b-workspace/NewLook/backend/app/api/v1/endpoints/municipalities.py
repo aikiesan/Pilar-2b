@@ -19,7 +19,7 @@ from app.services.canonical_loader import (
     biomass_tons_from_collected_waste,
     biomass_tons_from_units,
 )
-from app.services.map_metrics import compute_municipality_map_metrics
+from app.services.map_metrics import compute_published_municipality_metrics
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -368,8 +368,8 @@ async def get_municipalities_geojson(
             allow_reverse_fallback=_ALLOW_REVERSE_FALLBACK,
         )
         try:
-            computed_metrics = compute_municipality_map_metrics(
-                row, ibge_code=ibge_code, derived_tons=derived_tons
+            computed_metrics = compute_published_municipality_metrics(
+                row, activity=activity
             )
             canonical_metrics = computed_metrics.to_flat_dict()
             published_biogas = computed_metrics.to_published_biogas_dict()
@@ -669,9 +669,7 @@ async def get_municipality_metrics(ibge_code: str):
             allow_reverse_fallback=_ALLOW_REVERSE_FALLBACK,
         )
         try:
-            computed = compute_municipality_map_metrics(
-                row, ibge_code=ibge_code, derived_tons=derived_tons
-            )
+            computed = compute_published_municipality_metrics(row, activity=activity)
             canonical = computed.to_flat_dict()
             published_biogas = computed.to_published_biogas_dict()
         except Exception as exc:
