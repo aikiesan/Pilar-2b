@@ -253,6 +253,14 @@ export interface MunicipalityCollection {
 
 // Summary statistics from API
 export interface SummaryStatistics {
+  /**
+   * Geographic scope these totals describe. The endpoint is São Paulo-scoped:
+   * the legacy biogas columns it sums are populated only for the 645 SP
+   * municipalities, so a national total would be a fiction. Non-SP rows are on
+   * the map as a beta layer and are excluded here — see lib/mapScope.
+   */
+  scope?: 'SP';
+  scope_label?: string;
   total_municipalities: number;
   total_biogas_m3_year: number;
   average_biogas_m3_year: number;

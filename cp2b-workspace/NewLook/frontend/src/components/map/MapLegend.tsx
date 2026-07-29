@@ -9,6 +9,7 @@ import React, { useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import type { DisplayMetric } from '@/types/geospatial';
 import { getMetricSpec, legendItems as buildLegendItems } from '@/lib/mapMetrics';
+import { BETA_FILL } from '@/lib/mapScope';
 
 // 'Zero' and 'Sem dados' are deliberately separate: the near-white swatch is a
 // real zero (we looked; there is none), the grey is no_data (never loaded). The
@@ -18,9 +19,12 @@ import { getMetricSpec, legendItems as buildLegendItems } from '@/lib/mapMetrics
 export default function MapLegend({
   displayMetric = 'biomass_tons',
   daltonic = false,
+  showNationalBeta = false,
 }: {
   displayMetric?: DisplayMetric;
   daltonic?: boolean;
+  /** Adds the beta swatch when the national layer is on the map. */
+  showNationalBeta?: boolean;
 }) {
   const spec = getMetricSpec(displayMetric);
   const legendItems = buildLegendItems(spec, daltonic);
@@ -32,8 +36,14 @@ export default function MapLegend({
       <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-gray-100 overflow-hidden w-40 md:w-48">
         {/* Header */}
         <div className="flex items-center justify-between px-3 py-2.5 bg-gradient-to-r from-gray-50 to-white border-b border-gray-100">
-          <span className="text-[10px] font-semibold text-gray-700 uppercase tracking-wide">
+          {/* The ramp is the São Paulo ramp. Saying so in the legend header is
+              the cheapest place to prevent the whole misreading — the reader is
+              already looking here to decode the colours. */}
+          <span className="text-[10px] font-semibold text-gray-700 uppercase tracking-wide leading-tight">
             {title}
+            <span className="block text-[9px] font-bold text-green-700 normal-case tracking-normal">
+              São Paulo
+            </span>
           </span>
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
@@ -71,6 +81,23 @@ export default function MapLegend({
                 </span>
               </div>
             ))}
+
+            {/* Beta swatch, separated by a rule: it is not another step of the
+                ramp, it is a different scope with a different confidence. */}
+            {showNationalBeta && (
+              <div className="pt-1.5 mt-1 border-t border-gray-100">
+                <div className="flex items-center gap-2.5 px-1.5 py-1" role="listitem">
+                  <div
+                    className="w-5 h-3.5 rounded border border-gray-200 shadow-sm flex-shrink-0 opacity-40"
+                    style={{ backgroundColor: BETA_FILL }}
+                    aria-hidden="true"
+                  />
+                  <span className="text-[10px] text-gray-500 font-medium flex-1 leading-tight">
+                    Fora de SP — em validação
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

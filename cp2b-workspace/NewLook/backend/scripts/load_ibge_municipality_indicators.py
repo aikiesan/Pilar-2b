@@ -34,7 +34,9 @@ logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
 
 BACKEND_DIR = Path(__file__).resolve().parent.parent
-DEFAULT_IBGE_DIR = BACKEND_DIR.parent.parent / "Nova pasta"
+DEFAULT_IBGE_DIR = BACKEND_DIR.parent / "data" / "raw" / "ibge_2025"
+if not DEFAULT_IBGE_DIR.exists():
+    DEFAULT_IBGE_DIR = BACKEND_DIR.parent.parent / "Nova pasta"
 IBGE_DATA_DIR = Path(os.environ.get("IBGE_DATA_DIR", DEFAULT_IBGE_DIR)).resolve()
 DRY_RUN = os.environ.get("DRY_RUN", "false").lower() == "true"
 

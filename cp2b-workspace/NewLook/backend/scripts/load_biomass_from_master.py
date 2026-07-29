@@ -39,12 +39,19 @@ from app.services.biomass_import import build_municipality_biomass  # noqa: E402
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
 
-_DEFAULT_CSV = (
-    Path(__file__).parent.parent.parent.parent.parent
-    / "analysis"
-    / "data"
-    / "01_master_residue_streams_SP_2023.csv"
-)
+def resolve_master_csv() -> Path:
+    candidates = [
+        Path(__file__).parent.parent / "data" / "canonical_parameters" / "SP_master_residue_streams_2023_FINAL.csv",
+        Path(__file__).parent.parent / "docs" / "data" / "SP_master_residue_streams_2023_FINAL.csv",
+        Path(__file__).parent.parent.parent / "data" / "canonical_parameters" / "SP_master_residue_streams_2023_FINAL.csv",
+        Path(__file__).parent.parent.parent.parent.parent / "analysis" / "data" / "01_master_residue_streams_SP_2023.csv",
+    ]
+    for p in candidates:
+        if p.is_file():
+            return p
+    return candidates[0]
+
+_DEFAULT_CSV = resolve_master_csv()
 
 _BIOMASS_FIELDS = [c.biomass_field for c in RESIDUE_BIOMASS_CONFIGS]
 _ALL_FIELDS = _BIOMASS_FIELDS + list(SECTOR_FIELDS.values()) + ["total_biomass_tons_year"]

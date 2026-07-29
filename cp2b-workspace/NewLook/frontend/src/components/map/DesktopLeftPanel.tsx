@@ -23,6 +23,7 @@ import { useSummaryStatistics } from '@/hooks/useGeospatialData';
 import { formatBiogasShort } from '@/lib/mapUtils';
 import { DISPLAY_METRICS, METRIC_SPECS } from '@/lib/mapMetrics';
 import { DATA_EXPORT_ENABLED } from '@/lib/featureFlags';
+import { NATIONAL_BETA_LAYER_ID, BETA_NOTICE } from '@/lib/mapScope';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -48,6 +49,8 @@ interface DesktopLeftPanelProps {
   onLayerToggle: (id: string, visible: boolean) => void;
   municipalityCount: number;
   totalMunicipalities: number;
+  /** Non-SP municipalities currently drawn as beta context (0 when hidden). */
+  betaMunicipalityCount?: number;
   onOpenComparison: () => void;
   onOpenExport: () => void;
   displayMetric?: DisplayMetric;
@@ -74,7 +77,7 @@ const LAYER_KEY_MAP: Record<string, string> = {
 };
 
 const LAYER_GROUPS = [
-  { labelKey: 'layerGroups.base', ids: ['municipalities', 'intermediate-regions'] },
+  { labelKey: 'layerGroups.base', ids: ['municipalities', NATIONAL_BETA_LAYER_ID, 'intermediate-regions'] },
   { labelKey: 'layerGroups.environmental', ids: ['mapbiomas'] },
   {
     labelKey: 'layerGroups.infrastructure',
@@ -456,21 +459,36 @@ function LayersSection({
           <div key={group.labelKey}>
             <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-1">{t(group.labelKey)}</p>
             <div className="space-y-0.5">
-              {group.items.map(layer => (
-                <div key={layer.id} className="flex items-center justify-between py-1">
-                  <span className="text-[11px] text-gray-700 font-medium truncate mr-2">
-                    {layer.icon} {getLayerName(layer)}
-                  </span>
-                  <button
-                    role="switch"
-                    aria-checked={layer.visible}
-                    onClick={() => onLayerToggle(layer.id, !layer.visible)}
-                    className={`relative w-8 h-[18px] rounded-full transition-colors shrink-0 ${layer.visible ? 'bg-[#1E5128]' : 'bg-gray-200'}`}
-                  >
-                    <span className={`absolute top-[2px] left-[2px] w-[14px] h-[14px] bg-white rounded-full shadow transition-transform ${layer.visible ? 'translate-x-[14px]' : ''}`} />
-                  </button>
-                </div>
-              ))}
+              {group.items.map(layer => {
+                const isBeta = layer.id === NATIONAL_BETA_LAYER_ID;
+                return (
+                  <div key={layer.id} className="py-1">
+                    <div className="flex items-center justify-between">
+                      <span className={`text-[11px] font-medium truncate mr-2 ${isBeta ? 'text-gray-500' : 'text-gray-700'}`}>
+                        {layer.icon} {getLayerName(layer)}
+                      </span>
+                      <button
+                        role="switch"
+                        aria-checked={layer.visible}
+                        onClick={() => onLayerToggle(layer.id, !layer.visible)}
+                        className={`relative w-8 h-[18px] rounded-full transition-colors shrink-0 ${
+                          layer.visible ? (isBeta ? 'bg-amber-500' : 'bg-[#1E5128]') : 'bg-gray-200'
+                        }`}
+                      >
+                        <span className={`absolute top-[2px] left-[2px] w-[14px] h-[14px] bg-white rounded-full shadow transition-transform ${layer.visible ? 'translate-x-[14px]' : ''}`} />
+                      </button>
+                    </div>
+                    {/* The caveat sits with the switch, not in a tooltip: this is
+                        the one moment the user is deciding whether to trust the
+                        layer, so it is the one place the disclosure must be free. */}
+                    {isBeta && (
+                      <p className="text-[9px] text-amber-700 leading-snug mt-0.5 pr-10">
+                        {BETA_NOTICE}
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         ))}
@@ -549,29 +567,41 @@ function ToolsSection({
   );
 }
 
-function StatStrip({ municipalityCount, totalMunicipalities, filterCount }: {
+// The headline strip. Every number in it is São Paulo — the summary endpoint is
+// SP-scoped and the count is SP-scoped — so the strip says "SP" in the text
+// itself rather than relying on the reader to remember it.
+function StatStrip({ municipalityCount, totalMunicipalities, filterCount, betaMunicipalityCount = 0 }: {
   municipalityCount: number;
   totalMunicipalities: number;
   filterCount: number;
+  betaMunicipalityCount?: number;
 }) {
   const { data } = useSummaryStatistics();
   return (
-    <div className="px-3 py-2 border-b border-gray-100 bg-gradient-to-r from-green-50 to-white flex items-center gap-2 flex-shrink-0">
-      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse flex-shrink-0" />
-      <span className="text-xs text-gray-600 truncate">
-        <span className="font-bold text-green-700">{municipalityCount}</span>
-        <span className="text-gray-400">/{totalMunicipalities}</span>
-        {' '}municípios
-      </span>
-      {data && (
-        <span className="ml-auto text-[10px] text-green-700 font-semibold shrink-0">
-          {formatBiogasShort(data.total_biogas_m3_year)} m³/ano
+    <div className="px-3 py-2 border-b border-gray-100 bg-gradient-to-r from-green-50 to-white flex-shrink-0">
+      <div className="flex items-center gap-2">
+        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse flex-shrink-0" />
+        <span className="text-xs text-gray-600 truncate">
+          <span className="font-bold text-green-700">{municipalityCount}</span>
+          <span className="text-gray-400">/{totalMunicipalities}</span>
+          {' '}municípios <span className="font-semibold text-green-700">SP</span>
         </span>
-      )}
-      {filterCount > 0 && !data && (
-        <span className="ml-auto text-[10px] bg-green-100 text-green-700 font-semibold px-1.5 py-0.5 rounded-full shrink-0">
-          {filterCount} filtro{filterCount > 1 ? 's' : ''}
-        </span>
+        {data && (
+          <span className="ml-auto text-[10px] text-green-700 font-semibold shrink-0">
+            {formatBiogasShort(data.total_biogas_m3_year)} m³/ano
+          </span>
+        )}
+        {filterCount > 0 && !data && (
+          <span className="ml-auto text-[10px] bg-green-100 text-green-700 font-semibold px-1.5 py-0.5 rounded-full shrink-0">
+            {filterCount} filtro{filterCount > 1 ? 's' : ''}
+          </span>
+        )}
+      </div>
+      {betaMunicipalityCount > 0 && (
+        <p className="mt-1 text-[9px] text-gray-400 leading-snug">
+          🧪 +{betaMunicipalityCount.toLocaleString('pt-BR')} municípios do Brasil em beta,
+          não somados ao total
+        </p>
       )}
     </div>
   );
@@ -583,7 +613,8 @@ export default function DesktopLeftPanel({
   searchQuery, onSearchChange, selectedResidues, onResiduesChange,
   biomassType, onBiomassTypeChange, visualizationMode, onVisualizationModeChange,
   opacity, onOpacityChange, layers, onLayerToggle,
-  municipalityCount, totalMunicipalities, onOpenComparison, onOpenExport,
+  municipalityCount, totalMunicipalities, betaMunicipalityCount = 0,
+  onOpenComparison, onOpenExport,
   displayMetric, onDisplayMetricChange, cnMatrix,
   colorMode, onColorModeChange,
 }: DesktopLeftPanelProps) {
@@ -659,6 +690,7 @@ export default function DesktopLeftPanel({
             municipalityCount={municipalityCount}
             totalMunicipalities={totalMunicipalities}
             filterCount={filterCount}
+            betaMunicipalityCount={betaMunicipalityCount}
           />
 
           {/* Tab nav */}

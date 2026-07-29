@@ -898,7 +898,21 @@ async def get_rankings(
     description="Get summary statistics for all municipalities",
 )
 async def get_summary_statistics():
-    logger.info("📊 Fetching summary statistics")
+    """Headline totals for the platform — SÃO PAULO ONLY, deliberately.
+
+    The table holds 5,571 municipalities since the national load, but the legacy
+    ``*_biogas_m3_year`` / ``population`` columns this endpoint sums are populated
+    only for the 645 in São Paulo. Summing the whole table therefore produced a
+    São Paulo total wearing a national label, and a municipality count (5,571)
+    that did not correspond to the number it accompanied — the single most
+    misleading pair of figures on the platform.
+
+    The ``WHERE`` clause makes the scope real rather than accidental: the number
+    is the same, but it is now the number the label promises, and it stays
+    correct if the national columns are backfilled later. The response declares
+    its scope explicitly so no caller has to infer it.
+    """
+    logger.info("📊 Fetching summary statistics (scope: SP)")
 
     try:
         with get_db() as conn:
@@ -916,12 +930,14 @@ async def get_summary_statistics():
                         COALESCE(SUM(livestock_biogas_m3_year), 0) AS total_live,
                         COALESCE(SUM(urban_biogas_m3_year), 0) AS total_urban
                     FROM municipalities
+                    WHERE ibge_code::text LIKE '35%'
                 """)
                 stats = cursor.fetchone()
 
                 cursor.execute("""
                     SELECT municipality_name, total_biogas_m3_year
                     FROM municipalities
+                    WHERE ibge_code::text LIKE '35%'
                     ORDER BY total_biogas_m3_year DESC
                     LIMIT 5
                 """)
@@ -942,6 +958,8 @@ async def get_summary_statistics():
         logger.info(f"✅ Summary statistics: {n} municipalities")
 
         return {
+            "scope": "SP",
+            "scope_label": "Estado de São Paulo",
             "total_municipalities": n,
             "total_biogas_m3_year": total_biogas,
             "average_biogas_m3_year": round(avg_biogas, 2),
@@ -972,12 +990,18 @@ async def get_summary_statistics():
                 "livestock": round((total_live / total_biogas * 100) if total_biogas > 0 else 0, 2),
                 "urban": round((total_urban / total_biogas * 100) if total_biogas > 0 else 0, 2),
             },
-            "note": f"Dados de {n} municípios do estado de São Paulo",
+            "note": (
+                f"Dados de {n} municípios do estado de São Paulo. "
+                "Municípios fora de SP estão carregados no mapa como camada beta "
+                "em validação e NÃO entram neste total."
+            ),
         }
 
     except Exception as e:
         logger.error(f"🔥 Error in get_summary_statistics: {e}", exc_info=True)
         return {
+            "scope": "SP",
+            "scope_label": "Estado de São Paulo",
             "total_municipalities": 0,
             "total_biogas_m3_year": 0,
             "average_biogas_m3_year": 0,
