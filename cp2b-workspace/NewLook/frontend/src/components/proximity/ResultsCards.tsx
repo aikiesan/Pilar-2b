@@ -19,6 +19,7 @@ import {
   Link2
 } from 'lucide-react';
 import type { ProximityAnalysisResponse } from '@/services/proximityApi';
+import MethodologyReviewNotice from '@/components/ui/MethodologyReviewNotice';
 
 interface ResultsCardsProps {
   results: ProximityAnalysisResponse;
@@ -28,6 +29,7 @@ export default function ResultsCards({ results }: ResultsCardsProps) {
   return (
     <div className="mt-6 space-y-4 print:space-y-6">
       <h2 className="text-2xl font-bold text-gray-900 print:text-3xl">Resultados da Análise</h2>
+      <MethodologyReviewNotice />
       
       {/* Quick Stats Grid */}
       <QuickStatsGrid results={results} />

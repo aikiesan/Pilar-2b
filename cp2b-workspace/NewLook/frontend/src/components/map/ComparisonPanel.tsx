@@ -20,6 +20,7 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import type { MunicipalityFeature } from '@/types/geospatial';
+import { useTranslations } from 'next-intl';
 
 interface ComparisonPanelProps {
   municipalities: MunicipalityFeature[];
@@ -40,6 +41,7 @@ export default function ComparisonPanel({
   onClose,
   visible,
 }: ComparisonPanelProps) {
+  const t = useTranslations('Map');
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<MetricCategory>('overview');
 
@@ -97,7 +99,6 @@ export default function ComparisonPanel({
       case 'urban':
         return [
           { label: 'RSU', key: 'rsu_biogas_m3_year', unit: 'm³/ano' },
-          { label: 'RPO', key: 'rpo_biogas_m3_year', unit: 'm³/ano' },
         ];
       default:
         return [];

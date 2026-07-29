@@ -19,7 +19,7 @@ from app.services.canonical_loader import (
     biomass_tons_from_collected_waste,
     biomass_tons_from_units,
 )
-from app.services.map_metrics import compute_municipality_map_metrics
+from app.services.map_metrics import compute_published_municipality_metrics
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -102,7 +102,7 @@ _DETAIL_ONLY_RE = re.compile(
 # Livestock streams derived from PPM head counts (per-head generation).
 _PPM_STREAMS = ("cattle", "swine", "poultry")
 # Urban streams modelled from resident population (per-capita generation).
-_URBAN_STREAMS = ("rsu", "rpo")
+_URBAN_STREAMS = ("rsu",)
 
 
 def _load_activity_counts(cursor, ibge_codes: list[str]) -> dict[str, dict[str, float]]:
@@ -151,14 +151,12 @@ def _derive_activity_biomass(
     Urban waste prefers MEASUREMENT over modelling:
       * rsu, where SNIS reports collected household waste (CO111) -> that tonnage
         x the canonical organic fraction, tagged 'measured'. ~5,060 municipalities.
-      * rsu elsewhere, and rpo always -> population x per-capita generation,
-        tagged 'estimated'.
+      * rsu elsewhere -> population x per-capita generation, tagged 'estimated'.
 
-    rpo (urban pruning) stays modelled even where SNIS reports public-cleaning
-    waste (CO115): RPU bundles street sweeping with pruning and there is no cited
-    factor for the pruning share of it. Inventing one to reach a 'measured' tag
-    would be worse than an honest estimate — the per-capita figure is at least
-    grounded in ABRELPE's 3-5%-of-RSU characterization.
+    rpo/PODA_URBANA is deliberately absent: CO115 bundles street sweeping with
+    pruning, no cited pruning share is available, and the canonical corpus has
+    coverage=none. B4 removes that layer from publication rather than inventing
+    a municipal value.
 
     Returns the 'medio' scenario for the displayed value. A stream with no
     activity data is simply absent -> no_data.
@@ -345,7 +343,6 @@ async def get_municipalities_geojson(
     first_canonical_error: Optional[str] = None
     for row in rows:
         ibge_code = str(_f(row, "ibge_code", ""))
-        tb = float(_f(row, "total_biogas_m3_year"))
         # Livestock and urban tonnage are DERIVED, not stored: PPM head counts and
         # resident population times a canonical generation factor. This is what the
         # map was missing — it read head counts straight from the *_biomass columns
@@ -369,14 +366,15 @@ async def get_municipalities_geojson(
             allow_reverse_fallback=_ALLOW_REVERSE_FALLBACK,
         )
         try:
-            canonical_metrics = compute_municipality_map_metrics(
-                row, ibge_code=ibge_code, derived_tons=derived_tons
-            ).to_flat_dict()
+            computed_metrics = compute_published_municipality_metrics(row, activity=activity)
+            canonical_metrics = computed_metrics.to_flat_dict()
+            published_biogas = computed_metrics.to_published_biogas_dict()
         except Exception as exc:
             canonical_failures += 1
             if first_canonical_error is None:
                 first_canonical_error = f"{ibge_code}: {exc}"
             canonical_metrics = {}
+            published_biogas = {}
         # Identity, geography, and cluster context: always present. Small, and
         # either non-zero or semantically meaningful when zero (a cluster_id of 0
         # is a real cluster), so these are never trimmed.
@@ -393,7 +391,7 @@ async def get_municipalities_geojson(
             "intermediate_region": _f(row, "intermediate_region", ""),
             "immediate_region_code": _f(row, "immediate_region_code", ""),
             "intermediate_region_code": _f(row, "intermediate_region_code", ""),
-            "potential_category": _cat(tb),
+            "potential_category": _cat(float(published_biogas.get("total_biogas_m3_year", 0.0))),
         }
 
         # Cluster context exists only for SP (LEFT JOIN on municipality_summary);
@@ -420,23 +418,7 @@ async def get_municipalities_geojson(
             "gdp_total": _f(row, "gdp_total"),
             "gdp_per_capita": _f(row, "gdp_per_capita"),
             "gdp_year": _f(row, "gdp_year"),
-            "total_biogas_m3_year": tb,
-            "agricultural_biogas_m3_year": _f(row, "agricultural_biogas_m3_year"),
-            "livestock_biogas_m3_year": _f(row, "livestock_biogas_m3_year"),
-            "urban_biogas_m3_year": _f(row, "urban_biogas_m3_year"),
-            "energy_potential_mwh_year": _f(row, "energy_potential_mwh_year"),
-            "co2_reduction_tons_year": _f(row, "co2_reduction_tons_year"),
-            "sugarcane_biogas_m3_year": _f(row, "sugarcane_biogas_m3_year"),
-            "soybean_biogas_m3_year": _f(row, "soybean_biogas_m3_year"),
-            "corn_biogas_m3_year": _f(row, "corn_biogas_m3_year"),
-            "coffee_biogas_m3_year": _f(row, "coffee_biogas_m3_year"),
-            "citrus_biogas_m3_year": _f(row, "citrus_biogas_m3_year"),
-            "cattle_biogas_m3_year": _f(row, "cattle_biogas_m3_year"),
-            "swine_biogas_m3_year": _f(row, "swine_biogas_m3_year"),
-            "poultry_biogas_m3_year": _f(row, "poultry_biogas_m3_year"),
-            "aquaculture_biogas_m3_year": _f(row, "aquaculture_biogas_m3_year"),
-            "rsu_biogas_m3_year": _f(row, "rsu_biogas_m3_year"),
-            "rpo_biogas_m3_year": _f(row, "rpo_biogas_m3_year"),
+            **published_biogas,
             **canonical_metrics,
         }
         properties.update({k: v for k, v in metric_fields.items() if v})
@@ -502,7 +484,10 @@ async def get_municipalities_geojson(
         "metadata": {
             "total_municipalities": len(features),
             "source_geometry": "PostGIS municipalities.geometry",
-            "source_biogas_data": "PostGIS municipalities table (legacy V2 import)",
+            "source_biogas_data": (
+                "Request-time map_metrics.py + canonical_loader.py (DEC-008); "
+                "municipalities.*_biogas_m3_year columns are legacy inputs only"
+            ),
             "source_biomass_data": (
                 "Stored biomass columns (agricultural: authoritative from master CSV)"
             ),
@@ -510,8 +495,7 @@ async def get_municipalities_geojson(
                 "Properties prefixed biomass_gross_, biomass_corrected_, biogas_ch4_, biomethane_ "
                 "are canonical forward-calculated 4-metric × 3-scenario values. "
                 "Agricultural streams use authoritative biomass tonnage. "
-                "Livestock/urban streams without stored biomass use legacy biogas "
-                "with ±FDE envelope."
+                "Livestock/urban streams use request-time activity-derived biomass."
             ),
         },
     }
@@ -679,12 +663,13 @@ async def get_municipality_metrics(ibge_code: str):
             allow_reverse_fallback=_ALLOW_REVERSE_FALLBACK,
         )
         try:
-            canonical = compute_municipality_map_metrics(
-                row, ibge_code=ibge_code, derived_tons=derived_tons
-            ).to_flat_dict()
+            computed = compute_published_municipality_metrics(row, activity=activity)
+            canonical = computed.to_flat_dict()
+            published_biogas = computed.to_published_biogas_dict()
         except Exception as exc:
             logger.error(f"canonical metrics failed for {ibge_code}: {exc}")
             canonical = {}
+            published_biogas = {}
 
         return {
             "ibge_code": ibge_code,
@@ -701,6 +686,7 @@ async def get_municipality_metrics(ibge_code: str):
             "immediate_region": row.get("immediate_region"),
             "intermediate_region": row.get("intermediate_region"),
             **biomass_fields,
+            **published_biogas,
             **canonical,
         }
     except HTTPException:

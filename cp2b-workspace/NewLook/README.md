@@ -25,7 +25,7 @@ This study addresses identified gaps through three interconnected contributions:
 | **Research Unit** | NIPE-UNICAMP · Campinas, SP |
 | **Authors** | Lucas Nakamura Cerejo · Rubens Augusto Camargo Lamparelli · Bruna de Souza Moraes · Ana Beatriz Soares Aguiar |
 | **Facilitation** | INOVA Unicamp |
-| **Research Funding** | FAPESP 2024/01112-1 (CP2Bsd) |
+| **Research Funding** | FAPESP 2024/01112-1 (CP2Bsd) · 2025/08745-2 |
 | **Registry** | MINISTÉRIO DO DESENVOLVIMENTO, INDÚSTRIA, COMÉRCIO E SERVIÇOS — INPI — Diretoria de Patentes, Programas de Computador e Topografias de Circuitos |
 
 > Registered under Law 9.609/1998 (§2°, art. 2°) as a Computer Program with SHA-512 integrity hash.
@@ -227,117 +227,6 @@ See: [docs/qa/TESTING.md](./docs/qa/TESTING.md)
 | Document | Description |
 |----------|-------------|
 | [docs/data/FDE_METHODOLOGY.md](./docs/data/FDE_METHODOLOGY.md) | Feedstock-Dependent Efficiency methodology (V2.0) |
-| [docs/data/FEEDSTOCK_FACTORS_LITERATURE_TABLE.md](./docs/data/FEEDSTOCK_FACTORS_LITERATURE_TABLE.md) | Literature table: 31 feedstocks × 4 factor types |
-| [docs/data/SAO_PAULO_BIOGAS_POTENTIAL_FDE.md](./docs/data/SAO_PAULO_BIOGAS_POTENTIAL_FDE.md) | State-level biogas potential analysis |
-
-### Deployment
-
-| Document | Description |
-|----------|-------------|
-| [docs/LOCAL_DOCKER_SETUP.md](./docs/LOCAL_DOCKER_SETUP.md) | Docker local development setup |
-| [docs/VM_UPDATE_GUIDE.md](./docs/VM_UPDATE_GUIDE.md) | Unicamp VM Apache2/PM2 deployment guide |
-| [docs/deployment/DEPLOYMENT_GUIDE.md](./docs/deployment/DEPLOYMENT_GUIDE.md) | Railway + Cloudflare/Vercel deployment |
-| [docs/deployment/DEPLOYMENT_CHECKLIST.md](./docs/deployment/DEPLOYMENT_CHECKLIST.md) | Step-by-step production checklist |
-
----
-
-## Environment Variables
-
-### Frontend (`.env.local`)
-
-```bash
-NEXT_PUBLIC_API_URL=http://localhost:8000
-NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGc...
-NEXT_PUBLIC_USE_MOCK_DATA=false
-```
-
-### Backend (`.env`)
-
-```bash
-# Database
-DATABASE_URL=postgresql://user:pass@localhost:5432/cp2b_maps
-
-# Security
-SECRET_KEY=generate_with_openssl_rand_hex_32
-
-# App Config
-APP_ENV=development
-HOST=0.0.0.0
-PORT=8000
-DEBUG=true
-
-# CORS
-FRONTEND_URL=http://localhost:3006
-```
-
----
-
-## Performance Metrics
-
-| Metric | Target | Result | Status |
-|--------|--------|--------|--------|
-| Map tile load | <200ms | ~150ms | Pass |
-| Proximity analysis (p95) | <3s | 2.1s | Pass |
-| Cached response | — | 0ms | Pass |
-| Page load time | <2s | 1.8s | Pass |
-| Frontend bundle (gzipped) | <500KB | 380KB | Pass |
-| Lighthouse Performance | >90 | 92 | Pass |
-| Cache hit rate (warm) | >60% | 64% | Pass |
-
----
-
-## Tech Stack
-
-### Frontend Dependencies
-
-```json
-{
-  "next": "^16.2.3",
-  "react": "^19.2.1",
-  "@supabase/supabase-js": "^2.45.4",
-  "react-leaflet": "^4.2.1",
-  "recharts": "^3.8.1",
-  "next-intl": "^4.9.0",
-  "tailwindcss": "^3.4.14",
-  "@tanstack/react-query": "^5.90.12"
-}
-```
-
-### Backend Dependencies
-
-```python
-fastapi==0.135.3
-uvicorn[standard]==0.32.1
-sqlalchemy==2.0.23
-psycopg2-binary==2.9.9
-geopandas>=1.0.0
-shapely==2.0.2
-scikit-learn>=1.6.0
-```
-
----
-
-## Deployment
-
-### Unicamp VM (Production)
-
-```bash
-# Apache2 + PM2 deployment at cp2b.unicamp.br/pilar2b
-# See: docs/VM_UPDATE_GUIDE.md
-cd frontend && npm run build
-pm2 restart pilar2b-frontend
-```
-
-### Unicamp VM (Primary — Apache2 + PM2)
-
-See [`docs/VM_UPDATE_GUIDE.md`](docs/VM_UPDATE_GUIDE.md) for the full deployment procedure.
-
-### Cloudflare Pages / Vercel (Frontend Alternative)
-
-```bash
-git push origin main
-# Cloudflare Pages or Vercel auto-deploys from frontend/
 ```
 
 ---
@@ -407,7 +296,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for full guidelines.
 
 **PILAR-2b** is open-source software released under the **GNU General Public License v3.0 (GPL-3.0)**.
 
-This project was developed as part of research funded by FAPESP (Grant 2024/01112-1 / CP2Bsd) at NIPE-UNICAMP and is freely available for use, modification, and distribution under the terms of the GPL-3.0.
+This project was developed as part of research funded by FAPESP (Processes 2024/01112-1 / CP2Bsd and 2025/08745-2) at NIPE-UNICAMP and is freely available for use, modification, and distribution under the terms of the GPL-3.0.
 
 See [LICENSE](./LICENSE) for full details.
 
@@ -423,7 +312,7 @@ We believe in making research and technology accessible to everyone. By open-sou
 
 ## Acknowledgments
 
-- **FAPESP**: Research funding (Grant 2024/01112-1 / CP2Bsd)
+- **FAPESP**: Research funding (Processes 2024/01112-1 / CP2Bsd and 2025/08745-2)
 - **INOVA Unicamp**: Support for INPI registration process
 - **NIPE-UNICAMP**: Institutional support and research infrastructure
 - **MapBiomas**: Land-use classification data ([mapbiomas.org](https://mapbiomas.org))

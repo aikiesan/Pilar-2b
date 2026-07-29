@@ -55,7 +55,7 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/).
 
 ### 📚 Documentação
 - README atualizado com registro INPI, URLs da Unicamp, versões corretas
-- Guia de atualização da VM (`docs/VM_UPDATE_GUIDE.md`)
+- Guia de atualização da VM (`docs/deployment/VM_UPDATE_GUIDE.md`)
 
 ### 🧹 Limpeza
 - Removidos scripts arquivados e arquivos de migração duplicados

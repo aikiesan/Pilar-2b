@@ -353,7 +353,8 @@ class TestDeriveActivityBiomass:
         assert tons["poultry"] < 205_686_533 / 10
         assert tons["cattle"] > tons["poultry"]  # fewer cattle, but far more per head
         assert prov["cattle"] == "estimated"
-        assert set(("rsu", "rpo")) <= set(tons)  # urban modelled from population
+        assert "rsu" in tons
+        assert "rpo" not in tons  # PODA_URBANA has BMP corpus coverage:none
         assert prov["rsu"] == "estimated"
 
     def test_no_population_means_no_urban(self):

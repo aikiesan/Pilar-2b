@@ -202,7 +202,7 @@ describe('MunicipalityLayer', () => {
         <MapContainer center={[0, 0]} zoom={10}>
           <MunicipalityLayer
             data={mockMunicipalityData}
-            selectedResidues={['rsu', 'rpo']}
+            selectedResidues={['rsu']}
           />
         </MapContainer>
       );

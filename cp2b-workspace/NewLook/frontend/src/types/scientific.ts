@@ -77,7 +77,6 @@ export interface ChemicalData {
   bmp: number               // L CH₄/kg VS
   bmp_range_min?: number
   bmp_range_max?: number
-  bmp_n_studies?: number
   ch4_content?: number      // % CH₄ in biogas
 
   // Nutrient ratios
@@ -109,7 +108,6 @@ export interface LiteratureRange {
   value: number
   min: number
   max: number
-  n_studies: number
   unit: string
 }
 

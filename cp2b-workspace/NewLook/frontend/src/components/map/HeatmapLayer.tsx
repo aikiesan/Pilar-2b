@@ -11,6 +11,7 @@ import { useMap, CircleMarker, Tooltip } from 'react-leaflet';
 import L from 'leaflet';
 import type { MunicipalityCollection } from '@/types/geospatial';
 import type { ResidueType } from './FloatingControlPanel';
+import { useTranslations } from 'next-intl';
 
 interface HeatmapLayerProps {
   data: MunicipalityCollection;
@@ -33,6 +34,7 @@ export default function HeatmapLayer({
   selectedResidues,
   opacity = 0.6,
 }: HeatmapLayerProps) {
+  const t = useTranslations('Map');
   const map = useMap();
   const heatLayerRef = useRef<L.Layer | null>(null);
 
@@ -54,7 +56,6 @@ export default function HeatmapLayer({
           case 'poultry':      return props.poultry_biogas_m3_year;
           case 'aquaculture':  return props.aquaculture_biogas_m3_year;
           case 'rsu':          return props.rsu_biogas_m3_year;
-          case 'rpo':          return props.rpo_biogas_m3_year;
           default:             return 0;
         }
       })();
@@ -95,7 +96,7 @@ export default function HeatmapLayer({
       sugarcane: 'Cana-de-açúcar', soybean: 'Soja', corn: 'Milho',
       coffee: 'Café', citrus: 'Citrus', cattle: 'Bovinos',
       swine: 'Suínos', poultry: 'Aves', aquaculture: 'Aquicultura',
-      rsu: 'RSU', rpo: 'RPO',
+      rsu: 'RSU',
     };
     if (selectedResidues.length === 1) return labels[selectedResidues[0]];
     return `${selectedResidues.length} Resíduos`;

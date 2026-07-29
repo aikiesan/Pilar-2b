@@ -108,7 +108,7 @@ export default function CitePage() {
         <p className="text-sm text-amber-900">
           © 2026 NIPE-UNICAMP (CP2b). Software registrado no INPI — Processo nº{' '}
           <strong>BR512026003115-0</strong> (emitido em 12/05/2026, válido até 2076).{' '}
-          Pesquisa financiada pela FAPESP (Processo 2024/01112-1 — CP2Bsd).
+          Pesquisa financiada pela FAPESP (Processos 2024/01112-1 — CP2Bsd — e 2025/08745-2).
         </p>
       </section>
 

@@ -9,6 +9,7 @@ import React, { useState } from 'react';
 import { ChevronDown, ChevronUp, Zap, MapPin, Users, Trophy } from 'lucide-react';
 import { useSummaryStatistics } from '@/hooks/useGeospatialData';
 import { formatBiogasShort, formatPopulation, formatPercentage } from '@/lib/mapUtils';
+import MethodologyReviewNotice from '@/components/ui/MethodologyReviewNotice';
 
 export default function StatsPanel() {
   const { data, loading, error } = useSummaryStatistics();
@@ -31,6 +32,7 @@ export default function StatsPanel() {
 
   return (
     <div className="space-y-3">
+      <MethodologyReviewNotice compact />
       {/* Key Metrics Grid - Compact 2x2 */}
       <div className="grid grid-cols-2 gap-2">
         {/* Total Biogas */}
@@ -42,6 +44,13 @@ export default function StatsPanel() {
           <p className="text-sm font-bold text-green-900">
             {formatBiogasShort(data.total_biogas_m3_year)}
           </p>
+          {data.forsu_coverage && (
+            <p className="mt-1 text-[9px] leading-tight text-green-800">
+              FORSU {data.forsu_coverage.series_year}:{' '}
+              {data.forsu_coverage.measured_co111_municipalities} CO111 medidos ·{' '}
+              {data.forsu_coverage.population_fallback_municipalities} fallback populacional
+            </p>
+          )}
         </div>
 
         {/* Municipalities */}

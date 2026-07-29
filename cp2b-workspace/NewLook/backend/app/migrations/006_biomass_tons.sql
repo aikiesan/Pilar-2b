@@ -23,7 +23,7 @@ ALTER TABLE municipalities
 COMMENT ON COLUMN municipalities.total_biomass_tons_year        IS 'Total raw biomass availability (t/yr) — sum of all residue streams';
 COMMENT ON COLUMN municipalities.agricultural_biomass_tons_year IS 'Agricultural crop residues (t/yr): sugarcane + soybean + corn + coffee + citrus';
 COMMENT ON COLUMN municipalities.livestock_biomass_tons_year    IS 'Livestock manure/residues (t/yr): cattle + swine + poultry + aquaculture';
-COMMENT ON COLUMN municipalities.urban_biomass_tons_year        IS 'Urban organic residues (t/yr): RSU organic fraction + sewage sludge';
+COMMENT ON COLUMN municipalities.urban_biomass_tons_year        IS 'LEGACY 2023 semantics: urban organic residues (t/yr), including the former rpo/sludge association; not a published-value definition';
 COMMENT ON COLUMN municipalities.sugarcane_biomass_tons_year    IS 'Sugarcane straw (palhiço) t/yr — MapBiomas area × 12 t/ha yield factor';
 COMMENT ON COLUMN municipalities.soybean_biomass_tons_year      IS 'Soybean crop residues (stalks+pods) t/yr — MapBiomas area × 4 t/ha';
 COMMENT ON COLUMN municipalities.corn_biomass_tons_year         IS 'Corn stover t/yr — MapBiomas Other Temp. Crops area × 4.5 t/ha (estimated)';
@@ -34,7 +34,7 @@ COMMENT ON COLUMN municipalities.swine_biomass_tons_year        IS 'Swine manure
 COMMENT ON COLUMN municipalities.poultry_biomass_tons_year      IS 'Poultry litter/manure t/yr — reverse BMP from poultry_biogas_m3_year';
 COMMENT ON COLUMN municipalities.aquaculture_biomass_tons_year  IS 'Aquaculture organic residue t/yr — reverse BMP from aquaculture_biogas_m3_year';
 COMMENT ON COLUMN municipalities.rsu_biomass_tons_year          IS 'RSU organic fraction (FORSU) t/yr — reverse BMP from rsu_biogas_m3_year';
-COMMENT ON COLUMN municipalities.rpo_biomass_tons_year          IS 'Sewage sludge (lodo ETE) t/yr — reverse BMP from rpo_biogas_m3_year';
+COMMENT ON COLUMN municipalities.rpo_biomass_tons_year          IS 'LEGACY: former rpo/sewage-sludge association. B-URG-4c defines public rpo as urban pruning waste; do not use this comment as a published-value definition';
 
 -- Verify migration:
 -- SELECT column_name, data_type FROM information_schema.columns

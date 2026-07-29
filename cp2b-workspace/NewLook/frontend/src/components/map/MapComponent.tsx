@@ -106,7 +106,7 @@ function parseScopeParam(raw: string | null): MapScope {
 // Valid residue values for URL parsing
 const VALID_RESIDUES: ResidueType[] = [
   'sugarcane', 'soybean', 'corn', 'coffee', 'citrus',
-  'cattle', 'swine', 'poultry', 'aquaculture', 'rsu', 'rpo',
+  'cattle', 'swine', 'poultry', 'aquaculture', 'rsu',
 ];
 const VALID_BIOMASS: BiomassType[] = ['total', 'agricultural', 'livestock', 'urban'];
 const VALID_VIZ: VisualizationMode[] = ['choropleth', 'heatmap', 'bubble', 'clusters'];
@@ -187,7 +187,11 @@ export default function MapComponent({
   const [selectedClusterId, setSelectedClusterId] = useState<string | null>(null);
   const [showClusterPanel, setShowClusterPanel] = useState(false);
   const [colorMode, setColorMode] = useState<ColorMode>('biogas');
-  const [mapScenario, setMapScenario] = useState<MapScenarioKey>('fronteira');
+  // 'baseline' É o cenário Médio Prazo (medio) — ver scenarioFactors.ts, onde a
+  // normalização define baseline = medio = 1.0 por resíduo. Era 'fronteira' até
+  // 2026-07-25 (Lote 1d); o cenário Fronteira foi suspenso e o padrão passou a
+  // ser o medio, que é o que o manuscrito reporta.
+  const [mapScenario, setMapScenario] = useState<MapScenarioKey>('baseline');
 
   // Daltonic (colour-vision-deficiency) mode: swaps the choropleth ramp for a
   // CVD-safe single-hue palette. Persisted in localStorage like the theme.
@@ -476,7 +480,6 @@ export default function MapComponent({
           poultry: 'poultry_biogas_m3_year',
           aquaculture: 'aquaculture_biogas_m3_year',
           rsu: 'rsu_biogas_m3_year',
-          rpo: 'rpo_biogas_m3_year',
         };
         const hasResidue = selectedResidues.some(r => Number((props as any)[residueKey[r]]) > 0);
         if (!hasResidue) return false;

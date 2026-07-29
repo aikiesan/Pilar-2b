@@ -21,7 +21,7 @@ Unit derivation (why the constants cancel):
     Practical (mobilisable) potential applies the Effective Availability Factor:
 
         m3_CH4_practical = m3_CH4_theoretical × FDE
-        where FDE = FC × FCo × FS × FL × eta   (each in [0, 1])
+        where FDE = FC × FCo × FL × eta   (each in [0, 1])
 
     Biogas volume (vs. pure CH4) divides by the methane content:
 
@@ -64,9 +64,9 @@ class FeedstockParams:
     ts           : Range, % wet weight
     vs_of_ts     : Range, % of TS (dry-weight basis)
     ch4_pct      : float, % methane in biogas (single value; used for biogas volume)
-    fde          : Range, effective availability factor = FC×FCo×FS×FL×eta in [0, 1]
+    fde          : Range, effective availability factor = FC×FCo×FL×eta in [0, 1]
                    Defaults to 1.0 → theoretical potential.
-    availability : Range, physical-availability factor = FC×FCo×FS×FL (without eta)
+    availability : Range, physical-availability factor = FC×FCo×FL (without eta)
                    Used to compute biomass_corrected (the fraction mobilisable for biogas).
                    Defaults to 1.0 when FDE has no structured availability block.
     """

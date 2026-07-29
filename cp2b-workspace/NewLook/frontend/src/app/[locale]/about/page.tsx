@@ -50,7 +50,7 @@ export default function AboutPage() {
       description: 'Lançamento oficial do Centro Paulista de Estudos em Biogás e Bioprodutos com financiamento FAPESP.',
       status: 'completed',
       details: [
-        'Aprovação do projeto FAPESP 2025/08745-2',
+        'Aprovação dos processos FAPESP 2024/01112-1 e 2025/08745-2',
         'Formação da equipe multidisciplinar',
         'Estruturação dos 8 eixos temáticos'
       ],
@@ -180,7 +180,7 @@ export default function AboutPage() {
             <div>
               <div className="inline-flex items-center px-4 py-2 bg-green-700/50 rounded-full text-green-100 text-sm mb-6">
                 <Award className="h-4 w-4 mr-2" aria-hidden="true" />
-                FAPESP 2025/08745-2
+                FAPESP 2024/01112-1 · 2025/08745-2
               </div>
 
               <h1 className="text-4xl lg:text-5xl font-bold text-white mb-6 leading-tight">

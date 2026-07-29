@@ -66,6 +66,32 @@ STREAM_TO_CANONICAL: dict[str, str] = {
     "rpo_pruning": "PODA_URBANA",  # idem
 }
 
+# Streams whose activity count is split across two or more canonical feedstocks.
+#
+# One CSV column, several substrates. IBGE reports a single cattle head count for a
+# herd that is two different systems: extensive beef on western pasture, where almost
+# nothing is collectible, and confined dairy in the east, where almost everything is.
+# A single ESTERCO_BOVINO averages them and buries the dairy cluster.
+#
+# THIS IS THE ONLY DECLARATION OF THE SPLIT. STREAM_TO_CANONICAL keeps mapping
+# 'cattle' to the AGGREGATE code, because the map and the availability service read
+# one code per stream and must not double-count; the state pipeline reads this table
+# instead. The guard test in tests/unit/services/test_spatial_livestock.py asserts the
+# two stay consistent — that the aggregate is never itself a sub-population, that the
+# fractions sum to 1, and that no consumer silently mixes the two representations.
+#
+# entry: stream → ((sub_stream_label, canonical_code, fraction_of_head_count), ...)
+STREAM_SUBPOPULATIONS: dict[str, tuple[tuple[str, str, float], ...]] = {
+    # IBGE Censo Agropecuário 2017 (ibge2017_censo): SP herd ≈10.5M head,
+    # ~67% beef/semi-extensive (Araçatuba, Pres. Prudente, Marília, Bauru, S.J. Rio
+    # Preto) and ~33% dairy/intensive (Campinas, Sorocaba, Piracicaba, Araraquara,
+    # Ribeirão Preto). State-level proportions; a per-municipality split needs SIDRA.
+    "cattle": (
+        ("cattle_corte", "ESTERCO_BOVINO_CORTE", 0.67),
+        ("cattle_leiteiro", "ESTERCO_BOVINO_LEITEIRO", 0.33),
+    ),
+}
+
 
 def _range_from(block: dict) -> Range:
     return Range(float(block["min"]), float(block["medio"]), float(block["max"]))
@@ -99,46 +125,59 @@ def _eta_range(block) -> Range:
     return Range(e, e, e)
 
 
-def _resolve_fde(entry: dict) -> Range:
-    """Effective FDE = availability (FC×FCo×FS×FL) × eta (conversion efficiency).
-
-    Supports three YAML shapes for backward/forward compatibility:
-      1. structured:  fde: {availability: {min,medio,max}, eta: <scalar|range>, ...}
-      2. flat:        fde: {min, medio, max}   (already the product)
-      3. absent:      → 1.0 (theoretical potential)
-    """
-    block = entry.get("fde")
-    if not isinstance(block, dict):
-        return Range(1.0, 1.0, 1.0)
-    if "availability" in block:
-        avail = _range_from(block["availability"])
-        eta = _eta_range(block.get("eta"))
-        return Range(
-            avail.min * eta.min,
-            avail.medio * eta.medio,
-            avail.max * eta.max,
-        )
-    if {"min", "medio", "max"} <= set(block):
-        return _range_from(block)
-    return Range(1.0, 1.0, 1.0)
+_FACTOR_KEYS = ("fc", "fco_available", "fl")
 
 
 def _resolve_availability(entry: dict) -> Range:
-    """Physical availability = FC×FCo×FS×FL (without eta conversion efficiency).
+    """Physical availability = FC × FCo_available × FL, DERIVED, never read.
 
-    Returns the fraction of biomass that is physically mobilisable for biogas,
-    independent of the digestion conversion efficiency. Used to compute
-    biomass_corrected = biomass_gross × availability.
+    The three factors in `fde.components` are the data of record; availability is
+    their product and is deliberately absent from the YAML. It used to be stored
+    alongside them and had drifted out of step in 11 of 78 feedstock×scenario
+    pairs (Lote 2, 2026-07-26) — a stored aggregate cannot contradict its own
+    components if it is never stored.
+
+    `fco_available` is the AVAILABLE share, not the committed one; the convention
+    is `fco_available == 1 - fcp_committed`. The name carries the direction so the
+    two cannot be silently swapped again (divergência D1 da auditoria).
+
+    Shapes still accepted:
+      1. components: fde: {components: {fc, fco_available, fl}, eta, ...}
+      2. flat:       fde: {min, medio, max}   (already the product, includes η)
+      3. absent:     → 1.0 (theoretical potential)
     """
     block = entry.get("fde")
     if not isinstance(block, dict):
         return Range(1.0, 1.0, 1.0)
-    if "availability" in block:
-        return _range_from(block["availability"])
+    comps = block.get("components")
+    if isinstance(comps, dict) and all(k in comps for k in _FACTOR_KEYS):
+        prod = [1.0, 1.0, 1.0]
+        for key in _FACTOR_KEYS:
+            f = _range_from(comps[key])
+            prod[0] *= f.min
+            prod[1] *= f.medio
+            prod[2] *= f.max
+        return Range(*prod)
     if {"min", "medio", "max"} <= set(block):
         # flat FDE already includes η — can't separate; use as-is
         return _range_from(block)
     return Range(1.0, 1.0, 1.0)
+
+
+def _resolve_fde(entry: dict) -> Range:
+    """Effective FDE = availability (FC×FCo×FL) × eta (conversion efficiency).
+
+    Derived on read from `fde.components` and `fde.eta`. Never persisted — no
+    YAML field, no comment, holds an FDE or an availability product.
+    """
+    block = entry.get("fde")
+    if not isinstance(block, dict):
+        return Range(1.0, 1.0, 1.0)
+    if {"min", "medio", "max"} <= set(block) and "components" not in block:
+        return _range_from(block)  # flat shape already includes η
+    avail = _resolve_availability(entry)
+    eta = _eta_range(block.get("eta"))
+    return Range(avail.min * eta.min, avail.medio * eta.medio, avail.max * eta.max)
 
 
 def get_params(code: str, path: str | None = None) -> FeedstockParams:
@@ -185,6 +224,38 @@ class Generation:
     per_unit_yr: Range
 
 
+@dataclass(frozen=True)
+class AvailabilityProfile:
+    """Temporal generation profile; descriptive and never multiplied into FDE."""
+
+    window_months: tuple[int, ...]
+    days_available_yr: int
+    storable: bool
+    max_storage_days: int | None
+    point_of_availability: str
+    source: str
+
+
+def get_availability_profile(code: str, path: str | None = None) -> AvailabilityProfile:
+    """Return the non-multiplicative temporal profile for an instantiated code."""
+    fs = load_raw(path)
+    if code not in fs:
+        raise KeyError(f"unknown canonical feedstock code: {code!r}")
+    block = fs[code].get("availability_profile")
+    if not isinstance(block, dict):
+        raise KeyError(f"feedstock {code!r} has no `availability_profile`")
+    return AvailabilityProfile(
+        window_months=tuple(int(month) for month in block["window_months"]),
+        days_available_yr=int(block["days_available_yr"]),
+        storable=bool(block["storable"]),
+        max_storage_days=(
+            int(block["max_storage_days"]) if block.get("max_storage_days") is not None else None
+        ),
+        point_of_availability=str(block["point_of_availability"]),
+        source=str(block["source"]),
+    )
+
+
 def get_generation(code: str, path: str | None = None) -> Generation | None:
     """Canonical generation factor for a feedstock code, or None if it has no
     `generation` block (agricultural streams are already reported in tonnes)."""
@@ -206,6 +277,28 @@ def get_generation_for_stream(stream: str, path: str | None = None) -> Generatio
     return get_generation(STREAM_TO_CANONICAL[stream], path)
 
 
+def biomass_tons_from_code(code: str, units: float, path: str | None = None) -> Range:
+    """Activity units → wet tonnes/year for a canonical code, bypassing the stream map.
+
+    Needed by sub-populations that have no stream of their own: the cattle spatial
+    split feeds one CSV column ('cattle') into ESTERCO_BOVINO_CORTE and
+    ESTERCO_BOVINO_LEITEIRO, so there is no 1:1 stream→code mapping to look up.
+
+    Goes through the loader on purpose. The Fase 2 branch reached into
+    fs[code]["generation"] from inside the compute script — the exact shape that
+    produced the 205M-chickens-as-tonnes bug documented above.
+    """
+    generation = get_generation(code, path)
+    if generation is None:
+        raise KeyError(
+            f"feedstock {code!r} has no canonical `generation` block, so its activity "
+            "units cannot be converted to tonnes. Add one to feedstocks.yaml rather "
+            "than passing the raw count through as though it were biomass."
+        )
+    factor = generation.per_unit_yr
+    return Range(units * factor.min, units * factor.medio, units * factor.max)
+
+
 def biomass_tons_from_units(stream: str, units: float, path: str | None = None) -> Range:
     """Activity units (head count or population) → wet tonnes/year, per scenario.
 
@@ -213,15 +306,9 @@ def biomass_tons_from_units(stream: str, units: float, path: str | None = None) 
     guessing: a stream with no `generation` block has no defensible head→tonnes
     factor, and silently returning the head count is the bug this replaces.
     """
-    generation = get_generation_for_stream(stream, path)
-    if generation is None:
-        raise KeyError(
-            f"stream {stream!r} has no canonical `generation` block, so its activity "
-            "units cannot be converted to tonnes. Add one to feedstocks.yaml rather "
-            "than passing the raw count through as though it were biomass."
-        )
-    factor = generation.per_unit_yr
-    return Range(units * factor.min, units * factor.medio, units * factor.max)
+    if stream not in STREAM_TO_CANONICAL:
+        raise KeyError(f"no canonical mapping for stream {stream!r}")
+    return biomass_tons_from_code(STREAM_TO_CANONICAL[stream], units, path)
 
 
 def residue_tons_from_production(

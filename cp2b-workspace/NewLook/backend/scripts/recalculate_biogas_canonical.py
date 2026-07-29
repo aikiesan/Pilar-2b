@@ -206,7 +206,7 @@ def main():
     )
     print(f"\n  legacy_theoretical : gross potential currently in the handoff CSV (no FDE)")
     print(f"  canonical_theoretical: same gross basis, corrected BMP/TS/VS → isolates chemistry")
-    print(f"  canonical_practical  : × canonical FDE (FC×FCo×FS×FL×η) = mobilisable potential")
+    print(f"  canonical_practical  : × canonical FDE (FC×FCo×FL×η) = mobilisable potential")
     print(f"\nWrote:\n  {result['comparison_path']}\n  {result['summary_path']}")
 
 

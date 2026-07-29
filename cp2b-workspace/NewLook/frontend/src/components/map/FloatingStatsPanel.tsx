@@ -9,6 +9,7 @@ import React, { useState } from 'react';
 import { ChevronUp, ChevronDown, X } from 'lucide-react';
 import { useSummaryStatistics } from '@/hooks/useGeospatialData';
 import { formatBiogasShort } from '@/lib/mapUtils';
+import MethodologyReviewNotice from '@/components/ui/MethodologyReviewNotice';
 
 interface FloatingStatsPanelProps {
   visible?: boolean;
@@ -77,6 +78,7 @@ export default function FloatingStatsPanel({ visible = true }: FloatingStatsPane
 
         {/* Compact Stats */}
         <div className="p-3 space-y-2">
+          <MethodologyReviewNotice compact />
           {/* Main metrics */}
           <div className="grid grid-cols-2 gap-2 text-[10px]">
             <div>

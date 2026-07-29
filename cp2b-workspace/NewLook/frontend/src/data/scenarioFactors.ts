@@ -13,8 +13,28 @@
  * responds according to its own residue mix (NOT a uniform multiplier). Biomass
  * tonnage is unaffected — scenarios change availability, not the resource.
  *
- * State-level check (sum across SP): biogás Base/Médio≈6.5, Fronteira≈16.4,
- * Otimista≈26.3 Mm³/d — Fronteira surpasses the FIESP benchmark (~11.7 biogás / 6.4 biometano).
+ * ─────────────────────────────────────────────────────────────────────────────
+ * AVISO (2026-07-25, Lote 1d) — a coluna `fronteira` está ÓRFÃ.
+ *
+ * A derivação `(medio + 0.5·(max−medio)) / medio` dependia de FRONTIER_ALPHA = 0.5,
+ * que foi ELIMINADO do pipeline canônico. O cenário "Fronteira do Biogás" está
+ * SUSPENSO e foi removido de MAP_SCENARIOS, portanto não aparece na interface.
+ *
+ * As onze constantes da coluna `fronteira` abaixo permanecem gravadas, mas
+ * NENHUMA fórmula do repositório as reproduz hoje: elas não constam de
+ * feedstocks.yaml e não são geradas por generate_from_canonical.py. Não as use
+ * como fonte para nada, e não as atualize à mão.
+ *
+ * Pendências, escopo do Lote 5:
+ *   1. gerar TODA esta tabela por generate_from_canonical.py, como as demais
+ *      camadas, em vez de mantê-la digitada;
+ *   2. decidir o destino da chave 'fronteira' em MapScenarioKey — o tipo foi
+ *      mantido de propósito, porque removê-lo altera a assinatura usada pelo
+ *      mapa, pelos painéis e por três arquivos de teste.
+ *
+ * Contexto: docs/auditorias/2026-07-consistencia-canonica/00_linha-de-base_2026-07-25/AUDITORIA_CIRCULARIDADE_2026-07-25.md e
+ * docs/auditorias/2026-07-consistencia-canonica/00_linha-de-base_2026-07-25/INVENTARIO_FRONTEIRA_2026-07-25.md.
+ * ─────────────────────────────────────────────────────────────────────────────
  */
 export type MapScenarioKey = 'baseline' | 'conservador' | 'fronteira' | 'otimista';
 
@@ -32,10 +52,17 @@ export const SCENARIO_RESIDUE_FACTORS: Record<string, Record<MapScenarioKey, num
   rpo:       { baseline: 1.0, conservador: 0.025, fronteira: 6.273, otimista: 11.547 },
 };
 
+/**
+ * Cenários oferecidos na interface. Esta lista — e não o tipo MapScenarioKey —
+ * é o que o mapa e a bottom sheet renderizam.
+ *
+ * 'fronteira' foi retirada em 2026-07-25 (Lote 1d): o cenário está suspenso
+ * enquanto sua definição não é decidida. O tipo continua a aceitá-la de
+ * propósito, para não quebrar assinaturas; ver o aviso no topo deste arquivo.
+ */
 export const MAP_SCENARIOS: { key: MapScenarioKey; color: string }[] = [
   { key: 'conservador', color: '#F59E0B' },
   { key: 'baseline', color: '#3B82F6' },
-  { key: 'fronteira', color: '#059669' },
   { key: 'otimista', color: '#22C55E' },
 ];
 

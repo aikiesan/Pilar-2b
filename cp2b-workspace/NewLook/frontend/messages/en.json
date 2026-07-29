@@ -1,4 +1,7 @@
 {
+  "MethodologyReview": {
+    "label": "Aggregate values under methodological review · 2026-07-29"
+  },
   "common": {
     "nav": {
       "home": "Home",
@@ -102,7 +105,7 @@
   "landing": {
     "skip_to_content": "Skip to main content",
     "hero": {
-      "badge": "CP2b - FAPESP 2024/01112-1 NIPE-Unicamp",
+      "badge": "CP2b · FAPESP 2024/01112-1 · 2025/08745-2 · NIPE-Unicamp",
       "title": "PILAR-2b: Intelligent Platform for Locating and Using Residues for",
       "title_highlight": "Biogas and Bioproducts",
       "subtitle": "Geospatial platform for analyzing biogas production potential from organic waste in São Paulo state",
@@ -219,7 +222,7 @@
       "description": "Subscribe to receive updates on new features, analyses, and insights about the biogas sector in São Paulo."
     },
     "footer": {
-      "fapesp_project": "FAPESP 2024/01112-1 · CP2Bsd",
+      "fapesp_project": "FAPESP 2024/01112-1 · 2025/08745-2",
       "about": "About",
       "copyright": "© 2025 NIPE-UNICAMP",
       "newsletter_heading": "Get Our Updates",
@@ -297,7 +300,7 @@
       "poultry": "Poultry",
       "aquaculture": "Aquaculture",
       "rsu": "MSW",
-      "rpo": "POW"
+      "rpo": "Urban pruning waste"
     },
     "categories": {
       "agricultural": "Agricultural",
@@ -399,7 +402,7 @@
     "scenario_baseline": "Mid-term",
     "scenario_fronteira": "Frontier",
     "scenario_otimista": "Optimistic",
-    "scenario_fronteira_tip": "Biogas Frontier: realistic-high mobilisation of all 31 residues — surpasses the FIESP benchmark (~6.4 Mm³/d biomethane).",
+    "scenario_fronteira_tip": "Biogas Frontier: realistic-high mobilisation of the 26 parameterised residues under dedicated policy. Scenario under methodological review.",
     "cnLegend": {
       "title": "C/N Ratio Profile",
       "c_rich": "Carbon Excess (> 60)",
@@ -427,7 +430,7 @@
     "advanced_analysis": {
       "title": "Advanced Analysis",
       "literature_base_link": "Scientific base — 399 references (literature review)",
-      "frontier_note": "Biogas Frontier: realistic-high mobilisation of all 31 residues — surpasses the FIESP benchmark (~6.4 Mm³/d biomethane).",
+      "frontier_note": "Biogas Frontier: realistic-high mobilisation of the 26 parameterised residues under dedicated policy. Scenario under methodological review.",
       "category_agricultural": "Agricultural",
       "category_livestock": "Livestock",
       "category_urban": "Urban",
@@ -643,14 +646,14 @@
       "subtotal_livestock": "Livestock Subtotal",
       "residue_urban": "Urban Residues",
       "residue_rsu": "MSW (Municipal Solid Waste)",
-      "residue_rpo": "POW (Putrescible Organic Waste)",
+      "residue_rpo": "Urban pruning waste (green waste)",
       "subtotal_urban": "Urban Subtotal",
-      "print_header": "PILAR-2b BiogasAtlas · NIPE-UNICAMP · FAPESP 2025/08745-2",
+      "print_header": "PILAR-2b BiogasAtlas · NIPE-UNICAMP · FAPESP 2024/01112-1 · 2025/08745-2",
       "print_title": "Biogas Profile"
     },
     "about": {
       "back": "Back",
-      "fapesp_badge": "FAPESP 2025/08745-2",
+      "fapesp_badge": "FAPESP 2024/01112-1 · 2025/08745-2",
       "title": "PILAR-2b",
       "full_name": "Intelligent Platform for Locating and Using Residues for Biogas and Bioproducts",
       "subtitle": "Center of Excellence affiliated with NIPE/UNICAMP, funded by FAPESP",
@@ -879,7 +882,6 @@
     "chart_regional": "Regional Distribution",
     "sankey_ch4_label": "CH₄ Equivalent",
     "sankey_ch4_fraction": "Based on {pct}% CH₄ in biogas",
-    "sankey_benchmark_label": "FIESP benchmark: ~16 B m³ CH₄/year",
     "sankey_unit": "m³/year",
     "sankey_summary_ch4": "CH₄ Equivalent",
     "sankey_alluvial_title": "Biomass Flow — Proportional",
@@ -897,7 +899,7 @@
       "pessimistic_name": "Pessimistic",
       "pessimistic_desc": "Scenario with highest losses and competition",
       "frontier_name": "Biogas Frontier",
-      "frontier_desc": "Realistic-high mobilisation of all 31 residues under dedicated policy; surpasses the FIESP benchmark (~6.4 Mm³/d biomethane)"
+      "frontier_desc": "Realistic-high mobilisation of the 26 parameterised residues under dedicated policy; scenario under methodological review"
     },
     "residue_scenarios": {
       "baseline_name": "Baseline",
@@ -907,7 +909,7 @@
       "optimistic_name": "Optimistic",
       "optimistic_desc": "Increases factors by 15% (best case)",
       "frontier_name": "Biogas Frontier",
-      "frontier_desc": "Realistic-high mobilisation of all 31 residues under dedicated policy (surpasses the FIESP benchmark)",
+      "frontier_desc": "Realistic-high mobilisation of the 26 parameterised residues under dedicated policy (under methodological review)",
       "custom_name": "Custom",
       "custom_desc": "Manually adjusted factors per residue"
     },

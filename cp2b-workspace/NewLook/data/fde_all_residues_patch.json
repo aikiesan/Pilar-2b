@@ -64,6 +64,14 @@
     "bmp_value": 200.0
   },
   {
+    "codigo": "ESTERCO_BOVINO_CORTE",
+    "bmp_value": 120.0
+  },
+  {
+    "codigo": "ESTERCO_BOVINO_LEITEIRO",
+    "bmp_value": 230.0
+  },
+  {
     "codigo": "DEJETOS_BOVINO",
     "bmp_value": 155.0
   },

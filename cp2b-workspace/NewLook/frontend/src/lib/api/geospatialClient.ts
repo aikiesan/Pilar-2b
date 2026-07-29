@@ -110,6 +110,7 @@ class GeospatialClient {
           livestock: 0,
           urban: 0,
         },
+        forsu_coverage: null,
       } as T;
     }
 

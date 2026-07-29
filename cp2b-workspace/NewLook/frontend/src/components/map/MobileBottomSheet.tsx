@@ -64,7 +64,6 @@ const RESIDUE_META = [
   { value: 'poultry' as const, category: 'livestock' as const, icon: '🐔' },
   { value: 'aquaculture' as const, category: 'livestock' as const, icon: '🐟' },
   { value: 'rsu' as const, category: 'urban' as const, icon: '🗑️' },
-  { value: 'rpo' as const, category: 'urban' as const, icon: '♻️' },
 ];
 
 const BIOMASS_META: { value: BiomassType; icon: string }[] = [

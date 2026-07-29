@@ -192,7 +192,7 @@ export default function MunicipalityPage() {
     { name: 'Aves', value: p.poultry_biogas_m3_year || 0 },
     { name: 'Aquicult.', value: p.aquaculture_biogas_m3_year || 0 },
     { name: 'RSU', value: p.rsu_biogas_m3_year || 0 },
-    { name: 'RPO', value: p.rpo_biogas_m3_year || 0 },
+    { name: tMap('residues.rpo'), value: p.rpo_biogas_m3_year || 0 },
   ].filter((d) => d.value > 0).sort((a, b) => b.value - a.value)
 
   const density =
@@ -213,7 +213,7 @@ export default function MunicipalityPage() {
     <div className="min-h-screen bg-gray-50 dark:bg-slate-900 print:bg-white">
       {/* Print header — only in print */}
       <div className="hidden print:block px-8 pt-6 pb-2 border-b">
-        <p className="text-xs text-gray-500">PILAR-2b BiogasAtlas · NIPE-UNICAMP · FAPESP 2025/08745-2</p>
+        <p className="text-xs text-gray-500">PILAR-2b BiogasAtlas · NIPE-UNICAMP · FAPESP 2024/01112-1 · 2025/08745-2</p>
         <h1 className="text-2xl font-bold mt-1">{p.name} · Perfil de Biogás</h1>
         <p className="text-sm text-gray-500">IBGE: {p.ibge_code} · {p.intermediate_region}</p>
       </div>
@@ -408,7 +408,7 @@ export default function MunicipalityPage() {
               Resíduos Urbanos
             </h2>
             <ResidueRow label="RSU (Resíduos Sólidos)" value={p.rsu_biogas_m3_year || 0} />
-            <ResidueRow label="RPO (Resíduos Orgânicos)" value={p.rpo_biogas_m3_year || 0} />
+            <ResidueRow label={t('municipality.residue_rpo')} value={p.rpo_biogas_m3_year || 0} />
             <div className="mt-3 pt-2 border-t border-gray-100 dark:border-slate-700">
               <div className="flex justify-between text-xs font-bold text-blue-700 dark:text-blue-400">
                 <span>Subtotal Urbano</span>

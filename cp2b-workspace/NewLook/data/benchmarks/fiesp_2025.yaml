@@ -1,0 +1,190 @@
+# =============================================================================
+# BENCHMARK EXTERNO — FIESP 2025
+# =============================================================================
+# Versionado em 2026-07-26 pelo Lote 2b.
+#
+# Este arquivo é DADO DE TERCEIRO, não parâmetro do PILAR-2b. Nada aqui alimenta
+# o pipeline canônico. Existe para que a comparação do manuscrito seja
+# reproduzível a partir do repositório, em vez de repousar em números citados em
+# prosa. Nenhum valor daqui pode ser copiado para `feedstocks.yaml`: a política
+# de BMP (docs/data/POLITICA_BMP.md §7.5) proíbe elevar um parâmetro para
+# aproximá-lo de um benchmark, e a auditoria de circularidade
+# (docs/auditorias/2026-07-consistencia-canonica/00_linha-de-base_2026-07-25/AUDITORIA_CIRCULARIDADE_2026-07-25.md)
+# registra o que aconteceu da última vez.
+#
+# `source` em cada bloco aponta para a tabela/página do relatório, conforme
+# transcrito em docs/data/FIESP_BENCHMARK_EXTRACTION.md.
+# =============================================================================
+
+document:
+  title: >
+    O Biometano em São Paulo: Potencial e Medidas para Alavancar a Produção —
+    Relatório Técnico
+  published: "2025-06"
+  study_period: "2024-08/2025-08"
+  executed_by: "Instituto 17 + PSR + Amplun Biogás"
+  published_by: "FIESP"
+  partners: ["CIESP", "SIMA/SEMIL", "ABREMA"]
+  format: "PDF escaneado, sem camada de texto"
+  extraction: "docs/data/FIESP_BENCHMARK_EXTRACTION.md (renderização por página, leitura visual)"
+  doi: null
+  url: null   # PENDENTE — o relatório não tem URL versionada neste repositório
+
+scope:
+  # Delimitação essencial: o que a FIESP cobre é um SUBCONJUNTO do PILAR-2b.
+  substrates_in_headline: ["vinhaca", "torta_de_filtro", "rsu_aterro"]
+  substrates_tabulated_but_not_in_headline: ["bagaco"]
+  substrates_not_covered:
+    - bovino
+    - suino
+    - aves
+    - cafe
+    - citros
+    - soja
+    - milho
+    - lodo_de_ete
+    - abatedouro
+    - poda_urbana
+  basis: "potencial por planta elegível (181 plantas), ancorado nas 146 usinas de SP"
+  scale_cutoff:
+    value: 4800
+    unit: "Nm³/dia de biogás bruto"
+    note: >
+      Plantas abaixo do corte não entram. O PILAR-2b não aplica corte de escala:
+      é potencial municipal, não potencial por planta elegível. As duas grandezas
+      não são diretamente comparáveis — ver
+      docs/auditorias/2026-07-consistencia-canonica/01_reconciliacao_2026-07-26/CONFRONTO_FIESP_2026-07-26.md §4.
+    source: "extrato do usuário, 2026-07-26"
+
+headline:
+  short_term_potential:
+    biomethane_Mm3_day: 6.4
+    biomethane_Nm3_year: 2_337_463_000
+    biogas_Nm3_year: 4_266_147_000
+    biogas_Mm3_day: 11.7
+    plants: 181
+    composition:
+      sucroalcooleiro_pct: 84
+      rsu_pct: 16
+      source: "extrato do usuário, 2026-07-26"
+    source: "FIESP Tabela 10 / Figura 3, p.29-30"
+  discounted_scenario:
+    # Cenário 2: descontando o biogás já usado para energia elétrica
+    biomethane_Mm3_day: 4.75
+    biomethane_Nm3_year: 1_724_526_000
+    plants: 158
+    source: "FIESP Tabela 11, p.31"
+  operational_anp_2024:
+    biomethane_Mm3_day: 0.4
+    note: "produção efetivamente operante, não potencial"
+    source: "extrato do usuário, 2026-07-26"
+
+generation_factors:
+  # ATENÇÃO: o rótulo de coluna da FIESP para a vinhaça — "por tonelada de cana
+  # processada" — não sobrevive ao teste de consistência com os próprios totais
+  # da FIESP. Ver
+  # docs/auditorias/2026-07-consistencia-canonica/01_reconciliacao_2026-07-26/CONFRONTO_FIESP_2026-07-26.md §2.1.
+  vinhaca:
+    residue_factor:
+      value_m3_per_t_cane: 0.80
+      alt_value_m3_per_t_cane: 0.769   # do rodapé "13 t de cana geram 10 m³"
+      declared_basis: "m³ / t de cana processada"
+      audited_basis: >
+        Inconsistente com os totais publicados se aplicado a toda a cana. O
+        resíduo aritmético implica ~46,5% da cana processada — compatível com a
+        fração destinada a etanol (FIESP Tabela 4). Ver confronto §2.1.
+      source: "FIESP Tabela 5, p.23; rodapé ****"
+    biogas_factor:
+      value_Nm3_per_t_cane: 17.68
+      source: "FIESP Tabela 5, p.23"
+    ch4_pct: 53
+    days_per_year: 226
+    days_note: >
+      Produção concentrada na safra, mas o total anual NÃO é reduzido por
+      226/365: o rodapé ** declara que a produção é diluída em 365 dias apenas
+      para comparação com a rota de aterro. Não é haircut de disponibilidade.
+    source: "FIESP Tabela 5, p.23"
+  torta_de_filtro:
+    residue_factor:
+      value_kg_per_t_cane: 30
+      range_kg_per_t_cane: [30, 35]
+      source: "FIESP Tabela 5, p.23; rodapé ***"
+    biogas_factor:
+      value_Nm3: 84.41
+      declared_basis: "Nm³ / t de cana processada"
+      audited_basis: >
+        Quase certamente por tonelada de TORTA, não de cana. Por tonelada de cana
+        seria ~2.800 Nm³ por m³ de torta, fisicamente implausível. Sinalizado
+        desde 2026-06-12 e ainda sem confirmação da FIESP.
+      source: "FIESP Tabela 5, p.23"
+    ch4_pct: 53
+    days_per_year: 365
+  bagaco:
+    residue_factor:
+      value_kg_per_t_cane: 250
+      source: "FIESP Tabela 5, p.23"
+    biomethane_factor:
+      value_Nm3_per_t_bagaco: 106
+      source: "FIESP Tabela 5, p.23"
+    use_fraction: 0.30
+    use_fraction_note: "equivale ao conceito de FCo_available do PILAR-2b"
+    days_per_year: 365
+    in_headline: false
+    in_headline_evidence: >
+      Aplicado a toda a cana processada, o bagaço sozinho renderia 5,17 bilhões
+      Nm³/ano de biogás — 21% ACIMA do total de 4,27 bilhões que a FIESP publica
+      para todos os substratos. Não pode estar no headline.
+  rsu_aterro:
+    biogas_factor:
+      value_Nm3_per_t_rsu: 31.51
+      source: "extrato do usuário, 2026-07-26"
+    landfill_capture_pct: 70
+    ch4_pct: 50
+    model: "IPCC (2006), geração de metano de primeira ordem"
+    model_parameters:
+      L0: 47.24
+      MCF: 1
+      F: 0.5
+      T_celsius: 20
+      ch4_density_t_per_m3: 0.0007168
+      conversion_factor: 21.21
+      source: "FIESP Tabela 8, p.27"
+
+cane_base:
+  processed_t_year: 344_610_000
+  note: "média das últimas 6 safras; duração média ~226 dias"
+  source: "FIESP Tabela 7, p.25 (UNICA)"
+
+# Estimativas de terceiros TABULADAS PELA FIESP. Não são resultados da FIESP;
+# são o espectro publicado que ela reúne para comparação. Ver o CSV em
+# docs/data/espectro_estimativas_biometano_sp_2026-07-26.csv.
+other_estimates_tabulated_by_fiesp:
+  - author: "Instituto 17 / BEP UK"
+    year: 2021
+    biomethane_Mm3_day: 8.2
+  - author: "SEMIL/SP"
+    year: 2023
+    biomethane_Mm3_day: 9.8
+  - author: "Coelho et al. / USP"
+    year: 2020
+    biomethane_Mm3_day: 23.6
+  - author: "ABiogás"
+    year: 2020
+    biomethane_Mm3_day: 36.4
+  - author: "GEF Biogás Brasil"
+    year: null
+    biomethane_Mm3_day: 42.5
+    biomethane_Nm3_year: 15_500_000_000
+source_of_block: "extrato do usuário, 2026-07-26"
+
+provenance_caveats:
+  - >
+    Os rendimentos por tonelada da Tabela 5 remetem majoritariamente a
+    "CH4 SOLUTIONS, 2020 — Documentos internos", relatório proprietário sem URL
+    nem DOI. Não são verificáveis de forma independente.
+  - >
+    Nenhum DOI acadêmico sustenta os fatores centrais de oferta da FIESP; eles
+    repousam em CH4 SOLUTIONS 2020 (interno) e IPCC 2006.
+  - >
+    O relatório em si não tem URL versionada neste repositório. O campo
+    `document.url` está deliberadamente nulo em vez de preenchido por suposição.

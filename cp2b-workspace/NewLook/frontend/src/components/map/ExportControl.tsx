@@ -19,6 +19,7 @@ import type { MunicipalityCollection } from '@/types/geospatial';
 import html2canvas from 'html2canvas';
 import { logger } from '@/lib/logger';
 import { DATA_EXPORT_ENABLED } from '@/lib/featureFlags';
+import { useTranslations } from 'next-intl';
 
 interface ExportControlProps {
   data: MunicipalityCollection | null;
@@ -34,6 +35,7 @@ export default function ExportControl({
   visible = false,
   onClose,
 }: ExportControlProps) {
+  const t = useTranslations('Map');
   const [exportStatus, setExportStatus] = useState<ExportStatus>('idle');
   const [selectedFormat, setSelectedFormat] = useState<ExportFormat | null>(null);
   const [errorMessage, setErrorMessage] = useState<string>('');
@@ -105,7 +107,6 @@ export default function ExportControl({
       'Poultry Biogas (m³/year)',
       'Aquaculture Biogas (m³/year)',
       'RSU Biogas (m³/year)',
-      'RPO Biogas (m³/year)',
     ];
 
     // Prepare CSV rows
@@ -131,7 +132,6 @@ export default function ExportControl({
         p.poultry_biogas_m3_year || 0,
         p.aquaculture_biogas_m3_year || 0,
         p.rsu_biogas_m3_year || 0,
-        p.rpo_biogas_m3_year || 0,
       ];
     });
 

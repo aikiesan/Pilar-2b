@@ -1,4 +1,7 @@
 {
+  "MethodologyReview": {
+    "label": "Valores agregados em revisão metodológica · 29/07/2026"
+  },
   "common": {
     "nav": {
       "home": "Início",
@@ -102,7 +105,7 @@
   "landing": {
     "skip_to_content": "Pular para o conteúdo principal",
     "hero": {
-      "badge": "CP2b - FAPESP 2024/01112-1 NIPE-Unicamp",
+      "badge": "CP2b · FAPESP 2024/01112-1 · 2025/08745-2 · NIPE-Unicamp",
       "title": "PILAR-2b: Plataforma Inteligente de Localização e Aproveitamento de Resíduos para",
       "title_highlight": "Biogás e Bioprodutos",
       "subtitle": "Plataforma geoespacial para análise do potencial de produção de biogás a partir de resíduos orgânicos no estado de São Paulo",
@@ -219,7 +222,7 @@
       "description": "Inscreva-se para receber atualizações sobre novos recursos, análises e insights sobre o setor de biogás em São Paulo."
     },
     "footer": {
-      "fapesp_project": "FAPESP 2024/01112-1 · CP2Bsd",
+      "fapesp_project": "FAPESP 2024/01112-1 · 2025/08745-2",
       "about": "Sobre",
       "copyright": "© 2025 NIPE-UNICAMP",
       "newsletter_heading": "Receba Nossas Novidades",
@@ -297,7 +300,7 @@
       "poultry": "Aves",
       "aquaculture": "Aquicultura",
       "rsu": "RSU",
-      "rpo": "RPO"
+      "rpo": "Poda urbana"
     },
     "categories": {
       "agricultural": "Agrícola",
@@ -399,7 +402,7 @@
     "scenario_baseline": "Médio Prazo",
     "scenario_fronteira": "Fronteira",
     "scenario_otimista": "Otimista",
-    "scenario_fronteira_tip": "Fronteira do Biogás: mobilização realista-alta dos 31 resíduos — supera o benchmark FIESP (~6,4 Mm³/d de biometano).",
+    "scenario_fronteira_tip": "Fronteira do Biogás: mobilização realista-alta dos 26 resíduos parametrizados sob política dedicada. Cenário em revisão metodológica.",
     "cnLegend": {
       "title": "Perfil de Relação C/N",
       "c_rich": "Excesso de Carbono (> 60)",
@@ -427,7 +430,7 @@
     "advanced_analysis": {
       "title": "Análises Avançadas",
       "literature_base_link": "Base científica — 399 referências (revisão de literatura)",
-      "frontier_note": "Fronteira do Biogás: mobilização realista-alta dos 31 resíduos — supera o benchmark FIESP (~6,4 Mm³/d de biometano).",
+      "frontier_note": "Fronteira do Biogás: mobilização realista-alta dos 26 resíduos parametrizados sob política dedicada. Cenário em revisão metodológica.",
       "category_agricultural": "Agrícola",
       "category_livestock": "Pecuário",
       "category_urban": "Urbano",
@@ -643,14 +646,14 @@
       "subtotal_livestock": "Subtotal Pecuária",
       "residue_urban": "Resíduos Urbanos",
       "residue_rsu": "RSU (Resíduos Sólidos Urbanos)",
-      "residue_rpo": "RPO (Resíduos Putrescíveis Orgânicos)",
+      "residue_rpo": "Poda urbana (resíduo verde)",
       "subtotal_urban": "Subtotal Urbano",
-      "print_header": "PILAR-2b BiogasAtlas · NIPE-UNICAMP · FAPESP 2025/08745-2",
+      "print_header": "PILAR-2b BiogasAtlas · NIPE-UNICAMP · FAPESP 2024/01112-1 · 2025/08745-2",
       "print_title": "Perfil de Biogás"
     },
     "about": {
       "back": "Voltar",
-      "fapesp_badge": "FAPESP 2025/08745-2",
+      "fapesp_badge": "FAPESP 2024/01112-1 · 2025/08745-2",
       "title": "PILAR-2b",
       "full_name": "Plataforma Inteligente de Localização e Aproveitamento de Resíduos para Biogás e Bioprodutos",
       "subtitle": "Centro de Excelência vinculado ao NIPE/UNICAMP, financiado pela FAPESP",
@@ -879,7 +882,6 @@
     "chart_regional": "Distribuição Regional",
     "sankey_ch4_label": "Equivalente CH₄",
     "sankey_ch4_fraction": "Baseado em {pct}% de CH₄ no biogás",
-    "sankey_benchmark_label": "Referência FIESP: ~16 bilhões m³ CH₄/ano",
     "sankey_unit": "m³/ano",
     "sankey_summary_ch4": "Equiv. CH₄",
     "sankey_alluvial_title": "Fluxo de Biomassa — Proporcional",
@@ -897,7 +899,7 @@
       "pessimistic_name": "Pessimista",
       "pessimistic_desc": "Cenário com maiores perdas e competição",
       "frontier_name": "Fronteira do Biogás",
-      "frontier_desc": "Mobilização realista-alta dos 31 resíduos sob política dedicada; supera o benchmark FIESP (~6,4 Mm³/d de biometano)"
+      "frontier_desc": "Mobilização realista-alta dos 26 resíduos parametrizados sob política dedicada; cenário em revisão metodológica"
     },
     "residue_scenarios": {
       "baseline_name": "Baseline",
@@ -907,7 +909,7 @@
       "optimistic_name": "Otimista",
       "optimistic_desc": "Aumenta fatores em 15% (melhor cenário)",
       "frontier_name": "Fronteira do Biogás",
-      "frontier_desc": "Mobilização realista-alta dos 31 resíduos sob política dedicada (supera o benchmark FIESP)",
+      "frontier_desc": "Mobilização realista-alta dos 26 resíduos parametrizados sob política dedicada (em revisão metodológica)",
       "custom_name": "Personalizado",
       "custom_desc": "Fatores ajustados manualmente por resíduo"
     },

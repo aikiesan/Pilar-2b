@@ -3,7 +3,7 @@
   "version": "3.0.0",
   "private": true,
   "description": "PILAR-2b: Intelligent Waste Location and Utilization Platform for Biogas and Bioproducts - Open-source geospatial framework for biogas potential analysis",
-  "license": "GPL-3.0",
+  "license": "GPL-3.0-only",
   "repository": {
     "type": "git",
     "url": "https://github.com/aikiesan/NewLook"

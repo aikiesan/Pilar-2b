@@ -964,7 +964,6 @@ export default function ScientificDatabasePage() {
                           unit="L/kg SV"
                           min={residue.bmp_min}
                           max={residue.bmp_max}
-                          nStudies={residue.bmp_n_studies || residue.reference_count}
                         />
 
                         {/* Composition Grid */}

@@ -17,12 +17,17 @@ import {
   getCategoryLabel,
 } from '@/lib/mapUtils';
 import { BookOpen } from 'lucide-react';
-import { BIOMASS_RESIDUES, numberValue } from '@/lib/biomassAvailability';
+import {
+  BIOMASS_RESIDUES,
+  RESIDUES_BY_SECTOR,
+  numberValue,
+} from '@/lib/biomassAvailability';
 import { getSectorMetricValue, getResidueTonsOrNull } from '@/lib/mapValues';
 import { getMetricSpec, formatCompact } from '@/lib/mapMetrics';
 import type { ResidueType } from '@/components/map/FloatingControlPanel';
 import type { DisplayMetric } from '@/types/geospatial';
 import type { MapScenarioKey } from '@/data/scenarioFactors';
+import { useTranslations } from 'next-intl';
 
 interface MunicipalityPopupProps {
   properties: MunicipalityProperties;
@@ -42,7 +47,6 @@ const residuePillClass: Record<ResidueType, string> = {
   poultry: 'bg-yellow-50 border-yellow-200',
   aquaculture: 'bg-yellow-50 border-yellow-200',
   rsu: 'bg-blue-50 border-blue-200',
-  rpo: 'bg-blue-50 border-blue-200',
 };
 
 const formatTons = (value: unknown): string => {
@@ -64,6 +68,7 @@ function MunicipalityPopup({
   metric = 'biomass_tons',
   scenario = 'baseline',
 }: MunicipalityPopupProps) {
+  const t = useTranslations('Map');
   // Defensive checks for required properties
   if (!properties || !properties.name) {
     return (
@@ -214,7 +219,7 @@ function MunicipalityPopup({
           Principais Resíduos
         </h4>
         <div className="flex flex-wrap gap-1.5">
-          {(Object.keys(BIOMASS_RESIDUES) as ResidueType[]).map((residue) => {
+          {Object.values(RESIDUES_BY_SECTOR).flat().map((residue) => {
             // null (no data) and 0 (measured none) are both omitted from these
             // pills — they list what a municipality HAS. The panel's detail rows
             // are where the two are distinguished explicitly.
@@ -223,7 +228,10 @@ function MunicipalityPopup({
 
             return (
               <div key={residue} className={`px-2 py-0.5 border rounded text-[9px] ${residuePillClass[residue]}`}>
-                <span className="font-medium">{BIOMASS_RESIDUES[residue].label}:</span> {formatTonsShort(value)}
+                <span className="font-medium">
+                  {BIOMASS_RESIDUES[residue].label}:
+                </span>{' '}
+                {formatTonsShort(value)}
               </div>
             );
           })}

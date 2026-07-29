@@ -98,5 +98,29 @@ const config = {
   restoreMocks: true,
 }
 
-// createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async
-module.exports = createJestConfig(config)
+// createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async.
+//
+// next/jest overwrites transformIgnorePatterns with its own value, so the entry
+// in `config` above never reached Jest — which is why next-intl was already
+// listed there and the suites still died with "Unexpected token 'export'".
+// Resolve the config first, then set the pattern on the result: that is the only
+// place it sticks.
+//
+// next-intl ships ESM and re-exports from use-intl, so both need transforming;
+// listing only next-intl moves the same error one package along.
+const TRANSFORM_ESM_DEPS = [
+  '@testing-library',
+  'next-intl',
+  'use-intl',
+  '@axe-core',
+  '@tanstack',
+]
+
+module.exports = async () => {
+  const resolved = await createJestConfig(config)()
+  resolved.transformIgnorePatterns = [
+    `node_modules/(?!(${TRANSFORM_ESM_DEPS.join('|')})/)`,
+    '^.+\\.module\\.(css|sass|scss)$',
+  ]
+  return resolved
+}
