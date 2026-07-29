@@ -2,6 +2,7 @@
   "common": {
     "nav": {
       "home": "Home",
+      "guide": "Guide",
       "map": "Map",
       "dashboard": "Dashboard",
       "about": "About",

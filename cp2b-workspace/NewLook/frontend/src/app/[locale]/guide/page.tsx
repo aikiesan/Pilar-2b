@@ -2,18 +2,27 @@
 
 import TourGuide from '@/components/ui/TourGuide';
 import { Link } from '@/navigation' // Ajuste se estiver usando 'next/link' padrão
-import { 
-  Map, 
-  BarChart3, 
-  BookOpen, 
-  Calculator, 
-  Compass, 
-  PlayCircle 
+import {
+  Map,
+  BarChart3,
+  BookOpen,
+  Calculator,
+  Compass,
+  PlayCircle,
+  Info,
+  ArrowRight,
 } from 'lucide-react'
 import { useState } from 'react';
 
 // Array com os dados dos cartões para manter o código limpo e fácil de manter
 const guideTopics = [
+  {
+    title: 'Sobre a plataforma',
+    description: 'Visão geral do PILAR-2b: objetivo, cobertura de dados e como o projeto está organizado.',
+    icon: <Info className="w-6 h-6 text-cp2b-green" />,
+    href: '/sobre',
+    iconBg: 'bg-cp2b-lime-light/50'
+  },
   {
     title: 'Mapa Interativo',
     description: 'Explore visualmente o potencial de biogás em cada município paulista.',
@@ -58,6 +67,26 @@ export default function GuideIndexPage() {
     <div className="max-w-6xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
       {/* Coloque o componente do Tour na tela (ele fica invisível até run={true}) */}
       <TourGuide run={runTour} onFinish={() => setRunTour(false)} />
+
+      {/* Faixa de destaque: o mapa é a porta de entrada da plataforma. */}
+      <Link
+        href="/map"
+        className="group mb-8 flex items-center justify-between gap-4 rounded-2xl bg-gradient-to-r from-cp2b-green to-cp2b-dark-green p-6 text-white shadow-sm transition-all hover:shadow-lg"
+      >
+        <div className="flex items-center gap-4">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/15">
+            <Map className="h-6 w-6" />
+          </div>
+          <div>
+            <h2 className="text-lg font-bold">Abrir o Mapa Interativo</h2>
+            <p className="text-sm text-white/80">
+              Comece em São Paulo, filtre por resíduo ou navegue por qualquer estado do Brasil.
+            </p>
+          </div>
+        </div>
+        <ArrowRight className="h-6 w-6 shrink-0 transition-transform group-hover:translate-x-1" />
+      </Link>
+
       {/* Cabeçalho da Página */}
       <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-12">
         <div className="max-w-2xl">

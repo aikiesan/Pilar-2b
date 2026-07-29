@@ -45,12 +45,58 @@ export const DISPLAY_METRICS: DisplayMetric[] = [
   'bioenergy_mwh',
 ];
 
-// Sequential ramps, low → high, both keeping "darker = more".
-// Default: YlGnBu (the platform's existing scale).
+// Sequential ramps, low → high (ramp[0] = smallest bucket, ramp[5] = largest).
+// Default: YlGnBu (the platform's existing scale), "darker = more".
 export const RAMP_DEFAULT = ['#ffffcc', '#c7e9b4', '#7fcdbb', '#41b6c4', '#2c7fb8', '#253494'];
-// Daltonic: ColorBrewer "Blues" — single-hue, monotonic luminance, safe for all
-// major colour-vision deficiencies (deutan/protan/tritan).
-export const RAMP_DALTONIC = ['#eff3ff', '#c6dbef', '#9ecae1', '#6baed6', '#3182bd', '#08519c'];
+
+// ── Colour-vision-deficiency (daltonic) palettes ────────────────────────────
+// The daltonic toggle no longer forces a single blue ramp; it selects one of
+// these CVD-safe palettes. Viridis and cividis are perceptually uniform and
+// vary in BOTH hue and lightness (cividis is tuned specifically for
+// deuteranopia/protanopia), so they read far better than a single-hue scale
+// while still being unambiguous for all major CVD types. "Blues" keeps the
+// original monotonic single-hue option for users who prefer it.
+export type CvdPaletteId = 'viridis' | 'cividis' | 'blues';
+
+export interface CvdPalette {
+  id: CvdPaletteId;
+  label: string;
+  /** Short note on who it's optimised for. */
+  note: string;
+  /** Six low→high tiers. */
+  ramp: [string, string, string, string, string, string];
+}
+
+export const CVD_PALETTES: Record<CvdPaletteId, CvdPalette> = {
+  viridis: {
+    id: 'viridis',
+    label: 'Viridis',
+    note: 'Perceptualmente uniforme · segura para todos os tipos',
+    ramp: ['#440154', '#414487', '#2a788e', '#22a884', '#7ad151', '#fde725'],
+  },
+  cividis: {
+    id: 'cividis',
+    label: 'Cividis',
+    note: 'Otimizada para deuteranopia/protanopia',
+    ramp: ['#00204d', '#31446b', '#666970', '#958f78', '#cbba69', '#ffea46'],
+  },
+  blues: {
+    id: 'blues',
+    label: 'Azul (mono)',
+    note: 'Tom único · luminância monotônica',
+    ramp: ['#eff3ff', '#c6dbef', '#9ecae1', '#6baed6', '#3182bd', '#08519c'],
+  },
+};
+
+export const DEFAULT_CVD_PALETTE: CvdPaletteId = 'viridis';
+
+/** Ramp for a CVD palette id, falling back to the default palette. */
+export function getCvdRamp(id?: CvdPaletteId): CvdPalette['ramp'] {
+  return (id && CVD_PALETTES[id] ? CVD_PALETTES[id] : CVD_PALETTES[DEFAULT_CVD_PALETTE]).ramp;
+}
+
+// Back-compat: the previous single daltonic ramp is now the "blues" palette.
+export const RAMP_DALTONIC = CVD_PALETTES.blues.ramp;
 
 export const ZERO_FILL = '#f7f7f7'; // measured zero — near-white, clear of the ramp
 export const NO_DATA_FILL = '#cbd5e1'; // never loaded — distinct grey (migration 025)
@@ -158,9 +204,10 @@ export function getMetricSpec(metric: DisplayMetric): MetricSpec {
 export function getMetricColor(
   rawYearly: number,
   spec: MetricSpec,
-  daltonic: boolean
+  daltonic: boolean,
+  paletteId?: CvdPaletteId
 ): string {
-  const ramp = daltonic ? RAMP_DALTONIC : RAMP_DEFAULT;
+  const ramp = daltonic ? getCvdRamp(paletteId) : RAMP_DEFAULT;
   if (rawYearly <= 0) return ZERO_FILL;
   const v = spec.toDisplay(rawYearly);
   const [b0, b1, b2, b3, b4] = spec.breaks;
@@ -191,8 +238,8 @@ export interface LegendItem {
 }
 
 /** Legend rows (six ramp tiers + zero + no_data) in the metric's display unit. */
-export function legendItems(spec: MetricSpec, daltonic: boolean): LegendItem[] {
-  const ramp = daltonic ? RAMP_DALTONIC : RAMP_DEFAULT;
+export function legendItems(spec: MetricSpec, daltonic: boolean, paletteId?: CvdPaletteId): LegendItem[] {
+  const ramp = daltonic ? getCvdRamp(paletteId) : RAMP_DEFAULT;
   const [b0, b1, b2, b3, b4] = spec.breaks;
   const f = formatCompact;
   return [
