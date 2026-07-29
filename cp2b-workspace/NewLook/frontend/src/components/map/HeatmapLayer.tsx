@@ -56,7 +56,6 @@ export default function HeatmapLayer({
           case 'poultry':      return props.poultry_biogas_m3_year;
           case 'aquaculture':  return props.aquaculture_biogas_m3_year;
           case 'rsu':          return props.rsu_biogas_m3_year;
-          case 'rpo':          return props.rpo_biogas_m3_year;
           default:             return 0;
         }
       })();
@@ -97,7 +96,7 @@ export default function HeatmapLayer({
       sugarcane: 'Cana-de-açúcar', soybean: 'Soja', corn: 'Milho',
       coffee: 'Café', citrus: 'Citrus', cattle: 'Bovinos',
       swine: 'Suínos', poultry: 'Aves', aquaculture: 'Aquicultura',
-      rsu: 'RSU', rpo: t('residues.rpo'),
+      rsu: 'RSU',
     };
     if (selectedResidues.length === 1) return labels[selectedResidues[0]];
     return `${selectedResidues.length} Resíduos`;

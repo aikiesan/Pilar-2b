@@ -274,7 +274,7 @@ describe('HeatmapLayer', () => {
 
       const { getAllByTestId } = render(
         <MapContainer center={[0, 0]} zoom={10}>
-          <HeatmapLayer data={dataWithUrban} selectedResidues={['rsu', 'rpo']} />
+          <HeatmapLayer data={dataWithUrban} selectedResidues={['rsu']} />
         </MapContainer>
       );
 

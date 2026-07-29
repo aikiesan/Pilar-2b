@@ -155,8 +155,7 @@ export default function MunicipalityLayer({
         swine: 'Suínos',
         poultry: 'Aves',
         aquaculture: 'Aquicultura',
-        rsu: 'RSU',
-        rpo: t('residues.rpo')
+        rsu: 'RSU'
       };
 
       if (selectedResidues.length === 1) {

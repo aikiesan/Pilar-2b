@@ -14,7 +14,7 @@ export type BiomassType = 'total' | 'agricultural' | 'livestock' | 'urban';
 export type ResidueType =
   | 'sugarcane' | 'soybean' | 'corn' | 'coffee' | 'citrus'
   | 'cattle' | 'swine' | 'poultry' | 'aquaculture'
-  | 'rsu' | 'rpo';
+  | 'rsu';
 
 interface FloatingControlPanelProps {
   biomassType: BiomassType;

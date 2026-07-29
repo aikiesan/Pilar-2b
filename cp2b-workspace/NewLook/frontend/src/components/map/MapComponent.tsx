@@ -480,7 +480,6 @@ export default function MapComponent({
           poultry: 'poultry_biogas_m3_year',
           aquaculture: 'aquaculture_biogas_m3_year',
           rsu: 'rsu_biogas_m3_year',
-          rpo: 'rpo_biogas_m3_year',
         };
         const hasResidue = selectedResidues.some(r => Number((props as any)[residueKey[r]]) > 0);
         if (!hasResidue) return false;
