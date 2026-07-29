@@ -7,6 +7,7 @@
 
 import React, { useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
+import type { DisplayMetric } from '@/types/geospatial';
 import { getMetricSpec, legendItems as buildLegendItems, CVD_PALETTES, type CvdPaletteId } from '@/lib/mapMetrics';
 import { BETA_FILL } from '@/lib/mapScope';
 import { useCvdPalette } from '@/hooks/useCvdPalette';

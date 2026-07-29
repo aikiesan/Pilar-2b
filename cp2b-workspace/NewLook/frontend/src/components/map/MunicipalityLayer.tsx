@@ -15,6 +15,7 @@ import MunicipalityPopup from '../dashboard/MunicipalityPopup';
 import L from 'leaflet';
 import { createRoot } from 'react-dom/client';
 import type { MapValue } from '@/lib/mapValues';
+import { getMetricSpec, getMetricColor } from '@/lib/mapMetrics';
 import { isSaoPaulo, BETA_STYLE, BETA_BADGE_LABEL } from '@/lib/mapScope';
 import { useCvdPalette } from '@/hooks/useCvdPalette';
 import type { MapScenarioKey } from '@/data/scenarioFactors';
