@@ -236,9 +236,7 @@ class AvailabilityProfile:
     source: str
 
 
-def get_availability_profile(
-    code: str, path: str | None = None
-) -> AvailabilityProfile:
+def get_availability_profile(code: str, path: str | None = None) -> AvailabilityProfile:
     """Return the non-multiplicative temporal profile for an instantiated code."""
     fs = load_raw(path)
     if code not in fs:
@@ -251,9 +249,7 @@ def get_availability_profile(
         days_available_yr=int(block["days_available_yr"]),
         storable=bool(block["storable"]),
         max_storage_days=(
-            int(block["max_storage_days"])
-            if block.get("max_storage_days") is not None
-            else None
+            int(block["max_storage_days"]) if block.get("max_storage_days") is not None else None
         ),
         point_of_availability=str(block["point_of_availability"]),
         source=str(block["source"]),

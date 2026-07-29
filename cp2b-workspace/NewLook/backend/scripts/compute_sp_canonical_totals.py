@@ -32,10 +32,14 @@ from app.services.canonical_loader import (  # noqa: E402
     STREAM_SUBPOPULATIONS,
     get_availability_profile,
 )
-from app.services.canonical_municipality import (  # noqa: E402
+from app.services.canonical_municipality import (
     CITRUS_RESIDUE_FRACTION,
-    SUGARCANE_SUBSTREAMS as _PIPELINE_SUGARCANE_SUBSTREAMS,
     SLUDGE_DRY_SOLIDS_KG_M3,
+)
+from app.services.canonical_municipality import (  # noqa: E402
+    SUGARCANE_SUBSTREAMS as _PIPELINE_SUGARCANE_SUBSTREAMS,
+)
+from app.services.canonical_municipality import (
     compute_canonical_municipality,
     load_snis_activity_snapshot,
 )
@@ -94,9 +98,7 @@ def _frontier(values: dict[str, float]) -> float:
 
 
 def _git_sha() -> str:
-    return subprocess.check_output(
-        ["git", "rev-parse", "HEAD"], cwd=_NEWLOOK, text=True
-    ).strip()
+    return subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=_NEWLOOK, text=True).strip()
 
 
 def _load_inputs() -> tuple[list[dict], dict[str, dict], dict[str, dict[str, float]]]:
@@ -106,8 +108,7 @@ def _load_inputs() -> tuple[list[dict], dict[str, dict], dict[str, dict[str, flo
         if (row.get("ibge_code") or "").strip()
     ]
     contexts = {
-        row["ibge_code"]: row
-        for row in csv.DictReader(_CONTEXT.open(encoding="utf-8-sig"))
+        row["ibge_code"]: row for row in csv.DictReader(_CONTEXT.open(encoding="utf-8-sig"))
     }
     activity = load_snis_activity_snapshot(str(_SNIS))
     if len(rows) != 645 or len(activity) != 645:
@@ -160,10 +161,7 @@ def compute() -> tuple[list[dict], list, dict]:
         equal = True
         for metric in public_comparison["max_absolute_delta"]:
             for scenario in SCENARIOS:
-                delta = abs(
-                    canonical.totals[metric][scenario]
-                    - public_values[metric][scenario]
-                )
+                delta = abs(canonical.totals[metric][scenario] - public_values[metric][scenario])
                 public_comparison["max_absolute_delta"][metric][scenario] = max(
                     public_comparison["max_absolute_delta"][metric][scenario], delta
                 )
@@ -214,9 +212,7 @@ def _aggregate(municipalities: list[dict]) -> tuple[dict, dict, dict]:
                     "availability": dict(feedstock.availability),
                 },
             )
-            sector_target = target(
-                by_sector, feedstock.sector, {"sector": feedstock.sector}
-            )
+            sector_target = target(by_sector, feedstock.sector, {"sector": feedstock.sector})
             for metric in metrics:
                 source = {
                     "biomass_gross": feedstock.biomass_gross,
@@ -295,9 +291,7 @@ def _temporal_availability(
                 municipal[month - 1] += monthly
                 regional[month - 1] += monthly
                 state[month - 1] += monthly
-        by_municipality[canonical.ibge_code] = _monthly_summary(municipal)[
-            "monthly_ch4_available"
-        ]
+        by_municipality[canonical.ibge_code] = _monthly_summary(municipal)["monthly_ch4_available"]
 
     annual = sum(row["ch4"]["medio"] for row in feedstocks.values())
     if not math.isclose(sum(state), annual, rel_tol=1e-12, abs_tol=0.01):
@@ -306,9 +300,7 @@ def _temporal_availability(
         )
 
     capacity_feedstocks = []
-    for row in sorted(
-        feedstocks.values(), key=lambda value: value["ch4"]["medio"], reverse=True
-    ):
+    for row in sorted(feedstocks.values(), key=lambda value: value["ch4"]["medio"], reverse=True):
         profile = profiles[row["canonical_code"]]
         factor = 1.0 if profile.storable else profile.days_available_yr / 365.0
         capacity_feedstocks.append(
@@ -329,15 +321,18 @@ def _temporal_availability(
 
     def weighted(rows: list[dict]) -> float:
         denominator = sum(row["ch4"]["medio"] for row in rows)
-        return sum(
-            row["ch4"]["medio"]
-            * (
-                1.0
-                if profiles[row["canonical_code"]].storable
-                else profiles[row["canonical_code"]].days_available_yr / 365.0
+        return (
+            sum(
+                row["ch4"]["medio"]
+                * (
+                    1.0
+                    if profiles[row["canonical_code"]].storable
+                    else profiles[row["canonical_code"]].days_available_yr / 365.0
+                )
+                for row in rows
             )
-            for row in rows
-        ) / denominator
+            / denominator
+        )
 
     capacity_sectors = []
     for sector in sorted(sectors):
@@ -418,14 +413,16 @@ def _guard(current: float, expected: float | None, update_baseline: bool) -> dic
     result["status"] = (
         "updated"
         if update_baseline
-        else "pass"
-        if math.isclose(
-            current,
-            expected,
-            rel_tol=GUARD_RELATIVE_TOLERANCE,
-            abs_tol=GUARD_ABSOLUTE_TOLERANCE_M3_YEAR,
+        else (
+            "pass"
+            if math.isclose(
+                current,
+                expected,
+                rel_tol=GUARD_RELATIVE_TOLERANCE,
+                abs_tol=GUARD_ABSOLUTE_TOLERANCE_M3_YEAR,
+            )
+            else "fail"
         )
-        else "fail"
     )
     if result["status"] == "fail":
         raise RuntimeError(
@@ -464,8 +461,7 @@ def _co_reconciliation() -> dict:
     )
     comparable = [row for row in rows if all(row[field] != "" for field in fields)]
     deltas = [
-        float(row[fields[2]]) - float(row[fields[0]]) - float(row[fields[1]])
-        for row in comparable
+        float(row[fields[2]]) - float(row[fields[0]]) - float(row[fields[1]]) for row in comparable
     ]
     return {
         "query": "SNIS RS 2022, Tabela CO02, same municipality row",
@@ -490,17 +486,18 @@ def build_results(
     totals, feedstocks, sectors = _aggregate(municipalities)
     expected = _baseline_expected(_CANONICAL_JSON)
     guard = _guard(totals["ch4"]["medio"], expected, update_baseline)
-    temporal, monthly_by_municipality = _temporal_availability(
-        municipalities, feedstocks, sectors
-    )
+    temporal, monthly_by_municipality = _temporal_availability(municipalities, feedstocks, sectors)
     instantiated = {row["canonical_code"] for row in feedstocks.values()}
 
     def serialise_rank(rows: list[dict]) -> list[dict]:
         output = []
         for row in rows:
-            item = {key: value for key, value in row.items() if key not in (
-                "biomass_gross", "biomass_mobilizable", "ch4", "biogas", "biomethane"
-            )}
+            item = {
+                key: value
+                for key, value in row.items()
+                if key
+                not in ("biomass_gross", "biomass_mobilizable", "ch4", "biogas", "biomethane")
+            }
             item.update(
                 {
                     "biomass_gross": _quantity_range(row["biomass_gross"], "tonne_wet/year"),
@@ -516,12 +513,8 @@ def build_results(
             return_order.append(item)
         return output
 
-    feedstock_rows = sorted(
-        feedstocks.values(), key=lambda row: row["ch4"]["medio"], reverse=True
-    )
-    sector_rows = sorted(
-        sectors.values(), key=lambda row: row["ch4"]["medio"], reverse=True
-    )
+    feedstock_rows = sorted(feedstocks.values(), key=lambda row: row["ch4"]["medio"], reverse=True)
+    sector_rows = sorted(sectors.values(), key=lambda row: row["ch4"]["medio"], reverse=True)
     by_municipality = []
     spatial_input = []
     route_counts = defaultdict(int)
@@ -530,19 +523,13 @@ def build_results(
         context = item["context"]
         route_counts[canonical.activity_route] += 1
         metrics = {
-            "biomass_gross": _quantity_range(
-                canonical.totals["biomass_gross"], "tonne_wet/year"
-            ),
+            "biomass_gross": _quantity_range(canonical.totals["biomass_gross"], "tonne_wet/year"),
             "biomass_mobilizable": _quantity_range(
                 canonical.totals["biomass_mobilizable"], "tonne_wet/year"
             ),
             "ch4_practical": _quantity_range(canonical.totals["ch4"], "m3_CH4/year"),
-            "biogas_practical": _quantity_range(
-                canonical.totals["biogas"], "m3_biogas/year"
-            ),
-            "biomethane": _quantity_range(
-                canonical.totals["biomethane"], "m3_biomethane/year"
-            ),
+            "biogas_practical": _quantity_range(canonical.totals["biogas"], "m3_biogas/year"),
+            "biomethane": _quantity_range(canonical.totals["biomethane"], "m3_biomethane/year"),
         }
         by_municipality.append(
             {
@@ -552,12 +539,8 @@ def build_results(
                 "intermediate_region_name": context["nm_rgint"],
                 "forsu_activity_route": canonical.activity_route,
                 "snis_co111_t_year": item["activity"]["co111_rdo_t_2022"],
-                "snis_es006_1000m3_year": item["activity"][
-                    "es006_treated_sewage_1000m3_2022"
-                ],
-                "monthly_ch4_available": monthly_by_municipality[
-                    canonical.ibge_code
-                ],
+                "snis_es006_1000m3_year": item["activity"]["es006_treated_sewage_1000m3_2022"],
+                "monthly_ch4_available": monthly_by_municipality[canonical.ibge_code],
                 "totals": metrics,
             }
         )
@@ -576,14 +559,8 @@ def build_results(
     for scenario in SCENARIOS:
         methane = totals["ch4"][scenario]
         energy[scenario] = {
-            "electricity_twh_year": methane
-            * methane_lhv
-            * electrical_efficiency
-            / 1e9,
-            "thermal_pj_year": methane
-            * methane_lhv
-            * thermal_efficiency
-            * 3.6e-9,
+            "electricity_twh_year": methane * methane_lhv * electrical_efficiency / 1e9,
+            "thermal_pj_year": methane * methane_lhv * thermal_efficiency * 3.6e-9,
         }
     measured_forsu = int(route_counts.get("snis_co111", 0))
     fallback_forsu = int(route_counts.get("population_fallback", 0))
@@ -595,18 +572,14 @@ def build_results(
             "measured_co111_municipalities": measured_forsu,
             "population_fallback_municipalities": fallback_forsu,
             "total_municipalities": measured_forsu + fallback_forsu,
-            "measured_share_percent": 100.0
-            * measured_forsu
-            / (measured_forsu + fallback_forsu),
+            "measured_share_percent": 100.0 * measured_forsu / (measured_forsu + fallback_forsu),
             "route_counts": dict(route_counts),
         },
         "es006_reported_municipalities": sum(
-            item["activity"]["es006_treated_sewage_1000m3_2022"] > 0
-            for item in municipalities
+            item["activity"]["es006_treated_sewage_1000m3_2022"] > 0 for item in municipalities
         ),
         "es006_not_reported_municipalities": sum(
-            item["activity"]["es006_treated_sewage_1000m3_2022"] <= 0
-            for item in municipalities
+            item["activity"]["es006_treated_sewage_1000m3_2022"] <= 0 for item in municipalities
         ),
         "poda_urbana": {
             "coverage": "none",
@@ -635,9 +608,7 @@ def build_results(
         },
         "totals": {
             "biomass_gross": _quantity_range(totals["biomass_gross"], "tonne_wet/year"),
-            "biomass_mobilizable": _quantity_range(
-                totals["biomass_mobilizable"], "tonne_wet/year"
-            ),
+            "biomass_mobilizable": _quantity_range(totals["biomass_mobilizable"], "tonne_wet/year"),
             "ch4_practical": _quantity_range(totals["ch4"], "m3_CH4/year"),
             "biogas_practical": _quantity_range(totals["biogas"], "m3_biogas/year"),
             "biomethane": _quantity_range(totals["biomethane"], "m3_biomethane/year"),
@@ -662,9 +633,7 @@ def build_results(
         },
         "spatial_concentration": {
             "medio": compute_spatial_concentration(spatial_input, value_key="ch4_medio"),
-            "frontier": compute_spatial_concentration(
-                spatial_input, value_key="ch4_frontier"
-            ),
+            "frontier": compute_spatial_concentration(spatial_input, value_key="ch4_frontier"),
         },
         "temporal_availability": temporal,
         "provenance": {
@@ -862,8 +831,7 @@ def _write_report(results: dict) -> None:
     ]
     for index, row in enumerate(results["by_sector"], 1):
         lines.append(
-            f"| {index} | {row['sector']} | "
-            f"{row['ch4_practical']['medio']['value']/1e6:.3f} |"
+            f"| {index} | {row['sector']} | " f"{row['ch4_practical']['medio']['value']/1e6:.3f} |"
         )
     lines += [
         "",
@@ -909,13 +877,19 @@ def main() -> None:
     _write_stream_csv(feedstocks)
     if args.write_b2_report:
         _write_report(results)
-    print(json.dumps({
-        "ch4_medio_mm3_day": results["totals"]["ch4_practical"]["medio"]["value"] / 365e6,
-        "municipalities_equal": comparison["municipalities_equal"],
-        "feedstocks_yaml_sha256": results["feedstocks_yaml_sha256"],
-        "canonical_results": str(_CANONICAL_JSON),
-        "archived_b2_report_regenerated": bool(args.write_b2_report),
-    }, ensure_ascii=False, indent=2))
+    print(
+        json.dumps(
+            {
+                "ch4_medio_mm3_day": results["totals"]["ch4_practical"]["medio"]["value"] / 365e6,
+                "municipalities_equal": comparison["municipalities_equal"],
+                "feedstocks_yaml_sha256": results["feedstocks_yaml_sha256"],
+                "canonical_results": str(_CANONICAL_JSON),
+                "archived_b2_report_regenerated": bool(args.write_b2_report),
+            },
+            ensure_ascii=False,
+            indent=2,
+        )
+    )
 
 
 if __name__ == "__main__":

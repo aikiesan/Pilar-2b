@@ -3,7 +3,6 @@ from __future__ import annotations
 import importlib.util
 from pathlib import Path
 
-
 SCRIPT = Path(__file__).resolve().parents[4] / "scripts" / "validate_canonical_consistency.py"
 SPEC = importlib.util.spec_from_file_location("canonical_validator", SCRIPT)
 validator = importlib.util.module_from_spec(SPEC)
@@ -18,7 +17,8 @@ def test_extracts_every_numeric_leaf() -> None:
 
 def test_marker_resolves_scale_and_precision() -> None:
     value = validator.resolve_marker(
-        "totals.ch4.medio", "|scale=1000000|precision=4",
+        "totals.ch4.medio",
+        "|scale=1000000|precision=4",
         {"totals.ch4.medio": 2_740_453.9081},
     )
     assert value == "2.7405"

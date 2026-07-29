@@ -8,10 +8,7 @@ from pathlib import Path
 import yaml
 
 ENERGY_PARAMETERS_PATH = (
-    Path(__file__).resolve().parents[3]
-    / "data"
-    / "canonical_parameters"
-    / "energy.yaml"
+    Path(__file__).resolve().parents[3] / "data" / "canonical_parameters" / "energy.yaml"
 )
 
 
@@ -22,6 +19,4 @@ def load_energy_parameters() -> dict:
 
 
 ENERGY_PARAMETERS = load_energy_parameters()
-UPGRADING_EFFICIENCY = float(
-    ENERGY_PARAMETERS["biomethane"]["upgrading_recovery"]
-)
+UPGRADING_EFFICIENCY = float(ENERGY_PARAMETERS["biomethane"]["upgrading_recovery"])

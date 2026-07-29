@@ -15,7 +15,6 @@ from app.services.canonical_loader import (
     biomass_tons_from_collected_waste,
     biomass_tons_from_units,
     get_params,
-    get_params_for_stream,
     mill_delivery_fraction,
 )
 from app.services.energy_parameters import UPGRADING_EFFICIENCY
@@ -40,9 +39,7 @@ SLUDGE_DRY_SOLIDS_KG_M3: dict[str, Range] = {
 }
 
 _ROOT = Path(__file__).resolve().parents[3]
-SNIS_ACTIVITY_PATH = (
-    _ROOT / "data" / "canonical_parameters" / "snis_sp_activity_2022.csv"
-)
+SNIS_ACTIVITY_PATH = _ROOT / "data" / "canonical_parameters" / "snis_sp_activity_2022.csv"
 
 
 def _range_dict(value: Range) -> dict[str, float]:
@@ -143,10 +140,7 @@ def compute_canonical_municipality(
             scenario: biomass[scenario] * params.availability.get(scenario)
             for scenario in SCENARIOS
         }
-        biomethane = {
-            scenario: ch4[scenario] * UPGRADING_EFFICIENCY
-            for scenario in SCENARIOS
-        }
+        biomethane = {scenario: ch4[scenario] * UPGRADING_EFFICIENCY for scenario in SCENARIOS}
         metric = CanonicalFeedstockMetrics(
             feedstock=label,
             canonical_code=canonical_code,
@@ -158,9 +152,7 @@ def compute_canonical_municipality(
             ch4=ch4,
             biogas=biogas,
             biomethane=biomethane,
-            availability={
-                scenario: params.availability.get(scenario) for scenario in SCENARIOS
-            },
+            availability={scenario: params.availability.get(scenario) for scenario in SCENARIOS},
         )
         output.feedstocks[label] = metric
         for scenario in SCENARIOS:
@@ -231,9 +223,7 @@ def compute_canonical_municipality(
             "livestock",
             "ppm_head_count",
             _range_dict(
-                biomass_tons_from_units(
-                    stream, _number(row.get(f"{stream}_biomass_tons_year"))
-                )
+                biomass_tons_from_units(stream, _number(row.get(f"{stream}_biomass_tons_year")))
             ),
         )
 

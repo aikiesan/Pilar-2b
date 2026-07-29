@@ -18,7 +18,6 @@ from pathlib import Path
 import openpyxl
 import xlrd
 
-
 ROOT = Path(__file__).resolve().parents[2]
 MUNICIPALITIES = ROOT / "docs" / "data" / "municipality_biomass_tons.csv"
 CONTEXT = ROOT.parents[1] / "analysis" / "data" / "02_municipality_summary_SP_2023.csv"
@@ -47,9 +46,7 @@ def _load_base() -> tuple[list[dict[str, str]], dict[str, str], dict[str, float]
 def _read_rs(path: Path) -> dict[str, dict[str, float | None]]:
     with zipfile.ZipFile(path) as archive:
         payload = archive.read("Planilha_Informacoes_RS_2022.xlsx")
-    sheet = openpyxl.load_workbook(
-        io.BytesIO(payload), read_only=True, data_only=True
-    ).active
+    sheet = openpyxl.load_workbook(io.BytesIO(payload), read_only=True, data_only=True).active
     rows = sheet.iter_rows(values_only=True)
     for _ in range(11):
         next(rows)
@@ -67,10 +64,7 @@ def _read_rs(path: Path) -> dict[str, dict[str, float | None]]:
         ibge_code = str(values[1] or "").strip()
         if not ibge_code:
             continue
-        output[ibge_code] = {
-            field.lower(): _number(values[codes[field]])
-            for field in required
-        }
+        output[ibge_code] = {field.lower(): _number(values[codes[field]]) for field in required}
     return output
 
 

@@ -11,16 +11,12 @@ from app.services.canonical_municipality import (
 from app.services.map_metrics import compute_published_municipality_metrics
 from scripts.compute_sp_canonical_totals import _baseline_expected, _guard
 
-
 ROOT = Path(__file__).resolve().parents[4]
 BIOMASS = ROOT / "docs" / "data" / "municipality_biomass_tons.csv"
 
 
 def _rows():
-    return {
-        row["ibge_code"]: row
-        for row in csv.DictReader(BIOMASS.open(encoding="utf-8"))
-    }
+    return {row["ibge_code"]: row for row in csv.DictReader(BIOMASS.open(encoding="utf-8"))}
 
 
 def test_snis_snapshot_has_645_and_explicit_forsu_routes():
@@ -35,8 +31,7 @@ def test_measured_forsu_sludge_and_availability_share_one_instance():
     code = next(
         code
         for code, values in activity.items()
-        if values["co111_rdo_t_2022"] > 0
-        and values["es006_treated_sewage_1000m3_2022"] > 0
+        if values["co111_rdo_t_2022"] > 0 and values["es006_treated_sewage_1000m3_2022"] > 0
     )
     result = compute_canonical_municipality(_rows()[code], activity=activity[code])
     assert result.activity_route == "snis_co111"
@@ -72,13 +67,7 @@ def test_guard_reads_persisted_expected_and_rejects_changed_output(tmp_path):
     baseline = tmp_path / "canonical_results.json"
     baseline.write_text(
         json.dumps(
-            {
-                "totals": {
-                    "ch4_practical": {
-                        "medio": {"value": 123.5, "unit": "m3_CH4/year"}
-                    }
-                }
-            }
+            {"totals": {"ch4_practical": {"medio": {"value": 123.5, "unit": "m3_CH4/year"}}}}
         ),
         encoding="utf-8",
     )

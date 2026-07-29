@@ -36,11 +36,11 @@ from app.services.biogas_forward import (
     FeedstockParams,
     calculate_feedstock,
 )
+from app.services.biomass_availability import number_value
 from app.services.canonical_loader import (
     biomass_tons_from_collected_waste,
     biomass_tons_from_units,
 )
-from app.services.biomass_availability import number_value
 from app.services.energy_parameters import UPGRADING_EFFICIENCY
 
 # Streams with authoritative biomass tonnage loaded from master CSV (agricultural)
@@ -119,9 +119,7 @@ class MunicipalityMapMetrics:
             "biomass_gross_total_tons_yr": round(self.biomass_gross_total, 2),
         }
         for sc in SCENARIOS:
-            out[f"biomass_gross_{sc}_tons_yr"] = round(
-                self.biomass_gross_total_by_scenario[sc], 2
-            )
+            out[f"biomass_gross_{sc}_tons_yr"] = round(self.biomass_gross_total_by_scenario[sc], 2)
             out[f"biomass_corrected_{sc}_tons_yr"] = round(self.biomass_corrected_total[sc], 2)
             out[f"biogas_{sc}_m3_yr"] = round(self.biogas_total[sc], 2)
             out[f"biogas_ch4_{sc}_m3_yr"] = round(self.biogas_ch4_total[sc], 2)
@@ -193,13 +191,11 @@ def load_activity_counts(cursor: Any, ibge_codes: list[str]) -> dict[str, dict[s
     """Load the latest activity drivers used by every canonical public surface."""
     if not ibge_codes:
         return {}
-    cursor.execute(
-        """
+    cursor.execute("""
         SELECT 1 FROM information_schema.tables
         WHERE table_schema = 'public' AND table_name = 'municipality_timeseries'
         LIMIT 1
-        """
-    )
+        """)
     if cursor.fetchone() is None:
         return {}
     cursor.execute(
@@ -275,13 +271,9 @@ def compute_published_municipality_metrics(
             for scenario in SCENARIOS
         }
         biogas = {
-            scenario: sum(member.biogas[scenario] for member in members)
-            for scenario in SCENARIOS
+            scenario: sum(member.biogas[scenario] for member in members) for scenario in SCENARIOS
         }
-        ch4 = {
-            scenario: sum(member.ch4[scenario] for member in members)
-            for scenario in SCENARIOS
-        }
+        ch4 = {scenario: sum(member.ch4[scenario] for member in members) for scenario in SCENARIOS}
         biomethane = {
             scenario: sum(member.biomethane[scenario] for member in members)
             for scenario in SCENARIOS
@@ -473,9 +465,7 @@ def compute_municipality_map_metrics(
 
     # Round totals
     metrics.biomass_gross_total = round(metrics.biomass_gross_total, 2)
-    metrics.biomass_gross_total_by_scenario = {
-        sc: metrics.biomass_gross_total for sc in SCENARIOS
-    }
+    metrics.biomass_gross_total_by_scenario = {sc: metrics.biomass_gross_total for sc in SCENARIOS}
     for sc in SCENARIOS:
         metrics.biomass_corrected_total[sc] = round(metrics.biomass_corrected_total[sc], 2)
         metrics.biogas_ch4_total[sc] = round(metrics.biogas_ch4_total[sc], 2)

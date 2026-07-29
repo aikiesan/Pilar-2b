@@ -366,9 +366,7 @@ async def get_municipalities_geojson(
             allow_reverse_fallback=_ALLOW_REVERSE_FALLBACK,
         )
         try:
-            computed_metrics = compute_published_municipality_metrics(
-                row, activity=activity
-            )
+            computed_metrics = compute_published_municipality_metrics(row, activity=activity)
             canonical_metrics = computed_metrics.to_flat_dict()
             published_biogas = computed_metrics.to_published_biogas_dict()
         except Exception as exc:
@@ -393,9 +391,7 @@ async def get_municipalities_geojson(
             "intermediate_region": _f(row, "intermediate_region", ""),
             "immediate_region_code": _f(row, "immediate_region_code", ""),
             "intermediate_region_code": _f(row, "intermediate_region_code", ""),
-            "potential_category": _cat(
-                float(published_biogas.get("total_biogas_m3_year", 0.0))
-            ),
+            "potential_category": _cat(float(published_biogas.get("total_biogas_m3_year", 0.0))),
         }
 
         # Cluster context exists only for SP (LEFT JOIN on municipality_summary);

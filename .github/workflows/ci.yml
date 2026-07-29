@@ -128,7 +128,11 @@ jobs:
           cache: 'pip'
           cache-dependency-path: ./cp2b-workspace/NewLook/backend/requirements.txt
       - name: Install dependencies
-        run: pip install -r requirements.txt black isort flake8
+        # Pinned exactly. Unpinned formatters make this job non-deterministic:
+        # a new black release reformats code and turns the build red with no
+        # commit behind it. requirements.txt carries black>=26.5.1 (a floor, for
+        # CVE coverage), so the pin here is what actually decides the version.
+        run: pip install -r requirements.txt black==26.5.1 isort==8.0.1 flake8==7.3.0
       - name: Black format check
         run: black . --check
       - name: isort import check

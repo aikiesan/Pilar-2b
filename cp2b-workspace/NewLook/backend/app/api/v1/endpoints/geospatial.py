@@ -54,6 +54,7 @@ def _forsu_publication_coverage() -> dict:
     with CANONICAL_RESULTS_PATH.open(encoding="utf-8") as handle:
         return json.load(handle)["coverage"]["forsu"]
 
+
 # ============================================================================
 # SECURITY: Input Validation Constants
 # ============================================================================
