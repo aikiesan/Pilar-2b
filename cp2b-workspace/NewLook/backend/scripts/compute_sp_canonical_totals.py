@@ -14,6 +14,15 @@ from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
 
+# The report below prints U+03B7 (eta) and U+2192 (right arrow), neither of which
+# cp1252 can encode. A Windows console defaults to cp1252, so without this the
+# script aborts with UnicodeEncodeError after computing everything but before
+# printing any of it. Force UTF-8 on the output streams so the script runs to
+# completion without requiring PYTHONIOENCODING in the environment.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8")
+
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import yaml  # noqa: E402
