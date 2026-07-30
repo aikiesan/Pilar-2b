@@ -944,7 +944,17 @@ async def get_summary_statistics():
                         COALESCE(SUM(agricultural_biogas_m3_year), 0) AS total_agri,
                         COALESCE(SUM(livestock_biogas_m3_year), 0) AS total_live,
                         COALESCE(SUM(urban_biogas_m3_year), 0) AS total_urban,
-                        COALESCE(SUM(forestry_biogas_m3_year), 0) AS total_forest
+                        COALESCE(SUM(forestry_biogas_m3_year), 0) AS total_forest,
+                        COALESCE(SUM(ch4_real_m3_year), 0) AS ch4_real,
+                        COALESCE(SUM(ch4_ideal_m3_year), 0) AS ch4_ideal,
+                        COALESCE(SUM(ch4_real_agricultural_m3_year), 0) AS real_agri,
+                        COALESCE(SUM(ch4_real_livestock_m3_year), 0) AS real_live,
+                        COALESCE(SUM(ch4_real_urban_m3_year), 0) AS real_urban,
+                        COALESCE(SUM(ch4_real_forestry_m3_year), 0) AS real_forest,
+                        COALESCE(SUM(ch4_ideal_agricultural_m3_year), 0) AS ideal_agri,
+                        COALESCE(SUM(ch4_ideal_livestock_m3_year), 0) AS ideal_live,
+                        COALESCE(SUM(ch4_ideal_urban_m3_year), 0) AS ideal_urban,
+                        COALESCE(SUM(ch4_ideal_forestry_m3_year), 0) AS ideal_forest
                     FROM municipalities
                     WHERE ibge_code::text LIKE '35%'
                 """)
@@ -971,6 +981,58 @@ async def get_summary_statistics():
         total_live = float(stats["total_live"] or 0)
         total_urban = float(stats["total_urban"] or 0)
         total_forest = float(stats["total_forest"] or 0)
+
+        # Cenário Real / Cenário Ideal — the two tiers the Atlas de Bioenergia SP
+        # 2020 publishes, adopted so PILAR-2b is comparable to the state's own
+        # reference study instead of being read against a figure built on other
+        # rules. Ideal is an INFRASTRUCTURE assumption (100% of what is generated
+        # gets collected), not relaxed chemistry: BMP, TS, VS and CH4 fraction are
+        # identical in both. Parameter provenance lives in scenario_parameters.
+        def _tier(total: float, agri: float, live: float, urban: float, forest: float) -> dict:
+            return {
+                "ch4_m3_year": round(total, 2),
+                "ch4_m3_day": round(total / DAYS_PER_YEAR, 2),
+                "biomethane_m3_year": round(total, 2),
+                "biomethane_m3_day": round(total / DAYS_PER_YEAR, 2),
+                "raw_biogas_m3_year": round(total / CH4_FRACTION_OF_BIOGAS, 2),
+                "raw_biogas_m3_day": round(total / CH4_FRACTION_OF_BIOGAS / DAYS_PER_YEAR, 2),
+                "energy_mwh_year": round(total * CH4_LHV_KWH_PER_M3 / 1000.0, 2),
+                "sector_breakdown": {
+                    "agricultural": round(agri, 2),
+                    "livestock": round(live, 2),
+                    "urban": round(urban, 2),
+                    "forestry": round(forest, 2),
+                },
+            }
+
+        f = lambda k: float(stats[k] or 0)  # noqa: E731
+        scenarios = {
+            "real": {
+                **_tier(
+                    f("ch4_real"), f("real_agri"), f("real_live"), f("real_urban"), f("real_forest")
+                ),
+                "label": "Cenário Real (curto prazo)",
+                "description": (
+                    "Resíduo que efetivamente chega a um digestor hoje: taxas de "
+                    "coleta e usos concorrentes atuais."
+                ),
+            },
+            "ideal": {
+                **_tier(
+                    f("ch4_ideal"),
+                    f("ideal_agri"),
+                    f("ideal_live"),
+                    f("ideal_urban"),
+                    f("ideal_forest"),
+                ),
+                "label": "Cenário Ideal (fronteira)",
+                "description": (
+                    "100% do resíduo gerado coletado e tratado (Atlas de Bioenergia "
+                    "SP 2020). Hipótese de infraestrutura — a química é a mesma do "
+                    "Cenário Real."
+                ),
+            },
+        }
 
         logger.info(f"✅ Summary statistics: {n} municipalities")
 
@@ -1004,6 +1066,7 @@ async def get_summary_statistics():
             "total_biomethane_m3_year": total_biogas,
             "total_biomethane_m3_day": round(total_biogas / DAYS_PER_YEAR, 2),
             "total_energy_mwh_day": round(total_energy / DAYS_PER_YEAR, 2),
+            "scenarios": scenarios,
             "average_biogas_m3_year": round(avg_biogas, 2),
             "total_energy_mwh_year": round(total_energy, 2),
             "total_co2_reduction_tons_year": round(total_co2, 2),
@@ -1075,6 +1138,7 @@ async def get_summary_statistics():
             "top_5_municipalities": [],
             "categories": {},
             "sector_breakdown": {"agricultural": 0, "livestock": 0, "urban": 0, "forestry": 0},
+            "scenarios": {},
             "sector_percentages": {"agricultural": 0, "livestock": 0, "urban": 0, "forestry": 0},
             "error": "Failed to load data",
             "note": "Erro ao carregar dados - usando valores padrão",

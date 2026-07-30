@@ -613,7 +613,11 @@ export default function MapComponent({
               key={key}
               type="button"
               onClick={() => setMapScenario(key)}
-              title={key === 'fronteira' ? t('scenario_fronteira_tip') : undefined}
+              title={
+                key === 'fronteira' || key === 'real' || key === 'ideal'
+                  ? t(`scenario_${key}_tip`)
+                  : undefined
+              }
               className={`rounded-full px-3 py-1 text-[11px] font-medium transition-all ${
                 mapScenario === key ? 'text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100'
               }`}
@@ -874,7 +878,7 @@ export default function MapComponent({
               <>
                 {/* Desktop — always expanded */}
                 <div className="hidden md:block">
-                  <MapLegend displayMetric={displayMetric} daltonic={daltonic} showNationalBeta={showNationalBeta} />
+                  <MapLegend displayMetric={displayMetric} daltonic={daltonic} showNationalBeta={showNationalBeta} scenario={mapScenario} />
                 </div>
                 {/* Mobile — chip + expandable legend */}
                 <div className="md:hidden">
@@ -888,7 +892,7 @@ export default function MapComponent({
                       >
                         <span className="block h-3 w-3 text-[10px] leading-3 text-gray-500">×</span>
                       </button>
-                      <MapLegend displayMetric={displayMetric} daltonic={daltonic} showNationalBeta={showNationalBeta} />
+                      <MapLegend displayMetric={displayMetric} daltonic={daltonic} showNationalBeta={showNationalBeta} scenario={mapScenario} />
                     </div>
                   ) : (
                     <button

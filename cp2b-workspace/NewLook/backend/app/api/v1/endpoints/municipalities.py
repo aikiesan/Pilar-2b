@@ -255,6 +255,7 @@ def _geojson_select_sql(
                     m.poultry_biomass_tons_year,
                     m.aquaculture_biomass_tons_year, m.rsu_biomass_tons_year,
                     m.rpo_biomass_tons_year,
+                    m.ch4_real_m3_year, m.ch4_ideal_m3_year,
                     {cluster_cols}
                 FROM municipalities m{join}
                 WHERE m.geometry IS NOT NULL
@@ -437,6 +438,13 @@ async def get_municipalities_geojson(
             "aquaculture_biogas_m3_year": _f(row, "aquaculture_biogas_m3_year"),
             "rsu_biogas_m3_year": _f(row, "rsu_biogas_m3_year"),
             "rpo_biogas_m3_year": _f(row, "rpo_biogas_m3_year"),
+            # Cenário Real / Cenário Ideal (migration 026). These deliberately do
+            # NOT match _DETAIL_ONLY_RE's `_biogas_m3_year` suffix: the map paints
+            # them, so they must survive the fields=map trim. Named for what they
+            # hold — methane — unlike the legacy columns above. The map derives
+            # biogás and bioenergia from them client-side, so only these two travel.
+            "ch4_real_m3_year": _f(row, "ch4_real_m3_year"),
+            "ch4_ideal_m3_year": _f(row, "ch4_ideal_m3_year"),
             **canonical_metrics,
         }
         properties.update({k: v for k, v in metric_fields.items() if v})

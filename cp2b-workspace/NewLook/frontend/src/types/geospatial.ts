@@ -88,6 +88,10 @@ export interface MunicipalityProperties {
   // biomethane/biogas_ch4 ≈ 0.97 (methane recovery); biomethane/biogas ≈ 0.53
   // (volumetric yield, since upgrading strips the CO2).
   biogas_min_m3_yr?: number | null;
+  /** Cenário Real / Cenário Ideal — CH₄ Nm³/ano served whole (migration 026).
+   *  São Paulo only; absent elsewhere, which the map paints as no-data. */
+  ch4_real_m3_year?: number | null;
+  ch4_ideal_m3_year?: number | null;
   biogas_medio_m3_yr?: number | null;
   biogas_max_m3_yr?: number | null;
   biogas_ch4_min_m3_yr?: number | null;

@@ -11,6 +11,8 @@ import type { DisplayMetric } from '@/types/geospatial';
 import { getMetricSpec, legendItems as buildLegendItems, CVD_PALETTES, type CvdPaletteId } from '@/lib/mapMetrics';
 import { BETA_FILL } from '@/lib/mapScope';
 import { useCvdPalette } from '@/hooks/useCvdPalette';
+import { useTranslations } from 'next-intl';
+import { isServedScenario, SCENARIO_COLOR, type MapScenarioKey } from '@/data/scenarioFactors';
 
 // 'Zero' and 'Sem dados' are deliberately separate: the near-white swatch is a
 // real zero (we looked; there is none), the grey is no_data (never loaded). The
@@ -21,17 +23,26 @@ export default function MapLegend({
   displayMetric = 'biomass_tons',
   daltonic = false,
   showNationalBeta = false,
+  scenario = 'baseline',
 }: {
   displayMetric?: DisplayMetric;
   daltonic?: boolean;
   /** Adds the beta swatch when the national layer is on the map. */
   showNationalBeta?: boolean;
+  /** Active scenario — named in the header so the numbers are never ambiguous. */
+  scenario?: MapScenarioKey;
 }) {
+  const t = useTranslations('Map');
   const [cvdPalette, setCvdPalette] = useCvdPalette();
   const spec = getMetricSpec(displayMetric);
   const legendItems = buildLegendItems(spec, daltonic, cvdPalette);
   const title = spec.legendTitle;
   const [isCollapsed, setIsCollapsed] = useState(false);
+
+  // Biomassa is the resource itself and does not move with the scenario, so
+  // naming one over it would imply a dependency that is not there.
+  const scenarioApplies = displayMetric !== 'biomass_tons';
+  const served = isServedScenario(scenario);
 
   return (
     <div>
@@ -46,6 +57,14 @@ export default function MapLegend({
             <span className="block text-[9px] font-bold text-green-700 normal-case tracking-normal">
               São Paulo
             </span>
+            {scenarioApplies && (
+              <span
+                className="mt-0.5 block text-[9px] font-bold normal-case tracking-normal"
+                style={{ color: SCENARIO_COLOR[scenario] }}
+              >
+                {t(`scenario_${scenario}`)}
+              </span>
+            )}
           </span>
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
@@ -134,6 +153,17 @@ export default function MapLegend({
                     Fora de SP — em validação
                   </span>
                 </div>
+              </div>
+            )}
+
+            {/* Real and Ideal are loaded for São Paulo only (migration 026), so
+                outside SP every municipality reads no-data under them. Saying so
+                here stops that being mistaken for "measured, and it is zero". */}
+            {scenarioApplies && served && (
+              <div className="pt-1.5 mt-1 border-t border-gray-100">
+                <p className="px-1.5 text-[9px] leading-snug text-gray-500">
+                  {t('scenario_served_note')}
+                </p>
               </div>
             )}
           </div>

@@ -1,0 +1,148 @@
+{
+  "escopo": "Estado de São Paulo (645 municípios)",
+  "base_volumetrica": "CH4",
+  "convencoes": {
+    "ch4_fracao_biogas": 0.625,
+    "fonte_fracao": "FIESP 2025",
+    "lhv_ch4_kwh_m3": 9.94,
+    "eficiencia_eletrica": 0.38,
+    "dias_ano": 365
+  },
+  "biomassa": {
+    "derivada_t_ano": 329518959,
+    "derivada_t_dia": 902792,
+    "corrigida_suino_t_ano": 231553949,
+    "corrigida_suino_t_dia": 634394,
+    "armazenada_invalida_t_ano": 493618963,
+    "nota": "armazenada soma massa agrícola + contagem animal; não usar"
+  },
+  "potencial_teorico": {
+    "ch4_m3_ano": 19900698323,
+    "ch4_m3_dia": 54522461,
+    "biogas_m3_ano": 31841117317,
+    "biogas_m3_dia": 87235938,
+    "biometano_m3_ano": 19900698323,
+    "biometano_m3_dia": 54522461,
+    "energia_termica_gwh_ano": 197812.9,
+    "energia_eletrica_gwh_ano": 75168.9
+  },
+  "potencial_mobilizavel": {
+    "ch4_m3_ano": 3037463853,
+    "ch4_m3_dia": 8321819,
+    "biogas_m3_ano": 4859942165,
+    "biogas_m3_dia": 13314910,
+    "biometano_m3_ano": 3037463853,
+    "biometano_m3_dia": 8321819,
+    "energia_termica_gwh_ano": 30192.4,
+    "energia_eletrica_gwh_ano": 11473.1,
+    "fde_efetivo_pct": 15.3,
+    "faixa_ch4_m3_ano": [
+      1846214705,
+      4543010314
+    ],
+    "faixa_ch4_m3_dia": [
+      5058122,
+      12446604
+    ],
+    "faixa_biogas_m3_ano": [
+      2953943528,
+      7268816502
+    ],
+    "faixa_energia_eletrica_gwh_ano": [
+      6973.5,
+      17159.9
+    ],
+    "multiplo_da_capacidade_instalada": 20.8
+  },
+  "benchmarks_biometano_SP": [
+    {
+      "fonte": "GEF Biogás Brasil",
+      "ano": 2023,
+      "mi_nm3_dia": 42.5,
+      "bi_nm3_ano": 15.5,
+      "tipo": "potencial"
+    },
+    {
+      "fonte": "ABiogás",
+      "ano": 2020,
+      "mi_nm3_dia": 36.4,
+      "bi_nm3_ano": 13.3,
+      "tipo": "potencial"
+    },
+    {
+      "fonte": "Coelho et al. (IEE-USP)",
+      "ano": 2020,
+      "mi_nm3_dia": 23.6,
+      "bi_nm3_ano": 8.6,
+      "tipo": "potencial"
+    },
+    {
+      "fonte": "SEMIL/SP",
+      "ano": 2023,
+      "mi_nm3_dia": 9.8,
+      "bi_nm3_ano": 3.6,
+      "tipo": "potencial"
+    },
+    {
+      "fonte": "PILAR-2b mobilizável",
+      "ano": 2026,
+      "mi_nm3_dia": 8.3,
+      "bi_nm3_ano": 3.04,
+      "tipo": "potencial"
+    },
+    {
+      "fonte": "Instituto 17 / BEP-UK",
+      "ano": 2021,
+      "mi_nm3_dia": 8.2,
+      "bi_nm3_ano": 3.0,
+      "tipo": "potencial"
+    },
+    {
+      "fonte": "Capacidade instalada ou em instalação (ANP)",
+      "ano": 2024,
+      "mi_nm3_dia": 0.4,
+      "bi_nm3_ano": 0.14,
+      "tipo": "realizado"
+    }
+  ],
+  "potencial_teorico_corrigido_rsu": {
+    "ch4_m3_ano": 18748904310,
+    "ch4_m3_dia": 51366861,
+    "biogas_m3_ano": 29998246896,
+    "biogas_m3_dia": 82186978,
+    "biometano_m3_ano": 18748904310,
+    "biometano_m3_dia": 51366861,
+    "energia_termica_gwh_ano": 186364.1,
+    "energia_eletrica_gwh_ano": 70818.4
+  },
+  "potencial_mobilizavel_corrigido_rsu": {
+    "ch4_m3_ano": 2665434387,
+    "ch4_m3_dia": 7302560,
+    "biogas_m3_ano": 4264695019,
+    "biogas_m3_dia": 11684096,
+    "biometano_m3_ano": 2665434387,
+    "biometano_m3_dia": 7302560,
+    "energia_termica_gwh_ano": 26494.4,
+    "energia_eletrica_gwh_ano": 10067.9,
+    "fde_efetivo_pct": 14.2,
+    "faixa_ch4_m3_dia": [
+      4038864,
+      11427345
+    ],
+    "faixa_biogas_m3_dia": [
+      6462182,
+      18283752
+    ]
+  },
+  "correcao_rsu": {
+    "fonte": "Atlas de Bioenergia SP 2020, Cap.V Eq.V.5-V.8 + Tabela V.6",
+    "motivo": "massa FORSU implicita (16.63 Mt) excedia todo o RSU gerado em SP (15.65 Mt)",
+    "ch4_antes": 1556169771,
+    "ch4_depois": 404375758,
+    "razao": 3.85,
+    "mo_fracao": 0.4646,
+    "fmo_nm3_t": 101.5,
+    "ch4_biodigestao": 0.55,
+    "pureza_biometano": 0.97
+  }
+}

@@ -19,7 +19,12 @@ import type {
   MunicipalityProperties,
 } from '@/types/geospatial';
 import type { BiomassType, ResidueType } from '@/components/map/FloatingControlPanel';
-import type { MapScenarioKey } from '@/data/scenarioFactors';
+import {
+  isServedScenario,
+  SERVED_SCENARIO_FIELD,
+  CH4_FRACTION_OF_BIOGAS,
+  type MapScenarioKey,
+} from '@/data/scenarioFactors';
 import { getSectorBiomassTons } from './biomassAvailability';
 
 export const NO_DATA: BiomassCoverage = 'no_data';
@@ -121,10 +126,30 @@ function pickScenario(
  * unit, not the volumetric yield a reader expects from biogas. Against real raw
  * biogas the ratio is ~0.53, because upgrading strips the CO2.
  */
+/**
+ * CH₄ (m³/year) for a served scenario, or null when this municipality has none.
+ *
+ * Real and Ideal come whole from the backend rather than from the BMP band, so
+ * they bypass pickScenario entirely. Only São Paulo's 645 rows carry them
+ * (migration 026 loads SP only), so outside SP this returns null and the caller
+ * paints NO_DATA — which is the honest reading, not a zero.
+ */
+function servedCh4(props: MunicipalityProperties, scenario: MapScenarioKey): number | null {
+  if (!isServedScenario(scenario)) return null;
+  const v = num((props as unknown as Record<string, unknown>)[SERVED_SCENARIO_FIELD[scenario]]);
+  return v !== null && v > 0 ? v : null;
+}
+
 export function getBiogasScenarioValue(
   props: MunicipalityProperties,
   scenario: MapScenarioKey
 ): MapValue {
+  if (isServedScenario(scenario)) {
+    const ch4 = servedCh4(props, scenario);
+    return ch4 === null
+      ? { value: null, coverage: NO_DATA }
+      : { value: ch4 / CH4_FRACTION_OF_BIOGAS, coverage: 'measured' };
+  }
   const medio = num(props.biogas_medio_m3_yr);
   if (medio === null) return { value: null, coverage: NO_DATA };
   const coverage = (props.total_biomass_coverage as BiomassCoverage) ?? 'estimated';
@@ -139,6 +164,10 @@ export function getMethaneScenarioValue(
   props: MunicipalityProperties,
   scenario: MapScenarioKey
 ): MapValue {
+  if (isServedScenario(scenario)) {
+    const ch4 = servedCh4(props, scenario);
+    return ch4 === null ? { value: null, coverage: NO_DATA } : { value: ch4, coverage: 'measured' };
+  }
   const medio = num(props.biogas_ch4_medio_m3_yr);
   if (medio === null) return { value: null, coverage: NO_DATA };
   const coverage = (props.total_biomass_coverage as BiomassCoverage) ?? 'estimated';
@@ -157,6 +186,13 @@ export function getBiomethaneScenarioValue(
   props: MunicipalityProperties,
   scenario: MapScenarioKey
 ): MapValue {
+  // Under the FIESP convention the biomethane volume EQUALS the methane volume —
+  // 0.625 is already the CH₄ fraction of biogas, so applying it again would
+  // double-count. The backend serves these two identical for the same reason.
+  if (isServedScenario(scenario)) {
+    const ch4 = servedCh4(props, scenario);
+    return ch4 === null ? { value: null, coverage: NO_DATA } : { value: ch4, coverage: 'measured' };
+  }
   const medio = num(props.biomethane_medio_m3_yr);
   if (medio === null) return { value: null, coverage: NO_DATA };
   const coverage = (props.total_biomass_coverage as BiomassCoverage) ?? 'estimated';
@@ -206,6 +242,14 @@ export function getSectorScenarioValue(
   metric: 'biogas' | 'biomethane',
   scenario: MapScenarioKey
 ): number | null {
+  // Real and Ideal have their own per-sector columns in the database
+  // (ch4_{tier}_{sector}_m3_year, migration 026), but those are NOT shipped in the
+  // map payload — eight more fields across 5,571 features for something only a
+  // single opened municipality reads. Returning null here makes the sector rows
+  // render as "sem dados" rather than silently falling through to the band
+  // scenario's split, which would show a breakdown that does not add up to the
+  // total being displayed beside it.
+  if (isServedScenario(scenario)) return null;
   const stem = metric === 'biogas' ? 'biogas_ch4' : 'biomethane';
   const medio = num(props[`${sector}_${stem}_medio_m3_yr` as keyof MunicipalityProperties]);
   if (medio === null) return null;
