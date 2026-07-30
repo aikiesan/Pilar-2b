@@ -878,7 +878,7 @@ export default function MapComponent({
               <>
                 {/* Desktop — always expanded */}
                 <div className="hidden md:block">
-                  <MapLegend displayMetric={displayMetric} daltonic={daltonic} showNationalBeta={showNationalBeta} />
+                  <MapLegend displayMetric={displayMetric} daltonic={daltonic} showNationalBeta={showNationalBeta} scenario={mapScenario} />
                 </div>
                 {/* Mobile — chip + expandable legend */}
                 <div className="md:hidden">
@@ -892,7 +892,7 @@ export default function MapComponent({
                       >
                         <span className="block h-3 w-3 text-[10px] leading-3 text-gray-500">×</span>
                       </button>
-                      <MapLegend displayMetric={displayMetric} daltonic={daltonic} showNationalBeta={showNationalBeta} />
+                      <MapLegend displayMetric={displayMetric} daltonic={daltonic} showNationalBeta={showNationalBeta} scenario={mapScenario} />
                     </div>
                   ) : (
                     <button

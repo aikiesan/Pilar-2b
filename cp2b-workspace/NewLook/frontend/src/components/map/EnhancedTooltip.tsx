@@ -8,7 +8,12 @@
 import React from 'react';
 import { TrendingUp, Users, Maximize, Factory, Leaf, Droplets } from 'lucide-react';
 import type { DisplayMetric, MunicipalityFeature } from '@/types/geospatial';
-import type { MapScenarioKey } from '@/data/scenarioFactors';
+import {
+  isServedScenario,
+  SCENARIO_COLOR,
+  SCENARIO_LABEL,
+  type MapScenarioKey,
+} from '@/data/scenarioFactors';
 import { getSectorMetricValue } from '@/lib/mapValues';
 import { useMunicipalityMetrics } from '@/hooks/useGeospatialData';
 import { getMetricSpec, formatCompact } from '@/lib/mapMetrics';
@@ -58,6 +63,8 @@ export default function EnhancedTooltip({
   // to biogás regardless of the toggle. Same legacy-column family as the
   // statistics/summary endpoint.
   const spec = getMetricSpec(metric);
+  // Biomassa is the resource, not an availability figure — no scenario applies.
+  const scenarioApplies = metric !== 'biomass_tons';
   const sectors = {
     agricultural: getSectorMetricValue(props, 'agricultural', metric, scenario),
     livestock: getSectorMetricValue(props, 'livestock', metric, scenario),
@@ -68,8 +75,16 @@ export default function EnhancedTooltip({
   const livestockValue = toDisplay(sectors.livestock);
   const urbanValue = toDisplay(sectors.urban);
 
+  // Under Real/Ideal the sector split is not shipped in the map payload, so the
+  // three parts are null and summing them would render a real potential as
+  // "Sem dados". Take the total from the metric spec instead — it reads the
+  // served ch4_{tier}_m3_year column and is the same number the choropleth paints.
+  const served = isServedScenario(scenario);
+  const servedTotal = served
+    ? toDisplay(spec.rawValue(props, { biomassType: 'total', selectedResidues: [], scenario }).value)
+    : null;
   const metricTotal =
-    (agriculturalValue ?? 0) + (livestockValue ?? 0) + (urbanValue ?? 0);
+    servedTotal ?? (agriculturalValue ?? 0) + (livestockValue ?? 0) + (urbanValue ?? 0);
   const share = (v: number | null) =>
     metricTotal > 0 && v !== null ? (v / metricTotal) * 100 : 0;
   const agriculturePercent = share(agriculturalValue);
@@ -120,6 +135,14 @@ export default function EnhancedTooltip({
             <span className="text-xs font-semibold text-blue-700 dark:text-blue-300">
               {spec.icon} {spec.toggleLabel}
             </span>
+            {scenarioApplies && (
+              <span
+                className="rounded-full px-1.5 py-0.5 text-[10px] font-bold text-white"
+                style={{ backgroundColor: SCENARIO_COLOR[scenario] }}
+              >
+                {SCENARIO_LABEL[scenario]}
+              </span>
+            )}
           </div>
           <div className="text-2xl font-bold text-blue-900 dark:text-blue-100">
             {metricTotal > 0 ? formatCompact(metricTotal) : 'Sem dados'}
@@ -134,6 +157,15 @@ export default function EnhancedTooltip({
           <div className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
             Composição:
           </div>
+          {/* The per-sector split for Real/Ideal exists in the database but is not
+              shipped in the map payload, so the bars below would all read zero.
+              Say why, rather than render an empty section that looks like a bug. */}
+          {served && (
+            <p className="text-[11px] leading-snug text-gray-500 dark:text-gray-400">
+              Desdobramento por setor não disponível neste cenário — consulte o
+              painel do município.
+            </p>
+          )}
           {agriculturePercent > 0 && (
             <MiniProgressBar
               icon={<Leaf className="w-3 h-3" />}

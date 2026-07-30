@@ -242,6 +242,14 @@ export function getSectorScenarioValue(
   metric: 'biogas' | 'biomethane',
   scenario: MapScenarioKey
 ): number | null {
+  // Real and Ideal have their own per-sector columns in the database
+  // (ch4_{tier}_{sector}_m3_year, migration 026), but those are NOT shipped in the
+  // map payload — eight more fields across 5,571 features for something only a
+  // single opened municipality reads. Returning null here makes the sector rows
+  // render as "sem dados" rather than silently falling through to the band
+  // scenario's split, which would show a breakdown that does not add up to the
+  // total being displayed beside it.
+  if (isServedScenario(scenario)) return null;
   const stem = metric === 'biogas' ? 'biogas_ch4' : 'biomethane';
   const medio = num(props[`${sector}_${stem}_medio_m3_yr` as keyof MunicipalityProperties]);
   if (medio === null) return null;

@@ -7,7 +7,7 @@ import type { ResidueType, BiomassType } from './FloatingControlPanel';
 import type { VisualizationMode } from './LeftFilterPanel';
 import type { DisplayMetric, ResidueCNMatrix, ColorMode } from '@/types/geospatial';
 import { DISPLAY_METRICS, METRIC_SPECS } from '@/lib/mapMetrics';
-import { MAP_SCENARIOS, type MapScenarioKey } from '@/data/scenarioFactors';
+import { MAP_SCENARIOS, SCENARIO_LABEL, type MapScenarioKey } from '@/data/scenarioFactors';
 
 interface Layer {
   id: string;
@@ -46,14 +46,8 @@ interface MobileBottomSheetProps {
 
 type ActiveSheet = 'filters' | 'layers' | null;
 
-const SCENARIO_LABELS: Record<MapScenarioKey, string> = {
-  baseline: 'Médio Prazo',
-  conservador: 'Conservador',
-  fronteira: 'Fronteira',
-  otimista: 'Otimista',
-  real: 'Real',
-  ideal: 'Ideal',
-};
+// Labels come from scenarioFactors so the sheet, the legend and the tooltip agree.
+const SCENARIO_LABELS = SCENARIO_LABEL;
 
 const RESIDUE_META = [
   { value: 'sugarcane' as const, category: 'agricultural' as const, icon: '🌾' },
