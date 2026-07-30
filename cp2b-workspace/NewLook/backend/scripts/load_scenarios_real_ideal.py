@@ -137,17 +137,49 @@ def por_municipio(row: dict, tier: str) -> dict[str, float]:
     }
 
 
+def resolve_master() -> Path | None:
+    """Find the canonical master, preferring copies that exist on a deployed VM.
+
+    ``data/raw/`` is gitignored (.gitignore:34), so the abiove_sp_processed copy —
+    the natural one to reach for locally — is never present after a deploy. Two
+    byte-identical copies ARE tracked; both are checked here so the runbook does
+    not depend on which path someone happens to type.
+    """
+    backend = Path(__file__).resolve().parent.parent
+    newlook = backend.parent
+    for p in (
+        newlook / "data" / "canonical_parameters" / "SP_master_residue_streams_2023_FINAL.csv",
+        newlook / "docs" / "data" / "SP_master_residue_streams_2023_FINAL.csv",
+        newlook
+        / "data"
+        / "raw"
+        / "abiove_sp_processed"
+        / "SP_master_residue_streams_2023_FINAL.csv",
+    ):
+        if p.is_file():
+            return p
+    return None
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--master", type=Path, required=True)
+    ap.add_argument("--master", type=Path, default=None)
     ap.add_argument("--dsn", default=os.environ.get("DATABASE_URL"))
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()
     if not args.dsn:
         raise SystemExit("set --dsn or DATABASE_URL")
 
+    master_path = args.master or resolve_master()
+    if master_path is None or not master_path.is_file():
+        raise SystemExit(
+            "master canonico nao encontrado. Passe --master, ou verifique "
+            "data/canonical_parameters/SP_master_residue_streams_2023_FINAL.csv"
+        )
+    print(f"master: {master_path}")
+
     master = {}
-    with args.master.open(encoding="utf-8-sig") as fh:
+    with master_path.open(encoding="utf-8-sig") as fh:
         for r in csv.DictReader(fh):
             code = (r.get("CD_GEOCODI") or "").strip()
             if code:
