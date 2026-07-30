@@ -104,5 +104,45 @@
       "bi_nm3_ano": 0.14,
       "tipo": "realizado"
     }
-  ]
+  ],
+  "potencial_teorico_corrigido_rsu": {
+    "ch4_m3_ano": 18748904310,
+    "ch4_m3_dia": 51366861,
+    "biogas_m3_ano": 29998246896,
+    "biogas_m3_dia": 82186978,
+    "biometano_m3_ano": 18748904310,
+    "biometano_m3_dia": 51366861,
+    "energia_termica_gwh_ano": 186364.1,
+    "energia_eletrica_gwh_ano": 70818.4
+  },
+  "potencial_mobilizavel_corrigido_rsu": {
+    "ch4_m3_ano": 2665434387,
+    "ch4_m3_dia": 7302560,
+    "biogas_m3_ano": 4264695019,
+    "biogas_m3_dia": 11684096,
+    "biometano_m3_ano": 2665434387,
+    "biometano_m3_dia": 7302560,
+    "energia_termica_gwh_ano": 26494.4,
+    "energia_eletrica_gwh_ano": 10067.9,
+    "fde_efetivo_pct": 14.2,
+    "faixa_ch4_m3_dia": [
+      4038864,
+      11427345
+    ],
+    "faixa_biogas_m3_dia": [
+      6462182,
+      18283752
+    ]
+  },
+  "correcao_rsu": {
+    "fonte": "Atlas de Bioenergia SP 2020, Cap.V Eq.V.5-V.8 + Tabela V.6",
+    "motivo": "massa FORSU implicita (16.63 Mt) excedia todo o RSU gerado em SP (15.65 Mt)",
+    "ch4_antes": 1556169771,
+    "ch4_depois": 404375758,
+    "razao": 3.85,
+    "mo_fracao": 0.4646,
+    "fmo_nm3_t": 101.5,
+    "ch4_biodigestao": 0.55,
+    "pureza_biometano": 0.97
+  }
 }
