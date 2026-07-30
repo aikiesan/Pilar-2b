@@ -51,6 +51,8 @@ const SCENARIO_LABELS: Record<MapScenarioKey, string> = {
   conservador: 'Conservador',
   fronteira: 'Fronteira',
   otimista: 'Otimista',
+  real: 'Real',
+  ideal: 'Ideal',
 };
 
 const RESIDUE_META = [

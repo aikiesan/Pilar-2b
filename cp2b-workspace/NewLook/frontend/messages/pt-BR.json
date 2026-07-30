@@ -400,6 +400,11 @@
     "scenario_fronteira": "Fronteira",
     "scenario_otimista": "Otimista",
     "scenario_fronteira_tip": "Fronteira do Biogás: mobilização realista-alta dos 31 resíduos — supera o benchmark FIESP (~6,4 Mm³/d de biometano).",
+    "scenario_real": "Real",
+    "scenario_ideal": "Ideal",
+    "scenario_real_tip": "Cenário Real (curto prazo): resíduo que efetivamente chega a um digestor hoje — taxas de coleta e usos concorrentes atuais. SP: 21,5 Mm³/dia de biometano. Metodologia: Atlas de Bioenergia SP 2020.",
+    "scenario_ideal_tip": "Cenário Ideal (fronteira): 100% do resíduo gerado coletado e tratado. É hipótese de infraestrutura — a química (BMP, TS, VS, teor de CH₄) é idêntica à do Cenário Real. SP: 27,0 Mm³/dia de biometano.",
+    "scenario_served_note": "Cenários Real e Ideal disponíveis apenas para São Paulo.",
     "cnLegend": {
       "title": "Perfil de Relação C/N",
       "c_rich": "Excesso de Carbono (> 60)",

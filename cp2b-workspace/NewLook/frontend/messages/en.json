@@ -400,6 +400,11 @@
     "scenario_fronteira": "Frontier",
     "scenario_otimista": "Optimistic",
     "scenario_fronteira_tip": "Biogas Frontier: realistic-high mobilisation of all 31 residues — surpasses the FIESP benchmark (~6.4 Mm³/d biomethane).",
+    "scenario_real": "Real",
+    "scenario_ideal": "Ideal",
+    "scenario_real_tip": "Real Scenario (short term): residue that actually reaches a digester today — current collection rates and competing uses. SP: 21.5 Mm³/day of biomethane. Method: Atlas de Bioenergia SP 2020.",
+    "scenario_ideal_tip": "Ideal Scenario (frontier): 100% of generated residue collected and treated. An infrastructure assumption — the chemistry (BMP, TS, VS, CH₄ content) is identical to the Real Scenario. SP: 27.0 Mm³/day of biomethane.",
+    "scenario_served_note": "Real and Ideal scenarios are available for São Paulo only.",
     "cnLegend": {
       "title": "C/N Ratio Profile",
       "c_rich": "Carbon Excess (> 60)",
