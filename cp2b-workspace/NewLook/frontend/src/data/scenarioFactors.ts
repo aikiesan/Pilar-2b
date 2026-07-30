@@ -77,14 +77,28 @@ export const SCENARIO_RESIDUE_FACTORS: Record<string, Record<BandScenarioKey, nu
   rpo:       { baseline: 1.0, conservador: 0.025, fronteira: 6.273, otimista: 11.547 },
 };
 
+/**
+ * Scenarios OFFERED in the map selector.
+ *
+ * Only Real and Ideal. The four band scenarios (conservador, baseline,
+ * fronteira, otimista) were removed from the UI: they interpolate the BMP
+ * uncertainty band, which answers "how good could the chemistry be?" — a
+ * question the platform should settle on the reader's behalf, not delegate to a
+ * toggle. Real and Ideal answer the question a reader actually has, follow the
+ * Atlas de Bioenergia SP 2020 definitions, and are the pair published in the
+ * comparative literature.
+ *
+ * The four keys remain in MapScenarioKey and in SCENARIO_RESIDUE_FACTORS so that
+ * bookmarked ?scenario= URLs still resolve rather than crashing, and so the band
+ * machinery in mapValues keeps compiling. They are simply not offered.
+ */
 export const MAP_SCENARIOS: { key: MapScenarioKey; color: string }[] = [
-  { key: 'conservador', color: '#F59E0B' },
-  { key: 'baseline', color: '#3B82F6' },
-  { key: 'fronteira', color: '#059669' },
-  { key: 'otimista', color: '#22C55E' },
   { key: 'real', color: '#0F766E' },
   { key: 'ideal', color: '#7C3AED' },
 ];
+
+/** Scenario the map opens on. Real is the defensible short-term figure. */
+export const DEFAULT_MAP_SCENARIO: MapScenarioKey = 'real';
 
 /** Scenario key → swatch colour. Derived from MAP_SCENARIOS so the selector,
  *  the legend and the tooltip can never show different colours for the same tier. */

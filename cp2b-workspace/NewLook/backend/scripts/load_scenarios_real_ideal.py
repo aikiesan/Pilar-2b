@@ -81,6 +81,19 @@ HERDADOS = {
     "aquaculture_biogas_m3_year": ("livestock", 0.40, 0.50),
 }
 
+# Coluna herdada -> chave de resíduo. O nome da coluna e o nome do resíduo no
+# filtro divergem em três casos (rpo_/rsu_ contra rpo/rsu, aquaculture_), então o
+# mapeamento é explícito em vez de derivado por corte de sufixo.
+HERDADO_RESIDUO = {
+    "corn_biogas_m3_year": "corn",
+    "soybean_biogas_m3_year": "soybean",
+    "citrus_biogas_m3_year": "citrus",
+    "coffee_biogas_m3_year": "coffee",
+    "forestry_biogas_m3_year": "forestry",
+    "rpo_biogas_m3_year": "rpo",
+    "aquaculture_biogas_m3_year": "aquaculture",
+}
+
 RSU_FAIXAS = [(25_000, 0.7), (100_000, 0.8), (500_000, 0.9)]
 
 
@@ -98,8 +111,26 @@ def num(v) -> float:
         return 0.0
 
 
+SETOR_DE = {
+    "sugarcane": "agricultural",
+    "corn": "agricultural",
+    "soybean": "agricultural",
+    "citrus": "agricultural",
+    "coffee": "agricultural",
+    "cattle": "livestock",
+    "swine": "livestock",
+    "poultry": "livestock",
+    "aquaculture": "livestock",
+    "rsu": "urban",
+    "rpo": "urban",
+    "sewage": "urban",
+    "forestry": "forestry",
+}
+RESIDUOS = list(SETOR_DE)
+
+
 def por_municipio(row: dict, tier: str) -> dict[str, float]:
-    """Setor -> Nm3 CH4/ano para os fluxos reconstruidos."""
+    """Residuo -> Nm3 CH4/ano para os fluxos reconstruidos."""
     cana = num(row.get("prod_t_Cana_de_açúcar"))
     bov = num(row.get("cabecas_Bovino"))
     sui = num(row.get("cabecas_Suíno___total"))
@@ -125,15 +156,17 @@ def por_municipio(row: dict, tier: str) -> dict[str, float]:
     ec = pop * ESGOTO_M3_HAB_DIA * DAYS * ESGOTO_COLETA[tier]
     esgoto = ec * ESGOTO_DQO_KG_M3 * ESGOTO_EF_REM * ESGOTO_PCH4
 
+    # Vinhaça, torta e palha somam em `sugarcane` porque é a unidade que o filtro
+    # do mapa oferece — separá-las exigiria três entradas novas na interface para
+    # uma distinção que o leitor não faz. Bagaço não entra: o Atlas (p.65) o
+    # classifica como já aproveitado em caldeiras.
     return {
-        "agricultural": vinhaca + torta + palha,
-        "livestock": (
-            estrume(bov, KG_ESTERCO_DIA["bov"][tier], BOV_BMP, BOV_VS)
-            + estrume(sui, KG_ESTERCO_DIA["sui"][tier], SUI_BMP, SUI_VS)
-            + estrume(ave, KG_ESTERCO_DIA["ave"][tier], AVE_BMP, AVE_VS)
-        ),
-        "urban": rsu + esgoto,
-        "forestry": 0.0,
+        "sugarcane": vinhaca + torta + palha,
+        "cattle": estrume(bov, KG_ESTERCO_DIA["bov"][tier], BOV_BMP, BOV_VS),
+        "swine": estrume(sui, KG_ESTERCO_DIA["sui"][tier], SUI_BMP, SUI_VS),
+        "poultry": estrume(ave, KG_ESTERCO_DIA["ave"][tier], AVE_BMP, AVE_VS),
+        "rsu": rsu,
+        "sewage": esgoto,
     }
 
 
@@ -204,14 +237,26 @@ def main() -> None:
             continue
         linha = {"ibge_code": db["ibge_code"]}
         for tier in ("real", "ideal"):
-            setores = por_municipio(m, tier)
-            for col, (setor, fr, fi) in HERDADOS.items():
-                setores[setor] += float(db[col] or 0) * (fr if tier == "real" else fi)
-            total = sum(setores.values())
+            # Por resíduo primeiro; setor e total são DERIVADOS das parcelas, e
+            # não calculados em paralelo. É o que garante que o desdobramento do
+            # filtro sempre some exatamente o número que o mapa pinta ao lado.
+            residuos = dict.fromkeys(RESIDUOS, 0.0)
+            residuos.update(por_municipio(m, tier))
+            for col, (_setor, fr, fi) in HERDADOS.items():
+                chave = HERDADO_RESIDUO[col]
+                residuos[chave] += float(db[col] or 0) * (fr if tier == "real" else fi)
+
+            setores = dict.fromkeys(("agricultural", "livestock", "urban", "forestry"), 0.0)
+            for r, v in residuos.items():
+                setores[SETOR_DE[r]] += v
+            total = sum(residuos.values())
+
             tot[tier] += total
             linha[f"ch4_{tier}"] = total
             for s, v in setores.items():
                 linha[f"ch4_{tier}_{s}"] = v
+            for r, v in residuos.items():
+                linha[f"ch4_{tier}_res_{r}"] = v
         updates.append(linha)
 
     print(f"municipios SP no banco : {len(db_rows)}")
@@ -226,20 +271,23 @@ def main() -> None:
         conn.close()
         return
 
-    sql = """
-        UPDATE municipalities SET
-            ch4_real_m3_year = %(ch4_real)s,
-            ch4_ideal_m3_year = %(ch4_ideal)s,
-            ch4_real_agricultural_m3_year = %(ch4_real_agricultural)s,
-            ch4_real_livestock_m3_year = %(ch4_real_livestock)s,
-            ch4_real_urban_m3_year = %(ch4_real_urban)s,
-            ch4_real_forestry_m3_year = %(ch4_real_forestry)s,
-            ch4_ideal_agricultural_m3_year = %(ch4_ideal_agricultural)s,
-            ch4_ideal_livestock_m3_year = %(ch4_ideal_livestock)s,
-            ch4_ideal_urban_m3_year = %(ch4_ideal_urban)s,
-            ch4_ideal_forestry_m3_year = %(ch4_ideal_forestry)s
-        WHERE ibge_code = %(ibge_code)s
-    """
+    # Montado a partir das mesmas listas que produziram os valores, para que
+    # acrescentar um resíduo em RESIDUOS nunca deixe uma coluna sem gravar.
+    SETORES = ("agricultural", "livestock", "urban", "forestry")
+    atribuicoes = ["ch4_real_m3_year = %(ch4_real)s", "ch4_ideal_m3_year = %(ch4_ideal)s"]
+    for tier in ("real", "ideal"):
+        for setor in SETORES:
+            atribuicoes.append(f"ch4_{tier}_{setor}_m3_year = %(ch4_{tier}_{setor})s")
+        for r in RESIDUOS:
+            # `forestry` é setor E resíduo — silvicultura é o único fluxo do seu
+            # setor, então as duas colunas seriam a mesma e o UPDATE atribuiria
+            # ch4_{tier}_forestry_m3_year duas vezes (erro de sintaxe do Postgres).
+            # A coluna do setor já carrega o valor; os números são idênticos por
+            # construção, então não há informação perdida.
+            if r in SETORES:
+                continue
+            atribuicoes.append(f"ch4_{tier}_{r}_m3_year = %(ch4_{tier}_res_{r})s")
+    sql = f"UPDATE municipalities SET {', '.join(atribuicoes)} WHERE ibge_code = %(ibge_code)s"
     with conn.cursor() as cur:
         execute_batch(cur, sql, updates, page_size=200)
     conn.commit()

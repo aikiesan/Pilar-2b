@@ -99,6 +99,29 @@ _DETAIL_ONLY_RE = re.compile(
     r"^(agricultural|livestock|urban)_(biogas|biomethane)_|^\w+_biogas_m3_year$"
 )
 
+# Cenários Real/Ideal por resíduo (migração 029). São servidos no payload do mapa
+# porque o filtro por resíduo precisa deles: sem a parcela, selecionar "Cana" não
+# tem como filtrar um total já somado. `forestry` aparece uma vez só — é setor E
+# resíduo, e a coluna é a mesma.
+_SCENARIO_RESIDUES = (
+    "sugarcane",
+    "soybean",
+    "corn",
+    "coffee",
+    "citrus",
+    "cattle",
+    "swine",
+    "poultry",
+    "aquaculture",
+    "rsu",
+    "rpo",
+    "sewage",
+    "forestry",
+)
+_SCENARIO_RESIDUE_COLUMNS = tuple(
+    f"ch4_{tier}_{r}_m3_year" for tier in ("real", "ideal") for r in _SCENARIO_RESIDUES
+)
+
 # Livestock streams derived from PPM head counts (per-head generation).
 _PPM_STREAMS = ("cattle", "swine", "poultry")
 # Urban streams modelled from resident population (per-capita generation).
@@ -211,6 +234,10 @@ def _geojson_select_sql(
     include_municipality_summary: bool, geom_column: str, geom_precision: int, has_limit: bool
 ) -> str:
     """Build SELECT for GeoJSON rows; omit JOIN if municipality_summary is not deployed."""
+    # Parcelas por resíduo dos cenários (migração 029). Geradas a partir da mesma
+    # tupla que as emite nas properties, para que acrescentar um resíduo não deixe
+    # a coluna fora do SELECT e o filtro do mapa lendo zero silenciosamente.
+    scenario_residue_cols = "".join(f"m.{c}, " for c in _SCENARIO_RESIDUE_COLUMNS)
     cluster_cols = (
         "ms.cluster_id, ms.cluster_label,\n"
         "                    ms.mun_total_gwh, ms.mun_n_streams, ms.mun_dominant_stream"
@@ -256,6 +283,7 @@ def _geojson_select_sql(
                     m.aquaculture_biomass_tons_year, m.rsu_biomass_tons_year,
                     m.rpo_biomass_tons_year,
                     m.ch4_real_m3_year, m.ch4_ideal_m3_year,
+                    {scenario_residue_cols}
                     {cluster_cols}
                 FROM municipalities m{join}
                 WHERE m.geometry IS NOT NULL
@@ -445,6 +473,7 @@ async def get_municipalities_geojson(
             # biogás and bioenergia from them client-side, so only these two travel.
             "ch4_real_m3_year": _f(row, "ch4_real_m3_year"),
             "ch4_ideal_m3_year": _f(row, "ch4_ideal_m3_year"),
+            **{c: _f(row, c) for c in _SCENARIO_RESIDUE_COLUMNS},
             **canonical_metrics,
         }
         properties.update({k: v for k, v in metric_fields.items() if v})

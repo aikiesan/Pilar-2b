@@ -659,10 +659,12 @@ describe('MapComponent', () => {
       );
       act(() => { jest.advanceTimersByTime(1500); });
 
-      // Biogas totals are scenario-scaled (default scenario is "fronteira", not
-      // "baseline") — switch to "Médio Prazo" (baseline) so the fixture's raw
-      // total_biogas_m3_year values are what the minBiogas filter compares against.
-      fireEvent.click(screen.getByText('Médio Prazo'));
+      // No scenario switch needed: the map now opens on "Real", and
+      // applyScenarioToProps leaves props untouched for the served scenarios
+      // (they carry their own ch4_real_* columns rather than scaling the legacy
+      // ones). So the fixture's raw total_biogas_m3_year is what the minBiogas
+      // filter compares against — which is what the removed "Médio Prazo" click
+      // used to arrange.
 
       // 1 matching SP municipality out of the 645 that make up São Paulo.
       // The denominator is the SP universe (lib/mapScope.SP_MUNICIPALITY_COUNT),
@@ -819,9 +821,9 @@ describe('MapComponent', () => {
       );
       act(() => { jest.advanceTimersByTime(1500); });
 
-      // Switch to baseline so the fixture's total_biogas_m3_year isn't
-      // scenario-scaled (default scenario is "fronteira").
-      fireEvent.click(screen.getByText('Médio Prazo'));
+      // See the note in "should show filtered count vs total count": the default
+      // scenario is now "Real", which does not scale the legacy columns, so no
+      // scenario switch is needed to read the fixture's raw values.
 
       // No match, against the fixed SP denominator.
       await waitFor(() => {

@@ -16,7 +16,7 @@ import { useGeospatialData, useCodigestionClusters, useResidueCNMatrix, useInter
 import { useCnProfiles } from '@/hooks/useCnProfiles';
 import type { FilterCriteria } from '@/components/dashboard/FilterPanel';
 import type { MunicipalityCollection, MunicipalityFeature, DisplayMetric, CodigestionCluster } from '@/types/geospatial';
-import { MAP_SCENARIOS, applyScenarioToProps, type MapScenarioKey } from '@/data/scenarioFactors';
+import { MAP_SCENARIOS, DEFAULT_MAP_SCENARIO, applyScenarioToProps, type MapScenarioKey } from '@/data/scenarioFactors';
 import { DISPLAY_METRICS } from '@/lib/mapMetrics';
 import { DATA_EXPORT_ENABLED } from '@/lib/featureFlags';
 import { isSaoPaulo, NATIONAL_BETA_LAYER_ID, SP_MUNICIPALITY_COUNT } from '@/lib/mapScope';
@@ -188,7 +188,7 @@ export default function MapComponent({
   const [selectedClusterId, setSelectedClusterId] = useState<string | null>(null);
   const [showClusterPanel, setShowClusterPanel] = useState(false);
   const [colorMode, setColorMode] = useState<ColorMode>('biogas');
-  const [mapScenario, setMapScenario] = useState<MapScenarioKey>('fronteira');
+  const [mapScenario, setMapScenario] = useState<MapScenarioKey>(DEFAULT_MAP_SCENARIO);
 
   // Daltonic (colour-vision-deficiency) mode: swaps the choropleth ramp for a
   // CVD-safe single-hue palette. Persisted in localStorage like the theme.
