@@ -892,6 +892,21 @@ async def get_rankings(
         raise HTTPException(status_code=500, detail="Failed to fetch rankings")
 
 
+# Fraction of biogas that is CH4, per the convention used by the SP comparative
+# literature (FIESP 2025: "1 Nm3 de biogas equivale a cerca de 0,625 Nm3 de
+# biometano"). Adopted here so the platform's figures are directly comparable to
+# GEF/ABiogas, IEE-USP, SEMIL and Instituto 17 rather than needing a conversion
+# the reader has to guess at.
+CH4_FRACTION_OF_BIOGAS = 0.625
+
+# Lower heating value of methane, kWh per Nm3. Used only to document the factor
+# already embedded in energy_potential_mwh_year (measured at 9.97 kWh/m3 of the
+# stored volume, which is what identified that volume as CH4 rather than biogas).
+CH4_LHV_KWH_PER_M3 = 9.94
+
+DAYS_PER_YEAR = 365
+
+
 @router.get(
     "/statistics/summary",
     summary="Overall statistics",
@@ -928,7 +943,8 @@ async def get_summary_statistics():
                         COALESCE(SUM(population), 0) AS total_pop,
                         COALESCE(SUM(agricultural_biogas_m3_year), 0) AS total_agri,
                         COALESCE(SUM(livestock_biogas_m3_year), 0) AS total_live,
-                        COALESCE(SUM(urban_biogas_m3_year), 0) AS total_urban
+                        COALESCE(SUM(urban_biogas_m3_year), 0) AS total_urban,
+                        COALESCE(SUM(forestry_biogas_m3_year), 0) AS total_forest
                     FROM municipalities
                     WHERE ibge_code::text LIKE '35%'
                 """)
@@ -954,6 +970,7 @@ async def get_summary_statistics():
         total_agri = float(stats["total_agri"] or 0)
         total_live = float(stats["total_live"] or 0)
         total_urban = float(stats["total_urban"] or 0)
+        total_forest = float(stats["total_forest"] or 0)
 
         logger.info(f"✅ Summary statistics: {n} municipalities")
 
@@ -961,7 +978,32 @@ async def get_summary_statistics():
             "scope": "SP",
             "scope_label": "Estado de São Paulo",
             "total_municipalities": n,
+            # LEGACY KEY — the stored column is named *_biogas_m3_year but holds
+            # METHANE, not biogas: the pipeline computes
+            #   volume = biomass_wet_t x BMP x VS%   (biomass_availability.py:10)
+            # and BMP is in NmL CH4/gVS, with no CH4->biogas division anywhere.
+            # Independently confirmed by the energy factor, which measures at
+            # 9.97 kWh per m3 of this volume — methane's LHV (9.94), not biogas's
+            # (~6 at 60% CH4). Kept under the old name because seven frontend
+            # call sites read it; use total_methane_m3_year in new code.
             "total_biogas_m3_year": total_biogas,
+            "total_biogas_m3_day": round(total_biogas / DAYS_PER_YEAR, 2),
+            # The same quantity, named for what it actually is.
+            "basis": "CH4",
+            "total_methane_m3_year": total_biogas,
+            "total_methane_m3_day": round(total_biogas / DAYS_PER_YEAR, 2),
+            # Raw biogas the digesters would produce to yield that methane.
+            "total_raw_biogas_m3_year": round(total_biogas / CH4_FRACTION_OF_BIOGAS, 2),
+            "total_raw_biogas_m3_day": round(
+                total_biogas / CH4_FRACTION_OF_BIOGAS / DAYS_PER_YEAR, 2
+            ),
+            # Biomethane. Under the FIESP convention biomethane volume equals the
+            # methane volume (their 0.625 IS the CH4 fraction), so this is not a
+            # second discount on top of it. NOTE: no upgrading loss is deducted —
+            # real plants slip 1-3% CH4, so this is an upper bound.
+            "total_biomethane_m3_year": total_biogas,
+            "total_biomethane_m3_day": round(total_biogas / DAYS_PER_YEAR, 2),
+            "total_energy_mwh_day": round(total_energy / DAYS_PER_YEAR, 2),
             "average_biogas_m3_year": round(avg_biogas, 2),
             "total_energy_mwh_year": round(total_energy, 2),
             "total_co2_reduction_tons_year": round(total_co2, 2),
@@ -978,10 +1020,15 @@ async def get_summary_statistics():
                 for m in top5
             ],
             "categories": {},
+            # Forestry is a fourth sector, not a subset of agricultural. Omitting
+            # it made the three percentages sum to 97.0% while the breakdown was
+            # presented as exhaustive, so 599.8 M m³/ano sat inside the headline
+            # total but inside no bucket that explained it.
             "sector_breakdown": {
                 "agricultural": total_agri,
                 "livestock": total_live,
                 "urban": total_urban,
+                "forestry": total_forest,
             },
             "sector_percentages": {
                 "agricultural": round(
@@ -989,11 +1036,18 @@ async def get_summary_statistics():
                 ),
                 "livestock": round((total_live / total_biogas * 100) if total_biogas > 0 else 0, 2),
                 "urban": round((total_urban / total_biogas * 100) if total_biogas > 0 else 0, 2),
+                "forestry": round(
+                    (total_forest / total_biogas * 100) if total_biogas > 0 else 0, 2
+                ),
             },
             "note": (
                 f"Dados de {n} municípios do estado de São Paulo. "
                 "Municípios fora de SP estão carregados no mapa como camada beta "
-                "em validação e NÃO entram neste total."
+                "em validação e NÃO entram neste total. "
+                "Os volumes são de METANO (CH₄): o BMP que os gera está em "
+                "NmL CH₄/gVS. O biogás bruto equivalente usa a fração de "
+                f"{CH4_FRACTION_OF_BIOGAS} Nm³ CH₄/Nm³ biogás (FIESP 2025). "
+                "Médias diárias consideram 365 dias/ano."
             ),
         }
 
@@ -1004,15 +1058,24 @@ async def get_summary_statistics():
             "scope_label": "Estado de São Paulo",
             "total_municipalities": 0,
             "total_biogas_m3_year": 0,
+            "total_biogas_m3_day": 0,
+            "basis": "CH4",
+            "total_methane_m3_year": 0,
+            "total_methane_m3_day": 0,
+            "total_raw_biogas_m3_year": 0,
+            "total_raw_biogas_m3_day": 0,
+            "total_biomethane_m3_year": 0,
+            "total_biomethane_m3_day": 0,
             "average_biogas_m3_year": 0,
             "total_energy_mwh_year": 0,
+            "total_energy_mwh_day": 0,
             "total_co2_reduction_tons_year": 0,
             "total_population": 0,
             "top_municipality": {"name": "N/A", "biogas_m3_year": 0},
             "top_5_municipalities": [],
             "categories": {},
-            "sector_breakdown": {"agricultural": 0, "livestock": 0, "urban": 0},
-            "sector_percentages": {"agricultural": 0, "livestock": 0, "urban": 0},
+            "sector_breakdown": {"agricultural": 0, "livestock": 0, "urban": 0, "forestry": 0},
+            "sector_percentages": {"agricultural": 0, "livestock": 0, "urban": 0, "forestry": 0},
             "error": "Failed to load data",
             "note": "Erro ao carregar dados - usando valores padrão",
         }
