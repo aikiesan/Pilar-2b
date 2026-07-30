@@ -16,6 +16,7 @@ from psycopg2.extras import RealDictCursor
 
 BACKEND_DIR = Path(__file__).resolve().parent.parent
 
+
 def resolve_excel_path() -> Path:
     candidates = [
         BACKEND_DIR / "data" / "canonical_parameters" / "references_review_ALL.xlsx",
@@ -28,14 +29,12 @@ def resolve_excel_path() -> Path:
             return p
     return candidates[0]
 
+
 EXCEL_PATH = resolve_excel_path()
 
 
 def get_db_url() -> str:
-    return os.environ.get(
-        "DATABASE_URL",
-        "postgresql://postgres:password@localhost:5432/cp2b_maps"
-    )
+    return os.environ.get("DATABASE_URL", "postgresql://postgres:password@localhost:5432/cp2b_maps")
 
 
 def main():
@@ -66,7 +65,7 @@ def main():
         authors = str(row.get("authors") or "").strip() if pd.notna(row.get("authors")) else None
         title = str(row.get("title") or "").strip() if pd.notna(row.get("title")) else None
         journal = str(row.get("journal") or "").strip() if pd.notna(row.get("journal")) else None
-        
+
         year = None
         if pd.notna(row.get("year")):
             try:
@@ -93,14 +92,18 @@ def main():
                 continue
 
         # Check existing reference
-        cur.execute("""
+        cur.execute(
+            """
             SELECT id FROM residuo_references 
             WHERE (doi IS NOT NULL AND doi = %s) OR citation = %s;
-        """, (doi, citation))
+        """,
+            (doi, citation),
+        )
 
         existing = cur.fetchone()
         if existing:
-            cur.execute("""
+            cur.execute(
+                """
                 UPDATE residuo_references
                 SET authors = COALESCE(%s, authors),
                     title = COALESCE(%s, title),
@@ -110,14 +113,31 @@ def main():
                     url = COALESCE(%s, url),
                     is_primary = %s
                 WHERE id = %s;
-            """, (authors, title, journal, year, doi, url, peer_rev, existing[0]))
+            """,
+                (authors, title, journal, year, doi, url, peer_rev, existing[0]),
+            )
             updated += 1
         else:
-            cur.execute("""
+            cur.execute(
+                """
                 INSERT INTO residuo_references 
                 (residuo_id, parameter_type, citation, authors, title, journal, year, doi, url, is_primary, validation_status)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
-            """, (residuo_id, "bmp", citation, authors, title, journal, year, doi, url, peer_rev, "verified"))
+            """,
+                (
+                    residuo_id,
+                    "bmp",
+                    citation,
+                    authors,
+                    title,
+                    journal,
+                    year,
+                    doi,
+                    url,
+                    peer_rev,
+                    "verified",
+                ),
+            )
             inserted += 1
 
     conn.commit()

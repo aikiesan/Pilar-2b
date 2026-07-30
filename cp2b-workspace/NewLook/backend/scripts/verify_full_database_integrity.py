@@ -16,10 +16,7 @@ BACKEND_DIR = Path(__file__).resolve().parent.parent
 
 
 def get_db_url() -> str:
-    return os.environ.get(
-        "DATABASE_URL",
-        "postgresql://postgres:password@localhost:5432/cp2b_maps"
-    )
+    return os.environ.get("DATABASE_URL", "postgresql://postgres:password@localhost:5432/cp2b_maps")
 
 
 def audit_database():

@@ -29,10 +29,7 @@ logger = logging.getLogger("run_migrations")
 
 
 def get_db_url() -> str:
-    return os.environ.get(
-        "DATABASE_URL",
-        "postgresql://postgres:password@localhost:5432/cp2b_maps"
-    )
+    return os.environ.get("DATABASE_URL", "postgresql://postgres:password@localhost:5432/cp2b_maps")
 
 
 def ensure_migrations_table(conn):
@@ -57,7 +54,7 @@ def apply_migration(conn, file_path: Path):
     version = file_path.name
     logger.info(f"Applying migration {version}...")
     sql = file_path.read_text(encoding="utf-8")
-    
+
     try:
         with conn.cursor() as cur:
             cur.execute(sql)
@@ -70,7 +67,10 @@ def apply_migration(conn, file_path: Path):
         if "already exists" in err_msg or "duplicate" in err_msg:
             logger.warning(f"Migration {version} warning (schema elements already exist): {err}")
             with conn.cursor() as cur:
-                cur.execute("INSERT INTO schema_migrations (version) VALUES (%s) ON CONFLICT DO NOTHING;", (version,))
+                cur.execute(
+                    "INSERT INTO schema_migrations (version) VALUES (%s) ON CONFLICT DO NOTHING;",
+                    (version,),
+                )
             conn.commit()
             logger.info(f"Marked {version} as applied despite pre-existing objects.")
         else:
@@ -80,11 +80,15 @@ def apply_migration(conn, file_path: Path):
 
 def main():
     parser = argparse.ArgumentParser(description="Run PILAR-2b database migrations.")
-    parser.add_argument("--seed", action="store_true", help="Run data seeding after applying migrations")
+    parser.add_argument(
+        "--seed", action="store_true", help="Run data seeding after applying migrations"
+    )
     args = parser.parse_args()
 
     db_url = get_db_url()
-    logger.info(f"Connecting to database (URL: {db_url.split('@')[-1] if '@' in db_url else db_url})...")
+    logger.info(
+        f"Connecting to database (URL: {db_url.split('@')[-1] if '@' in db_url else db_url})..."
+    )
 
     try:
         conn = psycopg2.connect(db_url)
@@ -115,6 +119,7 @@ def main():
 
             try:
                 from scripts.load_biomass_from_master import main as load_biomass
+
                 logger.info("Running load_biomass_from_master...")
                 load_biomass()
             except Exception as e:
@@ -122,6 +127,7 @@ def main():
 
             try:
                 from scripts.sync_db_canonical import main as sync_canonical
+
                 logger.info("Running sync_db_canonical...")
                 sync_canonical()
             except Exception as e:
@@ -129,6 +135,7 @@ def main():
 
             try:
                 from scripts.ingest_all_scientific_articles import main as ingest_articles
+
                 logger.info("Running ingest_all_scientific_articles...")
                 ingest_articles()
             except Exception as e:

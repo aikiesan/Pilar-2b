@@ -17,10 +17,7 @@ BACKEND_DIR = Path(__file__).resolve().parent.parent
 
 
 def get_db_url() -> str:
-    return os.environ.get(
-        "DATABASE_URL",
-        "postgresql://postgres:password@localhost:5432/cp2b_maps"
-    )
+    return os.environ.get("DATABASE_URL", "postgresql://postgres:password@localhost:5432/cp2b_maps")
 
 
 def safe_str(val) -> str:
@@ -42,8 +39,8 @@ def check_plants():
     """)
     print("=== CAMADAS DE INFRAESTRUTURA NO POSTGRESQL ===")
     for r in cur.fetchall():
-        sf = safe_str(r['source_file'])
-        lid = safe_str(r['layer_id'])
+        sf = safe_str(r["source_file"])
+        lid = safe_str(r["layer_id"])
         print(f"  - Source File: {sf:<35} | Layer ID: {lid:<15} | Total: {r['cnt']}")
 
     # Search for biogas and biomethane plants in attributes JSONB or name or source_file
@@ -60,15 +57,28 @@ def check_plants():
     plants = cur.fetchall()
 
     print(f"\n=== TOTAL DE PLANTAS DE BIOGAS E BIOMETANO NO POSTGRESQL: {len(plants)} plantas ===")
-    print(f"{'Nome da Planta':<40} | {'UF':<4} | {'Fonte / Layer':<30} | {'Detalhes dos Atributos'}")
+    print(
+        f"{'Nome da Planta':<40} | {'UF':<4} | {'Fonte / Layer':<30} | {'Detalhes dos Atributos'}"
+    )
     print("-" * 115)
     for p in plants[:30]:
-        attrs = p['attributes'] or {}
-        cap = attrs.get('capacidade_m3_dia') or attrs.get('capacidade') or attrs.get('capacity') or attrs.get('potencia_mw') or 'N/A'
-        tipo = attrs.get('tipo') or attrs.get('tipo_combustivel') or attrs.get('substrato') or 'Biogas/Biometano'
-        name_s = safe_str(p['name'])
-        uf_s = safe_str(p['uf'])
-        sf_s = safe_str(p['source_file'])
+        attrs = p["attributes"] or {}
+        cap = (
+            attrs.get("capacidade_m3_dia")
+            or attrs.get("capacidade")
+            or attrs.get("capacity")
+            or attrs.get("potencia_mw")
+            or "N/A"
+        )
+        tipo = (
+            attrs.get("tipo")
+            or attrs.get("tipo_combustivel")
+            or attrs.get("substrato")
+            or "Biogas/Biometano"
+        )
+        name_s = safe_str(p["name"])
+        uf_s = safe_str(p["uf"])
+        sf_s = safe_str(p["source_file"])
         print(f"{name_s[:40]:<40} | {uf_s:<4} | {sf_s[:30]:<30} | Cap: {cap} | Tipo: {tipo}")
 
     conn.close()
