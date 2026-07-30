@@ -17,10 +17,21 @@ FILTERED_FDE_CASCADE_FEATURE.md
 DETAILED_RESIDUE_IMPLEMENTATION_PLAN.md
 HANDOFF_PROMPT_FOR_CONTINUATION.md
 
-# Temporary files
-nul
+# Temporary and exploration files
+*.html
+.coverage
+coverage.xml
+htmlcov/
+*.gdb/
+query_stats.py
+*_load_log.csv
+manuscript_validation_*.json
+cp2b-workspace/NewLook/backend/nul
+analysis/outputs/
 
 # Local raw data drops
 cp2b-workspace/Nova pasta/
+cp2b-workspace/NewLook/data/raw/
 # Claude Code local settings (not for version control)
 .claude/
+

@@ -24,6 +24,23 @@ services:
       retries: 10
       start_period: 10s
 
+  # ─── Database Migrations & Auto-Seeding ──────────────────────────────────
+  db-migrations:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: cp2b-db-migrations-dev
+    command: python scripts/run_migrations.py --seed
+    volumes:
+      - ./backend:/app
+      - ./data/canonical_parameters:/app/data/canonical_parameters:ro
+    environment:
+      DATABASE_URL: postgresql://postgres:password@db:5432/cp2b_maps
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
   # ─── FastAPI backend (hot-reload) ─────────────────────────────────────────
   backend:
     build:
@@ -44,6 +61,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      db-migrations:
+        condition: service_completed_successfully
     env_file:
       - .env.docker       # copy from .env.docker.example
     environment:

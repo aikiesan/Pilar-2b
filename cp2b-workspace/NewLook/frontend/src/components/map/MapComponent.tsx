@@ -19,6 +19,7 @@ import type { MunicipalityCollection, MunicipalityFeature, DisplayMetric, Codige
 import { MAP_SCENARIOS, applyScenarioToProps, type MapScenarioKey } from '@/data/scenarioFactors';
 import { DISPLAY_METRICS } from '@/lib/mapMetrics';
 import { DATA_EXPORT_ENABLED } from '@/lib/featureFlags';
+import { isSaoPaulo, NATIONAL_BETA_LAYER_ID, SP_MUNICIPALITY_COUNT } from '@/lib/mapScope';
 import type { BiomassType, ResidueType } from './FloatingControlPanel';
 import type { VisualizationMode } from './LeftFilterPanel';
 import { type ColorMode } from '@/types/geospatial';
@@ -332,7 +333,12 @@ export default function MapComponent({
   // transmission/pipelines are retired here rather than listed twice.
   // ETEs and Rodovias stay SP-only: there is no national equivalent loaded yet.
   const [layers, setLayers] = useState([
-    { id: 'municipalities', name: 'Municípios', visible: true, icon: '📍' },
+    { id: 'municipalities', name: 'Municípios de São Paulo', visible: true, icon: '📍' },
+    // The rest of Brazil is a SEPARATE, subordinate layer — same GeoJSON
+    // request, different confidence. On by default (it is already in
+    // production and removing it silently would be a regression), but drawn
+    // as flat grey context so São Paulo owns the choropleth. See lib/mapScope.
+    { id: NATIONAL_BETA_LAYER_ID, name: 'Demais municípios do Brasil (BETA)', visible: true, icon: '🧪' },
     { id: 'intermediate-regions', name: 'Regiões Intermediárias (IBGE)', visible: false, icon: '🗺️' },
     { id: 'mapbiomas', name: 'MapBiomas 2024', visible: false, icon: '🌳' },
     { id: 'biogas_plant', name: 'Usinas de Biogás (MapBiomas, BR)', visible: false, icon: '🏭' },
@@ -493,6 +499,8 @@ export default function MapComponent({
     return { ...scaledData, features: filtered } as MunicipalityCollection;
   }, [scaledData, activeFilters, searchQuery, selectedResidues, scope, residueBreakdownAvailable]);
 
+  const showNationalBeta = visibleLayerIds.includes(NATIONAL_BETA_LAYER_ID);
+
   // ── Guard states ────────────────────────────────────────────────────────────
   if (!isMounted) return <MapLoadingSkeleton />;
   if (loading || (data && isRendering)) return <MapLoadingSkeleton />;
@@ -506,6 +514,19 @@ export default function MapComponent({
   const displayData: MunicipalityCollection =
     filteredData || scaledData || data
     || ({ type: 'FeatureCollection', features: [] } as MunicipalityCollection);
+
+  // São Paulo only. Bubble and heatmap encode magnitude as size/intensity, and
+  // there is no "muted" register in those channels the way there is for a
+  // choropleth fill — a beta bubble would carry the same visual weight as a
+  // canonical one. So those two modes render SP exclusively, and the national
+  // beta toggle applies to the choropleth, where the layer can actually be
+  // subordinated instead of merely shrunk.
+  const spDisplayData: MunicipalityCollection = {
+    ...displayData,
+    features: displayData.features.filter((f) => isSaoPaulo(f.properties?.ibge_code)),
+  };
+  const spCount = spDisplayData.features.length;
+  const betaCount = displayData.features.length - spCount;
 
   return (
     <div className="flex w-full h-full">
@@ -524,8 +545,9 @@ export default function MapComponent({
           onOpacityChange={handleOpacityChange}
           layers={layers}
           onLayerToggle={handleLayerToggle}
-          municipalityCount={displayData.features.length}
-          totalMunicipalities={data?.features.length ?? 0}
+          municipalityCount={spCount}
+          totalMunicipalities={SP_MUNICIPALITY_COUNT}
+          betaMunicipalityCount={showNationalBeta ? betaCount : 0}
           onOpenComparison={() => setShowComparison(true)}
           onOpenExport={() => setShowExport(true)}
           displayMetric={displayMetric}
@@ -660,20 +682,23 @@ export default function MapComponent({
                   colorMode={colorMode}
                   mapScenario={mapScenario}
                   daltonic={daltonic}
+                  showNationalBeta={showNationalBeta}
                   onMunicipalityClick={visualizationMode === 'clusters' ? undefined : handleMunicipalityClick}
                   onMunicipalityHover={visualizationMode === 'clusters' ? undefined : handleMunicipalityHover}
                 />
               ) : visualizationMode === 'bubble' ? (
-                <BubbleChartLayer data={displayData} opacity={opacity} attribute={biomassAttribute} />
+                <BubbleChartLayer data={spDisplayData} opacity={opacity} attribute={biomassAttribute} />
               ) : (
-                <HeatmapLayer data={displayData} selectedResidues={selectedResidues} opacity={opacity} />
+                <HeatmapLayer data={spDisplayData} selectedResidues={selectedResidues} opacity={opacity} />
               )}
             </>
           )}
 
           {/* C/N Choropleth overlay — hidden when cluster mode is active */}
-          {colorMode === 'cn_profile' && !cnLoading && displayData && (
-            <CnChoroLayer geoJsonData={displayData} profilesMap={cnProfilesMap} />
+          {/* C/N profiles are built from the canonical SP residue mix, so the
+              overlay is SP-scoped like the pipeline that produced it. */}
+          {colorMode === 'cn_profile' && !cnLoading && spDisplayData && (
+            <CnChoroLayer geoJsonData={spDisplayData} profilesMap={cnProfilesMap} />
           )}
 
           {/* Co-digestion Cluster Layer */}
@@ -771,7 +796,10 @@ export default function MapComponent({
 
         {isMounted && (
           <ComparisonPanel
-            municipalities={data?.features || []}
+            // Comparison puts two municipalities' numbers side by side as if
+            // they were commensurable. Until the national rows clear validation
+            // they are not, so the picker offers São Paulo only.
+            municipalities={(data?.features ?? []).filter(f => isSaoPaulo(f.properties?.ibge_code))}
             selectedMunicipalities={comparisonMunicipalities}
             onMunicipalityAdd={handleAddToComparison}
             onMunicipalityRemove={handleRemoveFromComparison}
@@ -846,7 +874,7 @@ export default function MapComponent({
               <>
                 {/* Desktop — always expanded */}
                 <div className="hidden md:block">
-                  <MapLegend displayMetric={displayMetric} daltonic={daltonic} />
+                  <MapLegend displayMetric={displayMetric} daltonic={daltonic} showNationalBeta={showNationalBeta} />
                 </div>
                 {/* Mobile — chip + expandable legend */}
                 <div className="md:hidden">
@@ -860,7 +888,7 @@ export default function MapComponent({
                       >
                         <span className="block h-3 w-3 text-[10px] leading-3 text-gray-500">×</span>
                       </button>
-                      <MapLegend displayMetric={displayMetric} daltonic={daltonic} />
+                      <MapLegend displayMetric={displayMetric} daltonic={daltonic} showNationalBeta={showNationalBeta} />
                     </div>
                   ) : (
                     <button
@@ -904,8 +932,8 @@ export default function MapComponent({
           onOpacityChange={handleOpacityChange}
           layers={layers}
           onLayerToggle={handleLayerToggle}
-          municipalityCount={displayData.features.length}
-          totalMunicipalities={data?.features.length ?? 0}
+          municipalityCount={spCount}
+          totalMunicipalities={SP_MUNICIPALITY_COUNT}
           displayMetric={displayMetric}
           onDisplayMetricChange={handleDisplayMetricChange}
           cnMatrix={cnMatrix}

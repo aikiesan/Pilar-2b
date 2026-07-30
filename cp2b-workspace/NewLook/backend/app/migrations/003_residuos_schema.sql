@@ -199,6 +199,7 @@ ON conversion_factors(category, subcategory);
 -- ============================================================================
 
 -- View: Residuos with sector info
+DROP VIEW IF EXISTS residuos_with_sectors CASCADE;
 CREATE OR REPLACE VIEW residuos_with_sectors AS
 SELECT
     r.*,
@@ -213,6 +214,7 @@ LEFT JOIN subsectors ss ON r.subsector_codigo = ss.codigo
 ORDER BY s.ordem, ss.ordem, r.nome;
 
 -- View: Reference counts per residue
+DROP VIEW IF EXISTS residuos_reference_counts CASCADE;
 CREATE OR REPLACE VIEW residuos_reference_counts AS
 SELECT
     r.id,
@@ -230,6 +232,7 @@ LEFT JOIN residuo_references rr ON r.id = rr.residuo_id
 GROUP BY r.id, r.codigo, r.nome, r.sector_codigo;
 
 -- View: Sector summary statistics
+DROP VIEW IF EXISTS sector_statistics CASCADE;
 CREATE OR REPLACE VIEW sector_statistics AS
 SELECT
     s.codigo,

@@ -664,9 +664,12 @@ describe('MapComponent', () => {
       // total_biogas_m3_year values are what the minBiogas filter compares against.
       fireEvent.click(screen.getByText('Médio Prazo'));
 
-      // Should filter to 1 municipality (São Paulo with 100M) out of 3 total
+      // 1 matching SP municipality out of the 645 that make up São Paulo.
+      // The denominator is the SP universe (lib/mapScope.SP_MUNICIPALITY_COUNT),
+      // not the fixture length: the panel reports coverage of São Paulo, and the
+      // collection also carries non-SP municipalities that are excluded from it.
       await waitFor(() => {
-        expect(screen.getByTestId('municipality-count')).toHaveTextContent('1 / 3');
+        expect(screen.getByTestId('municipality-count')).toHaveTextContent('1 / 645');
       });
     });
 
@@ -820,9 +823,9 @@ describe('MapComponent', () => {
       // scenario-scaled (default scenario is "fronteira").
       fireEvent.click(screen.getByText('Médio Prazo'));
 
-      // Should show 0 / 1
+      // No match, against the fixed SP denominator.
       await waitFor(() => {
-        expect(screen.getByTestId('municipality-count')).toHaveTextContent('0 / 1');
+        expect(screen.getByTestId('municipality-count')).toHaveTextContent('0 / 645');
       });
     });
   });
