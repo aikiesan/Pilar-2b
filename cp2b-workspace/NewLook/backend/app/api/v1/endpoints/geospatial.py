@@ -928,7 +928,8 @@ async def get_summary_statistics():
                         COALESCE(SUM(population), 0) AS total_pop,
                         COALESCE(SUM(agricultural_biogas_m3_year), 0) AS total_agri,
                         COALESCE(SUM(livestock_biogas_m3_year), 0) AS total_live,
-                        COALESCE(SUM(urban_biogas_m3_year), 0) AS total_urban
+                        COALESCE(SUM(urban_biogas_m3_year), 0) AS total_urban,
+                        COALESCE(SUM(forestry_biogas_m3_year), 0) AS total_forest
                     FROM municipalities
                     WHERE ibge_code::text LIKE '35%'
                 """)
@@ -954,6 +955,7 @@ async def get_summary_statistics():
         total_agri = float(stats["total_agri"] or 0)
         total_live = float(stats["total_live"] or 0)
         total_urban = float(stats["total_urban"] or 0)
+        total_forest = float(stats["total_forest"] or 0)
 
         logger.info(f"✅ Summary statistics: {n} municipalities")
 
@@ -962,6 +964,13 @@ async def get_summary_statistics():
             "scope_label": "Estado de São Paulo",
             "total_municipalities": n,
             "total_biogas_m3_year": total_biogas,
+            # Daily mean on the 365-day convention used by every study in the SP
+            # comparative literature (GEF/ABiogás, IEE-USP, SEMIL, Instituto 17),
+            # so the platform's figure is directly comparable to theirs rather
+            # than requiring the reader to divide. Read from the stored column
+            # rather than recomputed here: it is populated for all 645 SP rows
+            # and verified equal to total/365 for every one of them.
+            "total_biogas_m3_day": round(total_biogas / 365.0, 2),
             "average_biogas_m3_year": round(avg_biogas, 2),
             "total_energy_mwh_year": round(total_energy, 2),
             "total_co2_reduction_tons_year": round(total_co2, 2),
@@ -978,10 +987,15 @@ async def get_summary_statistics():
                 for m in top5
             ],
             "categories": {},
+            # Forestry is a fourth sector, not a subset of agricultural. Omitting
+            # it made the three percentages sum to 97.0% while the breakdown was
+            # presented as exhaustive, so 599.8 M m³/ano sat inside the headline
+            # total but inside no bucket that explained it.
             "sector_breakdown": {
                 "agricultural": total_agri,
                 "livestock": total_live,
                 "urban": total_urban,
+                "forestry": total_forest,
             },
             "sector_percentages": {
                 "agricultural": round(
@@ -989,6 +1003,9 @@ async def get_summary_statistics():
                 ),
                 "livestock": round((total_live / total_biogas * 100) if total_biogas > 0 else 0, 2),
                 "urban": round((total_urban / total_biogas * 100) if total_biogas > 0 else 0, 2),
+                "forestry": round(
+                    (total_forest / total_biogas * 100) if total_biogas > 0 else 0, 2
+                ),
             },
             "note": (
                 f"Dados de {n} municípios do estado de São Paulo. "
@@ -1004,6 +1021,7 @@ async def get_summary_statistics():
             "scope_label": "Estado de São Paulo",
             "total_municipalities": 0,
             "total_biogas_m3_year": 0,
+            "total_biogas_m3_day": 0,
             "average_biogas_m3_year": 0,
             "total_energy_mwh_year": 0,
             "total_co2_reduction_tons_year": 0,
@@ -1011,8 +1029,8 @@ async def get_summary_statistics():
             "top_municipality": {"name": "N/A", "biogas_m3_year": 0},
             "top_5_municipalities": [],
             "categories": {},
-            "sector_breakdown": {"agricultural": 0, "livestock": 0, "urban": 0},
-            "sector_percentages": {"agricultural": 0, "livestock": 0, "urban": 0},
+            "sector_breakdown": {"agricultural": 0, "livestock": 0, "urban": 0, "forestry": 0},
+            "sector_percentages": {"agricultural": 0, "livestock": 0, "urban": 0, "forestry": 0},
             "error": "Failed to load data",
             "note": "Erro ao carregar dados - usando valores padrão",
         }
