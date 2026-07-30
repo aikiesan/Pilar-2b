@@ -88,9 +88,22 @@ KG_ESTERCO_DIA = {  # coletável, base úmida
     "suino": {"real": 6.0, "ideal": 9.0},
     "ave": {"real": 0.025, "ideal": 0.035},
 }
-# Non-cane crop streams kept at what the pipeline already serves (CH4 m3/ano),
-# with the Ideal tier lifting them by the collection headroom only.
-OUTROS_FLUXOS = {
+# Non-cane streams. The pipeline serves these as THEORETICAL volumes (mass x BMP
+# x VS, no availability term), so carrying them unchanged would mix bases with
+# every stream rebuilt here. They are corrected with the same soil-retention
+# reasoning the Atlas applies to cane straw (p.65): a fraction must stay in the
+# field, and what may be removed is bounded by agronomy rather than by demand.
+#
+# Field residues (milho, soja, silvicultura) take the Atlas cane-straw fractions
+# directly — 40% real, 50% ideal. Processing residues (citros, cafe) are already
+# concentrated at the mill or packing house, so collection is not the binding
+# constraint and they carry a much higher fraction. Urban pruning is already
+# collected by the municipality, so it is higher still.
+#
+# The database's own FDE for these (milho 4.7%, soja 0.8%) is NOT used: it
+# suffers the same over-discounting just corrected for cane, where a competing
+# use was counted as a total loss.
+OUTROS_FLUXOS_TEORICO = {
     "milho": 1_361_216_163,
     "soja": 1_223_083_878,
     "citros": 285_156_605,
@@ -99,7 +112,15 @@ OUTROS_FLUXOS = {
     "poda_urbana": 31_204_438,
     "aquicultura": 130_281,
 }
-OUTROS_FATOR = {"real": 1.00, "ideal": 1.25}
+OUTROS_RETENCAO = {
+    "milho": {"real": 0.40, "ideal": 0.50},
+    "soja": {"real": 0.40, "ideal": 0.50},
+    "silvicultura": {"real": 0.40, "ideal": 0.50},
+    "citros": {"real": 0.70, "ideal": 0.85},
+    "cafe": {"real": 0.70, "ideal": 0.85},
+    "poda_urbana": {"real": 0.80, "ideal": 0.95},
+    "aquicultura": {"real": 0.40, "ideal": 0.50},
+}
 
 
 def somar(rows, col):
@@ -169,8 +190,8 @@ def calcular(rows, tier: str) -> dict[str, float]:
         "RSU (FORSU)": rsu,
         "esgoto (ETE)": esgoto,
     }
-    for k, v in OUTROS_FLUXOS.items():
-        out[k] = v * OUTROS_FATOR[tier]
+    for k, v in OUTROS_FLUXOS_TEORICO.items():
+        out[k] = v * OUTROS_RETENCAO[k][tier]
     return out
 
 
