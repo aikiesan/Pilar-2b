@@ -892,6 +892,21 @@ async def get_rankings(
         raise HTTPException(status_code=500, detail="Failed to fetch rankings")
 
 
+# Fraction of biogas that is CH4, per the convention used by the SP comparative
+# literature (FIESP 2025: "1 Nm3 de biogas equivale a cerca de 0,625 Nm3 de
+# biometano"). Adopted here so the platform's figures are directly comparable to
+# GEF/ABiogas, IEE-USP, SEMIL and Instituto 17 rather than needing a conversion
+# the reader has to guess at.
+CH4_FRACTION_OF_BIOGAS = 0.625
+
+# Lower heating value of methane, kWh per Nm3. Used only to document the factor
+# already embedded in energy_potential_mwh_year (measured at 9.97 kWh/m3 of the
+# stored volume, which is what identified that volume as CH4 rather than biogas).
+CH4_LHV_KWH_PER_M3 = 9.94
+
+DAYS_PER_YEAR = 365
+
+
 @router.get(
     "/statistics/summary",
     summary="Overall statistics",
@@ -963,14 +978,32 @@ async def get_summary_statistics():
             "scope": "SP",
             "scope_label": "Estado de São Paulo",
             "total_municipalities": n,
+            # LEGACY KEY — the stored column is named *_biogas_m3_year but holds
+            # METHANE, not biogas: the pipeline computes
+            #   volume = biomass_wet_t x BMP x VS%   (biomass_availability.py:10)
+            # and BMP is in NmL CH4/gVS, with no CH4->biogas division anywhere.
+            # Independently confirmed by the energy factor, which measures at
+            # 9.97 kWh per m3 of this volume — methane's LHV (9.94), not biogas's
+            # (~6 at 60% CH4). Kept under the old name because seven frontend
+            # call sites read it; use total_methane_m3_year in new code.
             "total_biogas_m3_year": total_biogas,
-            # Daily mean on the 365-day convention used by every study in the SP
-            # comparative literature (GEF/ABiogás, IEE-USP, SEMIL, Instituto 17),
-            # so the platform's figure is directly comparable to theirs rather
-            # than requiring the reader to divide. Read from the stored column
-            # rather than recomputed here: it is populated for all 645 SP rows
-            # and verified equal to total/365 for every one of them.
-            "total_biogas_m3_day": round(total_biogas / 365.0, 2),
+            "total_biogas_m3_day": round(total_biogas / DAYS_PER_YEAR, 2),
+            # The same quantity, named for what it actually is.
+            "basis": "CH4",
+            "total_methane_m3_year": total_biogas,
+            "total_methane_m3_day": round(total_biogas / DAYS_PER_YEAR, 2),
+            # Raw biogas the digesters would produce to yield that methane.
+            "total_raw_biogas_m3_year": round(total_biogas / CH4_FRACTION_OF_BIOGAS, 2),
+            "total_raw_biogas_m3_day": round(
+                total_biogas / CH4_FRACTION_OF_BIOGAS / DAYS_PER_YEAR, 2
+            ),
+            # Biomethane. Under the FIESP convention biomethane volume equals the
+            # methane volume (their 0.625 IS the CH4 fraction), so this is not a
+            # second discount on top of it. NOTE: no upgrading loss is deducted —
+            # real plants slip 1-3% CH4, so this is an upper bound.
+            "total_biomethane_m3_year": total_biogas,
+            "total_biomethane_m3_day": round(total_biogas / DAYS_PER_YEAR, 2),
+            "total_energy_mwh_day": round(total_energy / DAYS_PER_YEAR, 2),
             "average_biogas_m3_year": round(avg_biogas, 2),
             "total_energy_mwh_year": round(total_energy, 2),
             "total_co2_reduction_tons_year": round(total_co2, 2),
@@ -1010,7 +1043,11 @@ async def get_summary_statistics():
             "note": (
                 f"Dados de {n} municípios do estado de São Paulo. "
                 "Municípios fora de SP estão carregados no mapa como camada beta "
-                "em validação e NÃO entram neste total."
+                "em validação e NÃO entram neste total. "
+                "Os volumes são de METANO (CH₄): o BMP que os gera está em "
+                "NmL CH₄/gVS. O biogás bruto equivalente usa a fração de "
+                f"{CH4_FRACTION_OF_BIOGAS} Nm³ CH₄/Nm³ biogás (FIESP 2025). "
+                "Médias diárias consideram 365 dias/ano."
             ),
         }
 
@@ -1022,8 +1059,16 @@ async def get_summary_statistics():
             "total_municipalities": 0,
             "total_biogas_m3_year": 0,
             "total_biogas_m3_day": 0,
+            "basis": "CH4",
+            "total_methane_m3_year": 0,
+            "total_methane_m3_day": 0,
+            "total_raw_biogas_m3_year": 0,
+            "total_raw_biogas_m3_day": 0,
+            "total_biomethane_m3_year": 0,
+            "total_biomethane_m3_day": 0,
             "average_biogas_m3_year": 0,
             "total_energy_mwh_year": 0,
+            "total_energy_mwh_day": 0,
             "total_co2_reduction_tons_year": 0,
             "total_population": 0,
             "top_municipality": {"name": "N/A", "biogas_m3_year": 0},
