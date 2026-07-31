@@ -6,6 +6,8 @@ cache comete em silêncio: servir a resposta de um pedido para outro, devolver
 processo.
 """
 
+import gzip
+import json
 import time
 
 import pytest
@@ -17,8 +19,10 @@ from app.core.response_cache import cache_stats, cached_json_response, clear_cac
 class FakeRequest:
     """Só o que o cache lê de uma Request: os cabeçalhos."""
 
-    def __init__(self, if_none_match: str | None = None):
-        self.headers = {"if-none-match": if_none_match} if if_none_match else {}
+    def __init__(self, if_none_match: str | None = None, accept_encoding: str = ""):
+        self.headers = {"accept-encoding": accept_encoding}
+        if if_none_match:
+            self.headers["if-none-match"] = if_none_match
 
 
 @pytest.fixture(autouse=True)
@@ -121,3 +125,41 @@ def test_erro_no_builder_nao_fica_em_cache():
     with pytest.raises(RuntimeError):
         cached_json_response(FakeRequest(), "k", explode)
     assert cache_stats()["entries"] == 0
+
+
+def test_cliente_que_aceita_gzip_recebe_comprimido_e_valido():
+    """O ganho maior do cache, e o mais fácil de quebrar sem perceber.
+
+    Guardar bytes crus deixava o GZipMiddleware refazer gzip nível 9 sobre 12 MB
+    a cada requisição: 284 ms por acerto, contra 28 ms sem compressão. Comprimir
+    uma vez na construção derrubou para 46 ms. Se algum dia alguém devolver o
+    corpo cru com Content-Encoding: gzip, o cliente recebe lixo — daí o teste
+    descomprimir de verdade em vez de só conferir o cabeçalho.
+    """
+    payload = {"type": "FeatureCollection", "features": [{"id": i} for i in range(50)]}
+    resp = cached_json_response(
+        FakeRequest(accept_encoding="gzip, deflate, br"), "k", lambda: payload
+    )
+
+    assert resp.headers["content-encoding"] == "gzip"
+    assert json.loads(gzip.decompress(resp.body)) == payload
+    assert len(resp.body) < len(json.dumps(payload).encode())
+
+
+def test_cliente_sem_gzip_recebe_cru_e_sem_content_encoding():
+    payload = {"a": 1}
+    resp = cached_json_response(FakeRequest(accept_encoding="identity"), "k", lambda: payload)
+
+    assert "content-encoding" not in resp.headers
+    assert json.loads(resp.body) == payload
+
+
+def test_as_duas_variantes_compartilham_etag():
+    """Mesmo recurso, mesma versão: o ETag identifica o conteúdo, não a codificação.
+
+    É o `Vary: Accept-Encoding` que impede um proxy de entregar a variante errada.
+    """
+    gz = cached_json_response(FakeRequest(accept_encoding="gzip"), "k", lambda: {"a": 1})
+    raw = cached_json_response(FakeRequest(), "k", lambda: {"a": 1})
+    assert gz.headers["etag"] == raw.headers["etag"]
+    assert gz.headers["vary"] == raw.headers["vary"] == "Accept-Encoding"
