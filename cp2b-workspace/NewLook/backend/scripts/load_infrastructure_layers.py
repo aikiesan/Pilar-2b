@@ -43,20 +43,81 @@ from psycopg2.extras import execute_batch
 # Host path is mounted read-only into the backend container by
 # docker-compose.override.yml; override with MAPBIOMAS_INFRA_DIR if it moves.
 INFRA_DIR = Path(os.environ.get("MAPBIOMAS_INFRA_DIR", "/mnt/mapbiomas_infra"))
+# Root of SHAPEFILES_MAPBIOMAS_10.1, for the layers that live OUTSIDE
+# INFRAESTRUTURA/ (protected areas, settlements, indigenous territories).
+MAPBIOMAS_DIR = Path(os.environ.get("MAPBIOMAS_DIR", "/mnt/mapbiomas"))
 
-# layer_id -> source folder under INFRAESTRUTURA/. The .shp inside is globbed,
-# never hardcoded: one of them is `Usinas_Termelétricas_UTE_Biomassa.shp` whose
-# "é" is a decomposed combining accent, so a literal filename would not match.
+
+def resolve_folder(rel: str) -> Path | None:
+    """Locate a layer folder across the two mount conventions.
+
+    The original runbook mounts INFRAESTRUTURA/ itself at /mnt/mapbiomas_infra,
+    so paths there are bare folder names. The territorial layers are siblings of
+    INFRAESTRUTURA, reachable only from the root. Both are tried rather than
+    forcing every existing runbook to change.
+    """
+    for cand in (MAPBIOMAS_DIR / rel, INFRA_DIR / Path(rel).name, INFRA_DIR / rel):
+        if cand.is_dir():
+            return cand
+    return None
+
+
+# layer_id -> source folder. The .shp inside is globbed, never hardcoded: one of
+# them is `Usinas_Termelétricas_UTE_Biomassa.shp` whose "é" is a decomposed
+# combining accent, so a literal filename would not match.
+#
+# Paths are relative to the MapBiomas root. The first nine live under
+# INFRAESTRUTURA/; the territorial layers added later sit beside it, which is why
+# the path is stored whole rather than assumed.
 LAYERS: dict[str, str] = {
-    "biogas_plant": "structure_biogas_plant",
-    "biodiesel_plant": "structure_biodiesel_plant",
-    "ethanol_plant": "structure_ethanol_plant",
-    "slaughterhouse": "structure_slaughterhouse",
-    "biomass_thermal_plant": "structure_biomass_thermal_power_plant",
-    "substation": "structure_substation",
-    "transmission_line": "structure_transmission_line",
-    "gas_pipeline_transport": "structure_transportation_gas_pipeline",
-    "gas_pipeline_distribution": "structure_distribution_gas_pipeline",
+    # ── energia e transporte de gás ────────────────────────────────────────
+    "biogas_plant": "INFRAESTRUTURA/structure_biogas_plant",
+    "biodiesel_plant": "INFRAESTRUTURA/structure_biodiesel_plant",
+    "ethanol_plant": "INFRAESTRUTURA/structure_ethanol_plant",
+    "slaughterhouse": "INFRAESTRUTURA/structure_slaughterhouse",
+    "biomass_thermal_plant": "INFRAESTRUTURA/structure_biomass_thermal_power_plant",
+    "substation": "INFRAESTRUTURA/structure_substation",
+    "transmission_line": "INFRAESTRUTURA/structure_transmission_line",
+    "gas_pipeline_transport": "INFRAESTRUTURA/structure_transportation_gas_pipeline",
+    "gas_pipeline_distribution": "INFRAESTRUTURA/structure_distribution_gas_pipeline",
+    # ── rota de escoamento do biometano ───────────────────────────────────
+    # Sem estas, o mapa mostra onde o resíduo está e por onde o gasoduto passa,
+    # mas não onde é possível INJETAR — que é a pergunta de quem vai investir.
+    "gas_delivery_point": "INFRAESTRUTURA/structure_gas_delivery_point",
+    "compression_station": "INFRAESTRUTURA/structure_compression_station",
+    "gas_processing_unit": "INFRAESTRUTURA/structure_natural_gas_processing_unit",
+    "gas_pipeline_outflow": "INFRAESTRUTURA/structure_outflow_gas_pipeline",
+    # ── restrição de sítio: "mobilizável" não é o mesmo que "licenciável" ──
+    "protected_area_state": "STATE_PROTECTED_AREAS_INTEGRAL_PROTECTION_v2",
+    "indigenous_territory": "INDIGENOUS_TERRITORIES_v3",
+    "settlement": "SETTLEMENTS_v3",
+    # ── logística ─────────────────────────────────────────────────────────
+    "highway_state": "INFRAESTRUTURA/structure_state_highway",
+    "highway_federal": "INFRAESTRUTURA/structure_federal_highway",
+}
+
+# Filtro de linhas por camada, aplicado antes da carga.
+#
+# As rodovias vêm com leito natural, implantadas e em obras junto do pavimentado.
+# Para escoamento de resíduo só o pavimentado em operação interessa, e o filtro
+# corta 47.165 feições nacionais para o que de fato serve — é a diferença entre
+# uma camada utilizável e uma que ninguém liga duas vezes.
+ROW_FILTERS: dict[str, tuple[str, str]] = {
+    "highway_state": ("revestimen", "pavimentad"),
+    "highway_federal": ("revestimen", "pavimentad"),
+}
+
+# Tolerância de simplificação (graus) gravada junto da camada, para o endpoint
+# saber o padrão sem que o cliente precise conhecer cada camada. 0.001 ~ 111 m.
+# Medido: rodovias estaduais de SP caem de 4.727 KB para 1.620 KB (366 KB gzip)
+# nessa tolerância, sem diferença visível em escala estadual.
+DEFAULT_SIMPLIFY: dict[str, float] = {
+    "highway_state": 0.001,
+    "highway_federal": 0.001,
+    "protected_area_state": 0.001,
+    "indigenous_territory": 0.001,
+    "settlement": 0.001,
+    "gas_pipeline_outflow": 0.0005,
 }
 
 # Candidate source columns, best first. Schemas differ per layer.
@@ -95,9 +156,29 @@ def _clean_code(v):
     return s.zfill(7) if s.isdigit() and len(s) <= 7 else None
 
 
+def _clean_uf(raw) -> str | None:
+    """A UF or nothing — never the first two letters of something else.
+
+    This used to be `str(raw)[:2].upper()`, which is right for a column holding
+    'SP' and silently wrong for one holding a state NAME: the protected-area
+    layer came in as 'SÃ' (São Paulo), 'MI' (Minas Gerais), 'RI' (Rio de
+    Janeiro). Those are not UFs, they match no filter, and they look like data.
+    Two ASCII letters or NULL.
+    """
+    if raw is None:
+        return None
+    s = str(raw).strip().upper()
+    return s if len(s) == 2 and s.isascii() and s.isalpha() else None
+
+
 def load_layer(layer_id: str, folder: str):
-    d = INFRA_DIR / folder
-    shps = sorted(d.glob("*.shp"))
+    d = resolve_folder(folder)
+    if d is None:
+        print(f"  !! folder not found for {folder} — skipping")
+        return None, []
+    # rglob, not glob: some MapBiomas zips extract into a nested directory, and
+    # __MACOSX resource forks look like shapefiles to a naive glob.
+    shps = sorted(p for p in d.rglob("*.shp") if "__MACOSX" not in str(p))
     if not shps:
         print(f"  !! no .shp in {d} — skipping")
         return None, []
@@ -105,6 +186,16 @@ def load_layer(layer_id: str, folder: str):
     gdf = gpd.read_file(shp, engine="pyogrio")
     if gdf.crs is not None:
         gdf = gdf.to_crs(epsg=4326)
+
+    col_filter = ROW_FILTERS.get(layer_id)
+    if col_filter:
+        col, needle = col_filter
+        if col in gdf.columns:
+            before = len(gdf)
+            gdf = gdf[gdf[col].astype(str).str.lower().str.contains(needle, na=False)]
+            print(f"  filtro {col}~'{needle}': {before} -> {len(gdf)}")
+        else:
+            print(f"  !! coluna de filtro '{col}' ausente — carregando sem filtro")
 
     rows = []
     for _, r in gdf.iterrows():
@@ -121,7 +212,7 @@ def load_layer(layer_id: str, folder: str):
                 "name": _first(r, NAME_FIELDS),
                 "wkb": geom.wkb,
                 "ibge_code": _clean_code(_first(r, CODE_FIELDS)),
-                "uf": (_first(r, UF_FIELDS) or "")[:2].upper() or None,
+                "uf": _clean_uf(_first(r, UF_FIELDS)),
                 "attributes": json.dumps(attrs, ensure_ascii=False),
                 "source_id": folder,
                 "source_file": shp.name,

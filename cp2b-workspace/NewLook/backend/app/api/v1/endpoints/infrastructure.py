@@ -236,6 +236,40 @@ async def get_sp_boundary_geojson() -> Dict[str, Any]:
 
 
 # =============================================================================
+# Default Douglas-Peucker tolerance per layer, in degrees (0.001 ~ 111 m).
+#
+# Mirrors DEFAULT_SIMPLIFY in scripts/load_infrastructure_layers.py — the loader
+# documents why each layer needs it, this is where it takes effect. Layers absent
+# here are served whole: every point layer, and the nine original ones, which are
+# small enough that simplifying would cost CPU to save nothing.
+LAYER_SIMPLIFY: Dict[str, float] = {
+    "highway_state": 0.001,
+    "highway_federal": 0.001,
+    "protected_area_state": 0.001,
+    "indigenous_territory": 0.001,
+    "settlement": 0.001,
+    "gas_pipeline_outflow": 0.0005,
+}
+
+# Attributes actually served, per layer. Absent = the source's full attribute
+# bag, which is right for the small layers where a popup shows everything.
+#
+# It is NOT right for the big ones. Simplifying the highway geometries got the
+# response to 4.4 MB and it stopped falling, because by then two thirds of the
+# payload was attributes: `geometriaa`, `concession`, `canteirodi`, `situacaofi`
+# and a dozen more, repeated across 6,164 segments, none of which the map draws
+# or the popup shows. Trimming them is worth more than any further simplifying,
+# and unlike simplifying it costs no fidelity at all.
+LAYER_ATTRIBUTES: Dict[str, tuple[str, ...]] = {
+    "highway_state": ("tipovia", "jurisdicao", "revestimen"),
+    "highway_federal": ("tipovia", "jurisdicao", "revestimen"),
+    "settlement": ("nome_proje", "uf", "FIRST_muni"),
+    "protected_area_state": ("nome_uc", "categoria", "esfera"),
+    "indigenous_territory": ("terrai_nom", "etnia_nome", "uf_sigla", "fase_ti"),
+}
+
+
+# =============================================================================
 # NATIONAL LAYERS (PostGIS-backed, MapBiomas 10.1 INFRAESTRUTURA)
 # =============================================================================
 # The endpoints above serve São Paulo shapefiles off disk and are kept as-is.
@@ -288,9 +322,26 @@ async def get_infrastructure_layer_geojson(
     ),
     bbox: Optional[str] = Query(None, description="'min_lng,min_lat,max_lng,max_lat' (EPSG:4326)"),
     limit: Optional[int] = Query(None, ge=1, le=20000),
+    simplify: Optional[float] = Query(
+        None,
+        ge=0,
+        le=0.05,
+        description=(
+            "Douglas-Peucker tolerance in degrees (0.001 ~ 111 m). "
+            "Omit for the layer's default; 0 forces full resolution."
+        ),
+    ),
 ) -> Dict[str, Any]:
-    # These layers are small — the largest is 1,712 transmission lines — so they
-    # serve at full resolution with no LOD, unlike the 5,571 municipality polygons.
+    # The original nine layers are small — the largest is 1,712 transmission
+    # lines — and serve at full resolution. The ones added since are not: São
+    # Paulo's paved state highways alone are 6,164 features and 4.7 MB of raw
+    # GeoJSON, and the protected-area polygons 13.5 MB. Measured at tolerance
+    # 0.001 they fall to 1.6 MB and 741 KB (366 KB and 275 KB over gzip) with no
+    # difference visible at state scale, which is the only scale the map draws
+    # them at. Hence a per-layer default rather than one global rule: a point
+    # layer must never be simplified, and a 6,000-segment road network must.
+    tolerance = LAYER_SIMPLIFY.get(layer_id, 0.0) if simplify is None else simplify
+
     where = ["layer_id = %s"]
     params: list = [layer_id]
 
@@ -320,13 +371,25 @@ async def get_infrastructure_layer_geojson(
             SELECT jsonb_build_object(
                 'type', 'Feature',
                 'id', id,
-                'geometry', ST_AsGeoJSON(geometry, 6)::jsonb,
+                'geometry', ST_AsGeoJSON(
+                    CASE WHEN %s > 0
+                         THEN ST_SimplifyPreserveTopology(geometry, %s)
+                         ELSE geometry END,
+                    6
+                )::jsonb,
                 'properties', jsonb_build_object(
                     'layer_id', layer_id,
                     'name', name,
                     'ibge_code', ibge_code,
                     'uf', uf
-                ) || attributes
+                ) || CASE
+                        WHEN %s::text[] IS NULL THEN attributes
+                        ELSE attributes - (
+                            SELECT COALESCE(array_agg(k), ARRAY[]::text[])
+                            FROM jsonb_object_keys(attributes) k
+                            WHERE NOT (k = ANY(%s::text[]))
+                        )
+                     END
             ) AS feature
             FROM infrastructure_features
             WHERE {' AND '.join(where)}
@@ -335,6 +398,13 @@ async def get_infrastructure_layer_geojson(
     """
     if limit is not None:
         params.append(limit)
+
+    # The tolerance and attribute-whitelist placeholders sit inside the SELECT
+    # list, ahead of every WHERE parameter — psycopg2 binds positionally, so
+    # they must lead, in the order they appear in the statement.
+    keep = LAYER_ATTRIBUTES.get(layer_id)
+    keep_arg = list(keep) if keep else None
+    params = [tolerance, tolerance, keep_arg, keep_arg, *params]
 
     try:
         with get_db() as conn:

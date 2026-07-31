@@ -24,7 +24,7 @@ import { isSaoPaulo, NATIONAL_BETA_LAYER_ID, SP_MUNICIPALITY_COUNT } from '@/lib
 import type { BiomassType, ResidueType } from './FloatingControlPanel';
 import type { VisualizationMode } from './LeftFilterPanel';
 import { type ColorMode } from '@/types/geospatial';
-import type { InfrastructureLayerStatus } from './InfrastructureLayer';
+import type { InfrastructureLayerStatus, NationalLayer } from './InfrastructureLayer';
 import {
   BRAZIL_STATES,
   SAO_PAULO_UF,
@@ -104,6 +104,45 @@ function parseScopeParam(raw: string | null): MapScope {
   if (bySigla) return bySigla.code;
   return SAO_PAULO_UF;
 }
+
+// National PostGIS layers and how each is filtered server-side.
+//
+// `uf` where the source ships a real two-letter code; `bbox` for the lines and
+// polygons whose uf the loader leaves NULL by design, because they cross state
+// borders and pinning them to one would be a lie. Neither is cosmetic: without
+// a filter the paved state highways are 23,332 features nationally instead of
+// the 6,164 São Paulo needs.
+//
+// Everything here is off by default and fetched only when toggled, so none of
+// it touches the first paint. Measured over gzip with the São Paulo bbox:
+// gas nodes ~5 KB total, protected areas 138 KB, settlements 82 KB, state
+// highways 261 KB — the heaviest single layer, and only if asked for.
+const SP_BBOX_PARAM = '-53.2,-25.4,-44.1,-19.7';
+
+const NATIONAL_INFRA_LAYERS: {
+  id: NationalLayer;
+  uf?: string;
+  bbox?: string;
+}[] = [
+  { id: 'biogas_plant' },
+  { id: 'ethanol_plant' },
+  { id: 'biomass_thermal_plant' },
+  { id: 'biodiesel_plant' },
+  { id: 'slaughterhouse' },
+  { id: 'substation' },
+  { id: 'transmission_line' },
+  { id: 'gas_pipeline_transport' },
+  { id: 'gas_pipeline_distribution' },
+  { id: 'gas_delivery_point', uf: 'SP' },
+  { id: 'compression_station', uf: 'SP' },
+  { id: 'gas_processing_unit', uf: 'SP' },
+  { id: 'settlement', uf: 'SP' },
+  { id: 'gas_pipeline_outflow', bbox: SP_BBOX_PARAM },
+  { id: 'protected_area_state', bbox: SP_BBOX_PARAM },
+  { id: 'indigenous_territory', bbox: SP_BBOX_PARAM },
+  { id: 'highway_state', bbox: SP_BBOX_PARAM },
+  { id: 'highway_federal', bbox: SP_BBOX_PARAM },
+];
 
 // Valid residue values for URL parsing
 const VALID_RESIDUES: ResidueType[] = [
@@ -351,6 +390,15 @@ export default function MapComponent({
     { id: 'transmission_line', name: 'Linhas de Transmissão (MapBiomas, BR)', visible: false, icon: '🔌' },
     { id: 'gas_pipeline_transport', name: 'Gasodutos de Transporte (MapBiomas, BR)', visible: false, icon: '🔧' },
     { id: 'gas_pipeline_distribution', name: 'Gasodutos de Distribuição (MapBiomas, BR)', visible: false, icon: '🔩' },
+    { id: 'gas_delivery_point', name: 'Pontos de Entrega de Gás (MapBiomas, BR)', visible: false, icon: '🔷' },
+    { id: 'compression_station', name: 'Estações de Compressão (MapBiomas, BR)', visible: false, icon: '🔶' },
+    { id: 'gas_processing_unit', name: 'UPGNs (MapBiomas, BR)', visible: false, icon: '🔹' },
+    { id: 'gas_pipeline_outflow', name: 'Gasodutos de Escoamento (MapBiomas, BR)', visible: false, icon: '🧵' },
+    { id: 'protected_area_state', name: 'UCs de Proteção Integral (MapBiomas, BR)', visible: false, icon: '🌲' },
+    { id: 'indigenous_territory', name: 'Terras Indígenas (MapBiomas, BR)', visible: false, icon: '🪶' },
+    { id: 'settlement', name: 'Assentamentos (MapBiomas, BR)', visible: false, icon: '🏘️' },
+    { id: 'highway_state', name: 'Rodovias Estaduais pavimentadas (MapBiomas, BR)', visible: false, icon: '🛣️' },
+    { id: 'highway_federal', name: 'Rodovias Federais pavimentadas (MapBiomas, BR)', visible: false, icon: '🛤️' },
     { id: 'etes', name: 'ETEs (SNIS, 2023 — SP)', visible: false, icon: '💧' },
     { id: 'railways', name: 'Rodovias (EPE, 2023 — SP)', visible: false, icon: '🛣️' },
   ]);
@@ -755,15 +803,17 @@ export default function MapComponent({
           {/* National layers (PostGIS, migration 023). Each is small — the
               largest is 1,712 transmission lines — so they load at full
               resolution with no LOD, unlike the municipality choropleth. */}
-          {visibleLayerIds.includes('biogas_plant') && <InfrastructureLayer layerType="biogas_plant" onStatus={handleInfrastructureStatus} />}
-          {visibleLayerIds.includes('ethanol_plant') && <InfrastructureLayer layerType="ethanol_plant" onStatus={handleInfrastructureStatus} />}
-          {visibleLayerIds.includes('biomass_thermal_plant') && <InfrastructureLayer layerType="biomass_thermal_plant" onStatus={handleInfrastructureStatus} />}
-          {visibleLayerIds.includes('biodiesel_plant') && <InfrastructureLayer layerType="biodiesel_plant" onStatus={handleInfrastructureStatus} />}
-          {visibleLayerIds.includes('slaughterhouse') && <InfrastructureLayer layerType="slaughterhouse" onStatus={handleInfrastructureStatus} />}
-          {visibleLayerIds.includes('substation') && <InfrastructureLayer layerType="substation" onStatus={handleInfrastructureStatus} />}
-          {visibleLayerIds.includes('transmission_line') && <InfrastructureLayer layerType="transmission_line" onStatus={handleInfrastructureStatus} />}
-          {visibleLayerIds.includes('gas_pipeline_transport') && <InfrastructureLayer layerType="gas_pipeline_transport" onStatus={handleInfrastructureStatus} />}
-          {visibleLayerIds.includes('gas_pipeline_distribution') && <InfrastructureLayer layerType="gas_pipeline_distribution" onStatus={handleInfrastructureStatus} />}
+          {NATIONAL_INFRA_LAYERS.map(({ id, uf, bbox }) =>
+            visibleLayerIds.includes(id) ? (
+              <InfrastructureLayer
+                key={id}
+                layerType={id}
+                uf={uf}
+                bbox={bbox}
+                onStatus={handleInfrastructureStatus}
+              />
+            ) : null
+          )}
 
           {/* São Paulo shapefile layers with no national equivalent loaded yet */}
           {visibleLayerIds.includes('railways') && <InfrastructureLayer layerType="railways" onStatus={handleInfrastructureStatus} />}
