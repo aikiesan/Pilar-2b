@@ -27,16 +27,26 @@ type LegacySpLayer =
   | 'transmission-lines' | 'etes'
   | 'admin-regions' | 'intermediate-regions' | 'immediate-regions';
 
-type NationalLayer =
+export type NationalLayer =
   | 'biogas_plant' | 'biodiesel_plant' | 'ethanol_plant' | 'slaughterhouse'
   | 'biomass_thermal_plant' | 'substation' | 'transmission_line'
-  | 'gas_pipeline_transport' | 'gas_pipeline_distribution';
+  | 'gas_pipeline_transport' | 'gas_pipeline_distribution'
+  // Rota de escoamento: onde o biometano entra na malha
+  | 'gas_delivery_point' | 'compression_station' | 'gas_processing_unit'
+  | 'gas_pipeline_outflow'
+  // Restrição de sítio: mobilizável não é o mesmo que licenciável
+  | 'protected_area_state' | 'indigenous_territory' | 'settlement'
+  // Logística
+  | 'highway_state' | 'highway_federal';
 
 interface InfrastructureLayerProps {
   layerType: LegacySpLayer | NationalLayer;
   onStatus?: (status: InfrastructureLayerStatus) => void;
   /** Server-side UF filter; national layers only. */
   uf?: string;
+  /** Server-side bbox filter, for layers whose uf is NULL by design (lines and
+   *  polygons that cross state borders). 'min_lng,min_lat,max_lng,max_lat'. */
+  bbox?: string;
 }
 
 // Layer styling configurations
@@ -107,6 +117,48 @@ const layerStyles: Record<string, any> = {
     opacity: 0.8,
     dashArray: '4, 4'
   },
+  // Escoamento: mesma família cromática dos outros gasodutos, tom distinto.
+  gas_pipeline_outflow: {
+    color: '#FF8C42',
+    weight: 1.8,
+    opacity: 0.75,
+    dashArray: '2, 3'
+  },
+  // Restrição de sítio — contorno visível, preenchimento discreto. São camadas
+  // de contexto: precisam ser lidas como limite, não competir com o coroplético.
+  protected_area_state: {
+    color: '#166534',
+    weight: 1,
+    opacity: 0.7,
+    fillColor: '#22C55E',
+    fillOpacity: 0.18
+  },
+  indigenous_territory: {
+    color: '#92400E',
+    weight: 1,
+    opacity: 0.7,
+    fillColor: '#F59E0B',
+    fillOpacity: 0.18
+  },
+  settlement: {
+    color: '#7C2D12',
+    weight: 0.8,
+    opacity: 0.6,
+    fillColor: '#FB923C',
+    fillOpacity: 0.15
+  },
+  // Rodovias: finas e neutras. São referência de leitura para o resto do mapa,
+  // nunca o dado em inspeção.
+  highway_state: {
+    color: '#64748B',
+    weight: 0.8,
+    opacity: 0.55
+  },
+  highway_federal: {
+    color: '#334155',
+    weight: 1.2,
+    opacity: 0.65
+  },
   biogas_plant: {},
   biodiesel_plant: {},
   ethanol_plant: {},
@@ -137,6 +189,31 @@ const createSlaughterhouseIcon = () => {
     `,
     iconSize: [16, 16],
     iconAnchor: [8, 8]
+  });
+};
+
+// Nós da malha de gás: entrega (city gate), compressão e processamento.
+const GAS_NODE_COLORS: Record<string, [string, string]> = {
+  gas_delivery_point: ['#0EA5E9', '#075985'],
+  compression_station: ['#8B5CF6', '#5B21B6'],
+  gas_processing_unit: ['#14B8A6', '#0F766E'],
+};
+
+const createGasNodeIcon = (layerType: string) => {
+  const [fill, stroke] = GAS_NODE_COLORS[layerType] ?? ['#0EA5E9', '#075985'];
+  return L.divIcon({
+    className: 'custom-gas-node-icon',
+    html: `
+      <div style="
+        background-color: ${fill};
+        border: 2px solid ${stroke};
+        width: 12px;
+        height: 12px;
+        transform: rotate(45deg);
+      "></div>
+    `,
+    iconSize: [12, 12],
+    iconAnchor: [6, 6],
   });
 };
 
@@ -276,9 +353,9 @@ const createETEIcon = () => {
   });
 };
 
-export default function InfrastructureLayer({ layerType, onStatus }: InfrastructureLayerProps) {
+export default function InfrastructureLayer({ layerType, onStatus, uf, bbox }: InfrastructureLayerProps) {
   // Use React Query hook for automatic caching and background refetching
-  const { data, loading, error, isFetching } = useInfrastructureLayer(layerType, true);
+  const { data, loading, error, isFetching } = useInfrastructureLayer(layerType, true, uf, bbox);
   const featureCount = Array.isArray(data?.features) ? data.features.length : 0;
 
   useEffect(() => {
@@ -376,6 +453,16 @@ export default function InfrastructureLayer({ layerType, onStatus }: Infrastruct
       }
     } else if (layerType === 'etes') {
       icon = createETEIcon();
+    } else if (
+      layerType === 'gas_delivery_point' ||
+      layerType === 'compression_station' ||
+      layerType === 'gas_processing_unit'
+    ) {
+      // A rota do gás em um só registro visual: losango, para não se confundir
+      // com os círculos das usinas. A cor separa os três papéis — entrega,
+      // compressão, processamento — que é a leitura que interessa a quem
+      // pergunta "onde eu injeto o biometano que este município produz?".
+      icon = createGasNodeIcon(layerType);
     } else {
       // Default marker
       icon = L.divIcon({

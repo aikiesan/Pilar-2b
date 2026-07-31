@@ -152,25 +152,46 @@ const NATIONAL_INFRA_LAYERS = new Set([
   'transmission_line',
   'gas_pipeline_transport',
   'gas_pipeline_distribution',
+  // Rota de escoamento do biometano
+  'gas_delivery_point',
+  'compression_station',
+  'gas_processing_unit',
+  'gas_pipeline_outflow',
+  // Restrição de sítio
+  'protected_area_state',
+  'indigenous_territory',
+  'settlement',
+  // Logística
+  'highway_state',
+  'highway_federal',
 ]);
 
 export function useInfrastructureLayer(
   layerType: string,
   enabled: boolean = true,
-  uf?: string
+  uf?: string,
+  bbox?: string
 ) {
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
   const queryResult = useQuery({
-    queryKey: [...queryKeys.infrastructure.layer(layerType), uf ?? 'BR'],
+    queryKey: [...queryKeys.infrastructure.layer(layerType), uf ?? bbox ?? 'BR'],
     queryFn: async () => {
       const isNational = NATIONAL_INFRA_LAYERS.has(layerType);
       const path = isNational
         ? `/api/v1/infrastructure/features/${layerType}/geojson`
         : `/api/v1/infrastructure/${layerType}/geojson`;
-      // The UF filter is a server-side WHERE on an indexed column, not a client
-      // filter — SP biogas plants come back as 51 of 543 rather than all 543.
-      const qs = isNational && uf ? `?uf=${encodeURIComponent(uf)}` : '';
+      // Server-side filters on indexed columns, not client filters — SP biogas
+      // plants come back as 51 of 543 rather than all 543.
+      //
+      // uf where the source ships a real UF code; bbox for the rest. Lines and
+      // polygons legitimately cross state borders, so the loader leaves their
+      // uf NULL rather than pinning them to one — the spatial filter is the
+      // honest one for them, and it rides the GIST index.
+      const params = new URLSearchParams();
+      if (isNational && uf) params.set('uf', uf);
+      if (isNational && bbox) params.set('bbox', bbox);
+      const qs = params.toString() ? `?${params}` : '';
 
       const response = await fetch(`${API_BASE_URL}${path}${qs}`);
 
