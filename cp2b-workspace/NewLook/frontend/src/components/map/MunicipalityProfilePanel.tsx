@@ -21,6 +21,7 @@ import {
   ExternalLink,
   FileText,
 } from 'lucide-react';
+import { Link } from '@/navigation';
 import type { DisplayMetric, MunicipalityFeature } from '@/types/geospatial';
 import type { MapScenarioKey } from '@/data/scenarioFactors';
 import { getTotalBiomassTons } from '@/lib/biomassAvailability';
@@ -383,15 +384,20 @@ export default function MunicipalityProfilePanel({
 
           {/* External Links */}
           <div className="pt-4 border-t border-gray-200 dark:border-slate-700 space-y-2">
-            <a
-              href={`/municipality/${props.ibge_code}`}
+            {/* next-intl's Link, not a bare <a>. A raw href="/municipality/…"
+                skips BOTH the basePath (/pilar2b) and the locale segment, so in
+                production this button left the platform entirely and landed on
+                the CP2b institutional site, which serves the same host at the
+                root. Locally, where basePath is empty, it appeared to work. */}
+            <Link
+              href={`/municipality/${props.ibge_code}` as never}
               className="flex items-center justify-between p-4 rounded-lg bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors group border border-green-200 dark:border-green-800"
             >
               <span className="text-sm font-semibold text-green-800 dark:text-green-300">
                 Ver Perfil Completo
               </span>
               <FileText className="w-4 h-4 text-green-600 group-hover:text-green-800 dark:text-green-400" />
-            </a>
+            </Link>
             <a
               href={`https://cidades.ibge.gov.br/brasil/sp/${props.name.toLowerCase()}/panorama`}
               target="_blank"
