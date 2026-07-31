@@ -255,6 +255,34 @@ export interface MunicipalityCollection {
   };
 }
 
+/**
+ * One served scenario's state totals (`/statistics/summary` → `scenarios.*`,
+ * built by geospatial.py's `_tier`).
+ *
+ * `ch4_m3_year` and `biomethane_m3_year` are deliberately the same number: under
+ * the FIESP convention the biomethane volume EQUALS the methane volume, and raw
+ * biogas is the one that differs (CH₄ / 0.625). The sector breakdown carries
+ * FOUR sectors — forestry is its own, not a slice of agricultural, which is what
+ * made the old three-way split sum to 97%.
+ */
+export interface ScenarioTierStats {
+  ch4_m3_year: number;
+  ch4_m3_day: number;
+  biomethane_m3_year: number;
+  biomethane_m3_day: number;
+  raw_biogas_m3_year: number;
+  raw_biogas_m3_day: number;
+  energy_mwh_year: number;
+  sector_breakdown: {
+    agricultural: number;
+    livestock: number;
+    urban: number;
+    forestry: number;
+  };
+  label: string;
+  description: string;
+}
+
 // Summary statistics from API
 export interface SummaryStatistics {
   /**
@@ -266,8 +294,20 @@ export interface SummaryStatistics {
   scope?: 'SP';
   scope_label?: string;
   total_municipalities: number;
+  /**
+   * LEGACY — the theoretical volume, with no availability correction at all
+   * (19.9 bi), and named for biogas while holding methane. Superseded by
+   * `scenarios`; kept because several non-map surfaces still read it. Do not put
+   * it in front of a reader as "the platform's total".
+   */
   total_biogas_m3_year: number;
   average_biogas_m3_year: number;
+  /**
+   * The publishable totals: Real (7.83 bi) and Ideal (9.84 bi) Nm³ CH₄/ano.
+   * Optional because a backend without migration 026 omits the key — every
+   * reader must fall back rather than render `undefined`.
+   */
+  scenarios?: Record<'real' | 'ideal', ScenarioTierStats>;
   total_population: number;
   top_municipality: {
     name: string;

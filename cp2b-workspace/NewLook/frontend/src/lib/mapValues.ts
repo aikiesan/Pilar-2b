@@ -22,6 +22,7 @@ import type { BiomassType, ResidueType } from '@/components/map/FloatingControlP
 import {
   isServedScenario,
   SERVED_SCENARIO_FIELD,
+  SERVED_SCENARIO_RESIDUE_FIELD,
   CH4_FRACTION_OF_BIOGAS,
   type MapScenarioKey,
 } from '@/data/scenarioFactors';
@@ -133,19 +134,66 @@ function pickScenario(
  * they bypass pickScenario entirely. Only São Paulo's 645 rows carry them
  * (migration 026 loads SP only), so outside SP this returns null and the caller
  * paints NO_DATA — which is the honest reading, not a zero.
+ *
+ * With residues selected it sums their shares (migration 029) instead of reading
+ * the municipality total, which is what makes the residue filter change the
+ * choropleth rather than only the set of polygons drawn.
  */
-function servedCh4(props: MunicipalityProperties, scenario: MapScenarioKey): number | null {
+function servedCh4(
+  props: MunicipalityProperties,
+  scenario: MapScenarioKey,
+  selectedResidues: ResidueType[] = []
+): number | null {
   if (!isServedScenario(scenario)) return null;
-  const v = num((props as unknown as Record<string, unknown>)[SERVED_SCENARIO_FIELD[scenario]]);
+  const rec = asRecord(props);
+  if (selectedResidues.length > 0) {
+    // An ABSENT share is a zero, not "no data". The map payload omits falsy
+    // values (municipalities.py), so a municipality that grows no cane simply
+    // has no ch4_real_sugarcane_m3_year key. Only when nothing sums is there
+    // nothing to paint — the same reading the missing total already gets.
+    const sum = selectedResidues.reduce(
+      (acc, r) => acc + (num(rec[SERVED_SCENARIO_RESIDUE_FIELD(scenario, r)]) ?? 0),
+      0
+    );
+    return sum > 0 ? sum : null;
+  }
+  const v = num(rec[SERVED_SCENARIO_FIELD[scenario]]);
   return v !== null && v > 0 ? v : null;
+}
+
+/**
+ * True when at least one of the selected residues is present here.
+ *
+ * The map's feature filter used to answer this from the legacy
+ * `{residue}_biogas_m3_year` columns — which `fields=map` strips from the
+ * payload (_DETAIL_ONLY_RE), so every municipality failed the test and picking a
+ * residue emptied the map. It reads the served shares now, falling back to
+ * per-residue tonnage for the band scenarios, which have no shares.
+ */
+export function hasAnySelectedResidue(
+  props: MunicipalityProperties,
+  selectedResidues: ResidueType[],
+  scenario: MapScenarioKey
+): boolean {
+  if (selectedResidues.length === 0) return true;
+  const rec = asRecord(props);
+  return selectedResidues.some((r) => {
+    if (isServedScenario(scenario)) {
+      const share = num(rec[SERVED_SCENARIO_RESIDUE_FIELD(scenario, r)]);
+      if (share !== null && share > 0) return true;
+    }
+    const tons = tonsOf(props, r);
+    return tons !== null && tons > 0;
+  });
 }
 
 export function getBiogasScenarioValue(
   props: MunicipalityProperties,
-  scenario: MapScenarioKey
+  scenario: MapScenarioKey,
+  selectedResidues: ResidueType[] = []
 ): MapValue {
   if (isServedScenario(scenario)) {
-    const ch4 = servedCh4(props, scenario);
+    const ch4 = servedCh4(props, scenario, selectedResidues);
     return ch4 === null
       ? { value: null, coverage: NO_DATA }
       : { value: ch4 / CH4_FRACTION_OF_BIOGAS, coverage: 'measured' };
@@ -162,10 +210,11 @@ export function getBiogasScenarioValue(
 /** Methane only (m³ CH4/year) — the quantity BMP actually predicts. */
 export function getMethaneScenarioValue(
   props: MunicipalityProperties,
-  scenario: MapScenarioKey
+  scenario: MapScenarioKey,
+  selectedResidues: ResidueType[] = []
 ): MapValue {
   if (isServedScenario(scenario)) {
-    const ch4 = servedCh4(props, scenario);
+    const ch4 = servedCh4(props, scenario, selectedResidues);
     return ch4 === null ? { value: null, coverage: NO_DATA } : { value: ch4, coverage: 'measured' };
   }
   const medio = num(props.biogas_ch4_medio_m3_yr);
@@ -184,13 +233,14 @@ export function getMethaneScenarioValue(
  */
 export function getBiomethaneScenarioValue(
   props: MunicipalityProperties,
-  scenario: MapScenarioKey
+  scenario: MapScenarioKey,
+  selectedResidues: ResidueType[] = []
 ): MapValue {
   // Under the FIESP convention the biomethane volume EQUALS the methane volume —
   // 0.625 is already the CH₄ fraction of biogas, so applying it again would
   // double-count. The backend serves these two identical for the same reason.
   if (isServedScenario(scenario)) {
-    const ch4 = servedCh4(props, scenario);
+    const ch4 = servedCh4(props, scenario, selectedResidues);
     return ch4 === null ? { value: null, coverage: NO_DATA } : { value: ch4, coverage: 'measured' };
   }
   const medio = num(props.biomethane_medio_m3_yr);
@@ -213,13 +263,14 @@ export const MWH_PER_M3_CH4 = 0.00997;
  */
 export function getBioenergyScenarioValue(
   props: MunicipalityProperties,
-  scenario: MapScenarioKey
+  scenario: MapScenarioKey,
+  selectedResidues: ResidueType[] = []
 ): MapValue {
   // MWH_PER_M3_CH4 is the calorific value of pure METHANE, so it must be applied
   // to the CH4 band — never to raw biogas, which is ~45% CO2 and carries no
   // energy. Reading getBiogasScenarioValue here (as this did while that function
   // still returned CH4) would now silently inflate bioenergy by ~1.8x.
-  const g = getMethaneScenarioValue(props, scenario);
+  const g = getMethaneScenarioValue(props, scenario, selectedResidues);
   return { value: g.value === null ? null : g.value * MWH_PER_M3_CH4, coverage: g.coverage };
 }
 

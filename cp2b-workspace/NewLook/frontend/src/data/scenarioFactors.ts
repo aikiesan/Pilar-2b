@@ -55,6 +55,21 @@ export const SERVED_SCENARIO_FIELD: Record<ServedScenarioKey, string> = {
   ideal: 'ch4_ideal_m3_year',
 };
 
+/**
+ * Municipality property holding ONE residue's share of a served scenario
+ * (migration 029; emitted by municipalities.py's _SCENARIO_RESIDUE_COLUMNS).
+ *
+ * The backend carries thirteen residues, the map's filter offers eleven —
+ * `sewage` and `forestry` are computed and stored but not selectable. So the sum
+ * over the selected residues does NOT reconcile to `SERVED_SCENARIO_FIELD` even
+ * when every checkbox is ticked, and it should not: the filter is a slice of the
+ * total, not a decomposition of it.
+ */
+export const SERVED_SCENARIO_RESIDUE_FIELD = (
+  tier: ServedScenarioKey,
+  residue: string
+): string => `ch4_${tier}_${residue}_m3_year`;
+
 /** CH₄ fraction of raw biogas — FIESP 2025, matching the backend constant. */
 export const CH4_FRACTION_OF_BIOGAS = 0.625;
 /** Methane LHV in kWh/Nm³ — Bueno et al. 2016, matching the backend constant. */

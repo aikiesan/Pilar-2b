@@ -2,7 +2,7 @@
  * PILAR-2b V3 - Main Map Component
  * Full-page React Leaflet map with floating panels (DBFZ-inspired)
  * Mobile: QuickFilterBar + MobileBottomSheet replace floating panels
- * Desktop: FloatingStatsPanel, EnhancedTooltip, ProfilePanel, Comparison, Export
+ * Desktop: EnhancedTooltip, ProfilePanel, Comparison, Export
  * All: URL query-param state so filters can be shared/bookmarked
  */
 
@@ -17,7 +17,8 @@ import { useCnProfiles } from '@/hooks/useCnProfiles';
 import type { FilterCriteria } from '@/components/dashboard/FilterPanel';
 import type { MunicipalityCollection, MunicipalityFeature, DisplayMetric, CodigestionCluster } from '@/types/geospatial';
 import { MAP_SCENARIOS, DEFAULT_MAP_SCENARIO, applyScenarioToProps, type MapScenarioKey } from '@/data/scenarioFactors';
-import { DISPLAY_METRICS } from '@/lib/mapMetrics';
+import { DISPLAY_METRICS, getMetricSpec, computeAdaptiveBreaks } from '@/lib/mapMetrics';
+import { hasAnySelectedResidue } from '@/lib/mapValues';
 import { DATA_EXPORT_ENABLED } from '@/lib/featureFlags';
 import { isSaoPaulo, NATIONAL_BETA_LAYER_ID, SP_MUNICIPALITY_COUNT } from '@/lib/mapScope';
 import type { BiomassType, ResidueType } from './FloatingControlPanel';
@@ -396,6 +397,10 @@ export default function MapComponent({
     () => layers.filter(l => l.visible).map(l => l.id),
     [layers]
   );
+  // Declared here, above the filtering memo, because the scope filter has to
+  // know about it: the beta layer is the one thing allowed to survive a scope
+  // that is not its own.
+  const showNationalBeta = visibleLayerIds.includes(NATIONAL_BETA_LAYER_ID);
   const infrastructureAlerts = useMemo(
     () => Object.values(infrastructureStatuses).filter(status =>
       visibleLayerIds.includes(status.layerType) &&
@@ -443,7 +448,15 @@ export default function MapComponent({
       // Scope filter: keep only the selected state (SP by default), or all of
       // Brazil. The UF is the first two digits of the IBGE code. This also
       // trims the rendered polygon count without any backend change.
-      if (scope !== SCOPE_BRAZIL && ufOf(props.ibge_code) !== scope) return false;
+      //
+      // The national beta layer is the one exception, and without it the toggle
+      // did nothing at all in the default (SP) scope: it promised "demais
+      // municípios do Brasil" while this line had already dropped every one of
+      // them, so MunicipalityLayer and BETA_STYLE — both correct — never
+      // received a single feature to draw.
+      const isBeta = !isSaoPaulo(props.ibge_code);
+      const inScope = scope === SCOPE_BRAZIL || ufOf(props.ibge_code) === scope;
+      if (!inScope && !(showNationalBeta && isBeta)) return false;
 
       // Search query filter
       const query = activeFilters?.searchQuery || searchQuery;
@@ -451,6 +464,12 @@ export default function MapComponent({
         const q = query.toLowerCase();
         if (!props.name.toLowerCase().includes(q) && !String(props.ibge_code).includes(q)) return false;
       }
+
+      // Every filter below this line reads a number that only São Paulo has. A
+      // beta polygon carries none of them and is not painted by the ramp
+      // anyway — it is flat context — so it passes them rather than vanishing
+      // the moment any filter is touched.
+      if (isBeta) return true;
 
       // Biogas range filter
       if (activeFilters?.minBiogas && props.total_biogas_m3_year < activeFilters.minBiogas) return false;
@@ -470,22 +489,15 @@ export default function MapComponent({
       // Specific residue filter — only meaningful where the per-residue
       // breakdown exists (SP today). Elsewhere the fields are zero, so applying
       // it would blank the map; skip it and let the aggregate bands show.
-      if (residueBreakdownAvailable && selectedResidues.length > 0) {
-        const residueKey: Record<ResidueType, keyof typeof props> = {
-          sugarcane: 'sugarcane_biogas_m3_year',
-          soybean: 'soybean_biogas_m3_year',
-          corn: 'corn_biogas_m3_year',
-          coffee: 'coffee_biogas_m3_year',
-          citrus: 'citrus_biogas_m3_year',
-          cattle: 'cattle_biogas_m3_year',
-          swine: 'swine_biogas_m3_year',
-          poultry: 'poultry_biogas_m3_year',
-          aquaculture: 'aquaculture_biogas_m3_year',
-          rsu: 'rsu_biogas_m3_year',
-          rpo: 'rpo_biogas_m3_year',
-        };
-        const hasResidue = selectedResidues.some(r => Number((props as any)[residueKey[r]]) > 0);
-        if (!hasResidue) return false;
+      //
+      // This read the legacy `{residue}_biogas_m3_year` columns until the
+      // payload stopped carrying them (fields=map trims them as detail-only), at
+      // which point every municipality failed the test and picking a residue
+      // emptied the map instead of filtering it. hasAnySelectedResidue reads the
+      // served scenario shares, which is what the choropleth paints too, so the
+      // polygons kept and the values shown can no longer disagree.
+      if (residueBreakdownAvailable && !hasAnySelectedResidue(props, selectedResidues, mapScenario)) {
+        return false;
       }
 
       // Region filter
@@ -497,9 +509,28 @@ export default function MapComponent({
     });
 
     return { ...scaledData, features: filtered } as MunicipalityCollection;
-  }, [scaledData, activeFilters, searchQuery, selectedResidues, scope, residueBreakdownAvailable]);
+  }, [scaledData, activeFilters, searchQuery, selectedResidues, scope, residueBreakdownAvailable, mapScenario, showNationalBeta]);
 
-  const showNationalBeta = visibleLayerIds.includes(NATIONAL_BETA_LAYER_ID);
+  // ── Adaptive colour scale ───────────────────────────────────────────────────
+  // Classified over the São Paulo municipalities CURRENTLY VISIBLE, in the
+  // active metric's display unit — the same values the choropleth paints and the
+  // legend prints. Beta rows are excluded because the ramp never applies to
+  // them; including them would let unvalidated numbers set the class limits.
+  //
+  // This is what makes the residue filter legible: a single-residue slice is one
+  // to two orders of magnitude below the state total, and against the fixed
+  // ladder it was one flat colour.
+  const scaleBreaks = useMemo(() => {
+    const spec = getMetricSpec(displayMetric);
+    const ctx = { biomassType, selectedResidues, scenario: mapScenario };
+    const values: number[] = [];
+    for (const f of filteredData?.features ?? []) {
+      if (!isSaoPaulo(f.properties?.ibge_code)) continue;
+      const { value } = spec.rawValue(f.properties, ctx);
+      if (value !== null && value > 0) values.push(spec.toDisplay(value));
+    }
+    return computeAdaptiveBreaks(values);
+  }, [filteredData, displayMetric, biomassType, selectedResidues, mapScenario]);
 
   // ── Guard states ────────────────────────────────────────────────────────────
   if (!isMounted) return <MapLoadingSkeleton />;
@@ -556,6 +587,7 @@ export default function MapComponent({
           colorMode={colorMode}
           onColorModeChange={setColorMode}
           residueBreakdownAvailable={residueBreakdownAvailable}
+          scenario={mapScenario}
         />
       )}
 
@@ -686,6 +718,7 @@ export default function MapComponent({
                   colorMode={colorMode}
                   mapScenario={mapScenario}
                   daltonic={daltonic}
+                  scaleBreaks={scaleBreaks}
                   showNationalBeta={showNationalBeta}
                   onMunicipalityClick={visualizationMode === 'clusters' ? undefined : handleMunicipalityClick}
                   onMunicipalityHover={visualizationMode === 'clusters' ? undefined : handleMunicipalityHover}
@@ -878,7 +911,7 @@ export default function MapComponent({
               <>
                 {/* Desktop — always expanded */}
                 <div className="hidden md:block">
-                  <MapLegend displayMetric={displayMetric} daltonic={daltonic} showNationalBeta={showNationalBeta} scenario={mapScenario} />
+                  <MapLegend displayMetric={displayMetric} daltonic={daltonic} showNationalBeta={showNationalBeta} scenario={mapScenario} scaleBreaks={scaleBreaks} />
                 </div>
                 {/* Mobile — chip + expandable legend */}
                 <div className="md:hidden">
@@ -892,7 +925,7 @@ export default function MapComponent({
                       >
                         <span className="block h-3 w-3 text-[10px] leading-3 text-gray-500">×</span>
                       </button>
-                      <MapLegend displayMetric={displayMetric} daltonic={daltonic} showNationalBeta={showNationalBeta} scenario={mapScenario} />
+                      <MapLegend displayMetric={displayMetric} daltonic={daltonic} showNationalBeta={showNationalBeta} scenario={mapScenario} scaleBreaks={scaleBreaks} />
                     </div>
                   ) : (
                     <button

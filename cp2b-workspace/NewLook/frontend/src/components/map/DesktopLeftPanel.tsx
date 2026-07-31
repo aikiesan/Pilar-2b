@@ -24,6 +24,12 @@ import { formatBiogasShort } from '@/lib/mapUtils';
 import { DISPLAY_METRICS, METRIC_SPECS } from '@/lib/mapMetrics';
 import { DATA_EXPORT_ENABLED } from '@/lib/featureFlags';
 import { NATIONAL_BETA_LAYER_ID, BETA_NOTICE } from '@/lib/mapScope';
+import {
+  isServedScenario,
+  SCENARIO_LABEL,
+  DEFAULT_MAP_SCENARIO,
+  type MapScenarioKey,
+} from '@/data/scenarioFactors';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -60,6 +66,8 @@ interface DesktopLeftPanelProps {
   onColorModeChange: (mode: ColorMode) => void;
   /** False when the current scope has no per-residue breakdown (outside SP). */
   residueBreakdownAvailable?: boolean;
+  /** Active map scenario — the headline strip follows it. */
+  scenario?: MapScenarioKey;
 }
 
 type TabId = 'filters' | 'layers' | 'data' | 'tools';
@@ -579,13 +587,25 @@ function ToolsSection({
 // The headline strip. Every number in it is São Paulo — the summary endpoint is
 // SP-scoped and the count is SP-scoped — so the strip says "SP" in the text
 // itself rather than relying on the reader to remember it.
-function StatStrip({ municipalityCount, totalMunicipalities, filterCount, betaMunicipalityCount = 0 }: {
+function StatStrip({ municipalityCount, totalMunicipalities, filterCount, betaMunicipalityCount = 0, scenario }: {
   municipalityCount: number;
   totalMunicipalities: number;
   filterCount: number;
   betaMunicipalityCount?: number;
+  scenario: MapScenarioKey;
 }) {
   const { data } = useSummaryStatistics();
+  // The strip used to show `total_biogas_m3_year` — 19.9 bi, the THEORETICAL
+  // volume, with no availability correction and no relation to the scenario the
+  // map is painting. It now follows the toggle: 7.83 bi in Real, 9.84 bi in
+  // Ideal, the pair published in RESULTADOS_SP_PARA_PAPER. The band scenarios
+  // have no served total, so they fall back to the legacy number — labelled as
+  // the theoretical figure it is, never as the platform's headline.
+  const tier = isServedScenario(scenario) ? data?.scenarios?.[scenario] : undefined;
+  const headline = tier ? tier.ch4_m3_year : data?.total_biogas_m3_year;
+  const headlineLabel = tier
+    ? `Nm³ CH₄/ano · ${SCENARIO_LABEL[scenario]}`
+    : 'Nm³ CH₄/ano · teórico';
   return (
     <div className="px-3 py-2 border-b border-gray-100 bg-gradient-to-r from-green-50 to-white flex-shrink-0">
       <div className="flex items-center gap-2">
@@ -595,9 +615,12 @@ function StatStrip({ municipalityCount, totalMunicipalities, filterCount, betaMu
           <span className="text-gray-400">/{totalMunicipalities}</span>
           {' '}municípios <span className="font-semibold text-green-700">SP</span>
         </span>
-        {data && (
-          <span className="ml-auto text-[10px] text-green-700 font-semibold shrink-0">
-            {formatBiogasShort(data.total_biogas_m3_year)} m³/ano
+        {headline !== undefined && (
+          <span
+            className="ml-auto text-[10px] text-green-700 font-semibold shrink-0"
+            title={tier?.description}
+          >
+            {formatBiogasShort(headline)} {headlineLabel}
           </span>
         )}
         {filterCount > 0 && !data && (
@@ -626,6 +649,7 @@ export default function DesktopLeftPanel({
   onOpenComparison, onOpenExport,
   displayMetric, onDisplayMetricChange, cnMatrix,
   colorMode, onColorModeChange, residueBreakdownAvailable = true,
+  scenario = DEFAULT_MAP_SCENARIO,
 }: DesktopLeftPanelProps) {
   const t = useTranslations('Map');
   const [collapsed, setCollapsed] = useState(false);
@@ -700,6 +724,7 @@ export default function DesktopLeftPanel({
             totalMunicipalities={totalMunicipalities}
             filterCount={filterCount}
             betaMunicipalityCount={betaMunicipalityCount}
+            scenario={scenario}
           />
 
           {/* Tab nav */}

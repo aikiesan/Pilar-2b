@@ -29,6 +29,17 @@ export default function StatsPanel() {
     );
   }
 
+  // There is no scenario toggle on this surface, so it states the one it shows:
+  // the Cenário Real. Reading `total_biogas_m3_year` here put the theoretical
+  // 19.9 bi — no availability correction of any kind — beside a per-municipality
+  // map painting the Real tier, and the two never agreed.
+  const real = data.scenarios?.real;
+  const total = real ? real.ch4_m3_year : data.total_biogas_m3_year;
+  const average =
+    real && data.total_municipalities > 0
+      ? real.ch4_m3_year / data.total_municipalities
+      : data.average_biogas_m3_year;
+
   return (
     <div className="space-y-3">
       {/* Key Metrics Grid - Compact 2x2 */}
@@ -37,10 +48,12 @@ export default function StatsPanel() {
         <div className="bg-green-50 rounded p-2">
           <div className="flex items-center gap-1 text-green-700 mb-0.5">
             <Zap className="w-3 h-3" />
-            <span className="text-[10px] font-medium">Total</span>
+            <span className="text-[10px] font-medium">
+              {real ? 'Total · Real' : 'Total · teórico'}
+            </span>
           </div>
-          <p className="text-sm font-bold text-green-900">
-            {formatBiogasShort(data.total_biogas_m3_year)}
+          <p className="text-sm font-bold text-green-900" title={real?.description}>
+            {formatBiogasShort(total)}
           </p>
         </div>
 
@@ -62,7 +75,7 @@ export default function StatsPanel() {
             <span className="text-[10px] font-medium">Média</span>
           </div>
           <p className="text-sm font-bold text-emerald-900">
-            {formatBiogasShort(data.average_biogas_m3_year)}
+            {formatBiogasShort(average)}
           </p>
         </div>
 
