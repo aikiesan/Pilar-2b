@@ -9,9 +9,10 @@ import os
 import re
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
 from app.core.database import get_db
+from app.core.response_cache import cached_json_response
 from app.middleware.auth import optional_auth
 from app.models.auth import UserProfile
 from app.services.biomass_availability import derive_biomass_with_coverage, raw_value
@@ -302,34 +303,13 @@ def _cat(total_biogas: float) -> str:
     return "SEM DADOS"
 
 
-@router.get("/geojson")
-async def get_municipalities_geojson(
-    limit: Optional[int] = Query(
-        default=None,
-        ge=1,
-        le=6000,
-        description="Max features. Default None serves all 5,571 (the old le=1000 "
-        "cap silently truncated the national dataset to the first 1,000).",
-    ),
-    detail: str = Query(
-        "overview",
-        pattern="^(overview|detail|full)$",
-        description="Geometry level of detail (migration 022). 'overview' ~2.2 km "
-        "(default, national choropleth); 'detail' ~550 m; 'full' unsimplified "
-        "(pair with limit — 471 MB exceeds PostgreSQL's jsonb ceiling nationally).",
-    ),
-    fields: str = Query(
-        "map",
-        pattern="^(map|full)$",
-        description="Property set. 'map' (default) carries only what the choropleth "
-        "paints — per-residue tonnage and coverage, sector tonnage, the four metric "
-        "scenario bands, cluster context. 'full' adds the per-municipality detail "
-        "(sector biogas/biomethane breakdown, demographics, legacy columns) that the "
-        "tooltip and panel need; those are better fetched per municipality from "
-        "/municipalities/{id}/metrics than 5,571 times up front.",
-    ),
-    current_user: Optional[UserProfile] = Depends(optional_auth),
-):
+def _build_municipalities_geojson(limit: Optional[int], detail: str, fields: str) -> dict:
+    """Monta a FeatureCollection a partir do PostGIS. CARO — ver a rota abaixo.
+
+    Extraído da rota para que o cache possa decidir se paga este custo. Nada
+    aqui é assíncrono (psycopg2 é síncrono), então continua sendo uma função
+    comum, chamada de dentro do cache.
+    """
     geom_column, geom_precision = _GEOM_LOD[detail]
     try:
         with get_db() as conn:
@@ -552,6 +532,54 @@ async def get_municipalities_geojson(
             ),
         },
     }
+
+
+@router.get("/geojson")
+async def get_municipalities_geojson(
+    request: Request,
+    limit: Optional[int] = Query(
+        default=None,
+        ge=1,
+        le=6000,
+        description="Max features. Default None serves all 5,571 (the old le=1000 "
+        "cap silently truncated the national dataset to the first 1,000).",
+    ),
+    detail: str = Query(
+        "overview",
+        pattern="^(overview|detail|full)$",
+        description="Geometry level of detail (migration 022). 'overview' ~2.2 km "
+        "(default, national choropleth); 'detail' ~550 m; 'full' unsimplified "
+        "(pair with limit — 471 MB exceeds PostgreSQL's jsonb ceiling nationally).",
+    ),
+    fields: str = Query(
+        "map",
+        pattern="^(map|full)$",
+        description="Property set. 'map' (default) carries only what the choropleth "
+        "paints — per-residue tonnage and coverage, sector tonnage, the four metric "
+        "scenario bands, cluster context. 'full' adds the per-municipality detail "
+        "(sector biogas/biomethane breakdown, demographics, legacy columns) that the "
+        "tooltip and panel need; those are better fetched per municipality from "
+        "/municipalities/{id}/metrics than 5,571 times up front.",
+    ),
+    current_user: Optional[UserProfile] = Depends(optional_auth),
+):
+    """A rota mais cara da plataforma, e a que mais se repete.
+
+    Medido na VM antes do cache: 4,1 s com um usuário, 49,8 s com 25, vazão
+    saturando em ~2,5 req/s — 1.770 KB reconstruídos do zero a cada visita,
+    idênticos entre uma e outra. O cache guarda os bytes já serializados e
+    responde 304 a quem já os tem. Ver app/core/response_cache.py.
+
+    A chave inclui os três parâmetros que mudam o corpo. Esquecer um faria dois
+    pedidos diferentes compartilharem bytes — o modo silencioso de um cache
+    errar, e a razão de a chave ser montada aqui e não dentro do cache.
+    """
+    key = f"municipalities:geojson:limit={limit}:detail={detail}:fields={fields}"
+    return cached_json_response(
+        request,
+        key,
+        lambda: _build_municipalities_geojson(limit, detail, fields),
+    )
 
 
 @router.get("/test-geometry")

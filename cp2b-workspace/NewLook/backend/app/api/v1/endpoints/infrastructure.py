@@ -6,9 +6,10 @@ Provides GeoJSON data for infrastructure layers from real shapefiles
 import logging
 from typing import Any, Dict, Optional
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Request
 
 from app.core.database import get_db
+from app.core.response_cache import cached_json_response
 from app.utils.shapefile_loader import SHAPEFILE_DIR, get_shapefile_loader
 
 router = APIRouter()
@@ -316,6 +317,7 @@ async def list_infrastructure_layers() -> Dict[str, Any]:
     description="Serves one layer from PostGIS, optionally filtered by UF or bbox.",
 )
 async def get_infrastructure_layer_geojson(
+    request: Request,
     layer_id: str,
     uf: Optional[str] = Query(
         None, min_length=2, max_length=2, description="Filter by UF, e.g. SP"
@@ -342,88 +344,98 @@ async def get_infrastructure_layer_geojson(
     # layer must never be simplified, and a 6,000-segment road network must.
     tolerance = LAYER_SIMPLIFY.get(layer_id, 0.0) if simplify is None else simplify
 
-    where = ["layer_id = %s"]
-    params: list = [layer_id]
+    # Estas camadas mudam quando o carregador roda, o que acontece num deploy —
+    # e todo deploy reinicia o processo, levando o cache junto. Entre deploys
+    # elas sao constantes, entao servir os mesmos bytes e correto e barato:
+    # highway_state sozinha custa 475 ms de geracao e 261 KB por requisicao.
+    cache_key = f"infrastructure:{layer_id}:uf={uf}:bbox={bbox}:limit={limit}:tol={tolerance}"
 
-    if uf:
-        where.append("uf = %s")
-        params.append(uf.upper())
+    def build():
+        """A consulta e a agregacao — so rodam quando o cache nao tem a resposta."""
+        where = ["layer_id = %s"]
+        params: list = [layer_id]
 
-    if bbox:
-        try:
-            min_lng, min_lat, max_lng, max_lat = (float(v) for v in bbox.split(","))
-        except ValueError:
-            raise HTTPException(
-                status_code=422, detail="bbox must be 'min_lng,min_lat,max_lng,max_lat'"
-            )
-        if min_lng >= max_lng or min_lat >= max_lat:
-            raise HTTPException(status_code=422, detail="bbox min must be less than max")
-        # && rides the GIST index on geometry.
-        where.append("geometry && ST_MakeEnvelope(%s, %s, %s, %s, 4326)")
-        params.extend([min_lng, min_lat, max_lng, max_lat])
+        if uf:
+            where.append("uf = %s")
+            params.append(uf.upper())
 
-    sql = f"""
-        SELECT jsonb_build_object(
-            'type', 'FeatureCollection',
-            'features', COALESCE(jsonb_agg(feature), '[]'::jsonb)
-        ) AS geojson
-        FROM (
+        if bbox:
+            try:
+                min_lng, min_lat, max_lng, max_lat = (float(v) for v in bbox.split(","))
+            except ValueError:
+                raise HTTPException(
+                    status_code=422, detail="bbox must be 'min_lng,min_lat,max_lng,max_lat'"
+                )
+            if min_lng >= max_lng or min_lat >= max_lat:
+                raise HTTPException(status_code=422, detail="bbox min must be less than max")
+            # && rides the GIST index on geometry.
+            where.append("geometry && ST_MakeEnvelope(%s, %s, %s, %s, 4326)")
+            params.extend([min_lng, min_lat, max_lng, max_lat])
+
+        sql = f"""
             SELECT jsonb_build_object(
-                'type', 'Feature',
-                'id', id,
-                'geometry', ST_AsGeoJSON(
-                    CASE WHEN %s > 0
-                         THEN ST_SimplifyPreserveTopology(geometry, %s)
-                         ELSE geometry END,
-                    6
-                )::jsonb,
-                'properties', jsonb_build_object(
-                    'layer_id', layer_id,
-                    'name', name,
-                    'ibge_code', ibge_code,
-                    'uf', uf
-                ) || CASE
-                        WHEN %s::text[] IS NULL THEN attributes
-                        ELSE attributes - (
-                            SELECT COALESCE(array_agg(k), ARRAY[]::text[])
-                            FROM jsonb_object_keys(attributes) k
-                            WHERE NOT (k = ANY(%s::text[]))
-                        )
-                     END
-            ) AS feature
-            FROM infrastructure_features
-            WHERE {' AND '.join(where)}
-            {'LIMIT %s' if limit is not None else ''}
-        ) f
-    """
-    if limit is not None:
-        params.append(limit)
+                'type', 'FeatureCollection',
+                'features', COALESCE(jsonb_agg(feature), '[]'::jsonb)
+            ) AS geojson
+            FROM (
+                SELECT jsonb_build_object(
+                    'type', 'Feature',
+                    'id', id,
+                    'geometry', ST_AsGeoJSON(
+                        CASE WHEN %s > 0
+                             THEN ST_SimplifyPreserveTopology(geometry, %s)
+                             ELSE geometry END,
+                        6
+                    )::jsonb,
+                    'properties', jsonb_build_object(
+                        'layer_id', layer_id,
+                        'name', name,
+                        'ibge_code', ibge_code,
+                        'uf', uf
+                    ) || CASE
+                            WHEN %s::text[] IS NULL THEN attributes
+                            ELSE attributes - (
+                                SELECT COALESCE(array_agg(k), ARRAY[]::text[])
+                                FROM jsonb_object_keys(attributes) k
+                                WHERE NOT (k = ANY(%s::text[]))
+                            )
+                         END
+                ) AS feature
+                FROM infrastructure_features
+                WHERE {' AND '.join(where)}
+                {'LIMIT %s' if limit is not None else ''}
+            ) f
+        """
+        if limit is not None:
+            params.append(limit)
 
-    # The tolerance and attribute-whitelist placeholders sit inside the SELECT
-    # list, ahead of every WHERE parameter — psycopg2 binds positionally, so
-    # they must lead, in the order they appear in the statement.
-    keep = LAYER_ATTRIBUTES.get(layer_id)
-    keep_arg = list(keep) if keep else None
-    params = [tolerance, tolerance, keep_arg, keep_arg, *params]
+        # The tolerance and attribute-whitelist placeholders sit inside the SELECT
+        # list, ahead of every WHERE parameter — psycopg2 binds positionally, so
+        # they must lead, in the order they appear in the statement.
+        keep = LAYER_ATTRIBUTES.get(layer_id)
+        keep_arg = list(keep) if keep else None
+        params = [tolerance, tolerance, keep_arg, keep_arg, *params]
 
-    try:
-        with get_db() as conn:
-            cur = conn.cursor()
-            cur.execute(sql, params)
-            result = cur.fetchone()
-            cur.close()
-    except Exception as e:
-        logger.error(
-            "Error loading infrastructure layer %s: %s",
-            layer_id.replace("\n", " ").replace("\r", " ")[:50],
-            e,
-        )
-        raise HTTPException(status_code=500, detail="Internal server error")
+        try:
+            with get_db() as conn:
+                cur = conn.cursor()
+                cur.execute(sql, params)
+                result = cur.fetchone()
+                cur.close()
+        except Exception as e:
+            logger.error(
+                "Error loading infrastructure layer %s: %s",
+                layer_id.replace("\n", " ").replace("\r", " ")[:50],
+                e,
+            )
+            raise HTTPException(status_code=500, detail="Internal server error")
 
-    geojson = result["geojson"] if result else None
-    if not geojson or not geojson.get("features"):
-        raise HTTPException(status_code=404, detail=f"No features for layer '{layer_id}'")
-    return geojson
+        geojson = result["geojson"] if result else None
+        if not geojson or not geojson.get("features"):
+            raise HTTPException(status_code=404, detail=f"No features for layer '{layer_id}'")
+        return geojson
+
+    return cached_json_response(request, cache_key, build)
 
 
 @router.get("/health")
