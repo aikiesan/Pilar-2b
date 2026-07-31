@@ -350,7 +350,10 @@
     "layerGroups": {
       "base": "Base",
       "environmental": "Ambiental",
-      "infrastructure": "Infraestrutura"
+      "infrastructure": "Infraestrutura",
+      "gasRoute": "Rota do biometano",
+      "siteRestriction": "Restrição de sítio",
+      "logistics": "Logística"
     },
     "tools": {
       "compare": "Comparar",
@@ -1293,7 +1296,5 @@
         }
       ]
     }
-  
   }
-  
 }
