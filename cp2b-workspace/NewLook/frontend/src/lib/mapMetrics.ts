@@ -45,9 +45,27 @@ export const DISPLAY_METRICS: DisplayMetric[] = [
   'bioenergy_mwh',
 ];
 
-// Sequential ramps, low → high (ramp[0] = smallest bucket, ramp[5] = largest).
+// Sequential ramps, low → high (ramp[0] = smallest bucket, last = largest).
 // Default: YlGnBu (the platform's existing scale), "darker = more".
-export const RAMP_DEFAULT = ['#ffffcc', '#c7e9b4', '#7fcdbb', '#41b6c4', '#2c7fb8', '#253494'];
+//
+// EIGHT tiers, not six. With six, the Real scenario put 573 of São Paulo's 645
+// municipalities into two adjacent colours and left the darkest two holding 1
+// and 0 — half the ramp unused, and the state looking uniform apart from the
+// capital. Eight is the ColorBrewer maximum for a sequential scale that still
+// reads unambiguously at choropleth size.
+export const RAMP_DEFAULT = [
+  '#ffffd9',
+  '#edf8b1',
+  '#c7e9b4',
+  '#7fcdbb',
+  '#41b6c4',
+  '#1d91c0',
+  '#225ea8',
+  '#0c2c84',
+];
+
+/** How many colour tiers a ramp has (breaks = TIERS - 1). */
+export const RAMP_TIERS = RAMP_DEFAULT.length;
 
 // ── Colour-vision-deficiency (daltonic) palettes ────────────────────────────
 // The daltonic toggle no longer forces a single blue ramp; it selects one of
@@ -63,8 +81,8 @@ export interface CvdPalette {
   label: string;
   /** Short note on who it's optimised for. */
   note: string;
-  /** Six low→high tiers. */
-  ramp: [string, string, string, string, string, string];
+  /** Eight low→high tiers, matching RAMP_DEFAULT. */
+  ramp: [string, string, string, string, string, string, string, string];
 }
 
 export const CVD_PALETTES: Record<CvdPaletteId, CvdPalette> = {
@@ -72,19 +90,46 @@ export const CVD_PALETTES: Record<CvdPaletteId, CvdPalette> = {
     id: 'viridis',
     label: 'Viridis',
     note: 'Perceptualmente uniforme · segura para todos os tipos',
-    ramp: ['#440154', '#414487', '#2a788e', '#22a884', '#7ad151', '#fde725'],
+    ramp: [
+      '#440154',
+      '#46327e',
+      '#365c8d',
+      '#277f8e',
+      '#1fa187',
+      '#4ac16d',
+      '#a0da39',
+      '#fde725',
+    ],
   },
   cividis: {
     id: 'cividis',
     label: 'Cividis',
     note: 'Otimizada para deuteranopia/protanopia',
-    ramp: ['#00204d', '#31446b', '#666970', '#958f78', '#cbba69', '#ffea46'],
+    ramp: [
+      '#00204d',
+      '#00336f',
+      '#3c4d6e',
+      '#5d6478',
+      '#7b7b78',
+      '#9e9370',
+      '#c3ad60',
+      '#ffea46',
+    ],
   },
   blues: {
     id: 'blues',
     label: 'Azul (mono)',
     note: 'Tom único · luminância monotônica',
-    ramp: ['#eff3ff', '#c6dbef', '#9ecae1', '#6baed6', '#3182bd', '#08519c'],
+    ramp: [
+      '#eff3ff',
+      '#deebf7',
+      '#c6dbef',
+      '#9ecae1',
+      '#6baed6',
+      '#4292c6',
+      '#2171b5',
+      '#084594',
+    ],
   },
 };
 
@@ -123,8 +168,52 @@ export interface MetricSpec {
   rawValue: (props: MunicipalityProperties, ctx: MetricContext) => MapValue;
   /** Yearly raw value → number in the display unit. */
   toDisplay: (rawYearly: number) => number;
-  /** Five ascending upper-bounds (display units) → six ramp tiers. */
-  breaks: [number, number, number, number, number];
+  /**
+   * FALLBACK breaks in display units — RAMP_TIERS-1 ascending upper bounds.
+   *
+   * Only used when the adaptive scale cannot be computed (nothing visible, or
+   * every visible value identical). The live map classifies against
+   * `computeAdaptiveBreaks` over what is actually on screen, because no fixed
+   * ladder can serve both the state total and a single-residue slice two orders
+   * of magnitude below it.
+   */
+  breaks: number[];
+}
+
+/**
+ * Log-spaced breaks over the visible distribution — the map's live classifier.
+ *
+ * Why adaptive: the residue filter and the scenario toggle move these values by
+ * one to two orders of magnitude (state CH₄ tops out at 390k Nm³/dia; cattle
+ * alone at 45k; swine at ~90). A fixed ladder tuned for one of those paints the
+ * others in a single colour.
+ *
+ * Why logarithmic rather than quantile: the distribution is heavily right-skewed
+ * — the capital alone is 3.8× the 99th percentile, on urban waste — and log
+ * spacing keeps colour meaning MAGNITUDE. Quantiles would spread the map evenly
+ * but make the darkest tier mean "top eighth", which reads as a finding when the
+ * differences inside it are small.
+ *
+ * The ends are clipped to p2/p98 so a single outlier cannot consume the ramp;
+ * values beyond simply saturate in the end tiers, which is the honest rendering
+ * of an outlier — still the darkest, no longer flattening everyone else.
+ */
+export function computeAdaptiveBreaks(displayValues: number[], tiers = RAMP_TIERS): number[] | null {
+  const v = displayValues.filter((x) => Number.isFinite(x) && x > 0).sort((a, b) => a - b);
+  if (v.length < tiers) return null;
+  const at = (p: number) => {
+    const i = (v.length - 1) * p;
+    const lo = Math.floor(i);
+    const hi = Math.min(lo + 1, v.length - 1);
+    return v[lo] + (v[hi] - v[lo]) * (i - lo);
+  };
+  const lo = at(0.02);
+  const hi = at(0.98);
+  if (!(lo > 0) || !(hi > lo)) return null;
+  const k = tiers - 1; // number of breaks
+  const logLo = Math.log(lo);
+  const step = (Math.log(hi) - logLo) / (k - 1);
+  return Array.from({ length: k }, (_, i) => Math.exp(logLo + step * i));
 }
 
 const perDay = (yearly: number) => yearly / DAYS_PER_YEAR;
@@ -139,7 +228,7 @@ export const METRIC_SPECS: Record<DisplayMetric, MetricSpec> = {
     unit: 't/ano',
     rawValue: (p, c) => getBiomassMapValue(p, c.biomassType, c.selectedResidues),
     toDisplay: (v) => v,
-    breaks: [5_000, 50_000, 200_000, 1_000_000, 5_000_000],
+    breaks: [8_000, 21_000, 53_000, 135_000, 340_000, 865_000, 2_200_000],
   },
   // Raw biogas: methane + the CO2 it comes with. Roughly 1.8x the methane
   // figure, so its breaks are scaled accordingly. Until this existed the map
@@ -152,9 +241,9 @@ export const METRIC_SPECS: Record<DisplayMetric, MetricSpec> = {
     activeClass: 'bg-blue-600',
     legendTitle: 'Biogás (Nm³/dia)',
     unit: 'Nm³/dia',
-    rawValue: (p, c) => getBiogasScenarioValue(p, c.scenario),
+    rawValue: (p, c) => getBiogasScenarioValue(p, c.scenario, c.selectedResidues),
     toDisplay: perDay,
-    breaks: [4_500, 45_000, 180_000, 450_000, 1_800_000],
+    breaks: [2_000, 4_500, 9_500, 20_000, 44_000, 94_000, 200_000],
   },
   // Methane only — what BMP actually predicts, and the basis for bioenergia.
   methane_m3: {
@@ -164,9 +253,9 @@ export const METRIC_SPECS: Record<DisplayMetric, MetricSpec> = {
     activeClass: 'bg-cyan-600',
     legendTitle: 'Metano CH₄ (Nm³/dia)',
     unit: 'Nm³/dia',
-    rawValue: (p, c) => getMethaneScenarioValue(p, c.scenario),
+    rawValue: (p, c) => getMethaneScenarioValue(p, c.scenario, c.selectedResidues),
     toDisplay: perDay,
-    breaks: [2_500, 25_000, 100_000, 250_000, 1_000_000],
+    breaks: [1_300, 2_800, 6_000, 12_800, 27_500, 59_000, 126_000],
   },
   biomethane_m3: {
     key: 'biomethane_m3',
@@ -175,9 +264,9 @@ export const METRIC_SPECS: Record<DisplayMetric, MetricSpec> = {
     activeClass: 'bg-orange-600',
     legendTitle: 'Biometano (Nm³/dia)',
     unit: 'Nm³/dia',
-    rawValue: (p, c) => getBiomethaneScenarioValue(p, c.scenario),
+    rawValue: (p, c) => getBiomethaneScenarioValue(p, c.scenario, c.selectedResidues),
     toDisplay: perDay,
-    breaks: [2_500, 25_000, 100_000, 250_000, 1_000_000],
+    breaks: [1_300, 2_800, 6_000, 12_800, 27_500, 59_000, 126_000],
   },
   bioenergy_mwh: {
     key: 'bioenergy_mwh',
@@ -186,9 +275,9 @@ export const METRIC_SPECS: Record<DisplayMetric, MetricSpec> = {
     activeClass: 'bg-purple-600',
     legendTitle: 'Bioenergia (MWh/ano)',
     unit: 'MWh/ano',
-    rawValue: (p, c) => getBioenergyScenarioValue(p, c.scenario),
+    rawValue: (p, c) => getBioenergyScenarioValue(p, c.scenario, c.selectedResidues),
     toDisplay: (v) => v, // already MWh/yr
-    breaks: [10_000, 100_000, 500_000, 1_000_000, 5_000_000],
+    breaks: [4_700, 10_000, 22_000, 47_000, 100_000, 214_000, 460_000],
   },
 };
 
@@ -205,18 +294,19 @@ export function getMetricColor(
   rawYearly: number,
   spec: MetricSpec,
   daltonic: boolean,
-  paletteId?: CvdPaletteId
+  paletteId?: CvdPaletteId,
+  breaks?: number[] | null
 ): string {
   const ramp = daltonic ? getCvdRamp(paletteId) : RAMP_DEFAULT;
   if (rawYearly <= 0) return ZERO_FILL;
   const v = spec.toDisplay(rawYearly);
-  const [b0, b1, b2, b3, b4] = spec.breaks;
-  if (v < b0) return ramp[0];
-  if (v < b1) return ramp[1];
-  if (v < b2) return ramp[2];
-  if (v < b3) return ramp[3];
-  if (v < b4) return ramp[4];
-  return ramp[5];
+  const b = breaks && breaks.length ? breaks : spec.breaks;
+  // Linear scan over at most seven breaks — cheaper than a binary search at this
+  // size and called once per polygon per restyle.
+  for (let i = 0; i < b.length; i++) {
+    if (v < b[i]) return ramp[i];
+  }
+  return ramp[Math.min(b.length, ramp.length - 1)];
 }
 
 /** Compact display-unit formatter (e.g. 1.2M, 250K, 900). */
@@ -237,19 +327,28 @@ export interface LegendItem {
   label: string;
 }
 
-/** Legend rows (six ramp tiers + zero + no_data) in the metric's display unit. */
-export function legendItems(spec: MetricSpec, daltonic: boolean, paletteId?: CvdPaletteId): LegendItem[] {
+/**
+ * Legend rows (ramp tiers high→low + zero + no_data) in the metric's display
+ * unit. Pass the same `breaks` the choropleth was painted with — the legend
+ * explains that classification, not a nominal one.
+ */
+export function legendItems(
+  spec: MetricSpec,
+  daltonic: boolean,
+  paletteId?: CvdPaletteId,
+  breaks?: number[] | null
+): LegendItem[] {
   const ramp = daltonic ? getCvdRamp(paletteId) : RAMP_DEFAULT;
-  const [b0, b1, b2, b3, b4] = spec.breaks;
+  const b = breaks && breaks.length ? breaks : spec.breaks;
   const f = formatCompact;
-  return [
-    { color: ramp[5], label: `> ${f(b4)}` },
-    { color: ramp[4], label: `${f(b3)} – ${f(b4)}` },
-    { color: ramp[3], label: `${f(b2)} – ${f(b3)}` },
-    { color: ramp[2], label: `${f(b1)} – ${f(b2)}` },
-    { color: ramp[1], label: `${f(b0)} – ${f(b1)}` },
-    { color: ramp[0], label: `< ${f(b0)}` },
-    { color: ZERO_FILL, label: 'Zero' },
-    { color: NO_DATA_FILL, label: 'Sem dados' },
+  const rows: LegendItem[] = [
+    { color: ramp[Math.min(b.length, ramp.length - 1)], label: `> ${f(b[b.length - 1])}` },
   ];
+  for (let i = b.length - 1; i > 0; i--) {
+    rows.push({ color: ramp[i], label: `${f(b[i - 1])} – ${f(b[i])}` });
+  }
+  rows.push({ color: ramp[0], label: `< ${f(b[0])}` });
+  rows.push({ color: ZERO_FILL, label: 'Zero' });
+  rows.push({ color: NO_DATA_FILL, label: 'Sem dados' });
+  return rows;
 }

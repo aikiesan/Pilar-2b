@@ -55,6 +55,21 @@ export const SERVED_SCENARIO_FIELD: Record<ServedScenarioKey, string> = {
   ideal: 'ch4_ideal_m3_year',
 };
 
+/**
+ * Municipality property holding ONE residue's share of a served scenario
+ * (migration 029; emitted by municipalities.py's _SCENARIO_RESIDUE_COLUMNS).
+ *
+ * The backend carries thirteen residues, the map's filter offers eleven —
+ * `sewage` and `forestry` are computed and stored but not selectable. So the sum
+ * over the selected residues does NOT reconcile to `SERVED_SCENARIO_FIELD` even
+ * when every checkbox is ticked, and it should not: the filter is a slice of the
+ * total, not a decomposition of it.
+ */
+export const SERVED_SCENARIO_RESIDUE_FIELD = (
+  tier: ServedScenarioKey,
+  residue: string
+): string => `ch4_${tier}_${residue}_m3_year`;
+
 /** CH₄ fraction of raw biogas — FIESP 2025, matching the backend constant. */
 export const CH4_FRACTION_OF_BIOGAS = 0.625;
 /** Methane LHV in kWh/Nm³ — Bueno et al. 2016, matching the backend constant. */
@@ -77,14 +92,28 @@ export const SCENARIO_RESIDUE_FACTORS: Record<string, Record<BandScenarioKey, nu
   rpo:       { baseline: 1.0, conservador: 0.025, fronteira: 6.273, otimista: 11.547 },
 };
 
+/**
+ * Scenarios OFFERED in the map selector.
+ *
+ * Only Real and Ideal. The four band scenarios (conservador, baseline,
+ * fronteira, otimista) were removed from the UI: they interpolate the BMP
+ * uncertainty band, which answers "how good could the chemistry be?" — a
+ * question the platform should settle on the reader's behalf, not delegate to a
+ * toggle. Real and Ideal answer the question a reader actually has, follow the
+ * Atlas de Bioenergia SP 2020 definitions, and are the pair published in the
+ * comparative literature.
+ *
+ * The four keys remain in MapScenarioKey and in SCENARIO_RESIDUE_FACTORS so that
+ * bookmarked ?scenario= URLs still resolve rather than crashing, and so the band
+ * machinery in mapValues keeps compiling. They are simply not offered.
+ */
 export const MAP_SCENARIOS: { key: MapScenarioKey; color: string }[] = [
-  { key: 'conservador', color: '#F59E0B' },
-  { key: 'baseline', color: '#3B82F6' },
-  { key: 'fronteira', color: '#059669' },
-  { key: 'otimista', color: '#22C55E' },
   { key: 'real', color: '#0F766E' },
   { key: 'ideal', color: '#7C3AED' },
 ];
+
+/** Scenario the map opens on. Real is the defensible short-term figure. */
+export const DEFAULT_MAP_SCENARIO: MapScenarioKey = 'real';
 
 /** Scenario key → swatch colour. Derived from MAP_SCENARIOS so the selector,
  *  the legend and the tooltip can never show different colours for the same tier. */

@@ -30,6 +30,12 @@ interface MunicipalityLayerProps {
   mapScenario?: string;
   daltonic?: boolean;
   /**
+   * Class limits (display units) computed by the parent from the visible São
+   * Paulo distribution. Null falls back to the metric's fixed ladder. Shared
+   * with MapLegend so the swatch ranges describe this exact classification.
+   */
+  scaleBreaks?: number[] | null;
+  /**
    * Whether the non-SP (beta) municipalities are drawn at all. When false the
    * features are removed from the collection rather than styled transparent —
    * a transparent polygon still hit-tests, so an invisible beta municipality
@@ -76,6 +82,7 @@ export default function MunicipalityLayer({
   colorMode = 'biogas',
   mapScenario = 'baseline',
   daltonic = false,
+  scaleBreaks = null,
   showNationalBeta = true,
   onMunicipalityClick,
   onMunicipalityHover,
@@ -148,7 +155,7 @@ export default function MunicipalityLayer({
     }
 
     return {
-      fillColor: getMetricColor(value, metricSpec, daltonic, cvdPalette),
+      fillColor: getMetricColor(value, metricSpec, daltonic, cvdPalette, scaleBreaks),
       weight: 1,
       opacity: 0.8,
       color: '#666666',
@@ -156,7 +163,7 @@ export default function MunicipalityLayer({
     };
     // getMapValue is recreated per render but only depends on the deps listed here,
     // so listing them directly keeps the identity stable.
-  }, [colorMode, displayMetric, biomassType, selectedResidues, mapScenario, daltonic, cvdPalette, opacity]);
+  }, [colorMode, displayMetric, biomassType, selectedResidues, mapScenario, daltonic, cvdPalette, opacity, scaleBreaks]);
 
   // Format a value for display. null -> "sem dados" so the tooltip never shows a
   // fabricated 0 for a municipality we have no data for.
@@ -301,7 +308,7 @@ export default function MunicipalityLayer({
           }
           const resetColor = colorMode === 'cluster'
             ? getColorForCluster((feature.properties as any).cluster_id)
-            : getMetricColor(getMapValue(feature.properties as MunicipalityProperties).value ?? 0, metricSpec, daltonic, cvdPalette);
+            : getMetricColor(getMapValue(feature.properties as MunicipalityProperties).value ?? 0, metricSpec, daltonic, cvdPalette, scaleBreaks);
           target.setStyle({
             weight: 1,
             color: '#666666',

@@ -106,6 +106,8 @@ def main() -> None:
     todos = [c for par in PARES for c in par] + ORFAOS_REMOVIVEIS
     with conn.cursor(cursor_factory=RealDictCursor) as cur:
         info = fetch(cur, todos)
+        cur.execute("SELECT count(*) AS n FROM residuos")
+        total_atual = cur.fetchone()["n"]
 
     faltando = [c for c in todos if c not in info]
     if faltando:
@@ -149,8 +151,11 @@ def main() -> None:
         for o in orfaos:
             print(f"    {o['codigo']:<26} refs={o['refs']}  fde_nulo={o['fde_nulo']}")
 
-    resta = 69 - len(plano) - len(orfaos)
-    print(f"\n  residuos: 69 -> {resta}")
+    # Lido do banco, nunca constante. A producao tem 31 linhas contra as 69 do
+    # Docker, e um total fixo aqui reportaria uma reducao que nao vai acontecer —
+    # foi exatamente o que mascarou a divergencia entre as duas bases.
+    resta = total_atual - len(plano) - len(orfaos)
+    print(f"\n  residuos: {total_atual} -> {resta}")
 
     if not args.apply:
         print("\n(dry-run: nada gravado — passe --apply para executar)")

@@ -18,7 +18,8 @@ import { useParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { Link } from '@/navigation'
 import { SkeletonMunicipalityPage } from '@/components/ui/Skeleton'
-import { useGeospatialData } from '@/hooks/useGeospatialData'
+import { useGeospatialData, useMunicipalityMetrics } from '@/hooks/useGeospatialData'
+import { MWH_PER_M3_CH4 } from '@/lib/mapValues'
 import Breadcrumb from '@/components/ui/Breadcrumb'
 import { useBreadcrumbs } from '@/hooks/useBreadcrumbs'
 import {
@@ -72,6 +73,53 @@ const SECTOR_COLORS = {
   urban: '#2196F3',
 }
 
+/**
+ * The residues this page reports, by sector, keyed as the backend names them in
+ * the Cenário Real/Ideal share columns (migration 029).
+ *
+ * Thirteen, not the eleven the map filter offers: `sewage` and `forestry` are
+ * computed and stored but not selectable on the map. A municipality profile has
+ * no reason to hide them — here the sector subtotals must add up to the total.
+ */
+const SECTOR_RESIDUES = {
+  agricultural: [
+    ['sugarcane', 'Cana-de-açúcar'],
+    ['soybean', 'Soja'],
+    ['corn', 'Milho'],
+    ['coffee', 'Café'],
+    ['citrus', 'Citrus'],
+    ['forestry', 'Silvicultura'],
+  ],
+  livestock: [
+    ['cattle', 'Bovinos'],
+    ['swine', 'Suínos'],
+    ['poultry', 'Aves'],
+    ['aquaculture', 'Aquicultura'],
+  ],
+  urban: [
+    ['rsu', 'RSU (fração orgânica)'],
+    ['rpo', 'RPO (poda urbana)'],
+    ['sewage', 'Esgoto (ETE)'],
+  ],
+} as const
+
+/** Short labels for the chart axis, where the full names do not fit. */
+const SHORT_LABEL: Record<string, string> = {
+  sugarcane: 'Cana',
+  soybean: 'Soja',
+  corn: 'Milho',
+  coffee: 'Café',
+  citrus: 'Citrus',
+  forestry: 'Silvic.',
+  cattle: 'Bovinos',
+  swine: 'Suínos',
+  poultry: 'Aves',
+  aquaculture: 'Aquicult.',
+  rsu: 'RSU',
+  rpo: 'RPO',
+  sewage: 'Esgoto',
+}
+
 // ── Sub-components ────────────────────────────────────────────────────────────
 
 function KPICard({
@@ -104,7 +152,7 @@ function ResidueRow({ label, value }: { label: string; value: number }) {
     <div className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0 dark:border-slate-700">
       <span className="text-sm text-gray-600 dark:text-gray-400">{label}</span>
       <span className="text-sm font-semibold text-gray-900 dark:text-white tabular-nums">
-        {value > 0 ? `${formatBig(value)} m³/ano` : '—'}
+        {value > 0 ? `${formatBig(value)} Nm³ CH₄/ano` : '—'}
       </span>
     </div>
   )
@@ -116,6 +164,11 @@ export default function MunicipalityPage() {
   const params = useParams()
   const ibgeCode = String(params?.ibge_code ?? '')
   const { data, loading, error } = useGeospatialData()
+  // Demographics (population, area, density) are NOT in the map payload — it is
+  // served with fields=map, which carries only what the choropleth paints. They
+  // come per-municipality from the metrics endpoint, the same one the map's
+  // tooltip and profile panel already use.
+  const { data: detail } = useMunicipalityMetrics(ibgeCode || null)
   const t = useTranslations('pages')
   const tMap = useTranslations('Map')
 
@@ -165,15 +218,29 @@ export default function MunicipalityPage() {
   const p = municipality.properties
 
   // ── Derived values ────────────────────────────────────────────────────────
-  const total = p.total_biogas_m3_year || 0
-  const agri = p.agricultural_biogas_m3_year || 0
-  const live = p.livestock_biogas_m3_year || 0
-  const urb = p.urban_biogas_m3_year || 0
+  //
+  // Every number here comes from the Cenário Real shares (migration 029). This
+  // page used to read the legacy `*_biogas_m3_year` columns, which the map
+  // payload strips as detail-only — so the whole profile rendered as zeros, and
+  // would have kept doing so silently. The shares are also the right source on
+  // the merits: they carry the availability correction, and they sum exactly to
+  // ch4_real_m3_year, so the subtotals below reconcile with the headline.
+  const rec = p as unknown as Record<string, unknown>
+  const share = (residue: string, tier: 'real' | 'ideal' = 'real'): number =>
+    Number(rec[`ch4_${tier}_${residue}_m3_year`]) || 0
+  const sectorTotal = (sector: keyof typeof SECTOR_RESIDUES): number =>
+    SECTOR_RESIDUES[sector].reduce((sum, [key]) => sum + share(key), 0)
 
-  // Energy equivalent: ~2.5 kWh per m³ biogas → MWh/year
-  const energyMWh = (total * 2.5) / 1000
-  // CO2 reduction: ~2.0 kg CO2 per m³ biogas
-  const co2Tons = (total * 2.0) / 1000
+  const total = Number(rec.ch4_real_m3_year) || 0
+  const totalIdeal = Number(rec.ch4_ideal_m3_year) || 0
+  const agri = sectorTotal('agricultural')
+  const live = sectorTotal('livestock')
+  const urb = sectorTotal('urban')
+
+  // 9.97 kWh per m³ of METHANE — the platform constant (lib/mapValues), not the
+  // ~2.5 kWh/m³ this page used to apply, which is a raw-biogas figure and was
+  // being multiplied by a methane volume.
+  const energyMWh = total * MWH_PER_M3_CH4
 
   const sectorPieData = [
     { name: 'Agrícola', value: agri, color: SECTOR_COLORS.agricultural },
@@ -181,24 +248,16 @@ export default function MunicipalityPage() {
     { name: 'Urbano', value: urb, color: SECTOR_COLORS.urban },
   ].filter((d) => d.value > 0)
 
-  const residuesBarData = [
-    { name: 'Cana', value: p.sugarcane_biogas_m3_year || 0 },
-    { name: 'Soja', value: p.soybean_biogas_m3_year || 0 },
-    { name: 'Milho', value: p.corn_biogas_m3_year || 0 },
-    { name: 'Café', value: p.coffee_biogas_m3_year || 0 },
-    { name: 'Citrus', value: p.citrus_biogas_m3_year || 0 },
-    { name: 'Bovinos', value: p.cattle_biogas_m3_year || 0 },
-    { name: 'Suínos', value: p.swine_biogas_m3_year || 0 },
-    { name: 'Aves', value: p.poultry_biogas_m3_year || 0 },
-    { name: 'Aquicult.', value: p.aquaculture_biogas_m3_year || 0 },
-    { name: 'RSU', value: p.rsu_biogas_m3_year || 0 },
-    { name: 'RPO', value: p.rpo_biogas_m3_year || 0 },
-  ].filter((d) => d.value > 0).sort((a, b) => b.value - a.value)
+  const residuesBarData = (
+    Object.values(SECTOR_RESIDUES).flat() as unknown as [string, string][]
+  )
+    .map(([key]) => ({ name: SHORT_LABEL[key] ?? key, value: share(key) }))
+    .filter((d) => d.value > 0)
+    .sort((a, b) => b.value - a.value)
 
-  const density =
-    p.population && p.area_km2
-      ? Math.round(p.population / p.area_km2)
-      : null
+  const population = (detail?.population as number | undefined) ?? null
+  const areaKm2 = (detail?.area_km2 as number | undefined) ?? null
+  const density = population && areaKm2 ? Math.round(population / areaKm2) : null
 
   const handleShare = () => {
     if (navigator.share) {
@@ -267,9 +326,11 @@ export default function MunicipalityPage() {
               </div>
             </div>
             <div className="text-right">
-              <div className="text-xs text-green-300 font-medium mb-1">Potencial Total</div>
+              <div className="text-xs text-green-300 font-medium mb-1">
+                Potencial · Cenário Real
+              </div>
               <div className="text-4xl font-bold">{formatBig(total)}</div>
-              <div className="text-sm text-green-200">m³ biogás/ano</div>
+              <div className="text-sm text-green-200">Nm³ CH₄/ano</div>
             </div>
           </div>
         </div>
@@ -283,24 +344,29 @@ export default function MunicipalityPage() {
             unit="MWh/ano"
             color="bg-yellow-50 border-yellow-200 text-yellow-900 dark:bg-yellow-900/10 dark:border-yellow-800 dark:text-yellow-100"
           />
+          {/* Was "Redução CO₂", computed as volume × 2.0 kg/m³ — a factor with no
+              source anywhere in the project, applied to a volume that is methane
+              rather than the biogas it assumed. The Ideal tier is served, audited
+              (scenario_parameters) and answers a question the reader actually has:
+              how much of this is infrastructure rather than resource. */}
           <KPICard
             icon={<Cloud className="w-4 h-4" />}
-            label="Redução CO₂"
-            value={formatBig(co2Tons)}
-            unit="ton CO₂/ano"
+            label="Cenário Ideal"
+            value={formatBig(totalIdeal)}
+            unit="Nm³ CH₄/ano"
             color="bg-blue-50 border-blue-200 text-blue-900 dark:bg-blue-900/10 dark:border-blue-800 dark:text-blue-100"
           />
           <KPICard
             icon={<Users className="w-4 h-4" />}
             label="População"
-            value={formatNum(p.population)}
+            value={formatNum(population)}
             unit="habitantes (2022)"
             color="bg-purple-50 border-purple-200 text-purple-900 dark:bg-purple-900/10 dark:border-purple-800 dark:text-purple-100"
           />
           <KPICard
             icon={<Maximize className="w-4 h-4" />}
             label="Área"
-            value={formatNum(p.area_km2)}
+            value={formatNum(areaKm2)}
             unit={`km² · ${density ? formatNum(density) + ' hab/km²' : '—'}`}
             color="bg-green-50 border-green-200 text-green-900 dark:bg-green-900/10 dark:border-green-800 dark:text-green-100"
           />
@@ -332,7 +398,7 @@ export default function MunicipalityPage() {
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(v) => [`${formatBig(typeof v === 'number' ? v : 0)} m³/ano`, '']} />
+                  <Tooltip formatter={(v) => [`${formatBig(typeof v === 'number' ? v : 0)} Nm³ CH₄/ano`, '']} />
                 </PieChart>
               </ResponsiveContainer>
             ) : (
@@ -352,7 +418,7 @@ export default function MunicipalityPage() {
                   <CartesianGrid strokeDasharray="3 3" horizontal={false} />
                   <XAxis type="number" tick={{ fontSize: 10 }} tickFormatter={(v) => formatBig(v)} />
                   <YAxis type="category" dataKey="name" tick={{ fontSize: 10 }} width={55} />
-                  <Tooltip formatter={(v) => [`${formatBig(typeof v === 'number' ? v : 0)} m³/ano`, 'Potencial']} />
+                  <Tooltip formatter={(v) => [`${formatBig(typeof v === 'number' ? v : 0)} Nm³ CH₄/ano`, 'Potencial']} />
                   <Bar dataKey="value" fill="#4CAF50" radius={[0, 4, 4, 0]} />
                 </BarChart>
               </ResponsiveContainer>
@@ -370,15 +436,13 @@ export default function MunicipalityPage() {
               <Leaf className="w-4 h-4" />
               Resíduos Agrícolas
             </h2>
-            <ResidueRow label="Cana-de-açúcar" value={p.sugarcane_biogas_m3_year || 0} />
-            <ResidueRow label="Soja" value={p.soybean_biogas_m3_year || 0} />
-            <ResidueRow label="Milho" value={p.corn_biogas_m3_year || 0} />
-            <ResidueRow label="Café" value={p.coffee_biogas_m3_year || 0} />
-            <ResidueRow label="Citrus" value={p.citrus_biogas_m3_year || 0} />
+            {SECTOR_RESIDUES.agricultural.map(([key, label]) => (
+              <ResidueRow key={key} label={label} value={share(key)} />
+            ))}
             <div className="mt-3 pt-2 border-t border-gray-100 dark:border-slate-700">
               <div className="flex justify-between text-xs font-bold text-green-700 dark:text-green-400">
                 <span>Subtotal Agrícola</span>
-                <span>{formatBig(agri)} m³/ano</span>
+                <span>{formatBig(agri)} Nm³ CH₄/ano</span>
               </div>
             </div>
           </div>
@@ -389,14 +453,13 @@ export default function MunicipalityPage() {
               <Factory className="w-4 h-4" />
               Resíduos Pecuários
             </h2>
-            <ResidueRow label="Bovinos" value={p.cattle_biogas_m3_year || 0} />
-            <ResidueRow label="Suínos" value={p.swine_biogas_m3_year || 0} />
-            <ResidueRow label="Aves" value={p.poultry_biogas_m3_year || 0} />
-            <ResidueRow label="Aquicultura" value={p.aquaculture_biogas_m3_year || 0} />
+            {SECTOR_RESIDUES.livestock.map(([key, label]) => (
+              <ResidueRow key={key} label={label} value={share(key)} />
+            ))}
             <div className="mt-3 pt-2 border-t border-gray-100 dark:border-slate-700">
               <div className="flex justify-between text-xs font-bold text-orange-700 dark:text-orange-400">
                 <span>Subtotal Pecuária</span>
-                <span>{formatBig(live)} m³/ano</span>
+                <span>{formatBig(live)} Nm³ CH₄/ano</span>
               </div>
             </div>
           </div>
@@ -407,12 +470,13 @@ export default function MunicipalityPage() {
               <Droplets className="w-4 h-4" />
               Resíduos Urbanos
             </h2>
-            <ResidueRow label="RSU (Resíduos Sólidos)" value={p.rsu_biogas_m3_year || 0} />
-            <ResidueRow label="RPO (Resíduos Orgânicos)" value={p.rpo_biogas_m3_year || 0} />
+            {SECTOR_RESIDUES.urban.map(([key, label]) => (
+              <ResidueRow key={key} label={label} value={share(key)} />
+            ))}
             <div className="mt-3 pt-2 border-t border-gray-100 dark:border-slate-700">
               <div className="flex justify-between text-xs font-bold text-blue-700 dark:text-blue-400">
                 <span>Subtotal Urbano</span>
-                <span>{formatBig(urb)} m³/ano</span>
+                <span>{formatBig(urb)} Nm³ CH₄/ano</span>
               </div>
             </div>
           </div>

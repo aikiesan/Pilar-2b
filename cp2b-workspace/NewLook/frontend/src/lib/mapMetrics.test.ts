@@ -16,6 +16,8 @@ import {
   formatMetricValue,
   RAMP_DEFAULT,
   RAMP_DALTONIC,
+  RAMP_TIERS,
+  computeAdaptiveBreaks,
   CVD_PALETTES,
   DEFAULT_CVD_PALETTE,
   ZERO_FILL,
@@ -132,13 +134,49 @@ describe('mapMetrics — scenario band picking (via biogas)', () => {
   });
 });
 
-describe('mapMetrics — colour bucketing + daltonic', () => {
-  const spec = METRIC_SPECS.biomass_tons; // breaks [5k,50k,200k,1M,5M]
+describe('mapMetrics — residue selection reaches the paint', () => {
+  // The registry is the path the choropleth actually takes (MunicipalityLayer →
+  // metricSpec.rawValue). The context already carried selectedResidues; the
+  // scenario metrics dropped it on the floor, so picking a residue changed which
+  // polygons were drawn but never what colour they got.
+  const p = props({
+    ch4_real_m3_year: 1_000,
+    ch4_real_sugarcane_m3_year: 600,
+    ch4_real_cattle_m3_year: 300,
+  });
+  const withResidues = (metric: DisplayMetric, r: string[]) =>
+    METRIC_SPECS[metric].rawValue(p, { ...ctx('real' as 'baseline'), selectedResidues: r as never })
+      .value;
 
-  it('buckets low→high across the six default tiers', () => {
-    expect(getMetricColor(1_000, spec, false)).toBe(RAMP_DEFAULT[0]); // < 5k
-    expect(getMetricColor(6_000, spec, false)).toBe(RAMP_DEFAULT[1]); // 5k–50k
-    expect(getMetricColor(9_000_000, spec, false)).toBe(RAMP_DEFAULT[5]); // > 5M
+  it('every scenario metric narrows to the selected shares', () => {
+    expect(withResidues('biomethane_m3', ['sugarcane'])).toBe(600);
+    expect(withResidues('methane_m3', ['sugarcane', 'cattle'])).toBe(900);
+    expect(withResidues('bioenergy_mwh', ['cattle'])).toBeCloseTo(300 * MWH_PER_M3_CH4, 6);
+    expect(withResidues('biogas_m3', ['cattle'])).toBeCloseTo(300 / 0.625, 6);
+  });
+
+  it('an empty selection still reads the municipality total', () => {
+    expect(withResidues('biomethane_m3', [])).toBe(1_000);
+  });
+});
+
+describe('mapMetrics — colour bucketing + daltonic', () => {
+  const spec = METRIC_SPECS.biomass_tons;
+  const TOP = RAMP_TIERS - 1;
+
+  it('buckets low→high across the eight default tiers', () => {
+    const [b0, b1] = spec.breaks;
+    expect(getMetricColor(b0 / 2, spec, false)).toBe(RAMP_DEFAULT[0]);
+    expect(getMetricColor((b0 + b1) / 2, spec, false)).toBe(RAMP_DEFAULT[1]);
+    expect(getMetricColor(9_000_000, spec, false)).toBe(RAMP_DEFAULT[TOP]);
+  });
+
+  it('every ramp has the same number of tiers as there are break slots', () => {
+    // A palette shorter than the ladder would silently paint the top classes
+    // undefined; longer, and the darkest colour would never be reachable.
+    expect(RAMP_DEFAULT).toHaveLength(RAMP_TIERS);
+    for (const p of Object.values(CVD_PALETTES)) expect(p.ramp).toHaveLength(RAMP_TIERS);
+    for (const m of Object.values(METRIC_SPECS)) expect(m.breaks).toHaveLength(RAMP_TIERS - 1);
   });
 
   it('a measured zero paints the zero swatch, not the ramp', () => {
@@ -147,27 +185,76 @@ describe('mapMetrics — colour bucketing + daltonic', () => {
 
   it('daltonic mode swaps in a CVD-safe palette (default: viridis)', () => {
     // With no palette id, daltonic uses the default CVD palette.
-    expect(getMetricColor(9_000_000, spec, true)).toBe(CVD_PALETTES[DEFAULT_CVD_PALETTE].ramp[5]);
+    expect(getMetricColor(9_000_000, spec, true)).toBe(CVD_PALETTES[DEFAULT_CVD_PALETTE].ramp[TOP]);
     expect(CVD_PALETTES[DEFAULT_CVD_PALETTE].ramp).not.toEqual(RAMP_DEFAULT);
-    expect(CVD_PALETTES[DEFAULT_CVD_PALETTE].ramp).toHaveLength(6);
   });
 
   it('daltonic mode honours the selected CVD palette', () => {
-    expect(getMetricColor(9_000_000, spec, true, 'blues')).toBe(CVD_PALETTES.blues.ramp[5]);
-    expect(getMetricColor(9_000_000, spec, true, 'cividis')).toBe(CVD_PALETTES.cividis.ramp[5]);
-    expect(getMetricColor(1_000, spec, true, 'cividis')).toBe(CVD_PALETTES.cividis.ramp[0]);
+    expect(getMetricColor(9_000_000, spec, true, 'blues')).toBe(CVD_PALETTES.blues.ramp[TOP]);
+    expect(getMetricColor(9_000_000, spec, true, 'cividis')).toBe(CVD_PALETTES.cividis.ramp[TOP]);
+    expect(getMetricColor(1, spec, true, 'cividis')).toBe(CVD_PALETTES.cividis.ramp[0]);
     // Back-compat: RAMP_DALTONIC still points at the blues palette.
     expect(RAMP_DALTONIC).toEqual(CVD_PALETTES.blues.ramp);
   });
 });
 
+describe('mapMetrics — adaptive log scale', () => {
+  // The distribution that motivated this: São Paulo's Real scenario, where the
+  // fixed ladder left 573 of 645 municipalities in two colours.
+  const skewed = [
+    ...Array.from({ length: 600 }, (_, i) => 500 + i * 120), // the bulk
+    390_000, // the capital, ~3.8x the 99th percentile
+  ];
+
+  it('spreads a right-skewed distribution across every tier', () => {
+    const breaks = computeAdaptiveBreaks(skewed)!;
+    expect(breaks).toHaveLength(RAMP_TIERS - 1);
+    expect(breaks.every((b, i) => i === 0 || b > breaks[i - 1])).toBe(true);
+
+    const spec = { ...METRIC_SPECS.biomethane_m3, toDisplay: (v: number) => v };
+    const used = new Set(skewed.map((v) => getMetricColor(v, spec, false, undefined, breaks)));
+    expect(used.size).toBe(RAMP_TIERS);
+  });
+
+  it('keeps the outlier in the darkest tier — it really is the largest', () => {
+    const breaks = computeAdaptiveBreaks(skewed)!;
+    const spec = { ...METRIC_SPECS.biomethane_m3, toDisplay: (v: number) => v };
+    expect(getMetricColor(390_000, spec, false, undefined, breaks)).toBe(RAMP_DEFAULT[RAMP_TIERS - 1]);
+  });
+
+  it('rescales for a residue slice two orders of magnitude below', () => {
+    // Cattle-only values against the state ladder are all bottom-tier; the
+    // adaptive scale re-spreads them, which is the whole point of the filter.
+    const cattle = skewed.map((v) => v / 100);
+    const breaks = computeAdaptiveBreaks(cattle)!;
+    expect(breaks[0]).toBeLessThan(computeAdaptiveBreaks(skewed)![0]);
+  });
+
+  it('returns null when there is nothing to classify, so the caller falls back', () => {
+    expect(computeAdaptiveBreaks([])).toBeNull();
+    expect(computeAdaptiveBreaks([5, 5, 5])).toBeNull(); // fewer values than tiers
+    expect(computeAdaptiveBreaks(Array(50).fill(7))).toBeNull(); // no spread at all
+    expect(computeAdaptiveBreaks(Array(50).fill(0))).toBeNull(); // all zero
+  });
+});
+
 describe('mapMetrics — legend + formatting', () => {
-  it('legend has six ramp tiers + zero + no_data, in the daltonic palette when on', () => {
+  it('legend has eight ramp tiers + zero + no_data, in the daltonic palette when on', () => {
     const items = legendItems(METRIC_SPECS.biogas_m3, true, 'blues');
-    expect(items).toHaveLength(8);
-    expect(items[0].color).toBe(CVD_PALETTES.blues.ramp[5]);
+    expect(items).toHaveLength(RAMP_TIERS + 2);
+    expect(items[0].color).toBe(CVD_PALETTES.blues.ramp[RAMP_TIERS - 1]);
     expect(items[0].label).toContain('>');
-    expect(items[7].label).toBe('Sem dados');
+    expect(items[items.length - 1].label).toBe('Sem dados');
+  });
+
+  it('legend prints the SAME limits the choropleth was painted with', () => {
+    // The legend explains an adaptive classification; printing the fixed ladder
+    // while the map used another would be worse than showing no legend.
+    const breaks = [10, 100, 1_000, 10_000, 100_000, 1_000_000, 10_000_000];
+    const items = legendItems(METRIC_SPECS.biogas_m3, false, undefined, breaks);
+    expect(items).toHaveLength(RAMP_TIERS + 2);
+    expect(items[0].label).toBe('> 10M');
+    expect(items[RAMP_TIERS - 1].label).toBe('< 10');
   });
 
   it('formatMetricValue shows the unit and null → sem dados', () => {

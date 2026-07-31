@@ -24,6 +24,7 @@ export default function MapLegend({
   daltonic = false,
   showNationalBeta = false,
   scenario = 'baseline',
+  scaleBreaks = null,
 }: {
   displayMetric?: DisplayMetric;
   daltonic?: boolean;
@@ -31,11 +32,18 @@ export default function MapLegend({
   showNationalBeta?: boolean;
   /** Active scenario — named in the header so the numbers are never ambiguous. */
   scenario?: MapScenarioKey;
+  /**
+   * The class limits the choropleth was actually painted with (adaptive, from
+   * the visible São Paulo distribution). They move with the scenario and the
+   * residue filter, which is the point — a legend printing a fixed ladder while
+   * the map used another would be worse than no legend.
+   */
+  scaleBreaks?: number[] | null;
 }) {
   const t = useTranslations('Map');
   const [cvdPalette, setCvdPalette] = useCvdPalette();
   const spec = getMetricSpec(displayMetric);
-  const legendItems = buildLegendItems(spec, daltonic, cvdPalette);
+  const legendItems = buildLegendItems(spec, daltonic, cvdPalette, scaleBreaks);
   const title = spec.legendTitle;
   const [isCollapsed, setIsCollapsed] = useState(false);
 

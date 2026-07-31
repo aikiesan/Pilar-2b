@@ -659,10 +659,12 @@ describe('MapComponent', () => {
       );
       act(() => { jest.advanceTimersByTime(1500); });
 
-      // Biogas totals are scenario-scaled (default scenario is "fronteira", not
-      // "baseline") — switch to "Médio Prazo" (baseline) so the fixture's raw
-      // total_biogas_m3_year values are what the minBiogas filter compares against.
-      fireEvent.click(screen.getByText('Médio Prazo'));
+      // No scenario switch needed: the map now opens on "Real", and
+      // applyScenarioToProps leaves props untouched for the served scenarios
+      // (they carry their own ch4_real_* columns rather than scaling the legacy
+      // ones). So the fixture's raw total_biogas_m3_year is what the minBiogas
+      // filter compares against — which is what the removed "Médio Prazo" click
+      // used to arrange.
 
       // 1 matching SP municipality out of the 645 that make up São Paulo.
       // The denominator is the SP universe (lib/mapScope.SP_MUNICIPALITY_COUNT),
@@ -691,6 +693,73 @@ describe('MapComponent', () => {
       // Multiple filters should all apply
       await waitFor(() => {
         expect(screen.getByTestId('municipality-layer')).toBeInTheDocument();
+      });
+    });
+  });
+
+  // Two regressions that were invisible from inside the component: picking a
+  // residue emptied the map instead of narrowing it, and the national beta layer
+  // drew nothing at all in the default (SP) scope.
+  describe('Residue filter + national beta layer', () => {
+    const spWithCane = createMunicipalityFeature({
+      ibge_code: '3505500',
+      name: 'Barretos',
+      ch4_real_m3_year: 1_000,
+      ch4_real_sugarcane_m3_year: 600,
+      ch4_real_cattle_m3_year: 400,
+    });
+    const spWithoutCane = createMunicipalityFeature({
+      ibge_code: '3548500',
+      name: 'Santos',
+      ch4_real_m3_year: 500,
+      ch4_real_rsu_m3_year: 500,
+    });
+    const betaMunicipality = createMunicipalityFeature({
+      ibge_code: '3106200', // Belo Horizonte — MG, outside the canonical pipeline
+      name: 'Belo Horizonte',
+    });
+
+    beforeEach(() => {
+      mockUseGeospatialData.mockReturnValue({
+        data: createMunicipalityCollection([spWithCane, spWithoutCane, betaMunicipality]),
+        loading: false,
+        error: null,
+      });
+    });
+
+    it('draws the beta municipalities in the SP scope, where the toggle lives', async () => {
+      // The scope filter used to drop every non-SP feature before the beta layer
+      // could see one, so "Demais municípios do Brasil (BETA)" was a switch wired
+      // to nothing. The layer draws all three; only the two SP rows count as SP.
+      render(<MapComponent />);
+      act(() => { jest.advanceTimersByTime(1500); });
+
+      await waitFor(() => {
+        expect(screen.getByText('3 municipalities')).toBeInTheDocument();
+        expect(screen.getByTestId('municipality-count')).toHaveTextContent('2 / 645');
+      });
+    });
+
+    it('narrows to the municipalities holding the selected residue', async () => {
+      // Read from ?r= on mount, the same path a bookmarked filter takes.
+      window.history.replaceState(null, '', '/?r=sugarcane');
+      render(<MapComponent />);
+      act(() => { jest.advanceTimersByTime(1500); });
+
+      await waitFor(() => {
+        // Barretos has a cane share, Santos does not; the beta row survives as
+        // flat context because it has no per-residue breakdown to test.
+        expect(screen.getByTestId('municipality-count')).toHaveTextContent('1 / 645');
+        expect(screen.getByText('2 municipalities')).toBeInTheDocument();
+      });
+    });
+
+    it('keeps every municipality when nothing is selected', async () => {
+      render(<MapComponent />);
+      act(() => { jest.advanceTimersByTime(1500); });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('municipality-count')).toHaveTextContent('2 / 645');
       });
     });
   });
@@ -819,9 +888,9 @@ describe('MapComponent', () => {
       );
       act(() => { jest.advanceTimersByTime(1500); });
 
-      // Switch to baseline so the fixture's total_biogas_m3_year isn't
-      // scenario-scaled (default scenario is "fronteira").
-      fireEvent.click(screen.getByText('Médio Prazo'));
+      // See the note in "should show filtered count vs total count": the default
+      // scenario is now "Real", which does not scale the legacy columns, so no
+      // scenario switch is needed to read the fixture's raw values.
 
       // No match, against the fixed SP denominator.
       await waitFor(() => {
