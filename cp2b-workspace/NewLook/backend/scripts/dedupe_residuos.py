@@ -181,6 +181,15 @@ def main() -> None:
                 "UPDATE residuo_references SET residuo_id = %s WHERE residuo_id = %s",
                 (keep["id"], drop["id"]),
             )
+            # `scientific_references` amarra o artigo ao residuo por CODIGO, nao
+            # por id, e sem chave estrangeira — entao apagar a linha perdedora
+            # nao dava erro nenhum, so deixava o artigo pendurado. Foi assim que
+            # 309 dos 399 artigos (77%) perderam o vinculo com o residuo e a
+            # pagina da base cientifica passou a lista-los sem resido nem setor.
+            cur.execute(
+                "UPDATE scientific_references SET primary_residue = %s WHERE primary_residue = %s",
+                (keep["codigo"], drop["codigo"]),
+            )
             cur.execute("DELETE FROM residuos WHERE id = %s", (drop["id"],))
         for o in orfaos:
             cur.execute(
