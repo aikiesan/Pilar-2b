@@ -97,6 +97,25 @@ const LAYER_GROUPS = [
       'gas_pipeline_transport', 'gas_pipeline_distribution', 'etes', 'railways',
     ],
   },
+  // Os três blocos abaixo são grupos próprios, não um apêndice de
+  // "Infraestrutura". Eles respondem perguntas diferentes — para onde escoa,
+  // onde não se pode instalar, como se transporta — e a lista de vinte toggles
+  // que sairia de juntá-los apagaria exatamente essa distinção.
+  {
+    labelKey: 'layerGroups.gasRoute',
+    ids: [
+      'gas_delivery_point', 'compression_station', 'gas_processing_unit',
+      'gas_pipeline_outflow',
+    ],
+  },
+  {
+    labelKey: 'layerGroups.siteRestriction',
+    ids: ['protected_area_state', 'indigenous_territory', 'settlement'],
+  },
+  {
+    labelKey: 'layerGroups.logistics',
+    ids: ['highway_state', 'highway_federal'],
+  },
 ] as const;
 
 const RESIDUE_META = [
