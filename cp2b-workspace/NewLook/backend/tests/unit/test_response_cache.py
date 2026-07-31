@@ -60,9 +60,11 @@ def test_etag_de_outra_entrada_nao_serve():
     b = cached_json_response(FakeRequest(), "b", lambda: {"v": "b"})
     assert a.headers["etag"] != b.headers["etag"]
 
-    resp = cached_json_response(FakeRequest(if_none_match=a.headers["etag"]), "b", lambda: {"v": "b"})
+    resp = cached_json_response(
+        FakeRequest(if_none_match=a.headers["etag"]), "b", lambda: {"v": "b"}
+    )
     assert resp.status_code == 200
-    assert b"\"b\"" in resp.body
+    assert b'"b"' in resp.body
 
 
 def test_if_none_match_com_lista_de_etags():
