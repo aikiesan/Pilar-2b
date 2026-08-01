@@ -266,7 +266,22 @@ instalação no Estado (ANP, 2024).
 | Reconciliação de massa | `backend/scripts/reconcile_biomass_mass.py` |
 | Cenários teórico/mobilizável (anterior) | `backend/scripts/sp_theoretical_vs_mobilisable.py` |
 | Normalização do corpus de BMP | `backend/scripts/normalize_bmp_corpus.py` |
-| Master canônico (fonte primária) | `data/raw/abiove_sp_processed/SP_master_residue_streams_2023_FINAL.csv` |
+| Master canônico (fonte primária) | `data/canonical_parameters/SP_master_residue_streams_2023_FINAL.csv` |
+
+> O caminho do master foi corrigido em 2026-08-01: a versão anterior desta tabela
+> apontava para `data/raw/abiove_sp_processed/`, que hoje contém apenas um
+> `MANIFEST.md`. O arquivo canônico está em `data/canonical_parameters/`, com
+> cópia idêntica em `docs/data/`.
+
+### 7.1 Portão de aceitação
+
+A cadeia numérica foi reconciliada ponta a ponta em **2026-08-01**, com o mesmo
+valor nos três pontos independentes de medição. O procedimento, os comandos e as
+duas armadilhas conhecidas estão em
+[`VALIDACAO_CADEIA_NUMERICA_2026-08-01.md`](VALIDACAO_CADEIA_NUMERICA_2026-08-01.md).
+
+**Qualquer execução que não devolva `7.832.143.834 Nm³ CH₄/ano` no Cenário Real
+deve ser tratada como falha de reprodução, não como resultado novo.**
 
 ---
 
