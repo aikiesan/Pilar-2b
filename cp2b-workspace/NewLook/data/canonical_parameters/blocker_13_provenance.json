@@ -3,18 +3,17 @@
   "version": "3.0",
   "date": "2026-07-29",
   "single_canonical_location": "cp2b-workspace/NewLook/data/canonical_parameters/SP_master_residue_streams_2023_FINAL.csv",
-  "sha256_hash": "2ab1d03d6293690e76b7d883599554307965772afc367a52f2f834eb5d7a28f9",
-  "file_size_bytes": 189129,
+  "sha256_hash": "7d0fb051bb7cb74c4588d8d77a0865c27a0e9c0b42bb3f43f91ec117a1aebfa5",
+  "file_size_bytes": 188483,
+  "sha256_verified_at": "2026-08-01",
+  "sha256_note": "Hash e tamanho do blob git (terminadores LF). Checkouts com core.autocrlf=true (Windows) materializam o arquivo com CRLF e medem 2ab1d03d6293690e76b7d883599554307965772afc367a52f2f834eb5d7a28f9 / 189129 bytes — 646 bytes a mais, exatamente 1 por linha das 646 do arquivo. As duas formas produzem totais identicos: sp_scenarios_real_ideal.py foi executado sobre ambas em 2026-08-01 e retornou 7.832.143.834 / 9.841.178.207 nos dois casos. Verificar com 'git show HEAD:<caminho> | sha256sum', que independe da plataforma; hashear a copia da working tree no Windows dara o valor CRLF.",
   "coverage": "645 municipalities (São Paulo State)",
   "columns_count": 58,
   "sources": {
     "agricultural_area_and_yield": {
-      "primary_source": "MapBiomas Coleção 10 × Produtividade Agrícola IBGE PAM",
-      "validation_sources": [
-        "UNICA (cana)",
-        "CONAB (grãos)"
-      ],
-      "notes": "Área de uso do solo por sensoriamento remoto (MapBiomas) multiplicada por produtividade municipal (IBGE PAM t/ha)"
+      "primary_source": "IBGE PAM (Producao Agricola Municipal) 2023 — area E producao declaradas pela mesma fonte",
+      "validation_sources": [],
+      "notes": "Area e producao vem ambas do PAM, na mesma linha do master: area_ha_Milho_em_grao / prod_t_Milho_em_grao, area_ha_Soja_em_grao / prod_t_Soja_em_grao, area_ha_Cafe_em_grao_Total / prod_t_Cafe_em_grao_Total. O campo source_dataset do master declara 'CP2B_municipalities_DB+IBGE_PAM_PPM_PEVS'. Nao ha leitura de raster MapBiomas na cadeia canonica: o unico script que usa area MapBiomas e backend/scripts/load_biomass_tons.py, fora da cadeia (run_migrations.py invoca load_biomass_from_master)."
     },
     "livestock_heads": {
       "source": "IBGE Pesquisa da Pecuária Municipal (PPM) 2023",
