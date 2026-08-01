@@ -23,6 +23,14 @@
 -- Idempotente.
 -- ============================================================================
 
+-- Nenhuma migração cria data_status: a coluna vinha do pipeline que populou
+-- residuos fora da cadeia de migrações (o mesmo que trouxe os códigos
+-- minúsculos cascas_citros_ind / levedura_residual / soro_queijo, ausentes do
+-- bloco RESIDUOS da 004). Num banco montado só pelas migrações a coluna não
+-- existe e a 028 derruba a cadeia. Declarada aqui para que o esquema pare de
+-- depender de um script fora da cadeia; onde já existe, é no-op.
+ALTER TABLE residuos ADD COLUMN IF NOT EXISTS data_status TEXT;
+
 UPDATE residuos
 SET data_status = '🟡 Sem referências registradas'
 WHERE codigo = 'cascas_citros_ind'

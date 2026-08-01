@@ -125,6 +125,34 @@ VALUES (
     2
 ) ON CONFLICT (codigo) DO NOTHING;
 
+-- ----------------------------------------------------------------------------
+-- Subsetores faltantes no bloco auto-gerado acima.
+--
+-- O gerador emitiu os subsetores agrícolas com código prefixado (AG_CANA,
+-- AG_MILHO...) mas os de pecuária, indústria e urbano com nome puro
+-- (AVICULTURA, RSU, ETE...). O bloco RESIDUOS abaixo, por outro lado, usa o
+-- prefixo em todos (PC_AVES, UR_RSU, IN_CERVEJA...), então dez códigos
+-- referenciados nunca eram criados e a FK residuos_subsector_codigo_fkey
+-- derrubava a migração inteira — em banco existente E em banco vazio.
+--
+-- Criados aqui com o vocabulário prefixado que o bloco RESIDUOS espera. Os
+-- registros de nome puro acima ficam sem resíduo associado; são inertes e
+-- devem ser consolidados numa migração posterior.
+-- ----------------------------------------------------------------------------
+
+INSERT INTO subsectors (codigo, nome, sector_codigo, ordem) VALUES
+    ('PC_BOVINOS',    'Bovinocultura',                    'PC_PECUARIA',   10),
+    ('PC_AVES',       'Avicultura',                       'PC_PECUARIA',   11),
+    ('PC_SUINOS',     'Suinocultura',                     'PC_PECUARIA',   12),
+    ('PC_OUTROS',     'Outros - Pecuária',                'PC_PECUARIA',   13),
+    ('IN_ABATEDOURO', 'Abatedouros e Frigoríficos',       'IN_INDUSTRIAL', 20),
+    ('IN_CERVEJA',    'Cervejarias',                      'IN_INDUSTRIAL', 21),
+    ('IN_ALIMENTOS',  'Indústria Alimentícia',            'IN_INDUSTRIAL', 22),
+    ('IN_PAPEL',      'Papel e Celulose',                 'IN_INDUSTRIAL', 23),
+    ('UR_RSU',        'Resíduos Sólidos Urbanos',         'UR_URBANO',     30),
+    ('UR_ETE',        'Estação de Tratamento de Esgoto',  'UR_URBANO',     31)
+ON CONFLICT (codigo) DO NOTHING;
+
 -- ============================================================================
 -- RESIDUOS (Residues with chemical parameters)
 -- ============================================================================
