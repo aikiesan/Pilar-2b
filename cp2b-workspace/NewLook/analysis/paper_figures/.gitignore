@@ -1,0 +1,12 @@
+# Geradores e saídas das figuras do paper.
+#
+# Ficam em disco para regerar as figuras localmente, mas fora do git por decisão
+# do autor (2026-08-01): as imagens são pesadas e os geradores dependem de dados
+# externos (shapefiles de gasoduto da ANP/EPE) que não estão versionados aqui.
+#
+# Os NÚMEROS que estas figuras mostram estão versionados, em
+# docs/data/RESULTADOS_ESPACIAIS_2026-08-01.md e no dataset JSON de
+# docs/data/datasets/, e são reproduzíveis por backend/scripts/sp_spatial_concentration.py.
+*.py
+out/
+_src/
