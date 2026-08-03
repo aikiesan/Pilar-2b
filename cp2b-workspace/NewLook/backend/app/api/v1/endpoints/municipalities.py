@@ -156,6 +156,7 @@ def _served_scenario_sectors(row) -> dict[str, float | None]:
     """
     return {c: row.get(c) for c in _SCENARIO_SECTOR_COLUMNS}
 
+
 # Livestock streams derived from PPM head counts (per-head generation).
 _PPM_STREAMS = ("cattle", "swine", "poultry")
 # Urban streams modelled from resident population (per-capita generation).
