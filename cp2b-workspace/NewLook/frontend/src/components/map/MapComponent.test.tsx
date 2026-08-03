@@ -162,7 +162,12 @@ jest.mock('./MapBiomasLegend', () => ({
 
 jest.mock('./BiomassLayerLegend', () => ({
   __esModule: true,
-  default: ({ visible }: any) => visible ? <div data-testid="biomass-layer-legend">Biomass Legend</div> : null,
+  // Mirrors the real contract: the legend is a function of which plant layers
+  // are on, and names them, so a test can assert WHICH types are explained.
+  default: ({ layerIds = [] }: any) =>
+    layerIds.length > 0 ? (
+      <div data-testid="biomass-layer-legend">{layerIds.join(',')}</div>
+    ) : null,
 }));
 
 jest.mock('./ReferencesPanel', () => ({
@@ -480,7 +485,48 @@ describe('MapComponent', () => {
 
       await waitFor(() => {
         expect(screen.getByTestId('infrastructure-layer-biogas_plant')).toBeInTheDocument();
-        expect(screen.getByTestId('biomass-layer-legend')).toBeInTheDocument();
+        expect(screen.getByTestId('biomass-layer-legend')).toHaveTextContent('biogas_plant');
+      });
+    });
+
+    // The legend was wired to a single `if (layerId === 'biogas_plant')`, so
+    // these three drew markers with nothing on screen to decode them.
+    it.each([
+      'ethanol_plant',
+      'biomass_thermal_plant',
+      'biodiesel_plant',
+    ])('should render the plants legend for %s', async (layerId) => {
+      const user = userEvent.setup({ delay: null });
+      render(<MapComponent />);
+      act(() => { jest.advanceTimersByTime(1500); });
+
+      expect(screen.queryByTestId('biomass-layer-legend')).not.toBeInTheDocument();
+
+      const toggle = await waitFor(() => screen.getByTestId(`layer-toggle-${layerId}`));
+      await user.click(toggle);
+
+      await waitFor(() => {
+        expect(screen.getByTestId(`infrastructure-layer-${layerId}`)).toBeInTheDocument();
+        expect(screen.getByTestId('biomass-layer-legend')).toHaveTextContent(layerId);
+      });
+    });
+
+    // ...and the legend must describe only what is on: turning a plant layer
+    // off has to take its entry away, not leave a fixed list of four.
+    it('should drop a plant type from the legend when its layer is switched off', async () => {
+      const user = userEvent.setup({ delay: null });
+      render(<MapComponent />);
+      act(() => { jest.advanceTimersByTime(1500); });
+
+      const ethanolToggle = await waitFor(() => screen.getByTestId('layer-toggle-ethanol_plant'));
+      await user.click(ethanolToggle);
+      await waitFor(() => {
+        expect(screen.getByTestId('biomass-layer-legend')).toHaveTextContent('ethanol_plant');
+      });
+
+      await user.click(ethanolToggle);
+      await waitFor(() => {
+        expect(screen.queryByTestId('biomass-layer-legend')).not.toBeInTheDocument();
       });
     });
 

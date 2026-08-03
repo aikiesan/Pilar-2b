@@ -38,6 +38,7 @@ import {
 import ScopeSwitcher from './ScopeSwitcher';
 import MapLegend from './MapLegend';
 import MapLoadingSkeleton from './MapLoadingSkeleton';
+import { isPlantLayer } from '@/lib/plantLayers';
 import 'leaflet/dist/leaflet.css';
 import '@/lib/leafletConfig';
 
@@ -405,7 +406,10 @@ export default function MapComponent({
   const [infrastructureStatuses, setInfrastructureStatuses] = useState<Record<string, InfrastructureLayerStatus>>({});
 
   const [showMapBiomasLegend, setShowMapBiomasLegend] = useState(false);
-  const [showBiomassLayerLegend, setShowBiomassLayerLegend] = useState(false);
+  // No state for the plants legend: it is a pure function of which plant layers
+  // are on (see visiblePlantLayerIds below). It used to be a boolean flipped
+  // only by `biogas_plant`, so etanol / UTEs a biomassa / biodiesel drew markers
+  // with nothing to decode them.
   // Mobile: the choropleth legend is collapsed to a chip by default and
   // expands on tap, so it doesn't crowd the small screen.
   const [legendOpenMobile, setLegendOpenMobile] = useState(false);
@@ -434,7 +438,6 @@ export default function MapComponent({
       });
     }
     if (layerId === 'mapbiomas') setShowMapBiomasLegend(visible);
-    if (layerId === 'biogas_plant') setShowBiomassLayerLegend(visible);
     if (layerId === 'intermediate-regions') {
       setIntermediateRegionsEnabled(visible);
       if (visible) handleScopeChange(SCOPE_BRAZIL);
@@ -444,6 +447,13 @@ export default function MapComponent({
   const visibleLayerIds = useMemo(
     () => layers.filter(l => l.visible).map(l => l.id),
     [layers]
+  );
+  // Every plant layer on the map, so the legend explains all of them and only
+  // them. `biogas-plants` is the legacy SP layer, which draws several subtypes
+  // under one id — the legend expands it accordingly.
+  const visiblePlantLayerIds = useMemo(
+    () => visibleLayerIds.filter(id => isPlantLayer(id) || id === 'biogas-plants'),
+    [visibleLayerIds]
   );
   // Declared here, above the filtering memo, because the scope filter has to
   // know about it: the beta layer is the one thing allowed to survive a scope
@@ -945,7 +955,7 @@ export default function MapComponent({
           </div>
         )}
 
-        {isMounted && <BiomassLayerLegend visible={showBiomassLayerLegend} />}
+        {isMounted && <BiomassLayerLegend layerIds={visiblePlantLayerIds} />}
 
         </div>{/* end bottom-left overlay stack */}
 
