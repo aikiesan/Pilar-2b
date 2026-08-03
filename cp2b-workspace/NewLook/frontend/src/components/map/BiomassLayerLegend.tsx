@@ -1,77 +1,52 @@
 /**
  * PILAR-2b V3 - Biomass Plants Layer Legend
- * Floating legend showing different biomass plant types and data sources
+ * Floating legend showing the biomass plant types currently on the map
  */
 
 'use client';
 
 import React, { useState } from 'react';
 import { ChevronUp, ChevronDown, X, Info } from 'lucide-react';
+import {
+  PLANT_LAYERS,
+  SP_PLANT_SUBTYPES,
+  isPlantLayer,
+  type PlantTypeInfo,
+} from '@/lib/plantLayers';
 
 interface BiomassLayerLegendProps {
-  visible?: boolean;
+  /**
+   * Ids of the plant layers currently switched on. The legend describes exactly
+   * these and nothing else — it used to render a fixed list of four types
+   * whenever the biogás layer was on, so it claimed etanol/biometano/UTE were
+   * on screen when they were not, and stayed silent when they actually were.
+   */
+  layerIds?: string[];
 }
 
-interface PlantTypeInfo {
-  name: string;
-  icon: string;
-  color: string;
-  borderColor: string;
-  description: string;
-  dataSource: string;
-  year: string;
-  url?: string;
-}
-
-const plantTypes: PlantTypeInfo[] = [
-  {
-    name: 'Etanol',
-    icon: '🌽',
-    color: '#9B59B6',
-    borderColor: '#6C3483',
-    description: 'Plantas de produção de etanol',
-    dataSource: 'Plantas_Etanol_SP',
-    year: '2024',
-    url: ''
-  },
-  {
-    name: 'Biogás',
-    icon: '🏭',
-    color: '#27AE60',
-    borderColor: '#1E5128',
-    description: 'Plantas de produção de biogás',
-    dataSource: 'MapBiomas + ANP',
-    year: '2024',
-    url: ''
-  },
-  {
-    name: 'Biometano',
-    icon: '💨',
-    color: '#3498DB',
-    borderColor: '#1F618D',
-    description: 'Plantas de produção de biometano',
-    dataSource: 'MapBiomas + ANP',
-    year: '2024',
-    url: ''
-  },
-  {
-    name: 'Biomassa UTE',
-    icon: '⚡',
-    color: '#E67E22',
-    borderColor: '#BA4A00',
-    description: 'Usinas termelétricas de biomassa',
-    dataSource: 'MapBiomas + ANP',
-    year: '2024',
-    url: ''
-  }
-];
-
-export default function BiomassLayerLegend({ visible = false }: BiomassLayerLegendProps) {
+export default function BiomassLayerLegend({ layerIds = [] }: BiomassLayerLegendProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isHidden, setIsHidden] = useState(false);
 
-  // Don't render if not visible (layer is off)
-  if (!visible) {
+  // The legacy São Paulo layer draws several subtypes under one id, so it
+  // contributes all of them; the national layers contribute exactly one each.
+  const plantTypes: PlantTypeInfo[] = [];
+  const seen = new Set<string>();
+  for (const id of layerIds) {
+    const entries = id === 'biogas-plants'
+      ? SP_PLANT_SUBTYPES
+      : isPlantLayer(id)
+      ? [PLANT_LAYERS[id]]
+      : [];
+    for (const entry of entries) {
+      if (seen.has(entry.name)) continue;
+      seen.add(entry.name);
+      plantTypes.push(entry);
+    }
+  }
+
+  // Nothing to explain when no plant layer is on.
+  if (plantTypes.length === 0) {
     return null;
   }
 
@@ -88,7 +63,7 @@ export default function BiomassLayerLegend({ visible = false }: BiomassLayerLege
   }
 
   return (
-    <div className="w-72">
+    <div className="w-72" data-testid="biomass-layer-legend">
       <div className="bg-white/95 backdrop-blur-sm shadow-lg rounded-lg overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between bg-gradient-to-r from-green-600 to-green-700 px-3 py-2">
@@ -141,18 +116,7 @@ export default function BiomassLayerLegend({ visible = false }: BiomassLayerLege
                     <div className="mt-1 text-xs text-gray-500">
                       <div className="flex items-center gap-1">
                         <span className="font-medium">Fonte:</span>
-                        {type.url ? (
-                          <a
-                            href={type.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-600 hover:underline"
-                          >
-                            {type.dataSource}
-                          </a>
-                        ) : (
-                          <span>{type.dataSource}</span>
-                        )}
+                        <span>{type.dataSource}</span>
                       </div>
                       <div>
                         <span className="font-medium">Ano:</span> {type.year}
