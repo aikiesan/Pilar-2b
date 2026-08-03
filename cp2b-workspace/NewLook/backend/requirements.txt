@@ -16,7 +16,7 @@ alembic==1.18.4
 passlib[bcrypt]==1.7.4
 # passlib 1.7.4 is incompatible with bcrypt >= 4.1 (removed __about__ +
 # changed 72-byte handling break passlib's backend detection) — pin explicitly.
-bcrypt==4.0.1
+bcrypt==5.0.0
 PyJWT==2.13.0  # >=2.13.0 fixes CVE-2026-48525 (DoS via unbounded Base64URL decoding)
 python-multipart==0.0.32  # >=0.0.31 fixes CVE-2026-53537/53539/53540 (DoS / request smuggling)
 
