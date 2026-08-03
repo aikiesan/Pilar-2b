@@ -16,6 +16,7 @@ import {
   Leaf,
   Factory,
   Droplets,
+  Trees,
   ChevronDown,
   ChevronUp,
   ExternalLink,
@@ -125,6 +126,10 @@ export default function MunicipalityProfilePanel({
     agricultural: getSectorMetricValue(props, 'agricultural', metric, scenario),
     livestock: getSectorMetricValue(props, 'livestock', metric, scenario),
     urban: getSectorMetricValue(props, 'urban', metric, scenario),
+    // Florestal exists only under the served scenarios (migration 026); the
+    // band scenarios have no forestry stream, so this stays null there and the
+    // row is not rendered.
+    forestry: getSectorMetricValue(props, 'forestry', metric, scenario),
   };
 
   // Display units (t/ano, Nm³/dia, MWh/ano) come from the registry, so the panel
@@ -133,16 +138,33 @@ export default function MunicipalityProfilePanel({
   const agriculturalValue = toDisplay(sectorRaw.agricultural);
   const livestockValue = toDisplay(sectorRaw.livestock);
   const urbanValue = toDisplay(sectorRaw.urban);
+  const forestryValue = toDisplay(sectorRaw.forestry);
 
-  // Percentages come off the sector sum, not a separately-served total: a sector
-  // with no data must not be counted as a zero share of a larger denominator.
-  const metricTotal =
-    (agriculturalValue ?? 0) + (livestockValue ?? 0) + (urbanValue ?? 0);
+  // The headline is the MUNICIPALITY TOTAL as the choropleth reads it, through
+  // the same registry accessor that paints the polygon. It used to be the sum of
+  // the sector rows, which made the panel depend on a breakdown it does not
+  // always have: under the default scenario (Real) the per-sector columns are
+  // not in the map payload, so every sector was null, the sum was 0, and the
+  // panel printed "Sem dados" over a municipality the map was painting green.
+  const totalValue = toDisplay(
+    spec.rawValue(props, { biomassType: 'total', selectedResidues: [], scenario }).value
+  );
+  const metricTotal = totalValue ?? 0;
+
+  // Percentages are shares of that same total. They need not reach 100%: the
+  // served scenarios also carry sewage, which has no row here, so a visible
+  // remainder is the honest reading rather than a rounding artefact.
   const share = (v: number | null) =>
     metricTotal > 0 && v !== null ? (v / metricTotal) * 100 : 0;
   const agriculturePercent = share(agriculturalValue);
   const livestockPercent = share(livestockValue);
   const urbanPercent = share(urbanValue);
+  const forestryPercent = share(forestryValue);
+
+  // A total with no breakdown at all is worth saying out loud, so the empty
+  // "Composição por Fonte" is not read as three genuine zeroes.
+  const hasSectorSplit =
+    agriculturalValue !== null || livestockValue !== null || urbanValue !== null;
 
   return (
     <>
@@ -305,35 +327,55 @@ export default function MunicipalityProfilePanel({
                   Composição por Fonte
                 </h4>
 
-                {/* Agricultural */}
-                <ProgressBar
-                  label="Agrícola"
-                  value={agriculturalValue ?? 0}
-                  percentage={agriculturePercent}
-                  color="green"
-                  icon={<Leaf className="w-4 h-4" />}
-                  unit={spec.unit}
-                />
+                {hasSectorSplit ? (
+                  <>
+                    {/* Agricultural */}
+                    <ProgressBar
+                      label="Agrícola"
+                      value={agriculturalValue ?? 0}
+                      percentage={agriculturePercent}
+                      color="green"
+                      icon={<Leaf className="w-4 h-4" />}
+                      unit={spec.unit}
+                    />
 
-                {/* Livestock */}
-                <ProgressBar
-                  label="Pecuária"
-                  value={livestockValue ?? 0}
-                  percentage={livestockPercent}
-                  color="yellow"
-                  icon={<Factory className="w-4 h-4" />}
-                  unit={spec.unit}
-                />
+                    {/* Livestock */}
+                    <ProgressBar
+                      label="Pecuária"
+                      value={livestockValue ?? 0}
+                      percentage={livestockPercent}
+                      color="yellow"
+                      icon={<Factory className="w-4 h-4" />}
+                      unit={spec.unit}
+                    />
 
-                {/* Urban */}
-                <ProgressBar
-                  label="Urbano"
-                  value={urbanValue ?? 0}
-                  percentage={urbanPercent}
-                  color="blue"
-                  icon={<Droplets className="w-4 h-4" />}
-                  unit={spec.unit}
-                />
+                    {/* Urban */}
+                    <ProgressBar
+                      label="Urbano"
+                      value={urbanValue ?? 0}
+                      percentage={urbanPercent}
+                      color="blue"
+                      icon={<Droplets className="w-4 h-4" />}
+                      unit={spec.unit}
+                    />
+
+                    {/* Forestry — served scenarios only */}
+                    {forestryValue !== null && (
+                      <ProgressBar
+                        label="Florestal"
+                        value={forestryValue}
+                        percentage={forestryPercent}
+                        color="emerald"
+                        icon={<Trees className="w-4 h-4" />}
+                        unit={spec.unit}
+                      />
+                    )}
+                  </>
+                ) : (
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Sem quebra por setor para este município neste cenário.
+                  </p>
+                )}
               </div>
             </div>
           </Section>
@@ -472,7 +514,7 @@ interface ProgressBarProps {
   label: string;
   value: number;
   percentage: number;
-  color: 'green' | 'yellow' | 'blue';
+  color: 'green' | 'yellow' | 'blue' | 'emerald';
   icon: React.ReactNode;
   unit?: string;
 }
@@ -493,6 +535,11 @@ function ProgressBar({ label, value, percentage, color, icon, unit = 'm³/ano' }
       bg: 'bg-blue-500',
       text: 'text-blue-700 dark:text-blue-300',
       lightBg: 'bg-blue-100 dark:bg-blue-900/20',
+    },
+    emerald: {
+      bg: 'bg-emerald-700',
+      text: 'text-emerald-800 dark:text-emerald-300',
+      lightBg: 'bg-emerald-100 dark:bg-emerald-900/20',
     },
   };
 

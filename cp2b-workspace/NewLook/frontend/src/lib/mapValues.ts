@@ -25,6 +25,7 @@ import {
   SERVED_SCENARIO_RESIDUE_FIELD,
   CH4_FRACTION_OF_BIOGAS,
   type MapScenarioKey,
+  type ServedScenarioKey,
 } from '@/data/scenarioFactors';
 import { getSectorBiomassTons } from './biomassAvailability';
 
@@ -278,6 +279,43 @@ export function getBioenergyScenarioValue(
 export type BiomassSector = 'agricultural' | 'livestock' | 'urban';
 
 /**
+ * Sectors the served scenarios carry. Florestal exists only here: the band
+ * scenarios are built from SECTOR_STREAMS, which has no forestry stream, while
+ * Real/Ideal come from migration 026 and split four ways — the same four
+ * /statistics/summary aggregates by, so the two levels can be compared.
+ */
+export type ServedSector = BiomassSector | 'forestry';
+export const SERVED_SECTORS: ServedSector[] = [
+  'agricultural',
+  'livestock',
+  'urban',
+  'forestry',
+];
+
+/** Municipality property holding one sector's CH₄ for a served scenario. */
+export const SERVED_SECTOR_FIELD = (tier: ServedScenarioKey, sector: ServedSector): string =>
+  `ch4_${tier}_${sector}_m3_year`;
+
+/**
+ * One sector's CH₄ under a served scenario, or null when we have none.
+ *
+ * These columns are NOT in the map payload — eight more fields across 5,571
+ * features for something only an opened municipality reads — so they arrive via
+ * `/municipalities/{ibge}/metrics`, which the panel merges over the feature
+ * properties. Before that endpoint served them they existed nowhere the client
+ * could see, which is why the panel showed "Sem dados" under the default
+ * scenario while the choropleth beside it painted a value.
+ */
+function servedSectorCh4(
+  props: MunicipalityProperties,
+  sector: ServedSector,
+  scenario: MapScenarioKey
+): number | null {
+  if (!isServedScenario(scenario)) return null;
+  return num(asRecord(props)[SERVED_SECTOR_FIELD(scenario, sector)]);
+}
+
+/**
  * One sector's value for a per-scenario metric, read from the served
  * `{sector}_biogas_ch4_{sc}_m3_yr` / `{sector}_biomethane_{sc}_m3_yr` bands
  * (map_metrics.SECTOR_STREAMS).
@@ -287,21 +325,38 @@ export type BiomassSector = 'agricultural' | 'livestock' | 'urban';
  * municipalities and nobody else, so outside SP the panel had nothing to break
  * down and biomethane/bioenergy had no split at all.
  */
+/**
+ * Which served band a sector metric reads. `biogas` is RAW biogas and `methane`
+ * is CH₄ — they differ by the CH₄ fraction and must never be swapped. The stem
+ * for `biogas` used to be `biogas_ch4`, so the sector bars were painting methane
+ * under a "Biogás" label while the headline beside them showed raw biogas: the
+ * same conflation #151 removed municipality-wide, still living per sector.
+ */
+const SECTOR_BAND_STEM = {
+  biogas: 'biogas',
+  methane: 'biogas_ch4',
+  biomethane: 'biomethane',
+} as const;
+
 export function getSectorScenarioValue(
   props: MunicipalityProperties,
-  sector: BiomassSector,
-  metric: 'biogas' | 'biomethane',
+  sector: ServedSector,
+  metric: keyof typeof SECTOR_BAND_STEM,
   scenario: MapScenarioKey
 ): number | null {
-  // Real and Ideal have their own per-sector columns in the database
-  // (ch4_{tier}_{sector}_m3_year, migration 026), but those are NOT shipped in the
-  // map payload — eight more fields across 5,571 features for something only a
-  // single opened municipality reads. Returning null here makes the sector rows
-  // render as "sem dados" rather than silently falling through to the band
-  // scenario's split, which would show a breakdown that does not add up to the
-  // total being displayed beside it.
-  if (isServedScenario(scenario)) return null;
-  const stem = metric === 'biogas' ? 'biogas_ch4' : 'biomethane';
+  // Real and Ideal keep their split in their own columns (migration 026), served
+  // by the per-municipality detail endpoint. Convert from CH4 exactly the way
+  // the municipality-wide accessors do, so a sector and the total beside it can
+  // never disagree about what "biogás" means: raw biogas is CH4 over the CH4
+  // fraction, biomethane equals CH4 under the FIESP convention.
+  if (isServedScenario(scenario)) {
+    const ch4 = servedSectorCh4(props, sector, scenario);
+    if (ch4 === null) return null;
+    return metric === 'biogas' ? ch4 / CH4_FRACTION_OF_BIOGAS : ch4;
+  }
+  // Florestal has no band-scenario stream, so it exists only above.
+  if (sector === 'forestry') return null;
+  const stem = SECTOR_BAND_STEM[metric];
   const medio = num(props[`${sector}_${stem}_medio_m3_yr` as keyof MunicipalityProperties]);
   if (medio === null) return null;
   return pickScenario(
@@ -322,22 +377,30 @@ export function getSectorScenarioValue(
  */
 export function getSectorMetricValue(
   props: MunicipalityProperties,
-  sector: BiomassSector,
+  sector: ServedSector,
   metric: DisplayMetric,
   scenario: MapScenarioKey
 ): number | null {
   switch (metric) {
     case 'biogas_m3':
       return getSectorScenarioValue(props, sector, 'biogas', scenario);
+    case 'methane_m3':
+      // Was falling through to `default` — so picking "Metano" broke the sector
+      // bars down in TONNES under a Nm³/dia unit.
+      return getSectorScenarioValue(props, sector, 'methane', scenario);
     case 'biomethane_m3':
       return getSectorScenarioValue(props, sector, 'biomethane', scenario);
     case 'bioenergy_mwh': {
-      const g = getSectorScenarioValue(props, sector, 'biogas', scenario);
+      // MWH_PER_M3_CH4 is the calorific value of pure METHANE, so it applies to
+      // the CH4 band — never to raw biogas, which is ~45% CO2 and carries no
+      // energy. Mirrors getBioenergyScenarioValue exactly.
+      const g = getSectorScenarioValue(props, sector, 'methane', scenario);
       return g === null ? null : g * MWH_PER_M3_CH4;
     }
     case 'biomass_tons':
     default:
-      return getSectorBiomassTons(props, sector);
+      // Florestal has no biomass column of its own.
+      return sector === 'forestry' ? null : getSectorBiomassTons(props, sector);
   }
 }
 
