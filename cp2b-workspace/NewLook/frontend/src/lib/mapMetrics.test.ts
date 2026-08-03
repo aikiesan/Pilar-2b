@@ -21,6 +21,7 @@ import {
   CVD_PALETTES,
   DEFAULT_CVD_PALETTE,
   ZERO_FILL,
+  rampFor,
 } from './mapMetrics';
 import { MWH_PER_M3_CH4 } from './mapValues';
 
@@ -176,7 +177,10 @@ describe('mapMetrics — colour bucketing + daltonic', () => {
     // undefined; longer, and the darkest colour would never be reachable.
     expect(RAMP_DEFAULT).toHaveLength(RAMP_TIERS);
     for (const p of Object.values(CVD_PALETTES)) expect(p.ramp).toHaveLength(RAMP_TIERS);
-    for (const m of Object.values(METRIC_SPECS)) expect(m.breaks).toHaveLength(RAMP_TIERS - 1);
+    for (const m of Object.values(METRIC_SPECS)) {
+      expect(m.breaks).toHaveLength(RAMP_TIERS - 1);
+      expect(m.ramp).toHaveLength(RAMP_TIERS);
+    }
   });
 
   it('a measured zero paints the zero swatch, not the ramp', () => {
@@ -219,7 +223,11 @@ describe('mapMetrics — adaptive log scale', () => {
   it('keeps the outlier in the darkest tier — it really is the largest', () => {
     const breaks = computeAdaptiveBreaks(skewed)!;
     const spec = { ...METRIC_SPECS.biomethane_m3, toDisplay: (v: number) => v };
-    expect(getMetricColor(390_000, spec, false, undefined, breaks)).toBe(RAMP_DEFAULT[RAMP_TIERS - 1]);
+    // Biometano's own ramp, not the default one — each metric paints in its
+    // own hue so switching toggle is visible on the map.
+    expect(getMetricColor(390_000, spec, false, undefined, breaks)).toBe(
+      spec.ramp[RAMP_TIERS - 1]
+    );
   });
 
   it('rescales for a residue slice two orders of magnitude below', () => {
@@ -260,5 +268,67 @@ describe('mapMetrics — legend + formatting', () => {
   it('formatMetricValue shows the unit and null → sem dados', () => {
     expect(formatMetricValue(365_000, METRIC_SPECS.biogas_m3)).toContain('Nm³/dia');
     expect(formatMetricValue(null, METRIC_SPECS.biogas_m3)).toBe('sem dados');
+  });
+});
+
+/**
+ * Biogás, biometano e bioenergia são a MESMA grandeza sob unidades diferentes —
+ * múltiplos constantes umas das outras. Com um classificador adaptativo, isso
+ * põe cada município exatamente na mesma faixa, e trocar de métrica repintava o
+ * mapa idêntico pixel a pixel: só os números da legenda mudavam.
+ */
+describe('mapMetrics — cada métrica pinta na sua própria matiz', () => {
+  const TOP = RAMP_TIERS - 1;
+
+  it('nenhuma métrica compartilha rampa com outra', () => {
+    const ramps = Object.values(METRIC_SPECS).map((m) => m.ramp.join(','));
+    expect(new Set(ramps).size).toBe(ramps.length);
+  });
+
+  it('o mesmo valor pinta cores diferentes em biogás, biometano e bioenergia', () => {
+    // O valor é o mesmo de propósito: é a mesma grandeza. O que precisa mudar
+    // é a matiz, para o leitor ver que o toggle surtiu efeito.
+    const breaks = [10, 100, 1_000, 10_000, 100_000, 1_000_000, 10_000_000];
+    const at = (key: 'biogas_m3' | 'biomethane_m3' | 'bioenergy_mwh') =>
+      getMetricColor(5_000_000, { ...METRIC_SPECS[key], toDisplay: (v: number) => v }, false, undefined, breaks);
+
+    expect(at('biogas_m3')).not.toBe(at('biomethane_m3'));
+    expect(at('biomethane_m3')).not.toBe(at('bioenergy_mwh'));
+    expect(at('biogas_m3')).not.toBe(at('bioenergy_mwh'));
+  });
+
+  it('a legenda usa a mesma rampa que o coroplético', () => {
+    // Legenda e mapa lêem rampFor: uma legenda em outra matiz seria pior que
+    // nenhuma legenda.
+    for (const key of DISPLAY_METRICS) {
+      const spec = METRIC_SPECS[key];
+      const items = legendItems(spec, false);
+      expect(items[0].color).toBe(spec.ramp[TOP]);
+      expect(items[RAMP_TIERS - 1].color).toBe(spec.ramp[0]);
+    }
+  });
+
+  it('biomassa mantém a escala histórica da plataforma', () => {
+    expect(METRIC_SPECS.biomass_tons.ramp).toEqual(RAMP_DEFAULT);
+  });
+
+  it('modo daltônico ignora a matiz por métrica e usa a paleta CVD', () => {
+    // Legibilidade para quem não separa essas matizes vale mais que distinguir
+    // as métricas por cor — o cabeçalho da legenda continua nomeando a métrica.
+    for (const key of DISPLAY_METRICS) {
+      const spec = METRIC_SPECS[key];
+      expect(rampFor(spec, true, 'cividis')).toEqual(CVD_PALETTES.cividis.ramp);
+      expect(rampFor(spec, false)).toEqual(spec.ramp);
+    }
+  });
+
+  it('cada rampa vai de claro a escuro, para "mais escuro = mais"', () => {
+    const lum = (hex: string) => {
+      const n = parseInt(hex.slice(1), 16);
+      return 0.2126 * ((n >> 16) & 255) + 0.7152 * ((n >> 8) & 255) + 0.0722 * (n & 255);
+    };
+    for (const spec of Object.values(METRIC_SPECS)) {
+      expect(lum(spec.ramp[0])).toBeGreaterThan(lum(spec.ramp[RAMP_TIERS - 1]));
+    }
   });
 });

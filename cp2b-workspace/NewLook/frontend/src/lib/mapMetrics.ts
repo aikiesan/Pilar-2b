@@ -67,6 +67,83 @@ export const RAMP_DEFAULT = [
 /** How many colour tiers a ramp has (breaks = TIERS - 1). */
 export const RAMP_TIERS = RAMP_DEFAULT.length;
 
+// ── Per-metric ramps ────────────────────────────────────────────────────────
+// Biogás, biometano and bioenergia are the SAME quantity under three units:
+// biometano equals the CH₄ volume (FIESP convention), raw biogás is that over
+// 0.625, bioenergia is that times 9.97 kWh/m³. All three are therefore constant
+// multiples of one another, and the classifier is adaptive over the visible
+// distribution — so a linear rescale lands every municipality in exactly the
+// same tier. Switching metric repainted the map pixel-for-pixel identically,
+// and only the legend numbers moved.
+//
+// The fix is HUE, not different class breaks. Redistributing the classes per
+// metric would manufacture a visible difference where there is no spatial one —
+// decoration posing as information. A distinct hue family says "same geography,
+// different question" honestly: the pattern is identical because it genuinely
+// is, while the reader can see at a glance that the toggle took effect.
+//
+// Each ramp is an 8-class ColorBrewer sequential scale in the hue the metric's
+// toggle button already uses (`activeClass`), so the control and the map agree.
+const RAMP_BLUES = [
+  '#f7fbff',
+  '#deebf7',
+  '#c6dbef',
+  '#9ecae1',
+  '#6baed6',
+  '#4292c6',
+  '#2171b5',
+  '#084594',
+];
+
+const RAMP_GNBU = [
+  '#f7fcf0',
+  '#e0f3db',
+  '#ccebc5',
+  '#a8ddb5',
+  '#7bccc4',
+  '#4eb3d3',
+  '#2b8cbe',
+  '#08589e',
+];
+
+const RAMP_YLORBR = [
+  '#ffffe5',
+  '#fff7bc',
+  '#fee391',
+  '#fec44f',
+  '#fe9929',
+  '#ec7014',
+  '#cc4c02',
+  '#8c2d04',
+];
+
+const RAMP_BUPU = [
+  '#f7fcfd',
+  '#e0ecf4',
+  '#bfd3e6',
+  '#9ebcda',
+  '#8c96c6',
+  '#8c6bb1',
+  '#88419d',
+  '#6e016b',
+];
+
+/**
+ * Ramp actually used to paint, for a metric.
+ *
+ * Daltonic mode overrides the per-metric hue with the chosen CVD palette:
+ * legibility for a reader who cannot separate those hues outranks telling the
+ * metrics apart by hue. The legend header and the toggle still name the metric,
+ * so nothing is lost that the colour was the only carrier of.
+ */
+export function rampFor(
+  spec: MetricSpec,
+  daltonic: boolean,
+  paletteId?: CvdPaletteId
+): readonly string[] {
+  return daltonic ? getCvdRamp(paletteId) : spec.ramp;
+}
+
 // ── Colour-vision-deficiency (daltonic) palettes ────────────────────────────
 // The daltonic toggle no longer forces a single blue ramp; it selects one of
 // these CVD-safe palettes. Viridis and cividis are perceptually uniform and
@@ -164,6 +241,11 @@ export interface MetricSpec {
   legendTitle: string;
   /** Short unit suffix for popups. */
   unit: string;
+  /**
+   * The metric's own low→high colour ramp, RAMP_TIERS long. Overridden in
+   * daltonic mode — see rampFor.
+   */
+  ramp: readonly string[];
   /** Served yearly value + coverage, scenario/sector aware. */
   rawValue: (props: MunicipalityProperties, ctx: MetricContext) => MapValue;
   /** Yearly raw value → number in the display unit. */
@@ -225,6 +307,7 @@ export const METRIC_SPECS: Record<DisplayMetric, MetricSpec> = {
     icon: '🌿',
     activeClass: 'bg-green-600',
     legendTitle: 'Biomassa (t/ano)',
+    ramp: RAMP_DEFAULT, // YlGnBu — a escala historica da plataforma, preservada
     unit: 't/ano',
     rawValue: (p, c) => getBiomassMapValue(p, c.biomassType, c.selectedResidues),
     toDisplay: (v) => v,
@@ -240,6 +323,7 @@ export const METRIC_SPECS: Record<DisplayMetric, MetricSpec> = {
     icon: '⚡',
     activeClass: 'bg-blue-600',
     legendTitle: 'Biogás (Nm³/dia)',
+    ramp: RAMP_BLUES, // azul, como o botao bg-blue-600
     unit: 'Nm³/dia',
     rawValue: (p, c) => getBiogasScenarioValue(p, c.scenario, c.selectedResidues),
     toDisplay: perDay,
@@ -252,6 +336,7 @@ export const METRIC_SPECS: Record<DisplayMetric, MetricSpec> = {
     icon: '🔬',
     activeClass: 'bg-cyan-600',
     legendTitle: 'Metano CH₄ (Nm³/dia)',
+    ramp: RAMP_GNBU, // ciano, como o botao bg-cyan-600
     unit: 'Nm³/dia',
     rawValue: (p, c) => getMethaneScenarioValue(p, c.scenario, c.selectedResidues),
     toDisplay: perDay,
@@ -263,6 +348,7 @@ export const METRIC_SPECS: Record<DisplayMetric, MetricSpec> = {
     icon: '🔥',
     activeClass: 'bg-orange-600',
     legendTitle: 'Biometano (Nm³/dia)',
+    ramp: RAMP_YLORBR, // laranja, como o botao bg-orange-600
     unit: 'Nm³/dia',
     rawValue: (p, c) => getBiomethaneScenarioValue(p, c.scenario, c.selectedResidues),
     toDisplay: perDay,
@@ -274,6 +360,7 @@ export const METRIC_SPECS: Record<DisplayMetric, MetricSpec> = {
     icon: '🔋',
     activeClass: 'bg-purple-600',
     legendTitle: 'Bioenergia (MWh/ano)',
+    ramp: RAMP_BUPU, // roxo, como o botao bg-purple-600
     unit: 'MWh/ano',
     rawValue: (p, c) => getBioenergyScenarioValue(p, c.scenario, c.selectedResidues),
     toDisplay: (v) => v, // already MWh/yr
@@ -297,7 +384,7 @@ export function getMetricColor(
   paletteId?: CvdPaletteId,
   breaks?: number[] | null
 ): string {
-  const ramp = daltonic ? getCvdRamp(paletteId) : RAMP_DEFAULT;
+  const ramp = rampFor(spec, daltonic, paletteId);
   if (rawYearly <= 0) return ZERO_FILL;
   const v = spec.toDisplay(rawYearly);
   const b = breaks && breaks.length ? breaks : spec.breaks;
@@ -338,7 +425,7 @@ export function legendItems(
   paletteId?: CvdPaletteId,
   breaks?: number[] | null
 ): LegendItem[] {
-  const ramp = daltonic ? getCvdRamp(paletteId) : RAMP_DEFAULT;
+  const ramp = rampFor(spec, daltonic, paletteId);
   const b = breaks && breaks.length ? breaks : spec.breaks;
   const f = formatCompact;
   const rows: LegendItem[] = [
