@@ -232,6 +232,25 @@ export function getMethaneScenarioValue(
  * pipeline quality (backend map_metrics applies the 0.97 upgrading efficiency;
  * we read the served band, not re-derive it).
  */
+/**
+ * Methane potential per resident (Nm³ CH₄ / inhabitant / year) — the Censo 2022
+ * per-capita map. Divides the scenario methane by `population` (served in the map
+ * payload for this map). Returns no_data when either side is missing or the
+ * population is zero, so a municipality is never painted from a divide-by-zero.
+ */
+export function getMethanePerCapitaValue(
+  props: MunicipalityProperties,
+  scenario: MapScenarioKey,
+  selectedResidues: ResidueType[] = []
+): MapValue {
+  const base = getMethaneScenarioValue(props, scenario, selectedResidues);
+  const pop = num(asRecord(props).population);
+  if (base.value === null || pop === null || pop <= 0) {
+    return { value: null, coverage: NO_DATA };
+  }
+  return { value: base.value / pop, coverage: base.coverage };
+}
+
 export function getBiomethaneScenarioValue(
   props: MunicipalityProperties,
   scenario: MapScenarioKey,

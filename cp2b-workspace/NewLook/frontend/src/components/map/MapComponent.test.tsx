@@ -75,8 +75,14 @@ jest.mock('@/hooks/useCnProfiles', () => ({
 jest.mock('react-leaflet', () => ({
   MapContainer: ({ children }: any) => <div data-testid="map-container">{children}</div>,
   TileLayer: () => <div data-testid="tile-layer" />,
-  // ScopeViewController calls useMap(); return a stub with the methods it uses.
-  useMap: () => ({ flyTo: jest.fn(), setView: jest.fn() }),
+  ScaleControl: () => <div data-testid="scale-control" />,
+  // ScopeViewController calls flyTo/setView; InfraPane calls getPane/createPane.
+  useMap: () => ({
+    flyTo: jest.fn(),
+    setView: jest.fn(),
+    getPane: jest.fn(() => undefined),
+    createPane: jest.fn(() => ({ style: {} })),
+  }),
 }));
 
 jest.mock('./MunicipalityLayer', () => ({

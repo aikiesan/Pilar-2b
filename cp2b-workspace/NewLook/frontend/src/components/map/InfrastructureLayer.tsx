@@ -48,6 +48,14 @@ interface InfrastructureLayerProps {
   /** Server-side bbox filter, for layers whose uf is NULL by design (lines and
    *  polygons that cross state borders). 'min_lng,min_lat,max_lng,max_lat'. */
   bbox?: string;
+  /**
+   * Leaflet pane to draw into. Infrastructure must sit ABOVE the municipality
+   * choropleth: that choropleth renders on a canvas in the default overlayPane
+   * (z 400), and infra lines/polygons are SVG in the same pane — so without a
+   * dedicated higher pane the pipelines/highways/protected areas would be buried
+   * under the fill. MapComponent creates an 'infrastructure' pane at z 450.
+   */
+  pane?: string;
 }
 
 // Layer styling configurations
@@ -304,7 +312,7 @@ const createETEIcon = () => {
   });
 };
 
-export default function InfrastructureLayer({ layerType, onStatus, uf, bbox }: InfrastructureLayerProps) {
+export default function InfrastructureLayer({ layerType, onStatus, uf, bbox, pane }: InfrastructureLayerProps) {
   // Use React Query hook for automatic caching and background refetching
   const { data, loading, error, isFetching } = useInfrastructureLayer(layerType, true, uf, bbox);
   const featureCount = Array.isArray(data?.features) ? data.features.length : 0;
@@ -424,7 +432,10 @@ export default function InfrastructureLayer({ layerType, onStatus, uf, bbox }: I
       });
     }
 
-    return L.marker(latlng, { icon });
+    // Same pane as the paths so every infrastructure feature sits above the
+    // municipality choropleth (markers default to markerPane, which is already
+    // above it, but keeping them together makes the layering explicit).
+    return L.marker(latlng, pane ? { icon, pane } : { icon });
   };
 
   // Event handlers for each feature
@@ -536,6 +547,7 @@ export default function InfrastructureLayer({ layerType, onStatus, uf, bbox }: I
       style={style}
       pointToLayer={pointToLayer}
       onEachFeature={onEachFeature}
+      pane={pane}
     />
   );
 }

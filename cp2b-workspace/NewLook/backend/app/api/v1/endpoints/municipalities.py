@@ -77,7 +77,10 @@ _DETAIL_ONLY_KEYS = frozenset(
     {
         "municipality_name",  # duplicate of `name`
         "id",
-        "population",
+        # population is NOT detail-only: the "Potencial per capita" thematic map
+        # (Censo 2022) normalises the choropleth by resident population, so the
+        # map itself reads it. One integer per feature — cheap. population_density
+        # / gdp / area stay detail-only (no map reads them yet).
         "population_density",
         "population_year",
         "gdp_total",

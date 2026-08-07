@@ -11,6 +11,7 @@ import type { DisplayMetric } from '@/types/geospatial';
 import { getMetricSpec, legendItems as buildLegendItems, CVD_PALETTES, type CvdPaletteId } from '@/lib/mapMetrics';
 import { BETA_FILL } from '@/lib/mapScope';
 import { useCvdPalette } from '@/hooks/useCvdPalette';
+import { useMapPalette } from '@/hooks/useMapPalette';
 import { useTranslations } from 'next-intl';
 import { isServedScenario, SCENARIO_COLOR, type MapScenarioKey } from '@/data/scenarioFactors';
 
@@ -42,8 +43,9 @@ export default function MapLegend({
 }) {
   const t = useTranslations('Map');
   const [cvdPalette, setCvdPalette] = useCvdPalette();
+  const [mapPalette] = useMapPalette();
   const spec = getMetricSpec(displayMetric);
-  const legendItems = buildLegendItems(spec, daltonic, cvdPalette, scaleBreaks);
+  const legendItems = buildLegendItems(spec, daltonic, cvdPalette, scaleBreaks, mapPalette);
   const title = spec.legendTitle;
   const [isCollapsed, setIsCollapsed] = useState(false);
 

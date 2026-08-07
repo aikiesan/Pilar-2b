@@ -18,6 +18,7 @@ import type { MapValue } from '@/lib/mapValues';
 import { getMetricSpec, getMetricColor } from '@/lib/mapMetrics';
 import { isSaoPaulo, BETA_STYLE, BETA_BADGE_LABEL } from '@/lib/mapScope';
 import { useCvdPalette } from '@/hooks/useCvdPalette';
+import { useMapPalette } from '@/hooks/useMapPalette';
 import type { MapScenarioKey } from '@/data/scenarioFactors';
 
 interface MunicipalityLayerProps {
@@ -91,6 +92,9 @@ export default function MunicipalityLayer({
   // Selected CVD palette (only used when `daltonic` is on). Reading it here means
   // changing the palette in the legend restyles the choropleth reactively.
   const [cvdPalette] = useCvdPalette();
+  // Thematic palette (used when daltonic is off). Same reactive story: switching
+  // it in the Temas tab or applying a preset restyles the polygons in place.
+  const [mapPalette] = useMapPalette();
 
   // Drop the beta features entirely when the layer is off — see the prop doc:
   // hiding by style leaves the polygons hit-testable. Memoized so toggling any
@@ -155,7 +159,7 @@ export default function MunicipalityLayer({
     }
 
     return {
-      fillColor: getMetricColor(value, metricSpec, daltonic, cvdPalette, scaleBreaks),
+      fillColor: getMetricColor(value, metricSpec, daltonic, cvdPalette, scaleBreaks, mapPalette),
       weight: 1,
       opacity: 0.8,
       color: '#666666',
@@ -163,7 +167,7 @@ export default function MunicipalityLayer({
     };
     // getMapValue is recreated per render but only depends on the deps listed here,
     // so listing them directly keeps the identity stable.
-  }, [colorMode, displayMetric, biomassType, selectedResidues, mapScenario, daltonic, cvdPalette, opacity, scaleBreaks]);
+  }, [colorMode, displayMetric, biomassType, selectedResidues, mapScenario, daltonic, cvdPalette, mapPalette, opacity, scaleBreaks]);
 
   // Format a value for display. null -> "sem dados" so the tooltip never shows a
   // fabricated 0 for a municipality we have no data for.
@@ -308,7 +312,7 @@ export default function MunicipalityLayer({
           }
           const resetColor = colorMode === 'cluster'
             ? getColorForCluster((feature.properties as any).cluster_id)
-            : getMetricColor(getMapValue(feature.properties as MunicipalityProperties).value ?? 0, metricSpec, daltonic, cvdPalette, scaleBreaks);
+            : getMetricColor(getMapValue(feature.properties as MunicipalityProperties).value ?? 0, metricSpec, daltonic, cvdPalette, scaleBreaks, mapPalette);
           target.setStyle({
             weight: 1,
             color: '#666666',

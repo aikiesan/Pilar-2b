@@ -21,6 +21,7 @@ import {
   getMethaneScenarioValue,
   getBiomethaneScenarioValue,
   getBioenergyScenarioValue,
+  getMethanePerCapitaValue,
   type MapValue,
 } from './mapValues';
 
@@ -128,6 +129,19 @@ const RAMP_BUPU = [
   '#6e016b',
 ];
 
+// Fuchsia/pink (ColorBrewer RdPu) — the per-metric hue for the per-capita map,
+// distinct from every toggle-bar metric so no two specs share a ramp.
+const RAMP_RDPU = [
+  '#fff7f3',
+  '#fde0dd',
+  '#fcc5c0',
+  '#fa9fb5',
+  '#f768a1',
+  '#dd3497',
+  '#ae017e',
+  '#7a0177',
+];
+
 /**
  * Ramp actually used to paint, for a metric.
  *
@@ -219,6 +233,114 @@ export function getCvdRamp(id?: CvdPaletteId): CvdPalette['ramp'] {
 
 // Back-compat: the previous single daltonic ramp is now the "blues" palette.
 export const RAMP_DALTONIC = CVD_PALETTES.blues.ramp;
+
+// ── General choropleth palettes (thematic maps) ─────────────────────────────
+// The daltonic toggle is an accessibility override that stays scoped to the
+// CVD-safe ramps above. THIS registry is the everyday "escala de cores" the
+// thematic presets pick from and the user can switch freely — it is a SUPERSET
+// that includes the platform default (YlGnBu) plus a handful of sequential
+// ramps chosen so a preset can match its subject (greens for agrícola, warm
+// yellow→red for urban/energia intensity, etc.). Every ramp is eight low→high
+// tiers so it drops straight into the same bucketing the default uses; the
+// `cvdSafe` flag marks the ones that also read unambiguously for colour-vision
+// deficiency, so the selector can hint at it without forcing daltonic mode.
+export type MapPaletteId =
+  | 'ylgnbu'
+  | 'greens'
+  | 'ylorrd'
+  | 'bupu'
+  | 'plasma'
+  | 'viridis'
+  | 'cividis'
+  | 'blues';
+
+export interface MapPalette {
+  id: MapPaletteId;
+  label: string;
+  note: string;
+  /** True when the ramp also reads unambiguously for colour-vision deficiency. */
+  cvdSafe: boolean;
+  /** Eight low→high tiers, matching RAMP_DEFAULT. */
+  ramp: readonly string[];
+}
+
+export const MAP_PALETTES: Record<MapPaletteId, MapPalette> = {
+  ylgnbu: {
+    id: 'ylgnbu',
+    label: 'Verde-Azul (padrão)',
+    note: 'YlGnBu · escala padrão da plataforma',
+    cvdSafe: true,
+    ramp: RAMP_DEFAULT,
+  },
+  greens: {
+    id: 'greens',
+    label: 'Verdes',
+    note: 'Sequencial · ênfase agrícola',
+    cvdSafe: false,
+    ramp: [
+      '#f7fcf5', '#e5f5e0', '#c7e9c0', '#a1d99b',
+      '#74c476', '#41ab5d', '#238b45', '#005a32',
+    ],
+  },
+  ylorrd: {
+    id: 'ylorrd',
+    label: 'Amarelo-Vermelho',
+    note: 'Sequencial quente · intensidade',
+    cvdSafe: false,
+    ramp: [
+      '#ffffcc', '#ffeda0', '#fed976', '#feb24c',
+      '#fd8d3c', '#fc4e2a', '#e31a1c', '#b10026',
+    ],
+  },
+  bupu: {
+    id: 'bupu',
+    label: 'Azul-Roxo',
+    note: 'Sequencial frio · foco urbano',
+    cvdSafe: false,
+    ramp: [
+      '#f7fcfd', '#e0ecf4', '#bfd3e6', '#9ebcda',
+      '#8c96c6', '#8c6bb1', '#88419d', '#6e016b',
+    ],
+  },
+  plasma: {
+    id: 'plasma',
+    label: 'Plasma',
+    note: 'Vibrante · alto contraste',
+    cvdSafe: true,
+    ramp: [
+      '#0d0887', '#5b02a3', '#8b0aa5', '#b83289',
+      '#db5c68', '#f48849', '#febd2a', '#f0f921',
+    ],
+  },
+  viridis: {
+    id: 'viridis',
+    label: CVD_PALETTES.viridis.label,
+    note: CVD_PALETTES.viridis.note,
+    cvdSafe: true,
+    ramp: CVD_PALETTES.viridis.ramp,
+  },
+  cividis: {
+    id: 'cividis',
+    label: CVD_PALETTES.cividis.label,
+    note: CVD_PALETTES.cividis.note,
+    cvdSafe: true,
+    ramp: CVD_PALETTES.cividis.ramp,
+  },
+  blues: {
+    id: 'blues',
+    label: CVD_PALETTES.blues.label,
+    note: CVD_PALETTES.blues.note,
+    cvdSafe: true,
+    ramp: CVD_PALETTES.blues.ramp,
+  },
+};
+
+export const DEFAULT_MAP_PALETTE: MapPaletteId = 'ylgnbu';
+
+/** Ramp for a general palette id, falling back to the platform default. */
+export function getPaletteRamp(id?: MapPaletteId): readonly string[] {
+  return (id && MAP_PALETTES[id] ? MAP_PALETTES[id] : MAP_PALETTES[DEFAULT_MAP_PALETTE]).ramp;
+}
 
 export const ZERO_FILL = '#f7f7f7'; // measured zero — near-white, clear of the ramp
 export const NO_DATA_FILL = '#cbd5e1'; // never loaded — distinct grey (migration 025)
@@ -366,6 +488,26 @@ export const METRIC_SPECS: Record<DisplayMetric, MetricSpec> = {
     toDisplay: (v) => v, // already MWh/yr
     breaks: [4_700, 10_000, 22_000, 47_000, 100_000, 214_000, 460_000],
   },
+  // Biometano por habitante (Censo 2022). Deliberately NOT in DISPLAY_METRICS, so
+  // it never appears in the toggle bar — it is applied only by the "Potencial per
+  // capita" thematic map. rawValue already returns the per-capita figure, so
+  // toDisplay is the identity. Adaptive breaks reclassify it live; the fallback
+  // ladder below only matters when nothing is on screen.
+  ch4_per_capita: {
+    key: 'ch4_per_capita',
+    toggleLabel: 'Per capita',
+    icon: '👥',
+    activeClass: 'bg-fuchsia-600',
+    legendTitle: 'Biometano per capita (Nm³/hab·ano)',
+    unit: 'Nm³/hab·ano',
+    rawValue: (p, c) => getMethanePerCapitaValue(p, c.scenario, c.selectedResidues),
+    toDisplay: (v) => v,
+    breaks: [10, 30, 80, 200, 500, 1_200, 3_000],
+    // Per-metric hue fallback (used only if painted without its thematic palette).
+    // The preset always sets palette 'bupu', so this rarely applies. Fuchsia so it
+    // is distinct from every other spec's ramp.
+    ramp: RAMP_RDPU,
+  },
 };
 
 export function getMetricSpec(metric: DisplayMetric): MetricSpec {
@@ -382,9 +524,19 @@ export function getMetricColor(
   spec: MetricSpec,
   daltonic: boolean,
   paletteId?: CvdPaletteId,
-  breaks?: number[] | null
+  breaks?: number[] | null,
+  mapPaletteId?: MapPaletteId
 ): string {
-  const ramp = rampFor(spec, daltonic, paletteId);
+  // Ramp precedence: (1) daltonic is an accessibility override and always wins;
+  // (2) otherwise an explicitly-chosen thematic palette wins — a preset or the
+  // "escala de cores" selector; (3) otherwise the metric's own hue (#194), which
+  // is what makes switching metric visibly repaint. `ylgnbu` is the store default
+  // and means "no explicit choice" → fall through to the per-metric hue.
+  const ramp = daltonic
+    ? getCvdRamp(paletteId)
+    : mapPaletteId && mapPaletteId !== 'ylgnbu'
+      ? getPaletteRamp(mapPaletteId)
+      : spec.ramp;
   if (rawYearly <= 0) return ZERO_FILL;
   const v = spec.toDisplay(rawYearly);
   const b = breaks && breaks.length ? breaks : spec.breaks;
@@ -423,9 +575,16 @@ export function legendItems(
   spec: MetricSpec,
   daltonic: boolean,
   paletteId?: CvdPaletteId,
-  breaks?: number[] | null
+  breaks?: number[] | null,
+  mapPaletteId?: MapPaletteId
 ): LegendItem[] {
-  const ramp = rampFor(spec, daltonic, paletteId);
+  // Same precedence as getMetricColor: daltonic → explicit thematic palette →
+  // per-metric hue. Keeps the legend swatches identical to the painted map.
+  const ramp = daltonic
+    ? getCvdRamp(paletteId)
+    : mapPaletteId && mapPaletteId !== 'ylgnbu'
+      ? getPaletteRamp(mapPaletteId)
+      : spec.ramp;
   const b = breaks && breaks.length ? breaks : spec.breaks;
   const f = formatCompact;
   const rows: LegendItem[] = [

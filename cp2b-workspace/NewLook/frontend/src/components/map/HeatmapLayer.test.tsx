@@ -51,13 +51,13 @@ describe('HeatmapLayer', () => {
         },
         properties: {
           name: 'Campinas',
-          total_biogas_m3_year: 150000000,
-          sugarcane_biogas_m3_year: 50000000,
-          soybean_biogas_m3_year: 30000000,
-          corn_biogas_m3_year: 20000000,
-          cattle_biogas_m3_year: 25000000,
-          swine_biogas_m3_year: 15000000,
-          poultry_biogas_m3_year: 10000000
+          total_biomass_tons_year: 150000000,
+          sugarcane_biomass_tons_year: 50000000,
+          soybean_biomass_tons_year: 30000000,
+          corn_biomass_tons_year: 20000000,
+          cattle_biomass_tons_year: 25000000,
+          swine_biomass_tons_year: 15000000,
+          poultry_biomass_tons_year: 10000000
         }
       },
       {
@@ -76,9 +76,9 @@ describe('HeatmapLayer', () => {
         },
         properties: {
           name: 'São Paulo',
-          total_biogas_m3_year: 600000000,
-          sugarcane_biogas_m3_year: 100000000,
-          cattle_biogas_m3_year: 200000000
+          total_biomass_tons_year: 600000000,
+          sugarcane_biomass_tons_year: 100000000,
+          cattle_biomass_tons_year: 200000000
         }
       },
       {
@@ -95,7 +95,7 @@ describe('HeatmapLayer', () => {
         },
         properties: {
           name: 'Small City',
-          total_biogas_m3_year: 500000
+          total_biomass_tons_year: 500000
         }
       },
       {
@@ -112,7 +112,7 @@ describe('HeatmapLayer', () => {
         },
         properties: {
           name: 'Zero City',
-          total_biogas_m3_year: 0
+          total_biomass_tons_year: 0
         }
       }
     ]
@@ -265,9 +265,9 @@ describe('HeatmapLayer', () => {
           },
           properties: {
             name: 'Urban City',
-            total_biogas_m3_year: 100000000,
-            rsu_biogas_m3_year: 50000000,
-            rpo_biogas_m3_year: 30000000
+            total_biomass_tons_year: 100000000,
+            rsu_biomass_tons_year: 50000000,
+            rpo_biomass_tons_year: 30000000
           }
         }]
       };
@@ -293,8 +293,8 @@ describe('HeatmapLayer', () => {
           },
           properties: {
             name: 'Aquaculture City',
-            total_biogas_m3_year: 100000000,
-            aquaculture_biogas_m3_year: 10000000
+            total_biomass_tons_year: 100000000,
+            aquaculture_biomass_tons_year: 10000000
           }
         }]
       };
@@ -320,9 +320,9 @@ describe('HeatmapLayer', () => {
           },
           properties: {
             name: 'Coffee City',
-            total_biogas_m3_year: 100000000,
-            coffee_biogas_m3_year: 30000000,
-            citrus_biogas_m3_year: 20000000
+            total_biomass_tons_year: 100000000,
+            coffee_biomass_tons_year: 30000000,
+            citrus_biomass_tons_year: 20000000
           }
         }]
       };
@@ -350,7 +350,7 @@ describe('HeatmapLayer', () => {
           },
           properties: {
             name: 'Low City',
-            total_biogas_m3_year: 500000
+            total_biomass_tons_year: 500000
           }
         }]
       };
@@ -378,7 +378,7 @@ describe('HeatmapLayer', () => {
           },
           properties: {
             name: 'Medium City',
-            total_biogas_m3_year: 25000000
+            total_biomass_tons_year: 25000000
           }
         }]
       };
@@ -404,7 +404,7 @@ describe('HeatmapLayer', () => {
           },
           properties: {
             name: 'High City',
-            total_biogas_m3_year: 600000000
+            total_biomass_tons_year: 600000000
           }
         }]
       };
@@ -432,7 +432,7 @@ describe('HeatmapLayer', () => {
           },
           properties: {
             name: 'Low City',
-            total_biogas_m3_year: 500000
+            total_biomass_tons_year: 500000
           }
         }]
       };
@@ -459,7 +459,7 @@ describe('HeatmapLayer', () => {
           },
           properties: {
             name: 'Medium City',
-            total_biogas_m3_year: 25000000
+            total_biomass_tons_year: 25000000
           }
         }]
       };
@@ -485,7 +485,7 @@ describe('HeatmapLayer', () => {
           },
           properties: {
             name: 'High City',
-            total_biogas_m3_year: 600000000
+            total_biomass_tons_year: 600000000
           }
         }]
       };
@@ -532,7 +532,7 @@ describe('HeatmapLayer', () => {
       );
 
       const tooltips = getAllByTestId('tooltip');
-      expect(tooltips[0].textContent).toContain('m³/ano');
+      expect(tooltips[0].textContent).toContain('t/ano');
     });
   });
 
@@ -571,7 +571,7 @@ describe('HeatmapLayer', () => {
           },
           properties: {
             name: 'Test',
-            total_biogas_m3_year: null as any
+            total_biomass_tons_year: null as any
           }
         }]
       };
@@ -596,7 +596,7 @@ describe('HeatmapLayer', () => {
           },
           properties: {
             name: 'Test',
-            total_biogas_m3_year: 1000000
+            total_biomass_tons_year: 1000000
           }
         }]
       };
@@ -635,7 +635,7 @@ describe('HeatmapLayer', () => {
           },
           properties: {
             name: 'Huge City',
-            total_biogas_m3_year: 5000000000000 // 5 trillion
+            total_biomass_tons_year: 5000000000000 // 5 trillion
           }
         }]
       };
@@ -661,7 +661,7 @@ describe('HeatmapLayer', () => {
           },
           properties: {
             name: 'Degenerate',
-            total_biogas_m3_year: 1000000
+            total_biomass_tons_year: 1000000
           }
         }]
       };
@@ -738,7 +738,7 @@ describe('HeatmapLayer', () => {
             type: 'Polygon',
             coordinates: [[[-48.0, -22.0], [-48.1, -22.0], [-48.1, -22.1], [-48.0, -22.1], [-48.0, -22.0]]]
           },
-          properties: { name: 'Single City', total_biogas_m3_year: 1000000 }
+          properties: { name: 'Single City', total_biomass_tons_year: 1000000 }
         }]
       };
 

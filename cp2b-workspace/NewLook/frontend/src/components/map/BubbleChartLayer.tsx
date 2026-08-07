@@ -19,7 +19,7 @@ interface BubbleChartLayerProps {
 export default function BubbleChartLayer({
   data,
   opacity = 0.7,
-  attribute = 'total_biogas_m3_year',
+  attribute = 'total_biomass_tons_year',
 }: BubbleChartLayerProps) {
   const map = useMap();
 
@@ -36,17 +36,30 @@ export default function BubbleChartLayer({
     const maxValue = Math.max(...values);
     const minValue = Math.min(...values);
 
+    // Unit label follows the attribute (tonnage vs volume).
+    const unit = attribute.includes('biomass_tons') ? 't/ano' : 'm³/ano';
+
+    // Draw largest first so the smallest bubbles end up on top and stay legible,
+    // instead of being buried under the big ones — that flat draw order was the
+    // "muitos círculos, overlap, não dá para ler" problem.
+    const ordered = [...data.features].sort(
+      (a, b) =>
+        (Number((b.properties as any)[attribute]) || 0) -
+        (Number((a.properties as any)[attribute]) || 0)
+    );
+
     // Create circle markers
     const markers: L.CircleMarker[] = [];
 
-    data.features.forEach((feature) => {
-      const value = (feature.properties as any)[attribute] || 0;
+    ordered.forEach((feature) => {
+      const value = Number((feature.properties as any)[attribute]) || 0;
       if (value <= 0) return;
 
-      // Calculate radius based on value (logarithmic scale for better visualization)
+      // Radius on a log scale, kept small (3–20px) so 645 municipalities do not
+      // merge into one blob. Perceptually the smaller cap reads far cleaner.
       const normalizedValue = (Math.log(value + 1) - Math.log(minValue + 1)) /
                               (Math.log(maxValue + 1) - Math.log(minValue + 1));
-      const radius = 5 + normalizedValue * 40; // 5-45px radius
+      const radius = 3 + normalizedValue * 17; // 3–20px radius
 
       // Get color based on value
       const color = getColor(value, minValue, maxValue);
@@ -74,10 +87,10 @@ export default function BubbleChartLayer({
         {
           radius,
           fillColor: color,
-          fillOpacity: opacity,
+          fillOpacity: Math.min(opacity, 0.55),
           color: darkenColor(color, 0.2),
-          weight: 2,
-          opacity: opacity,
+          weight: 1,
+          opacity: 0.85,
         }
       );
 
@@ -87,7 +100,7 @@ export default function BubbleChartLayer({
           <h4 class="font-bold text-lg mb-2">${feature.properties.name}</h4>
           <p class="text-sm">
             <strong>${getAttributeLabel(attribute)}:</strong><br/>
-            ${formatNumber(value)} m³/ano
+            ${formatNumber(value)} ${unit}
           </p>
         </div>
       `);
