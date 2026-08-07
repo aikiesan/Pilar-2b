@@ -3,28 +3,25 @@
 /**
  * ThematicMapBar — the thematic maps, surfaced DIRECTLY on the map.
  *
- * A slim, always-visible, horizontally-scrollable ribbon of theme chips pinned
- * to the top of the map area. This is the "test drive": any visitor sees the
- * ready-made maps immediately and clicks through them out of curiosity — no tab
- * to discover, no menu to open. One click applies the theme to the live map via
- * the same handler the sidebar uses (MapComponent.handleApplyPreset).
+ * A slim ribbon pinned to the top of the map area. Instead of a long flat rail,
+ * the maps are condensed into CATEGORY chips (Setoriais · Por resíduo · Energia
+ * · Logística · Análises); each chip is a dropdown — same drop-it-down pattern
+ * as the basemap switcher — that opens a vertical list of the ready-made maps in
+ * that category. One click applies the map to the live view via the same handler
+ * the sidebar uses (MapComponent.handleApplyPreset).
  *
- * The chips are grouped (setoriais · por resíduo · energia · logística) with a
- * thin divider between groups; each carries its palette as a colour underline so
- * the ribbon itself previews what the map will look like.
+ * This keeps the "test drive" obvious (categories are always visible, inviting
+ * exploration) while staying compact as the catalogue of maps grows.
  */
 
-import React from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import React, { useState } from 'react';
 import {
   THEMATIC_PRESETS,
-  PRESET_GROUP_LABELS,
+  PRESET_GROUP_META,
   type ThematicPreset,
   type ThematicPresetGroup,
 } from '@/data/thematicPresets';
 import { MAP_PALETTES } from '@/lib/mapMetrics';
-
-const GROUP_ORDER: ThematicPresetGroup[] = ['setorial', 'residuo', 'energia', 'logistica'];
 
 function rampGradient(presetPalette?: ThematicPreset['config']['palette']): string {
   const ramp = presetPalette ? MAP_PALETTES[presetPalette].ramp : MAP_PALETTES.ylgnbu.ramp;
@@ -34,7 +31,6 @@ function rampGradient(presetPalette?: ThematicPreset['config']['palette']): stri
 interface ThematicMapBarProps {
   activePresetId?: string | null;
   onApplyPreset: (preset: ThematicPreset) => void;
-  /** Collapsed state is owned by the parent so it can be toggled from a chip. */
   collapsed?: boolean;
   onToggleCollapsed?: () => void;
 }
@@ -45,15 +41,25 @@ export default function ThematicMapBar({
   collapsed = false,
   onToggleCollapsed,
 }: ThematicMapBarProps) {
-  const scrollerRef = React.useRef<HTMLDivElement>(null);
+  const [openGroup, setOpenGroup] = useState<ThematicPresetGroup | null>(null);
 
-  const nudge = (dir: -1 | 1) => {
-    scrollerRef.current?.scrollBy({ left: dir * 280, behavior: 'smooth' });
+  const activeGroup = activePresetId
+    ? THEMATIC_PRESETS.find((p) => p.id === activePresetId)?.group ?? null
+    : null;
+
+  const apply = (preset: ThematicPreset) => {
+    onApplyPreset(preset);
+    setOpenGroup(null);
   };
 
   return (
     <div className="pointer-events-auto w-full border-b border-gray-200 bg-white/92 shadow-sm backdrop-blur">
-      <div className="flex items-center gap-1 px-2 py-1.5">
+      {/* Click-away backdrop: any click outside an open dropdown closes it. */}
+      {openGroup && (
+        <div className="fixed inset-0 z-0" aria-hidden="true" onClick={() => setOpenGroup(null)} />
+      )}
+
+      <div className="relative z-10 flex items-center gap-1.5 px-2 py-1.5">
         {/* Leading label + collapse toggle */}
         <button
           type="button"
@@ -68,74 +74,73 @@ export default function ThematicMapBar({
         </button>
 
         {!collapsed && (
-          <>
-            <button
-              type="button"
-              onClick={() => nudge(-1)}
-              aria-label="Rolar temas para a esquerda"
-              className="hidden shrink-0 rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700 md:block"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </button>
+          <div className="flex flex-wrap items-center gap-1.5">
+            {PRESET_GROUP_META.map(({ group, label, icon }) => {
+              const items = THEMATIC_PRESETS.filter((p) => p.group === group);
+              if (items.length === 0) return null;
+              const isOpen = openGroup === group;
+              const isActive = activeGroup === group;
+              return (
+                <div key={group} className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setOpenGroup(isOpen ? null : group)}
+                    aria-expanded={isOpen}
+                    aria-haspopup="listbox"
+                    className={`flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
+                      isActive
+                        ? 'bg-green-700 text-white shadow-sm'
+                        : isOpen
+                          ? 'bg-gray-100 text-gray-800 ring-1 ring-gray-300'
+                          : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    <span aria-hidden="true">{icon}</span>
+                    <span>{label}</span>
+                    <span aria-hidden="true" className={`text-[9px] transition-transform ${isOpen ? 'rotate-180' : ''}`}>▾</span>
+                  </button>
 
-            {/* Scrollable chip rail */}
-            <div
-              ref={scrollerRef}
-              className="flex flex-1 items-stretch gap-3 overflow-x-auto scroll-smooth px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-              role="listbox"
-              aria-label="Mapas temáticos prontos"
-            >
-              {GROUP_ORDER.map((g, gi) => {
-                const items = THEMATIC_PRESETS.filter((p) => p.group === g);
-                if (items.length === 0) return null;
-                return (
-                  <div key={g} className="flex items-center gap-1.5">
-                    {gi > 0 && <span aria-hidden="true" className="mx-0.5 h-7 w-px shrink-0 bg-gray-200" />}
-                    <span className="shrink-0 select-none text-[8px] font-bold uppercase tracking-wider text-gray-300">
-                      {PRESET_GROUP_LABELS[g]}
-                    </span>
-                    {items.map((preset) => {
-                      const active = activePresetId === preset.id;
-                      return (
-                        <button
-                          key={preset.id}
-                          type="button"
-                          role="option"
-                          aria-selected={active}
-                          onClick={() => onApplyPreset(preset)}
-                          title={preset.description}
-                          className={`group flex shrink-0 flex-col items-center gap-1 rounded-lg border px-2.5 py-1 transition-all ${
-                            active
-                              ? 'border-green-600 bg-green-50 shadow-sm ring-1 ring-green-600'
-                              : 'border-gray-200 bg-white hover:border-green-300 hover:bg-gray-50'
-                          }`}
-                        >
-                          <span className="flex items-center gap-1 whitespace-nowrap text-[11px] font-semibold text-gray-800">
-                            <span aria-hidden="true" className="text-sm leading-none">{preset.icon}</span>
-                            {preset.label}
-                          </span>
-                          <span
-                            aria-hidden="true"
-                            className="h-1 w-full rounded-full"
-                            style={{ background: rampGradient(preset.config.palette) }}
-                          />
-                        </button>
-                      );
-                    })}
-                  </div>
-                );
-              })}
-            </div>
-
-            <button
-              type="button"
-              onClick={() => nudge(1)}
-              aria-label="Rolar temas para a direita"
-              className="hidden shrink-0 rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700 md:block"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </button>
-          </>
+                  {isOpen && (
+                    <div
+                      role="listbox"
+                      aria-label={label}
+                      className="absolute left-0 top-full z-20 mt-1 max-h-[60vh] w-60 overflow-y-auto rounded-xl bg-white p-1.5 shadow-xl ring-1 ring-black/10"
+                    >
+                      {items.map((preset) => {
+                        const active = activePresetId === preset.id;
+                        return (
+                          <button
+                            key={preset.id}
+                            type="button"
+                            role="option"
+                            aria-selected={active}
+                            onClick={() => apply(preset)}
+                            title={preset.description}
+                            className={`flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left transition-colors ${
+                              active ? 'bg-green-50 ring-1 ring-green-600' : 'hover:bg-gray-50'
+                            }`}
+                          >
+                            <span aria-hidden="true" className="text-base leading-none">{preset.icon}</span>
+                            <span className="min-w-0 flex-1">
+                              <span className="block truncate text-[11px] font-semibold text-gray-800">
+                                {preset.label}
+                              </span>
+                              <span
+                                aria-hidden="true"
+                                className="mt-1 block h-1 w-full rounded-full"
+                                style={{ background: rampGradient(preset.config.palette) }}
+                              />
+                            </span>
+                            {active && <span aria-hidden="true" className="text-[10px] text-green-700">✓</span>}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         )}
       </div>
     </div>

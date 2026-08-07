@@ -25,7 +25,7 @@ import type { DisplayMetric, ColorMode } from '@/types/geospatial';
 import type { MapScenarioKey } from '@/data/scenarioFactors';
 import type { MapPaletteId } from '@/lib/mapMetrics';
 
-export type ThematicPresetGroup = 'setorial' | 'residuo' | 'energia' | 'logistica';
+export type ThematicPresetGroup = 'setorial' | 'residuo' | 'energia' | 'logistica' | 'analise';
 
 export interface ThematicPresetConfig {
   visualizationMode?: VisualizationMode;
@@ -54,7 +54,18 @@ export const PRESET_GROUP_LABELS: Record<ThematicPresetGroup, string> = {
   residuo: 'Por resíduo',
   energia: 'Energia',
   logistica: 'Logística & Infraestrutura',
+  analise: 'Análises avançadas',
 };
+
+// Ribbon category metadata: short label + icon for the top-bar dropdown chips.
+// Order here is the order the categories appear in the ribbon.
+export const PRESET_GROUP_META: { group: ThematicPresetGroup; label: string; icon: string }[] = [
+  { group: 'setorial', label: 'Setoriais', icon: '⚡' },
+  { group: 'residuo', label: 'Por resíduo', icon: '🌾' },
+  { group: 'energia', label: 'Energia', icon: '🔥' },
+  { group: 'logistica', label: 'Logística', icon: '🚛' },
+  { group: 'analise', label: 'Análises', icon: '🧪' },
+];
 
 // Base config shared by most presets: choropleth, biogas colour mode, Real
 // scenario. Spread first, then override per preset.
@@ -209,6 +220,119 @@ export const THEMATIC_PRESETS: ThematicPreset[] = [
       palette: 'ylgnbu',
       layers: ['gas_pipeline_transport', 'gas_pipeline_distribution', 'biogas_plant'],
     },
+  },
+
+  // ── Por resíduo (complementos) ──────────────────────────────────────────────
+  {
+    id: 'aquicultura',
+    label: 'Aquicultura',
+    icon: '🐟',
+    description: 'Efluentes e lodo de piscicultura.',
+    group: 'residuo',
+    config: { ...BASE, selectedResidues: ['aquaculture'], palette: 'bupu' },
+  },
+  {
+    id: 'rpo',
+    label: 'RPO (poda)',
+    icon: '♻️',
+    description: 'Resíduos de poda e capina urbana.',
+    group: 'residuo',
+    config: { ...BASE, selectedResidues: ['rpo'], palette: 'plasma' },
+  },
+
+  // ── Energia (complemento) ───────────────────────────────────────────────────
+  {
+    id: 'biogas',
+    label: 'Biogás bruto',
+    icon: '⚡',
+    description: 'Biogás bruto (Nm³/dia) — metano + o CO₂ que vem junto.',
+    group: 'energia',
+    config: { ...BASE, displayMetric: 'biogas_m3', palette: 'plasma' },
+  },
+
+  // ── Logística & Infraestrutura (complementos) ───────────────────────────────
+  {
+    id: 'rede_eletrica',
+    label: 'Rede elétrica (SIN)',
+    icon: '🔌',
+    description: 'Bioenergia sobre subestações e linhas de transmissão — onde injetar eletricidade.',
+    group: 'logistica',
+    config: {
+      ...BASE,
+      displayMetric: 'bioenergy_mwh',
+      palette: 'ylorrd',
+      layers: ['substation', 'transmission_line'],
+    },
+  },
+  {
+    id: 'usinas',
+    label: 'Usinas existentes',
+    icon: '🏭',
+    description: 'Potencial teórico vs. plantas já instaladas (biogás, etanol, UTE a biomassa).',
+    group: 'logistica',
+    config: {
+      ...BASE,
+      palette: 'ylgnbu',
+      layers: ['biogas_plant', 'ethanol_plant', 'biomass_thermal_plant'],
+    },
+  },
+  {
+    id: 'restricoes',
+    label: 'Restrições ambientais',
+    icon: '🛡️',
+    description: 'Áreas protegidas, terras indígenas e assentamentos — onde não se licencia.',
+    group: 'logistica',
+    config: {
+      ...BASE,
+      palette: 'greens',
+      layers: ['protected_area_state', 'indigenous_territory', 'settlement'],
+    },
+  },
+  {
+    id: 'rodovias',
+    label: 'Rodovias & escoamento',
+    icon: '🛣️',
+    description: 'Malha rodoviária e gasodutos de escoamento sobre o potencial.',
+    group: 'logistica',
+    config: {
+      ...BASE,
+      palette: 'ylgnbu',
+      layers: ['highway_state', 'highway_federal', 'gas_pipeline_outflow'],
+    },
+  },
+
+  // ── Análises avançadas (modos analíticos já suportados) ─────────────────────
+  {
+    id: 'cn',
+    label: 'Perfil C:N',
+    icon: '⚗️',
+    description: 'Razão carbono/nitrogênio por município — chave para a codigestão.',
+    group: 'analise',
+    config: { ...BASE, colorMode: 'cn_profile' },
+  },
+  {
+    id: 'clusters',
+    label: 'Tipologias (K4)',
+    icon: '🧩',
+    description: 'Agrupamento K-means dos municípios por perfil de biomassa (2023).',
+    group: 'analise',
+    config: { ...BASE, colorMode: 'cluster' },
+  },
+  {
+    id: 'calor',
+    label: 'Mapa de calor',
+    icon: '🔥',
+    description: 'Densidade do potencial como superfície de calor.',
+    group: 'analise',
+    config: { ...BASE, visualizationMode: 'heatmap' },
+  },
+  {
+    id: 'bolhas',
+    label: 'Bolhas proporcionais',
+    icon: '⭕',
+    description: 'Potencial por município como bolhas dimensionadas.',
+    group: 'analise',
+    config: { ...BASE, visualizationMode: 'bubble' },
   },
 ];
 

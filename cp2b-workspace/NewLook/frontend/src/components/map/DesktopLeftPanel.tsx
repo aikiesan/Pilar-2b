@@ -325,7 +325,7 @@ function ThemesSection({
   residueBreakdownAvailable?: boolean;
 }) {
   const [palette, setPalette] = useMapPalette();
-  const groups: ThematicPresetGroup[] = ['setorial', 'residuo', 'energia', 'logistica'];
+  const groups: ThematicPresetGroup[] = ['setorial', 'residuo', 'energia', 'logistica', 'analise'];
 
   return (
     <div className="space-y-4">
