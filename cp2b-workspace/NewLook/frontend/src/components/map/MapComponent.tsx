@@ -58,6 +58,23 @@ function ScopeViewController({ center, zoom }: { center: [number, number]; zoom:
   return null;
 }
 
+// Creates a dedicated Leaflet pane so infrastructure (pipelines, highways,
+// plants, substations, protected areas…) draws ABOVE the municipality
+// choropleth. That choropleth is a canvas in the default overlayPane (z 400) and
+// infra lines/polygons are SVG in the same pane, so without a higher pane they
+// were buried under the fill. z 450 clears the choropleth; markers keep their
+// own higher pane, so points stay on top of the infra lines too.
+function InfraPane() {
+  const map = useMap();
+  useEffect(() => {
+    if (!map.getPane('infrastructure')) {
+      const p = map.createPane('infrastructure');
+      p.style.zIndex = '450';
+    }
+  }, [map]);
+  return null;
+}
+
 // Dynamically import components to avoid SSR issues
 const MunicipalityLayer = dynamic(() => import('./MunicipalityLayer'), { ssr: false });
 const InfrastructureLayer = dynamic(() => import('./InfrastructureLayer'), { ssr: false });
@@ -74,6 +91,7 @@ const DesktopLeftPanel = dynamic(() => import('./DesktopLeftPanel'), { ssr: fals
 // Map chrome overlays (basemap switcher + compass)
 const BasemapControl = dynamic(() => import('./BasemapControl'), { ssr: false });
 const NorthArrow = dynamic(() => import('./NorthArrow'), { ssr: false });
+const ThematicMapBar = dynamic(() => import('./ThematicMapBar'), { ssr: false });
 
 // Profile + Tooltip overlays
 const MunicipalityProfilePanel = dynamic(() => import('./MunicipalityProfilePanel'), { ssr: false });
@@ -240,6 +258,9 @@ export default function MapComponent({
   // thematic preset (for highlighting; cleared the moment a filter is touched).
   const [basemap, setBasemap] = useState<BasemapId>(DEFAULT_BASEMAP);
   const [activePresetId, setActivePresetId] = useState<string | null>(null);
+  // The on-map thematic ribbon starts visible (that's the point — it invites
+  // exploration); users can collapse it to reclaim the strip.
+  const [thematicBarCollapsed, setThematicBarCollapsed] = useState(false);
 
   // Daltonic (colour-vision-deficiency) mode: swaps the choropleth ramp for a
   // CVD-safe single-hue palette. Persisted in localStorage like the theme.
@@ -723,10 +744,24 @@ export default function MapComponent({
           </div>
         )}
 
+        {/* ── Thematic maps ribbon — the "test drive". Ready-made maps surfaced
+            directly on the map, always visible, one click applies. Pinned to the
+            top of the map area; every other top control sits just below it. ── */}
+        <div className="absolute top-0 inset-x-0 z-[1002]">
+          {isMounted && (
+            <ThematicMapBar
+              activePresetId={activePresetId}
+              onApplyPreset={handleApplyPreset}
+              collapsed={thematicBarCollapsed}
+              onToggleCollapsed={() => setThematicBarCollapsed((c) => !c)}
+            />
+          )}
+        </div>
+
         {/* ── Scope switcher — top-left on every viewport. Picks SP (default),
             any single state, or all of Brazil. On mobile this is the primary
             navigation affordance and sits alone at the top so nothing wraps. */}
-        <div className="absolute top-3 left-3 z-[1000]">
+        <div className="absolute top-16 left-3 z-[1000]">
           <ScopeSwitcher
             scope={scope}
             onScopeChange={handleScopeChange}
@@ -735,7 +770,7 @@ export default function MapComponent({
         </div>
 
         {/* ── Basemap switcher + compass — top-right ── */}
-        <div className="absolute top-3 right-3 z-[1000] flex flex-col items-end gap-2">
+        <div className="absolute top-16 right-3 z-[1000] flex flex-col items-end gap-2">
           {isMounted && <BasemapControl value={basemap} onChange={setBasemap} />}
           {isMounted && <NorthArrow />}
         </div>
@@ -743,7 +778,7 @@ export default function MapComponent({
         {/* Scenario toggle — per-municipality biogas potential by scenario.
             Desktop only: on mobile it moves into the bottom sheet (it's a
             specific analytical control, not something you switch constantly). */}
-        <div className="absolute top-3 left-1/2 -translate-x-1/2 z-[1000] hidden md:flex items-center gap-1 rounded-full bg-white/95 px-1.5 py-1 shadow-lg ring-1 ring-black/5 backdrop-blur">
+        <div className="absolute top-16 left-1/2 -translate-x-1/2 z-[1000] hidden md:flex items-center gap-1 rounded-full bg-white/95 px-1.5 py-1 shadow-lg ring-1 ring-black/5 backdrop-blur">
           <span className="px-2 text-[11px] font-semibold text-gray-500">{t('scenario_label')}</span>
           {MAP_SCENARIOS.map(({ key, color }) => (
             <button
@@ -818,6 +853,7 @@ export default function MapComponent({
           <ScaleControl position="bottomleft" imperial={false} metric={true} />
 
           <ScopeViewController center={mapCenter} zoom={mapZoom} />
+          <InfraPane />
 
 
 
@@ -879,13 +915,14 @@ export default function MapComponent({
                 uf={uf}
                 bbox={bbox}
                 onStatus={handleInfrastructureStatus}
+                pane="infrastructure"
               />
             ) : null
           )}
 
           {/* São Paulo shapefile layers with no national equivalent loaded yet */}
-          {visibleLayerIds.includes('railways') && <InfrastructureLayer layerType="railways" onStatus={handleInfrastructureStatus} />}
-          {visibleLayerIds.includes('etes') && <InfrastructureLayer layerType="etes" onStatus={handleInfrastructureStatus} />}
+          {visibleLayerIds.includes('railways') && <InfrastructureLayer layerType="railways" onStatus={handleInfrastructureStatus} pane="infrastructure" />}
+          {visibleLayerIds.includes('etes') && <InfrastructureLayer layerType="etes" onStatus={handleInfrastructureStatus} pane="infrastructure" />}
           {visibleLayerIds.includes('intermediate-regions') && (
             intermediateRegionsGeoJSON
               ? <IntermediateRegionsMapLayer
