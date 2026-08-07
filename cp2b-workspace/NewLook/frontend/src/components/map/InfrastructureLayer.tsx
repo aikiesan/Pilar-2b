@@ -11,6 +11,7 @@ import type { GeoJsonObject, Feature } from 'geojson';
 import L from 'leaflet';
 import { logger } from '@/lib/logger';
 import { useInfrastructureLayer } from '@/hooks/useGeospatialData';
+import { PLANT_LAYERS, BIOMETHANE_PLANT, type PlantTypeInfo } from '@/lib/plantLayers';
 
 export type InfrastructureLayerStatus = {
   layerType: string;
@@ -247,14 +248,21 @@ const createSubstationIcon = () => {
   });
 };
 
-// Icon for Ethanol plants
-const createEthanolPlantIcon = () => {
+/**
+ * Marker for one plant type, built from the shared catalogue.
+ *
+ * These four icons used to be four near-identical literals here, with the
+ * legend keeping its own copy of the same colours — so a plant type could be
+ * drawn in one colour and explained in another. Both sides read
+ * lib/plantLayers now.
+ */
+const createPlantIcon = (type: PlantTypeInfo, className: string) => {
   return L.divIcon({
-    className: 'custom-ethanol-plant-icon',
+    className,
     html: `
       <div style="
-        background-color: #9B59B6;
-        border: 2px solid #6C3483;
+        background-color: ${type.color};
+        border: 2px solid ${type.borderColor};
         border-radius: 50%;
         width: 18px;
         height: 18px;
@@ -262,7 +270,7 @@ const createEthanolPlantIcon = () => {
         align-items: center;
         justify-content: center;
       ">
-        <span style="color: white; font-size: 12px; font-weight: bold;">🌽</span>
+        <span style="color: white; font-size: 12px; font-weight: bold;">${type.icon}</span>
       </div>
     `,
     iconSize: [18, 18],
@@ -270,74 +278,17 @@ const createEthanolPlantIcon = () => {
   });
 };
 
-// Icon for Biogas plants
-const createBiogasPlantIcon = () => {
-  return L.divIcon({
-    className: 'custom-biogas-plant-icon',
-    html: `
-      <div style="
-        background-color: #27AE60;
-        border: 2px solid #1E5128;
-        border-radius: 50%;
-        width: 18px;
-        height: 18px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      ">
-        <span style="color: white; font-size: 12px; font-weight: bold;">🏭</span>
-      </div>
-    `,
-    iconSize: [18, 18],
-    iconAnchor: [9, 9]
-  });
-};
-
-// Icon for Biomethane plants
-const createBiomethaneIcon = () => {
-  return L.divIcon({
-    className: 'custom-biomethane-plant-icon',
-    html: `
-      <div style="
-        background-color: #3498DB;
-        border: 2px solid #1F618D;
-        border-radius: 50%;
-        width: 18px;
-        height: 18px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      ">
-        <span style="color: white; font-size: 12px; font-weight: bold;">💨</span>
-      </div>
-    `,
-    iconSize: [18, 18],
-    iconAnchor: [9, 9]
-  });
-};
-
-// Icon for Biomass UTE (Thermoelectric) plants
-const createBiomassUTEIcon = () => {
-  return L.divIcon({
-    className: 'custom-biomass-ute-icon',
-    html: `
-      <div style="
-        background-color: #E67E22;
-        border: 2px solid #BA4A00;
-        border-radius: 50%;
-        width: 18px;
-        height: 18px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      ">
-        <span style="color: white; font-size: 12px; font-weight: bold;">⚡</span>
-      </div>
-    `,
-    iconSize: [18, 18],
-    iconAnchor: [9, 9]
-  });
-};
+const createEthanolPlantIcon = () =>
+  createPlantIcon(PLANT_LAYERS.ethanol_plant, 'custom-ethanol-plant-icon');
+const createBiogasPlantIcon = () =>
+  createPlantIcon(PLANT_LAYERS.biogas_plant, 'custom-biogas-plant-icon');
+const createBiomassUTEIcon = () =>
+  createPlantIcon(PLANT_LAYERS.biomass_thermal_plant, 'custom-biomass-ute-icon');
+const createBiodieselPlantIcon = () =>
+  createPlantIcon(PLANT_LAYERS.biodiesel_plant, 'custom-biodiesel-plant-icon');
+// Biometano is a SUBTIPO of the legacy SP layer, not a layer of its own.
+const createBiomethaneIcon = () =>
+  createPlantIcon(BIOMETHANE_PLANT, 'custom-biomethane-plant-icon');
 
 const createETEIcon = () => {
   return L.divIcon({
@@ -437,7 +388,7 @@ export default function InfrastructureLayer({ layerType, onStatus, uf, bbox, pan
     } else if (layerType === 'biomass_thermal_plant') {
       icon = createBiomassUTEIcon();
     } else if (layerType === 'biodiesel_plant') {
-      icon = createBiomethaneIcon();
+      icon = createBiodieselPlantIcon();
     } else if (layerType === 'slaughterhouse') {
       icon = createSlaughterhouseIcon();
     } else if (layerType === 'biogas-plants') {

@@ -41,6 +41,7 @@ import {
 import ScopeSwitcher from './ScopeSwitcher';
 import MapLegend from './MapLegend';
 import MapLoadingSkeleton from './MapLoadingSkeleton';
+import { isPlantLayer } from '@/lib/plantLayers';
 import 'leaflet/dist/leaflet.css';
 import '@/lib/leafletConfig';
 
@@ -441,7 +442,10 @@ export default function MapComponent({
   const [infrastructureStatuses, setInfrastructureStatuses] = useState<Record<string, InfrastructureLayerStatus>>({});
 
   const [showMapBiomasLegend, setShowMapBiomasLegend] = useState(false);
-  const [showBiomassLayerLegend, setShowBiomassLayerLegend] = useState(false);
+  // No state for the plants legend: it is a pure function of which plant layers
+  // are on (see visiblePlantLayerIds below). It used to be a boolean flipped
+  // only by `biogas_plant`, so etanol / UTEs a biomassa / biodiesel drew markers
+  // with nothing to decode them.
   // Mobile: the choropleth legend is collapsed to a chip by default and
   // expands on tap, so it doesn't crowd the small screen.
   const [legendOpenMobile, setLegendOpenMobile] = useState(false);
@@ -470,7 +474,6 @@ export default function MapComponent({
       });
     }
     if (layerId === 'mapbiomas') setShowMapBiomasLegend(visible);
-    if (layerId === 'biogas_plant') setShowBiomassLayerLegend(visible);
     if (layerId === 'intermediate-regions') {
       setIntermediateRegionsEnabled(visible);
       if (visible) handleScopeChange(SCOPE_BRAZIL);
@@ -481,8 +484,9 @@ export default function MapComponent({
   // sector/residue, scenario, palette, and any layers the theme needs). Reuses
   // the same state the manual controls write, so nothing downstream is special-
   // cased — the map cannot tell a preset from a hand-assembled combination.
-  // Declared below the layer/legend state it touches (setLayers,
-  // setShowBiomassLayerLegend) so it references them after they exist.
+  // Declared below the layer state it touches (setLayers) so it references it
+  // after it exists. The plant legend follows visiblePlantLayerIds automatically
+  // (no manual toggle), so setting the layers is enough.
   const handleApplyPreset = useCallback((preset: ThematicPreset) => {
     const c = preset.config;
     const nextMode = c.visualizationMode ?? visualizationMode;
@@ -509,7 +513,6 @@ export default function MapComponent({
     const presetLayers = new Set(c.layers ?? []);
     const KEEP = new Set<string>(['municipalities', NATIONAL_BETA_LAYER_ID, 'intermediate-regions', 'mapbiomas']);
     setLayers(prev => prev.map(l => (KEEP.has(l.id) ? l : { ...l, visible: presetLayers.has(l.id) })));
-    setShowBiomassLayerLegend(presetLayers.has('biogas_plant'));
     setActivePresetId(preset.id);
     syncURL(nextMode, nextType, nextResidues, searchQuery, nextMetric);
   }, [visualizationMode, biomassType, selectedResidues, displayMetric, searchQuery, onBiomassTypeChange, syncURL]);
@@ -517,6 +520,13 @@ export default function MapComponent({
   const visibleLayerIds = useMemo(
     () => layers.filter(l => l.visible).map(l => l.id),
     [layers]
+  );
+  // Every plant layer on the map, so the legend explains all of them and only
+  // them. `biogas-plants` is the legacy SP layer, which draws several subtypes
+  // under one id — the legend expands it accordingly.
+  const visiblePlantLayerIds = useMemo(
+    () => visibleLayerIds.filter(id => isPlantLayer(id) || id === 'biogas-plants'),
+    [visibleLayerIds]
   );
   // Declared here, above the filtering memo, because the scope filter has to
   // know about it: the beta layer is the one thing allowed to survive a scope
@@ -1055,7 +1065,7 @@ export default function MapComponent({
           </div>
         )}
 
-        {isMounted && <BiomassLayerLegend visible={showBiomassLayerLegend} />}
+        {isMounted && <BiomassLayerLegend layerIds={visiblePlantLayerIds} />}
 
         </div>{/* end bottom-left overlay stack */}
 
