@@ -330,6 +330,15 @@ export const THEMATIC_PRESETS: ThematicPreset[] = [
     group: 'analise',
     config: { ...BASE, visualizationMode: 'bubble' },
   },
+  {
+    id: 'per_capita',
+    label: 'Potencial per capita',
+    icon: '👥',
+    description:
+      'Biometano por habitante (Nm³/hab·ano) — potencial normalizado pela população residente (Censo 2022).',
+    group: 'analise',
+    config: { ...BASE, displayMetric: 'ch4_per_capita', palette: 'bupu' },
+  },
 ];
 
 export function getPresetById(id: string): ThematicPreset | undefined {

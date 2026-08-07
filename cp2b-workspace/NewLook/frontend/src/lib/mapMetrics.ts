@@ -21,6 +21,7 @@ import {
   getMethaneScenarioValue,
   getBiomethaneScenarioValue,
   getBioenergyScenarioValue,
+  getMethanePerCapitaValue,
   type MapValue,
 } from './mapValues';
 
@@ -386,6 +387,22 @@ export const METRIC_SPECS: Record<DisplayMetric, MetricSpec> = {
     rawValue: (p, c) => getBioenergyScenarioValue(p, c.scenario, c.selectedResidues),
     toDisplay: (v) => v, // already MWh/yr
     breaks: [4_700, 10_000, 22_000, 47_000, 100_000, 214_000, 460_000],
+  },
+  // Biometano por habitante (Censo 2022). Deliberately NOT in DISPLAY_METRICS, so
+  // it never appears in the toggle bar — it is applied only by the "Potencial per
+  // capita" thematic map. rawValue already returns the per-capita figure, so
+  // toDisplay is the identity. Adaptive breaks reclassify it live; the fallback
+  // ladder below only matters when nothing is on screen.
+  ch4_per_capita: {
+    key: 'ch4_per_capita',
+    toggleLabel: 'Per capita',
+    icon: '👥',
+    activeClass: 'bg-fuchsia-600',
+    legendTitle: 'Biometano per capita (Nm³/hab·ano)',
+    unit: 'Nm³/hab·ano',
+    rawValue: (p, c) => getMethanePerCapitaValue(p, c.scenario, c.selectedResidues),
+    toDisplay: (v) => v,
+    breaks: [10, 30, 80, 200, 500, 1_200, 3_000],
   },
 };
 

@@ -125,7 +125,10 @@ export type DisplayMetric =
   | 'biogas_m3'
   | 'methane_m3'
   | 'biomethane_m3'
-  | 'bioenergy_mwh';
+  | 'bioenergy_mwh'
+  // Biometano por habitante (Censo 2022). Not in the metric toggle bar
+  // (DISPLAY_METRICS) — applied only by the "Potencial per capita" thematic map.
+  | 'ch4_per_capita';
 
 // Color mode — controls the choropleth styling (biogas/biomass, C/N profile, or clusters)
 export type ColorMode = 'biogas' | 'cn_profile' | 'cluster';
