@@ -10,15 +10,18 @@
 
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
-import { MapContainer, TileLayer, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, ScaleControl, useMap } from 'react-leaflet';
 import dynamic from 'next/dynamic';
 import { useGeospatialData, useCodigestionClusters, useResidueCNMatrix, useIntermediateRegionsGeoJSON } from '@/hooks/useGeospatialData';
 import { useCnProfiles } from '@/hooks/useCnProfiles';
 import type { FilterCriteria } from '@/components/dashboard/FilterPanel';
 import type { MunicipalityCollection, MunicipalityFeature, DisplayMetric, CodigestionCluster } from '@/types/geospatial';
 import { MAP_SCENARIOS, DEFAULT_MAP_SCENARIO, applyScenarioToProps, type MapScenarioKey } from '@/data/scenarioFactors';
-import { DISPLAY_METRICS, getMetricSpec, computeAdaptiveBreaks } from '@/lib/mapMetrics';
+import { DISPLAY_METRICS, getMetricSpec, computeAdaptiveBreaks, DEFAULT_MAP_PALETTE } from '@/lib/mapMetrics';
+import { setMapPalette } from '@/hooks/useMapPalette';
 import { hasAnySelectedResidue } from '@/lib/mapValues';
+import { BASEMAPS, DEFAULT_BASEMAP, type BasemapId } from '@/data/basemaps';
+import type { ThematicPreset } from '@/data/thematicPresets';
 import { DATA_EXPORT_ENABLED } from '@/lib/featureFlags';
 import { isSaoPaulo, NATIONAL_BETA_LAYER_ID, SP_MUNICIPALITY_COUNT } from '@/lib/mapScope';
 import type { BiomassType, ResidueType } from './FloatingControlPanel';
@@ -67,6 +70,10 @@ const MobileBottomSheet = dynamic(() => import('./MobileBottomSheet'), { ssr: fa
 
 // Desktop left panel (replaces bottom drawer with compact vertical control)
 const DesktopLeftPanel = dynamic(() => import('./DesktopLeftPanel'), { ssr: false });
+
+// Map chrome overlays (basemap switcher + compass)
+const BasemapControl = dynamic(() => import('./BasemapControl'), { ssr: false });
+const NorthArrow = dynamic(() => import('./NorthArrow'), { ssr: false });
 
 // Profile + Tooltip overlays
 const MunicipalityProfilePanel = dynamic(() => import('./MunicipalityProfilePanel'), { ssr: false });
@@ -229,6 +236,10 @@ export default function MapComponent({
   const [showClusterPanel, setShowClusterPanel] = useState(false);
   const [colorMode, setColorMode] = useState<ColorMode>('biogas');
   const [mapScenario, setMapScenario] = useState<MapScenarioKey>(DEFAULT_MAP_SCENARIO);
+  // Basemap tile source (Mapa / Satélite / Terreno / Light) and the last-applied
+  // thematic preset (for highlighting; cleared the moment a filter is touched).
+  const [basemap, setBasemap] = useState<BasemapId>(DEFAULT_BASEMAP);
+  const [activePresetId, setActivePresetId] = useState<string | null>(null);
 
   // Daltonic (colour-vision-deficiency) mode: swaps the choropleth ramp for a
   // CVD-safe single-hue palette. Persisted in localStorage like the theme.
@@ -296,23 +307,27 @@ export default function MapComponent({
 
   const handleVisualizationModeChange = (mode: VisualizationMode) => {
     setVisualizationMode(mode);
+    setActivePresetId(null);
     if (mode !== 'clusters') { setShowClusterPanel(false); setSelectedClusterId(null); }
     syncURL(mode, biomassType, selectedResidues, searchQuery, displayMetric);
   };
 
   const handleDisplayMetricChange = (metric: DisplayMetric) => {
     setDisplayMetric(metric);
+    setActivePresetId(null);
     syncURL(visualizationMode, biomassType, selectedResidues, searchQuery, metric);
   };
 
   const handleBiomassTypeChange = (type: BiomassType) => {
     setBiomassType(type);
+    setActivePresetId(null);
     onBiomassTypeChange?.(type);
     syncURL(visualizationMode, type, selectedResidues, searchQuery, displayMetric);
   };
 
   const handleResiduesChange = (residues: ResidueType[]) => {
     setSelectedResidues(residues);
+    setActivePresetId(null);
     syncURL(visualizationMode, biomassType, residues, searchQuery, displayMetric);
   };
 
@@ -440,6 +455,38 @@ export default function MapComponent({
       if (visible) handleScopeChange(SCOPE_BRAZIL);
     }
   };
+
+  // Apply a thematic preset: one click reconfigures the live map (mode, metric,
+  // sector/residue, scenario, palette, and any layers the theme needs). Reuses
+  // the same state the manual controls write, so nothing downstream is special-
+  // cased — the map cannot tell a preset from a hand-assembled combination.
+  // Declared below the layer/legend state it touches (setLayers,
+  // setShowBiomassLayerLegend) so it references them after they exist.
+  const handleApplyPreset = useCallback((preset: ThematicPreset) => {
+    const c = preset.config;
+    const nextMode = c.visualizationMode ?? visualizationMode;
+    const nextType = c.biomassType ?? biomassType;
+    const nextResidues = c.selectedResidues ?? selectedResidues;
+    const nextMetric = c.displayMetric ?? displayMetric;
+
+    setVisualizationMode(nextMode);
+    if (nextMode !== 'clusters') { setShowClusterPanel(false); setSelectedClusterId(null); }
+    setBiomassType(nextType);
+    onBiomassTypeChange?.(nextType);
+    setSelectedResidues(nextResidues);
+    setDisplayMetric(nextMetric);
+    if (c.colorMode) setColorMode(c.colorMode);
+    if (c.scenario) setMapScenario(c.scenario);
+    // Palette lives in its own store; a preset always sets one (falling back to
+    // the platform default) so switching themes never inherits a stale scale.
+    setMapPalette(c.palette ?? DEFAULT_MAP_PALETTE);
+    if (c.layers && c.layers.length > 0) {
+      setLayers(prev => prev.map(l => (c.layers!.includes(l.id) ? { ...l, visible: true } : l)));
+      if (c.layers.includes('biogas_plant')) setShowBiomassLayerLegend(true);
+    }
+    setActivePresetId(preset.id);
+    syncURL(nextMode, nextType, nextResidues, searchQuery, nextMetric);
+  }, [visualizationMode, biomassType, selectedResidues, displayMetric, searchQuery, onBiomassTypeChange, syncURL]);
 
   const visibleLayerIds = useMemo(
     () => layers.filter(l => l.visible).map(l => l.id),
@@ -607,6 +654,8 @@ export default function MapComponent({
   const spCount = spDisplayData.features.length;
   const betaCount = displayData.features.length - spCount;
 
+  const activeBasemap = BASEMAPS[basemap];
+
   return (
     <div className="flex w-full h-full">
       {/* ── Desktop Persistent Sidebar ── */}
@@ -636,6 +685,8 @@ export default function MapComponent({
           onColorModeChange={setColorMode}
           residueBreakdownAvailable={residueBreakdownAvailable}
           scenario={mapScenario}
+          onApplyPreset={handleApplyPreset}
+          activePresetId={activePresetId}
         />
       )}
 
@@ -681,6 +732,12 @@ export default function MapComponent({
             onScopeChange={handleScopeChange}
             count={displayData.features.length}
           />
+        </div>
+
+        {/* ── Basemap switcher + compass — top-right ── */}
+        <div className="absolute top-3 right-3 z-[1000] flex flex-col items-end gap-2">
+          {isMounted && <BasemapControl value={basemap} onChange={setBasemap} />}
+          {isMounted && <NorthArrow />}
         </div>
 
         {/* Scenario toggle — per-municipality biogas potential by scenario.
@@ -743,11 +800,22 @@ export default function MapComponent({
           preferCanvas={true}
           style={MAP_CONTAINER_STYLE}
         >
+          {/* Basemap — switchable (Mapa / Satélite / Terreno / Light Canvas).
+              The `key` forces a clean re-fetch when the source changes. Satellite
+              carries a reference overlay (labels/boundaries) so municipality names
+              stay legible over the imagery. */}
           <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            maxZoom={19}
+            key={basemap}
+            attribution={activeBasemap.attribution}
+            url={activeBasemap.url}
+            maxZoom={activeBasemap.maxZoom}
           />
+          {activeBasemap.refUrl && (
+            <TileLayer key={`${basemap}-ref`} url={activeBasemap.refUrl} maxZoom={activeBasemap.maxZoom} />
+          )}
+
+          {/* Metric scale bar (km only — imperial off). */}
+          <ScaleControl position="bottomleft" imperial={false} metric={true} />
 
           <ScopeViewController center={mapCenter} zoom={mapZoom} />
 
@@ -831,7 +899,7 @@ export default function MapComponent({
 
         {/* Overlays — all absolute-positioned within the map area */}
         {infrastructureAlerts.length > 0 && (
-          <div className="absolute top-4 right-4 z-[450] max-w-sm space-y-2">
+          <div className="absolute top-28 right-4 z-[450] max-w-sm space-y-2">
             {infrastructureAlerts.map(status => (
               <div
                 key={status.layerType}

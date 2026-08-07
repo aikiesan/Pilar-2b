@@ -15,13 +15,21 @@ import {
   Download,
   Link,
   Map,
+  Sparkles,
 } from 'lucide-react';
 import type { ResidueType, BiomassType } from './FloatingControlPanel';
 import type { VisualizationMode } from './LeftFilterPanel';
 import type { DisplayMetric, ResidueCNMatrix, ColorMode } from '@/types/geospatial';
 import { useSummaryStatistics } from '@/hooks/useGeospatialData';
+import { useMapPalette } from '@/hooks/useMapPalette';
 import { formatBiogasShort } from '@/lib/mapUtils';
-import { DISPLAY_METRICS, METRIC_SPECS } from '@/lib/mapMetrics';
+import { DISPLAY_METRICS, METRIC_SPECS, MAP_PALETTES } from '@/lib/mapMetrics';
+import {
+  THEMATIC_PRESETS,
+  PRESET_GROUP_LABELS,
+  type ThematicPreset,
+  type ThematicPresetGroup,
+} from '@/data/thematicPresets';
 import { DATA_EXPORT_ENABLED } from '@/lib/featureFlags';
 import { NATIONAL_BETA_LAYER_ID, BETA_NOTICE } from '@/lib/mapScope';
 import {
@@ -68,9 +76,13 @@ interface DesktopLeftPanelProps {
   residueBreakdownAvailable?: boolean;
   /** Active map scenario — the headline strip follows it. */
   scenario?: MapScenarioKey;
+  /** Apply a thematic preset (one-click reconfigure of the map). */
+  onApplyPreset?: (preset: ThematicPreset) => void;
+  /** Id of the last-applied preset, for highlighting; null once edited by hand. */
+  activePresetId?: string | null;
 }
 
-type TabId = 'filters' | 'layers' | 'data' | 'tools';
+type TabId = 'filters' | 'temas' | 'layers' | 'data' | 'tools';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -423,6 +435,117 @@ function FiltersSection({
   );
 }
 
+// ── Thematic maps ("mapas temáticos já prontos") ────────────────────────────
+// One-click presets that reconfigure the live map, grouped by theme, plus the
+// colour-scale picker. Each preset carries its own default palette; the picker
+// lets the reader override it (and stays available for any map, not only presets).
+function ThemesSection({
+  onApplyPreset, activePresetId, residueBreakdownAvailable = true,
+}: {
+  onApplyPreset?: (preset: ThematicPreset) => void;
+  activePresetId?: string | null;
+  residueBreakdownAvailable?: boolean;
+}) {
+  const [palette, setPalette] = useMapPalette();
+  const groups: ThematicPresetGroup[] = ['setorial', 'residuo', 'energia', 'logistica'];
+
+  return (
+    <div className="space-y-4">
+      <p className="rounded-md bg-green-50 px-2.5 py-2 text-[10px] leading-snug text-green-800 ring-1 ring-green-100">
+        🗺️ Mapas temáticos prontos — um clique ajusta métrica, cor, resíduo e cenário do mapa ao vivo.
+      </p>
+
+      {!residueBreakdownAvailable && (
+        <p className="rounded-md bg-amber-50 px-2 py-1.5 text-[10px] leading-snug text-amber-800 ring-1 ring-amber-200">
+          ⓘ Temas por resíduo específico só têm efeito em São Paulo. Fora de SP, os temas setoriais ainda funcionam.
+        </p>
+      )}
+
+      {groups.map((g) => {
+        const items = THEMATIC_PRESETS.filter((p) => p.group === g);
+        if (items.length === 0) return null;
+        return (
+          <div key={g}>
+            <p className="mb-1.5 text-[9px] font-bold uppercase tracking-wider text-gray-400">
+              {PRESET_GROUP_LABELS[g]}
+            </p>
+            <div className="grid grid-cols-2 gap-1.5">
+              {items.map((preset) => {
+                const active = activePresetId === preset.id;
+                const ramp = preset.config.palette ? MAP_PALETTES[preset.config.palette].ramp : null;
+                return (
+                  <button
+                    key={preset.id}
+                    type="button"
+                    onClick={() => onApplyPreset?.(preset)}
+                    title={preset.description}
+                    aria-pressed={active}
+                    className={`flex flex-col gap-1 rounded-lg border p-2 text-left transition-all ${
+                      active
+                        ? 'border-green-600 bg-green-50 shadow-sm ring-1 ring-green-600'
+                        : 'border-gray-200 bg-white hover:border-green-300 hover:bg-gray-50'
+                    }`}
+                  >
+                    <span className="flex items-center gap-1 text-[11px] font-semibold text-gray-800">
+                      <span aria-hidden="true">{preset.icon}</span>
+                      <span className="truncate">{preset.label}</span>
+                    </span>
+                    {ramp && (
+                      <span className="flex h-1.5 w-full overflow-hidden rounded-full" aria-hidden="true">
+                        {ramp.map((c, i) => (
+                          <span key={i} className="flex-1" style={{ backgroundColor: c }} />
+                        ))}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
+
+      {/* Colour scale — the general palette, applies to any choropleth. */}
+      <div className="border-t border-gray-100 pt-3">
+        <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-gray-500">
+          Escala de cores
+        </span>
+        <div className="grid grid-cols-2 gap-1" role="radiogroup" aria-label="Escala de cores do mapa">
+          {Object.values(MAP_PALETTES).map((p) => {
+            const active = palette === p.id;
+            return (
+              <button
+                key={p.id}
+                type="button"
+                role="radio"
+                aria-checked={active}
+                onClick={() => setPalette(p.id)}
+                title={`${p.label} — ${p.note}`}
+                className={`rounded-md border p-1 transition-all ${
+                  active ? 'border-gray-800 ring-1 ring-gray-800' : 'border-gray-200 hover:border-gray-400'
+                }`}
+              >
+                <span className="flex h-3 w-full overflow-hidden rounded-sm" aria-hidden="true">
+                  {p.ramp.map((c, i) => (
+                    <span key={i} className="flex-1" style={{ backgroundColor: c }} />
+                  ))}
+                </span>
+                <span className="mt-0.5 flex items-center justify-center gap-0.5 text-[8px] font-semibold text-gray-600">
+                  {p.label}
+                  {p.cvdSafe && <span title="Segura para daltonismo" aria-hidden="true">·♿</span>}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+        <p className="mt-1.5 text-[9px] leading-snug text-gray-400">
+          Vale para o mapa coroplético. O modo daltônico, quando ativo, tem prioridade sobre esta escolha.
+        </p>
+      </div>
+    </div>
+  );
+}
+
 function LayersSection({
   municipalityCount, totalMunicipalities, opacity, onOpacityChange, layers, onLayerToggle, t,
 }: {
@@ -669,6 +792,7 @@ export default function DesktopLeftPanel({
   displayMetric, onDisplayMetricChange, cnMatrix,
   colorMode, onColorModeChange, residueBreakdownAvailable = true,
   scenario = DEFAULT_MAP_SCENARIO,
+  onApplyPreset, activePresetId,
 }: DesktopLeftPanelProps) {
   const t = useTranslations('Map');
   const [collapsed, setCollapsed] = useState(false);
@@ -679,6 +803,7 @@ export default function DesktopLeftPanel({
 
   const tabs: { id: TabId; icon: React.ReactNode; label: string; badge?: number }[] = [
     { id: 'filters', icon: <Search className="w-3.5 h-3.5" />, label: 'Filtros', badge: filterCount > 0 ? filterCount : undefined },
+    { id: 'temas', icon: <Sparkles className="w-3.5 h-3.5" />, label: 'Temas' },
     { id: 'layers', icon: <Layers className="w-3.5 h-3.5" />, label: 'Camadas', badge: activeLayerCount > 1 ? activeLayerCount : undefined },
     { id: 'data', icon: <Database className="w-3.5 h-3.5" />, label: 'Dados' },
     { id: 'tools', icon: <Wrench className="w-3.5 h-3.5" />, label: 'Tools' },
@@ -781,6 +906,13 @@ export default function DesktopLeftPanel({
                 displayMetric={displayMetric} onDisplayMetricChange={onDisplayMetricChange}
                 cnMatrix={cnMatrix} t={t}
                 colorMode={colorMode} onColorModeChange={onColorModeChange}
+                residueBreakdownAvailable={residueBreakdownAvailable}
+              />
+            )}
+            {activeTab === 'temas' && (
+              <ThemesSection
+                onApplyPreset={onApplyPreset}
+                activePresetId={activePresetId}
                 residueBreakdownAvailable={residueBreakdownAvailable}
               />
             )}

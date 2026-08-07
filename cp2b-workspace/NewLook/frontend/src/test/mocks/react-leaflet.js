@@ -95,6 +95,7 @@ module.exports = {
   Circle: passthrough('circle'),
   CircleMarker: passthrough('circle-marker'),
   ZoomControl: passthrough('zoom-control'),
+  ScaleControl: passthrough('scale-control'),
   useMap: () => noopHookMap,
   useMapEvents: () => noopHookMap,
 }

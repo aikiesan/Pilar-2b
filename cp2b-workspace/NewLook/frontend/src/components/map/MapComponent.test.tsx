@@ -75,6 +75,7 @@ jest.mock('@/hooks/useCnProfiles', () => ({
 jest.mock('react-leaflet', () => ({
   MapContainer: ({ children }: any) => <div data-testid="map-container">{children}</div>,
   TileLayer: () => <div data-testid="tile-layer" />,
+  ScaleControl: () => <div data-testid="scale-control" />,
   // ScopeViewController calls useMap(); return a stub with the methods it uses.
   useMap: () => ({ flyTo: jest.fn(), setView: jest.fn() }),
 }));
