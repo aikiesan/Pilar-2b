@@ -302,14 +302,10 @@ export const THEMATIC_PRESETS: ThematicPreset[] = [
   },
 
   // ── Análises avançadas (modos analíticos já suportados) ─────────────────────
-  {
-    id: 'cn',
-    label: 'Perfil C:N',
-    icon: '⚗️',
-    description: 'Razão carbono/nitrogênio por município — chave para a codigestão.',
-    group: 'analise',
-    config: { ...BASE, colorMode: 'cn_profile' },
-  },
+  // Nota: o "Perfil C:N" continua acessível pelo seletor de modo de cor na aba
+  // Filtros; como mapa-destaque ele não entra, porque São Paulo é dominado por
+  // resíduos ricos em carbono e o mapa fica quase todo numa faixa só (correto,
+  // mas pouco informativo como "test drive").
   {
     id: 'clusters',
     label: 'Tipologias (K4)',

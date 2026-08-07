@@ -501,10 +501,15 @@ export default function MapComponent({
     // Palette lives in its own store; a preset always sets one (falling back to
     // the platform default) so switching themes never inherits a stale scale.
     setMapPalette(c.palette ?? DEFAULT_MAP_PALETTE);
-    if (c.layers && c.layers.length > 0) {
-      setLayers(prev => prev.map(l => (c.layers!.includes(l.id) ? { ...l, visible: true } : l)));
-      if (c.layers.includes('biogas_plant')) setShowBiomassLayerLegend(true);
-    }
+    // Presets own the infrastructure layers EXCLUSIVELY: applying a theme turns
+    // ON exactly its layers and turns OFF every other infra layer, so switching
+    // maps never leaves a pile of overlapping layers stacked from earlier themes.
+    // Base/context layers (the choropleth itself, the national beta layer, IBGE
+    // regions, MapBiomas) are never touched by a preset.
+    const presetLayers = new Set(c.layers ?? []);
+    const KEEP = new Set<string>(['municipalities', NATIONAL_BETA_LAYER_ID, 'intermediate-regions', 'mapbiomas']);
+    setLayers(prev => prev.map(l => (KEEP.has(l.id) ? l : { ...l, visible: presetLayers.has(l.id) })));
+    setShowBiomassLayerLegend(presetLayers.has('biogas_plant'));
     setActivePresetId(preset.id);
     syncURL(nextMode, nextType, nextResidues, searchQuery, nextMetric);
   }, [visualizationMode, biomassType, selectedResidues, displayMetric, searchQuery, onBiomassTypeChange, syncURL]);
