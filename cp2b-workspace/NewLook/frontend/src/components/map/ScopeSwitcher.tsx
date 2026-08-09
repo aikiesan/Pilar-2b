@@ -71,7 +71,7 @@ export default function ScopeSwitcher({ scope, onScopeChange, count, className =
         aria-haspopup="listbox"
         aria-expanded={open}
         title="Alterar abrangência do mapa"
-        className="flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-sm font-semibold text-gray-800 shadow-lg ring-1 ring-black/5 backdrop-blur transition-colors hover:bg-white dark:bg-slate-800/95 dark:text-gray-100"
+        className="flex min-h-[44px] items-center gap-1.5 rounded-full bg-white/95 px-3 py-2.5 text-sm font-semibold text-gray-800 shadow-lg ring-1 ring-black/5 backdrop-blur transition-colors hover:bg-white md:min-h-0 md:py-1.5 dark:bg-slate-800/95 dark:text-gray-100"
       >
         <MapPin className="h-4 w-4 text-[#1E5128] dark:text-emerald-400" />
         <span className="max-w-[9rem] truncate">{label}</span>

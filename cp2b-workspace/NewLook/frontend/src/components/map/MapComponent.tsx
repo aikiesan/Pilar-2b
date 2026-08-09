@@ -1091,9 +1091,9 @@ export default function MapComponent({
                         type="button"
                         onClick={() => setLegendOpenMobile(false)}
                         aria-label="Recolher legenda"
-                        className="absolute -top-2 -right-2 z-10 rounded-full bg-white p-1 shadow ring-1 ring-black/10"
+                        className="absolute -top-2 -right-2 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white shadow ring-1 ring-black/10"
                       >
-                        <span className="block h-3 w-3 text-[10px] leading-3 text-gray-500">×</span>
+                        <span className="block text-base leading-none text-gray-500">×</span>
                       </button>
                       <MapLegend displayMetric={displayMetric} daltonic={daltonic} showNationalBeta={showNationalBeta} scenario={mapScenario} scaleBreaks={scaleBreaks} />
                     </div>
@@ -1101,7 +1101,7 @@ export default function MapComponent({
                     <button
                       type="button"
                       onClick={() => setLegendOpenMobile(true)}
-                      className="flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-xs font-semibold text-gray-700 shadow-lg ring-1 ring-black/5 backdrop-blur"
+                      className="flex min-h-[40px] items-center gap-1.5 rounded-full bg-white/95 px-3.5 py-2.5 text-xs font-semibold text-gray-700 shadow-lg ring-1 ring-black/5 backdrop-blur"
                     >
                       <span className="h-2.5 w-8 rounded-full bg-gradient-to-r from-[#eff3ff] via-[#6baed6] to-[#08519c]" aria-hidden="true" />
                       Legenda

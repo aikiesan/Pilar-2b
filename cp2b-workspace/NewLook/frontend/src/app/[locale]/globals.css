@@ -424,6 +424,19 @@ input[type="range"]::-moz-range-thumb {
   border-radius: 0.75rem;
 }
 
+/* Larger zoom controls on phones so a whole room can tap comfortably
+   (Apple HIG / WCAG 2.5.5 — ~44px target). Desktop keeps Leaflet's compact
+   30px control; this only applies below the md breakpoint. */
+@media (max-width: 767px) {
+  .leaflet-bar a,
+  .leaflet-touch .leaflet-bar a {
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
+    font-size: 20px;
+  }
+}
+
 /* Custom Leaflet popup styles */
 .leaflet-popup-content-wrapper {
   border-radius: 0.5rem;
@@ -437,17 +450,17 @@ input[type="range"]::-moz-range-thumb {
   width: auto !important;
 }
 
-/* Municipality popup - specific styles to prevent overflow */
+/* Municipality popup — cap at 560px on desktop, but never wider than the
+   phone screen. MunicipalityLayer already computes a mobile-appropriate width
+   via Leaflet's min/maxWidth options; the previous fixed `560px !important`
+   overrode that and overflowed small screens. Here we only cap max-width and
+   let Leaflet's inline sizing drive the actual width. */
 .municipality-popup .leaflet-popup-content-wrapper {
-  width: 560px !important;
-  max-width: 560px !important;
-  min-width: 560px !important;
+  max-width: min(560px, 92vw) !important;
 }
 
 .municipality-popup .leaflet-popup-content {
-  width: 560px !important;
-  max-width: 560px !important;
-  min-width: 560px !important;
+  max-width: min(560px, 92vw) !important;
   margin: 0 !important;
   padding: 12px !important;
   box-sizing: border-box !important;

@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
-import { Search, Layers, FlaskConical, ChevronDown, ChevronUp, X } from 'lucide-react';
+import { Search, Layers, ChevronDown, ChevronUp, X } from 'lucide-react';
 import type { ResidueType, BiomassType } from './FloatingControlPanel';
 import type { VisualizationMode } from './LeftFilterPanel';
 import type { DisplayMetric, ResidueCNMatrix, ColorMode } from '@/types/geospatial';
@@ -481,15 +481,6 @@ export default function MobileBottomSheet({
           </span>
         </button>
 
-        {/* Co-digestão — disabled (under development) */}
-        <button
-          disabled={true}
-          className="flex-1 flex flex-col items-center justify-center gap-0.5 border-l border-gray-200 text-gray-300 cursor-not-allowed bg-gray-50/50"
-          title="Em desenvolvimento"
-        >
-          <FlaskConical className="w-5 h-5" />
-          <span className="text-[10px] font-semibold">Co-digestão</span>
-        </button>
       </div>
     </div>
   );
