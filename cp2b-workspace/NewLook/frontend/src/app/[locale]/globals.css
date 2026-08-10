@@ -424,23 +424,41 @@ input[type="range"]::-moz-range-thumb {
   border-radius: 0.75rem;
 }
 
-/* Larger zoom controls on phones so a whole room can tap comfortably
-   (Apple HIG / WCAG 2.5.5 — ~44px target). Desktop keeps Leaflet's compact
-   30px control; this only applies below the md breakpoint. */
+/* Phone zoom controls balance a compact visual footprint with a generous
+   touch target. Desktop retains Leaflet's standard control dimensions. */
 @media (max-width: 767px) {
-  .leaflet-bar a,
-  .leaflet-touch .leaflet-bar a {
-    width: 44px;
-    height: 44px;
-    line-height: 44px;
-    font-size: 20px;
+  .pilar-primary-map .leaflet-control-zoom {
+    margin-left: 8px;
+    overflow: hidden;
+    border: 0;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgb(0 0 0 / 0.18);
   }
 
-  /* The primary map has a two-row mobile thematic ribbon plus scope controls.
-     Keep Leaflet's zoom buttons below both overlays instead of hiding them
-     underneath the ribbon. Other Leaflet views retain their default position. */
-  .pilar-primary-map .leaflet-top.leaflet-left {
-    top: 160px;
+  .pilar-primary-map .leaflet-control-zoom a,
+  .pilar-primary-map .leaflet-touch .leaflet-control-zoom a {
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
+    font-size: 18px;
+  }
+
+  /* Keep attribution, scale and zoom above the persistent mobile tab bar. */
+  .pilar-primary-map .leaflet-bottom {
+    bottom: calc(3.5rem + env(safe-area-inset-bottom));
+  }
+
+  .pilar-primary-map .leaflet-control-scale {
+    margin-left: 8px;
+    margin-bottom: 4px;
+  }
+
+  .pilar-primary-map .leaflet-control-attribution {
+    max-width: calc(100vw - 16px);
+    margin-right: 8px;
+    font-size: 9px;
+    line-height: 1.2;
+    white-space: normal;
   }
 }
 

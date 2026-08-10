@@ -10,7 +10,7 @@
 
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
-import { MapContainer, TileLayer, ScaleControl, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, ScaleControl, ZoomControl, useMap } from 'react-leaflet';
 import dynamic from 'next/dynamic';
 import { useGeospatialData, useCodigestionClusters, useResidueCNMatrix, useIntermediateRegionsGeoJSON } from '@/hooks/useGeospatialData';
 import { useCnProfiles } from '@/hooks/useCnProfiles';
@@ -53,7 +53,12 @@ const MAP_CONTAINER_STYLE = { height: '100%', width: '100%' } as const;
 function ScopeViewController({ center, zoom }: { center: [number, number]; zoom: number }) {
   const map = useMap();
   useEffect(() => {
-    map.flyTo(center, zoom, { duration: 0.6 });
+    // Phone screens need more geographic context than the desktop canvas.
+    // Start one level wider so the first gesture can be a pan, not an escape.
+    const isMobile = typeof window !== 'undefined'
+      && typeof window.matchMedia === 'function'
+      && window.matchMedia('(max-width: 767px)').matches;
+    map.flyTo(center, isMobile ? Math.max(zoom - 1, 3) : zoom, { duration: 0.6 });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [center[0], center[1], zoom]);
   return null;
@@ -262,6 +267,14 @@ export default function MapComponent({
   // The on-map thematic ribbon starts visible (that's the point — it invites
   // exploration); users can collapse it to reclaim the strip.
   const [thematicBarCollapsed, setThematicBarCollapsed] = useState(false);
+
+  // Preserve the discoverable ribbon on desktop, but give phone users the map
+  // canvas first. Presets remain available through the compact Temas launcher.
+  useEffect(() => {
+    if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
+      setThematicBarCollapsed(window.matchMedia('(max-width: 767px)').matches);
+    }
+  }, []);
 
   // Daltonic (colour-vision-deficiency) mode: swaps the choropleth ramp for a
   // CVD-safe single-hue palette. Persisted in localStorage like the theme.
@@ -735,7 +748,7 @@ export default function MapComponent({
         {(error || noData) && (
           <div
             role="alert"
-            className="absolute top-28 left-1/2 z-[1100] w-[min(92%,560px)] -translate-x-1/2 rounded-lg bg-white/95 p-4 shadow-xl ring-1 ring-black/10 backdrop-blur md:top-16 dark:bg-slate-800/95"
+            className="absolute top-16 left-1/2 z-[1100] w-[min(92%,560px)] -translate-x-1/2 rounded-lg bg-white/95 p-4 shadow-xl ring-1 ring-black/10 backdrop-blur md:top-16 dark:bg-slate-800/95"
           >
             <div className="flex items-start gap-3">
               <span aria-hidden="true" className="text-2xl leading-none">{error ? '❌' : '📭'}</span>
@@ -776,7 +789,7 @@ export default function MapComponent({
         {/* ── Scope switcher — top-left on every viewport. Picks SP (default),
             any single state, or all of Brazil. On mobile this is the primary
             navigation affordance and sits alone at the top so nothing wraps. */}
-        <div className="absolute top-28 left-3 z-[1000] md:top-16">
+        <div className="absolute top-14 left-2 z-[1000] md:top-16 md:left-3">
           <ScopeSwitcher
             scope={scope}
             onScopeChange={handleScopeChange}
@@ -785,7 +798,7 @@ export default function MapComponent({
         </div>
 
         {/* ── Basemap switcher + compass — top-right ── */}
-        <div className="absolute top-28 right-3 z-[1000] flex flex-col items-end gap-2 md:top-16">
+        <div className="absolute top-14 right-2 z-[1000] flex flex-col items-end gap-2 md:top-16 md:right-3">
           {isMounted && <BasemapControl value={basemap} onChange={setBasemap} />}
           {isMounted && <NorthArrow />}
         </div>
@@ -842,6 +855,7 @@ export default function MapComponent({
         <MapContainer
           center={mapCenter}
           zoom={mapZoom}
+          zoomControl={false}
           scrollWheelZoom={true}
           // Canvas renderer: one <canvas> instead of one SVG node per polygon.
           // SVG re-transformed every municipality path on each zoom frame (the
@@ -867,6 +881,7 @@ export default function MapComponent({
 
           {/* Metric scale bar (km only — imperial off). */}
           <ScaleControl position="bottomleft" imperial={false} metric={true} />
+          <ZoomControl position="bottomleft" />
 
           <ScopeViewController center={mapCenter} zoom={mapZoom} />
           <InfraPane />
@@ -1026,7 +1041,7 @@ export default function MapComponent({
             combination is visible (previously each overlay hardcoded its own
             bottom-offset and collided). pointer-events pass through the empty
             container; children remain interactive. */}
-        <div className="absolute bottom-16 md:bottom-4 left-4 z-[500] flex flex-col-reverse items-start gap-2 pointer-events-none [&>*]:pointer-events-auto">
+        <div className="absolute bottom-40 left-4 z-[500] flex flex-col-reverse items-start gap-2 pointer-events-none md:bottom-4 [&>*]:pointer-events-auto">
 
         {/* Cluster K4 legend — shown when cluster color mode is active */}
         {colorMode === 'cluster' && (
@@ -1071,7 +1086,7 @@ export default function MapComponent({
         </div>{/* end bottom-left overlay stack */}
 
         {/* ── Bottom-right overlay stack (same non-overlapping flow) ── */}
-        <div className="absolute bottom-16 md:bottom-4 right-2 md:right-4 z-[500] flex flex-col-reverse items-end gap-2 pointer-events-none [&>*]:pointer-events-auto">
+        <div className="absolute bottom-20 right-2 z-[500] flex flex-col-reverse items-end gap-2 pointer-events-none md:bottom-4 md:right-4 [&>*]:pointer-events-auto">
 
         {/* Legends.
             Desktop: shown in full. Mobile: the choropleth legend collapses to a

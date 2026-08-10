@@ -53,28 +53,29 @@ export default function ThematicMapBar({
   };
 
   return (
-    <div className="pointer-events-auto w-full border-b border-gray-200 bg-white/92 shadow-sm backdrop-blur">
+    <div className="pointer-events-auto w-fit max-w-full rounded-br-xl border-b border-r border-gray-200 bg-white/92 shadow-sm backdrop-blur md:w-full md:rounded-none md:border-r-0">
       {/* Click-away backdrop: any click outside an open dropdown closes it. */}
       {openGroup && (
         <div className="fixed inset-0 z-0" aria-hidden="true" onClick={() => setOpenGroup(null)} />
       )}
 
-      <div className="relative z-10 flex items-center gap-1.5 px-2 py-1.5">
+      <div className="relative z-10 flex max-w-full flex-nowrap items-center gap-1 px-1.5 py-1 md:gap-1.5 md:px-2 md:py-1.5">
         {/* Leading label + collapse toggle */}
         <button
           type="button"
           onClick={onToggleCollapsed}
-          className="flex min-h-11 min-w-11 shrink-0 items-center justify-center gap-1 rounded-md px-1.5 py-1 text-[11px] font-bold uppercase tracking-wide text-gray-500 hover:bg-gray-100 md:min-h-0 md:min-w-0"
+          className="flex min-h-11 min-w-11 shrink-0 items-center justify-center gap-1 rounded-md px-2 py-1 text-[11px] font-bold uppercase tracking-wide text-gray-600 hover:bg-gray-100 md:min-h-0 md:min-w-0 md:px-1.5"
           title={collapsed ? 'Mostrar mapas temáticos' : 'Ocultar mapas temáticos'}
           aria-expanded={!collapsed}
         >
           <span aria-hidden="true">🗺️</span>
+          <span className="sm:hidden">Temas</span>
           <span className="hidden sm:inline">Mapas temáticos</span>
           <span aria-hidden="true" className="text-gray-400">{collapsed ? '▸' : '▾'}</span>
         </button>
 
         {!collapsed && (
-          <div className="flex flex-wrap items-center gap-1.5">
+          <div className="flex min-w-0 flex-nowrap items-center gap-1 overflow-x-auto overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:flex-wrap md:gap-1.5 md:overflow-visible">
             {PRESET_GROUP_META.map(({ group, label, icon }) => {
               const items = THEMATIC_PRESETS.filter((p) => p.group === group);
               if (items.length === 0) return null;
@@ -87,7 +88,7 @@ export default function ThematicMapBar({
                     onClick={() => setOpenGroup(isOpen ? null : group)}
                     aria-expanded={isOpen}
                     aria-haspopup="listbox"
-                    className={`flex min-h-11 items-center gap-1 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors md:min-h-0 ${
+                    className={`flex min-h-11 shrink-0 items-center gap-1 rounded-full px-2.5 py-1.5 text-xs font-semibold transition-colors md:min-h-0 md:px-3 ${
                       isActive
                         ? 'bg-green-700 text-white shadow-sm'
                         : isOpen

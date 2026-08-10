@@ -119,11 +119,11 @@ export default function MobileBottomSheet({
   };
 
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 z-[450] flex flex-col">
+    <div className="fixed bottom-0 left-0 right-0 z-[1200] flex flex-col md:hidden">
       {/* Content sheet — slides up when a tab is active */}
       <div
         className={`bg-white border-t border-gray-200 shadow-2xl transition-all duration-300 ease-out overflow-y-auto ${
-          activeSheet ? 'h-[60vh]' : 'h-0 overflow-hidden'
+          activeSheet ? 'h-[min(60vh,32rem)] rounded-t-2xl' : 'h-0 overflow-hidden'
         }`}
       >
         {activeSheet && (
@@ -462,7 +462,7 @@ export default function MobileBottomSheet({
       </div>
 
       {/* Persistent tab bar — always visible */}
-      <div className="h-14 bg-white border-t border-gray-200 flex items-stretch flex-shrink-0 shadow-lg">
+      <div className="min-h-14 flex flex-shrink-0 items-stretch border-t border-gray-200 bg-white pb-[env(safe-area-inset-bottom)] shadow-lg">
         {/* Filtros */}
         <button
           onClick={() => toggleSheet('filters')}

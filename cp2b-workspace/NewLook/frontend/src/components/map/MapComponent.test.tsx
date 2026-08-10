@@ -76,6 +76,7 @@ jest.mock('react-leaflet', () => ({
   MapContainer: ({ children }: any) => <div data-testid="map-container">{children}</div>,
   TileLayer: () => <div data-testid="tile-layer" />,
   ScaleControl: () => <div data-testid="scale-control" />,
+  ZoomControl: () => <div data-testid="zoom-control" />,
   // ScopeViewController calls flyTo/setView; InfraPane calls getPane/createPane.
   useMap: () => ({
     flyTo: jest.fn(),
