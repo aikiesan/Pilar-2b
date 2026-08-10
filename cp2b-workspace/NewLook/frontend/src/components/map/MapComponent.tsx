@@ -268,14 +268,6 @@ export default function MapComponent({
   // exploration); users can collapse it to reclaim the strip.
   const [thematicBarCollapsed, setThematicBarCollapsed] = useState(false);
 
-  // Preserve the discoverable ribbon on desktop, but give phone users the map
-  // canvas first. Presets remain available through the compact Temas launcher.
-  useEffect(() => {
-    if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
-      setThematicBarCollapsed(window.matchMedia('(max-width: 767px)').matches);
-    }
-  }, []);
-
   // Daltonic (colour-vision-deficiency) mode: swaps the choropleth ramp for a
   // CVD-safe single-hue palette. Persisted in localStorage like the theme.
   const [daltonic, setDaltonic] = useState(false);

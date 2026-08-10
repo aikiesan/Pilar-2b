@@ -35,6 +35,14 @@ interface ThematicMapBarProps {
   onToggleCollapsed?: () => void;
 }
 
+const MOBILE_GROUP_LABEL: Record<ThematicPresetGroup, string> = {
+  setorial: 'Setor',
+  residuo: 'Resíduo',
+  energia: 'Energia',
+  logistica: 'Logística',
+  analise: 'Análises',
+};
+
 export default function ThematicMapBar({
   activePresetId,
   onApplyPreset,
@@ -53,18 +61,18 @@ export default function ThematicMapBar({
   };
 
   return (
-    <div className="pointer-events-auto w-fit max-w-full rounded-br-xl border-b border-r border-gray-200 bg-white/92 shadow-sm backdrop-blur md:w-full md:rounded-none md:border-r-0">
+    <div className={`pointer-events-auto max-w-full rounded-br-xl border-b border-r border-gray-200 bg-white/92 shadow-sm backdrop-blur md:w-full md:rounded-none md:border-r-0 ${collapsed ? 'w-fit' : 'w-full'}`}>
       {/* Click-away backdrop: any click outside an open dropdown closes it. */}
       {openGroup && (
         <div className="fixed inset-0 z-0" aria-hidden="true" onClick={() => setOpenGroup(null)} />
       )}
 
-      <div className="relative z-10 flex max-w-full flex-nowrap items-center gap-1 px-1.5 py-1 md:gap-1.5 md:px-2 md:py-1.5">
+      <div className="relative z-10 flex max-w-full flex-nowrap items-center gap-0.5 px-1 py-1 md:gap-1.5 md:px-2 md:py-1.5">
         {/* Leading label + collapse toggle */}
         <button
           type="button"
           onClick={onToggleCollapsed}
-          className="flex min-h-11 min-w-11 shrink-0 items-center justify-center gap-1 rounded-md px-2 py-1 text-[11px] font-bold uppercase tracking-wide text-gray-600 hover:bg-gray-100 md:min-h-0 md:min-w-0 md:px-1.5"
+          className="flex min-h-11 min-w-11 shrink-0 items-center justify-center gap-0.5 rounded-md px-1 py-1 text-[10px] font-bold uppercase tracking-tight text-gray-600 hover:bg-gray-100 md:min-h-0 md:min-w-0 md:gap-1 md:px-1.5 md:text-[11px] md:tracking-wide"
           title={collapsed ? 'Mostrar mapas temáticos' : 'Ocultar mapas temáticos'}
           aria-expanded={!collapsed}
         >
@@ -75,20 +83,20 @@ export default function ThematicMapBar({
         </button>
 
         {!collapsed && (
-          <div className="flex min-w-0 flex-nowrap items-center gap-1 overflow-x-auto overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:flex-wrap md:gap-1.5 md:overflow-visible">
-            {PRESET_GROUP_META.map(({ group, label, icon }) => {
+          <div className="flex min-w-0 flex-1 flex-nowrap items-center gap-0.5 md:flex-none md:flex-wrap md:gap-1.5">
+            {PRESET_GROUP_META.map(({ group, label, icon }, index) => {
               const items = THEMATIC_PRESETS.filter((p) => p.group === group);
               if (items.length === 0) return null;
               const isOpen = openGroup === group;
               const isActive = activeGroup === group;
               return (
-                <div key={group} className="relative">
+                <div key={group} className="relative min-w-0 flex-1 md:flex-none">
                   <button
                     type="button"
                     onClick={() => setOpenGroup(isOpen ? null : group)}
                     aria-expanded={isOpen}
                     aria-haspopup="listbox"
-                    className={`flex min-h-11 shrink-0 items-center gap-1 rounded-full px-2.5 py-1.5 text-xs font-semibold transition-colors md:min-h-0 md:px-3 ${
+                    className={`flex min-h-11 w-full min-w-0 flex-col items-center justify-center gap-0 rounded-lg px-0.5 py-1 text-[9px] font-semibold leading-none transition-colors md:min-h-0 md:w-auto md:flex-row md:gap-1 md:rounded-full md:px-3 md:py-1.5 md:text-xs ${
                       isActive
                         ? 'bg-green-700 text-white shadow-sm'
                         : isOpen
@@ -96,16 +104,25 @@ export default function ThematicMapBar({
                           : 'text-gray-700 hover:bg-gray-100'
                     }`}
                   >
-                    <span aria-hidden="true">{icon}</span>
-                    <span>{label}</span>
-                    <span aria-hidden="true" className={`text-[9px] transition-transform ${isOpen ? 'rotate-180' : ''}`}>▾</span>
+                    <span aria-hidden="true" className="text-sm leading-none md:text-xs">{icon}</span>
+                    <span className="mt-0.5 truncate md:mt-0">
+                      <span className="md:hidden">{MOBILE_GROUP_LABEL[group]}</span>
+                      <span className="hidden md:inline">{label}</span>
+                    </span>
+                    <span aria-hidden="true" className={`hidden text-[9px] transition-transform md:inline ${isOpen ? 'rotate-180' : ''}`}>▾</span>
                   </button>
 
                   {isOpen && (
                     <div
                       role="listbox"
                       aria-label={label}
-                      className="absolute left-0 top-full z-20 mt-1 max-h-[60vh] w-60 overflow-y-auto rounded-xl bg-white p-1.5 shadow-xl ring-1 ring-black/10"
+                      className={`absolute top-full z-20 mt-1 max-h-[60vh] w-60 overflow-y-auto rounded-xl bg-white p-1.5 shadow-xl ring-1 ring-black/10 ${
+                        index < 2
+                          ? 'left-0'
+                          : index > 2
+                            ? 'right-0 md:right-auto md:left-0'
+                            : 'left-1/2 -translate-x-1/2 md:left-0 md:translate-x-0'
+                      }`}
                     >
                       {items.map((preset) => {
                         const active = activePresetId === preset.id;
