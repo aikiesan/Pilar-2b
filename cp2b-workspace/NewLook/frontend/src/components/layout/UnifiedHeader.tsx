@@ -33,6 +33,11 @@ import LanguageSwitcher from '@/components/ui/LanguageSwitcher'
 import GlobalSearch from '@/components/ui/GlobalSearch'
 import { logger } from '@/lib/logger'
 
+// Offline/event mode (NEXT_PUBLIC_DISABLE_AUTH=true): every visitor is the
+// synthetic TEST_USER, so the account UI (name + logout / login) is meaningless
+// and looks unprofessional on a public QR page — hide it entirely in that mode.
+const AUTH_DISABLED = process.env.NEXT_PUBLIC_DISABLE_AUTH === 'true'
+
 interface NavItemConfig {
   href: string
   labelKey: string
@@ -229,8 +234,8 @@ export default function UnifiedHeader({ variant = 'auto' }: UnifiedHeaderProps) 
               <ThemeToggle variant={isPublic ? 'light' : 'dark'} />
             </div>
 
-            {/* User Menu / Auth Buttons */}
-            {isAuthenticated && user ? (
+            {/* User Menu / Auth Buttons — hidden in offline/event mode (no real account) */}
+            {!AUTH_DISABLED && (isAuthenticated && user ? (
               <div className="relative">
                 <button
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
@@ -309,7 +314,7 @@ export default function UnifiedHeader({ variant = 'auto' }: UnifiedHeaderProps) 
                   {t('auth.login')}
                 </Link>
               </div>
-            )}
+            ))}
           </div>
 
           {/* Mobile Menu Button */}
@@ -317,7 +322,7 @@ export default function UnifiedHeader({ variant = 'auto' }: UnifiedHeaderProps) 
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className={`
-                inline-flex items-center justify-center p-2 rounded-lg
+                inline-flex h-11 w-11 items-center justify-center rounded-lg
                 focus:outline-none focus:ring-2
                 ${isPublic
                   ? 'text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700 focus:ring-cp2b-lime'
@@ -405,8 +410,8 @@ export default function UnifiedHeader({ variant = 'auto' }: UnifiedHeaderProps) 
               </div>
             </div>
 
-            {/* Mobile User Section */}
-            {isAuthenticated && user ? (
+            {/* Mobile User Section — hidden in offline/event mode (no real account) */}
+            {!AUTH_DISABLED && (isAuthenticated && user ? (
               <div className={`border-t ${isPublic ? 'border-gray-200 dark:border-slate-700' : 'border-white/20'} px-4 py-4`}>
                 <div className="flex items-center gap-3 mb-3">
                   <User className={`h-8 w-8 p-1 rounded-full ${
@@ -445,7 +450,7 @@ export default function UnifiedHeader({ variant = 'auto' }: UnifiedHeaderProps) 
                   {t('auth.login')}
                 </Link>
               </div>
-            )}
+            ))}
           </div>
         )}
       </nav>

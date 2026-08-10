@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
-import { Search, Layers, FlaskConical, ChevronDown, ChevronUp, X } from 'lucide-react';
+import { Search, Layers, ChevronDown, ChevronUp, X } from 'lucide-react';
 import type { ResidueType, BiomassType } from './FloatingControlPanel';
 import type { VisualizationMode } from './LeftFilterPanel';
 import type { DisplayMetric, ResidueCNMatrix, ColorMode } from '@/types/geospatial';
@@ -133,8 +133,13 @@ export default function MobileBottomSheet({
               <span className="text-sm font-semibold text-gray-800">
                 {activeSheet === 'filters' ? t('panels.filters') : t('panels.layers')}
               </span>
-              <button onClick={() => setActiveSheet(null)} className="p-1 rounded-lg hover:bg-gray-100 text-gray-400">
-                <X className="w-4 h-4" />
+              <button
+                type="button"
+                onClick={() => setActiveSheet(null)}
+                aria-label={activeSheet === 'filters' ? 'Fechar filtros' : 'Fechar camadas'}
+                className="flex h-11 w-11 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100"
+              >
+                <X className="w-5 h-5" aria-hidden="true" />
               </button>
             </div>
 
@@ -156,7 +161,12 @@ export default function MobileBottomSheet({
                       className="w-full pl-9 pr-9 py-2.5 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500"
                     />
                     {searchQuery && (
-                      <button onClick={() => onSearchChange('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                      <button
+                        type="button"
+                        onClick={() => onSearchChange('')}
+                        aria-label="Limpar busca"
+                        className="absolute right-0 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center text-gray-400 hover:text-gray-600"
+                      >
                         <X className="w-4 h-4" />
                       </button>
                     )}
@@ -203,7 +213,7 @@ export default function MobileBottomSheet({
                         key={opt.value}
                         onClick={() => !opt.disabled && onVisualizationModeChange(opt.value)}
                         disabled={opt.disabled}
-                        className={`py-2.5 rounded-xl text-xs font-medium border transition-colors ${
+                        className={`min-h-11 py-2.5 rounded-xl text-xs font-medium border transition-colors ${
                           opt.disabled
                             ? 'bg-gray-50 border-gray-200 text-gray-300 cursor-not-allowed'
                             : visualizationMode === opt.value
@@ -236,7 +246,7 @@ export default function MobileBottomSheet({
                             key={opt.value}
                             type="button"
                             onClick={() => onColorModeChange(opt.value)}
-                            className={`w-full py-2 px-3 rounded-lg text-xs font-semibold text-left transition-colors flex items-center justify-between ${
+                            className={`flex min-h-11 w-full items-center justify-between rounded-lg px-3 py-2 text-left text-xs font-semibold transition-colors ${
                               active
                                 ? 'bg-green-700 text-white shadow-sm'
                                 : 'text-gray-700 hover:bg-gray-100'
@@ -255,7 +265,7 @@ export default function MobileBottomSheet({
                 <div>
                   <button
                     onClick={() => setShowBiomassTypes(!showBiomassTypes)}
-                    className="flex items-center justify-between w-full text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5"
+                    className="mb-1.5 flex min-h-11 w-full items-center justify-between text-xs font-semibold uppercase tracking-wide text-gray-600"
                   >
                     <span>{t('biomassTypes.label')}</span>
                     {showBiomassTypes ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
@@ -266,7 +276,7 @@ export default function MobileBottomSheet({
                         <button
                           key={opt.value}
                           onClick={() => onBiomassTypeChange(opt.value)}
-                          className={`flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-medium border transition-colors ${
+                          className={`flex min-h-11 items-center gap-2 rounded-xl border px-3 py-2.5 text-xs font-medium transition-colors ${
                             biomassType === opt.value ? 'bg-green-100 border-green-400 text-green-800' : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
                           }`}
                         >
@@ -282,7 +292,7 @@ export default function MobileBottomSheet({
                 <div>
                   <button
                     onClick={() => setShowResidues(!showResidues)}
-                    className="flex items-center justify-between w-full text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5"
+                    className="mb-1.5 flex min-h-11 w-full items-center justify-between text-xs font-semibold uppercase tracking-wide text-gray-600"
                   >
                     <span>
                       {t('residueFilter.label')}
@@ -300,7 +310,7 @@ export default function MobileBottomSheet({
                       {filterCount > 0 && (
                         <button
                           onClick={() => onResiduesChange([])}
-                          className="w-full text-xs text-red-600 font-medium bg-red-50 rounded-lg px-3 py-2 hover:bg-red-100 transition-colors text-left"
+                          className="min-h-11 w-full rounded-lg bg-red-50 px-3 py-2 text-left text-xs font-medium text-red-600 transition-colors hover:bg-red-100"
                         >
                           {t('residueFilter.clearFilters')} ({filterCount})
                         </button>
@@ -325,7 +335,7 @@ export default function MobileBottomSheet({
                                   <button
                                     key={residue.value}
                                     onClick={() => handleResidueToggle(residue.value)}
-                                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
+                                    className={`flex min-h-11 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
                                       isSelected ? activeColor : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
                                     }`}
                                   >
@@ -355,7 +365,7 @@ export default function MobileBottomSheet({
                         key={key}
                         onClick={() => onScenarioChange(key)}
                         aria-pressed={scenario === key}
-                        className={`py-2.5 rounded-xl text-xs font-medium border transition-colors ${
+                        className={`min-h-11 py-2.5 rounded-xl text-xs font-medium border transition-colors ${
                           scenario === key ? 'text-white border-transparent' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
                         }`}
                         style={scenario === key ? { backgroundColor: color } : undefined}
@@ -368,13 +378,13 @@ export default function MobileBottomSheet({
 
                 {/* Accessibility — daltonic (CVD-safe) palette toggle. */}
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">
+                  <p className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">
                     Acessibilidade
-                  </label>
+                  </p>
                   <button
                     onClick={onToggleDaltonic}
                     aria-pressed={daltonic}
-                    className={`w-full py-2.5 rounded-xl text-xs font-medium border transition-colors ${
+                    className={`min-h-11 w-full py-2.5 rounded-xl text-xs font-medium border transition-colors ${
                       daltonic ? 'bg-slate-700 text-white border-transparent' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
                     }`}
                   >
@@ -481,15 +491,6 @@ export default function MobileBottomSheet({
           </span>
         </button>
 
-        {/* Co-digestão — disabled (under development) */}
-        <button
-          disabled={true}
-          className="flex-1 flex flex-col items-center justify-center gap-0.5 border-l border-gray-200 text-gray-300 cursor-not-allowed bg-gray-50/50"
-          title="Em desenvolvimento"
-        >
-          <FlaskConical className="w-5 h-5" />
-          <span className="text-[10px] font-semibold">Co-digestão</span>
-        </button>
       </div>
     </div>
   );

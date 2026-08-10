@@ -48,7 +48,7 @@ export default function PublicMapPage() {
   })
 
   return (
-    <div className="h-[calc(100vh-64px)] flex flex-col bg-gray-50 dark:bg-slate-900 transition-colors overflow-hidden">
+    <div className="h-[calc(100dvh-64px)] flex flex-col bg-gray-50 dark:bg-slate-900 transition-colors overflow-hidden">
       {/* Full-Page Map */}
       {/*
         min-h-0 é obrigatório, não decorativo. Um item flex tem

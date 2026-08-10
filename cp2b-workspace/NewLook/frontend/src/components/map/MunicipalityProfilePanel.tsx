@@ -208,8 +208,9 @@ export default function MunicipalityProfilePanel({
             </div>
             <button
               onClick={onClose}
-              className="p-2 rounded-lg hover:bg-white/20 transition-colors"
+              className="-mr-1 flex h-11 w-11 items-center justify-center rounded-lg hover:bg-white/20 transition-colors"
               title="Fechar"
+              aria-label="Fechar painel do município"
             >
               <X className="w-6 h-6" />
             </button>
