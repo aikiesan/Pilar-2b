@@ -322,7 +322,7 @@ export default function UnifiedHeader({ variant = 'auto' }: UnifiedHeaderProps) 
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className={`
-                inline-flex items-center justify-center p-2 rounded-lg
+                inline-flex h-11 w-11 items-center justify-center rounded-lg
                 focus:outline-none focus:ring-2
                 ${isPublic
                   ? 'text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700 focus:ring-cp2b-lime'

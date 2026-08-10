@@ -91,7 +91,7 @@ export default function ScopeSwitcher({ scope, onScopeChange, count, className =
             role="option"
             aria-selected={scope === SAO_PAULO_UF}
             onClick={() => pick(SAO_PAULO_UF)}
-            className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
+            className={`flex min-h-11 w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
               scope === SAO_PAULO_UF
                 ? 'bg-[#1E5128] text-white'
                 : 'text-gray-800 hover:bg-gray-100 dark:text-gray-100 dark:hover:bg-slate-700'
@@ -105,7 +105,7 @@ export default function ScopeSwitcher({ scope, onScopeChange, count, className =
             role="option"
             aria-selected={scope === SCOPE_BRAZIL}
             onClick={() => pick(SCOPE_BRAZIL)}
-            className={`mt-1 flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+            className={`mt-1 flex min-h-11 w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
               scope === SCOPE_BRAZIL
                 ? 'bg-[#1E5128] text-white'
                 : 'text-gray-800 hover:bg-gray-100 dark:text-gray-100 dark:hover:bg-slate-700'
@@ -130,7 +130,7 @@ export default function ScopeSwitcher({ scope, onScopeChange, count, className =
                     role="option"
                     aria-selected={active}
                     onClick={() => pick(s.code)}
-                    className={`flex w-full items-center justify-between rounded-lg px-3 py-1.5 text-sm transition-colors ${
+                    className={`flex min-h-11 w-full items-center justify-between rounded-lg px-3 py-1.5 text-sm transition-colors ${
                       active
                         ? 'bg-[#1E5128] text-white'
                         : 'text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-slate-700'

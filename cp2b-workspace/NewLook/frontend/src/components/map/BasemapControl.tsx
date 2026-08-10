@@ -30,7 +30,7 @@ export default function BasemapControl({ value, onChange }: BasemapControlProps)
         aria-expanded={open}
         aria-label="Trocar mapa base"
         title="Mapa base"
-        className="flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-xs font-semibold text-gray-700 shadow-lg ring-1 ring-black/5 backdrop-blur transition-colors hover:bg-white"
+        className="flex min-h-11 min-w-11 items-center justify-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-xs font-semibold text-gray-700 shadow-lg ring-1 ring-black/5 backdrop-blur transition-colors hover:bg-white md:min-h-0 md:min-w-0"
       >
         <span aria-hidden="true">{active.icon}</span>
         <span className="hidden sm:inline">{active.label}</span>
@@ -58,7 +58,7 @@ export default function BasemapControl({ value, onChange }: BasemapControlProps)
                   onChange(id);
                   setOpen(false);
                 }}
-                className={`flex items-center gap-2 rounded-lg px-3 py-1.5 text-left text-xs font-medium transition-colors ${
+                className={`flex min-h-11 items-center gap-2 rounded-lg px-3 py-1.5 text-left text-xs font-medium transition-colors md:min-h-0 ${
                   isActive
                     ? 'bg-green-700 text-white shadow-sm'
                     : 'text-gray-700 hover:bg-gray-100'

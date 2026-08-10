@@ -430,10 +430,17 @@ input[type="range"]::-moz-range-thumb {
 @media (max-width: 767px) {
   .leaflet-bar a,
   .leaflet-touch .leaflet-bar a {
-    width: 40px;
-    height: 40px;
-    line-height: 40px;
+    width: 44px;
+    height: 44px;
+    line-height: 44px;
     font-size: 20px;
+  }
+
+  /* The primary map has a two-row mobile thematic ribbon plus scope controls.
+     Keep Leaflet's zoom buttons below both overlays instead of hiding them
+     underneath the ribbon. Other Leaflet views retain their default position. */
+  .pilar-primary-map .leaflet-top.leaflet-left {
+    top: 160px;
   }
 }
 

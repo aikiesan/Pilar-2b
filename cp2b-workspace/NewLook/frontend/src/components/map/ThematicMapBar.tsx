@@ -64,7 +64,7 @@ export default function ThematicMapBar({
         <button
           type="button"
           onClick={onToggleCollapsed}
-          className="flex shrink-0 items-center gap-1 rounded-md px-1.5 py-1 text-[11px] font-bold uppercase tracking-wide text-gray-500 hover:bg-gray-100"
+          className="flex min-h-11 min-w-11 shrink-0 items-center justify-center gap-1 rounded-md px-1.5 py-1 text-[11px] font-bold uppercase tracking-wide text-gray-500 hover:bg-gray-100 md:min-h-0 md:min-w-0"
           title={collapsed ? 'Mostrar mapas temáticos' : 'Ocultar mapas temáticos'}
           aria-expanded={!collapsed}
         >
@@ -87,7 +87,7 @@ export default function ThematicMapBar({
                     onClick={() => setOpenGroup(isOpen ? null : group)}
                     aria-expanded={isOpen}
                     aria-haspopup="listbox"
-                    className={`flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
+                    className={`flex min-h-11 items-center gap-1 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors md:min-h-0 ${
                       isActive
                         ? 'bg-green-700 text-white shadow-sm'
                         : isOpen
@@ -116,7 +116,7 @@ export default function ThematicMapBar({
                             aria-selected={active}
                             onClick={() => apply(preset)}
                             title={preset.description}
-                            className={`flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left transition-colors ${
+                            className={`flex min-h-11 w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left transition-colors md:min-h-0 ${
                               active ? 'bg-green-50 ring-1 ring-green-600' : 'hover:bg-gray-50'
                             }`}
                           >

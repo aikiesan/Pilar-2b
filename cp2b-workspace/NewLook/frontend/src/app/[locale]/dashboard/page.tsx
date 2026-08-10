@@ -174,7 +174,7 @@ export default function DashboardPage() {
                   <Link
                     href={step.href}
                     title={step.hint}
-                    className="group inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:border-green-400 hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-cp2b-lime dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+                    className="group inline-flex min-h-11 items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:border-green-400 hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-cp2b-lime dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
                   >
                     <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-green-600 text-[11px] font-bold text-white">
                       {i + 1}
