@@ -13,6 +13,7 @@ import {
   MG_UF_CODE,
   SP_MUNICIPALITY_COUNT,
   MG_MUNICIPALITY_COUNT,
+  MG_DATA_STROKE,
 } from '../mapScope';
 
 describe('isSaoPaulo', () => {
@@ -77,5 +78,6 @@ describe('public SP + MG rollout boundary', () => {
     expect(MG_UF_CODE).toBe('31');
     expect(SP_MUNICIPALITY_COUNT).toBe(645);
     expect(MG_MUNICIPALITY_COUNT).toBe(853);
+    expect(MG_DATA_STROKE).toBe('#1d4ed8');
   });
 });

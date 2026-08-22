@@ -16,7 +16,13 @@ import L from 'leaflet';
 import { createRoot } from 'react-dom/client';
 import type { MapValue } from '@/lib/mapValues';
 import { getMetricSpec, getMetricColor } from '@/lib/mapMetrics';
-import { isSaoPaulo, BETA_STYLE, BETA_BADGE_LABEL } from '@/lib/mapScope';
+import {
+  isMinasGerais,
+  isSaoPaulo,
+  BETA_STYLE,
+  BETA_BADGE_LABEL,
+  MG_DATA_STROKE,
+} from '@/lib/mapScope';
 import { useCvdPalette } from '@/hooks/useCvdPalette';
 import { useMapPalette } from '@/hooks/useMapPalette';
 import type { MapScenarioKey } from '@/data/scenarioFactors';
@@ -161,11 +167,18 @@ export default function MunicipalityLayer({
       return { ...NO_DATA_STYLE };
     }
 
+    // SP and MG share the same quantitative ramp so equal concentrations mean
+    // equal colours. MG keeps a blue municipal outline, making the pilot state
+    // visibly distinct without introducing a second, incomparable palette.
+    const isMgPilot = isMinasGerais(
+      (feature.properties as MunicipalityProperties).ibge_code
+    );
+
     return {
       fillColor: getMetricColor(value, metricSpec, daltonic, cvdPalette, scaleBreaks, mapPalette),
-      weight: 1,
-      opacity: 0.8,
-      color: '#666666',
+      weight: isMgPilot ? 0.9 : 0.65,
+      opacity: isMgPilot ? 0.95 : 0.75,
+      color: isMgPilot ? MG_DATA_STROKE : '#4b5563',
       fillOpacity: opacity,
     };
     // getMapValue is recreated per render but only depends on the deps listed here,

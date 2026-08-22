@@ -1,12 +1,10 @@
 /**
  * Geographic scope of the public platform — canonical SP plus the MG pilot.
  *
- * The map serves 5,571 municipalities, but only the 645 in São Paulo carry
- * numbers that have been through the canonical pipeline and the FDE audit.
- * The national rows exist, are loaded, and are still being validated: sugarcane
- * runs on a national mill-delivery ratio pending per-state moagem, several crop
- * streams have open methodology questions, and no national equivalent of the
- * SP master residue table has been reconciled yet.
+ * The public map serves the 645 municipalities in São Paulo plus the 853 in the
+ * Minas Gerais pilot. SP remains the canonical FDE-audited scope. MG publishes
+ * reviewed PAM, PPM and FORSU/SNIS activity while keeping its pilot status and
+ * explicitly withholding streams that are still under validation.
  *
  * So the two are ONE dataset with TWO confidence levels, and the map has to say
  * so visually rather than in a footnote. Everything that needs to tell them
@@ -30,9 +28,9 @@ export const MG_MUNICIPALITY_COUNT = 853;
  * True when the IBGE code belongs to São Paulo.
  *
  * Accepts the number|string union the API actually serves. A code that is
- * missing, malformed, or shorter than 7 digits is treated as NOT São Paulo:
- * the beta styling is the conservative default, so a bad code degrades into
- * "shown as unvalidated" rather than into "presented as canonical".
+ * missing, malformed, or shorter than 7 digits is treated as NOT São Paulo.
+ * Callers that style a specific pilot state must also test isMinasGerais rather
+ * than assuming every non-SP code belongs to MG.
  */
 export function isSaoPaulo(ibgeCode: string | number | null | undefined): boolean {
   if (ibgeCode === null || ibgeCode === undefined) return false;
@@ -52,23 +50,24 @@ export function isPublicMapMunicipality(
   return isSaoPaulo(ibgeCode) || isMinasGerais(ibgeCode);
 }
 
-/** Layer id for the national (non-SP) municipalities, still in validation. */
+/** Layer id retained for the MG pilot overlay, still presented as beta. */
 export const MG_BETA_LAYER_ID = 'mg-beta';
 
 /**
- * Fill for a non-SP municipality: a flat, desaturated slate that sits clearly
+ * Fill for an unpainted MG pilot municipality: a flat, desaturated slate that sits clearly
  * outside the YlGnBu ramp, so a beta polygon can never be read as a ramp value.
  * Distinct from NO_DATA_FILL (#cbd5e1) — "not validated yet" and "never loaded"
  * are different facts and stay visually different.
  */
 export const BETA_FILL = '#94a3b8';
 export const BETA_STROKE = '#64748b';
+/** State-specific municipal outline used while MG carries an active data ramp. */
+export const MG_DATA_STROKE = '#1d4ed8';
 
 /**
- * Style for non-SP polygons. Deliberately low contrast and thin-stroked: SP
- * must win the visual hierarchy at every zoom level. fillOpacity does NOT
- * follow the opacity slider — the slider tunes the choropleth being read, and
- * the beta layer is context, not data under inspection.
+ * Context style for MG polygons when their quantitative ramp is disabled.
+ * fillOpacity does NOT follow the opacity slider because this style represents
+ * context rather than data under inspection.
  */
 export const BETA_STYLE = {
   fillColor: BETA_FILL,
@@ -78,10 +77,10 @@ export const BETA_STYLE = {
   fillOpacity: 0.18,
 } as const;
 
-/** Shown wherever a non-SP value is surfaced (tooltip, profile panel, legend). */
+/** Shown wherever an MG pilot value is surfaced (tooltip, profile panel, legend). */
 export const BETA_NOTICE =
-  'Minas Gerais — piloto beta. PAM agrícola promovida; pecuária e resíduos ' +
-  'urbanos aguardam promoção e validação das fontes.';
+  'Minas Gerais — piloto beta. PAM 2023, PPM 2024, Censo 2022 e FORSU/SNIS-RS ' +
+  '2022 promovidos; poda urbana e lodo de ETE permanecem em validação.';
 
 /** Compact variant for tooltips and badges, where the full sentence does not fit. */
 export const BETA_BADGE_LABEL = 'BETA — em validação';

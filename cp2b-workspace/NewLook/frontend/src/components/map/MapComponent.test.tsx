@@ -88,8 +88,13 @@ jest.mock('react-leaflet', () => ({
 
 jest.mock('./MunicipalityLayer', () => ({
   __esModule: true,
-  default: ({ data, biomassType, opacity }: any) => (
-    <div data-testid="municipality-layer" data-biomass-type={biomassType} data-opacity={opacity}>
+  default: ({ data, biomassType, opacity, paintBetaData }: any) => (
+    <div
+      data-testid="municipality-layer"
+      data-biomass-type={biomassType}
+      data-opacity={opacity}
+      data-paint-beta={String(Boolean(paintBetaData))}
+    >
       {data?.features?.length || 0} municipalities
     </div>
   ),
@@ -812,7 +817,29 @@ describe('MapComponent', () => {
       });
     });
 
-    it('sanitizes an unvalidated urban bookmark when MG opens', async () => {
+    it('keeps the MG quantitative ramp active when its context toggle is off', async () => {
+      window.history.replaceState(null, '', '/?scope=31&type=livestock');
+      render(<MapComponent />);
+      act(() => { jest.advanceTimersByTime(1500); });
+
+      await waitFor(() => {
+        expect(screen.getAllByTestId('municipality-layer')[0]).toHaveAttribute(
+          'data-paint-beta',
+          'true',
+        );
+      });
+
+      fireEvent.click(screen.getByTestId('layer-toggle-mg-beta'));
+
+      await waitFor(() => {
+        expect(screen.getAllByTestId('municipality-layer')[0]).toHaveAttribute(
+          'data-paint-beta',
+          'true',
+        );
+      });
+    });
+
+    it('preserves a validated urban bookmark when MG opens', async () => {
       window.history.replaceState(
         null,
         '',
@@ -824,10 +851,38 @@ describe('MapComponent', () => {
       await waitFor(() => {
         expect(screen.getAllByTestId('municipality-layer')[0]).toHaveAttribute(
           'data-biomass-type',
-          'agricultural',
+          'urban',
         );
-        expect(window.location.search).toContain('type=agricultural');
-        expect(window.location.search).not.toContain('metric=methane_m3');
+        expect(window.location.search).toContain('type=urban');
+        expect(window.location.search).toContain('metric=methane_m3');
+        expect(window.location.search).toContain('r=rsu');
+        expect(window.location.search).not.toContain('rpo');
+        expect(window.location.search).not.toContain('sewage');
+      });
+    });
+
+    it('keeps the active sector and metric when switching to MG', async () => {
+      window.history.replaceState(
+        null,
+        '',
+        '/?type=urban&r=rsu,rpo,sewage&metric=methane_m3',
+      );
+      render(<MapComponent />);
+      act(() => { jest.advanceTimersByTime(1500); });
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /São Paulo SP/i })).toBeInTheDocument();
+      });
+      fireEvent.click(screen.getByRole('button', { name: /São Paulo SP/i }));
+      fireEvent.click(screen.getByRole('option', { name: /Minas Gerais/i }));
+
+      await waitFor(() => {
+        expect(window.location.search).toContain('scope=31');
+        expect(window.location.search).toContain('type=urban');
+        expect(window.location.search).toContain('metric=methane_m3');
+        expect(window.location.search).toContain('r=rsu');
+        expect(window.location.search).not.toContain('rpo');
+        expect(window.location.search).not.toContain('sewage');
       });
     });
 

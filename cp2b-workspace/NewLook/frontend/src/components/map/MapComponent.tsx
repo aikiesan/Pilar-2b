@@ -191,6 +191,11 @@ const VALID_RESIDUES: ResidueType[] = [
 const VALID_BIOMASS: BiomassType[] = ['total', 'agricultural', 'livestock', 'urban'];
 const VALID_VIZ: VisualizationMode[] = ['choropleth', 'heatmap', 'bubble', 'clusters'];
 const VALID_METRICS: DisplayMetric[] = DISPLAY_METRICS;
+const MG_DISABLED_RESIDUES = new Set<ResidueType>(['aquaculture', 'rpo', 'sewage']);
+
+function sanitizeResiduesForScope(scope: MapScope, residues: ResidueType[]): ResidueType[] {
+  return scope === '31' ? residues.filter(residue => !MG_DISABLED_RESIDUES.has(residue)) : residues;
+}
 
 interface MapComponentProps {
   activeFilters?: FilterCriteria;
@@ -227,8 +232,6 @@ export default function MapComponent({
   const urlMetric = readURLParam('metric');
   const urlScope = readURLParam('scope'); // 'brazil' → national view
   const initialScope = parseScopeParam(urlScope);
-  const invalidMgInitialSector =
-    initialScope === '31' && (urlType === 'livestock' || urlType === 'urban');
 
   const initialMode: VisualizationMode =
     VALID_VIZ.includes(urlMode as VisualizationMode) ? (urlMode as VisualizationMode) : 'choropleth';
@@ -253,19 +256,16 @@ export default function MapComponent({
   const [layersRendered, setLayersRendered] = useState(0);
 
   const initialBiomass: BiomassType =
-    invalidMgInitialSector
-      ? 'agricultural'
-      : VALID_BIOMASS.includes(urlType as BiomassType) ? (urlType as BiomassType) : propBiomassType;
-  const initialResidues: ResidueType[] = invalidMgInitialSector
-    ? ['sugarcane', 'soybean', 'corn', 'coffee', 'citrus']
-    : urlResidues
-      ? urlResidues.split(',').filter(r => VALID_RESIDUES.includes(r as ResidueType)) as ResidueType[]
-      : [];
+    VALID_BIOMASS.includes(urlType as BiomassType) ? (urlType as BiomassType) : propBiomassType;
+  const parsedInitialResidues: ResidueType[] = urlResidues
+    ? urlResidues.split(',').filter(r => VALID_RESIDUES.includes(r as ResidueType)) as ResidueType[]
+    : [];
+  const initialResidues = sanitizeResiduesForScope(initialScope, parsedInitialResidues);
+  const initialResiduesWereSanitized = initialResidues.length !== parsedInitialResidues.length;
+  const initialResidueParam = initialResidues.join(',');
   const initialQuery = urlQuery ?? propSearchQuery;
   const initialMetric: DisplayMetric =
-    invalidMgInitialSector
-      ? 'biomass_tons'
-      : VALID_METRICS.includes(urlMetric as DisplayMetric) ? (urlMetric as DisplayMetric) : 'biomass_tons';
+    VALID_METRICS.includes(urlMetric as DisplayMetric) ? (urlMetric as DisplayMetric) : 'biomass_tons';
 
   // Local state (authoritative)
   const [selectedResidues, setSelectedResidues] = useState<ResidueType[]>(initialResidues);
@@ -284,6 +284,18 @@ export default function MapComponent({
   // The on-map thematic ribbon starts visible (that's the point — it invites
   // exploration); users can collapse it to reclaim the strip.
   const [thematicBarCollapsed, setThematicBarCollapsed] = useState(false);
+
+  // Preserve valid MG sector/metric bookmarks while removing residue keys that
+  // are visibly disabled for the pilot. Without this, a stale URL could count
+  // pruning/sewage/aquaculture as active filters even though the user could not
+  // deselect them in the disabled controls.
+  useEffect(() => {
+    if (!initialResiduesWereSanitized || typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    if (initialResidueParam) params.set('r', initialResidueParam);
+    else params.delete('r');
+    window.history.replaceState(null, '', `${window.location.pathname}?${params.toString()}`);
+  }, [initialResiduesWereSanitized, initialResidueParam]);
 
   // Daltonic (colour-vision-deficiency) mode: swaps the choropleth ramp for a
   // CVD-safe single-hue palette. Persisted in localStorage like the theme.
@@ -312,11 +324,9 @@ export default function MapComponent({
 
   const { center: mapCenter, zoom: mapZoom } = scopeView(scope);
   const availableResidueCategories: Array<'agricultural' | 'livestock' | 'urban'> =
-    scope === SAO_PAULO_UF
+    scope === SAO_PAULO_UF || scope === '31'
       ? ['agricultural', 'livestock', 'urban']
-      : scope === '31'
-        ? ['agricultural']
-        : [];
+      : [];
   const residueBreakdownAvailable = availableResidueCategories.length > 0;
 
   // ── Enhanced interaction state (Phase 2+3) ────────────────────────────────
@@ -346,31 +356,23 @@ export default function MapComponent({
   }, []);
 
   const handleScopeChange = useCallback((next: MapScope) => {
+    const nextResidues = sanitizeResiduesForScope(next, selectedResidues);
     setScope(next);
     setSelectedMunicipality(null);
     setHoveredMunicipality(null);
     setSearchQuery('');
-    const enteringMgWithUnvalidatedSector =
-      next === '31' && (biomassType === 'livestock' || biomassType === 'urban');
-    if (enteringMgWithUnvalidatedSector) {
-      setBiomassType('agricultural');
-      setSelectedResidues(['sugarcane', 'soybean', 'corn', 'coffee', 'citrus']);
-      setDisplayMetric('biomass_tons');
-      setActivePresetId(null);
-    }
+    setSelectedResidues(nextResidues);
+    setActivePresetId(null);
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       if (next === SAO_PAULO_UF) params.delete('scope');
       else params.set('scope', next === SCOPE_BRAZIL ? 'brazil' : next);
       params.delete('q');
-      if (enteringMgWithUnvalidatedSector) {
-        params.set('type', 'agricultural');
-        params.set('r', 'sugarcane,soybean,corn,coffee,citrus');
-        params.delete('metric');
-      }
+      if (nextResidues.length > 0) params.set('r', nextResidues.join(','));
+      else params.delete('r');
       window.history.replaceState(null, '', `${window.location.pathname}?${params.toString()}`);
     }
-  }, [biomassType]);
+  }, [selectedResidues]);
 
   const handleVisualizationModeChange = (mode: VisualizationMode) => {
     setVisualizationMode(mode);
@@ -391,7 +393,10 @@ export default function MapComponent({
       livestock: ['cattle', 'swine', 'poultry', 'aquaculture'],
       urban: ['rsu', 'rpo', 'sewage'],
     };
-    const residues = type === 'total' ? [] : sectorResidues[type];
+    const residues = sanitizeResiduesForScope(
+      scope,
+      type === 'total' ? [] : sectorResidues[type],
+    );
     const nextMetric: DisplayMetric = type === 'urban' && displayMetric === 'biomass_tons'
       ? 'methane_m3'
       : displayMetric;
@@ -404,13 +409,14 @@ export default function MapComponent({
   };
 
   const handleResiduesChange = (residues: ResidueType[]) => {
-    const nextMetric: DisplayMetric = residues.includes('sewage') && displayMetric === 'biomass_tons'
+    const scopedResidues = sanitizeResiduesForScope(scope, residues);
+    const nextMetric: DisplayMetric = scopedResidues.includes('sewage') && displayMetric === 'biomass_tons'
       ? 'methane_m3'
       : displayMetric;
-    setSelectedResidues(residues);
+    setSelectedResidues(scopedResidues);
     setDisplayMetric(nextMetric);
     setActivePresetId(null);
-    syncURL(visualizationMode, biomassType, residues, searchQuery, nextMetric);
+    syncURL(visualizationMode, biomassType, scopedResidues, searchQuery, nextMetric);
   };
 
   const handleSearchChange = (query: string) => {
@@ -507,15 +513,6 @@ export default function MapComponent({
   const [legendOpenMobile, setLegendOpenMobile] = useState(false);
 
   useEffect(() => { setIsMounted(true); }, []);
-
-  useEffect(() => {
-    if (!invalidMgInitialSector || typeof window === 'undefined') return;
-    const params = new URLSearchParams(window.location.search);
-    params.set('type', 'agricultural');
-    params.set('r', 'sugarcane,soybean,corn,coffee,citrus');
-    params.delete('metric');
-    window.history.replaceState(null, '', `${window.location.pathname}?${params.toString()}`);
-  }, [invalidMgInitialSector]);
 
   useEffect(() => {
     if (data && !loading && isMounted) {
@@ -708,7 +705,7 @@ export default function MapComponent({
   }, [scaledData, activeFilters, searchQuery, selectedResidues, scope, residueBreakdownAvailable, mapScenario, showNationalBeta]);
 
   // ── Adaptive colour scale ───────────────────────────────────────────────────
-  // Classified over the São Paulo municipalities CURRENTLY VISIBLE, in the
+  // Classified over the selected state's municipalities CURRENTLY VISIBLE, in the
   // active metric's display unit — the same values the choropleth paints and the
   // legend prints. Beta rows are excluded because the ramp never applies to
   // them; including them would let unvalidated numbers set the class limits.
@@ -726,7 +723,7 @@ export default function MapComponent({
       if (value !== null && value > 0) values.push(spec.toDisplay(value));
     }
     return computeAdaptiveBreaks(values);
-  }, [filteredData, displayMetric, biomassType, selectedResidues, mapScenario]);
+  }, [filteredData, displayMetric, biomassType, selectedResidues, mapScenario, scope]);
 
   // ── Guard states ────────────────────────────────────────────────────────────
   if (!isMounted) return <MapLoadingSkeleton />;
@@ -843,10 +840,8 @@ export default function MapComponent({
             <ThematicMapBar
               activePresetId={activePresetId}
               onApplyPreset={handleApplyPreset}
-              disabledBiomassTypes={isMgScope ? ['livestock', 'urban'] : []}
-              disabledResidues={isMgScope
-                ? ['cattle', 'swine', 'poultry', 'aquaculture', 'rsu', 'rpo', 'sewage']
-                : []}
+              disabledBiomassTypes={[]}
+              disabledResidues={isMgScope ? ['aquaculture', 'rpo', 'sewage'] : []}
               collapsed={thematicBarCollapsed}
               onToggleCollapsed={() => setThematicBarCollapsed((c) => !c)}
             />
@@ -970,7 +965,7 @@ export default function MapComponent({
                   daltonic={daltonic}
                   scaleBreaks={scaleBreaks}
                   showNationalBeta={showNationalBeta}
-                  paintBetaData={isMgScope}
+                  paintBetaData={isMgScope || showNationalBeta}
                   onMunicipalityClick={visualizationMode === 'clusters' ? undefined : handleMunicipalityClick}
                   onMunicipalityHover={visualizationMode === 'clusters' ? undefined : handleMunicipalityHover}
                 />

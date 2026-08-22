@@ -7,6 +7,7 @@ import { render } from '@testing-library/react';
 import { MapContainer } from 'react-leaflet';
 import MunicipalityLayer from './MunicipalityLayer';
 import type { MunicipalityCollection } from '@/types/geospatial';
+import { MG_DATA_STROKE } from '@/lib/mapScope';
 
 // react-leaflet and leaflet are mocked globally via jest.config moduleNameMapper
 // (src/test/mocks/*) so the component and test share one mock instance.
@@ -222,6 +223,55 @@ describe('MunicipalityLayer', () => {
   });
 
   describe('Color Scale', () => {
+    it('uses a neutral SP outline and the explicit blue MG pilot outline', () => {
+      const feature = (ibgeCode: string): MunicipalityCollection => ({
+        type: 'FeatureCollection',
+        features: [{
+          type: 'Feature',
+          geometry: { type: 'Polygon', coordinates: [[[-48.0, -22.0], [-48.1, -22.0], [-48.1, -22.1], [-48.0, -22.0]]] },
+          properties: {
+            ibge_code: ibgeCode,
+            name: 'Test',
+            total_biomass_tons_year: 1000,
+            total_biomass_coverage: 'measured',
+          },
+        }],
+      });
+
+      const { getByTestId, rerender } = render(
+        <MapContainer center={[0, 0]} zoom={10}>
+          <MunicipalityLayer data={feature('3509502')} displayMetric="biomass_tons" paintBetaData />
+        </MapContainer>
+      );
+      expect(getByTestId('geojson-layer')).toHaveAttribute('data-style-color', '#4b5563');
+
+      rerender(
+        <MapContainer center={[0, 0]} zoom={10}>
+          <MunicipalityLayer data={feature('3106200')} displayMetric="biomass_tons" paintBetaData />
+        </MapContainer>
+      );
+      expect(getByTestId('geojson-layer')).toHaveAttribute('data-style-color', MG_DATA_STROKE);
+    });
+
+    it('renders missing SP activity with no-data styling instead of a zero ramp value', () => {
+      const noData: MunicipalityCollection = {
+        type: 'FeatureCollection',
+        features: [{
+          type: 'Feature',
+          geometry: { type: 'Polygon', coordinates: [[[-48.0, -22.0], [-48.1, -22.0], [-48.1, -22.1], [-48.0, -22.0]]] },
+          properties: { ibge_code: '3500600', name: 'Águas de São Pedro' },
+        }],
+      };
+
+      const { getByTestId } = render(
+        <MapContainer center={[0, 0]} zoom={10}>
+          <MunicipalityLayer data={noData} biomassType="livestock" displayMetric="biomass_tons" />
+        </MapContainer>
+      );
+
+      expect(getByTestId('geojson-layer')).toHaveAttribute('data-style-fill-color', '#cbd5e1');
+    });
+
     it('should apply correct color for zero value', () => {
       // Color for 0 should be #f7f7f7 (light gray)
       const { getByTestId } = render(
