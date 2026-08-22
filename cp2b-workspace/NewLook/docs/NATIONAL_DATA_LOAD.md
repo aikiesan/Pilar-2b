@@ -22,11 +22,28 @@ and the national-aware frontend.
 | Geometry | `backend/data/shapefiles/BR_Municipios_2025.shp` (+ sidecars) | IBGE Malha Municipal Digital 2025 |
 | Livestock | `backend/data/raw/ibge_ppm/TABELA_{3939,74,3940}_…xlsx` | IBGE SIDRA (3939 / 74 / 3940) |
 | Urban waste | `backend/data/raw/snis/<year>_SNIS_ConsolidadoMunicipio.csv` | SNIS Série Histórica |
+| Agriculture | `backend/data/raw/pam/TABELA_161{2,3}_*.xlsx` | IBGE PAM/SIDRA 1612 + 1613 |
 | Infra (optional) | mounted at `/mnt/mapbiomas_infra` | MapBiomas 10.1 INFRAESTRUTURA |
 
-> **Agriculture is still SP-only** — there is no PAM/CONAB ingest source yet, so
-> outside São Paulo crop biomass renders honestly as `no_data`. Livestock and
-> urban waste are what go national here.
+Agriculture is promoted by `promote_pam.py`. It records reported production in
+`municipality_timeseries`, converts the five canonical crops to gross residue
+tonnage, and preserves every other PAM crop as production-only when
+`--all-crops` is used.
+
+### MG-only pilot
+
+```bash
+docker compose exec -T backend python scripts/seed_national_municipalities.py \
+  --uf MG --mesh-path /app/data/shapefiles/MG_Municipios_2024/MG_Municipios_2024.shp \
+  --mesh-year 2024 --dry-run
+docker compose exec -T backend python scripts/seed_national_municipalities.py \
+  --uf MG --mesh-path /app/data/shapefiles/MG_Municipios_2024/MG_Municipios_2024.shp \
+  --mesh-year 2024
+docker compose exec -T backend python scripts/promote_pam.py \
+  --year 2023 --uf MG --all-crops --dry-run
+docker compose exec -T backend python scripts/promote_pam.py \
+  --year 2023 --uf MG --all-crops
+```
 
 ## Steps
 
@@ -74,6 +91,7 @@ WITH_INFRA=1      ./backend/scripts/load_national.sh   # also load infra layers
 |---|---|---|
 | Migrations | `backend/app/migrations/*.sql` | schema incl. spine (021), geometry LOD (022), infra (023), timeseries (024), provenance (025) |
 | Spine | `seed_national_municipalities.py` | 5,571 municipalities + geometry from the 2025 mesh |
+| Agriculture | `promote_pam.py` | PAM production timeseries + five residue streams + provenance |
 | Livestock | `promote_ibge_ppm.py` | herd/product/aquaculture rows in `municipality_timeseries` |
 | Urban waste | `promote_snis.py` | measured waste/sewage/population rows (blanks dropped, not zeroed) |
 | Intermediate regions | `load_national_intermediate_data.py` | 133 IBGE intermediate-region rows |

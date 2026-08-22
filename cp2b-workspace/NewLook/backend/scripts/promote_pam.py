@@ -82,6 +82,7 @@ from app.services.canonical_loader import (  # noqa: E402
     residue_tons_from_production,
 )
 from ingest.contract import IngestContext  # noqa: E402
+from ingest.ibge import CODE_PREFIX_BY_UF  # noqa: E402
 from ingest.sources.pam import _sidra  # noqa: E402
 from ingest.sources.pam_1612 import source as pam1612  # noqa: E402
 from ingest.sources.pam_1613 import source as pam1613  # noqa: E402
@@ -98,10 +99,15 @@ CROPS: dict[str, tuple[object, str, str]] = {
 }
 DEFAULT_CROPS = ("soybean", "corn", "coffee", "citrus", "sugarcane")
 
+PAM_PRODUCTION_UNITS: dict[str, str] = {
+    "Abacaxi*": "mil frutos",
+    "Coco-da-baía*": "mil frutos",
+}
+
 TIMESERIES_SQL = """
 INSERT INTO municipality_timeseries
     (ibge_code, year, source_id, variable, value, unit, quality)
-VALUES (%(ibge_code)s, %(year)s, %(source_id)s, %(variable)s, %(value)s, 't', 'measured')
+VALUES (%(ibge_code)s, %(year)s, %(source_id)s, %(variable)s, %(value)s, %(unit)s, 'measured')
 ON CONFLICT (ibge_code, year, source_id, variable) DO UPDATE
 SET value = EXCLUDED.value, unit = EXCLUDED.unit, quality = EXCLUDED.quality
 """
@@ -141,7 +147,9 @@ def dsn() -> str:
     )
 
 
-def build_rows(year: int, crops: tuple[str, ...]) -> tuple[list[dict], list[dict], dict]:
+def build_rows(
+    year: int, crops: tuple[str, ...], uf: str | None = None
+) -> tuple[list[dict], list[dict], dict]:
     """Load each PAM table once, then derive timeseries/column/provenance rows."""
     frames: dict[object, pd.DataFrame] = {}
     timeseries: list[dict] = []
@@ -157,7 +165,10 @@ def build_rows(year: int, crops: tuple[str, ...]) -> tuple[list[dict], list[dict
         mill_fraction = mill_delivery_fraction(stream)
         produced = residue = 0.0
         written = 0
-        for code, value in zip(frame["ibge_code"], frame[production_column]):
+        scoped = frame
+        if uf:
+            scoped = frame[frame["ibge_code"].astype(str).str.startswith(CODE_PREFIX_BY_UF[uf])]
+        for code, value in zip(scoped["ibge_code"], scoped[production_column]):
             if pd.isna(value):
                 continue  # '..' not surveyed, or 'X' withheld — never a zero
             production = float(value)
@@ -175,6 +186,7 @@ def build_rows(year: int, crops: tuple[str, ...]) -> tuple[list[dict], list[dict
                     "source_id": source_id,
                     "variable": f"{stream}_producao",
                     "value": production,
+                    "unit": "t",
                 }
             )
             columns.append(
@@ -198,10 +210,11 @@ def build_rows(year: int, crops: tuple[str, ...]) -> tuple[list[dict], list[dict
     return timeseries, columns, summary
 
 
-def promote(year: int, crops: tuple[str, ...], dry_run: bool) -> int:
-    timeseries, columns, summary = build_rows(year, crops)
+def promote(year: int, crops: tuple[str, ...], dry_run: bool, uf: str | None = None) -> int:
+    timeseries, columns, summary = build_rows(year, crops, uf)
 
-    print(f"\nPAM {year} — {'DRY RUN' if dry_run else 'PROMOTING'}")
+    scope = uf or "BR"
+    print(f"\nPAM {year} / {scope} — {'DRY RUN' if dry_run else 'PROMOTING'}")
     print(f"{'crop':10s} {'municipalities':>15s} {'production Mt':>15s} {'residue Mt':>13s}")
     for stream, s in summary.items():
         print(
@@ -229,15 +242,20 @@ def promote(year: int, crops: tuple[str, ...], dry_run: bool) -> int:
                     rows,
                 )
             cursor.executemany(PROVENANCE_SQL, columns)
-            cursor.execute(ROLLUP_SQL)
+            if uf:
+                cursor.execute(ROLLUP_SQL + " WHERE uf = %s", (uf,))
+            else:
+                cursor.execute(ROLLUP_SQL)
         print("\ncommitted (single transaction)")
     finally:
         connection.close()
     return 0
 
 
-def build_all_crop_rows(year: int) -> tuple[list[dict], dict[str, float]]:
-    """Every PAM product -> municipality_timeseries, production tonnes.
+def build_all_crop_rows(
+    year: int, uf: str | None = None
+) -> tuple[list[dict], dict[str, float]]:
+    """Every PAM product -> municipality_timeseries, in its reported unit.
 
     The five modelled streams reach the map through the biomass columns; this
     preserves the REST of PAM (~60 further crops) as an auditable record so the
@@ -246,9 +264,8 @@ def build_all_crop_rows(year: int) -> tuple[list[dict], dict[str, float]]:
     BMP/TS/VS/FDE/RPR block cannot be turned into biogas potential, and writing
     one as though it could is the invention this codebase keeps removing.
 
-    Scale, for context: the 5 modelled crops are 1,087 Mt of the 1,183 Mt PAM
-    reports for 2023 — 92%. Everything below is the remaining 96 Mt, spread thin
-    (mandioca 18.4, arroz 10.3, trigo 7.7, algodão 7.5, and a long tail).
+    Abacaxi and coco-da-baía are reported in thousand fruits, per the workbook
+    notes; every other 2023 product is tonnes. Mixed units are never summed.
     """
     rows: list[dict] = []
     totals: dict[str, float] = {}
@@ -256,6 +273,8 @@ def build_all_crop_rows(year: int) -> tuple[list[dict], dict[str, float]]:
         base = module.fetch(year, RAW_DIR)
         reading = _sidra.read_year(_sidra.select_workbook(base, module.TABLE, year), year)
         for code, products in reading.items():
+            if uf and not str(code).startswith(CODE_PREFIX_BY_UF[uf]):
+                continue
             for product, value in products.items():
                 if value is None:
                     continue  # '..' not surveyed / 'X' withheld — never a zero
@@ -266,6 +285,7 @@ def build_all_crop_rows(year: int) -> tuple[list[dict], dict[str, float]]:
                         "source_id": source_id,
                         "variable": f"pam_{_slug(product)}",
                         "value": float(value),
+                        "unit": PAM_PRODUCTION_UNITS.get(product, "t"),
                     }
                 )
                 totals[product] = totals.get(product, 0.0) + float(value)
@@ -283,6 +303,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--year", type=int, required=True)
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--uf", type=str.upper, choices=sorted(CODE_PREFIX_BY_UF))
     parser.add_argument(
         "--all-crops",
         action="store_true",
@@ -291,14 +312,21 @@ def main() -> int:
         "become biomass or biogas potential)",
     )
     parser.add_argument(
+        "--production-only",
+        action="store_true",
+        help="record all PAM production timeseries without updating the five "
+        "validated biomass columns; requires --all-crops",
+    )
+    parser.add_argument(
         "--include-sugarcane",
         action="store_true",
-        help="promote cane off PAM production too — see the module docstring for why "
-        "its sub-streams need moagem and ethanol denominators instead",
+        help=argparse.SUPPRESS,
     )
     args = parser.parse_args()
 
-    crops = DEFAULT_CROPS + (("sugarcane",) if args.include_sugarcane else ())
+    if args.production_only and not args.all_crops:
+        parser.error("--production-only requires --all-crops")
+    crops = DEFAULT_CROPS
 
     # Gates must pass before anything is written — the promote step never
     # revalidates on its own (ingest/README.md).
@@ -314,16 +342,33 @@ def main() -> int:
             return 1
         print(f"gates green: {module.SPEC.source_id}")
 
-    rc = promote(args.year, crops, args.dry_run)
-    if rc or not args.all_crops:
+    rc = 0
+    if not args.production_only:
+        rc = promote(args.year, crops, args.dry_run, args.uf)
+        if rc:
+            return rc
+    else:
+        print("\nproduction-only — validated biomass columns will not be changed")
+    if not args.all_crops:
         return rc
 
-    rows, totals = build_all_crop_rows(args.year)
+    rows, totals = build_all_crop_rows(args.year, args.uf)
     modelled = {"Cana-de-açúcar", "Soja (em grão)", "Milho (em grão)", "Laranja"}
     extra = {k: v for k, v in totals.items() if k not in modelled and "Café (em grão)" not in k}
     print(f"\nALL CROPS — {len(totals)} PAM products, {len(rows):,} timeseries rows")
     print(f"  modelled as biomass streams : {len(modelled) + 1}")
-    print(f"  recorded as production only : {len(extra)}  ({sum(extra.values())/1e6:,.1f} Mt)")
+    extra_tonnes = {
+        key: value
+        for key, value in extra.items()
+        if PAM_PRODUCTION_UNITS.get(key, "t") == "t"
+    }
+    non_tonnes = {key: value for key, value in extra.items() if key not in extra_tonnes}
+    print(
+        f"  recorded as production only : {len(extra)}  "
+        f"({sum(extra_tonnes.values())/1e6:,.1f} Mt across tonne-denominated products)"
+    )
+    for product, value in non_tonnes.items():
+        print(f"  {product:28s}: {value:,.0f} {PAM_PRODUCTION_UNITS[product]}")
 
     if args.dry_run:
         print("dry run — nothing written")

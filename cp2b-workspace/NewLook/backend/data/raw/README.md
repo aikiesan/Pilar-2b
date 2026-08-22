@@ -53,6 +53,22 @@ backend/data/raw/snis/2022_SNIS_ConsolidadoMunicipio.csv
 - Only measured values are promoted (`quality='measured'`); blank cells are
   dropped, never written as zero (only ~24% of municipalities report tonnage).
 
+### 4. IBGE PAM — municipal crop production
+
+```
+backend/data/raw/pam/TABELA_1612_*.xlsx
+backend/data/raw/pam/TABELA_1613_*.xlsx
+```
+
+- Source: IBGE SIDRA tables **1612** (temporary crops) and **1613**
+  (permanent crops).
+- Consumed by: `scripts/promote_pam.py`.
+- The canonical streams are sugarcane, soybean, corn, coffee and citrus. The
+  database biomass columns store derived **residue t/year**, while reported
+  crop production remains unchanged in `municipality_timeseries`.
+- Use `--uf MG` for the MG pilot and `--all-crops` to retain other PAM products
+  as production-only records.
+
 ## Optional — infrastructure point layers (biogas/ethanol plants, substations…)
 
 MapBiomas 10.1 **INFRAESTRUTURA** vectors. These live **outside** `backend/`, so
@@ -64,8 +80,9 @@ it at your local MapBiomas folder (mounted read-only at `/mnt/mapbiomas_infra`).
   (override the path with `MAPBIOMAS_INFRA_DIR`)
 - Not needed for the core biomass/biogas choropleth.
 
-## Not yet national
+## Coverage warning
 
-Agricultural biomass (crops) still comes from the SP-only dataset — there is no
-PAM/CONAB ingest source yet, so outside São Paulo agriculture renders honestly as
-`no_data`. Livestock and urban waste are the two streams that go national here.
+Having a loader does not mean the local raw files are present. A state is ready
+only after its source gates, municipality coverage, provenance and API totals
+have all been checked. In the current MG pilot, PAM agriculture is promoted;
+PPM livestock and SNIS urban waste remain pending their exact national inputs.

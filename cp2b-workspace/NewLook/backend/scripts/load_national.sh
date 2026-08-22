@@ -3,8 +3,8 @@
 # load_national.sh — populate a fresh local DB with the national dataset.
 #
 # Takes an empty `docker compose up` database to the full national map:
-# 5,571 municipalities with geometry, livestock (IBGE PPM) and urban-waste
-# (SNIS) biomass, and the biogas potential the API derives from them.
+# 5,571 municipalities with geometry, agriculture (IBGE PAM), livestock (IBGE
+# PPM) and urban-waste (SNIS) biomass, and the biogas potential the API derives.
 #
 # Run from the NewLook/ directory (the one with docker-compose.yml), AFTER
 # `docker compose up --build` is healthy and AFTER you have dropped the raw
@@ -19,6 +19,7 @@
 #   PG_USER=postgres  PG_DB=cp2b_maps
 #   PPM_FULL_SERIES=1   # promote 2008-2024 (unfed-aggregation years) instead of
 #                       # just the fully-gated 2024. See promote_ibge_ppm.py.
+#   PAM_YEAR=2023       # PAM reference year; also retains every crop timeseries
 #   WITH_INFRA=1        # also load MapBiomas infra layers (needs the override mount)
 #
 set -euo pipefail
@@ -43,6 +44,7 @@ cd "$ROOT"
 MESH="backend/data/shapefiles/BR_Municipios_2025.shp"
 PPM_DIR="backend/data/raw/ibge_ppm"
 SNIS_DIR="backend/data/raw/snis"
+PAM_DIR="backend/data/raw/pam"
 
 say()  { printf '\n\033[1;36m==> %s\033[0m\n' "$*"; }
 ok()   { printf '  \033[32m✓\033[0m %s\n' "$*"; }
@@ -57,6 +59,15 @@ for c in "$DB_CONTAINER" "$BACKEND_CONTAINER"; do
     ok "container running: $c"
   else
     bad "container not running: $c  (run: docker compose up -d)"
+    missing=1
+  fi
+done
+
+for table in 1612 1613; do
+  if find "$PAM_DIR" -maxdepth 1 -name "TABELA_${table}_*.xlsx" -print -quit 2>/dev/null | grep -q .; then
+    ok "IBGE PAM table $table: $PAM_DIR"
+  else
+    bad "MISSING IBGE PAM table $table workbook(s) in $PAM_DIR"
     missing=1
   fi
 done
@@ -122,7 +133,11 @@ fi
 say "Seeding national municipality spine + geometry"
 pyrun scripts/seed_national_municipalities.py "${DRY[@]}"
 
-# ── 4. Livestock — IBGE PPM → municipality_timeseries ────────────────────────
+# ── 4. Agriculture — IBGE PAM → timeseries + residue columns ─────────────────
+say "Promoting IBGE PAM (agriculture)"
+pyrun scripts/promote_pam.py --year "${PAM_YEAR:-2023}" --all-crops "${DRY[@]}"
+
+# ── 5. Livestock — IBGE PPM → municipality_timeseries ────────────────────────
 say "Promoting IBGE PPM (livestock)"
 if [[ "${PPM_FULL_SERIES:-0}" == "1" ]]; then
   echo "  (full series 2008-2024 — pre-2024 years rely on --accept-unfed-aggregation)"
@@ -132,11 +147,11 @@ else
   pyrun scripts/promote_ibge_ppm.py --year 2024 "${DRY[@]}"
 fi
 
-# ── 5. Urban waste — SNIS → municipality_timeseries ──────────────────────────
+# ── 6. Urban waste — SNIS → municipality_timeseries ──────────────────────────
 say "Promoting SNIS (urban waste + sewage + population)"
 pyrun scripts/promote_snis.py --years 2008-2022 "${DRY[@]}"
 
-# ── 6. Intermediate regions (CSV is in git) ──────────────────────────────────
+# ── 7. Intermediate regions (CSV is in git) ──────────────────────────────────
 # The intermediate_regions table lives in backend/migrations/007 (a different
 # dir than app/migrations/, so the loop above does not create it). It is
 # idempotent (IF NOT EXISTS), so applying it here is safe on a re-run.
@@ -148,7 +163,7 @@ else
   pyrun scripts/load_national_intermediate_data.py
 fi
 
-# ── 7. Infrastructure layers (optional — needs the MapBiomas mount) ──────────
+# ── 8. Infrastructure layers (optional — needs the MapBiomas mount) ──────────
 if [[ "${WITH_INFRA:-0}" == "1" ]]; then
   say "Loading MapBiomas infrastructure layers"
   pyrun scripts/load_infrastructure_layers.py "${DRY[@]}"

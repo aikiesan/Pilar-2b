@@ -43,12 +43,17 @@ import geopandas as gpd
 import psycopg2
 from psycopg2.extras import execute_batch
 
+sys.path.insert(0, "/app")
+
+from ingest.ibge import MUNICIPALITY_COUNT_BY_UF, TOTAL_MUNICIPALITIES  # noqa: E402
+
 # Mirrors ingest.ibge.NON_MUNICIPAL_MESH_CODES. Duplicated rather than imported
 # so this script runs standalone inside the container (where `ingest` may not be
 # on sys.path); the test suite asserts the canonical set in ingest/ibge.py.
 NON_MUNICIPAL_MESH_CODES = {"4300001", "4300002"}
 
 MESH_PATH = os.environ.get("MESH_PATH", "/app/data/shapefiles/BR_Municipios_2025.shp")
+MESH_YEAR = int(os.environ.get("MESH_YEAR", "2025"))
 TARGET_SRID = 4326  # municipalities.geometry is GEOMETRY(MultiPolygon, 4326)
 
 INSERT_SQL = """
@@ -66,7 +71,7 @@ VALUES (
     ST_PointOnSurface(ST_MakeValid(ST_GeomFromWKB(%(wkb)s::bytea, 4326))),
     ST_Y(ST_PointOnSurface(ST_MakeValid(ST_GeomFromWKB(%(wkb)s::bytea, 4326)))),
     ST_X(ST_PointOnSurface(ST_MakeValid(ST_GeomFromWKB(%(wkb)s::bytea, 4326)))),
-    %(area_km2)s, 2025,
+    %(area_km2)s, %(area_year)s,
     %(rgi_name)s, %(rgi_code)s,
     %(rgint_name)s, %(rgint_code)s,
     'provisional'
@@ -88,8 +93,8 @@ def dsn() -> str:
     )
 
 
-def load_mesh() -> gpd.GeoDataFrame:
-    gdf = gpd.read_file(MESH_PATH, engine="pyogrio")
+def load_mesh(mesh_path: str, uf: str | None = None) -> gpd.GeoDataFrame:
+    gdf = gpd.read_file(mesh_path, engine="pyogrio")
     print(f"mesh records read           : {len(gdf)}")
 
     dropped = gdf[gdf["CD_MUN"].isin(NON_MUNICIPAL_MESH_CODES)]
@@ -97,9 +102,16 @@ def load_mesh() -> gpd.GeoDataFrame:
         print(f"  dropping non-municipal    : {r['CD_MUN']} {r['NM_MUN']!r} ({r['AREA_KM2']} km2)")
     gdf = gdf[~gdf["CD_MUN"].isin(NON_MUNICIPAL_MESH_CODES)].copy()
 
+    if uf:
+        gdf = gdf[gdf["SIGLA_UF"].astype(str).str.upper() == uf].copy()
+
     # Fail loudly rather than seed a wrong spine: the coverage gate stands on this.
-    if len(gdf) != 5571:
-        raise SystemExit(f"expected 5,571 municipalities after filtering, got {len(gdf)}")
+    expected = MUNICIPALITY_COUNT_BY_UF[uf] if uf else TOTAL_MUNICIPALITIES
+    if len(gdf) != expected:
+        scope = uf or "Brazil"
+        raise SystemExit(
+            f"expected {expected:,} municipalities for {scope} after filtering, got {len(gdf):,}"
+        )
     if gdf["CD_MUN"].duplicated().any():
         raise SystemExit("duplicate CD_MUN in mesh — refusing to seed")
     if gdf["CD_RGINT"].str.strip().eq("").any():
@@ -115,9 +127,12 @@ def load_mesh() -> gpd.GeoDataFrame:
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--dry-run", action="store_true", help="validate + report, write nothing")
+    ap.add_argument("--uf", type=str.upper, choices=sorted(MUNICIPALITY_COUNT_BY_UF))
+    ap.add_argument("--mesh-path", default=MESH_PATH)
+    ap.add_argument("--mesh-year", type=int, default=MESH_YEAR)
     args = ap.parse_args()
 
-    gdf = load_mesh()
+    gdf = load_mesh(args.mesh_path, args.uf)
     print(f"municipalities to consider  : {len(gdf)}")
 
     rows = [
@@ -127,6 +142,7 @@ def main() -> int:
             "uf": r["SIGLA_UF"],
             "wkb": r["geometry"].wkb,
             "area_km2": float(r["AREA_KM2"]),
+            "area_year": args.mesh_year,
             "rgi_name": r["NM_RGI"],
             "rgi_code": r["CD_RGI"],
             "rgint_name": r["NM_RGINT"],
