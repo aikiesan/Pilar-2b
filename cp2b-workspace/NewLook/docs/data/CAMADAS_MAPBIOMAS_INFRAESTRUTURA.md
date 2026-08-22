@@ -98,16 +98,18 @@ emergência, não substituível por biometano. Só as 52 a gás natural interess
 ## 5. Recarregar
 
 ```bash
-# Docker (a pasta é montada em /mnt/mapbiomas)
-docker run --rm --network newlook_default \
-  -v "<host>/SHAPEFILES_MAPBIOMAS_10.1:/mnt/mapbiomas:ro" \
-  -v "<repo>/backend/scripts:/scripts:ro" \
-  -e DATABASE_URL="postgresql://postgres:password@db:5432/cp2b_maps" \
-  newlook-backend python /scripts/load_infrastructure_layers.py --dry-run
+# Docker Desktop: lê diretamente os ZIPs da entrega MapBiomas e preserva o volume
+docker compose --profile infrastructure run --rm infrastructure-loader
 
-# uma camada só
-... python /scripts/load_infrastructure_layers.py --layer highway_state
+# Entrega em outro diretório no host
+MAPBIOMAS_ARCHIVE_DIR="<host>/shapefiles_infraestrutura_mapbiomas" \
+  docker compose --profile infrastructure run --rm infrastructure-loader
 ```
 
 O carregador é idempotente por `layer_id` (apaga e regrava a camada), então
-rodar de novo é seguro — ao contrário da migração 004.
+rodar de novo é seguro — ao contrário da migração 004. O bootstrap também
+instala as fontes legadas de ETEs e rodovias SP a partir de uma revisão fixada
+do repositório de dados. A entrega atual contém a área protegida estadual `v1`,
+aceita como fallback para o nome `v2`, mas não contém `SETTLEMENTS_v3`; por isso
+a camada de assentamentos responde como coleção vazia até que a fonte oficial
+seja fornecida.
