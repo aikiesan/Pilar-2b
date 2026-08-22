@@ -32,13 +32,17 @@ tonnage, and preserves every other PAM crop as production-only when
 
 ### MG-only pilot
 
+```powershell
+# The reviewed 2025 source stays outside Git and is mounted read-only.
+docker compose run --rm `
+  -v "A:\Pilar-2b\00_Fontes_Primarias-20260802T093400Z-1-001\MG_Municipios_2025:/data/mg:ro" `
+  backend python scripts/seed_national_municipalities.py `
+  --uf MG --mesh-path /data/mg/MG_Municipios_2025.shp --mesh-year 2025 `
+  --update-existing --dry-run
+
+# Remove --dry-run only after the script confirms 853 records and SIRGAS 2000.
+
 ```bash
-docker compose exec -T backend python scripts/seed_national_municipalities.py \
-  --uf MG --mesh-path /app/data/shapefiles/MG_Municipios_2024/MG_Municipios_2024.shp \
-  --mesh-year 2024 --dry-run
-docker compose exec -T backend python scripts/seed_national_municipalities.py \
-  --uf MG --mesh-path /app/data/shapefiles/MG_Municipios_2024/MG_Municipios_2024.shp \
-  --mesh-year 2024
 docker compose exec -T backend python scripts/promote_pam.py \
   --year 2023 --uf MG --all-crops --dry-run
 docker compose exec -T backend python scripts/promote_pam.py \
@@ -83,7 +87,8 @@ WITH_INFRA=1      ./backend/scripts/load_national.sh   # also load infra layers
   not "wrong" (see `promote_ibge_ppm.py`).
 - **Idempotent:** every step is safe to re-run. Migrations use `IF NOT EXISTS`;
   the promotes upsert on their unique keys; the seed uses `ON CONFLICT DO NOTHING`
-  and never touches the validated SP rows.
+  unless `--update-existing --uf XX` is explicitly selected. That opt-in refresh
+  changes only municipality mesh metadata and never touches biomass or scenarios.
 
 ## What each step does
 

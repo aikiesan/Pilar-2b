@@ -5,7 +5,9 @@ Environment: local Docker Desktop (`cp2b_maps`)
 
 ## What is live now
 
-- Municipality spine: **853/853 MG municipalities**, official IBGE 2024 mesh.
+- Municipality spine: **853/853 MG municipalities**, refreshed from the
+  official IBGE 2025 mesh (`MG_Municipios_2025`; SIRGAS 2000). The raw
+  shapefile remains local and outside Git.
 - Public API scope: **645 SP + 853 MG = 1,498**, no other UF returned.
 - PAM 2023: **59,570 MG timeseries rows**, including 55,407 `pam_*` records
   across 67 products and 851 municipalities with at least one reported product.

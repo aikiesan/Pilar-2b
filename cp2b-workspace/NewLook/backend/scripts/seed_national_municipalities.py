@@ -10,8 +10,8 @@ and on `municipalities.uf` / `data_confidence` existing.
     docker exec cp2b-backend-dev python /tmp/seed_national_municipalities.py --dry-run
     docker exec cp2b-backend-dev python /tmp/seed_national_municipalities.py
 
-WHAT THIS DOES NOT DO (deliberately)
-------------------------------------
+WHAT THIS DOES NOT DO BY DEFAULT (deliberately)
+-----------------------------------------------
 It never touches rows that already exist (`ON CONFLICT (ibge_code) DO NOTHING`).
 The 645 SP rows carry validated FDE parameters, biogas potentials, and geometry
 from SP_Municipios_2024 — overwriting their geometry/area/centroid from a
@@ -19,6 +19,11 @@ different mesh would shift the platform's published SP headline numbers with no
 explanation, which the regression gate (gates.py #8) exists to prevent. The
 result is a deliberate mixed-mesh state (SP=2024, rest=2025); unifying SP onto
 MMD 2025 is a separate, regression-gated change.
+
+For a reviewed, UF-scoped mesh refresh, `--update-existing` updates only the
+municipality identity, geometry, centroid, area and IBGE region metadata. It
+does not touch biomass, scenario, provenance or economic columns. The flag is
+rejected without `--uf` so a national overwrite cannot happen accidentally.
 
 THE TWO MESH TRAPS (both are real; both are handled here)
 --------------------------------------------------------
@@ -56,7 +61,7 @@ MESH_PATH = os.environ.get("MESH_PATH", "/app/data/shapefiles/BR_Municipios_2025
 MESH_YEAR = int(os.environ.get("MESH_YEAR", "2025"))
 TARGET_SRID = 4326  # municipalities.geometry is GEOMETRY(MultiPolygon, 4326)
 
-INSERT_SQL = """
+INSERT_VALUES_SQL = """
 INSERT INTO municipalities (
     municipality_name, ibge_code, uf,
     geometry, centroid, centroid_lat, centroid_lng,
@@ -76,7 +81,24 @@ VALUES (
     %(rgint_name)s, %(rgint_code)s,
     'provisional'
 )
-ON CONFLICT (ibge_code) DO NOTHING
+"""
+
+INSERT_SQL = INSERT_VALUES_SQL + "ON CONFLICT (ibge_code) DO NOTHING"
+
+UPSERT_MESH_SQL = INSERT_VALUES_SQL + """
+ON CONFLICT (ibge_code) DO UPDATE SET
+    municipality_name = EXCLUDED.municipality_name,
+    uf = EXCLUDED.uf,
+    geometry = EXCLUDED.geometry,
+    centroid = EXCLUDED.centroid,
+    centroid_lat = EXCLUDED.centroid_lat,
+    centroid_lng = EXCLUDED.centroid_lng,
+    area_km2 = EXCLUDED.area_km2,
+    area_year = EXCLUDED.area_year,
+    immediate_region = EXCLUDED.immediate_region,
+    immediate_region_code = EXCLUDED.immediate_region_code,
+    intermediate_region = EXCLUDED.intermediate_region,
+    intermediate_region_code = EXCLUDED.intermediate_region_code
 """
 
 
@@ -130,7 +152,15 @@ def main() -> int:
     ap.add_argument("--uf", type=str.upper, choices=sorted(MUNICIPALITY_COUNT_BY_UF))
     ap.add_argument("--mesh-path", default=MESH_PATH)
     ap.add_argument("--mesh-year", type=int, default=MESH_YEAR)
+    ap.add_argument(
+        "--update-existing",
+        action="store_true",
+        help="refresh existing mesh metadata for one --uf; never touches biomass/scenarios",
+    )
     args = ap.parse_args()
+
+    if args.update_existing and not args.uf:
+        ap.error("--update-existing requires an explicit --uf")
 
     gdf = load_mesh(args.mesh_path, args.uf)
     print(f"municipalities to consider  : {len(gdf)}")
@@ -163,15 +193,21 @@ def main() -> int:
                 existing = {r[0] for r in cur.fetchall()}
                 new = [r for r in rows if r["code"] not in existing]
                 print(f"[dry-run] would insert      : {len(new)}")
-                print(f"[dry-run] would skip        : {len(rows) - len(new)} (already present)")
+                existing_count = len(rows) - len(new)
+                if args.update_existing:
+                    print(f"[dry-run] would refresh     : {existing_count} existing {args.uf} rows")
+                else:
+                    print(f"[dry-run] would skip        : {existing_count} (already present)")
                 conn.rollback()
                 return 0
 
-            execute_batch(cur, INSERT_SQL, rows, page_size=200)
+            execute_batch(cur, UPSERT_MESH_SQL if args.update_existing else INSERT_SQL, rows, page_size=200)
             cur.execute("SELECT count(*) FROM municipalities")
             after = cur.fetchone()[0]
         conn.commit()
         print(f"municipalities after        : {after}  (+{after - before})")
+        if args.update_existing:
+            print(f"mesh rows refreshed         : {len(rows)} ({args.uf}, {args.mesh_year})")
     finally:
         conn.close()
     return 0
