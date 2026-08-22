@@ -432,7 +432,19 @@ async def get_infrastructure_layer_geojson(
 
         geojson = result["geojson"] if result else None
         if not geojson or not geojson.get("features"):
-            raise HTTPException(status_code=404, detail=f"No features for layer '{layer_id}'")
+            # A layer can be intentionally absent from a developer's local data
+            # drop (the source vectors are not committed).  Empty GeoJSON is a
+            # valid map response and lets the UI show its existing availability
+            # notice; a 404 instead produced retries plus a noisy console error
+            # for every toggle even though the API route itself was healthy.
+            return {
+                "type": "FeatureCollection",
+                "features": [],
+                "metadata": {
+                    "layer_id": layer_id,
+                    "error": f"No features loaded for layer '{layer_id}'",
+                },
+            }
         return geojson
 
     return cached_json_response(request, cache_key, build)

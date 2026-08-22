@@ -41,6 +41,31 @@ services:
         condition: service_healthy
     restart: "no"
 
+  # Optional one-shot loader for the large, gitignored infrastructure vectors.
+  # Run with: docker compose --profile infrastructure run --rm infrastructure-loader
+  infrastructure-loader:
+    profiles: ["infrastructure"]
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    command:
+      - python
+      - scripts/setup_local_infrastructure.py
+      - --archive-dir
+      - /mnt/mapbiomas_archives
+    volumes:
+      - ./backend:/app
+      - ${MAPBIOMAS_ARCHIVE_DIR:-../../00_Fontes_Primarias-20260802T093400Z-1-001/shapefiles_infraestrutura_mapbiomas}:/mnt/mapbiomas_archives:ro
+    environment:
+      DATABASE_URL: postgresql://postgres:password@db:5432/cp2b_maps
+      PYTHONUNBUFFERED: "1"
+    depends_on:
+      db:
+        condition: service_healthy
+      db-migrations:
+        condition: service_completed_successfully
+    restart: "no"
+
   # ─── FastAPI backend (hot-reload) ─────────────────────────────────────────
   backend:
     build:

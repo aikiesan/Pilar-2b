@@ -34,6 +34,9 @@ import argparse
 import json
 import os
 import sys
+import tempfile
+import zipfile
+from contextlib import contextmanager
 from pathlib import Path
 
 import geopandas as gpd
@@ -46,6 +49,24 @@ INFRA_DIR = Path(os.environ.get("MAPBIOMAS_INFRA_DIR", "/mnt/mapbiomas_infra"))
 # Root of SHAPEFILES_MAPBIOMAS_10.1, for the layers that live OUTSIDE
 # INFRAESTRUTURA/ (protected areas, settlements, indigenous territories).
 MAPBIOMAS_DIR = Path(os.environ.get("MAPBIOMAS_DIR", "/mnt/mapbiomas"))
+# Docker Desktop keeps the original MapBiomas downloads as ZIP files outside
+# the repository.  Mount that directory here and the loader can consume the
+# archives directly; developers no longer need to hand-build the exact folder
+# tree expected by the original VM runbook.
+ARCHIVE_DIR = Path(os.environ.get("MAPBIOMAS_ARCHIVE_DIR", "/mnt/mapbiomas_archives"))
+
+# The local source drop contains v1 of the state integral-protection layer,
+# while the VM dataset used v2.  Both have the same role/schema for this map;
+# prefer the documented v2 folder but accept the locally archived v1 source.
+SOURCE_ALIASES: dict[str, tuple[str, ...]] = {
+    "STATE_PROTECTED_AREAS_INTEGRAL_PROTECTION_v2": (
+        "STATE_PROTECTED_AREAS_INTEGRAL_PROTECTION_v1",
+    ),
+}
+
+
+def _source_names(rel: str) -> tuple[str, ...]:
+    return (rel, *SOURCE_ALIASES.get(rel, ()))
 
 
 def resolve_folder(rel: str) -> Path | None:
@@ -56,10 +77,57 @@ def resolve_folder(rel: str) -> Path | None:
     INFRAESTRUTURA, reachable only from the root. Both are tried rather than
     forcing every existing runbook to change.
     """
-    for cand in (MAPBIOMAS_DIR / rel, INFRA_DIR / Path(rel).name, INFRA_DIR / rel):
-        if cand.is_dir():
-            return cand
+    for source_name in _source_names(rel):
+        for cand in (
+            MAPBIOMAS_DIR / source_name,
+            INFRA_DIR / Path(source_name).name,
+            INFRA_DIR / source_name,
+        ):
+            if cand.is_dir():
+                return cand
     return None
+
+
+def resolve_archive(rel: str) -> Path | None:
+    """Find a source ZIP in the optional Docker-local archive mount."""
+    for source_name in _source_names(rel):
+        for cand in (
+            ARCHIVE_DIR / f"{source_name}.zip",
+            ARCHIVE_DIR / f"{Path(source_name).name}.zip",
+        ):
+            if cand.is_file():
+                return cand
+    return None
+
+
+def _safe_extract_zip(archive: Path, destination: Path) -> None:
+    """Extract a trusted data ZIP without permitting path traversal."""
+    root = destination.resolve()
+    with zipfile.ZipFile(archive) as bundle:
+        for member in bundle.infolist():
+            target = (destination / member.filename).resolve()
+            if target != root and root not in target.parents:
+                raise ValueError(f"unsafe path in {archive.name}: {member.filename}")
+        bundle.extractall(destination)
+
+
+@contextmanager
+def materialize_source(rel: str):
+    """Yield an unpacked source folder from either a directory or a ZIP."""
+    folder = resolve_folder(rel)
+    if folder is not None:
+        yield folder
+        return
+
+    archive = resolve_archive(rel)
+    if archive is None:
+        yield None
+        return
+
+    with tempfile.TemporaryDirectory(prefix="pilar-mapbiomas-") as temp_dir:
+        destination = Path(temp_dir)
+        _safe_extract_zip(archive, destination)
+        yield destination
 
 
 # layer_id -> source folder. The .shp inside is globbed, never hardcoded: one of
@@ -172,53 +240,53 @@ def _clean_uf(raw) -> str | None:
 
 
 def load_layer(layer_id: str, folder: str):
-    d = resolve_folder(folder)
-    if d is None:
-        print(f"  !! folder not found for {folder} — skipping")
-        return None, []
-    # rglob, not glob: some MapBiomas zips extract into a nested directory, and
-    # __MACOSX resource forks look like shapefiles to a naive glob.
-    shps = sorted(p for p in d.rglob("*.shp") if "__MACOSX" not in str(p))
-    if not shps:
-        print(f"  !! no .shp in {d} — skipping")
-        return None, []
-    shp = shps[0]
-    gdf = gpd.read_file(shp, engine="pyogrio")
-    if gdf.crs is not None:
-        gdf = gdf.to_crs(epsg=4326)
+    with materialize_source(folder) as source_dir:
+        if source_dir is None:
+            print(f"  !! source folder/ZIP not found for {folder} — skipping")
+            return None, []
+        # rglob, not glob: some MapBiomas zips extract into a nested directory,
+        # and __MACOSX resource forks look like shapefiles to a naive glob.
+        shps = sorted(p for p in source_dir.rglob("*.shp") if "__MACOSX" not in str(p))
+        if not shps:
+            print(f"  !! no .shp in {source_dir} — skipping")
+            return None, []
+        shp = shps[0]
+        gdf = gpd.read_file(shp, engine="pyogrio")
+        if gdf.crs is not None:
+            gdf = gdf.to_crs(epsg=4326)
 
-    col_filter = ROW_FILTERS.get(layer_id)
-    if col_filter:
-        col, needle = col_filter
-        if col in gdf.columns:
-            before = len(gdf)
-            gdf = gdf[gdf[col].astype(str).str.lower().str.contains(needle, na=False)]
-            print(f"  filtro {col}~'{needle}': {before} -> {len(gdf)}")
-        else:
-            print(f"  !! coluna de filtro '{col}' ausente — carregando sem filtro")
+        col_filter = ROW_FILTERS.get(layer_id)
+        if col_filter:
+            col, needle = col_filter
+            if col in gdf.columns:
+                before = len(gdf)
+                gdf = gdf[gdf[col].astype(str).str.lower().str.contains(needle, na=False)]
+                print(f"  filtro {col}~'{needle}': {before} -> {len(gdf)}")
+            else:
+                print(f"  !! coluna de filtro '{col}' ausente — carregando sem filtro")
 
-    rows = []
-    for _, r in gdf.iterrows():
-        geom = r.get("geometry")
-        if geom is None or geom.is_empty:
-            continue
-        attrs = {
-            k: (None if v is None or str(v) == "nan" else str(v))
-            for k, v in r.drop(labels=["geometry"]).items()
-        }
-        rows.append(
-            {
-                "layer_id": layer_id,
-                "name": _first(r, NAME_FIELDS),
-                "wkb": geom.wkb,
-                "ibge_code": _clean_code(_first(r, CODE_FIELDS)),
-                "uf": _clean_uf(_first(r, UF_FIELDS)),
-                "attributes": json.dumps(attrs, ensure_ascii=False),
-                "source_id": folder,
-                "source_file": shp.name,
+        rows = []
+        for _, r in gdf.iterrows():
+            geom = r.get("geometry")
+            if geom is None or geom.is_empty:
+                continue
+            attrs = {
+                k: (None if v is None or str(v) == "nan" else str(v))
+                for k, v in r.drop(labels=["geometry"]).items()
             }
-        )
-    return shp.name, rows
+            rows.append(
+                {
+                    "layer_id": layer_id,
+                    "name": _first(r, NAME_FIELDS),
+                    "wkb": geom.wkb,
+                    "ibge_code": _clean_code(_first(r, CODE_FIELDS)),
+                    "uf": _clean_uf(_first(r, UF_FIELDS)),
+                    "attributes": json.dumps(attrs, ensure_ascii=False),
+                    "source_id": folder,
+                    "source_file": shp.name,
+                }
+            )
+        return shp.name, rows
 
 
 # ST_Force2D: the gas pipeline layers are PolyLineZ (3D), and the column is 2D.
@@ -258,6 +326,11 @@ WHERE f.layer_id = %s
 # plausible-looking neighbour. This is precisely the failure a name join cannot
 # see: it would have matched that plant on its `Municipio` string and looked fine.
 SNAP_TOLERANCE_M = 2000
+# A geometry bbox pre-filter makes the existing GIST index usable before the
+# precise geography distance check.  0.03 degrees is deliberately wider than
+# 2 km anywhere in Brazil, so it cannot discard a valid snap candidate.
+SNAP_BBOX_DEGREES = 0.03
+FULL_NATIONAL_UF_COUNT = 27
 
 # The LATERAL lives inside a derived table rather than directly in the UPDATE's
 # FROM: Postgres forbids a LATERAL there from referencing the UPDATE target
@@ -273,7 +346,8 @@ FROM (
     CROSS JOIN LATERAL (
         SELECT mm.ibge_code, mm.uf
         FROM municipalities mm
-        WHERE ST_DWithin(f2.geometry::geography, mm.geometry::geography, %s)
+        WHERE mm.geometry && ST_Expand(f2.geometry, %s)
+          AND ST_DWithin(f2.geometry::geography, mm.geometry::geography, %s)
         ORDER BY mm.geometry <-> f2.geometry
         LIMIT 1
     ) m
@@ -300,14 +374,28 @@ WHERE f.layer_id = %s AND f.ibge_code IS NULL
 
 
 def main() -> int:
+    global ARCHIVE_DIR
     ap = argparse.ArgumentParser()
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--layer", help="load a single layer_id")
+    ap.add_argument(
+        "--archive-dir",
+        type=Path,
+        help="directory containing original MapBiomas layer ZIP files",
+    )
     args = ap.parse_args()
+
+    if args.archive_dir is not None:
+        ARCHIVE_DIR = args.archive_dir
 
     targets = {args.layer: LAYERS[args.layer]} if args.layer else LAYERS
     conn = psycopg2.connect(dsn())
     try:
+        with conn.cursor() as cur:
+            cur.execute("SELECT count(DISTINCT uf) FROM municipalities WHERE geometry IS NOT NULL")
+            covered_ufs = cur.fetchone()[0]
+        full_national_spine = covered_ufs >= FULL_NATIONAL_UF_COUNT
+
         for layer_id, folder in targets.items():
             fname, rows = load_layer(layer_id, folder)
             if fname is None:
@@ -321,10 +409,13 @@ def main() -> int:
                 execute_batch(cur, INSERT_SQL, rows, page_size=200)
                 cur.execute(RESOLVE_SQL, (layer_id,))
                 resolved = cur.rowcount
-                cur.execute(SNAP_SQL, (SNAP_TOLERANCE_M, layer_id))
+                cur.execute(SNAP_SQL, (SNAP_BBOX_DEGREES, SNAP_TOLERANCE_M, layer_id))
                 snapped = cur.rowcount
-                cur.execute(SUSPECT_SQL, (layer_id,))
-                suspects = cur.fetchall()
+                if full_national_spine:
+                    cur.execute(SUSPECT_SQL, (layer_id,))
+                    suspects = cur.fetchall()
+                else:
+                    suspects = []
                 cur.execute(
                     "SELECT count(*), count(ibge_code) FROM infrastructure_features "
                     "WHERE layer_id = %s",
@@ -336,6 +427,11 @@ def main() -> int:
                 f"{'':26s}   -> stored {total}, municipality-keyed {with_muni} "
                 f"(contains={resolved}, snapped<={SNAP_TOLERANCE_M}m={snapped})"
             )
+            if not full_national_spine and with_muni < total:
+                print(
+                    f"{'':26s}   -> {total - with_muni} features left unkeyed: "
+                    f"local municipality spine covers {covered_ufs}/{FULL_NATIONAL_UF_COUNT} UFs"
+                )
             for name, nearest, km, claims in suspects:
                 print(
                     f"{'':26s}   !! UNRESOLVED {name!r}: {km} km from {nearest}"

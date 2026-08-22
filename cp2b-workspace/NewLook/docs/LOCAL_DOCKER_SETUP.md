@@ -68,8 +68,39 @@ cat backend/data/seed_technologies_expanded.sql | \
 python backend/scripts/import_v2_municipalities.py
 ```
 
-After seeding, the map at http://localhost:3006/pilar2b shows colored
+After seeding, the map at http://localhost:3006/pt-BR/map shows colored
 municipalities with real biogas potentials.
+
+## Infrastructure layers (one-time, Docker Desktop)
+
+Infrastructure vectors are intentionally excluded from Git because the source
+drop is hundreds of megabytes. After the database seed, load the MapBiomas
+layers and the legacy SP ETE/road bundles with the optional Compose profile:
+
+```bash
+# Default: reads the archive drop stored beside this repository at
+# ../../00_Fontes_Primarias-20260802T093400Z-1-001/
+docker compose --profile infrastructure run --rm infrastructure-loader
+
+# If the original ZIP files live elsewhere:
+MAPBIOMAS_ARCHIVE_DIR=/absolute/path/to/shapefiles_infraestrutura_mapbiomas \
+  docker compose --profile infrastructure run --rm infrastructure-loader
+```
+
+The loader reads the original ZIP files directly, downloads missing legacy SP
+sidecars from the pinned `aikiesan/project_map` source, and performs idempotent
+per-layer replacement in the existing PostGIS volume. It does not recreate the
+database or delete Docker volumes. Re-running the command is safe.
+
+Verify the catalog after loading:
+
+```bash
+curl http://localhost:8000/api/v1/infrastructure/layers
+```
+
+If a source ZIP is not present, the loader reports that layer explicitly. The
+current local archive does not contain `SETTLEMENTS_v3`; that optional layer
+remains unavailable until its authoritative source bundle is supplied.
 
 ## Daily workflow
 
@@ -94,7 +125,7 @@ docker compose down -v
 
 | Service   | URL                                   |
 |-----------|---------------------------------------|
-| Frontend  | http://localhost:3006/pilar2b         |
+| Frontend  | http://localhost:3006/pt-BR/map       |
 | Backend   | http://localhost:8000                 |
 | API docs  | http://localhost:8000/docs            |
 | Database  | localhost:5432 (postgres/password/cp2b_maps) |
