@@ -311,7 +311,11 @@ def _geojson_select_sql(
                 SELECT
                     m.ibge_code, m.municipality_name, m.id,
                     ST_AsGeoJSON(
-                        COALESCE(m.{geom_column}, ST_Buffer(m.centroid::geography, 5000)::geometry),
+                        COALESCE(
+                            m.{geom_column},
+                            m.geometry,
+                            ST_Buffer(m.centroid::geography, 5000)::geometry
+                        ),
                         {geom_precision}
                     ) AS geojson,
                     m.total_biogas_m3_year, m.urban_biogas_m3_year,

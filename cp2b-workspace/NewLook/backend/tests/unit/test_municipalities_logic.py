@@ -385,3 +385,7 @@ class TestPublicMapStateBoundary:
 
         sql = _geojson_select_sql(False, "geometry_overview", 4, False)
         assert "LEFT(m.ibge_code::text, 2) = ANY(%s)" in sql
+        assert """COALESCE(
+                            m.geometry_overview,
+                            m.geometry,
+                            ST_Buffer""" in sql

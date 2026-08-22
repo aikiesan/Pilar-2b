@@ -90,6 +90,12 @@ ON CONFLICT (ibge_code) DO UPDATE SET
     municipality_name = EXCLUDED.municipality_name,
     uf = EXCLUDED.uf,
     geometry = EXCLUDED.geometry,
+    geometry_detail = ST_Multi(
+        ST_MakeValid(ST_SimplifyPreserveTopology(EXCLUDED.geometry, 0.005))
+    ),
+    geometry_overview = ST_Multi(
+        ST_MakeValid(ST_SimplifyPreserveTopology(EXCLUDED.geometry, 0.02))
+    ),
     centroid = EXCLUDED.centroid,
     centroid_lat = EXCLUDED.centroid_lat,
     centroid_lng = EXCLUDED.centroid_lng,

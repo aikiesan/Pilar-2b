@@ -7,6 +7,8 @@ def test_mesh_refresh_updates_only_identity_and_geometry_metadata():
     for required in (
         "municipality_name",
         "geometry",
+        "geometry_detail",
+        "geometry_overview",
         "centroid",
         "area_km2",
         "area_year",
@@ -14,6 +16,8 @@ def test_mesh_refresh_updates_only_identity_and_geometry_metadata():
         "intermediate_region",
     ):
         assert required in update_clause
+
+    assert "st_simplifypreservetopology" in update_clause
 
     for protected in (
         "biomass",
