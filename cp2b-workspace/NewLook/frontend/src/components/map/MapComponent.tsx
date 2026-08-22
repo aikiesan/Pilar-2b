@@ -809,6 +809,10 @@ export default function MapComponent({
             <ThematicMapBar
               activePresetId={activePresetId}
               onApplyPreset={handleApplyPreset}
+              disabledBiomassTypes={isMgScope ? ['livestock', 'urban'] : []}
+              disabledResidues={isMgScope
+                ? ['cattle', 'swine', 'poultry', 'aquaculture', 'rsu', 'rpo', 'sewage']
+                : []}
               collapsed={thematicBarCollapsed}
               onToggleCollapsed={() => setThematicBarCollapsed((c) => !c)}
             />
