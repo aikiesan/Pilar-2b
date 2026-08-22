@@ -37,8 +37,7 @@ DAYS = 365
 
 def fetch(dsn: str) -> list[dict]:
     with psycopg2.connect(dsn) as conn, conn.cursor() as cur:
-        cur.execute(
-            """
+        cur.execute("""
             SELECT municipality_name,
                    intermediate_region,
                    population,
@@ -46,8 +45,7 @@ def fetch(dsn: str) -> list[dict]:
                    COALESCE(ch4_ideal_m3_year, 0)
             FROM municipalities
             WHERE ibge_code::text LIKE '35%'
-            """
-        )
+            """)
         return [
             {
                 "nome": r[0],
@@ -174,9 +172,7 @@ def report(rows: list[dict]) -> dict:
                 {"nome": r["nome"], "m3_dia": r[tier] / DAYS, "pct": 100.0 * r[tier] / total}
                 for r in ranked[:10]
             ],
-            "regioes": [
-                {"rgint": a["rgint"], "pct": a["pct"], "m3_ano": a["valor"]} for a in regs
-            ],
+            "regioes": [{"rgint": a["rgint"], "pct": a["pct"], "m3_ano": a["valor"]} for a in regs],
             "lorenz": lorenz_points([r[tier] for r in rows]),
         }
 

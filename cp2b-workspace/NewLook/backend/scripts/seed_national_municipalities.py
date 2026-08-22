@@ -207,7 +207,9 @@ def main() -> int:
                 conn.rollback()
                 return 0
 
-            execute_batch(cur, UPSERT_MESH_SQL if args.update_existing else INSERT_SQL, rows, page_size=200)
+            execute_batch(
+                cur, UPSERT_MESH_SQL if args.update_existing else INSERT_SQL, rows, page_size=200
+            )
             cur.execute("SELECT count(*) FROM municipalities")
             after = cur.fetchone()[0]
         conn.commit()

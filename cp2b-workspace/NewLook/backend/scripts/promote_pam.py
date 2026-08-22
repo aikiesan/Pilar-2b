@@ -252,9 +252,7 @@ def promote(year: int, crops: tuple[str, ...], dry_run: bool, uf: str | None = N
     return 0
 
 
-def build_all_crop_rows(
-    year: int, uf: str | None = None
-) -> tuple[list[dict], dict[str, float]]:
+def build_all_crop_rows(year: int, uf: str | None = None) -> tuple[list[dict], dict[str, float]]:
     """Every PAM product -> municipality_timeseries, in its reported unit.
 
     The five modelled streams reach the map through the biomass columns; this
@@ -358,9 +356,7 @@ def main() -> int:
     print(f"\nALL CROPS — {len(totals)} PAM products, {len(rows):,} timeseries rows")
     print(f"  modelled as biomass streams : {len(modelled) + 1}")
     extra_tonnes = {
-        key: value
-        for key, value in extra.items()
-        if PAM_PRODUCTION_UNITS.get(key, "t") == "t"
+        key: value for key, value in extra.items() if PAM_PRODUCTION_UNITS.get(key, "t") == "t"
     }
     non_tonnes = {key: value for key, value in extra.items() if key not in extra_tonnes}
     print(
