@@ -10,3 +10,12 @@
 *.py
 out/
 _src/
+
+# Local paper review notes and rendered figure workspaces.
+*.md
+P1/
+P2/
+P3/
+P4/
+P5/
+P6/
