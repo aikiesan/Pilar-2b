@@ -1,28 +1,17 @@
-/**
- * Enhanced Tooltip Component
- * Rich, contextual tooltips with smooth animations
- */
+/** Compact, non-interactive preview shown while hovering a municipality. */
 
 'use client';
 
 import React from 'react';
-import { TrendingUp, Users, Maximize, Factory, Leaf, Droplets } from 'lucide-react';
+import { MapPin, MousePointerClick } from 'lucide-react';
 import type { DisplayMetric, MunicipalityFeature } from '@/types/geospatial';
-import {
-  isServedScenario,
-  SCENARIO_COLOR,
-  SCENARIO_LABEL,
-  type MapScenarioKey,
-} from '@/data/scenarioFactors';
-import { getSectorMetricValue } from '@/lib/mapValues';
-import { useMunicipalityMetrics } from '@/hooks/useGeospatialData';
-import { getMetricSpec, formatCompact } from '@/lib/mapMetrics';
+import { SCENARIO_COLOR, SCENARIO_LABEL, type MapScenarioKey } from '@/data/scenarioFactors';
+import { formatCompact, getMetricSpec } from '@/lib/mapMetrics';
 
 interface EnhancedTooltipProps {
   municipality: MunicipalityFeature;
   position: { x: number; y: number };
   visible: boolean;
-  /** Metric the map is currently showing — the tooltip mirrors it. */
   metric?: DisplayMetric;
   scenario?: MapScenarioKey;
 }
@@ -34,228 +23,69 @@ export default function EnhancedTooltip({
   metric = 'biomass_tons',
   scenario = 'baseline',
 }: EnhancedTooltipProps) {
-  // The collection is served slim, so the sector breakdown and demographics are
-  // fetched for whichever municipality is under the cursor. React Query caches
-  // per ibge_code, so re-hovering is free. Hooks must run before any early
-  // return, hence the null-safe access here.
-  const rawCode = visible ? municipality?.properties?.ibge_code : null;
-  const hoveredCode = rawCode == null ? null : String(rawCode);
-  const { data: detail } = useMunicipalityMetrics(hoveredCode);
-
   if (!visible) return null;
 
-  // Served collection values first, detail merged over them when it arrives.
-  const props = { ...municipality.properties, ...(detail ?? {}) } as typeof municipality.properties;
-
-  const formatNumber = (value: number | undefined | null) => {
-    if (value === undefined || value === null) return 'N/A';
-    if (value >= 1000000) return `${(value / 1000000).toFixed(2)}M`;
-    if (value >= 1000) return `${(value / 1000).toFixed(1)}K`;
-    return value.toLocaleString('pt-BR');
-  };
-
-  // Follows the ACTIVE MAP METRIC, from the served canonical payload.
-  //
-  // This used to read `total_biogas_m3_year` and the `{sector}_biogas_m3_year`
-  // columns, which are populated for 645 São Paulo municipalities and nobody
-  // else — so every municipality outside SP showed "Potencial de Biogás: 0" with
-  // an empty composition, and the heading never changed because it was hardcoded
-  // to biogás regardless of the toggle. Same legacy-column family as the
-  // statistics/summary endpoint.
+  const props = municipality.properties;
   const spec = getMetricSpec(metric);
-  // Biomassa is the resource, not an availability figure — no scenario applies.
-  const scenarioApplies = metric !== 'biomass_tons';
-  const sectors = {
-    agricultural: getSectorMetricValue(props, 'agricultural', metric, scenario),
-    livestock: getSectorMetricValue(props, 'livestock', metric, scenario),
-    urban: getSectorMetricValue(props, 'urban', metric, scenario),
-  };
-  const toDisplay = (v: number | null) => (v === null ? null : spec.toDisplay(v));
-  const agriculturalValue = toDisplay(sectors.agricultural);
-  const livestockValue = toDisplay(sectors.livestock);
-  const urbanValue = toDisplay(sectors.urban);
+  const rawValue = spec.rawValue(props, {
+    biomassType: 'total',
+    selectedResidues: [],
+    scenario,
+  }).value;
+  const displayValue = rawValue === null ? null : spec.toDisplay(rawValue);
 
-  // Under Real/Ideal the sector split is not shipped in the map payload, so the
-  // three parts are null and summing them would render a real potential as
-  // "Sem dados". Take the total from the metric spec instead — it reads the
-  // served ch4_{tier}_m3_year column and is the same number the choropleth paints.
-  const served = isServedScenario(scenario);
-  const servedTotal = served
-    ? toDisplay(spec.rawValue(props, { biomassType: 'total', selectedResidues: [], scenario }).value)
-    : null;
-  const metricTotal =
-    servedTotal ?? (agriculturalValue ?? 0) + (livestockValue ?? 0) + (urbanValue ?? 0);
-  const share = (v: number | null) =>
-    metricTotal > 0 && v !== null ? (v / metricTotal) * 100 : 0;
-  const agriculturePercent = share(agriculturalValue);
-  const livestockPercent = share(livestockValue);
-  const urbanPercent = share(urbanValue);
+  // Always open below/right of the pointer and clamp to the viewport. Unlike a
+  // Leaflet auto-direction tooltip, the card never jumps between top and bottom.
+  const width = 264;
+  const height = 112;
+  const gutter = 12;
+  const headerOffset = 72;
+  const viewportWidth = typeof window === 'undefined' ? 1280 : window.innerWidth;
+  const viewportHeight = typeof window === 'undefined' ? 800 : window.innerHeight;
+  const left = Math.max(gutter, Math.min(position.x + 14, viewportWidth - width - gutter));
+  const top = Math.max(
+    headerOffset,
+    Math.min(position.y + 14, viewportHeight - height - gutter),
+  );
 
   return (
     <div
-      className="fixed z-[1200] pointer-events-none animate-fade-in"
-      style={{
-        left: position.x + 15,
-        top: position.y - 10,
-        transform: 'translateY(-100%)',
-      }}
+      aria-hidden="true"
+      className="pointer-events-none fixed z-[1200] w-[264px] animate-fade-in rounded-xl border border-gray-200/80 bg-white/96 px-3 py-2.5 shadow-lg backdrop-blur dark:border-slate-700 dark:bg-slate-900/96"
+      style={{ left, top }}
     >
-      {/* Glass-morphism tooltip */}
-      <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-xl shadow-2xl border border-gray-200/50 dark:border-slate-700/50 p-4 min-w-[320px] max-w-[400px]">
-        {/* Header */}
-        <div className="mb-3 pb-3 border-b border-gray-200 dark:border-slate-700">
-          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">
-            {props.name}
-          </h3>
-          <div className="flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400">
-            <span>IBGE: {props.ibge_code}</span>
-            <span>•</span>
-            <span>{props.intermediate_region}</span>
-          </div>
+      <div className="flex min-w-0 items-start gap-2">
+        <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-green-700" />
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-bold text-gray-900 dark:text-white">{props.name}</p>
+          <p className="truncate text-[10px] text-gray-500 dark:text-gray-400">
+            IBGE {props.ibge_code}{props.intermediate_region ? ` · ${props.intermediate_region}` : ''}
+          </p>
         </div>
+      </div>
 
-        {/* Quick Stats Grid */}
-        <div className="grid grid-cols-2 gap-3 mb-3">
-          <QuickStat
-            icon={<Users className="w-4 h-4 text-blue-600" />}
-            label="População"
-            value={formatNumber(props.population)}
-          />
-          <QuickStat
-            icon={<Maximize className="w-4 h-4 text-green-600" />}
-            label="Área"
-            value={`${formatNumber(props.area_km2)} km²`}
-          />
-        </div>
-
-        {/* Biogas Potential */}
-        <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg p-3 mb-3">
-          <div className="flex items-center space-x-2 mb-2">
-            <Factory className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-            <span className="text-xs font-semibold text-blue-700 dark:text-blue-300">
-              {spec.icon} {spec.toggleLabel}
-            </span>
-            {scenarioApplies && (
+      <div className="mt-2 flex items-end justify-between gap-2 border-t border-gray-100 pt-2 dark:border-slate-800">
+        <div className="min-w-0">
+          <div className="flex items-center gap-1 text-[10px] font-semibold text-gray-500">
+            <span>{spec.icon} {spec.toggleLabel}</span>
+            {metric !== 'biomass_tons' && (
               <span
-                className="rounded-full px-1.5 py-0.5 text-[10px] font-bold text-white"
+                className="rounded-full px-1.5 py-0.5 text-[9px] font-bold text-white"
                 style={{ backgroundColor: SCENARIO_COLOR[scenario] }}
               >
                 {SCENARIO_LABEL[scenario]}
               </span>
             )}
           </div>
-          <div className="text-2xl font-bold text-blue-900 dark:text-blue-100">
-            {metricTotal > 0 ? formatCompact(metricTotal) : 'Sem dados'}
-          </div>
-          <div className="text-xs text-blue-600 dark:text-blue-400">
-            {spec.unit}
-          </div>
+          <p className="truncate text-base font-bold text-gray-900 dark:text-white">
+            {displayValue !== null && displayValue > 0 ? formatCompact(displayValue) : 'Sem dados'}
+            <span className="ml-1 text-[10px] font-medium text-gray-500">{spec.unit}</span>
+          </p>
         </div>
-
-        {/* Composition Breakdown */}
-        <div className="space-y-2">
-          <div className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
-            Composição:
-          </div>
-          {/* The per-sector split for Real/Ideal exists in the database but is not
-              shipped in the map payload, so the bars below would all read zero.
-              Say why, rather than render an empty section that looks like a bug. */}
-          {served && (
-            <p className="text-[11px] leading-snug text-gray-500 dark:text-gray-400">
-              Desdobramento por setor não disponível neste cenário — consulte o
-              painel do município.
-            </p>
-          )}
-          {agriculturePercent > 0 && (
-            <MiniProgressBar
-              icon={<Leaf className="w-3 h-3" />}
-              label="Agrícola"
-              value={agriculturePercent}
-              color="green"
-            />
-          )}
-          {livestockPercent > 0 && (
-            <MiniProgressBar
-              icon={<Factory className="w-3 h-3" />}
-              label="Pecuária"
-              value={livestockPercent}
-              color="yellow"
-            />
-          )}
-          {urbanPercent > 0 && (
-            <MiniProgressBar
-              icon={<Droplets className="w-3 h-3" />}
-              label="Urbano"
-              value={urbanPercent}
-              color="blue"
-            />
-          )}
-        </div>
-
-        {/* Tooltip Arrow */}
-        <div className="absolute bottom-0 left-8 transform translate-y-full">
-          <div className="w-0 h-0 border-l-8 border-l-transparent border-r-8 border-r-transparent border-t-8 border-t-white dark:border-t-slate-900" />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// Helper Components
-
-interface QuickStatProps {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-}
-
-function QuickStat({ icon, label, value }: QuickStatProps) {
-  return (
-    <div className="bg-gray-50 dark:bg-slate-800 rounded-lg p-2">
-      <div className="flex items-center space-x-1 mb-1">
-        {icon}
-        <span className="text-xs text-gray-600 dark:text-gray-400">{label}</span>
-      </div>
-      <div className="text-sm font-bold text-gray-900 dark:text-white truncate">
-        {value}
-      </div>
-    </div>
-  );
-}
-
-interface MiniProgressBarProps {
-  icon: React.ReactNode;
-  label: string;
-  value: number;
-  color: 'green' | 'yellow' | 'blue';
-}
-
-function MiniProgressBar({ icon, label, value, color }: MiniProgressBarProps) {
-  const colorClasses = {
-    green: 'bg-green-500 text-green-700 dark:text-green-300',
-    yellow: 'bg-yellow-500 text-yellow-700 dark:text-yellow-300',
-    blue: 'bg-blue-500 text-blue-700 dark:text-blue-300',
-  };
-
-  const bgClass = colorClasses[color].split(' ')[0];
-  const textClass = colorClasses[color].split(' ').slice(1).join(' ');
-
-  return (
-    <div className="flex items-center space-x-2">
-      <div className={textClass}>{icon}</div>
-      <div className="flex-1">
-        <div className="flex items-center justify-between mb-1">
-          <span className={`text-xs font-medium ${textClass}`}>{label}</span>
-          <span className="text-xs font-bold text-gray-900 dark:text-white">
-            {value.toFixed(1)}%
-          </span>
-        </div>
-        <div className="h-1.5 bg-gray-200 dark:bg-slate-700 rounded-full overflow-hidden">
-          <div
-            className={`h-full ${bgClass} transition-all duration-300`}
-            style={{ width: `${value}%` }}
-          />
-        </div>
+        <span className="flex shrink-0 items-center gap-1 text-[10px] font-semibold text-green-700">
+          <MousePointerClick className="h-3.5 w-3.5" />
+          Clique para detalhes
+        </span>
       </div>
     </div>
   );

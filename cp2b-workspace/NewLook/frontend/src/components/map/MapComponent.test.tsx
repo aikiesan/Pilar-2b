@@ -812,6 +812,25 @@ describe('MapComponent', () => {
       });
     });
 
+    it('sanitizes an unvalidated urban bookmark when MG opens', async () => {
+      window.history.replaceState(
+        null,
+        '',
+        '/?scope=31&type=urban&r=rsu,rpo,sewage&metric=methane_m3',
+      );
+      render(<MapComponent />);
+      act(() => { jest.advanceTimersByTime(1500); });
+
+      await waitFor(() => {
+        expect(screen.getAllByTestId('municipality-layer')[0]).toHaveAttribute(
+          'data-biomass-type',
+          'agricultural',
+        );
+        expect(window.location.search).toContain('type=agricultural');
+        expect(window.location.search).not.toContain('metric=methane_m3');
+      });
+    });
+
     it('narrows to the municipalities holding the selected residue', async () => {
       // Read from ?r= on mount, the same path a bookmarked filter takes.
       window.history.replaceState(null, '', '/?r=sugarcane');

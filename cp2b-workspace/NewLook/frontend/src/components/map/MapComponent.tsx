@@ -46,7 +46,6 @@ import {
 } from '@/data/brazilStates';
 import ScopeSwitcher from './ScopeSwitcher';
 import MapLegend from './MapLegend';
-import UrbanResidueTotals from './UrbanResidueTotals';
 import MapLoadingSkeleton from './MapLoadingSkeleton';
 import { isPlantLayer } from '@/lib/plantLayers';
 import 'leaflet/dist/leaflet.css';
@@ -227,6 +226,9 @@ export default function MapComponent({
   const urlQuery = readURLParam('q');
   const urlMetric = readURLParam('metric');
   const urlScope = readURLParam('scope'); // 'brazil' → national view
+  const initialScope = parseScopeParam(urlScope);
+  const invalidMgInitialSector =
+    initialScope === '31' && (urlType === 'livestock' || urlType === 'urban');
 
   const initialMode: VisualizationMode =
     VALID_VIZ.includes(urlMode as VisualizationMode) ? (urlMode as VisualizationMode) : 'choropleth';
@@ -251,13 +253,19 @@ export default function MapComponent({
   const [layersRendered, setLayersRendered] = useState(0);
 
   const initialBiomass: BiomassType =
-    VALID_BIOMASS.includes(urlType as BiomassType) ? (urlType as BiomassType) : propBiomassType;
-  const initialResidues: ResidueType[] = urlResidues
-    ? urlResidues.split(',').filter(r => VALID_RESIDUES.includes(r as ResidueType)) as ResidueType[]
-    : [];
+    invalidMgInitialSector
+      ? 'agricultural'
+      : VALID_BIOMASS.includes(urlType as BiomassType) ? (urlType as BiomassType) : propBiomassType;
+  const initialResidues: ResidueType[] = invalidMgInitialSector
+    ? ['sugarcane', 'soybean', 'corn', 'coffee', 'citrus']
+    : urlResidues
+      ? urlResidues.split(',').filter(r => VALID_RESIDUES.includes(r as ResidueType)) as ResidueType[]
+      : [];
   const initialQuery = urlQuery ?? propSearchQuery;
   const initialMetric: DisplayMetric =
-    VALID_METRICS.includes(urlMetric as DisplayMetric) ? (urlMetric as DisplayMetric) : 'biomass_tons';
+    invalidMgInitialSector
+      ? 'biomass_tons'
+      : VALID_METRICS.includes(urlMetric as DisplayMetric) ? (urlMetric as DisplayMetric) : 'biomass_tons';
 
   // Local state (authoritative)
   const [selectedResidues, setSelectedResidues] = useState<ResidueType[]>(initialResidues);
@@ -300,7 +308,7 @@ export default function MapComponent({
   };
 
   const { profilesMap: cnProfilesMap, isLoading: cnLoading } = useCnProfiles(colorMode === 'cn_profile');
-  const [scope, setScope] = useState<MapScope>(parseScopeParam(urlScope));
+  const [scope, setScope] = useState<MapScope>(initialScope);
 
   const { center: mapCenter, zoom: mapZoom } = scopeView(scope);
   const availableResidueCategories: Array<'agricultural' | 'livestock' | 'urban'> =
@@ -339,13 +347,30 @@ export default function MapComponent({
 
   const handleScopeChange = useCallback((next: MapScope) => {
     setScope(next);
+    setSelectedMunicipality(null);
+    setHoveredMunicipality(null);
+    setSearchQuery('');
+    const enteringMgWithUnvalidatedSector =
+      next === '31' && (biomassType === 'livestock' || biomassType === 'urban');
+    if (enteringMgWithUnvalidatedSector) {
+      setBiomassType('agricultural');
+      setSelectedResidues(['sugarcane', 'soybean', 'corn', 'coffee', 'citrus']);
+      setDisplayMetric('biomass_tons');
+      setActivePresetId(null);
+    }
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       if (next === SAO_PAULO_UF) params.delete('scope');
       else params.set('scope', next === SCOPE_BRAZIL ? 'brazil' : next);
+      params.delete('q');
+      if (enteringMgWithUnvalidatedSector) {
+        params.set('type', 'agricultural');
+        params.set('r', 'sugarcane,soybean,corn,coffee,citrus');
+        params.delete('metric');
+      }
       window.history.replaceState(null, '', `${window.location.pathname}?${params.toString()}`);
     }
-  }, []);
+  }, [biomassType]);
 
   const handleVisualizationModeChange = (mode: VisualizationMode) => {
     setVisualizationMode(mode);
@@ -482,6 +507,15 @@ export default function MapComponent({
   const [legendOpenMobile, setLegendOpenMobile] = useState(false);
 
   useEffect(() => { setIsMounted(true); }, []);
+
+  useEffect(() => {
+    if (!invalidMgInitialSector || typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    params.set('type', 'agricultural');
+    params.set('r', 'sugarcane,soybean,corn,coffee,citrus');
+    params.delete('metric');
+    window.history.replaceState(null, '', `${window.location.pathname}?${params.toString()}`);
+  }, [invalidMgInitialSector]);
 
   useEffect(() => {
     if (data && !loading && isMounted) {
@@ -1161,16 +1195,6 @@ export default function MapComponent({
               </>
             ) : null
           ) : <HeatmapLegend />
-        )}
-
-        {visualizationMode === 'choropleth' && colorMode === 'biogas' && isServedScenario(mapScenario) && (
-          <div className="hidden md:block">
-            <UrbanResidueTotals
-              data={scaledData || displayData}
-              scenario={mapScenario}
-              scopeUf={isMgScope ? 'MG' : 'SP'}
-            />
-          </div>
         )}
 
         {visualizationMode === 'clusters' && clusterLoading && isMounted && (
