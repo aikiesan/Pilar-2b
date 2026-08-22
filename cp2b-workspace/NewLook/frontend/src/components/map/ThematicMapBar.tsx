@@ -31,6 +31,8 @@ function rampGradient(presetPalette?: ThematicPreset['config']['palette']): stri
 interface ThematicMapBarProps {
   activePresetId?: string | null;
   onApplyPreset: (preset: ThematicPreset) => void;
+  disabledBiomassTypes?: Array<NonNullable<ThematicPreset['config']['biomassType']>>;
+  disabledResidues?: Array<NonNullable<ThematicPreset['config']['selectedResidues']>[number]>;
   collapsed?: boolean;
   onToggleCollapsed?: () => void;
 }
@@ -46,6 +48,8 @@ const MOBILE_GROUP_LABEL: Record<ThematicPresetGroup, string> = {
 export default function ThematicMapBar({
   activePresetId,
   onApplyPreset,
+  disabledBiomassTypes = [],
+  disabledResidues = [],
   collapsed = false,
   onToggleCollapsed,
 }: ThematicMapBarProps) {
@@ -126,16 +130,28 @@ export default function ThematicMapBar({
                     >
                       {items.map((preset) => {
                         const active = activePresetId === preset.id;
+                        const disabledBySector = preset.config.biomassType
+                          ? disabledBiomassTypes.includes(preset.config.biomassType)
+                          : false;
+                        const disabledByResidue = preset.config.selectedResidues?.some((residue) =>
+                          disabledResidues.includes(residue),
+                        ) ?? false;
+                        const disabled = disabledBySector || disabledByResidue;
                         return (
                           <button
                             key={preset.id}
                             type="button"
                             role="option"
                             aria-selected={active}
+                            disabled={disabled}
                             onClick={() => apply(preset)}
-                            title={preset.description}
+                            title={disabled ? `${preset.description} Em validação para MG.` : preset.description}
                             className={`flex min-h-11 w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left transition-colors md:min-h-0 ${
-                              active ? 'bg-green-50 ring-1 ring-green-600' : 'hover:bg-gray-50'
+                              disabled
+                                ? 'cursor-not-allowed bg-gray-50 opacity-45'
+                                : active
+                                  ? 'bg-green-50 ring-1 ring-green-600'
+                                  : 'hover:bg-gray-50'
                             }`}
                           >
                             <span aria-hidden="true" className="text-base leading-none">{preset.icon}</span>
@@ -149,6 +165,7 @@ export default function ThematicMapBar({
                                 style={{ background: rampGradient(preset.config.palette) }}
                               />
                             </span>
+                            {disabled && <span className="text-[9px] font-semibold text-gray-500">EM VALIDAÇÃO</span>}
                             {active && <span aria-hidden="true" className="text-[10px] text-green-700">✓</span>}
                           </button>
                         );

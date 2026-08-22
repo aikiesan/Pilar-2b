@@ -32,6 +32,20 @@ router = APIRouter()
 # behaviour, in which case the values are tagged 'estimated', never 'measured'.
 _ALLOW_REVERSE_FALLBACK = os.getenv("BIOMASS_REVERSE_FALLBACK", "false").lower() == "true"
 
+# Public map rollout is staged by state: canonical São Paulo plus the Minas
+# Gerais pilot. Keeping this boundary server-side prevents stale clients from
+# re-exposing the retired national beta payload.
+_MAP_ENABLED_UF_PREFIXES = tuple(
+    prefix.strip()
+    for prefix in os.getenv("MAP_ENABLED_UF_PREFIXES", "35,31").split(",")
+    if re.fullmatch(r"\d{2}", prefix.strip())
+) or ("35", "31")
+
+
+def _is_enabled_map_ibge_code(ibge_code: object) -> bool:
+    code = str(ibge_code).strip()
+    return len(code) == 7 and code[:2] in _MAP_ENABLED_UF_PREFIXES
+
 
 def _load_biomass_provenance(cursor, ibge_codes: list[str]) -> dict[str, dict[str, str]]:
     """ibge_code -> {stream: quality} for the rows being served.
@@ -162,8 +176,9 @@ def _served_scenario_sectors(row) -> dict[str, float | None]:
 
 # Livestock streams derived from PPM head counts (per-head generation).
 _PPM_STREAMS = ("cattle", "swine", "poultry")
-# Urban streams modelled from resident population (per-capita generation).
-_URBAN_STREAMS = ("rsu", "rpo")
+# RSU has a defensible population fallback. RPO does not: SNIS CO115 combines
+# sweeping and pruning, and the corpus has no cited municipal pruning share.
+_URBAN_STREAMS = ("rsu",)
 
 
 def _load_activity_counts(cursor, ibge_codes: list[str]) -> dict[str, dict[str, float]]:
@@ -296,7 +311,11 @@ def _geojson_select_sql(
                 SELECT
                     m.ibge_code, m.municipality_name, m.id,
                     ST_AsGeoJSON(
-                        COALESCE(m.{geom_column}, ST_Buffer(m.centroid::geography, 5000)::geometry),
+                        COALESCE(
+                            m.{geom_column},
+                            m.geometry,
+                            ST_Buffer(m.centroid::geography, 5000)::geometry
+                        ),
                         {geom_precision}
                     ) AS geojson,
                     m.total_biogas_m3_year, m.urban_biogas_m3_year,
@@ -325,6 +344,7 @@ def _geojson_select_sql(
                     {cluster_cols}
                 FROM municipalities m{join}
                 WHERE m.geometry IS NOT NULL
+                  AND LEFT(m.ibge_code::text, 2) = ANY(%s)
                 ORDER BY m.total_biogas_m3_year DESC NULLS LAST
                 {limit_clause}
                 """
@@ -360,7 +380,10 @@ def _build_municipalities_geojson(limit: Optional[int], detail: str, fields: str
             sql = _geojson_select_sql(
                 has_summary, geom_column, geom_precision, has_limit=limit is not None
             )
-            cursor.execute(sql, (limit,) if limit is not None else ())
+            params: tuple = (list(_MAP_ENABLED_UF_PREFIXES),)
+            if limit is not None:
+                params += (limit,)
+            cursor.execute(sql, params)
             rows = cursor.fetchall()
             page_ibge = [str(r["ibge_code"]) for r in rows]
             has_provenance = _table_exists(cursor, "municipality_biomass_provenance")
@@ -611,7 +634,11 @@ async def get_municipalities_geojson(
     pedidos diferentes compartilharem bytes — o modo silencioso de um cache
     errar, e a razão de a chave ser montada aqui e não dentro do cache.
     """
-    key = f"municipalities:geojson:limit={limit}:detail={detail}:fields={fields}"
+    enabled_ufs = ",".join(_MAP_ENABLED_UF_PREFIXES)
+    key = (
+        f"municipalities:geojson:ufs={enabled_ufs}:limit={limit}:"
+        f"detail={detail}:fields={fields}"
+    )
     return cached_json_response(
         request,
         key,

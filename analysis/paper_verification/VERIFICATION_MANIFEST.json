@@ -1,0 +1,21 @@
+{
+  "generated_from": "live PostgreSQL cp2b_maps (Docker)",
+  "n_municipalities": 645,
+  "headline_totals_m3_CH4_yr": {
+    "theoretical": 19900698323.0,
+    "real_atlas": 7832143834.365018,
+    "ideal_atlas": 9841178207.043299
+  },
+  "headline_totals_bi": {
+    "theoretical": 19.9007,
+    "real_atlas": 7.8321,
+    "ideal_atlas": 9.8412
+  },
+  "paper_expected_bi": {
+    "theoretical": 19.9,
+    "real_atlas": 7.83,
+    "ideal_atlas": 9.84,
+    "fde_cascade": 3.3
+  },
+  "note": "FDE cascade (3.30 bi) exported separately via sp_fde_cascade.py"
+}

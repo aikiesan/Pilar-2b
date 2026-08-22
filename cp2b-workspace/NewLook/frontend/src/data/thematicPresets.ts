@@ -108,9 +108,15 @@ export const THEMATIC_PRESETS: ThematicPreset[] = [
     id: 'urbano',
     label: 'Urbano',
     icon: '🏙️',
-    description: 'Resíduos sólidos urbanos e poda (RSU + RPO).',
+    description: 'FORSU, poda urbana e lodo de ETE no cenário selecionado.',
     group: 'setorial',
-    config: { ...BASE, biomassType: 'urban', palette: 'bupu' },
+    config: {
+      ...BASE,
+      biomassType: 'urban',
+      selectedResidues: ['rsu', 'rpo', 'sewage'],
+      displayMetric: 'methane_m3',
+      palette: 'bupu',
+    },
   },
 
   // ── Por resíduo ─────────────────────────────────────────────────────────────
@@ -180,7 +186,7 @@ export const THEMATIC_PRESETS: ThematicPreset[] = [
   },
   {
     id: 'rsu',
-    label: 'RSU',
+    label: 'FORSU',
     icon: '🗑️',
     description: 'Fração orgânica dos resíduos sólidos urbanos.',
     group: 'residuo',
@@ -233,11 +239,25 @@ export const THEMATIC_PRESETS: ThematicPreset[] = [
   },
   {
     id: 'rpo',
-    label: 'RPO (poda)',
+    label: 'Poda urbana',
     icon: '♻️',
     description: 'Resíduos de poda e capina urbana.',
     group: 'residuo',
     config: { ...BASE, selectedResidues: ['rpo'], palette: 'plasma' },
+  },
+  {
+    id: 'sewage',
+    label: 'Lodo de ETE',
+    icon: '💧',
+    description: 'Potencial de CH₄ associado ao lodo de estações de tratamento.',
+    group: 'residuo',
+    config: {
+      ...BASE,
+      biomassType: 'urban',
+      selectedResidues: ['sewage'],
+      displayMetric: 'methane_m3',
+      palette: 'bupu',
+    },
   },
 
   // ── Energia (complemento) ───────────────────────────────────────────────────

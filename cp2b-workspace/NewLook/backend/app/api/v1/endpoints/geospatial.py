@@ -264,7 +264,11 @@ async def get_municipalities_geojson(
                     'type', 'Feature',
                     'id', id,
                     'geometry', ST_AsGeoJSON(
-                        COALESCE({geom_column}, ST_Buffer(centroid::geography, 5000)::geometry),
+                        COALESCE(
+                            {geom_column},
+                            geometry,
+                            ST_Buffer(centroid::geography, 5000)::geometry
+                        ),
                         {geom_precision}
                     )::jsonb,
                     'properties', jsonb_build_object(

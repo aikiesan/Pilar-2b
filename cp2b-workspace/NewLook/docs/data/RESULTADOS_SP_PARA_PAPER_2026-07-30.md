@@ -26,6 +26,42 @@ e 0,42) · diária = anual / 365.
 
 ---
 
+## 1.1 Cascata de disponibilidade — os dois métodos, lado a lado
+
+Do potencial teórico até cada resultado publicável, em base anual e diária.
+
+| Etapa | bi Nm³ CH₄/ano | mi Nm³/dia | Fração do teórico |
+|---|---:|---:|---:|
+| **Teórico** (sem correção de disponibilidade) | 19,901 | 54,52 | 1,0000 |
+| — após **FC** (coleta) | 15,338 | 42,02 | 0,7707 |
+| — após **FCo** (uso concorrente) | 4,447 | 12,18 | 0,2235 |
+| — após **FS** (sazonalidade) | 4,024 | 11,02 | 0,2022 |
+| — após **FL** (logística) → **mobilizável FDE** | 3,301 | 9,04 | 0,1659 |
+| **Cenário Real** (método Atlas) | **7,832** | **21,46** | **0,3936** |
+| **Cenário Ideal** (método Atlas) | **9,841** | **26,96** | **0,4945** |
+
+**As duas últimas linhas não continuam a cascata — elas a substituem.** Isto é
+deliberado e é o ponto metodológico central do artigo, não uma inconsistência:
+
+- As linhas FC→FL aplicam o **FDE multiplicativo do banco**
+  (`FDE = FC × FCo × FS × FL`), que bottom-out em **16,59%** do teórico.
+- Os Cenários Real e Ideal aplicam a **lógica agronômica do Atlas** (§4.9), que
+  chega a **39,36%** e **49,45%**.
+
+A diferença de **2,37×** entre o mobilizável FDE (3,301) e o Cenário Real (7,832)
+é o efeito medido da rejeição do FDE do banco, documentada em §4.9: para milho
+ele dá 4,7% e para soja 0,8%, sofrendo a mesma sobre-penalização já corrigida na
+cana — um uso concorrente lançado como perda total.
+
+A cascata é publicada junto do resultado porque a diferença entre os dois métodos
+é resultado, não ruído: sem ela, o leitor não tem como saber que um FDE
+alternativo, presente no mesmo repositório, daria 3,301.
+
+Reprodução da cascata ponderada pelo potencial teórico:
+`backend/scripts/sp_fde_cascade.py` (requer `DATABASE_URL`).
+
+---
+
 ## 2. Composição por resíduo (Nm³ CH₄/ano)
 
 | Resíduo | Real | Ideal | % do Real |
@@ -201,7 +237,7 @@ como perda total.
 | Reconciliação de massa | `backend/scripts/reconcile_biomass_mass.py` |
 | Fusão de duplicatas | `backend/scripts/dedupe_residuos.py` |
 | Reparo dos triplos FDE | `backend/app/migrations/027` |
-| Master canônico (fonte primária) | `data/canonical_parameters/SP_master_residue_streams_2023_FINAL.csv` (sha256 `2ab1d03d6293690e`) |
+| Master canônico (fonte primária) | `data/canonical_parameters/SP_master_residue_streams_2023_FINAL.csv` (sha256 `7d0fb051bb7cb74c`, 188.483 bytes) |
 
 Os 16+ parâmetros de cenário, com fonte, página e justificativa, estão na tabela
 `scenario_parameters` do banco — consultáveis por SQL, não só neste documento.

@@ -24,8 +24,12 @@ import {
 } from 'lucide-react';
 import { Link } from '@/navigation';
 import type { DisplayMetric, MunicipalityFeature } from '@/types/geospatial';
-import type { MapScenarioKey } from '@/data/scenarioFactors';
-import { getTotalBiomassTons } from '@/lib/biomassAvailability';
+import {
+  isServedScenario,
+  SCENARIO_LABEL,
+  SERVED_SCENARIO_RESIDUE_FIELD,
+  type MapScenarioKey,
+} from '@/data/scenarioFactors';
 import { getSectorMetricValue, getResidueTonsOrNull } from '@/lib/mapValues';
 import { useMunicipalityMetrics } from '@/hooks/useGeospatialData';
 import { getMetricSpec, formatCompact } from '@/lib/mapMetrics';
@@ -48,7 +52,7 @@ export default function MunicipalityProfilePanel({
   scenario = 'baseline',
 }: MunicipalityProfilePanelProps) {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
-    new Set(['overview', 'biomass'])
+    new Set(['biomass'])
   );
 
   // Demographics and the sector breakdown are not in the slim collection payload
@@ -98,11 +102,6 @@ export default function MunicipalityProfilePanel({
     return value.toFixed(0);
   };
 
-  const formatTons = (value: number | undefined | null) => {
-    if (value === undefined || value === null) return 'N/A';
-    return `${formatBigNumber(value)} t/ano`;
-  };
-
   // Per-residue rows must separate "we measured none" from "we have no data".
   // Sugarcane outside São Paulo has never been promoted, so its column is NULL,
   // and the old formatTons(getResidueBiomassTons(...)) rendered that as
@@ -112,10 +111,6 @@ export default function MunicipalityProfilePanel({
     const tons = getResidueTonsOrNull(p, residue);
     return tons === null ? 'Sem dados' : `${formatBigNumber(tons)} t/ano`;
   };
-
-  // Biomass tonnage is still needed for the per-residue rows further down, which
-  // are always expressed in tonnes regardless of the metric on show.
-  const totalBiomass = getTotalBiomassTons(props);
 
   // The headline figure and the sector split follow the ACTIVE MAP METRIC, so the
   // panel always answers the question the choropleth is currently asking. Every
@@ -166,31 +161,39 @@ export default function MunicipalityProfilePanel({
   const hasSectorSplit =
     agriculturalValue !== null || livestockValue !== null || urbanValue !== null;
 
+  const propertyValue = (key: string): number | null => {
+    const value = (props as unknown as Record<string, unknown>)[key];
+    return typeof value === 'number' && Number.isFinite(value) ? value : null;
+  };
+  const servedUrbanStreams = isServedScenario(scenario)
+    ? [
+        { id: 'rsu', label: 'FORSU', value: propertyValue(SERVED_SCENARIO_RESIDUE_FIELD(scenario, 'rsu')) },
+        { id: 'rpo', label: 'Poda urbana', value: propertyValue(SERVED_SCENARIO_RESIDUE_FIELD(scenario, 'rpo')) },
+        { id: 'sewage', label: 'Lodo de ETE', value: propertyValue(SERVED_SCENARIO_RESIDUE_FIELD(scenario, 'sewage')) },
+      ]
+    : [];
+  const urbanScenarioTotal = servedUrbanStreams.reduce((sum, stream) => sum + (stream.value ?? 0), 0);
+  const hasUrbanScenarioData = servedUrbanStreams.some((stream) => (stream.value ?? 0) > 0);
+  const isMgMunicipality = String(props.ibge_code).startsWith('31');
+  const ibgeUf = isMgMunicipality ? 'mg' : 'sp';
+
   return (
     <>
-      {/* Backdrop — only in the side-drawer layout (landscape phones + desktop).
-          In portrait the panel is a partial bottom sheet, so we deliberately
-          render NO blocking backdrop: the map above the sheet stays visible and
-          fully interactive (pan/zoom, tap another município). */}
-      <div
-        className="hidden landscape:block fixed inset-0 bg-black/30 backdrop-blur-sm z-[1100] transition-opacity"
-        onClick={onClose}
-      />
-
       {/* Profile Panel.
           Portrait  → bottom sheet: fixed to the bottom, ~62vh tall, rounded top.
           Landscape → right-side drawer, full height (matches desktop). */}
-      <div
-        className="fixed z-[1101] bg-white dark:bg-slate-900 shadow-2xl overflow-y-auto transform transition-transform
-                   inset-x-0 bottom-0 max-h-[62vh] rounded-t-2xl
-                   landscape:inset-x-auto landscape:right-0 landscape:top-0 landscape:bottom-0 landscape:max-h-none landscape:w-[min(85vw,400px)] landscape:rounded-none"
+      <aside
+        aria-label={`Detalhes do município de ${props.name}`}
+        className="absolute z-[1101] overflow-y-auto bg-white shadow-2xl dark:bg-slate-900
+                   inset-x-0 bottom-0 max-h-[68%] rounded-t-2xl
+                   landscape:inset-x-auto landscape:right-0 landscape:top-0 landscape:bottom-0 landscape:max-h-none landscape:w-[min(88vw,380px)] landscape:rounded-none"
       >
         {/* Drag-handle affordance (bottom-sheet only) */}
         <div className="landscape:hidden flex justify-center pt-2 pb-1">
           <span className="h-1.5 w-10 rounded-full bg-gray-300 dark:bg-slate-600" aria-hidden="true" />
         </div>
         {/* Header */}
-        <div className="sticky top-0 bg-gradient-to-r from-[#1B5E20] to-[#2F7D32] text-white p-4 shadow-lg z-10 rounded-t-2xl landscape:rounded-none">
+        <div className="sticky top-0 z-10 rounded-t-2xl bg-gradient-to-r from-[#1B5E20] to-[#2F7D32] p-3 text-white shadow-lg landscape:rounded-none">
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <div className="flex items-center space-x-2 mb-1">
@@ -199,11 +202,10 @@ export default function MunicipalityProfilePanel({
                   {props.intermediate_region ? `Município · ${props.intermediate_region}` : 'Município'}
                 </span>
               </div>
-              <h2 className="text-xl font-bold mb-1">{props.name}</h2>
-              <div className="flex items-center space-x-4 text-sm opacity-90">
+              <h2 className="mb-1 text-lg font-bold leading-tight">{props.name}</h2>
+              <div className="flex flex-wrap items-center gap-x-2 text-xs opacity-90">
                 <span>IBGE: {props.ibge_code}</span>
-                <span>•</span>
-                <span>{props.intermediate_region}</span>
+                {props.intermediate_region && <><span>•</span><span>{props.intermediate_region}</span></>}
               </div>
             </div>
             <button
@@ -218,7 +220,7 @@ export default function MunicipalityProfilePanel({
         </div>
 
         {/* Content */}
-        <div className="p-4 space-y-4">
+        <div className="space-y-3 p-3">
           {/* Cluster Profile — shown when cluster data is available */}
           {props.cluster_label != null && (
             <div className="rounded-xl border border-gray-200 dark:border-slate-700 overflow-hidden">
@@ -414,15 +416,46 @@ export default function MunicipalityProfilePanel({
 
           {/* Urban Waste Details */}
           <Section
-            title="Resíduos Urbanos"
+            title={`Resíduos Urbanos${isServedScenario(scenario) ? ` · ${SCENARIO_LABEL[scenario]}` : ''}`}
             icon={<Droplets className="w-5 h-5" />}
             expanded={expandedSections.has('urban')}
             onToggle={() => toggleSection('urban')}
           >
-            <div className="space-y-2">
-              <DetailRow label="RSU (Resíduos Sólidos)" value={formatResidue(props, 'rsu')} />
-              <DetailRow label="RPO (Resíduos Orgânicos)" value={formatResidue(props, 'rpo')} />
-            </div>
+            {isServedScenario(scenario) ? (
+              hasUrbanScenarioData ? (
+                <div className="space-y-3">
+                  <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 dark:border-blue-900 dark:bg-blue-950/30">
+                    <p className="text-[11px] font-medium text-blue-700 dark:text-blue-300">Potencial urbano total</p>
+                    <p className="text-xl font-bold text-blue-950 dark:text-blue-100">
+                      {formatCompact(urbanScenarioTotal)}
+                      <span className="ml-1 text-xs font-medium">Nm³ CH₄/ano</span>
+                    </p>
+                  </div>
+                  {servedUrbanStreams.map((stream) => (
+                    <UrbanStreamRow
+                      key={stream.id}
+                      label={stream.label}
+                      value={stream.value}
+                      total={urbanScenarioTotal}
+                    />
+                  ))}
+                  <p className="rounded-md bg-amber-50 px-2.5 py-2 text-[11px] leading-snug text-amber-900 dark:bg-amber-950/30 dark:text-amber-200">
+                    Potencial estimado de CH₄ por cenário. Não representa massa coletada em t/ano.
+                  </p>
+                </div>
+              ) : (
+                <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-3 text-sm text-gray-600 dark:border-slate-700 dark:bg-slate-800 dark:text-gray-300">
+                  <p className="font-semibold">Sem inventário urbano validado{isMgMunicipality ? ' para MG' : ''}</p>
+                  <p className="mt-1 text-xs leading-snug">FORSU, poda urbana e lodo de ETE não foram inferidos a partir da população.</p>
+                </div>
+              )
+            ) : (
+              <div className="space-y-2">
+                <DetailRow label="FORSU" value={formatResidue(props, 'rsu')} />
+                <DetailRow label="Poda urbana" value={formatResidue(props, 'rpo')} />
+                <DetailRow label="Lodo de ETE" value={formatResidue(props, 'sewage')} />
+              </div>
+            )}
           </Section>
 
           {/* External Links */}
@@ -442,7 +475,7 @@ export default function MunicipalityProfilePanel({
               <FileText className="w-4 h-4 text-green-600 group-hover:text-green-800 dark:text-green-400" />
             </Link>
             <a
-              href={`https://cidades.ibge.gov.br/brasil/sp/${props.name.toLowerCase()}/panorama`}
+              href={`https://cidades.ibge.gov.br/brasil/${ibgeUf}/${encodeURIComponent(props.name.toLowerCase())}/panorama`}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center justify-between p-4 rounded-lg bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors group"
@@ -454,7 +487,7 @@ export default function MunicipalityProfilePanel({
             </a>
           </div>
         </div>
-      </div>
+      </aside>
     </>
   );
 }
@@ -486,7 +519,7 @@ function Section({ title, icon, expanded, onToggle, children }: SectionProps) {
           <ChevronDown className="w-5 h-5 text-gray-500" />
         )}
       </button>
-      {expanded && <div className="p-4">{children}</div>}
+      {expanded && <div className="p-3">{children}</div>}
     </div>
   );
 }
@@ -573,6 +606,24 @@ function ProgressBar({ label, value, percentage, color, icon, unit = 'm³/ano' }
 interface DetailRowProps {
   label: string;
   value: string;
+}
+
+function UrbanStreamRow({ label, value, total }: { label: string; value: number | null; total: number }) {
+  const percentage = value !== null && total > 0 ? (value / total) * 100 : 0;
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-center justify-between gap-3 text-sm">
+        <span className="font-medium text-gray-700 dark:text-gray-300">{label}</span>
+        <span className="text-right font-semibold text-gray-950 dark:text-white">
+          {value === null ? 'Sem dados' : `${formatCompact(value)} Nm³ CH₄/ano`}
+        </span>
+      </div>
+      <div className="h-1.5 overflow-hidden rounded-full bg-gray-200 dark:bg-slate-700">
+        <div className="h-full rounded-full bg-blue-600" style={{ width: `${Math.min(percentage, 100)}%` }} />
+      </div>
+      <p className="text-right text-[10px] text-gray-500 dark:text-gray-400">{percentage.toFixed(1)}% do urbano</p>
+    </div>
+  );
 }
 
 function DetailRow({ label, value }: DetailRowProps) {

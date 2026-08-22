@@ -26,6 +26,8 @@ export default function MapLegend({
   showNationalBeta = false,
   scenario = 'baseline',
   scaleBreaks = null,
+  scopeLabel = 'São Paulo',
+  betaScope = false,
 }: {
   displayMetric?: DisplayMetric;
   daltonic?: boolean;
@@ -40,6 +42,9 @@ export default function MapLegend({
    * the map used another would be worse than no legend.
    */
   scaleBreaks?: number[] | null;
+  scopeLabel?: string;
+  /** True while MG is the selected pilot and is painted by the active ramp. */
+  betaScope?: boolean;
 }) {
   const t = useTranslations('Map');
   const [cvdPalette, setCvdPalette] = useCvdPalette();
@@ -65,7 +70,7 @@ export default function MapLegend({
           <span className="text-[10px] font-semibold text-gray-700 uppercase tracking-wide leading-tight">
             {title}
             <span className="block text-[9px] font-bold text-green-700 normal-case tracking-normal">
-              São Paulo
+              {scopeLabel}{betaScope ? ' · BETA' : ''}
             </span>
             {scenarioApplies && (
               <span
@@ -151,7 +156,7 @@ export default function MapLegend({
 
             {/* Beta swatch, separated by a rule: it is not another step of the
                 ramp, it is a different scope with a different confidence. */}
-            {showNationalBeta && (
+            {showNationalBeta && !betaScope && (
               <div className="pt-1.5 mt-1 border-t border-gray-100">
                 <div className="flex items-center gap-2.5 px-1.5 py-1" role="listitem">
                   <div
@@ -160,7 +165,7 @@ export default function MapLegend({
                     aria-hidden="true"
                   />
                   <span className="text-[10px] text-gray-500 font-medium flex-1 leading-tight">
-                    Fora de SP — em validação
+                    Minas Gerais — piloto beta
                   </span>
                 </div>
               </div>

@@ -19,7 +19,10 @@ Input of record:
 Crop → residue conversions (IBGE PAM units → actual substrate):
   sugarcane_biomass_tons_year = raw green cane → decomposed into 4 industrial sub-streams
   citrus_biomass_tons_year    = whole fruit   → × 0.50 wet peel (FUNDECITRUS; FCo handles competing uses)
-  soybean/corn/coffee: CSV already contains residue-equivalent tonnes from MapBiomas × yield_t_ha
+  soybean/corn/coffee: CSV already contains residue-equivalent tonnes derived from
+                       IBGE PAM production (prod_t_*), NOT from remote sensing. Area and
+                       production both come from PAM, on the same master row; no MapBiomas
+                       raster is read anywhere in this chain.
 
 Uncertainty is propagated coupled: scenario `sc` uses the `sc` band of every
 factor (generation, chemistry, FDE) simultaneously — a genuine lower/upper
@@ -108,7 +111,7 @@ SUGARCANE_SUBSTREAMS: list[tuple[str, str, float, str]] = [
 # Sugarcane is handled separately (SUGARCANE_SUBSTREAMS).
 # Citrus is handled with CITRUS_RESIDUE_FRACTION.
 # Other agricultural streams use CSV values as residue-equivalent tonnes directly.
-AGRICULTURAL_DIRECT = ("soybean", "corn", "coffee")  # MapBiomas × yield_t_ha → residue tonnes
+AGRICULTURAL_DIRECT = ("soybean", "corn", "coffee")  # IBGE PAM prod_t_* → residue tonnes
 LIVESTOCK = ("cattle", "swine", "poultry")  # head counts → t/head/yr via generation
 URBAN = ("rsu_organic", "rpo")  # per-capita (SP pop)
 

@@ -353,7 +353,8 @@ class TestDeriveActivityBiomass:
         assert tons["poultry"] < 205_686_533 / 10
         assert tons["cattle"] > tons["poultry"]  # fewer cattle, but far more per head
         assert prov["cattle"] == "estimated"
-        assert set(("rsu", "rpo")) <= set(tons)  # urban modelled from population
+        assert "rsu" in tons
+        assert "rpo" not in tons  # pruning has no municipal activity source yet
         assert prov["rsu"] == "estimated"
 
     def test_no_population_means_no_urban(self):
@@ -368,3 +369,23 @@ class TestDeriveActivityBiomass:
 
         tons, prov = _derive_activity_biomass(head={}, population=0)
         assert tons == {} and prov == {}
+
+
+class TestPublicMapStateBoundary:
+    def test_only_sp_and_mg_codes_are_enabled_by_default(self):
+        from app.api.v1.endpoints.municipalities import _is_enabled_map_ibge_code
+
+        assert _is_enabled_map_ibge_code("3550308")
+        assert _is_enabled_map_ibge_code("3106200")
+        assert not _is_enabled_map_ibge_code("3304557")
+        assert not _is_enabled_map_ibge_code("35")
+
+    def test_geojson_sql_filters_by_enabled_uf_prefixes(self):
+        from app.api.v1.endpoints.municipalities import _geojson_select_sql
+
+        sql = _geojson_select_sql(False, "geometry_overview", 4, False)
+        assert "LEFT(m.ibge_code::text, 2) = ANY(%s)" in sql
+        assert """COALESCE(
+                            m.geometry_overview,
+                            m.geometry,
+                            ST_Buffer""" in sql

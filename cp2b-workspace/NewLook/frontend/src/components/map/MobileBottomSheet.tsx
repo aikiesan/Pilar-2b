@@ -38,6 +38,7 @@ interface MobileBottomSheetProps {
   onColorModeChange: (mode: ColorMode) => void;
   /** False when the current scope has no per-residue breakdown (outside SP). */
   residueBreakdownAvailable?: boolean;
+  availableResidueCategories?: Array<'agricultural' | 'livestock' | 'urban'>;
   scenario: MapScenarioKey;
   onScenarioChange: (s: MapScenarioKey) => void;
   daltonic: boolean;
@@ -61,6 +62,7 @@ const RESIDUE_META = [
   { value: 'aquaculture' as const, category: 'livestock' as const, icon: '🐟' },
   { value: 'rsu' as const, category: 'urban' as const, icon: '🗑️' },
   { value: 'rpo' as const, category: 'urban' as const, icon: '♻️' },
+  { value: 'sewage' as const, category: 'urban' as const, icon: '💧' },
 ];
 
 const BIOMASS_META: { value: BiomassType; icon: string }[] = [
@@ -90,6 +92,7 @@ export default function MobileBottomSheet({
   displayMetric = 'biomass_tons', onDisplayMetricChange, cnMatrix,
   colorMode, onColorModeChange,
   residueBreakdownAvailable = true,
+  availableResidueCategories,
   scenario, onScenarioChange, daltonic, onToggleDaltonic,
 }: MobileBottomSheetProps) {
   const t = useTranslations('Map');
@@ -99,6 +102,9 @@ export default function MobileBottomSheet({
 
   const filterCount = selectedResidues.length;
   const activeLayerCount = layers.filter(l => l.visible).length;
+  const enabledCategories = availableResidueCategories ?? (
+    residueBreakdownAvailable ? ['agricultural', 'livestock', 'urban'] : []
+  );
 
   const handleResidueToggle = useCallback((residue: ResidueType) => {
     const next = selectedResidues.includes(residue)
@@ -272,18 +278,24 @@ export default function MobileBottomSheet({
                   </button>
                   {showBiomassTypes && (
                     <div className="grid grid-cols-2 gap-2">
-                      {BIOMASS_META.map(opt => (
-                        <button
+                      {BIOMASS_META.map(opt => {
+                        const enabled = opt.value === 'total' || enabledCategories.includes(opt.value);
+                        return <button
                           key={opt.value}
+                          disabled={!enabled}
                           onClick={() => onBiomassTypeChange(opt.value)}
                           className={`flex min-h-11 items-center gap-2 rounded-xl border px-3 py-2.5 text-xs font-medium transition-colors ${
-                            biomassType === opt.value ? 'bg-green-100 border-green-400 text-green-800' : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
+                            !enabled
+                              ? 'cursor-not-allowed border-gray-100 bg-gray-50 text-gray-300'
+                              : biomassType === opt.value
+                                ? 'bg-green-100 border-green-400 text-green-800'
+                                : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
                           }`}
                         >
                           <span className="text-base">{opt.icon}</span>
                           {t(`biomassTypes.${opt.value}`)}
-                        </button>
-                      ))}
+                        </button>;
+                      })}
                     </div>
                   )}
                 </div>
@@ -302,9 +314,9 @@ export default function MobileBottomSheet({
                   </button>
                   {showResidues && (
                     <div className="space-y-3">
-                      {!residueBreakdownAvailable && (
+                      {enabledCategories.length < 3 && (
                         <p className="rounded-md bg-amber-50 px-3 py-2 text-[11px] leading-snug text-amber-800 ring-1 ring-amber-200">
-                          ⓘ Filtros por resíduo específico disponíveis apenas em São Paulo. Fora de SP, use as camadas agregadas.
+                          ⓘ Em MG beta, somente os filtros agrícolas estão validados. Pecuária e urbano aguardam promoção.
                         </p>
                       )}
                       {filterCount > 0 && (
@@ -315,8 +327,8 @@ export default function MobileBottomSheet({
                           {t('residueFilter.clearFilters')} ({filterCount})
                         </button>
                       )}
-                      <div className={!residueBreakdownAvailable ? 'pointer-events-none opacity-40' : ''}>
                       {(['agricultural', 'livestock', 'urban'] as const).map(cat => {
+                        const categoryAvailable = enabledCategories.includes(cat);
                         const catIcon = cat === 'agricultural' ? '🌾' : cat === 'livestock' ? '🐄' : '🏙️';
                         const activeColor = cat === 'agricultural'
                           ? 'bg-green-200 border-green-500'
@@ -324,7 +336,7 @@ export default function MobileBottomSheet({
                           ? 'bg-yellow-200 border-yellow-500'
                           : 'bg-blue-200 border-blue-500';
                         return (
-                          <div key={cat}>
+                          <div key={cat} className={!categoryAvailable ? 'opacity-40' : ''}>
                             <div className="text-[10px] text-gray-500 font-bold uppercase mb-1.5 flex items-center gap-1">
                               {catIcon} {t(`categories.${cat}`)}
                             </div>
@@ -334,6 +346,7 @@ export default function MobileBottomSheet({
                                 return (
                                   <button
                                     key={residue.value}
+                                    disabled={!categoryAvailable}
                                     onClick={() => handleResidueToggle(residue.value)}
                                     className={`flex min-h-11 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
                                       isSelected ? activeColor : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
@@ -348,7 +361,6 @@ export default function MobileBottomSheet({
                           </div>
                         );
                       })}
-                      </div>
                     </div>
                   )}
                 </div>

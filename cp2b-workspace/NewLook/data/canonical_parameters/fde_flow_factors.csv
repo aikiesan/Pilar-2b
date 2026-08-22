@@ -1,0 +1,31 @@
+fluxo,tier,fc,fco,fs,fl,fde,termo_origem,fonte,provenance_class
+vinhaça,real,1,1,1,1,1,nenhum termo de disponibilidade (dif real/ideal = CH4 0.50/0.65 = conversão),Atlas de Bioenergia SP (2020) p.67,atlas_sourced
+torta de filtro,real,1,1,1,1,1,nenhum termo de disponibilidade,Atlas de Bioenergia SP (2020) p.66,atlas_sourced
+palha de cana,real,1,0.4,1,1,0.4,PALHA_FRACAO[real],Atlas de Bioenergia SP (2020) p.65,atlas_sourced
+bovinos,real,0.6666666666666666,1,1,1,0.6666666666666666,KG_ESTERCO_DIA bov 8/12,husbandry literature (PILAR-2b faixas de manejo),pilar_derived
+suínos,real,0.6666666666666666,1,1,1,0.6666666666666666,KG_ESTERCO_DIA sui 6/9,husbandry literature (PILAR-2b reconstrução por massa),pilar_derived
+aves,real,0.7142857142857143,1,1,1,0.7142857142857143,KG_ESTERCO_DIA ave 0.025/0.035,husbandry literature (PILAR-2b faixas de manejo),pilar_derived
+RSU (FORSU),real,0.9962,0.4646,1,1,0.46282252,RSU_COLETA_REAL × RSU_MO_FRACAO,Atlas de Bioenergia SP (2020) p.90 (coleta) + Eq V.5 (MO),atlas_sourced
+esgoto (ETE),real,0.905,1,1,1,0.905,ESGOTO_COLETA_REAL,SP sewage collected/generated (PILAR-2b),pilar_derived
+milho,real,1,0.4,1,1,0.4,OUTROS_RETENCAO[real],assumed (Atlas cane-straw analogy p.65),inherited_assumed
+soja,real,1,0.4,1,1,0.4,OUTROS_RETENCAO[real],assumed (Atlas cane-straw analogy p.65),inherited_assumed
+silvicultura,real,1,0.4,1,1,0.4,OUTROS_RETENCAO[real],assumed (Atlas cane-straw analogy p.65),inherited_assumed
+aquicultura,real,1,0.4,1,1,0.4,OUTROS_RETENCAO[real],assumed (Atlas cane-straw analogy p.65),inherited_assumed
+citros,real,1,0.7,1,1,0.7,OUTROS_RETENCAO[real],assumed (Atlas cane-straw analogy p.65),inherited_assumed
+cafe,real,1,0.7,1,1,0.7,OUTROS_RETENCAO[real],assumed (Atlas cane-straw analogy p.65),inherited_assumed
+poda_urbana,real,1,0.8,1,1,0.8,OUTROS_RETENCAO[real],assumed (Atlas cane-straw analogy p.65),inherited_assumed
+vinhaça,ideal,1,1,1,1,1,nenhum termo de disponibilidade (dif real/ideal = CH4 0.50/0.65 = conversão),Atlas de Bioenergia SP (2020) p.67,atlas_sourced
+torta de filtro,ideal,1,1,1,1,1,nenhum termo de disponibilidade,Atlas de Bioenergia SP (2020) p.66,atlas_sourced
+palha de cana,ideal,1,0.5,1,1,0.5,PALHA_FRACAO[ideal],Atlas de Bioenergia SP (2020) p.65,atlas_sourced
+bovinos,ideal,1,1,1,1,1,KG_ESTERCO_DIA bov 12/12,husbandry literature (PILAR-2b faixas de manejo),pilar_derived
+suínos,ideal,1,1,1,1,1,KG_ESTERCO_DIA sui 9/9,husbandry literature (PILAR-2b reconstrução por massa),pilar_derived
+aves,ideal,1,1,1,1,1,KG_ESTERCO_DIA ave 0.035/0.035,husbandry literature (PILAR-2b faixas de manejo),pilar_derived
+RSU (FORSU),ideal,1,0.4646,1,1,0.4646,RSU coleta ideal × RSU_MO_FRACAO,Atlas de Bioenergia SP (2020) Eq V.5 (MO); coleta ideal = 1.0,atlas_sourced
+esgoto (ETE),ideal,1,1,1,1,1,coleta ideal = 1.0,SP sewage collected/generated (PILAR-2b); ideal = 1.0,pilar_derived
+milho,ideal,1,0.5,1,1,0.5,OUTROS_RETENCAO[ideal],assumed (Atlas cane-straw analogy p.65),inherited_assumed
+soja,ideal,1,0.5,1,1,0.5,OUTROS_RETENCAO[ideal],assumed (Atlas cane-straw analogy p.65),inherited_assumed
+silvicultura,ideal,1,0.5,1,1,0.5,OUTROS_RETENCAO[ideal],assumed (Atlas cane-straw analogy p.65),inherited_assumed
+aquicultura,ideal,1,0.5,1,1,0.5,OUTROS_RETENCAO[ideal],assumed (Atlas cane-straw analogy p.65),inherited_assumed
+citros,ideal,1,0.85,1,1,0.85,OUTROS_RETENCAO[ideal],assumed (Atlas cane-straw analogy p.65),inherited_assumed
+cafe,ideal,1,0.85,1,1,0.85,OUTROS_RETENCAO[ideal],assumed (Atlas cane-straw analogy p.65),inherited_assumed
+poda_urbana,ideal,1,0.95,1,1,0.95,OUTROS_RETENCAO[ideal],assumed (Atlas cane-straw analogy p.65),inherited_assumed

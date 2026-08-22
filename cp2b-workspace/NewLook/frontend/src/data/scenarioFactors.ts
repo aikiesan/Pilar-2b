@@ -59,8 +59,8 @@ export const SERVED_SCENARIO_FIELD: Record<ServedScenarioKey, string> = {
  * Municipality property holding ONE residue's share of a served scenario
  * (migration 029; emitted by municipalities.py's _SCENARIO_RESIDUE_COLUMNS).
  *
- * The backend carries thirteen residues, the map's filter offers eleven —
- * `sewage` and `forestry` are computed and stored but not selectable. So the sum
+ * The backend carries thirteen residues, the map's filter offers twelve —
+ * `forestry` is computed and stored but not selectable. So the sum
  * over the selected residues does NOT reconcile to `SERVED_SCENARIO_FIELD` even
  * when every checkbox is ticked, and it should not: the filter is a slice of the
  * total, not a decomposition of it.
@@ -136,7 +136,7 @@ export const SCENARIO_LABEL: Record<MapScenarioKey, string> = {
 export const SCENARIO_SECTOR_RESIDUES: Record<'agricultural' | 'livestock' | 'urban', string[]> = {
   agricultural: ['sugarcane', 'citrus', 'soybean', 'corn', 'coffee'],
   livestock: ['cattle', 'swine', 'poultry', 'aquaculture'],
-  urban: ['rsu', 'rpo'],
+  urban: ['rsu', 'rpo', 'sewage'],
 };
 
 /** Scale a municipality properties object's biogas fields by the scenario. Returns a new object. */
