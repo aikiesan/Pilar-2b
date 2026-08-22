@@ -44,6 +44,7 @@ export interface MunicipalityProperties {
   forestry_biogas_m3_year: number;
   rsu_biogas_m3_year: number;
   rpo_biogas_m3_year: number;
+  sewage_biogas_m3_year?: number;
 
   // Residues (legacy alias kept for compatibility)
   sugarcane_residues_tons_year: number;
@@ -68,6 +69,7 @@ export interface MunicipalityProperties {
   aquaculture_biomass_tons_year: number | null;
   rsu_biomass_tons_year: number | null;
   rpo_biomass_tons_year: number | null;
+  sewage_biomass_tons_year?: number | null;
 
   // Coverage per stream/sector: 'measured' | 'estimated' | 'partial' | 'no_data'
   // (migration 025). Accessed dynamically as `${stream}_biomass_coverage`, so an

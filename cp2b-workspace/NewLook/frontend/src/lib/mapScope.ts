@@ -1,5 +1,5 @@
 /**
- * Geographic scope of the platform — São Paulo vs. the rest of Brazil.
+ * Geographic scope of the public platform — canonical SP plus the MG pilot.
  *
  * The map serves 5,571 municipalities, but only the 645 in São Paulo carry
  * numbers that have been through the canonical pipeline and the FDE audit.
@@ -20,9 +20,11 @@
 
 /** IBGE UF code for São Paulo. */
 export const SP_UF_CODE = '35';
+export const MG_UF_CODE = '31';
 
 /** Municipalities in São Paulo (IBGE 2023 / the canonical pipeline's universe). */
 export const SP_MUNICIPALITY_COUNT = 645;
+export const MG_MUNICIPALITY_COUNT = 853;
 
 /**
  * True when the IBGE code belongs to São Paulo.
@@ -38,8 +40,20 @@ export function isSaoPaulo(ibgeCode: string | number | null | undefined): boolea
   return code.length === 7 && code.startsWith(SP_UF_CODE);
 }
 
+export function isMinasGerais(ibgeCode: string | number | null | undefined): boolean {
+  if (ibgeCode === null || ibgeCode === undefined) return false;
+  const code = String(ibgeCode).trim();
+  return code.length === 7 && code.startsWith(MG_UF_CODE);
+}
+
+export function isPublicMapMunicipality(
+  ibgeCode: string | number | null | undefined
+): boolean {
+  return isSaoPaulo(ibgeCode) || isMinasGerais(ibgeCode);
+}
+
 /** Layer id for the national (non-SP) municipalities, still in validation. */
-export const NATIONAL_BETA_LAYER_ID = 'national-beta';
+export const MG_BETA_LAYER_ID = 'mg-beta';
 
 /**
  * Fill for a non-SP municipality: a flat, desaturated slate that sits clearly
@@ -66,8 +80,8 @@ export const BETA_STYLE = {
 
 /** Shown wherever a non-SP value is surfaced (tooltip, profile panel, legend). */
 export const BETA_NOTICE =
-  'Fora de São Paulo — dados em validação (beta). Os totais publicados da ' +
-  'plataforma referem-se somente ao Estado de São Paulo.';
+  'Minas Gerais — piloto beta. PAM agrícola promovida; pecuária e resíduos ' +
+  'urbanos aguardam promoção e validação das fontes.';
 
 /** Compact variant for tooltips and badges, where the full sentence does not fit. */
 export const BETA_BADGE_LABEL = 'BETA — em validação';

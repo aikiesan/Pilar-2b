@@ -5,7 +5,15 @@
  * the canonical layer, which is the failure that matters.
  */
 
-import { isSaoPaulo, SP_UF_CODE, SP_MUNICIPALITY_COUNT } from '../mapScope';
+import {
+  isSaoPaulo,
+  isMinasGerais,
+  isPublicMapMunicipality,
+  SP_UF_CODE,
+  MG_UF_CODE,
+  SP_MUNICIPALITY_COUNT,
+  MG_MUNICIPALITY_COUNT,
+} from '../mapScope';
 
 describe('isSaoPaulo', () => {
   it('accepts São Paulo codes as string and as number', () => {
@@ -48,5 +56,26 @@ describe('isSaoPaulo', () => {
   it('pins the constants the UI counts against', () => {
     expect(SP_UF_CODE).toBe('35');
     expect(SP_MUNICIPALITY_COUNT).toBe(645);
+  });
+});
+
+describe('public SP + MG rollout boundary', () => {
+  it('recognizes Minas Gerais without promoting it to canonical SP', () => {
+    expect(isMinasGerais('3106200')).toBe(true);
+    expect(isSaoPaulo('3106200')).toBe(false);
+  });
+
+  it('rejects municipalities outside the two enabled states', () => {
+    expect(isPublicMapMunicipality('3550308')).toBe(true);
+    expect(isPublicMapMunicipality('3106200')).toBe(true);
+    expect(isPublicMapMunicipality('3304557')).toBe(false);
+    expect(isPublicMapMunicipality('5300108')).toBe(false);
+  });
+
+  it('pins both state universes used by map counters', () => {
+    expect(SP_UF_CODE).toBe('35');
+    expect(MG_UF_CODE).toBe('31');
+    expect(SP_MUNICIPALITY_COUNT).toBe(645);
+    expect(MG_MUNICIPALITY_COUNT).toBe(853);
   });
 });

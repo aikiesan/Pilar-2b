@@ -86,7 +86,7 @@ export default function HeatmapLayer({
       sugarcane: 'Cana-de-açúcar', soybean: 'Soja', corn: 'Milho',
       coffee: 'Café', citrus: 'Citrus', cattle: 'Bovinos',
       swine: 'Suínos', poultry: 'Aves', aquaculture: 'Aquicultura',
-      rsu: 'RSU', rpo: 'RPO',
+      rsu: 'FORSU', rpo: 'Poda urbana', sewage: 'Lodo de ETE',
     };
     if (selectedResidues.length === 1) return labels[selectedResidues[0]];
     return `${selectedResidues.length} Resíduos`;

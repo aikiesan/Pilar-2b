@@ -751,9 +751,9 @@ describe('MapComponent', () => {
   });
 
   // Two regressions that were invisible from inside the component: picking a
-  // residue emptied the map instead of narrowing it, and the national beta layer
-  // drew nothing at all in the default (SP) scope.
-  describe('Residue filter + national beta layer', () => {
+  // residue emptied the map instead of narrowing it, and the MG beta layer drew
+  // nothing at all in the default (SP) scope.
+  describe('Residue filter + MG beta layer', () => {
     const spWithCane = createMunicipalityFeature({
       ibge_code: '3505500',
       name: 'Barretos',
@@ -771,25 +771,44 @@ describe('MapComponent', () => {
       ibge_code: '3106200', // Belo Horizonte — MG, outside the canonical pipeline
       name: 'Belo Horizonte',
     });
+    const disabledStateMunicipality = createMunicipalityFeature({
+      ibge_code: '3304557',
+      name: 'Rio de Janeiro',
+    });
 
     beforeEach(() => {
       mockUseGeospatialData.mockReturnValue({
-        data: createMunicipalityCollection([spWithCane, spWithoutCane, betaMunicipality]),
+        data: createMunicipalityCollection([
+          spWithCane,
+          spWithoutCane,
+          betaMunicipality,
+          disabledStateMunicipality,
+        ]),
         loading: false,
         error: null,
       });
     });
 
     it('draws the beta municipalities in the SP scope, where the toggle lives', async () => {
-      // The scope filter used to drop every non-SP feature before the beta layer
-      // could see one, so "Demais municípios do Brasil (BETA)" was a switch wired
-      // to nothing. The layer draws all three; only the two SP rows count as SP.
+      // MG remains as beta context, while states outside the public SP+MG rollout
+      // are removed even if a stale payload contains them.
       render(<MapComponent />);
       act(() => { jest.advanceTimersByTime(1500); });
 
       await waitFor(() => {
         expect(screen.getByText('3 municipalities')).toBeInTheDocument();
         expect(screen.getByTestId('municipality-count')).toHaveTextContent('2 / 645');
+      });
+    });
+
+    it('selects MG as an 853-municipality pilot scope', async () => {
+      window.history.replaceState(null, '', '/?scope=31');
+      render(<MapComponent />);
+      act(() => { jest.advanceTimersByTime(1500); });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('municipality-count')).toHaveTextContent('1 / 853');
+        expect(screen.getByText('1 municipalities')).toBeInTheDocument();
       });
     });
 

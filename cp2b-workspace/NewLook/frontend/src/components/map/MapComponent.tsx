@@ -16,14 +16,21 @@ import { useGeospatialData, useCodigestionClusters, useResidueCNMatrix, useInter
 import { useCnProfiles } from '@/hooks/useCnProfiles';
 import type { FilterCriteria } from '@/components/dashboard/FilterPanel';
 import type { MunicipalityCollection, MunicipalityFeature, DisplayMetric, CodigestionCluster } from '@/types/geospatial';
-import { MAP_SCENARIOS, DEFAULT_MAP_SCENARIO, applyScenarioToProps, type MapScenarioKey } from '@/data/scenarioFactors';
+import { MAP_SCENARIOS, DEFAULT_MAP_SCENARIO, applyScenarioToProps, isServedScenario, type MapScenarioKey } from '@/data/scenarioFactors';
 import { DISPLAY_METRICS, getMetricSpec, computeAdaptiveBreaks, DEFAULT_MAP_PALETTE } from '@/lib/mapMetrics';
 import { setMapPalette } from '@/hooks/useMapPalette';
 import { hasAnySelectedResidue } from '@/lib/mapValues';
 import { BASEMAPS, DEFAULT_BASEMAP, type BasemapId } from '@/data/basemaps';
 import type { ThematicPreset } from '@/data/thematicPresets';
 import { DATA_EXPORT_ENABLED } from '@/lib/featureFlags';
-import { isSaoPaulo, NATIONAL_BETA_LAYER_ID, SP_MUNICIPALITY_COUNT } from '@/lib/mapScope';
+import {
+  isSaoPaulo,
+  isMinasGerais,
+  isPublicMapMunicipality,
+  MG_BETA_LAYER_ID,
+  SP_MUNICIPALITY_COUNT,
+  MG_MUNICIPALITY_COUNT,
+} from '@/lib/mapScope';
 import type { BiomassType, ResidueType } from './FloatingControlPanel';
 import type { VisualizationMode } from './LeftFilterPanel';
 import { type ColorMode } from '@/types/geospatial';
@@ -34,12 +41,12 @@ import {
   SCOPE_BRAZIL,
   getState,
   scopeView,
-  scopeHasResidueBreakdown,
   ufOf,
   type MapScope,
 } from '@/data/brazilStates';
 import ScopeSwitcher from './ScopeSwitcher';
 import MapLegend from './MapLegend';
+import UrbanResidueTotals from './UrbanResidueTotals';
 import MapLoadingSkeleton from './MapLoadingSkeleton';
 import { isPlantLayer } from '@/lib/plantLayers';
 import 'leaflet/dist/leaflet.css';
@@ -123,15 +130,17 @@ const IntermediateRegionsMapLayer = dynamic(
   { ssr: false }
 );
 
-// Parse the ?scope= URL param into a scope value (a UF code or SCOPE_BRAZIL).
-// Accepts legacy 'brazil'/'sp', a 2-digit UF code ('41'), or a sigla ('PR').
+// The public rollout accepts only canonical SP and the MG pilot. Legacy
+// national/other-state URLs fall back to SP rather than widening the payload.
 function parseScopeParam(raw: string | null): MapScope {
   if (!raw) return SAO_PAULO_UF;
   const v = raw.trim().toLowerCase();
-  if (v === 'brazil' || v === 'br' || v === 'todos') return SCOPE_BRAZIL;
   if (v === 'sp') return SAO_PAULO_UF;
-  if (/^\d{2}$/.test(v) && getState(v)) return v;
-  const bySigla = BRAZIL_STATES.find((s) => s.sigla.toLowerCase() === v);
+  if (v === 'mg') return '31';
+  if (v === '35' || v === '31') return v;
+  const bySigla = BRAZIL_STATES.find(
+    (state) => (state.code === '35' || state.code === '31') && state.sigla.toLowerCase() === v
+  );
   if (bySigla) return bySigla.code;
   return SAO_PAULO_UF;
 }
@@ -178,7 +187,7 @@ const NATIONAL_INFRA_LAYERS: {
 // Valid residue values for URL parsing
 const VALID_RESIDUES: ResidueType[] = [
   'sugarcane', 'soybean', 'corn', 'coffee', 'citrus',
-  'cattle', 'swine', 'poultry', 'aquaculture', 'rsu', 'rpo',
+  'cattle', 'swine', 'poultry', 'aquaculture', 'rsu', 'rpo', 'sewage',
 ];
 const VALID_BIOMASS: BiomassType[] = ['total', 'agricultural', 'livestock', 'urban'];
 const VALID_VIZ: VisualizationMode[] = ['choropleth', 'heatmap', 'bubble', 'clusters'];
@@ -294,7 +303,13 @@ export default function MapComponent({
   const [scope, setScope] = useState<MapScope>(parseScopeParam(urlScope));
 
   const { center: mapCenter, zoom: mapZoom } = scopeView(scope);
-  const residueBreakdownAvailable = scopeHasResidueBreakdown(scope);
+  const availableResidueCategories: Array<'agricultural' | 'livestock' | 'urban'> =
+    scope === SAO_PAULO_UF
+      ? ['agricultural', 'livestock', 'urban']
+      : scope === '31'
+        ? ['agricultural']
+        : [];
+  const residueBreakdownAvailable = availableResidueCategories.length > 0;
 
   // ── Enhanced interaction state (Phase 2+3) ────────────────────────────────
   const [selectedMunicipality, setSelectedMunicipality] = useState<MunicipalityFeature | null>(null);
@@ -346,16 +361,31 @@ export default function MapComponent({
   };
 
   const handleBiomassTypeChange = (type: BiomassType) => {
+    const sectorResidues: Record<Exclude<BiomassType, 'total'>, ResidueType[]> = {
+      agricultural: ['sugarcane', 'soybean', 'corn', 'coffee', 'citrus'],
+      livestock: ['cattle', 'swine', 'poultry', 'aquaculture'],
+      urban: ['rsu', 'rpo', 'sewage'],
+    };
+    const residues = type === 'total' ? [] : sectorResidues[type];
+    const nextMetric: DisplayMetric = type === 'urban' && displayMetric === 'biomass_tons'
+      ? 'methane_m3'
+      : displayMetric;
     setBiomassType(type);
+    setSelectedResidues(residues);
+    setDisplayMetric(nextMetric);
     setActivePresetId(null);
     onBiomassTypeChange?.(type);
-    syncURL(visualizationMode, type, selectedResidues, searchQuery, displayMetric);
+    syncURL(visualizationMode, type, residues, searchQuery, nextMetric);
   };
 
   const handleResiduesChange = (residues: ResidueType[]) => {
+    const nextMetric: DisplayMetric = residues.includes('sewage') && displayMetric === 'biomass_tons'
+      ? 'methane_m3'
+      : displayMetric;
     setSelectedResidues(residues);
+    setDisplayMetric(nextMetric);
     setActivePresetId(null);
-    syncURL(visualizationMode, biomassType, residues, searchQuery, displayMetric);
+    syncURL(visualizationMode, biomassType, residues, searchQuery, nextMetric);
   };
 
   const handleSearchChange = (query: string) => {
@@ -415,12 +445,8 @@ export default function MapComponent({
   // transmission/pipelines are retired here rather than listed twice.
   // ETEs and Rodovias stay SP-only: there is no national equivalent loaded yet.
   const [layers, setLayers] = useState([
-    { id: 'municipalities', name: 'Municípios de São Paulo', visible: true, icon: '📍' },
-    // The rest of Brazil is a SEPARATE, subordinate layer — same GeoJSON
-    // request, different confidence. On by default (it is already in
-    // production and removing it silently would be a regression), but drawn
-    // as flat grey context so São Paulo owns the choropleth. See lib/mapScope.
-    { id: NATIONAL_BETA_LAYER_ID, name: 'Demais municípios do Brasil (BETA)', visible: true, icon: '🧪' },
+    { id: 'municipalities', name: 'Municípios SP + MG beta', visible: true, icon: '📍' },
+    { id: MG_BETA_LAYER_ID, name: 'Municípios de Minas Gerais (BETA)', visible: true, icon: '🧪' },
     { id: 'intermediate-regions', name: 'Regiões Intermediárias (IBGE)', visible: false, icon: '🗺️' },
     { id: 'mapbiomas', name: 'MapBiomas 2024', visible: false, icon: '🌳' },
     { id: 'biogas_plant', name: 'Usinas de Biogás (MapBiomas, BR)', visible: false, icon: '🏭' },
@@ -481,7 +507,6 @@ export default function MapComponent({
     if (layerId === 'mapbiomas') setShowMapBiomasLegend(visible);
     if (layerId === 'intermediate-regions') {
       setIntermediateRegionsEnabled(visible);
-      if (visible) handleScopeChange(SCOPE_BRAZIL);
     }
   };
 
@@ -516,7 +541,7 @@ export default function MapComponent({
     // Base/context layers (the choropleth itself, the national beta layer, IBGE
     // regions, MapBiomas) are never touched by a preset.
     const presetLayers = new Set(c.layers ?? []);
-    const KEEP = new Set<string>(['municipalities', NATIONAL_BETA_LAYER_ID, 'intermediate-regions', 'mapbiomas']);
+    const KEEP = new Set<string>(['municipalities', MG_BETA_LAYER_ID, 'intermediate-regions', 'mapbiomas']);
     setLayers(prev => prev.map(l => (KEEP.has(l.id) ? l : { ...l, visible: presetLayers.has(l.id) })));
     setActivePresetId(preset.id);
     syncURL(nextMode, nextType, nextResidues, searchQuery, nextMetric);
@@ -536,7 +561,7 @@ export default function MapComponent({
   // Declared here, above the filtering memo, because the scope filter has to
   // know about it: the beta layer is the one thing allowed to survive a scope
   // that is not its own.
-  const showNationalBeta = visibleLayerIds.includes(NATIONAL_BETA_LAYER_ID);
+  const showNationalBeta = visibleLayerIds.includes(MG_BETA_LAYER_ID);
   const infrastructureAlerts = useMemo(
     () => Object.values(infrastructureStatuses).filter(status =>
       visibleLayerIds.includes(status.layerType) &&
@@ -590,7 +615,8 @@ export default function MapComponent({
       // municípios do Brasil" while this line had already dropped every one of
       // them, so MunicipalityLayer and BETA_STYLE — both correct — never
       // received a single feature to draw.
-      const isBeta = !isSaoPaulo(props.ibge_code);
+      if (!isPublicMapMunicipality(props.ibge_code)) return false;
+      const isBeta = isMinasGerais(props.ibge_code);
       const inScope = scope === SCOPE_BRAZIL || ufOf(props.ibge_code) === scope;
       if (!inScope && !(showNationalBeta && isBeta)) return false;
 
@@ -605,7 +631,7 @@ export default function MapComponent({
       // beta polygon carries none of them and is not painted by the ramp
       // anyway — it is flat context — so it passes them rather than vanishing
       // the moment any filter is touched.
-      if (isBeta) return true;
+      if (isBeta && scope !== '31') return true;
 
       // Biogas range filter
       if (activeFilters?.minBiogas && props.total_biogas_m3_year < activeFilters.minBiogas) return false;
@@ -661,7 +687,7 @@ export default function MapComponent({
     const ctx = { biomassType, selectedResidues, scenario: mapScenario };
     const values: number[] = [];
     for (const f of filteredData?.features ?? []) {
-      if (!isSaoPaulo(f.properties?.ibge_code)) continue;
+      if (ufOf(f.properties?.ibge_code) !== scope) continue;
       const { value } = spec.rawValue(f.properties, ctx);
       if (value !== null && value > 0) values.push(spec.toDisplay(value));
     }
@@ -693,7 +719,16 @@ export default function MapComponent({
     features: displayData.features.filter((f) => isSaoPaulo(f.properties?.ibge_code)),
   };
   const spCount = spDisplayData.features.length;
-  const betaCount = displayData.features.length - spCount;
+  const mgDisplayData: MunicipalityCollection = {
+    ...displayData,
+    features: displayData.features.filter((feature) => isMinasGerais(feature.properties?.ibge_code)),
+  };
+  const activeStateData = scope === '31' ? mgDisplayData : spDisplayData;
+  const betaCount = mgDisplayData.features.length;
+  const isMgScope = scope === '31';
+  const activeScopeCount = activeStateData.features.length;
+  const activeScopeTotal = isMgScope ? MG_MUNICIPALITY_COUNT : SP_MUNICIPALITY_COUNT;
+  const activeStateName = getState(scope)?.nome ?? 'São Paulo';
 
   const activeBasemap = BASEMAPS[basemap];
 
@@ -714,9 +749,9 @@ export default function MapComponent({
           onOpacityChange={handleOpacityChange}
           layers={layers}
           onLayerToggle={handleLayerToggle}
-          municipalityCount={spCount}
-          totalMunicipalities={SP_MUNICIPALITY_COUNT}
-          betaMunicipalityCount={showNationalBeta ? betaCount : 0}
+          municipalityCount={activeScopeCount}
+          totalMunicipalities={activeScopeTotal}
+          betaMunicipalityCount={!isMgScope && showNationalBeta ? betaCount : 0}
           onOpenComparison={() => setShowComparison(true)}
           onOpenExport={() => setShowExport(true)}
           displayMetric={displayMetric}
@@ -725,6 +760,8 @@ export default function MapComponent({
           colorMode={colorMode}
           onColorModeChange={setColorMode}
           residueBreakdownAvailable={residueBreakdownAvailable}
+          availableResidueCategories={availableResidueCategories}
+          scopeUf={isMgScope ? 'MG' : 'SP'}
           scenario={mapScenario}
           onApplyPreset={handleApplyPreset}
           activePresetId={activePresetId}
@@ -778,14 +815,14 @@ export default function MapComponent({
           )}
         </div>
 
-        {/* ── Scope switcher — top-left on every viewport. Picks SP (default),
-            any single state, or all of Brazil. On mobile this is the primary
+        {/* ── Scope switcher — top-left on every viewport. Picks SP (default)
+            or the MG beta pilot. On mobile this is the primary
             navigation affordance and sits alone at the top so nothing wraps. */}
         <div className="absolute top-14 left-2 z-[1000] md:top-16 md:left-3">
           <ScopeSwitcher
             scope={scope}
             onScopeChange={handleScopeChange}
-            count={displayData.features.length}
+            count={activeScopeCount}
           />
         </div>
 
@@ -839,7 +876,7 @@ export default function MapComponent({
             forwards unknown props to Leaflet's options, not the DOM. */}
         <div
           role="application"
-          aria-label={t('map_aria_label')}
+          aria-label={t('map_aria_label', { state: activeStateName })}
           aria-describedby="map-keyboard-help"
           className="pilar-primary-map"
           style={MAP_CONTAINER_STYLE}
@@ -895,13 +932,14 @@ export default function MapComponent({
                   daltonic={daltonic}
                   scaleBreaks={scaleBreaks}
                   showNationalBeta={showNationalBeta}
+                  paintBetaData={isMgScope}
                   onMunicipalityClick={visualizationMode === 'clusters' ? undefined : handleMunicipalityClick}
                   onMunicipalityHover={visualizationMode === 'clusters' ? undefined : handleMunicipalityHover}
                 />
               ) : visualizationMode === 'bubble' ? (
-                <BubbleChartLayer data={spDisplayData} opacity={opacity} attribute={biomassAttribute} />
+                <BubbleChartLayer data={activeStateData} opacity={opacity} attribute={biomassAttribute} />
               ) : (
-                <HeatmapLayer data={spDisplayData} selectedResidues={selectedResidues} opacity={opacity} />
+                <HeatmapLayer data={activeStateData} selectedResidues={selectedResidues} opacity={opacity} />
               )}
             </>
           )}
@@ -1089,7 +1127,7 @@ export default function MapComponent({
               <>
                 {/* Desktop — always expanded */}
                 <div className="hidden md:block">
-                  <MapLegend displayMetric={displayMetric} daltonic={daltonic} showNationalBeta={showNationalBeta} scenario={mapScenario} scaleBreaks={scaleBreaks} />
+                  <MapLegend displayMetric={displayMetric} daltonic={daltonic} showNationalBeta={showNationalBeta} scenario={mapScenario} scaleBreaks={scaleBreaks} scopeLabel={activeStateName} betaScope={isMgScope} />
                 </div>
                 {/* Mobile — chip + expandable legend */}
                 <div className="md:hidden">
@@ -1103,7 +1141,7 @@ export default function MapComponent({
                       >
                         <span className="block text-base leading-none text-gray-500">×</span>
                       </button>
-                      <MapLegend displayMetric={displayMetric} daltonic={daltonic} showNationalBeta={showNationalBeta} scenario={mapScenario} scaleBreaks={scaleBreaks} />
+                      <MapLegend displayMetric={displayMetric} daltonic={daltonic} showNationalBeta={showNationalBeta} scenario={mapScenario} scaleBreaks={scaleBreaks} scopeLabel={activeStateName} betaScope={isMgScope} />
                     </div>
                   ) : (
                     <button
@@ -1119,6 +1157,16 @@ export default function MapComponent({
               </>
             ) : null
           ) : <HeatmapLegend />
+        )}
+
+        {visualizationMode === 'choropleth' && colorMode === 'biogas' && isServedScenario(mapScenario) && (
+          <div className="hidden md:block">
+            <UrbanResidueTotals
+              data={scaledData || displayData}
+              scenario={mapScenario}
+              scopeUf={isMgScope ? 'MG' : 'SP'}
+            />
+          </div>
         )}
 
         {visualizationMode === 'clusters' && clusterLoading && isMounted && (
@@ -1147,14 +1195,15 @@ export default function MapComponent({
           onOpacityChange={handleOpacityChange}
           layers={layers}
           onLayerToggle={handleLayerToggle}
-          municipalityCount={spCount}
-          totalMunicipalities={SP_MUNICIPALITY_COUNT}
+          municipalityCount={activeScopeCount}
+          totalMunicipalities={activeScopeTotal}
           displayMetric={displayMetric}
           onDisplayMetricChange={handleDisplayMetricChange}
           cnMatrix={cnMatrix}
           colorMode={colorMode}
           onColorModeChange={setColorMode}
           residueBreakdownAvailable={residueBreakdownAvailable}
+          availableResidueCategories={availableResidueCategories}
           scenario={mapScenario}
           onScenarioChange={setMapScenario}
           daltonic={daltonic}

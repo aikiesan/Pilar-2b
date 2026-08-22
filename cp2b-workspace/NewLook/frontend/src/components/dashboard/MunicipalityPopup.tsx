@@ -43,6 +43,7 @@ const residuePillClass: Record<ResidueType, string> = {
   aquaculture: 'bg-yellow-50 border-yellow-200',
   rsu: 'bg-blue-50 border-blue-200',
   rpo: 'bg-blue-50 border-blue-200',
+  sewage: 'bg-blue-50 border-blue-200',
 };
 
 const formatTons = (value: unknown): string => {

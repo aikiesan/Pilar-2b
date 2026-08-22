@@ -31,7 +31,7 @@ import {
   type ThematicPresetGroup,
 } from '@/data/thematicPresets';
 import { DATA_EXPORT_ENABLED } from '@/lib/featureFlags';
-import { NATIONAL_BETA_LAYER_ID, BETA_NOTICE } from '@/lib/mapScope';
+import { MG_BETA_LAYER_ID, BETA_NOTICE } from '@/lib/mapScope';
 import {
   isServedScenario,
   SCENARIO_LABEL,
@@ -74,6 +74,8 @@ interface DesktopLeftPanelProps {
   onColorModeChange: (mode: ColorMode) => void;
   /** False when the current scope has no per-residue breakdown (outside SP). */
   residueBreakdownAvailable?: boolean;
+  availableResidueCategories?: Array<'agricultural' | 'livestock' | 'urban'>;
+  scopeUf?: 'SP' | 'MG';
   /** Active map scenario — the headline strip follows it. */
   scenario?: MapScenarioKey;
   /** Apply a thematic preset (one-click reconfigure of the map). */
@@ -99,7 +101,7 @@ const LAYER_KEY_MAP: Record<string, string> = {
 };
 
 const LAYER_GROUPS = [
-  { labelKey: 'layerGroups.base', ids: ['municipalities', NATIONAL_BETA_LAYER_ID, 'intermediate-regions'] },
+  { labelKey: 'layerGroups.base', ids: ['municipalities', MG_BETA_LAYER_ID, 'intermediate-regions'] },
   { labelKey: 'layerGroups.environmental', ids: ['mapbiomas'] },
   {
     labelKey: 'layerGroups.infrastructure',
@@ -319,10 +321,12 @@ function FiltersSection({
 // lets the reader override it (and stays available for any map, not only presets).
 function ThemesSection({
   onApplyPreset, activePresetId, residueBreakdownAvailable = true,
+  availableResidueCategories = ['agricultural', 'livestock', 'urban'],
 }: {
   onApplyPreset?: (preset: ThematicPreset) => void;
   activePresetId?: string | null;
   residueBreakdownAvailable?: boolean;
+  availableResidueCategories?: Array<'agricultural' | 'livestock' | 'urban'>;
 }) {
   const [palette, setPalette] = useMapPalette();
   const groups: ThematicPresetGroup[] = ['setorial', 'residuo', 'energia', 'logistica', 'analise'];
@@ -335,7 +339,7 @@ function ThemesSection({
 
       {!residueBreakdownAvailable && (
         <p className="rounded-md bg-amber-50 px-2 py-1.5 text-[10px] leading-snug text-amber-800 ring-1 ring-amber-200">
-          ⓘ Temas por resíduo específico só têm efeito em São Paulo. Fora de SP, os temas setoriais ainda funcionam.
+          ⓘ No piloto MG, temas agrícolas estão ativos. Pecuária e urbano aguardam promoção e validação.
         </p>
       )}
 
@@ -351,15 +355,28 @@ function ThemesSection({
               {items.map((preset) => {
                 const active = activePresetId === preset.id;
                 const ramp = preset.config.palette ? MAP_PALETTES[preset.config.palette].ramp : null;
+                const residueSector = (residue: ResidueType) =>
+                  ['sugarcane', 'soybean', 'corn', 'coffee', 'citrus'].includes(residue)
+                    ? 'agricultural'
+                    : ['cattle', 'swine', 'poultry', 'aquaculture'].includes(residue)
+                      ? 'livestock'
+                      : 'urban';
+                const required = preset.config.biomassType && preset.config.biomassType !== 'total'
+                  ? [preset.config.biomassType]
+                  : (preset.config.selectedResidues ?? []).map(residueSector);
+                const enabled = required.every((category) => availableResidueCategories.includes(category));
                 return (
                   <button
                     key={preset.id}
                     type="button"
-                    onClick={() => onApplyPreset?.(preset)}
+                    onClick={() => enabled && onApplyPreset?.(preset)}
+                    disabled={!enabled}
                     title={preset.description}
                     aria-pressed={active}
                     className={`flex flex-col gap-1 rounded-lg border p-2 text-left transition-all ${
-                      active
+                      !enabled
+                        ? 'cursor-not-allowed border-gray-100 bg-gray-50 opacity-40'
+                        : active
                         ? 'border-green-600 bg-green-50 shadow-sm ring-1 ring-green-600'
                         : 'border-gray-200 bg-white hover:border-green-300 hover:bg-gray-50'
                     }`}
@@ -497,7 +514,7 @@ function LayersSection({
             <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-1">{t(group.labelKey)}</p>
             <div className="space-y-0.5">
               {group.items.map(layer => {
-                const isBeta = layer.id === NATIONAL_BETA_LAYER_ID;
+                const isBeta = layer.id === MG_BETA_LAYER_ID;
                 return (
                   <div key={layer.id} className="py-1">
                     <div className="flex items-center justify-between">
@@ -607,12 +624,13 @@ function ToolsSection({
 // The headline strip. Every number in it is São Paulo — the summary endpoint is
 // SP-scoped and the count is SP-scoped — so the strip says "SP" in the text
 // itself rather than relying on the reader to remember it.
-function StatStrip({ municipalityCount, totalMunicipalities, filterCount, betaMunicipalityCount = 0, scenario }: {
+function StatStrip({ municipalityCount, totalMunicipalities, filterCount, betaMunicipalityCount = 0, scenario, scopeUf = 'SP' }: {
   municipalityCount: number;
   totalMunicipalities: number;
   filterCount: number;
   betaMunicipalityCount?: number;
   scenario: MapScenarioKey;
+  scopeUf?: 'SP' | 'MG';
 }) {
   const { data } = useSummaryStatistics();
   // The strip used to show `total_biogas_m3_year` — 19.9 bi, the THEORETICAL
@@ -621,8 +639,8 @@ function StatStrip({ municipalityCount, totalMunicipalities, filterCount, betaMu
   // Ideal, the pair published in RESULTADOS_SP_PARA_PAPER. The band scenarios
   // have no served total, so they fall back to the legacy number — labelled as
   // the theoretical figure it is, never as the platform's headline.
-  const tier = isServedScenario(scenario) ? data?.scenarios?.[scenario] : undefined;
-  const headline = tier ? tier.ch4_m3_year : data?.total_biogas_m3_year;
+  const tier = scopeUf === 'SP' && isServedScenario(scenario) ? data?.scenarios?.[scenario] : undefined;
+  const headline = scopeUf === 'SP' ? (tier ? tier.ch4_m3_year : data?.total_biogas_m3_year) : undefined;
   const headlineLabel = tier
     ? `Nm³ CH₄/ano · ${SCENARIO_LABEL[scenario]}`
     : 'Nm³ CH₄/ano · teórico';
@@ -633,7 +651,7 @@ function StatStrip({ municipalityCount, totalMunicipalities, filterCount, betaMu
         <span className="text-xs text-gray-600 truncate">
           <span className="font-bold text-green-700">{municipalityCount}</span>
           <span className="text-gray-400">/{totalMunicipalities}</span>
-          {' '}municípios <span className="font-semibold text-green-700">SP</span>
+          {' '}municípios <span className="font-semibold text-green-700">{scopeUf}</span>
         </span>
         {headline !== undefined && (
           <span
@@ -651,7 +669,7 @@ function StatStrip({ municipalityCount, totalMunicipalities, filterCount, betaMu
       </div>
       {betaMunicipalityCount > 0 && (
         <p className="mt-1 text-[9px] text-gray-400 leading-snug">
-          🧪 +{betaMunicipalityCount.toLocaleString('pt-BR')} municípios do Brasil em beta,
+          🧪 +{betaMunicipalityCount.toLocaleString('pt-BR')} municípios de MG em beta,
           não somados ao total
         </p>
       )}
@@ -669,6 +687,7 @@ export default function DesktopLeftPanel({
   onOpenComparison, onOpenExport,
   displayMetric, onDisplayMetricChange,
   colorMode, onColorModeChange, residueBreakdownAvailable = true,
+  availableResidueCategories = ['agricultural', 'livestock', 'urban'], scopeUf = 'SP',
   scenario = DEFAULT_MAP_SCENARIO,
   onApplyPreset, activePresetId,
 }: DesktopLeftPanelProps) {
@@ -747,6 +766,7 @@ export default function DesktopLeftPanel({
             filterCount={filterCount}
             betaMunicipalityCount={betaMunicipalityCount}
             scenario={scenario}
+            scopeUf={scopeUf}
           />
 
           {/* Tab nav */}
@@ -789,6 +809,7 @@ export default function DesktopLeftPanel({
                 onApplyPreset={onApplyPreset}
                 activePresetId={activePresetId}
                 residueBreakdownAvailable={residueBreakdownAvailable}
+                availableResidueCategories={availableResidueCategories}
               />
             )}
             {activeTab === 'layers' && (

@@ -43,6 +43,8 @@ interface MunicipalityLayerProps {
    * would keep stealing hovers and clicks from the SP layer beneath the cursor.
    */
   showNationalBeta?: boolean;
+  /** Paint MG with the active ramp when the MG pilot is the selected scope. */
+  paintBetaData?: boolean;
   onMunicipalityClick?: (feature: MunicipalityFeature) => void;
   onMunicipalityHover?: (feature: MunicipalityFeature | null, e?: MouseEvent) => void;
 }
@@ -85,6 +87,7 @@ export default function MunicipalityLayer({
   daltonic = false,
   scaleBreaks = null,
   showNationalBeta = true,
+  paintBetaData = false,
   onMunicipalityClick,
   onMunicipalityHover,
 }: MunicipalityLayerProps) {
@@ -137,7 +140,7 @@ export default function MunicipalityLayer({
     // canonical pipeline, the FDE audit and the K-means clustering were all run
     // on São Paulo, so a non-SP municipality has nothing validated to encode in
     // ANY of the ramps. It is drawn as flat context and nothing else.
-    if (!isSaoPaulo((feature.properties as MunicipalityProperties).ibge_code)) {
+    if (!isSaoPaulo((feature.properties as MunicipalityProperties).ibge_code) && !paintBetaData) {
       return { ...BETA_STYLE };
     }
 
@@ -167,7 +170,7 @@ export default function MunicipalityLayer({
     };
     // getMapValue is recreated per render but only depends on the deps listed here,
     // so listing them directly keeps the identity stable.
-  }, [colorMode, displayMetric, biomassType, selectedResidues, mapScenario, daltonic, cvdPalette, mapPalette, opacity, scaleBreaks]);
+  }, [colorMode, displayMetric, biomassType, selectedResidues, mapScenario, daltonic, cvdPalette, mapPalette, opacity, scaleBreaks, paintBetaData]);
 
   // Format a value for display. null -> "sem dados" so the tooltip never shows a
   // fabricated 0 for a municipality we have no data for.
@@ -192,8 +195,9 @@ export default function MunicipalityLayer({
         swine: 'Suínos',
         poultry: 'Aves',
         aquaculture: 'Aquicultura',
-        rsu: 'RSU',
-        rpo: 'RPO'
+        rsu: 'FORSU',
+        rpo: 'Poda urbana',
+        sewage: 'Lodo de ETE'
       };
 
       if (selectedResidues.length === 1) {
@@ -217,14 +221,14 @@ export default function MunicipalityLayer({
     const props = feature.properties;
     const biogasValue = getMapValue(props).value;
     const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-    const isSP = isSaoPaulo(props.ibge_code);
+    const isCanonicalPaint = isSaoPaulo(props.ibge_code) || paintBetaData;
 
     // Tooltip (hover) — only bind HTML tooltip when no hover handler (mobile fallback)
     if (!onMunicipalityHover) {
       // A beta municipality still gets its value — hiding it would be its own
       // kind of dishonesty — but the value never appears without the caveat
       // attached to it, in the same tooltip, at the same moment it is read.
-      const tooltipBody = !isSP
+      const tooltipBody = !isCanonicalPaint
         ? `<span style="font-size:11px;color:rgba(255,255,255,0.9);">${getBiomassLabel()}: ${formatBiogas(biogasValue)} ${displayMetric === 'biomass_tons' ? 't/ano' : 'm³/ano'}</span>`
           + `<br/><span style="font-size:10px;color:#fbbf24;font-weight:600;">⚠ ${BETA_BADGE_LABEL}</span>`
         : colorMode === 'cluster'
@@ -284,11 +288,11 @@ export default function MunicipalityLayer({
           // them above SP would invert the hierarchy the whole change exists to
           // establish.
           target.setStyle(
-            isSP
+            isCanonicalPaint
               ? { weight: 2, color: '#000000', fillOpacity: Math.min(opacityRef.current + 0.2, 1) }
               : { weight: 1.2, color: '#475569', fillOpacity: 0.3 }
           );
-          if (isSP) target.bringToFront();
+          if (isCanonicalPaint) target.bringToFront();
 
           // Desktop: call hover handler with feature + mouse event
           if (onMunicipalityHover) {
@@ -297,7 +301,7 @@ export default function MunicipalityLayer({
         },
         mouseout: (e) => {
           const target = e.target;
-          if (!isSP) {
+          if (!isCanonicalPaint) {
             target.setStyle(BETA_STYLE);
             if (onMunicipalityHover) onMunicipalityHover(null);
             return;
@@ -342,7 +346,7 @@ export default function MunicipalityLayer({
       // selectedResidues) or the data itself (mapScenario — react-leaflet only
       // reads `data` on mount). Opacity is intentionally absent: it flows
       // through the memoized `style` -> setStyle without a remount.
-      key={`${biomassType}-${displayMetric}-${colorMode}-${mapScenario}-${showNationalBeta}-${selectedResidues.join(',')}`}
+      key={`${biomassType}-${displayMetric}-${colorMode}-${mapScenario}-${showNationalBeta}-${paintBetaData}-${selectedResidues.join(',')}`}
       data={scopedData as GeoJsonObject}
       style={style}
       onEachFeature={onEachFeature}
