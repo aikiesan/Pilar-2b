@@ -477,7 +477,9 @@ export default function MapComponent({
   // ETEs and Rodovias stay SP-only: there is no national equivalent loaded yet.
   const [layers, setLayers] = useState([
     { id: 'municipalities', name: 'Municípios SP + MG beta', visible: true, icon: '📍' },
-    { id: MG_BETA_LAYER_ID, name: 'Municípios de Minas Gerais (BETA)', visible: true, icon: '🧪' },
+    // São Paulo is the canonical scope and the first thing a visitor should see, so the
+    // Minas Gerais pilot starts hidden. Users opt into it from the layer panel.
+    { id: MG_BETA_LAYER_ID, name: 'Municípios de Minas Gerais (BETA)', visible: false, icon: '🧪' },
     { id: 'intermediate-regions', name: 'Regiões Intermediárias (IBGE)', visible: false, icon: '🗺️' },
     { id: 'mapbiomas', name: 'MapBiomas 2024', visible: false, icon: '🌳' },
     { id: 'biogas_plant', name: 'Usinas de Biogás (MapBiomas, BR)', visible: false, icon: '🏭' },
