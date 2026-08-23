@@ -796,13 +796,29 @@ describe('MapComponent', () => {
 
     it('draws the beta municipalities in the SP scope, where the toggle lives', async () => {
       // MG remains as beta context, while states outside the public SP+MG rollout
-      // are removed even if a stale payload contains them.
+      // are removed even if a stale payload contains them. The pilot ships hidden,
+      // so opt into it first -- SP is the default focus on load.
       render(<MapComponent />);
       act(() => { jest.advanceTimersByTime(1500); });
 
       await waitFor(() => {
+        expect(screen.getByText('2 municipalities')).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByTestId('layer-toggle-mg-beta'));
+
+      await waitFor(() => {
         expect(screen.getByText('3 municipalities')).toBeInTheDocument();
         expect(screen.getByTestId('municipality-count')).toHaveTextContent('2 / 645');
+      });
+    });
+
+    it('starts with the MG pilot hidden so São Paulo is the first focus', async () => {
+      render(<MapComponent />);
+      act(() => { jest.advanceTimersByTime(1500); });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('layer-toggle-mg-beta')).toHaveTextContent('OFF');
       });
     });
 
@@ -891,6 +907,13 @@ describe('MapComponent', () => {
       window.history.replaceState(null, '', '/?r=sugarcane');
       render(<MapComponent />);
       act(() => { jest.advanceTimersByTime(1500); });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('municipality-count')).toHaveTextContent('1 / 645');
+      });
+
+      // The MG pilot is off on load, so opt in to assert the beta row's behaviour.
+      fireEvent.click(screen.getByTestId('layer-toggle-mg-beta'));
 
       await waitFor(() => {
         // Barretos has a cane share, Santos does not; the beta row survives as
