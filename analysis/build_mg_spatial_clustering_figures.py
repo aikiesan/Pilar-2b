@@ -883,7 +883,7 @@ def execute_spatial_clustering_and_figures():
         
     cluster_export_cols = [
         "ibge_code", "municipality_name", "lat", "lon", "nm_rgint", "cd_rgint",
-        "populacao_2022", "area_km2", "mun_total_GWh", "cluster_id", "cluster_label",
+        "populacao", "area_km2", "mun_total_GWh", "cluster_id", "cluster_label",
         "cluster_k", "dbscan_cluster", "silhouette_score", "dominant_stream"
     ] + [f"share_{c.replace('GWh_', '')}" for c in stream_cols]
     
