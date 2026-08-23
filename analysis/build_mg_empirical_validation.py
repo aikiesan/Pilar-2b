@@ -632,7 +632,7 @@ def load_mg_modeled_potentials() -> pd.DataFrame:
         logger.info(f"Aggregating modeled potentials from {MASTER_STREAMS_MG_CSV}...")
         df_m = pd.read_csv(MASTER_STREAMS_MG_CSV, dtype={"ibge_code": str})
         df_m["ibge_code"] = df_m["ibge_code"].map(normalize_ibge_code)
-        grouped = df_m.groupby(["ibge_code", "municipality_name", "cd_rgint", "cd_rgi", "populacao_2022", "area_km2"]).agg(
+        grouped = df_m.groupby(["ibge_code", "municipality_name", "cd_rgint", "cd_rgi", "populacao", "area_km2"]).agg(
             mun_total_GWh=("energy_GWh_yr", "sum"),
             mun_biogas_m3_yr=("biogas_m3_yr", "sum")
         ).reset_index()
@@ -662,10 +662,10 @@ def load_mg_modeled_potentials() -> pd.DataFrame:
                 cols[7]: "nm_rgint"
             })
             mg_lk["codigo_municipio"] = mg_lk["ibge_code"]
-            mg_lk["populacao_2022"] = 0.0
+            mg_lk["populacao"] = 0.0
             mg_lk["area_km2"] = 0.0
             mg_lk["mun_total_GWh"] = 0.0
-            return mg_lk[["ibge_code", "codigo_municipio", "municipality_name", "cd_rgi", "nm_rgi", "cd_rgint", "nm_rgint", "populacao_2022", "area_km2", "mun_total_GWh"]]
+            return mg_lk[["ibge_code", "codigo_municipio", "municipality_name", "cd_rgi", "nm_rgi", "cd_rgint", "nm_rgint", "populacao", "area_km2", "mun_total_GWh"]]
         else:
             raise RuntimeError(f"Cannot load modeled potentials or lookup table: {e}")
 
@@ -797,7 +797,7 @@ def compute_mg_empirical_realization(
 
     # Select and format final municipal summary columns
     output_cols = [
-        "ibge_code", "codigo_municipio", "populacao_2022", "area_km2",
+        "ibge_code", "codigo_municipio", "populacao", "area_km2",
         "cd_rgint", "nm_rgint", "cd_rgi", "nm_rgi",
         "modeled_total_gwh_yr", "modeled_biomethane_nm3_day", "modeled_biomethane_m3_yr",
         "aneel_n_units", "aneel_kw", "aneel_mw", "aneel_feedstocks",
@@ -818,7 +818,7 @@ def compute_mg_empirical_realization(
     # 5. Intermediate Region (RGint) Aggregates
     rgint_agg = merged.groupby(["cd_rgint", "nm_rgint"]).agg(
         n_municipalities=("ibge_code", "count"),
-        populacao_2022=("populacao_2022", "sum"),
+        populacao=("populacao", "sum"),
         area_km2=("area_km2", "sum"),
         modeled_total_gwh_yr=("modeled_total_gwh_yr", "sum"),
         modeled_biomethane_nm3_day=("modeled_biomethane_nm3_day", "sum"),

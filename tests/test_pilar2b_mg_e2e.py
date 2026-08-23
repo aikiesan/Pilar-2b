@@ -266,7 +266,7 @@ MG_RGINT_REGIONS = [
 
 # Expected CSV Column Specifications
 EXPECTED_MASTER_STREAMS_COLUMNS = [
-    "ibge_code", "municipality_name", "lat", "lon", "area_km2", "populacao_2022",
+    "ibge_code", "municipality_name", "lat", "lon", "area_km2", "populacao", "populacao_ano",
     "densidade_demografica", "cd_rgi", "cd_rgint", "year", "residue_stream",
     "residue_stream_pt", "sector", "sector_pt", "residue_tons_yr", "biogas_m3_yr",
     "energy_GWh_yr", "energy_MWh_yr", "biogas_m3_per_capita", "biogas_m3_per_km2",
@@ -277,7 +277,7 @@ EXPECTED_MASTER_STREAMS_COLUMNS = [
 EXPECTED_MUNICIPALITY_SUMMARY_COLUMNS = [
     "ibge_code", "GWh_aquaculture", "GWh_cattle", "GWh_citrus", "GWh_coffee",
     "GWh_corn", "GWh_forestry", "GWh_poultry", "GWh_rpo_pruning", "GWh_rsu_organic",
-    "GWh_soybean", "GWh_sugarcane", "GWh_swine", "codigo_municipio", "populacao_2022",
+    "GWh_soybean", "GWh_sugarcane", "GWh_swine", "codigo_municipio", "populacao", "populacao_ano",
     "area_km2", "densidade_demografica", "cd_rgi", "nm_rgi", "cd_rgint", "nm_rgint",
     "lat", "lon", "categoria_potencial", "mun_potential_class", "mun_total_GWh",
     "mun_n_streams", "mun_dominant_stream"
@@ -503,9 +503,9 @@ class TestTier1FeatureCoverage:
         assert params["bmp"] >= 300.0
 
     def test_t1_06_master_streams_csv_schema_and_columns(self, mg_master_streams_df):
-        """T1.6: 01_master_residue_streams_MG_2023.csv contains exactly 29 columns and 853 municipal groups."""
-        assert len(mg_master_streams_df.columns) == 29, (
-            f"Expected 29 columns in master streams CSV, found {len(mg_master_streams_df.columns)}: {list(mg_master_streams_df.columns)}"
+        """T1.6: 01_master_residue_streams_MG_2023.csv contains exactly 30 columns and 853 municipal groups."""
+        assert len(mg_master_streams_df.columns) == 30, (
+            f"Expected 30 columns in master streams CSV, found {len(mg_master_streams_df.columns)}: {list(mg_master_streams_df.columns)}"
         )
         for col in EXPECTED_MASTER_STREAMS_COLUMNS:
             assert col in mg_master_streams_df.columns, f"Missing required column in master streams CSV: {col}"
@@ -515,9 +515,9 @@ class TestTier1FeatureCoverage:
         )
 
     def test_t1_07_municipality_summary_csv_schema_and_columns(self, mg_summary_df):
-        """T1.7: 02_municipality_summary_MG_2023.csv contains exactly 28 columns with 853 unique rows."""
-        assert len(mg_summary_df.columns) == 28, (
-            f"Expected 28 columns in summary CSV, found {len(mg_summary_df.columns)}: {list(mg_summary_df.columns)}"
+        """T1.7: 02_municipality_summary_MG_2023.csv contains exactly 29 columns with 853 unique rows."""
+        assert len(mg_summary_df.columns) == 29, (
+            f"Expected 29 columns in summary CSV, found {len(mg_summary_df.columns)}: {list(mg_summary_df.columns)}"
         )
         for col in EXPECTED_MUNICIPALITY_SUMMARY_COLUMNS:
             assert col in mg_summary_df.columns, f"Missing required column in summary CSV: {col}"
@@ -1089,30 +1089,56 @@ class TestPopulationProvenance:
 
     def test_population_is_not_a_flat_placeholder(self):
         df = pd.read_csv(DATA_DIR / "02_municipality_summary_MG_2023.csv")
-        assert df["populacao_2022"].nunique() > 500, (
+        assert df["populacao"].nunique() > 500, (
             "Municipal population is near-constant across MG, which means the "
             "census join failed and a placeholder was substituted."
         )
 
-    def test_population_matches_ibge_2022_state_total(self):
+    # State totals published by IBGE, keyed by vintage. The municipal sum must
+    # reconcile against the UF-level figure for the vintage actually in the data.
+    STATE_TOTALS = {2022: 20_539_989, 2025: 21_393_441}
+
+    def test_population_vintage_is_declared(self):
         df = pd.read_csv(DATA_DIR / "02_municipality_summary_MG_2023.csv")
-        total = float(df["populacao_2022"].sum())
-        # IBGE 2022 Census: Minas Gerais = 20,539,989 residents.
-        assert abs(total - 20_539_989) / 20_539_989 < 0.01, (
-            f"MG population total {total:,.0f} deviates from the IBGE 2022 Census."
+        vintages = set(df["populacao_ano"].unique())
+        assert len(vintages) == 1, f"Mixed population vintages in one build: {vintages}"
+        assert vintages.pop() in self.STATE_TOTALS
+
+    def test_population_matches_ibge_state_total(self):
+        df = pd.read_csv(DATA_DIR / "02_municipality_summary_MG_2023.csv")
+        vintage = int(df["populacao_ano"].iloc[0])
+        total = float(df["populacao"].sum())
+        expected = self.STATE_TOTALS[vintage]
+        assert abs(total - expected) / expected < 0.01, (
+            f"MG {vintage} population total {total:,.0f} deviates from IBGE's {expected:,}."
         )
 
     def test_known_municipal_populations(self):
-        df = pd.read_csv(DATA_DIR / "02_municipality_summary_MG_2023.csv").set_index("ibge_code")
-        for code, expected in [(3106200, 2_315_560), (3170206, 713_224)]:
-            actual = float(df.loc[code, "populacao_2022"])
-            assert abs(actual - expected) / expected < 0.01, (
-                f"{code}: expected ~{expected:,}, got {actual:,.0f}"
+        df = pd.read_csv(DATA_DIR / "02_municipality_summary_MG_2023.csv")
+        vintage = int(df["populacao_ano"].iloc[0])
+        known = {
+            2022: [(3106200, 2_315_560), (3170206, 713_224)],
+            2025: [(3106200, 2_415_872), (3170206, 761_835)],
+        }[vintage]
+        df = df.set_index("ibge_code")
+        for code, expected in known:
+            actual = float(df.loc[code, "populacao"])
+            assert abs(actual - expected) / expected < 0.02, (
+                f"{code} ({vintage}): expected ~{expected:,}, got {actual:,.0f}"
             )
 
     def test_urban_streams_scale_with_population(self):
         df = pd.read_csv(DATA_DIR / "02_municipality_summary_MG_2023.csv")
         for col in ("GWh_rsu_organic", "GWh_rpo_pruning"):
             assert df[col].nunique() > 500, f"{col} is effectively constant across MG."
-        corr = df["populacao_2022"].corr(df["GWh_rsu_organic"])
-        assert corr > 0.95, f"RSU organic should track population (corr={corr:.3f})."
+        # NOTE: urban biogas is currently pop x a fixed per-capita coefficient, so a
+        # correlation assertion passes by construction and proves nothing beyond
+        # "population is not flat". Pin the documented coefficient itself instead, so
+        # that replacing this model with measured SNIS data trips the test on purpose.
+        implied = (df["GWh_rsu_organic"] / df["populacao"]).median()
+        energy_gwh_per_nm3_ch4 = 9.97e-6  # mirrors build_mg_master_residues.py
+        expected = 35.04 * energy_gwh_per_nm3_ch4
+        assert abs(implied - expected) / expected < 0.02, (
+            f"RSU per-capita yield {implied:.3e} GWh/capita departs from the documented "
+            f"35.04 m3/capita/yr coefficient ({expected:.3e})."
+        )

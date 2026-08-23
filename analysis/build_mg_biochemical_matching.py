@@ -718,7 +718,7 @@ def export_deliverables(
         "ibge_code": "Cód. IBGE",
         "nm_rgi": "Município",
         "nm_rgint": "Região Intermediária (RGINT)",
-        "populacao_2022": "População 2022",
+        "populacao": "População 2022",
         "area_km2": "Área (km²)",
         "is_tier1_ancora": "Âncora Tier-1",
         "total_mass_tons_ano": "Massa Total (t/ano)",
@@ -738,7 +738,7 @@ def export_deliverables(
         "Massa, sólidos voláteis, C:N molar médio ponderado, diversidade Shannon H' e potencial energético",
         df_profile, headers2,
         {
-            "populacao_2022": "#,##0", "area_km2": "#,##0.0", "total_mass_tons_ano": "#,##0",
+            "populacao": "#,##0", "area_km2": "#,##0.0", "total_mass_tons_ano": "#,##0",
             "total_vs_tons_ano": "#,##0", "ts_medio_muni_pct": "0.0\"%\"", "cn_molar_ponderado": "0.00",
             "shannon_diversity_h": "0.000", "total_gwh_ano": "#,##0.0", "vs_c_rich_tons": "#,##0",
             "vs_n_rich_tons": "#,##0", "vs_balanced_tons": "#,##0"
