@@ -13,12 +13,18 @@ all 853 municipalities in Minas Gerais across three sectors:
    forestry, sorghum, cassava, potato, beans).
 2. Livestock Sector (PPM 2023: bovine, swine, poultry, equine, small ruminants,
    aquaculture with subset double-count exclusion).
-3. Urban & Sanitation Sector (SNIS / IBGE 2022: FORSU 46.46% with population-tier
-   imputation 0.70-1.10 kg/hab/day, ETE sewage sludge, and urban pruning).
+3. Urban Sector (FORSU 46.46% of MSW and urban pruning).
+
+   NOTE ON PROVENANCE: this sector is a per-capita coefficient model, NOT an SNIS
+   ingestion. The only SNIS file in the primary sources is SP_SNIS_2022_residuos.csv,
+   which covers São Paulo only -- there is no measured MG sanitation input, so urban
+   biogas is derived as population x a fixed coefficient (35.04 m3/capita/yr FORSU,
+   0.70 m3/capita/yr pruning). ETE sewage sludge is NOT modelled: no sewage stream is
+   emitted. Do not cite SNIS as the MG urban source until measured data is supplied.
 
 Outputs:
-- analysis/data/01_master_residue_streams_MG_2023.csv (29 columns, long format)
-- analysis/data/02_municipality_summary_MG_2023.csv (28 columns, 853 rows, wide format)
+- analysis/data/01_master_residue_streams_MG_2023.csv (30 columns, long format)
+- analysis/data/02_municipality_summary_MG_2023.csv (29 columns, 853 rows, wide format)
 ================================================================================
 """
 
@@ -395,7 +401,7 @@ def load_mg_municipal_spine() -> pd.DataFrame:
     
     # 2. Population dataset (IBGE 2022 Census)
     pop_path = RAW_DIR / "IBGE_2022_POP.xlsx"
-    mg_pop = pd.DataFrame(columns=["ibge_code", "populacao_2022", "area_km2"])
+    mg_pop = pd.DataFrame(columns=["ibge_code", "populacao", "area_km2"])
     if pop_path.exists():
         try:
             df_pop_raw = pd.read_excel(pop_path, header=None)
@@ -410,17 +416,19 @@ def load_mg_municipal_spine() -> pd.DataFrame:
             pop_val_cols = [c for c in df_pop.columns if any(k in str(c).lower() for k in ["pop", "2022", "habitante", "populacao"])]
             if pop_code_cols and pop_val_cols:
                 df_pop["ibge_code"] = df_pop[pop_code_cols[0]].apply(normalize_ibge_code)
-                df_pop["populacao_2022"] = pd.to_numeric(df_pop[pop_val_cols[0]].astype(str).str.replace(".", "").str.replace(",", "."), errors="coerce").fillna(0.0)
+                df_pop["populacao"] = pd.to_numeric(df_pop[pop_val_cols[0]].astype(str).str.replace(".", "").str.replace(",", "."), errors="coerce").fillna(0.0)
                 area_cols = [c for c in df_pop.columns if any(k in str(c).lower() for k in ["area", "km2", "área"])]
                 df_pop["area_km2"] = pd.to_numeric(df_pop[area_cols[0]], errors="coerce").fillna(0.0) if area_cols else 0.0
-                mg_pop = df_pop[df_pop["ibge_code"].str.startswith("31")][["ibge_code", "populacao_2022", "area_km2"]].drop_duplicates("ibge_code")
+                mg_pop = df_pop[df_pop["ibge_code"].str.startswith("31")][["ibge_code", "populacao", "area_km2"]].drop_duplicates("ibge_code")
         except Exception as e:
             logger.warning(f"Could not load population file: {e}")
 
-    # 2b. Optional override: IBGE 2025 municipal population estimate (national coverage).
-    # Off by default -- the residue baseline is 2023, so the 2022 Census is the
-    # vintage-consistent denominator. Set PILAR2B_POP_VINTAGE=2025 to use the estimate.
-    if os.environ.get("PILAR2B_POP_VINTAGE", "2022") == "2025":
+    # 2b. Population denominator: IBGE 2025 municipal estimate (national coverage),
+    # the project default. The 2022 Census remains available via
+    # PILAR2B_POP_VINTAGE=2022, which is the vintage-consistent match for the 2023
+    # residue baseline; 2025 is the deliberate methodological choice here, so the
+    # vintage travels with the data in the `populacao_ano` column.
+    if os.environ.get("PILAR2B_POP_VINTAGE", "2025") == "2025":
         est_path = RAW_DIR / "POP2025_20260113.xls"
         if not est_path.exists():
             raise RuntimeError(f"PILAR2B_POP_VINTAGE=2025 requested but {est_path} is missing.")
@@ -431,11 +439,12 @@ def load_mg_municipal_spine() -> pd.DataFrame:
             df_est["COD. UF"].astype(float).astype(int).astype(str)
             + df_est["COD. MUNIC"].astype(float).astype(int).astype(str).str.zfill(5)
         )
-        df_est["populacao_2022"] = pd.to_numeric(df_est.iloc[:, 4], errors="coerce")
+        df_est["populacao"] = pd.to_numeric(df_est.iloc[:, 4], errors="coerce")
         df_est["area_km2"] = 0.0
-        mg_pop = df_est.dropna(subset=["populacao_2022"])[
-            ["ibge_code", "populacao_2022", "area_km2"]
+        mg_pop = df_est.dropna(subset=["populacao"])[
+            ["ibge_code", "populacao", "area_km2"]
         ].drop_duplicates("ibge_code")
+        mg_pop["populacao_ano"] = 2025
         logger.info("Using IBGE 2025 population estimate: %d MG municipalities.", len(mg_pop))
 
     # 2c. Fallback: IBGE_2022_POP.xlsx ships only SP (codes 35xxxxx), so it yields no
@@ -453,12 +462,13 @@ def load_mg_municipal_spine() -> pd.DataFrame:
                         "WHERE ibge_code LIKE '31%' AND population IS NOT NULL"
                     )
                     db_rows = cur.fetchall()
-            mg_pop = pd.DataFrame(db_rows, columns=["ibge_code", "populacao_2022", "area_km2"])
+            mg_pop = pd.DataFrame(db_rows, columns=["ibge_code", "populacao", "area_km2"])
             mg_pop["ibge_code"] = mg_pop["ibge_code"].apply(normalize_ibge_code)
-            mg_pop["populacao_2022"] = pd.to_numeric(mg_pop["populacao_2022"], errors="coerce")
+            mg_pop["populacao"] = pd.to_numeric(mg_pop["populacao"], errors="coerce")
             mg_pop["area_km2"] = pd.to_numeric(mg_pop["area_km2"], errors="coerce").fillna(0.0)
-            mg_pop = mg_pop.dropna(subset=["populacao_2022"]).drop_duplicates("ibge_code")
-            logger.info("Loaded %d MG municipal populations from cp2b_maps.", len(mg_pop))
+            mg_pop = mg_pop.dropna(subset=["populacao"]).drop_duplicates("ibge_code")
+            mg_pop["populacao_ano"] = 2022
+            logger.info("Loaded %d MG municipal populations (2022 Census) from cp2b_maps.", len(mg_pop))
         except Exception as e:
             logger.error("Database population fallback failed: %s", e)
 
@@ -535,12 +545,13 @@ def load_mg_municipal_spine() -> pd.DataFrame:
         pop_match = mg_pop[mg_pop["ibge_code"] == code]
         if len(pop_match) == 0:
             raise RuntimeError(
-                f"No IBGE 2022 population for municipality {code} ({name}). "
+                f"No IBGE population for municipality {code} ({name}). "
                 "Placeholder populations are not permitted: they propagate into the "
                 "RSU/pruning streams and flatten the urban sector."
             )
-        pop = float(pop_match["populacao_2022"].iloc[0])
-        
+        pop = float(pop_match["populacao"].iloc[0])
+        pop_ano = int(pop_match["populacao_ano"].iloc[0])
+
         # Coords
         if code in coords_dict:
             lat = coords_dict[code]["lat"]
@@ -566,7 +577,8 @@ def load_mg_municipal_spine() -> pd.DataFrame:
             "lat": lat,
             "lon": lon,
             "area_km2": area,
-            "populacao_2022": pop,
+            "populacao": pop,
+            "populacao_ano": pop_ano,
             "densidade_demografica": dens,
             "cd_rgi": cd_rgi,
             "nm_rgi": nm_rgi,
@@ -768,7 +780,7 @@ def ingest_mg_livestock(df_spine: pd.DataFrame) -> Dict[str, Dict[str, float]]:
     for _, row in df_spine.iterrows():
         code = row["ibge_code"]
         area_km2 = row["area_km2"]
-        pop = row["populacao_2022"]
+        pop = row["populacao"]
         rgint = row["cd_rgint"]
         
         # Stocking rate calibration by RGint
@@ -850,7 +862,8 @@ def build_mg_master_residues():
         lat = mun["lat"]
         lon = mun["lon"]
         area_km2 = mun["area_km2"]
-        pop = mun["populacao_2022"]
+        pop = mun["populacao"]
+        pop_ano = int(mun["populacao_ano"])
         dens = mun["densidade_demografica"]
         cd_rgi = mun["cd_rgi"]
         nm_rgi = mun["nm_rgi"]
@@ -1187,7 +1200,8 @@ def build_mg_master_residues():
             "GWh_aquaculture": 0.0, "GWh_cattle": 0.0, "GWh_citrus": 0.0, "GWh_coffee": 0.0,
             "GWh_corn": 0.0, "GWh_forestry": 0.0, "GWh_poultry": 0.0, "GWh_rpo_pruning": 0.0,
             "GWh_rsu_organic": 0.0, "GWh_soybean": 0.0, "GWh_sugarcane": 0.0, "GWh_swine": 0.0,
-            "codigo_municipio": code, "populacao_2022": pop, "area_km2": round(area_km2, 3),
+            "codigo_municipio": code, "populacao": pop, "populacao_ano": pop_ano,
+            "area_km2": round(area_km2, 3),
             "densidade_demografica": round(dens, 6), "cd_rgi": cd_rgi, "nm_rgi": nm_rgi,
             "cd_rgint": cd_rgint, "nm_rgint": nm_rgint, "lat": round(lat, 8), "lon": round(lon, 8),
             "categoria_potencial": mun_pot_class, "mun_potential_class": mun_pot_class,
@@ -1223,7 +1237,8 @@ def build_mg_master_residues():
                     "lat": round(lat, 8),
                     "lon": round(lon, 8),
                     "area_km2": round(area_km2, 3),
-                    "populacao_2022": pop,
+                    "populacao": pop,
+                    "populacao_ano": pop_ano,
                     "densidade_demografica": round(dens, 6),
                     "cd_rgi": cd_rgi,
                     "cd_rgint": cd_rgint,
@@ -1256,7 +1271,7 @@ def build_mg_master_residues():
     
     # Verify expected column sets
     expected_master_cols = [
-        "ibge_code", "municipality_name", "lat", "lon", "area_km2", "populacao_2022",
+        "ibge_code", "municipality_name", "lat", "lon", "area_km2", "populacao", "populacao_ano",
         "densidade_demografica", "cd_rgi", "cd_rgint", "year", "residue_stream",
         "residue_stream_pt", "sector", "sector_pt", "residue_tons_yr", "biogas_m3_yr",
         "energy_GWh_yr", "energy_MWh_yr", "biogas_m3_per_capita", "biogas_m3_per_km2",
@@ -1267,7 +1282,7 @@ def build_mg_master_residues():
     expected_summary_cols = [
         "ibge_code", "GWh_aquaculture", "GWh_cattle", "GWh_citrus", "GWh_coffee",
         "GWh_corn", "GWh_forestry", "GWh_poultry", "GWh_rpo_pruning", "GWh_rsu_organic",
-        "GWh_soybean", "GWh_sugarcane", "GWh_swine", "codigo_municipio", "populacao_2022",
+        "GWh_soybean", "GWh_sugarcane", "GWh_swine", "codigo_municipio", "populacao", "populacao_ano",
         "area_km2", "densidade_demografica", "cd_rgi", "nm_rgi", "cd_rgint", "nm_rgint",
         "lat", "lon", "categoria_potencial", "mun_potential_class", "mun_total_GWh",
         "mun_n_streams", "mun_dominant_stream"
@@ -1287,8 +1302,8 @@ def build_mg_master_residues():
     df_summary.to_csv(SUMMARY_CSV, index=False, encoding="utf-8")
     
     # Invariant and schema validation
-    assert len(df_master.columns) == 29, f"Expected 29 columns in master streams CSV, got {len(df_master.columns)}"
-    assert len(df_summary.columns) == 28, f"Expected 28 columns in summary CSV, got {len(df_summary.columns)}"
+    assert len(df_master.columns) == 30, f"Expected 30 columns in master streams CSV, got {len(df_master.columns)}"
+    assert len(df_summary.columns) == 29, f"Expected 29 columns in summary CSV, got {len(df_summary.columns)}"
     assert len(df_summary) == 853, f"Expected 853 rows in summary CSV, got {len(df_summary)}"
     assert df_master["ibge_code"].nunique() == 853, f"Expected 853 unique municipalities in master CSV, got {df_master['ibge_code'].nunique()}"
     assert not df_summary["lat"].isna().any() and not df_summary["lon"].isna().any(), "Found null coordinates in summary"

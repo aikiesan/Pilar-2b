@@ -641,7 +641,7 @@ def create_styled_excel_workbook(data: Dict[str, Any], output_path: Path):
             rg_tag = str(row.get("tag", rgint_tag_map.get(rg_cd, rg_nm)))
             row_vals = [
                 rg_cd, rg_nm, rg_tag, int(row["n_municipalities"]),
-                int(row["populacao_2022"]), float(row["area_km2"]), float(row["modeled_total_gwh_yr"]),
+                int(row["populacao"]), float(row["area_km2"]), float(row["modeled_total_gwh_yr"]),
                 float(row["modeled_biomethane_nm3_day"]), f"=G{r_curr}/$G$17", float(row["aneel_kw"]),
                 f"=J{r_curr}/G{r_curr}"
             ]
@@ -721,7 +721,7 @@ def create_styled_excel_workbook(data: Dict[str, Any], output_path: Path):
         mun_name = row.get("nm_rgi", "")  # fallback or lookup
         row_vals = [
             str(row["ibge_code"]), str(row.get("codigo_municipio", row["ibge_code"])), str(row["nm_rgint"]),
-            int(row["populacao_2022"]), float(row["area_km2"]), float(row["lat"]), float(row["lon"]),
+            int(row["populacao"]), float(row["area_km2"]), float(row["lat"]), float(row["lon"]),
             float(row["mun_total_GWh"]), str(row["mun_potential_class"]), str(row["mun_dominant_stream"]),
             int(row["mun_n_streams"])
         ]

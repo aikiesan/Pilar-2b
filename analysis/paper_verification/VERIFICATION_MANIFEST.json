@@ -5,24 +5,24 @@
   "n_municipalities": 853,
   "n_intermediate_regions": 13,
   "headline_totals_m3_CH4_yr": {
-    "theoretical": 53938482998.996994,
-    "real_atlas": 21575393199.598797,
-    "ideal_atlas": 26969241499.498497
+    "theoretical": 54014739192.577736,
+    "real_atlas": 21605895677.031094,
+    "ideal_atlas": 27007369596.288868
   },
   "headline_totals_bi": {
-    "theoretical": 53.9385,
-    "real_atlas": 21.5754,
-    "ideal_atlas": 26.9692
+    "theoretical": 54.0147,
+    "real_atlas": 21.6059,
+    "ideal_atlas": 27.0074
   },
   "headline_totals_GWh_yr": {
-    "theoretical": 537766.68,
-    "real_atlas": 215106.67,
-    "ideal_atlas": 268883.34
+    "theoretical": 538526.95,
+    "real_atlas": 215410.78,
+    "ideal_atlas": 269263.47
   },
   "headline_totals_million_m3_day": {
-    "theoretical": 147.78,
-    "real_atlas": 59.11,
-    "ideal_atlas": 73.89
+    "theoretical": 147.99,
+    "real_atlas": 59.19,
+    "ideal_atlas": 73.99
   },
   "empirical_infrastructure": {
     "aneel_biogas_gd_units_mg": 209,
@@ -42,13 +42,13 @@
   "files": {
     "analysis/data/01_master_residue_streams_MG_2023.csv": {
       "exists": true,
-      "size_bytes": 2082292,
-      "sha256": "f368d8e6f16fb85909d620e3c50633bec9d1588a108b9e0ef2e6cf8d24c3033a"
+      "size_bytes": 2121998,
+      "sha256": "32bf52918dca60974d85e8e9f0f61f53e362ba5525a1d2c0a3de4fd7630b8ba6"
     },
     "analysis/data/02_municipality_summary_MG_2023.csv": {
       "exists": true,
-      "size_bytes": 181838,
-      "sha256": "3cf9a2c6eb7331ace8263e3ec3375faa409b56088cd53fe7ced56425a6859377"
+      "size_bytes": 186149,
+      "sha256": "7191ceb32acbc020894ab8aa019c8d3bad904c706115dd5e91811b55d4f1c044"
     },
     "analysis/data/05_biogas_plants_brazil.csv": {
       "exists": true,
@@ -67,33 +67,33 @@
     },
     "analysis/outputs/MG_biochemical_matching_all_853.csv": {
       "exists": true,
-      "size_bytes": 506201,
-      "sha256": "1e893d1547d4ef9da8c18ba881f98222a5b846f1fe2299f711091335e62123f2"
+      "size_bytes": 510539,
+      "sha256": "0374b5009f43bfea0663534fc91c8c409bd5ba18c5774ea78d1a5c7ee388d978"
     },
     "analysis/outputs/MG_top_priority_pairs_biochemical.csv": {
       "exists": true,
-      "size_bytes": 55500,
-      "sha256": "94a26d462b921575be9473254f697b1f9ec8f39f6ac18d36c280d406e7e8f57d"
+      "size_bytes": 55648,
+      "sha256": "09e381318ca8545505e4f87db20a0571274c0ce7c180042873849c1994ec4f38"
     },
     "analysis/outputs/MG_spatial_clusters_853.csv": {
       "exists": true,
-      "size_bytes": 170459,
-      "sha256": "e15095c623819e410f204587ab7f6fc65454a9552e3229538df8be8394652ed7"
+      "size_bytes": 170391,
+      "sha256": "8690fa6da6ebbbbfb8b5132fc9a99f0544d6576badddd84b96ce780e69b22f39"
     },
     "analysis/outputs/MG_lisa_spatial_autocorrelation.csv": {
       "exists": true,
-      "size_bytes": 109530,
-      "sha256": "326bdf3c31e876758161c8924bb279564d2af3a6c6f8cec3bc8c999fea30388c"
+      "size_bytes": 109545,
+      "sha256": "c43f7c40375b0906b27824e2f850b1815f8e4499523357711302bbccaf181b56"
     },
     "analysis/outputs/MG_empirical_realization_summary.csv": {
       "exists": true,
-      "size_bytes": 151445,
-      "sha256": "2e9972dcfd734c69ba06d4174ded07dc79e6c7662195bc703f98f12a6493157f"
+      "size_bytes": 151483,
+      "sha256": "df35e366576b6b25b9107508dd0af55c13029ec88b0323bb3736059c1653db91"
     },
     "analysis/outputs/MG_empirical_realization_rgint_summary.csv": {
       "exists": true,
-      "size_bytes": 1515,
-      "sha256": "c966094b1db84cbf52e7c973afccb283e15ffe43d45838fa8f1024e38f8660e3"
+      "size_bytes": 1510,
+      "sha256": "a13255e072730be1a83b474474589e356f1e316055a92eed60136cf57986c419"
     },
     "analysis/outputs/MG_vs_SP_National_benchmarks.csv": {
       "exists": true,
@@ -102,13 +102,13 @@
     },
     "analysis/paper_verification/PILAR2b_MG_paper_verification.xlsx": {
       "exists": true,
-      "size_bytes": 82397,
-      "sha256": "1c6c895caef81eb7e06c0c10dee8f2b7d9f0f3fa8d02400ed7a045642bc0a41c"
+      "size_bytes": 82352,
+      "sha256": "4243f33dcbbb119728c24ddc82873bf9661201f5717c82286202ef45a9cd7867"
     },
     "analysis/paper_verification/MG_PAPER_DATA_VERIFICATION.md": {
       "exists": true,
       "size_bytes": 13025,
-      "sha256": "b5233fd4f2d360e5a60467d37980c332012b3a20897ac30e0b93c7846ae86ddc"
+      "sha256": "2024273064352e741f275537284032f55a33b9cf6603aaa3e61e1830d5446cf3"
     }
   },
   "note": "Generated automatically by analysis/build_mg_paper_verification.py"
