@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Joyride, Step, EventData, STATUS } from 'react-joyride'; // Importações atualizadas (EventData substitui CallBackProps)
+import { Joyride, Step, EventData, STATUS, ACTIONS } from 'react-joyride'; // Importações atualizadas (EventData substitui CallBackProps)
 
 interface TourGuideProps {
   run: boolean;
@@ -79,11 +79,11 @@ export default function TourGuide({ run, onFinish }: TourGuideProps) {
 
   // O tipo muda de CallBackProps para EventData
   const handleJoyrideEvent = (data: EventData) => {
-    const { status } = data;
+    const { status, action } = data;
     const finishedStatuses: string[] = [STATUS.FINISHED, STATUS.SKIPPED];
 
     // Se o usuário fechar, pular ou terminar o tour, avisamos a página para desligar o 'run'
-    if (finishedStatuses.includes(status)) {
+    if (finishedStatuses.includes(status) || action === ACTIONS.CLOSE) {
       onFinish();
     }
   };
