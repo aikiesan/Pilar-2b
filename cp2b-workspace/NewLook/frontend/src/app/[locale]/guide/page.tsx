@@ -60,10 +60,10 @@ const guideTopics = [
   }
 ]
 
-export default function GuideIndexPage() {
+export default function GuideIndexPage() {  
   // Estado que controla se o tour está rodando ou não
   const [runTour, setRunTour] = useState(false);
-  return (
+    return (
     <div className="max-w-6xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
       {/* Coloque o componente do Tour na tela (ele fica invisível até run={true}) */}
       <TourGuide run={runTour} onFinish={() => setRunTour(false)} />
@@ -103,7 +103,7 @@ export default function GuideIndexPage() {
 
         {/* Botão de Tour Guiado */}
         <div className="shrink-0 mt-4 md:mt-0">
-          <button
+          <button 
             onClick={() => setRunTour(true)}
             className="inline-flex items-center gap-2 px-6 py-3 bg-cp2b-green hover:bg-cp2b-dark-green text-white font-medium rounded-xl transition-all duration-300 shadow-sm hover:shadow-md hover:-translate-y-0.5"
           >
@@ -116,8 +116,8 @@ export default function GuideIndexPage() {
       {/* Grid de Cartões */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {guideTopics.map((topic, index) => (
-          <Link
-            key={index}
+          <Link 
+            key={index} 
             href={topic.href}
             className="group flex flex-col p-6 bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm hover:shadow-lg hover:border-cp2b-lime transition-all duration-300 h-full"
           >

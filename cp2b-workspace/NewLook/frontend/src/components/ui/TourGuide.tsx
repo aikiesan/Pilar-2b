@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Joyride, Step, EventData, STATUS, ACTIONS } from 'react-joyride'; // Importações atualizadas (EventData substitui CallBackProps)
+import { Joyride, Step, EventData, STATUS } from 'react-joyride'; // Importações atualizadas (EventData substitui CallBackProps)
 
 interface TourGuideProps {
   run: boolean;
@@ -27,39 +27,39 @@ export default function TourGuide({ run, onFinish }: TourGuideProps) {
       skipBeacon: true, // Na V3, disableBeacon virou skipBeacon
     },
     {
-      // Passo 2: Mapa interativo
-      target: '.tour-map',
-      title: 'Mapa interativo',
-      content: 'Visualize o potencial de biogás de cada município em um mapa coroplético. Camadas adicionais mostram aterros, plantas existentes e bacias hidrográficas.',
-      skipBeacon: true,
+        // Passo 2: Mapa interativo
+        target: '.tour-map',
+        title: 'Mapa interativo',
+        content: 'Visualize o potencial de biogás de cada município em um mapa coroplético. Camadas adicionais mostram aterros, plantas existentes e bacias hidrográficas.',
+        skipBeacon: true,
     },
     {
-      // Passo 3: análise
-      target: '.tour-analysis',
-      title: 'Análises',
-      content: 'Gráficos comparativos por região, tipo de resíduo e horizonte temporal.',
-      skipBeacon: true,
+        // Passo 3: análise
+        target: '.tour-analysis',
+        title: 'Análises',
+        content: 'Gráficos comparativos por região, tipo de resíduo e horizonte temporal.',
+        skipBeacon: true,
     },
     {
-      // Passo 4: Base científica        
-      target: '.tour-science',
-      title: 'Base científica',
-      content: 'Acesse a metodologia detalhada, dados brutos e código-fonte para entender como calculamos o potencial de biogás e para replicar ou adaptar a análise.',
-      skipBeacon: true,
+        // Passo 4: Base científica        
+        target: '.tour-science',
+        title: 'Base científica',
+        content: 'Acesse a metodologia detalhada, dados brutos e código-fonte para entender como calculamos o potencial de biogás e para replicar ou adaptar a análise.',
+        skipBeacon: true,
     },
     {
-      // Passo 5: Calculadora
-      target: '.tour-calculator',
-      title: 'Calculadora de Biogás',
-      content: 'Estime a produção de biogás a partir de parâmetros customizados: tipo de substrato, volume e tempo de retenção.',
-      skipBeacon: true,
+        // Passo 5: Calculadora
+        target: '.tour-calculator',
+        title: 'Calculadora de Biogás',
+        content: 'Estime a produção de biogás a partir de parâmetros customizados: tipo de substrato, volume e tempo de retenção.',
+        skipBeacon: true,
     },
     {
-      // Passo 6: Proximidade
-      target: '.tour-proximity',
-      title: 'Análise de Proximidade',
-      content: 'Identifique municípios vizinhos com potencial complementar para projetos regionais e consórcios intermunicipais.',
-      skipBeacon: true,
+        // Passo 6: Proximidade
+        target: '.tour-proximity',
+        title: 'Análise de Proximidade',
+        content: 'Identifique municípios vizinhos com potencial complementar para projetos regionais e consórcios intermunicipais.',
+        skipBeacon: true,
     },
     {
       // Passo 7: Barra de busca
@@ -79,11 +79,11 @@ export default function TourGuide({ run, onFinish }: TourGuideProps) {
 
   // O tipo muda de CallBackProps para EventData
   const handleJoyrideEvent = (data: EventData) => {
-    const { status, action } = data;
+    const { status } = data;
     const finishedStatuses: string[] = [STATUS.FINISHED, STATUS.SKIPPED];
 
     // Se o usuário fechar, pular ou terminar o tour, avisamos a página para desligar o 'run'
-    if (finishedStatuses.includes(status) || action === ACTIONS.CLOSE) {
+    if (finishedStatuses.includes(status)) {
       onFinish();
     }
   };
@@ -96,7 +96,7 @@ export default function TourGuide({ run, onFinish }: TourGuideProps) {
       run={run}
       continuous={true} // Mantido como propriedade raiz
       onEvent={handleJoyrideEvent} // V3: 'callback' substituído por 'onEvent'
-
+      
       options={{
         primaryColor: '#2F7D32', // Cor do botão principal
         textColor: '#333',
@@ -104,14 +104,14 @@ export default function TourGuide({ run, onFinish }: TourGuideProps) {
         showProgress: true, // V3: Movido para dentro do objeto options
         buttons: ['back', 'close', 'primary', 'skip'], // V3: Substitui a antiga prop 'showSkipButton'
       }}
-
+      
       styles={{
         buttonBack: {
           color: '#2F7D32',
         }
         // V3: options não fica mais dentro de styles
       }}
-
+      
       // Tradução dos botões nativos da biblioteca
       locale={{
         back: 'Voltar',
