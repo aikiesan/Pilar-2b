@@ -2,10 +2,12 @@
   "common": {
     "nav": {
       "home": "Home",
+      "guide": "Guide",
       "map": "Map",
       "dashboard": "Dashboard",
       "about": "About",
       "references": "References",
+      "cite": "How to Cite",
       "hub": "Hub",
       "proximity": "Proximity",
       "technology_routes": "Biogas Calculator",
@@ -17,7 +19,8 @@
       "map": "Interactive SP Map",
       "advanced": "MCDA and statistics",
       "scientific_database": "Scientific database",
-      "proximity": "Proximity analysis"
+      "proximity": "Proximity analysis",
+      "cite": "How to cite PILAR-2b"
     },
     "auth": {
       "login": "Login",
@@ -293,8 +296,21 @@
       "swine": "Swine",
       "poultry": "Poultry",
       "aquaculture": "Aquaculture",
-      "rsu": "MSW",
-      "rpo": "POW"
+      "rsu": "OFMSW (organics)",
+      "rpo": "Urban pruning",
+      "sewage": "WWTP sludge"
+    },
+    "urbanTotals": {
+      "ariaLabel": "Urban residue totals for {uf}",
+      "title": "Urban residues",
+      "scenario": "{scenario} scenario",
+      "scenarios": { "real": "Real", "ideal": "Ideal" },
+      "streams": { "rsu": "OFMSW", "rpo": "Urban pruning", "sewage": "WWTP sludge" },
+      "year": "year",
+      "municipalities": "{count, plural, =0 {no municipality with a value} one {# municipality with a value} other {# municipalities with a value}}",
+      "noDataTitle": "No validated urban inventory for {uf}",
+      "noDataBody": "The beta layer remains visible as a data gap; values were not inferred from population.",
+      "disclaimer": "Scenario CH₄ potential; this is not collected mass in t/year. The SNIS audit remains separate."
     },
     "categories": {
       "agricultural": "Agricultural",
@@ -319,6 +335,12 @@
       "heatmap": "Heat",
       "bubble": "Bubbles"
     },
+    "colorModes": {
+      "label": "Choropleth Mode",
+      "biogas": "Biogas Potential",
+      "cn_profile": "C/N Profile",
+      "cluster": "K4 Clusters"
+    },
     "opacity": {
       "label": "Map Opacity"
     },
@@ -327,7 +349,7 @@
       "label": "municipalities"
     },
     "layers": {
-      "municipalitiesSP": "SP Municipalities",
+      "municipalitiesSP": "Municipalities",
       "intermediateRegions": "Intermediate Regions (IBGE)",
       "mapbiomas": "MapBiomas 2024",
       "biogasPlants": "Biomass Plants (MapBiomas+ANP, 2024)",
@@ -341,7 +363,10 @@
     "layerGroups": {
       "base": "Base",
       "environmental": "Environmental",
-      "infrastructure": "Infrastructure"
+      "infrastructure": "Infrastructure",
+      "gasRoute": "Biomethane route",
+      "siteRestriction": "Siting constraints",
+      "logistics": "Logistics"
     },
     "tools": {
       "compare": "Compare",
@@ -382,7 +407,28 @@
     "closePanel": "Close panel",
     "expandPanel": "Expand filter panel",
     "vis": "Vis",
-    "clearAll": "Clear"
+    "clearAll": "Clear",
+    "scenario_label": "Scenario",
+    "map_aria_label": "Interactive map of biogas potential across {state} municipalities",
+    "map_keyboard_help": "Interactive map. With the map focused, use the arrow keys to pan and the plus and minus keys to zoom in and out. The same data is also available as tables and rankings on the analysis pages.",
+    "scenario_conservador": "Conservative",
+    "scenario_baseline": "Mid-term",
+    "scenario_fronteira": "Frontier",
+    "scenario_otimista": "Optimistic",
+    "scenario_fronteira_tip": "Biogas Frontier: realistic-high mobilisation of all 31 residues — surpasses the FIESP benchmark (~6.4 Mm³/d biomethane).",
+    "scenario_real": "Real",
+    "scenario_ideal": "Ideal",
+    "scenario_real_tip": "Real Scenario (short term): residue that actually reaches a digester today — current collection rates and competing uses. SP: 21.5 Mm³/day of biomethane. Method: Atlas de Bioenergia SP 2020.",
+    "scenario_ideal_tip": "Ideal Scenario (frontier): 100% of generated residue collected and treated. An infrastructure assumption — the chemistry (BMP, TS, VS, CH₄ content) is identical to the Real Scenario. SP: 27.0 Mm³/day of biomethane.",
+    "scenario_served_note": "Real and Ideal scenarios are available for São Paulo only.",
+    "cnLegend": {
+      "title": "C/N Ratio Profile",
+      "c_rich": "Carbon Excess (> 60)",
+      "c_mod": "Mod. Carbon-rich (40–60)",
+      "balanced": "Balanced / Optimal (20–40)",
+      "n_mod": "Mod. Nitrogen-rich (10–20)",
+      "n_rich": "Nitrogen Excess (< 10)"
+    }
   },
   "Register": {
     "title": "Create Account",
@@ -401,6 +447,8 @@
     "back_to_dashboard": "Back to Dashboard",
     "advanced_analysis": {
       "title": "Advanced Analysis",
+      "literature_base_link": "Scientific base — 399 references (literature review)",
+      "frontier_note": "Biogas Frontier: realistic-high mobilisation of all 31 residues — surpasses the FIESP benchmark (~6.4 Mm³/d biomethane).",
       "category_agricultural": "Agricultural",
       "category_livestock": "Livestock",
       "category_urban": "Urban",
@@ -679,6 +727,13 @@
     "loading": "Loading dashboard...",
     "welcome_title": "Welcome to PILAR-2b",
     "welcome_subtitle": "Complete platform for biogas potential analysis in São Paulo state",
+    "hero_institution": "CP2b · NIPE / UNICAMP",
+    "cta_open_map": "Open Interactive Map",
+    "open_map_aria": "Open the interactive map of São Paulo state",
+    "path_label": "How to use",
+    "path_map": "Explore the Map",
+    "path_proximity": "Proximity",
+    "path_science": "Routes & Science",
     "stats_municipalities": "Municipalities",
     "stats_residues": "Residue Types",
     "stats_routes": "Technology Routes",
@@ -868,7 +923,9 @@
       "conservative_name": "Conservative",
       "conservative_desc": "Considers all practical constraints conservatively",
       "pessimistic_name": "Pessimistic",
-      "pessimistic_desc": "Scenario with highest losses and competition"
+      "pessimistic_desc": "Scenario with highest losses and competition",
+      "frontier_name": "Biogas Frontier",
+      "frontier_desc": "Realistic-high mobilisation of all 31 residues under dedicated policy; surpasses the FIESP benchmark (~6.4 Mm³/d biomethane)"
     },
     "residue_scenarios": {
       "baseline_name": "Baseline",
@@ -877,6 +934,8 @@
       "conservative_desc": "Reduces all factors by 20% (worst case)",
       "optimistic_name": "Optimistic",
       "optimistic_desc": "Increases factors by 15% (best case)",
+      "frontier_name": "Biogas Frontier",
+      "frontier_desc": "Realistic-high mobilisation of all 31 residues under dedicated policy (surpasses the FIESP benchmark)",
       "custom_name": "Custom",
       "custom_desc": "Manually adjusted factors per residue"
     },
@@ -1112,7 +1171,7 @@
     "acceptAll": "Accept All",
     "essentialOnly": "Essential Only",
     "successMessage": "Thank you! We'll be in touch.",
-    "lgpdNote": "In accordance with LGPD (Law 13.709/2018) and GDPR."
+    "lgpdNote": "We respect your privacy. See our Privacy Policy."
   },
   "calculator": {
     "title": "Biogas Viability Calculator",
@@ -1130,8 +1189,6 @@
       "email": "Email",
       "municipio": "Municipality (SP)",
       "municipioPlaceholder": "Type municipality...",
-      "cpfCnpj": "CPF / CNPJ",
-      "cpfNote": "Optional. Used for cross-referencing with CP2B geospatial databases.",
       "lgpdConsent": "I consent to the use of my data by CP2B/UNICAMP for research and technical contact purposes, in accordance with LGPD."
     },
     "step2": {

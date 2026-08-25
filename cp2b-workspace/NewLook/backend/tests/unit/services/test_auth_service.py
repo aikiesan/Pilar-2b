@@ -1,496 +1,249 @@
 """
-Tests for Authentication Service
-Tests user registration, login, logout, and profile management
+Tests for the real (DB-backed, VM-local) Authentication Service.
+
+The service imports get_db / get_db_transaction at module scope, so these tests
+monkeypatch those names directly with a self-contained fake connection — no real
+database and no dependency on conftest DB mocks. Async methods are driven with
+asyncio.run so the tests do not depend on pytest-asyncio mode.
 """
 
+import asyncio
+import uuid
+from contextlib import contextmanager
+from datetime import datetime, timedelta, timezone
+
+import jwt
 import pytest
-from unittest.mock import Mock, MagicMock, patch, AsyncMock
-from datetime import datetime
-from fastapi import HTTPException, status
+from fastapi import HTTPException
 
-from app.services.auth_service import AuthService
-from app.models.auth import (
-    UserRegistration,
-    UserLogin,
-    UserProfile,
-    AuthResponse,
-    UpdateProfile,
-)
+from app.core.config import settings
+from app.models.auth import AdminCreateUser, UserLogin
+from app.services import auth_service as svc_module
+from app.services.auth_service import MAX_FAILED_LOGINS, AuthService
 
 
-class TestAuthService:
-    """Test AuthService class"""
+def _now():
+    return datetime.now(timezone.utc)
 
-    @pytest.fixture
-    def auth_service(self):
-        """Create AuthService instance for testing"""
-        return AuthService()
 
-    @pytest.fixture
-    def mock_supabase(self):
-        """Create mock Supabase client"""
-        mock = Mock()
+class FakeCursor:
+    def __init__(self):
+        self.fetchone_queue = []
+        self.fetchall_result = []
+        self.executed = []
 
-        # Mock auth methods
-        mock.auth = Mock()
-        mock.auth.sign_up = Mock()
-        mock.auth.sign_in_with_password = Mock()
-        mock.auth.sign_out = Mock()
-        mock.auth.get_user = Mock()
+    def execute(self, sql, params=None):
+        self.executed.append((sql, params))
 
-        # Mock table methods
-        mock.table = Mock()
+    def fetchone(self):
+        return self.fetchone_queue.pop(0) if self.fetchone_queue else None
 
-        return mock
+    def fetchall(self):
+        return self.fetchall_result
 
-    @pytest.fixture
-    def sample_user_registration(self):
-        """Sample user registration data"""
-        return UserRegistration(
-            email="test@example.com",
-            password="SecurePassword123!",
-            full_name="Test User",
+    def close(self):
+        pass
+
+
+class FakeConn:
+    def __init__(self, cursor):
+        self._c = cursor
+
+    def cursor(self):
+        return self._c
+
+
+@pytest.fixture
+def svc():
+    return AuthService()
+
+
+@pytest.fixture
+def cursor():
+    return FakeCursor()
+
+
+@pytest.fixture(autouse=True)
+def patch_db(monkeypatch, cursor):
+    @contextmanager
+    def _ctx():
+        yield FakeConn(cursor)
+
+    monkeypatch.setattr(svc_module, "get_db", _ctx)
+    monkeypatch.setattr(svc_module, "get_db_transaction", _ctx)
+    return cursor
+
+
+def _user_row(svc, password="Password123", **over):
+    row = {
+        "id": uuid.uuid4(),
+        "email": "user@cp2b.unicamp.br",
+        "password_hash": svc.hash_password(password),
+        "full_name": "Test User",
+        "role": "interno",
+        "clearance": 1,
+        "is_active": True,
+        "failed_login_count": 0,
+        "locked_until": None,
+        "created_at": _now(),
+        "updated_at": _now(),
+    }
+    row.update(over)
+    return row
+
+
+# ── password hashing (pure) ───────────────────────────────────────────────────
+def test_password_hash_and_verify(svc):
+    h = svc.hash_password("Password123")
+    assert h != "Password123"
+    assert svc.verify_password("Password123", h) is True
+    assert svc.verify_password("wrong", h) is False
+
+
+# ── token issue / decode round-trip ───────────────────────────────────────────
+def test_token_roundtrip_contains_claims(svc):
+    row = {"id": uuid.uuid4(), "email": "a@b.com", "role": "interno", "clearance": 2}
+    token = svc._issue_token(row)
+    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+    assert payload["sub"] == str(row["id"])
+    assert payload["role"] == "interno"
+    assert payload["clearance"] == 2
+    assert payload["jti"]
+    assert payload["exp"] > payload["iat"]
+
+
+# ── token verification failures (no DB needed; decode fails first) ────────────
+def test_get_current_user_rejects_garbage_token(svc):
+    with pytest.raises(HTTPException) as e:
+        asyncio.run(svc.get_current_user("not-a-jwt"))
+    assert e.value.status_code == 401
+
+
+def test_get_current_user_rejects_expired_token(svc):
+    token = jwt.encode(
+        {"sub": str(uuid.uuid4()), "jti": str(uuid.uuid4()), "exp": _now() - timedelta(minutes=1)},
+        settings.SECRET_KEY,
+        algorithm=settings.ALGORITHM,
+    )
+    with pytest.raises(HTTPException) as e:
+        asyncio.run(svc.get_current_user(token))
+    assert e.value.status_code == 401
+
+
+def test_get_current_user_rejects_wrong_signature(svc):
+    token = jwt.encode(
+        {"sub": str(uuid.uuid4()), "jti": str(uuid.uuid4()), "exp": _now() + timedelta(minutes=5)},
+        "a-different-secret-key-of-sufficient-length-xx",
+        algorithm="HS256",
+    )
+    with pytest.raises(HTTPException) as e:
+        asyncio.run(svc.get_current_user(token))
+    assert e.value.status_code == 401
+
+
+# ── get_current_user happy path + revocation (DB) ─────────────────────────────
+def test_get_current_user_valid(svc, cursor):
+    row = _user_row(svc)
+    token = svc._issue_token(row)
+    cursor.fetchone_queue = [None, row]  # denylist miss, then user row
+    profile = asyncio.run(svc.get_current_user(token))
+    assert profile.email == row["email"]
+    assert profile.role == "interno"
+    assert profile.clearance == 1
+
+
+def test_get_current_user_rejects_revoked_token(svc, cursor):
+    row = _user_row(svc)
+    token = svc._issue_token(row)
+    cursor.fetchone_queue = [{"x": 1}]  # denylist HIT → revoked
+    with pytest.raises(HTTPException) as e:
+        asyncio.run(svc.get_current_user(token))
+    assert e.value.status_code == 401
+
+
+def test_get_current_user_inactive_user(svc, cursor):
+    row = _user_row(svc, is_active=False)
+    token = svc._issue_token(row)
+    cursor.fetchone_queue = [None, row]
+    with pytest.raises(HTTPException) as e:
+        asyncio.run(svc.get_current_user(token))
+    assert e.value.status_code == 401
+
+
+# ── login (DB) ────────────────────────────────────────────────────────────────
+def test_login_success_returns_token(svc, cursor):
+    row = _user_row(svc, password="Password123")
+    cursor.fetchone_queue = [row]
+    resp = asyncio.run(svc.login_user(UserLogin(email=row["email"], password="Password123")))
+    assert resp.token_type == "bearer"
+    assert resp.user.role == "interno"
+    payload = jwt.decode(resp.access_token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+    assert payload["sub"] == str(row["id"])
+
+
+def test_login_wrong_password_raises_and_increments(svc, cursor):
+    row = _user_row(svc, password="Password123", failed_login_count=0)
+    cursor.fetchone_queue = [row]
+    with pytest.raises(HTTPException) as e:
+        asyncio.run(svc.login_user(UserLogin(email=row["email"], password="WrongPass1")))
+    assert e.value.status_code == 401
+    # Only UPDATE statements count — the login SELECT also mentions the column.
+    assert any(
+        sql.strip().startswith("UPDATE") and "failed_login_count" in sql
+        for sql, _ in cursor.executed
+    )
+
+
+def test_login_locks_after_max_failures(svc, cursor):
+    row = _user_row(svc, password="Password123", failed_login_count=MAX_FAILED_LOGINS - 1)
+    cursor.fetchone_queue = [row]
+    with pytest.raises(HTTPException):
+        asyncio.run(svc.login_user(UserLogin(email=row["email"], password="WrongPass1")))
+    upd = [
+        params
+        for sql, params in cursor.executed
+        if sql.strip().startswith("UPDATE") and "locked_until" in sql
+    ]
+    assert upd and upd[0][1] is not None  # locked_until param set
+
+
+def test_login_rejects_locked_account(svc, cursor):
+    row = _user_row(svc, locked_until=_now() + timedelta(minutes=10))
+    cursor.fetchone_queue = [row]
+    with pytest.raises(HTTPException) as e:
+        asyncio.run(svc.login_user(UserLogin(email=row["email"], password="Password123")))
+    assert e.value.status_code == 403
+
+
+def test_login_rejects_inactive_account(svc, cursor):
+    row = _user_row(svc, is_active=False)
+    cursor.fetchone_queue = [row]
+    with pytest.raises(HTTPException) as e:
+        asyncio.run(svc.login_user(UserLogin(email=row["email"], password="Password123")))
+    assert e.value.status_code == 403
+
+
+def test_login_unknown_email_is_401(svc, cursor):
+    cursor.fetchone_queue = [None]
+    with pytest.raises(HTTPException) as e:
+        asyncio.run(
+            svc.login_user(UserLogin(email="nobody@cp2b.unicamp.br", password="Password123"))
         )
-
-    @pytest.fixture
-    def sample_user_login(self):
-        """Sample user login data"""
-        return UserLogin(
-            email="test@example.com",
-            password="SecurePassword123!",
-        )
-
-    @pytest.fixture
-    def sample_user_profile(self):
-        """Sample user profile data"""
-        return {
-            "id": "user-123",
-            "full_name": "Test User",
-            "role": "autenticado",  # must be one of: visitante, autenticado, admin
-            "created_at": "2024-01-01T00:00:00+00:00",
-            "updated_at": "2024-01-01T00:00:00+00:00",
-        }
-
-    @pytest.mark.asyncio
-    async def test_register_user_success(
-        self, auth_service, mock_supabase, sample_user_registration, sample_user_profile
-    ):
-        """Test successful user registration"""
-        # Setup mock responses
-        mock_auth_response = Mock()
-        mock_auth_response.user = Mock()
-        mock_auth_response.user.id = "user-123"
-        mock_auth_response.user.email = "test@example.com"
-        mock_auth_response.session = Mock()
-        mock_auth_response.session.access_token = "test-access-token"
-
-        mock_supabase.auth.sign_up.return_value = mock_auth_response
-
-        mock_profile_response = Mock()
-        mock_profile_response.data = [sample_user_profile]
-
-        mock_table = Mock()
-        mock_table.select.return_value = mock_table
-        mock_table.eq.return_value = mock_table
-        mock_table.execute.return_value = mock_profile_response
-        mock_supabase.table.return_value = mock_table
-
-        # Inject mock
-        auth_service._supabase = mock_supabase
-
-        # Execute
-        result = await auth_service.register_user(sample_user_registration)
-
-        # Verify
-        assert isinstance(result, AuthResponse)
-        assert result.access_token == "test-access-token"
-        assert result.token_type == "bearer"
-        assert result.user.email == "test@example.com"
-        assert result.user.full_name == "Test User"
-        assert result.user.role == "autenticado"
-
-        # Verify Supabase calls
-        mock_supabase.auth.sign_up.assert_called_once()
-        call_args = mock_supabase.auth.sign_up.call_args[0][0]
-        assert call_args["email"] == "test@example.com"
-        assert call_args["password"] == "SecurePassword123!"
-
-    @pytest.mark.asyncio
-    async def test_register_user_no_user_created(
-        self, auth_service, mock_supabase, sample_user_registration
-    ):
-        """Test registration fails when user creation fails"""
-        # Setup mock to return no user
-        mock_auth_response = Mock()
-        mock_auth_response.user = None
-        mock_supabase.auth.sign_up.return_value = mock_auth_response
-
-        auth_service._supabase = mock_supabase
-
-        # Execute and verify
-        with pytest.raises(HTTPException) as exc_info:
-            await auth_service.register_user(sample_user_registration)
-
-        assert exc_info.value.status_code == status.HTTP_400_BAD_REQUEST
-        assert "Failed to create user account" in exc_info.value.detail
-
-    @pytest.mark.asyncio
-    async def test_register_user_no_profile_created(
-        self, auth_service, mock_supabase, sample_user_registration
-    ):
-        """Test registration fails when profile creation fails"""
-        # Setup mock user creation success
-        mock_auth_response = Mock()
-        mock_auth_response.user = Mock()
-        mock_auth_response.user.id = "user-123"
-        mock_supabase.auth.sign_up.return_value = mock_auth_response
-
-        # Setup mock profile creation failure
-        mock_profile_response = Mock()
-        mock_profile_response.data = []
-
-        mock_table = Mock()
-        mock_table.select.return_value = mock_table
-        mock_table.eq.return_value = mock_table
-        mock_table.execute.return_value = mock_profile_response
-        mock_supabase.table.return_value = mock_table
-
-        auth_service._supabase = mock_supabase
-
-        # Execute and verify
-        with pytest.raises(HTTPException) as exc_info:
-            await auth_service.register_user(sample_user_registration)
-
-        assert exc_info.value.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
-        assert "Failed to create user profile" in exc_info.value.detail
-
-    @pytest.mark.asyncio
-    async def test_login_user_success(
-        self, auth_service, mock_supabase, sample_user_login, sample_user_profile
-    ):
-        """Test successful user login"""
-        # Setup mock responses
-        mock_auth_response = Mock()
-        mock_auth_response.user = Mock()
-        mock_auth_response.user.id = "user-123"
-        mock_auth_response.user.email = "test@example.com"
-        mock_auth_response.session = Mock()
-        mock_auth_response.session.access_token = "test-access-token"
-
-        mock_supabase.auth.sign_in_with_password.return_value = mock_auth_response
-
-        mock_profile_response = Mock()
-        mock_profile_response.data = [sample_user_profile]
-
-        mock_table = Mock()
-        mock_table.select.return_value = mock_table
-        mock_table.eq.return_value = mock_table
-        mock_table.execute.return_value = mock_profile_response
-        mock_supabase.table.return_value = mock_table
-
-        auth_service._supabase = mock_supabase
-
-        # Execute
-        result = await auth_service.login_user(sample_user_login)
-
-        # Verify
-        assert isinstance(result, AuthResponse)
-        assert result.access_token == "test-access-token"
-        assert result.user.email == "test@example.com"
-
-        # Verify Supabase calls
-        mock_supabase.auth.sign_in_with_password.assert_called_once()
-        call_args = mock_supabase.auth.sign_in_with_password.call_args[0][0]
-        assert call_args["email"] == "test@example.com"
-        assert call_args["password"] == "SecurePassword123!"
-
-    @pytest.mark.asyncio
-    async def test_login_user_invalid_credentials(
-        self, auth_service, mock_supabase, sample_user_login
-    ):
-        """Test login fails with invalid credentials"""
-        # Setup mock to return no user
-        mock_auth_response = Mock()
-        mock_auth_response.user = None
-        mock_auth_response.session = None
-        mock_supabase.auth.sign_in_with_password.return_value = mock_auth_response
-
-        auth_service._supabase = mock_supabase
-
-        # Execute and verify
-        with pytest.raises(HTTPException) as exc_info:
-            await auth_service.login_user(sample_user_login)
-
-        assert exc_info.value.status_code == status.HTTP_401_UNAUTHORIZED
-        assert "Invalid email or password" in exc_info.value.detail
-
-    @pytest.mark.asyncio
-    async def test_login_user_no_profile(
-        self, auth_service, mock_supabase, sample_user_login
-    ):
-        """Test login fails when profile not found"""
-        # Setup mock auth success
-        mock_auth_response = Mock()
-        mock_auth_response.user = Mock()
-        mock_auth_response.user.id = "user-123"
-        mock_auth_response.session = Mock()
-        mock_supabase.auth.sign_in_with_password.return_value = mock_auth_response
-
-        # Setup mock profile not found
-        mock_profile_response = Mock()
-        mock_profile_response.data = []
-
-        mock_table = Mock()
-        mock_table.select.return_value = mock_table
-        mock_table.eq.return_value = mock_table
-        mock_table.execute.return_value = mock_profile_response
-        mock_supabase.table.return_value = mock_table
-
-        auth_service._supabase = mock_supabase
-
-        # Execute and verify
-        with pytest.raises(HTTPException) as exc_info:
-            await auth_service.login_user(sample_user_login)
-
-        assert exc_info.value.status_code == status.HTTP_404_NOT_FOUND
-        assert "User profile not found" in exc_info.value.detail
-
-    @pytest.mark.asyncio
-    async def test_logout_user_success(self, auth_service, mock_supabase):
-        """Test successful user logout"""
-        auth_service._supabase = mock_supabase
-
-        # Execute
-        result = await auth_service.logout_user("test-token")
-
-        # Verify
-        assert result["message"] == "Logout successful"
-        mock_supabase.auth.sign_out.assert_called_once()
-
-    @pytest.mark.asyncio
-    async def test_logout_user_handles_errors(self, auth_service, mock_supabase):
-        """Test logout handles errors gracefully"""
-        mock_supabase.auth.sign_out.side_effect = Exception("Logout error")
-        auth_service._supabase = mock_supabase
-
-        # Execute - should not raise
-        result = await auth_service.logout_user("test-token")
-
-        # Verify - still returns success
-        assert result["message"] == "Logout successful"
-
-    @pytest.mark.asyncio
-    async def test_get_current_user_success(
-        self, auth_service, mock_supabase, sample_user_profile
-    ):
-        """Test getting current user profile"""
-        # Setup mock user response
-        mock_user_response = Mock()
-        mock_user_response.user = Mock()
-        mock_user_response.user.id = "user-123"
-        mock_user_response.user.email = "test@example.com"
-        mock_supabase.auth.get_user.return_value = mock_user_response
-
-        # Setup mock profile response
-        mock_profile_response = Mock()
-        mock_profile_response.data = [sample_user_profile]
-
-        mock_table = Mock()
-        mock_table.select.return_value = mock_table
-        mock_table.eq.return_value = mock_table
-        mock_table.execute.return_value = mock_profile_response
-        mock_supabase.table.return_value = mock_table
-
-        auth_service._supabase = mock_supabase
-
-        # Execute
-        result = await auth_service.get_current_user("test-token")
-
-        # Verify
-        assert isinstance(result, UserProfile)
-        assert result.id == "user-123"
-        assert result.email == "test@example.com"
-        assert result.full_name == "Test User"
-        assert result.role == "autenticado"
-
-        mock_supabase.auth.get_user.assert_called_once_with("test-token")
-
-    @pytest.mark.asyncio
-    async def test_get_current_user_invalid_token(self, auth_service, mock_supabase):
-        """Test get current user fails with invalid token"""
-        # Setup mock to return no user
-        mock_user_response = Mock()
-        mock_user_response.user = None
-        mock_supabase.auth.get_user.return_value = mock_user_response
-
-        auth_service._supabase = mock_supabase
-
-        # Execute and verify
-        with pytest.raises(HTTPException) as exc_info:
-            await auth_service.get_current_user("invalid-token")
-
-        assert exc_info.value.status_code == status.HTTP_401_UNAUTHORIZED
-        assert "Invalid or expired token" in exc_info.value.detail
-
-    @pytest.mark.asyncio
-    async def test_update_user_profile_success(
-        self, auth_service, mock_supabase, sample_user_profile
-    ):
-        """Test successful profile update"""
-        # Setup mock current user
-        mock_user_response = Mock()
-        mock_user_response.user = Mock()
-        mock_user_response.user.id = "user-123"
-        mock_user_response.user.email = "test@example.com"
-        mock_supabase.auth.get_user.return_value = mock_user_response
-
-        # Setup mock profile responses
-        mock_profile_response = Mock()
-        mock_profile_response.data = [sample_user_profile]
-
-        updated_profile = sample_user_profile.copy()
-        updated_profile["full_name"] = "Updated Name"
-        mock_updated_response = Mock()
-        mock_updated_response.data = [updated_profile]
-
-        # Create mock table chain
-        mock_table = Mock()
-        mock_select = Mock()
-        mock_eq = Mock()
-        mock_update = Mock()
-        mock_update_eq = Mock()
-
-        # Setup select chain for get_current_user calls
-        mock_table.select.return_value = mock_select
-        mock_select.eq.return_value = mock_eq
-        mock_eq.execute.side_effect = [mock_profile_response, mock_updated_response]
-
-        # Setup update chain
-        mock_table.update.return_value = mock_update
-        mock_update.eq.return_value = mock_update_eq
-        mock_update_eq.execute.return_value = mock_updated_response
-
-        mock_supabase.table.return_value = mock_table
-        auth_service._supabase = mock_supabase
-
-        # Execute
-        update_data = UpdateProfile(full_name="Updated Name")
-        result = await auth_service.update_user_profile("test-token", update_data)
-
-        # Verify
-        assert isinstance(result, UserProfile)
-        assert result.full_name == "Updated Name"
-
-        # Verify update was called
-        mock_table.update.assert_called_once()
-
-    @pytest.mark.asyncio
-    async def test_update_user_profile_no_changes(
-        self, auth_service, mock_supabase, sample_user_profile
-    ):
-        """Test profile update with no changes returns current profile"""
-        # Setup mock current user
-        mock_user_response = Mock()
-        mock_user_response.user = Mock()
-        mock_user_response.user.id = "user-123"
-        mock_user_response.user.email = "test@example.com"
-        mock_supabase.auth.get_user.return_value = mock_user_response
-
-        mock_profile_response = Mock()
-        mock_profile_response.data = [sample_user_profile]
-
-        mock_table = Mock()
-        mock_table.select.return_value = mock_table
-        mock_table.eq.return_value = mock_table
-        mock_table.execute.return_value = mock_profile_response
-        mock_supabase.table.return_value = mock_table
-
-        auth_service._supabase = mock_supabase
-
-        # Execute - empty update
-        update_data = UpdateProfile()
-        result = await auth_service.update_user_profile("test-token", update_data)
-
-        # Verify - returns current profile without update
-        assert isinstance(result, UserProfile)
-        mock_table.update.assert_not_called()
-
-    @pytest.mark.asyncio
-    async def test_update_user_profile_update_fails(
-        self, auth_service, mock_supabase, sample_user_profile
-    ):
-        """Test profile update handles database errors"""
-        # Setup mock current user
-        mock_user_response = Mock()
-        mock_user_response.user = Mock()
-        mock_user_response.user.id = "user-123"
-        mock_user_response.user.email = "test@example.com"
-        mock_supabase.auth.get_user.return_value = mock_user_response
-
-        mock_profile_response = Mock()
-        mock_profile_response.data = [sample_user_profile]
-
-        # Setup update to return no data
-        mock_update_response = Mock()
-        mock_update_response.data = []
-
-        mock_table = Mock()
-        mock_select = Mock()
-        mock_eq = Mock()
-        mock_update = Mock()
-        mock_update_eq = Mock()
-
-        mock_table.select.return_value = mock_select
-        mock_select.eq.return_value = mock_eq
-        mock_eq.execute.return_value = mock_profile_response
-
-        mock_table.update.return_value = mock_update
-        mock_update.eq.return_value = mock_update_eq
-        mock_update_eq.execute.return_value = mock_update_response
-
-        mock_supabase.table.return_value = mock_table
-        auth_service._supabase = mock_supabase
-
-        # Execute and verify
-        update_data = UpdateProfile(full_name="New Name")
-        with pytest.raises(HTTPException) as exc_info:
-            await auth_service.update_user_profile("test-token", update_data)
-
-        assert exc_info.value.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
-        assert "Failed to update profile" in exc_info.value.detail
-
-    def test_supabase_lazy_initialization(self, auth_service):
-        """Test Supabase client is initialized lazily"""
-        # Initially None
-        assert auth_service._supabase is None
-
-        # Mock the get_supabase_client function
-        with patch("app.services.auth_service.get_supabase_client") as mock_get_client:
-            mock_client = Mock()
-            mock_get_client.return_value = mock_client
-
-            # Access supabase property
-            result = auth_service.supabase
-
-            # Verify
-            assert result == mock_client
-            mock_get_client.assert_called_once()
-
-    def test_supabase_initialization_error(self, auth_service):
-        """Test Supabase initialization error is handled"""
-        with patch("app.services.auth_service.get_supabase_client") as mock_get_client:
-            mock_get_client.side_effect = Exception("Supabase error")
-
-            # First access should catch and store error
-            with pytest.raises(HTTPException) as exc_info:
-                _ = auth_service.supabase
-
-            assert exc_info.value.status_code == status.HTTP_503_SERVICE_UNAVAILABLE
-            assert "Supabase not configured" in exc_info.value.detail
-
-            # Subsequent accesses should raise same error without retrying
-            with pytest.raises(HTTPException) as exc_info:
-                _ = auth_service.supabase
-
-            # Should only call get_supabase_client once
-            mock_get_client.assert_called_once()
+    assert e.value.status_code == 401
+
+
+# ── admin create user (DB) ────────────────────────────────────────────────────
+def test_create_user_returns_profile(svc, cursor):
+    created = _user_row(svc, role="autenticado", clearance=0)
+    cursor.fetchone_queue = [created]
+    data = AdminCreateUser(
+        email=created["email"],
+        password="Password123",
+        full_name="Test User",
+        role="autenticado",
+        clearance=0,
+    )
+    profile = asyncio.run(svc.create_user(data))
+    assert profile.email == created["email"]
+    assert profile.role == "autenticado"
+    assert profile.clearance == 0

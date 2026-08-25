@@ -34,7 +34,9 @@ logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
 
 BACKEND_DIR = Path(__file__).resolve().parent.parent
-DEFAULT_IBGE_DIR = BACKEND_DIR.parent.parent / "Nova pasta"
+DEFAULT_IBGE_DIR = BACKEND_DIR.parent / "data" / "raw" / "ibge_2025"
+if not DEFAULT_IBGE_DIR.exists():
+    DEFAULT_IBGE_DIR = BACKEND_DIR.parent.parent / "Nova pasta"
 IBGE_DATA_DIR = Path(os.environ.get("IBGE_DATA_DIR", DEFAULT_IBGE_DIR)).resolve()
 DRY_RUN = os.environ.get("DRY_RUN", "false").lower() == "true"
 
@@ -109,9 +111,8 @@ def load_population_rows(base_dir: Path) -> dict[str, int]:
     uf_col = df.columns[1]
     mun_col = df.columns[2]
     population_col = df.columns[4]
-    df["ibge_code"] = (
-        df[uf_col].map(lambda v: digits(v).zfill(2))
-        + df[mun_col].map(lambda v: digits(v).zfill(5))
+    df["ibge_code"] = df[uf_col].map(lambda v: digits(v).zfill(2)) + df[mun_col].map(
+        lambda v: digits(v).zfill(5)
     )
 
     rows: dict[str, int] = {}
@@ -145,14 +146,12 @@ def find_pib_columns(columns: list[Any]) -> tuple[Any, Any, Any, Any]:
     )
     gdp_pc_col = next((c for c in columns if "per capita" in str(c)), None)
     gdp_col = next(
-        (
-            c for c in columns
-            if "Produto Interno Bruto," in str(c) and "per capita" not in str(c)
-        ),
+        (c for c in columns if "Produto Interno Bruto," in str(c) and "per capita" not in str(c)),
         None,
     )
     missing = [
-        name for name, value in {
+        name
+        for name, value in {
             "year": year_col,
             "municipality code": code_col,
             "gdp total": gdp_col,
@@ -177,7 +176,9 @@ def load_gdp_rows(base_dir: Path) -> dict[str, dict[str, float | None]]:
     for _, row in df.iterrows():
         gdp_thousand_brl = money_or_none(row[gdp_col])
         rows[str(row["ibge_code"])] = {
-            "gdp_total": round(gdp_thousand_brl * 1000, 2) if gdp_thousand_brl is not None else None,
+            "gdp_total": (
+                round(gdp_thousand_brl * 1000, 2) if gdp_thousand_brl is not None else None
+            ),
             "gdp_per_capita": money_or_none(row[gdp_pc_col]),
         }
 
@@ -195,20 +196,22 @@ def build_rows(base_dir: Path) -> list[dict[str, Any]]:
         population = population_rows.get(ibge_code)
         area_km2 = row.get("area_km2")
         gdp = gdp_rows.get(ibge_code, {})
-        row.update({
-            "population": population,
-            "population_density": round(population / area_km2, 4)
-            if population is not None and area_km2 else None,
-            "gdp_total": gdp.get("gdp_total"),
-            "gdp_per_capita": gdp.get("gdp_per_capita"),
-            "population_year": POPULATION_YEAR if population is not None else None,
-            "area_year": AREA_YEAR,
-            "gdp_year": GDP_YEAR if gdp else None,
-            "ibge_data_source": (
-                "IBGE BR_Municipios_2025; POP2025_20260113; "
-                "PIB dos Municipios 2010-2023"
-            ),
-        })
+        row.update(
+            {
+                "population": population,
+                "population_density": (
+                    round(population / area_km2, 4) if population is not None and area_km2 else None
+                ),
+                "gdp_total": gdp.get("gdp_total"),
+                "gdp_per_capita": gdp.get("gdp_per_capita"),
+                "population_year": POPULATION_YEAR if population is not None else None,
+                "area_year": AREA_YEAR,
+                "gdp_year": GDP_YEAR if gdp else None,
+                "ibge_data_source": (
+                    "IBGE BR_Municipios_2025; POP2025_20260113; " "PIB dos Municipios 2010-2023"
+                ),
+            }
+        )
         rows.append(row)
 
     return rows
@@ -261,15 +264,17 @@ def update_database(rows: list[dict[str, Any]]) -> tuple[int, list[dict[str, Any
                 cursor.execute(sql, row)
                 matched = cursor.rowcount
                 updated += matched
-                log_rows.append({
-                    "ibge_code": row["ibge_code"],
-                    "municipality_name": row["municipality_name"],
-                    "matched": matched,
-                    "area_km2": row["area_km2"],
-                    "population": row["population"],
-                    "population_density": row["population_density"],
-                    "gdp_per_capita": row["gdp_per_capita"],
-                })
+                log_rows.append(
+                    {
+                        "ibge_code": row["ibge_code"],
+                        "municipality_name": row["municipality_name"],
+                        "matched": matched,
+                        "area_km2": row["area_km2"],
+                        "population": row["population"],
+                        "population_density": row["population_density"],
+                        "gdp_per_capita": row["gdp_per_capita"],
+                    }
+                )
         finally:
             cursor.close()
 
@@ -278,8 +283,13 @@ def update_database(rows: list[dict[str, Any]]) -> tuple[int, list[dict[str, Any
 
 def write_log(rows: list[dict[str, Any]]) -> None:
     fieldnames = [
-        "ibge_code", "municipality_name", "matched", "area_km2",
-        "population", "population_density", "gdp_per_capita",
+        "ibge_code",
+        "municipality_name",
+        "matched",
+        "area_km2",
+        "population",
+        "population_density",
+        "gdp_per_capita",
     ]
     with open(LOG_FILE, "w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction="ignore")
@@ -298,8 +308,10 @@ def main() -> None:
     if pedreira:
         logger.info(
             "Pedreira check: area=%s population=%s density=%s gdp_per_capita=%s",
-            pedreira["area_km2"], pedreira["population"],
-            pedreira["population_density"], pedreira["gdp_per_capita"],
+            pedreira["area_km2"],
+            pedreira["population"],
+            pedreira["population_density"],
+            pedreira["gdp_per_capita"],
         )
 
     if DRY_RUN:

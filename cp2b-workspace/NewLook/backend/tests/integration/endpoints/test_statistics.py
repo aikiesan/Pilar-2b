@@ -2,16 +2,20 @@
 Integration tests for Statistics API endpoints.
 Covers /statistics/summary and /statistics/category/{category}.
 """
-import pytest
+
 from contextlib import contextmanager
 from datetime import datetime, timezone
 from unittest.mock import MagicMock, patch
+
+import pytest
 from fastapi.testclient import TestClient
+
 from app.main import app
 from app.middleware.auth import require_authenticated
 from app.models.auth import UserProfile
 
 # ─── Auth override helper ─────────────────────────────────────────────────────
+
 
 def _mock_authenticated_user():
     """Return a minimal UserProfile suitable for require_authenticated."""
@@ -38,6 +42,7 @@ def _authenticated_client():
 
 
 # ─── DB mock helper ───────────────────────────────────────────────────────────
+
 
 def _make_db_patch(fetchone_values):
     """
@@ -128,6 +133,7 @@ CATEGORY_ROW_ZEROS = {
 
 
 # ─── /statistics/summary ──────────────────────────────────────────────────────
+
 
 @pytest.mark.integration
 class TestGetSummaryStatistics:
@@ -221,6 +227,7 @@ class TestGetSummaryStatistics:
 
 
 # ─── /statistics/category/{category} ─────────────────────────────────────────
+
 
 @pytest.mark.integration
 class TestGetCategoryStatistics:

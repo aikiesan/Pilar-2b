@@ -17,17 +17,47 @@ single source of truth (never hand-edited).
 
 Exit code 0 = all checks pass; 1 = at least one failure (CI-friendly).
 """
+
 from __future__ import annotations
 
+import os
 import sys
 from pathlib import Path
 
 import yaml
 
-_NEWLOOK = Path(__file__).resolve().parents[2]
-_FEEDSTOCKS = _NEWLOOK / "data" / "canonical_parameters" / "feedstocks.yaml"
-_REFERENCES = _NEWLOOK / "data" / "canonical_parameters" / "references.yaml"
-_MATRIX = _NEWLOOK / "docs" / "data" / "FDE_TRACEABILITY_MATRIX.md"
+# Locate the canonical data by walking up, not by counting parents.
+#
+# parents[2] assumed the checkout layout. docker-compose bind-mounts ./backend to
+# /app, so in the container parents[2] is "/" and this looked for
+# /data/canonical_parameters/feedstocks.yaml. canonical_loader already solved
+# exactly this in #147 (resolve_feedstocks_path, with a CP2B_FEEDSTOCKS_PATH
+# override); this mirrors that rather than inventing a third convention.
+_RELATIVE = Path("data") / "canonical_parameters"
+
+
+def _find_dir(relative: Path) -> Path:
+    """Nearest ancestor whose data/canonical_parameters actually holds the YAML.
+
+    Probing for the FILE, not the directory: backend/data/canonical_parameters
+    exists in the checkout but is empty, so an is_dir() check matches it and then
+    fails to open feedstocks.yaml.
+    """
+    override = os.environ.get("CP2B_FEEDSTOCKS_PATH")
+    if override:  # points at the yaml itself; its parent is the directory
+        return Path(override).resolve().parent
+    here = Path(__file__).resolve()
+    for parent in here.parents:
+        if (parent / relative / "feedstocks.yaml").is_file():
+            return parent / relative
+    # Fall back to the checkout layout so the error names what a developer expects.
+    return here.parents[2] / relative
+
+
+_CANONICAL = _find_dir(_RELATIVE)
+_FEEDSTOCKS = _CANONICAL / "feedstocks.yaml"
+_REFERENCES = _CANONICAL / "references.yaml"
+_MATRIX = _CANONICAL.parent.parent / "docs" / "data" / "FDE_TRACEABILITY_MATRIX.md"
 
 SCEN = ("min", "medio", "max")
 TIERS = {"HIGH", "MEDIUM", "LOW"}
@@ -92,17 +122,34 @@ def emit_matrix(fs: dict, refs: dict) -> None:
         eta = blk.get("eta")
         av = blk["availability"]
         fde_med = av["medio"] * (eta if isinstance(eta, (int, float)) else eta.get("medio", 1.0))
+
         # primary source per factor = first ref whose value mentions the factor tag
         def src_for(tag: str) -> str:
             for r in blk["refs"]:
                 if r["value"].upper().startswith(tag):
                     return r["id"]
             return blk["refs"][0]["id"]
+
         fc_s, fco_s, fs_s, fl_s = (src_for(t) for t in ("FC", "FCO", "FS", "FL"))
-        rows.append((code, e.get("pt_name", ""), blk.get("confidence", "?"),
-                     c["fc"]["medio"], fc_s, c["fco"]["medio"], fco_s,
-                     c["fs"]["medio"], fs_s, c["fl"]["medio"], fl_s,
-                     eta, av["medio"], fde_med, blk["refs"]))
+        rows.append(
+            (
+                code,
+                e.get("pt_name", ""),
+                blk.get("confidence", "?"),
+                c["fc"]["medio"],
+                fc_s,
+                c["fco"]["medio"],
+                fco_s,
+                c["fs"]["medio"],
+                fs_s,
+                c["fl"]["medio"],
+                fl_s,
+                eta,
+                av["medio"],
+                fde_med,
+                blk["refs"],
+            )
+        )
 
     lines = [
         "# FDE Traceability Matrix — PILAR-2b Canonical Feedstock Database",
@@ -119,7 +166,7 @@ def emit_matrix(fs: dict, refs: dict) -> None:
         "| Feedstock | Conf. | FC (src) | FCo (src) | FS (src) | FL (src) | η | avail | FDE |",
         "|---|---|---|---|---|---|---:|---:|---:|",
     ]
-    for (code, pt, conf, fc, fcs, fco, fcos, fsv, fss, fl, fls, eta, avm, fdem, _r) in rows:
+    for code, pt, conf, fc, fcs, fco, fcos, fsv, fss, fl, fls, eta, avm, fdem, _r in rows:
         etas = eta if isinstance(eta, (int, float)) else eta.get("medio")
         lines.append(
             f"| **{code}** | {conf} | {fc:.2f} ({fcs}) | {fco:.2f} ({fcos}) | "
@@ -135,7 +182,9 @@ def emit_matrix(fs: dict, refs: dict) -> None:
         lines.append(f"- `{rid}` — [{r.get('url','NO URL')}]({r.get('url','')}){v}")
 
     _MATRIX.write_text("\n".join(lines) + "\n", encoding="utf-8")
-    print(f"Wrote {_MATRIX.relative_to(_NEWLOOK)} ({len(rows)} feedstocks, {len(cited)} cited refs)")
+    print(
+        f"Wrote {_MATRIX.relative_to(_NEWLOOK)} ({len(rows)} feedstocks, {len(cited)} cited refs)"
+    )
 
 
 def main() -> int:

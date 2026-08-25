@@ -3,9 +3,11 @@ Integration tests for Municipalities API endpoints
 Tests municipality data retrieval, GeoJSON generation, and statistics
 """
 
+from unittest.mock import MagicMock, Mock, patch
+
 import pytest
-from unittest.mock import Mock, patch, MagicMock
 from fastapi.testclient import TestClient
+
 from app.main import app
 
 client = TestClient(app)
@@ -57,9 +59,7 @@ class TestMunicipalitiesEndpoints:
             },
         ]
 
-    def test_get_municipalities_success(
-        self, mock_supabase_client, sample_municipality_data
-    ):
+    def test_get_municipalities_success(self, mock_supabase_client, sample_municipality_data):
         """Test GET /municipalities returns municipality list"""
         # Setup mock response
         mock_result = Mock()
@@ -168,9 +168,7 @@ class TestMunicipalitiesEndpoints:
         assert response.status_code == 200
         mock_query.ilike.assert_called_once_with("municipality_name", "%São Paulo%")
 
-    def test_get_municipality_by_id(
-        self, mock_supabase_client, sample_municipality_data
-    ):
+    def test_get_municipality_by_id(self, mock_supabase_client, sample_municipality_data):
         """Test GET /municipalities/{id} returns specific municipality"""
         mock_result = Mock()
         mock_result.data = [sample_municipality_data[0]]
@@ -200,9 +198,7 @@ class TestMunicipalitiesEndpoints:
         # Verify query was built correctly
         mock_query.eq.assert_called_once_with("id", 1)
 
-    def test_get_municipality_by_ibge_code(
-        self, mock_supabase_client, sample_municipality_data
-    ):
+    def test_get_municipality_by_ibge_code(self, mock_supabase_client, sample_municipality_data):
         """Test GET /municipalities/{ibge_code} with IBGE code"""
         mock_result = Mock()
         mock_result.data = [sample_municipality_data[0]]
@@ -256,9 +252,7 @@ class TestMunicipalitiesEndpoints:
         assert response.status_code == 404
         assert "not found" in response.json()["detail"].lower()
 
-    def test_get_municipalities_stats(
-        self, mock_supabase_client, sample_municipality_data
-    ):
+    def test_get_municipalities_stats(self, mock_supabase_client, sample_municipality_data):
         """Test GET /municipalities/stats/summary returns aggregated statistics"""
         # Setup mock count result
         mock_count_result = Mock()
@@ -302,9 +296,7 @@ class TestMunicipalitiesEndpoints:
         assert data["total_area_km2"] == pytest.approx(1521.11 + 795.7, rel=0.01)
 
         assert "total_biogas_m3_year" in data
-        assert data["total_biogas_m3_year"] == pytest.approx(
-            500000000 + 50000000, rel=0.01
-        )
+        assert data["total_biogas_m3_year"] == pytest.approx(500000000 + 50000000, rel=0.01)
 
     def test_get_municipalities_stats_empty_database(self, mock_supabase_client):
         """Test GET /municipalities/stats/summary with empty database"""
@@ -435,20 +427,19 @@ class TestMunicipalitiesGeoJSON:
         row1 = {
             "CD_MUN": "3550308",
             "NM_MUN": "São Paulo",
-            "geometry": Polygon(
-                [(-46.6, -23.5), (-46.5, -23.5), (-46.5, -23.6), (-46.6, -23.6)]
-            ),
+            "geometry": Polygon([(-46.6, -23.5), (-46.5, -23.5), (-46.5, -23.6), (-46.6, -23.6)]),
         }
 
         row2 = {
             "CD_MUN": "3509502",
             "NM_MUN": "Campinas",
-            "geometry": Polygon(
-                [(-47.0, -22.9), (-46.9, -22.9), (-46.9, -23.0), (-47.0, -23.0)]
-            ),
+            "geometry": Polygon([(-47.0, -22.9), (-46.9, -22.9), (-46.9, -23.0), (-47.0, -23.0)]),
         }
 
-        mock_gdf.iterrows.return_value = [(0, type("Row", (), row1)()), (1, type("Row", (), row2)())]
+        mock_gdf.iterrows.return_value = [
+            (0, type("Row", (), row1)()),
+            (1, type("Row", (), row2)()),
+        ]
 
         return mock_gdf
 
@@ -456,9 +447,7 @@ class TestMunicipalitiesGeoJSON:
         """Test GeoJSON endpoint when shapefile doesn't exist"""
         with patch("app.api.v1.endpoints.municipalities.SHAPEFILE_PATH") as mock_path:
             mock_path.exists.return_value = False
-            with patch(
-                "app.api.v1.endpoints.municipalities.SHAPEFILE_PATH_ALT"
-            ) as mock_alt_path:
+            with patch("app.api.v1.endpoints.municipalities.SHAPEFILE_PATH_ALT") as mock_alt_path:
                 mock_alt_path.exists.return_value = False
 
                 response = client.get("/api/v1/municipalities/geojson")

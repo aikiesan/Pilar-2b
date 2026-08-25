@@ -19,9 +19,11 @@ router = APIRouter()
 
 _GEOJSON_CANDIDATES = [
     Path(__file__).parent.parent.parent.parent.parent.parent
-    / "frontend" / "public" / "data" / "br_intermediary_regions.geojson",
-    Path(__file__).parent.parent.parent.parent.parent
-    / "data" / "br_intermediary_regions.geojson",
+    / "frontend"
+    / "public"
+    / "data"
+    / "br_intermediary_regions.geojson",
+    Path(__file__).parent.parent.parent.parent.parent / "data" / "br_intermediary_regions.geojson",
 ]
 
 _geojson_cache: dict | None = None
@@ -49,9 +51,12 @@ def _normalize_code(code) -> str:
 
 # ─── Endpoints ────────────────────────────────────────────────────────────────
 
+
 @router.get("/geojson")
 async def get_intermediate_regions_geojson(
-    state_code: Optional[str] = Query(None, description="Filter by 2-digit IBGE state code (e.g. '35' for SP)"),
+    state_code: Optional[str] = Query(
+        None, description="Filter by 2-digit IBGE state code (e.g. '35' for SP)"
+    ),
     enrich: bool = Query(True, description="Merge biogas/biomass data into feature properties"),
 ):
     """
@@ -67,7 +72,8 @@ async def get_intermediate_regions_geojson(
 
     if state_code:
         features = [
-            f for f in features
+            f
+            for f in features
             if str(f.get("properties", {}).get("cd_uf", "")).strip() == state_code.strip()
         ]
 
@@ -87,15 +93,17 @@ async def get_intermediate_regions_geojson(
         except Exception as exc:
             logger.warning(f"Could not enrich GeoJSON from DB: {exc}. Returning raw geometry.")
 
-    return JSONResponse({
-        "type": "FeatureCollection",
-        "features": features,
-        "metadata": {
-            "total": len(features),
-            "source": "IBGE Regiões Geográficas Intermediárias 2017",
-            "enriched": enrich,
-        },
-    })
+    return JSONResponse(
+        {
+            "type": "FeatureCollection",
+            "features": features,
+            "metadata": {
+                "total": len(features),
+                "source": "IBGE Regiões Geográficas Intermediárias 2017",
+                "enriched": enrich,
+            },
+        }
+    )
 
 
 @router.get("/rankings")
@@ -105,8 +113,10 @@ async def get_rankings(
 ):
     """Top N regions by biogas or biomass potential."""
     allowed = {
-        "total_biogas_m3_year", "agricultural_biogas_m3_year",
-        "livestock_biogas_m3_year", "urban_biogas_m3_year",
+        "total_biogas_m3_year",
+        "agricultural_biogas_m3_year",
+        "livestock_biogas_m3_year",
+        "urban_biogas_m3_year",
         "total_biomass_tons_year",
     }
     if metric not in allowed:
@@ -165,8 +175,7 @@ async def get_region_detail(ibge_code: str):
         with get_db() as conn:
             cursor = conn.cursor()
             cursor.execute(
-                "SELECT * FROM intermediate_regions WHERE ibge_code = %s",
-                (ibge_code.strip(),)
+                "SELECT * FROM intermediate_regions WHERE ibge_code = %s", (ibge_code.strip(),)
             )
             row = cursor.fetchone()
             cursor.close()
@@ -202,6 +211,7 @@ async def trigger_cluster_analysis(
     """Trigger co-digestion cluster analysis (delegates to codigestion_service)."""
     try:
         from app.services.codigestion_service import find_codigestion_clusters
+
         return find_codigestion_clusters(
             radius_km=radius_km,
             min_biomass_tons=min_biomass_tons,
@@ -214,14 +224,16 @@ async def trigger_cluster_analysis(
 
 # ─── Internal helpers ─────────────────────────────────────────────────────────
 
+
 def _fetch_all_from_db(state_code: Optional[str] = None) -> list[dict]:
     try:
         with get_db() as conn:
             cursor = conn.cursor()
             if state_code:
                 cursor.execute(
-                    "SELECT * FROM intermediate_regions WHERE state_code = %s ORDER BY total_biogas_m3_year DESC",
-                    (state_code.strip(),)
+                    "SELECT * FROM intermediate_regions WHERE state_code = %s "
+                    "ORDER BY total_biogas_m3_year DESC",
+                    (state_code.strip(),),
                 )
             else:
                 cursor.execute(

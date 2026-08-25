@@ -3,18 +3,21 @@ PILAR-2b V3 - Mock Geospatial API Endpoints
 Serves sample data (16 municipalities) for dashboard development
 """
 
-from fastapi import APIRouter, HTTPException
-from pathlib import Path
 import json
 import logging
-from typing import Dict, Any
+from pathlib import Path
+from typing import Any, Dict
+
+from fastapi import APIRouter, HTTPException
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
 # Load sample data once at startup
-SAMPLE_DATA_PATH = Path(__file__).parent.parent.parent.parent / "data" / "sample_municipalities.json"
+SAMPLE_DATA_PATH = (
+    Path(__file__).parent.parent.parent.parent / "data" / "sample_municipalities.json"
+)
 
 _sample_geojson = None
 
@@ -27,7 +30,7 @@ def load_sample_data() -> Dict[str, Any]:
         if not SAMPLE_DATA_PATH.exists():
             raise FileNotFoundError(f"Sample data not found: {SAMPLE_DATA_PATH}")
 
-        with open(SAMPLE_DATA_PATH, 'r', encoding='utf-8') as f:
+        with open(SAMPLE_DATA_PATH, "r", encoding="utf-8") as f:
             _sample_geojson = json.load(f)
 
     return _sample_geojson
@@ -56,25 +59,24 @@ async def get_municipalities_list():
         geojson = load_sample_data()
         municipalities = []
 
-        for feature in geojson['features']:
-            props = feature['properties']
-            municipalities.append({
-                "id": props['id'],
-                "name": props['name'],
-                "ibge_code": props['ibge_code'],
-                "population": props['population'],
-                "total_biogas_m3_year": props['total_biogas_m3_year'],
-                "potential_category": props['potential_category'],
-                "immediate_region": props['immediate_region']
-            })
+        for feature in geojson["features"]:
+            props = feature["properties"]
+            municipalities.append(
+                {
+                    "id": props["id"],
+                    "name": props["name"],
+                    "ibge_code": props["ibge_code"],
+                    "population": props["population"],
+                    "total_biogas_m3_year": props["total_biogas_m3_year"],
+                    "potential_category": props["potential_category"],
+                    "immediate_region": props["immediate_region"],
+                }
+            )
 
         # Sort by biogas potential (descending)
-        municipalities.sort(key=lambda x: x['total_biogas_m3_year'], reverse=True)
+        municipalities.sort(key=lambda x: x["total_biogas_m3_year"], reverse=True)
 
-        return {
-            "total": len(municipalities),
-            "municipalities": municipalities
-        }
+        return {"total": len(municipalities), "municipalities": municipalities}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -91,13 +93,15 @@ async def get_municipality_detail(municipality_id: str):
         geojson = load_sample_data()
 
         # Find municipality by ID
-        for feature in geojson['features']:
-            if str(feature['properties']['id']) == municipality_id or \
-               str(feature['properties']['ibge_code']) == municipality_id:
+        for feature in geojson["features"]:
+            if (
+                str(feature["properties"]["id"]) == municipality_id
+                or str(feature["properties"]["ibge_code"]) == municipality_id
+            ):
                 return {
                     "type": "Feature",
-                    "geometry": feature['geometry'],
-                    "properties": feature['properties']
+                    "geometry": feature["geometry"],
+                    "properties": feature["properties"],
                 }
 
         raise HTTPException(status_code=404, detail=f"Municipality {municipality_id} not found")
@@ -114,27 +118,29 @@ async def get_summary_statistics():
     """
     try:
         geojson = load_sample_data()
-        features = geojson['features']
+        features = geojson["features"]
 
         # Calculate statistics
-        total_biogas = sum(f['properties']['total_biogas_m3_year'] for f in features)
-        total_population = sum(f['properties']['population'] for f in features)
+        total_biogas = sum(f["properties"]["total_biogas_m3_year"] for f in features)
+        total_population = sum(f["properties"]["population"] for f in features)
         avg_biogas = total_biogas / len(features)
 
         # Find top municipalities
-        sorted_features = sorted(features, key=lambda f: f['properties']['total_biogas_m3_year'], reverse=True)
+        sorted_features = sorted(
+            features, key=lambda f: f["properties"]["total_biogas_m3_year"], reverse=True
+        )
         top_5 = sorted_features[:5]
 
         # Category distribution
         categories = {}
         for f in features:
-            cat = f['properties']['potential_category'] or 'SEM DADOS'
+            cat = f["properties"]["potential_category"] or "SEM DADOS"
             categories[cat] = categories.get(cat, 0) + 1
 
         # Sector breakdown (aggregate)
-        total_agricultural = sum(f['properties']['agricultural_biogas_m3_year'] for f in features)
-        total_livestock = sum(f['properties']['livestock_biogas_m3_year'] for f in features)
-        total_urban = sum(f['properties']['urban_biogas_m3_year'] for f in features)
+        total_agricultural = sum(f["properties"]["agricultural_biogas_m3_year"] for f in features)
+        total_livestock = sum(f["properties"]["livestock_biogas_m3_year"] for f in features)
+        total_urban = sum(f["properties"]["urban_biogas_m3_year"] for f in features)
 
         return {
             "total_municipalities": len(features),
@@ -142,13 +148,13 @@ async def get_summary_statistics():
             "average_biogas_m3_year": avg_biogas,
             "total_population": total_population,
             "top_municipality": {
-                "name": top_5[0]['properties']['name'],
-                "biogas_m3_year": top_5[0]['properties']['total_biogas_m3_year']
+                "name": top_5[0]["properties"]["name"],
+                "biogas_m3_year": top_5[0]["properties"]["total_biogas_m3_year"],
             },
             "top_5_municipalities": [
                 {
-                    "name": f['properties']['name'],
-                    "biogas_m3_year": f['properties']['total_biogas_m3_year']
+                    "name": f["properties"]["name"],
+                    "biogas_m3_year": f["properties"]["total_biogas_m3_year"],
                 }
                 for f in top_5
             ],
@@ -156,24 +162,23 @@ async def get_summary_statistics():
             "sector_breakdown": {
                 "agricultural": total_agricultural,
                 "livestock": total_livestock,
-                "urban": total_urban
+                "urban": total_urban,
             },
             "sector_percentages": {
-                "agricultural": (total_agricultural / total_biogas * 100) if total_biogas > 0 else 0,
+                "agricultural": (
+                    (total_agricultural / total_biogas * 100) if total_biogas > 0 else 0
+                ),
                 "livestock": (total_livestock / total_biogas * 100) if total_biogas > 0 else 0,
-                "urban": (total_urban / total_biogas * 100) if total_biogas > 0 else 0
+                "urban": (total_urban / total_biogas * 100) if total_biogas > 0 else 0,
             },
-            "note": "Sample data - 16 municipalities from Araraquara region"
+            "note": "Sample data - 16 municipalities from Araraquara region",
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/rankings")
-async def get_rankings(
-    limit: int = 10,
-    criteria: str = "total"
-):
+async def get_rankings(limit: int = 10, criteria: str = "total"):
     """
     Get ranked municipalities by different criteria
 
@@ -183,14 +188,14 @@ async def get_rankings(
     """
     try:
         geojson = load_sample_data()
-        features = geojson['features']
+        features = geojson["features"]
 
         # Determine sort key based on criteria
         sort_keys = {
             "total": "total_biogas_m3_year",
             "agricultural": "agricultural_biogas_m3_year",
             "livestock": "livestock_biogas_m3_year",
-            "urban": "urban_biogas_m3_year"
+            "urban": "urban_biogas_m3_year",
         }
 
         if criteria not in sort_keys:
@@ -199,30 +204,26 @@ async def get_rankings(
         sort_key = sort_keys[criteria]
 
         # Sort and limit
-        sorted_features = sorted(
-            features,
-            key=lambda f: f['properties'][sort_key],
-            reverse=True
-        )[:limit]
+        sorted_features = sorted(features, key=lambda f: f["properties"][sort_key], reverse=True)[
+            :limit
+        ]
 
         rankings = []
         for idx, feature in enumerate(sorted_features, 1):
-            props = feature['properties']
-            rankings.append({
-                "rank": idx,
-                "id": props['id'],
-                "name": props['name'],
-                "ibge_code": props['ibge_code'],
-                "biogas_m3_year": props[sort_key],
-                "population": props['population'],
-                "category": props['potential_category']
-            })
+            props = feature["properties"]
+            rankings.append(
+                {
+                    "rank": idx,
+                    "id": props["id"],
+                    "name": props["name"],
+                    "ibge_code": props["ibge_code"],
+                    "biogas_m3_year": props[sort_key],
+                    "population": props["population"],
+                    "category": props["potential_category"],
+                }
+            )
 
-        return {
-            "criteria": criteria,
-            "total_ranked": len(rankings),
-            "rankings": rankings
-        }
+        return {"criteria": criteria, "total_ranked": len(rankings), "rankings": rankings}
     except HTTPException:
         raise
     except Exception as e:
@@ -236,12 +237,9 @@ async def health_check():
         geojson = load_sample_data()
         return {
             "status": "healthy",
-            "sample_municipalities": geojson['metadata']['total_municipalities'],
-            "data_source": "PILAR-2b V2 (Sample)"
+            "sample_municipalities": geojson["metadata"]["total_municipalities"],
+            "data_source": "PILAR-2b V2 (Sample)",
         }
     except Exception as e:
         logger.error("Error in mock_geospatial health check: %s", e, exc_info=True)
-        return {
-            "status": "error",
-            "message": "Internal server error"
-        }
+        return {"status": "error", "message": "Internal server error"}

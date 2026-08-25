@@ -2,10 +2,12 @@
 
 import React, { useState, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
-import { Search, Layers, FlaskConical, ChevronDown, ChevronUp, X } from 'lucide-react';
+import { Search, Layers, ChevronDown, ChevronUp, X } from 'lucide-react';
 import type { ResidueType, BiomassType } from './FloatingControlPanel';
 import type { VisualizationMode } from './LeftFilterPanel';
-import type { DisplayMetric, ResidueCNMatrix } from '@/types/geospatial';
+import type { DisplayMetric, ResidueCNMatrix, ColorMode } from '@/types/geospatial';
+import { DISPLAY_METRICS, METRIC_SPECS } from '@/lib/mapMetrics';
+import { MAP_SCENARIOS, SCENARIO_LABEL, type MapScenarioKey } from '@/data/scenarioFactors';
 
 interface Layer {
   id: string;
@@ -32,9 +34,21 @@ interface MobileBottomSheetProps {
   displayMetric?: DisplayMetric;
   onDisplayMetricChange?: (metric: DisplayMetric) => void;
   cnMatrix?: ResidueCNMatrix | null;
+  colorMode: ColorMode;
+  onColorModeChange: (mode: ColorMode) => void;
+  /** False when the current scope has no per-residue breakdown (outside SP). */
+  residueBreakdownAvailable?: boolean;
+  availableResidueCategories?: Array<'agricultural' | 'livestock' | 'urban'>;
+  scenario: MapScenarioKey;
+  onScenarioChange: (s: MapScenarioKey) => void;
+  daltonic: boolean;
+  onToggleDaltonic: () => void;
 }
 
 type ActiveSheet = 'filters' | 'layers' | null;
+
+// Labels come from scenarioFactors so the sheet, the legend and the tooltip agree.
+const SCENARIO_LABELS = SCENARIO_LABEL;
 
 const RESIDUE_META = [
   { value: 'sugarcane' as const, category: 'agricultural' as const, icon: '🌾' },
@@ -48,6 +62,7 @@ const RESIDUE_META = [
   { value: 'aquaculture' as const, category: 'livestock' as const, icon: '🐟' },
   { value: 'rsu' as const, category: 'urban' as const, icon: '🗑️' },
   { value: 'rpo' as const, category: 'urban' as const, icon: '♻️' },
+  { value: 'sewage' as const, category: 'urban' as const, icon: '💧' },
 ];
 
 const BIOMASS_META: { value: BiomassType; icon: string }[] = [
@@ -75,6 +90,10 @@ export default function MobileBottomSheet({
   opacity, onOpacityChange, layers, onLayerToggle,
   municipalityCount, totalMunicipalities,
   displayMetric = 'biomass_tons', onDisplayMetricChange, cnMatrix,
+  colorMode, onColorModeChange,
+  residueBreakdownAvailable = true,
+  availableResidueCategories,
+  scenario, onScenarioChange, daltonic, onToggleDaltonic,
 }: MobileBottomSheetProps) {
   const t = useTranslations('Map');
   const [activeSheet, setActiveSheet] = useState<ActiveSheet>(null);
@@ -83,6 +102,9 @@ export default function MobileBottomSheet({
 
   const filterCount = selectedResidues.length;
   const activeLayerCount = layers.filter(l => l.visible).length;
+  const enabledCategories = availableResidueCategories ?? (
+    residueBreakdownAvailable ? ['agricultural', 'livestock', 'urban'] : []
+  );
 
   const handleResidueToggle = useCallback((residue: ResidueType) => {
     const next = selectedResidues.includes(residue)
@@ -95,17 +117,19 @@ export default function MobileBottomSheet({
     setActiveSheet(prev => prev === tab ? null : tab);
   };
 
-  const getLayerName = (id: string) => {
-    const key = LAYER_KEY_MAP[id];
-    return key ? t(key) : id;
+  // i18n label where one exists (the SP layers); otherwise the layer's own
+  // Portuguese name, never a raw snake_case id (the national MapBiomas layers).
+  const getLayerName = (layer: Layer) => {
+    const key = LAYER_KEY_MAP[layer.id];
+    return key ? t(key) : layer.name;
   };
 
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 z-[450] flex flex-col">
+    <div className="fixed bottom-0 left-0 right-0 z-[1200] flex flex-col md:hidden">
       {/* Content sheet — slides up when a tab is active */}
       <div
         className={`bg-white border-t border-gray-200 shadow-2xl transition-all duration-300 ease-out overflow-y-auto ${
-          activeSheet ? 'h-[60vh]' : 'h-0 overflow-hidden'
+          activeSheet ? 'h-[min(60vh,32rem)] rounded-t-2xl' : 'h-0 overflow-hidden'
         }`}
       >
         {activeSheet && (
@@ -115,8 +139,13 @@ export default function MobileBottomSheet({
               <span className="text-sm font-semibold text-gray-800">
                 {activeSheet === 'filters' ? t('panels.filters') : t('panels.layers')}
               </span>
-              <button onClick={() => setActiveSheet(null)} className="p-1 rounded-lg hover:bg-gray-100 text-gray-400">
-                <X className="w-4 h-4" />
+              <button
+                type="button"
+                onClick={() => setActiveSheet(null)}
+                aria-label={activeSheet === 'filters' ? 'Fechar filtros' : 'Fechar camadas'}
+                className="flex h-11 w-11 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100"
+              >
+                <X className="w-5 h-5" aria-hidden="true" />
               </button>
             </div>
 
@@ -138,32 +167,39 @@ export default function MobileBottomSheet({
                       className="w-full pl-9 pr-9 py-2.5 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500"
                     />
                     {searchQuery && (
-                      <button onClick={() => onSearchChange('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                      <button
+                        type="button"
+                        onClick={() => onSearchChange('')}
+                        aria-label="Limpar busca"
+                        className="absolute right-0 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center text-gray-400 hover:text-gray-600"
+                      >
                         <X className="w-4 h-4" />
                       </button>
                     )}
                   </div>
                 </div>
 
-                {/* Mode toggle — BIOGAS POTENTIAL / BIOMASS MONITORING */}
+                {/* Metric toggle — Biomassa / Biogás / Biometano / Bioenergia */}
                 {onDisplayMetricChange && (
-                  <div className="flex rounded-xl overflow-hidden border-2 border-gray-200">
-                    <button
-                      onClick={() => onDisplayMetricChange('biogas_m3')}
-                      className={`flex-1 py-3 text-xs font-bold uppercase tracking-wide transition-colors ${
-                        displayMetric === 'biogas_m3' ? 'bg-blue-600 text-white' : 'bg-white text-gray-500'
-                      }`}
-                    >
-                      ⚡ Potencial Biogás
-                    </button>
-                    <button
-                      onClick={() => onDisplayMetricChange('biomass_tons')}
-                      className={`flex-1 py-3 text-xs font-bold uppercase tracking-wide border-l-2 border-gray-200 transition-colors ${
-                        displayMetric === 'biomass_tons' ? 'bg-green-600 text-white' : 'bg-white text-gray-500'
-                      }`}
-                    >
-                      🌿 Monit. Biomassa
-                    </button>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {DISPLAY_METRICS.map((m) => {
+                      const spec = METRIC_SPECS[m];
+                      const active = displayMetric === m;
+                      return (
+                        <button
+                          key={m}
+                          onClick={() => onDisplayMetricChange(m)}
+                          aria-pressed={active}
+                          className={`py-3 text-xs font-bold uppercase tracking-wide rounded-lg transition-colors ${
+                            active
+                              ? `${spec.activeClass} text-white`
+                              : 'bg-white text-gray-500 border border-gray-200'
+                          }`}
+                        >
+                          {spec.icon} {spec.toggleLabel}
+                        </button>
+                      );
+                    })}
                   </div>
                 )}
 
@@ -174,19 +210,23 @@ export default function MobileBottomSheet({
                   </label>
                   <div className="grid grid-cols-2 gap-2">
                     {([
-                      { value: 'choropleth' as const, label: t('vizModes.choropleth'), color: 'bg-blue-600' },
-                      { value: 'heatmap' as const, label: t('vizModes.heatmap'), color: 'bg-orange-500' },
-                      { value: 'bubble' as const, label: t('vizModes.bubble'), color: 'bg-green-600' },
-                      { value: 'clusters' as const, label: '⚗️ Co-digestão', color: 'bg-violet-600' },
+                      { value: 'choropleth' as const, label: t('vizModes.choropleth'), color: 'bg-blue-600', disabled: false },
+                      { value: 'heatmap' as const, label: t('vizModes.heatmap'), color: 'bg-orange-500', disabled: false },
+                      { value: 'bubble' as const, label: t('vizModes.bubble'), color: 'bg-green-600', disabled: false },
+                      { value: 'clusters' as const, label: '⚗️ Co-digestão', color: 'bg-violet-600', disabled: true },
                     ] as const).map(opt => (
                       <button
                         key={opt.value}
-                        onClick={() => onVisualizationModeChange(opt.value)}
-                        className={`py-2.5 rounded-xl text-xs font-medium border transition-colors ${
-                          visualizationMode === opt.value
-                            ? `${opt.color} text-white border-transparent`
-                            : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                        onClick={() => !opt.disabled && onVisualizationModeChange(opt.value)}
+                        disabled={opt.disabled}
+                        className={`min-h-11 py-2.5 rounded-xl text-xs font-medium border transition-colors ${
+                          opt.disabled
+                            ? 'bg-gray-50 border-gray-200 text-gray-300 cursor-not-allowed'
+                            : visualizationMode === opt.value
+                              ? `${opt.color} text-white border-transparent`
+                              : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
                         }`}
+                        title={opt.disabled ? 'Em desenvolvimento' : undefined}
                       >
                         {opt.label}
                       </button>
@@ -194,29 +234,68 @@ export default function MobileBottomSheet({
                   </div>
                 </div>
 
+                {/* Color mode selector (for choropleth mode) */}
+                {visualizationMode === 'choropleth' && (
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">
+                      {t('colorModes.label')}
+                    </label>
+                    <div className="flex flex-col gap-1 bg-gray-50 p-2 rounded-xl border border-gray-200">
+                      {([
+                        { value: 'biogas', label: displayMetric === 'biomass_tons' ? 'Potencial Biomassa' : t('colorModes.biogas') },
+                        { value: 'cn_profile', label: t('colorModes.cn_profile') },
+                        { value: 'cluster', label: t('colorModes.cluster') },
+                      ] as const).map(opt => {
+                        const active = colorMode === opt.value;
+                        return (
+                          <button
+                            key={opt.value}
+                            type="button"
+                            onClick={() => onColorModeChange(opt.value)}
+                            className={`flex min-h-11 w-full items-center justify-between rounded-lg px-3 py-2 text-left text-xs font-semibold transition-colors ${
+                              active
+                                ? 'bg-green-700 text-white shadow-sm'
+                                : 'text-gray-700 hover:bg-gray-100'
+                            }`}
+                          >
+                            <span>{opt.label}</span>
+                            {active && <span className="text-xs">✓</span>}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
                 {/* Biomass type */}
                 <div>
                   <button
                     onClick={() => setShowBiomassTypes(!showBiomassTypes)}
-                    className="flex items-center justify-between w-full text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5"
+                    className="mb-1.5 flex min-h-11 w-full items-center justify-between text-xs font-semibold uppercase tracking-wide text-gray-600"
                   >
                     <span>{t('biomassTypes.label')}</span>
                     {showBiomassTypes ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                   </button>
                   {showBiomassTypes && (
                     <div className="grid grid-cols-2 gap-2">
-                      {BIOMASS_META.map(opt => (
-                        <button
+                      {BIOMASS_META.map(opt => {
+                        const enabled = opt.value === 'total' || enabledCategories.includes(opt.value);
+                        return <button
                           key={opt.value}
+                          disabled={!enabled}
                           onClick={() => onBiomassTypeChange(opt.value)}
-                          className={`flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-medium border transition-colors ${
-                            biomassType === opt.value ? 'bg-green-100 border-green-400 text-green-800' : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
+                          className={`flex min-h-11 items-center gap-2 rounded-xl border px-3 py-2.5 text-xs font-medium transition-colors ${
+                            !enabled
+                              ? 'cursor-not-allowed border-gray-100 bg-gray-50 text-gray-300'
+                              : biomassType === opt.value
+                                ? 'bg-green-100 border-green-400 text-green-800'
+                                : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
                           }`}
                         >
                           <span className="text-base">{opt.icon}</span>
                           {t(`biomassTypes.${opt.value}`)}
-                        </button>
-                      ))}
+                        </button>;
+                      })}
                     </div>
                   )}
                 </div>
@@ -225,7 +304,7 @@ export default function MobileBottomSheet({
                 <div>
                   <button
                     onClick={() => setShowResidues(!showResidues)}
-                    className="flex items-center justify-between w-full text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5"
+                    className="mb-1.5 flex min-h-11 w-full items-center justify-between text-xs font-semibold uppercase tracking-wide text-gray-600"
                   >
                     <span>
                       {t('residueFilter.label')}
@@ -235,15 +314,21 @@ export default function MobileBottomSheet({
                   </button>
                   {showResidues && (
                     <div className="space-y-3">
+                      {enabledCategories.length < 3 && (
+                        <p className="rounded-md bg-amber-50 px-3 py-2 text-[11px] leading-snug text-amber-800 ring-1 ring-amber-200">
+                          ⓘ Em MG beta, somente os filtros agrícolas estão validados. Pecuária e urbano aguardam promoção.
+                        </p>
+                      )}
                       {filterCount > 0 && (
                         <button
                           onClick={() => onResiduesChange([])}
-                          className="w-full text-xs text-red-600 font-medium bg-red-50 rounded-lg px-3 py-2 hover:bg-red-100 transition-colors text-left"
+                          className="min-h-11 w-full rounded-lg bg-red-50 px-3 py-2 text-left text-xs font-medium text-red-600 transition-colors hover:bg-red-100"
                         >
                           {t('residueFilter.clearFilters')} ({filterCount})
                         </button>
                       )}
                       {(['agricultural', 'livestock', 'urban'] as const).map(cat => {
+                        const categoryAvailable = enabledCategories.includes(cat);
                         const catIcon = cat === 'agricultural' ? '🌾' : cat === 'livestock' ? '🐄' : '🏙️';
                         const activeColor = cat === 'agricultural'
                           ? 'bg-green-200 border-green-500'
@@ -251,7 +336,7 @@ export default function MobileBottomSheet({
                           ? 'bg-yellow-200 border-yellow-500'
                           : 'bg-blue-200 border-blue-500';
                         return (
-                          <div key={cat}>
+                          <div key={cat} className={!categoryAvailable ? 'opacity-40' : ''}>
                             <div className="text-[10px] text-gray-500 font-bold uppercase mb-1.5 flex items-center gap-1">
                               {catIcon} {t(`categories.${cat}`)}
                             </div>
@@ -261,8 +346,9 @@ export default function MobileBottomSheet({
                                 return (
                                   <button
                                     key={residue.value}
+                                    disabled={!categoryAvailable}
                                     onClick={() => handleResidueToggle(residue.value)}
-                                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
+                                    className={`flex min-h-11 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
                                       isSelected ? activeColor : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
                                     }`}
                                   >
@@ -277,6 +363,45 @@ export default function MobileBottomSheet({
                       })}
                     </div>
                   )}
+                </div>
+
+                {/* Scenario selector — analytical control, lives in the sheet
+                    on mobile (not floating over the map). */}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">
+                    {t('scenario_label')}
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {MAP_SCENARIOS.map(({ key, color }) => (
+                      <button
+                        key={key}
+                        onClick={() => onScenarioChange(key)}
+                        aria-pressed={scenario === key}
+                        className={`min-h-11 py-2.5 rounded-xl text-xs font-medium border transition-colors ${
+                          scenario === key ? 'text-white border-transparent' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                        }`}
+                        style={scenario === key ? { backgroundColor: color } : undefined}
+                      >
+                        {SCENARIO_LABELS[key]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Accessibility — daltonic (CVD-safe) palette toggle. */}
+                <div>
+                  <p className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">
+                    Acessibilidade
+                  </p>
+                  <button
+                    onClick={onToggleDaltonic}
+                    aria-pressed={daltonic}
+                    className={`min-h-11 w-full py-2.5 rounded-xl text-xs font-medium border transition-colors ${
+                      daltonic ? 'bg-slate-700 text-white border-transparent' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                    }`}
+                  >
+                    👁 Modo daltônico {daltonic ? '· ativo' : ''}
+                  </button>
                 </div>
               </>
             )}
@@ -336,7 +461,7 @@ export default function MobileBottomSheet({
                           className="w-4 h-4 text-green-600 rounded"
                         />
                         <span className="text-sm text-gray-700 font-medium leading-tight">
-                          {layer.icon} {getLayerName(layer.id)}
+                          {layer.icon} {getLayerName(layer)}
                         </span>
                       </label>
                     ))}
@@ -349,7 +474,7 @@ export default function MobileBottomSheet({
       </div>
 
       {/* Persistent tab bar — always visible */}
-      <div className="h-14 bg-white border-t border-gray-200 flex items-stretch flex-shrink-0 shadow-lg">
+      <div className="min-h-14 flex flex-shrink-0 items-stretch border-t border-gray-200 bg-white pb-[env(safe-area-inset-bottom)] shadow-lg">
         {/* Filtros */}
         <button
           onClick={() => toggleSheet('filters')}
@@ -378,19 +503,6 @@ export default function MobileBottomSheet({
           </span>
         </button>
 
-        {/* Co-digestão — sets viz mode, no sheet */}
-        <button
-          onClick={() => {
-            onVisualizationModeChange(visualizationMode === 'clusters' ? 'choropleth' : 'clusters');
-            setActiveSheet(null);
-          }}
-          className={`flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors border-l border-gray-200 ${
-            visualizationMode === 'clusters' ? 'text-violet-700 bg-violet-50' : 'text-gray-500 hover:bg-gray-50'
-          }`}
-        >
-          <FlaskConical className="w-5 h-5" />
-          <span className="text-[10px] font-semibold">Co-digestão</span>
-        </button>
       </div>
     </div>
   );

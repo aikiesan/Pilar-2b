@@ -1,14 +1,17 @@
 """
 Configuration settings for PILAR-2b V3 Backend
 """
-from pydantic_settings import BaseSettings
-from pydantic import field_validator, ValidationError
-from typing import List, Optional
+
+import logging
 import os
 from pathlib import Path
-import logging
+from typing import List, Optional
+
+from pydantic import ValidationError, field_validator
+from pydantic_settings import BaseSettings
 
 logger = logging.getLogger(__name__)
+
 
 class Settings(BaseSettings):
     """Application settings loaded from environment variables"""
@@ -38,7 +41,13 @@ class Settings(BaseSettings):
     ]
     # Production origins - comma-separated, includes main and preview deployments
     # Supports both Vercel and Cloudflare Pages deployments
-    PRODUCTION_ORIGINS: str = "https://cp2b.unicamp.br,https://new-look-nu.vercel.app,https://new-look-delta.vercel.app,https://cp2bmaps.pages.dev,https://541792a2.cp2bmaps.pages.dev"
+    PRODUCTION_ORIGINS: str = (
+        "https://cp2b.unicamp.br,"
+        "https://new-look-nu.vercel.app,"
+        "https://new-look-delta.vercel.app,"
+        "https://cp2bmaps.pages.dev,"
+        "https://541792a2.cp2bmaps.pages.dev"
+    )
     ALLOWED_HOSTS: List[str] = [
         "localhost",
         "127.0.0.1",
@@ -86,7 +95,7 @@ class Settings(BaseSettings):
     # Logging
     LOG_LEVEL: str = "INFO"
 
-    @field_validator('DATABASE_URL', mode='before')
+    @field_validator("DATABASE_URL", mode="before")
     @classmethod
     def assemble_db_connection(cls, v: Optional[str], info):
         """Assemble database connection string if not present"""
@@ -105,10 +114,10 @@ class Settings(BaseSettings):
             # Handle password
             pwd_part = f":{password}" if password else ""
             return f"postgresql://{user}{pwd_part}@{host}:{port}/{db}"
-            
+
         return v or "postgresql://user:password@localhost:5432/cp2b_maps"
 
-    @field_validator('SECRET_KEY')
+    @field_validator("SECRET_KEY")
     @classmethod
     def validate_secret_key(cls, v, info):
         """Ensure SECRET_KEY is secure in production"""
@@ -133,7 +142,7 @@ class Settings(BaseSettings):
 
         return v
 
-    @field_validator('SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY')
+    @field_validator("SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY")
     @classmethod
     def validate_supabase(cls, v, info):
         """Ensure Supabase credentials are set if using auth"""
@@ -148,7 +157,7 @@ class Settings(BaseSettings):
 
         return v
 
-    @field_validator('POSTGRES_PASSWORD')
+    @field_validator("POSTGRES_PASSWORD")
     @classmethod
     def validate_postgres_password(cls, v):
         """Ensure database password is set"""
@@ -163,7 +172,7 @@ class Settings(BaseSettings):
 
         # URL-encoded passwords are valid (e.g., %23 for #)
         # Don't validate length for URL-encoded passwords
-        if v and len(v) < 12 and app_env == "production" and '%' not in v:
+        if v and len(v) < 12 and app_env == "production" and "%" not in v:
             logger.warning(
                 f"⚠️  POSTGRES_PASSWORD is short ({len(v)} chars). "
                 f"Consider using at least 12 characters for better security."
@@ -218,30 +227,31 @@ try:
     settings.validate_all()
     logger.info("✅ Configuration loaded successfully")
 except ValidationError as e:
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("🚨 CONFIGURATION ERROR")
-    print("="*60)
+    print("=" * 60)
     for error in e.errors():
-        field = '.'.join(str(loc) for loc in error['loc'])
-        message = error['msg']
-        error_type = error.get('type', 'unknown')
+        field = ".".join(str(loc) for loc in error["loc"])
+        message = error["msg"]
+        error_type = error.get("type", "unknown")
         print(f"❌ Field: {field}")
         print(f"   Error: {message}")
         print(f"   Type: {error_type}")
-        if 'input' in error:
+        if "input" in error:
             print(f"   Value: {str(error['input'])[:100]}")
         print()
-    print("="*60)
+    print("=" * 60)
     print("\nEnvironment Variables Check:")
     print(f"  APP_ENV: {os.getenv('APP_ENV', 'NOT SET')}")
-    print(f"  SECRET_KEY: {'SET' if os.getenv('SECRET_KEY') else 'NOT SET'} (length: {len(os.getenv('SECRET_KEY', ''))})")
+    print(f"  SECRET_KEY: {'SET' if os.getenv('SECRET_KEY') else 'NOT SET'}")
     print(f"  DATABASE_URL: {'SET' if os.getenv('DATABASE_URL') else 'NOT SET'}")
     print(f"  POSTGRES_PASSWORD: {'SET' if os.getenv('POSTGRES_PASSWORD') else 'NOT SET'}")
-    print("="*60 + "\n")
+    print("=" * 60 + "\n")
     raise
 except Exception as e:
     print(f"\n🚨 Failed to load settings: {e}")
     print(f"   Error type: {type(e).__name__}")
     import traceback
+
     traceback.print_exc()
     raise

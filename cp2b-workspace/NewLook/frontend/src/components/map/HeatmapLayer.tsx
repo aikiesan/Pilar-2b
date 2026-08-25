@@ -36,30 +36,21 @@ export default function HeatmapLayer({
   const map = useMap();
   const heatLayerRef = useRef<L.Layer | null>(null);
 
-  // Calculate residue value for each municipality
+  // Calculate residue value for each municipality.
+  //
+  // Reads the served biomass tonnage fields (`{residue}_biomass_tons_year`,
+  // `total_biomass_tons_year`). The legacy `*_biogas_m3_year` columns this used
+  // to read are trimmed from the slim map payload (fields=map), so they came back
+  // undefined and every point was 0 — the heatmap rendered nothing. See
+  // geospatialClient (fields=map) and the served-keys audit.
   const getResidueValue = (props: any): number => {
     if (selectedResidues.length === 0) {
-      return props.total_biogas_m3_year || 0;
+      return Number(props.total_biomass_tons_year) || 0;
     }
-    return selectedResidues.reduce((sum, residue) => {
-      const value = (() => {
-        switch (residue) {
-          case 'sugarcane':    return props.sugarcane_biogas_m3_year;
-          case 'soybean':      return props.soybean_biogas_m3_year;
-          case 'corn':         return props.corn_biogas_m3_year;
-          case 'coffee':       return props.coffee_biogas_m3_year;
-          case 'citrus':       return props.citrus_biogas_m3_year;
-          case 'cattle':       return props.cattle_biogas_m3_year;
-          case 'swine':        return props.swine_biogas_m3_year;
-          case 'poultry':      return props.poultry_biogas_m3_year;
-          case 'aquaculture':  return props.aquaculture_biogas_m3_year;
-          case 'rsu':          return props.rsu_biogas_m3_year;
-          case 'rpo':          return props.rpo_biogas_m3_year;
-          default:             return 0;
-        }
-      })();
-      return sum + (Number(value) || 0);
-    }, 0);
+    return selectedResidues.reduce(
+      (sum, residue) => sum + (Number(props[`${residue}_biomass_tons_year`]) || 0),
+      0
+    );
   };
 
   // Get centroid [lat, lng] from a GeoJSON geometry
@@ -95,7 +86,7 @@ export default function HeatmapLayer({
       sugarcane: 'Cana-de-açúcar', soybean: 'Soja', corn: 'Milho',
       coffee: 'Café', citrus: 'Citrus', cattle: 'Bovinos',
       swine: 'Suínos', poultry: 'Aves', aquaculture: 'Aquicultura',
-      rsu: 'RSU', rpo: 'RPO',
+      rsu: 'FORSU', rpo: 'Poda urbana', sewage: 'Lodo de ETE',
     };
     if (selectedResidues.length === 1) return labels[selectedResidues[0]];
     return `${selectedResidues.length} Resíduos`;
@@ -175,7 +166,7 @@ export default function HeatmapLayer({
               <strong style={{ fontSize: '11px' }}>{point.name}</strong>
               <br />
               <span style={{ fontSize: '10px' }}>
-                {residueLabel}: {formatBiogas(point.value)} m³/ano
+                {residueLabel}: {formatBiogas(point.value)} t/ano
               </span>
             </div>
           </Tooltip>

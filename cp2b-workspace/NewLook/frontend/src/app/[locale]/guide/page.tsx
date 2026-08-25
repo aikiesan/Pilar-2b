@@ -2,18 +2,27 @@
 
 import TourGuide from '@/components/ui/TourGuide';
 import { Link } from '@/navigation' // Ajuste se estiver usando 'next/link' padrão
-import { 
-  Map, 
-  BarChart3, 
-  BookOpen, 
-  Calculator, 
-  Compass, 
-  PlayCircle 
+import {
+  Map,
+  BarChart3,
+  BookOpen,
+  Calculator,
+  Compass,
+  PlayCircle,
+  Info,
+  ArrowRight,
 } from 'lucide-react'
 import { useState } from 'react';
 
 // Array com os dados dos cartões para manter o código limpo e fácil de manter
 const guideTopics = [
+  {
+    title: 'Sobre a plataforma',
+    description: 'Visão geral do PILAR-2b: objetivo, cobertura de dados e como o projeto está organizado.',
+    icon: <Info className="w-6 h-6 text-cp2b-green" />,
+    href: '/sobre',
+    iconBg: 'bg-cp2b-lime-light/50'
+  },
   {
     title: 'Mapa Interativo',
     description: 'Explore visualmente o potencial de biogás em cada município paulista.',
@@ -51,13 +60,33 @@ const guideTopics = [
   }
 ]
 
-export default function GuideIndexPage() {  
+export default function GuideIndexPage() {
   // Estado que controla se o tour está rodando ou não
   const [runTour, setRunTour] = useState(false);
-    return (
+  return (
     <div className="max-w-6xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
       {/* Coloque o componente do Tour na tela (ele fica invisível até run={true}) */}
       <TourGuide run={runTour} onFinish={() => setRunTour(false)} />
+
+      {/* Faixa de destaque: o mapa é a porta de entrada da plataforma. */}
+      <Link
+        href="/map"
+        className="group mb-8 flex items-center justify-between gap-4 rounded-2xl bg-gradient-to-r from-cp2b-green to-cp2b-dark-green p-6 text-white shadow-sm transition-all hover:shadow-lg"
+      >
+        <div className="flex items-center gap-4">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/15">
+            <Map className="h-6 w-6" />
+          </div>
+          <div>
+            <h2 className="text-lg font-bold">Abrir o Mapa Interativo</h2>
+            <p className="text-sm text-white/80">
+              Comece em São Paulo, filtre por resíduo ou navegue por qualquer estado do Brasil.
+            </p>
+          </div>
+        </div>
+        <ArrowRight className="h-6 w-6 shrink-0 transition-transform group-hover:translate-x-1" />
+      </Link>
+
       {/* Cabeçalho da Página */}
       <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-12">
         <div className="max-w-2xl">
@@ -74,7 +103,7 @@ export default function GuideIndexPage() {
 
         {/* Botão de Tour Guiado */}
         <div className="shrink-0 mt-4 md:mt-0">
-          <button 
+          <button
             onClick={() => setRunTour(true)}
             className="inline-flex items-center gap-2 px-6 py-3 bg-cp2b-green hover:bg-cp2b-dark-green text-white font-medium rounded-xl transition-all duration-300 shadow-sm hover:shadow-md hover:-translate-y-0.5"
           >
@@ -87,8 +116,8 @@ export default function GuideIndexPage() {
       {/* Grid de Cartões */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {guideTopics.map((topic, index) => (
-          <Link 
-            key={index} 
+          <Link
+            key={index}
             href={topic.href}
             className="group flex flex-col p-6 bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm hover:shadow-lg hover:border-cp2b-lime transition-all duration-300 h-full"
           >

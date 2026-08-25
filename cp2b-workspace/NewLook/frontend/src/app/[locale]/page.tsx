@@ -75,11 +75,10 @@ const FadeIn = ({
   return (
     <div
       ref={ref}
-      className={`transform transition-all duration-700 ease-out ${
-        isVisible
-          ? 'opacity-100 translate-x-0 translate-y-0'
-          : `opacity-0 ${directionClasses[direction]}`
-      } ${className}`}
+      className={`transform transition-all duration-700 ease-out ${isVisible
+        ? 'opacity-100 translate-x-0 translate-y-0'
+        : `opacity-0 ${directionClasses[direction]}`
+        } ${className}`}
     >
       {children}
     </div>
@@ -414,11 +413,10 @@ export default function HomePage() {
                     {screenshotKeys.map((key, index) => (
                       <div
                         key={key}
-                        className={`absolute inset-0 transition-all duration-700 ${
-                          index === currentSlide
-                            ? 'opacity-100 scale-100'
-                            : 'opacity-0 scale-95'
-                        }`}
+                        className={`absolute inset-0 transition-all duration-700 ${index === currentSlide
+                          ? 'opacity-100 scale-100'
+                          : 'opacity-0 scale-95'
+                          }`}
                       >
                         {/* Screenshot image */}
                         <Image
@@ -462,11 +460,10 @@ export default function HomePage() {
                       <button
                         key={index}
                         onClick={() => setCurrentSlide(index)}
-                        className={`h-2 rounded-full transition-all duration-300 ${
-                          index === currentSlide
-                            ? 'bg-white w-6'
-                            : 'bg-white/50 hover:bg-white/75 w-2'
-                        }`}
+                        className={`h-2 rounded-full transition-all duration-300 ${index === currentSlide
+                          ? 'bg-white w-6'
+                          : 'bg-white/50 hover:bg-white/75 w-2'
+                          }`}
                         aria-label={`${index + 1}`}
                       />
                     ))}

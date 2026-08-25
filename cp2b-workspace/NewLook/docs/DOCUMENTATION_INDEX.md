@@ -76,6 +76,8 @@ Standard open-source project files at `cp2b-workspace/NewLook/`:
 | [`data/SAO_PAULO_BIOGAS_POTENTIAL_FDE.md`](data/SAO_PAULO_BIOGAS_POTENTIAL_FDE.md) | Realistic biogas potential analysis for SP using FDE (285 lines) |
 | [`data/IBGE_IO_DATA_PROCESSING_GUIDE.md`](data/IBGE_IO_DATA_PROCESSING_GUIDE.md) | Processing 15 IBGE Input-Output tables (2015, 67 sectors) into PostgreSQL (925 lines) |
 | [`data/IBGE_67_SECTOR_INTEGRATION_COMPLETE.md`](data/IBGE_67_SECTOR_INTEGRATION_COMPLETE.md) | IBGE 67-sector Leontief model integration — economic impact analysis (608 lines) |
+| [`data/INGESTION_GUIDE.md`](data/INGESTION_GUIDE.md) | **Step-by-step manual for ingesting any new data source** — the ingestion contract lifecycle, gates, fixtures, yearly refresh |
+| [`data/METADATA.json`](data/METADATA.json) | Formal data lineage — every upstream dataset with version, reference year, URL/DOI, retrieval date |
 
 ---
 
@@ -95,7 +97,10 @@ Standard open-source project files at `cp2b-workspace/NewLook/`:
 
 | File | Description |
 |---|---|
+| [`planning/BRAZIL_EXPANSION_ROADMAP.md`](planning/BRAZIL_EXPANSION_ROADMAP.md) | **Master plan Jul–Dec 2026: national coverage** — code-analysis snapshot, ingestion contract, per-source plan, month-by-month milestones, progress indicators |
+| [`planning/playbooks/`](planning/playbooks/README.md) | **Month playbooks Jul–Dec 2026** — executable step-by-step checklists per month: commands, file paths, verification queries, exit criteria |
 | [`planning/DEVELOPMENT_ROADMAP_APR_AUG_2026.md`](planning/DEVELOPMENT_ROADMAP_APR_AUG_2026.md) | Development roadmap April–August 2026 — sprint targets, milestones |
+| [`planning/IMPROVEMENT_BACKLOG.md`](planning/IMPROVEMENT_BACKLOG.md) | Living lean-and-stable backlog — CI gate hardening status, dead code, large-file, and tech-debt tracker |
 
 ---
 

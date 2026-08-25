@@ -31,8 +31,27 @@ Subsequent starts reuse cached layers and are fast.
 
 ## Database seeding (one-time, after first `docker compose up --build`)
 
-The PostgreSQL container starts empty.  Run the migrations and import the
-municipality data to make the map show real biogas data.
+The PostgreSQL container starts empty. There are two seeding paths:
+
+### National dataset (5,571 municipalities) — recommended
+
+Run the orchestrator, which applies migrations, seeds the national municipality
+spine + geometry, and promotes the livestock (IBGE PPM) and urban-waste (SNIS)
+data. It first checks that the required raw files are present and tells you
+exactly what's missing if not.
+
+```bash
+# 1. drop the raw files at the paths in backend/data/raw/README.md, then:
+./backend/scripts/load_national.sh --check     # verify inputs are present
+./backend/scripts/load_national.sh             # do the load
+```
+
+Full instructions, the data manifest, and troubleshooting live in
+[`docs/NATIONAL_DATA_LOAD.md`](./NATIONAL_DATA_LOAD.md).
+
+### SP-only dataset (645 municipalities) — legacy / quick start
+
+If you only need São Paulo (no national raw drops required):
 
 ```bash
 # Run all schema migrations in order
@@ -49,8 +68,39 @@ cat backend/data/seed_technologies_expanded.sql | \
 python backend/scripts/import_v2_municipalities.py
 ```
 
-After seeding, the map at http://localhost:3006/pilar2b shows colored
+After seeding, the map at http://localhost:3006/pt-BR/map shows colored
 municipalities with real biogas potentials.
+
+## Infrastructure layers (one-time, Docker Desktop)
+
+Infrastructure vectors are intentionally excluded from Git because the source
+drop is hundreds of megabytes. After the database seed, load the MapBiomas
+layers and the legacy SP ETE/road bundles with the optional Compose profile:
+
+```bash
+# Default: reads the archive drop stored beside this repository at
+# ../../00_Fontes_Primarias-20260802T093400Z-1-001/
+docker compose --profile infrastructure run --rm infrastructure-loader
+
+# If the original ZIP files live elsewhere:
+MAPBIOMAS_ARCHIVE_DIR=/absolute/path/to/shapefiles_infraestrutura_mapbiomas \
+  docker compose --profile infrastructure run --rm infrastructure-loader
+```
+
+The loader reads the original ZIP files directly, downloads missing legacy SP
+sidecars from the pinned `aikiesan/project_map` source, and performs idempotent
+per-layer replacement in the existing PostGIS volume. It does not recreate the
+database or delete Docker volumes. Re-running the command is safe.
+
+Verify the catalog after loading:
+
+```bash
+curl http://localhost:8000/api/v1/infrastructure/layers
+```
+
+If a source ZIP is not present, the loader reports that layer explicitly. The
+current local archive does not contain `SETTLEMENTS_v3`; that optional layer
+remains unavailable until its authoritative source bundle is supplied.
 
 ## Daily workflow
 
@@ -75,7 +125,7 @@ docker compose down -v
 
 | Service   | URL                                   |
 |-----------|---------------------------------------|
-| Frontend  | http://localhost:3006/pilar2b         |
+| Frontend  | http://localhost:3006/pt-BR/map       |
 | Backend   | http://localhost:8000                 |
 | API docs  | http://localhost:8000/docs            |
 | Database  | localhost:5432 (postgres/password/cp2b_maps) |

@@ -24,6 +24,48 @@ services:
       retries: 10
       start_period: 10s
 
+  # ─── Database Migrations & Auto-Seeding ──────────────────────────────────
+  db-migrations:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: cp2b-db-migrations-dev
+    command: python scripts/run_migrations.py --seed
+    volumes:
+      - ./backend:/app
+      - ./data/canonical_parameters:/app/data/canonical_parameters:ro
+    environment:
+      DATABASE_URL: postgresql://postgres:password@db:5432/cp2b_maps
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  # Optional one-shot loader for the large, gitignored infrastructure vectors.
+  # Run with: docker compose --profile infrastructure run --rm infrastructure-loader
+  infrastructure-loader:
+    profiles: ["infrastructure"]
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    command:
+      - python
+      - scripts/setup_local_infrastructure.py
+      - --archive-dir
+      - /mnt/mapbiomas_archives
+    volumes:
+      - ./backend:/app
+      - ${MAPBIOMAS_ARCHIVE_DIR:-../../00_Fontes_Primarias-20260802T093400Z-1-001/shapefiles_infraestrutura_mapbiomas}:/mnt/mapbiomas_archives:ro
+    environment:
+      DATABASE_URL: postgresql://postgres:password@db:5432/cp2b_maps
+      PYTHONUNBUFFERED: "1"
+    depends_on:
+      db:
+        condition: service_healthy
+      db-migrations:
+        condition: service_completed_successfully
+    restart: "no"
+
   # ─── FastAPI backend (hot-reload) ─────────────────────────────────────────
   backend:
     build:
@@ -35,11 +77,17 @@ services:
     volumes:
       # Bind-mount source — changes in your IDE are visible instantly
       - ./backend:/app
+      # feedstocks.yaml — single source of truth for every BMP/TS/VS/FDE value.
+      # It lives at <NewLook>/data/, and the bind above only exposes backend/,
+      # so without this the container has no canonical parameters at all.
+      - ./data/canonical_parameters:/app/data/canonical_parameters:ro
     ports:
       - "8000:8000"
     depends_on:
       db:
         condition: service_healthy
+      db-migrations:
+        condition: service_completed_successfully
     env_file:
       - .env.docker       # copy from .env.docker.example
     environment:
@@ -79,7 +127,11 @@ services:
       # The browser calls the backend directly via localhost, not via the
       # Docker network name, so localhost:8000 is correct here.
       NEXT_PUBLIC_API_URL: http://localhost:8000
-      NEXT_PUBLIC_DISABLE_AUTH: "false"
+      # Pre-VM phase: run with auth OFF so every local visitor is transparently a
+      # test user (see AuthContext.tsx TEST_USER). Set back to "false" once real
+      # auth is wired up on the UNICAMP VM. NEXT_PUBLIC_* is inlined at compile
+      # time, so a `docker compose up -d frontend` restart is needed after changing it.
+      NEXT_PUBLIC_DISABLE_AUTH: "true"
       # Disable telemetry inside Docker
       NEXT_TELEMETRY_DISABLED: "1"
 

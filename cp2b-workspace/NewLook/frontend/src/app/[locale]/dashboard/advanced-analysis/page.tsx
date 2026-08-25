@@ -54,6 +54,8 @@ const PerResidueFactorEditor = dynamic(() => import('@/components/analysis/PerRe
 const ScenarioSelector = dynamic(() => import('@/components/analysis/ScenarioSelector'), { ssr: false })
 const ReferencesModal = dynamic(() => import('@/components/analysis/ReferencesModal'), { ssr: false })
 
+import { DATA_EXPORT_ENABLED } from '@/lib/featureFlags';
+
 // API
 import {
   getAnalysisByResidue,
@@ -344,8 +346,13 @@ export default function AdvancedAnalysisPage() {
   // Check if there are custom factors
   const hasCustomFactors = Object.keys(residueFactorOverrides).length > 0
 
+  // Monotonically increasing id so a stale fetch can't overwrite the state
+  // written by a newer one (two filter changes within one round-trip race)
+  const fetchIdRef = useRef(0)
+
   // Fetch all data — all independent requests fire in parallel via Promise.allSettled
   const fetchAllData = useCallback(async () => {
+    const fetchId = ++fetchIdRef.current
     setError(null)
     setLoadingMunicipalities(true)
     setLoadingStats(true)
@@ -368,6 +375,9 @@ export default function AdvancedAnalysisPage() {
         getDistribution(apiCategory, 15),
         residueCodes.length > 0 ? getStatisticsByStream(residueCodes) : Promise.resolve(null),
       ])
+
+    // A newer fetch started while this one was in flight — drop these results
+    if (fetchId !== fetchIdRef.current) return
 
     // Municipalities
     if (munResult.status === 'fulfilled' && munResult.value) {
@@ -471,6 +481,7 @@ export default function AdvancedAnalysisPage() {
 
   // Export to CSV
   const handleExportCSV = useCallback(() => {
+    if (!DATA_EXPORT_ENABLED) return;  // beta: see lib/featureFlags
     const headers = ['Posicao', 'Municipio', 'Regiao', 'Biogas (m3/ano)', 'Populacao', 'FDE (%)', 'Cenario']
     const fdePercent = (calculateFDE(effectiveFactors) * 100).toFixed(1)
     const scenarioName = RESIDUE_SCENARIOS[currentScenario].name
@@ -799,6 +810,18 @@ export default function AdvancedAnalysisPage() {
                     onScenarioChange={handleScenarioChange}
                     hasCustomFactors={hasCustomFactors}
                   />
+                  {currentScenario === 'frontier' && (
+                    <p className="mt-2 text-xs text-emerald-700">
+                      {t('advanced_analysis.frontier_note')}
+                    </p>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => router.push('/dashboard/scientific-database')}
+                    className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-emerald-700 hover:text-emerald-900 hover:underline"
+                  >
+                    📚 {t('advanced_analysis.literature_base_link')}
+                  </button>
                 </div>
 
                 {/* View Mode Toggles */}

@@ -5,16 +5,27 @@
 
 'use client';
 
-import React from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import { GeoJSON } from 'react-leaflet';
 import type { GeoJsonObject, Feature } from 'geojson';
-import type { MunicipalityCollection, MunicipalityFeature, DisplayMetric } from '@/types/geospatial';
-import type { ColorMode } from './MapToolbar';
+import type { MunicipalityCollection, MunicipalityFeature, MunicipalityProperties, DisplayMetric } from '@/types/geospatial';
+import type { ColorMode } from '@/types/geospatial';
 import type { BiomassType, ResidueType } from './FloatingControlPanel';
 import MunicipalityPopup from '../dashboard/MunicipalityPopup';
 import L from 'leaflet';
 import { createRoot } from 'react-dom/client';
-import { getBiomassTonsByType, getResidueBiomassTons } from '@/lib/biomassAvailability';
+import type { MapValue } from '@/lib/mapValues';
+import { getMetricSpec, getMetricColor } from '@/lib/mapMetrics';
+import {
+  isMinasGerais,
+  isSaoPaulo,
+  BETA_STYLE,
+  BETA_BADGE_LABEL,
+  MG_DATA_STROKE,
+} from '@/lib/mapScope';
+import { useCvdPalette } from '@/hooks/useCvdPalette';
+import { useMapPalette } from '@/hooks/useMapPalette';
+import type { MapScenarioKey } from '@/data/scenarioFactors';
 
 interface MunicipalityLayerProps {
   data: MunicipalityCollection;
@@ -23,6 +34,23 @@ interface MunicipalityLayerProps {
   selectedResidues?: ResidueType[];
   displayMetric?: DisplayMetric;
   colorMode?: ColorMode;
+  mapScenario?: string;
+  daltonic?: boolean;
+  /**
+   * Class limits (display units) computed by the parent from the visible São
+   * Paulo distribution. Null falls back to the metric's fixed ladder. Shared
+   * with MapLegend so the swatch ranges describe this exact classification.
+   */
+  scaleBreaks?: number[] | null;
+  /**
+   * Whether the non-SP (beta) municipalities are drawn at all. When false the
+   * features are removed from the collection rather than styled transparent —
+   * a transparent polygon still hit-tests, so an invisible beta municipality
+   * would keep stealing hovers and clicks from the SP layer beneath the cursor.
+   */
+  showNationalBeta?: boolean;
+  /** Paint MG with the active ramp when the MG pilot is the selected scope. */
+  paintBetaData?: boolean;
   onMunicipalityClick?: (feature: MunicipalityFeature) => void;
   onMunicipalityHover?: (feature: MunicipalityFeature | null, e?: MouseEvent) => void;
 }
@@ -38,31 +66,21 @@ const CLUSTER_COLORS: Record<number, string> = {
 const getColorForCluster = (clusterId: number | null | undefined): string =>
   clusterId != null && clusterId in CLUSTER_COLORS ? CLUSTER_COLORS[clusterId] : '#aaaaaa';
 
-// YlGnBu color scale for biogas (m³/year)
-const getColorForBiogas = (value: number): string => {
-  if (value === 0) return '#f7f7f7';
-  if (value < 1000000)   return '#ffffcc';   // < 1M
-  if (value < 10000000)  return '#c7e9b4';   // 1M–10M
-  if (value < 50000000)  return '#7fcdbb';   // 10M–50M
-  if (value < 100000000) return '#41b6c4';   // 50M–100M
-  if (value < 500000000) return '#2c7fb8';   // 100M–500M
-  return '#253494';                           // > 500M
-};
+// Choropleth colours (per-metric ramps, display-unit breaks, daltonic palette)
+// live in one place — lib/mapMetrics.ts — so the layer, legend and popup agree.
 
-// YlGnBu color scale for biomass availability (t/year)
-// Breaks tuned for SP municipalities: nearly none fall below 5K t; top tier splits >500K
-const getColorForBiomassTons = (value: number): string => {
-  if (value === 0)          return '#f7f7f7';
-  if (value < 5_000)        return '#ffffcc';   // < 5K t
-  if (value < 50_000)       return '#c7e9b4';   // 5K–50K t
-  if (value < 200_000)      return '#7fcdbb';   // 50K–200K t
-  if (value < 1_000_000)    return '#41b6c4';   // 200K–1M t
-  if (value < 5_000_000)    return '#2c7fb8';   // 1M–5M t
-  return '#253494';                              // > 5M t
-};
-
-const getColorForValue = (value: number, metric: DisplayMetric = 'biogas_m3'): string =>
-  metric === 'biomass_tons' ? getColorForBiomassTons(value) : getColorForBiogas(value);
+// "No data" is not the bottom of the ramp. A distinct medium grey (well clear of
+// both the YlGnBu ramp and the near-white zero swatch) says "we never loaded this
+// municipality", so a data gap can never be misread as a low value — the whole
+// reason the API stopped coercing null to 0 (migration 025). The legend labels it.
+export const NO_DATA_FILL = '#cbd5e1';
+const NO_DATA_STYLE = {
+  fillColor: NO_DATA_FILL,
+  weight: 0.5,
+  opacity: 0.5,
+  color: '#94a3b8',
+  fillOpacity: 0.55,
+} as const;
 
 export default function MunicipalityLayer({
   data,
@@ -71,59 +89,106 @@ export default function MunicipalityLayer({
   selectedResidues = [],
   displayMetric = 'biomass_tons',
   colorMode = 'biogas',
+  mapScenario = 'baseline',
+  daltonic = false,
+  scaleBreaks = null,
+  showNationalBeta = true,
+  paintBetaData = false,
   onMunicipalityClick,
   onMunicipalityHover,
 }: MunicipalityLayerProps) {
+  const metricSpec = getMetricSpec(displayMetric);
+  // Selected CVD palette (only used when `daltonic` is on). Reading it here means
+  // changing the palette in the legend restyles the choropleth reactively.
+  const [cvdPalette] = useCvdPalette();
+  // Thematic palette (used when daltonic is off). Same reactive story: switching
+  // it in the Temas tab or applying a preset restyles the polygons in place.
+  const [mapPalette] = useMapPalette();
 
-  const suffix = displayMetric === 'biomass_tons' ? 'biomass_tons_year' : 'biogas_m3_year';
+  // Drop the beta features entirely when the layer is off — see the prop doc:
+  // hiding by style leaves the polygons hit-testable. Memoized so toggling any
+  // other control does not rebuild the 5,571-feature array.
+  const scopedData = useMemo(() => {
+    if (showNationalBeta) return data;
+    return {
+      ...data,
+      features: data.features.filter((f) => isSaoPaulo(f.properties?.ibge_code)),
+    } as MunicipalityCollection;
+  }, [data, showNationalBeta]);
 
-  // Get display value based on selected residues or biomass type
-  const getBiogasValue = (props: any): number => {
-    if (displayMetric === 'biomass_tons') {
-      if (selectedResidues.length > 0) {
-        return selectedResidues.reduce(
-          (sum, residue) => sum + getResidueBiomassTons(props, residue),
-          0
-        );
-      }
+  // Opacity changes (the slider — the most frequent map interaction) restyle
+  // the existing layer via react-leaflet's setStyle instead of remounting all
+  // polygons: `opacity` is deliberately NOT in the <GeoJSON> key below, and a
+  // new `style` identity (useCallback dep) triggers the restyle. The hover
+  // handlers are bound once per mount, so they read this ref rather than a
+  // stale closed-over prop.
+  const opacityRef = useRef(opacity);
+  opacityRef.current = opacity;
 
-      return getBiomassTonsByType(props, biomassType);
-    }
+  // Display value + coverage. Biomass reads served per-sector tonnage; biogas reads
+  // the canonical municipality total at the chosen scenario. Both preserve null so
+  // the style can render no_data distinctly instead of as a zero.
+  const getMapValue = (props: MunicipalityProperties): MapValue =>
+    metricSpec.rawValue(props, {
+      biomassType,
+      selectedResidues,
+      scenario: mapScenario as MapScenarioKey,
+    });
 
-    if (selectedResidues.length > 0) {
-      return selectedResidues.reduce((sum, residue) => {
-        const val = Number(props[`${residue}_${suffix}`]) || 0;
-        return sum + val;
-      }, 0);
-    }
-    switch (biomassType) {
-      case 'agricultural': return Number(props[`agricultural_${suffix}`]) || 0;
-      case 'livestock':    return Number(props[`livestock_${suffix}`])    || 0;
-      case 'urban':        return Number(props[`urban_${suffix}`])        || 0;
-      case 'total':
-      default:             return Number(props[`total_${suffix}`])        || 0;
-    }
-  };
-
-  // Style function for polygons (choropleth)
-  const style = (feature?: Feature) => {
+  // Style function for polygons (choropleth). Memoized so its identity only
+  // changes when the visual inputs change — react-leaflet calls setStyle on
+  // the mounted layer whenever the `style` prop identity changes.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const style = useCallback((feature?: Feature) => {
     if (!feature || !feature.properties) return {};
 
-    const fillColor = colorMode === 'cluster'
-      ? getColorForCluster((feature.properties as any).cluster_id)
-      : getColorForValue(getBiogasValue(feature.properties), displayMetric);
+    // Scope check precedes every colour mode — including cluster and C/N. The
+    // canonical pipeline, the FDE audit and the K-means clustering were all run
+    // on São Paulo, so a non-SP municipality has nothing validated to encode in
+    // ANY of the ramps. It is drawn as flat context and nothing else.
+    if (!isSaoPaulo((feature.properties as MunicipalityProperties).ibge_code) && !paintBetaData) {
+      return { ...BETA_STYLE };
+    }
+
+    if (colorMode === 'cluster') {
+      return {
+        fillColor: getColorForCluster((feature.properties as any).cluster_id),
+        weight: 1,
+        opacity: 0.8,
+        color: '#666666',
+        fillOpacity: opacity,
+      };
+    }
+
+    const { value, coverage } = getMapValue(feature.properties as MunicipalityProperties);
+    // no_data is rendered as a distinct grey, never as a ramp value. This is where
+    // the backend's null/coverage distinction becomes visible on the map.
+    if (value === null || coverage === 'no_data') {
+      return { ...NO_DATA_STYLE };
+    }
+
+    // SP and MG share the same quantitative ramp so equal concentrations mean
+    // equal colours. MG keeps a blue municipal outline, making the pilot state
+    // visibly distinct without introducing a second, incomparable palette.
+    const isMgPilot = isMinasGerais(
+      (feature.properties as MunicipalityProperties).ibge_code
+    );
 
     return {
-      fillColor,
-      weight: 1,
-      opacity: 0.8,
-      color: '#666666',
+      fillColor: getMetricColor(value, metricSpec, daltonic, cvdPalette, scaleBreaks, mapPalette),
+      weight: isMgPilot ? 0.9 : 0.65,
+      opacity: isMgPilot ? 0.95 : 0.75,
+      color: isMgPilot ? MG_DATA_STROKE : '#4b5563',
       fillOpacity: opacity,
     };
-  };
+    // getMapValue is recreated per render but only depends on the deps listed here,
+    // so listing them directly keeps the identity stable.
+  }, [colorMode, displayMetric, biomassType, selectedResidues, mapScenario, daltonic, cvdPalette, mapPalette, opacity, scaleBreaks, paintBetaData]);
 
-  // Format biogas value for display
-  const formatBiogas = (value: number): string => {
+  // Format a value for display. null -> "sem dados" so the tooltip never shows a
+  // fabricated 0 for a municipality we have no data for.
+  const formatBiogas = (value: number | null): string => {
+    if (value === null) return 'sem dados';
     if (value >= 1000000000) return `${(value / 1000000000).toFixed(1)}B`;
     if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`;
     if (value >= 1000) return `${(value / 1000).toFixed(1)}K`;
@@ -143,8 +208,9 @@ export default function MunicipalityLayer({
         swine: 'Suínos',
         poultry: 'Aves',
         aquaculture: 'Aquicultura',
-        rsu: 'RSU',
-        rpo: 'RPO'
+        rsu: 'FORSU',
+        rpo: 'Poda urbana',
+        sewage: 'Lodo de ETE'
       };
 
       if (selectedResidues.length === 1) {
@@ -166,12 +232,19 @@ export default function MunicipalityLayer({
     if (!feature || !feature.properties) return;
 
     const props = feature.properties;
-    const biogasValue = getBiogasValue(props);
+    const biogasValue = getMapValue(props).value;
     const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+    const isCanonicalPaint = isSaoPaulo(props.ibge_code) || paintBetaData;
 
     // Tooltip (hover) — only bind HTML tooltip when no hover handler (mobile fallback)
     if (!onMunicipalityHover) {
-      const tooltipBody = colorMode === 'cluster'
+      // A beta municipality still gets its value — hiding it would be its own
+      // kind of dishonesty — but the value never appears without the caveat
+      // attached to it, in the same tooltip, at the same moment it is read.
+      const tooltipBody = !isCanonicalPaint
+        ? `<span style="font-size:11px;color:rgba(255,255,255,0.9);">${getBiomassLabel()}: ${formatBiogas(biogasValue)} ${displayMetric === 'biomass_tons' ? 't/ano' : 'm³/ano'}</span>`
+          + `<br/><span style="font-size:10px;color:#fbbf24;font-weight:600;">⚠ ${BETA_BADGE_LABEL}</span>`
+        : colorMode === 'cluster'
         ? `<span style="font-size:11px;color:rgba(255,255,255,0.9);">${props.cluster_label ?? 'N/A'} · ${props.mun_dominant_stream ?? ''}</span>`
         : `<span style="font-size:11px;color:rgba(255,255,255,0.9);">${getBiomassLabel()}: ${formatBiogas(biogasValue)} ${displayMetric === 'biomass_tons' ? 't/ano' : 'm³/ano'}</span>`;
 
@@ -197,8 +270,15 @@ export default function MunicipalityLayer({
         root.render(
           <MunicipalityPopup
             properties={props}
+            metric={displayMetric}
+            scenario={mapScenario as MapScenarioKey}
           />
         );
+        // Leaflet re-invokes this factory (new container + root) on every
+        // open — unmount when the popup closes, or each open leaks a root.
+        layer.once('popupclose', () => {
+          setTimeout(() => root.unmount(), 0);
+        });
         return container;
       }, {
         maxWidth: popupWidth,
@@ -216,12 +296,16 @@ export default function MunicipalityLayer({
       layer.on({
         mouseover: (e) => {
           const target = e.target;
-          target.setStyle({
-            weight: 2,
-            color: '#000000',
-            fillOpacity: Math.min(opacity + 0.2, 1),
-          });
-          target.bringToFront();
+          // Beta polygons acknowledge the cursor but stay in the background
+          // tier: a muted outline, no fill boost, and no bringToFront — lifting
+          // them above SP would invert the hierarchy the whole change exists to
+          // establish.
+          target.setStyle(
+            isCanonicalPaint
+              ? { weight: 2, color: '#000000', fillOpacity: Math.min(opacityRef.current + 0.2, 1) }
+              : { weight: 1.2, color: '#475569', fillOpacity: 0.3 }
+          );
+          if (isCanonicalPaint) target.bringToFront();
 
           // Desktop: call hover handler with feature + mouse event
           if (onMunicipalityHover) {
@@ -230,13 +314,26 @@ export default function MunicipalityLayer({
         },
         mouseout: (e) => {
           const target = e.target;
+          if (!isCanonicalPaint) {
+            target.setStyle(BETA_STYLE);
+            if (onMunicipalityHover) onMunicipalityHover(null);
+            return;
+          }
+          if (colorMode !== 'cluster') {
+            const { value, coverage } = getMapValue(feature.properties as MunicipalityProperties);
+            if (value === null || coverage === 'no_data') {
+              target.setStyle(NO_DATA_STYLE);
+              if (onMunicipalityHover) onMunicipalityHover(null);
+              return;
+            }
+          }
           const resetColor = colorMode === 'cluster'
             ? getColorForCluster((feature.properties as any).cluster_id)
-            : getColorForValue(getBiogasValue(feature.properties), displayMetric);
+            : getMetricColor(getMapValue(feature.properties as MunicipalityProperties).value ?? 0, metricSpec, daltonic, cvdPalette, scaleBreaks, mapPalette);
           target.setStyle({
             weight: 1,
             color: '#666666',
-            fillOpacity: opacity,
+            fillOpacity: opacityRef.current,
             fillColor: resetColor,
           });
 
@@ -257,8 +354,13 @@ export default function MunicipalityLayer({
 
   return (
     <GeoJSON
-      key={`${biomassType}-${displayMetric}-${opacity}-${colorMode}-${selectedResidues.join(',')}`}
-      data={data as GeoJsonObject}
+      // The key remounts the layer when anything bound at creation time
+      // changes: tooltip/popup content (biomassType, displayMetric, colorMode,
+      // selectedResidues) or the data itself (mapScenario — react-leaflet only
+      // reads `data` on mount). Opacity is intentionally absent: it flows
+      // through the memoized `style` -> setStyle without a remount.
+      key={`${biomassType}-${displayMetric}-${colorMode}-${mapScenario}-${showNationalBeta}-${paintBetaData}-${selectedResidues.join(',')}`}
+      data={scopedData as GeoJsonObject}
       style={style}
       onEachFeature={onEachFeature}
     />

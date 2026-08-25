@@ -16,36 +16,54 @@ import {
   Leaf,
   Factory,
   Droplets,
+  Trees,
   ChevronDown,
   ChevronUp,
   ExternalLink,
   FileText,
 } from 'lucide-react';
-import type { MunicipalityFeature } from '@/types/geospatial';
+import { Link } from '@/navigation';
+import type { DisplayMetric, MunicipalityFeature } from '@/types/geospatial';
 import {
-  getResidueBiomassTons,
-  getSectorBiomassTons,
-  getTotalBiomassTons,
-} from '@/lib/biomassAvailability';
+  isServedScenario,
+  SCENARIO_LABEL,
+  SERVED_SCENARIO_RESIDUE_FIELD,
+  type MapScenarioKey,
+} from '@/data/scenarioFactors';
+import { getSectorMetricValue, getResidueTonsOrNull } from '@/lib/mapValues';
+import { useMunicipalityMetrics } from '@/hooks/useGeospatialData';
+import { getMetricSpec, formatCompact } from '@/lib/mapMetrics';
+import type { ResidueType } from '@/components/map/FloatingControlPanel';
 
 interface MunicipalityProfilePanelProps {
   municipality: MunicipalityFeature | null;
   onClose: () => void;
   visible: boolean;
+  /** Metric the map is currently showing — the panel mirrors it. */
+  metric?: DisplayMetric;
+  scenario?: MapScenarioKey;
 }
 
 export default function MunicipalityProfilePanel({
   municipality,
   onClose,
   visible,
+  metric = 'biomass_tons',
+  scenario = 'baseline',
 }: MunicipalityProfilePanelProps) {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
-    new Set(['overview', 'biomass'])
+    new Set(['biomass'])
   );
+
+  // Demographics and the sector breakdown are not in the slim collection payload
+  // — fetch them for the municipality being shown. Hook runs before the early
+  // return, so the null-safe access is deliberate.
+  const rawCode = visible ? municipality?.properties?.ibge_code : null;
+  const { data: detail } = useMunicipalityMetrics(rawCode == null ? null : String(rawCode));
 
   if (!visible || !municipality) return null;
 
-  const props = municipality.properties;
+  const props = { ...municipality.properties, ...(detail ?? {}) } as typeof municipality.properties;
 
   const toggleSection = (section: string) => {
     setExpandedSections((prev) => {
@@ -84,51 +102,117 @@ export default function MunicipalityProfilePanel({
     return value.toFixed(0);
   };
 
-  const formatTons = (value: number | undefined | null) => {
-    if (value === undefined || value === null) return 'N/A';
-    return `${formatBigNumber(value)} t/ano`;
+  // Per-residue rows must separate "we measured none" from "we have no data".
+  // Sugarcane outside São Paulo has never been promoted, so its column is NULL,
+  // and the old formatTons(getResidueBiomassTons(...)) rendered that as
+  // "0 t/ano" — stating the municipality grows no cane. Same distinction the
+  // choropleth already makes with its no_data grey.
+  const formatResidue = (p: typeof props, residue: ResidueType) => {
+    const tons = getResidueTonsOrNull(p, residue);
+    return tons === null ? 'Sem dados' : `${formatBigNumber(tons)} t/ano`;
   };
 
-  // Calculate totals
-  const agriculturalBiomass = getSectorBiomassTons(props, 'agricultural');
-  const livestockBiomass = getSectorBiomassTons(props, 'livestock');
-  const urbanBiomass = getSectorBiomassTons(props, 'urban');
-  const totalBiomass = getTotalBiomassTons(props);
+  // The headline figure and the sector split follow the ACTIVE MAP METRIC, so the
+  // panel always answers the question the choropleth is currently asking. Every
+  // value is read from the served payload through the metric registry — the panel
+  // derives nothing itself (see mapValues.getSectorMetricValue).
+  const spec = getMetricSpec(metric);
+  const sectorRaw = {
+    agricultural: getSectorMetricValue(props, 'agricultural', metric, scenario),
+    livestock: getSectorMetricValue(props, 'livestock', metric, scenario),
+    urban: getSectorMetricValue(props, 'urban', metric, scenario),
+    // Florestal exists only under the served scenarios (migration 026); the
+    // band scenarios have no forestry stream, so this stays null there and the
+    // row is not rendered.
+    forestry: getSectorMetricValue(props, 'forestry', metric, scenario),
+  };
 
-  // Calculate percentages
-  const agriculturePercent = totalBiomass > 0 ? (agriculturalBiomass / totalBiomass) * 100 : 0;
-  const livestockPercent = totalBiomass > 0 ? (livestockBiomass / totalBiomass) * 100 : 0;
-  const urbanPercent = totalBiomass > 0 ? (urbanBiomass / totalBiomass) * 100 : 0;
+  // Display units (t/ano, Nm³/dia, MWh/ano) come from the registry, so the panel
+  // and the legend can never disagree about what a number means.
+  const toDisplay = (v: number | null) => (v === null ? null : spec.toDisplay(v));
+  const agriculturalValue = toDisplay(sectorRaw.agricultural);
+  const livestockValue = toDisplay(sectorRaw.livestock);
+  const urbanValue = toDisplay(sectorRaw.urban);
+  const forestryValue = toDisplay(sectorRaw.forestry);
+
+  // The headline is the MUNICIPALITY TOTAL as the choropleth reads it, through
+  // the same registry accessor that paints the polygon. It used to be the sum of
+  // the sector rows, which made the panel depend on a breakdown it does not
+  // always have: under the default scenario (Real) the per-sector columns are
+  // not in the map payload, so every sector was null, the sum was 0, and the
+  // panel printed "Sem dados" over a municipality the map was painting green.
+  const totalValue = toDisplay(
+    spec.rawValue(props, { biomassType: 'total', selectedResidues: [], scenario }).value
+  );
+  const metricTotal = totalValue ?? 0;
+
+  // Percentages are shares of that same total. They need not reach 100%: the
+  // served scenarios also carry sewage, which has no row here, so a visible
+  // remainder is the honest reading rather than a rounding artefact.
+  const share = (v: number | null) =>
+    metricTotal > 0 && v !== null ? (v / metricTotal) * 100 : 0;
+  const agriculturePercent = share(agriculturalValue);
+  const livestockPercent = share(livestockValue);
+  const urbanPercent = share(urbanValue);
+  const forestryPercent = share(forestryValue);
+
+  // A total with no breakdown at all is worth saying out loud, so the empty
+  // "Composição por Fonte" is not read as three genuine zeroes.
+  const hasSectorSplit =
+    agriculturalValue !== null || livestockValue !== null || urbanValue !== null;
+
+  const propertyValue = (key: string): number | null => {
+    const value = (props as unknown as Record<string, unknown>)[key];
+    return typeof value === 'number' && Number.isFinite(value) ? value : null;
+  };
+  const servedUrbanStreams = isServedScenario(scenario)
+    ? [
+        { id: 'rsu', label: 'FORSU', value: propertyValue(SERVED_SCENARIO_RESIDUE_FIELD(scenario, 'rsu')) },
+        { id: 'rpo', label: 'Poda urbana', value: propertyValue(SERVED_SCENARIO_RESIDUE_FIELD(scenario, 'rpo')) },
+        { id: 'sewage', label: 'Lodo de ETE', value: propertyValue(SERVED_SCENARIO_RESIDUE_FIELD(scenario, 'sewage')) },
+      ]
+    : [];
+  const urbanScenarioTotal = servedUrbanStreams.reduce((sum, stream) => sum + (stream.value ?? 0), 0);
+  const hasUrbanScenarioData = servedUrbanStreams.some((stream) => (stream.value ?? 0) > 0);
+  const isMgMunicipality = String(props.ibge_code).startsWith('31');
+  const ibgeUf = isMgMunicipality ? 'mg' : 'sp';
 
   return (
     <>
-      {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-black/30 backdrop-blur-sm z-[1100] transition-opacity"
-        onClick={onClose}
-      />
-
-      {/* Profile Panel - Slide in from right */}
-      <div className="fixed right-0 top-0 bottom-0 w-full md:w-[360px] lg:w-[400px] bg-white dark:bg-slate-900 shadow-2xl z-[1101] overflow-y-auto transform transition-transform">
+      {/* Profile Panel.
+          Portrait  → bottom sheet: fixed to the bottom, ~62vh tall, rounded top.
+          Landscape → right-side drawer, full height (matches desktop). */}
+      <aside
+        aria-label={`Detalhes do município de ${props.name}`}
+        className="absolute z-[1101] overflow-y-auto bg-white shadow-2xl dark:bg-slate-900
+                   inset-x-0 bottom-0 max-h-[68%] rounded-t-2xl
+                   landscape:inset-x-auto landscape:right-0 landscape:top-0 landscape:bottom-0 landscape:max-h-none landscape:w-[min(88vw,380px)] landscape:rounded-none"
+      >
+        {/* Drag-handle affordance (bottom-sheet only) */}
+        <div className="landscape:hidden flex justify-center pt-2 pb-1">
+          <span className="h-1.5 w-10 rounded-full bg-gray-300 dark:bg-slate-600" aria-hidden="true" />
+        </div>
         {/* Header */}
-        <div className="sticky top-0 bg-gradient-to-r from-[#1B5E20] to-[#2F7D32] text-white p-4 shadow-lg z-10">
+        <div className="sticky top-0 z-10 rounded-t-2xl bg-gradient-to-r from-[#1B5E20] to-[#2F7D32] p-3 text-white shadow-lg landscape:rounded-none">
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <div className="flex items-center space-x-2 mb-1">
                 <MapPin className="w-4 h-4" />
-                <span className="text-xs font-medium opacity-80">Município de São Paulo</span>
+                <span className="text-xs font-medium opacity-80">
+                  {props.intermediate_region ? `Município · ${props.intermediate_region}` : 'Município'}
+                </span>
               </div>
-              <h2 className="text-xl font-bold mb-1">{props.name}</h2>
-              <div className="flex items-center space-x-4 text-sm opacity-90">
+              <h2 className="mb-1 text-lg font-bold leading-tight">{props.name}</h2>
+              <div className="flex flex-wrap items-center gap-x-2 text-xs opacity-90">
                 <span>IBGE: {props.ibge_code}</span>
-                <span>•</span>
-                <span>{props.intermediate_region}</span>
+                {props.intermediate_region && <><span>•</span><span>{props.intermediate_region}</span></>}
               </div>
             </div>
             <button
               onClick={onClose}
-              className="p-2 rounded-lg hover:bg-white/20 transition-colors"
+              className="-mr-1 flex h-11 w-11 items-center justify-center rounded-lg hover:bg-white/20 transition-colors"
               title="Fechar"
+              aria-label="Fechar painel do município"
             >
               <X className="w-6 h-6" />
             </button>
@@ -136,7 +220,7 @@ export default function MunicipalityProfilePanel({
         </div>
 
         {/* Content */}
-        <div className="p-4 space-y-4">
+        <div className="space-y-3 p-3">
           {/* Cluster Profile — shown when cluster data is available */}
           {props.cluster_label != null && (
             <div className="rounded-xl border border-gray-200 dark:border-slate-700 overflow-hidden">
@@ -219,24 +303,24 @@ export default function MunicipalityProfilePanel({
             </div>
           </Section>
 
-          {/* Biomass Availability Section */}
+          {/* Potential section — follows whichever metric the map is showing */}
           <Section
-            title="Disponibilidade de Biomassa"
+            title={`Potencial de ${spec.toggleLabel}`}
             icon={<Factory className="w-5 h-5" />}
             expanded={expandedSections.has('biomass')}
             onToggle={() => toggleSection('biomass')}
           >
             <div className="space-y-4">
-              {/* Total Biomass */}
+              {/* Headline figure in the active metric */}
               <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-lg p-4 border border-green-200 dark:border-green-800">
                 <div className="text-xs text-green-700 dark:text-green-300 font-medium mb-1">
-                  Biomassa Disponível Total
+                  {spec.icon} {spec.toggleLabel} — Total
                 </div>
                 <div className="text-2xl font-bold text-green-900 dark:text-green-100 mb-0.5">
-                  {formatBigNumber(totalBiomass)}
+                  {metricTotal > 0 ? formatCompact(metricTotal) : 'Sem dados'}
                 </div>
                 <div className="text-xs text-green-600 dark:text-green-400">
-                  toneladas/ano de biomassa
+                  {spec.unit}
                 </div>
               </div>
 
@@ -246,35 +330,55 @@ export default function MunicipalityProfilePanel({
                   Composição por Fonte
                 </h4>
 
-                {/* Agricultural */}
-                <ProgressBar
-                  label="Agrícola"
-                  value={agriculturalBiomass}
-                  percentage={agriculturePercent}
-                  color="green"
-                  icon={<Leaf className="w-4 h-4" />}
-                  unit="t/ano"
-                />
+                {hasSectorSplit ? (
+                  <>
+                    {/* Agricultural */}
+                    <ProgressBar
+                      label="Agrícola"
+                      value={agriculturalValue ?? 0}
+                      percentage={agriculturePercent}
+                      color="green"
+                      icon={<Leaf className="w-4 h-4" />}
+                      unit={spec.unit}
+                    />
 
-                {/* Livestock */}
-                <ProgressBar
-                  label="Pecuária"
-                  value={livestockBiomass}
-                  percentage={livestockPercent}
-                  color="yellow"
-                  icon={<Factory className="w-4 h-4" />}
-                  unit="t/ano"
-                />
+                    {/* Livestock */}
+                    <ProgressBar
+                      label="Pecuária"
+                      value={livestockValue ?? 0}
+                      percentage={livestockPercent}
+                      color="yellow"
+                      icon={<Factory className="w-4 h-4" />}
+                      unit={spec.unit}
+                    />
 
-                {/* Urban */}
-                <ProgressBar
-                  label="Urbano"
-                  value={urbanBiomass}
-                  percentage={urbanPercent}
-                  color="blue"
-                  icon={<Droplets className="w-4 h-4" />}
-                  unit="t/ano"
-                />
+                    {/* Urban */}
+                    <ProgressBar
+                      label="Urbano"
+                      value={urbanValue ?? 0}
+                      percentage={urbanPercent}
+                      color="blue"
+                      icon={<Droplets className="w-4 h-4" />}
+                      unit={spec.unit}
+                    />
+
+                    {/* Forestry — served scenarios only */}
+                    {forestryValue !== null && (
+                      <ProgressBar
+                        label="Florestal"
+                        value={forestryValue}
+                        percentage={forestryPercent}
+                        color="emerald"
+                        icon={<Trees className="w-4 h-4" />}
+                        unit={spec.unit}
+                      />
+                    )}
+                  </>
+                ) : (
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Sem quebra por setor para este município neste cenário.
+                  </p>
+                )}
               </div>
             </div>
           </Section>
@@ -287,11 +391,11 @@ export default function MunicipalityProfilePanel({
             onToggle={() => toggleSection('agriculture')}
           >
             <div className="space-y-2">
-              <DetailRow label="Cana-de-açúcar" value={formatTons(getResidueBiomassTons(props, 'sugarcane'))} />
-              <DetailRow label="Soja" value={formatTons(getResidueBiomassTons(props, 'soybean'))} />
-              <DetailRow label="Milho" value={formatTons(getResidueBiomassTons(props, 'corn'))} />
-              <DetailRow label="Café" value={formatTons(getResidueBiomassTons(props, 'coffee'))} />
-              <DetailRow label="Citros" value={formatTons(getResidueBiomassTons(props, 'citrus'))} />
+              <DetailRow label="Cana-de-açúcar" value={formatResidue(props, 'sugarcane')} />
+              <DetailRow label="Soja" value={formatResidue(props, 'soybean')} />
+              <DetailRow label="Milho" value={formatResidue(props, 'corn')} />
+              <DetailRow label="Café" value={formatResidue(props, 'coffee')} />
+              <DetailRow label="Citros" value={formatResidue(props, 'citrus')} />
             </div>
           </Section>
 
@@ -303,39 +407,75 @@ export default function MunicipalityProfilePanel({
             onToggle={() => toggleSection('livestock')}
           >
             <div className="space-y-2">
-              <DetailRow label="Bovinos" value={formatTons(getResidueBiomassTons(props, 'cattle'))} />
-              <DetailRow label="Suínos" value={formatTons(getResidueBiomassTons(props, 'swine'))} />
-              <DetailRow label="Aves" value={formatTons(getResidueBiomassTons(props, 'poultry'))} />
-              <DetailRow label="Aquicultura" value={formatTons(getResidueBiomassTons(props, 'aquaculture'))} />
+              <DetailRow label="Bovinos" value={formatResidue(props, 'cattle')} />
+              <DetailRow label="Suínos" value={formatResidue(props, 'swine')} />
+              <DetailRow label="Aves" value={formatResidue(props, 'poultry')} />
+              <DetailRow label="Aquicultura" value={formatResidue(props, 'aquaculture')} />
             </div>
           </Section>
 
           {/* Urban Waste Details */}
           <Section
-            title="Resíduos Urbanos"
+            title={`Resíduos Urbanos${isServedScenario(scenario) ? ` · ${SCENARIO_LABEL[scenario]}` : ''}`}
             icon={<Droplets className="w-5 h-5" />}
             expanded={expandedSections.has('urban')}
             onToggle={() => toggleSection('urban')}
           >
-            <div className="space-y-2">
-              <DetailRow label="RSU (Resíduos Sólidos)" value={formatTons(getResidueBiomassTons(props, 'rsu'))} />
-              <DetailRow label="RPO (Resíduos Orgânicos)" value={formatTons(getResidueBiomassTons(props, 'rpo'))} />
-            </div>
+            {isServedScenario(scenario) ? (
+              hasUrbanScenarioData ? (
+                <div className="space-y-3">
+                  <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 dark:border-blue-900 dark:bg-blue-950/30">
+                    <p className="text-[11px] font-medium text-blue-700 dark:text-blue-300">Potencial urbano total</p>
+                    <p className="text-xl font-bold text-blue-950 dark:text-blue-100">
+                      {formatCompact(urbanScenarioTotal)}
+                      <span className="ml-1 text-xs font-medium">Nm³ CH₄/ano</span>
+                    </p>
+                  </div>
+                  {servedUrbanStreams.map((stream) => (
+                    <UrbanStreamRow
+                      key={stream.id}
+                      label={stream.label}
+                      value={stream.value}
+                      total={urbanScenarioTotal}
+                    />
+                  ))}
+                  <p className="rounded-md bg-amber-50 px-2.5 py-2 text-[11px] leading-snug text-amber-900 dark:bg-amber-950/30 dark:text-amber-200">
+                    Potencial estimado de CH₄ por cenário. Não representa massa coletada em t/ano.
+                  </p>
+                </div>
+              ) : (
+                <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-3 text-sm text-gray-600 dark:border-slate-700 dark:bg-slate-800 dark:text-gray-300">
+                  <p className="font-semibold">Sem inventário urbano validado{isMgMunicipality ? ' para MG' : ''}</p>
+                  <p className="mt-1 text-xs leading-snug">FORSU, poda urbana e lodo de ETE não foram inferidos a partir da população.</p>
+                </div>
+              )
+            ) : (
+              <div className="space-y-2">
+                <DetailRow label="FORSU" value={formatResidue(props, 'rsu')} />
+                <DetailRow label="Poda urbana" value={formatResidue(props, 'rpo')} />
+                <DetailRow label="Lodo de ETE" value={formatResidue(props, 'sewage')} />
+              </div>
+            )}
           </Section>
 
           {/* External Links */}
           <div className="pt-4 border-t border-gray-200 dark:border-slate-700 space-y-2">
-            <a
-              href={`/municipality/${props.ibge_code}`}
+            {/* next-intl's Link, not a bare <a>. A raw href="/municipality/…"
+                skips BOTH the basePath (/pilar2b) and the locale segment, so in
+                production this button left the platform entirely and landed on
+                the CP2b institutional site, which serves the same host at the
+                root. Locally, where basePath is empty, it appeared to work. */}
+            <Link
+              href={`/municipality/${props.ibge_code}` as never}
               className="flex items-center justify-between p-4 rounded-lg bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors group border border-green-200 dark:border-green-800"
             >
               <span className="text-sm font-semibold text-green-800 dark:text-green-300">
                 Ver Perfil Completo
               </span>
               <FileText className="w-4 h-4 text-green-600 group-hover:text-green-800 dark:text-green-400" />
-            </a>
+            </Link>
             <a
-              href={`https://cidades.ibge.gov.br/brasil/sp/${props.name.toLowerCase()}/panorama`}
+              href={`https://cidades.ibge.gov.br/brasil/${ibgeUf}/${encodeURIComponent(props.name.toLowerCase())}/panorama`}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center justify-between p-4 rounded-lg bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors group"
@@ -347,7 +487,7 @@ export default function MunicipalityProfilePanel({
             </a>
           </div>
         </div>
-      </div>
+      </aside>
     </>
   );
 }
@@ -379,7 +519,7 @@ function Section({ title, icon, expanded, onToggle, children }: SectionProps) {
           <ChevronDown className="w-5 h-5 text-gray-500" />
         )}
       </button>
-      {expanded && <div className="p-4">{children}</div>}
+      {expanded && <div className="p-3">{children}</div>}
     </div>
   );
 }
@@ -408,7 +548,7 @@ interface ProgressBarProps {
   label: string;
   value: number;
   percentage: number;
-  color: 'green' | 'yellow' | 'blue';
+  color: 'green' | 'yellow' | 'blue' | 'emerald';
   icon: React.ReactNode;
   unit?: string;
 }
@@ -429,6 +569,11 @@ function ProgressBar({ label, value, percentage, color, icon, unit = 'm³/ano' }
       bg: 'bg-blue-500',
       text: 'text-blue-700 dark:text-blue-300',
       lightBg: 'bg-blue-100 dark:bg-blue-900/20',
+    },
+    emerald: {
+      bg: 'bg-emerald-700',
+      text: 'text-emerald-800 dark:text-emerald-300',
+      lightBg: 'bg-emerald-100 dark:bg-emerald-900/20',
     },
   };
 
@@ -461,6 +606,24 @@ function ProgressBar({ label, value, percentage, color, icon, unit = 'm³/ano' }
 interface DetailRowProps {
   label: string;
   value: string;
+}
+
+function UrbanStreamRow({ label, value, total }: { label: string; value: number | null; total: number }) {
+  const percentage = value !== null && total > 0 ? (value / total) * 100 : 0;
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-center justify-between gap-3 text-sm">
+        <span className="font-medium text-gray-700 dark:text-gray-300">{label}</span>
+        <span className="text-right font-semibold text-gray-950 dark:text-white">
+          {value === null ? 'Sem dados' : `${formatCompact(value)} Nm³ CH₄/ano`}
+        </span>
+      </div>
+      <div className="h-1.5 overflow-hidden rounded-full bg-gray-200 dark:bg-slate-700">
+        <div className="h-full rounded-full bg-blue-600" style={{ width: `${Math.min(percentage, 100)}%` }} />
+      </div>
+      <p className="text-right text-[10px] text-gray-500 dark:text-gray-400">{percentage.toFixed(1)}% do urbano</p>
+    </div>
+  );
 }
 
 function DetailRow({ label, value }: DetailRowProps) {

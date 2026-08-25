@@ -23,10 +23,10 @@ Usage (from backend/ directory):
   DRY_RUN=true python scripts/load_national_intermediate_data.py
 """
 
-import os
 import csv
-import sys
 import logging
+import os
+import sys
 import unicodedata
 from pathlib import Path
 
@@ -37,7 +37,10 @@ logger = logging.getLogger(__name__)
 
 CENTROIDS_CSV = str(
     Path(__file__).parent.parent
-    / "data" / "shapefiles" / "brazil" / "br_intermediary_regions_centroids.csv"
+    / "data"
+    / "shapefiles"
+    / "brazil"
+    / "br_intermediary_regions_centroids.csv"
 )
 LOG_FILE = str(Path(__file__).parent / "intermediate_regions_load_log.csv")
 DRY_RUN = os.environ.get("DRY_RUN", "false").lower() == "true"
@@ -45,20 +48,38 @@ DRY_RUN = os.environ.get("DRY_RUN", "false").lower() == "true"
 SP_STATE_CODE = "35"
 
 BIOGAS_COLS = [
-    "total_biogas_m3_year", "agricultural_biogas_m3_year",
-    "livestock_biogas_m3_year", "urban_biogas_m3_year",
-    "sugarcane_biogas_m3_year", "soybean_biogas_m3_year", "corn_biogas_m3_year",
-    "coffee_biogas_m3_year", "citrus_biogas_m3_year", "cattle_biogas_m3_year",
-    "swine_biogas_m3_year", "poultry_biogas_m3_year", "aquaculture_biogas_m3_year",
-    "rsu_biogas_m3_year", "rpo_biogas_m3_year",
+    "total_biogas_m3_year",
+    "agricultural_biogas_m3_year",
+    "livestock_biogas_m3_year",
+    "urban_biogas_m3_year",
+    "sugarcane_biogas_m3_year",
+    "soybean_biogas_m3_year",
+    "corn_biogas_m3_year",
+    "coffee_biogas_m3_year",
+    "citrus_biogas_m3_year",
+    "cattle_biogas_m3_year",
+    "swine_biogas_m3_year",
+    "poultry_biogas_m3_year",
+    "aquaculture_biogas_m3_year",
+    "rsu_biogas_m3_year",
+    "rpo_biogas_m3_year",
 ]
 BIOMASS_COLS = [
-    "total_biomass_tons_year", "agricultural_biomass_tons_year",
-    "livestock_biomass_tons_year", "urban_biomass_tons_year",
-    "sugarcane_biomass_tons_year", "soybean_biomass_tons_year", "corn_biomass_tons_year",
-    "coffee_biomass_tons_year", "citrus_biomass_tons_year", "cattle_biomass_tons_year",
-    "swine_biomass_tons_year", "poultry_biomass_tons_year", "aquaculture_biomass_tons_year",
-    "rsu_biomass_tons_year", "rpo_biomass_tons_year",
+    "total_biomass_tons_year",
+    "agricultural_biomass_tons_year",
+    "livestock_biomass_tons_year",
+    "urban_biomass_tons_year",
+    "sugarcane_biomass_tons_year",
+    "soybean_biomass_tons_year",
+    "corn_biomass_tons_year",
+    "coffee_biomass_tons_year",
+    "citrus_biomass_tons_year",
+    "cattle_biomass_tons_year",
+    "swine_biomass_tons_year",
+    "poultry_biomass_tons_year",
+    "aquaculture_biomass_tons_year",
+    "rsu_biomass_tons_year",
+    "rpo_biomass_tons_year",
 ]
 ALL_NUMERIC_COLS = BIOGAS_COLS + BIOMASS_COLS
 
@@ -75,13 +96,15 @@ def load_centroids(csv_path: str) -> list[dict]:
     regions = []
     with open(csv_path, encoding="utf-8-sig") as f:
         for row in csv.DictReader(f):
-            regions.append({
-                "ibge_code":    str(row["cd_rgint"]).strip(),
-                "name":         row["nm_rgint"].strip(),
-                "state_code":   str(row["cd_uf"]).strip(),
-                "centroid_lat": float(row["centroid_lat"]),
-                "centroid_lng": float(row["centroid_lng"]),
-            })
+            regions.append(
+                {
+                    "ibge_code": str(row["cd_rgint"]).strip(),
+                    "name": row["nm_rgint"].strip(),
+                    "state_code": str(row["cd_uf"]).strip(),
+                    "centroid_lat": float(row["centroid_lat"]),
+                    "centroid_lng": float(row["centroid_lng"]),
+                }
+            )
     logger.info(f"Loaded {len(regions)} regions from CSV")
     return regions
 
@@ -93,11 +116,16 @@ def aggregate_municipalities(conn) -> dict[str, dict]:
     """
     select_cols = ", ".join(
         [f"COALESCE({c}, 0)" for c in ALL_NUMERIC_COLS]
-        + ["intermediate_region", "COALESCE(population, 0) as population",
-           "COALESCE(area_km2, 0) as area_km2"]
+        + [
+            "intermediate_region",
+            "COALESCE(population, 0) as population",
+            "COALESCE(area_km2, 0) as area_km2",
+        ]
     )
     cursor = conn.cursor()
-    cursor.execute(f"SELECT {select_cols} FROM municipalities WHERE intermediate_region IS NOT NULL")
+    cursor.execute(
+        f"SELECT {select_cols} FROM municipalities WHERE intermediate_region IS NOT NULL"
+    )
     rows = cursor.fetchall()
     cursor.close()
 
@@ -127,22 +155,24 @@ def aggregate_municipalities(conn) -> dict[str, dict]:
     return aggregated
 
 
-def build_upsert_rows(regions: list[dict], aggregated: dict[str, dict]) -> tuple[list[dict], list[dict]]:
+def build_upsert_rows(
+    regions: list[dict], aggregated: dict[str, dict]
+) -> tuple[list[dict], list[dict]]:
     """Match centroids to aggregated data. Returns (rows_to_upsert, log_rows)."""
     rows, log = [], []
 
     for region in regions:
-        ibge_code  = region["ibge_code"]
-        name       = region["name"]
+        ibge_code = region["ibge_code"]
+        name = region["name"]
         state_code = region["state_code"]
 
         row: dict = {
-            "ibge_code":    ibge_code,
-            "name":         name,
-            "state_code":   state_code,
+            "ibge_code": ibge_code,
+            "name": name,
+            "state_code": state_code,
             "centroid_lat": region["centroid_lat"],
             "centroid_lng": region["centroid_lng"],
-            "data_source":  "skeleton_awaiting_national_data",
+            "data_source": "skeleton_awaiting_national_data",
         }
 
         # Try exact then normalized name match
@@ -150,15 +180,28 @@ def build_upsert_rows(regions: list[dict], aggregated: dict[str, dict]) -> tuple
         if agg:
             row.update({k: v for k, v in agg.items()})
             row["data_source"] = "aggregated_from_municipalities"
-            log.append({"ibge_code": ibge_code, "name": name, "status": "matched",
-                        "municipalities": agg["municipality_count"],
-                        "total_biogas_m3_year": agg["total_biogas_m3_year"]})
+            log.append(
+                {
+                    "ibge_code": ibge_code,
+                    "name": name,
+                    "status": "matched",
+                    "municipalities": agg["municipality_count"],
+                    "total_biogas_m3_year": agg["total_biogas_m3_year"],
+                }
+            )
         else:
             status = "sp_no_match" if state_code == SP_STATE_CODE else "skeleton"
             if state_code == SP_STATE_CODE:
                 logger.warning(f"SP region not matched in municipalities: '{name}'")
-            log.append({"ibge_code": ibge_code, "name": name, "status": status,
-                        "municipalities": 0, "total_biogas_m3_year": 0})
+            log.append(
+                {
+                    "ibge_code": ibge_code,
+                    "name": name,
+                    "status": status,
+                    "municipalities": 0,
+                    "total_biogas_m3_year": 0,
+                }
+            )
 
         rows.append(row)
 
@@ -171,15 +214,20 @@ def upsert_rows(conn, rows: list[dict]):
     Uses psycopg2 executemany for efficiency.
     """
     all_cols = [
-        "ibge_code", "name", "state_code", "centroid_lat", "centroid_lng",
-        "data_source", "municipality_count", "population", "area_km2",
+        "ibge_code",
+        "name",
+        "state_code",
+        "centroid_lat",
+        "centroid_lng",
+        "data_source",
+        "municipality_count",
+        "population",
+        "area_km2",
     ] + ALL_NUMERIC_COLS
 
     placeholders = ", ".join(["%s"] * len(all_cols))
-    col_list     = ", ".join(all_cols)
-    update_set   = ", ".join(
-        f"{c} = EXCLUDED.{c}" for c in all_cols if c != "ibge_code"
-    )
+    col_list = ", ".join(all_cols)
+    update_set = ", ".join(f"{c} = EXCLUDED.{c}" for c in all_cols if c != "ibge_code")
 
     sql = f"""
         INSERT INTO intermediate_regions ({col_list})
@@ -193,8 +241,14 @@ def upsert_rows(conn, rows: list[dict]):
     for i in range(0, len(rows), BATCH):
         batch = rows[i : i + BATCH]
         values = [
-            tuple(row.get(c, 0) if c not in ("ibge_code", "name", "state_code", "data_source") else row.get(c, "")
-                  for c in all_cols)
+            tuple(
+                (
+                    row.get(c, 0)
+                    if c not in ("ibge_code", "name", "state_code", "data_source")
+                    else row.get(c, "")
+                )
+                for c in all_cols
+            )
             for row in batch
         ]
         cursor.executemany(sql, values)
@@ -217,12 +271,14 @@ def main():
 
     # Write log regardless of dry-run
     with open(LOG_FILE, "w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=["ibge_code", "name", "status", "municipalities", "total_biogas_m3_year"])
+        writer = csv.DictWriter(
+            f, fieldnames=["ibge_code", "name", "status", "municipalities", "total_biogas_m3_year"]
+        )
         writer.writeheader()
         writer.writerows(log)
     logger.info(f"Log → {LOG_FILE}")
 
-    matched   = sum(1 for r in log if r["status"] == "matched")
+    matched = sum(1 for r in log if r["status"] == "matched")
     skeletons = sum(1 for r in log if r["status"] == "skeleton")
     unmatched = sum(1 for r in log if r["status"] == "sp_no_match")
 

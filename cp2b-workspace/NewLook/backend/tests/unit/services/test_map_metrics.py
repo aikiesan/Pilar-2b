@@ -37,8 +37,10 @@ def _make_params(
 @pytest.mark.unit
 class TestComputeFromBiomass:
     def test_basic_formula_matches_theoretical(self):
-        params = _make_params(bmp=115.0, ts=58.9, vs_of_ts=90.0, ch4_pct=55.0, avail=0.1399, fde_full=0.09793)
-        bio_c, ch4, biometh = _compute_from_biomass(100.0, params)
+        params = _make_params(
+            bmp=115.0, ts=58.9, vs_of_ts=90.0, ch4_pct=55.0, avail=0.1399, fde_full=0.09793
+        )
+        bio_c, biogas, ch4, biometh = _compute_from_biomass(100.0, params)
         # biomass_corrected = 100 × 0.1399 = 13.99
         assert bio_c["medio"] == pytest.approx(13.99, rel=1e-3)
         # CH4 = 100 × 0.589 × 0.90 × 115 × 0.09793
@@ -47,9 +49,32 @@ class TestComputeFromBiomass:
         # biomethane = ch4 × 0.97
         assert biometh["medio"] == pytest.approx(ch4["medio"] * UPGRADING_EFFICIENCY, rel=1e-3)
 
+    def test_raw_biogas_is_methane_divided_by_ch4_fraction(self):
+        """Biogás and CH4 are different quantities and must not be conflated.
+
+        BMP is NmL CH4/gVS, so the forward chain yields METHANE. Raw biogas is
+        larger by 1/ch4_pct because it still carries the CO2. The map used to
+        serve CH4 under a "Biogás" label, which made biomethane/biogás read 0.97
+        — a methane-recovery figure — instead of the ~0.53 a reader expects from
+        a biogas-to-biomethane ratio.
+        """
+        params = _make_params(
+            bmp=115.0, ts=58.9, vs_of_ts=90.0, ch4_pct=55.0, avail=0.1399, fde_full=0.09793
+        )
+        _, biogas, ch4, biometh = _compute_from_biomass(100.0, params)
+
+        # Raw biogas carries the CO2 the methane figure does not.
+        assert biogas["medio"] == pytest.approx(ch4["medio"] / 0.55, rel=1e-3)
+        assert biogas["medio"] > ch4["medio"]
+
+        # Upgrading recovers 97% of the METHANE...
+        assert biometh["medio"] / ch4["medio"] == pytest.approx(0.97, rel=1e-3)
+        # ...which is only ~53% of the raw biogas VOLUME.
+        assert biometh["medio"] / biogas["medio"] == pytest.approx(0.534, rel=1e-2)
+
     def test_zero_biomass_returns_zeros(self):
         params = _make_params()
-        bio_c, ch4, biometh = _compute_from_biomass(0.0, params)
+        bio_c, biogas, ch4, biometh = _compute_from_biomass(0.0, params)
         assert all(v == 0.0 for v in bio_c.values())
         assert all(v == 0.0 for v in ch4.values())
 
@@ -62,7 +87,7 @@ class TestComputeFromBiomass:
             fde=Range(0.10, 0.20, 0.30),
             availability=Range(0.15, 0.30, 0.45),
         )
-        bio_c, ch4, biometh = _compute_from_biomass(1000.0, params)
+        bio_c, biogas, ch4, biometh = _compute_from_biomass(1000.0, params)
         assert bio_c["min"] < bio_c["medio"] < bio_c["max"]
         assert ch4["min"] < ch4["medio"] < ch4["max"]
         assert biometh["min"] < biometh["medio"] < biometh["max"]
@@ -184,15 +209,53 @@ class TestCanonicalIntegration:
         assert sm.has_biomass is False
         assert sm.biogas_ch4_m3["medio"] > 0
 
+    def test_biomass_override_ignores_the_head_count_column(self):
+        """Livestock columns hold head counts. With an override, biogas potential
+        is computed from real tonnage, not the head count read as tonnes."""
+        from app.services.canonical_loader import get_params_for_stream
+
+        # Column says 205,686,533 (birds). Real manure tonnage is ~9.26M.
+        row = {"poultry_biomass_tons_year": 205_686_533}
+        params = get_params_for_stream("poultry")
+
+        from_column = compute_stream_metrics("poultry", row, params)
+        from_override = compute_stream_metrics("poultry", row, params, biomass_override=9_255_894.0)
+        assert from_override.biomass_gross == 9_255_894.0
+        # The override yields ~22x less biogas than the head count would.
+        assert from_override.biogas_ch4_m3["medio"] < from_column.biogas_ch4_m3["medio"] / 10
+
+    def test_override_makes_a_zero_column_stream_computable(self):
+        """Outside SP the columns are 0, so without an override no metric exists.
+        The override is what makes biogas potential national."""
+        from app.services.canonical_loader import get_params_for_stream
+
+        row = {"cattle_biomass_tons_year": 0}
+        params = get_params_for_stream("cattle")
+        assert compute_stream_metrics("cattle", row, params) is None
+        sm = compute_stream_metrics("cattle", row, params, biomass_override=40_000.0)
+        assert sm is not None and sm.biogas_ch4_m3["medio"] > 0
+
     def test_params_availability_lt_one(self):
         """All canonical streams with FDE blocks must have availability < 1."""
         from app.services.canonical_loader import get_params_for_stream
 
-        for stream in ("sugarcane", "corn", "coffee", "citrus", "soybean",
-                       "cattle", "swine", "poultry", "rsu", "rpo"):
+        for stream in (
+            "sugarcane",
+            "corn",
+            "coffee",
+            "citrus",
+            "soybean",
+            "cattle",
+            "swine",
+            "poultry",
+            "rsu",
+            "rpo",
+        ):
             try:
                 params = get_params_for_stream(stream)
                 assert params.availability.medio <= 1.0, f"{stream} availability > 1"
-                assert params.availability.min <= params.availability.medio, f"{stream} availability not ordered"
+                assert (
+                    params.availability.min <= params.availability.medio
+                ), f"{stream} availability not ordered"
             except KeyError:
                 pass  # some streams may not have canonical mapping yet

@@ -13,10 +13,32 @@ import pytest
 
 yaml = pytest.importorskip("yaml", reason="PyYAML required")
 
-# test file: NewLook/backend/tests/unit/services/test_fde_traceability.py
-#   parents[0]=services [1]=unit [2]=tests [3]=backend [4]=NewLook
-_NEWLOOK = Path(__file__).resolve().parents[4]
-_SCRIPT = _NEWLOOK / "backend" / "scripts" / "validate_fde_traceability.py"
+# Locate the validator by walking up until we find it, rather than counting
+# parent directories.
+#
+# A fixed parents[4] assumed the checkout layout NewLook/backend/tests/unit/
+# services/. That holds on a developer machine, but docker-compose bind-mounts
+# ./backend to /app, so in the container the path is /app/tests/unit/services/ —
+# parents[4] overshoots to "/" and the test died with
+# "No such file: /backend/scripts/validate_fde_traceability.py". Three tests were
+# red in Docker and green on the host for weeks, which is the worst way for a
+# test to fail: it looks like an environment quirk rather than a bug.
+_SCRIPT_REL = Path("scripts") / "validate_fde_traceability.py"
+
+
+def _find_script() -> Path:
+    for parent in Path(__file__).resolve().parents:
+        candidate = parent / _SCRIPT_REL
+        if candidate.is_file():
+            return candidate
+        # Checkout layout: the script lives under a sibling `backend/`.
+        candidate = parent / "backend" / _SCRIPT_REL
+        if candidate.is_file():
+            return candidate
+    raise FileNotFoundError(f"could not locate {_SCRIPT_REL} from {__file__}")
+
+
+_SCRIPT = _find_script()
 
 
 def _load_validator():

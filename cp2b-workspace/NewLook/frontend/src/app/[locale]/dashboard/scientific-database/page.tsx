@@ -391,17 +391,17 @@ export default function ScientificDatabasePage() {
     // Generate time points 0-30 days
     const timePoints = Array.from({ length: 31 }, (_, i) => i)
 
+    const showBand = selected.length === 1  // band only for a single residue (legible)
     return timePoints.map(t => {
       const point: any = { time: t }
       selected.forEach(kinetic => {
         try {
           const curve = generateKineticCurve(kinetic, 30)
-          const yieldValue = curve[t]?.yield || 0
-          point[kinetic.residue_name] = yieldValue
-
-          // Debug: log zero yields
-          if (t === 0 || t === 30) {
-            logger.debug(`${kinetic.residue_name} at t=${t}: ${yieldValue.toFixed(2)}`)
+          const pt = curve[t]
+          point[kinetic.residue_name] = pt?.yield || 0
+          if (showBand) {
+            point[`${kinetic.residue_name}__low`] = pt?.yield_low ?? 0
+            point[`${kinetic.residue_name}__high`] = pt?.yield_high ?? 0
           }
         } catch (error) {
           logger.error(`Error generating curve for ${kinetic.residue_name}:`, error)
@@ -791,6 +791,19 @@ export default function ScientificDatabasePage() {
                           formatter={(value) => [typeof value === 'number' ? `${value.toFixed(1)} L CH4/kg SV` : value, '']}
                         />
                         <Legend />
+                        {selectedResidues.length === 1 && [`${selectedResidues[0]}__high`, `${selectedResidues[0]}__low`].map((k) => (
+                          <Line
+                            key={k}
+                            type="monotone"
+                            dataKey={k}
+                            stroke={residueColors[0]}
+                            strokeWidth={1}
+                            strokeDasharray="4 3"
+                            strokeOpacity={0.5}
+                            dot={false}
+                            legendType="none"
+                          />
+                        ))}
                         {(selectedResidues.length > 0 ? selectedResidues : kineticsData.slice(0, 4).map(k => k.residue_name)).map((residue, idx) => (
                           <Line
                             key={residue}
@@ -803,6 +816,12 @@ export default function ScientificDatabasePage() {
                         ))}
                       </LineChart>
                     </ResponsiveContainer>
+                    <p className="mt-2 text-xs text-gray-500">
+                      Curva: modelo de Gompertz modificado ajustado ao t50/t80 de cada resíduo.
+                      {selectedResidues.length === 1
+                        ? ' Faixa tracejada = variabilidade experimental típica de ensaios BMP (±12%, CV de réplicas; Holliger et al., 2016).'
+                        : ' Selecione um único resíduo para ver a faixa de variabilidade experimental (±12%).'}
+                    </p>
                   </div>
                 )}
               </div>

@@ -2,6 +2,7 @@
   "common": {
     "nav": {
       "home": "Início",
+      "guide": "Guia",
       "map": "Mapa",
       "dashboard": "Dashboard",
       "about": "Sobre",
@@ -10,14 +11,16 @@
       "proximity": "Proximidade",
       "technology_routes": "Calculadora de Biogás",
       "scientific_database": "Base Científica",
-      "advanced": "Análises"
+      "advanced": "Análises",
+      "cite": "Como Citar"
     },
     "nav_descriptions": {
       "hub": "Central de Recursos",
       "map": "Mapa Interativo SP",
       "advanced": "MCDA e estatísticas",
       "scientific_database": "Base de dados científica",
-      "proximity": "Análise de proximidade"
+      "proximity": "Análise de proximidade",
+      "cite": "Como citar o PILAR-2b"
     },
     "auth": {
       "login": "Entrar",
@@ -293,8 +296,28 @@
       "swine": "Suínos",
       "poultry": "Aves",
       "aquaculture": "Aquicultura",
-      "rsu": "RSU",
-      "rpo": "RPO"
+      "rsu": "FORSU (orgânicos)",
+      "rpo": "Poda urbana",
+      "sewage": "Lodo de ETE"
+    },
+    "urbanTotals": {
+      "ariaLabel": "Totais de resíduos urbanos de {uf}",
+      "title": "Resíduos urbanos",
+      "scenario": "Cenário {scenario}",
+      "scenarios": {
+        "real": "Real",
+        "ideal": "Ideal"
+      },
+      "streams": {
+        "rsu": "FORSU",
+        "rpo": "Poda urbana",
+        "sewage": "Lodo de ETE"
+      },
+      "year": "ano",
+      "municipalities": "{count, plural, =0 {nenhum município com valor} one {# município com valor} other {# municípios com valor}}",
+      "noDataTitle": "Sem inventário urbano validado para {uf}",
+      "noDataBody": "A camada beta permanece visível como lacuna de dados; valores não foram inferidos a partir da população.",
+      "disclaimer": "Potencial de CH₄ por cenário; não representa massa coletada em t/ano. A auditoria SNIS permanece separada."
     },
     "categories": {
       "agricultural": "Agrícola",
@@ -319,6 +342,12 @@
       "heatmap": "Calor",
       "bubble": "Bolhas"
     },
+    "colorModes": {
+      "label": "Modo Coroplético",
+      "biogas": "Potencial Biogás",
+      "cn_profile": "Perfil C/N",
+      "cluster": "Clusters K4"
+    },
     "opacity": {
       "label": "Opacidade do Mapa"
     },
@@ -327,7 +356,7 @@
       "label": "municípios"
     },
     "layers": {
-      "municipalitiesSP": "Municípios SP",
+      "municipalitiesSP": "Municípios",
       "intermediateRegions": "Regiões Intermediárias (IBGE)",
       "mapbiomas": "MapBiomas 2024",
       "biogasPlants": "Plantas de Biomassa (MapBiomas+ANP, 2024)",
@@ -341,7 +370,10 @@
     "layerGroups": {
       "base": "Base",
       "environmental": "Ambiental",
-      "infrastructure": "Infraestrutura"
+      "infrastructure": "Infraestrutura",
+      "gasRoute": "Rota do biometano",
+      "siteRestriction": "Restrição de sítio",
+      "logistics": "Logística"
     },
     "tools": {
       "compare": "Comparar",
@@ -382,7 +414,28 @@
     "closePanel": "Fechar painel",
     "expandPanel": "Expandir painel de filtros",
     "vis": "Vis",
-    "clearAll": "Limpar"
+    "clearAll": "Limpar",
+    "scenario_label": "Cenário",
+    "map_aria_label": "Mapa interativo do potencial de biogás dos municípios de {state}",
+    "map_keyboard_help": "Mapa interativo. Com o foco no mapa, use as setas do teclado para mover e as teclas mais e menos para aproximar e afastar. Os mesmos dados também estão disponíveis em tabelas e rankings nas páginas de análise.",
+    "scenario_conservador": "Conservador",
+    "scenario_baseline": "Médio Prazo",
+    "scenario_fronteira": "Fronteira",
+    "scenario_otimista": "Otimista",
+    "scenario_fronteira_tip": "Fronteira do Biogás: mobilização realista-alta dos 31 resíduos — supera o benchmark FIESP (~6,4 Mm³/d de biometano).",
+    "scenario_real": "Real",
+    "scenario_ideal": "Ideal",
+    "scenario_real_tip": "Cenário Real (curto prazo): resíduo que efetivamente chega a um digestor hoje — taxas de coleta e usos concorrentes atuais. SP: 21,5 Mm³/dia de biometano. Metodologia: Atlas de Bioenergia SP 2020.",
+    "scenario_ideal_tip": "Cenário Ideal (fronteira): 100% do resíduo gerado coletado e tratado. É hipótese de infraestrutura — a química (BMP, TS, VS, teor de CH₄) é idêntica à do Cenário Real. SP: 27,0 Mm³/dia de biometano.",
+    "scenario_served_note": "Cenários Real e Ideal disponíveis apenas para São Paulo.",
+    "cnLegend": {
+      "title": "Perfil de Relação C/N",
+      "c_rich": "Excesso de Carbono (> 60)",
+      "c_mod": "Mod. Rico em Carbono (40–60)",
+      "balanced": "Ótimo / Balanceado (20–40)",
+      "n_mod": "Mod. Rico em Nitrogênio (10–20)",
+      "n_rich": "Excesso de Nitrogênio (< 10)"
+    }
   },
   "Register": {
     "title": "Criar Conta",
@@ -401,6 +454,8 @@
     "back_to_dashboard": "Voltar ao Dashboard",
     "advanced_analysis": {
       "title": "Análises Avançadas",
+      "literature_base_link": "Base científica — 399 referências (revisão de literatura)",
+      "frontier_note": "Fronteira do Biogás: mobilização realista-alta dos 31 resíduos — supera o benchmark FIESP (~6,4 Mm³/d de biometano).",
       "category_agricultural": "Agrícola",
       "category_livestock": "Pecuário",
       "category_urban": "Urbano",
@@ -679,6 +734,13 @@
     "loading": "Carregando dashboard...",
     "welcome_title": "Bem-vindo ao PILAR-2b",
     "welcome_subtitle": "Plataforma completa para análise de potencial de biogás no estado de São Paulo",
+    "hero_institution": "CP2b · NIPE / UNICAMP",
+    "cta_open_map": "Abrir Mapa Interativo",
+    "open_map_aria": "Abrir o mapa interativo do estado de São Paulo",
+    "path_label": "Como usar",
+    "path_map": "Explore o Mapa",
+    "path_proximity": "Proximidade",
+    "path_science": "Rotas & Ciência",
     "stats_municipalities": "Municípios",
     "stats_residues": "Tipos de Resíduos",
     "stats_routes": "Rotas Tecnológicas",
@@ -868,7 +930,9 @@
       "conservative_name": "Conservador",
       "conservative_desc": "Considera todas as restrições práticas de forma conservadora",
       "pessimistic_name": "Pessimista",
-      "pessimistic_desc": "Cenário com maiores perdas e competição"
+      "pessimistic_desc": "Cenário com maiores perdas e competição",
+      "frontier_name": "Fronteira do Biogás",
+      "frontier_desc": "Mobilização realista-alta dos 31 resíduos sob política dedicada; supera o benchmark FIESP (~6,4 Mm³/d de biometano)"
     },
     "residue_scenarios": {
       "baseline_name": "Baseline",
@@ -877,6 +941,8 @@
       "conservative_desc": "Reduz todos os fatores em 20% (pior cenário)",
       "optimistic_name": "Otimista",
       "optimistic_desc": "Aumenta fatores em 15% (melhor cenário)",
+      "frontier_name": "Fronteira do Biogás",
+      "frontier_desc": "Mobilização realista-alta dos 31 resíduos sob política dedicada (supera o benchmark FIESP)",
       "custom_name": "Personalizado",
       "custom_desc": "Fatores ajustados manualmente por resíduo"
     },
@@ -1112,7 +1178,7 @@
     "acceptAll": "Aceitar tudo",
     "essentialOnly": "Apenas essenciais",
     "successMessage": "Obrigado! Entraremos em contato.",
-    "lgpdNote": "Em conformidade com a LGPD (Lei 13.709/2018) e GDPR."
+    "lgpdNote": "Respeitamos a sua privacidade. Consulte a nossa Política de Privacidade."
   },
   "calculator": {
     "title": "Calculadora de Viabilidade de Biogás",
@@ -1130,8 +1196,6 @@
       "email": "E-mail",
       "municipio": "Município (SP)",
       "municipioPlaceholder": "Digite o município...",
-      "cpfCnpj": "CPF / CNPJ",
-      "cpfNote": "Opcional. Usado para cruzamento com bases geoespaciais CP2B.",
       "lgpdConsent": "Concordo com o uso dos meus dados pelo CP2B/UNICAMP para fins de pesquisa e contato técnico, em conformidade com a LGPD."
     },
     "step2": {
@@ -1259,7 +1323,5 @@
         }
       ]
     }
-  
   }
-  
 }

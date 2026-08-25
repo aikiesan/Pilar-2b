@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, act, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import MapComponent from './MapComponent';
 import type { MunicipalityCollection, MunicipalityFeature } from '@/types/geospatial';
@@ -60,6 +60,9 @@ jest.mock('@/hooks/useGeospatialData', () => ({
   useCodigestionClusters: () => ({ data: null, loading: false, error: null, isFetching: false, refetch: jest.fn() }),
   useResidueCNMatrix: () => ({ data: null, loading: false, error: null }),
   useIntermediateRegionsGeoJSON: () => ({ data: null, loading: false, error: null, isFetching: false, refetch: jest.fn() }),
+  // Tooltip/panel top up from the per-municipality detail endpoint; the
+  // collection is served slim (fields=map).
+  useMunicipalityMetrics: () => ({ data: undefined, isLoading: false, error: null }),
 }));
 
 // useCnProfiles lives in a separate module and also calls React Query —
@@ -72,12 +75,26 @@ jest.mock('@/hooks/useCnProfiles', () => ({
 jest.mock('react-leaflet', () => ({
   MapContainer: ({ children }: any) => <div data-testid="map-container">{children}</div>,
   TileLayer: () => <div data-testid="tile-layer" />,
+  ScaleControl: () => <div data-testid="scale-control" />,
+  ZoomControl: () => <div data-testid="zoom-control" />,
+  // ScopeViewController calls flyTo/setView; InfraPane calls getPane/createPane.
+  useMap: () => ({
+    flyTo: jest.fn(),
+    setView: jest.fn(),
+    getPane: jest.fn(() => undefined),
+    createPane: jest.fn(() => ({ style: {} })),
+  }),
 }));
 
 jest.mock('./MunicipalityLayer', () => ({
   __esModule: true,
-  default: ({ data, biomassType, opacity }: any) => (
-    <div data-testid="municipality-layer" data-biomass-type={biomassType} data-opacity={opacity}>
+  default: ({ data, biomassType, opacity, paintBetaData }: any) => (
+    <div
+      data-testid="municipality-layer"
+      data-biomass-type={biomassType}
+      data-opacity={opacity}
+      data-paint-beta={String(Boolean(paintBetaData))}
+    >
       {data?.features?.length || 0} municipalities
     </div>
   ),
@@ -106,11 +123,19 @@ jest.mock('./MapBiomasLayer', () => ({
   ),
 }));
 
-jest.mock('./LeftFilterPanel', () => ({
+// Note: LeftFilterPanel is only imported for its VisualizationMode type in
+// MapComponent.tsx — DesktopLeftPanel is the component that's actually
+// rendered and receives search/visualization-mode/layer props, so it's the
+// one mocked with interactive elements below.
+
+jest.mock('./DesktopLeftPanel', () => ({
   __esModule: true,
-  default: ({ searchQuery, selectedResidues, biomassType, visualizationMode, onVisualizationModeChange }: any) => (
-    <div data-testid="left-filter-panel">
-      <input data-testid="search-input" value={searchQuery} readOnly />
+  default: ({
+    layers, onLayerToggle, municipalityCount, totalMunicipalities,
+    visualizationMode, onVisualizationModeChange,
+  }: any) => (
+    <div data-testid="desktop-left-panel">
+      <div data-testid="municipality-count">{municipalityCount} / {totalMunicipalities}</div>
       <select
         data-testid="visualization-mode-select"
         value={visualizationMode}
@@ -119,15 +144,6 @@ jest.mock('./LeftFilterPanel', () => ({
         <option value="choropleth">Choropleth</option>
         <option value="heatmap">Heatmap</option>
       </select>
-    </div>
-  ),
-}));
-
-jest.mock('./DesktopLeftPanel', () => ({
-  __esModule: true,
-  default: ({ layers, onLayerToggle, municipalityCount, totalMunicipalities }: any) => (
-    <div data-testid="desktop-left-panel">
-      <div data-testid="municipality-count">{municipalityCount} / {totalMunicipalities}</div>
       {layers.map((layer: any) => (
         <button
           key={layer.id}
@@ -139,11 +155,6 @@ jest.mock('./DesktopLeftPanel', () => ({
       ))}
     </div>
   ),
-}));
-
-jest.mock('./MapToolbar', () => ({
-  __esModule: true,
-  default: () => <div data-testid="map-toolbar">Toolbar</div>,
 }));
 
 jest.mock('./MapLegend', () => ({
@@ -163,7 +174,12 @@ jest.mock('./MapBiomasLegend', () => ({
 
 jest.mock('./BiomassLayerLegend', () => ({
   __esModule: true,
-  default: ({ visible }: any) => visible ? <div data-testid="biomass-layer-legend">Biomass Legend</div> : null,
+  // Mirrors the real contract: the legend is a function of which plant layers
+  // are on, and names them, so a test can assert WHICH types are explained.
+  default: ({ layerIds = [] }: any) =>
+    layerIds.length > 0 ? (
+      <div data-testid="biomass-layer-legend">{layerIds.join(',')}</div>
+    ) : null,
 }));
 
 jest.mock('./ReferencesPanel', () => ({
@@ -215,6 +231,11 @@ describe('MapComponent', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
+    // MapComponent syncs filter/visualization state into the URL via
+    // history.replaceState. jsdom's window.location persists across tests
+    // within this file, so a previous test's URL params would otherwise leak
+    // into the next test's initial state (read via readURLParam on mount).
+    window.history.replaceState(null, '', '/');
   });
 
   afterEach(() => {
@@ -236,7 +257,7 @@ describe('MapComponent', () => {
       expect(screen.getByText('Loading...')).toBeInTheDocument();
     });
 
-    it('should display loading skeleton during initial rendering', () => {
+    it('should display loading skeleton during initial rendering', async () => {
       const sampleData = createMunicipalityCollection([
         createMunicipalityFeature(),
       ]);
@@ -253,8 +274,8 @@ describe('MapComponent', () => {
       expect(screen.getByTestId('loading-skeleton')).toBeInTheDocument();
 
       // After rendering timer completes
-      jest.advanceTimersByTime(1500);
-      waitFor(() => {
+      act(() => { jest.advanceTimersByTime(1500); });
+      await waitFor(() => {
         expect(screen.queryByTestId('loading-skeleton')).not.toBeInTheDocument();
       });
     });
@@ -274,7 +295,7 @@ describe('MapComponent', () => {
       expect(screen.getByText('Backend API não está respondendo')).toBeInTheDocument();
     });
 
-    it('should display possible causes for error', () => {
+    it('should display the raw error message', () => {
       mockUseGeospatialData.mockReturnValue({
         data: null,
         loading: false,
@@ -283,9 +304,7 @@ describe('MapComponent', () => {
 
       render(<MapComponent />);
 
-      expect(screen.getByText('Possíveis causas:')).toBeInTheDocument();
-      expect(screen.getByText(/Backend API não está respondendo/)).toBeInTheDocument();
-      expect(screen.getByText(/Erro de conexão com o banco de dados Supabase/)).toBeInTheDocument();
+      expect(screen.getByText('Network error')).toBeInTheDocument();
     });
 
     it('should show reload button on error', () => {
@@ -311,9 +330,9 @@ describe('MapComponent', () => {
       });
 
       render(<MapComponent />);
+      act(() => { jest.advanceTimersByTime(1500); });
 
       expect(screen.getByText('Nenhum Dado Disponível')).toBeInTheDocument();
-      expect(screen.getByText(/O mapa não possui dados de municípios para exibir/)).toBeInTheDocument();
     });
 
     it('should show "try again" button when no data', () => {
@@ -345,45 +364,43 @@ describe('MapComponent', () => {
       });
     });
 
-    it('should render map container with correct data', () => {
+    it('should render map container with correct data', async () => {
       render(<MapComponent />);
 
       // Fast-forward rendering timer
-      jest.advanceTimersByTime(1500);
+      act(() => { jest.advanceTimersByTime(1500); });
 
-      waitFor(() => {
+      await waitFor(() => {
         expect(screen.getByTestId('map-container')).toBeInTheDocument();
         expect(screen.getByTestId('tile-layer')).toBeInTheDocument();
       });
     });
 
-    it('should render municipality layer by default', () => {
+    it('should render municipality layer by default', async () => {
       render(<MapComponent />);
-      jest.advanceTimersByTime(1500);
+      act(() => { jest.advanceTimersByTime(1500); });
 
-      waitFor(() => {
+      await waitFor(() => {
         expect(screen.getByTestId('municipality-layer')).toBeInTheDocument();
         expect(screen.getByText('3 municipalities')).toBeInTheDocument();
       });
     });
 
-    it('should render all panel components', () => {
+    it('should render all panel components', async () => {
       render(<MapComponent />);
-      jest.advanceTimersByTime(1500);
+      act(() => { jest.advanceTimersByTime(1500); });
 
-      waitFor(() => {
-        expect(screen.getByTestId('left-filter-panel')).toBeInTheDocument();
-        expect(screen.getByTestId('right-layer-panel')).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByTestId('desktop-left-panel')).toBeInTheDocument();
         expect(screen.getByTestId('map-legend')).toBeInTheDocument();
-        expect(screen.getByTestId('references-panel')).toBeInTheDocument();
       });
     });
 
-    it('should pass correct props to municipality layer', () => {
+    it('should pass correct props to municipality layer', async () => {
       render(<MapComponent biomassType="agricultural" opacity={0.5} />);
-      jest.advanceTimersByTime(1500);
+      act(() => { jest.advanceTimersByTime(1500); });
 
-      waitFor(() => {
+      await waitFor(() => {
         const layer = screen.getByTestId('municipality-layer');
         expect(layer).toHaveAttribute('data-biomass-type', 'agricultural');
         expect(layer).toHaveAttribute('data-opacity', '0.5');
@@ -406,7 +423,7 @@ describe('MapComponent', () => {
 
     it('should render choropleth by default', async () => {
       render(<MapComponent />);
-      jest.advanceTimersByTime(1500);
+      act(() => { jest.advanceTimersByTime(1500); });
 
       await waitFor(() => {
         expect(screen.getByTestId('municipality-layer')).toBeInTheDocument();
@@ -418,7 +435,7 @@ describe('MapComponent', () => {
     it('should switch to heatmap mode', async () => {
       const user = userEvent.setup({ delay: null });
       render(<MapComponent />);
-      jest.advanceTimersByTime(1500);
+      act(() => { jest.advanceTimersByTime(1500); });
 
       await waitFor(() => {
         expect(screen.getByTestId('visualization-mode-select')).toBeInTheDocument();
@@ -451,13 +468,13 @@ describe('MapComponent', () => {
     it('should toggle MapBiomas layer', async () => {
       const user = userEvent.setup({ delay: null });
       render(<MapComponent />);
-      jest.advanceTimersByTime(1500);
+      act(() => { jest.advanceTimersByTime(1500); });
 
       await waitFor(() => {
         expect(screen.queryByTestId('mapbiomas-layer')).not.toBeInTheDocument();
       });
 
-      const mapbiomasToggle = screen.getByTestId('layer-toggle-mapbiomas');
+      const mapbiomasToggle = await waitFor(() => screen.getByTestId('layer-toggle-mapbiomas'));
       await user.click(mapbiomasToggle);
 
       await waitFor(() => {
@@ -469,45 +486,86 @@ describe('MapComponent', () => {
     it('should toggle biogas-plants layer and legend', async () => {
       const user = userEvent.setup({ delay: null });
       render(<MapComponent />);
-      jest.advanceTimersByTime(1500);
+      act(() => { jest.advanceTimersByTime(1500); });
 
       await waitFor(() => {
-        expect(screen.queryByTestId('infrastructure-layer-biogas-plants')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('infrastructure-layer-biogas_plant')).not.toBeInTheDocument();
       });
 
-      const biogasToggle = screen.getByTestId('layer-toggle-biogas-plants');
+      const biogasToggle = await waitFor(() => screen.getByTestId('layer-toggle-biogas_plant'));
       await user.click(biogasToggle);
 
       await waitFor(() => {
-        expect(screen.getByTestId('infrastructure-layer-biogas-plants')).toBeInTheDocument();
-        expect(screen.getByTestId('biomass-layer-legend')).toBeInTheDocument();
+        expect(screen.getByTestId('infrastructure-layer-biogas_plant')).toBeInTheDocument();
+        expect(screen.getByTestId('biomass-layer-legend')).toHaveTextContent('biogas_plant');
+      });
+    });
+
+    // The legend was wired to a single `if (layerId === 'biogas_plant')`, so
+    // these three drew markers with nothing on screen to decode them.
+    it.each([
+      'ethanol_plant',
+      'biomass_thermal_plant',
+      'biodiesel_plant',
+    ])('should render the plants legend for %s', async (layerId) => {
+      const user = userEvent.setup({ delay: null });
+      render(<MapComponent />);
+      act(() => { jest.advanceTimersByTime(1500); });
+
+      expect(screen.queryByTestId('biomass-layer-legend')).not.toBeInTheDocument();
+
+      const toggle = await waitFor(() => screen.getByTestId(`layer-toggle-${layerId}`));
+      await user.click(toggle);
+
+      await waitFor(() => {
+        expect(screen.getByTestId(`infrastructure-layer-${layerId}`)).toBeInTheDocument();
+        expect(screen.getByTestId('biomass-layer-legend')).toHaveTextContent(layerId);
+      });
+    });
+
+    // ...and the legend must describe only what is on: turning a plant layer
+    // off has to take its entry away, not leave a fixed list of four.
+    it('should drop a plant type from the legend when its layer is switched off', async () => {
+      const user = userEvent.setup({ delay: null });
+      render(<MapComponent />);
+      act(() => { jest.advanceTimersByTime(1500); });
+
+      const ethanolToggle = await waitFor(() => screen.getByTestId('layer-toggle-ethanol_plant'));
+      await user.click(ethanolToggle);
+      await waitFor(() => {
+        expect(screen.getByTestId('biomass-layer-legend')).toHaveTextContent('ethanol_plant');
+      });
+
+      await user.click(ethanolToggle);
+      await waitFor(() => {
+        expect(screen.queryByTestId('biomass-layer-legend')).not.toBeInTheDocument();
       });
     });
 
     it('should toggle infrastructure layers', async () => {
       const user = userEvent.setup({ delay: null });
       render(<MapComponent />);
-      jest.advanceTimersByTime(1500);
+      act(() => { jest.advanceTimersByTime(1500); });
 
-      const pipelinesToggle = screen.getByTestId('layer-toggle-pipelines');
+      const pipelinesToggle = await waitFor(() => screen.getByTestId('layer-toggle-gas_pipeline_transport'));
       await user.click(pipelinesToggle);
 
       await waitFor(() => {
-        expect(screen.getByTestId('infrastructure-layer-pipelines')).toBeInTheDocument();
+        expect(screen.getByTestId('infrastructure-layer-gas_pipeline_transport')).toBeInTheDocument();
       });
 
-      const substationsToggle = screen.getByTestId('layer-toggle-substations');
+      const substationsToggle = await waitFor(() => screen.getByTestId('layer-toggle-substation'));
       await user.click(substationsToggle);
 
       await waitFor(() => {
-        expect(screen.getByTestId('infrastructure-layer-substations')).toBeInTheDocument();
+        expect(screen.getByTestId('infrastructure-layer-substation')).toBeInTheDocument();
       });
     });
 
     it('should show/hide MapBiomas legend with layer toggle', async () => {
       const user = userEvent.setup({ delay: null });
       render(<MapComponent />);
-      jest.advanceTimersByTime(1500);
+      act(() => { jest.advanceTimersByTime(1500); });
 
       // Initially no legend
       await waitFor(() => {
@@ -515,7 +573,7 @@ describe('MapComponent', () => {
       });
 
       // Turn on MapBiomas layer
-      const mapbiomasToggle = screen.getByTestId('layer-toggle-mapbiomas');
+      const mapbiomasToggle = await waitFor(() => screen.getByTestId('layer-toggle-mapbiomas'));
       await user.click(mapbiomasToggle);
 
       await waitFor(() => {
@@ -567,27 +625,27 @@ describe('MapComponent', () => {
       });
     });
 
-    it('should filter by search query (name)', () => {
+    it('should filter by search query (name)', async () => {
       render(<MapComponent searchQuery="São Paulo" />);
-      jest.advanceTimersByTime(1500);
+      act(() => { jest.advanceTimersByTime(1500); });
 
       // The filtering logic should reduce municipalities to 1
       // Note: In real test, we'd verify the filtered count via the municipality layer
-      waitFor(() => {
+      await waitFor(() => {
         expect(screen.getByTestId('municipality-layer')).toBeInTheDocument();
       });
     });
 
-    it('should filter by search query (IBGE code)', () => {
+    it('should filter by search query (IBGE code)', async () => {
       render(<MapComponent searchQuery="3509502" />);
-      jest.advanceTimersByTime(1500);
+      act(() => { jest.advanceTimersByTime(1500); });
 
-      waitFor(() => {
+      await waitFor(() => {
         expect(screen.getByTestId('municipality-layer')).toBeInTheDocument();
       });
     });
 
-    it('should filter by biogas range', () => {
+    it('should filter by biogas range', async () => {
       render(
         <MapComponent
           activeFilters={{
@@ -599,15 +657,15 @@ describe('MapComponent', () => {
           }}
         />
       );
-      jest.advanceTimersByTime(1500);
+      act(() => { jest.advanceTimersByTime(1500); });
 
       // Should show municipalities with biogas between 40M and 150M
-      waitFor(() => {
+      await waitFor(() => {
         expect(screen.getByTestId('municipality-layer')).toBeInTheDocument();
       });
     });
 
-    it('should filter by residue types', () => {
+    it('should filter by residue types', async () => {
       render(
         <MapComponent
           activeFilters={{
@@ -619,14 +677,14 @@ describe('MapComponent', () => {
           }}
         />
       );
-      jest.advanceTimersByTime(1500);
+      act(() => { jest.advanceTimersByTime(1500); });
 
-      waitFor(() => {
+      await waitFor(() => {
         expect(screen.getByTestId('municipality-layer')).toBeInTheDocument();
       });
     });
 
-    it('should filter by regions', () => {
+    it('should filter by regions', async () => {
       render(
         <MapComponent
           activeFilters={{
@@ -638,14 +696,14 @@ describe('MapComponent', () => {
           }}
         />
       );
-      jest.advanceTimersByTime(1500);
+      act(() => { jest.advanceTimersByTime(1500); });
 
-      waitFor(() => {
+      await waitFor(() => {
         expect(screen.getByTestId('municipality-layer')).toBeInTheDocument();
       });
     });
 
-    it('should show filtered count vs total count', () => {
+    it('should show filtered count vs total count', async () => {
       render(
         <MapComponent
           activeFilters={{
@@ -657,15 +715,25 @@ describe('MapComponent', () => {
           }}
         />
       );
-      jest.advanceTimersByTime(1500);
+      act(() => { jest.advanceTimersByTime(1500); });
 
-      // Should filter to 1 municipality (São Paulo with 100M) out of 3 total
-      waitFor(() => {
-        expect(screen.getByTestId('municipality-count')).toHaveTextContent('1 / 3');
+      // No scenario switch needed: the map now opens on "Real", and
+      // applyScenarioToProps leaves props untouched for the served scenarios
+      // (they carry their own ch4_real_* columns rather than scaling the legacy
+      // ones). So the fixture's raw total_biogas_m3_year is what the minBiogas
+      // filter compares against — which is what the removed "Médio Prazo" click
+      // used to arrange.
+
+      // 1 matching SP municipality out of the 645 that make up São Paulo.
+      // The denominator is the SP universe (lib/mapScope.SP_MUNICIPALITY_COUNT),
+      // not the fixture length: the panel reports coverage of São Paulo, and the
+      // collection also carries non-SP municipalities that are excluded from it.
+      await waitFor(() => {
+        expect(screen.getByTestId('municipality-count')).toHaveTextContent('1 / 645');
       });
     });
 
-    it('should combine multiple filters', () => {
+    it('should combine multiple filters', async () => {
       render(
         <MapComponent
           searchQuery="Paulo"
@@ -678,11 +746,189 @@ describe('MapComponent', () => {
           }}
         />
       );
-      jest.advanceTimersByTime(1500);
+      act(() => { jest.advanceTimersByTime(1500); });
 
       // Multiple filters should all apply
-      waitFor(() => {
+      await waitFor(() => {
         expect(screen.getByTestId('municipality-layer')).toBeInTheDocument();
+      });
+    });
+  });
+
+  // Two regressions that were invisible from inside the component: picking a
+  // residue emptied the map instead of narrowing it, and the MG beta layer drew
+  // nothing at all in the default (SP) scope.
+  describe('Residue filter + MG beta layer', () => {
+    const spWithCane = createMunicipalityFeature({
+      ibge_code: '3505500',
+      name: 'Barretos',
+      ch4_real_m3_year: 1_000,
+      ch4_real_sugarcane_m3_year: 600,
+      ch4_real_cattle_m3_year: 400,
+    });
+    const spWithoutCane = createMunicipalityFeature({
+      ibge_code: '3548500',
+      name: 'Santos',
+      ch4_real_m3_year: 500,
+      ch4_real_rsu_m3_year: 500,
+    });
+    const betaMunicipality = createMunicipalityFeature({
+      ibge_code: '3106200', // Belo Horizonte — MG, outside the canonical pipeline
+      name: 'Belo Horizonte',
+    });
+    const disabledStateMunicipality = createMunicipalityFeature({
+      ibge_code: '3304557',
+      name: 'Rio de Janeiro',
+    });
+
+    beforeEach(() => {
+      mockUseGeospatialData.mockReturnValue({
+        data: createMunicipalityCollection([
+          spWithCane,
+          spWithoutCane,
+          betaMunicipality,
+          disabledStateMunicipality,
+        ]),
+        loading: false,
+        error: null,
+      });
+    });
+
+    it('draws the beta municipalities in the SP scope, where the toggle lives', async () => {
+      // MG remains as beta context, while states outside the public SP+MG rollout
+      // are removed even if a stale payload contains them. The pilot ships hidden,
+      // so opt into it first -- SP is the default focus on load.
+      render(<MapComponent />);
+      act(() => { jest.advanceTimersByTime(1500); });
+
+      await waitFor(() => {
+        expect(screen.getByText('2 municipalities')).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByTestId('layer-toggle-mg-beta'));
+
+      await waitFor(() => {
+        expect(screen.getByText('3 municipalities')).toBeInTheDocument();
+        expect(screen.getByTestId('municipality-count')).toHaveTextContent('2 / 645');
+      });
+    });
+
+    it('starts with the MG pilot hidden so São Paulo is the first focus', async () => {
+      render(<MapComponent />);
+      act(() => { jest.advanceTimersByTime(1500); });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('layer-toggle-mg-beta')).toHaveTextContent('OFF');
+      });
+    });
+
+    it('selects MG as an 853-municipality pilot scope', async () => {
+      window.history.replaceState(null, '', '/?scope=31');
+      render(<MapComponent />);
+      act(() => { jest.advanceTimersByTime(1500); });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('municipality-count')).toHaveTextContent('1 / 853');
+        expect(screen.getByText('1 municipalities')).toBeInTheDocument();
+      });
+    });
+
+    it('keeps the MG quantitative ramp active when its context toggle is off', async () => {
+      window.history.replaceState(null, '', '/?scope=31&type=livestock');
+      render(<MapComponent />);
+      act(() => { jest.advanceTimersByTime(1500); });
+
+      await waitFor(() => {
+        expect(screen.getAllByTestId('municipality-layer')[0]).toHaveAttribute(
+          'data-paint-beta',
+          'true',
+        );
+      });
+
+      fireEvent.click(screen.getByTestId('layer-toggle-mg-beta'));
+
+      await waitFor(() => {
+        expect(screen.getAllByTestId('municipality-layer')[0]).toHaveAttribute(
+          'data-paint-beta',
+          'true',
+        );
+      });
+    });
+
+    it('preserves a validated urban bookmark when MG opens', async () => {
+      window.history.replaceState(
+        null,
+        '',
+        '/?scope=31&type=urban&r=rsu,rpo,sewage&metric=methane_m3',
+      );
+      render(<MapComponent />);
+      act(() => { jest.advanceTimersByTime(1500); });
+
+      await waitFor(() => {
+        expect(screen.getAllByTestId('municipality-layer')[0]).toHaveAttribute(
+          'data-biomass-type',
+          'urban',
+        );
+        expect(window.location.search).toContain('type=urban');
+        expect(window.location.search).toContain('metric=methane_m3');
+        expect(window.location.search).toContain('r=rsu');
+        expect(window.location.search).not.toContain('rpo');
+        expect(window.location.search).not.toContain('sewage');
+      });
+    });
+
+    it('keeps the active sector and metric when switching to MG', async () => {
+      window.history.replaceState(
+        null,
+        '',
+        '/?type=urban&r=rsu,rpo,sewage&metric=methane_m3',
+      );
+      render(<MapComponent />);
+      act(() => { jest.advanceTimersByTime(1500); });
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /São Paulo SP/i })).toBeInTheDocument();
+      });
+      fireEvent.click(screen.getByRole('button', { name: /São Paulo SP/i }));
+      fireEvent.click(screen.getByRole('option', { name: /Minas Gerais/i }));
+
+      await waitFor(() => {
+        expect(window.location.search).toContain('scope=31');
+        expect(window.location.search).toContain('type=urban');
+        expect(window.location.search).toContain('metric=methane_m3');
+        expect(window.location.search).toContain('r=rsu');
+        expect(window.location.search).not.toContain('rpo');
+        expect(window.location.search).not.toContain('sewage');
+      });
+    });
+
+    it('narrows to the municipalities holding the selected residue', async () => {
+      // Read from ?r= on mount, the same path a bookmarked filter takes.
+      window.history.replaceState(null, '', '/?r=sugarcane');
+      render(<MapComponent />);
+      act(() => { jest.advanceTimersByTime(1500); });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('municipality-count')).toHaveTextContent('1 / 645');
+      });
+
+      // The MG pilot is off on load, so opt in to assert the beta row's behaviour.
+      fireEvent.click(screen.getByTestId('layer-toggle-mg-beta'));
+
+      await waitFor(() => {
+        // Barretos has a cane share, Santos does not; the beta row survives as
+        // flat context because it has no per-residue breakdown to test.
+        expect(screen.getByTestId('municipality-count')).toHaveTextContent('1 / 645');
+        expect(screen.getByText('2 municipalities')).toBeInTheDocument();
+      });
+    });
+
+    it('keeps every municipality when nothing is selected', async () => {
+      render(<MapComponent />);
+      act(() => { jest.advanceTimersByTime(1500); });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('municipality-count')).toHaveTextContent('2 / 645');
       });
     });
   });
@@ -700,65 +946,65 @@ describe('MapComponent', () => {
       });
     });
 
-    it('should use default biomass type', () => {
+    it('should use default biomass type', async () => {
       render(<MapComponent />);
-      jest.advanceTimersByTime(1500);
+      act(() => { jest.advanceTimersByTime(1500); });
 
-      waitFor(() => {
+      await waitFor(() => {
         const layer = screen.getByTestId('municipality-layer');
         expect(layer).toHaveAttribute('data-biomass-type', 'total');
       });
     });
 
-    it('should accept custom biomass type', () => {
+    it('should accept custom biomass type', async () => {
       render(<MapComponent biomassType="livestock" />);
-      jest.advanceTimersByTime(1500);
+      act(() => { jest.advanceTimersByTime(1500); });
 
-      waitFor(() => {
+      await waitFor(() => {
         const layer = screen.getByTestId('municipality-layer');
         expect(layer).toHaveAttribute('data-biomass-type', 'livestock');
       });
     });
 
-    it('should use default opacity', () => {
+    it('should use default opacity', async () => {
       render(<MapComponent />);
-      jest.advanceTimersByTime(1500);
+      act(() => { jest.advanceTimersByTime(1500); });
 
-      waitFor(() => {
+      await waitFor(() => {
         const layer = screen.getByTestId('municipality-layer');
         expect(layer).toHaveAttribute('data-opacity', '0.7');
       });
     });
 
-    it('should accept custom opacity', () => {
+    it('should accept custom opacity', async () => {
       render(<MapComponent opacity={0.9} />);
-      jest.advanceTimersByTime(1500);
+      act(() => { jest.advanceTimersByTime(1500); });
 
-      waitFor(() => {
+      await waitFor(() => {
         const layer = screen.getByTestId('municipality-layer');
         expect(layer).toHaveAttribute('data-opacity', '0.9');
       });
     });
 
-    it('should handle callbacks for biomass type change', () => {
+    it('should handle callbacks for biomass type change', async () => {
       const handleBiomassTypeChange = jest.fn();
       render(<MapComponent onBiomassTypeChange={handleBiomassTypeChange} />);
-      jest.advanceTimersByTime(1500);
+      act(() => { jest.advanceTimersByTime(1500); });
 
-      // Callback should be passed to LeftFilterPanel
-      waitFor(() => {
-        expect(screen.getByTestId('left-filter-panel')).toBeInTheDocument();
+      // Callback should be passed to DesktopLeftPanel
+      await waitFor(() => {
+        expect(screen.getByTestId('desktop-left-panel')).toBeInTheDocument();
       });
     });
 
-    it('should handle callbacks for opacity change', () => {
+    it('should handle callbacks for opacity change', async () => {
       const handleOpacityChange = jest.fn();
       render(<MapComponent onOpacityChange={handleOpacityChange} />);
-      jest.advanceTimersByTime(1500);
+      act(() => { jest.advanceTimersByTime(1500); });
 
       // Callback should be passed to DesktopLeftPanel
-      waitFor(() => {
-        expect(screen.getByTestId('right-layer-panel')).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByTestId('desktop-left-panel')).toBeInTheDocument();
       });
     });
   });
@@ -784,11 +1030,12 @@ describe('MapComponent', () => {
       });
 
       render(<MapComponent />);
+      act(() => { jest.advanceTimersByTime(1500); });
 
       expect(screen.getByText('Nenhum Dado Disponível')).toBeInTheDocument();
     });
 
-    it('should handle all filters resulting in no matches', () => {
+    it('should handle all filters resulting in no matches', async () => {
       mockUseGeospatialData.mockReturnValue({
         data: createMunicipalityCollection([
           createMunicipalityFeature({ total_biogas_m3_year: 10_000_000 }),
@@ -808,11 +1055,15 @@ describe('MapComponent', () => {
           }}
         />
       );
-      jest.advanceTimersByTime(1500);
+      act(() => { jest.advanceTimersByTime(1500); });
 
-      // Should show 0 / 1
-      waitFor(() => {
-        expect(screen.getByTestId('municipality-count')).toHaveTextContent('0 / 1');
+      // See the note in "should show filtered count vs total count": the default
+      // scenario is now "Real", which does not scale the legacy columns, so no
+      // scenario switch is needed to read the fixture's raw values.
+
+      // No match, against the fixed SP denominator.
+      await waitFor(() => {
+        expect(screen.getByTestId('municipality-count')).toHaveTextContent('0 / 645');
       });
     });
   });

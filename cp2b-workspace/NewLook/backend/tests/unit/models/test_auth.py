@@ -2,17 +2,19 @@
 Unit tests for Authentication Models
 Tests Pydantic validation for auth request/response models
 """
-import pytest
-from pydantic import ValidationError
+
 from datetime import datetime
 
+import pytest
+from pydantic import ValidationError
+
 from app.models.auth import (
-    UserRegistration,
+    AuthResponse,
+    MessageResponse,
+    UpdateProfile,
     UserLogin,
     UserProfile,
-    AuthResponse,
-    UpdateProfile,
-    MessageResponse
+    UserRegistration,
 )
 
 
@@ -22,9 +24,7 @@ class TestUserRegistration:
     def test_valid_registration(self):
         """Test valid user registration"""
         registration = UserRegistration(
-            email="user@example.com",
-            password="SecurePass123",
-            full_name="John Doe"
+            email="user@example.com", password="SecurePass123", full_name="John Doe"
         )
 
         assert registration.email == "user@example.com"
@@ -34,14 +34,10 @@ class TestUserRegistration:
     def test_email_validation(self):
         """Test email must be valid format"""
         with pytest.raises(ValidationError) as exc_info:
-            UserRegistration(
-                email="invalid-email",
-                password="SecurePass123",
-                full_name="John Doe"
-            )
+            UserRegistration(email="invalid-email", password="SecurePass123", full_name="John Doe")
 
         errors = exc_info.value.errors()
-        assert any(e['loc'] == ('email',) for e in errors)
+        assert any(e["loc"] == ("email",) for e in errors)
 
     def test_email_valid_formats(self):
         """Test various valid email formats"""
@@ -49,14 +45,12 @@ class TestUserRegistration:
             "user@example.com",
             "user.name@example.com",
             "user+tag@example.co.uk",
-            "user_123@test-domain.org"
+            "user_123@test-domain.org",
         ]
 
         for email in valid_emails:
             registration = UserRegistration(
-                email=email,
-                password="SecurePass123",
-                full_name="John Doe"
+                email=email, password="SecurePass123", full_name="John Doe"
             )
             assert registration.email == email
 
@@ -64,13 +58,11 @@ class TestUserRegistration:
         """Test password must be at least 8 characters"""
         with pytest.raises(ValidationError) as exc_info:
             UserRegistration(
-                email="user@example.com",
-                password="Pass1",  # Too short
-                full_name="John Doe"
+                email="user@example.com", password="Pass1", full_name="John Doe"  # Too short
             )
 
         errors = exc_info.value.errors()
-        assert any('at least 8 characters' in str(e) for e in errors)
+        assert any("at least 8 characters" in str(e) for e in errors)
 
     def test_password_max_length(self):
         """Test password max length validation"""
@@ -78,7 +70,7 @@ class TestUserRegistration:
             UserRegistration(
                 email="user@example.com",
                 password="A" * 101 + "b1",  # Too long
-                full_name="John Doe"
+                full_name="John Doe",
             )
 
     def test_password_requires_uppercase(self):
@@ -87,7 +79,7 @@ class TestUserRegistration:
             UserRegistration(
                 email="user@example.com",
                 password="securepass123",  # No uppercase
-                full_name="John Doe"
+                full_name="John Doe",
             )
 
         assert "uppercase letter" in str(exc_info.value)
@@ -98,7 +90,7 @@ class TestUserRegistration:
             UserRegistration(
                 email="user@example.com",
                 password="SECUREPASS123",  # No lowercase
-                full_name="John Doe"
+                full_name="John Doe",
             )
 
         assert "lowercase letter" in str(exc_info.value)
@@ -109,25 +101,18 @@ class TestUserRegistration:
             UserRegistration(
                 email="user@example.com",
                 password="SecurePassword",  # No digit
-                full_name="John Doe"
+                full_name="John Doe",
             )
 
         assert "digit" in str(exc_info.value)
 
     def test_password_all_requirements(self):
         """Test password with all requirements passes"""
-        passwords = [
-            "SecurePass123",
-            "MyP@ssw0rd",
-            "Test1234Password",
-            "Aa1bcdefgh"
-        ]
+        passwords = ["SecurePass123", "MyP@ssw0rd", "Test1234Password", "Aa1bcdefgh"]
 
         for password in passwords:
             registration = UserRegistration(
-                email="user@example.com",
-                password=password,
-                full_name="John Doe"
+                email="user@example.com", password=password, full_name="John Doe"
             )
             assert registration.password == password
 
@@ -135,52 +120,39 @@ class TestUserRegistration:
         """Test full name must be at least 2 characters"""
         with pytest.raises(ValidationError) as exc_info:
             UserRegistration(
-                email="user@example.com",
-                password="SecurePass123",
-                full_name="A"  # Too short
+                email="user@example.com", password="SecurePass123", full_name="A"  # Too short
             )
 
         errors = exc_info.value.errors()
-        assert any(e['loc'] == ('full_name',) for e in errors)
+        assert any(e["loc"] == ("full_name",) for e in errors)
 
     def test_full_name_max_length(self):
         """Test full name max length validation"""
         with pytest.raises(ValidationError):
             UserRegistration(
-                email="user@example.com",
-                password="SecurePass123",
-                full_name="A" * 101  # Too long
+                email="user@example.com", password="SecurePass123", full_name="A" * 101  # Too long
             )
 
     def test_full_name_valid_lengths(self):
         """Test valid full name lengths"""
-        names = [
-            "Jo",  # Minimum
-            "John Doe",
-            "María José García López",
-            "A" * 100  # Maximum
-        ]
+        names = ["Jo", "John Doe", "María José García López", "A" * 100]  # Minimum  # Maximum
 
         for name in names:
             registration = UserRegistration(
-                email="user@example.com",
-                password="SecurePass123",
-                full_name=name
+                email="user@example.com", password="SecurePass123", full_name=name
             )
             assert registration.full_name == name
 
     def test_serialization(self):
         """Test registration can be serialized"""
         registration = UserRegistration(
-            email="user@example.com",
-            password="SecurePass123",
-            full_name="John Doe"
+            email="user@example.com", password="SecurePass123", full_name="John Doe"
         )
 
         data = registration.model_dump()
-        assert data['email'] == "user@example.com"
-        assert data['password'] == "SecurePass123"
-        assert data['full_name'] == "John Doe"
+        assert data["email"] == "user@example.com"
+        assert data["password"] == "SecurePass123"
+        assert data["full_name"] == "John Doe"
 
 
 class TestUserLogin:
@@ -188,10 +160,7 @@ class TestUserLogin:
 
     def test_valid_login(self):
         """Test valid login credentials"""
-        login = UserLogin(
-            email="user@example.com",
-            password="securePass123"
-        )
+        login = UserLogin(email="user@example.com", password="securePass123")
 
         assert login.email == "user@example.com"
         assert login.password == "securePass123"
@@ -199,17 +168,13 @@ class TestUserLogin:
     def test_login_email_validation(self):
         """Test login email must be valid"""
         with pytest.raises(ValidationError):
-            UserLogin(
-                email="invalid-email",
-                password="password123"
-            )
+            UserLogin(email="invalid-email", password="password123")
 
     def test_login_no_password_validation(self):
         """Test login does not validate password strength"""
         # Login should accept any password (validation happens server-side)
         login = UserLogin(
-            email="user@example.com",
-            password="weak"  # Weak password is OK for login
+            email="user@example.com", password="weak"  # Weak password is OK for login
         )
 
         assert login.password == "weak"
@@ -234,7 +199,7 @@ class TestUserProfile:
             full_name="John Doe",
             role="autenticado",
             created_at=datetime(2025, 11, 17, 10, 0, 0),
-            updated_at=datetime(2025, 11, 17, 10, 0, 0)
+            updated_at=datetime(2025, 11, 17, 10, 0, 0),
         )
 
         assert profile.id == "550e8400-e29b-41d4-a716-446655440000"
@@ -252,7 +217,7 @@ class TestUserProfile:
                 full_name="John Doe",
                 role=role,
                 created_at=datetime.now(),
-                updated_at=datetime.now()
+                updated_at=datetime.now(),
             )
             assert profile.role == role
 
@@ -265,11 +230,11 @@ class TestUserProfile:
                 full_name="John Doe",
                 role="invalid_role",  # Invalid
                 created_at=datetime.now(),
-                updated_at=datetime.now()
+                updated_at=datetime.now(),
             )
 
         errors = exc_info.value.errors()
-        assert any(e['loc'] == ('role',) for e in errors)
+        assert any(e["loc"] == ("role",) for e in errors)
 
     def test_datetime_fields(self):
         """Test datetime fields are properly handled"""
@@ -280,7 +245,7 @@ class TestUserProfile:
             full_name="John Doe",
             role="autenticado",
             created_at=now,
-            updated_at=now
+            updated_at=now,
         )
 
         assert isinstance(profile.created_at, datetime)
@@ -291,7 +256,7 @@ class TestUserProfile:
         with pytest.raises(ValidationError):
             UserProfile(
                 id="test-id",
-                email="user@example.com"
+                email="user@example.com",
                 # Missing required fields
             )
 
@@ -309,8 +274,8 @@ class TestAuthResponse:
                 full_name="John Doe",
                 role="autenticado",
                 created_at=datetime.now(),
-                updated_at=datetime.now()
-            )
+                updated_at=datetime.now(),
+            ),
         )
 
         assert response.access_token.startswith("eyJ")
@@ -327,8 +292,8 @@ class TestAuthResponse:
                 full_name="John Doe",
                 role="autenticado",
                 created_at=datetime.now(),
-                updated_at=datetime.now()
-            )
+                updated_at=datetime.now(),
+            ),
         )
 
         assert response.token_type == "bearer"
@@ -344,8 +309,8 @@ class TestAuthResponse:
                 full_name="John Doe",
                 role="autenticado",
                 created_at=datetime.now(),
-                updated_at=datetime.now()
-            )
+                updated_at=datetime.now(),
+            ),
         )
 
         assert response.token_type == "custom"
@@ -353,10 +318,7 @@ class TestAuthResponse:
     def test_nested_user_validation(self):
         """Test nested UserProfile is validated"""
         with pytest.raises(ValidationError):
-            AuthResponse(
-                access_token="test-token",
-                user={"invalid": "user"}  # Invalid user object
-            )
+            AuthResponse(access_token="test-token", user={"invalid": "user"})  # Invalid user object
 
 
 class TestUpdateProfile:
@@ -386,12 +348,7 @@ class TestUpdateProfile:
 
     def test_valid_full_name_updates(self):
         """Test various valid full name updates"""
-        valid_names = [
-            "Jo",
-            "John Doe",
-            "María José García",
-            "A" * 100
-        ]
+        valid_names = ["Jo", "John Doe", "María José García", "A" * 100]
 
         for name in valid_names:
             update = UpdateProfile(full_name=name)
@@ -419,7 +376,7 @@ class TestMessageResponse:
             "Password updated",
             "Error: Invalid credentials",
             "✓ Profile updated",
-            "Multi-line\nmessage\nhere"
+            "Multi-line\nmessage\nhere",
         ]
 
         for msg in messages:
@@ -431,7 +388,7 @@ class TestMessageResponse:
         response = MessageResponse(message="Test message")
 
         data = response.model_dump()
-        assert data['message'] == "Test message"
+        assert data["message"] == "Test message"
 
 
 class TestModelSerialization:
@@ -440,9 +397,7 @@ class TestModelSerialization:
     def test_registration_to_json(self):
         """Test registration serializes to JSON"""
         registration = UserRegistration(
-            email="user@example.com",
-            password="SecurePass123",
-            full_name="John Doe"
+            email="user@example.com", password="SecurePass123", full_name="John Doe"
         )
 
         json_str = registration.model_dump_json()
@@ -457,7 +412,7 @@ class TestModelSerialization:
             full_name="John Doe",
             role="autenticado",
             created_at=datetime(2025, 11, 17, 10, 0, 0),
-            updated_at=datetime(2025, 11, 17, 10, 0, 0)
+            updated_at=datetime(2025, 11, 17, 10, 0, 0),
         )
 
         json_str = profile.model_dump_json()
@@ -474,14 +429,14 @@ class TestModelSerialization:
                 full_name="John Doe",
                 role="autenticado",
                 created_at=datetime(2025, 11, 17, 10, 0, 0),
-                updated_at=datetime(2025, 11, 17, 10, 0, 0)
-            )
+                updated_at=datetime(2025, 11, 17, 10, 0, 0),
+            ),
         )
 
         data = response.model_dump()
-        assert data['user']['email'] == "user@example.com"
-        assert data['user']['role'] == "autenticado"
-        assert data['token_type'] == "bearer"
+        assert data["user"]["email"] == "user@example.com"
+        assert data["user"]["role"] == "autenticado"
+        assert data["token_type"] == "bearer"
 
 
 class TestPasswordSecurity:
@@ -498,26 +453,15 @@ class TestPasswordSecurity:
 
         for password in weak_passwords:
             with pytest.raises(ValidationError):
-                UserRegistration(
-                    email="user@example.com",
-                    password=password,
-                    full_name="John Doe"
-                )
+                UserRegistration(email="user@example.com", password=password, full_name="John Doe")
 
     def test_strong_passwords_accepted(self):
         """Test strong passwords are accepted"""
-        strong_passwords = [
-            "MyP@ssw0rd",
-            "SecurePass123!",
-            "C0mpl3xP@ss",
-            "Tr0ub4dor&3"
-        ]
+        strong_passwords = ["MyP@ssw0rd", "SecurePass123!", "C0mpl3xP@ss", "Tr0ub4dor&3"]
 
         for password in strong_passwords:
             registration = UserRegistration(
-                email="user@example.com",
-                password=password,
-                full_name="John Doe"
+                email="user@example.com", password=password, full_name="John Doe"
             )
             assert registration.password == password
 
@@ -525,17 +469,13 @@ class TestPasswordSecurity:
         """Test password edge cases"""
         # Exactly 8 characters (minimum)
         registration = UserRegistration(
-            email="user@example.com",
-            password="Pass123A",  # Exactly 8 chars
-            full_name="John Doe"
+            email="user@example.com", password="Pass123A", full_name="John Doe"  # Exactly 8 chars
         )
         assert len(registration.password) == 8
 
         # 100 characters (maximum)
         long_password = "A" * 50 + "a" * 49 + "1"
         registration = UserRegistration(
-            email="user@example.com",
-            password=long_password,
-            full_name="John Doe"
+            email="user@example.com", password=long_password, full_name="John Doe"
         )
         assert len(registration.password) == 100

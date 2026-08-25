@@ -39,15 +39,15 @@ rebrand (see CRITICAL_FIXES_CHANGELOG.md). Its closest equivalent,
 POST /proximity/analyze, is tested instead.
 """
 
-import os
-import sys
-import json
-import time
-import statistics
-import threading
 import datetime
+import json
+import os
+import statistics
+import sys
+import threading
+import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import List, Dict, Any, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 try:
     import requests
@@ -61,8 +61,8 @@ except ImportError:
 
 BASE_URL = os.environ.get("BASE_URL", "http://localhost:8000").rstrip("/")
 N_REQUESTS = int(os.environ.get("N_REQUESTS", "100"))
-CONCURRENCY = int(os.environ.get("CONCURRENCY", "5"))   # parallel workers
-TIMEOUT = float(os.environ.get("TIMEOUT", "30"))        # seconds per request
+CONCURRENCY = int(os.environ.get("CONCURRENCY", "5"))  # parallel workers
+TIMEOUT = float(os.environ.get("TIMEOUT", "30"))  # seconds per request
 SKIP_COLD_CACHE = bool(os.environ.get("SKIP_COLD_CACHE", ""))
 
 # ---------------------------------------------------------------------------
@@ -101,7 +101,7 @@ ENDPOINTS: List[Dict[str, Any]] = [
         "path": "/api/v1/analysis/statistics/by-region",
         "params": {},
         "body": None,
-        "manuscript_estimate_s": None,   # not explicitly stated
+        "manuscript_estimate_s": None,  # not explicitly stated
     },
     {
         "label": "GET /statistics/summary",
@@ -124,6 +124,7 @@ ENDPOINTS: List[Dict[str, Any]] = [
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _percentile(data: List[float], p: float) -> float:
     """Compute p-th percentile (0-100) via linear interpolation."""
@@ -241,6 +242,7 @@ def _run_batch(
 # Cold-cache test: clear server cache then measure first-hit latency
 # ---------------------------------------------------------------------------
 
+
 def _cold_cache_probe(ep: Dict[str, Any], session: requests.Session) -> Optional[float]:
     """
     Attempt to hit the cache-clear endpoint (if available), then time the
@@ -265,6 +267,7 @@ def _cold_cache_probe(ep: Dict[str, Any], session: requests.Session) -> Optional
 # ---------------------------------------------------------------------------
 # Main benchmark runner
 # ---------------------------------------------------------------------------
+
 
 def run_benchmarks() -> Dict[str, Any]:
     results = []
@@ -332,12 +335,14 @@ def run_benchmarks() -> Dict[str, Any]:
             None,
         )
         if cold and cold.get("cold_hit_s") and warm.get("mean_s"):
-            overhead.append({
-                "endpoint": ep_base_label,
-                "cold_hit_s": cold["cold_hit_s"],
-                "warm_mean_s": warm["mean_s"],
-                "speedup_factor": round(cold["cold_hit_s"] / warm["mean_s"], 2),
-            })
+            overhead.append(
+                {
+                    "endpoint": ep_base_label,
+                    "cold_hit_s": cold["cold_hit_s"],
+                    "warm_mean_s": warm["mean_s"],
+                    "speedup_factor": round(cold["cold_hit_s"] / warm["mean_s"], 2),
+                }
+            )
 
     # -----------------------------------------------------------------------
     # Summary table

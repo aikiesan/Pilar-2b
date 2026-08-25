@@ -5,14 +5,17 @@ Covers /maps/layers, /maps/layers/{layer_id}/geojson, and /maps/bounds.
 maps.py serves purely static/hardcoded data — no database dependency —
 so these tests focus on routing, response structure, and edge-case IDs.
 """
+
 import pytest
 from fastapi.testclient import TestClient
+
 from app.main import app
 
 client = TestClient(app)
 
 
 # ─── /maps/layers ─────────────────────────────────────────────────────────────
+
 
 @pytest.mark.integration
 class TestGetAvailableLayers:
@@ -74,12 +77,13 @@ class TestGetAvailableLayers:
         """Each layer's url references the /geojson endpoint."""
         response = client.get("/api/v1/maps/layers")
         for layer in response.json()["layers"]:
-            assert "/geojson" in layer["url"], (
-                f"Layer '{layer['id']}' url does not contain '/geojson': {layer['url']}"
-            )
+            assert (
+                "/geojson" in layer["url"]
+            ), f"Layer '{layer['id']}' url does not contain '/geojson': {layer['url']}"
 
 
 # ─── /maps/layers/{layer_id}/geojson ─────────────────────────────────────────
+
 
 @pytest.mark.integration
 class TestGetLayerGeoJSON:
@@ -176,6 +180,7 @@ class TestGetLayerGeoJSON:
 
 
 # ─── /maps/bounds ─────────────────────────────────────────────────────────────
+
 
 @pytest.mark.integration
 class TestGetMapBounds:

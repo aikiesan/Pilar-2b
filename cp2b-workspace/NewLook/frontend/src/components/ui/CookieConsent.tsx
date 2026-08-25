@@ -71,7 +71,7 @@ export default function CookieConsent() {
       role="dialog"
       aria-label={t('title')}
       aria-modal="false"
-      className="fixed bottom-0 left-0 right-0 z-[150] p-4 sm:p-6"
+      className="fixed bottom-0 left-0 right-0 z-[500] p-4 sm:p-6"
     >
       <div className="max-w-5xl mx-auto bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-slate-700 overflow-hidden">
         {/* Top accent bar */}

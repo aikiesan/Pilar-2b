@@ -2,18 +2,21 @@
 Authentication middleware for PILAR-2b V3
 Provides dependency injection for protected routes
 """
-from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+
 from typing import Optional
 
-from app.services.auth_service import auth_service
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+
 from app.models.auth import UserProfile, UserRole
+from app.services.auth_service import auth_service
 
 # HTTP Bearer security scheme
 security = HTTPBearer()
 
+
 async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security)
+    credentials: HTTPAuthorizationCredentials = Depends(security),
 ) -> UserProfile:
     """
     Dependency to get current authenticated user from JWT token
@@ -37,11 +40,12 @@ async def get_current_user(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials",
-            headers={"WWW-Authenticate": "Bearer"}
+            headers={"WWW-Authenticate": "Bearer"},
         )
 
+
 async def get_current_active_user(
-    current_user: UserProfile = Depends(get_current_user)
+    current_user: UserProfile = Depends(get_current_user),
 ) -> UserProfile:
     """
     Dependency to get current active user (non-visitante)
@@ -58,13 +62,13 @@ async def get_current_active_user(
     if current_user.role == "visitante":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Inactive user. Please verify your email or upgrade your account."
+            detail="Inactive user. Please verify your email or upgrade your account.",
         )
     return current_user
 
+
 async def require_role(
-    required_role: UserRole,
-    current_user: UserProfile = Depends(get_current_user)
+    required_role: UserRole, current_user: UserProfile = Depends(get_current_user)
 ) -> UserProfile:
     """
     Dependency factory to require specific user role
@@ -79,12 +83,8 @@ async def require_role(
     Raises:
         HTTPException: If user doesn't have required role
     """
-    # Role hierarchy: admin > autenticado > visitante
-    role_hierarchy = {
-        "visitante": 0,
-        "autenticado": 1,
-        "admin": 2
-    }
+    # Role hierarchy: admin > interno > autenticado > visitante
+    role_hierarchy = {"visitante": 0, "autenticado": 1, "interno": 2, "admin": 3}
 
     user_level = role_hierarchy.get(current_user.role, 0)
     required_level = role_hierarchy.get(required_role, 0)
@@ -92,10 +92,11 @@ async def require_role(
     if user_level < required_level:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"Insufficient permissions. Required role: {required_role}"
+            detail=f"Insufficient permissions. Required role: {required_role}",
         )
 
     return current_user
+
 
 def require_admin(current_user: UserProfile = Depends(get_current_user)) -> UserProfile:
     """
@@ -111,15 +112,11 @@ def require_admin(current_user: UserProfile = Depends(get_current_user)) -> User
         HTTPException: If user is not admin
     """
     if current_user.role != "admin":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Admin access required"
-        )
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required")
     return current_user
 
-def require_authenticated(
-    current_user: UserProfile = Depends(get_current_user)
-) -> UserProfile:
+
+def require_authenticated(current_user: UserProfile = Depends(get_current_user)) -> UserProfile:
     """
     Dependency to require authenticated (autenticado or admin) role
 
@@ -135,12 +132,54 @@ def require_authenticated(
     if current_user.role == "visitante":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Authenticated access required. Please complete email verification."
+            detail="Authenticated access required. Please complete email verification.",
         )
     return current_user
 
+
+def require_internal(current_user: UserProfile = Depends(get_current_user)) -> UserProfile:
+    """
+    Dependency to require internal-staff access (role 'interno' or 'admin').
+
+    Gates in-development tools and internal-only features.
+
+    Raises:
+        HTTPException 403: if the user is not internal staff.
+    """
+    if current_user.role not in ("interno", "admin"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Internal access required"
+        )
+    return current_user
+
+
+def require_clearance(level: int):
+    """
+    Dependency factory to require a minimum data-clearance level.
+
+    Clearance tiers: 0 public · 1 internal · 2 confidential. Gated independently
+    of role so the most confidential data can require an explicit clearance.
+
+    Usage:
+        @router.get("/secret", dependencies=[Depends(require_clearance(2))])
+
+    Raises:
+        HTTPException 403: if the user's clearance is below `level`.
+    """
+
+    def _checker(current_user: UserProfile = Depends(get_current_user)) -> UserProfile:
+        if current_user.clearance < level:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Insufficient clearance. Required level: {level}",
+            )
+        return current_user
+
+    return _checker
+
+
 async def optional_auth(
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(HTTPBearer(auto_error=False))
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(HTTPBearer(auto_error=False)),
 ) -> Optional[UserProfile]:
     """
     Dependency for optional authentication - returns user if authenticated, None otherwise

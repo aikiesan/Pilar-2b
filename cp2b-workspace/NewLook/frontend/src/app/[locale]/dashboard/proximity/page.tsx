@@ -5,7 +5,7 @@
  * Spatial analysis with capture radius and land use integration (MapBiomas)
  * Fully functional implementation using backend API
  */
-import { useEffect, useState, useCallback, Suspense } from 'react'
+import { useEffect, useState, useCallback, useRef, Suspense } from 'react'
 import { useRouter } from '@/navigation'
 import { useSearchParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
@@ -119,17 +119,24 @@ function ProximityAnalysisContent() {
     }
   }, [authLoading, isAuthenticated, router])
 
+  // Monotonically increasing id so an in-flight analysis abandoned by a new
+  // map click can't display the old point's results under the new selection
+  const analysisIdRef = useRef(0)
+
   // Handle map click
   const handleMapClick = useCallback((lat: number, lng: number) => {
+    analysisIdRef.current++ // invalidate any in-flight analysis
     setSelectedPoint({ lat, lng })
     setAnalysisResult(null)
     setError(null)
+    setLoading(false)
   }, [])
 
   // Perform analysis
   const handleAnalyze = async () => {
     if (!selectedPoint) return
 
+    const analysisId = ++analysisIdRef.current
     setLoading(true)
     setError(null)
     setAnalysisResult(null) // Clear previous results
@@ -141,12 +148,16 @@ function ProximityAnalysisContent() {
         radius_km: radius
       })
 
+      if (analysisId !== analysisIdRef.current) return // superseded by a new click
       setAnalysisResult(result as unknown as AnalysisResult)
     } catch (err: any) {
+      if (analysisId !== analysisIdRef.current) return
       logger.error('Analysis error:', err);
       setError(err.message || 'Erro ao realizar análise')
     } finally {
-      setLoading(false)
+      if (analysisId === analysisIdRef.current) {
+        setLoading(false)
+      }
     }
   }
 

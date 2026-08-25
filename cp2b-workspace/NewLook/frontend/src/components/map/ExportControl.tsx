@@ -18,6 +18,7 @@ import {
 import type { MunicipalityCollection } from '@/types/geospatial';
 import html2canvas from 'html2canvas';
 import { logger } from '@/lib/logger';
+import { DATA_EXPORT_ENABLED } from '@/lib/featureFlags';
 
 interface ExportControlProps {
   data: MunicipalityCollection | null;
@@ -37,6 +38,11 @@ export default function ExportControl({
   const [selectedFormat, setSelectedFormat] = useState<ExportFormat | null>(null);
   const [errorMessage, setErrorMessage] = useState<string>('');
 
+  // Beta: the dataset is still being validated, so no copy leaves the browser.
+  // MapComponent and DesktopLeftPanel already withhold this control; this guard
+  // is here so the component cannot export even if something renders it
+  // directly. See lib/featureFlags for the reasoning and the re-enable switch.
+  if (!DATA_EXPORT_ENABLED) return null;
   if (!visible) return null;
 
   const handleExport = async (format: ExportFormat) => {
@@ -181,22 +187,24 @@ export default function ExportControl({
       backgroundColor: '#ffffff',
     });
 
-    // Convert canvas to blob
-    canvas.toBlob((blob) => {
-      if (!blob) {
-        throw new Error('Falha ao gerar imagem');
-      }
+    // Convert canvas to blob — promisified so the caller's try/catch and
+    // success toast actually wait for (and see) the result; a throw inside
+    // the raw toBlob callback would escape the surrounding try/catch and the
+    // "Download iniciado!" toast would fire before anything was downloaded.
+    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve));
+    if (!blob) {
+      throw new Error('Falha ao gerar imagem');
+    }
 
-      // Create and download file
-      const link = document.createElement('a');
-      const url = URL.createObjectURL(blob);
-      link.setAttribute('href', url);
-      link.setAttribute('download', `cp2b-biogas-map-${new Date().toISOString().split('T')[0]}.png`);
-      link.style.visibility = 'hidden';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    });
+    // Create and download file
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `cp2b-biogas-map-${new Date().toISOString().split('T')[0]}.png`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const getStatusIcon = (format: ExportFormat) => {
@@ -255,9 +263,10 @@ export default function ExportControl({
             </div>
             <button
               onClick={onClose}
+              aria-label="Fechar"
               className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
             >
-              <X className="w-5 h-5 text-gray-500" />
+              <X className="w-5 h-5 text-gray-500" aria-hidden="true" />
             </button>
           </div>
 

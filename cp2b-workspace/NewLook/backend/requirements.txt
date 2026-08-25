@@ -11,14 +11,21 @@ alembic==1.18.4
 
 # Authentication
 # python-jose removed: library is unmaintained and has unfixed CVEs (algorithm confusion).
-# JWT verification is handled by Supabase (supabase.auth.get_user) — no local JWT lib needed.
+# Local, self-hosted auth (UNICAMP VM): passlib[bcrypt] for password hashing and
+# PyJWT for signing/verifying HS256 access tokens with the local SECRET_KEY.
 passlib[bcrypt]==1.7.4
-python-multipart==0.0.29  # Updated from 0.0.20 — fixes CVE-2026-24486
+# passlib 1.7.4 is incompatible with bcrypt >= 4.1 (removed __about__ +
+# changed 72-byte handling break passlib's backend detection) — pin explicitly.
+bcrypt==4.0.1
+PyJWT==2.13.0  # >=2.13.0 fixes CVE-2026-48525 (DoS via unbounded Base64URL decoding)
+python-multipart==0.0.32  # >=0.0.31 fixes CVE-2026-53537/53539/53540 (DoS / request smuggling)
 
 # Environment and Configuration
 python-dotenv==1.2.2
 pydantic>=2.13.4
-pydantic-settings==2.14.1
+# 2.14.2 is the fix for SFTY-20260619-43815 (path traversal via symlink
+# handling); the advisory covers >=2.12.0,<2.14.2.
+pydantic-settings==2.14.2
 email-validator==2.3.0
 
 # Geospatial

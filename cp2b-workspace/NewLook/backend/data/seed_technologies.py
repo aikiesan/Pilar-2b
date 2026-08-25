@@ -23,7 +23,7 @@ INITIAL_TECHNOLOGIES = [
         "description_en": "Liquid residue from sugarcane ethanol production, rich in organic matter and nutrients",
         "color": "#8B4513",
         "can_connect_to": ["digestion"],
-        "can_receive_from": []
+        "can_receive_from": [],
     },
     {
         "id": "feed_bagasse",
@@ -35,7 +35,7 @@ INITIAL_TECHNOLOGIES = [
         "description_en": "Fibrous solid residue from sugarcane milling, main byproduct of sugar mills",
         "color": "#D2691E",
         "can_connect_to": ["pretreatment", "digestion"],
-        "can_receive_from": []
+        "can_receive_from": [],
     },
     {
         "id": "feed_straw",
@@ -47,7 +47,7 @@ INITIAL_TECHNOLOGIES = [
         "description_en": "Residue from mechanized sugarcane harvesting, left in the field",
         "color": "#9ACD32",
         "can_connect_to": ["pretreatment", "digestion"],
-        "can_receive_from": []
+        "can_receive_from": [],
     },
     {
         "id": "feed_filter_cake",
@@ -59,7 +59,7 @@ INITIAL_TECHNOLOGIES = [
         "description_en": "Wet residue from sugarcane juice clarification, rich in organic matter",
         "color": "#A0522D",
         "can_connect_to": ["digestion"],
-        "can_receive_from": []
+        "can_receive_from": [],
     },
     {
         "id": "feed_cattle_manure",
@@ -71,7 +71,7 @@ INITIAL_TECHNOLOGIES = [
         "description_en": "Waste from confined cattle and stables",
         "color": "#8B6914",
         "can_connect_to": ["digestion"],
-        "can_receive_from": []
+        "can_receive_from": [],
     },
     {
         "id": "feed_pig_manure",
@@ -83,7 +83,7 @@ INITIAL_TECHNOLOGIES = [
         "description_en": "Liquid waste from intensive pig farming",
         "color": "#CD853F",
         "can_connect_to": ["digestion"],
-        "can_receive_from": []
+        "can_receive_from": [],
     },
     {
         "id": "feed_swine_slurry",
@@ -95,7 +95,7 @@ INITIAL_TECHNOLOGIES = [
         "description_en": "Liquid slurry from intensive pig farming",
         "color": "#EC4899",
         "can_connect_to": ["pretreatment", "digestion"],
-        "can_receive_from": []
+        "can_receive_from": [],
     },
     {
         "id": "feed_poultry_litter",
@@ -107,7 +107,7 @@ INITIAL_TECHNOLOGIES = [
         "description_en": "Poultry house litter and waste",
         "color": "#F59E0B",
         "can_connect_to": ["pretreatment", "digestion"],
-        "can_receive_from": []
+        "can_receive_from": [],
     },
     {
         "id": "feed_corn_stover",
@@ -119,7 +119,7 @@ INITIAL_TECHNOLOGIES = [
         "description_en": "Corn stalks and cobs after harvest",
         "color": "#EAB308",
         "can_connect_to": ["pretreatment", "digestion"],
-        "can_receive_from": []
+        "can_receive_from": [],
     },
     {
         "id": "feed_soy_stover",
@@ -131,7 +131,7 @@ INITIAL_TECHNOLOGIES = [
         "description_en": "Soybean harvest residues",
         "color": "#84CC16",
         "can_connect_to": ["pretreatment", "digestion"],
-        "can_receive_from": []
+        "can_receive_from": [],
     },
     {
         "id": "feed_urban_organic",
@@ -143,9 +143,8 @@ INITIAL_TECHNOLOGIES = [
         "description_en": "Organic fraction of urban solid waste and wastewater sludge",
         "color": "#6B7280",
         "can_connect_to": ["pretreatment", "digestion"],
-        "can_receive_from": []
+        "can_receive_from": [],
     },
-
     # ========================================================================
     # PRETREATMENT - Preparation for digestion
     # ========================================================================
@@ -159,7 +158,7 @@ INITIAL_TECHNOLOGIES = [
         "description_en": "High-pressure and temperature thermal treatment to break lignocellulosic structures",
         "color": "#FF6347",
         "can_connect_to": ["digestion"],
-        "can_receive_from": ["feedstock"]
+        "can_receive_from": ["feedstock"],
     },
     {
         "id": "pre_mechanical",
@@ -171,7 +170,7 @@ INITIAL_TECHNOLOGIES = [
         "description_en": "Grinding, milling and homogenization of fibrous material",
         "color": "#708090",
         "can_connect_to": ["digestion"],
-        "can_receive_from": ["feedstock"]
+        "can_receive_from": ["feedstock"],
     },
     {
         "id": "pre_chemical",
@@ -183,9 +182,8 @@ INITIAL_TECHNOLOGIES = [
         "description_en": "Treatment with acids, bases or solvents to increase biodegradability",
         "color": "#4682B4",
         "can_connect_to": ["digestion"],
-        "can_receive_from": ["feedstock"]
+        "can_receive_from": ["feedstock"],
     },
-
     # ========================================================================
     # DIGESTION - Anaerobic digestion systems
     # ========================================================================
@@ -199,7 +197,7 @@ INITIAL_TECHNOLOGIES = [
         "description_en": "Continuously stirred tank reactor, ideal for substrates with high solids content",
         "color": "#4682B4",
         "can_connect_to": ["upgrading", "enduse", "byproduct"],
-        "can_receive_from": ["feedstock", "pretreatment"]
+        "can_receive_from": ["feedstock", "pretreatment"],
     },
     {
         "id": "dig_uasb",
@@ -211,7 +209,7 @@ INITIAL_TECHNOLOGIES = [
         "description_en": "Upflow anaerobic sludge blanket reactor, ideal for liquid effluents",
         "color": "#1E90FF",
         "can_connect_to": ["upgrading", "enduse", "byproduct"],
-        "can_receive_from": ["feedstock"]
+        "can_receive_from": ["feedstock"],
     },
     {
         "id": "dig_lagoon",
@@ -223,7 +221,7 @@ INITIAL_TECHNOLOGIES = [
         "description_en": "Anaerobic lagoon with impermeable cover for biogas capture",
         "color": "#20B2AA",
         "can_connect_to": ["enduse", "byproduct"],
-        "can_receive_from": ["feedstock"]
+        "can_receive_from": ["feedstock"],
     },
     {
         "id": "dig_plug_flow",
@@ -235,9 +233,8 @@ INITIAL_TECHNOLOGIES = [
         "description_en": "Horizontal plug flow reactor for substrates with high solids content",
         "color": "#5F9EA0",
         "can_connect_to": ["upgrading", "enduse", "byproduct"],
-        "can_receive_from": ["feedstock", "pretreatment"]
+        "can_receive_from": ["feedstock", "pretreatment"],
     },
-
     # ========================================================================
     # UPGRADING - Biogas purification to biomethane
     # ========================================================================
@@ -251,7 +248,7 @@ INITIAL_TECHNOLOGIES = [
         "description_en": "Separation of CO₂ and CH₄ through selective permeable membranes",
         "color": "#9370DB",
         "can_connect_to": ["enduse", "byproduct"],
-        "can_receive_from": ["digestion"]
+        "can_receive_from": ["digestion"],
     },
     {
         "id": "upg_psa",
@@ -263,7 +260,7 @@ INITIAL_TECHNOLOGIES = [
         "description_en": "Pressure swing adsorption using specific adsorbent materials",
         "color": "#8A2BE2",
         "can_connect_to": ["enduse", "byproduct"],
-        "can_receive_from": ["digestion"]
+        "can_receive_from": ["digestion"],
     },
     {
         "id": "upg_water_scrubbing",
@@ -275,7 +272,7 @@ INITIAL_TECHNOLOGIES = [
         "description_en": "Biogas washing with pressurized water to remove CO₂",
         "color": "#6A5ACD",
         "can_connect_to": ["enduse", "byproduct"],
-        "can_receive_from": ["digestion"]
+        "can_receive_from": ["digestion"],
     },
     {
         "id": "upg_chemical_scrubbing",
@@ -287,9 +284,8 @@ INITIAL_TECHNOLOGIES = [
         "description_en": "Washing with chemical solutions (amines) to remove impurities",
         "color": "#7B68EE",
         "can_connect_to": ["enduse", "byproduct"],
-        "can_receive_from": ["digestion"]
+        "can_receive_from": ["digestion"],
     },
-
     # ========================================================================
     # END USE - Final applications of biogas/biomethane
     # ========================================================================
@@ -303,7 +299,7 @@ INITIAL_TECHNOLOGIES = [
         "description_en": "Combined heat and power generation in engines or turbines",
         "color": "#FFD700",
         "can_connect_to": [],
-        "can_receive_from": ["digestion", "upgrading"]
+        "can_receive_from": ["digestion", "upgrading"],
     },
     {
         "id": "end_grid_injection",
@@ -315,7 +311,7 @@ INITIAL_TECHNOLOGIES = [
         "description_en": "Biomethane injection into natural gas distribution grid",
         "color": "#32CD32",
         "can_connect_to": [],
-        "can_receive_from": ["upgrading"]
+        "can_receive_from": ["upgrading"],
     },
     {
         "id": "end_vehicle_fuel",
@@ -327,7 +323,7 @@ INITIAL_TECHNOLOGIES = [
         "description_en": "Compressed biomethane as vehicle fuel (renewable CNG)",
         "color": "#00CED1",
         "can_connect_to": [],
-        "can_receive_from": ["upgrading"]
+        "can_receive_from": ["upgrading"],
     },
     {
         "id": "end_boiler",
@@ -339,7 +335,7 @@ INITIAL_TECHNOLOGIES = [
         "description_en": "Steam and heat generation for industrial processes",
         "color": "#FF8C00",
         "can_connect_to": [],
-        "can_receive_from": ["digestion"]
+        "can_receive_from": ["digestion"],
     },
     {
         "id": "end_fuel_cell",
@@ -351,9 +347,8 @@ INITIAL_TECHNOLOGIES = [
         "description_en": "Electric generation through high-efficiency fuel cell",
         "color": "#FFA500",
         "can_connect_to": [],
-        "can_receive_from": ["upgrading"]
+        "can_receive_from": ["upgrading"],
     },
-
     # ========================================================================
     # BYPRODUCTS - Valuable co-products
     # ========================================================================
@@ -367,7 +362,7 @@ INITIAL_TECHNOLOGIES = [
         "description_en": "Nutrient-rich biofertilizer resulting from anaerobic digestion",
         "color": "#228B22",
         "can_connect_to": [],
-        "can_receive_from": ["digestion"]
+        "can_receive_from": ["digestion"],
     },
     {
         "id": "byp_co2",
@@ -379,7 +374,7 @@ INITIAL_TECHNOLOGIES = [
         "description_en": "Food-grade or industrial CO₂ captured during upgrading",
         "color": "#B0C4DE",
         "can_connect_to": [],
-        "can_receive_from": ["upgrading"]
+        "can_receive_from": ["upgrading"],
     },
     {
         "id": "byp_solid_digestate",
@@ -391,7 +386,7 @@ INITIAL_TECHNOLOGIES = [
         "description_en": "Solid fraction of digestate after separation, used as soil conditioner",
         "color": "#6B8E23",
         "can_connect_to": [],
-        "can_receive_from": ["digestion"]
+        "can_receive_from": ["digestion"],
     },
     {
         "id": "byp_liquid_digestate",
@@ -403,7 +398,7 @@ INITIAL_TECHNOLOGIES = [
         "description_en": "Liquid fraction of digestate, rich in soluble nutrients",
         "color": "#4682B4",
         "can_connect_to": [],
-        "can_receive_from": ["digestion"]
+        "can_receive_from": ["digestion"],
     },
 ]
 
@@ -411,6 +406,7 @@ INITIAL_TECHNOLOGIES = [
 # ============================================================================
 # HELPER FUNCTION TO INSERT SEED DATA
 # ============================================================================
+
 
 def get_insert_query():
     """
@@ -457,7 +453,7 @@ if __name__ == "__main__":
     # Count by category
     categories = {}
     for tech in INITIAL_TECHNOLOGIES:
-        cat = tech['category']
+        cat = tech["category"]
         categories[cat] = categories.get(cat, 0) + 1
 
     print("\nBreakdown by category:")

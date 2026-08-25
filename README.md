@@ -1,10 +1,17 @@
 # PILAR-2b — Plataforma Inteligente de Localização e Aproveitamento de Resíduos para Biogas e Bioprodutos
 
 [![Version](https://img.shields.io/badge/version-3.0.3-blue.svg)](https://github.com/aikiesan/Pilar-2b)
-[![License](https://img.shields.io/badge/license-GPL--3.0-blue.svg)](./cp2b-workspace/NewLook/LICENSE)
+[![License](https://img.shields.io/badge/license-GPL--3.0-blue.svg)](./LICENSE)
 [![INPI](https://img.shields.io/badge/INPI%20BR-512026003115--0-green.svg)](https://www.gov.br/inpi)
 [![UNICAMP](https://img.shields.io/badge/NIPE-UNICAMP-darkblue.svg)](https://nipe.unicamp.br/cp2b)
 [![Live Platform](https://img.shields.io/badge/Live%20Platform-cp2b.unicamp.br-brightgreen.svg)](https://cp2b.unicamp.br/pilar2b/pt-BR)
+[![FOSS4G Europe 2026](https://img.shields.io/badge/FOSS4G%20Europe-2026-orange.svg)](https://foss4g.org/)
+
+<p align="center">
+  <img src="./cp2b-workspace/NewLook/frontend/public/screenshots/interactive-map.png" alt="PILAR-2b — interactive choropleth of biogas potential across São Paulo's 645 municipalities" width="100%">
+  <br>
+  <sub><em>Interactive choropleth of mobilisable biogas potential across São Paulo's 645 municipalities — the live PILAR-2b platform.</em></sub>
+</p>
 
 **PILAR-2b** (_Plataforma Inteligente de Localização e Aproveitamento de Resíduos para Biogas e Bioprodutos_) is an open-source microservices platform for analyzing **biogas and bioproduct potential** from agricultural, livestock, and urban residues across **645 municipalities** in São Paulo State, Brazil.
 
@@ -13,6 +20,23 @@ This study addresses identified gaps through three interconnected contributions:
 1. **PILAR-2b** was designed and deployed as an open-source microservices platform that integrates heterogeneous government datasets into a unified geospatial database accessible through a browser-based interface without requiring desktop GIS.
 2. A **feedstock-dependent correction factor (FDE) methodology** was implemented and validated, decomposing theoretical biomass potential into practical mobilisable availability through explicit factor-specific attribution across collection efficiency, competing uses, seasonal availability, and logistical constraints.
 3. The **spatial distribution of biogas potential** was quantified across São Paulo State's 645 municipalities, demonstrating the framework's capacity to generate investment-relevant outputs at municipal resolution within an open and replicable computational architecture.
+
+---
+
+## Contents
+
+[Institutional Recognition](#institutional-recognition) ·
+[Live Platform](#live-platform) ·
+[Key Features](#key-features) ·
+[Screenshots](#screenshots) ·
+[Architecture](#architecture) ·
+[Repository Structure](#repository-structure) ·
+[Quick Start](#quick-start) ·
+[Documentation](#documentation) ·
+[Project Status](#project-status) ·
+[Citation](#citation) ·
+[Contributing](#contributing) ·
+[License](#license)
 
 ---
 
@@ -39,7 +63,7 @@ This study addresses identified gaps through three interconnected contributions:
 |----------|-----|
 | Português (BR) | **[https://cp2b.unicamp.br/pilar2b/pt-BR](https://cp2b.unicamp.br/pilar2b/pt-BR)** |
 | English | **[https://cp2b.unicamp.br/pilar2b/en](https://cp2b.unicamp.br/pilar2b/en)** |
-| API Documentation | [https://newlook-production.up.railway.app/docs](https://newlook-production.up.railway.app/docs) |
+| API Reference | [docs/api/API_DOCUMENTATION.md](./cp2b-workspace/NewLook/docs/api/API_DOCUMENTATION.md) |
 | NIPE Website | [https://nipe.unicamp.br/cp2b](https://nipe.unicamp.br/cp2b) |
 
 ---
@@ -66,13 +90,25 @@ This study addresses identified gaps through three interconnected contributions:
 
 ### Advanced Analysis
 - **Sankey flow diagrams** for multi-residue split-flow visualization
-- **Co-digestion C:N ratio** clustering and optimization
-- **IBGE Leontief model** (67-sector Input-Output economic analysis)
+- **Co-digestion C:N ratio** clustering — backend service implemented; UI in development
+- **Economic impact modelling** (IBGE 67-sector Leontief) — _roadmapped (not yet in the backend service layer)_
 - **Payback calculator** for biogas plant investment viability
 
 ### Bilingual Interface
 - Full support for **Portuguese (pt-BR)** and **English (en)**
 - Locale-aware routing via next-intl
+
+---
+
+## Screenshots
+
+| Interactive Map | Proximity Analysis |
+|---|---|
+| [![Interactive map](./cp2b-workspace/NewLook/frontend/public/screenshots/interactive-map.png)](./cp2b-workspace/NewLook/frontend/public/screenshots/interactive-map.png) | [![Proximity analysis](./cp2b-workspace/NewLook/frontend/public/screenshots/proximity-analysis.png)](./cp2b-workspace/NewLook/frontend/public/screenshots/proximity-analysis.png) |
+| **Data Analysis** | **Scientific Basis** |
+| [![Data analysis](./cp2b-workspace/NewLook/frontend/public/screenshots/data-analysis.png)](./cp2b-workspace/NewLook/frontend/public/screenshots/data-analysis.png) | [![Scientific basis](./cp2b-workspace/NewLook/frontend/public/screenshots/scientific-basis.png)](./cp2b-workspace/NewLook/frontend/public/screenshots/scientific-basis.png) |
+
+> Live at **[cp2b.unicamp.br/pilar2b](https://cp2b.unicamp.br/pilar2b/pt-BR)**.
 
 ---
 
@@ -85,7 +121,7 @@ This study addresses identified gaps through three interconnected contributions:
 - **Charts**: Recharts 3.8 + Chart.js 4.5
 - **State Management**: TanStack React Query 5.90
 - **Auth**: Supabase Auth (JWT)
-- **i18n**: next-intl 4.9 (pt-BR, en, es)
+- **i18n**: next-intl 4.9 (pt-BR, en) · _Spanish (es) planned_
 - **Testing**: Jest 30 + Playwright 1.57 + Testing Library
 - **Deployment**: Apache2 + PM2 (Unicamp VM) / Cloudflare Pages / Vercel
 - **Security**: CVE-2025-66478 patched (Next.js 16.2.3)
@@ -105,6 +141,32 @@ This study addresses identified gaps through three interconnected contributions:
 - **Rate Limiting** — 10 analyses/minute per IP
 - **Connection Pooling** — 2–20 PostgreSQL connections
 - **Response time**: <3s (p95), 0ms (cached)
+
+---
+
+## Repository Structure
+
+This repository is a monorepo. The deployable application lives under `cp2b-workspace/NewLook/`:
+
+```
+Pilar-2b/
+├── README.md                     # ← you are here (project front page)
+├── LICENSE · CITATION.cff        # GPL-3.0 · how to cite this work
+├── CONTRIBUTING.md · CODE_OF_CONDUCT.md
+├── .github/                      # CI, CodeQL, issue/PR templates, Dependabot
+├── analysis/                     # Reproducible data analysis + real-world plant datasets (ANP/ANEEL)
+├── docs/                         # Cross-cutting datasets & documentation
+└── cp2b-workspace/NewLook/       # ── THE APPLICATION ──
+    ├── frontend/                 # Next.js 16 + React 19 + TypeScript (React-Leaflet maps)
+    ├── backend/                  # FastAPI + PostGIS (REST API, FDE engine, migrations)
+    ├── data/canonical_parameters/# Single source of truth: feedstocks.yaml + references
+    └── docs/                     # ~43 technical docs (API, architecture, methodology, deployment)
+```
+
+> **Quick links:** [Application root](./cp2b-workspace/NewLook/) ·
+> [Frontend](./cp2b-workspace/NewLook/frontend/) ·
+> [Backend](./cp2b-workspace/NewLook/backend/) ·
+> [Documentation index](./cp2b-workspace/NewLook/docs/DOCUMENTATION_INDEX.md)
 
 ---
 
@@ -219,7 +281,9 @@ See: [docs/qa/TESTING.md](./cp2b-workspace/NewLook/docs/qa/TESTING.md)
 
 | Document | Description |
 |----------|-------------|
-| [CONTRIBUTING.md](./cp2b-workspace/NewLook/CONTRIBUTING.md) | Development workflow, coding standards, PR process |
+| [CONTRIBUTING.md](./CONTRIBUTING.md) | Development workflow, coding standards, PR process |
+| [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md) | Community standards |
+| [SECURITY.md](./.github/SECURITY.md) | Security policy & responsible disclosure |
 | [CHANGELOG.md](./cp2b-workspace/NewLook/CHANGELOG.md) | Version history |
 | [docs/DOCUMENTATION_INDEX.md](./cp2b-workspace/NewLook/docs/DOCUMENTATION_INDEX.md) | Full index of all ~43 documentation files |
 
@@ -228,7 +292,8 @@ See: [docs/qa/TESTING.md](./cp2b-workspace/NewLook/docs/qa/TESTING.md)
 | Document | Description |
 |----------|-------------|
 | [docs/api/API_DOCUMENTATION.md](./cp2b-workspace/NewLook/docs/api/API_DOCUMENTATION.md) | Complete API reference with examples |
-| [docs/architecture/DEVELOPMENT_STRATEGY.md](./cp2b-workspace/NewLook/docs/architecture/DEVELOPMENT_STRATEGY.md) | Architecture decisions and phase status |
+| [docs/architecture/TECHNOLOGY_ROUTES_IMPLEMENTATION_GUIDE.md](./cp2b-workspace/NewLook/docs/architecture/TECHNOLOGY_ROUTES_IMPLEMENTATION_GUIDE.md) | Technology-routes architecture & implementation |
+| [docs/architecture/ENHANCED_MAP_INTEGRATION_GUIDE.md](./cp2b-workspace/NewLook/docs/architecture/ENHANCED_MAP_INTEGRATION_GUIDE.md) | Map visualization architecture & integration |
 | [docs/architecture/PERFORMANCE_OPTIMIZATIONS.md](./cp2b-workspace/NewLook/docs/architecture/PERFORMANCE_OPTIMIZATIONS.md) | Caching, compression, bundle optimization details |
 
 ### Data & Methodology
@@ -238,6 +303,18 @@ See: [docs/qa/TESTING.md](./cp2b-workspace/NewLook/docs/qa/TESTING.md)
 | [docs/data/FDE_METHODOLOGY.md](./cp2b-workspace/NewLook/docs/data/FDE_METHODOLOGY.md) | Feedstock-Dependent Efficiency methodology (V2.0) |
 | [docs/data/FEEDSTOCK_FACTORS_LITERATURE_TABLE.md](./cp2b-workspace/NewLook/docs/data/FEEDSTOCK_FACTORS_LITERATURE_TABLE.md) | Literature table: 31 feedstocks × 4 factor types |
 | [docs/data/SAO_PAULO_BIOGAS_POTENTIAL_FDE.md](./cp2b-workspace/NewLook/docs/data/SAO_PAULO_BIOGAS_POTENTIAL_FDE.md) | State-level biogas potential analysis |
+
+### Open Data & Dynamics
+
+Public, open data sources behind the platform — and the move from a **static** to a **dynamic** (temporal) view of biomass.
+
+| Document | Description |
+|----------|-------------|
+| [docs/data/OPEN_DATA_API_LANDSCAPE.md](./cp2b-workspace/NewLook/docs/data/OPEN_DATA_API_LANDSCAPE.md) | Open-data & API landscape for biomass estimation (IBGE, MapBiomas, ANEEL, …) |
+| [docs/data/ENERGY_LOGISTICS_BIOECONOMY_DATA.md](./cp2b-workspace/NewLook/docs/data/ENERGY_LOGISTICS_BIOECONOMY_DATA.md) | Energy demand, logistics & bioeconomy municipal data layer |
+| [docs/data/dynamics/BIOMASS_SEASONALITY_SP.md](./cp2b-workspace/NewLook/docs/data/dynamics/BIOMASS_SEASONALITY_SP.md) | Biomass seasonality / temporal availability (SP) |
+| [docs/data/dynamics/ENERGY_PRICE_TEMPORAL_DYNAMICS_SP.md](./cp2b-workspace/NewLook/docs/data/dynamics/ENERGY_PRICE_TEMPORAL_DYNAMICS_SP.md) | Energy price & time-of-use dynamics (SP) |
+| [docs/data/dynamics/WASTE_FLOW_DYNAMICS_SP.md](./cp2b-workspace/NewLook/docs/data/dynamics/WASTE_FLOW_DYNAMICS_SP.md) | Waste generation & flow dynamics (SP) |
 
 ### Deployment
 
@@ -369,8 +446,7 @@ git push origin main
 - [x] FDE methodology implementation and validation
 - [x] Performance optimization (LRU cache, gzip, rate limiting, connection pooling)
 - [x] Sankey flow diagrams for multi-residue visualization
-- [x] Co-digestion C:N ratio clustering
-- [x] IBGE 67-sector Leontief Input-Output model
+- [x] Co-digestion C:N ratio clustering (backend service; UI in development)
 - [x] Payback calculator for biogas plant viability
 - [x] Bilingual interface (pt-BR / en) via next-intl
 - [x] Unicamp VM deployment (Apache2 + PM2 at cp2b.unicamp.br/pilar2b)
@@ -379,8 +455,10 @@ git push origin main
 - [x] ESLint 9 flat config + comprehensive E2E tests
 - [x] Comprehensive documentation (~43 files, ~18,500+ lines)
 
-### In Progress
-- [ ] MCDA multi-criteria decision analysis module
+### In Progress / Roadmapped
+- [ ] IBGE 67-sector Leontief economic model (designed; backend service pending — see `docs/data/IBGE_67_SECTOR_INTEGRATION_COMPLETE.md`)
+- [ ] MCDA multi-criteria decision analysis module (proximity + C:N screening exist; full optimizer pending)
+- [ ] Co-digestion analysis exposed in the UI/API
 - [ ] WCAG 2.1 AA full compliance
 - [ ] Sentry observability integration (frontend + backend)
 
@@ -420,13 +498,27 @@ See [CONTRIBUTING.md](./cp2b-workspace/NewLook/CONTRIBUTING.md) for full guideli
 
 ---
 
+## Citation
+
+If you use PILAR-2b in academic work, please cite it. Machine-readable metadata is in
+[`CITATION.cff`](./CITATION.cff) (GitHub renders a **"Cite this repository"** button from it).
+
+> Cerejo, L. N.; Lamparelli, R. A. C.; Moraes, B. S.; Aguiar, A. B. S. (2026).
+> *PILAR-2b: Plataforma Inteligente de Localização e Aproveitamento de Resíduos para Biogas e
+> Bioprodutos* (Version 3.0.3) [Computer software]. NIPE — Universidade Estadual de Campinas
+> (UNICAMP). INPI BR512026003115-0. https://github.com/aikiesan/Pilar-2b
+
+Funded by **FAPESP** (Grant 2024/01112-1, CP2Bsd). Registered with **INPI** (BR512026003115-0).
+
+---
+
 ## License
 
 **PILAR-2b** is open-source software released under the **GNU General Public License v3.0 (GPL-3.0)**.
 
 This project was developed as part of research funded by FAPESP (Grant 2024/01112-1 / CP2Bsd) at NIPE-UNICAMP and is freely available for use, modification, and distribution under the terms of the GPL-3.0.
 
-See [LICENSE](./cp2b-workspace/NewLook/LICENSE) for full details.
+See [LICENSE](./LICENSE) for full details.
 
 ### Why Open Source?
 
@@ -460,10 +552,10 @@ We believe in making research and technology accessible to everyone. By open-sou
 | **NIPE Website** | https://nipe.unicamp.br/cp2b |
 | **Documentation** | [cp2b-workspace/NewLook/docs/](./cp2b-workspace/NewLook/docs/) |
 | **Issues** | [GitHub Issues](https://github.com/aikiesan/Pilar-2b/issues) |
-| **API Docs** | https://newlook-production.up.railway.app/docs |
+| **API Reference** | [cp2b-workspace/NewLook/docs/api/API_DOCUMENTATION.md](./cp2b-workspace/NewLook/docs/api/API_DOCUMENTATION.md) |
 
 ---
 
-**Last Updated**: May 2026
+**Last Updated**: June 2026
 **Version**: 3.0.3
 **Status**: Production — live at [cp2b.unicamp.br/pilar2b](https://cp2b.unicamp.br/pilar2b/pt-BR)

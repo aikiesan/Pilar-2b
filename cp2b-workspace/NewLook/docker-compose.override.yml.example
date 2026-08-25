@@ -1,0 +1,24 @@
+# docker-compose.override.yml — LOCAL, OPTIONAL
+#
+# Copy to `docker-compose.override.yml` (gitignored) to mount the MapBiomas 10.1
+# INFRAESTRUTURA vectors into the backend container. Docker Compose merges this
+# file automatically on `docker compose up`.
+#
+# Only needed for the infrastructure POINT layers (biogas/ethanol plants,
+# substations, slaughterhouses, gas pipelines…) loaded by
+# scripts/load_infrastructure_layers.py. The core biomass/biogas choropleth does
+# NOT need this.
+#
+# The IBGE mesh and the IBGE-PPM / SNIS raw drops do NOT belong here — they live
+# under backend/data/ (see backend/data/raw/README.md), which is already
+# bind-mounted at /app/data inside the container.
+
+services:
+  backend:
+    volumes:
+      # Point this at wherever you unpacked the MapBiomas INFRAESTRUTURA layers
+      # on your host. Read-only inside the container.
+      # The loader reads /mnt/mapbiomas_infra by default (env MAPBIOMAS_INFRA_DIR).
+      - /ABSOLUTE/PATH/TO/mapbiomas_infra:/mnt/mapbiomas_infra:ro
+    environment:
+      MAPBIOMAS_INFRA_DIR: /mnt/mapbiomas_infra

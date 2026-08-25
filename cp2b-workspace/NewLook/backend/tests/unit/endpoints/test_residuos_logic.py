@@ -8,18 +8,20 @@ mock_db_connection from conftest.py).
 No real database is needed.
 """
 
-import pytest
 from unittest.mock import MagicMock, patch
 
+import pytest
 
 # ─── Helpers ──────────────────────────────────────────────────────────────────
+
 
 def _sector_rows():
     return [{"codigo": "AG", "nome": "Agrícola", "emoji": "🌾", "ordem": 1}]
 
 
-def _residue_row(rid=1, codigo="palha_soja", nome="Palha de Soja",
-                 sector_codigo="AG", subsector_codigo=None):
+def _residue_row(
+    rid=1, codigo="palha_soja", nome="Palha de Soja", sector_codigo="AG", subsector_codigo=None
+):
     return {
         "id": rid,
         "codigo": codigo,
@@ -28,10 +30,16 @@ def _residue_row(rid=1, codigo="palha_soja", nome="Palha de Soja",
         "sector_codigo": sector_codigo,
         "subsector_codigo": subsector_codigo,
         "categoria_nome": "Agrícola",
-        "bmp_min": 150.0, "bmp_medio": 180.0, "bmp_max": 220.0,
+        "bmp_min": 150.0,
+        "bmp_medio": 180.0,
+        "bmp_max": 220.0,
         "bmp_unidade": "NmL CH4/g VS",
-        "ts_min": 80.0, "ts_medio": 85.0, "ts_max": 90.0,
-        "vs_min": 70.0, "vs_medio": 75.0, "vs_max": 82.0,
+        "ts_min": 80.0,
+        "ts_medio": 85.0,
+        "ts_max": 90.0,
+        "vs_min": 70.0,
+        "vs_medio": 75.0,
+        "vs_max": 82.0,
         "chemical_cn_ratio": 55.0,
         "chemical_ch4_content": 55.0,
         "fator_realista": 0.80,
@@ -41,36 +49,44 @@ def _residue_row(rid=1, codigo="palha_soja", nome="Palha de Soja",
 
 # ─── _to_float helper (imported directly) ─────────────────────────────────────
 
+
 @pytest.mark.unit
 class TestToFloatHelper:
     def test_none_returns_none(self):
         from app.api.v1.endpoints.residuos import _to_float
+
         assert _to_float(None) is None
 
     def test_int_returns_float(self):
         from app.api.v1.endpoints.residuos import _to_float
+
         result = _to_float(5)
         assert result == 5.0
         assert isinstance(result, float)
 
     def test_float_unchanged(self):
         from app.api.v1.endpoints.residuos import _to_float
+
         assert _to_float(3.14) == pytest.approx(3.14)
 
     def test_invalid_string_returns_none(self):
         from app.api.v1.endpoints.residuos import _to_float
+
         assert _to_float("not_a_number") is None
 
     def test_numeric_string_returns_float(self):
         from app.api.v1.endpoints.residuos import _to_float
+
         assert _to_float("42.5") == pytest.approx(42.5)
 
     def test_zero_returns_zero(self):
         from app.api.v1.endpoints.residuos import _to_float
+
         assert _to_float(0) == 0.0
 
 
 # ─── Sectors endpoint ─────────────────────────────────────────────────────────
+
 
 @pytest.mark.unit
 class TestSectorsEndpoint:
@@ -104,6 +120,7 @@ class TestSectorsEndpoint:
 
 # ─── Subsectors endpoint ──────────────────────────────────────────────────────
 
+
 @pytest.mark.unit
 class TestSubsectorsEndpoint:
 
@@ -127,6 +144,7 @@ class TestSubsectorsEndpoint:
 
 
 # ─── Residuos list endpoint ───────────────────────────────────────────────────
+
 
 @pytest.mark.unit
 class TestGetResiduos:
@@ -205,6 +223,7 @@ class TestGetResiduos:
 
 # ─── Single residue endpoint ──────────────────────────────────────────────────
 
+
 @pytest.mark.unit
 class TestGetSingleResidue:
 
@@ -230,10 +249,10 @@ class TestGetSingleResidue:
         mock_conn, mock_cursor = mock_db_connection
         row = _residue_row()
         mock_cursor.fetchall.side_effect = [
-            [row],   # SELECT * FROM residuos WHERE id = %s
-            [],      # SELECT sectors
-            [],      # SELECT subsectors
-            [],      # SELECT scientific_references
+            [row],  # SELECT * FROM residuos WHERE id = %s
+            [],  # SELECT sectors
+            [],  # SELECT subsectors
+            [],  # SELECT scientific_references
         ]
         response = client.get("/api/v1/residuos/1")
         assert response.status_code == 200
@@ -242,7 +261,10 @@ class TestGetSingleResidue:
         mock_conn, mock_cursor = mock_db_connection
         row = _residue_row()
         mock_cursor.fetchall.side_effect = [
-            [row], [], [], [],
+            [row],
+            [],
+            [],
+            [],
         ]
         data = client.get("/api/v1/residuos/1").json()
         assert "residuo" in data
@@ -251,13 +273,17 @@ class TestGetSingleResidue:
         mock_conn, mock_cursor = mock_db_connection
         row = _residue_row()
         mock_cursor.fetchall.side_effect = [
-            [row], [], [], [],
+            [row],
+            [],
+            [],
+            [],
         ]
         data = client.get("/api/v1/residuos/1").json()
         assert data.get("success") is True
 
 
 # ─── Compare endpoint ─────────────────────────────────────────────────────────
+
 
 @pytest.mark.unit
 class TestCompareResiduos:
@@ -281,8 +307,8 @@ class TestCompareResiduos:
         r2 = _residue_row(rid=2, codigo="r2", nome="Residue 2")
         mock_cursor.fetchall.side_effect = [
             [r1, r2],  # residuos
-            [],        # sectors
-            [],        # refs
+            [],  # sectors
+            [],  # refs
         ]
         response = client.get("/api/v1/residuos/compare?ids=1,2")
         assert response.status_code == 200
@@ -292,13 +318,16 @@ class TestCompareResiduos:
         r1 = _residue_row(rid=1, codigo="r1", nome="Residue 1")
         r2 = _residue_row(rid=2, codigo="r2", nome="Residue 2")
         mock_cursor.fetchall.side_effect = [
-            [r1, r2], [], [],
+            [r1, r2],
+            [],
+            [],
         ]
         data = client.get("/api/v1/residuos/compare?ids=1,2").json()
         assert "comparison" in data
 
 
 # ─── All references endpoint ──────────────────────────────────────────────────
+
 
 @pytest.mark.unit
 class TestGetAllReferences:
@@ -324,6 +353,7 @@ class TestGetAllReferences:
 
 # ─── Conversion factors endpoint ──────────────────────────────────────────────
 
+
 @pytest.mark.unit
 class TestConversionFactors:
 
@@ -341,6 +371,7 @@ class TestConversionFactors:
 
 
 # ─── Summary by sector endpoint ───────────────────────────────────────────────
+
 
 @pytest.mark.unit
 class TestSummaryBySector:

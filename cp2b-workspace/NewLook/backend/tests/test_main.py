@@ -2,6 +2,7 @@
 PILAR-2b V3 Backend - Main Application Tests
 Tests for FastAPI application configuration, middleware, and core endpoints
 """
+
 import pytest
 from fastapi.testclient import TestClient
 from httpx import AsyncClient
@@ -102,7 +103,7 @@ class TestCORSMiddleware:
             "access-control-allow-origin",
             "access-control-allow-credentials",
             "access-control-allow-methods",
-            "access-control-allow-headers"
+            "access-control-allow-headers",
         ]
 
         # Note: TestClient may not include all CORS headers
@@ -113,7 +114,7 @@ class TestCORSMiddleware:
         headers = {
             "Origin": "http://localhost:3000",
             "Access-Control-Request-Method": "GET",
-            "Access-Control-Request-Headers": "Content-Type"
+            "Access-Control-Request-Headers": "Content-Type",
         }
 
         response = client.options("/api/v1/municipalities/", headers=headers)
@@ -146,7 +147,7 @@ class TestSecurityMiddleware:
         expected_security_headers = [
             "x-content-type-options",
             "x-frame-options",
-            "x-xss-protection"
+            "x-xss-protection",
         ]
 
         # This test documents what should be checked in integration tests
@@ -210,7 +211,7 @@ class TestErrorHandling:
         response = client.post(
             "/api/v1/municipalities/",
             data="invalid json",
-            headers={"content-type": "application/json"}
+            headers={"content-type": "application/json"},
         )
 
         # Should return 405 (Method Not Allowed) since POST isn't implemented
@@ -220,9 +221,7 @@ class TestErrorHandling:
     def test_unsupported_media_type(self, client: TestClient):
         """Test handling of unsupported media type"""
         response = client.post(
-            "/api/v1/municipalities/",
-            data="some data",
-            headers={"content-type": "text/plain"}
+            "/api/v1/municipalities/", data="some data", headers={"content-type": "text/plain"}
         )
 
         # Should return 405 (Method Not Allowed) since POST isn't implemented

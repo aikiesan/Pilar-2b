@@ -4,18 +4,19 @@ Unit tests for app.services.codigestion_service
 Covers pure helpers, UnionFind, spatial grouping, C:N scoring,
 convex hull, and mocked DB-touching functions.
 """
+
 import math
-import pytest
 from contextlib import contextmanager
 from unittest.mock import MagicMock, patch
+
+import pytest
 
 from app.services.codigestion_service import (
     CN_OPTIMAL_HIGH,
     CN_OPTIMAL_LOW,
     CN_OPTIMAL_MID,
-    RESIDUE_META,
     RESIDUE_KEYS,
-    _UnionFind,
+    RESIDUE_META,
     _blend_ratio,
     _build_spatial_groups,
     _cn_label,
@@ -25,16 +26,18 @@ from app.services.codigestion_service import (
     _haversine_km,
     _improvement_score,
     _load_cn_data,
+    _UnionFind,
     _weighted_cn,
     find_codigestion_clusters,
     get_residue_cn_matrix,
 )
 
-
 # ─── DB mock helper ────────────────────────────────────────────────────────────
+
 
 def _db_ctx(rows):
     """Build a @contextmanager get_db mock returning `rows` from fetchall()."""
+
     @contextmanager
     def _get_db():
         mock_conn = MagicMock()
@@ -42,10 +45,12 @@ def _db_ctx(rows):
         mock_cursor.fetchall.return_value = rows
         mock_conn.cursor.return_value = mock_cursor
         yield mock_conn
+
     return _get_db
 
 
 # ─── Sample municipality dicts ─────────────────────────────────────────────────
+
 
 def _mun(name, lat, lng, **extra):
     base = {
@@ -65,6 +70,7 @@ def _mun(name, lat, lng, **extra):
 # ─────────────────────────────────────────────────────────────────────────────
 # TestHaversineKm
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 @pytest.mark.unit
 class TestHaversineKm:
@@ -103,6 +109,7 @@ class TestHaversineKm:
 # ─────────────────────────────────────────────────────────────────────────────
 # TestUnionFind
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 @pytest.mark.unit
 class TestUnionFind:
@@ -165,6 +172,7 @@ class TestUnionFind:
 # TestBuildSpatialGroups
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 @pytest.mark.unit
 class TestBuildSpatialGroups:
     """Tests for _build_spatial_groups()."""
@@ -172,8 +180,8 @@ class TestBuildSpatialGroups:
     def test_two_close_municipalities_form_group(self):
         # SP capital and Santo André are ~20 km apart
         muns = [
-            _mun("SP",          -23.5505, -46.6333),
-            _mun("SantoAndre",  -23.6638, -46.5380),
+            _mun("SP", -23.5505, -46.6333),
+            _mun("SantoAndre", -23.6638, -46.5380),
         ]
         groups = _build_spatial_groups(muns, radius_km=30.0)
         assert len(groups) == 1
@@ -182,8 +190,8 @@ class TestBuildSpatialGroups:
     def test_two_far_municipalities_no_group(self):
         # SP capital and Ribeirão Preto are ~300 km apart
         muns = [
-            _mun("SP",           -23.5505, -46.6333),
-            _mun("Ribeirao",     -21.1775, -47.8097),
+            _mun("SP", -23.5505, -46.6333),
+            _mun("Ribeirao", -21.1775, -47.8097),
         ]
         groups = _build_spatial_groups(muns, radius_km=30.0)
         assert len(groups) == 0
@@ -198,8 +206,14 @@ class TestBuildSpatialGroups:
 
     def test_municipality_with_none_coords_skipped(self):
         muns = [
-            _mun("SP",   -23.5505, -46.6333),
-            {"id": 99, "name": "NullMun", "ibge_code": "0", "centroid_lat": None, "centroid_lng": None},
+            _mun("SP", -23.5505, -46.6333),
+            {
+                "id": 99,
+                "name": "NullMun",
+                "ibge_code": "0",
+                "centroid_lat": None,
+                "centroid_lng": None,
+            },
         ]
         groups = _build_spatial_groups(muns, radius_km=30.0)
         assert len(groups) == 0
@@ -226,6 +240,7 @@ class TestBuildSpatialGroups:
 # ─────────────────────────────────────────────────────────────────────────────
 # TestWeightedCn
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 @pytest.mark.unit
 class TestWeightedCn:
@@ -261,6 +276,7 @@ class TestWeightedCn:
 # TestImprovementScore
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 @pytest.mark.unit
 class TestImprovementScore:
     """Tests for _improvement_score()."""
@@ -292,6 +308,7 @@ class TestImprovementScore:
 # ─────────────────────────────────────────────────────────────────────────────
 # TestBlendRatio
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 @pytest.mark.unit
 class TestBlendRatio:
@@ -325,6 +342,7 @@ class TestBlendRatio:
 # TestCnRole
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 @pytest.mark.unit
 class TestCnRole:
     """Tests for _cn_role()."""
@@ -355,6 +373,7 @@ class TestCnRole:
 # TestCnLabel
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 @pytest.mark.unit
 class TestCnLabel:
     """Tests for _cn_label()."""
@@ -381,6 +400,7 @@ class TestCnLabel:
 # ─────────────────────────────────────────────────────────────────────────────
 # TestGetCn
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 @pytest.mark.unit
 class TestGetCn:
@@ -416,6 +436,7 @@ class TestGetCn:
 # ─────────────────────────────────────────────────────────────────────────────
 # TestConvexHullGeoJson
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 @pytest.mark.unit
 class TestConvexHullGeoJson:
@@ -470,6 +491,7 @@ class TestConvexHullGeoJson:
 
     def test_shapely_import_error_returns_none(self):
         import builtins
+
         real_import = builtins.__import__
 
         def mock_import(name, *args, **kwargs):
@@ -500,6 +522,7 @@ class TestConvexHullGeoJson:
 # ─────────────────────────────────────────────────────────────────────────────
 # TestGetResidueCnMatrix
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 @pytest.mark.unit
 class TestGetResidueCnMatrix:
@@ -555,6 +578,7 @@ class TestGetResidueCnMatrix:
 # TestFindCodigestionClusters
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 @pytest.mark.unit
 class TestFindCodigestionClusters:
     """Tests for find_codigestion_clusters() — patches get_db and _load_cn_data."""
@@ -567,6 +591,7 @@ class TestFindCodigestionClusters:
 
     def _make_row(self, name, lat, lng, cattle_biomass=5000.0, sugarcane_biomass=5000.0):
         from app.services.codigestion_service import BIOGAS_FIELDS, BIOMASS_FIELDS
+
         row = {
             "id": abs(hash(name)) & 0xFFFF,
             "municipality_name": name,
@@ -620,13 +645,18 @@ class TestFindCodigestionClusters:
 
     def test_single_municipality_no_clusters(self):
         row = {
-            "id": 1, "municipality_name": "SP", "ibge_code": "3550308",
-            "centroid_lat": -23.5505, "centroid_lng": -46.6333,
+            "id": 1,
+            "municipality_name": "SP",
+            "ibge_code": "3550308",
+            "centroid_lat": -23.5505,
+            "centroid_lng": -46.6333,
             **{f"{k}_biogas_m3_year": 0.0 for k in RESIDUE_KEYS},
         }
         with patch("app.core.database.get_db", new=_db_ctx([row])):
             with patch("app.services.codigestion_service._load_cn_data", return_value={}):
-                with patch("app.services.biomass_availability.derive_biomass_fields", return_value={}):
+                with patch(
+                    "app.services.biomass_availability.derive_biomass_fields", return_value={}
+                ):
                     result = find_codigestion_clusters()
         assert result["clusters"] == []
 

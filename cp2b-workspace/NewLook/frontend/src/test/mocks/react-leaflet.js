@@ -34,6 +34,9 @@ const TileLayer = (props) =>
 
 const GeoJSON = ({ data, onEachFeature, pointToLayer, ...props }) => {
   const features = (data && data.features) || []
+  const firstStyle = features.length > 0 && typeof props.style === 'function'
+    ? props.style(features[0])
+    : null
   // Exercise the feature callbacks the way real Leaflet would, so tests that
   // assert bindPopup/onEachFeature behaviour still run.
   if (features.length > 0) {
@@ -47,12 +50,19 @@ const GeoJSON = ({ data, onEachFeature, pointToLayer, ...props }) => {
   return React.createElement('div', {
     'data-testid': 'geojson-layer',
     'data-feature-count': features.length,
+    'data-style-color': firstStyle && firstStyle.color,
+    'data-style-fill-color': firstStyle && firstStyle.fillColor,
+    'data-style-weight': firstStyle && firstStyle.weight,
     ...sanitize(props),
   })
 }
 
-const passthrough = (testid) => ({ children, ...props }) =>
-  React.createElement('div', { 'data-testid': testid, ...sanitize(props) }, children)
+const passthrough = (testid) => {
+  const Component = ({ children, ...props }) =>
+    React.createElement('div', { 'data-testid': testid, ...sanitize(props) }, children)
+  Component.displayName = `Passthrough(${testid})`
+  return Component
+}
 
 // Strip non-DOM props (functions / objects) so React doesn't warn on the div.
 function sanitize(props) {
@@ -91,6 +101,7 @@ module.exports = {
   Circle: passthrough('circle'),
   CircleMarker: passthrough('circle-marker'),
   ZoomControl: passthrough('zoom-control'),
+  ScaleControl: passthrough('scale-control'),
   useMap: () => noopHookMap,
   useMapEvents: () => noopHookMap,
 }

@@ -7,10 +7,12 @@ Run from the project root:
 
 Requirements (on host): geopandas, psycopg2-binary, shapely
 """
+
 import sys
 from pathlib import Path
-import psycopg2
+
 import geopandas as gpd
+import psycopg2
 from shapely.geometry import mapping
 
 SHAPEFILE = Path("A:/CP2B_Maps_V2/data/shapefile/SP_Municipios_2024.shp")

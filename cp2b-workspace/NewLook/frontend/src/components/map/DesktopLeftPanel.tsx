@@ -15,12 +15,29 @@ import {
   Download,
   Link,
   Map,
+  Sparkles,
 } from 'lucide-react';
 import type { ResidueType, BiomassType } from './FloatingControlPanel';
 import type { VisualizationMode } from './LeftFilterPanel';
-import type { DisplayMetric, ResidueCNMatrix } from '@/types/geospatial';
+import type { DisplayMetric, ResidueCNMatrix, ColorMode } from '@/types/geospatial';
 import { useSummaryStatistics } from '@/hooks/useGeospatialData';
+import { useMapPalette } from '@/hooks/useMapPalette';
 import { formatBiogasShort } from '@/lib/mapUtils';
+import { DISPLAY_METRICS, METRIC_SPECS, MAP_PALETTES } from '@/lib/mapMetrics';
+import {
+  THEMATIC_PRESETS,
+  PRESET_GROUP_LABELS,
+  type ThematicPreset,
+  type ThematicPresetGroup,
+} from '@/data/thematicPresets';
+import { DATA_EXPORT_ENABLED } from '@/lib/featureFlags';
+import { MG_BETA_LAYER_ID, BETA_NOTICE } from '@/lib/mapScope';
+import {
+  isServedScenario,
+  SCENARIO_LABEL,
+  DEFAULT_MAP_SCENARIO,
+  type MapScenarioKey,
+} from '@/data/scenarioFactors';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -46,14 +63,28 @@ interface DesktopLeftPanelProps {
   onLayerToggle: (id: string, visible: boolean) => void;
   municipalityCount: number;
   totalMunicipalities: number;
+  /** Non-SP municipalities currently drawn as beta context (0 when hidden). */
+  betaMunicipalityCount?: number;
   onOpenComparison: () => void;
   onOpenExport: () => void;
   displayMetric?: DisplayMetric;
   onDisplayMetricChange?: (metric: DisplayMetric) => void;
   cnMatrix?: ResidueCNMatrix | null;
+  colorMode: ColorMode;
+  onColorModeChange: (mode: ColorMode) => void;
+  /** False when the current scope has no per-residue breakdown (outside SP). */
+  residueBreakdownAvailable?: boolean;
+  availableResidueCategories?: Array<'agricultural' | 'livestock' | 'urban'>;
+  scopeUf?: 'SP' | 'MG';
+  /** Active map scenario — the headline strip follows it. */
+  scenario?: MapScenarioKey;
+  /** Apply a thematic preset (one-click reconfigure of the map). */
+  onApplyPreset?: (preset: ThematicPreset) => void;
+  /** Id of the last-applied preset, for highlighting; null once edited by hand. */
+  activePresetId?: string | null;
 }
 
-type TabId = 'filters' | 'layers' | 'data' | 'tools';
+type TabId = 'filters' | 'temas' | 'layers' | 'data' | 'tools';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -70,30 +101,36 @@ const LAYER_KEY_MAP: Record<string, string> = {
 };
 
 const LAYER_GROUPS = [
-  { labelKey: 'layerGroups.base', ids: ['municipalities', 'intermediate-regions'] },
+  { labelKey: 'layerGroups.base', ids: ['municipalities', MG_BETA_LAYER_ID, 'intermediate-regions'] },
   { labelKey: 'layerGroups.environmental', ids: ['mapbiomas'] },
-  { labelKey: 'layerGroups.infrastructure', ids: ['biogas-plants', 'pipelines', 'substations', 'transmission-lines', 'etes', 'railways'] },
+  {
+    labelKey: 'layerGroups.infrastructure',
+    ids: [
+      'biogas_plant', 'ethanol_plant', 'biomass_thermal_plant', 'biodiesel_plant',
+      'slaughterhouse', 'substation', 'transmission_line',
+      'gas_pipeline_transport', 'gas_pipeline_distribution', 'etes', 'railways',
+    ],
+  },
+  // Os três blocos abaixo são grupos próprios, não um apêndice de
+  // "Infraestrutura". Eles respondem perguntas diferentes — para onde escoa,
+  // onde não se pode instalar, como se transporta — e a lista de vinte toggles
+  // que sairia de juntá-los apagaria exatamente essa distinção.
+  {
+    labelKey: 'layerGroups.gasRoute',
+    ids: [
+      'gas_delivery_point', 'compression_station', 'gas_processing_unit',
+      'gas_pipeline_outflow',
+    ],
+  },
+  {
+    labelKey: 'layerGroups.siteRestriction',
+    ids: ['protected_area_state', 'indigenous_territory', 'settlement'],
+  },
+  {
+    labelKey: 'layerGroups.logistics',
+    ids: ['highway_state', 'highway_federal'],
+  },
 ] as const;
-
-const RESIDUE_META = [
-  { value: 'sugarcane' as const, category: 'agricultural' as const, icon: '🌾' },
-  { value: 'soybean' as const, category: 'agricultural' as const, icon: '🌿' },
-  { value: 'corn' as const, category: 'agricultural' as const, icon: '🌽' },
-  { value: 'coffee' as const, category: 'agricultural' as const, icon: '☕' },
-  { value: 'citrus' as const, category: 'agricultural' as const, icon: '🍊' },
-  { value: 'cattle' as const, category: 'livestock' as const, icon: '🐄' },
-  { value: 'swine' as const, category: 'livestock' as const, icon: '🐷' },
-  { value: 'poultry' as const, category: 'livestock' as const, icon: '🐔' },
-  { value: 'aquaculture' as const, category: 'livestock' as const, icon: '🐟' },
-  { value: 'rsu' as const, category: 'urban' as const, icon: '🗑️' },
-  { value: 'rpo' as const, category: 'urban' as const, icon: '♻️' },
-];
-
-const CATEGORY_META = {
-  agricultural: { icon: '🌾', activeClass: 'bg-green-100 border-green-400 text-green-800' },
-  livestock: { icon: '🐄', activeClass: 'bg-yellow-100 border-yellow-400 text-yellow-800' },
-  urban: { icon: '🏙️', activeClass: 'bg-blue-100 border-blue-400 text-blue-800' },
-} as const;
 
 const DATA_SOURCES = [
   {
@@ -137,43 +174,31 @@ const DATA_SOURCES = [
 
 // ── Section components ────────────────────────────────────────────────────────
 
+// Biomassa-type and per-residue pickers were REMOVED from this panel: the
+// thematic maps (the on-map ribbon + the Temas tab) now cover "which sector /
+// which residue" as one-click ready maps, so the manual filters here were
+// redundant. The underlying state still exists — presets set it — it just no
+// longer has a hand-operated control in the first sidebar.
 function FiltersSection({
   searchQuery, onSearchChange, visualizationMode, onVisualizationModeChange,
-  biomassType, onBiomassTypeChange, selectedResidues, onResiduesChange,
-  displayMetric = 'biomass_tons', onDisplayMetricChange, cnMatrix, t,
+  displayMetric = 'biomass_tons', onDisplayMetricChange, t,
+  colorMode, onColorModeChange,
 }: {
   searchQuery: string;
   onSearchChange: (v: string) => void;
   visualizationMode: VisualizationMode;
   onVisualizationModeChange: (m: VisualizationMode) => void;
-  biomassType: BiomassType;
-  onBiomassTypeChange: (t: BiomassType) => void;
-  selectedResidues: ResidueType[];
-  onResiduesChange: (r: ResidueType[]) => void;
   displayMetric?: DisplayMetric;
   onDisplayMetricChange?: (metric: DisplayMetric) => void;
-  cnMatrix?: ResidueCNMatrix | null;
   t: ReturnType<typeof useTranslations>;
+  colorMode: ColorMode;
+  onColorModeChange: (mode: ColorMode) => void;
 }) {
-  const handleResidueToggle = (residue: ResidueType) => {
-    const next = selectedResidues.includes(residue)
-      ? selectedResidues.filter(r => r !== residue)
-      : [...selectedResidues, residue];
-    onResiduesChange(next);
-  };
-
-  const vizModes: { value: VisualizationMode; label: string }[] = [
+  const vizModes: { value: VisualizationMode; label: string; disabled?: boolean }[] = [
     { value: 'choropleth', label: t('vizModes.choropleth') },
     { value: 'heatmap', label: t('vizModes.heatmap') },
     { value: 'bubble', label: t('vizModes.bubble') },
-    { value: 'clusters', label: '⚗️ Co-digestão' },
-  ];
-
-  const biomassKeys: { value: BiomassType; icon: string; color: string }[] = [
-    { value: 'total', icon: '⚡', color: 'bg-green-100 border-green-400 text-green-800' },
-    { value: 'agricultural', icon: '🌾', color: 'bg-lime-100 border-lime-400 text-lime-800' },
-    { value: 'livestock', icon: '🐄', color: 'bg-yellow-100 border-yellow-400 text-yellow-800' },
-    { value: 'urban', icon: '🏙️', color: 'bg-blue-100 border-blue-400 text-blue-800' },
+    { value: 'clusters', label: '⚗️ Co-digestão', disabled: true },
   ];
 
   return (
@@ -200,29 +225,28 @@ function FiltersSection({
         </div>
       </div>
 
-      {/* Mode toggle — BIOGAS POTENTIAL / BIOMASS MONITORING */}
+      {/* Metric toggle — Biomassa / Biogás / Biometano / Bioenergia */}
       {onDisplayMetricChange && (
-        <div className="flex rounded-xl overflow-hidden border-2 border-gray-200">
-          <button
-            onClick={() => onDisplayMetricChange('biogas_m3')}
-            className={`flex-1 py-2 text-[11px] font-bold uppercase tracking-wide transition-colors ${
-              displayMetric === 'biogas_m3'
-                ? 'bg-blue-600 text-white'
-                : 'bg-white text-gray-500 hover:bg-gray-50'
-            }`}
-          >
-            ⚡ Biogás
-          </button>
-          <button
-            onClick={() => onDisplayMetricChange('biomass_tons')}
-            className={`flex-1 py-2 text-[11px] font-bold uppercase tracking-wide border-l-2 border-gray-200 transition-colors ${
-              displayMetric === 'biomass_tons'
-                ? 'bg-green-600 text-white'
-                : 'bg-white text-gray-500 hover:bg-gray-50'
-            }`}
-          >
-            🌿 Biomassa
-          </button>
+        <div className="grid grid-cols-2 gap-1">
+          {DISPLAY_METRICS.map((m) => {
+            const spec = METRIC_SPECS[m];
+            const active = displayMetric === m;
+            return (
+              <button
+                key={m}
+                onClick={() => onDisplayMetricChange(m)}
+                aria-pressed={active}
+                title={spec.legendTitle}
+                className={`py-2 text-[11px] font-bold uppercase tracking-wide rounded-lg transition-colors ${
+                  active
+                    ? `${spec.activeClass} text-white`
+                    : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-200'
+                }`}
+              >
+                {spec.icon} {spec.toggleLabel}
+              </button>
+            );
+          })}
         </div>
       )}
 
@@ -235,14 +259,18 @@ function FiltersSection({
           {vizModes.map(opt => (
             <button
               key={opt.value}
-              onClick={() => onVisualizationModeChange(opt.value)}
+              onClick={() => !opt.disabled && onVisualizationModeChange(opt.value)}
+              disabled={opt.disabled}
               className={`py-1.5 px-2 rounded-lg border text-[11px] font-medium transition-all ${
-                visualizationMode === opt.value
-                  ? opt.value === 'clusters'
-                    ? 'border-violet-600 bg-violet-50 text-violet-800'
-                    : 'border-[#1E5128] bg-green-50 text-green-800'
-                  : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'
+                opt.disabled
+                  ? 'bg-gray-50 border-gray-150 text-gray-300 cursor-not-allowed'
+                  : visualizationMode === opt.value
+                    ? opt.value === 'clusters'
+                      ? 'border-violet-600 bg-violet-50 text-violet-800'
+                      : 'border-[#1E5128] bg-green-50 text-green-800'
+                    : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'
               }`}
+              title={opt.disabled ? 'Em desenvolvimento' : undefined}
             >
               {opt.label}
             </button>
@@ -250,85 +278,164 @@ function FiltersSection({
         </div>
       </div>
 
-      {/* Biomass type */}
-      <div>
-        <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-1">
-          {t('biomassTypes.label')}
-        </label>
-        <div className="grid grid-cols-2 gap-1">
-          {biomassKeys.map(opt => (
-            <button
-              key={opt.value}
-              onClick={() => onBiomassTypeChange(opt.value)}
-              className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-medium border transition-all ${
-                biomassType === opt.value ? opt.color : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
-              }`}
-            >
-              <span className="text-sm">{opt.icon}</span>
-              {t(`biomassTypes.${opt.value}`)}
-            </button>
-          ))}
+      {/* Color mode selector (for choropleth mode) */}
+      {visualizationMode === 'choropleth' && (
+        <div>
+          <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-1">
+            {t('colorModes.label')}
+          </label>
+          <div className="flex flex-col gap-1 bg-gray-50 p-1.5 rounded-lg border border-gray-200">
+            {([
+              { value: 'biogas', label: displayMetric === 'biomass_tons' ? 'Potencial Biomassa' : t('colorModes.biogas') },
+              { value: 'cn_profile', label: t('colorModes.cn_profile') },
+              { value: 'cluster', label: t('colorModes.cluster') },
+            ] as const).map(opt => {
+              const active = colorMode === opt.value;
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => onColorModeChange(opt.value)}
+                  className={`w-full py-1 px-2.5 rounded-md text-[11px] font-semibold text-left transition-all flex items-center justify-between ${
+                    active
+                      ? 'bg-green-700 text-white shadow-sm'
+                      : 'text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  <span>{opt.label}</span>
+                  {active && <span className="text-[10px]">✓</span>}
+                </button>
+              );
+            })}
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* Residue filters */}
-      <div>
-        <div className="flex items-center justify-between mb-1">
-          <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide flex items-center gap-1">
-            {t('residueFilter.label')}
-            {selectedResidues.length > 0 && (
-              <span className="px-1 py-0.5 bg-green-100 text-green-700 text-[9px] font-bold rounded-full">
-                {selectedResidues.length}
-              </span>
-            )}
-          </span>
-          {selectedResidues.length > 0 && (
-            <button onClick={() => onResiduesChange([])} className="text-[10px] text-red-600 hover:text-red-800 font-medium">
-              {t('residueFilter.clear')}
-            </button>
-          )}
-        </div>
-        <div className="space-y-2">
-          {(['agricultural', 'livestock', 'urban'] as const).map(cat => {
-            const meta = CATEGORY_META[cat];
+    </div>
+  );
+}
+
+// ── Thematic maps ("mapas temáticos já prontos") ────────────────────────────
+// One-click presets that reconfigure the live map, grouped by theme, plus the
+// colour-scale picker. Each preset carries its own default palette; the picker
+// lets the reader override it (and stays available for any map, not only presets).
+function ThemesSection({
+  onApplyPreset, activePresetId, residueBreakdownAvailable = true,
+  availableResidueCategories = ['agricultural', 'livestock', 'urban'],
+}: {
+  onApplyPreset?: (preset: ThematicPreset) => void;
+  activePresetId?: string | null;
+  residueBreakdownAvailable?: boolean;
+  availableResidueCategories?: Array<'agricultural' | 'livestock' | 'urban'>;
+}) {
+  const [palette, setPalette] = useMapPalette();
+  const groups: ThematicPresetGroup[] = ['setorial', 'residuo', 'energia', 'logistica', 'analise'];
+
+  return (
+    <div className="space-y-4">
+      <p className="rounded-md bg-green-50 px-2.5 py-2 text-[10px] leading-snug text-green-800 ring-1 ring-green-100">
+        🗺️ Mapas temáticos prontos — um clique ajusta métrica, cor, resíduo e cenário do mapa ao vivo.
+      </p>
+
+      {!residueBreakdownAvailable && (
+        <p className="rounded-md bg-amber-50 px-2 py-1.5 text-[10px] leading-snug text-amber-800 ring-1 ring-amber-200">
+          ⓘ No piloto MG, temas agrícolas estão ativos. Pecuária e urbano aguardam promoção e validação.
+        </p>
+      )}
+
+      {groups.map((g) => {
+        const items = THEMATIC_PRESETS.filter((p) => p.group === g);
+        if (items.length === 0) return null;
+        return (
+          <div key={g}>
+            <p className="mb-1.5 text-[9px] font-bold uppercase tracking-wider text-gray-400">
+              {PRESET_GROUP_LABELS[g]}
+            </p>
+            <div className="grid grid-cols-2 gap-1.5">
+              {items.map((preset) => {
+                const active = activePresetId === preset.id;
+                const ramp = preset.config.palette ? MAP_PALETTES[preset.config.palette].ramp : null;
+                const residueSector = (residue: ResidueType) =>
+                  ['sugarcane', 'soybean', 'corn', 'coffee', 'citrus'].includes(residue)
+                    ? 'agricultural'
+                    : ['cattle', 'swine', 'poultry', 'aquaculture'].includes(residue)
+                      ? 'livestock'
+                      : 'urban';
+                const required = preset.config.biomassType && preset.config.biomassType !== 'total'
+                  ? [preset.config.biomassType]
+                  : (preset.config.selectedResidues ?? []).map(residueSector);
+                const enabled = required.every((category) => availableResidueCategories.includes(category));
+                return (
+                  <button
+                    key={preset.id}
+                    type="button"
+                    onClick={() => enabled && onApplyPreset?.(preset)}
+                    disabled={!enabled}
+                    title={preset.description}
+                    aria-pressed={active}
+                    className={`flex flex-col gap-1 rounded-lg border p-2 text-left transition-all ${
+                      !enabled
+                        ? 'cursor-not-allowed border-gray-100 bg-gray-50 opacity-40'
+                        : active
+                        ? 'border-green-600 bg-green-50 shadow-sm ring-1 ring-green-600'
+                        : 'border-gray-200 bg-white hover:border-green-300 hover:bg-gray-50'
+                    }`}
+                  >
+                    <span className="flex items-center gap-1 text-[11px] font-semibold text-gray-800">
+                      <span aria-hidden="true">{preset.icon}</span>
+                      <span className="truncate">{preset.label}</span>
+                    </span>
+                    {ramp && (
+                      <span className="flex h-1.5 w-full overflow-hidden rounded-full" aria-hidden="true">
+                        {ramp.map((c, i) => (
+                          <span key={i} className="flex-1" style={{ backgroundColor: c }} />
+                        ))}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
+
+      {/* Colour scale — the general palette, applies to any choropleth. */}
+      <div className="border-t border-gray-100 pt-3">
+        <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-gray-500">
+          Escala de cores
+        </span>
+        <div className="grid grid-cols-2 gap-1" role="radiogroup" aria-label="Escala de cores do mapa">
+          {Object.values(MAP_PALETTES).map((p) => {
+            const active = palette === p.id;
             return (
-              <div key={cat}>
-                <p className="text-[9px] text-gray-400 font-bold uppercase mb-0.5 flex items-center gap-0.5">
-                  {meta.icon} {t(`categories.${cat}`)}
-                </p>
-                <div className="flex flex-wrap gap-1">
-                  {RESIDUE_META.filter(r => r.category === cat).map(r => {
-                    const isSelected = selectedResidues.includes(r.value);
-                    const cnEntry = cnMatrix?.residues?.find(e => e.key === r.value);
-                    const cnBadgeClass = !cnEntry ? '' :
-                      cnEntry.cn_role === 'nitrogen_donor' ? 'bg-blue-100 text-blue-700' :
-                      cnEntry.cn_role === 'carbon_donor' ? 'bg-amber-100 text-amber-700' :
-                      'bg-green-100 text-green-700';
-                    return (
-                      <button
-                        key={r.value}
-                        onClick={() => handleResidueToggle(r.value)}
-                        className={`flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-medium border transition-all ${
-                          isSelected ? meta.activeClass : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
-                        }`}
-                      >
-                        {r.icon} {t(`residues.${r.value}`)}
-                        {cnEntry && (
-                          <span
-                            className={`ml-0.5 px-1 rounded text-[8px] font-mono ${cnBadgeClass}`}
-                            title={cnEntry.cn_role === 'nitrogen_donor' ? 'Leaning N' : cnEntry.cn_role === 'carbon_donor' ? 'Leaning C' : 'Balanced'}
-                          >
-                            {cnEntry.cn_ratio}
-                          </span>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
+              <button
+                key={p.id}
+                type="button"
+                role="radio"
+                aria-checked={active}
+                onClick={() => setPalette(p.id)}
+                title={`${p.label} — ${p.note}`}
+                className={`rounded-md border p-1 transition-all ${
+                  active ? 'border-gray-800 ring-1 ring-gray-800' : 'border-gray-200 hover:border-gray-400'
+                }`}
+              >
+                <span className="flex h-3 w-full overflow-hidden rounded-sm" aria-hidden="true">
+                  {p.ramp.map((c, i) => (
+                    <span key={i} className="flex-1" style={{ backgroundColor: c }} />
+                  ))}
+                </span>
+                <span className="mt-0.5 flex items-center justify-center gap-0.5 text-[8px] font-semibold text-gray-600">
+                  {p.label}
+                  {p.cvdSafe && <span title="Segura para daltonismo" aria-hidden="true">·♿</span>}
+                </span>
+              </button>
             );
           })}
         </div>
+        <p className="mt-1.5 text-[9px] leading-snug text-gray-400">
+          Vale para o mapa coroplético. O modo daltônico, quando ativo, tem prioridade sobre esta escolha.
+        </p>
       </div>
     </div>
   );
@@ -345,9 +452,12 @@ function LayersSection({
   onLayerToggle: (id: string, visible: boolean) => void;
   t: ReturnType<typeof useTranslations>;
 }) {
-  const getLayerName = (id: string) => {
-    const key = LAYER_KEY_MAP[id];
-    return key ? t(key) : id;
+  // Prefer the i18n label for the (SP) layers that have one; otherwise fall back
+  // to the layer's own name (the national MapBiomas layers carry a Portuguese
+  // name from MapComponent) rather than showing a raw snake_case id.
+  const getLayerName = (layer: Layer) => {
+    const key = LAYER_KEY_MAP[layer.id];
+    return key ? t(key) : layer.name;
   };
 
   const getGroupedLayers = () => {
@@ -403,21 +513,36 @@ function LayersSection({
           <div key={group.labelKey}>
             <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-1">{t(group.labelKey)}</p>
             <div className="space-y-0.5">
-              {group.items.map(layer => (
-                <div key={layer.id} className="flex items-center justify-between py-1">
-                  <span className="text-[11px] text-gray-700 font-medium truncate mr-2">
-                    {layer.icon} {getLayerName(layer.id)}
-                  </span>
-                  <button
-                    role="switch"
-                    aria-checked={layer.visible}
-                    onClick={() => onLayerToggle(layer.id, !layer.visible)}
-                    className={`relative w-8 h-[18px] rounded-full transition-colors shrink-0 ${layer.visible ? 'bg-[#1E5128]' : 'bg-gray-200'}`}
-                  >
-                    <span className={`absolute top-[2px] left-[2px] w-[14px] h-[14px] bg-white rounded-full shadow transition-transform ${layer.visible ? 'translate-x-[14px]' : ''}`} />
-                  </button>
-                </div>
-              ))}
+              {group.items.map(layer => {
+                const isBeta = layer.id === MG_BETA_LAYER_ID;
+                return (
+                  <div key={layer.id} className="py-1">
+                    <div className="flex items-center justify-between">
+                      <span className={`text-[11px] font-medium truncate mr-2 ${isBeta ? 'text-gray-500' : 'text-gray-700'}`}>
+                        {layer.icon} {getLayerName(layer)}
+                      </span>
+                      <button
+                        role="switch"
+                        aria-checked={layer.visible}
+                        onClick={() => onLayerToggle(layer.id, !layer.visible)}
+                        className={`relative w-8 h-[18px] rounded-full transition-colors shrink-0 ${
+                          layer.visible ? (isBeta ? 'bg-amber-500' : 'bg-[#1E5128]') : 'bg-gray-200'
+                        }`}
+                      >
+                        <span className={`absolute top-[2px] left-[2px] w-[14px] h-[14px] bg-white rounded-full shadow transition-transform ${layer.visible ? 'translate-x-[14px]' : ''}`} />
+                      </button>
+                    </div>
+                    {/* The caveat sits with the switch, not in a tooltip: this is
+                        the one moment the user is deciding whether to trust the
+                        layer, so it is the one place the disclosure must be free. */}
+                    {isBeta && (
+                      <p className="text-[9px] text-amber-700 leading-snug mt-0.5 pr-10">
+                        {BETA_NOTICE}
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         ))}
@@ -463,9 +588,15 @@ function ToolsSection({
   onOpenExport: () => void;
   t: ReturnType<typeof useTranslations>;
 }) {
+  // Export is withheld during beta (lib/featureFlags). The tool is removed from
+  // the list rather than disabled in place: a greyed-out button invites people to
+  // ask when it returns, and the honest answer is "when the data is validated",
+  // which the beta banner already says.
   const tools = [
     { icon: <BarChart3 className="w-5 h-5" />, titleKey: 'tools.compare', descKey: 'tools.compareDesc', ctaKey: 'tools.open', onClick: onOpenComparison },
-    { icon: <Download className="w-5 h-5" />, titleKey: 'tools.export', descKey: 'tools.exportDesc', ctaKey: 'tools.open', onClick: onOpenExport },
+    ...(DATA_EXPORT_ENABLED
+      ? [{ icon: <Download className="w-5 h-5" />, titleKey: 'tools.export', descKey: 'tools.exportDesc', ctaKey: 'tools.open', onClick: onOpenExport }]
+      : []),
     {
       icon: <Link className="w-5 h-5" />, titleKey: 'tools.share', descKey: 'tools.shareDesc', ctaKey: 'tools.copyUrl',
       onClick: () => { if (typeof window !== 'undefined') navigator.clipboard.writeText(window.location.href); },
@@ -490,29 +621,57 @@ function ToolsSection({
   );
 }
 
-function StatStrip({ municipalityCount, totalMunicipalities, filterCount }: {
+// The headline strip. Every number in it is São Paulo — the summary endpoint is
+// SP-scoped and the count is SP-scoped — so the strip says "SP" in the text
+// itself rather than relying on the reader to remember it.
+function StatStrip({ municipalityCount, totalMunicipalities, filterCount, betaMunicipalityCount = 0, scenario, scopeUf = 'SP' }: {
   municipalityCount: number;
   totalMunicipalities: number;
   filterCount: number;
+  betaMunicipalityCount?: number;
+  scenario: MapScenarioKey;
+  scopeUf?: 'SP' | 'MG';
 }) {
   const { data } = useSummaryStatistics();
+  // The strip used to show `total_biogas_m3_year` — 19.9 bi, the THEORETICAL
+  // volume, with no availability correction and no relation to the scenario the
+  // map is painting. It now follows the toggle: 7.83 bi in Real, 9.84 bi in
+  // Ideal, the pair published in RESULTADOS_SP_PARA_PAPER. The band scenarios
+  // have no served total, so they fall back to the legacy number — labelled as
+  // the theoretical figure it is, never as the platform's headline.
+  const tier = scopeUf === 'SP' && isServedScenario(scenario) ? data?.scenarios?.[scenario] : undefined;
+  const headline = scopeUf === 'SP' ? (tier ? tier.ch4_m3_year : data?.total_biogas_m3_year) : undefined;
+  const headlineLabel = tier
+    ? `Nm³ CH₄/ano · ${SCENARIO_LABEL[scenario]}`
+    : 'Nm³ CH₄/ano · teórico';
   return (
-    <div className="px-3 py-2 border-b border-gray-100 bg-gradient-to-r from-green-50 to-white flex items-center gap-2 flex-shrink-0">
-      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse flex-shrink-0" />
-      <span className="text-xs text-gray-600 truncate">
-        <span className="font-bold text-green-700">{municipalityCount}</span>
-        <span className="text-gray-400">/{totalMunicipalities}</span>
-        {' '}municípios
-      </span>
-      {data && (
-        <span className="ml-auto text-[10px] text-green-700 font-semibold shrink-0">
-          {formatBiogasShort(data.total_biogas_m3_year)} m³/ano
+    <div className="px-3 py-2 border-b border-gray-100 bg-gradient-to-r from-green-50 to-white flex-shrink-0">
+      <div className="flex items-center gap-2">
+        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse flex-shrink-0" />
+        <span className="text-xs text-gray-600 truncate">
+          <span className="font-bold text-green-700">{municipalityCount}</span>
+          <span className="text-gray-400">/{totalMunicipalities}</span>
+          {' '}municípios <span className="font-semibold text-green-700">{scopeUf}</span>
         </span>
-      )}
-      {filterCount > 0 && !data && (
-        <span className="ml-auto text-[10px] bg-green-100 text-green-700 font-semibold px-1.5 py-0.5 rounded-full shrink-0">
-          {filterCount} filtro{filterCount > 1 ? 's' : ''}
-        </span>
+        {headline !== undefined && (
+          <span
+            className="ml-auto text-[10px] text-green-700 font-semibold shrink-0"
+            title={tier?.description}
+          >
+            {formatBiogasShort(headline)} {headlineLabel}
+          </span>
+        )}
+        {filterCount > 0 && !data && (
+          <span className="ml-auto text-[10px] bg-green-100 text-green-700 font-semibold px-1.5 py-0.5 rounded-full shrink-0">
+            {filterCount} filtro{filterCount > 1 ? 's' : ''}
+          </span>
+        )}
+      </div>
+      {betaMunicipalityCount > 0 && (
+        <p className="mt-1 text-[9px] text-gray-400 leading-snug">
+          🧪 +{betaMunicipalityCount.toLocaleString('pt-BR')} municípios de MG em beta,
+          não somados ao total
+        </p>
       )}
     </div>
   );
@@ -521,11 +680,16 @@ function StatStrip({ municipalityCount, totalMunicipalities, filterCount }: {
 // ── Main Component ─────────────────────────────────────────────────────────────
 
 export default function DesktopLeftPanel({
-  searchQuery, onSearchChange, selectedResidues, onResiduesChange,
-  biomassType, onBiomassTypeChange, visualizationMode, onVisualizationModeChange,
+  searchQuery, onSearchChange, selectedResidues,
+  visualizationMode, onVisualizationModeChange,
   opacity, onOpacityChange, layers, onLayerToggle,
-  municipalityCount, totalMunicipalities, onOpenComparison, onOpenExport,
-  displayMetric, onDisplayMetricChange, cnMatrix,
+  municipalityCount, totalMunicipalities, betaMunicipalityCount = 0,
+  onOpenComparison, onOpenExport,
+  displayMetric, onDisplayMetricChange,
+  colorMode, onColorModeChange, residueBreakdownAvailable = true,
+  availableResidueCategories = ['agricultural', 'livestock', 'urban'], scopeUf = 'SP',
+  scenario = DEFAULT_MAP_SCENARIO,
+  onApplyPreset, activePresetId,
 }: DesktopLeftPanelProps) {
   const t = useTranslations('Map');
   const [collapsed, setCollapsed] = useState(false);
@@ -536,6 +700,7 @@ export default function DesktopLeftPanel({
 
   const tabs: { id: TabId; icon: React.ReactNode; label: string; badge?: number }[] = [
     { id: 'filters', icon: <Search className="w-3.5 h-3.5" />, label: 'Filtros', badge: filterCount > 0 ? filterCount : undefined },
+    { id: 'temas', icon: <Sparkles className="w-3.5 h-3.5" />, label: 'Temas' },
     { id: 'layers', icon: <Layers className="w-3.5 h-3.5" />, label: 'Camadas', badge: activeLayerCount > 1 ? activeLayerCount : undefined },
     { id: 'data', icon: <Database className="w-3.5 h-3.5" />, label: 'Dados' },
     { id: 'tools', icon: <Wrench className="w-3.5 h-3.5" />, label: 'Tools' },
@@ -547,7 +712,7 @@ export default function DesktopLeftPanel({
       <div className="flex items-center border-b border-gray-100 flex-shrink-0 h-12 px-2">
         {!collapsed && (
           <span className="text-sm font-semibold text-gray-700 truncate flex-1 px-1">
-            Biomassa SP
+            Biomassa Brasil
           </span>
         )}
         <button
@@ -599,6 +764,9 @@ export default function DesktopLeftPanel({
             municipalityCount={municipalityCount}
             totalMunicipalities={totalMunicipalities}
             filterCount={filterCount}
+            betaMunicipalityCount={betaMunicipalityCount}
+            scenario={scenario}
+            scopeUf={scopeUf}
           />
 
           {/* Tab nav */}
@@ -631,10 +799,17 @@ export default function DesktopLeftPanel({
               <FiltersSection
                 searchQuery={searchQuery} onSearchChange={onSearchChange}
                 visualizationMode={visualizationMode} onVisualizationModeChange={onVisualizationModeChange}
-                biomassType={biomassType} onBiomassTypeChange={onBiomassTypeChange}
-                selectedResidues={selectedResidues} onResiduesChange={onResiduesChange}
                 displayMetric={displayMetric} onDisplayMetricChange={onDisplayMetricChange}
-                cnMatrix={cnMatrix} t={t}
+                t={t}
+                colorMode={colorMode} onColorModeChange={onColorModeChange}
+              />
+            )}
+            {activeTab === 'temas' && (
+              <ThemesSection
+                onApplyPreset={onApplyPreset}
+                activePresetId={activePresetId}
+                residueBreakdownAvailable={residueBreakdownAvailable}
+                availableResidueCategories={availableResidueCategories}
               />
             )}
             {activeTab === 'layers' && (

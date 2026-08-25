@@ -1,12 +1,14 @@
 import json
 import os
 import sys
+
 import psycopg2
-from psycopg2.extras import RealDictCursor
 from dotenv import load_dotenv
+from psycopg2.extras import RealDictCursor
 
 # Add the parent directory to sys.path to allow importing from app
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 
 def connect_db():
     load_dotenv()
@@ -16,11 +18,12 @@ def connect_db():
         sys.exit(1)
     return psycopg2.connect(db_url)
 
+
 def import_references(json_file_path):
     print(f"Loading references from {json_file_path}...")
-    
+
     try:
-        with open(json_file_path, 'r', encoding='utf-8') as f:
+        with open(json_file_path, "r", encoding="utf-8") as f:
             references = json.load(f)
     except FileNotFoundError:
         print(f"Error: File {json_file_path} not found.")
@@ -48,12 +51,12 @@ def import_references(json_file_path):
 
             cur.execute("SELECT id FROM residuos WHERE codigo = %s", (residuo_codigo,))
             result = cur.fetchone()
-            
+
             if not result:
                 print(f"Warning: Residue with code '{residuo_codigo}' not found. Skipping.")
                 error_count += 1
                 continue
-            
+
             residuo_id = result[0]
 
             # Prepare insertion
@@ -68,7 +71,7 @@ def import_references(json_file_path):
                     %s
                 )
             """
-            
+
             values = (
                 residuo_id,
                 ref.get("parameter_type", "unknown"),
@@ -81,7 +84,7 @@ def import_references(json_file_path):
                 ref.get("url"),
                 ref.get("reported_value"),
                 ref.get("reported_unit"),
-                ref.get("validation_status", "pending")
+                ref.get("validation_status", "pending"),
             )
 
             cur.execute(query, values)
@@ -100,6 +103,7 @@ def import_references(json_file_path):
     print(f"\nImport completed.")
     print(f"Successfully imported: {success_count}")
     print(f"Errors/Skipped: {error_count}")
+
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:

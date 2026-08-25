@@ -35,10 +35,54 @@ feedstocks:
     en_name: "Sugarcane bagasse"
     sector: "AG_AGRICULTURA"
     subsector: "AG_CANA"
-    # residue_fraction: 0.280 — kg wet bagasse per kg green cane (IBGE PAM units).
-    # Applied in compute_sp_canonical_totals.py before the forward engine.
-    # Source: UNICA/CONSECANA 2022 tabela de custo; range 0.25–0.30.
-    # Note: IBGE PAM 'sugarcane_biomass_tons_year' column = green cane production.
+    # Residue-to-product ratio: tonnes of wet bagasse (50% moisture) per tonne of
+    # cane CRUSHED. Multi-source validated 2026-07-21: CONAB / EPE 2023 / UNICA
+    # 0.25–0.28 (250–280 kg/t milled); IEA Task 37 / FAO 2020 0.25–0.30;
+    # Moraes et al. 2015 / Talha et al. 2016 / Velásquez et al. 2020 0.26–0.28.
+    #
+    # THE DENOMINATOR IS MILLED CANE, NOT CANE PRODUCED — see
+    # mill_delivery_fraction below. Bagasse only exists for cane that reached a
+    # mill; applying this straight to PAM production overstates it.
+    rpr:
+      min: 0.25
+      medio: 0.28
+      max: 0.30
+      basis: "t wet bagasse / t cane MILLED"
+      refs: ["epe_ben2024", "talha2016_bagaco", "velasquez2020_sugarcane"]
+      notes: >
+        50% moisture, as delivered from the mill. Gross ratio; collectability and
+        the competing use as boiler fuel live in the fde block.
+    # Share of PAM-reported cane production that actually reaches a mill.
+    #
+    # PAM measures cane PRODUCED; UNICA measures cane CRUSHED (moagem). The two
+    # are consistently different, and the gap is real: cachaça production, mills
+    # outside UNICA's reporting, seed cane, animal feed and field losses.
+    # Comparing the two national series 2008–2024 (17 years):
+    #
+    #     moagem / PAM production = 0.76 – 0.92, mean ~0.85
+    #     2023: 716.3 / 782.1 = 0.916    2022: 607.4 / 726.1 = 0.837
+    #     2011 (poor harvest, the low outlier): 558.0 / 734.0 = 0.760
+    #
+    # Applies to the INDUSTRIAL sub-streams only — bagaço, torta de filtro and
+    # vinhaça, which are generated inside the mill. Palha (field straw) is left
+    # in the field at harvest and therefore uses PAM production undiminished.
+    #
+    # This is a national ratio standing in for per-state data. The UNICA/CONAB
+    # state series (moagem and ethanol by UF, 2002–2021) is the refinement:
+    # sugar-dominant states deliver a different share than ethanol-dominant ones,
+    # and vinhaça should ultimately be driven off ethanol volume directly
+    # (12 m³ per m³ of ethanol) rather than off cane at all.
+    mill_delivery_fraction:
+      min: 0.76
+      medio: 0.85
+      max: 0.92
+      basis: "t cane milled / t cane produced (PAM)"
+      refs: ["unica2023_straw"]
+      notes: >
+        UNICA histórico de moagem vs IBGE PAM production, national, 2008–2024.
+        Band spans the observed range rather than a confidence interval — the
+        year-to-year variation is genuine (harvest quality, sugar/ethanol mix),
+        not measurement error.
     bmp:
       min: 115.0
       medio: 165.0
@@ -166,9 +210,11 @@ feedstocks:
     # / 340 Mt cane/yr = 0.428 t/t cane. Conservative round-down to 0.420.
     # FCo=0.15 in FDE: 85% fertigated (CETESB Resolução SMA-39/2018 mandate).
     bmp:
-      min: 40.0
-      medio: 90.0
-      max: 160.0
+      # Revised 2026-06 to untreated mono-digestion basis from scientific_references
+      # corpus (Moura 2023 UFRJ MSc 165.5; Ferreira 2016 150-180; Moraes/Zaiat/Bonomi 2015).
+      min: 90.0
+      medio: 160.0
+      max: 200.0
       refs:
         - id: "bonomi2015_vinhaca"
           value: "50–130 NmL/gVS; typical SP vinhaça ~85 NmL/gVS at VS ~1.5% wet"
@@ -261,10 +307,27 @@ feedstocks:
     en_name: "Citrus bagasse"
     sector: "AG_AGRICULTURA"
     subsector: "AG_CITRICULTURA"
-    # residue_fraction: 0.50 — kg wet peel+bagasse per kg whole fruit (IBGE PAM units).
-    # Source: FUNDECITRUS 2022; industrial juice extraction: flavedo+albedo = 45–55%
-    # of fruit weight. FCo=0.30 in FDE handles competing uses (feed pellets, pectin).
-    # Note: IBGE PAM 'citrus_biomass_tons_year' = whole orange/citrus fruit production.
+    # Residue-to-product ratio: tonnes of wet peel + pulp + seeds per tonne of
+    # fresh fruit processed. Multi-source validated 2026-07-21: CitrusBR /
+    # Fundecitrus 0.48–0.52 (juice extraction yields ~50% juice, ~50% solid
+    # residue); Wikandari et al. 2014 / MDPI 2023 0.45–0.55; IEA Bioenergy Task 37
+    # baseline 0.48–0.52 at 75–80% moisture. Converging band 0.48–0.52.
+    #
+    # Supersedes the prose `residue_fraction: 0.50` note that used to live here and
+    # was applied in compute_sp_canonical_totals.py only — the map never saw it, so
+    # the same column meant fruit in one code path and substrate in the other.
+    #
+    # GROSS ratio. FCo = 0.30 in the fde block handles competing uses (feed pellets,
+    # pectin), so it must not be folded in here.
+    rpr:
+      min: 0.48
+      medio: 0.50
+      max: 0.52
+      basis: "t wet peel+pulp / t fresh fruit"
+      refs: ["wikandari2014_citrus", "fundecitrus2022"]
+      notes: >
+        Applied to PAM 1613 "Laranja" production (whole fruit). Industrial juice
+        processing basis — flavedo + albedo + pulp = 45–55% of fruit weight.
     bmp:
       min: 170.0
       medio: 230.0
@@ -365,10 +428,35 @@ feedstocks:
     en_name: "Coffee husk"
     sector: "AG_AGRICULTURA"
     subsector: "AG_CAFEICULTURA"
+    # Residue-to-product ratio: tonnes of dry husk/pergaminho per tonne of green
+    # processed coffee (café beneficiado). Multi-source validated 2026-07-21:
+    # IEA-SP 2023 / Embrapa Café (1 t dry cherry → ~500 kg beneficiado + ~500 kg
+    # husk, i.e. 1.00 t/t beneficiado); Okonkwo et al. 2021 / ScienceDirect 2023
+    # 1.00–1.25; FAO Biomass 1.00–1.50. Converging band 1.00–1.18.
+    #
+    # DRY PROCESSING (via seca), which predominates in SP and MG. Wet processing
+    # yields pulp instead, at 0.45–0.50 t/t of FRESH CHERRY — a different residue
+    # on a different denominator (POLPA_CAFE / MUCILAGEM_CAFE). The two must never
+    # be summed against the same production figure.
+    #
+    # THE DENOMINATOR IS THE TRAP: this ratio is per tonne of PROCESSED GREEN
+    # coffee, not per tonne of fresh cherry (~0.18–0.22 kg/kg on that basis).
+    # PAM 1613 "Café (em grão)" reports beneficiado, so it matches directly.
+    rpr:
+      min: 1.00
+      medio: 1.00
+      max: 1.18
+      basis: "t dry husk / t green processed coffee (via seca)"
+      refs: ["okonkwo2021_coffee"]
+      notes: >
+        Applied to PAM 1613 "Café (em grão) Total" — Total only, never summed with
+        the Arábica/Canephora varietal columns, which are subsets of it.
     bmp:
-      min: 90.0
-      medio: 140.0
-      max: 190.0
+      # Revised 2026-06 from scientific_references corpus (coffee husk untreated:
+      # Gebremedhin 2016 131; Passos 2018 196; Czekala 2023; corpus median ~164).
+      min: 120.0
+      medio: 165.0
+      max: 220.0
       refs:
         - id: "okonkwo2021_coffee"
           value: "Husk BMP 120–180 NmL/gVS; high lignin (27% DM) limits biodegradability"
@@ -558,6 +646,24 @@ feedstocks:
     en_name: "Soybean straw"
     sector: "AG_AGRICULTURA"
     subsector: "AG_SOJA"
+    # Residue-to-product ratio: tonnes of field straw per tonne of clean grain.
+    # The bridge from IBGE PAM (which reports GRAIN production) to the residue
+    # this feedstock actually is. Multi-source validated 2026-07-21: Embrapa Soja
+    # 2021 / MAPA 1.20–1.50; Koopmans & Koppejan (FAO 1997) 1.50; NREL 1.20–1.60;
+    # Kafle & Chen 2016 / Lal 2005 1.30–1.60. Converging band 1.35–1.50.
+    #
+    # GROSS ratio — collectability is NOT included here. Soy straw must largely
+    # stay in the field as soil cover (the fde block carries FCo_medio = 0.15);
+    # baking a collectability factor into rpr would discount it twice.
+    rpr:
+      min: 1.35
+      medio: 1.40
+      max: 1.50
+      basis: "t straw / t clean grain"
+      refs: ["kafle2016_soy"]
+      notes: >
+        Applied to PAM 1612 "Soja (em grão)" production. Dry-matter basis for the
+        total above-ground residue (~2.5–3.0 t/ha of palhada at Brazilian yields).
     bmp:
       min: 150.0
       medio: 220.0
@@ -611,6 +717,29 @@ feedstocks:
     en_name: "Corn stover"
     sector: "AG_AGRICULTURA"
     subsector: "AG_MILHO"
+    # Residue-to-product ratio: tonnes of stover (stalks + leaves + husks) per
+    # tonne of harvested grain. Multi-source validated 2026-07-21: Embrapa Milho
+    # e Sorgo 1.00–1.25; IPCC EFDB 1.00–1.30; NREL (harvest index 0.45–0.55 →
+    # RPR = (1−HI)/HI = 1.00–1.22); Herrmann et al. 2012 / Wilhelm et al. 2004
+    # 1.00–1.30. Converging band 1.00–1.20.
+    #
+    # COB IS EXCLUDED. Herrmann/Menardo separate sabugo (RPR 0.18–0.20) from
+    # stalks-and-leaves (1.00–1.10); this feedstock is the latter. Using the
+    # combined 1.20–1.40 figure here would silently fold in a residue stream the
+    # platform does not model, and which is largely burned on-site anyway.
+    #
+    # PAM "Milho (em grão)" is TOTAL production — 1ª + 2ª safra combined. The
+    # safrinha, ~75% of Brazilian corn and grown over soybean stubble, is already
+    # inside this figure and must not be added again from a separate source.
+    rpr:
+      min: 1.00
+      medio: 1.10
+      max: 1.20
+      basis: "t stover / t grain (cob excluded)"
+      refs: ["herrmann2012_corn"]
+      notes: >
+        Applied to PAM 1612 "Milho (em grão)" production (~8–12 t/ha of palhada
+        at Brazilian yields). Gross ratio; collectability lives in the fde block.
     bmp:
       min: 150.0
       medio: 230.0
@@ -928,9 +1057,11 @@ feedstocks:
     sector: "PC_PECUARIA"
     subsector: "PC_SUINOS"
     bmp:
-      min: 140.0
-      medio: 210.0
-      max: 280.0
+      # Revised 2026-06 from scientific_references corpus (untreated swine slurry mono
+      # median ~245; Moller 2004 140-280; Wall 2014 165-265). medio 210->245.
+      min: 150.0
+      medio: 245.0
+      max: 300.0
       refs:
         - id: "moller2004_manure"
           value: "Swine slurry BMP 140–280 NmL/gVS"
@@ -1054,9 +1185,11 @@ feedstocks:
     sector: "UR_URBANO"
     subsector: "UR_RSU"
     bmp:
-      min: 200.0
-      medio: 310.0
-      max: 420.0
+      # Revised 2026-06 from scientific_references corpus (untreated OFMSW: Fisgativa 2016;
+      # Mata-Alvarez 2014 200-450; corpus median ~472). medio raised 310->360, max ->500.
+      min: 250.0
+      medio: 360.0
+      max: 500.0
       refs:
         - id: "mata_alvarez2014_ofmsw"
           value: "Source-separated OFMSW BMP 200–450 NmL/gVS; median ~310"
@@ -1092,6 +1225,29 @@ feedstocks:
         Source-separated FORSU fraction = 0.10 t/cap/yr as reference (assumes partial
         source separation programme). Includes vegetable waste, food scraps, paper/cardboard
         organics. Excludes yard waste (handled separately as RPO/poda).
+    # Organic share of collected household waste (SNIS CO111 "rdo_coletado").
+    # Used when a municipality REPORTS its collected tonnage, so the measured
+    # figure replaces the per-capita model above: FORSU_t = rdo_coletado_t × this.
+    # The two are consistent by construction — the generation factor is itself
+    # derived as 550 g/cap/day × ~50% — so a municipality with an average
+    # per-capita rate lands in the same place either way; the difference is that
+    # measured tonnage reflects that municipality's actual collection.
+    #
+    # Basis is waste COLLECTED, not generated: only what reaches a facility can
+    # be digested, so this is an availability figure, deliberately conservative
+    # in municipalities with partial collection coverage.
+    organic_fraction_of_rdo:
+      min: 0.50
+      medio: 0.525
+      max: 0.55
+      refs: ["snis2022_rsu"]
+      notes: >
+        Brazilian FORSU characterization: organic matter is 50–55% of municipal
+        solid waste by weight (snis2022_rsu). Applied to SNIS CO111 (household
+        waste collected, all agents). Selective-collection tonnage (CS026) is NOT
+        subtracted first: this fraction is a composition share of the whole
+        collected stream, so removing recyclables beforehand would discount the
+        inorganic fraction twice.
     fde:
       confidence: MEDIUM
       availability: { min: 0.2215, medio: 0.4212, max: 0.6566 }

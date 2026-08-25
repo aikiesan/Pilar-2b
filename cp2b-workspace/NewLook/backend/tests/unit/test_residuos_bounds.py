@@ -46,12 +46,20 @@ RESIDUE_SWINE_MANURE = {
     "codigo": "PEC_DEJETOS_SUINO",
     "nome": "Dejetos líquidos de suínos",
     "sector_codigo": "PEC",
-    "bmp_min":    150.0, "bmp_medio":  210.0, "bmp_max":  280.0,
-    "ts_min":       2.0, "ts_medio":    3.5,  "ts_max":    6.0,
-    "vs_min":       1.5, "vs_medio":    2.5,  "vs_max":    4.5,
-    "chemical_cn_ratio":   12.5,
-    "chemical_ch4_content": 0.65,   # as fraction (65%)
-    "fator_pessimista": 0.50, "fator_realista": 0.70, "fator_otimista": 0.90,
+    "bmp_min": 150.0,
+    "bmp_medio": 210.0,
+    "bmp_max": 280.0,
+    "ts_min": 2.0,
+    "ts_medio": 3.5,
+    "ts_max": 6.0,
+    "vs_min": 1.5,
+    "vs_medio": 2.5,
+    "vs_max": 4.5,
+    "chemical_cn_ratio": 12.5,
+    "chemical_ch4_content": 0.65,  # as fraction (65%)
+    "fator_pessimista": 0.50,
+    "fator_realista": 0.70,
+    "fator_otimista": 0.90,
 }
 
 RESIDUE_SUGARCANE_BAGACO = {
@@ -59,12 +67,20 @@ RESIDUE_SUGARCANE_BAGACO = {
     "codigo": "AG_CANA_BAGACO",
     "nome": "Bagaço de cana-de-açúcar",
     "sector_codigo": "AGR",
-    "bmp_min":   280.0, "bmp_medio":  350.0, "bmp_max":  420.0,
-    "ts_min":     45.0, "ts_medio":   50.0,  "ts_max":   55.0,
-    "vs_min":     40.0, "vs_medio":   44.0,  "vs_max":   48.0,
-    "chemical_cn_ratio":   100.0,   # high C:N — pure lignocellulosic material
+    "bmp_min": 280.0,
+    "bmp_medio": 350.0,
+    "bmp_max": 420.0,
+    "ts_min": 45.0,
+    "ts_medio": 50.0,
+    "ts_max": 55.0,
+    "vs_min": 40.0,
+    "vs_medio": 44.0,
+    "vs_max": 48.0,
+    "chemical_cn_ratio": 100.0,  # high C:N — pure lignocellulosic material
     "chemical_ch4_content": 0.55,
-    "fator_pessimista": 0.60, "fator_realista": 0.80, "fator_otimista": 1.00,
+    "fator_pessimista": 0.60,
+    "fator_realista": 0.80,
+    "fator_otimista": 1.00,
 }
 
 RESIDUE_RSU_ORGANIC = {
@@ -72,12 +88,20 @@ RESIDUE_RSU_ORGANIC = {
     "codigo": "URB_RSU_ORGANICO",
     "nome": "Fração orgânica do RSU",
     "sector_codigo": "URB",
-    "bmp_min":   300.0, "bmp_medio":  410.0, "bmp_max":  520.0,
-    "ts_min":     12.0, "ts_medio":   20.0,  "ts_max":   30.0,
-    "vs_min":     10.0, "vs_medio":   17.0,  "vs_max":   25.0,
-    "chemical_cn_ratio":   20.0,
+    "bmp_min": 300.0,
+    "bmp_medio": 410.0,
+    "bmp_max": 520.0,
+    "ts_min": 12.0,
+    "ts_medio": 20.0,
+    "ts_max": 30.0,
+    "vs_min": 10.0,
+    "vs_medio": 17.0,
+    "vs_max": 25.0,
+    "chemical_cn_ratio": 20.0,
     "chemical_ch4_content": 0.58,
-    "fator_pessimista": 0.40, "fator_realista": 0.60, "fator_otimista": 0.80,
+    "fator_pessimista": 0.40,
+    "fator_realista": 0.60,
+    "fator_otimista": 0.80,
 }
 
 RESIDUE_CATTLE_MANURE = {
@@ -85,12 +109,20 @@ RESIDUE_CATTLE_MANURE = {
     "codigo": "PEC_ESTERCO_BOVINO",
     "nome": "Esterco bovino",
     "sector_codigo": "PEC",
-    "bmp_min":   150.0, "bmp_medio":  210.0, "bmp_max":  280.0,
-    "ts_min":     10.0, "ts_medio":   15.0,  "ts_max":   22.0,
-    "vs_min":      8.0, "vs_medio":   12.5,  "vs_max":   18.0,
-    "chemical_cn_ratio":   18.0,
+    "bmp_min": 150.0,
+    "bmp_medio": 210.0,
+    "bmp_max": 280.0,
+    "ts_min": 10.0,
+    "ts_medio": 15.0,
+    "ts_max": 22.0,
+    "vs_min": 8.0,
+    "vs_medio": 12.5,
+    "vs_max": 18.0,
+    "chemical_cn_ratio": 18.0,
     "chemical_ch4_content": 0.60,
-    "fator_pessimista": 0.50, "fator_realista": 0.70, "fator_otimista": 0.85,
+    "fator_pessimista": 0.50,
+    "fator_realista": 0.70,
+    "fator_otimista": 0.85,
 }
 
 ALL_RESIDUE_SAMPLES = [
@@ -102,6 +134,7 @@ ALL_RESIDUE_SAMPLES = [
 
 # ── BMP bounds ────────────────────────────────────────────────────────────────
 
+
 @pytest.mark.unit
 class TestBMPBounds:
     """Biochemical Methane Potential range: 50–800 NmL CH₄/g VS."""
@@ -111,31 +144,32 @@ class TestBMPBounds:
     @pytest.mark.parametrize("residue", ALL_RESIDUE_SAMPLES)
     def test_bmp_medio_within_physical_range(self, residue):
         v = residue["bmp_medio"]
-        assert self.BMP_LO <= v <= self.BMP_HI, (
-            f"{residue['codigo']}: bmp_medio={v} outside [{self.BMP_LO}, {self.BMP_HI}]"
-        )
+        assert (
+            self.BMP_LO <= v <= self.BMP_HI
+        ), f"{residue['codigo']}: bmp_medio={v} outside [{self.BMP_LO}, {self.BMP_HI}]"
 
     @pytest.mark.parametrize("residue", ALL_RESIDUE_SAMPLES)
     def test_bmp_statistical_ordering(self, residue):
         # bmp_min ≤ bmp_medio ≤ bmp_max
-        assert residue["bmp_min"] <= residue["bmp_medio"], (
-            f"{residue['codigo']}: bmp_min ({residue['bmp_min']}) > bmp_medio ({residue['bmp_medio']})"
-        )
-        assert residue["bmp_medio"] <= residue["bmp_max"], (
-            f"{residue['codigo']}: bmp_medio ({residue['bmp_medio']}) > bmp_max ({residue['bmp_max']})"
-        )
+        assert (
+            residue["bmp_min"] <= residue["bmp_medio"]
+        ), f"{residue['codigo']}: bmp_min ({residue['bmp_min']}) > bmp_medio ({residue['bmp_medio']})"
+        assert (
+            residue["bmp_medio"] <= residue["bmp_max"]
+        ), f"{residue['codigo']}: bmp_medio ({residue['bmp_medio']}) > bmp_max ({residue['bmp_max']})"
 
     @pytest.mark.parametrize("residue", ALL_RESIDUE_SAMPLES)
     def test_bmp_max_reasonable_spread(self, residue):
         # max should not exceed 5× min (extreme spread suggests data error)
         if residue["bmp_min"] > 0:
             ratio = residue["bmp_max"] / residue["bmp_min"]
-            assert ratio <= 5.0, (
-                f"{residue['codigo']}: bmp_max/bmp_min={ratio:.1f} — suspiciously large spread"
-            )
+            assert (
+                ratio <= 5.0
+            ), f"{residue['codigo']}: bmp_max/bmp_min={ratio:.1f} — suspiciously large spread"
 
 
 # ── VS / TS bounds and relationship ──────────────────────────────────────────
+
 
 @pytest.mark.unit
 class TestSolidsComposition:
@@ -147,33 +181,36 @@ class TestSolidsComposition:
     @pytest.mark.parametrize("residue", ALL_RESIDUE_SAMPLES)
     def test_vs_lte_ts_for_all_statistics(self, residue):
         # VS fraction cannot exceed TS fraction (minerals cannot volatilise)
-        assert residue["vs_min"]  <= residue["ts_min"],  f"{residue['codigo']}: vs_min > ts_min"
-        assert residue["vs_medio"] <= residue["ts_medio"], f"{residue['codigo']}: vs_medio > ts_medio"
-        assert residue["vs_max"]  <= residue["ts_max"],  f"{residue['codigo']}: vs_max > ts_max"
+        assert residue["vs_min"] <= residue["ts_min"], f"{residue['codigo']}: vs_min > ts_min"
+        assert (
+            residue["vs_medio"] <= residue["ts_medio"]
+        ), f"{residue['codigo']}: vs_medio > ts_medio"
+        assert residue["vs_max"] <= residue["ts_max"], f"{residue['codigo']}: vs_max > ts_max"
 
     @pytest.mark.parametrize("residue", ALL_RESIDUE_SAMPLES)
     def test_ts_within_physical_range(self, residue):
-        assert 0 < residue["ts_medio"] <= 100, (
-            f"{residue['codigo']}: ts_medio={residue['ts_medio']} outside (0, 100]%"
-        )
+        assert (
+            0 < residue["ts_medio"] <= 100
+        ), f"{residue['codigo']}: ts_medio={residue['ts_medio']} outside (0, 100]%"
 
     @pytest.mark.parametrize("residue", ALL_RESIDUE_SAMPLES)
     def test_vs_within_physical_range(self, residue):
-        assert 0 < residue["vs_medio"] <= 100, (
-            f"{residue['codigo']}: vs_medio={residue['vs_medio']} outside (0, 100]%"
-        )
+        assert (
+            0 < residue["vs_medio"] <= 100
+        ), f"{residue['codigo']}: vs_medio={residue['vs_medio']} outside (0, 100]%"
 
     @pytest.mark.parametrize("residue", ALL_RESIDUE_SAMPLES)
     def test_vs_ts_ratio_is_plausible(self, residue):
         # VS/TS is the organic fraction — expected 40–99% for biodegradable materials
         # (inorganic sludges can be lower; pure organic substrates approach 100%)
         ratio = residue["vs_medio"] / residue["ts_medio"]
-        assert 0.40 <= ratio <= 1.00, (
-            f"{residue['codigo']}: VS/TS ratio = {ratio:.2f} outside [0.40, 1.00]"
-        )
+        assert (
+            0.40 <= ratio <= 1.00
+        ), f"{residue['codigo']}: VS/TS ratio = {ratio:.2f} outside [0.40, 1.00]"
 
 
 # ── C:N ratio bounds ──────────────────────────────────────────────────────────
+
 
 @pytest.mark.unit
 class TestCNRatio:
@@ -187,9 +224,9 @@ class TestCNRatio:
     @pytest.mark.parametrize("residue", ALL_RESIDUE_SAMPLES)
     def test_cn_ratio_within_physical_range(self, residue):
         cn = residue["chemical_cn_ratio"]
-        assert self.CN_LO <= cn <= self.CN_HI, (
-            f"{residue['codigo']}: C:N={cn} outside [{self.CN_LO}, {self.CN_HI}]"
-        )
+        assert (
+            self.CN_LO <= cn <= self.CN_HI
+        ), f"{residue['codigo']}: C:N={cn} outside [{self.CN_LO}, {self.CN_HI}]"
 
     def test_swine_manure_is_nitrogen_donor(self):
         # Swine manure C:N ≈ 12 → nitrogen donor (C:N < 20)
@@ -211,7 +248,7 @@ class TestCNRatio:
         cn_blended = (cn_swine + cn_bagaco) / 2
         optimal_mid = 25.0
 
-        dist_swine  = abs(cn_swine  - optimal_mid)
+        dist_swine = abs(cn_swine - optimal_mid)
         dist_bagaco = abs(cn_bagaco - optimal_mid)
         dist_blended = abs(cn_blended - optimal_mid)
 
@@ -226,6 +263,7 @@ class TestCNRatio:
 
 # ── CH₄ content in biogas ────────────────────────────────────────────────────
 
+
 @pytest.mark.unit
 class TestMethaneContent:
     """
@@ -239,12 +277,12 @@ class TestMethaneContent:
     def test_ch4_content_within_physical_range(self, residue):
         ch4 = residue["chemical_ch4_content"]
         assert self.CH4_LO <= ch4 <= self.CH4_HI, (
-            f"{residue['codigo']}: CH4 content={ch4:.2f} outside "
-            f"[{self.CH4_LO}, {self.CH4_HI}]"
+            f"{residue['codigo']}: CH4 content={ch4:.2f} outside " f"[{self.CH4_LO}, {self.CH4_HI}]"
         )
 
 
 # ── Conversion factor ordering ────────────────────────────────────────────────
+
 
 @pytest.mark.unit
 class TestConversionFactors:
@@ -256,12 +294,12 @@ class TestConversionFactors:
 
     @pytest.mark.parametrize("residue", ALL_RESIDUE_SAMPLES)
     def test_conversion_factor_scenario_ordering(self, residue):
-        assert residue["fator_pessimista"] <= residue["fator_realista"], (
-            f"{residue['codigo']}: fator_pessimista > fator_realista"
-        )
-        assert residue["fator_realista"] <= residue["fator_otimista"], (
-            f"{residue['codigo']}: fator_realista > fator_otimista"
-        )
+        assert (
+            residue["fator_pessimista"] <= residue["fator_realista"]
+        ), f"{residue['codigo']}: fator_pessimista > fator_realista"
+        assert (
+            residue["fator_realista"] <= residue["fator_otimista"]
+        ), f"{residue['codigo']}: fator_realista > fator_otimista"
 
     @pytest.mark.parametrize("residue", ALL_RESIDUE_SAMPLES)
     def test_conversion_factors_are_positive(self, residue):
@@ -270,6 +308,7 @@ class TestConversionFactors:
 
 
 # ── BMP and energy cross-consistency ─────────────────────────────────────────
+
 
 @pytest.mark.unit
 class TestBMPEnergyConsistency:
@@ -283,8 +322,8 @@ class TestBMPEnergyConsistency:
     """
 
     CH4_LHV_MJ_PER_M3 = 35.8
-    MJ_TO_KWH         = 1 / 3.6
-    NML_G_TO_M3_KG    = 0.001   # 1 NmL/g = 0.001 m³/kg
+    MJ_TO_KWH = 1 / 3.6
+    NML_G_TO_M3_KG = 0.001  # 1 NmL/g = 0.001 m³/kg
 
     KWH_PER_KG_VS_LO = 0.5
     KWH_PER_KG_VS_HI = 8.0

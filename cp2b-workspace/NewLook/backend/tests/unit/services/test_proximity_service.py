@@ -3,17 +3,18 @@ Tests for Proximity Service
 Tests geospatial proximity analysis and municipality name normalization
 """
 
-import pytest
-from unittest.mock import Mock, MagicMock, patch
-from shapely.geometry import Point, Polygon, mapping
+from unittest.mock import MagicMock, Mock, patch
+
 import pyproj
+import pytest
+from shapely.geometry import Point, Polygon, mapping
 
 from app.services.proximity_service import (
-    normalize_municipality_name,
-    ProximityService,
     MAPBIOMAS_RESIDUOS_MAPPING,
-    WGS84,
     UTM_23S,
+    WGS84,
+    ProximityService,
+    normalize_municipality_name,
 )
 
 
@@ -140,7 +141,9 @@ class TestMapBiomasResiduosMapping:
         """Test subsector_codigo field is a string"""
         for class_code, mapping in MAPBIOMAS_RESIDUOS_MAPPING.items():
             subsector = mapping["subsector_codigo"]
-            assert isinstance(subsector, str), f"Class {class_code} subsector_codigo should be string"
+            assert isinstance(
+                subsector, str
+            ), f"Class {class_code} subsector_codigo should be string"
             assert len(subsector) > 0, f"Class {class_code} subsector_codigo should not be empty"
 
     def test_mapping_production_factor_field(self):
@@ -153,7 +156,9 @@ class TestMapBiomasResiduosMapping:
 
             if factor is not None:
                 assert factor >= 0, f"Class {class_code} production_factor should be non-negative"
-                assert factor < 1.0, f"Class {class_code} production_factor seems unrealistically high"
+                assert (
+                    factor < 1.0
+                ), f"Class {class_code} production_factor seems unrealistically high"
 
     def test_mapping_description_field(self):
         """Test description field is a non-empty string"""
@@ -461,3 +466,102 @@ class TestProximityServiceEdgeCases:
 
         # Results should be identical
         assert buffer1 == buffer2
+
+
+class TestCorrelateMapbiomasResiduos:
+    """Land-use → residue correlation: batched query + explicit degradation.
+
+    Regression tests for the Round 3 findings: the residue lookup ran one
+    query per land-use class (N+1), and any DB error was swallowed into a
+    silently partial 200 payload.
+    """
+
+    SECTOR_ROWS = [
+        {"codigo": "AG_CANA", "nome": "Cana-de-açúcar"},
+        {"codigo": "AG_CULTURAS", "nome": "Culturas"},
+    ]
+
+    @staticmethod
+    def _residuo_row(nome, sector="AG_CANA"):
+        return {
+            "id": 1,
+            "nome": nome,
+            "bmp_medio": 100.0,
+            "ts_medio": 50.0,
+            "vs_medio": 80.0,
+            "chemical_cn_ratio": 25.0,
+            "chemical_ch4_content": 55.0,
+            "bmp_unidade": "mL CH4/g VS",
+            "sector_codigo": sector,
+        }
+
+    # Classes 20 (cana) and 39 (soja) are both in MAPBIOMAS_RESIDUOS_MAPPING
+    LAND_USE = {
+        "by_class": {
+            "20": {"area_km2": 10.0, "name": "Cana", "percent": 40.0},
+            "39": {"area_km2": 5.0, "name": "Soja", "percent": 20.0},
+        }
+    }
+
+    def test_all_residuos_fetched_in_one_query(self, mock_db_connection):
+        _, cursor = mock_db_connection
+        cursor.fetchall.side_effect = [
+            self.SECTOR_ROWS,
+            [
+                self._residuo_row("Bagaço de cana"),
+                self._residuo_row("Palha de soja", sector="AG_CULTURAS"),
+            ],
+        ]
+        result = ProximityService().correlate_mapbiomas_residuos(self.LAND_USE)
+
+        # Exactly two queries: sectors + ONE batched residuos lookup
+        assert cursor.execute.call_count == 2
+        sql, params = cursor.execute.call_args_list[1][0]
+        assert "IN (" in sql
+        expected_names = set(MAPBIOMAS_RESIDUOS_MAPPING[20]["residuos"]) | set(
+            MAPBIOMAS_RESIDUOS_MAPPING[39]["residuos"]
+        )
+        assert set(params) == expected_names
+        assert result["total_potential_sources"] == 2
+
+    def test_residuos_grouped_to_right_class(self, mock_db_connection):
+        _, cursor = mock_db_connection
+        cursor.fetchall.side_effect = [
+            self.SECTOR_ROWS,
+            [
+                self._residuo_row("Bagaço de cana"),
+                self._residuo_row("Palha de soja", sector="AG_CULTURAS"),
+            ],
+        ]
+        result = ProximityService().correlate_mapbiomas_residuos(self.LAND_USE)
+
+        by_class_id = {c["mapbiomas_class_id"]: c for c in result["correlations"]}
+        cana_names = [r["nome"] for r in by_class_id[20]["matched_residuos"]]
+        soja_names = [r["nome"] for r in by_class_id[39]["matched_residuos"]]
+        assert cana_names == ["Bagaço de cana"]
+        assert soja_names == ["Palha de soja"]
+        assert by_class_id[20]["matched_residuos"][0]["sector_nome"] == "Cana-de-açúcar"
+
+    def test_db_error_returns_explicit_empty_result(self, mock_db_connection):
+        """A DB failure must not produce a silently partial payload — it
+        returns an empty correlation list with an explicit error marker."""
+        _, cursor = mock_db_connection
+        cursor.execute.side_effect = Exception("connection refused")
+        result = ProximityService().correlate_mapbiomas_residuos(self.LAND_USE)
+
+        assert result["correlations"] == []
+        assert result["total_potential_sources"] == 0
+        assert "error" in result
+
+    def test_unmapped_and_invalid_class_keys_are_skipped(self, mock_db_connection):
+        _, cursor = mock_db_connection
+        cursor.fetchall.side_effect = [self.SECTOR_ROWS, [self._residuo_row("Bagaço de cana")]]
+        land_use = {
+            "by_class": {
+                "20": {"area_km2": 10.0},
+                "9999": {"area_km2": 3.0},  # not in the mapping
+                "not-a-number": {"area_km2": 1.0},
+            }
+        }
+        result = ProximityService().correlate_mapbiomas_residuos(land_use)
+        assert [c["mapbiomas_class_id"] for c in result["correlations"]] == [20]

@@ -7,7 +7,6 @@ import { fetchSpMunicipalities, type MunicipalityOption } from '../calculatorApi
 export interface IdentificacaoData {
   nome: string
   email: string
-  cpf_cnpj: string
   municipality_id: number | null
   municipality_name: string
   consent_lgpd: boolean
@@ -136,20 +135,6 @@ export default function StepIdentificacao({ data, onChange, onNext, onSkip }: Pr
         {data.municipality_id && (
           <p className="text-xs text-green-600 mt-1">✓ {data.municipality_name}</p>
         )}
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
-          {t('step1.cpfCnpj')} <span className="text-gray-400 dark:text-slate-500 text-xs">({t('common.optional')})</span>
-        </label>
-        <input
-          type="text"
-          value={data.cpf_cnpj}
-          onChange={e => set({ cpf_cnpj: e.target.value })}
-          placeholder="CPF ou CNPJ"
-          className="input-field"
-        />
-        <p className="text-xs text-gray-400 dark:text-slate-500 mt-1">{t('step1.cpfNote')}</p>
       </div>
 
       <div className="flex items-start gap-2 p-3 bg-gray-50 dark:bg-slate-800/60 rounded-lg">

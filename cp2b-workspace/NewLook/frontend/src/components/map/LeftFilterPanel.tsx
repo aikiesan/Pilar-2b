@@ -54,8 +54,9 @@ export default function LeftFilterPanel({
     { value: 'swine', label: 'Suínos', category: 'livestock', icon: '🐷' },
     { value: 'poultry', label: 'Aves', category: 'livestock', icon: '🐔' },
     { value: 'aquaculture', label: 'Aquicultura', category: 'livestock', icon: '🐟' },
-    { value: 'rsu', label: 'RSU', category: 'urban', icon: '🗑️' },
-    { value: 'rpo', label: 'RPO', category: 'urban', icon: '♻️' },
+    { value: 'rsu', label: 'FORSU (orgânicos)', category: 'urban', icon: '🗑️' },
+    { value: 'rpo', label: 'Poda urbana', category: 'urban', icon: '♻️' },
+    { value: 'sewage', label: 'Lodo de ETE', category: 'urban', icon: '💧' },
   ] as const;
 
   const biomassOptions = [

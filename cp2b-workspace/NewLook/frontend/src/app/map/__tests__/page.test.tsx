@@ -12,17 +12,49 @@ import {
   mockMunicipalitiesList
 } from '../../../test/utils/test-utils'
 
-// Mock next/dynamic to avoid SSR issues in tests
-jest.mock('next/dynamic', () => {
-  return jest.fn((dynamicImport) => {
-    const MockComponent = (props: any) => <div {...props} data-testid="mock-dynamic-component" />
-    return MockComponent
-  })
-})
+// page.tsx wraps each react-leaflet export individually, e.g.
+// dynamic(() => import('react-leaflet').then((mod) => mod.MapContainer)) — the
+// loader already unwraps the named export, so it resolves to the component
+// itself (not a module object). Render whatever it resolves to instead of a
+// single generic stub, so the react-leaflet mock below (map-container,
+// tile-layer, marker, popup) actually gets exercised.
+jest.mock('next/dynamic', () => ({
+  __esModule: true,
+  default: (loader: () => Promise<any>) => {
+    const ReactLib = require('react')
+    const Dynamic = (props: any) => {
+      const [Comp, setComp] = ReactLib.useState<any>(null)
+      ReactLib.useEffect(() => {
+        let active = true
+        Promise.resolve(loader())
+          .then((resolved: any) => { if (active) setComp(() => resolved?.default ?? resolved) })
+          .catch(() => {})
+        return () => { active = false }
+      }, [])
+      return Comp ? ReactLib.createElement(Comp, props) : null
+    }
+    return Dynamic
+  },
+}))
 
 // Mock react-leaflet components
 jest.mock('react-leaflet', () => ({
-  MapContainer: (props: any) => <div {...props} data-testid="map-container" />,
+  // page.tsx passes `ref={setMapRef}` expecting the real Leaflet Map
+  // instance (with getZoom/setZoom/setView). React 19 forwards `ref` as a
+  // normal prop on function components, so a naive `{...props}` spread onto
+  // a plain div would hand the DOM node to that ref instead — call it with a
+  // fake map-like object so zoom/reset button handlers don't crash.
+  MapContainer: ({ children, ref, ...props }: any) => {
+    const ReactLib = require('react')
+    ReactLib.useEffect(() => {
+      if (typeof ref === 'function') {
+        ref({ setZoom: jest.fn(), getZoom: jest.fn(() => 8), setView: jest.fn() })
+      }
+    }, [ref])
+    return (
+      <div {...props} data-testid="map-container">{children}</div>
+    )
+  },
   TileLayer: ({ url, attribution }: any) => (
     <div data-testid="tile-layer" data-url={url} data-attribution={attribution} />
   ),
@@ -265,7 +297,7 @@ describe('MapPage', () => {
 
       // Check for municipality details
       expect(screen.getByText('1234567')).toBeInTheDocument() // IBGE code
-      expect(screen.getByText('100.000')).toBeInTheDocument() // Population formatted
+      expect(screen.getByText((100000).toLocaleString())).toBeInTheDocument() // Population formatted
       expect(screen.getByText('500 km²')).toBeInTheDocument() // Area
     })
 
@@ -287,8 +319,8 @@ describe('MapPage', () => {
       })
 
       await waitFor(() => {
-        // Check locale formatting
-        expect(screen.getByText('100.000')).toBeInTheDocument() // Population
+        // Check host-locale formatting (pt-BR machines render 100.000, en-US 100,000)
+        expect(screen.getByText((100000).toLocaleString())).toBeInTheDocument() // Population
         expect(screen.getByText('500 km²')).toBeInTheDocument() // Area
       })
     })

@@ -3,14 +3,16 @@ Pydantic schemas for Technology Routes feature.
 Educational tool for visualizing biogas technology pathways.
 """
 
-from pydantic import BaseModel, Field, ConfigDict
-from typing import Optional, List, Dict, Any
 from datetime import datetime
 from enum import Enum
+from typing import Any, Dict, List, Optional
+
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class TechnologyCategory(str, Enum):
     """Technology categories for biogas pathways."""
+
     FEEDSTOCK = "feedstock"
     PRETREATMENT = "pretreatment"
     DIGESTION = "digestion"
@@ -24,8 +26,10 @@ class TechnologyCategory(str, Enum):
 # TECHNOLOGY CARD SCHEMAS
 # ============================================================================
 
+
 class TechnologyCardBase(BaseModel):
     """Base schema for technology cards."""
+
     name_pt: str = Field(..., min_length=1, max_length=100)
     name_en: str = Field(..., min_length=1, max_length=100)
     emoji: str = Field(..., min_length=1, max_length=10)
@@ -39,12 +43,14 @@ class TechnologyCardBase(BaseModel):
 
 class TechnologyCardCreate(TechnologyCardBase):
     """Schema for creating a technology card."""
+
     id: Optional[str] = None  # Auto-generated if not provided
     is_custom: bool = False
 
 
 class TechnologyCard(TechnologyCardBase):
     """Complete technology card schema."""
+
     id: str
     is_custom: bool
     created_by: Optional[str] = None
@@ -58,8 +64,10 @@ class TechnologyCard(TechnologyCardBase):
 # REFERENCE SCHEMAS
 # ============================================================================
 
+
 class TechnologyReference(BaseModel):
     """Schema for scientific references linked to technologies."""
+
     reference_id: int
     title: str
     authors: List[str]
@@ -72,6 +80,7 @@ class TechnologyReference(BaseModel):
 
 class TechnologyCardWithReferences(TechnologyCard):
     """Technology card with its scientific references."""
+
     references: List[TechnologyReference] = Field(default_factory=list)
 
 
@@ -79,8 +88,10 @@ class TechnologyCardWithReferences(TechnologyCard):
 # ROUTE CANVAS SCHEMAS
 # ============================================================================
 
+
 class RouteNode(BaseModel):
     """Schema for a node in the React Flow canvas."""
+
     id: str
     type: str = "technology"
     position: Dict[str, float]  # {x: number, y: number}
@@ -91,6 +102,7 @@ class RouteNode(BaseModel):
 
 class RouteEdge(BaseModel):
     """Schema for an edge (connection) in the React Flow canvas."""
+
     id: str
     source: str
     target: str
@@ -103,6 +115,7 @@ class RouteEdge(BaseModel):
 
 class RouteCanvasData(BaseModel):
     """Schema for the complete canvas data."""
+
     nodes: List[RouteNode]
     edges: List[RouteEdge]
 
@@ -111,8 +124,10 @@ class RouteCanvasData(BaseModel):
 # USER ROUTE SCHEMAS
 # ============================================================================
 
+
 class UserRouteCreate(BaseModel):
     """Schema for creating a new route."""
+
     name: str = Field(..., min_length=1, max_length=200)
     description: Optional[str] = None
     canvas_data: RouteCanvasData
@@ -122,6 +137,7 @@ class UserRouteCreate(BaseModel):
 
 class UserRouteUpdate(BaseModel):
     """Schema for updating an existing route."""
+
     name: Optional[str] = Field(None, min_length=1, max_length=200)
     description: Optional[str] = None
     canvas_data: Optional[RouteCanvasData] = None
@@ -131,6 +147,7 @@ class UserRouteUpdate(BaseModel):
 
 class UserRoute(BaseModel):
     """Complete user route schema."""
+
     id: str
     user_id: str
     name: str
@@ -147,6 +164,7 @@ class UserRoute(BaseModel):
 
 class UserRoutePublic(BaseModel):
     """Public view of a route (for sharing)."""
+
     id: str
     name: str
     description: Optional[str]
@@ -160,14 +178,17 @@ class UserRoutePublic(BaseModel):
 # VALIDATION SCHEMAS
 # ============================================================================
 
+
 class ConnectionValidationRequest(BaseModel):
     """Request schema for validating a connection between technologies."""
+
     source_tech_id: str
     target_tech_id: str
 
 
 class ConnectionValidationResponse(BaseModel):
     """Response schema for connection validation."""
+
     valid: bool
     reason: Optional[str] = None
     source_category: Optional[str] = None

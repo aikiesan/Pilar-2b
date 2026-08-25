@@ -1,24 +1,27 @@
 """
 Technology Routes — HTTP endpoint tests.
 
-Tests the 4 DB-backed endpoints that do NOT use the broken `db` variable:
-  health_check, get_all_technologies, get_technology_by_id, validate_connection.
+Covers all DB-backed endpoints in app/routers/technology_routes.py, including
+the custom-technology and user-route CRUD endpoints that used to reference an
+undefined `db`/`text` (see IMPROVEMENT_BACKLOG.md for the fix history).
 
 All DB access is intercepted by the autouse mock_db_connection fixture in
 conftest.py, so no real Postgres connection is needed.
 """
 
 import json
-import pytest
-from datetime import datetime
+from datetime import datetime, timezone
 from unittest.mock import MagicMock
-from fastapi.testclient import TestClient
 
+import pytest
+from fastapi.testclient import TestClient
 
 # ─── Helper: cursor row factory ──────────────────────────────────────────────
 
-def _tech_row(tech_id="biogas_digester", category="digestion",
-              name_pt="Biodigestor", name_en="Biodigester"):
+
+def _tech_row(
+    tech_id="biogas_digester", category="digestion", name_pt="Biodigestor", name_en="Biodigester"
+):
     """Return a dict-like mock row for technology_cards table."""
     row = MagicMock()
     row.__getitem__ = lambda self, key: {
@@ -37,16 +40,32 @@ def _tech_row(tech_id="biogas_digester", category="digestion",
         "created_at": datetime(2025, 1, 1),
         "updated_at": datetime(2025, 1, 1),
     }[key]
-    row.get = lambda key, default=None: row[key] if key in (
-        "id", "category", "name_pt", "name_en", "emoji",
-        "description_pt", "description_en", "color",
-        "can_connect_to", "can_receive_from", "is_custom",
-        "created_by", "created_at", "updated_at"
-    ) else default
+    row.get = lambda key, default=None: (
+        row[key]
+        if key
+        in (
+            "id",
+            "category",
+            "name_pt",
+            "name_en",
+            "emoji",
+            "description_pt",
+            "description_en",
+            "color",
+            "can_connect_to",
+            "can_receive_from",
+            "is_custom",
+            "created_by",
+            "created_at",
+            "updated_at",
+        )
+        else default
+    )
     return row
 
 
 # ─── Health check ─────────────────────────────────────────────────────────────
+
 
 @pytest.mark.unit
 class TestTechnologyHealthCheck:
@@ -88,6 +107,7 @@ class TestTechnologyHealthCheck:
 
 # ─── Get all technologies ─────────────────────────────────────────────────────
 
+
 @pytest.mark.unit
 class TestGetAllTechnologies:
 
@@ -113,8 +133,37 @@ class TestGetAllTechnologies:
         response = client.get("/api/v1/technology-routes/technologies?include_custom=false")
         assert response.status_code == 200
 
+    def test_references_fetched_in_single_batched_query(self, client, mock_db_connection):
+        """Regression: references used to be fetched one query per technology
+        row (N+1); they must come back in one ANY(...) query for all rows."""
+        mock_conn, mock_cursor = mock_db_connection
+        tech_rows = [_tech_row(tech_id="tech_a"), _tech_row(tech_id="tech_b")]
+        ref_rows = [
+            {
+                "technology_id": "tech_a",
+                "reference_id": 1,
+                "relevance_note": None,
+                "title": "Paper A",
+                "authors": '["Silva, J."]',
+                "year": 2020,
+                "journal": "J. Biogas",
+                "doi": None,
+                "url": None,
+            }
+        ]
+        mock_cursor.fetchall.side_effect = [tech_rows, ref_rows]
+        data = client.get("/api/v1/technology-routes/technologies").json()
+        assert mock_cursor.execute.call_count == 2  # cards + one batched ref query
+        ref_sql, ref_params = mock_cursor.execute.call_args_list[1][0]
+        assert "ANY(%(tech_ids)s)" in ref_sql
+        assert ref_params == {"tech_ids": ["tech_a", "tech_b"]}
+        by_id = {t["id"]: t for t in data}
+        assert [r["title"] for r in by_id["tech_a"]["references"]] == ["Paper A"]
+        assert by_id["tech_b"]["references"] == []
+
 
 # ─── Get technology by ID ─────────────────────────────────────────────────────
+
 
 @pytest.mark.unit
 class TestGetTechnologyById:
@@ -162,8 +211,21 @@ class TestGetTechnologyById:
         data = client.get("/api/v1/technology-routes/technologies/biogas_digester").json()
         assert isinstance(data["references"], list)
 
+    def test_reference_query_joins_a_real_table(self, client, mock_db_connection):
+        """Regression: the join used a table literally named "references",
+        which no migration creates — every call 500'd against a real DB.
+        The reference data lives in residuo_references (migration 001)."""
+        mock_conn, mock_cursor = mock_db_connection
+        mock_cursor.fetchone.return_value = _tech_row()
+        mock_cursor.fetchall.return_value = []
+        client.get("/api/v1/technology-routes/technologies/biogas_digester")
+        ref_sql = mock_cursor.execute.call_args_list[-1][0][0]
+        assert '"references"' not in ref_sql
+        assert "residuo_references" in ref_sql
+
 
 # ─── Validate connection ──────────────────────────────────────────────────────
+
 
 @pytest.mark.unit
 class TestValidateConnection:
@@ -249,6 +311,271 @@ class TestValidateConnection:
         assert "valid" in data
 
     def test_invalid_payload_returns_422(self, client):
-        response = client.post("/api/v1/technology-routes/validate-connection",
-                               json={"source_tech_id": "a"})  # missing target
+        response = client.post(
+            "/api/v1/technology-routes/validate-connection", json={"source_tech_id": "a"}
+        )  # missing target
         assert response.status_code == 422
+
+
+# ─── Helper: user_routes row factory ─────────────────────────────────────────
+
+
+def _route_row(
+    route_id="11111111-1111-1111-1111-111111111111",
+    user_id="test-uid",
+    name="My Route",
+    description=None,
+    is_public=False,
+    share_token=None,
+    tags=None,
+):
+    """Return a dict-like mock row for the user_routes table."""
+    val = {
+        "id": route_id,
+        "user_id": user_id,
+        "name": name,
+        "description": description,
+        "canvas_data": {"nodes": [], "edges": []},
+        "is_public": is_public,
+        "share_token": share_token,
+        "tags": tags or [],
+        "created_at": datetime(2025, 1, 1),
+        "updated_at": datetime(2025, 1, 1),
+    }
+    row = MagicMock()
+    row.__getitem__ = lambda self, key: val[key]
+    row.get = lambda key, default=None: val.get(key, default)
+    return row
+
+
+def _make_authenticated_client(test_app, user_id="test-uid"):
+    """Return a TestClient whose get_current_user dependency is bypassed."""
+    from app.middleware.auth import get_current_user
+    from app.models.auth import UserProfile
+
+    fake_user = UserProfile(
+        id=user_id,
+        email="test@example.com",
+        full_name="Test User",
+        role="autenticado",
+        created_at=datetime(2025, 1, 1, tzinfo=timezone.utc),
+        updated_at=datetime(2025, 1, 1, tzinfo=timezone.utc),
+    )
+    test_app.dependency_overrides[get_current_user] = lambda: fake_user
+    return TestClient(test_app, base_url="http://testserver")
+
+
+# ─── Create / delete custom technology ───────────────────────────────────────
+
+
+@pytest.mark.unit
+class TestCreateCustomTechnology:
+
+    def _payload(self, **overrides):
+        payload = {
+            "name_pt": "Digestor Customizado",
+            "name_en": "Custom Digester",
+            "emoji": "⚗️",
+            "category": "digestion",
+        }
+        payload.update(overrides)
+        return payload
+
+    def test_create_returns_201(self, test_app, mock_db_connection):
+        mock_conn, mock_cursor = mock_db_connection
+        mock_cursor.fetchone.side_effect = [None, _tech_row(tech_id="custom_abc")]
+        auth_client = _make_authenticated_client(test_app)
+        response = auth_client.post(
+            "/api/v1/technology-routes/technologies/custom", json=self._payload()
+        )
+        assert response.status_code == 201
+
+    def test_create_duplicate_id_returns_400(self, test_app, mock_db_connection):
+        mock_conn, mock_cursor = mock_db_connection
+        mock_cursor.fetchone.return_value = _tech_row()
+        auth_client = _make_authenticated_client(test_app)
+        response = auth_client.post(
+            "/api/v1/technology-routes/technologies/custom",
+            json=self._payload(id="biogas_digester"),
+        )
+        assert response.status_code == 400
+
+
+@pytest.mark.unit
+class TestDeleteCustomTechnology:
+
+    def _ownership_row(self, created_by="test-uid"):
+        row = MagicMock()
+        row.__getitem__ = lambda self, key: {"created_by": created_by}[key]
+        return row
+
+    def test_delete_returns_204(self, test_app, mock_db_connection):
+        mock_conn, mock_cursor = mock_db_connection
+        mock_cursor.fetchone.return_value = self._ownership_row()
+        auth_client = _make_authenticated_client(test_app)
+        response = auth_client.delete("/api/v1/technology-routes/technologies/custom/custom_abc")
+        assert response.status_code == 204
+
+    def test_delete_not_found_returns_404(self, test_app, mock_db_connection):
+        mock_conn, mock_cursor = mock_db_connection
+        mock_cursor.fetchone.return_value = None
+        auth_client = _make_authenticated_client(test_app)
+        response = auth_client.delete("/api/v1/technology-routes/technologies/custom/ghost")
+        assert response.status_code == 404
+
+    def test_delete_not_owner_returns_403(self, test_app, mock_db_connection):
+        mock_conn, mock_cursor = mock_db_connection
+        mock_cursor.fetchone.return_value = self._ownership_row(created_by="someone-else")
+        auth_client = _make_authenticated_client(test_app, user_id="test-uid")
+        response = auth_client.delete("/api/v1/technology-routes/technologies/custom/custom_abc")
+        assert response.status_code == 403
+
+
+# ─── User routes CRUD ─────────────────────────────────────────────────────────
+
+
+@pytest.mark.unit
+class TestGetUserRoutes:
+
+    def test_returns_200_list(self, test_app, mock_db_connection):
+        mock_conn, mock_cursor = mock_db_connection
+        mock_cursor.fetchall.return_value = [_route_row(user_id="test-uid")]
+        auth_client = _make_authenticated_client(test_app)
+        response = auth_client.get("/api/v1/technology-routes/routes")
+        assert response.status_code == 200
+        assert len(response.json()) == 1
+
+    def test_empty_returns_empty_list(self, test_app, mock_db_connection):
+        mock_conn, mock_cursor = mock_db_connection
+        mock_cursor.fetchall.return_value = []
+        auth_client = _make_authenticated_client(test_app)
+        response = auth_client.get("/api/v1/technology-routes/routes")
+        assert response.json() == []
+
+
+@pytest.mark.unit
+class TestGetRouteById:
+
+    ROUTE_ID = "11111111-1111-1111-1111-111111111111"
+
+    def test_found_returns_200(self, test_app, mock_db_connection):
+        mock_conn, mock_cursor = mock_db_connection
+        mock_cursor.fetchone.return_value = _route_row(route_id=self.ROUTE_ID, user_id="test-uid")
+        auth_client = _make_authenticated_client(test_app)
+        response = auth_client.get(f"/api/v1/technology-routes/routes/{self.ROUTE_ID}")
+        assert response.status_code == 200
+
+    def test_not_found_returns_404(self, test_app, mock_db_connection):
+        mock_conn, mock_cursor = mock_db_connection
+        mock_cursor.fetchone.return_value = None
+        auth_client = _make_authenticated_client(test_app)
+        response = auth_client.get(f"/api/v1/technology-routes/routes/{self.ROUTE_ID}")
+        assert response.status_code == 404
+
+
+@pytest.mark.unit
+class TestCreateRoute:
+
+    def test_create_returns_201(self, test_app, mock_db_connection):
+        mock_conn, mock_cursor = mock_db_connection
+        mock_cursor.fetchone.return_value = _route_row(user_id="test-uid")
+        auth_client = _make_authenticated_client(test_app)
+        payload = {"name": "New Route", "canvas_data": {"nodes": [], "edges": []}}
+        response = auth_client.post("/api/v1/technology-routes/routes", json=payload)
+        assert response.status_code == 201
+
+
+@pytest.mark.unit
+class TestUpdateRoute:
+
+    ROUTE_ID = "11111111-1111-1111-1111-111111111111"
+
+    def test_update_returns_200(self, test_app, mock_db_connection):
+        mock_conn, mock_cursor = mock_db_connection
+        ownership_row = _route_row(route_id=self.ROUTE_ID, user_id="test-uid")
+        updated_row = _route_row(route_id=self.ROUTE_ID, user_id="test-uid", name="Renamed")
+        mock_cursor.fetchone.side_effect = [ownership_row, updated_row]
+        auth_client = _make_authenticated_client(test_app)
+        response = auth_client.put(
+            f"/api/v1/technology-routes/routes/{self.ROUTE_ID}", json={"name": "Renamed"}
+        )
+        assert response.status_code == 200
+
+    def test_update_not_found_returns_404(self, test_app, mock_db_connection):
+        mock_conn, mock_cursor = mock_db_connection
+        mock_cursor.fetchone.return_value = None
+        auth_client = _make_authenticated_client(test_app)
+        response = auth_client.put(
+            f"/api/v1/technology-routes/routes/{self.ROUTE_ID}", json={"name": "Renamed"}
+        )
+        assert response.status_code == 404
+
+    def test_update_not_owner_returns_403(self, test_app, mock_db_connection):
+        mock_conn, mock_cursor = mock_db_connection
+        mock_cursor.fetchone.return_value = _route_row(
+            route_id=self.ROUTE_ID, user_id="someone-else"
+        )
+        auth_client = _make_authenticated_client(test_app, user_id="test-uid")
+        response = auth_client.put(
+            f"/api/v1/technology-routes/routes/{self.ROUTE_ID}", json={"name": "Renamed"}
+        )
+        assert response.status_code == 403
+
+
+@pytest.mark.unit
+class TestDeleteRoute:
+
+    ROUTE_ID = "11111111-1111-1111-1111-111111111111"
+
+    def test_delete_returns_204(self, test_app, mock_db_connection):
+        mock_conn, mock_cursor = mock_db_connection
+        mock_cursor.fetchone.return_value = _route_row(route_id=self.ROUTE_ID, user_id="test-uid")
+        auth_client = _make_authenticated_client(test_app)
+        response = auth_client.delete(f"/api/v1/technology-routes/routes/{self.ROUTE_ID}")
+        assert response.status_code == 204
+
+    def test_delete_not_found_returns_404(self, test_app, mock_db_connection):
+        mock_conn, mock_cursor = mock_db_connection
+        mock_cursor.fetchone.return_value = None
+        auth_client = _make_authenticated_client(test_app)
+        response = auth_client.delete(f"/api/v1/technology-routes/routes/{self.ROUTE_ID}")
+        assert response.status_code == 404
+
+    def test_delete_not_owner_returns_403(self, test_app, mock_db_connection):
+        mock_conn, mock_cursor = mock_db_connection
+        mock_cursor.fetchone.return_value = _route_row(
+            route_id=self.ROUTE_ID, user_id="someone-else"
+        )
+        auth_client = _make_authenticated_client(test_app, user_id="test-uid")
+        response = auth_client.delete(f"/api/v1/technology-routes/routes/{self.ROUTE_ID}")
+        assert response.status_code == 403
+
+
+# ─── Public sharing endpoints ─────────────────────────────────────────────────
+
+
+@pytest.mark.unit
+class TestGetPublicRoutes:
+
+    def test_returns_200_list(self, client, mock_db_connection):
+        mock_conn, mock_cursor = mock_db_connection
+        mock_cursor.fetchall.return_value = [_route_row(is_public=True)]
+        response = client.get("/api/v1/technology-routes/public/routes")
+        assert response.status_code == 200
+        assert len(response.json()) == 1
+
+
+@pytest.mark.unit
+class TestGetRouteByShareToken:
+
+    def test_found_returns_200(self, client, mock_db_connection):
+        mock_conn, mock_cursor = mock_db_connection
+        mock_cursor.fetchone.return_value = _route_row(is_public=True, share_token="abc123")
+        response = client.get("/api/v1/technology-routes/share/abc123")
+        assert response.status_code == 200
+
+    def test_not_found_returns_404(self, client, mock_db_connection):
+        mock_conn, mock_cursor = mock_db_connection
+        mock_cursor.fetchone.return_value = None
+        response = client.get("/api/v1/technology-routes/share/ghost-token")
+        assert response.status_code == 404

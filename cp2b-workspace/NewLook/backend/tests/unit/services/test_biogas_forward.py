@@ -102,8 +102,16 @@ class TestCalculateFeedstock:
     def test_scenario_envelope_ordering(self, bagaco):
         # min scenario must be the lowest, max the highest (genuine envelope)
         res = calculate_feedstock(1000.0, bagaco)
-        assert res.ch4_theoretical_m3["min"] <= res.ch4_theoretical_m3["medio"] <= res.ch4_theoretical_m3["max"]
-        assert res.ch4_practical_m3["min"] <= res.ch4_practical_m3["medio"] <= res.ch4_practical_m3["max"]
+        assert (
+            res.ch4_theoretical_m3["min"]
+            <= res.ch4_theoretical_m3["medio"]
+            <= res.ch4_theoretical_m3["max"]
+        )
+        assert (
+            res.ch4_practical_m3["min"]
+            <= res.ch4_practical_m3["medio"]
+            <= res.ch4_practical_m3["max"]
+        )
 
     def test_fde_defaults_to_theoretical(self):
         # No FDE provided → practical == theoretical (FDE = 1.0)
@@ -149,8 +157,8 @@ class TestAggregate:
             vs_of_ts=Range.constant(100.0),
             ch4_pct=50.0,
         )
-        a = calculate_feedstock(10.0, params)   # 10 × 0.5 × 1.0 × 100 = 500
-        b = calculate_feedstock(20.0, params)   # 20 × 0.5 × 1.0 × 100 = 1000
+        a = calculate_feedstock(10.0, params)  # 10 × 0.5 × 1.0 × 100 = 500
+        b = calculate_feedstock(20.0, params)  # 20 × 0.5 × 1.0 × 100 = 1000
         agg = aggregate({"a": a, "b": b})
         assert agg.ch4_theoretical_m3["medio"] == pytest.approx(1500.0)
 

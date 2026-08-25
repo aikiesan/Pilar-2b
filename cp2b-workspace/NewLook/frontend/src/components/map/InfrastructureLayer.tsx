@@ -11,6 +11,7 @@ import type { GeoJsonObject, Feature } from 'geojson';
 import L from 'leaflet';
 import { logger } from '@/lib/logger';
 import { useInfrastructureLayer } from '@/hooks/useGeospatialData';
+import { PLANT_LAYERS, BIOMETHANE_PLANT, type PlantTypeInfo } from '@/lib/plantLayers';
 
 export type InfrastructureLayerStatus = {
   layerType: string;
@@ -19,9 +20,42 @@ export type InfrastructureLayerStatus = {
   featureCount?: number;
 };
 
+// Hyphenated ids are the legacy São Paulo shapefile layers; snake_case ids are
+// the national PostGIS layers (migration 023 / MapBiomas 10.1 INFRAESTRUTURA).
+// The id shape is what useInfrastructureLayer routes on, so keep them distinct.
+type LegacySpLayer =
+  | 'railways' | 'pipelines' | 'substations' | 'biogas-plants'
+  | 'transmission-lines' | 'etes'
+  | 'admin-regions' | 'intermediate-regions' | 'immediate-regions';
+
+export type NationalLayer =
+  | 'biogas_plant' | 'biodiesel_plant' | 'ethanol_plant' | 'slaughterhouse'
+  | 'biomass_thermal_plant' | 'substation' | 'transmission_line'
+  | 'gas_pipeline_transport' | 'gas_pipeline_distribution'
+  // Rota de escoamento: onde o biometano entra na malha
+  | 'gas_delivery_point' | 'compression_station' | 'gas_processing_unit'
+  | 'gas_pipeline_outflow'
+  // Restrição de sítio: mobilizável não é o mesmo que licenciável
+  | 'protected_area_state' | 'indigenous_territory' | 'settlement'
+  // Logística
+  | 'highway_state' | 'highway_federal';
+
 interface InfrastructureLayerProps {
-  layerType: 'railways' | 'pipelines' | 'substations' | 'biogas-plants' | 'transmission-lines' | 'etes' | 'admin-regions' | 'intermediate-regions' | 'immediate-regions';
+  layerType: LegacySpLayer | NationalLayer;
   onStatus?: (status: InfrastructureLayerStatus) => void;
+  /** Server-side UF filter; national layers only. */
+  uf?: string;
+  /** Server-side bbox filter, for layers whose uf is NULL by design (lines and
+   *  polygons that cross state borders). 'min_lng,min_lat,max_lng,max_lat'. */
+  bbox?: string;
+  /**
+   * Leaflet pane to draw into. Infrastructure must sit ABOVE the municipality
+   * choropleth: that choropleth renders on a canvas in the default overlayPane
+   * (z 400), and infra lines/polygons are SVG in the same pane — so without a
+   * dedicated higher pane the pipelines/highways/protected areas would be buried
+   * under the fill. MapComponent creates an 'infrastructure' pane at z 450.
+   */
+  pane?: string;
 }
 
 // Layer styling configurations
@@ -71,10 +105,127 @@ const layerStyles: Record<string, any> = {
   },
   etes: {
     // Point features use markers instead of styles
-  }
+  },
+
+  // ── National layers (migration 023) ──────────────────────────────────────
+  // Line layers need a style; the point layers below fall through to markers.
+  transmission_line: {
+    color: '#FFD700',
+    weight: 2,
+    opacity: 0.7,
+    dashArray: '5, 5'
+  },
+  gas_pipeline_transport: {
+    color: '#FF6B35',
+    weight: 3,
+    opacity: 0.8
+  },
+  gas_pipeline_distribution: {
+    color: '#FFA07A',
+    weight: 2,
+    opacity: 0.8,
+    dashArray: '4, 4'
+  },
+  // Escoamento: mesma família cromática dos outros gasodutos, tom distinto.
+  gas_pipeline_outflow: {
+    color: '#FF8C42',
+    weight: 1.8,
+    opacity: 0.75,
+    dashArray: '2, 3'
+  },
+  // Restrição de sítio — contorno visível, preenchimento discreto. São camadas
+  // de contexto: precisam ser lidas como limite, não competir com o coroplético.
+  protected_area_state: {
+    color: '#166534',
+    weight: 1,
+    opacity: 0.7,
+    fillColor: '#22C55E',
+    fillOpacity: 0.18
+  },
+  indigenous_territory: {
+    color: '#92400E',
+    weight: 1,
+    opacity: 0.7,
+    fillColor: '#F59E0B',
+    fillOpacity: 0.18
+  },
+  settlement: {
+    color: '#7C2D12',
+    weight: 0.8,
+    opacity: 0.6,
+    fillColor: '#FB923C',
+    fillOpacity: 0.15
+  },
+  // Rodovias: finas e neutras. São referência de leitura para o resto do mapa,
+  // nunca o dado em inspeção.
+  highway_state: {
+    color: '#64748B',
+    weight: 0.8,
+    opacity: 0.55
+  },
+  highway_federal: {
+    color: '#334155',
+    weight: 1.2,
+    opacity: 0.65
+  },
+  biogas_plant: {},
+  biodiesel_plant: {},
+  ethanol_plant: {},
+  slaughterhouse: {},
+  biomass_thermal_plant: {},
+  substation: {}
 };
 
 // Custom icons for point features
+// Slaughterhouses are a national layer (frigorificos, 207 sites): they mark
+// concentrated livestock-residue supply, so they matter for co-location.
+const createSlaughterhouseIcon = () => {
+  return L.divIcon({
+    className: 'custom-slaughterhouse-icon',
+    html: `
+      <div style="
+        background-color: #B22222;
+        border: 2px solid #7F1414;
+        border-radius: 50%;
+        width: 16px;
+        height: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      ">
+        <span style="color: #fff; font-size: 10px; font-weight: bold;">🥩</span>
+      </div>
+    `,
+    iconSize: [16, 16],
+    iconAnchor: [8, 8]
+  });
+};
+
+// Nós da malha de gás: entrega (city gate), compressão e processamento.
+const GAS_NODE_COLORS: Record<string, [string, string]> = {
+  gas_delivery_point: ['#0EA5E9', '#075985'],
+  compression_station: ['#8B5CF6', '#5B21B6'],
+  gas_processing_unit: ['#14B8A6', '#0F766E'],
+};
+
+const createGasNodeIcon = (layerType: string) => {
+  const [fill, stroke] = GAS_NODE_COLORS[layerType] ?? ['#0EA5E9', '#075985'];
+  return L.divIcon({
+    className: 'custom-gas-node-icon',
+    html: `
+      <div style="
+        background-color: ${fill};
+        border: 2px solid ${stroke};
+        width: 12px;
+        height: 12px;
+        transform: rotate(45deg);
+      "></div>
+    `,
+    iconSize: [12, 12],
+    iconAnchor: [6, 6],
+  });
+};
+
 const createSubstationIcon = () => {
   return L.divIcon({
     className: 'custom-substation-icon',
@@ -97,14 +248,21 @@ const createSubstationIcon = () => {
   });
 };
 
-// Icon for Ethanol plants
-const createEthanolPlantIcon = () => {
+/**
+ * Marker for one plant type, built from the shared catalogue.
+ *
+ * These four icons used to be four near-identical literals here, with the
+ * legend keeping its own copy of the same colours — so a plant type could be
+ * drawn in one colour and explained in another. Both sides read
+ * lib/plantLayers now.
+ */
+const createPlantIcon = (type: PlantTypeInfo, className: string) => {
   return L.divIcon({
-    className: 'custom-ethanol-plant-icon',
+    className,
     html: `
       <div style="
-        background-color: #9B59B6;
-        border: 2px solid #6C3483;
+        background-color: ${type.color};
+        border: 2px solid ${type.borderColor};
         border-radius: 50%;
         width: 18px;
         height: 18px;
@@ -112,7 +270,7 @@ const createEthanolPlantIcon = () => {
         align-items: center;
         justify-content: center;
       ">
-        <span style="color: white; font-size: 12px; font-weight: bold;">🌽</span>
+        <span style="color: white; font-size: 12px; font-weight: bold;">${type.icon}</span>
       </div>
     `,
     iconSize: [18, 18],
@@ -120,74 +278,17 @@ const createEthanolPlantIcon = () => {
   });
 };
 
-// Icon for Biogas plants
-const createBiogasPlantIcon = () => {
-  return L.divIcon({
-    className: 'custom-biogas-plant-icon',
-    html: `
-      <div style="
-        background-color: #27AE60;
-        border: 2px solid #1E5128;
-        border-radius: 50%;
-        width: 18px;
-        height: 18px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      ">
-        <span style="color: white; font-size: 12px; font-weight: bold;">🏭</span>
-      </div>
-    `,
-    iconSize: [18, 18],
-    iconAnchor: [9, 9]
-  });
-};
-
-// Icon for Biomethane plants
-const createBiomethaneIcon = () => {
-  return L.divIcon({
-    className: 'custom-biomethane-plant-icon',
-    html: `
-      <div style="
-        background-color: #3498DB;
-        border: 2px solid #1F618D;
-        border-radius: 50%;
-        width: 18px;
-        height: 18px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      ">
-        <span style="color: white; font-size: 12px; font-weight: bold;">💨</span>
-      </div>
-    `,
-    iconSize: [18, 18],
-    iconAnchor: [9, 9]
-  });
-};
-
-// Icon for Biomass UTE (Thermoelectric) plants
-const createBiomassUTEIcon = () => {
-  return L.divIcon({
-    className: 'custom-biomass-ute-icon',
-    html: `
-      <div style="
-        background-color: #E67E22;
-        border: 2px solid #BA4A00;
-        border-radius: 50%;
-        width: 18px;
-        height: 18px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      ">
-        <span style="color: white; font-size: 12px; font-weight: bold;">⚡</span>
-      </div>
-    `,
-    iconSize: [18, 18],
-    iconAnchor: [9, 9]
-  });
-};
+const createEthanolPlantIcon = () =>
+  createPlantIcon(PLANT_LAYERS.ethanol_plant, 'custom-ethanol-plant-icon');
+const createBiogasPlantIcon = () =>
+  createPlantIcon(PLANT_LAYERS.biogas_plant, 'custom-biogas-plant-icon');
+const createBiomassUTEIcon = () =>
+  createPlantIcon(PLANT_LAYERS.biomass_thermal_plant, 'custom-biomass-ute-icon');
+const createBiodieselPlantIcon = () =>
+  createPlantIcon(PLANT_LAYERS.biodiesel_plant, 'custom-biodiesel-plant-icon');
+// Biometano is a SUBTIPO of the legacy SP layer, not a layer of its own.
+const createBiomethaneIcon = () =>
+  createPlantIcon(BIOMETHANE_PLANT, 'custom-biomethane-plant-icon');
 
 const createETEIcon = () => {
   return L.divIcon({
@@ -211,9 +312,9 @@ const createETEIcon = () => {
   });
 };
 
-export default function InfrastructureLayer({ layerType, onStatus }: InfrastructureLayerProps) {
+export default function InfrastructureLayer({ layerType, onStatus, uf, bbox, pane }: InfrastructureLayerProps) {
   // Use React Query hook for automatic caching and background refetching
-  const { data, loading, error, isFetching } = useInfrastructureLayer(layerType, true);
+  const { data, loading, error, isFetching } = useInfrastructureLayer(layerType, true, uf, bbox);
   const featureCount = Array.isArray(data?.features) ? data.features.length : 0;
 
   useEffect(() => {
@@ -277,8 +378,19 @@ export default function InfrastructureLayer({ layerType, onStatus }: Infrastruct
   const pointToLayer = (feature: any, latlng: L.LatLng) => {
     let icon: L.DivIcon;
 
-    if (layerType === 'substations') {
+    if (layerType === 'substations' || layerType === 'substation') {
       icon = createSubstationIcon();
+    } else if (layerType === 'biogas_plant') {
+      // National layer: one icon per layer, since the layer itself is the type.
+      icon = createBiogasPlantIcon();
+    } else if (layerType === 'ethanol_plant') {
+      icon = createEthanolPlantIcon();
+    } else if (layerType === 'biomass_thermal_plant') {
+      icon = createBiomassUTEIcon();
+    } else if (layerType === 'biodiesel_plant') {
+      icon = createBiodieselPlantIcon();
+    } else if (layerType === 'slaughterhouse') {
+      icon = createSlaughterhouseIcon();
     } else if (layerType === 'biogas-plants') {
       // Differentiate biomass plants by type
       const props = feature.properties;
@@ -300,6 +412,16 @@ export default function InfrastructureLayer({ layerType, onStatus }: Infrastruct
       }
     } else if (layerType === 'etes') {
       icon = createETEIcon();
+    } else if (
+      layerType === 'gas_delivery_point' ||
+      layerType === 'compression_station' ||
+      layerType === 'gas_processing_unit'
+    ) {
+      // A rota do gás em um só registro visual: losango, para não se confundir
+      // com os círculos das usinas. A cor separa os três papéis — entrega,
+      // compressão, processamento — que é a leitura que interessa a quem
+      // pergunta "onde eu injeto o biometano que este município produz?".
+      icon = createGasNodeIcon(layerType);
     } else {
       // Default marker
       icon = L.divIcon({
@@ -310,7 +432,10 @@ export default function InfrastructureLayer({ layerType, onStatus }: Infrastruct
       });
     }
 
-    return L.marker(latlng, { icon });
+    // Same pane as the paths so every infrastructure feature sits above the
+    // municipality choropleth (markers default to markerPane, which is already
+    // above it, but keeping them together makes the layering explicit).
+    return L.marker(latlng, pane ? { icon, pane } : { icon });
   };
 
   // Event handlers for each feature
@@ -422,6 +547,7 @@ export default function InfrastructureLayer({ layerType, onStatus }: Infrastruct
       style={style}
       pointToLayer={pointToLayer}
       onEachFeature={onEachFeature}
+      pane={pane}
     />
   );
 }

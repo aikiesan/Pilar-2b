@@ -1,10 +1,14 @@
 """
 Tests for configuration module
 """
-import pytest
-from app.core.config import Settings
-from pydantic import ValidationError
+
 import os
+
+import pytest
+from pydantic import ValidationError
+
+from app.core.config import Settings
+
 
 class TestSettings:
     """Tests for Settings configuration"""
@@ -59,6 +63,7 @@ class TestSettings:
     def test_postgres_password_length_production(self, monkeypatch, caplog):
         """Test that short POSTGRES_PASSWORD in production triggers a warning (not an error)"""
         import logging
+
         monkeypatch.setenv("APP_ENV", "production")
         monkeypatch.setenv("SECRET_KEY", "a" * 32)
         monkeypatch.setenv("POSTGRES_PASSWORD", "short")

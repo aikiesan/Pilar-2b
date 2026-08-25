@@ -281,6 +281,16 @@ export const PREDEFINED_SCENARIOS: Scenario[] = [
     color: '#3B82F6'
   },
   {
+    id: 'frontier',
+    name: 'Fronteira do Biogás',
+    description: 'Mobilizacao realista-alta dos 31 residuos sob politica dedicada; supera o benchmark FIESP (~6,4 Mm3/d biometano)',
+    nameKey: 'scenarios.frontier_name',
+    descKey: 'scenarios.frontier_desc',
+    // FDE = 0.92 × (1-0.15) × 0.92 × 0.90 = 0.648 → entre Realista (0.570) e Otimista (0.748)
+    factors: { fc: 0.92, fcp: 0.15, fs: 0.92, fl: 0.90 },
+    color: '#059669'
+  },
+  {
     id: 'conservative',
     name: 'Conservador',
     description: 'Considera todas as restricoes praticas de forma conservadora',
@@ -433,7 +443,7 @@ export const EXPORT_OPTIONS: ExportOption[] = [
 // ============================================================================
 
 // Scenario type for the new scenario system
-export type ScenarioType = 'baseline' | 'conservative' | 'optimistic' | 'custom'
+export type ScenarioType = 'baseline' | 'conservative' | 'optimistic' | 'frontier' | 'custom'
 
 // Per-residue factor overrides
 // Maps residue code (e.g., "AG_CANA_TORTA_FILTRO") to custom correction factors
@@ -482,6 +492,18 @@ export const RESIDUE_SCENARIOS: Record<ScenarioType, Omit<ResidueScenario, 'type
     descKey: 'residue_scenarios.optimistic_desc',
     color: '#22C55E',
     multiplier: 1.15
+  },
+  frontier: {
+    // "Fronteira do Biogás" — realistic-high mobilisation across all 31 residues:
+    // relaxes the competing-use/collection constraints under dedicated public policy.
+    // Sits between Médio Prazo and the technical ceiling; surpasses the FIESP benchmark
+    // (~6.4 Mm³/d biometano) by leveraging the residues FIESP does not count.
+    name: 'Fronteira do Biogás',
+    nameKey: 'residue_scenarios.frontier_name',
+    description: 'Mobilização realista-alta dos 31 resíduos sob política dedicada (> benchmark FIESP)',
+    descKey: 'residue_scenarios.frontier_desc',
+    color: '#059669',
+    multiplier: 1.3
   },
   custom: {
     name: 'Personalizado',

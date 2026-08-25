@@ -3,17 +3,17 @@ PILAR-2b V3 - Proximity Analysis Service
 PostGIS-based spatial analysis for biogas potential assessment
 """
 
-import logging
-from typing import List, Dict, Any, Tuple
 import json
+import logging
+import re
+import unicodedata
+from pathlib import Path
+from typing import Any, Dict, List, Tuple
+
 import geopandas as gpd
+import pyproj
 from shapely.geometry import Point
 from shapely.ops import transform
-import pyproj
-from pathlib import Path
-import unicodedata
-import re
-
 
 logger = logging.getLogger(__name__)
 
@@ -21,35 +21,36 @@ logger = logging.getLogger(__name__)
 def normalize_municipality_name(name: str) -> str:
     """
     Normalize municipality name for matching.
-    
+
     Removes accents, converts to lowercase, removes extra spaces.
     Example: "São José dos Campos" -> "sao jose dos campos"
-    
+
     Args:
         name: Original municipality name
-        
+
     Returns:
         Normalized name for matching
     """
     if not name:
         return ""
-    
+
     # Convert to string if not already
     name = str(name)
-    
+
     # Normalize unicode characters (NFD = decompose accents)
-    name = unicodedata.normalize('NFD', name)
-    
+    name = unicodedata.normalize("NFD", name)
+
     # Remove accent marks
-    name = ''.join(char for char in name if unicodedata.category(char) != 'Mn')
-    
+    name = "".join(char for char in name if unicodedata.category(char) != "Mn")
+
     # Convert to lowercase
     name = name.lower()
-    
+
     # Remove extra spaces and trim
-    name = re.sub(r'\s+', ' ', name).strip()
-    
+    name = re.sub(r"\s+", " ", name).strip()
+
     return name
+
 
 # MapBiomas Class to Residuos Mapping
 # Maps MapBiomas land use classes to corresponding residue types in the database
@@ -59,50 +60,50 @@ MAPBIOMAS_RESIDUOS_MAPPING = {
         "residuos": ["Bagaço de cana", "Palha de cana", "Vinhaça"],
         "subsector_codigo": "AG_CANA",
         "production_factor": 0.14,  # tons residue per hectare
-        "description": "Resíduos da produção de cana-de-açúcar"
+        "description": "Resíduos da produção de cana-de-açúcar",
     },
     39: {  # Soja (Soybean)
         "residuos": ["Palha de soja"],
         "subsector_codigo": "AG_CULTURAS",
         "production_factor": 0.08,
-        "description": "Resíduos da colheita de soja"
+        "description": "Resíduos da colheita de soja",
     },
     15: {  # Pastagem (Pasture)
         "residuos": ["Dejetos bovinos", "Dejetos equinos"],
         "subsector_codigo": "PC_BOVINOS",
         "production_factor": None,  # Based on animal count
-        "description": "Dejetos de animais em pastagens"
+        "description": "Dejetos de animais em pastagens",
     },
     46: {  # Café (Coffee)
         "residuos": ["Palha de café", "Casca de café"],
         "subsector_codigo": "AG_CULTURAS",
         "production_factor": 0.05,
-        "description": "Resíduos do processamento de café"
+        "description": "Resíduos do processamento de café",
     },
     47: {  # Citros (Citrus)
         "residuos": ["Bagaço de laranja"],
         "subsector_codigo": "AG_CULTURAS",
         "production_factor": 0.06,
-        "description": "Resíduos do processamento de citros"
+        "description": "Resíduos do processamento de citros",
     },
     41: {  # Outras Temporárias (Other Annual Crops)
         "residuos": ["Palha de milho", "Sabugo de milho", "Palha de arroz"],
         "subsector_codigo": "AG_CULTURAS",
         "production_factor": 0.10,
-        "description": "Resíduos de culturas temporárias diversas"
+        "description": "Resíduos de culturas temporárias diversas",
     },
     9: {  # Silvicultura (Forestry)
         "residuos": ["Resíduos florestais"],
         "subsector_codigo": "AG_CULTURAS",
         "production_factor": 0.15,
-        "description": "Resíduos da silvicultura"
+        "description": "Resíduos da silvicultura",
     },
     21: {  # Mosaico Agricultura-Pastagem
         "residuos": ["Dejetos bovinos", "Palha de milho"],
         "subsector_codigo": "AG_CULTURAS",
         "production_factor": 0.07,
-        "description": "Resíduos de áreas mistas agricultura-pastagem"
-    }
+        "description": "Resíduos de áreas mistas agricultura-pastagem",
+    },
 }
 
 # Coordinate Reference Systems
@@ -113,7 +114,9 @@ UTM_23S = "EPSG:31983"  # SIRGAS 2000 / UTM zone 23S - for accurate buffer in me
 # Railway downloads to: backend/data/shapefiles/
 # Local development uses: project_map/data/shapefile/
 _RAILWAY_SHAPEFILE_DIR = Path(__file__).parent.parent.parent / "data" / "shapefiles"
-_LOCAL_SHAPEFILE_DIR = Path(__file__).parent.parent.parent.parent.parent / "project_map" / "data" / "shapefile"
+_LOCAL_SHAPEFILE_DIR = (
+    Path(__file__).parent.parent.parent.parent.parent / "project_map" / "data" / "shapefile"
+)
 
 # Use Railway path if it exists, otherwise fall back to local
 SHAPEFILE_DIR = _RAILWAY_SHAPEFILE_DIR if _RAILWAY_SHAPEFILE_DIR.exists() else _LOCAL_SHAPEFILE_DIR
@@ -124,16 +127,10 @@ class ProximityService:
 
     def __init__(self):
         """Initialize coordinate transformers"""
-        self.wgs84_to_utm = pyproj.Transformer.from_crs(
-            WGS84, UTM_23S, always_xy=True
-        ).transform
-        self.utm_to_wgs84 = pyproj.Transformer.from_crs(
-            UTM_23S, WGS84, always_xy=True
-        ).transform
+        self.wgs84_to_utm = pyproj.Transformer.from_crs(WGS84, UTM_23S, always_xy=True).transform
+        self.utm_to_wgs84 = pyproj.Transformer.from_crs(UTM_23S, WGS84, always_xy=True).transform
 
-    def create_buffer_geojson(
-        self, lat: float, lng: float, radius_km: float
-    ) -> Dict[str, Any]:
+    def create_buffer_geojson(self, lat: float, lng: float, radius_km: float) -> Dict[str, Any]:
         """
         Create a circular buffer around a point.
 
@@ -206,9 +203,13 @@ class ProximityService:
 
             try:
                 from app.core.database import get_db
+
                 with get_db() as conn:
                     cursor = conn.cursor()
-                    cursor.execute("SELECT municipality_name, ibge_code, population, area_km2, total_biogas_m3_year FROM municipalities")
+                    cursor.execute(
+                        "SELECT municipality_name, ibge_code, population, area_km2, "
+                        "total_biogas_m3_year FROM municipalities"
+                    )
                     for row in cursor.fetchall():
                         r = dict(row)
                         biogas_data[r["municipality_name"]] = r
@@ -241,40 +242,47 @@ class ProximityService:
 
                     # Try multiple matching strategies to find biogas data
                     muni_biogas = {}
-                    
+
                     # Strategy 1: Direct name match
                     if muni_name in biogas_data:
                         muni_biogas = biogas_data[muni_name]
-                    
+
                     # Strategy 2: Normalized name match (handles accents, case)
                     elif not muni_biogas:
                         normalized_name = normalize_municipality_name(muni_name)
                         muni_biogas = biogas_data_by_normalized.get(normalized_name, {})
-                    
+
                     # Strategy 3: IBGE code match
                     if not muni_biogas and muni_ibge:
                         muni_biogas = biogas_data_by_ibge.get(muni_ibge, {})
-                    
+
                     # Log if we still couldn't find data
                     if not muni_biogas:
-                        logger.debug(f"No biogas data found for municipality: {muni_name} (IBGE: {muni_ibge})")
+                        logger.debug(
+                            f"No biogas data found for municipality: {muni_name} "
+                            f"(IBGE: {muni_ibge})"
+                        )
 
                     muni_id += 1
-                    municipalities.append({
-                        "id": muni_id,
-                        "name": muni_name,
-                        "ibge_code": muni_biogas.get("ibge_code") or muni_ibge,
-                        "distance_km": round(distance_km, 2),
-                        "intersection_percent": 100,  # Simplified for now
-                        "population": muni_biogas.get("population", 0) or 0,
-                        "area_km2": muni_biogas.get("area_km2") or row.get("AREA_KM2"),
-                        "biogas_m3_year": muni_biogas.get("total_biogas_m3_year", 0) or 0
-                    })
+                    municipalities.append(
+                        {
+                            "id": muni_id,
+                            "name": muni_name,
+                            "ibge_code": muni_biogas.get("ibge_code") or muni_ibge,
+                            "distance_km": round(distance_km, 2),
+                            "intersection_percent": 100,  # Simplified for now
+                            "population": muni_biogas.get("population", 0) or 0,
+                            "area_km2": muni_biogas.get("area_km2") or row.get("AREA_KM2"),
+                            "biogas_m3_year": muni_biogas.get("total_biogas_m3_year", 0) or 0,
+                        }
+                    )
 
             # Sort by distance
             municipalities.sort(key=lambda x: x["distance_km"])
 
-            logger.info("Found %s municipalities within %s km", len(municipalities), float(radius_km))
+            logger.info(
+                "Found %s municipalities within %s km", len(municipalities), float(radius_km)
+            )
 
         except Exception as e:
             logger.error(f"Error finding municipalities: {e}")
@@ -312,16 +320,18 @@ class ProximityService:
 
         try:
             from app.core.database import get_db
+
             with get_db() as conn:
                 cursor = conn.cursor()
-                placeholders = ', '.join(['%s'] * len(muni_names))
+                placeholders = ", ".join(["%s"] * len(muni_names))
                 query = f"""
                     SELECT total_biogas_m3_year, energy_potential_mwh_year, co2_reduction_tons_year,
                     urban_biogas_m3_year, agricultural_biogas_m3_year, livestock_biogas_m3_year,
                     rsu_biogas_m3_year, rpo_biogas_m3_year,
                     sugarcane_biogas_m3_year, soybean_biogas_m3_year, corn_biogas_m3_year,
                     coffee_biogas_m3_year, citrus_biogas_m3_year,
-                    cattle_biogas_m3_year, swine_biogas_m3_year, poultry_biogas_m3_year, aquaculture_biogas_m3_year
+                    cattle_biogas_m3_year, swine_biogas_m3_year, poultry_biogas_m3_year,
+                    aquaculture_biogas_m3_year
                     FROM municipalities
                     WHERE municipality_name IN ({placeholders})
                 """
@@ -371,20 +381,14 @@ class ProximityService:
         """Return empty biogas result structure"""
         return {
             "total_m3_year": 0,
-            "by_category": {
-                "urban": 0,
-                "agricultural": 0,
-                "livestock": 0
-            },
+            "by_category": {"urban": 0, "agricultural": 0, "livestock": 0},
             "by_residue": {},
             "energy_potential_mwh_year": 0,
             "co2_reduction_tons_year": 0,
-            "homes_powered_equivalent": 0
+            "homes_powered_equivalent": 0,
         }
 
-    def get_residuos_for_municipalities(
-        self, municipality_names: List[str]
-    ) -> Dict[str, Any]:
+    def get_residuos_for_municipalities(self, municipality_names: List[str]) -> Dict[str, Any]:
         """
         Get detailed residuos data for municipalities.
 
@@ -402,10 +406,12 @@ class ProximityService:
 
         try:
             from app.core.database import get_db
+
             with get_db() as conn:
                 cursor = conn.cursor()
                 cursor.execute("""
-                    SELECT id, codigo, nome, nome_en, sector_codigo, subsector_codigo, categoria_nome,
+                    SELECT id, codigo, nome, nome_en, sector_codigo, subsector_codigo,
+                    categoria_nome,
                     bmp_min, bmp_medio, bmp_max, bmp_unidade,
                     ts_min, ts_medio, ts_max, vs_min, vs_medio, vs_max,
                     chemical_cn_ratio, chemical_ch4_content, fator_realista, icon
@@ -425,7 +431,10 @@ class ProximityService:
             residuos_list = []
             for r in sorted(
                 residuos_data,
-                key=lambda x: (sector_map.get(x.get("sector_codigo", ""), {}).get("ordem") or 999, x.get("nome") or "")
+                key=lambda x: (
+                    sector_map.get(x.get("sector_codigo", ""), {}).get("ordem") or 999,
+                    x.get("nome") or "",
+                ),
             ):
                 item = {k: (float(v) if hasattr(v, "__float__") else v) for k, v in r.items()}
                 sc = r.get("sector_codigo", "")
@@ -439,11 +448,19 @@ class ProximityService:
             for residuo in residuos_list:
                 sc = residuo["sector_codigo"]
                 if sc not in by_sector:
-                    by_sector[sc] = {"nome": residuo["sector_nome"], "emoji": residuo["sector_emoji"], "residuos": []}
+                    by_sector[sc] = {
+                        "nome": residuo["sector_nome"],
+                        "emoji": residuo["sector_emoji"],
+                        "residuos": [],
+                    }
                 by_sector[sc]["residuos"].append(residuo)
 
             total_residuos = len(residuos_list)
-            avg_bmp = sum(float(r.get("bmp_medio") or 0) for r in residuos_list) / total_residuos if total_residuos > 0 else 0
+            avg_bmp = (
+                sum(float(r.get("bmp_medio") or 0) for r in residuos_list) / total_residuos
+                if total_residuos > 0
+                else 0
+            )
 
             return {
                 "total_residuos": total_residuos,
@@ -456,9 +473,7 @@ class ProximityService:
             logger.error(f"Error fetching residuos for municipalities: {e}")
             return self._empty_residuos_result()
 
-    def correlate_mapbiomas_residuos(
-        self, land_use_data: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def correlate_mapbiomas_residuos(self, land_use_data: Dict[str, Any]) -> Dict[str, Any]:
         """
         Correlate MapBiomas land use classes with residuos database.
 
@@ -476,70 +491,111 @@ class ProximityService:
         correlations = []
         by_class = land_use_data.get("by_class", {})
 
+        # Resolve every mapped class up front so all residue rows can be
+        # fetched in a single query (was one query per class — N+1).
+        class_entries = []
+        all_residuo_names: set = set()
+        for class_id_str, class_data in by_class.items():
+            try:
+                class_id = int(class_id_str)
+            except (TypeError, ValueError):
+                continue
+
+            mapping_entry = MAPBIOMAS_RESIDUOS_MAPPING.get(class_id)
+            if not mapping_entry:
+                continue
+
+            class_entries.append((class_id, class_data, mapping_entry))
+            all_residuo_names.update(mapping_entry["residuos"])
+
         try:
             from app.core.database import get_db
+
             with get_db() as conn:
                 cursor = conn.cursor()
                 cursor.execute("SELECT codigo, nome FROM sectors")
-                sectors_data = [dict(row) for row in cursor.fetchall()]
-                sector_nome_map = {s["codigo"]: s["nome"] for s in sectors_data}
+                sector_nome_map = {row["codigo"]: row["nome"] for row in cursor.fetchall()}
 
-                for class_id_str, class_data in by_class.items():
-                    class_id = int(class_id_str)
-
-                    mapping_entry = MAPBIOMAS_RESIDUOS_MAPPING.get(class_id)
-                    if not mapping_entry:
-                        continue
-
-                    residuo_names = mapping_entry["residuos"]
-                    matched_residuos = []
-                    if residuo_names:
-                        placeholders = ', '.join(['%s'] * len(residuo_names))
-                        cursor.execute(f"""
-                            SELECT id, nome, bmp_medio, ts_medio, vs_medio, chemical_cn_ratio,
-                            chemical_ch4_content, bmp_unidade, sector_codigo
-                            FROM residuos
-                            WHERE nome IN ({placeholders})
-                        """, residuo_names)
-                        res_data = [dict(row) for row in cursor.fetchall()]
-
-                        for residuo in res_data:
-                            item = {k: (float(v) if hasattr(v, "__float__") else v) for k, v in residuo.items()}
-                            item["sector_nome"] = sector_nome_map.get(residuo.get("sector_codigo", ""), "")
-                            matched_residuos.append(item)
-
-                    area_km2 = class_data.get("area_km2", 0)
-                    area_ha = area_km2 * 100
-                    production_factor = mapping_entry.get("production_factor")
-                    estimated_residue_tons = None
-                    estimated_biogas_m3 = None
-
-                    if production_factor and matched_residuos:
-                        estimated_residue_tons = area_ha * production_factor
-                        avg_bmp = sum(float(res.get("bmp_medio") or 0) for res in matched_residuos) / len(matched_residuos)
-                        avg_ts = sum(float(res.get("ts_medio") or 0) for res in matched_residuos) / len(matched_residuos)
-                        avg_vs = sum(float(res.get("vs_medio") or 0) for res in matched_residuos) / len(matched_residuos)
-                        if avg_ts > 0 and avg_vs > 0:
-                            vs_tons = estimated_residue_tons * (avg_ts / 100) * (avg_vs / 100)
-                            estimated_biogas_m3 = vs_tons * avg_bmp
-
-                    correlations.append({
-                        "mapbiomas_class_id": class_id,
-                        "mapbiomas_class_name": class_data.get("name", f"Classe {class_id}"),
-                        "area_km2": round(area_km2, 4),
-                        "area_ha": round(area_ha, 2),
-                        "percent_of_buffer": class_data.get("percent", 0),
-                        "color": class_data.get("color", "#808080"),
-                        "description": mapping_entry.get("description", ""),
-                        "subsector_codigo": mapping_entry.get("subsector_codigo"),
-                        "matched_residuos": matched_residuos,
-                        "production_factor": production_factor,
-                        "estimated_residue_tons": round(estimated_residue_tons, 2) if estimated_residue_tons else None,
-                        "estimated_biogas_m3_year": round(estimated_biogas_m3, 2) if estimated_biogas_m3 else None,
-                    })
-
+                residuos_by_name: Dict[str, Dict[str, Any]] = {}
+                if all_residuo_names:
+                    placeholders = ", ".join(["%s"] * len(all_residuo_names))
+                    cursor.execute(
+                        f"""
+                        SELECT id, nome, bmp_medio, ts_medio, vs_medio, chemical_cn_ratio,
+                        chemical_ch4_content, bmp_unidade, sector_codigo
+                        FROM residuos
+                        WHERE nome IN ({placeholders})
+                    """,
+                        sorted(all_residuo_names),
+                    )
+                    residuos_by_name = {row["nome"]: dict(row) for row in cursor.fetchall()}
         except Exception as e:
+            # Correlation is supplementary to the proximity analysis — degrade
+            # to an EXPLICITLY empty result rather than failing the whole call,
+            # but never return silently partial data (the DB work above is
+            # all-or-nothing; the loop below is pure Python).
             logger.error(f"Error correlating MapBiomas with residuos: {e}")
+            return {
+                "correlations": [],
+                "total_potential_sources": 0,
+                "total_estimated_biogas_m3_year": 0.0,
+                "error": "Residue correlation unavailable (database error)",
+                "note": (
+                    "Estimates based on MapBiomas land use areas and residue " "production factors"
+                ),
+            }
+
+        for class_id, class_data, mapping_entry in class_entries:
+            matched_residuos = []
+            for residuo_name in mapping_entry["residuos"]:
+                residuo = residuos_by_name.get(residuo_name)
+                if residuo is None:
+                    continue
+                item = {k: (float(v) if hasattr(v, "__float__") else v) for k, v in residuo.items()}
+                item["sector_nome"] = sector_nome_map.get(residuo.get("sector_codigo", ""), "")
+                matched_residuos.append(item)
+
+            area_km2 = class_data.get("area_km2", 0)
+            area_ha = area_km2 * 100
+            production_factor = mapping_entry.get("production_factor")
+            estimated_residue_tons = None
+            estimated_biogas_m3 = None
+
+            if production_factor and matched_residuos:
+                estimated_residue_tons = area_ha * production_factor
+                avg_bmp = sum(float(res.get("bmp_medio") or 0) for res in matched_residuos) / len(
+                    matched_residuos
+                )
+                avg_ts = sum(float(res.get("ts_medio") or 0) for res in matched_residuos) / len(
+                    matched_residuos
+                )
+                avg_vs = sum(float(res.get("vs_medio") or 0) for res in matched_residuos) / len(
+                    matched_residuos
+                )
+                if avg_ts > 0 and avg_vs > 0:
+                    vs_tons = estimated_residue_tons * (avg_ts / 100) * (avg_vs / 100)
+                    estimated_biogas_m3 = vs_tons * avg_bmp
+
+            correlations.append(
+                {
+                    "mapbiomas_class_id": class_id,
+                    "mapbiomas_class_name": class_data.get("name", f"Classe {class_id}"),
+                    "area_km2": round(area_km2, 4),
+                    "area_ha": round(area_ha, 2),
+                    "percent_of_buffer": class_data.get("percent", 0),
+                    "color": class_data.get("color", "#808080"),
+                    "description": mapping_entry.get("description", ""),
+                    "subsector_codigo": mapping_entry.get("subsector_codigo"),
+                    "matched_residuos": matched_residuos,
+                    "production_factor": production_factor,
+                    "estimated_residue_tons": (
+                        round(estimated_residue_tons, 2) if estimated_residue_tons else None
+                    ),
+                    "estimated_biogas_m3_year": (
+                        round(estimated_biogas_m3, 2) if estimated_biogas_m3 else None
+                    ),
+                }
+            )
 
         # Sort by area (largest first)
         correlations.sort(key=lambda x: x.get("area_km2", 0), reverse=True)
@@ -553,7 +609,7 @@ class ProximityService:
             "correlations": correlations,
             "total_potential_sources": len(correlations),
             "total_estimated_biogas_m3_year": round(total_estimated_biogas, 2),
-            "note": "Estimates based on MapBiomas land use areas and residue production factors"
+            "note": "Estimates based on MapBiomas land use areas and residue production factors",
         }
 
     def _empty_residuos_result(self) -> Dict[str, Any]:
@@ -562,15 +618,10 @@ class ProximityService:
             "total_residuos": 0,
             "by_sector": {},
             "residuos": [],
-            "summary": {
-                "avg_bmp_medio": 0,
-                "sectors_count": 0
-            }
+            "summary": {"avg_bmp_medio": 0, "sectors_count": 0},
         }
 
-    def find_nearest_infrastructure(
-        self, lat: float, lng: float
-    ) -> List[Dict[str, Any]]:
+    def find_nearest_infrastructure(self, lat: float, lng: float) -> List[Dict[str, Any]]:
         """
         Find nearest infrastructure of each type.
 
@@ -593,32 +644,27 @@ class ProximityService:
                 "type": "gas_pipeline",
                 "name": "Gasoduto",
                 "files": ["Gasodutos_Distribuicao_SP", "Gasodutos_Transporte_SP"],
-                "max_distance_km": 100
+                "max_distance_km": 100,
             },
             {
                 "type": "substation",
                 "name": "Subestação",
                 "files": ["Subestacoes_Energia"],
-                "max_distance_km": 50
+                "max_distance_km": 50,
             },
             {
                 "type": "railway",
                 "name": "Rodovia",
                 "files": ["Rodovias_Estaduais_SP"],
-                "max_distance_km": 50
+                "max_distance_km": 50,
             },
             {
                 "type": "transmission_line",
                 "name": "Linha de Transmissão",
                 "files": ["Linhas_De_Transmissao_Energia"],
-                "max_distance_km": 50
+                "max_distance_km": 50,
             },
-            {
-                "type": "ete",
-                "name": "ETE",
-                "files": ["ETEs_2019_SP"],
-                "max_distance_km": 30
-            }
+            {"type": "ete", "name": "ETE", "files": ["ETEs_2019_SP"], "max_distance_km": 30},
         ]
 
         for config in infrastructure_configs:
@@ -627,7 +673,7 @@ class ProximityService:
                 config["files"],
                 config["type"],
                 config["name"],
-                config["max_distance_km"]
+                config["max_distance_km"],
             )
             results.append(result)
 
@@ -639,7 +685,7 @@ class ProximityService:
         shapefile_names: List[str],
         infra_type: str,
         infra_name: str,
-        max_distance_km: float
+        max_distance_km: float,
     ) -> Dict[str, Any]:
         """
         Find nearest feature from shapefile(s).
@@ -654,7 +700,7 @@ class ProximityService:
         Returns:
             Dict with nearest feature info
         """
-        nearest_distance = float('inf')
+        nearest_distance = float("inf")
         nearest_feature = None
 
         for shapefile_name in shapefile_names:
@@ -689,12 +735,14 @@ class ProximityService:
                     if distance_km < nearest_distance:
                         nearest_distance = distance_km
                         nearest_feature = {
-                            "name": row.get("nome", row.get("NOME", row.get("name", shapefile_name))),
+                            "name": row.get(
+                                "nome", row.get("NOME", row.get("name", shapefile_name))
+                            ),
                             "properties": {
                                 k: str(v) if v is not None else None
                                 for k, v in row.items()
                                 if k != "geometry" and not str(k).startswith("_")
-                            }
+                            },
                         }
 
             except Exception as e:
@@ -708,14 +756,16 @@ class ProximityService:
                 "name": nearest_feature.get("name", infra_name),
                 "distance_km": round(nearest_distance, 2),
                 "found": True,
-                "properties": nearest_feature.get("properties", {})
+                "properties": nearest_feature.get("properties", {}),
             }
         else:
             return {
                 "type": infra_type,
                 "name": None,
-                "distance_km": round(nearest_distance, 2) if nearest_distance != float('inf') else None,
+                "distance_km": (
+                    round(nearest_distance, 2) if nearest_distance != float("inf") else None
+                ),
                 "found": False,
                 "properties": None,
-                "note": f"Nenhum(a) {infra_name} encontrado(a) em {max_distance_km}km"
+                "note": f"Nenhum(a) {infra_name} encontrado(a) em {max_distance_km}km",
             }

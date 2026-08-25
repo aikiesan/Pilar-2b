@@ -17,10 +17,37 @@ FILTERED_FDE_CASCADE_FEATURE.md
 DETAILED_RESIDUE_IMPLEMENTATION_PLAN.md
 HANDOFF_PROMPT_FOR_CONTINUATION.md
 
-# Temporary files
-nul
+# Temporary and exploration files
+*.html
+.coverage
+coverage.xml
+htmlcov/
+*.gdb/
+query_stats.py
+*_load_log.csv
+manuscript_validation_*.json
+cp2b-workspace/NewLook/backend/nul
+analysis/outputs/
+
+# Regenerable validation datasets removed from version control.
+/cp2b-workspace/NewLook/docs/data/datasets/METADATA.json
+/cp2b-workspace/NewLook/docs/data/datasets/baseline_*.json
+/cp2b-workspace/NewLook/docs/data/datasets/biogas_canonical_state_summary.csv
+/cp2b-workspace/NewLook/docs/data/datasets/canonical_results.json
+/cp2b-workspace/NewLook/docs/data/datasets/espectro_estimativas_biometano_*.csv
+/cp2b-workspace/NewLook/docs/data/datasets/estado_*.json
+/cp2b-workspace/NewLook/docs/data/datasets/municipality_biomass_tons.csv
+/cp2b-workspace/NewLook/docs/data/datasets/validator_exclusions.json
 
 # Local raw data drops
 cp2b-workspace/Nova pasta/
+cp2b-workspace/NewLook/data/raw/
 # Claude Code local settings (not for version control)
 .claude/
+
+
+# PILAR-2b raw primary sources (2.4 GB, distributed out of band)
+00_Fontes_Primarias-*/
+
+# Multi-agent scratch state
+.agents/

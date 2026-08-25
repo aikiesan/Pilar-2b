@@ -46,6 +46,7 @@ data/rasters/*.tif
 .env
 .env.local
 .env.docker
+.env.geoserver
 
 # Logs
 logs/
@@ -65,6 +66,13 @@ Thumbs.db
 *~# Shapefile data (large files, sourced from project_map repo)
 backend/data/shapefiles/
 backend/data/rasters/
+# Immutable raw snapshots for the ingestion contract (backend/ingest). These are
+# large source exports (IBGE SIDRA workbooks, SNIS CSVs) that are downloaded
+# deliberately and recorded in docs/data/METADATA.json — the lineage lives there,
+# not in git. The rule at line 36 only covers NewLook/data/raw, not this one.
+# Ignore the drops themselves but keep the manifest that documents them.
+backend/data/raw/*
+!backend/data/raw/README.md
 
 # Canonical recalculation outputs (regenerable via recalculate_biogas_canonical.py)
 backend/scripts/canonical_recalc_output/
@@ -73,3 +81,11 @@ backend/scripts/canonical_recalc_output/
 .coverage
 coverage.xml
 htmlcov/
+
+# CITE EARL reports (regenerable via tests/ogc/cite/run_cite.py; CI uploads as artifacts)
+tests/ogc/cite/reports/
+
+# Local Docker overrides — machine-specific absolute paths (e.g. pointing the
+# backend bind-mount at a git worktree, or sharing the gitignored 698 MB
+# data/shapefiles/ across checkouts). Never commit: it is per-developer config.
+docker-compose.override.yml

@@ -3,16 +3,20 @@ Integration tests for Residuos API endpoints.
 Tests sectors, subsectors, residues list, references, conversion factors,
 summary, compare, and single-residue endpoints.
 """
-import pytest
+
 from contextlib import contextmanager
 from unittest.mock import MagicMock, patch
+
+import pytest
 from fastapi.testclient import TestClient
+
 from app.main import app
 
 client = TestClient(app)
 
 
 # ─── Helpers ──────────────────────────────────────────────────────────────────
+
 
 def _make_db_patch(rows_by_call):
     """
@@ -69,17 +73,29 @@ SECTOR_ROWS = [
 
 RESIDUO_ROWS = [
     {
-        "id": 1, "codigo": "VNH", "nome": "Vinhaça", "sector_codigo": "AGR",
+        "id": 1,
+        "codigo": "VNH",
+        "nome": "Vinhaça",
+        "sector_codigo": "AGR",
         "subsector_codigo": "SUB1",
-        "bmp_medio": 200.0, "ts_medio": 5.0, "vs_medio": 4.0,
-        "chemical_cn_ratio": 20.0, "chemical_ch4_content": 0.65,
+        "bmp_medio": 200.0,
+        "ts_medio": 5.0,
+        "vs_medio": 4.0,
+        "chemical_cn_ratio": 20.0,
+        "chemical_ch4_content": 0.65,
         "fator_realista": 0.8,
     },
     {
-        "id": 2, "codigo": "RSU", "nome": "Resíduo Sólido Urbano", "sector_codigo": "URB",
+        "id": 2,
+        "codigo": "RSU",
+        "nome": "Resíduo Sólido Urbano",
+        "sector_codigo": "URB",
         "subsector_codigo": None,
-        "bmp_medio": 150.0, "ts_medio": 30.0, "vs_medio": 25.0,
-        "chemical_cn_ratio": 25.0, "chemical_ch4_content": 0.55,
+        "bmp_medio": 150.0,
+        "ts_medio": 30.0,
+        "vs_medio": 25.0,
+        "chemical_cn_ratio": 25.0,
+        "chemical_ch4_content": 0.55,
         "fator_realista": 0.7,
     },
 ]
@@ -91,42 +107,69 @@ SUBSECTOR_ROWS = [
 
 REF_ROWS = [
     {
-        "id": 10, "primary_residue": "VNH", "authors": "Silva et al.",
-        "publication_year": 2020, "title": "Biogas from Vinhaça",
-        "journal": "Bioresource Technology", "doi": "10.1234/brt",
-        "url": None, "reported_value": 210.0, "reported_unit": "mLCH4/gVS",
-        "has_validated_params": True, "validation_status": "validated",
+        "id": 10,
+        "primary_residue": "VNH",
+        "authors": "Silva et al.",
+        "publication_year": 2020,
+        "title": "Biogas from Vinhaça",
+        "journal": "Bioresource Technology",
+        "doi": "10.1234/brt",
+        "url": None,
+        "reported_value": 210.0,
+        "reported_unit": "mLCH4/gVS",
+        "has_validated_params": True,
+        "validation_status": "validated",
         "year": 2020,
     },
     {
-        "id": 11, "primary_residue": "RSU", "authors": "Jones",
-        "publication_year": 2019, "title": None,
-        "journal": None, "doi": None, "url": None,
-        "reported_value": None, "reported_unit": None,
-        "has_validated_params": False, "validation_status": None,
+        "id": 11,
+        "primary_residue": "RSU",
+        "authors": "Jones",
+        "publication_year": 2019,
+        "title": None,
+        "journal": None,
+        "doi": None,
+        "url": None,
+        "reported_value": None,
+        "reported_unit": None,
+        "has_validated_params": False,
+        "validation_status": None,
         "year": 2019,
     },
 ]
 
 CONVERSION_FACTOR_ROWS = [
     {
-        "id": 1, "category": "energy", "subcategory": "electricity",
-        "factor_value": 0.9, "unit": "kWh/m3",
-        "literature_reference": "IEA 2022", "reference_url": None,
-        "real_data_validation": True, "safety_margin_percent": 5.0,
-        "final_factor": 0.855, "notes": "Conservative estimate",
+        "id": 1,
+        "category": "energy",
+        "subcategory": "electricity",
+        "factor_value": 0.9,
+        "unit": "kWh/m3",
+        "literature_reference": "IEA 2022",
+        "reference_url": None,
+        "real_data_validation": True,
+        "safety_margin_percent": 5.0,
+        "final_factor": 0.855,
+        "notes": "Conservative estimate",
     },
     {
-        "id": 2, "category": "thermal", "subcategory": "heat",
-        "factor_value": 0.7, "unit": "MJ/m3",
-        "literature_reference": "ANEEL 2021", "reference_url": None,
-        "real_data_validation": False, "safety_margin_percent": None,
-        "final_factor": 0.7, "notes": None,
+        "id": 2,
+        "category": "thermal",
+        "subcategory": "heat",
+        "factor_value": 0.7,
+        "unit": "MJ/m3",
+        "literature_reference": "ANEEL 2021",
+        "reference_url": None,
+        "real_data_validation": False,
+        "safety_margin_percent": None,
+        "final_factor": 0.7,
+        "notes": None,
     },
 ]
 
 
 # ─── Sectors ──────────────────────────────────────────────────────────────────
+
 
 @pytest.mark.integration
 class TestGetSectors:
@@ -177,6 +220,7 @@ class TestGetSectors:
 
 # ─── Subsectors ───────────────────────────────────────────────────────────────
 
+
 @pytest.mark.integration
 class TestGetSubsectors:
     """Tests for GET /residuos/subsectors"""
@@ -226,6 +270,7 @@ class TestGetSubsectors:
 
 
 # ─── Residuos list ────────────────────────────────────────────────────────────
+
 
 @pytest.mark.integration
 class TestGetResiduos:
@@ -290,6 +335,7 @@ class TestGetResiduos:
 
 # ─── All references ───────────────────────────────────────────────────────────
 
+
 @pytest.mark.integration
 class TestGetAllReferences:
     """Tests for GET /residuos/references/all"""
@@ -336,6 +382,7 @@ class TestGetAllReferences:
 
 
 # ─── Conversion factors ───────────────────────────────────────────────────────
+
 
 @pytest.mark.integration
 class TestGetConversionFactors:
@@ -384,6 +431,7 @@ class TestGetConversionFactors:
 
 # ─── Summary by sector ────────────────────────────────────────────────────────
 
+
 @pytest.mark.integration
 class TestGetSummaryBySector:
     """Tests for GET /residuos/summary/by-sector"""
@@ -422,6 +470,7 @@ class TestGetSummaryBySector:
 
 
 # ─── Compare ──────────────────────────────────────────────────────────────────
+
 
 @pytest.mark.integration
 class TestCompareResiduos:
@@ -476,15 +525,14 @@ class TestCompareResiduos:
 
 # ─── Single residue ───────────────────────────────────────────────────────────
 
+
 @pytest.mark.integration
 class TestGetResiduoById:
     """Tests for GET /residuos/{residuo_id}"""
 
     def test_get_residuo_happy_path(self):
         """Returns full residue detail with sector, subsector, references."""
-        with _patch_db(
-            [[RESIDUO_ROWS[0]], SECTOR_ROWS, SUBSECTOR_ROWS, REF_ROWS]
-        ):
+        with _patch_db([[RESIDUO_ROWS[0]], SECTOR_ROWS, SUBSECTOR_ROWS, REF_ROWS]):
             response = client.get("/api/v1/residuos/1")
 
         assert response.status_code == 200
@@ -515,6 +563,7 @@ class TestGetResiduoById:
 
 
 # ─── References for one residue ───────────────────────────────────────────────
+
 
 @pytest.mark.integration
 class TestGetResiduoReferences:

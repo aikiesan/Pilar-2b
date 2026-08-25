@@ -8,7 +8,7 @@ This directory contains exploratory cluster analysis of the 645-municipality bio
 
 ```
 analysis/
-├── data/          # Input datasets (mirrors CP2B_HANDOFF/)
+├── data/          # Input datasets (SP-2023 handoff: master streams, summaries, conversion factors)
 └── outputs/       # Analysis results and visualizations
 ```
 

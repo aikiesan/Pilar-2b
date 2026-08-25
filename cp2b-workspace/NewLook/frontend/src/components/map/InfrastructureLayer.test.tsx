@@ -155,6 +155,38 @@ describe('InfrastructureLayer', () => {
   });
 
   describe('Error Handling', () => {
+    it('reports an empty source without logging a fetch error', () => {
+      const { logger } = require('@/lib/logger');
+      const onStatus = jest.fn();
+      const message = "No features loaded for layer 'settlement'";
+
+      mockUseInfrastructureLayer.mockReturnValue({
+        data: {
+          type: 'FeatureCollection',
+          features: [],
+          metadata: { error: message }
+        },
+        loading: false,
+        error: null,
+        isFetching: false
+      });
+
+      const { queryByTestId } = render(
+        <MapContainer center={[0, 0]} zoom={10}>
+          <InfrastructureLayer layerType="settlement" onStatus={onStatus} />
+        </MapContainer>
+      );
+
+      expect(queryByTestId('infrastructure-geojson')).not.toBeInTheDocument();
+      expect(onStatus).toHaveBeenCalledWith({
+        layerType: 'settlement',
+        state: 'empty',
+        featureCount: 0,
+        message
+      });
+      expect(logger.error).not.toHaveBeenCalled();
+    });
+
     it('should render nothing on error', () => {
       mockUseInfrastructureLayer.mockReturnValue({
         data: null,

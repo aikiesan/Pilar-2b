@@ -4,6 +4,10 @@
  */
 
 // Municipality properties (matches backend data structure)
+// Provenance of a biomass number on the map. Absence of data is a first-class
+// state, not a zero — see backend migration 025 / municipality_biomass_provenance.
+export type BiomassCoverage = 'measured' | 'estimated' | 'partial' | 'no_data';
+
 export interface MunicipalityProperties {
   id: string | number;
   name: string;
@@ -40,31 +44,74 @@ export interface MunicipalityProperties {
   forestry_biogas_m3_year: number;
   rsu_biogas_m3_year: number;
   rpo_biogas_m3_year: number;
+  sewage_biogas_m3_year?: number;
 
   // Residues (legacy alias kept for compatibility)
   sugarcane_residues_tons_year: number;
   soybean_residues_tons_year: number;
   corn_residues_tons_year: number;
 
-  // Biomass availability (tons/year) — populated by load_biomass_tons.py
-  total_biomass_tons_year: number;
-  agricultural_biomass_tons_year: number;
-  livestock_biomass_tons_year: number;
-  urban_biomass_tons_year: number;
-  sugarcane_biomass_tons_year: number;
-  soybean_biomass_tons_year: number;
-  corn_biomass_tons_year: number;
-  coffee_biomass_tons_year: number;
-  citrus_biomass_tons_year: number;
-  cattle_biomass_tons_year: number;
-  swine_biomass_tons_year: number;
-  poultry_biomass_tons_year: number;
-  aquaculture_biomass_tons_year: number;
-  rsu_biomass_tons_year: number;
-  rpo_biomass_tons_year: number;
+  // Biomass availability (tons/year). NULL means "no data" (never loaded) — the
+  // API deliberately does not coerce it to 0, because a real 0 and a data gap are
+  // different things on the map. Pair each with its *_biomass_coverage below.
+  total_biomass_tons_year: number | null;
+  agricultural_biomass_tons_year: number | null;
+  livestock_biomass_tons_year: number | null;
+  urban_biomass_tons_year: number | null;
+  sugarcane_biomass_tons_year: number | null;
+  soybean_biomass_tons_year: number | null;
+  corn_biomass_tons_year: number | null;
+  coffee_biomass_tons_year: number | null;
+  citrus_biomass_tons_year: number | null;
+  cattle_biomass_tons_year: number | null;
+  swine_biomass_tons_year: number | null;
+  poultry_biomass_tons_year: number | null;
+  aquaculture_biomass_tons_year: number | null;
+  rsu_biomass_tons_year: number | null;
+  rpo_biomass_tons_year: number | null;
+  sewage_biomass_tons_year?: number | null;
+
+  // Coverage per stream/sector: 'measured' | 'estimated' | 'partial' | 'no_data'
+  // (migration 025). Accessed dynamically as `${stream}_biomass_coverage`, so an
+  // index signature carries them rather than 15 explicit entries.
+  total_biomass_coverage?: BiomassCoverage;
+  agricultural_biomass_coverage?: BiomassCoverage;
+  livestock_biomass_coverage?: BiomassCoverage;
+  urban_biomass_coverage?: BiomassCoverage;
+
+  // Canonical potential per scenario (municipality totals). NULL when no canonical
+  // metric could be computed. Min/medio/max are the propagated uncertainty bands;
+  // the map's 'fronteira' is derived from them.
+  //
+  // THREE DISTINCT QUANTITIES — do not substitute one for another:
+  //   biogas_*      raw biogas, m³/year (CH4 + CO2)
+  //   biogas_ch4_*  methane only, m³ CH4/year — what BMP predicts
+  //   biomethane_*  upgraded methane, m³/year (CH4 × 0.97 recovery)
+  // biomethane/biogas_ch4 ≈ 0.97 (methane recovery); biomethane/biogas ≈ 0.53
+  // (volumetric yield, since upgrading strips the CO2).
+  biogas_min_m3_yr?: number | null;
+  /** Cenário Real / Cenário Ideal — CH₄ Nm³/ano served whole (migration 026).
+   *  São Paulo only; absent elsewhere, which the map paints as no-data. */
+  ch4_real_m3_year?: number | null;
+  ch4_ideal_m3_year?: number | null;
+  biogas_medio_m3_yr?: number | null;
+  biogas_max_m3_yr?: number | null;
+  biogas_ch4_min_m3_yr?: number | null;
+  biogas_ch4_medio_m3_yr?: number | null;
+  biogas_ch4_max_m3_yr?: number | null;
+  biomethane_min_m3_yr?: number | null;
+  biomethane_medio_m3_yr?: number | null;
+  biomethane_max_m3_yr?: number | null;
+  biomass_gross_total_tons_yr?: number | null;
+  biomass_corrected_min_tons_yr?: number | null;
+  biomass_corrected_medio_tons_yr?: number | null;
+  biomass_corrected_max_tons_yr?: number | null;
 
   // Classification
   potential_category: 'ALTO' | 'MEDIO' | 'BAIXO' | 'SEM DADOS' | string;
+
+  // Per-stream coverage flags (cattle_biomass_coverage, sugarcane_biomass_coverage, …).
+  [key: `${string}_biomass_coverage`]: BiomassCoverage | undefined;
 
   // K-means cluster fields (from municipality_summary, null when no match)
   cluster_id?: number | null;
@@ -75,7 +122,18 @@ export interface MunicipalityProperties {
 }
 
 // Display metric — controls whether map shows biogas potential or biomass availability
-export type DisplayMetric = 'biogas_m3' | 'biomass_tons';
+export type DisplayMetric =
+  | 'biomass_tons'
+  | 'biogas_m3'
+  | 'methane_m3'
+  | 'biomethane_m3'
+  | 'bioenergy_mwh'
+  // Biometano por habitante (Censo 2022). Not in the metric toggle bar
+  // (DISPLAY_METRICS) — applied only by the "Potencial per capita" thematic map.
+  | 'ch4_per_capita';
+
+// Color mode — controls the choropleth styling (biogas/biomass, C/N profile, or clusters)
+export type ColorMode = 'biogas' | 'cn_profile' | 'cluster';
 
 // ─── Co-digestion cluster types ───────────────────────────────────────────────
 
@@ -202,11 +260,59 @@ export interface MunicipalityCollection {
   };
 }
 
+/**
+ * One served scenario's state totals (`/statistics/summary` → `scenarios.*`,
+ * built by geospatial.py's `_tier`).
+ *
+ * `ch4_m3_year` and `biomethane_m3_year` are deliberately the same number: under
+ * the FIESP convention the biomethane volume EQUALS the methane volume, and raw
+ * biogas is the one that differs (CH₄ / 0.625). The sector breakdown carries
+ * FOUR sectors — forestry is its own, not a slice of agricultural, which is what
+ * made the old three-way split sum to 97%.
+ */
+export interface ScenarioTierStats {
+  ch4_m3_year: number;
+  ch4_m3_day: number;
+  biomethane_m3_year: number;
+  biomethane_m3_day: number;
+  raw_biogas_m3_year: number;
+  raw_biogas_m3_day: number;
+  energy_mwh_year: number;
+  sector_breakdown: {
+    agricultural: number;
+    livestock: number;
+    urban: number;
+    forestry: number;
+  };
+  label: string;
+  description: string;
+}
+
 // Summary statistics from API
 export interface SummaryStatistics {
+  /**
+   * Geographic scope these totals describe. The endpoint is São Paulo-scoped:
+   * the legacy biogas columns it sums are populated only for the 645 SP
+   * municipalities, so a national total would be a fiction. Non-SP rows are on
+   * the map as a beta layer and are excluded here — see lib/mapScope.
+   */
+  scope?: 'SP';
+  scope_label?: string;
   total_municipalities: number;
+  /**
+   * LEGACY — the theoretical volume, with no availability correction at all
+   * (19.9 bi), and named for biogas while holding methane. Superseded by
+   * `scenarios`; kept because several non-map surfaces still read it. Do not put
+   * it in front of a reader as "the platform's total".
+   */
   total_biogas_m3_year: number;
   average_biogas_m3_year: number;
+  /**
+   * The publishable totals: Real (7.83 bi) and Ideal (9.84 bi) Nm³ CH₄/ano.
+   * Optional because a backend without migration 026 omits the key — every
+   * reader must fall back rather than render `undefined`.
+   */
+  scenarios?: Record<'real' | 'ideal', ScenarioTierStats>;
   total_population: number;
   top_municipality: {
     name: string;

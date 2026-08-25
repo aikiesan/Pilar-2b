@@ -7,16 +7,17 @@ and build a mini app that includes validation_middleware, exercising the full
 middleware path rather than just the utility functions (which are covered by
 test_validation.py).
 """
+
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from app.middleware.validation import validation_middleware
 
-
 # ---------------------------------------------------------------------------
 # Minimal validated app fixture
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture(scope="module")
 def validated_client():
@@ -58,9 +59,9 @@ class TestSQLInjectionBlocked:
     def test_sql_injection_returns_400(self, validated_client: TestClient, payload: str):
         """Each SQL injection payload must be blocked with HTTP 400."""
         response = validated_client.get("/probe", params={"q": payload})
-        assert response.status_code == 400, (
-            f"Expected 400 for SQL payload {payload!r}, got {response.status_code}"
-        )
+        assert (
+            response.status_code == 400
+        ), f"Expected 400 for SQL payload {payload!r}, got {response.status_code}"
         body = response.json()
         assert "detail" in body
 
@@ -89,9 +90,9 @@ class TestCommandInjectionBlocked:
     def test_command_injection_returns_400(self, validated_client: TestClient, payload: str):
         """Each command injection payload must be blocked with HTTP 400."""
         response = validated_client.get("/probe", params={"q": payload})
-        assert response.status_code == 400, (
-            f"Expected 400 for CMD payload {payload!r}, got {response.status_code}"
-        )
+        assert (
+            response.status_code == 400
+        ), f"Expected 400 for CMD payload {payload!r}, got {response.status_code}"
         body = response.json()
         assert "detail" in body
 
@@ -99,6 +100,7 @@ class TestCommandInjectionBlocked:
 # ---------------------------------------------------------------------------
 # Middleware does not interfere with OPTIONS (CORS preflight)
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.api
 class TestMiddlewareEdgeCases:

@@ -136,18 +136,64 @@ export function useRankings(
  * @param layerType - Type of infrastructure layer
  * @param enabled - Whether the query should run (for conditional loading)
  */
+/**
+ * National layers live in PostGIS (`infrastructure_features`, migration 023) and
+ * are served from /infrastructure/features/{id}/geojson. The older São Paulo
+ * layers are still read straight off shapefiles at /infrastructure/{id}/geojson.
+ * Routing on the id keeps both working while the SP-only ones are retired.
+ */
+const NATIONAL_INFRA_LAYERS = new Set([
+  'biogas_plant',
+  'biodiesel_plant',
+  'ethanol_plant',
+  'slaughterhouse',
+  'biomass_thermal_plant',
+  'substation',
+  'transmission_line',
+  'gas_pipeline_transport',
+  'gas_pipeline_distribution',
+  // Rota de escoamento do biometano
+  'gas_delivery_point',
+  'compression_station',
+  'gas_processing_unit',
+  'gas_pipeline_outflow',
+  // Restrição de sítio
+  'protected_area_state',
+  'indigenous_territory',
+  'settlement',
+  // Logística
+  'highway_state',
+  'highway_federal',
+]);
+
 export function useInfrastructureLayer(
   layerType: string,
-  enabled: boolean = true
+  enabled: boolean = true,
+  uf?: string,
+  bbox?: string
 ) {
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
   const queryResult = useQuery({
-    queryKey: queryKeys.infrastructure.layer(layerType),
+    queryKey: [...queryKeys.infrastructure.layer(layerType), uf ?? bbox ?? 'BR'],
     queryFn: async () => {
-      const response = await fetch(
-        `${API_BASE_URL}/api/v1/infrastructure/${layerType}/geojson`
-      );
+      const isNational = NATIONAL_INFRA_LAYERS.has(layerType);
+      const path = isNational
+        ? `/api/v1/infrastructure/features/${layerType}/geojson`
+        : `/api/v1/infrastructure/${layerType}/geojson`;
+      // Server-side filters on indexed columns, not client filters — SP biogas
+      // plants come back as 51 of 543 rather than all 543.
+      //
+      // uf where the source ships a real UF code; bbox for the rest. Lines and
+      // polygons legitimately cross state borders, so the loader leaves their
+      // uf NULL rather than pinning them to one — the spatial filter is the
+      // honest one for them, and it rides the GIST index.
+      const params = new URLSearchParams();
+      if (isNational && uf) params.set('uf', uf);
+      if (isNational && bbox) params.set('bbox', bbox);
+      const qs = params.toString() ? `?${params}` : '';
+
+      const response = await fetch(`${API_BASE_URL}${path}${qs}`);
 
       if (!response.ok) {
         throw new Error(`Failed to fetch ${layerType} data: ${response.statusText}`);
@@ -291,3 +337,25 @@ export function usePrefetchCriticalData() {
   };
 }
 
+
+/**
+ * Full properties for one municipality, fetched on demand.
+ *
+ * The collection is served slim (`fields=map`), so the tooltip and panel top up
+ * from here when a municipality is actually pointed at. React Query caches per
+ * ibge_code, so hovering the same polygon twice costs one request; `enabled`
+ * keeps it from firing until there is something to fetch.
+ *
+ * Long staleTime because these values only change when the data is re-promoted,
+ * which is a deliberate deploy step, not something that drifts under the user.
+ */
+export function useMunicipalityMetrics(ibgeCode: string | null) {
+  return useQuery({
+    queryKey: ['municipality-metrics', ibgeCode],
+    queryFn: () => geospatialClient.getMunicipalityMetrics(ibgeCode as string),
+    enabled: Boolean(ibgeCode),
+    staleTime: 30 * 60 * 1000,
+    gcTime: 60 * 60 * 1000,
+    retry: 1,
+  });
+}
