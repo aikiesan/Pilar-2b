@@ -47,7 +47,7 @@ export function generateStaticParams() {
 }
 
 // Prevent unknown locales from being generated
-export const dynamicParams = false;
+export const dynamicParams = true;
 
 export default async function LocaleLayout({
   children,
