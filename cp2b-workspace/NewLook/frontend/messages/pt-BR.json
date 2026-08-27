@@ -304,8 +304,15 @@
       "ariaLabel": "Totais de resíduos urbanos de {uf}",
       "title": "Resíduos urbanos",
       "scenario": "Cenário {scenario}",
-      "scenarios": { "real": "Real", "ideal": "Ideal" },
-      "streams": { "rsu": "FORSU", "rpo": "Poda urbana", "sewage": "Lodo de ETE" },
+      "scenarios": {
+        "real": "Real",
+        "ideal": "Ideal"
+      },
+      "streams": {
+        "rsu": "FORSU",
+        "rpo": "Poda urbana",
+        "sewage": "Lodo de ETE"
+      },
       "year": "ano",
       "municipalities": "{count, plural, =0 {nenhum município com valor} one {# município com valor} other {# municípios com valor}}",
       "noDataTitle": "Sem inventário urbano validado para {uf}",
@@ -1297,6 +1304,111 @@
     },
     "mapa": {
       "title": "Mapa Interativo",
+      "subtitle": "Explore visualmente o potencial de biogás em cada município paulista.",
+      "sections": [
+        {
+          "id": "o-que-e",
+          "title": "O que é",
+          "content": "O Mapa Interativo apresenta a distribuição geográfica do potencial estimado de produção de biomassa, biogás, biometano e bioenergia a partir de resíduos orgânicos urbanos, de pecuária, de agricultura ou florestal nos 645 municípios do Estado de São Paulo, com a opção do potencial total e o per capta. O potencial mostrado é destrinchado sobre de onde veio cada parte do potencial total, possuindo distinção por todas as classes de resíduos\n A ferramenta permite visualizar além do potencial, a infraestrutura do estado de São Paulo (usinas de biogás, de etanol, subestações eléticas, etc.), elementos de logística e de restrições de sítio.  "
+        },
+        {
+          "id": "para-que-serve",
+          "title": "Para que serve",
+          "content": "•identificar regiões com maior densidade de potencial energético;\n•Cruzar dados com a localização de infraestrutura ativa no Estado;\n•Apoiar estudos de viabilidade para novas pesquisas acadêmicas ou empreendimentos no setor energético renovável."
+        },
+        {
+          "id": "como-usar",
+          "title": "Como usar",
+          "content": "1. Com o mapa aberto, visualize no lado esquerdo da tela o sidebar que possui todos os filtros disponíveis para a análise e selecione quais forem de sua preferência. \n2. Selecione o município na barra de busca do topo ou clique nele no mapa.\n3. Visualize os indicadores de geração no sidebar à direita, contendo visão geral, potencial, resíduos e um botão para uma análise mais detalhada do município."
+        }
+      ]
+    },
+    "analises": {
+      "title": "Análises Avançadas",
+      "subtitle": "Explore visualmente o potencial de biogás em cada município paulista.",
+      "sections": [
+        {
+          "id": "o-que-e",
+          "title": "O que é",
+          "content": "A seção de Análises Avançadas permite modelar estimativas detalhadas de produção de biogás. A partir da seleção de resíduos, sub-resíduos e cenários (baseline, conservador, otimista ou fronteira do biogás), a plataforma calcula e exibe o potencial teórico, as perdas em cada etapa e o potencial real final.\nTodos os parâmetros são customizáveis: o usuário pode ajustar os fatores de colheita, competição, sazonalidade e logística, além de auditar as fórmulas matemáticas aplicadas diretamente na página.\n\n"
+        },
+        {
+          "id": "para-que-serve",
+          "title": "Para que serve",
+          "content": "Comparar classes e sub-resíduos: avaliar a viabilidade de múltiplos materiais em conjunto;\n• Mapear perdas de processo: compreender o impacto de cada fator na transição do potencial teórico para o potencial real;\n• Simular cenários sob medida: ajustar as porcentagens de cada variável para refletir a realidade operacional da sua planta;\n• Projetar sensibilidade: contrastar múltiplos cenários de mercado e produtividade sobre a mesma matéria-prima.\n\n"
+        },
+        {
+          "id": "como-usar",
+          "title": "Como usar",
+          "content": "1. Selecionar Resíduos: No menu à esquerda, escolha a classe e os sub-resíduos que farão parte da simulação;\n2. Definir o Cenário: No centro da tela, selecione o cenário de referência mais alinhado ao seu objetivo;\n3. Escolher a Visualização: Defina um dos 4 modos de exibição gráfica disponíveis para analisar os resultados;\n4. Ajustar Parâmetros: No painel lateral ao gráfico, personalize as porcentagens dos fatores com base nas suas fontes de dados."
+        }
+      ]
+    },
+    "base-cientifica": {
+      "title": "Base Científica",
+      "subtitle": "Explore visualmente as bases científicas usadas para basear os resultados e potenciais da plataforma.",
+      "sections": [
+        {
+          "id": "o-que-e",
+          "title": "O que é",
+          "content": "A Base de Conhecimento Científico reúne os artigos e relatórios técnicos que embasam os dados da plataforma. Cada métrica utilizada nos cálculos de potencial é fundamentada em referências bibliográficas auditáveis e disponíveis para consulta direta.\nAlém disso, a seção conta com duas ferramentas de análise comparativa entre os resíduos estudados no Pilar-2b:\n•Curvas de Degradação: análise da cinética de produção de metano ao longo do tempo.\n•Comparação Multiparâmetros: contraste direto entre indicadores-chave, como BMP, C:N, SV e Teor de CH4."
+        },
+        {
+          "id": "para-que-serve",
+          "title": "Para que serve",
+          "content": "•Garantir transparência e rigor metodológico: comprova as fontes científicas que sustentam o cálculo do potencial final.\n•Apoiar novas pesquisas: serve como base de dados estruturada para estudos avançados em biogás e bioprodutos.\n•Agilizar diagnósticos comparativos: permite avaliar o desempenho e as características físico-químicas de diferentes tipos de resíduos."
+        },
+        {
+          "id": "como-usar",
+          "title": "Como usar",
+          "content": "1. Explorar Referências: Na tela principal, selecione um dos 40 resíduos distribuídos em 4 setores econômicos para acessar a seção 'Caracterização Química' e consultar suas fontes bibliográficas.\n2. Analisar Cinética de Degradação: Acesse a aba 'Cinética de Degradação', selecione até 6 resíduos simultaneamente e visualize o comportamento da produção de metano ao longo dos dias.\n3. Fazer Comparações Diretas: Na aba 'Comparação Interativa', cruze múltiplos parâmetros operacionais e químicos entre os resíduos selecionados."
+        }
+      ]
+    },
+    "calculadora": {
+      "title": "Calculadora de Biogás",
+      "subtitle": "Calcule a viabilidade de implantação de um projeto sobre biogás e bioprodutos.",
+      "sections": [
+        {
+          "id": "o-que-e",
+          "title": "O que é",
+          "content": "A Calculadora de Biogás é uma ferramenta voltada a usuários que buscam valorizar resíduos de biomassa para a geração de bioenergia e bioprodutos. No formulário inicial, o usuário insere o tipo de resíduo, o volume anual gerado (em toneladas por ano ou pela área de cultivo em hectares), o período de safra (meses de sazonalidade) e o produto final de interesse. A partir dessas entradas, a plataforma projeta o potencial de biogás (em m³/ano), permite definir o nível de implantação do sistema e apresenta uma estimativa do retorno financeiro (payback).\n\n"
+        },
+        {
+          "id": "para-que-serve",
+          "title": "Para que serve",
+          "content": "• Avaliar a viabilidade técnico-econômica de projetos de biogás e bioprodutos;\n• Estimar o tempo de retorno financeiro (payback) do investimento;\n• Projetar o volume anual de biogás gerado conforme a disponibilidade de biomassa.\n\n"
+        },
+        {
+          "id": "como-usar",
+          "title": "Como usar",
+          "content": "1. Acessar a plataforma: Faça login ou cadastre-se informando e-mail, senha e município;\n2. Selecionar o resíduo: Escolha a biomassa de interesse para o dimensionamento;\n3. Informar o volume: Insira a disponibilidade anual (em toneladas/ano) ou a área plantada (em hectares);\n4. Definir a safra: Indique a distribuição da sazonalidade da cultura ao longo dos meses;\n5. Escolher o produto e calcular: Selecione o bioproduto desejado e clique para calcular o potencial e visualizar os indicadores financeiros."
+        }
+      ]
+    },
+    "proximidade": {
+      "title": "Análise de Proximidade",
+      "subtitle": "Simulação espacial e logística por raio de captação para viabilidade de plantas de biogás e biometano.",
+      "sections": [
+        {
+          "id": "o-que-e",
+          "title": "O que é",
+          "content": "A Análise de Proximidade é uma ferramenta geoespacial que permite selecionar qualquer coordenada no Estado de São Paulo e delimitar um raio de captação customizável (buffer de 10 km a 100 km).\n\nA ferramenta agrega automaticamente todos os municípios englobados na área de influência, calculando a área total analisada, área agricultável e classe principal, além de detalhar a distribuição do uso do solo e dar um feedback sobre a aptidão para a produção de biogás."
+        },
+        {
+          "id": "para-que-serve",
+          "title": "Para que serve",
+          "content": "A ferramenta serve para:\n• Avaliar a viabilidade locacional e raio econômico ótimo de transporte de biomassa para instalação de plantas de biogás e biometano.\n• Identificar municípios vizinhos para formação de consórcios regionais.\n• Analisar a aptidão do solo no entorno (detalhamento do uso do solo) para fornecimento contínuo de substratos."
+        },
+        {
+          "id": "como-usar",
+          "title": "Como usar",
+          "content": "1. Clique em qualquer local do mapa interativo para definir o ponto de interesse (latitude e longitude).\n2. Ajuste o controle deslizante do \"Raio de Captação\" (de 10 km a 100 km), acompanhando as recomendações de viabilidade logística.\n3. Clique no botão \"Analisar\" para processar os dados espaciais.\n4. Explore os resultados: área agricultável, distribuição detalhada de classes do MapBiomas e indicadores de energia.\n5. Utilize o botão \"Exportar Dados\" para baixar a planilha em CSV ou \"Compartilhar\" para gerar um link direto com a coordenada e raio analisados."
+        }
+      ]
+    },
+    "roteiro-tecnologico": {
+      "title": "Roteiro Tecnológico",
       "subtitle": "Explore visualmente o potencial de biogás em cada município paulista.",
       "sections": [
         {
