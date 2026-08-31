@@ -30,6 +30,7 @@ export default function TourGuide({ run, onFinish }: TourGuideProps) {
       title: 'Bem-vindo ao PILAR-2b',
       content: 'Esta é a barra de navegação principal. A partir daqui você acessa todas as funcionalidades da plataforma de potencial de biogás dos municípios de São Paulo.',
       skipBeacon: true, 
+      
     },
     {
         target: '.tour-map',
@@ -100,17 +101,53 @@ export default function TourGuide({ run, onFinish }: TourGuideProps) {
       run={run}
       continuous={true} 
       onEvent={handleJoyrideEvent} 
-      options={{
-        primaryColor: '#2F7D32', 
-        textColor: '#333',
-        zIndex: 10000,
-        showProgress: true, 
-        buttons: ['back', 'close', 'primary', 'skip'], 
-      }}
       styles={{
-        buttonBack: {
-          color: '#2F7D32',
-        }
+        //balao principal
+        tooltip:{
+          borderRadius: '16px',
+          padding : '20px',
+          backgroundColor: '#ffffff',
+          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+          fontFamily: 'inherit',
+          zIndex: 10000,
+        },
+        tooltipTitle: {
+          //título do passo
+          fontSize:'18px',
+          fontWeight: 700,
+          color: '#1E5128'
+        },
+        tooltipContent:{
+          //texto do corpo
+          fontSize: '14px',
+          lineHeight: '1.6',
+          color: '#4b5563',
+          padding: '12px 0',
+        },
+        //botão proximo
+        buttonPrimary: {
+          backgroundColor: '#1E5128',
+          borderRadius: '8px',
+          padding: '8px 16px',
+          fontWeight: 600,
+        },
+        //botao voltar
+        buttonBack:{
+          color: '#1E5128',
+          marginRight: '8px',
+
+        },
+        buttonSkip:{
+          color: '#9ca3af',
+        },
+        buttonClose:{
+          color: '#6b7280',
+
+        },
+        overlay: {
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        },
+      
       }}
       locale={{
         back: 'Voltar',
