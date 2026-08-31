@@ -43,6 +43,7 @@ interface NavItemConfig {
   labelKey: string
   icon: React.ReactNode
   descriptionKey?: string
+  tourClass?: string
 }
 
 interface UnifiedHeaderProps {
@@ -54,19 +55,19 @@ const publicNavConfig: NavItemConfig[] = [
   // The map is now the landing page ("/"), reached via the logo. The former
   // marketing home became the guide hub, so it takes the first nav slot.
   { href: '/guide', labelKey: 'guide', icon: <BookOpen className="h-4 w-4" /> },
-  { href: '/map', labelKey: 'map', icon: <Map className="h-4 w-4" /> },
-  { href: '/dashboard', labelKey: 'dashboard', icon: <BarChart3 className="h-4 w-4" /> },
+  { href: '/map', labelKey: 'map', icon: <Map className="h-4 w-4" />, tourClass: 'tour-map' },
+  { href: '/dashboard', labelKey: 'dashboard', icon: <BarChart3 className="h-4 w-4" />, tourClass: 'tour-analysis' },
   { href: '/about', labelKey: 'about', icon: <Info className="h-4 w-4" /> },
   { href: '/cite', labelKey: 'cite', icon: <Quote className="h-4 w-4" /> },
 ]
 
 const authenticatedNavConfig: NavItemConfig[] = [
   { href: '/dashboard', labelKey: 'hub', icon: <Home className="h-4 w-4" />, descriptionKey: 'hub' },
-  { href: '/map', labelKey: 'map', icon: <Map className="h-4 w-4 tour-map" />, descriptionKey: 'map' },
-  { href: '/dashboard/advanced-analysis', labelKey: 'advanced', icon: <BarChart3 className="h-4 w-4 tour-analysis" /> },
-  { href: '/dashboard/scientific-database', labelKey: 'scientific_database', icon: <BookOpen className="h-4 w-4 tour-science" /> },
-  { href: '/dashboard/technology-routes', labelKey: 'technology_routes', icon: <Workflow className="h-4 w-4 tour-calculator" /> },
-  { href: '/dashboard/proximity', labelKey: 'proximity', icon: <Target className="h-4 w-4 tour-proximity" /> },
+  { href: '/map', labelKey: 'map', icon: <Map className="h-4 w-4" />, descriptionKey: 'map', tourClass: 'tour-map' },
+  { href: '/dashboard/advanced-analysis', labelKey: 'advanced', icon: <BarChart3 className="h-4 w-4" />, tourClass: 'tour-analysis' },
+  { href: '/dashboard/scientific-database', labelKey: 'scientific_database', icon: <BookOpen className="h-4 w-4" />, tourClass: 'tour-science' },
+  { href: '/dashboard/technology-routes', labelKey: 'technology_routes', icon: <Workflow className="h-4 w-4" />, tourClass: 'tour-calculator' },
+  { href: '/dashboard/proximity', labelKey: 'proximity', icon: <Target className="h-4 w-4" />, tourClass: 'tour-proximity' },
   { href: '/cite', labelKey: 'cite', icon: <Quote className="h-4 w-4" />, descriptionKey: 'cite' },
 ]
 
@@ -184,6 +185,7 @@ export default function UnifiedHeader({ variant = 'auto' }: UnifiedHeaderProps) 
               const isExternal = item.href.startsWith('http')
               const label = t(`nav.${item.labelKey}`)
               const linkClass = `
+                ${item.tourClass || ''}
                 flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium
                 transition-all duration-200 focus:outline-none focus:ring-2
                 ${isPublic
@@ -224,7 +226,9 @@ export default function UnifiedHeader({ variant = 'auto' }: UnifiedHeaderProps) 
           {/* Theme & Language Toggles + User Menu (Desktop) */}
           <div className="hidden md:flex items-center space-x-3">
             {/* Global Search */}
-            <GlobalSearch variant={isPublic ? 'light' : 'dark'} />
+            <div className="tour-search-bar">
+              <GlobalSearch variant={isPublic ? 'light' : 'dark'} />
+            </div>
 
             {/* Language Toggle */}
             <LanguageSwitcher />
