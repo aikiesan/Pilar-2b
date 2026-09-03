@@ -56,7 +56,10 @@ const publicNavConfig: NavItemConfig[] = [
   // marketing home became the guide hub, so it takes the first nav slot.
   { href: '/guide', labelKey: 'guide', icon: <BookOpen className="h-4 w-4" /> },
   { href: '/map', labelKey: 'map', icon: <Map className="h-4 w-4" />, tourClass: 'tour-map' },
-  { href: '/dashboard', labelKey: 'dashboard', icon: <BarChart3 className="h-4 w-4" />, tourClass: 'tour-analysis' },
+  { href: '/dashboard/advanced-analysis', labelKey: 'advanced', icon: <BarChart3 className="h-4 w-4" />, tourClass: 'tour-analysis' },
+  { href: '/dashboard/scientific-database', labelKey: 'scientific_database', icon: <BookOpen className="h-4 w-4" />, tourClass: 'tour-science' },
+  { href: '/dashboard/technology-routes', labelKey: 'technology_routes', icon: <Workflow className="h-4 w-4" />, tourClass: 'tour-calculator' },
+  { href: '/dashboard/proximity', labelKey: 'proximity', icon: <Target className="h-4 w-4" />, tourClass: 'tour-proximity' },
   { href: '/about', labelKey: 'about', icon: <Info className="h-4 w-4" /> },
   { href: '/cite', labelKey: 'cite', icon: <Quote className="h-4 w-4" /> },
 ]
