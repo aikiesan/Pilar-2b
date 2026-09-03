@@ -3,7 +3,19 @@ import { Link } from '@/navigation';
 import { ArrowLeft } from 'lucide-react';
 
 
-  
+// Lista com todos os slugs válidos do guia
+const GUIDE_SLUGS = [
+  'mapa',
+  'analises',
+  'base-cientifica',
+  'calculadora',
+  'proximidade',
+  'roteiro-tecnologico',
+];
+export function generateStaticParams() {
+  return GUIDE_SLUGS.map((slug) => ({ slug }));
+}
+
 export default async function GuideArticlePage({ params }: { params: Promise<{ slug: string }> }) {
   // 2. Aguardamos o Next.js ler a URL
   const { slug } = await params;
@@ -24,6 +36,8 @@ export default async function GuideArticlePage({ params }: { params: Promise<{ s
       </div>
     );
   }
+
+  
 
 
   return (
