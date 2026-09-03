@@ -3,9 +3,11 @@
 import { useState, useEffect } from 'react';
 import { HelpCircle } from 'lucide-react'; // Ícone de interrogação
 import TourGuide from './TourGuide'; // Importa o componente do Joyride que você já criou
+import { useTranslations } from 'next-intl';
 
 export default function GuideTourController() {
   const [runTour, setRunTour] = useState(false);
+  const t = useTranslations('tour');
 
   // Esse useEffect permite que outros botões do site (como aquele "Iniciar tour guiado" 
   // lá da página inicial) também consigam disparar o tour através de um evento customizado.
@@ -24,11 +26,11 @@ export default function GuideTourController() {
       <button
         onClick={() => setRunTour(true)}
         className="tour-help-button fixed bottom-8 right-8 z-[999] flex items-center justify-center w-14 h-14 bg-[#1E5128] text-white rounded-full shadow-lg hover:bg-cp2b-green hover:scale-110 hover:shadow-xl transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-cp2b-lime/50"
-        aria-label="Abrir ajuda e tour guiado"
-        title="Ajuda e Tour"
+        aria-label={t('fab.aria_label')}
+        title={t('fab.title')}
       >
         <HelpCircle className="w-7 h-7" />
       </button>
     </>
   );
-}
+}

@@ -1325,7 +1325,7 @@
     },
     "analises": {
       "title": "Análises Avançadas",
-      "subtitle": "Explore visualmente o potencial de biogás em cada município paulista.",
+      "subtitle": "Explore os filtros possíveis e obtenha as simuçaões do potencial de biogás de diferentes cenários.",
       "sections": [
         {
           "id": "o-que-e",
@@ -1407,5 +1407,52 @@
         }
       ]
     } 
+  },
+  "tour": {
+    "steps": {
+      "welcome": {
+        "title": "Bem-vindo ao PILAR-2b",
+        "content": "Esta é a barra de navegação principal. A partir daqui você acessa todas as funcionalidades da plataforma de potencial de biogás dos municípios de São Paulo."
+      },
+      "map": {
+        "title": "Mapa interativo",
+        "content": "Visualize o potencial de biogás de cada município em um mapa coroplético. Camadas adicionais mostram aterros, plantas existentes e bacias hidrográficas."
+      },
+      "analysis": {
+        "title": "Análises",
+        "content": "Gráficos comparativos por região, tipo de resíduo e horizonte temporal."
+      },
+      "science": {
+        "title": "Base científica",
+        "content": "Acesse a metodologia detalhada, dados brutos e código-fonte para entender como calculamos o potencial de biogás e para replicar ou adaptar a análise."
+      },
+      "calculator": {
+        "title": "Calculadora de Biogás",
+        "content": "Estime a produção de biogás a partir de parâmetros customizados: tipo de substrato, volume e tempo de retenção."
+      },
+      "proximity": {
+        "title": "Análise de Proximidade",
+        "content": "Identifique municípios vizinhos com potencial complementar para projetos regionais e consórcios intermunicipais."
+      },
+      "search": {
+        "title": "Busca de município",
+        "content": "Digite o nome de qualquer município paulista para centralizar o mapa e ver os indicadores locais de geração de resíduos orgânicos."
+      },
+      "help": {
+        "title": "Ajuda a qualquer momento",
+        "content": "Pronto! Sempre que precisar, clique aqui para reiniciar este tour ou abrir o guia completo."
+      }
+    },
+    "locale": {
+      "back": "Voltar",
+      "close": "Fechar",
+      "last": "Concluir",
+      "next": "Próximo",
+      "skip": "Pular"
+    },
+    "fab": {
+      "aria_label": "Abrir ajuda e tour guiado",
+      "title": "Ajuda e Tour"
+    }
   }
 }

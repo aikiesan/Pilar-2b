@@ -1310,7 +1310,7 @@
     },
     "analises": {
       "title": "Advanced Analyses",
-      "subtitle": "Visually explore the biogas potential in each municipality of São Paulo.",
+      "subtitle": "Explore the possible filters and get the simulations of biogas potential from different scenarios.",
       "sections": [
         {
           "id": "o-que-e",
@@ -1391,6 +1391,53 @@
           "content": "1. Click anywhere on the interactive map to define the point of interest (latitude and longitude).\n2. Adjust the \"Catchment Radius\" slider (from 10 km to 100 km), following the logistics feasibility recommendations.\n3. Click the \"Analyze\" button to process spatial data.\n4. Explore results: agricultural area, detailed MapBiomas class distribution, and energy indicators.\n5. Use the \"Export Data\" button to download the CSV spreadsheet or \"Share\" to generate a direct link with the analyzed coordinate and radius."
         }
       ]
+    }
+  },
+  "tour": {
+    "steps": {
+      "welcome": {
+        "title": "Welcome to PILAR-2b",
+        "content": "This is the main navigation bar. From here you can access all features of the biogas potential platform for São Paulo municipalities."
+      },
+      "map": {
+        "title": "Interactive Map",
+        "content": "Visualize the biogas potential of each municipality on a choropleth map. Additional layers show landfills, existing plants, and watersheds."
+      },
+      "analysis": {
+        "title": "Analyses",
+        "content": "Comparative charts by region, residue type, and time horizon."
+      },
+      "science": {
+        "title": "Scientific Basis",
+        "content": "Access the detailed methodology, raw data, and source code to understand how we calculate biogas potential and to replicate or adapt the analysis."
+      },
+      "calculator": {
+        "title": "Biogas Calculator",
+        "content": "Estimate biogas production from custom parameters: substrate type, volume, and retention time."
+      },
+      "proximity": {
+        "title": "Proximity Analysis",
+        "content": "Identify neighboring municipalities with complementary potential for regional projects and inter-municipal consortia."
+      },
+      "search": {
+        "title": "Municipality Search",
+        "content": "Type the name of any São Paulo municipality to center the map and view local organic waste generation indicators."
+      },
+      "help": {
+        "title": "Help Anytime",
+        "content": "You're all set! Whenever you need, click here to restart this tour or open the full guide."
+      }
+    },
+    "locale": {
+      "back": "Back",
+      "close": "Close",
+      "last": "Finish",
+      "next": "Next",
+      "skip": "Skip"
+    },
+    "fab": {
+      "aria_label": "Open help and guided tour",
+      "title": "Help & Tour"
     }
   }
 }
