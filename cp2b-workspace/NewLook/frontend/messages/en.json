@@ -1391,27 +1391,6 @@
           "content": "1. Click anywhere on the interactive map to define the point of interest (latitude and longitude).\n2. Adjust the \"Catchment Radius\" slider (from 10 km to 100 km), following the logistics feasibility recommendations.\n3. Click the \"Analyze\" button to process spatial data.\n4. Explore results: agricultural area, detailed MapBiomas class distribution, and energy indicators.\n5. Use the \"Export Data\" button to download the CSV spreadsheet or \"Share\" to generate a direct link with the analyzed coordinate and radius."
         }
       ]
-    },
-    "roteiro-tecnologico": {
-      "title": "Technological Roadmap",
-      "subtitle": "Visually explore the biogas potential in each municipality of São Paulo.",
-      "sections": [
-        {
-          "id": "o-que-e",
-          "title": "What is it",
-          "content": "The Interactive Map presents the geographic distribution of estimated biogas production potential from urban organic waste across the 645 municipalities of the state of São Paulo."
-        },
-        {
-          "id": "para-que-serve",
-          "title": "What is it for",
-          "content": "Used to identify regions with higher energy potential density, cross-reference data with the location of active landfills, and support feasibility studies for new ventures."
-        },
-        {
-          "id": "como-usar",
-          "title": "How to use",
-          "content": "1. Select the municipality in the top search bar.\n2. Activate the waste layers in the side panel.\n3. View generation indicators."
-        }
-      ]
     }
   }
 }

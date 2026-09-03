@@ -1406,27 +1406,6 @@
           "content": "1. Clique em qualquer local do mapa interativo para definir o ponto de interesse (latitude e longitude).\n2. Ajuste o controle deslizante do \"Raio de Captação\" (de 10 km a 100 km), acompanhando as recomendações de viabilidade logística.\n3. Clique no botão \"Analisar\" para processar os dados espaciais.\n4. Explore os resultados: área agricultável, distribuição detalhada de classes do MapBiomas e indicadores de energia.\n5. Utilize o botão \"Exportar Dados\" para baixar a planilha em CSV ou \"Compartilhar\" para gerar um link direto com a coordenada e raio analisados."
         }
       ]
-    },
-    "roteiro-tecnologico": {
-      "title": "Roteiro Tecnológico",
-      "subtitle": "Explore visualmente o potencial de biogás em cada município paulista.",
-      "sections": [
-        {
-          "id": "o-que-e",
-          "title": "O que é",
-          "content": "O Mapa Interativo apresenta a distribuição geográfica do potencial estimado de produção de biogás a partir de resíduos orgânicos urbanos nos 645 municípios do estado de São Paulo."
-        },
-        {
-          "id": "para-que-serve",
-          "title": "Para que serve",
-          "content": "Serve para identificar regiões com maior densidade de potencial energético, cruzar dados com a localização de aterros sanitários ativos e apoiar estudos de viabilidade para novos empreendimentos."
-        },
-        {
-          "id": "como-usar",
-          "title": "Como usar",
-          "content": "1. Selecione o município na barra de busca do topo.\n2. Ative as camadas de resíduos no painel lateral.\n3. Visualize os indicadores de geração."
-        }
-      ]
-    }
+    } 
   }
 }
