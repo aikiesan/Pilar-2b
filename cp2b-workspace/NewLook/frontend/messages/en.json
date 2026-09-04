@@ -1289,24 +1289,155 @@
     },
     "mapa": {
       "title": "Interactive Map",
-      "subtitle": "Explore the potential of biogas in each São Paulo municipality.",
+      "subtitle": "Visually explore the biogas potential in each municipality of São Paulo.",
       "sections": [
         {
           "id": "o-que-e",
           "title": "What is it",
-          "content": "The Interactive Map presents the geographic distribution of the estimated potential for biogas production from urban organic waste in all 645 municipalities of São Paulo state."
+          "content": "The Interactive Map presents the geographic distribution of the estimated production potential of biomass, biogas, biomethane, and bioenergy from urban, livestock, agricultural, or forestry organic waste across the 645 municipalities of the State of São Paulo, with options for total and per capita potential. The displayed potential is broken down by the source of each part of the total potential, distinguishing across all waste classes.\n In addition to potential, the tool allows visualizing the infrastructure of the State of São Paulo (biogas plants, ethanol mills, electrical substations, etc.), logistics elements, and site constraints."
         },
         {
           "id": "para-que-serve",
           "title": "What is it for",
-          "content": "It helps identify regions with higher energy potential, cross data with the location of active sanitary landfills, and support viability studies for new projects."
+          "content": "•Identify regions with higher energy potential density;\n•Cross-reference data with the location of active infrastructure in the State;\n•Support feasibility studies for new academic research or ventures in the renewable energy sector."
         },
         {
           "id": "como-usar",
           "title": "How to use",
-          "content": "1. Select the municipality in the search bar at the top.\n2. Activate the waste layers in the side panel.\n3. Visualize the generation indicators."
+          "content": "1. With the map open, look at the sidebar on the left side of the screen featuring all available analysis filters and select your preferences.\n2. Select the municipality in the top search bar or click directly on it in the map.\n3. View the generation indicators in the right sidebar, containing an overview, potential, waste breakdown, and a button for a more detailed municipal analysis."
         }
       ]
+    },
+    "analises": {
+      "title": "Advanced Analyses",
+      "subtitle": "Explore the possible filters and get the simulations of biogas potential from different scenarios.",
+      "sections": [
+        {
+          "id": "o-que-e",
+          "title": "What is it",
+          "content": "The Advanced Analyses section allows modeling detailed biogas production estimates. By selecting waste types, sub-residues, and scenarios (baseline, conservative, optimistic, or biogas frontier), the platform calculates and displays theoretical potential, losses at each stage, and final real potential.\nAll parameters are customizable: users can adjust harvest, competition, seasonality, and logistics factors, as well as inspect the mathematical formulas applied directly on the page.\n"
+        },
+        {
+          "id": "para-que-serve",
+          "title": "What is it for",
+          "content": "•Compare classes and sub-residues: evaluate the viability of multiple materials together;\n•Map process losses: understand the impact of each factor in the transition from theoretical to real potential;\n•Simulate custom scenarios: adjust the percentages of each variable to reflect your plant's operational reality;\n•Project sensitivity: contrast multiple market and productivity scenarios for the same feedstock.\n"
+        },
+        {
+          "id": "como-usar",
+          "title": "How to use",
+          "content": "1. Select Waste: In the left menu, choose the class and sub-residues to include in the simulation;\n2. Define the Scenario: In the center of the screen, select the reference scenario most aligned with your objective;\n3. Choose Visualization: Choose one of the 4 available graphical display modes to analyze the results;\n4. Adjust Parameters: In the panel next to the chart, customize factor percentages based on your data sources."
+        }
+      ]
+    },
+    "base-cientifica": {
+      "title": "Scientific Basis",
+      "subtitle": "Visually explore the scientific foundations supporting the platform's results and potentials.",
+      "sections": [
+        {
+          "id": "o-que-e",
+          "title": "What is it",
+          "content": "The Scientific Knowledge Base brings together the articles and technical reports supporting the platform's data. Each metric used in potential calculations is grounded in auditable bibliographic references available for direct consultation.\nIn addition, the section features two comparative analysis tools among the residues studied in Pillar-2b:\n•Degradation Curves: analysis of methane production kinetics over time.\n•Multi-parameter Comparison: direct contrast between key indicators, such as BMP, C:N, VS, and CH4 Content."
+        },
+        {
+          "id": "para-que-serve",
+          "title": "What is it for",
+          "content": "•Ensure transparency and methodological rigor: confirms the scientific sources supporting the final potential calculation.\n•Support new research: serves as a structured database for advanced studies in biogas and bioproducts.\n•Streamline comparative diagnostics: allows evaluating the performance and physicochemical characteristics of different waste types."
+        },
+        {
+          "id": "como-usar",
+          "title": "How to use",
+          "content": "1. Explore References: On the main screen, select one of the 40 residues distributed across 4 economic sectors to access the 'Chemical Characterization' section and view its bibliographic references.\n2. Analyze Degradation Kinetics: Access the 'Degradation Kinetics' tab, select up to 6 residues simultaneously, and view methane production behavior over days.\n3. Make Direct Comparisons: In the 'Interactive Comparison' tab, cross-reference multiple operational and chemical parameters among the selected residues."
+        }
+      ]
+    },
+    "calculadora": {
+      "title": "Biogas Calculator",
+      "subtitle": "Calculate the implementation feasibility of a biogas and bioproducts project.",
+      "sections": [
+        {
+          "id": "o-que-e",
+          "title": "What is it",
+          "content": "The Biogas Calculator is a tool designed for users seeking to valorize biomass residues for bioenergy and bioproduct generation. In the initial form, the user enters the residue type, the annual volume generated (in tons per year or by cultivation area in hectares), the harvest period (seasonality months), and the final product of interest. From these inputs, the platform projects biogas potential (in m³/year), allows configuring the system implementation level, and provides an estimated financial return (payback).\n"
+        },
+        {
+          "id": "para-que-serve",
+          "title": "What is it for",
+          "content": "•Evaluate the techno-economic feasibility of biogas and bioproduct projects;\n•Estimate the investment payback period;\n•Project the annual volume of biogas generated based on biomass availability.\n"
+        },
+        {
+          "id": "como-usar",
+          "title": "How to use",
+          "content": "1. Access the platform: Log in or sign up with email, password, and municipality;\n2. Select the residue: Choose the biomass of interest for sizing;\n3. Enter the volume: Provide the annual availability (in tons/year) or planted area (in hectares);\n4. Define the harvest season: Indicate crop seasonality distribution across the months;\n5. Choose product and calculate: Select the desired bioproduct and click to calculate potential and view financial indicators."
+        }
+      ]
+    },
+    "proximidade": {
+      "title": "Proximity Analysis",
+      "subtitle": "Spatial and logistical simulation by catchment radius for biogas and biomethane plant feasibility.",
+      "sections": [
+        {
+          "id": "o-que-e",
+          "title": "What is it",
+          "content": "Proximity Analysis is a geospatial tool that allows selecting any coordinate in the State of São Paulo and defining a customizable catchment radius (buffer from 10 km to 100 km).\nThe tool automatically aggregates all municipalities within the area of influence, calculating the total analyzed area, agricultural area, and primary class, while detailing land use distribution and providing feedback on biogas production suitability."
+        },
+        {
+          "id": "para-que-serve",
+          "title": "What is it for",
+          "content": "\n•Evaluate locational feasibility and optimal economic radius for biomass transport for the installation of biogas and biomethane plants.\n•Identify neighboring municipalities for regional consortium formation.\n•Analyze surrounding land suitability (detailed land use breakdown) for continuous substrate supply."
+        },
+        {
+          "id": "como-usar",
+          "title": "How to use",
+          "content": "1. Click anywhere on the interactive map to define the point of interest (latitude and longitude).\n2. Adjust the \"Catchment Radius\" slider (from 10 km to 100 km), following the logistics feasibility recommendations.\n3. Click the \"Analyze\" button to process spatial data.\n4. Explore results: agricultural area, detailed MapBiomas class distribution, and energy indicators.\n5. Use the \"Export Data\" button to download the CSV spreadsheet or \"Share\" to generate a direct link with the analyzed coordinate and radius."
+        }
+      ]
+    }
+  },
+  "tour": {
+    "steps": {
+      "welcome": {
+        "title": "Welcome to PILAR-2b",
+        "content": "This is the main navigation bar. From here you can access all features of the biogas potential platform for São Paulo municipalities."
+      },
+      "map": {
+        "title": "Interactive Map",
+        "content": "Visualize the biogas potential of each municipality on a choropleth map. Additional layers show landfills, existing plants, and watersheds."
+      },
+      "analysis": {
+        "title": "Analyses",
+        "content": "Comparative charts by region, residue type, and time horizon."
+      },
+      "science": {
+        "title": "Scientific Basis",
+        "content": "Access the detailed methodology, raw data, and source code to understand how we calculate biogas potential and to replicate or adapt the analysis."
+      },
+      "calculator": {
+        "title": "Biogas Calculator",
+        "content": "Estimate biogas production from custom parameters: substrate type, volume, and retention time."
+      },
+      "proximity": {
+        "title": "Proximity Analysis",
+        "content": "Identify neighboring municipalities with complementary potential for regional projects and inter-municipal consortia."
+      },
+      "search": {
+        "title": "Municipality Search",
+        "content": "Type the name of any São Paulo municipality to center the map and view local organic waste generation indicators."
+      },
+      "help": {
+        "title": "Help Anytime",
+        "content": "You're all set! Whenever you need, click here to restart this tour or open the full guide."
+      }
+    },
+    "locale": {
+      "back": "Back",
+      "close": "Close",
+      "last": "Finish",
+      "next": "Next",
+      "skip": "Skip"
+    },
+    "fab": {
+      "aria_label": "Open help and guided tour",
+      "title": "Help & Tour"
     }
   }
 }
