@@ -229,9 +229,9 @@ export default function UnifiedHeader({ variant = 'auto' }: UnifiedHeaderProps) 
           {/* Theme & Language Toggles + User Menu (Desktop) */}
           <div className="hidden md:flex items-center space-x-3">
             {/* Global Search */}
-            <div className="tour-search-bar">
-              <GlobalSearch variant={isPublic ? 'light' : 'dark'} />
-            </div>
+            
+            <GlobalSearch variant={isPublic ? 'light' : 'dark'} />
+            
 
             {/* Language Toggle */}
             <LanguageSwitcher />
