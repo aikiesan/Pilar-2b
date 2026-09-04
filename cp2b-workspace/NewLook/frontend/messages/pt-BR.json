@@ -1309,12 +1309,12 @@
         {
           "id": "o-que-e",
           "title": "O que é",
-          "content": "O Mapa Interativo apresenta a distribuição geográfica do potencial estimado de produção de biomassa, biogás, biometano e bioenergia a partir de resíduos orgânicos urbanos, de pecuária, de agricultura ou florestal nos 645 municípios do Estado de São Paulo, com a opção do potencial total e o per capta. O potencial mostrado é destrinchado sobre de onde veio cada parte do potencial total, possuindo distinção por todas as classes de resíduos\n A ferramenta permite visualizar além do potencial, a infraestrutura do estado de São Paulo (usinas de biogás, de etanol, subestações eléticas, etc.), elementos de logística e de restrições de sítio.  "
+          "content": "O Mapa Interativo apresenta a distribuição geográfica do potencial estimado de produção de biomassa, biogás, biometano e bioenergia a partir de resíduos orgânicos urbanos, de pecuária, de agricultura ou florestal nos 645 municípios do Estado de São Paulo, com a opção do potencial total e o per capta. O potencial mostrado é destrinchado sobre de onde veio cada parte do potencial total, possuindo distinção por todas as classes de resíduos\nA ferramenta permite visualizar além do potencial, a infraestrutura do estado de São Paulo (usinas de biogás, de etanol, subestações eléticas, etc.), elementos de logística e de restrições de sítio.  "
         },
         {
           "id": "para-que-serve",
           "title": "Para que serve",
-          "content": "•identificar regiões com maior densidade de potencial energético;\n•Cruzar dados com a localização de infraestrutura ativa no Estado;\n•Apoiar estudos de viabilidade para novas pesquisas acadêmicas ou empreendimentos no setor energético renovável."
+          "content": "•Identificar regiões com maior densidade de potencial energético;\n•Cruzar dados com a localização de infraestrutura ativa no Estado;\n•Apoiar estudos de viabilidade para novas pesquisas acadêmicas ou empreendimentos no setor energético renovável."
         },
         {
           "id": "como-usar",
@@ -1330,12 +1330,12 @@
         {
           "id": "o-que-e",
           "title": "O que é",
-          "content": "A seção de Análises Avançadas permite modelar estimativas detalhadas de produção de biogás. A partir da seleção de resíduos, sub-resíduos e cenários (baseline, conservador, otimista ou fronteira do biogás), a plataforma calcula e exibe o potencial teórico, as perdas em cada etapa e o potencial real final.\nTodos os parâmetros são customizáveis: o usuário pode ajustar os fatores de colheita, competição, sazonalidade e logística, além de auditar as fórmulas matemáticas aplicadas diretamente na página.\n\n"
+          "content": "•Modelar estimativas detalhadas de produção de biogás a partir da seleção de resíduos, sub-resíduos e cenários (baseline, conservador, otimista ou fronteira do biogás);\n•Exibir o potencial teórico, as perdas em cada etapa e o potencial real com parâmetros customizáveis, o usuário pode ajustar os fatores de colheita, competição, sazonalidade e logística;\n•Auditar as fórmulas matemáticas aplicadas diretamente na página.\n"
         },
         {
           "id": "para-que-serve",
           "title": "Para que serve",
-          "content": "Comparar classes e sub-resíduos: avaliar a viabilidade de múltiplos materiais em conjunto;\n• Mapear perdas de processo: compreender o impacto de cada fator na transição do potencial teórico para o potencial real;\n• Simular cenários sob medida: ajustar as porcentagens de cada variável para refletir a realidade operacional da sua planta;\n• Projetar sensibilidade: contrastar múltiplos cenários de mercado e produtividade sobre a mesma matéria-prima.\n\n"
+          "content": "•Comparar classes e sub-resíduos: avaliar a viabilidade de múltiplos materiais em conjunto;\n•Mapear perdas de processo: compreender o impacto de cada fator na transição do potencial teórico para o potencial real;\n•Simular cenários sob medida: ajustar as porcentagens de cada variável para refletir a realidade operacional da sua planta;\n•Projetar sensibilidade: contrastar múltiplos cenários de mercado e produtividade sobre a mesma matéria-prima.\n"
         },
         {
           "id": "como-usar",
@@ -1372,12 +1372,12 @@
         {
           "id": "o-que-e",
           "title": "O que é",
-          "content": "A Calculadora de Biogás é uma ferramenta voltada a usuários que buscam valorizar resíduos de biomassa para a geração de bioenergia e bioprodutos. No formulário inicial, o usuário insere o tipo de resíduo, o volume anual gerado (em toneladas por ano ou pela área de cultivo em hectares), o período de safra (meses de sazonalidade) e o produto final de interesse. A partir dessas entradas, a plataforma projeta o potencial de biogás (em m³/ano), permite definir o nível de implantação do sistema e apresenta uma estimativa do retorno financeiro (payback).\n\n"
+          "content": "A Calculadora de Biogás é uma ferramenta voltada a usuários que buscam valorizar resíduos de biomassa para a geração de bioenergia e bioprodutos. No formulário inicial, o usuário insere o tipo de resíduo, o volume anual gerado (em toneladas por ano ou pela área de cultivo em hectares), o período de safra (meses de sazonalidade) e o produto final de interesse. A partir dessas entradas, a plataforma projeta o potencial de biogás (em m³/ano), permite definir o nível de implantação do sistema e apresenta uma estimativa do retorno financeiro (payback).\n"
         },
         {
           "id": "para-que-serve",
           "title": "Para que serve",
-          "content": "• Avaliar a viabilidade técnico-econômica de projetos de biogás e bioprodutos;\n• Estimar o tempo de retorno financeiro (payback) do investimento;\n• Projetar o volume anual de biogás gerado conforme a disponibilidade de biomassa.\n\n"
+          "content": "•Avaliar a viabilidade técnico-econômica de projetos de biogás e bioprodutos;\n•Estimar o tempo de retorno financeiro (payback) do investimento;\n•Projetar o volume anual de biogás gerado conforme a disponibilidade de biomassa.\n"
         },
         {
           "id": "como-usar",
@@ -1393,12 +1393,12 @@
         {
           "id": "o-que-e",
           "title": "O que é",
-          "content": "A Análise de Proximidade é uma ferramenta geoespacial que permite selecionar qualquer coordenada no Estado de São Paulo e delimitar um raio de captação customizável (buffer de 10 km a 100 km).\n\nA ferramenta agrega automaticamente todos os municípios englobados na área de influência, calculando a área total analisada, área agricultável e classe principal, além de detalhar a distribuição do uso do solo e dar um feedback sobre a aptidão para a produção de biogás."
+          "content": "A Análise de Proximidade é uma ferramenta geoespacial que permite selecionar qualquer coordenada no Estado de São Paulo e delimitar um raio de captação customizável (buffer de 10 km a 100 km).\nA ferramenta agrega automaticamente todos os municípios englobados na área de influência, calculando a área total analisada, área agricultável e classe principal, além de detalhar a distribuição do uso do solo e dar um feedback sobre a aptidão para a produção de biogás."
         },
         {
           "id": "para-que-serve",
           "title": "Para que serve",
-          "content": "A ferramenta serve para:\n• Avaliar a viabilidade locacional e raio econômico ótimo de transporte de biomassa para instalação de plantas de biogás e biometano.\n• Identificar municípios vizinhos para formação de consórcios regionais.\n• Analisar a aptidão do solo no entorno (detalhamento do uso do solo) para fornecimento contínuo de substratos."
+          "content": "•Avaliar a viabilidade locacional e raio econômico ótimo de transporte de biomassa para instalação de plantas de biogás e biometano.\n•Identificar municípios vizinhos para formação de consórcios regionais.\n•Analisar a aptidão do solo no entorno (detalhamento do uso do solo) para fornecimento contínuo de substratos."
         },
         {
           "id": "como-usar",

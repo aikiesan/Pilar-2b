@@ -1299,7 +1299,7 @@
         {
           "id": "para-que-serve",
           "title": "What is it for",
-          "content": "• Identify regions with higher energy potential density;\n• Cross-reference data with the location of active infrastructure in the State;\n• Support feasibility studies for new academic research or ventures in the renewable energy sector."
+          "content": "•Identify regions with higher energy potential density;\n•Cross-reference data with the location of active infrastructure in the State;\n•Support feasibility studies for new academic research or ventures in the renewable energy sector."
         },
         {
           "id": "como-usar",
@@ -1315,12 +1315,12 @@
         {
           "id": "o-que-e",
           "title": "What is it",
-          "content": "The Advanced Analyses section allows modeling detailed biogas production estimates. By selecting waste types, sub-residues, and scenarios (baseline, conservative, optimistic, or biogas frontier), the platform calculates and displays theoretical potential, losses at each stage, and final real potential.\nAll parameters are customizable: users can adjust harvest, competition, seasonality, and logistics factors, as well as inspect the mathematical formulas applied directly on the page.\n\n"
+          "content": "The Advanced Analyses section allows modeling detailed biogas production estimates. By selecting waste types, sub-residues, and scenarios (baseline, conservative, optimistic, or biogas frontier), the platform calculates and displays theoretical potential, losses at each stage, and final real potential.\nAll parameters are customizable: users can adjust harvest, competition, seasonality, and logistics factors, as well as inspect the mathematical formulas applied directly on the page.\n"
         },
         {
           "id": "para-que-serve",
           "title": "What is it for",
-          "content": "Compare classes and sub-residues: evaluate the viability of multiple materials together;\n• Map process losses: understand the impact of each factor in the transition from theoretical to real potential;\n• Simulate custom scenarios: adjust the percentages of each variable to reflect your plant's operational reality;\n• Project sensitivity: contrast multiple market and productivity scenarios for the same feedstock.\n\n"
+          "content": "•Compare classes and sub-residues: evaluate the viability of multiple materials together;\n•Map process losses: understand the impact of each factor in the transition from theoretical to real potential;\n•Simulate custom scenarios: adjust the percentages of each variable to reflect your plant's operational reality;\n•Project sensitivity: contrast multiple market and productivity scenarios for the same feedstock.\n"
         },
         {
           "id": "como-usar",
@@ -1336,12 +1336,12 @@
         {
           "id": "o-que-e",
           "title": "What is it",
-          "content": "The Scientific Knowledge Base brings together the articles and technical reports supporting the platform's data. Each metric used in potential calculations is grounded in auditable bibliographic references available for direct consultation.\nIn addition, the section features two comparative analysis tools among the residues studied in Pillar-2b:\n• Degradation Curves: analysis of methane production kinetics over time.\n• Multi-parameter Comparison: direct contrast between key indicators, such as BMP, C:N, VS, and CH4 Content."
+          "content": "The Scientific Knowledge Base brings together the articles and technical reports supporting the platform's data. Each metric used in potential calculations is grounded in auditable bibliographic references available for direct consultation.\nIn addition, the section features two comparative analysis tools among the residues studied in Pillar-2b:\n•Degradation Curves: analysis of methane production kinetics over time.\n•Multi-parameter Comparison: direct contrast between key indicators, such as BMP, C:N, VS, and CH4 Content."
         },
         {
           "id": "para-que-serve",
           "title": "What is it for",
-          "content": "• Ensure transparency and methodological rigor: confirms the scientific sources supporting the final potential calculation.\n• Support new research: serves as a structured database for advanced studies in biogas and bioproducts.\n• Streamline comparative diagnostics: allows evaluating the performance and physicochemical characteristics of different waste types."
+          "content": "•Ensure transparency and methodological rigor: confirms the scientific sources supporting the final potential calculation.\n•Support new research: serves as a structured database for advanced studies in biogas and bioproducts.\n•Streamline comparative diagnostics: allows evaluating the performance and physicochemical characteristics of different waste types."
         },
         {
           "id": "como-usar",
@@ -1357,12 +1357,12 @@
         {
           "id": "o-que-e",
           "title": "What is it",
-          "content": "The Biogas Calculator is a tool designed for users seeking to valorize biomass residues for bioenergy and bioproduct generation. In the initial form, the user enters the residue type, the annual volume generated (in tons per year or by cultivation area in hectares), the harvest period (seasonality months), and the final product of interest. From these inputs, the platform projects biogas potential (in m³/year), allows configuring the system implementation level, and provides an estimated financial return (payback).\n\n"
+          "content": "The Biogas Calculator is a tool designed for users seeking to valorize biomass residues for bioenergy and bioproduct generation. In the initial form, the user enters the residue type, the annual volume generated (in tons per year or by cultivation area in hectares), the harvest period (seasonality months), and the final product of interest. From these inputs, the platform projects biogas potential (in m³/year), allows configuring the system implementation level, and provides an estimated financial return (payback).\n"
         },
         {
           "id": "para-que-serve",
           "title": "What is it for",
-          "content": "• Evaluate the techno-economic feasibility of biogas and bioproduct projects;\n• Estimate the investment payback period;\n• Project the annual volume of biogas generated based on biomass availability.\n\n"
+          "content": "•Evaluate the techno-economic feasibility of biogas and bioproduct projects;\n•Estimate the investment payback period;\n•Project the annual volume of biogas generated based on biomass availability.\n"
         },
         {
           "id": "como-usar",
@@ -1378,12 +1378,12 @@
         {
           "id": "o-que-e",
           "title": "What is it",
-          "content": "Proximity Analysis is a geospatial tool that allows selecting any coordinate in the State of São Paulo and defining a customizable catchment radius (buffer from 10 km to 100 km).\n\nThe tool automatically aggregates all municipalities within the area of influence, calculating the total analyzed area, agricultural area, and primary class, while detailing land use distribution and providing feedback on biogas production suitability."
+          "content": "Proximity Analysis is a geospatial tool that allows selecting any coordinate in the State of São Paulo and defining a customizable catchment radius (buffer from 10 km to 100 km).\nThe tool automatically aggregates all municipalities within the area of influence, calculating the total analyzed area, agricultural area, and primary class, while detailing land use distribution and providing feedback on biogas production suitability."
         },
         {
           "id": "para-que-serve",
           "title": "What is it for",
-          "content": "The tool serves to:\n• Evaluate locational feasibility and optimal economic radius for biomass transport for the installation of biogas and biomethane plants.\n• Identify neighboring municipalities for regional consortium formation.\n• Analyze surrounding land suitability (detailed land use breakdown) for continuous substrate supply."
+          "content": "\n•Evaluate locational feasibility and optimal economic radius for biomass transport for the installation of biogas and biomethane plants.\n•Identify neighboring municipalities for regional consortium formation.\n•Analyze surrounding land suitability (detailed land use breakdown) for continuous substrate supply."
         },
         {
           "id": "como-usar",
