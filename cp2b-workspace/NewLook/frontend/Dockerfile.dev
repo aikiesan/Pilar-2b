@@ -6,7 +6,7 @@
 
 FROM node:20-bookworm-slim
 
-# Instala wget e ferramentas essenciais para a IDE remota
+# Antigravity remote IDE server needs wget to bootstrap
 RUN apt-get update && apt-get install -y --no-install-recommends \
     wget \
     curl \
