@@ -385,21 +385,32 @@ def _cn_label(cn: float) -> str:
 
 def get_municipality_cn_profiles() -> list[dict]:
     """
-    Per-municipality weighted C/N ratio using biomass tonnage × residue C/N.
-    Formula: Σ(biomass_i × cn_i) / Σ(biomass_i) across all active residue streams.
+    Per-municipality C:N for the SP+MG scope, from `municipality_typology`.
+
+    The C:N served here is `cn_molar` — the SV-weighted arithmetic mean produced
+    by the canonical engine (migration 014). It replaces a per-request weighted
+    sum over the `*_biogas_m3_year` columns, which only Sao Paulo populates:
+    every other municipality fell through to `CN_OPTIMAL_MID`, so the endpoint
+    returned a constant 25.0 for ~90% of rows and the map rendered one colour.
+
+    Municipalities without a typology row are omitted rather than defaulted — a
+    missing C:N must read as "no data", never as "optimal".
     """
     from app.core.database import get_db
 
-    # Weight by biogas_m3_year — proportional to biomass contribution, correctly scales C/N.
-    weight_cols_sql = ", ".join(f"{k}_biogas_m3_year" for k in RESIDUE_KEYS)
+    # The residue breakdown still comes from the biogas columns, which exist for
+    # SP only. It is supporting detail for the pairing UI, not the C:N itself.
+    weight_cols_sql = ", ".join(f"m.{k}_biogas_m3_year" for k in RESIDUE_KEYS)
     try:
         with get_db() as conn:
             cursor = conn.cursor()
             cursor.execute(f"""
-                SELECT ibge_code, municipality_name, centroid_lat, centroid_lng,
+                SELECT m.ibge_code, m.municipality_name, m.centroid_lat, m.centroid_lng,
+                       t.cn_molar, t.tipologia, t.regime, t.uf,
                        {weight_cols_sql}
-                FROM municipalities
-                WHERE centroid_lat IS NOT NULL AND centroid_lng IS NOT NULL
+                FROM municipalities m
+                JOIN municipality_typology t ON t.ibge_code = m.ibge_code::integer
+                WHERE m.centroid_lat IS NOT NULL AND m.centroid_lng IS NOT NULL
             """)
             rows = [dict(r) for r in cursor.fetchall()]
             cursor.close()
@@ -411,33 +422,84 @@ def get_municipality_cn_profiles() -> list[dict]:
     results = []
     for row in rows:
         breakdown: dict[str, dict] = {}
-        total_weight = 0.0
-        numerator = 0.0
         for key in RESIDUE_KEYS:
             weight = float(row.get(f"{key}_biogas_m3_year") or 0)
             if weight <= 0:
                 continue
-            cn = _get_cn(key, cn_by_codigo)
-            breakdown[key] = {"biogas_m3": round(weight, 1), "cn": cn}
-            total_weight += weight
-            numerator += weight * cn
+            breakdown[key] = {"biogas_m3": round(weight, 1), "cn": _get_cn(key, cn_by_codigo)}
 
-        cn_weighted = round(numerator / total_weight, 2) if total_weight > 0 else CN_OPTIMAL_MID
+        cn_weighted = round(float(row["cn_molar"]), 2)
         dominant = max(breakdown, key=lambda k: breakdown[k]["biogas_m3"], default=None)
         results.append(
             {
                 "ibge_code": row["ibge_code"],
                 "municipality_name": row["municipality_name"],
+                "uf": row["uf"],
                 "centroid_lat": float(row["centroid_lat"]),
                 "centroid_lng": float(row["centroid_lng"]),
                 "cn_ratio_weighted": cn_weighted,
                 "cn_label": _cn_label(cn_weighted),
+                "tipologia": row["tipologia"],
+                "regime": row["regime"],
                 "dominant_residue": dominant,
-                "total_biogas_m3_year": round(total_weight, 1),
+                "total_biogas_m3_year": round(sum(b["biogas_m3"] for b in breakdown.values()), 1),
                 "residue_breakdown": breakdown,
             }
         )
     return results
+
+
+def get_municipality_typology() -> list[dict]:
+    """
+    The SP+MG co-digestion typology, keyed by ibge_code.
+
+    BETA — gated behind a real backend token. The typology and the C:N it ships
+    with come from the canonical engine's SV-weighted arithmetic mean, and the
+    N-additive balance question is still open (docs/data/CNPQ_TYPOLOGY.md), so
+    these classes are not published to anonymous visitors yet.
+
+    Kept separate from the municipalities GeoJSON on purpose: the public map
+    payload is already 3.4 MB, and beta fields must not ride along in it where
+    a logged-out client could read them straight out of the response.
+    """
+    from app.core.database import get_db
+
+    try:
+        with get_db() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT ibge_code, uf, municipality_name, cn_molar,
+                       tipologia, tip_dom_share, regime,
+                       share_c_rich, share_n_rich, shannon_h, total_vs_t,
+                       via_a, via_b, via_b_classe
+                FROM municipality_typology
+                ORDER BY ibge_code
+            """)
+            rows = [dict(r) for r in cursor.fetchall()]
+            cursor.close()
+    except Exception as e:
+        logger.error(f"Failed to fetch municipality typology: {e}")
+        return []
+
+    return [
+        {
+            "ibge_code": str(r["ibge_code"]),
+            "uf": r["uf"],
+            "municipality_name": r["municipality_name"],
+            "cn_molar": float(r["cn_molar"]),
+            "tipologia": r["tipologia"],
+            "tip_dom_share": float(r["tip_dom_share"]) if r["tip_dom_share"] is not None else None,
+            "regime": r["regime"],
+            "share_c_rich": float(r["share_c_rich"]) if r["share_c_rich"] is not None else None,
+            "share_n_rich": float(r["share_n_rich"]) if r["share_n_rich"] is not None else None,
+            "shannon_h": float(r["shannon_h"]) if r["shannon_h"] is not None else None,
+            "total_vs_t": float(r["total_vs_t"]) if r["total_vs_t"] is not None else None,
+            "via_a": r["via_a"],
+            "via_b": r["via_b"],
+            "via_b_classe": r["via_b_classe"],
+        }
+        for r in rows
+    ]
 
 
 def get_pairing_candidates(ibge_code: str, radius_km: float = 50.0) -> list[dict]:

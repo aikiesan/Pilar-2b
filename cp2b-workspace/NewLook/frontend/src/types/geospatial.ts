@@ -133,7 +133,11 @@ export type DisplayMetric =
   | 'ch4_per_capita';
 
 // Color mode — controls the choropleth styling (biogas/biomass, C/N profile, or clusters)
-export type ColorMode = 'biogas' | 'cn_profile' | 'cluster';
+// 'cluster' (K-means K=4) was removed: municipality_summary.cluster_id was
+// 0/645 populated, so the mode painted the whole state grey while its legend
+// showed counts from an unrelated artifact. Replaced by the canonical
+// engine's typology + regime, which have data for all 1498 SP+MG rows.
+export type ColorMode = 'biogas' | 'cn_profile' | 'tipologia' | 'regime';
 
 // ─── Co-digestion cluster types ───────────────────────────────────────────────
 

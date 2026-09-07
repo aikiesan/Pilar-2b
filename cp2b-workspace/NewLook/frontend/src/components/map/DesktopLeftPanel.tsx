@@ -284,30 +284,18 @@ function FiltersSection({
           <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-1">
             {t('colorModes.label')}
           </label>
-          <div className="flex flex-col gap-1 bg-gray-50 p-1.5 rounded-lg border border-gray-200">
-            {([
-              { value: 'biogas', label: displayMetric === 'biomass_tons' ? 'Potencial Biomassa' : t('colorModes.biogas') },
-              { value: 'cn_profile', label: t('colorModes.cn_profile') },
-              { value: 'cluster', label: t('colorModes.cluster') },
-            ] as const).map(opt => {
-              const active = colorMode === opt.value;
-              return (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => onColorModeChange(opt.value)}
-                  className={`w-full py-1 px-2.5 rounded-md text-[11px] font-semibold text-left transition-all flex items-center justify-between ${
-                    active
-                      ? 'bg-green-700 text-white shadow-sm'
-                      : 'text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  <span>{opt.label}</span>
-                  {active && <span className="text-[10px]">✓</span>}
-                </button>
-              );
-            })}
-          </div>
+          <ColorModeSelector
+            colorMode={colorMode}
+            onColorModeChange={onColorModeChange}
+            lockedHint={t('colorModes.beta_locked')}
+            variant="desktop"
+            options={[
+              { value: 'biogas', label: displayMetric === 'biomass_tons' ? 'Potencial Biomassa' : t('colorModes.biogas'), beta: false },
+              { value: 'cn_profile', label: t('colorModes.cn_profile'), beta: true },
+              { value: 'tipologia', label: t('colorModes.tipologia'), beta: true },
+              { value: 'regime', label: t('colorModes.regime'), beta: true },
+            ]}
+          />
         </div>
       )}
 
@@ -679,6 +667,8 @@ function StatStrip({ municipalityCount, totalMunicipalities, filterCount, betaMu
 
 // ── Main Component ─────────────────────────────────────────────────────────────
 
+import ColorModeSelector from './ColorModeSelector';
+
 export default function DesktopLeftPanel({
   searchQuery, onSearchChange, selectedResidues,
   visualizationMode, onVisualizationModeChange,
@@ -712,7 +702,10 @@ export default function DesktopLeftPanel({
       <div className="flex items-center border-b border-gray-100 flex-shrink-0 h-12 px-2">
         {!collapsed && (
           <span className="text-sm font-semibold text-gray-700 truncate flex-1 px-1">
-            Biomassa Brasil
+            {/* The platform's scope is São Paulo + the Minas Gerais pilot, not
+                the country — the title said "Brasil" while the map showed one
+                state, which read as a loading failure. */}
+            Biomassa {scopeUf === 'MG' ? 'Minas Gerais' : 'São Paulo'}
           </span>
         )}
         <button

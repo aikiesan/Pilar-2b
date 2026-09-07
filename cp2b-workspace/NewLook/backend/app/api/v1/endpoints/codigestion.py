@@ -127,12 +127,20 @@ async def get_cluster_detail(
 
 
 @router.get("/municipality-cn-profiles")
-async def get_municipality_cn_profiles_endpoint():
+async def get_municipality_cn_profiles_endpoint(
+    current_user: UserProfile = Depends(get_current_user),
+):
     """
-    Weighted C/N ratio for every São Paulo municipality.
+    C:N profile for each of the 1 498 SP+MG municipalities.
 
-    Computes Σ(biomass_tons × cn_ratio) / Σ(biomass_tons) across all residue
-    streams. Used to drive the C/N choropleth layer on the map.
+    BETA — requires a real backend token. The C:N served is `cn_molar`, the
+    canonical engine's SV-weighted arithmetic mean; the N-additive balance is
+    still an open methodological question, so this is not public yet.
+
+    Note the gate is deliberately here and not only in the UI: the frontend's
+    NEXT_PUBLIC_DISABLE_AUTH mode hands every visitor a synthetic user with no
+    token, so a UI-only check would open this to everyone in that deployment.
+
     Result is cached for the process lifetime (reset via DELETE /clusters/cache).
     """
     global _cn_profile_cache
@@ -145,6 +153,36 @@ async def get_municipality_cn_profiles_endpoint():
             logger.error(f"Error computing municipality C/N profiles: {e}", exc_info=True)
             raise HTTPException(status_code=500, detail=f"Error computing C/N profiles: {str(e)}")
     return {"profiles": _cn_profile_cache, "count": len(_cn_profile_cache)}
+
+
+_typology_cache: list[dict] | None = None
+
+
+@router.get("/municipality-typology")
+async def get_municipality_typology_endpoint(
+    current_user: UserProfile = Depends(get_current_user),
+):
+    """
+    BETA — co-digestion typology and nutrient regime for SP+MG (1 498 rows).
+
+    `tipologia` is the dominant residue family (7 classes); `regime` is the
+    C/N balance class (C-dominante / Equilibrado / N-dominante). Together they
+    are the "two ways" reading: what a municipality has, and what it needs to
+    pair with.
+
+    Served apart from /municipalities/geojson so the public map payload carries
+    no beta fields at all.
+    """
+    global _typology_cache
+    if _typology_cache is None:
+        try:
+            from app.services.codigestion_service import get_municipality_typology
+
+            _typology_cache = get_municipality_typology()
+        except Exception as e:
+            logger.error(f"Error loading municipality typology: {e}", exc_info=True)
+            raise HTTPException(status_code=500, detail=f"Error loading typology: {str(e)}")
+    return {"profiles": _typology_cache, "count": len(_typology_cache)}
 
 
 @router.get("/pairing-candidates")

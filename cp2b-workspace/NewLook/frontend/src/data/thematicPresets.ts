@@ -332,7 +332,7 @@ export const THEMATIC_PRESETS: ThematicPreset[] = [
     icon: '🧩',
     description: 'Agrupamento K-means dos municípios por perfil de biomassa (2023).',
     group: 'analise',
-    config: { ...BASE, colorMode: 'cluster' },
+    config: { ...BASE, colorMode: 'tipologia' },
   },
   {
     id: 'calor',

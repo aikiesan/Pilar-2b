@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/queryClient';
 import { logger } from '@/lib/logger';
+import { authenticatedFetch } from '@/lib/apiClient';
 import type { MunicipalityCnProfile, MunicipalityCnProfilesResponse } from '@/types/geospatial';
 
 const API_BASE_URL =
@@ -12,7 +13,9 @@ const API_BASE_URL =
 
 async function fetchCnProfiles(): Promise<MunicipalityCnProfile[]> {
   const url = `${API_BASE_URL}/api/v1/codigestion/municipality-cn-profiles`;
-  const res = await fetch(url);
+  // Beta endpoint: 401 without a real backend token. authenticatedFetch
+  // attaches the bearer when one is stored.
+  const res = await authenticatedFetch(url);
   if (!res.ok) throw new Error(`C/N profiles fetch failed: ${res.status}`);
   const data: MunicipalityCnProfilesResponse = await res.json();
   logger.debug('C/N profiles fetched:', data.count);

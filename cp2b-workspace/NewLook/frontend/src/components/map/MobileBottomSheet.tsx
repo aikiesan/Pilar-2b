@@ -84,6 +84,8 @@ const LAYER_KEY_MAP: Record<string, string> = {
   'railways': 'layers.railways',
 };
 
+import ColorModeSelector from './ColorModeSelector';
+
 export default function MobileBottomSheet({
   searchQuery, onSearchChange, selectedResidues, onResiduesChange,
   biomassType, onBiomassTypeChange, visualizationMode, onVisualizationModeChange,
@@ -240,30 +242,18 @@ export default function MobileBottomSheet({
                     <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">
                       {t('colorModes.label')}
                     </label>
-                    <div className="flex flex-col gap-1 bg-gray-50 p-2 rounded-xl border border-gray-200">
-                      {([
-                        { value: 'biogas', label: displayMetric === 'biomass_tons' ? 'Potencial Biomassa' : t('colorModes.biogas') },
-                        { value: 'cn_profile', label: t('colorModes.cn_profile') },
-                        { value: 'cluster', label: t('colorModes.cluster') },
-                      ] as const).map(opt => {
-                        const active = colorMode === opt.value;
-                        return (
-                          <button
-                            key={opt.value}
-                            type="button"
-                            onClick={() => onColorModeChange(opt.value)}
-                            className={`flex min-h-11 w-full items-center justify-between rounded-lg px-3 py-2 text-left text-xs font-semibold transition-colors ${
-                              active
-                                ? 'bg-green-700 text-white shadow-sm'
-                                : 'text-gray-700 hover:bg-gray-100'
-                            }`}
-                          >
-                            <span>{opt.label}</span>
-                            {active && <span className="text-xs">✓</span>}
-                          </button>
-                        );
-                      })}
-                    </div>
+                    <ColorModeSelector
+                      colorMode={colorMode}
+                      onColorModeChange={onColorModeChange}
+                      lockedHint={t('colorModes.beta_locked')}
+                      variant="mobile"
+                      options={[
+                        { value: 'biogas', label: displayMetric === 'biomass_tons' ? 'Potencial Biomassa' : t('colorModes.biogas'), beta: false },
+                        { value: 'cn_profile', label: t('colorModes.cn_profile'), beta: true },
+                        { value: 'tipologia', label: t('colorModes.tipologia'), beta: true },
+                        { value: 'regime', label: t('colorModes.regime'), beta: true },
+                      ]}
+                    />
                   </div>
                 )}
 
