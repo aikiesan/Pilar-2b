@@ -123,6 +123,35 @@ Um snapshot aceitável precisa, então:
 Os itens 1 e 2 mudam também tipologia, regime, os 141 elegíveis, os 30 pares e
 as figuras publicadas — é decisão de pesquisa, não de plataforma.
 
+### São Paulo já tem o dado corrigido (Fase 1, migração 031)
+
+Os três critérios acima **são satisfeitos por um arquivo que já existia**:
+`analysis/paper_figures/P2/canonical/dossier/dossier_municipios.csv`, o conjunto
+de trabalho por trás do dossiê de validação bioquímica. Ele traz `cn_harm`
+(N-aditivo) ao lado de `cn_molar` (aritmético) nos 645 municípios de SP, e
+`real_sewage > 0` em todos — ou seja, os 13 fluxos.
+
+| coluna | mediana | em C:N 20–30 |
+|---|---|---|
+| `cn_molar` | 49,19 | 111 |
+| `cn_harm` | **32,26** | **191** |
+
+Carregado por `scripts/load_dossier_sp_indices.py` nas colunas `cn_harm`,
+`regime_harm`, `dom_stream` e `d_gas_km`, **SP apenas** — NULL nas 853 linhas de
+MG, e NULL aqui significa "não calculado", nunca zero.
+
+Efeito em SP: **201 dos 645 municípios (31%) mudam de classe de regime**, sendo
+que 25 saltam de C-dominante para N-excess, extremos opostos.
+
+⚠️ **Não usar** `canon_municipios.csv` nem `canon_pairs_priority.csv` do mesmo
+diretório: são de uma triagem obsoleta (mediana 49,19). A diferença não é só
+numérica — os pares mudam de parceiro. Botucatu casa com Porangaba no arquivo
+velho e com Conchas no dossiê.
+
+Minas Gerais continua sem C:N confiável até o reprocessamento do `p2_canon.py`
+com o fluxo de esgoto. Plano completo em
+[`planning/DOSSIE_SP_INTEGRACAO_MAPA.md`](../planning/DOSSIE_SP_INTEGRACAO_MAPA.md).
+
 ### Trava
 
 `scripts/load_municipality_typology.py` ganhou o gate `_gate_cn_method`, que
