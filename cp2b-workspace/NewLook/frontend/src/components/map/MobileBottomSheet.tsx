@@ -43,6 +43,8 @@ interface MobileBottomSheetProps {
   onScenarioChange: (s: MapScenarioKey) => void;
   daltonic: boolean;
   onToggleDaltonic: () => void;
+  /** Drives which beta colour modes exist — the C:N ones are SP-only. */
+  scopeUf?: 'SP' | 'MG';
 }
 
 type ActiveSheet = 'filters' | 'layers' | null;
@@ -95,7 +97,7 @@ export default function MobileBottomSheet({
   colorMode, onColorModeChange,
   residueBreakdownAvailable = true,
   availableResidueCategories,
-  scenario, onScenarioChange, daltonic, onToggleDaltonic,
+  scenario, onScenarioChange, daltonic, onToggleDaltonic, scopeUf = 'SP',
 }: MobileBottomSheetProps) {
   const t = useTranslations('Map');
   const [activeSheet, setActiveSheet] = useState<ActiveSheet>(null);
@@ -250,6 +252,7 @@ export default function MobileBottomSheet({
                       options={buildColorModeOptions(
                         displayMetric === 'biomass_tons' ? 'Potencial Biomassa' : t('colorModes.biogas'),
                         t,
+                        scopeUf,
                       )}
                     />
                   </div>

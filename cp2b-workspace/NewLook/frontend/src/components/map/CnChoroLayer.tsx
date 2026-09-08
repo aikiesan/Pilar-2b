@@ -12,23 +12,28 @@
 import React, { useEffect, useRef } from 'react';
 import { useMap } from 'react-leaflet';
 import L from 'leaflet';
-import type { MunicipalityCollection, MunicipalityCnProfile } from '@/types/geospatial';
+import type { MunicipalityCollection } from '@/types/geospatial';
 import { cnColor, CN_NO_DATA_COLOR } from '@/lib/cnScale';
-
-export type CnProfilesMap = Record<string, MunicipalityCnProfile>;
 
 interface CnChoroLayerProps {
   geoJsonData: MunicipalityCollection;
-  profilesMap: CnProfilesMap;
+  /**
+   * C:N by IBGE code. Takes plain numbers rather than a profile object so the
+   * caller decides which C:N it is painting — the map feeds the N-additive
+   * `cn_harm`, not the arithmetic mean this layer used to read off the
+   * cn-profiles endpoint. A municipality absent from the map is drawn as
+   * no-data, which is how MG renders while it has no corrected value.
+   */
+  cnByIbge: Record<string, number>;
 }
 
 
-export default function CnChoroLayer({ geoJsonData, profilesMap }: CnChoroLayerProps) {
+export default function CnChoroLayer({ geoJsonData, cnByIbge }: CnChoroLayerProps) {
   const map = useMap();
   const layerRef = useRef<L.GeoJSON | null>(null);
 
   useEffect(() => {
-    if (!geoJsonData?.features?.length || !Object.keys(profilesMap).length) return;
+    if (!geoJsonData?.features?.length || !Object.keys(cnByIbge).length) return;
 
     // Create a dedicated pane above the overlayPane so this layer renders on top
     if (!map.getPane('cnChoro')) {
@@ -42,8 +47,8 @@ export default function CnChoroLayer({ geoJsonData, profilesMap }: CnChoroLayerP
       pane: 'cnChoro',
       style: (feature) => {
         const ibge = feature?.properties?.ibge_code ?? feature?.properties?.cd_mun ?? '';
-        const profile = profilesMap[String(ibge)];
-        const fill = profile ? cnColor(profile.cn_ratio_weighted) : CN_NO_DATA_COLOR;
+        const value = cnByIbge[String(ibge)];
+        const fill = value !== undefined ? cnColor(value) : CN_NO_DATA_COLOR;
         return {
           fillColor: fill,
           fillOpacity: 0.75,
@@ -61,7 +66,7 @@ export default function CnChoroLayer({ geoJsonData, profilesMap }: CnChoroLayerP
       layer.remove();
       layerRef.current = null;
     };
-  }, [map, geoJsonData, profilesMap]);
+  }, [map, geoJsonData, cnByIbge]);
 
   return null;
 }

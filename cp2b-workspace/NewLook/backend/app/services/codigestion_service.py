@@ -453,10 +453,19 @@ def get_municipality_typology() -> list[dict]:
     """
     The SP+MG co-digestion typology, keyed by ibge_code.
 
-    BETA — gated behind a real backend token. The typology and the C:N it ships
-    with come from the canonical engine's SV-weighted arithmetic mean, and the
-    N-additive balance question is still open (docs/data/CNPQ_TYPOLOGY.md), so
-    these classes are not published to anonymous visitors yet.
+    BETA — gated behind a real backend token, because the dossier's own Section 9
+    declares the limit: these are first-order spatial screening candidates, not
+    yield projections.
+
+    Two C:N columns ride along, and they are not interchangeable. `cn_molar` is
+    the SV-weighted ARITHMETIC mean of the per-stream ratios — the number the map
+    layers were built on and had to be withdrawn (PR #213). `cn_harm` is the
+    N-additive blend the validation dossier declares, SUM(VS)/SUM(VS/CN), and it
+    is SÃO PAULO ONLY: null for the 853 MG rows, because no corrected pipeline
+    output exists for Minas yet. See docs/data/CNPQ_TYPOLOGY.md.
+
+    `cn_molar` stays served so the published figures remain reproducible; the map
+    reads `cn_harm` and hides the C:N modes where it is null.
 
     Kept separate from the municipalities GeoJSON on purpose: the public map
     payload is already 3.4 MB, and beta fields must not ride along in it where
@@ -471,7 +480,8 @@ def get_municipality_typology() -> list[dict]:
                 SELECT ibge_code, uf, municipality_name, cn_molar,
                        tipologia, tip_dom_share, regime,
                        share_c_rich, share_n_rich, shannon_h, total_vs_t,
-                       via_a, via_b, via_b_classe
+                       via_a, via_b, via_b_classe,
+                       cn_harm, regime_harm, dom_stream, d_gas_km
                 FROM municipality_typology
                 ORDER BY ibge_code
             """)
@@ -497,6 +507,12 @@ def get_municipality_typology() -> list[dict]:
             "via_a": r["via_a"],
             "via_b": r["via_b"],
             "via_b_classe": r["via_b_classe"],
+            # SP only — None for MG, which the client reads as "no C:N here"
+            # rather than drawing an empty choropleth.
+            "cn_harm": float(r["cn_harm"]) if r["cn_harm"] is not None else None,
+            "regime_harm": r["regime_harm"],
+            "dom_stream": r["dom_stream"],
+            "d_gas_km": float(r["d_gas_km"]) if r["d_gas_km"] is not None else None,
         }
         for r in rows
     ]

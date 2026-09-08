@@ -35,6 +35,19 @@ export interface MunicipalityTypology {
   via_a: boolean | null;
   via_b: boolean | null;
   via_b_classe: string | null;
+  /**
+   * N-additive blend C:N and the regime derived from it — the method the
+   * validation dossier declares. SÃO PAULO ONLY: null for the 853 MG rows,
+   * because no corrected pipeline output exists for Minas yet.
+   *
+   * Prefer these over `cn_molar` / `regime`, which are the SV-weighted
+   * arithmetic mean and misclassify 31% of SP. Those two stay in the payload
+   * only so the published figures remain reproducible.
+   */
+  cn_harm: number | null;
+  regime_harm: string | null;
+  dom_stream: string | null;
+  d_gas_km: number | null;
 }
 
 async function fetchTypology(): Promise<MunicipalityTypology[]> {
