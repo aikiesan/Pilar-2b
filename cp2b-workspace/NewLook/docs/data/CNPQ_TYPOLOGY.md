@@ -66,8 +66,74 @@ o que muda tipologia, regime, os 141 elegíveis, os 30 pares e as figuras já
 publicadas.
 
 **É por isso que a coluna se chama `cn_molar` e não `cn`**: uma coluna
-N-aditiva futura convive ao lado dela em vez de substituí-la em silêncio. E é
-por isso que estas camadas estão atrás do gate beta.
+N-aditiva futura convive ao lado dela em vez de substituí-la em silêncio.
+
+### Medição sobre este snapshot (2026-09-08)
+
+O ponto acima deixou de ser teórico. Recalculando os 1.498 municípios a partir
+das colunas `vs_*` do próprio snapshot:
+
+| | atual (aritmético) | N-aditivo |
+|---|---|---|
+| Mediana SP+MG | 31,98 | **20,07** |
+| Mediana SP (n=645) | 53,12 | 36,78 |
+| Mediana MG (n=853) | 24,14 | 15,31 |
+| SP em C:N 20–30 | **111** | 163 |
+
+A reprodução do método aritmético bate com a coluna `cn_molar` do arquivo
+**linha a linha, divergência máxima 0,000000** — não há ambiguidade sobre o que
+o snapshot carrega. E os 111 municípios equilibrados em SP são exatamente o
+"antes" que o dossiê de validação descreve como superado ("sobem de 111 para
+191"): o que foi publicado é o estado anterior à correção.
+
+`regime` é função pura de `cn_molar` (`03_analise_flagship_SP_MG.py` l. 86-92:
+`equilibrado = 20.0 <= cn <= 30.0`), então herda o erro inteiro: **661 dos 1.498
+municípios (44%) mudam de classe**, e a leitura do território se inverte —
+C-dominante 799→463, N-dominante 310→748.
+
+`tipologia` **não** é afetada: é a família de resíduo dominante por fração de
+VS e nunca toca a razão. Idem `share_c_rich`, `share_n_rich`, `shannon_h` e
+`total_vs_t`.
+
+### Decisão — camadas retiradas
+
+**Perfil C/N** e **Regime de nutrientes** foram retirados do seletor de modos
+(`ColorModeSelector.buildColorModeOptions`). **Tipologia** permanece. Estarem
+atrás do gate beta cobre "provisório", não cobre "44% classificado errado" — e,
+mais grave, a plataforma contradizia o dossiê enviado para validação externa.
+
+O maquinário de renderização (`CnChoroLayer`, a legenda de C/N, os endpoints)
+fica no lugar: restaurar é devolver as duas entradas àquela lista.
+
+### O que um snapshot corrigido precisa satisfazer
+
+Não basta trocar a fórmula sobre este arquivo. Corrigir só o método aqui dá
+mediana SP 36,78 e 163 equilibrados — um **terceiro** conjunto, que não bate nem
+com o que foi publicado nem com o dossiê (32 e 191). A diferença tem causa
+identificada: o dossiê usa **13 resíduos**, incluindo lodo de esgoto (ETE,
+C:N 18, rico em N); este snapshot tem **12 colunas `vs_*` e nenhuma de esgoto**.
+
+Um snapshot aceitável precisa, então:
+
+1. usar o balanço N-aditivo `ΣVS / Σ(VS/CN)` no `p2_canon.py` (l. 86 e 231) e no
+   `03_analise_flagship_SP_MG.py` (l. 86);
+2. incluir o fluxo de esgoto, fechando os 13 resíduos da Seção 4 do dossiê;
+3. reproduzir os números que o dossiê declara (mediana SP 32, 191 equilibrados).
+
+Os itens 1 e 2 mudam também tipologia, regime, os 141 elegíveis, os 30 pares e
+as figuras publicadas — é decisão de pesquisa, não de plataforma.
+
+### Trava
+
+`scripts/load_municipality_typology.py` ganhou o gate `_gate_cn_method`, que
+recusa qualquer snapshot cujo `cn_molar` coincida com a média aritmética. Ele só
+dispara na **identificação positiva** do método errado, nunca por simples
+desacordo com uma recomputação — o banco bioquímico muda, e um gate que exigisse
+igualdade exata bloquearia atualizações legítimas.
+
+Consequência prática: **o snapshot hoje em produção não recarrega mais.** Os
+dados já gravados permanecem no banco até alguém decidir o contrário; o loader
+apenas se recusa a gravá-los de novo.
 
 ## Gate beta
 

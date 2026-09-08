@@ -84,7 +84,7 @@ const LAYER_KEY_MAP: Record<string, string> = {
   'railways': 'layers.railways',
 };
 
-import ColorModeSelector from './ColorModeSelector';
+import ColorModeSelector, { buildColorModeOptions } from './ColorModeSelector';
 
 export default function MobileBottomSheet({
   searchQuery, onSearchChange, selectedResidues, onResiduesChange,
@@ -247,12 +247,10 @@ export default function MobileBottomSheet({
                       onColorModeChange={onColorModeChange}
                       lockedHint={t('colorModes.beta_locked')}
                       variant="mobile"
-                      options={[
-                        { value: 'biogas', label: displayMetric === 'biomass_tons' ? 'Potencial Biomassa' : t('colorModes.biogas'), beta: false },
-                        { value: 'cn_profile', label: t('colorModes.cn_profile'), beta: true },
-                        { value: 'tipologia', label: t('colorModes.tipologia'), beta: true },
-                        { value: 'regime', label: t('colorModes.regime'), beta: true },
-                      ]}
+                      options={buildColorModeOptions(
+                        displayMetric === 'biomass_tons' ? 'Potencial Biomassa' : t('colorModes.biogas'),
+                        t,
+                      )}
                     />
                   </div>
                 )}
