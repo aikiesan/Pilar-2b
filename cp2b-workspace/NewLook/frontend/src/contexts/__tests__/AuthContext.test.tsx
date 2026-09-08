@@ -3,16 +3,26 @@
  *
  * `fetch` is mocked so the provider talks to a fake auth API. Covers: no-session
  * start, token-restored session, login/logout, and the useAuth() guard.
+ *
+ * AUTH_DISABLED is read once at module import time, and docker-compose sets
+ * NEXT_PUBLIC_DISABLE_AUTH=true for the dev container — which jest inherits. So
+ * the env is pinned to 'false' here BEFORE the module loads, and AuthContext is
+ * pulled in via require rather than a static import (those are hoisted above the
+ * assignment). Without this the suite silently ran open mode and asserted real
+ * mode against it. Mirrors AuthContext.offline.test.tsx, which pins it to 'true'.
  */
 import React from 'react'
 import { renderHook, act, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { AuthProvider, useAuth } from '../AuthContext'
 import { TOKEN_STORAGE_KEY } from '@/lib/apiClient'
 
 jest.mock('@/lib/logger', () => ({
   logger: { warn: jest.fn(), debug: jest.fn(), info: jest.fn(), error: jest.fn() },
 }))
+
+process.env.NEXT_PUBLIC_DISABLE_AUTH = 'false'
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { AuthProvider, useAuth } = require('../AuthContext')
 
 const PROFILE = {
   id: 'u1',

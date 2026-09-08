@@ -28,15 +28,18 @@ import {
   Quote
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
+import { useRealSession } from '@/lib/betaAccess'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import LanguageSwitcher from '@/components/ui/LanguageSwitcher'
 import GlobalSearch from '@/components/ui/GlobalSearch'
 import { logger } from '@/lib/logger'
 
-// Offline/event mode (NEXT_PUBLIC_DISABLE_AUTH=true): every visitor is the
-// synthetic TEST_USER, so the account UI (name + logout / login) is meaningless
-// and looks unprofessional on a public QR page — hide it entirely in that mode.
-const AUTH_DISABLED = process.env.NEXT_PUBLIC_DISABLE_AUTH === 'true'
+// The account UI keys off a REAL session, not `isAuthenticated`: in open mode
+// (NEXT_PUBLIC_DISABLE_AUTH=true) every visitor is the synthetic TEST_USER, so
+// `isAuthenticated` is true for anonymous traffic and would show a name and a
+// logout button to the whole internet. Keyed this way, an anonymous visitor
+// sees a plain "sign in" button — which is what the QR-page mode wanted — and
+// only a genuinely signed-in account gets the menu.
 
 interface NavItemConfig {
   href: string
@@ -72,7 +75,11 @@ const authenticatedNavConfig: NavItemConfig[] = [
 
 export default function UnifiedHeader({ variant = 'auto' }: UnifiedHeaderProps) {
   const pathname = usePathname()
+  // `isAuthenticated` still picks the header's visual variant — in open mode the
+  // whole platform reads as signed-in, and that is the look the public site has
+  // today. Only the account UI below needs the stricter signal.
   const { user, logout, isAuthenticated } = useAuth()
+  const hasRealSession = useRealSession()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
 
@@ -235,7 +242,7 @@ export default function UnifiedHeader({ variant = 'auto' }: UnifiedHeaderProps) 
             </div>
 
             {/* User Menu / Auth Buttons — hidden in offline/event mode (no real account) */}
-            {!AUTH_DISABLED && (isAuthenticated && user ? (
+            {(hasRealSession && user ? (
               <div className="relative">
                 <button
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
@@ -411,7 +418,7 @@ export default function UnifiedHeader({ variant = 'auto' }: UnifiedHeaderProps) 
             </div>
 
             {/* Mobile User Section — hidden in offline/event mode (no real account) */}
-            {!AUTH_DISABLED && (isAuthenticated && user ? (
+            {(hasRealSession && user ? (
               <div className={`border-t ${isPublic ? 'border-gray-200 dark:border-slate-700' : 'border-white/20'} px-4 py-4`}>
                 <div className="flex items-center gap-3 mb-3">
                   <User className={`h-8 w-8 p-1 rounded-full ${

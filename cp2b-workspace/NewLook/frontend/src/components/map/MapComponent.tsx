@@ -838,7 +838,13 @@ export default function MapComponent({
       )}
 
       {/* ── Map area (flex-1 fills remaining width) ── */}
-      <div className="relative flex-1 min-w-0 h-full">
+      {/* `isolate` keeps Leaflet's internal panes (z-index 400–700) inside their
+          own stacking context. Without it they escape into the page's root
+          context — no ancestor here creates one — and outrank the sticky header
+          at z-50: the header's account dropdown rendered correctly but was
+          painted over by the map, leaving a few visible pixels and no reachable
+          "sign out". */}
+      <div className="relative isolate flex-1 min-w-0 h-full">
 
         {/* Data-issue banner: floats over the (always-rendered) base map.
             Keeps the raw error message + reload affordance the old
