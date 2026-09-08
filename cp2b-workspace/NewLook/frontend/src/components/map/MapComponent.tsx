@@ -13,7 +13,6 @@ import { useTranslations } from 'next-intl';
 import { MapContainer, TileLayer, ScaleControl, ZoomControl, useMap } from 'react-leaflet';
 import dynamic from 'next/dynamic';
 import { useGeospatialData, useCodigestionClusters, useResidueCNMatrix, useIntermediateRegionsGeoJSON } from '@/hooks/useGeospatialData';
-import { useCnProfiles } from '@/hooks/useCnProfiles';
 import type { FilterCriteria } from '@/components/dashboard/FilterPanel';
 import type { MunicipalityCollection, MunicipalityFeature, DisplayMetric, CodigestionCluster } from '@/types/geospatial';
 import { MAP_SCENARIOS, DEFAULT_MAP_SCENARIO, applyScenarioToProps, isServedScenario, type MapScenarioKey } from '@/data/scenarioFactors';
@@ -24,6 +23,7 @@ import { useTypologyProfiles } from '@/hooks/useTypologyProfiles';
 import { useBetaAccess } from '@/lib/betaAccess';
 import {
   TIPOLOGIA_COLORS, REGIME_COLORS, TIPOLOGIA_ORDER, REGIME_ORDER,
+  REGIME_LABELS,
 } from '@/lib/typologyScale';
 import { hasAnySelectedResidue } from '@/lib/mapValues';
 import { BASEMAPS, DEFAULT_BASEMAP, type BasemapId } from '@/data/basemaps';
@@ -343,11 +343,23 @@ export default function MapComponent({
   const hasBetaAccess = useBetaAccess();
   // Beta layers are 401-gated server-side, so never fire the request without
   // a token — it would be a guaranteed failure on every public page view.
-  const { profilesMap: cnProfilesMap, isLoading: cnLoading } =
-    useCnProfiles(hasBetaAccess && colorMode === 'cn_profile');
+  // One source for all three beta modes. C:N used to come from its own endpoint,
+  // which serves the arithmetic mean; the typology rows carry `cn_harm`, the
+  // N-additive value the dossier declares, so the map reads that instead.
   const isTypologyMode = colorMode === 'tipologia' || colorMode === 'regime';
+  const isCnMode = colorMode === 'cn_profile';
   const { typologyMap, isLoading: typologyLoading } =
-    useTypologyProfiles(hasBetaAccess && isTypologyMode);
+    useTypologyProfiles(hasBetaAccess && (isTypologyMode || isCnMode));
+
+  // SP only — MG rows carry a null cn_harm and are simply absent here, which the
+  // layer paints as no-data rather than as a value.
+  const cnByIbge = useMemo(() => {
+    const out: Record<string, number> = {};
+    Object.values(typologyMap).forEach((row) => {
+      if (row.cn_harm != null) out[String(row.ibge_code)] = row.cn_harm;
+    });
+    return out;
+  }, [typologyMap]);
   // Clicking a legend class isolates it; clicking again clears.
   const [highlightClass, setHighlightClass] = useState<string | null>(null);
   // Tipologia and regime label sets are disjoint, so a filter carried across a
@@ -356,7 +368,17 @@ export default function MapComponent({
   useEffect(() => {
     setHighlightClass(null);
   }, [colorMode]);
+
   const [scope, setScope] = useState<MapScope>(initialScope);
+  // The C:N modes exist only where cn_harm does, which is São Paulo. Switching
+  // scope to Minas while one of them is active removed it from the selector but
+  // left it selected: the map painted nothing and a stale legend stayed behind.
+  // Fall back to the metric everyone has.
+  useEffect(() => {
+    if (scope === '31' && (colorMode === 'cn_profile' || colorMode === 'regime')) {
+      setColorMode('biogas');
+    }
+  }, [scope, colorMode]);
 
   const { center: mapCenter, zoom: mapZoom } = scopeView(scope);
   const availableResidueCategories: Array<'agricultural' | 'livestock' | 'urban'> =
@@ -1026,8 +1048,8 @@ export default function MapComponent({
               they read covers SP+MG (1498 rows), so pinning them to SP left the
               MG scope painting nothing at all while the legend still announced
               the full SP+MG counts. */}
-          {colorMode === 'cn_profile' && !cnLoading && activeStateData && (
-            <CnChoroLayer geoJsonData={activeStateData} profilesMap={cnProfilesMap} />
+          {isCnMode && !typologyLoading && activeStateData && (
+            <CnChoroLayer geoJsonData={activeStateData} cnByIbge={cnByIbge} />
           )}
 
           {isTypologyMode && !typologyLoading && activeStateData && (
@@ -1176,9 +1198,17 @@ export default function MapComponent({
           activeStateData.features.forEach((feature) => {
             const row = typologyMap[String(feature.properties?.ibge_code ?? '')];
             if (!row) return;
-            const key = isTip ? row.tipologia : row.regime;
+            // regime_harm, not regime: the latter is the arithmetic-mean
+            // classification that #213 withdrew. Null outside SP, and those
+            // municipalities simply do not count toward any class.
+            const key = isTip ? row.tipologia : row.regime_harm;
+            if (!key) return;
             counts.set(key, (counts.get(key) ?? 0) + 1);
           });
+          // Nothing classified in this scope — render no legend rather than an
+          // empty framed box.
+          if (counts.size === 0) return null;
+
           return (
             <div className="bg-white rounded-lg px-3 py-2 shadow-lg border border-gray-200 text-xs max-w-[15rem]">
               <p className="font-semibold text-gray-900 mb-1.5 flex items-center gap-1.5">
@@ -1197,7 +1227,7 @@ export default function MapComponent({
                     }`}
                   >
                     <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: colors[label] }} />
-                    <span className="text-gray-800 truncate">{label}</span>
+                    <span className="text-gray-800 truncate">{isTip ? label : (REGIME_LABELS[label] ?? label)}</span>
                     <span className="text-gray-500 ml-auto pl-2 tabular-nums">{counts.get(label)}</span>
                   </button>
                 );
@@ -1292,6 +1322,7 @@ export default function MapComponent({
       {/* ── Mobile Tab Bar + Sheet (hidden on desktop, fixed position) ── */}
       {isMounted && (
         <MobileBottomSheet
+          scopeUf={isMgScope ? 'MG' : 'SP'}
           searchQuery={searchQuery}
           onSearchChange={handleSearchChange}
           selectedResidues={selectedResidues}

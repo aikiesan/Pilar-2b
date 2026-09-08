@@ -28,38 +28,46 @@ export interface ColorModeOption {
  * callers — so they could still drift, and did: withdrawing a mode meant editing
  * two files. Both now call this.
  *
- * WITHDRAWN — 'cn_profile' and 'regime'.
+ * 'cn_profile' and 'regime' are SÃO PAULO ONLY, and that is a data fact, not a
+ * product decision.
  *
- * Both are functions of `municipality_typology.cn_molar`, which the canonical
- * pipeline computes as the SV-weighted ARITHMETIC mean of the per-stream C:N
- * ratios. That is not the C:N of a mixture. Nitrogen is additive, so the blend
- * ratio is ΣSV / Σ(SV/CN) — the mass balance the project's own validation
- * dossier declares as the method ("balanço N-aditivo"), and which the shipped
- * numbers do not use.
+ * Both read the N-additive blend C:N — ΣVS / Σ(VS/CN), the mass balance the
+ * validation dossier declares. PR #213 withdrew them because what shipped was
+ * the SV-weighted ARITHMETIC mean of the per-stream ratios, which is not the
+ * C:N of a mixture and misclassified 31% of São Paulo. The corrected values
+ * arrived with migration 031, from the dossier's own working set — but that set
+ * covers the 645 SP municipalities and nothing else.
  *
- * Measured over the 1498 loaded municipalities: cn_molar runs a median 1.43×
- * high (SP median 53.1 against a corrected 36.8), and `regime` — a pure
- * threshold on it (equilibrado = 20 ≤ cn ≤ 30) — misclassifies 661 of them,
- * 44%. The C-dominant/N-dominant reading of the territory inverts. The dossier's
- * own "before" figure for SP, 111 balanced municipalities, is exactly what this
- * data yields, so what shipped is the state that document describes as
- * superseded.
+ * So in the Minas Gerais scope these two modes are absent rather than empty.
+ * Offering a control that paints nothing, or one that silently falls back to the
+ * arithmetic value, would both be worse than not offering it: the first wastes
+ * the reader's time, the second is the bug we just removed. MG returns when the
+ * canonical pipeline is reprocessed with the N-additive balance and the sewage
+ * stream — see docs/data/CNPQ_TYPOLOGY.md.
  *
- * 'tipologia' stays: it is the dominant residue family by VS share and never
- * touches the ratio.
+ * 'tipologia' is SP+MG: it is the dominant residue family by VS share and never
+ * touches the ratio, so the correction does not reach it.
  *
- * Restoring these needs a corrected snapshot, not a code change here — see
- * docs/data/CNPQ_TYPOLOGY.md. The loader now refuses a snapshot whose cn_molar
- * matches the arithmetic mean, so this cannot silently come back.
+ * They stay beta-gated even though the numbers are now right, because the
+ * dossier's Section 9 declares the limit — first-order spatial screening
+ * candidates, not yield projections.
  */
 export function buildColorModeOptions(
   biogasLabel: string,
   t: (key: string) => string,
+  scopeUf: 'SP' | 'MG' = 'SP',
 ): ColorModeOption[] {
-  return [
+  const options: ColorModeOption[] = [
     { value: 'biogas', label: biogasLabel, beta: false },
     { value: 'tipologia', label: t('colorModes.tipologia'), beta: true },
   ];
+  if (scopeUf === 'SP') {
+    options.push(
+      { value: 'cn_profile', label: t('colorModes.cn_profile'), beta: true },
+      { value: 'regime', label: t('colorModes.regime'), beta: true },
+    );
+  }
+  return options;
 }
 
 interface ColorModeSelectorProps {

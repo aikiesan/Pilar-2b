@@ -182,7 +182,7 @@ const DATA_SOURCES = [
 function FiltersSection({
   searchQuery, onSearchChange, visualizationMode, onVisualizationModeChange,
   displayMetric = 'biomass_tons', onDisplayMetricChange, t,
-  colorMode, onColorModeChange,
+  colorMode, onColorModeChange, scopeUf = 'SP',
 }: {
   searchQuery: string;
   onSearchChange: (v: string) => void;
@@ -193,6 +193,7 @@ function FiltersSection({
   t: ReturnType<typeof useTranslations>;
   colorMode: ColorMode;
   onColorModeChange: (mode: ColorMode) => void;
+  scopeUf?: 'SP' | 'MG';
 }) {
   const vizModes: { value: VisualizationMode; label: string; disabled?: boolean }[] = [
     { value: 'choropleth', label: t('vizModes.choropleth') },
@@ -292,6 +293,7 @@ function FiltersSection({
             options={buildColorModeOptions(
               displayMetric === 'biomass_tons' ? 'Potencial Biomassa' : t('colorModes.biogas'),
               t,
+              scopeUf,
             )}
           />
         </div>
@@ -793,6 +795,7 @@ export default function DesktopLeftPanel({
                 displayMetric={displayMetric} onDisplayMetricChange={onDisplayMetricChange}
                 t={t}
                 colorMode={colorMode} onColorModeChange={onColorModeChange}
+                scopeUf={scopeUf}
               />
             )}
             {activeTab === 'temas' && (

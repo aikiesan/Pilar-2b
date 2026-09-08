@@ -52,7 +52,9 @@ export default function TypologyChoroLayer({
       style: (feature) => {
         const ibge = feature?.properties?.ibge_code ?? feature?.properties?.cd_mun ?? '';
         const row = typologyMap[String(ibge)];
-        const value = row ? (mode === 'tipologia' ? row.tipologia : row.regime) : null;
+        // regime_harm — the N-additive classification. Null outside SP, which
+        // falls through to the no-data fill below.
+        const value = row ? (mode === 'tipologia' ? row.tipologia : row.regime_harm) : null;
         const dimmed = highlightClass != null && value !== highlightClass;
         const fill = !row
           ? TYPOLOGY_NO_DATA_COLOR

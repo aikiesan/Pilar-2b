@@ -28,10 +28,28 @@ export const TIPOLOGIA_COLORS: Record<string, string> = {
   'Café': '#9a3412',
 };
 
+/**
+ * Keys are the raw values stored in `regime_harm`, which come from the
+ * validation dossier's vocabulary — a C:N reading, not a dominance one:
+ * N-deficit is C:N > 30 (carbon-heavy, short of nitrogen), sweet is the stable
+ * 20-30 window, N-excess is C:N < 20.
+ *
+ * The older `regime` column said C-dominante / Equilibrado / N-dominante over
+ * the same thresholds, but it was computed from the arithmetic mean and
+ * misclassified 31% of São Paulo (PR #213). Same colours, new keys, so a stale
+ * value cannot accidentally pick up a colour and pass for current.
+ */
 export const REGIME_COLORS: Record<string, string> = {
-  'C-dominante': '#3b82f6',
-  'Equilibrado': '#15803d',
-  'N-dominante': '#d97706',
+  'N-deficit': '#3b82f6',
+  'sweet': '#15803d',
+  'N-excess': '#d97706',
+};
+
+/** Display text. The raw values are the dossier's shorthand, not Portuguese. */
+export const REGIME_LABELS: Record<string, string> = {
+  'N-deficit': 'Deficiente em N',
+  'sweet': 'Equilibrado',
+  'N-excess': 'Excesso de N',
 };
 
 /** Fill for a municipality with no typology row. Never a real class colour. */
@@ -48,7 +66,8 @@ export const TIPOLOGIA_ORDER = [
   'Café',
 ];
 
-export const REGIME_ORDER = ['C-dominante', 'Equilibrado', 'N-dominante'];
+// High C:N to low, following the scale rather than the alphabet.
+export const REGIME_ORDER = ['N-deficit', 'sweet', 'N-excess'];
 
 export function tipologiaColor(value: string | null | undefined): string {
   if (!value) return TYPOLOGY_NO_DATA_COLOR;
