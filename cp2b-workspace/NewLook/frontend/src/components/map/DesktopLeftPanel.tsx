@@ -289,12 +289,10 @@ function FiltersSection({
             onColorModeChange={onColorModeChange}
             lockedHint={t('colorModes.beta_locked')}
             variant="desktop"
-            options={[
-              { value: 'biogas', label: displayMetric === 'biomass_tons' ? 'Potencial Biomassa' : t('colorModes.biogas'), beta: false },
-              { value: 'cn_profile', label: t('colorModes.cn_profile'), beta: true },
-              { value: 'tipologia', label: t('colorModes.tipologia'), beta: true },
-              { value: 'regime', label: t('colorModes.regime'), beta: true },
-            ]}
+            options={buildColorModeOptions(
+              displayMetric === 'biomass_tons' ? 'Potencial Biomassa' : t('colorModes.biogas'),
+              t,
+            )}
           />
         </div>
       )}
@@ -667,7 +665,7 @@ function StatStrip({ municipalityCount, totalMunicipalities, filterCount, betaMu
 
 // ── Main Component ─────────────────────────────────────────────────────────────
 
-import ColorModeSelector from './ColorModeSelector';
+import ColorModeSelector, { buildColorModeOptions } from './ColorModeSelector';
 
 export default function DesktopLeftPanel({
   searchQuery, onSearchChange, selectedResidues,

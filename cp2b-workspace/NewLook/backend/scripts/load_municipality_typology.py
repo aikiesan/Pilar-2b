@@ -80,6 +80,78 @@ SOURCE_HINT = (
 )
 
 
+# Per-stream molar C:N, from the canonical engine's BIOCHEMICAL_DB (p2_canon.py
+# l. 43-55) and Section 4 of the validation dossier. Used ONLY by the method gate
+# below, never to compute a served value.
+STREAM_CN = {
+    "sugarcane": 65.0,
+    "corn": 59.9,
+    "soybean": 20.0,
+    "citrus": 60.4,
+    "coffee": 17.5,
+    "forestry": 70.0,
+    "cattle": 14.85,
+    "swine": 10.64,
+    "poultry": 11.5,
+    "rsu_organic": 21.5,
+    "rpo_pruning": 45.0,
+    "aquaculture": 12.0,
+}
+
+
+def _gate_cn_method(raw: pd.DataFrame, df: pd.DataFrame) -> None:
+    """Refuse a snapshot whose cn_molar is the arithmetic mean of the ratios.
+
+    Nitrogen is additive, so the C:N of a mixture is ΣVS / Σ(VS/CN) — the
+    N-additive mass balance the validation dossier declares as the method. The
+    SV-weighted *arithmetic* mean of the per-stream ratios is a different, wrong
+    number: it ran a median 1.43x high over the 1498 municipalities of the 2026
+    snapshot, and `regime`, a pure threshold on it, misclassified 44% of them.
+
+    That snapshot shipped and had to be withdrawn from the map. This gate exists
+    so the same file cannot load again unnoticed.
+
+    It only fires on a POSITIVE identification of the arithmetic mean, not
+    whenever cn_molar fails to match a recomputation — the biochemical table
+    changes over time, and a gate that demanded exact agreement would block
+    legitimate updates.
+    """
+    cols = [f"vs_{s}" for s in STREAM_CN]
+    if not all(c in raw.columns for c in cols):
+        # A snapshot without the per-stream breakdown cannot be checked here.
+        print("gate/cn-method: no vs_* columns — method not verifiable, skipping")
+        return
+
+    vs = raw[cols].astype(float).fillna(0.0)
+    total = vs.sum(axis=1)
+    cn = pd.Series(list(STREAM_CN.values()), index=cols)
+
+    arithmetic = (vs * cn).sum(axis=1) / total
+    n_additive = total / (vs / cn).sum(axis=1)
+
+    ok = total > 0
+    served = df["cn_molar"][ok]
+    gap_arith = (served - arithmetic[ok]).abs().max()
+    gap_nadd = (served - n_additive[ok]).abs().max()
+
+    if gap_arith < 0.01:
+        raise SystemExit(
+            "gate/cn-method: cn_molar is the SV-weighted ARITHMETIC mean of the "
+            f"per-stream C:N ratios (max deviation {gap_arith:.6f}).\n"
+            "That is not the C:N of a mixture. Nitrogen is additive, so the blend "
+            "ratio is  SUM(VS) / SUM(VS/CN).\n"
+            f"This snapshot's N-additive median is {n_additive[ok].median():.2f} "
+            f"against the {served.median():.2f} it carries.\n"
+            "Re-export from the canonical pipeline with the N-additive balance "
+            "(see docs/data/CNPQ_TYPOLOGY.md), then load again."
+        )
+
+    print(
+        f"gate/cn-method: passed — deviation from arithmetic {gap_arith:.3f}, "
+        f"from N-additive {gap_nadd:.3f}"
+    )
+
+
 def load_frame() -> pd.DataFrame:
     if not SNAPSHOT.exists():
         raise SystemExit(
@@ -121,6 +193,8 @@ def load_frame() -> pd.DataFrame:
     )
 
     # ── Gates ────────────────────────────────────────────────────────────────
+    _gate_cn_method(raw, df)
+
     if df["ibge_code"].duplicated().any():
         raise SystemExit("gate/schema: duplicate ibge_code")
     if (df["ibge_code"].astype(str).str.len() != 7).any():

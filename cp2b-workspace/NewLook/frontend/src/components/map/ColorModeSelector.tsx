@@ -22,6 +22,46 @@ export interface ColorModeOption {
   beta: boolean;
 }
 
+/**
+ * The one list of choropleth modes. The selector was shared to stop the desktop
+ * and mobile copies drifting, but the option arrays stayed duplicated in both
+ * callers — so they could still drift, and did: withdrawing a mode meant editing
+ * two files. Both now call this.
+ *
+ * WITHDRAWN — 'cn_profile' and 'regime'.
+ *
+ * Both are functions of `municipality_typology.cn_molar`, which the canonical
+ * pipeline computes as the SV-weighted ARITHMETIC mean of the per-stream C:N
+ * ratios. That is not the C:N of a mixture. Nitrogen is additive, so the blend
+ * ratio is ΣSV / Σ(SV/CN) — the mass balance the project's own validation
+ * dossier declares as the method ("balanço N-aditivo"), and which the shipped
+ * numbers do not use.
+ *
+ * Measured over the 1498 loaded municipalities: cn_molar runs a median 1.43×
+ * high (SP median 53.1 against a corrected 36.8), and `regime` — a pure
+ * threshold on it (equilibrado = 20 ≤ cn ≤ 30) — misclassifies 661 of them,
+ * 44%. The C-dominant/N-dominant reading of the territory inverts. The dossier's
+ * own "before" figure for SP, 111 balanced municipalities, is exactly what this
+ * data yields, so what shipped is the state that document describes as
+ * superseded.
+ *
+ * 'tipologia' stays: it is the dominant residue family by VS share and never
+ * touches the ratio.
+ *
+ * Restoring these needs a corrected snapshot, not a code change here — see
+ * docs/data/CNPQ_TYPOLOGY.md. The loader now refuses a snapshot whose cn_molar
+ * matches the arithmetic mean, so this cannot silently come back.
+ */
+export function buildColorModeOptions(
+  biogasLabel: string,
+  t: (key: string) => string,
+): ColorModeOption[] {
+  return [
+    { value: 'biogas', label: biogasLabel, beta: false },
+    { value: 'tipologia', label: t('colorModes.tipologia'), beta: true },
+  ];
+}
+
 interface ColorModeSelectorProps {
   colorMode: ColorMode;
   onColorModeChange: (mode: ColorMode) => void;
