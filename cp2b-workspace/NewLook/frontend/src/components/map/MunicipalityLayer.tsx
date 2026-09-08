@@ -56,15 +56,6 @@ interface MunicipalityLayerProps {
 }
 
 // Cluster choropleth — 4 distinct qualitative colors
-const CLUSTER_COLORS: Record<number, string> = {
-  0: '#4daf4a',  // green  — sugarcane-dominated
-  1: '#ff7f00',  // orange — soybean-intensive
-  2: '#e41a1c',  // red    — rsu-urban-intensive
-  3: '#377eb8',  // blue   — cattle-intensive
-};
-
-const getColorForCluster = (clusterId: number | null | undefined): string =>
-  clusterId != null && clusterId in CLUSTER_COLORS ? CLUSTER_COLORS[clusterId] : '#aaaaaa';
 
 // Choropleth colours (per-metric ramps, display-unit breaks, daltonic palette)
 // live in one place — lib/mapMetrics.ts — so the layer, legend and popup agree.
@@ -148,16 +139,6 @@ export default function MunicipalityLayer({
     // ANY of the ramps. It is drawn as flat context and nothing else.
     if (!isSaoPaulo((feature.properties as MunicipalityProperties).ibge_code) && !paintBetaData) {
       return { ...BETA_STYLE };
-    }
-
-    if (colorMode === 'cluster') {
-      return {
-        fillColor: getColorForCluster((feature.properties as any).cluster_id),
-        weight: 1,
-        opacity: 0.8,
-        color: '#666666',
-        fillOpacity: opacity,
-      };
     }
 
     const { value, coverage } = getMapValue(feature.properties as MunicipalityProperties);
@@ -244,8 +225,6 @@ export default function MunicipalityLayer({
       const tooltipBody = !isCanonicalPaint
         ? `<span style="font-size:11px;color:rgba(255,255,255,0.9);">${getBiomassLabel()}: ${formatBiogas(biogasValue)} ${displayMetric === 'biomass_tons' ? 't/ano' : 'm³/ano'}</span>`
           + `<br/><span style="font-size:10px;color:#fbbf24;font-weight:600;">⚠ ${BETA_BADGE_LABEL}</span>`
-        : colorMode === 'cluster'
-        ? `<span style="font-size:11px;color:rgba(255,255,255,0.9);">${props.cluster_label ?? 'N/A'} · ${props.mun_dominant_stream ?? ''}</span>`
         : `<span style="font-size:11px;color:rgba(255,255,255,0.9);">${getBiomassLabel()}: ${formatBiogas(biogasValue)} ${displayMetric === 'biomass_tons' ? 't/ano' : 'm³/ano'}</span>`;
 
       layer.bindTooltip(
@@ -319,17 +298,13 @@ export default function MunicipalityLayer({
             if (onMunicipalityHover) onMunicipalityHover(null);
             return;
           }
-          if (colorMode !== 'cluster') {
-            const { value, coverage } = getMapValue(feature.properties as MunicipalityProperties);
-            if (value === null || coverage === 'no_data') {
-              target.setStyle(NO_DATA_STYLE);
-              if (onMunicipalityHover) onMunicipalityHover(null);
-              return;
-            }
+          const { value, coverage } = getMapValue(feature.properties as MunicipalityProperties);
+          if (value === null || coverage === 'no_data') {
+            target.setStyle(NO_DATA_STYLE);
+            if (onMunicipalityHover) onMunicipalityHover(null);
+            return;
           }
-          const resetColor = colorMode === 'cluster'
-            ? getColorForCluster((feature.properties as any).cluster_id)
-            : getMetricColor(getMapValue(feature.properties as MunicipalityProperties).value ?? 0, metricSpec, daltonic, cvdPalette, scaleBreaks, mapPalette);
+          const resetColor = getMetricColor(getMapValue(feature.properties as MunicipalityProperties).value ?? 0, metricSpec, daltonic, cvdPalette, scaleBreaks, mapPalette);
           target.setStyle({
             weight: 1,
             color: '#666666',

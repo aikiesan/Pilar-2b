@@ -19,6 +19,12 @@ import type { MunicipalityCollection, MunicipalityFeature, DisplayMetric, Codige
 import { MAP_SCENARIOS, DEFAULT_MAP_SCENARIO, applyScenarioToProps, isServedScenario, type MapScenarioKey } from '@/data/scenarioFactors';
 import { DISPLAY_METRICS, getMetricSpec, computeAdaptiveBreaks, DEFAULT_MAP_PALETTE } from '@/lib/mapMetrics';
 import { setMapPalette } from '@/hooks/useMapPalette';
+import { CN_LEGEND_ROWS } from '@/lib/cnScale';
+import { useTypologyProfiles } from '@/hooks/useTypologyProfiles';
+import { useBetaAccess } from '@/lib/betaAccess';
+import {
+  TIPOLOGIA_COLORS, REGIME_COLORS, TIPOLOGIA_ORDER, REGIME_ORDER,
+} from '@/lib/typologyScale';
 import { hasAnySelectedResidue } from '@/lib/mapValues';
 import { BASEMAPS, DEFAULT_BASEMAP, type BasemapId } from '@/data/basemaps';
 import type { ThematicPreset } from '@/data/thematicPresets';
@@ -64,6 +70,20 @@ function ScopeViewController({ center, zoom }: { center: [number, number]; zoom:
     const isMobile = typeof window !== 'undefined'
       && typeof window.matchMedia === 'function'
       && window.matchMedia('(max-width: 767px)').matches;
+
+    // Guard the flyTo. In a viewport short enough for the map container to lay
+    // out at zero height, Leaflet's zoom interpolation divides by a zero-sized
+    // bounds and hands back (NaN, NaN) — which throws "Invalid LatLng object"
+    // out of an effect and takes the whole page to the ErrorBoundary. Skipping
+    // the animation leaves the map at its mount center, which is already the
+    // right place; the next real resize re-runs this effect.
+    if (!Number.isFinite(center[0]) || !Number.isFinite(center[1]) || !Number.isFinite(zoom)) return;
+    // getSize is absent from lightweight useMap test doubles, so probe for it
+    // rather than assume it: a missing size check should skip the guard, not
+    // throw out of the effect.
+    const size = typeof map.getSize === 'function' ? map.getSize() : null;
+    if (size && (size.x === 0 || size.y === 0)) return;
+
     map.flyTo(center, isMobile ? Math.max(zoom - 1, 3) : zoom, { duration: 0.6 });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [center[0], center[1], zoom]);
@@ -120,6 +140,7 @@ const BubbleChartLayer = dynamic(() => import('./BubbleChartLayer'), { ssr: fals
 const CodigestionClusterLayer = dynamic(() => import('./CodigestionClusterLayer'), { ssr: false });
 const CodigestionDetailPanel = dynamic(() => import('./CodigestionDetailPanel'), { ssr: false });
 const CnChoroLayer = dynamic(() => import('./CnChoroLayer'), { ssr: false });
+const TypologyChoroLayer = dynamic(() => import('./TypologyChoroLayer'), { ssr: false });
 const IntermediateRegionBoundaryLayer = dynamic(
   () => import('./IntermediateRegionBoundaryLayer'),
   { ssr: false }
@@ -319,7 +340,22 @@ export default function MapComponent({
     });
   };
 
-  const { profilesMap: cnProfilesMap, isLoading: cnLoading } = useCnProfiles(colorMode === 'cn_profile');
+  const hasBetaAccess = useBetaAccess();
+  // Beta layers are 401-gated server-side, so never fire the request without
+  // a token — it would be a guaranteed failure on every public page view.
+  const { profilesMap: cnProfilesMap, isLoading: cnLoading } =
+    useCnProfiles(hasBetaAccess && colorMode === 'cn_profile');
+  const isTypologyMode = colorMode === 'tipologia' || colorMode === 'regime';
+  const { typologyMap, isLoading: typologyLoading } =
+    useTypologyProfiles(hasBetaAccess && isTypologyMode);
+  // Clicking a legend class isolates it; clicking again clears.
+  const [highlightClass, setHighlightClass] = useState<string | null>(null);
+  // Tipologia and regime label sets are disjoint, so a filter carried across a
+  // mode switch matches nothing and dims every polygon — the map goes blank
+  // with only the "show all classes" link to explain it. Drop it on any change.
+  useEffect(() => {
+    setHighlightClass(null);
+  }, [colorMode]);
   const [scope, setScope] = useState<MapScope>(initialScope);
 
   const { center: mapCenter, zoom: mapZoom } = scopeView(scope);
@@ -980,10 +1016,21 @@ export default function MapComponent({
           )}
 
           {/* C/N Choropleth overlay — hidden when cluster mode is active */}
-          {/* C/N profiles are built from the canonical SP residue mix, so the
-              overlay is SP-scoped like the pipeline that produced it. */}
-          {colorMode === 'cn_profile' && !cnLoading && spDisplayData && (
-            <CnChoroLayer geoJsonData={spDisplayData} profilesMap={cnProfilesMap} />
+          {/* Both beta choropleths follow the scope selector: the typology table
+              they read covers SP+MG (1498 rows), so pinning them to SP left the
+              MG scope painting nothing at all while the legend still announced
+              the full SP+MG counts. */}
+          {colorMode === 'cn_profile' && !cnLoading && activeStateData && (
+            <CnChoroLayer geoJsonData={activeStateData} profilesMap={cnProfilesMap} />
+          )}
+
+          {isTypologyMode && !typologyLoading && activeStateData && (
+            <TypologyChoroLayer
+              geoJsonData={activeStateData}
+              typologyMap={typologyMap}
+              mode={colorMode === 'tipologia' ? 'tipologia' : 'regime'}
+              highlightClass={highlightClass}
+            />
           )}
 
           {/* Co-digestion Cluster Layer */}
@@ -1108,39 +1155,70 @@ export default function MapComponent({
             container; children remain interactive. */}
         <div className="absolute bottom-40 left-4 z-[500] flex flex-col-reverse items-start gap-2 pointer-events-none md:bottom-4 [&>*]:pointer-events-auto">
 
-        {/* Cluster K4 legend — shown when cluster color mode is active */}
-        {colorMode === 'cluster' && (
-          <div className="bg-white/95 backdrop-blur-sm rounded-lg px-3 py-2 shadow-lg border border-gray-200 text-xs">
-            <p className="font-semibold text-gray-700 mb-1.5">Clusters K=4 (2023)</p>
-            {[
-              { color: '#4daf4a', label: 'Cana dominante', n: 599 },
-              { color: '#ff7f00', label: 'Soja/grãos intensivo', n: 36 },
-              { color: '#e41a1c', label: 'RSU urbano', n: 1 },
-              { color: '#377eb8', label: 'Pecuária intensiva', n: 9 },
-            ].map(({ color, label, n }) => (
-              <div key={color} className="flex items-center gap-2 py-0.5">
-                <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
-                <span className="text-gray-700">{label}</span>
-                <span className="text-gray-400 ml-auto pl-2">{n}</span>
-              </div>
-            ))}
-          </div>
-        )}
+        {/* Typology / regime legend — BETA. Counts come from the rows actually
+            painted, not from a hardcoded list and not from the whole table: the
+            old K4 legend hardcoded four totals that no longer matched anything
+            the map was showing, and counting the full SP+MG table reintroduced
+            the same disagreement one scope down — SP showed "Pecuário 599" over
+            a map that is overwhelmingly sugarcane (SP's real split is 354
+            cana / 77 pecuário). Click a class to isolate it. */}
+        {isTypologyMode && Object.keys(typologyMap).length > 0 && (() => {
+          const isTip = colorMode === 'tipologia';
+          const order = isTip ? TIPOLOGIA_ORDER : REGIME_ORDER;
+          const colors: Record<string, string> = isTip ? TIPOLOGIA_COLORS : REGIME_COLORS;
+          const counts = new Map<string, number>();
+          activeStateData.features.forEach((feature) => {
+            const row = typologyMap[String(feature.properties?.ibge_code ?? '')];
+            if (!row) return;
+            const key = isTip ? row.tipologia : row.regime;
+            counts.set(key, (counts.get(key) ?? 0) + 1);
+          });
+          return (
+            <div className="bg-white rounded-lg px-3 py-2 shadow-lg border border-gray-200 text-xs max-w-[15rem]">
+              <p className="font-semibold text-gray-900 mb-1.5 flex items-center gap-1.5">
+                {t(isTip ? 'colorModes.tipologia' : 'colorModes.regime')}
+                <span className="rounded bg-amber-100 px-1 py-0.5 text-[9px] font-bold uppercase text-amber-800">Beta</span>
+              </p>
+              {order.filter((label) => counts.has(label)).map((label) => {
+                const on = highlightClass === label;
+                return (
+                  <button
+                    key={label}
+                    type="button"
+                    onClick={() => setHighlightClass(on ? null : label)}
+                    className={`flex w-full items-center gap-2 rounded px-1 py-0.5 text-left transition-colors ${
+                      on ? 'bg-gray-100 font-semibold' : 'hover:bg-gray-50'
+                    }`}
+                  >
+                    <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: colors[label] }} />
+                    <span className="text-gray-800 truncate">{label}</span>
+                    <span className="text-gray-500 ml-auto pl-2 tabular-nums">{counts.get(label)}</span>
+                  </button>
+                );
+              })}
+              {highlightClass && (
+                <button
+                  type="button"
+                  onClick={() => setHighlightClass(null)}
+                  className="mt-1 w-full border-t border-gray-100 pt-1 text-[10px] font-semibold text-green-800 hover:underline"
+                >
+                  {t('colorModes.clear_filter')}
+                </button>
+              )}
+            </div>
+          );
+        })()}
 
         {/* C/N Profile legend — shown when cn_profile color mode is active */}
         {colorMode === 'cn_profile' && (
           <div className="bg-white/95 backdrop-blur-sm rounded-lg px-3 py-2 shadow-lg border border-gray-200 text-xs">
             <p className="font-semibold text-gray-700 mb-1.5">{t('cnLegend.title')}</p>
-            {[
-              { color: '#1e40af', label: t('cnLegend.c_rich') },
-              { color: '#60a5fa', label: t('cnLegend.c_mod') },
-              { color: '#16a34a', label: t('cnLegend.balanced') },
-              { color: '#f97316', label: t('cnLegend.n_mod') },
-              { color: '#dc2626', label: t('cnLegend.n_rich') },
-            ].map(({ color, label }) => (
-              <div key={color} className="flex items-center gap-2 py-0.5">
+            {CN_LEGEND_ROWS.map(({ color, labelKey }) => (
+              <div key={labelKey} className="flex items-center gap-2 py-0.5">
                 <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
-                <span className="text-gray-700">{label}</span>
+                <span className={labelKey === 'optimal' ? 'font-semibold text-gray-900' : 'text-gray-700'}>
+                  {t(`cnLegend.${labelKey}`)}
+                </span>
               </div>
             ))}
           </div>

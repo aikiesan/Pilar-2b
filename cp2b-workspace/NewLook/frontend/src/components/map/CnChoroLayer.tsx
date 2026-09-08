@@ -6,18 +6,14 @@
  * Renders non-interactively (pointer-events: none) so clicks fall through
  * to the MunicipalityLayer beneath for normal popup/hover behavior.
  *
- * Color scale (5 tiers, per BIOMASS_PAIRING_ROADMAP Phase 1):
- *   cn > 60  → deep blue  (strongly C-rich)
- *   cn 40–60 → light blue
- *   cn 20–40 → green      (balanced / optimal)
- *   cn 10–20 → orange     (moderately N-rich)
- *   cn < 10  → red        (strongly N-rich)
+ * Colour scale lives in @/lib/cnScale — shared with the map legend.
  */
 
 import React, { useEffect, useRef } from 'react';
 import { useMap } from 'react-leaflet';
 import L from 'leaflet';
 import type { MunicipalityCollection, MunicipalityCnProfile } from '@/types/geospatial';
+import { cnColor, CN_NO_DATA_COLOR } from '@/lib/cnScale';
 
 export type CnProfilesMap = Record<string, MunicipalityCnProfile>;
 
@@ -26,13 +22,6 @@ interface CnChoroLayerProps {
   profilesMap: CnProfilesMap;
 }
 
-function cnColor(cn: number): string {
-  if (cn > 60) return '#1e40af';  // deep blue
-  if (cn > 40) return '#60a5fa';  // light blue
-  if (cn > 20) return '#16a34a';  // green (balanced)
-  if (cn > 10) return '#f97316';  // orange
-  return '#dc2626';               // red (N-rich)
-}
 
 export default function CnChoroLayer({ geoJsonData, profilesMap }: CnChoroLayerProps) {
   const map = useMap();
@@ -54,7 +43,7 @@ export default function CnChoroLayer({ geoJsonData, profilesMap }: CnChoroLayerP
       style: (feature) => {
         const ibge = feature?.properties?.ibge_code ?? feature?.properties?.cd_mun ?? '';
         const profile = profilesMap[String(ibge)];
-        const fill = profile ? cnColor(profile.cn_ratio_weighted) : '#e5e7eb';
+        const fill = profile ? cnColor(profile.cn_ratio_weighted) : CN_NO_DATA_COLOR;
         return {
           fillColor: fill,
           fillOpacity: 0.75,

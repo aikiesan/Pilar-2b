@@ -71,6 +71,11 @@ jest.mock('@/hooks/useCnProfiles', () => ({
   useCnProfiles: () => ({ profiles: [], profilesMap: {}, isLoading: false, error: null }),
 }));
 
+// Same for the beta typology hook.
+jest.mock('@/hooks/useTypologyProfiles', () => ({
+  useTypologyProfiles: () => ({ typology: [], typologyMap: {}, isLoading: false, error: null }),
+}));
+
 // Mock child components to simplify testing
 jest.mock('react-leaflet', () => ({
   MapContainer: ({ children }: any) => <div data-testid="map-container">{children}</div>,

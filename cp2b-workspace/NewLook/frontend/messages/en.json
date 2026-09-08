@@ -304,8 +304,15 @@
       "ariaLabel": "Urban residue totals for {uf}",
       "title": "Urban residues",
       "scenario": "{scenario} scenario",
-      "scenarios": { "real": "Real", "ideal": "Ideal" },
-      "streams": { "rsu": "OFMSW", "rpo": "Urban pruning", "sewage": "WWTP sludge" },
+      "scenarios": {
+        "real": "Real",
+        "ideal": "Ideal"
+      },
+      "streams": {
+        "rsu": "OFMSW",
+        "rpo": "Urban pruning",
+        "sewage": "WWTP sludge"
+      },
       "year": "year",
       "municipalities": "{count, plural, =0 {no municipality with a value} one {# municipality with a value} other {# municipalities with a value}}",
       "noDataTitle": "No validated urban inventory for {uf}",
@@ -339,7 +346,10 @@
       "label": "Choropleth Mode",
       "biogas": "Biogas Potential",
       "cn_profile": "C/N Profile",
-      "cluster": "K4 Clusters"
+      "tipologia": "Residue typology",
+      "regime": "Nutrient regime",
+      "beta_locked": "Beta layer in testing — sign in to view. The methodology is still being verified.",
+      "clear_filter": "Show all classes"
     },
     "opacity": {
       "label": "Map Opacity"
@@ -422,12 +432,12 @@
     "scenario_ideal_tip": "Ideal Scenario (frontier): 100% of generated residue collected and treated. An infrastructure assumption — the chemistry (BMP, TS, VS, CH₄ content) is identical to the Real Scenario. SP: 27.0 Mm³/day of biomethane.",
     "scenario_served_note": "Real and Ideal scenarios are available for São Paulo only.",
     "cnLegend": {
-      "title": "C/N Ratio Profile",
-      "c_rich": "Carbon Excess (> 60)",
-      "c_mod": "Mod. Carbon-rich (40–60)",
-      "balanced": "Balanced / Optimal (20–40)",
-      "n_mod": "Mod. Nitrogen-rich (10–20)",
-      "n_rich": "Nitrogen Excess (< 10)"
+      "title": "C:N Ratio Profile",
+      "n_rich": "Nitrogen-rich (< 20)",
+      "optimal": "Optimal for co-digestion (20–30)",
+      "c_slight": "Slightly carbon-rich (30–40)",
+      "c_mod": "Carbon-rich (40–55)",
+      "c_rich": "Carbon excess (> 55)"
     }
   },
   "Register": {

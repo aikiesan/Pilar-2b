@@ -17,6 +17,7 @@ def _reset_codigestion_caches():
 
     mod._cluster_cache.clear()
     mod._cn_profile_cache = None
+    mod._typology_cache = None
     yield
 
 
@@ -151,30 +152,91 @@ class TestGetClusters:
 @pytest.mark.unit
 class TestMunicipalityCNProfiles:
 
-    def test_returns_200(self, client):
+    def test_unauthenticated_get_is_rejected(self, client):
+        """BETA gate. The C:N served is the SV-weighted mean, not the N-additive
+        balance the dossiers declare, so it must not reach anonymous traffic —
+        and the frontend's DISABLE_AUTH mode means the UI check cannot be the
+        one that holds."""
+        response = client.get("/api/v1/codigestion/municipality-cn-profiles")
+        assert response.status_code in (401, 403)
+
+    def test_returns_200(self, test_app):
+        auth_client = _make_authenticated_client(test_app)
         with patch(
             "app.services.codigestion_service.get_municipality_cn_profiles",
             return_value=FAKE_CN_PROFILES,
         ):
-            response = client.get("/api/v1/codigestion/municipality-cn-profiles")
+            response = auth_client.get("/api/v1/codigestion/municipality-cn-profiles")
         assert response.status_code == 200
 
-    def test_has_profiles_key(self, client):
+    def test_has_profiles_key(self, test_app):
+        auth_client = _make_authenticated_client(test_app)
         with patch(
             "app.services.codigestion_service.get_municipality_cn_profiles",
             return_value=FAKE_CN_PROFILES,
         ):
-            data = client.get("/api/v1/codigestion/municipality-cn-profiles").json()
+            data = auth_client.get("/api/v1/codigestion/municipality-cn-profiles").json()
         assert "profiles" in data
         assert "count" in data
 
-    def test_count_matches_profiles_length(self, client):
+    def test_count_matches_profiles_length(self, test_app):
+        auth_client = _make_authenticated_client(test_app)
         with patch(
             "app.services.codigestion_service.get_municipality_cn_profiles",
             return_value=FAKE_CN_PROFILES,
         ):
-            data = client.get("/api/v1/codigestion/municipality-cn-profiles").json()
+            data = auth_client.get("/api/v1/codigestion/municipality-cn-profiles").json()
         assert data["count"] == len(FAKE_CN_PROFILES)
+
+
+# ─── GET /municipality-typology ───────────────────────────────────────────────
+
+
+FAKE_TYPOLOGY = [
+    {
+        "ibge_code": "3550308",
+        "uf": "SP",
+        "municipality_name": "São Paulo",
+        "cn_molar": 18.4,
+        "tipologia": "Urbano — RSU e esgoto",
+        "regime": "N-dominante",
+    },
+    {
+        "ibge_code": "3106200",
+        "uf": "MG",
+        "municipality_name": "Belo Horizonte",
+        "cn_molar": 22.1,
+        "tipologia": "Misto/diversificado",
+        "regime": "Equilibrado",
+    },
+]
+
+
+@pytest.mark.unit
+class TestMunicipalityTypology:
+
+    def test_unauthenticated_get_is_rejected(self, client):
+        response = client.get("/api/v1/codigestion/municipality-typology")
+        assert response.status_code in (401, 403)
+
+    def test_returns_200(self, test_app):
+        auth_client = _make_authenticated_client(test_app)
+        with patch(
+            "app.services.codigestion_service.get_municipality_typology",
+            return_value=FAKE_TYPOLOGY,
+        ):
+            response = auth_client.get("/api/v1/codigestion/municipality-typology")
+        assert response.status_code == 200
+
+    def test_count_matches_profiles_length(self, test_app):
+        auth_client = _make_authenticated_client(test_app)
+        with patch(
+            "app.services.codigestion_service.get_municipality_typology",
+            return_value=FAKE_TYPOLOGY,
+        ):
+            data = auth_client.get("/api/v1/codigestion/municipality-typology").json()
+        assert data["count"] == len(FAKE_TYPOLOGY)
+        assert data["profiles"][0]["tipologia"] == "Urbano — RSU e esgoto"
 
 
 # ─── GET /residue-cn-matrix ───────────────────────────────────────────────────
