@@ -54,16 +54,6 @@ describe('AuthContext (offline mode)', () => {
     expect(global.fetch).not.toHaveBeenCalled()
   })
 
-  it('login is a no-op that keeps the test user (no network)', async () => {
-    const { result } = renderAuth()
-    await waitFor(() => expect(result.current.loading).toBe(false))
-    await act(async () => {
-      await result.current.login({ email: 'whoever@example.org', password: 'irrelevant' })
-    })
-    expect(result.current.user?.email).toBe('test@example.org')
-    expect(global.fetch).not.toHaveBeenCalled()
-  })
-
   it('logout keeps the visitor signed in as the test user', async () => {
     const { result } = renderAuth()
     await waitFor(() => expect(result.current.loading).toBe(false))
@@ -72,6 +62,86 @@ describe('AuthContext (offline mode)', () => {
     })
     expect(result.current.isAuthenticated).toBe(true)
     expect(result.current.user?.email).toBe('test@example.org')
+    // No session to end, so still no network.
     expect(global.fetch).not.toHaveBeenCalled()
+  })
+
+  // The synthetic user is a FALLBACK for anonymous visitors, not an override.
+  // Login used to short-circuit here — it set the test user, called nothing and
+  // stored no token — which made signing in impossible on the public site and
+  // left the token-gated beta layers unreachable.
+  describe('a real login still works', () => {
+    const ADMIN = {
+      id: 'real-uid',
+      email: 'admin@example.org',
+      full_name: 'Real Admin',
+      role: 'admin',
+      clearance: 2,
+      is_active: true,
+      created_at: new Date(0).toISOString(),
+      updated_at: new Date(0).toISOString(),
+    }
+
+    const jsonOnce = (body: unknown) =>
+      Promise.resolve({ ok: true, status: 200, json: async () => body } as Response)
+
+    it('calls the backend, stores the token and adopts the real user', async () => {
+      global.fetch = jest.fn(() =>
+        jsonOnce({ access_token: 'real-jwt', user: ADMIN }),
+      ) as unknown as typeof fetch
+
+      const { result } = renderAuth()
+      await waitFor(() => expect(result.current.loading).toBe(false))
+      await act(async () => {
+        await result.current.login({ email: ADMIN.email, password: 'pw' })
+      })
+
+      expect(global.fetch).toHaveBeenCalledTimes(1)
+      expect(localStorage.getItem('pilar2b-auth-token')).toBe('real-jwt')
+      expect(result.current.user?.email).toBe(ADMIN.email)
+      expect(result.current.isAdmin).toBe(true)
+    })
+
+    it('logging out drops the token and falls back to the test user', async () => {
+      global.fetch = jest.fn(() =>
+        jsonOnce({ access_token: 'real-jwt', user: ADMIN }),
+      ) as unknown as typeof fetch
+
+      const { result } = renderAuth()
+      await waitFor(() => expect(result.current.loading).toBe(false))
+      await act(async () => {
+        await result.current.login({ email: ADMIN.email, password: 'pw' })
+      })
+      await act(async () => {
+        await result.current.logout()
+      })
+
+      expect(localStorage.getItem('pilar2b-auth-token')).toBeNull()
+      expect(result.current.user?.email).toBe('test@example.org')
+    })
+
+    it('a stored token is revalidated on mount instead of being ignored', async () => {
+      // The reload case: open mode used to skip session loading entirely, so a
+      // real session silently degraded to the test user on every page load
+      // while its token stayed in localStorage.
+      localStorage.setItem('pilar2b-auth-token', 'real-jwt')
+      global.fetch = jest.fn(() => jsonOnce(ADMIN)) as unknown as typeof fetch
+
+      const { result } = renderAuth()
+      await waitFor(() => expect(result.current.user?.email).toBe(ADMIN.email))
+      expect(global.fetch).toHaveBeenCalledTimes(1)
+    })
+
+    it('a rejected token is discarded and the visitor returns to the test user', async () => {
+      localStorage.setItem('pilar2b-auth-token', 'expired')
+      global.fetch = jest.fn(() =>
+        Promise.resolve({ ok: false, status: 401, json: async () => ({}) } as Response),
+      ) as unknown as typeof fetch
+
+      const { result } = renderAuth()
+      await waitFor(() => expect(result.current.loading).toBe(false))
+      expect(localStorage.getItem('pilar2b-auth-token')).toBeNull()
+      expect(result.current.user?.email).toBe('test@example.org')
+    })
   })
 })

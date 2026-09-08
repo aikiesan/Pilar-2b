@@ -16,7 +16,7 @@ import type {
   LoginCredentials,
   RegistrationData,
 } from '@/types/auth'
-import { authenticatedFetch, setStoredToken, getStoredToken } from '@/lib/apiClient'
+import { authenticatedFetch, setStoredToken, getStoredToken, TOKEN_STORAGE_KEY } from '@/lib/apiClient'
 import { logger } from '@/lib/logger'
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -24,10 +24,16 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || ''
 const AUTH = `${API_BASE_URL}/api/v1/auth`
 
-// Offline mode (pre-VM phase): with NEXT_PUBLIC_DISABLE_AUTH=true the app makes
-// NO backend auth calls at all — every visitor is transparently signed in as
-// TEST_USER. Flip the env back to 'false' (the default) to restore real,
-// invite-only VM auth. See docs/deployment/AUTH_VM_DEPLOYMENT.md.
+// Open mode (NEXT_PUBLIC_DISABLE_AUTH=true, what the public site runs): an
+// anonymous visitor is transparently signed in as TEST_USER so the whole
+// platform is explorable without an account.
+//
+// TEST_USER is a FALLBACK, not an override. An explicit login still goes to the
+// backend and a real token still wins. It used to be an override — login() set
+// TEST_USER, called nothing and stored no token — which made signing in a no-op
+// on the public site: token-gated features (the beta map layers) could not be
+// unlocked at all, because the only way to hold a token was to plant one by
+// hand. See docs/deployment/AUTH_VM_DEPLOYMENT.md.
 const AUTH_DISABLED = process.env.NEXT_PUBLIC_DISABLE_AUTH === 'true'
 
 // Synthetic user used ONLY in offline mode. 'interno' + clearance 2 opens every
@@ -45,15 +51,31 @@ const TEST_USER: UserProfile = {
   updated_at: new Date(0).toISOString(),
 }
 
+// Who we are when no real session is held: the synthetic user in open mode,
+// nobody otherwise.
+const anonymousUser = (): UserProfile | null => (AUTH_DISABLED ? TEST_USER : null)
+
+// Same-tab counterpart to the `storage` event, which only fires in OTHER tabs.
+// Lets useRealSession() flip the header the moment a login or logout lands.
+function announceAuthChange() {
+  try {
+    window.dispatchEvent(new Event('pilar2b-auth-changed'))
+  } catch { /* SSR / no window */ }
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<UserProfile | null>(AUTH_DISABLED ? TEST_USER : null)
+  const [user, setUser] = useState<UserProfile | null>(anonymousUser())
+  // Open mode renders immediately as the anonymous user; the effect below only
+  // upgrades that if a real token turns out to be stored. Blocking on a spinner
+  // there would regress the public page for the sake of a rare case.
   const [loading, setLoading] = useState(!AUTH_DISABLED)
   const queryClient = useQueryClient()
 
-  // On mount: if a token exists, validate it by loading the profile.
+  // On mount: if a token exists, validate it by loading the profile. This runs
+  // in open mode too — otherwise a reload silently dropped a real session back
+  // to TEST_USER while its token stayed in localStorage, so the header showed
+  // the test user while token-gated features behaved as signed in.
   useEffect(() => {
-    // Offline mode: nothing to load — TEST_USER is already the initial state.
-    if (AUTH_DISABLED) return
     let cancelled = false
     async function loadSession() {
       // Clean up any stale Supabase tokens from the previous (mock) auth.
@@ -64,7 +86,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } catch { /* ignore */ }
 
       if (!getStoredToken()) {
-        if (!cancelled) setLoading(false)
+        if (!cancelled) { setUser(anonymousUser()); setLoading(false) }
         return
       }
       try {
@@ -74,17 +96,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (!cancelled) setUser(profile)
       } catch {
         setStoredToken(null) // invalid/expired → drop it
-        if (!cancelled) setUser(null)
+        announceAuthChange()
+        if (!cancelled) setUser(anonymousUser())
       } finally {
         if (!cancelled) setLoading(false)
       }
     }
     loadSession()
-    return () => { cancelled = true }
+
+    // Another tab signing in or out changes the token under us. Without this the
+    // header would flip to "signed in" (useRealSession reads localStorage) while
+    // `user` still held the previous identity — a session shown under the wrong
+    // name until the next reload.
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === null || e.key === TOKEN_STORAGE_KEY) loadSession()
+    }
+    window.addEventListener('storage', onStorage)
+    return () => {
+      cancelled = true
+      window.removeEventListener('storage', onStorage)
+    }
   }, [])
 
+  // Always real, open mode included — see the AUTH_DISABLED note above.
   const login = useCallback(async (credentials: LoginCredentials) => {
-    if (AUTH_DISABLED) { setUser(TEST_USER); return }
     const res = await authenticatedFetch(`${AUTH}/login`, {
       method: 'POST',
       body: JSON.stringify(credentials),
@@ -95,13 +130,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     const data = await res.json()
     setStoredToken(data.access_token)
+    announceAuthChange()
     setUser(data.user as UserProfile)
     queryClient.clear()
   }, [queryClient])
 
   // Invite-only: hits the admin create-user endpoint (403 unless the caller is admin).
   const register = useCallback(async (data: RegistrationData) => {
-    if (AUTH_DISABLED) return
     const res = await authenticatedFetch(`${AUTH}/users`, {
       method: 'POST',
       body: JSON.stringify(data),
@@ -113,20 +148,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const logout = useCallback(async () => {
-    // Offline mode: there is no session — stay signed in as the test user.
-    if (AUTH_DISABLED) { setUser(TEST_USER); return }
-    try {
-      await authenticatedFetch(`${AUTH}/logout`, { method: 'POST' })
-    } catch (e) {
-      logger.debug('[Auth] logout request failed (token cleared anyway)', e)
+    // Only call the backend if there is a session to end; in open mode the
+    // button can be reached with no token at all.
+    if (getStoredToken()) {
+      try {
+        await authenticatedFetch(`${AUTH}/logout`, { method: 'POST' })
+      } catch (e) {
+        logger.debug('[Auth] logout request failed (token cleared anyway)', e)
+      }
     }
     setStoredToken(null)
-    setUser(null)
+    announceAuthChange()
+    // Open mode drops back to the anonymous browsing identity, not to nobody.
+    setUser(anonymousUser())
     queryClient.clear()
   }, [queryClient])
 
   const updateProfile = useCallback(async (full_name: string) => {
-    if (AUTH_DISABLED) { setUser((u) => (u ? { ...u, full_name } : u)); return }
+    // No real session (open-mode visitor): the synthetic profile is local only.
+    if (!getStoredToken()) { setUser((u) => (u ? { ...u, full_name } : u)); return }
     const res = await authenticatedFetch(`${AUTH}/me`, {
       method: 'PUT',
       body: JSON.stringify({ full_name }),
