@@ -135,13 +135,25 @@ export default defineConfig({
     },
   ],
 
-  // Run local dev server before starting the tests
-  webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:3000',
-    reuseExistingServer: !process.env.CI,
-    timeout: 120 * 1000,
-  },
+  // Run local dev server before starting the tests.
+  //
+  // Set PLAYWRIGHT_SKIP_WEBSERVER=1 to test an app that is already running
+  // somewhere else — the Docker stack on :3006, or a staging deploy. Without
+  // it, pointing PLAYWRIGHT_BASE_URL at :3006 still starts a second, redundant
+  // dev server on :3000, because webServer.url is what Playwright waits for and
+  // it is independent of baseURL.
+  //
+  // Deliberately a separate flag rather than keying off PLAYWRIGHT_BASE_URL:
+  // CI sets PLAYWRIGHT_BASE_URL=http://localhost:3000 explicitly and *does*
+  // need the server started, so inferring it from that variable would break CI.
+  webServer: process.env.PLAYWRIGHT_SKIP_WEBSERVER
+    ? undefined
+    : {
+        command: 'npm run dev',
+        url: 'http://localhost:3000',
+        reuseExistingServer: !process.env.CI,
+        timeout: 120 * 1000,
+      },
 
   // Global timeout for each test
   timeout: 60000,
