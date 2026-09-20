@@ -21,7 +21,7 @@ export default function TechnologyRoutesPage() {
         </div>
 
         <p className="text-center text-xs text-gray-400 dark:text-slate-500 mt-6">
-          CP2B / UNICAMP · Dados baseados em coeficientes científicos validados ·{' '}
+          {t('footer_note')}
           <a href="mailto:cp2b@unicamp.br" className="underline hover:text-gray-500 dark:hover:text-slate-300">cp2b@unicamp.br</a>
         </p>
       </div>

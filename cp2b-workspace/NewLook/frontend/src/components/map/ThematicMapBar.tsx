@@ -15,6 +15,7 @@
  */
 
 import React, { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import {
   THEMATIC_PRESETS,
   PRESET_GROUP_META,
@@ -37,13 +38,6 @@ interface ThematicMapBarProps {
   onToggleCollapsed?: () => void;
 }
 
-const MOBILE_GROUP_LABEL: Record<ThematicPresetGroup, string> = {
-  setorial: 'Setor',
-  residuo: 'Resíduo',
-  energia: 'Energia',
-  logistica: 'Logística',
-  analise: 'Análises',
-};
 
 export default function ThematicMapBar({
   activePresetId,
@@ -53,6 +47,10 @@ export default function ThematicMapBar({
   collapsed = false,
   onToggleCollapsed,
 }: ThematicMapBarProps) {
+  const t = useTranslations('Map.thematic');
+  const tGroupLabel = useTranslations('Map.thematic.groups');
+  // Group ids are the stable identifiers; the label is looked up, never the key.
+  const tGroups = { setorial: tGroupLabel('setorial'), residuo: tGroupLabel('residuo'), energia: tGroupLabel('energia'), logistica: tGroupLabel('logistica'), analise: tGroupLabel('analise') } as Record<ThematicPresetGroup, string>;
   const [openGroup, setOpenGroup] = useState<ThematicPresetGroup | null>(null);
 
   const activeGroup = activePresetId
@@ -77,12 +75,12 @@ export default function ThematicMapBar({
           type="button"
           onClick={onToggleCollapsed}
           className="flex min-h-11 min-w-11 shrink-0 items-center justify-center gap-0.5 rounded-md px-1 py-1 text-[10px] font-bold uppercase tracking-tight text-gray-600 hover:bg-gray-100 md:min-h-0 md:min-w-0 md:gap-1 md:px-1.5 md:text-[11px] md:tracking-wide"
-          title={collapsed ? 'Mostrar mapas temáticos' : 'Ocultar mapas temáticos'}
+          title={collapsed ? t('show') : t('hide')}
           aria-expanded={!collapsed}
         >
           <span aria-hidden="true">🗺️</span>
           <span className="sm:hidden">Temas</span>
-          <span className="hidden sm:inline">Mapas temáticos</span>
+          <span className="hidden sm:inline">{t('title')}</span>
           <span aria-hidden="true" className="text-gray-400">{collapsed ? '▸' : '▾'}</span>
         </button>
 
@@ -110,7 +108,7 @@ export default function ThematicMapBar({
                   >
                     <span aria-hidden="true" className="text-sm leading-none md:text-xs">{icon}</span>
                     <span className="mt-0.5 truncate md:mt-0">
-                      <span className="md:hidden">{MOBILE_GROUP_LABEL[group]}</span>
+                      <span className="md:hidden">{tGroups[group]}</span>
                       <span className="hidden md:inline">{label}</span>
                     </span>
                     <span aria-hidden="true" className={`hidden text-[9px] transition-transform md:inline ${isOpen ? 'rotate-180' : ''}`}>▾</span>
@@ -145,7 +143,7 @@ export default function ThematicMapBar({
                             aria-selected={active}
                             disabled={disabled}
                             onClick={() => apply(preset)}
-                            title={disabled ? `${preset.description} Em validação para MG.` : preset.description}
+                            title={disabled ? t('validating_tooltip', { description: preset.description }) : preset.description}
                             className={`flex min-h-11 w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left transition-colors md:min-h-0 ${
                               disabled
                                 ? 'cursor-not-allowed bg-gray-50 opacity-45'
@@ -165,7 +163,7 @@ export default function ThematicMapBar({
                                 style={{ background: rampGradient(preset.config.palette) }}
                               />
                             </span>
-                            {disabled && <span className="text-[9px] font-semibold text-gray-500">EM VALIDAÇÃO</span>}
+                            {disabled && <span className="text-[9px] font-semibold text-gray-500">{t('validating_badge')}</span>}
                             {active && <span aria-hidden="true" className="text-[10px] text-green-700">✓</span>}
                           </button>
                         );

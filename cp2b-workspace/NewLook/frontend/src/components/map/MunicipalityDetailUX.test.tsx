@@ -4,6 +4,11 @@ import EnhancedTooltip from './EnhancedTooltip';
 import MunicipalityProfilePanel from './MunicipalityProfilePanel';
 import type { MunicipalityFeature } from '@/types/geospatial';
 
+// This suite asserts on the copy a user actually reads (accessible names, the
+// MG empty state, the t/ano warning), so it needs the real catalog rather than
+// the key-returning default mock.
+jest.mock('next-intl', () => jest.requireActual('@/test/mocks/next-intl-real'));
+
 jest.mock('@/hooks/useGeospatialData', () => ({
   useMunicipalityMetrics: () => ({ data: undefined, isLoading: false, error: null }),
 }));

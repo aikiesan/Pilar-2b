@@ -7,6 +7,25 @@ import { testWCAGAA } from '@/test/utils/accessibility'
 
 jest.mock('@/navigation', () => ({ useRouter: () => ({ push: jest.fn() }) }))
 
+// next-intl ships ESM that jest does not transform; the suite's convention is a
+// per-file mock (see ThemeToggle.a11y.test.tsx). Returning real English strings
+// rather than the key keeps the accessible-name assertions below meaningful.
+jest.mock('next-intl', () => ({
+  useTranslations: () => (key: string) => {
+    const map: Record<string, string> = {
+      trigger: 'Search municipality',
+      trigger_aria: 'Search municipality (press /)',
+      placeholder: 'Name or IBGE code...',
+      input_aria: 'Search municipality',
+      results_aria: 'Search results',
+      no_results: 'No municipality found',
+      hints: '↑↓ navigate · Enter select · Esc close',
+      per_year: 'm³/year',
+    }
+    return map[key] ?? key
+  },
+}))
+
 const mockMunicipalities = [
   {
     type: 'Feature',
