@@ -3,8 +3,7 @@
   "entries": [
     {
       "version": "3.1.0",
-      "date": "2026-09-21T11:25:00-03:00",
-      "pr": 219,
+      "date": "2026-09-21T11:25:00-03:00",
       "title": {
         "pt-BR": "Camadas C:N restauradas, exportação municipal e correção de segurança",
         "en": "C:N layers restored, municipal exports, and a security fix"

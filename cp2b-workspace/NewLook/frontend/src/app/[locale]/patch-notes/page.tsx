@@ -32,12 +32,10 @@ interface Change {
 interface Entry {
   version: string;
   date: string;
-  pr?: number;
   title: Localized;
   changes: Change[];
 }
 
-const REPO = 'https://github.com/aikiesan/Pilar-2b';
 
 // Icon and colour per change kind. The visible label comes from the catalog.
 const KIND_META: Record<Kind, { icon: typeof Plus; className: string }> = {
@@ -94,21 +92,9 @@ export default function PatchNotesPage() {
                 aria-hidden="true"
               />
 
-              <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 mb-1">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {t('version_prefix', { version: entry.version })}
-                </h2>
-                {entry.pr ? (
-                  <a
-                    href={`${REPO}/pull/${entry.pr}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm font-medium text-cp2b-green hover:underline"
-                  >
-                    {t('pull_request', { number: entry.pr })}
-                  </a>
-                ) : null}
-              </div>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
+                {t('version_prefix', { version: entry.version })}
+              </h2>
 
               <time
                 dateTime={entry.date}

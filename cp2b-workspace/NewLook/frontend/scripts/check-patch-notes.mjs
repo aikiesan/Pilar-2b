@@ -78,9 +78,6 @@ entries.forEach((entry, index) => {
     previousDate = time;
   }
 
-  if (entry.pr !== undefined && !Number.isInteger(entry.pr)) {
-    problems.push(`${where}: "pr" must be an integer when present`);
-  }
 
   checkLocalized(entry.title, `${where}.title`);
 
