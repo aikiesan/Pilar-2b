@@ -9,7 +9,7 @@ import os
 import re
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 
 from app.core.database import get_db
 from app.core.response_cache import cached_json_response
@@ -863,3 +863,78 @@ async def get_municipality(municipality_id: str):
     except Exception as e:
         logger.error(f"Error fetching municipality: {e}")
         raise HTTPException(status_code=500, detail=f"Error fetching municipality: {str(e)}")
+
+
+# ─── Dossier downloads ────────────────────────────────────────────────────────
+#
+# The workbook and the PDF report were built in #219 but never exposed: only
+# `python -m scripts.export_municipality_dossier` could produce them. These two
+# routes put them behind the download buttons on the municipality profile page.
+#
+# Both are declared with `def`, not `async def`, on purpose. build_workbook and
+# build_pdf are CPU-bound (pandas + openpyxl styling, reportlab laying out a
+# vector locator map) and take hundreds of milliseconds; on an async route they
+# would block the event loop for every other request. A sync route runs in
+# FastAPI's threadpool instead.
+
+
+def _dossier(ibge_code: str, want_pdf: bool) -> tuple[bytes, str]:
+    """Gather one municipality and render it, returning (payload, filename).
+
+    Goes through app.services.municipality_dossier — the same gatherer the CLI
+    exporter uses — so a file downloaded here and one produced on the command
+    line cannot drift apart.
+    """
+    if not re.fullmatch(r"\d{7}", ibge_code):
+        raise HTTPException(status_code=400, detail="ibge_code must be 7 digits")
+
+    from app.services.municipality_dossier import collect, geojson, identity, state_outline
+    from app.services.municipality_exports import ascii_slug, build_pdf, build_workbook
+
+    with get_db() as conn:
+        who = identity(conn, ibge_code)
+        if who is None:
+            raise HTTPException(
+                status_code=404, detail=f"no municipality with ibge_code {ibge_code}"
+            )
+        sections = collect(conn, ibge_code)
+        # Geometry is only read for the PDF: the workbook has no locator map,
+        # and the detail geometry is the expensive part of this query.
+        shape = geojson(conn, ibge_code, "detail") if want_pdf else None
+        outline = state_outline(conn, who["uf"]) if want_pdf else None
+
+    stem = f"{ibge_code}_{ascii_slug(who['municipality_name'])}"
+    if want_pdf:
+        return build_pdf(sections, who, shape, outline), f"{stem}.pdf"
+    return build_workbook(sections, who), f"{stem}.xlsx"
+
+
+def _attachment(payload: bytes, filename: str, media_type: str) -> Response:
+    return Response(
+        content=payload,
+        media_type=media_type,
+        headers={
+            # ascii_slug already strips accents, so the plain filename is safe
+            # to send unencoded and needs no RFC 5987 filename* fallback.
+            "Content-Disposition": f'attachment; filename="{filename}"',
+            "Content-Length": str(len(payload)),
+        },
+    )
+
+
+@router.get("/{ibge_code}/dossie.xlsx", tags=["exports"])
+def download_municipality_workbook(ibge_code: str) -> Response:
+    """Curated pt-BR workbook: Resumo, Setores, Por resíduo, Séries, Infraestrutura, Fontes."""
+    payload, filename = _dossier(ibge_code, want_pdf=False)
+    return _attachment(
+        payload,
+        filename,
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )
+
+
+@router.get("/{ibge_code}/dossie.pdf", tags=["exports"])
+def download_municipality_report(ibge_code: str) -> Response:
+    """Municipal report as PDF, with the locator map drawn as vector (no tiles)."""
+    payload, filename = _dossier(ibge_code, want_pdf=True)
+    return _attachment(payload, filename, "application/pdf")

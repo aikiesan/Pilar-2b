@@ -746,6 +746,8 @@
       "not_found": "Municipality not found",
       "not_found_desc": "No data found for IBGE code {code}.",
       "back_to_map": "Back to Map",
+      "download_workbook": "Spreadsheet",
+      "download_report": "Report",
       "map_breadcrumb": "Map",
       "sector_agricultural": "Agricultural",
       "sector_livestock": "Livestock",

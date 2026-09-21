@@ -30,7 +30,8 @@ import {
   Leaf,
   Factory,
   Droplets,
-  Printer,
+  FileSpreadsheet,
+  FileText,
   ExternalLink,
   Share2,
   BarChart3,
@@ -159,6 +160,12 @@ function ResidueRow({ label, value }: { label: string; value: number }) {
 }
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
+
+// API origin -- http://localhost:8000 in dev, https://cp2b.unicamp.br/pilar2b in
+// production. Paths are appended as /api/v1/..., the same composition
+// useGeospatialData uses, so the two cannot drift.
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
+
 
 export default function MunicipalityPage() {
   const params = useParams()
@@ -300,13 +307,31 @@ export default function MunicipalityPage() {
               <Share2 className="w-3.5 h-3.5" />
               {tMap('tools.share')}
             </button>
-            <button
-              onClick={() => window.print()}
+            {/*
+              These hit the backend, which renders the real dossier: a six-sheet
+              workbook and a report with a vector locator map. The button here
+              used to call window.print(), which printed the web page -- close
+              enough to look right that nobody noticed the actual export, built
+              in #219, was never wired up at all.
+
+              Plain anchors, not fetch + blob: Content-Disposition already names
+              the file, so the browser handles the save, keeps its own progress
+              UI, and nothing has to buffer a multi-megabyte response in memory.
+            */}
+            <a
+              href={`${API_BASE_URL}/api/v1/municipalities/${ibgeCode}/dossie.xlsx`}
+              className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-gray-600 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <FileSpreadsheet className="w-3.5 h-3.5" />
+              {t('municipality.download_workbook')}
+            </a>
+            <a
+              href={`${API_BASE_URL}/api/v1/municipalities/${ibgeCode}/dossie.pdf`}
               className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-white bg-[#1E5128] rounded-lg hover:bg-[#163d1f] transition-colors"
             >
-              <Printer className="w-3.5 h-3.5" />
-              PDF
-            </button>
+              <FileText className="w-3.5 h-3.5" />
+              {t('municipality.download_report')}
+            </a>
           </div>
         </div>
 
