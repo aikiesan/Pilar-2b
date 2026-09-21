@@ -14,6 +14,8 @@ from __future__ import annotations
 
 from typing import Any
 
+import psycopg2
+
 # Every table that keys on a municipality, with the column it keys on. Order is
 # the reading order of the exported workbook: identity first, then the headline
 # figures, then the supporting detail.
@@ -30,10 +32,39 @@ SECTIONS: tuple[tuple[str, str, str], ...] = (
     ("validation_plants_registry", "validation_plants_registry", "ibge_code"),
 )
 
+# Tables that carry no ibge_code and have to be reached through the name.
+#
+# validation_plants predates the code column: it has `municipality_id`, which is
+# NULL on every row, so the only link to a municipality is the name plus the
+# state. Keying it on ibge_code like the others made `collect` raise
+# UndefinedColumn for EVERY municipality, which means this exporter had never
+# run end to end -- the unit tests cover the renderers with fixture data, not
+# the gather. Matching on the name alone would be ambiguous across states, so
+# the state is part of the join.
+NAME_KEYED: dict[str, tuple[str, str]] = {
+    "validation_plants": ("municipality_name", "state"),
+}
+
 # PostGIS blobs. Dropped from the tabular sections; see the module docstring.
 GEOMETRY_COLUMNS = frozenset(
     {"geometry", "geometry_detail", "geometry_overview", "centroid", "geom", "geom_centroid"}
 )
+
+
+def _cursor(conn):
+    """A cursor that yields plain tuples, whatever the connection was built with.
+
+    Every read in this module indexes rows positionally. The CLI exporter opens
+    its own psycopg2.connect(), which gives tuples, but the API serves these
+    reports from app.core.database.get_db(), whose pool sets
+    cursor_factory=RealDictCursor. Under a dict cursor `row[0]` raises KeyError
+    -- and `identity` fails worse than that: dict(zip(columns, row)) iterates a
+    RealDictRow's KEYS, so it would quietly return {"uf": "uf", ...} and put
+    column names where the data belongs, in a report nobody would think to
+    re-check. Pinning the factory here makes the module correct for any caller
+    rather than only the one it was written against.
+    """
+    return conn.cursor(cursor_factory=psycopg2.extensions.cursor)
 
 
 def _rows(cur, table: str, key_column: str, ibge_code: str) -> list[dict[str, Any]]:
@@ -43,7 +74,20 @@ def _rows(cur, table: str, key_column: str, ibge_code: str) -> list[dict[str, An
     identifier interpolation here cannot carry user input. The value is still
     bound as a parameter.
     """
-    cur.execute(f"SELECT * FROM {table} WHERE {key_column}::text = %s", (ibge_code,))
+    if table in NAME_KEYED:
+        name_column, uf_column = NAME_KEYED[table]
+        cur.execute(
+            f"""
+            SELECT t.* FROM {table} t
+            JOIN municipalities m
+              ON t.{name_column} = m.municipality_name
+             AND t.{uf_column} = m.uf
+            WHERE m.ibge_code::text = %s
+            """,
+            (ibge_code,),
+        )
+    else:
+        cur.execute(f"SELECT * FROM {table} WHERE {key_column}::text = %s", (ibge_code,))
     columns = [d[0] for d in cur.description]
     keep = [i for i, c in enumerate(columns) if c not in GEOMETRY_COLUMNS]
     return [{columns[i]: row[i] for i in keep} for row in cur.fetchall()]
@@ -56,13 +100,13 @@ def collect(conn, ibge_code: str) -> dict[str, list[dict[str, Any]]]:
     no validated plant for this municipality" is itself a finding, and a renderer
     that silently omits the sheet would hide it.
     """
-    with conn.cursor() as cur:
+    with _cursor(conn) as cur:
         return {name: _rows(cur, table, key, ibge_code) for name, table, key in SECTIONS}
 
 
 def identity(conn, ibge_code: str) -> dict[str, Any] | None:
     """Name, state and region hierarchy — the header of any report."""
-    with conn.cursor() as cur:
+    with _cursor(conn) as cur:
         cur.execute(
             """
             SELECT ibge_code, municipality_name, uf, area_km2, population,
@@ -93,7 +137,7 @@ GEOMETRY_LEVELS = {
 def geojson(conn, ibge_code: str, level: str = "detail") -> str | None:
     """The municipality outline as a GeoJSON string, for a report map."""
     column = GEOMETRY_LEVELS.get(level, GEOMETRY_LEVELS["detail"])
-    with conn.cursor() as cur:
+    with _cursor(conn) as cur:
         cur.execute(
             f"SELECT ST_AsGeoJSON({column}) FROM municipalities WHERE ibge_code::text = %s",
             (ibge_code,),
@@ -111,7 +155,7 @@ def state_outline(conn, uf: str) -> str | None:
     """The dissolved outline of the state, to locate the municipality within it."""
     if uf in _STATE_OUTLINE_CACHE:
         return _STATE_OUTLINE_CACHE[uf]
-    with conn.cursor() as cur:
+    with _cursor(conn) as cur:
         cur.execute(
             """
             SELECT ST_AsGeoJSON(ST_SimplifyPreserveTopology(ST_Union(geometry_overview), 0.01))
