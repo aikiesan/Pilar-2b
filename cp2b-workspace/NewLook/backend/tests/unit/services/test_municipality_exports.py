@@ -95,7 +95,12 @@ def test_every_residue_is_placed_in_a_sector():
 def test_workbook_has_the_six_curated_sheets_and_no_raw_table_dump():
     from io import BytesIO
 
-    sections = {"municipality": [MUNI], "residue_streams": [], "timeseries": [], "infrastructure": []}
+    sections = {
+        "municipality": [MUNI],
+        "residue_streams": [],
+        "timeseries": [],
+        "infrastructure": [],
+    }
     book = pd.ExcelFile(BytesIO(build_workbook(sections, WHO)))
 
     assert book.sheet_names == [

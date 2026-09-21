@@ -75,7 +75,7 @@ MAP_W, MAP_H = 165 * mm, 110 * mm
 
 
 def ascii_slug(name: str) -> str:
-    """"Lençóis Paulista" -> "lencois_paulista", for filenames and headers.
+    """ "Lençóis Paulista" -> "lencois_paulista", for filenames and headers.
 
     Content-Disposition is ASCII by default, so an accented filename either gets
     mangled or needs RFC 5987 encoding that older clients mishandle.
@@ -156,9 +156,7 @@ def _sheet_setores(muni: dict) -> pd.DataFrame:
         )
     frame = pd.DataFrame(rows)
     total = frame["Biogás (m³/ano)"].sum(skipna=True)
-    frame["% do biogás"] = (
-        frame["Biogás (m³/ano)"] / total if total else None
-    )
+    frame["% do biogás"] = frame["Biogás (m³/ano)"] / total if total else None
     total_row = {
         "Setor": "TOTAL",
         "Biomassa (t/ano)": frame["Biomassa (t/ano)"].sum(skipna=True),
@@ -255,7 +253,9 @@ def _sheet_fontes(sections: dict[str, list[dict]], who: dict) -> pd.DataFrame:
         label = record.get("residue") or record.get("field") or record.get("column_name") or "—"
         rows.append((str(label), record.get("source") or record.get("source_id") or "—"))
 
-    sources = sorted({str(r.get("source_id")) for r in sections.get("timeseries") or [] if r.get("source_id")})
+    sources = sorted(
+        {str(r.get("source_id")) for r in sections.get("timeseries") or [] if r.get("source_id")}
+    )
     if sources:
         rows += [(None, None), ("FONTES DAS SÉRIES TEMPORAIS", None)]
         rows += [(s, None) for s in sources]
@@ -283,7 +283,9 @@ def _sheet_fontes(sections: dict[str, list[dict]], who: dict) -> pd.DataFrame:
     return pd.DataFrame(rows, columns=["Item", "Detalhe"])
 
 
-def _style(writer, sheet_name: str, frame: pd.DataFrame, widths: Sequence[int] | None = None) -> None:
+def _style(
+    writer, sheet_name: str, frame: pd.DataFrame, widths: Sequence[int] | None = None
+) -> None:
     """Header band, frozen top row, sensible widths and thousands separators."""
     from openpyxl.styles import Alignment, Font, PatternFill
 
@@ -332,7 +334,11 @@ def build_workbook(sections: dict[str, list[dict]], who: dict) -> bytes:
         ("Resumo", _sheet_resumo(who, muni), (34, 20, 22)),
         ("Por setor", _sheet_setores(muni), (16, 20, 20, 20, 20, 14)),
         ("Por resíduo", _sheet_residuos(muni, sections.get("residue_streams") or []), None),
-        ("Séries temporais", _sheet_series(sections.get("timeseries") or []), (10, 30, 16, 14, 14, 18)),
+        (
+            "Séries temporais",
+            _sheet_series(sections.get("timeseries") or []),
+            (10, 30, 16, 14, 14, 18),
+        ),
         ("Infraestrutura", _sheet_infra(sections.get("infrastructure") or []), (22, 34, 16, 50)),
         ("Fontes e notas", _sheet_fontes(sections, who), (40, 62)),
     ]
@@ -353,18 +359,36 @@ def _styles() -> dict[str, ParagraphStyle]:
     base = getSampleStyleSheet()
     return {
         "title": ParagraphStyle(
-            "title", parent=base["Title"], fontSize=22, leading=26, textColor=BRAND_GREEN,
-            alignment=0, spaceAfter=2,
+            "title",
+            parent=base["Title"],
+            fontSize=22,
+            leading=26,
+            textColor=BRAND_GREEN,
+            alignment=0,
+            spaceAfter=2,
         ),
         "subtitle": ParagraphStyle(
-            "subtitle", parent=base["Normal"], fontSize=10.5, leading=14, textColor=MUTED,
+            "subtitle",
+            parent=base["Normal"],
+            fontSize=10.5,
+            leading=14,
+            textColor=MUTED,
         ),
         "h2": ParagraphStyle(
-            "h2", parent=base["Heading2"], fontSize=13, leading=16, textColor=BRAND_GREEN,
-            spaceBefore=12, spaceAfter=6,
+            "h2",
+            parent=base["Heading2"],
+            fontSize=13,
+            leading=16,
+            textColor=BRAND_GREEN,
+            spaceBefore=12,
+            spaceAfter=6,
         ),
-        "body": ParagraphStyle("body", parent=base["Normal"], fontSize=9.5, leading=13, textColor=INK),
-        "note": ParagraphStyle("note", parent=base["Normal"], fontSize=8, leading=11, textColor=MUTED),
+        "body": ParagraphStyle(
+            "body", parent=base["Normal"], fontSize=9.5, leading=13, textColor=INK
+        ),
+        "note": ParagraphStyle(
+            "note", parent=base["Normal"], fontSize=8, leading=11, textColor=MUTED
+        ),
     }
 
 
@@ -590,7 +614,9 @@ def build_pdf(
         if provenance:
             bits.append(f"{len(provenance)} biomass provenance record(s) held.")
         story.append(
-            KeepTogether([Paragraph("Provenance", style["h2"]), Paragraph(" ".join(bits), style["body"])])
+            KeepTogether(
+                [Paragraph("Provenance", style["h2"]), Paragraph(" ".join(bits), style["body"])]
+            )
         )
 
     story.append(Spacer(1, 14))

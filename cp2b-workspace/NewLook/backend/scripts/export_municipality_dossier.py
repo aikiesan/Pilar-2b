@@ -23,14 +23,17 @@ import psycopg2
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from app.services.municipality_dossier import collect, geojson, identity, state_outline  # noqa: E402
+from app.services.municipality_dossier import (  # noqa: E402
+    collect,
+    geojson,
+    identity,
+    state_outline,
+)
 from app.services.municipality_exports import ascii_slug, build_pdf, build_workbook  # noqa: E402
 
 
 def _default_dsn() -> str:
-    return os.environ.get(
-        "DATABASE_URL", "postgresql://postgres:password@localhost:5432/cp2b_maps"
-    )
+    return os.environ.get("DATABASE_URL", "postgresql://postgres:password@localhost:5432/cp2b_maps")
 
 
 def main() -> int:
@@ -70,7 +73,11 @@ def main() -> int:
 
     if args.json:
         json_path = out_dir / f"{stem}.json"
-        payload = {"identity": who, "sections": sections, "geometry": json.loads(shape) if shape else None}
+        payload = {
+            "identity": who,
+            "sections": sections,
+            "geometry": json.loads(shape) if shape else None,
+        }
         json_path.write_text(json.dumps(payload, indent=2, default=str), encoding="utf-8")
         print(f"wrote {json_path}")
 

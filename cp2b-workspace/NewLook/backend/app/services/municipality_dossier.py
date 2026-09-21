@@ -57,9 +57,7 @@ def collect(conn, ibge_code: str) -> dict[str, list[dict[str, Any]]]:
     that silently omits the sheet would hide it.
     """
     with conn.cursor() as cur:
-        return {
-            name: _rows(cur, table, key, ibge_code) for name, table, key in SECTIONS
-        }
+        return {name: _rows(cur, table, key, ibge_code) for name, table, key in SECTIONS}
 
 
 def identity(conn, ibge_code: str) -> dict[str, Any] | None:
