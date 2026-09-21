@@ -1,0 +1,51 @@
+{
+  "_comment": "Patch notes, newest first. Each entry carries its own pt-BR and en text, deliberately OUTSIDE messages/*.json: the catalogs are gated by check-i18n-parity.mjs, and threading one release note through two catalogs per deploy makes writing a note a chore nobody does. scripts/check-patch-notes.mjs enforces that both locales are present here instead. `date` is ISO 8601 WITH offset -- it is rendered in the reader's locale, so a bare date would drift a day across timezones. `kind` must be one of: added, changed, fixed, security, data.",
+  "entries": [
+    {
+      "version": "3.1.0",
+      "date": "2026-09-21T11:25:00-03:00",
+      "pr": 219,
+      "title": {
+        "pt-BR": "Camadas C:N restauradas, exportação municipal e correção de segurança",
+        "en": "C:N layers restored, municipal exports, and a security fix"
+      },
+      "changes": [
+        {
+          "kind": "data",
+          "text": {
+            "pt-BR": "A relação C:N dos 645 municípios paulistas passa a usar o balanço N-aditivo — ΣSV / Σ(SV/CN) — em vez da média aritmética. Nitrogênio é aditivo, então a média aritmética não descreve a mistura: ela classificava mal 44% dos municípios. Os municípios na faixa ideal de 20–30 sobem de 111 para 191.",
+            "en": "The C:N ratio for São Paulo's 645 municipalities now uses the N-additive balance — ΣVS / Σ(VS/CN) — instead of the arithmetic mean. Nitrogen is additive, so the arithmetic mean does not describe a mixture: it misclassified 44% of municipalities. Municipalities in the ideal 20–30 band rise from 111 to 191."
+          }
+        },
+        {
+          "kind": "added",
+          "text": {
+            "pt-BR": "As camadas Perfil C/N e Regime de nutrientes voltam ao mapa, agora sobre os dados corrigidos. São exibidas apenas para São Paulo; fora do estado o valor não foi calculado e o mapa deixa a área em branco em vez de desenhar zero.",
+            "en": "The C:N profile and nutrient regime map layers are back, now on the corrected data. They cover São Paulo only; outside the state the value was never computed, and the map leaves those areas blank rather than drawing zero."
+          }
+        },
+        {
+          "kind": "added",
+          "text": {
+            "pt-BR": "Novo dossiê municipal exportável: uma planilha pt-BR com abas por resíduo, infraestrutura e fontes, mais um relatório em PDF com mapa localizador vetorial.",
+            "en": "New exportable municipal dossier: a pt-BR workbook with per-residue, infrastructure and sources tabs, plus a PDF report with a vector locator map."
+          }
+        },
+        {
+          "kind": "security",
+          "text": {
+            "pt-BR": "Next.js atualizado de 16.3.2 para 16.3.5, fechando duas falhas críticas de execução remota de código (GHSA-p293-qw3h-jr36 e GHSA-2xp9-vwfh-vxw4). Nenhuma das duas alcançava o site publicado — a exposição era o ambiente de desenvolvimento.",
+            "en": "Next.js upgraded from 16.3.2 to 16.3.5, closing two critical remote-code-execution flaws (GHSA-p293-qw3h-jr36 and GHSA-2xp9-vwfh-vxw4). Neither reached the published site — the exposure was the development environment."
+          }
+        },
+        {
+          "kind": "changed",
+          "text": {
+            "pt-BR": "As páginas Guia, Sobre e Como Citar passam a ser totalmente traduzidas, com duas verificações automáticas que impedem que um texto novo chegue ao site em inglês ainda em português.",
+            "en": "The Guide, About and How to Cite pages are now fully translated, with two automated checks that stop new text from reaching the English site still in Portuguese."
+          }
+        }
+      ]
+    }
+  ]
+}
