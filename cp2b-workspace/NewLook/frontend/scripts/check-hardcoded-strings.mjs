@@ -38,6 +38,7 @@ const CLEAN_FILES = [
   'src/components/map/InfrastructureLayer.tsx',
   'src/components/map/ThematicMapBar.tsx',
   'src/components/layout/UnifiedHeader.tsx',
+  'src/app/[locale]/patch-notes/page.tsx',
 ];
 
 /** Characters that appear in Portuguese but not in English. */

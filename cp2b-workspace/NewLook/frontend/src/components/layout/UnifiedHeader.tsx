@@ -25,7 +25,8 @@ import {
   Target,
   TrendingUp,
   Workflow,
-  Quote
+  Quote,
+  Sparkles
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useRealSession } from '@/lib/betaAccess'
@@ -65,6 +66,7 @@ const publicNavConfig: NavItemConfig[] = [
   { href: '/dashboard/proximity', labelKey: 'proximity', icon: <Target className="h-4 w-4" />, tourClass: 'tour-proximity' },
   { href: '/about', labelKey: 'about', icon: <Info className="h-4 w-4" /> },
   { href: '/cite', labelKey: 'cite', icon: <Quote className="h-4 w-4" /> },
+  { href: '/patch-notes', labelKey: 'patch_notes', icon: <Sparkles className="h-4 w-4" /> },
 ]
 
 const authenticatedNavConfig: NavItemConfig[] = [
@@ -75,6 +77,7 @@ const authenticatedNavConfig: NavItemConfig[] = [
   { href: '/dashboard/technology-routes', labelKey: 'technology_routes', icon: <Workflow className="h-4 w-4" />, tourClass: 'tour-calculator' },
   { href: '/dashboard/proximity', labelKey: 'proximity', icon: <Target className="h-4 w-4" />, tourClass: 'tour-proximity' },
   { href: '/cite', labelKey: 'cite', icon: <Quote className="h-4 w-4" />, descriptionKey: 'cite' },
+  { href: '/patch-notes', labelKey: 'patch_notes', icon: <Sparkles className="h-4 w-4" /> },
 ]
 
 export default function UnifiedHeader({ variant = 'auto' }: UnifiedHeaderProps) {

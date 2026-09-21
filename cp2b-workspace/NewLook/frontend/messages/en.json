@@ -8,6 +8,7 @@
       "about": "About",
       "references": "References",
       "cite": "How to Cite",
+      "patch_notes": "What’s New",
       "hub": "Hub",
       "proximity": "Proximity",
       "technology_routes": "Biogas Calculator",
@@ -1754,6 +1755,21 @@
     "fab": {
       "aria_label": "Open help and guided tour",
       "title": "Help & Tour"
+    }
+  },
+  "patchNotes": {
+    "eyebrow": "Release log",
+    "heading": "What’s new on the platform",
+    "lead": "Every PILAR-2b update, recorded with the date, the time and what changed. Newest entries first.",
+    "empty": "No updates recorded yet.",
+    "version_prefix": "Version {version}",
+    "pull_request": "PR #{number}",
+    "kind": {
+      "added": "New",
+      "changed": "Changed",
+      "fixed": "Fixed",
+      "security": "Security",
+      "data": "Data"
     }
   }
 }
