@@ -48,7 +48,22 @@ interface NavItemConfig {
   icon: React.ReactNode
   descriptionKey?: string
   tourClass?: string
+  /**
+   * Renders as a small, near-square outlined chip on desktop instead of a full
+   * nav link: no icon, 11px Calibri, 2px radius. For secondary entries that
+   * should be reachable without competing with the primary navigation.
+   *
+   * Desktop only -- the mobile menu keeps the full-size row, because an 11px
+   * target would fall below the touch size the rest of the header holds to.
+   */
+  compact?: boolean
 }
+
+/**
+ * Calibri is a Windows/Office font. Carlito is the metric-compatible open
+ * clone, which is what Linux and most Android devices actually resolve.
+ */
+const COMPACT_NAV_FONT = "Calibri, Carlito, 'Segoe UI', sans-serif"
 
 interface UnifiedHeaderProps {
   variant?: 'auto' | 'public' | 'authenticated'
@@ -66,7 +81,7 @@ const publicNavConfig: NavItemConfig[] = [
   { href: '/dashboard/proximity', labelKey: 'proximity', icon: <Target className="h-4 w-4" />, tourClass: 'tour-proximity' },
   { href: '/about', labelKey: 'about', icon: <Info className="h-4 w-4" /> },
   { href: '/cite', labelKey: 'cite', icon: <Quote className="h-4 w-4" /> },
-  { href: '/patch-notes', labelKey: 'patch_notes', icon: <Sparkles className="h-4 w-4" /> },
+  { href: '/patch-notes', labelKey: 'patch_notes', icon: <Sparkles className="h-4 w-4" />, compact: true },
 ]
 
 const authenticatedNavConfig: NavItemConfig[] = [
@@ -77,7 +92,7 @@ const authenticatedNavConfig: NavItemConfig[] = [
   { href: '/dashboard/technology-routes', labelKey: 'technology_routes', icon: <Workflow className="h-4 w-4" />, tourClass: 'tour-calculator' },
   { href: '/dashboard/proximity', labelKey: 'proximity', icon: <Target className="h-4 w-4" />, tourClass: 'tour-proximity' },
   { href: '/cite', labelKey: 'cite', icon: <Quote className="h-4 w-4" />, descriptionKey: 'cite' },
-  { href: '/patch-notes', labelKey: 'patch_notes', icon: <Sparkles className="h-4 w-4" /> },
+  { href: '/patch-notes', labelKey: 'patch_notes', icon: <Sparkles className="h-4 w-4" />, compact: true },
 ]
 
 export default function UnifiedHeader({ variant = 'auto' }: UnifiedHeaderProps) {
@@ -197,19 +212,41 @@ export default function UnifiedHeader({ variant = 'auto' }: UnifiedHeaderProps) 
             {navConfig.map((item) => {
               const isExternal = item.href.startsWith('http')
               const label = t(`nav.${item.labelKey}`)
-              const linkClass = `
+              const focusRing = isPublic
+                ? 'focus:ring-cp2b-lime'
+                : 'focus:ring-white focus:ring-offset-2 focus:ring-offset-[#1E5128]'
+
+              // Compact entries carry their own colours rather than reusing
+              // currentStyles.navLink: that token has no border, and the active
+              // public underline (an ::after bar) reads as noise at this size.
+              const compactClass = isPublic
+                ? (isActive(item.href)
+                    ? 'border-cp2b-green text-cp2b-green dark:border-emerald-400 dark:text-emerald-400'
+                    : 'border-gray-300 text-cp2b-gray-600 hover:border-cp2b-green hover:text-cp2b-green dark:border-slate-600 dark:text-slate-300 dark:hover:border-emerald-400 dark:hover:text-emerald-400')
+                : (isActive(item.href)
+                    ? 'border-white/60 bg-white/15 text-white'
+                    : 'border-white/30 text-green-100 hover:border-white/60 hover:text-white')
+
+              const linkClass = item.compact
+                ? `
+                ${item.tourClass || ''}
+                inline-flex items-center rounded-[2px] border px-2 py-[3px]
+                text-[11px] font-medium leading-none whitespace-nowrap
+                transition-colors duration-200 focus:outline-none focus:ring-2
+                ${focusRing}
+                ${compactClass}
+              `
+                : `
                 ${item.tourClass || ''}
                 flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium
                 transition-all duration-200 focus:outline-none focus:ring-2
-                ${isPublic
-                  ? 'focus:ring-cp2b-lime'
-                  : 'focus:ring-white focus:ring-offset-2 focus:ring-offset-[#1E5128]'
-                }
+                ${focusRing}
                 ${isActive(item.href)
                   ? currentStyles.navLinkActive
                   : currentStyles.navLink
                 }
               `
+              const linkStyle = item.compact ? { fontFamily: COMPACT_NAV_FONT } : undefined
 
               return isExternal ? (
                 <a
@@ -218,8 +255,9 @@ export default function UnifiedHeader({ variant = 'auto' }: UnifiedHeaderProps) 
                   target="_blank"
                   rel="noopener noreferrer"
                   className={linkClass}
+                  style={linkStyle}
                 >
-                  {item.icon}
+                  {item.compact ? null : item.icon}
                   <span>{label}</span>
                 </a>
               ) : (
@@ -227,9 +265,10 @@ export default function UnifiedHeader({ variant = 'auto' }: UnifiedHeaderProps) 
                   key={item.href}
                   href={item.href}
                   className={linkClass}
+                  style={linkStyle}
                   aria-current={isActive(item.href) ? 'page' : undefined}
                 >
-                  {item.icon}
+                  {item.compact ? null : item.icon}
                   <span>{label}</span>
                 </Link>
               )
