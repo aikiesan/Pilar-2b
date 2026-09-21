@@ -77,14 +77,33 @@ DATABASE_URL=$(grep DATABASE_URL .env | cut -d= -f2-) \
 ```bash
 cd /var/www/pilar2b/repo/cp2b-workspace/NewLook/frontend
 
-# Install any new npm packages
-npm ci --omit=dev
+# Install any new npm packages.
+#
+# NOT `--omit=dev`: typescript is a devDependency, so that flag produces a tree
+# that cannot build. The guard also self-heals a node_modules that has gone
+# incomplete on its own -- observed 2026-09-21, where node_modules/next existed
+# but node_modules/next/dist/bin/next did not and the build died with
+# `sh: 1: next: not found`.
+{ test -x node_modules/.bin/next || npm ci; }
 
-# Build for production (outputs to .next/standalone)
+# Build for production, then re-sync the standalone assets IN THE SAME CHAIN.
 npm run build
+
+# Re-sync the standalone assets. `next build` regenerates .next/standalone but
+# does NOT place static/ or public/ inside it, so this copy is part of the build,
+# not an optional extra. Skipping it leaves every CSS/JS chunk 404ing.
+rm -rf .next/standalone/.next/static .next/standalone/public
+cp -r .next/static .next/standalone/.next/static
+cp -r public .next/standalone/public
 ```
 
 Expected output ends with: `✓ Compiled successfully`
+
+> ⚠️ **Never run `npm run build` on its own.** Each build replaces `.next/static`
+> with freshly hashed chunks while the running server keeps serving from
+> `.next/standalone/.next/static`. Build without the copy above and the live site
+> stays up but loses every stylesheet and script. Keep the `&&` chain intact: it
+> also means a failed build never deletes a working standalone bundle.
 
 If the build fails, check:
 - `cat .env.local` — is `NEXT_PUBLIC_API_URL` set to `https://cp2b.unicamp.br/pilar2b/api`?
@@ -97,8 +116,19 @@ If the build fails, check:
 ```bash
 cd /var/www/pilar2b/repo/cp2b-workspace/NewLook
 
-# Reload without downtime (graceful restart)
-pm2 reload ecosystem.config.js --update-env
+# Restart the two PILAR processes BY NAME.
+#
+# Do NOT use `pm2 reload ecosystem.config.js`. That file declares
+# `script: 'npm', args: 'run start'`, but the process actually running is
+# `.next/standalone/server.js` (confirm with `pm2 describe pilar-frontend`).
+# Reloading from the file would replace the running server with a different
+# one. The live definition lives in ~/.pm2/dump.pm2, which `pm2 save` writes.
+#
+# Naming them also protects the other apps on this VM -- cp2b-backend,
+# abiove-*, arqueia-*, postgrest-local -- which a config reload could disturb.
+pm2 restart pilar-backend --update-env
+pm2 restart pilar-frontend --update-env
+pm2 save
 
 # Confirm both processes are online
 pm2 status
@@ -141,11 +171,14 @@ sudo systemctl status apache2
 
 ```bash
 cd /var/www/pilar2b/repo
+git restore cp2b-workspace/NewLook/frontend/next-env.d.ts
 git pull origin main
 cd cp2b-workspace/NewLook/frontend
-npm ci --omit=dev && npm run build
-cd ..
-pm2 reload ecosystem.config.js --update-env
+{ test -x node_modules/.bin/next || npm ci; } && npm run build \
+  && rm -rf .next/standalone/.next/static .next/standalone/public \
+  && cp -r .next/static .next/standalone/.next/static \
+  && cp -r public .next/standalone/public \
+  && pm2 restart pilar-frontend --update-env && pm2 save
 pm2 logs pilar-frontend --lines 10 --nostream
 ```
 
@@ -194,8 +227,12 @@ git checkout <hash> -- cp2b-workspace/NewLook/frontend/src
 git checkout <hash> -- cp2b-workspace/NewLook/backend/app
 
 # Rebuild and restart
-cd cp2b-workspace/NewLook/frontend && npm run build
-cd .. && pm2 reload ecosystem.config.js
+cd cp2b-workspace/NewLook/frontend
+{ test -x node_modules/.bin/next || npm ci; } && npm run build \
+  && rm -rf .next/standalone/.next/static .next/standalone/public \
+  && cp -r .next/static .next/standalone/.next/static \
+  && cp -r public .next/standalone/public \
+  && pm2 restart pilar-frontend --update-env && pm2 save
 ```
 
 ---
