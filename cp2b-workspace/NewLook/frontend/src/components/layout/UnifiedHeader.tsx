@@ -86,6 +86,11 @@ const publicNavConfig: NavItemConfig[] = [
 
 const authenticatedNavConfig: NavItemConfig[] = [
   { href: '/dashboard', labelKey: 'hub', icon: <Home className="h-4 w-4" />, descriptionKey: 'hub' },
+  // The guide was reachable only from the public config, and open mode
+  // (NEXT_PUBLIC_DISABLE_AUTH=true) makes every visitor read as authenticated --
+  // so on the live site nothing linked it at all. The page built and routed
+  // fine; it just had no entry point.
+  { href: '/guide', labelKey: 'guide', icon: <BookOpen className="h-4 w-4" /> },
   { href: '/map', labelKey: 'map', icon: <Map className="h-4 w-4" />, descriptionKey: 'map', tourClass: 'tour-map' },
   { href: '/dashboard/advanced-analysis', labelKey: 'advanced', icon: <BarChart3 className="h-4 w-4" />, tourClass: 'tour-analysis' },
   { href: '/dashboard/scientific-database', labelKey: 'scientific_database', icon: <BookOpen className="h-4 w-4" />, tourClass: 'tour-science' },
