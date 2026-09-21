@@ -1763,7 +1763,6 @@
     "lead": "Every PILAR-2b update, recorded with the date, the time and what changed. Newest entries first.",
     "empty": "No updates recorded yet.",
     "version_prefix": "Version {version}",
-    "pull_request": "PR #{number}",
     "kind": {
       "added": "New",
       "changed": "Changed",
