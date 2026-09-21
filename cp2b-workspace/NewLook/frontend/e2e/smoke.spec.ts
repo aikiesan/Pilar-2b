@@ -76,18 +76,25 @@ test.describe('Smoke — API health', () => {
 })
 
 test.describe('Smoke — Locale routing', () => {
-  test('pt-BR route contains Portuguese content', async ({ page }) => {
+  // These assert only that the locale segment reaches the document. Whether the
+  // *content* is actually in that language is a separate, stricter check that
+  // lives in i18n.public.spec.ts — and unlike these, it runs in CI's `public`
+  // project.
+  //
+  // What used to be here was `expect(html).toMatch(/...|[Bb]iogas|.../)` for the
+  // English route. "Biogas" is spelled the same in Portuguese, so that assertion
+  // held on a fully Portuguese page: a test that could not fail. Do not reach for
+  // a word list here again.
+
+  test('pt-BR route sets lang="pt-BR"', async ({ page }) => {
     await page.goto(`${BASE}/pt-BR/map`)
     await page.waitForLoadState('domcontentloaded')
-    const html = await page.content()
-    // At least one Portuguese word should appear somewhere in the rendered page
-    expect(html).toMatch(/[Mm]unicípio|[Bb]iogas|[Pp]otencial|[Cc]ampinas|[Ss]ão Paulo/)
+    await expect(page.locator('html')).toHaveAttribute('lang', 'pt-BR')
   })
 
-  test('en route contains English content', async ({ page }) => {
+  test('en route sets lang="en"', async ({ page }) => {
     await page.goto(`${BASE}/en/map`)
     await page.waitForLoadState('domcontentloaded')
-    const html = await page.content()
-    expect(html).toMatch(/[Mm]unicipality|[Bb]iogas|[Pp]otential|[Mm]ap|[Ss]earch/)
+    await expect(page.locator('html')).toHaveAttribute('lang', 'en')
   })
 })

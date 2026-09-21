@@ -10,6 +10,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from '@/navigation'
+import { useTranslations } from 'next-intl'
 import { useGeospatialData } from '@/hooks/useGeospatialData'
 import { Search, X, MapPin, TrendingUp } from 'lucide-react'
 import type { MunicipalityFeature } from '@/types/geospatial'
@@ -39,6 +40,7 @@ interface GlobalSearchProps {
 }
 
 export default function GlobalSearch({ variant = 'light' }: GlobalSearchProps) {
+  const t = useTranslations('common.search')
   const router = useRouter()
   const { data } = useGeospatialData()
 
@@ -132,10 +134,10 @@ export default function GlobalSearch({ variant = 'light' }: GlobalSearchProps) {
         <button
           onClick={() => { setOpen(true); setTimeout(() => inputRef.current?.focus(), 50) }}
           className={triggerClass}
-          aria-label="Buscar município (tecla /)"
+          aria-label={t('trigger_aria')}
         >
           <Search className="w-4 h-4 shrink-0" />
-          <span className="hidden lg:inline text-xs">Buscar município</span>
+          <span className="hidden lg:inline text-xs">{t('trigger')}</span>
           <kbd className="hidden lg:inline px-1 py-0.5 text-[10px] font-mono rounded bg-black/10 dark:bg-white/10">
             /
           </kbd>
@@ -157,8 +159,8 @@ export default function GlobalSearch({ variant = 'light' }: GlobalSearchProps) {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={onKeyDownList}
-              placeholder="Nome ou código IBGE..."
-              aria-label="Buscar município"
+              placeholder={t('placeholder')}
+              aria-label={t('input_aria')}
               className={`flex-1 bg-transparent text-sm outline-none ${
                 variant === 'dark' ? 'text-white placeholder-green-300/50' : 'text-gray-900 placeholder-gray-400'
               }`}
@@ -177,10 +179,10 @@ export default function GlobalSearch({ variant = 'light' }: GlobalSearchProps) {
             <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-xl overflow-hidden z-[600]">
               {results.length === 0 ? (
                 <div className="px-4 py-6 text-center text-sm text-gray-500">
-                  Nenhum município encontrado para &quot;{query}&quot;
+                  {t('no_results', { query })}
                 </div>
               ) : (
-                <ul role="listbox" aria-label="Resultados da busca">
+                <ul role="listbox" aria-label={t('results_aria')}>
                   {results.map((muni, idx) => {
                     const total = muni.properties.total_biogas_m3_year
                     return (
@@ -210,7 +212,7 @@ export default function GlobalSearch({ variant = 'light' }: GlobalSearchProps) {
                         <div className="flex items-center gap-1 shrink-0 ml-3">
                           <TrendingUp className="w-3 h-3 text-gray-400" />
                           <span className={`text-xs font-semibold ${getPotentialColor(total)}`}>
-                            {formatBig(total)} m³/ano
+                            {formatBig(total)} {t('per_year')}
                           </span>
                         </div>
                       </li>
@@ -218,7 +220,7 @@ export default function GlobalSearch({ variant = 'light' }: GlobalSearchProps) {
                   })}
                   <li role="presentation" className="px-4 py-2 bg-gray-50 dark:bg-slate-900/40 border-t border-gray-100 dark:border-slate-700">
                     <p className="text-[10px] text-gray-400 text-center">
-                      ↑↓ navegar · Enter selecionar · Esc fechar
+                      {t('hints')}
                     </p>
                   </li>
                 </ul>

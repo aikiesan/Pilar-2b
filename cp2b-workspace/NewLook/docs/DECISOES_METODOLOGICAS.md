@@ -4,6 +4,21 @@ Registro das decisões que não são deriváveis do código. Cada entrada é dat
 
 ---
 
+## 2026-08-27 — Reconciliação Atlas–FDE validada e valor conservador atualizado
+
+**Registro completo:** `docs/auditorias/Reconciliacao_Atlas_FDE_Cascade.md`.
+
+**Decisão:** o resultado de referência de **7,832 bi Nm³ CH₄/ano** (21,46 M m³/dia; 39,36% do teórico legado) é a reconstrução Atlas Real expressa na forma multiplicativa FDE (`FC × FCo × FS × FL`) sobre um inventário rebaseado. A cascata publicável passa a explicitar o estágio `route/basis reconciliation`: 19,901 → 14,605 → 13,936 → 7,832 bi Nm³/ano.
+
+- Os três gates de cabeçalho passam: legado 19,901; Atlas Ideal 9,841; Atlas Real 7,832 bi Nm³/ano.
+- `FS = FL = 1,0` nas 15 linhas canônicas do Atlas Real. FC e FCo são os fatores vinculantes no cenário de referência; FS e FL são exercitados no ramo conservador.
+- O valor conservador vivo e reprodutível é **3,122 bi Nm³/ano** (8,55 M m³/dia; 15,69%). Ele **substitui** o valor aproximado de 3,301 registrado em 2026-08-08, que fica preservado abaixo apenas como histórico da auditoria anterior.
+- O catálogo `fde_residue_availability.csv` não dirige os cenários publicados.
+- A correção segura para a ausência de `CASCAS_CITROS_IND` é um alias com `CASCAS_CITROS`, não a duplicação do substrato. O diff permanece proposto e não aplicado.
+- O inventário canônico e a verificação MapBiomas adotam o ano-base **2023**.
+
+---
+
 ## 2026-08-08 — Uma equação, dois conjuntos de parâmetros que calculam, um catálogo, três cenários
 
 **Contexto:** existiam três parametrizações de disponibilidade no repositório, confundidas como candidatas ao mesmo papel. Não são. São três coisas com funções distintas (Aventura B; auditoria em `docs/auditorias/B_reexpressao_fde_2026-08-08.md`).

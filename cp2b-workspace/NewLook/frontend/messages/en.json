@@ -35,6 +35,17 @@
       "open": "Open menu",
       "close": "Close menu"
     },
+    "search": {
+      "trigger": "Search municipality",
+      "trigger_aria": "Search municipality (press /)",
+      "placeholder": "Name or IBGE code...",
+      "input_aria": "Search municipality",
+      "results_aria": "Search results",
+      "no_results": "No municipality found for \"{query}\"",
+      "hints": "↑↓ navigate · Enter select · Esc close",
+      "per_year": "m³/year"
+    },
+    "logo_alt": "PILAR-2b - Intelligent Platform for Locating and Using Residues for Biogas and Bioproducts",
     "badge": {
       "beta": "Beta"
     },
@@ -275,6 +286,13 @@
     "title": "Interactive Map",
     "legend": "Map Legend",
     "loading_map": "Loading map...",
+    "loading": {
+      "title": "Loading Interactive Map",
+      "subtitle": "5,571 municipalities in Brazil",
+      "step_geodata": "Loading geospatial data",
+      "step_geometries": "Processing geometries",
+      "step_layers": "Initializing layers"
+    },
     "panels": {
       "filters": "Filters",
       "layers": "Layers",
@@ -345,6 +363,7 @@
     "colorModes": {
       "label": "Choropleth Mode",
       "biogas": "Biogas Potential",
+      "biomass": "Biomass Potential",
       "cn_profile": "C/N Profile",
       "tipologia": "Residue typology",
       "regime": "Nutrient regime",
@@ -431,6 +450,89 @@
     "scenario_real_tip": "Real Scenario (short term): residue that actually reaches a digester today — current collection rates and competing uses. SP: 21.5 Mm³/day of biomethane. Method: Atlas de Bioenergia SP 2020.",
     "scenario_ideal_tip": "Ideal Scenario (frontier): 100% of generated residue collected and treated. An infrastructure assumption — the chemistry (BMP, TS, VS, CH₄ content) is identical to the Real Scenario. SP: 27.0 Mm³/day of biomethane.",
     "scenario_served_note": "Real and Ideal scenarios are available for São Paulo only.",
+    "thematic": {
+      "groups": {
+        "setorial": "Sector",
+        "residuo": "Residue",
+        "energia": "Energy",
+        "logistica": "Logistics",
+        "analise": "Analyses"
+      },
+      "show": "Show thematic maps",
+      "hide": "Hide thematic maps",
+      "title": "Thematic maps",
+      "validating_tooltip": "{description} Under validation for MG.",
+      "validating_badge": "VALIDATING"
+    },
+    "profilePanel": {
+      "detail_aria": "Details for the municipality of {name}",
+      "municipality": "Municipality",
+      "municipality_with_region": "Municipality · {region}",
+      "close_aria": "Close municipality panel",
+      "residue_profile": "2023 Residue Profile",
+      "biogas_potential": "Biogas potential",
+      "overview": "Overview",
+      "population": "Population",
+      "area": "Area",
+      "density_unit": "inhab/km²",
+      "composition_by_source": "Composition by Source",
+      "sector_agricultural": "Agricultural",
+      "sector_livestock": "Livestock",
+      "sector_urban": "Urban",
+      "sector_forestry": "Forestry",
+      "no_sector_breakdown": "No sector breakdown for this municipality in this scenario.",
+      "agri_residues": "Agricultural Residues",
+      "livestock_residues": "Livestock Residues",
+      "urban_residues": "Urban Residues",
+      "urban_residues_scenario": "Urban Residues · {scenario}",
+      "urban_total": "Total urban potential",
+      "ch4_unit": "Nm³ CH₄/year",
+      "scenario_note": "Estimated CH₄ potential per scenario. It does not represent collected mass in t/year.",
+      "no_urban_inventory": "No validated urban inventory",
+      "no_urban_inventory_mg": "No validated urban inventory for MG",
+      "urban_note": "OFMSW, urban pruning and WWTP sludge were not inferred from population.",
+      "full_profile": "View Full Profile",
+      "per_year_unit": "m³/year"
+    },
+    "infrastructure": {
+      "na": "N/A",
+      "no_name": "Unnamed",
+      "load_failed": "Failed to load the {layer} layer",
+      "layer_empty": "This layer has no features available on the server",
+      "names": {
+        "road": "Road",
+        "pipeline": "Gas pipeline",
+        "transmission_line": "Transmission line",
+        "substation": "Substation",
+        "biogas_plant": "Biogas plant",
+        "biogas_plant_of": "{type} plant",
+        "biogas": "Biogas",
+        "ete": "Wastewater treatment plant"
+      },
+      "fields": {
+        "type": "Type",
+        "operator": "Operator",
+        "status": "Status",
+        "diameter": "Diameter",
+        "max_pressure": "Max pressure",
+        "length": "Length",
+        "section": "Section",
+        "concessionaire": "Concessionaire",
+        "voltage": "Voltage",
+        "operation_year": "Year of operation",
+        "power": "Power",
+        "fuel": "Fuel",
+        "owner": "Owner",
+        "ceg": "CEG",
+        "operation_start": "Operation start",
+        "subtype": "Subtype",
+        "source": "Source",
+        "treatment_type": "Treatment type",
+        "system": "System",
+        "population_served": "Population served",
+        "removal_efficiency": "Removal efficiency"
+      }
+    },
     "cnLegend": {
       "title": "C:N Ratio Profile",
       "n_rich": "Nitrogen-rich (< 20)",
@@ -679,49 +781,204 @@
       "print_header": "PILAR-2b BiogasAtlas · NIPE-UNICAMP · FAPESP 2025/08745-2",
       "print_title": "Biogas Profile"
     },
+    "cite": {
+      "title": "How to Cite PILAR-2b",
+      "subtitle": "Platform developed by CP2b / NIPE-UNICAMP. When using the platform’s data, maps or results in academic, technical or commercial work, please cite it using one of the formats below.",
+      "copy": "Copy",
+      "copied": "Copied!",
+      "copyright_title": "Copyright & registration",
+      "copyright_body": "© 2026 NIPE-UNICAMP (CP2b). Software registered with INPI — process no. <strong>BR512026003115-0</strong> (issued 12/05/2026, valid until 2076). Research funded by FAPESP (process 2024/01112-1 — CP2Bsd).",
+      "license_title": "License",
+      "license_source_label": "Source code:",
+      "license_data_label": "Data and documentation:",
+      "license_data_note": "(attribution)",
+      "license_repo_label": "Repository / CITATION.cff:",
+      "why_title": "Why cite",
+      "why": "Citation ensures scientific traceability, enables reproducibility of the analyses, gives due credit to FAPESP-funded research, and acknowledges the INPI-registered software. It also helps sustain the open development of the platform.",
+      "refs_title": "Scientific basis",
+      "refs": "Analyses are grounded in a literature review of 399 scientific references (372 peer-reviewed), available in the platform’s Scientific Database.",
+      "refs_link": "Open the Scientific Database (399 references)"
+    },
     "about": {
       "back": "Back",
+      "back_aria": "Back to home page",
       "fapesp_badge": "FAPESP 2025/08745-2",
       "title": "PILAR-2b",
       "full_name": "Intelligent Platform for Locating and Using Residues for Biogas and Bioproducts",
-      "subtitle": "Center of Excellence affiliated with NIPE/UNICAMP, funded by FAPESP",
+      "subtitle": "A Center of Excellence affiliated with NIPE/UNICAMP, dedicated to research and innovation in biogas and bioproducts for the sustainable development of the State of São Paulo.",
       "stat_biogas": "m³ biogas/year",
       "stat_investment": "Investment",
       "stat_municipalities": "Municipalities",
       "stat_axes": "Thematic Axes",
       "stat_axes_short": "Axes",
+      "stat_biogas_short": "m³/year",
       "coordinator_heading": "Coordination",
       "coordinator_subtitle": "Scientific leadership of the Center of Excellence in Biogas",
       "coordinator_title": "General Coordinator of PILAR-2b",
       "coordinator_degree": "Prof. Dr.",
+      "coordinator_photo_alt": "Prof. Dr. Bruna de Souza Moraes",
+      "coordinator_credentials": [
+        "Permanent Researcher at NIPE/UNICAMP",
+        "Collaborating Professor, PSE/FEM/UNICAMP",
+        "15+ years of experience in bioenergy"
+      ],
       "formation_heading": "Academic Background",
+      "formation_items": [
+        "• PhD in Engineering - USP (2012)",
+        "• MSc in Engineering - USP (2009)",
+        "• Food Engineering - USP (2007)",
+        "• Post-doc: LNBR + University of Southern Denmark"
+      ],
+      "expertise_tags": [
+        "Anaerobic Digestion",
+        "Biorefineries",
+        "Biohydrogen"
+      ],
       "about_project_heading": "About the Project",
-      "about_project_subtitle": "Mission, vision and values of PILAR-2b",
+      "about_project_subtitle": "The mission, vision and values guiding the São Paulo Center for Studies in Biogas and Bioproducts.",
       "tab_mission": "Mission",
       "tab_vision": "Vision",
       "tab_values": "Values",
       "mission_heading": "Our Mission",
-      "mission_model_label": "Model: Living laboratory...",
+      "mission_body": "To develop research, technologies and innovative biogas solutions with industrial, environmental and social motivation, promoting the intelligent use of residues for the sustainable development of the State of São Paulo and contributing to Brazil's energy transition.",
+      "mission_model_label": "Model:",
+      "mission_model_value": "A living laboratory integrating academia, industry, government and society",
       "vision_heading": "Our Vision",
-      "vision_validity_label": "Term: February 2025 – February 2030",
+      "vision_body": "To be a national and international reference in the efficient, sustainable management of urban and agricultural residues, making the State of São Paulo a showcase for intelligent biogas solutions and contributing to the consolidation of the circular bioeconomy in Brazil.",
+      "vision_validity_label": "Term:",
+      "vision_validity_value": "February 2025 - February 2030 (5 years)",
       "values_heading": "Our Values",
+      "values_items": [
+        "A transdisciplinary approach to innovative solutions",
+        "Circular bioeconomy and the valorisation of residues",
+        "Commitment to the decarbonisation agenda through 2050",
+        "Education as an instrument of social transformation",
+        "Projects developed with a local approach and designed to be replicated"
+      ],
       "axes_heading": "8 Integrated Thematic Axes",
-      "axes_subtitle": "Multidisciplinary structure integrating technical, social, and environmental dimensions",
-      "sp_potential_heading": "São Paulo Potential",
-      "sp_potential_subtitle": "The state of São Paulo concentrates the largest biogas production potential in Brazil",
+      "axes_subtitle": "A multidisciplinary structure spanning the entire biogas and bioproducts value chain.",
+      "axis_label": "Axis {number}",
+      "axes_items": [
+        {
+          "title": "Residue Inventory and Technology Mapping",
+          "description": "Systematic survey of residue sources and mapping of the technologies available for biogas production in the State of São Paulo."
+        },
+        {
+          "title": "Core Science and Technology",
+          "description": "Fundamental research into anaerobic digestion, microbiology and biochemical processes. Coordinated by Prof. Lucas Tadeu Fuess."
+        },
+        {
+          "title": "Process and Bioprocess Engineering",
+          "description": "Development and optimisation of biodigesters, process scale-up and the integration of production systems."
+        },
+        {
+          "title": "Integrated Socioeconomic, Environmental and Energy Assessment",
+          "description": "Life-cycle analysis, economic viability, social impacts and the energy balance of biogas projects."
+        },
+        {
+          "title": "Innovation in Bioproducts",
+          "description": "Development of biohydrogen, biofertilisers, bio-CO₂ and other high-value bioproducts."
+        },
+        {
+          "title": "Education and Training",
+          "description": "Training of qualified human resources through courses, workshops and postgraduate programmes."
+        },
+        {
+          "title": "Scientific Outreach and Communication",
+          "description": "Dissemination of scientific knowledge to society, the media and decision-makers."
+        },
+        {
+          "title": "Public Policy and Regulatory Innovation",
+          "description": "Support for the formulation of public policy and regulatory frameworks for the biogas sector."
+        }
+      ],
+      "sp_potential_heading": "São Paulo's Potential",
+      "sp_potential_subtitle": "The State of São Paulo holds more than 50% of Brazil's biogas potential.",
       "unit_m3_biogas": "m³ biogas/year",
       "unit_m3_biomethane": "m³ biomethane/day",
+      "unit_jobs": "Jobs",
+      "unit_plants": "Biogas plants",
+      "unit_hectares": "Hectares of sugarcane",
+      "unit_ghg": "GHG reduction",
+      "note_total_potential": "Estimated total potential",
+      "note_natural_gas": "32% of natural gas consumption",
+      "note_jobs": "Direct and indirect",
+      "note_plants": "84% sugar-energy sector",
+      "note_hectares": "50% of national production",
+      "note_ghg": "State climate target",
       "partnerships_heading": "Strategic Partnerships",
-      "partnerships_subtitle": "Collaboration network spanning institutions, companies, and government",
+      "partnerships_subtitle": "A national and international collaboration network for research and innovation.",
+      "partnership_types": {
+        "international": "International",
+        "national": "National",
+        "institutional": "Institutional",
+        "research": "Research",
+        "academic": "Academic",
+        "industry": "Industry",
+        "association": "Association"
+      },
+      "partnership_contacts": {
+        "aalborg": "Prof. Jens Bo Holm-Nielsen",
+        "cibiogas": "10+ years of partnership",
+        "labioen": "Bioenergy Laboratory",
+        "usp_rcgi": "Research Centre for Greenhouse Gas Innovation",
+        "unesp": "PhD in Bioenergy",
+        "unica": "Brazilian Sugarcane Industry Association",
+        "abiogas": "Brazilian Biogas Association",
+        "abrema": "Brazilian Waste Association"
+      },
       "since_1992": "Since 1992",
       "nipe_heading": "NIPE/UNICAMP",
+      "nipe_body": "The Interdisciplinary Center for Energy Planning is a UNICAMP research centre dedicated to the integrated study of energy, environmental and sustainable-development questions.",
+      "nipe_items": [
+        "30+ years of excellence in energy research",
+        "A multidisciplinary team of researchers",
+        "Projects with national and international impact"
+      ],
       "location_heading": "Location",
-      "location_address": "Universidade Estadual de Campinas\nZeferino Vaz University City\nCampinas, SP — Brazil",
+      "location_line1": "Universidade Estadual de Campinas",
+      "location_line2": "Zeferino Vaz University City",
+      "location_line3": "Campinas, SP - Brazil",
       "timeline_heading": "Project Timeline",
+      "timeline_subtitle": "Follow the main milestones of PILAR-2b's development, from its start through to the planned conclusion.",
+      "timeline_events": [
+        {
+          "date": "February 2025",
+          "title": "PILAR-2b Project Launch",
+          "description": "Official launch of the São Paulo Center for Studies in Biogas and Bioproducts with FAPESP funding.",
+          "details": [
+            "FAPESP project 2025/08745-2 approved",
+            "Multidisciplinary team assembled",
+            "The 8 thematic axes structured"
+          ]
+        },
+        {
+          "date": "March 2025",
+          "title": "Development of the PILAR-2b V3 Platform",
+          "description": "Start of development of the modern web platform for biogas potential analysis.",
+          "details": [
+            "Next.js 15 + FastAPI architecture",
+            "MapBiomas integration",
+            "MCDA system implemented",
+            "Interactive dashboard with 645 municipalities"
+          ]
+        },
+        {
+          "date": "February 2030",
+          "title": "Project Conclusion",
+          "description": "Close of PILAR-2b's first phase, leaving a legacy of research and innovation.",
+          "details": [
+            "Final impact report",
+            "Scientific publications",
+            "Technology transfer"
+          ]
+        }
+      ],
       "newsletter_heading": "Follow the progress of PILAR-2b",
+      "newsletter_description": "Receive updates on the project, scientific publications and events from the biogas sector.",
       "cta_heading": "Explore the Platform",
-      "cta_subtitle": "Access the interactive dashboard and explore biogas potential data for all São Paulo municipalities",
-      "cta_button_dashboard": "Access Dashboard",
+      "cta_subtitle": "Open the interactive dashboard and explore biogas potential data for all 645 municipalities in São Paulo.",
+      "cta_button_dashboard": "Open Dashboard",
       "cta_button_register": "Create Account"
     },
     "dashboard_about": {
@@ -1186,6 +1443,7 @@
   "calculator": {
     "title": "Biogas Viability Calculator",
     "subtitle": "Discover your farm's potential in minutes",
+    "footer_note": "CP2B / UNICAMP · Based on validated scientific coefficients · ",
     "common": {
       "next": "Next",
       "back": "Back",
@@ -1224,13 +1482,20 @@
       "hectaresLabel": "Planted sugarcane area (ha)",
       "cropTonnesLabel": "Available residue quantity (t/year)",
       "cropTonnesHint": "Enter the total dry residue available for the biodigester",
+      "swine": "Swine",
+      "swineDesc": "Swine manure — intensive or semi-intensive farming",
+      "cattle": "Cattle",
+      "cattleDesc": "Cattle manure — beef and/or dairy",
+      "poultry": "Poultry",
+      "poultryDesc": "Poultry manure — laying and/or broiler",
       "livestockInstructions": "Enter the number of heads per species (leave blank if not applicable):",
       "suinos": "Swine",
       "bovinosCorte": "Beef Cattle",
       "bovinosLeite": "Dairy Cattle",
       "galPostura": "Laying Hens",
       "galCorte": "Broiler Chickens",
-      "heads": "heads"
+      "heads": "heads",
+      "seasonalWarning": "Seasonal biomass. The calculations assume storage with an efficiency loss (~20%). Combining it with other biomass will be possible in a future release."
     },
     "step3": {
       "title": "Seasonality",
@@ -1290,6 +1555,47 @@
       "feedback": "Send feedback / Report inconsistency",
       "newCalculation": "New simulation"
     }
+  },
+  "guide": {
+    "sidebar_heading": "Platform Guide",
+    "main_topics": "Main topics",
+    "nav_intro": "Introduction",
+    "nav_about": "About the platform",
+    "nav_open_map": "→ Open the Map",
+    "topics_label": "Topics",
+    "nav_map": "Using the Map",
+    "nav_analyses": "Advanced Analyses",
+    "nav_science": "Scientific Basis",
+    "nav_calculator": "Biogas Calculator",
+    "nav_proximity": "Proximity Analysis",
+    "banner_title": "Open the Interactive Map",
+    "banner_subtitle": "Start in São Paulo, filter by residue, or browse any state in Brazil.",
+    "eyebrow": "Platform guide",
+    "heading": "Everything about PILAR-2b",
+    "lead": "Explore each feature or take a quick tour of the platform. The topics below cover practical use, the methodology, and the most common questions.",
+    "start_tour": "Start guided tour",
+    "topics_items": [
+      {
+        "title": "Interactive Map",
+        "description": "Visually explore the biogas potential of every municipality in São Paulo."
+      },
+      {
+        "title": "Analyses",
+        "description": "Comparative charts by region, residue type, and time horizon."
+      },
+      {
+        "title": "Scientific Basis",
+        "description": "The methodology, sources, and references behind the calculations."
+      },
+      {
+        "title": "Biogas Calculator",
+        "description": "Estimate production from your own custom parameters."
+      },
+      {
+        "title": "Proximity Analysis",
+        "description": "Identify neighbouring municipalities with complementary potential."
+      }
+    ]
   },
   "guide_articles": {
     "sidebar": {

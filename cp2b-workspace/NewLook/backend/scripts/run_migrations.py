@@ -13,6 +13,7 @@ Usage:
 """
 
 import argparse
+import importlib
 import logging
 import os
 import sys
@@ -26,6 +27,40 @@ MIGRATIONS_DIR = BACKEND_DIR / "app" / "migrations"
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("run_migrations")
+
+# Seeders run in this order, and the order is load-bearing for the last two:
+# migration 030 creates `municipality_typology` empty, load_municipality_typology
+# INSERTs all 1498 rows, and load_dossier_sp_indices then UPDATEs São Paulo's 645
+# with the N-additive C:N that migration 031 added. Running the second alone
+# matches no rows and reports 0 loaded.
+SEEDERS = (
+    "load_biomass_from_master",
+    "sync_db_canonical",
+    "ingest_all_scientific_articles",
+    "load_municipality_typology",
+    "load_dossier_sp_indices",
+)
+
+
+def run_seeder(name: str) -> None:
+    """Run one seeder by module name, logging rather than aborting on refusal.
+
+    The loaders raise SystemExit for a deliberate refusal — a missing raw
+    snapshot (they live under backend/data/raw/, which is gitignored, so they
+    never arrive with a clone) or a failed validation gate. Neither is a failure
+    of the migration run, and plain `except Exception` would not catch it:
+    SystemExit derives from BaseException, so it would abort every later seeder.
+    """
+    try:
+        module = importlib.import_module(f"scripts.{name}")
+        logger.info(f"Running {name}...")
+        status = module.main()
+        if status:
+            logger.warning(f"Seeder {name} finished with status {status}")
+    except SystemExit as declined:
+        logger.warning(f"Seeder {name} declined: {declined}")
+    except Exception as err:
+        logger.warning(f"Seeder {name} skipped or errored: {err}")
 
 
 def get_db_url() -> str:
@@ -117,29 +152,8 @@ def main():
             # Clear CLI args so child modules using argparse do not fail on --seed
             sys.argv = [sys.argv[0]]
 
-            try:
-                from scripts.load_biomass_from_master import main as load_biomass
-
-                logger.info("Running load_biomass_from_master...")
-                load_biomass()
-            except Exception as e:
-                logger.warning(f"Seeder load_biomass_from_master skipped or errored: {e}")
-
-            try:
-                from scripts.sync_db_canonical import main as sync_canonical
-
-                logger.info("Running sync_db_canonical...")
-                sync_canonical()
-            except Exception as e:
-                logger.warning(f"Seeder sync_db_canonical skipped or errored: {e}")
-
-            try:
-                from scripts.ingest_all_scientific_articles import main as ingest_articles
-
-                logger.info("Running ingest_all_scientific_articles...")
-                ingest_articles()
-            except Exception as e:
-                logger.warning(f"Seeder ingest_all_scientific_articles skipped or errored: {e}")
+            for name in SEEDERS:
+                run_seeder(name)
 
     finally:
         conn.close()

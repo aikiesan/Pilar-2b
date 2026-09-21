@@ -26,6 +26,27 @@ jobs:
         run: npm ci
       - name: Lint
         run: npm run lint
+      # Blocking from the day it was added: both were verified green on main at
+      # 7499a6c before being wired in here.
+      #
+      # i18n:check is the gate that would have caught the eight missing
+      # calculator.step2.* keys, which shipped to the English wizard as raw key
+      # names because nothing compared the catalogs. It also flags ICU
+      # placeholder drift, which next-intl only raises at render time.
+      #
+      # typecheck covers what `next build` already type-checks, but fails in
+      # seconds instead of after a full build. Note it does NOT yet cover
+      # e2e/, src/test or __tests__ — those are excluded in tsconfig.json and
+      # currently carry 153 errors (tracked in
+      # docs/planning/ROADMAP_2026-09_EN_AND_LEAN.md).
+      # Two checks: catalog parity, and a scan of the already-translated files
+      # for new hardcoded Portuguese. The scan exists because the e2e locale
+      # test only sees what renders on page load — popups and expandable panels
+      # stayed fully Portuguese underneath a passing /en/map.
+      - name: i18n catalog parity and hardcoded-string scan
+        run: npm run i18n:check
+      - name: Typecheck
+        run: npm run typecheck
       - name: Build
         run: npm run build
         env:
@@ -89,6 +110,16 @@ jobs:
         run: npm ci
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
+      # Blocking, unlike the broad suite below. The locale assertions read text
+      # rendered from the message catalogs, not from the API, so the CORS
+      # problem that forces the next step to be soft does not reach them —
+      # verified locally with no backend running at all.
+      - name: Locale integrity (/en/ renders no Portuguese UI)
+        run: npx playwright test --project=public e2e/i18n.public.spec.ts
+        env:
+          PLAYWRIGHT_BASE_URL: http://localhost:3000
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL != '' && secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co' }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY != '' && secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-anon-key-for-build' }}
       # Soft gate (continue-on-error): the suite is not reliably green in CI
       # because NEXT_PUBLIC_API_URL below points the localhost:3000 frontend
       # at the live production backend, whose CORS policy rejects localhost —

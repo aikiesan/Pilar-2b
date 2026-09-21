@@ -172,7 +172,7 @@ export default function UnifiedHeader({ variant = 'auto' }: UnifiedHeaderProps) 
             >
               <Image
                 src={currentStyles.logo}
-                alt="PILAR-2b - Plataforma Inteligente de Localização e Aproveitamento de Resíduos para Biogas e Bioprodutos"
+                alt={t('logo_alt')}
                 width={140}
                 height={48}
                 className={`transition-transform group-hover:scale-105 ${currentStyles.logoClass}`}

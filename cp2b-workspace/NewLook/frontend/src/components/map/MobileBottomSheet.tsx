@@ -250,7 +250,7 @@ export default function MobileBottomSheet({
                       lockedHint={t('colorModes.beta_locked')}
                       variant="mobile"
                       options={buildColorModeOptions(
-                        displayMetric === 'biomass_tons' ? 'Potencial Biomassa' : t('colorModes.biogas'),
+                        displayMetric === 'biomass_tons' ? t('colorModes.biomass') : t('colorModes.biogas'),
                         t,
                         scopeUf,
                       )}

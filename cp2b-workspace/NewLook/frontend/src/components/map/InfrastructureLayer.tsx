@@ -6,6 +6,7 @@
 'use client';
 
 import React, { useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { GeoJSON, Marker, Popup } from 'react-leaflet';
 import type { GeoJsonObject, Feature } from 'geojson';
 import L from 'leaflet';
@@ -312,7 +313,34 @@ const createETEIcon = () => {
   });
 };
 
+/**
+ * Popup markup is built as an HTML string because Leaflet's `bindPopup` takes
+ * one. Every interpolated value therefore has to be escaped: the values come
+ * from shapefile and PostGIS attributes, which are not user-editable today, but
+ * an unescaped template here is a stored-XSS vector the moment any of those
+ * fields becomes writable. (Backlog FE #8.)
+ */
+function escapeHtml(value: string): string {
+  return value.replace(
+    /[&<>"']/g,
+    (char) =>
+      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char] as string
+  );
+}
+
+/** One `<strong>Label:</strong> value` line, or nothing when there is no value. */
+function popupRow(label: string, value: unknown, fallback: string): string {
+  const text =
+    value === null || value === undefined || value === '' ? fallback : String(value);
+  return `<p style="margin: 4px 0; font-size: 12px;"><strong>${escapeHtml(label)}:</strong> ${escapeHtml(text)}</p>`;
+}
+
+function popupTitle(name: string): string {
+  return `<h3 style="margin: 0 0 8px 0; font-size: 14px; font-weight: bold;">${escapeHtml(name)}</h3>`;
+}
+
 export default function InfrastructureLayer({ layerType, onStatus, uf, bbox, pane }: InfrastructureLayerProps) {
+  const t = useTranslations('Map.infrastructure');
   // Use React Query hook for automatic caching and background refetching
   const { data, loading, error, isFetching } = useInfrastructureLayer(layerType, true, uf, bbox);
   const featureCount = Array.isArray(data?.features) ? data.features.length : 0;
@@ -329,7 +357,7 @@ export default function InfrastructureLayer({ layerType, onStatus, uf, bbox, pan
       onStatus({
         layerType,
         state: 'error',
-        message: error.message || `Falha ao carregar a camada ${layerType}`,
+        message: error.message || t('load_failed', { layer: layerType }),
       });
       return;
     }
@@ -339,7 +367,7 @@ export default function InfrastructureLayer({ layerType, onStatus, uf, bbox, pan
         layerType,
         state: 'empty',
         featureCount,
-        message: data.metadata?.error || data.metadata?.note || 'Camada sem feições disponíveis no servidor',
+        message: data.metadata?.error || data.metadata?.note || t('layer_empty'),
       });
       return;
     }
@@ -347,7 +375,7 @@ export default function InfrastructureLayer({ layerType, onStatus, uf, bbox, pan
     if (data) {
       onStatus({ layerType, state: 'ready', featureCount });
     }
-  }, [data, error, featureCount, isFetching, layerType, loading, onStatus]);
+  }, [data, error, featureCount, isFetching, layerType, loading, onStatus, t]);
 
   // Show subtle loading indicator when refetching in background
   if (isFetching && !data) {
@@ -442,78 +470,84 @@ export default function InfrastructureLayer({ layerType, onStatus, uf, bbox, pan
   const onEachFeature = (feature: any, layer: L.Layer) => {
     const props = feature.properties;
 
-    // Create popup content based on layer type
     let popupContent = `<div style="font-family: sans-serif; max-width: 280px;">`;
 
-    // Add specific properties based on layer type with actual shapefile field mappings
+    const na = t('na');
+    // Each branch declares its rows; the shared helpers handle escaping and the
+    // "no value" fallback, so the seven near-identical templates that used to
+    // live here are now one code path.
+    let name: string;
+    let rows: Array<[string, unknown]>;
+
     if (layerType === 'railways') {
-      const name = props.nome || props.name || props.NOME || 'Rodovia';
-      popupContent += `<h3 style="margin: 0 0 8px 0; font-size: 14px; font-weight: bold;">${name}</h3>`;
-      popupContent += `
-        <p style="margin: 4px 0; font-size: 12px;"><strong>Tipo:</strong> ${props.tipo || props.type || 'Rodovia'}</p>
-        <p style="margin: 4px 0; font-size: 12px;"><strong>Operador:</strong> ${props.operador || props.operator || 'N/A'}</p>
-        <p style="margin: 4px 0; font-size: 12px;"><strong>Status:</strong> ${props.status || props.STATUS || 'N/A'}</p>
-      `;
+      name = props.nome || props.name || props.NOME || t('names.road');
+      rows = [
+        [t('fields.type'), props.tipo || props.type || t('names.road')],
+        [t('fields.operator'), props.operador || props.operator],
+        [t('fields.status'), props.status || props.STATUS],
+      ];
     } else if (layerType === 'pipelines') {
       // Actual fields: Nome_Dut_1, Label, name, Transporta, Diam_Pol_x, P_Max_Op, situaDuo, COMPRIM_KM
-      const name = props.Nome_Dut_1 || props.Label || props.name || 'Gasoduto';
-      popupContent += `<h3 style="margin: 0 0 8px 0; font-size: 14px; font-weight: bold;">${name}</h3>`;
-      popupContent += `
-        <p style="margin: 4px 0; font-size: 12px;"><strong>Tipo:</strong> ${props.name || 'Gasoduto'}</p>
-        <p style="margin: 4px 0; font-size: 12px;"><strong>Operador:</strong> ${props.Transporta || props.operator || 'N/A'}</p>
-        <p style="margin: 4px 0; font-size: 12px;"><strong>Diâmetro:</strong> ${props.Diam_Pol_x ? props.Diam_Pol_x + ' pol' : 'N/A'}</p>
-        <p style="margin: 4px 0; font-size: 12px;"><strong>Pressão Máx:</strong> ${props.P_Max_Op ? props.P_Max_Op + ' bar' : 'N/A'}</p>
-        <p style="margin: 4px 0; font-size: 12px;"><strong>Extensão:</strong> ${props.COMPRIM_KM ? props.COMPRIM_KM.toFixed(1) + ' km' : 'N/A'}</p>
-        <p style="margin: 4px 0; font-size: 12px;"><strong>Status:</strong> ${props.situaDuo || 'N/A'}</p>
-        ${props.MUNIC_ORIG && props.MUNIC_DEST ? `<p style="margin: 4px 0; font-size: 12px;"><strong>Trecho:</strong> ${props.MUNIC_ORIG} → ${props.MUNIC_DEST}</p>` : ''}
-      `;
+      name = props.Nome_Dut_1 || props.Label || props.name || t('names.pipeline');
+      rows = [
+        [t('fields.type'), props.name || t('names.pipeline')],
+        [t('fields.operator'), props.Transporta || props.operator],
+        [t('fields.diameter'), props.Diam_Pol_x ? `${props.Diam_Pol_x} pol` : null],
+        [t('fields.max_pressure'), props.P_Max_Op ? `${props.P_Max_Op} bar` : null],
+        [t('fields.length'), props.COMPRIM_KM ? `${props.COMPRIM_KM.toFixed(1)} km` : null],
+        [t('fields.status'), props.situaDuo],
+      ];
+      if (props.MUNIC_ORIG && props.MUNIC_DEST) {
+        rows.push([t('fields.section'), `${props.MUNIC_ORIG} → ${props.MUNIC_DEST}`]);
+      }
     } else if (layerType === 'transmission-lines') {
       // Actual fields: Nome, label, Concession, Tensao, Extensao, Ano_Opera
-      const name = props.Nome || props.label || props.name || 'Linha de Transmissão';
-      popupContent += `<h3 style="margin: 0 0 8px 0; font-size: 14px; font-weight: bold;">${name}</h3>`;
-      popupContent += `
-        <p style="margin: 4px 0; font-size: 12px;"><strong>Concessionária:</strong> ${props.Concession || props.concession || 'N/A'}</p>
-        <p style="margin: 4px 0; font-size: 12px;"><strong>Tensão:</strong> ${props.Tensao || props.tensao || 'N/A'}</p>
-        <p style="margin: 4px 0; font-size: 12px;"><strong>Extensão:</strong> ${props.Extensao || 'N/A'}</p>
-        <p style="margin: 4px 0; font-size: 12px;"><strong>Ano Operação:</strong> ${props.Ano_Opera || 'N/A'}</p>
-      `;
+      name = props.Nome || props.label || props.name || t('names.transmission_line');
+      rows = [
+        [t('fields.concessionaire'), props.Concession || props.concession],
+        [t('fields.voltage'), props.Tensao || props.tensao],
+        [t('fields.length'), props.Extensao],
+        [t('fields.operation_year'), props.Ano_Opera],
+      ];
     } else if (layerType === 'substations') {
       // Actual fields: nome, potencia, combust, propriet, ceg, ini_oper
-      const name = props.nome || props.name || 'Subestação';
-      popupContent += `<h3 style="margin: 0 0 8px 0; font-size: 14px; font-weight: bold;">${name}</h3>`;
-      popupContent += `
-        <p style="margin: 4px 0; font-size: 12px;"><strong>Potência:</strong> ${props.potencia ? props.potencia.toLocaleString() + ' kW' : 'N/A'}</p>
-        <p style="margin: 4px 0; font-size: 12px;"><strong>Combustível:</strong> ${props.combust || 'N/A'}</p>
-        <p style="margin: 4px 0; font-size: 12px;"><strong>Proprietário:</strong> ${props.propriet || 'N/A'}</p>
-        <p style="margin: 4px 0; font-size: 12px;"><strong>CEG:</strong> ${props.ceg || 'N/A'}</p>
-        <p style="margin: 4px 0; font-size: 12px;"><strong>Início Operação:</strong> ${props.ini_oper || 'N/A'}</p>
-      `;
+      name = props.nome || props.name || t('names.substation');
+      rows = [
+        [t('fields.power'), props.potencia ? `${props.potencia.toLocaleString()} kW` : null],
+        [t('fields.fuel'), props.combust],
+        [t('fields.owner'), props.propriet],
+        [t('fields.ceg'), props.ceg],
+        [t('fields.operation_start'), props.ini_oper],
+      ];
     } else if (layerType === 'biogas-plants') {
       // Actual fields: TIPO_PLANT, SUBTIPO, STATUS, FONTE_DADO
-      const name = props.TIPO_PLANT ? `Planta de ${props.TIPO_PLANT}` : 'Planta de Biogás';
-      popupContent += `<h3 style="margin: 0 0 8px 0; font-size: 14px; font-weight: bold;">${name}</h3>`;
-      popupContent += `
-        <p style="margin: 4px 0; font-size: 12px;"><strong>Tipo:</strong> ${props.TIPO_PLANT || 'Biogás'}</p>
-        <p style="margin: 4px 0; font-size: 12px;"><strong>Subtipo:</strong> ${props.SUBTIPO || 'N/A'}</p>
-        <p style="margin: 4px 0; font-size: 12px;"><strong>Status:</strong> ${props.STATUS || 'N/A'}</p>
-        <p style="margin: 4px 0; font-size: 12px;"><strong>Fonte:</strong> ${props.FONTE_DADO || 'N/A'}</p>
-      `;
+      name = props.TIPO_PLANT
+        ? t('names.biogas_plant_of', { type: props.TIPO_PLANT })
+        : t('names.biogas_plant');
+      rows = [
+        [t('fields.type'), props.TIPO_PLANT || t('names.biogas')],
+        [t('fields.subtype'), props.SUBTIPO],
+        [t('fields.status'), props.STATUS],
+        [t('fields.source'), props.FONTE_DADO],
+      ];
     } else if (layerType === 'etes') {
       // Actual fields: ETE_NM, ETE_DS_STA, ETE_DS_TIP, ETE_QT_POP, ETE_PC_REM, ETE_DS_TI
-      const name = props.ETE_NM || props.name || 'ETE';
-      popupContent += `<h3 style="margin: 0 0 8px 0; font-size: 14px; font-weight: bold;">${name}</h3>`;
-      popupContent += `
-        <p style="margin: 4px 0; font-size: 12px;"><strong>Status:</strong> ${props.ETE_DS_STA || 'N/A'}</p>
-        <p style="margin: 4px 0; font-size: 12px;"><strong>Tipo Tratamento:</strong> ${props.ETE_DS_TIP || 'N/A'}</p>
-        <p style="margin: 4px 0; font-size: 12px;"><strong>Sistema:</strong> ${props.ETE_DS_TI || 'N/A'}</p>
-        <p style="margin: 4px 0; font-size: 12px;"><strong>População Atendida:</strong> ${props.ETE_QT_POP ? props.ETE_QT_POP.toLocaleString() : 'N/A'}</p>
-        <p style="margin: 4px 0; font-size: 12px;"><strong>Eficiência Remoção:</strong> ${props.ETE_PC_REM ? props.ETE_PC_REM + '%' : 'N/A'}</p>
-      `;
+      name = props.ETE_NM || props.name || t('names.ete');
+      rows = [
+        [t('fields.status'), props.ETE_DS_STA],
+        [t('fields.treatment_type'), props.ETE_DS_TIP],
+        [t('fields.system'), props.ETE_DS_TI],
+        [t('fields.population_served'), props.ETE_QT_POP ? props.ETE_QT_POP.toLocaleString() : null],
+        [t('fields.removal_efficiency'), props.ETE_PC_REM ? `${props.ETE_PC_REM}%` : null],
+      ];
     } else {
       // Default popup for other layers (admin regions, etc.)
-      const name = props.name || props.nome || props.NM_MUN || 'Sem nome';
-      popupContent += `<h3 style="margin: 0 0 8px 0; font-size: 14px; font-weight: bold;">${name}</h3>`;
+      name = props.name || props.nome || props.NM_MUN || t('no_name');
+      rows = [];
     }
+
+    popupContent += popupTitle(name);
+    popupContent += rows.map(([label, value]) => popupRow(label, value, na)).join('');
 
     popupContent += `</div>`;
 

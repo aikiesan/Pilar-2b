@@ -31,6 +31,7 @@ import {
   type MapScenarioKey,
 } from '@/data/scenarioFactors';
 import { getSectorMetricValue, getResidueTonsOrNull } from '@/lib/mapValues';
+import { useTranslations } from 'next-intl';
 import { useMunicipalityMetrics } from '@/hooks/useGeospatialData';
 import { getMetricSpec, formatCompact } from '@/lib/mapMetrics';
 import type { ResidueType } from '@/components/map/FloatingControlPanel';
@@ -51,6 +52,9 @@ export default function MunicipalityProfilePanel({
   metric = 'biomass_tons',
   scenario = 'baseline',
 }: MunicipalityProfilePanelProps) {
+  const t = useTranslations('Map.profilePanel');
+  const tMap = useTranslations('Map');
+  const tResidues = useTranslations('Map.residues');
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
     new Set(['biomass'])
   );
@@ -183,7 +187,7 @@ export default function MunicipalityProfilePanel({
           Portrait  → bottom sheet: fixed to the bottom, ~62vh tall, rounded top.
           Landscape → right-side drawer, full height (matches desktop). */}
       <aside
-        aria-label={`Detalhes do município de ${props.name}`}
+        aria-label={t('detail_aria', { name: props.name })}
         className="absolute z-[1101] overflow-y-auto bg-white shadow-2xl dark:bg-slate-900
                    inset-x-0 bottom-0 max-h-[68%] rounded-t-2xl
                    landscape:inset-x-auto landscape:right-0 landscape:top-0 landscape:bottom-0 landscape:max-h-none landscape:w-[min(88vw,380px)] landscape:rounded-none"
@@ -199,7 +203,9 @@ export default function MunicipalityProfilePanel({
               <div className="flex items-center space-x-2 mb-1">
                 <MapPin className="w-4 h-4" />
                 <span className="text-xs font-medium opacity-80">
-                  {props.intermediate_region ? `Município · ${props.intermediate_region}` : 'Município'}
+                  {props.intermediate_region
+                    ? t('municipality_with_region', { region: props.intermediate_region })
+                    : t('municipality')}
                 </span>
               </div>
               <h2 className="mb-1 text-lg font-bold leading-tight">{props.name}</h2>
@@ -212,7 +218,7 @@ export default function MunicipalityProfilePanel({
               onClick={onClose}
               className="-mr-1 flex h-11 w-11 items-center justify-center rounded-lg hover:bg-white/20 transition-colors"
               title="Fechar"
-              aria-label="Fechar painel do município"
+              aria-label={t('close_aria')}
             >
               <X className="w-6 h-6" />
             </button>
@@ -225,7 +231,7 @@ export default function MunicipalityProfilePanel({
           {props.cluster_label != null && (
             <div className="rounded-xl border border-gray-200 dark:border-slate-700 overflow-hidden">
               <div className="flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-slate-800">
-                <h3 className="font-semibold text-gray-900 dark:text-white text-sm">Perfil de Resíduos 2023</h3>
+                <h3 className="font-semibold text-gray-900 dark:text-white text-sm">{t('residue_profile')}</h3>
                 <span
                   className="text-xs font-medium px-2 py-0.5 rounded-full text-white"
                   style={{
@@ -241,7 +247,7 @@ export default function MunicipalityProfilePanel({
               </div>
               <div className="px-4 py-3 space-y-1.5 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-500 dark:text-gray-400">Potencial biogás</span>
+                  <span className="text-gray-500 dark:text-gray-400">{t('biogas_potential')}</span>
                   <span className="font-semibold text-gray-900 dark:text-white">
                     {props.mun_total_GWh != null ? `${props.mun_total_GWh.toFixed(1)} GWh/ano` : 'N/A'}
                   </span>
@@ -264,7 +270,7 @@ export default function MunicipalityProfilePanel({
 
           {/* Overview Section */}
           <Section
-            title="Visão Geral"
+            title={t('overview')}
             icon={<BarChart3 className="w-5 h-5" />}
             expanded={expandedSections.has('overview')}
             onToggle={() => toggleSection('overview')}
@@ -272,13 +278,13 @@ export default function MunicipalityProfilePanel({
             <div className="grid grid-cols-2 gap-3">
               <StatCard
                 icon={<Users className="w-4 h-4 text-blue-600" />}
-                label="População"
+                label={t('population')}
                 value={formatNumber(props.population)}
                 subtitle={`habitantes${props.population_year ? ` (${props.population_year})` : ''}`}
               />
               <StatCard
                 icon={<Maximize className="w-4 h-4 text-green-600" />}
-                label="Área"
+                label={t('area')}
                 value={formatNumber(props.area_km2)}
                 subtitle={`km²${props.area_year ? ` (${props.area_year})` : ''}`}
               />
@@ -292,7 +298,7 @@ export default function MunicipalityProfilePanel({
                     ? formatNumber(Math.round(props.population / props.area_km2))
                     : 'N/A'
                 }
-                subtitle="hab/km²"
+                subtitle={t('density_unit')}
               />
               <StatCard
                 icon={<TrendingUp className="w-4 h-4 text-orange-600" />}
@@ -327,14 +333,14 @@ export default function MunicipalityProfilePanel({
               {/* Breakdown by source */}
               <div className="space-y-3">
                 <h4 className="font-semibold text-gray-900 dark:text-white text-sm">
-                  Composição por Fonte
+                  {t('composition_by_source')}
                 </h4>
 
                 {hasSectorSplit ? (
                   <>
                     {/* Agricultural */}
                     <ProgressBar
-                      label="Agrícola"
+                      label={t('sector_agricultural')}
                       value={agriculturalValue ?? 0}
                       percentage={agriculturePercent}
                       color="green"
@@ -344,7 +350,7 @@ export default function MunicipalityProfilePanel({
 
                     {/* Livestock */}
                     <ProgressBar
-                      label="Pecuária"
+                      label={t('sector_livestock')}
                       value={livestockValue ?? 0}
                       percentage={livestockPercent}
                       color="yellow"
@@ -354,7 +360,7 @@ export default function MunicipalityProfilePanel({
 
                     {/* Urban */}
                     <ProgressBar
-                      label="Urbano"
+                      label={t('sector_urban')}
                       value={urbanValue ?? 0}
                       percentage={urbanPercent}
                       color="blue"
@@ -365,7 +371,7 @@ export default function MunicipalityProfilePanel({
                     {/* Forestry — served scenarios only */}
                     {forestryValue !== null && (
                       <ProgressBar
-                        label="Florestal"
+                        label={t('sector_forestry')}
                         value={forestryValue}
                         percentage={forestryPercent}
                         color="emerald"
@@ -376,7 +382,7 @@ export default function MunicipalityProfilePanel({
                   </>
                 ) : (
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Sem quebra por setor para este município neste cenário.
+                    {t('no_sector_breakdown')}
                   </p>
                 )}
               </div>
@@ -385,38 +391,42 @@ export default function MunicipalityProfilePanel({
 
           {/* Agricultural Details */}
           <Section
-            title="Resíduos Agrícolas"
+            title={t('agri_residues')}
             icon={<Leaf className="w-5 h-5" />}
             expanded={expandedSections.has('agriculture')}
             onToggle={() => toggleSection('agriculture')}
           >
             <div className="space-y-2">
-              <DetailRow label="Cana-de-açúcar" value={formatResidue(props, 'sugarcane')} />
-              <DetailRow label="Soja" value={formatResidue(props, 'soybean')} />
-              <DetailRow label="Milho" value={formatResidue(props, 'corn')} />
-              <DetailRow label="Café" value={formatResidue(props, 'coffee')} />
-              <DetailRow label="Citros" value={formatResidue(props, 'citrus')} />
+              <DetailRow label={tResidues('sugarcane')} value={formatResidue(props, 'sugarcane')} />
+              <DetailRow label={tResidues('soybean')} value={formatResidue(props, 'soybean')} />
+              <DetailRow label={tResidues('corn')} value={formatResidue(props, 'corn')} />
+              <DetailRow label={tResidues('coffee')} value={formatResidue(props, 'coffee')} />
+              <DetailRow label={tResidues('citrus')} value={formatResidue(props, 'citrus')} />
             </div>
           </Section>
 
           {/* Livestock Details */}
           <Section
-            title="Resíduos Pecuários"
+            title={t('livestock_residues')}
             icon={<Factory className="w-5 h-5" />}
             expanded={expandedSections.has('livestock')}
             onToggle={() => toggleSection('livestock')}
           >
             <div className="space-y-2">
-              <DetailRow label="Bovinos" value={formatResidue(props, 'cattle')} />
-              <DetailRow label="Suínos" value={formatResidue(props, 'swine')} />
-              <DetailRow label="Aves" value={formatResidue(props, 'poultry')} />
-              <DetailRow label="Aquicultura" value={formatResidue(props, 'aquaculture')} />
+              <DetailRow label={tResidues('cattle')} value={formatResidue(props, 'cattle')} />
+              <DetailRow label={tResidues('swine')} value={formatResidue(props, 'swine')} />
+              <DetailRow label={tResidues('poultry')} value={formatResidue(props, 'poultry')} />
+              <DetailRow label={tResidues('aquaculture')} value={formatResidue(props, 'aquaculture')} />
             </div>
           </Section>
 
           {/* Urban Waste Details */}
           <Section
-            title={`Resíduos Urbanos${isServedScenario(scenario) ? ` · ${SCENARIO_LABEL[scenario]}` : ''}`}
+            title={
+              isServedScenario(scenario)
+                ? t('urban_residues_scenario', { scenario: tMap(`scenario_${scenario}`) })
+                : t('urban_residues')
+            }
             icon={<Droplets className="w-5 h-5" />}
             expanded={expandedSections.has('urban')}
             onToggle={() => toggleSection('urban')}
@@ -425,10 +435,10 @@ export default function MunicipalityProfilePanel({
               hasUrbanScenarioData ? (
                 <div className="space-y-3">
                   <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 dark:border-blue-900 dark:bg-blue-950/30">
-                    <p className="text-[11px] font-medium text-blue-700 dark:text-blue-300">Potencial urbano total</p>
+                    <p className="text-[11px] font-medium text-blue-700 dark:text-blue-300">{t('urban_total')}</p>
                     <p className="text-xl font-bold text-blue-950 dark:text-blue-100">
                       {formatCompact(urbanScenarioTotal)}
-                      <span className="ml-1 text-xs font-medium">Nm³ CH₄/ano</span>
+                      <span className="ml-1 text-xs font-medium">{t('ch4_unit')}</span>
                     </p>
                   </div>
                   {servedUrbanStreams.map((stream) => (
@@ -440,20 +450,22 @@ export default function MunicipalityProfilePanel({
                     />
                   ))}
                   <p className="rounded-md bg-amber-50 px-2.5 py-2 text-[11px] leading-snug text-amber-900 dark:bg-amber-950/30 dark:text-amber-200">
-                    Potencial estimado de CH₄ por cenário. Não representa massa coletada em t/ano.
+                    {t('scenario_note')}
                   </p>
                 </div>
               ) : (
                 <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-3 text-sm text-gray-600 dark:border-slate-700 dark:bg-slate-800 dark:text-gray-300">
-                  <p className="font-semibold">Sem inventário urbano validado{isMgMunicipality ? ' para MG' : ''}</p>
-                  <p className="mt-1 text-xs leading-snug">FORSU, poda urbana e lodo de ETE não foram inferidos a partir da população.</p>
+                  <p className="font-semibold">
+                    {isMgMunicipality ? t('no_urban_inventory_mg') : t('no_urban_inventory')}
+                  </p>
+                  <p className="mt-1 text-xs leading-snug">{t('urban_note')}</p>
                 </div>
               )
             ) : (
               <div className="space-y-2">
-                <DetailRow label="FORSU" value={formatResidue(props, 'rsu')} />
-                <DetailRow label="Poda urbana" value={formatResidue(props, 'rpo')} />
-                <DetailRow label="Lodo de ETE" value={formatResidue(props, 'sewage')} />
+                <DetailRow label={tResidues('rsu')} value={formatResidue(props, 'rsu')} />
+                <DetailRow label={tResidues('rpo')} value={formatResidue(props, 'rpo')} />
+                <DetailRow label={tResidues('sewage')} value={formatResidue(props, 'sewage')} />
               </div>
             )}
           </Section>
@@ -470,7 +482,7 @@ export default function MunicipalityProfilePanel({
               className="flex items-center justify-between p-4 rounded-lg bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors group border border-green-200 dark:border-green-800"
             >
               <span className="text-sm font-semibold text-green-800 dark:text-green-300">
-                Ver Perfil Completo
+                {t('full_profile')}
               </span>
               <FileText className="w-4 h-4 text-green-600 group-hover:text-green-800 dark:text-green-400" />
             </Link>
@@ -550,10 +562,10 @@ interface ProgressBarProps {
   percentage: number;
   color: 'green' | 'yellow' | 'blue' | 'emerald';
   icon: React.ReactNode;
-  unit?: string;
+  unit: string;
 }
 
-function ProgressBar({ label, value, percentage, color, icon, unit = 'm³/ano' }: ProgressBarProps) {
+function ProgressBar({ label, value, percentage, color, icon, unit }: ProgressBarProps) {
   const colorClasses = {
     green: {
       bg: 'bg-green-500',

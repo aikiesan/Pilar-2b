@@ -6,8 +6,11 @@
 'use client';
 
 import React from 'react';
+import { useTranslations } from 'next-intl';
 
 export default function MapLoadingSkeleton() {
+  const t = useTranslations('Map.loading');
+
   return (
     <div className="w-full h-full bg-gradient-to-br from-gray-50 to-gray-100 dark:from-slate-900 dark:to-slate-800 relative overflow-hidden">
       {/* Animated gradient overlay */}
@@ -67,7 +70,7 @@ export default function MapLoadingSkeleton() {
           {/* Loading text */}
           <div className="text-center space-y-3">
             <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-              Carregando Mapa Interativo
+              {t('title')}
             </h3>
 
             <div className="space-y-2">
@@ -78,15 +81,15 @@ export default function MapLoadingSkeleton() {
               </div>
 
               <p className="text-sm text-gray-500 dark:text-gray-500">
-                5.571 municípios do Brasil
+                {t('subtitle')}
               </p>
             </div>
 
             {/* Progress indicators */}
             <div className="pt-4 space-y-2">
-              <LoadingStep text="Carregando dados geoespaciais" delay="0s" />
-              <LoadingStep text="Processando geometrias" delay="0.5s" />
-              <LoadingStep text="Inicializando camadas" delay="1s" />
+              <LoadingStep text={t('step_geodata')} delay="0s" />
+              <LoadingStep text={t('step_geometries')} delay="0.5s" />
+              <LoadingStep text={t('step_layers')} delay="1s" />
             </div>
           </div>
 

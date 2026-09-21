@@ -291,7 +291,7 @@ function FiltersSection({
             lockedHint={t('colorModes.beta_locked')}
             variant="desktop"
             options={buildColorModeOptions(
-              displayMetric === 'biomass_tons' ? 'Potencial Biomassa' : t('colorModes.biogas'),
+              displayMetric === 'biomass_tons' ? t('colorModes.biomass') : t('colorModes.biogas'),
               t,
               scopeUf,
             )}
