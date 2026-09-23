@@ -1,6 +1,6 @@
 import { getRequestConfig } from 'next-intl/server';
 import { notFound } from 'next/navigation';
-import { locales, defaultLocale, type Locale } from './src/config/i18n';
+import { defaultLocale, isLocale } from './src/config/i18n';
 
 export default getRequestConfig(async ({ requestLocale }) => {
   // next-intl v4: requestLocale is always a Promise (never undefined itself).
@@ -9,18 +9,11 @@ export default getRequestConfig(async ({ requestLocale }) => {
 
   // Reject genuinely unknown locales (dynamicParams=false already blocks them,
   // but guard here too for safety).
-  if (!locales.includes(locale as Locale)) {
-    notFound();
-  }
+  if (!isLocale(locale)) notFound();
 
-  try {
-    return {
-      locale,
-      messages: (await import(`./messages/${locale}.json`)).default,
-      timeZone: 'America/Sao_Paulo',
-    };
-  } catch (error) {
-    console.error(`Failed to load messages for locale ${locale}:`, error);
-    notFound();
-  }
+  return {
+    locale,
+    messages: (await import(`./messages/${locale}.json`)).default,
+    timeZone: 'America/Sao_Paulo',
+  };
 });
