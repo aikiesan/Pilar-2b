@@ -236,7 +236,12 @@ def db_connection():
     Real database connection for integration tests
     Use this sparingly and mark tests with @pytest.mark.database
     """
-    # Only create real connection if DATABASE_URL is set for integration tests
+    # Gated on TEST_DATABASE_URL — deliberately NOT DATABASE_URL, so a test run
+    # can never write to whatever database the app itself is configured for.
+    # Note that CI's backend-test job sets only DATABASE_URL, so every
+    # @pytest.mark.database test skips there, despite the job provisioning a
+    # PostGIS service. Enabling them needs that DB migrated and seeded first,
+    # or they fail against an empty schema.
     if not os.getenv("TEST_DATABASE_URL"):
         pytest.skip("Integration tests require TEST_DATABASE_URL")
 

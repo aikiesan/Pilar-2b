@@ -24,16 +24,22 @@ These tests enforce, in CI:
    the generator (or hand-edits the service), this test fails.
 """
 
-from pathlib import Path
-
 import pytest
+
+from app.services.canonical_loader import resolve_feedstocks_path
 
 yaml = pytest.importorskip("yaml", reason="PyYAML required for canonical parameter tests")
 
-# data/canonical_parameters lives at <NewLook>/data; this file is at
-# <NewLook>/backend/tests/unit/test_canonical_parameters.py → parents[3] = NewLook
-_CANON_DIR = Path(__file__).resolve().parents[3] / "data" / "canonical_parameters"
-_FEEDSTOCKS = _CANON_DIR / "feedstocks.yaml"
+# Resolve feedstocks.yaml exactly the way the app does. This used to be a
+# hand-counted `parents[3]`, which is right in a repo checkout but wrong in
+# Docker: compose binds ./backend as /app, the tree is one level shallower, and
+# parents[3] lands on `/`. The fixtures below then skipped with "not found at
+# /data/canonical_parameters/..." — so every physical-bounds and citation guard
+# in this file silently never ran in the container, and nothing turned red.
+# canonical_loader already solved this ("resolve by looking, not by counting");
+# reuse it rather than keep a second, divergent copy.
+_FEEDSTOCKS = resolve_feedstocks_path()
+_CANON_DIR = _FEEDSTOCKS.parent
 _REFERENCES = _CANON_DIR / "references.yaml"
 
 
