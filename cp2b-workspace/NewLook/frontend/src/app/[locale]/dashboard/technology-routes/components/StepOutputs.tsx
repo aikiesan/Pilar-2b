@@ -1,10 +1,14 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
+import type { Messages } from '@/types/i18n'
 import type { OutputType } from '../calculatorEngine'
 import type { OutputResult } from '../calculatorEngine'
 
-const OUTPUT_OPTIONS: { key: OutputType; emoji: string; labelKey: string; descKey: string }[] = [
+/** A key under calculator.step4 — checked against the catalog. */
+type Step4Key = keyof Messages['calculator']['step4']
+
+const OUTPUT_OPTIONS: { key: OutputType; emoji: string; labelKey: Step4Key; descKey: Step4Key }[] = [
   { key: 'energy',     emoji: '⚡', labelKey: 'energy',     descKey: 'energyDesc'     },
   { key: 'biomethane', emoji: '⛽', labelKey: 'biomethane', descKey: 'biomethaneDesc' },
   { key: 'digestate',  emoji: '🌱', labelKey: 'digestate',  descKey: 'digestateDesc'  },

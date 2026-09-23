@@ -1,6 +1,7 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
+import type { Messages } from '@/types/i18n'
 import type { ActivityType, LivestockSpecies, CropType } from '../calculatorEngine'
 import {
   hectaresToCane,
@@ -28,7 +29,10 @@ interface Props {
   onBack: () => void
 }
 
-const LIVESTOCK_SPECIES: { key: LivestockSpecies; emoji: string; labelKey: string }[] = [
+/** A key under calculator.step2 — checked against the catalog. */
+type Step2Key = keyof Messages['calculator']['step2']
+
+const LIVESTOCK_SPECIES: { key: LivestockSpecies; emoji: string; labelKey: Step2Key }[] = [
   { key: 'swine',        emoji: '🐖', labelKey: 'suinos' },
   { key: 'cattle_beef',  emoji: '🐄', labelKey: 'bovinosCorte' },
   { key: 'cattle_dairy', emoji: '🥛', labelKey: 'bovinosLeite' },
@@ -36,7 +40,7 @@ const LIVESTOCK_SPECIES: { key: LivestockSpecies; emoji: string; labelKey: strin
   { key: 'poultry_meat', emoji: '🍗', labelKey: 'galCorte' },
 ]
 
-const ACTIVITY_OPTIONS: { key: ActivityType; emoji: string; labelKey: string; descKey: string }[] = [
+const ACTIVITY_OPTIONS: { key: ActivityType; emoji: string; labelKey: Step2Key; descKey: Step2Key }[] = [
   { key: 'sugarcane', emoji: '🌾', labelKey: 'sugarcane',  descKey: 'sugarcaneDesc'  },
   { key: 'corn',      emoji: '🌽', labelKey: 'corn',       descKey: 'cornDesc'       },
   { key: 'soy',       emoji: '🌿', labelKey: 'soy',        descKey: 'soyDesc'        },

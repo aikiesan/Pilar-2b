@@ -2,6 +2,7 @@
 
 import { useLocale, useTranslations } from 'next-intl'
 import { useRouter, usePathname } from '@/navigation'
+import type { Locale } from '@/config/i18n'
 
 const LOCALE_STORAGE_KEY = 'cp2b-locale'
 
@@ -11,7 +12,7 @@ export default function LanguageSwitcher() {
   const pathname = usePathname()
   const t = useTranslations('common')
 
-  const handleLanguageChange = (newLocale: string) => {
+  const handleLanguageChange = (newLocale: Locale) => {
     if (newLocale === locale) return
 
     if (typeof window !== 'undefined') {
@@ -27,7 +28,7 @@ export default function LanguageSwitcher() {
   return (
     <div
       role="group"
-      aria-label="Language selection"
+      aria-label={t('lang.group_aria')}
       className="flex items-center gap-0.5"
     >
       <button

@@ -9,6 +9,7 @@ import type { DisplayMetric, ResidueCNMatrix, ColorMode } from '@/types/geospati
 import { DISPLAY_METRICS, METRIC_SPECS } from '@/lib/mapMetrics';
 import { MAP_SCENARIOS, type MapScenarioKey } from '@/data/scenarioFactors';
 import { useMetricText } from '@/hooks/useMetricText';
+import type { Messages } from '@/types/i18n';
 
 interface Layer {
   id: string;
@@ -72,7 +73,7 @@ const BIOMASS_META: { value: BiomassType; icon: string }[] = [
   { value: 'urban', icon: '🏙️' },
 ];
 
-const LAYER_KEY_MAP: Record<string, string> = {
+const LAYER_KEY_MAP: Record<string, `layers.${keyof Messages['Map']['layers']}`> = {
   'municipalities': 'layers.municipalitiesSP',
   'intermediate-regions': 'layers.intermediateRegions',
   'mapbiomas': 'layers.mapbiomas',

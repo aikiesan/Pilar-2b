@@ -56,7 +56,8 @@
     },
     "lang": {
       "switch_to_en": "Switch to English",
-      "switch_to_pt": "Mudar para Português"
+      "switch_to_pt": "Mudar para Português",
+      "group_aria": "Language selection"
     },
     "copyright": "© 2025 PILAR-2b. Intelligent Waste Location and Utilization Platform for Biogas and Bioproducts.",
     "actions": {
@@ -1434,6 +1435,12 @@
       "fs_desc": "Availability throughout the year",
       "fl_label": "FL — Logistics Factor",
       "fl_desc": "Transport feasibility"
+    },
+    "factor_sliders": {
+      "heading": "Correction factors",
+      "reset": "Reset",
+      "reset_title": "Reset to the default values",
+      "resulting_fde": "Resulting FDE:"
     }
   },
   "cookieConsent": {
@@ -1608,7 +1615,8 @@
     "sidebar": {
       "back_button": "All Topics",
       "on_this_page": "ON THIS PAGE",
-      "other_topics": "OTHER TOPICS"
+      "other_topics": "OTHER TOPICS",
+      "breadcrumb_aria": "Breadcrumb"
     },
     "mapa": {
       "title": "Interactive Map",

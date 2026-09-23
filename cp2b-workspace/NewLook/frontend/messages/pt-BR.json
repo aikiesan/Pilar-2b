@@ -56,7 +56,8 @@
     },
     "lang": {
       "switch_to_en": "Switch to English",
-      "switch_to_pt": "Mudar para Português"
+      "switch_to_pt": "Mudar para Português",
+      "group_aria": "Seleção de idioma"
     },
     "copyright": "© 2025 PILAR-2b. Plataforma Inteligente de Localização e Aproveitamento de Resíduos para Biogas e Bioprodutos.",
     "actions": {
@@ -1434,6 +1435,12 @@
       "fs_desc": "Disponibilidade ao longo do ano",
       "fl_label": "FL - Fator de Logística",
       "fl_desc": "Viabilidade de transporte"
+    },
+    "factor_sliders": {
+      "heading": "Fatores de correção",
+      "reset": "Redefinir",
+      "reset_title": "Redefinir para os valores padrão",
+      "resulting_fde": "FDE resultante:"
     }
   },
   "cookieConsent": {
@@ -1608,7 +1615,8 @@
     "sidebar": {
       "back_button": "Todos os tópicos",
       "on_this_page": "NESTA PÁGINA",
-      "other_topics": "OUTROS TÓPICOS"
+      "other_topics": "OUTROS TÓPICOS",
+      "breadcrumb_aria": "Trilha de navegação"
     },
     "mapa": {
       "title": "Mapa Interativo",

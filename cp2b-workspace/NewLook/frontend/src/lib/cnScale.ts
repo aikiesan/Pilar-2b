@@ -17,12 +17,14 @@
  * 583 of 1498 municipalities and read as optimal when half of it is not.
  */
 
+import type { Messages } from '@/types/i18n';
+
 export interface CnBand {
   /** Inclusive lower bound; the first band starts at -Infinity. */
   min: number;
   color: string;
-  /** i18n key under Map.cnLegend. */
-  labelKey: string;
+  /** i18n key under Map.cnLegend — checked against the catalog. */
+  labelKey: Exclude<keyof Messages['Map']['cnLegend'], 'title'>;
 }
 
 /** Ordered low → high. */

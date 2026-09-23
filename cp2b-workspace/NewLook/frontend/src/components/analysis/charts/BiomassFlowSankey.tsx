@@ -3,6 +3,9 @@
 import React, { useMemo } from 'react'
 import { GitBranch, Info } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+
+/** The `charts` translator, passed down to the SVG sub-components. */
+type ChartsTranslator = ReturnType<typeof useTranslations<'charts'>>
 import {
   CorrectionFactors,
   calculateFDE,
@@ -122,7 +125,7 @@ function ClassicSankey({
   flow: SankeyFlow
   leftColor?: string
   gradId?: string
-  t: (key: string, values?: Record<string, string | number>) => string
+  t: ChartsTranslator
   leftLabel?: string
 }) {
   const { theoretical, losses, availableBiogas } = flow
@@ -257,7 +260,7 @@ function MultiResiduesSankey({
   t,
 }: {
   residues: ResidueStream[]
-  t: (key: string, values?: Record<string, string | number>) => string
+  t: ChartsTranslator
 }) {
   const SVG_W        = 700
   const TOP_PAD      = 20

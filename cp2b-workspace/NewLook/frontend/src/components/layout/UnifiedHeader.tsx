@@ -10,6 +10,7 @@ import React, { useState } from 'react'
 import { Link, usePathname } from '@/navigation'
 import Image from 'next/image'
 import { useTranslations } from 'next-intl'
+import type { Messages } from '@/types/i18n'
 import {
   Map,
   Settings,
@@ -44,9 +45,9 @@ import { logger } from '@/lib/logger'
 
 interface NavItemConfig {
   href: string
-  labelKey: string
+  labelKey: keyof Messages['common']['nav']
   icon: React.ReactNode
-  descriptionKey?: string
+  descriptionKey?: keyof Messages['common']['nav_descriptions']
   tourClass?: string
   /**
    * Renders as a small, near-square outlined chip on desktop instead of a full

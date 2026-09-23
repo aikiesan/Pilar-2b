@@ -54,7 +54,7 @@ export interface ColorModeOption {
  */
 export function buildColorModeOptions(
   biogasLabel: string,
-  t: (key: string) => string,
+  t: (key: 'colorModes.tipologia' | 'colorModes.cn_profile' | 'colorModes.regime') => string,
   scopeUf: 'SP' | 'MG' = 'SP',
 ): ColorModeOption[] {
   const options: ColorModeOption[] = [
