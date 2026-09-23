@@ -62,6 +62,7 @@ Standard open-source project files at `cp2b-workspace/NewLook/`:
 | [`architecture/HOW_TO_ADD_TECHNOLOGIES.md`](architecture/HOW_TO_ADD_TECHNOLOGIES.md) | Quick start: add new technology cards via SQL (154 lines) |
 | [`architecture/ENHANCED_MAP_INTEGRATION_GUIDE.md`](architecture/ENHANCED_MAP_INTEGRATION_GUIDE.md) | Enhanced map visualization integration guide (478 lines) |
 | [`architecture/PERFORMANCE_OPTIMIZATIONS.md`](architecture/PERFORMANCE_OPTIMIZATIONS.md) | Performance optimization details — map loading, caching, bundle size (525 lines) |
+| [`architecture/I18N_GUIDE.md`](architecture/I18N_GUIDE.md) | **i18n contract** — where text lives, number formatting, the checks, English glossary |
 
 ---
 
@@ -96,6 +97,7 @@ Standard open-source project files at `cp2b-workspace/NewLook/`:
 
 | File | Description |
 |---|---|
+| [`planning/ROADMAP_2026-09_EN_AND_LEAN.md`](planning/ROADMAP_2026-09_EN_AND_LEAN.md) | **September 2026: a fully English platform and a leaner codebase** — goals, phases, status |
 | [`planning/BRAZIL_EXPANSION_ROADMAP.md`](planning/BRAZIL_EXPANSION_ROADMAP.md) | **Master plan Jul–Dec 2026: national coverage** — code-analysis snapshot, ingestion contract, per-source plan, month-by-month milestones, progress indicators |
 | [`planning/playbooks/`](planning/playbooks/README.md) | **Month playbooks Jul–Dec 2026** — executable step-by-step checklists per month: commands, file paths, verification queries, exit criteria |
 | [`planning/DEVELOPMENT_ROADMAP_APR_AUG_2026.md`](planning/DEVELOPMENT_ROADMAP_APR_AUG_2026.md) | Development roadmap April–August 2026 — sprint targets, milestones |
@@ -107,6 +109,7 @@ Standard open-source project files at `cp2b-workspace/NewLook/`:
 
 | File | Description |
 |---|---|
+| [`qa/LOCAL_VERIFICATION.md`](qa/LOCAL_VERIFICATION.md) | **Run the CI checks locally** — Git Bash, Docker Desktop, `scripts/verify-local.sh`, manual browser checklist |
 | [`qa/TESTING.md`](qa/TESTING.md) | **Testing strategy** — what to test, how to test, coverage status (530 lines) |
 | [`qa/TEST_STRUCTURE.md`](qa/TEST_STRUCTURE.md) | Test structure reference — Pytest (backend) and Jest (frontend) organization (322 lines) |
 | [`qa/COVERAGE_STATUS.md`](qa/COVERAGE_STATUS.md) | Test coverage status report — ~10,650 lines of test code (359 lines) |
