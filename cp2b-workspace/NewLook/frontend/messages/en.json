@@ -58,7 +58,50 @@
       "switch_to_en": "Switch to English",
       "switch_to_pt": "Mudar para Português"
     },
-    "copyright": "© 2025 PILAR-2b. Intelligent Waste Location and Utilization Platform for Biogas and Bioproducts."
+    "copyright": "© 2025 PILAR-2b. Intelligent Waste Location and Utilization Platform for Biogas and Bioproducts.",
+    "actions": {
+      "close": "Close",
+      "back": "Back",
+      "cancel": "Cancel",
+      "clear": "Clear",
+      "apply": "Apply",
+      "save": "Save",
+      "retry": "Try again",
+      "export": "Export",
+      "download": "Download",
+      "share": "Share",
+      "copy": "Copy",
+      "copied": "Copied!",
+      "search": "Search",
+      "show_more": "Show more",
+      "show_less": "Show less"
+    },
+    "states": {
+      "loading": "Loading…",
+      "no_data": "No data",
+      "error": "The data could not be loaded.",
+      "not_found": "Nothing found"
+    },
+    "sectors": {
+      "agricultural": "Agricultural",
+      "livestock": "Livestock",
+      "urban": "Urban",
+      "industrial": "Industrial",
+      "forestry": "Forestry"
+    },
+    "units": {
+      "t_year": "t/year",
+      "m3_year": "m³/year",
+      "m3_day": "m³/day",
+      "nm3_day": "Nm³/day",
+      "nm3_ch4_year": "Nm³ CH₄/year",
+      "mwh_year": "MWh/year",
+      "km": "km",
+      "km2": "km²",
+      "ha": "ha",
+      "inhab_km2": "inhab./km²",
+      "gwh_year": "GWh/year"
+    }
   },
   "auth": {
     "errors": {
@@ -265,7 +308,6 @@
   },
   "Map": {
     "title": "Interactive Map",
-    "legend": "Map Legend",
     "loading_map": "Loading map...",
     "loading": {
       "title": "Loading Interactive Map",
@@ -471,7 +513,17 @@
       "no_urban_inventory_mg": "No validated urban inventory for MG",
       "urban_note": "OFMSW, urban pruning and WWTP sludge were not inferred from population.",
       "full_profile": "View Full Profile",
-      "per_year_unit": "m³/year"
+      "active_streams": "Active streams",
+      "dominant_stream": "Dominant stream",
+      "inhabitants": "inhabitants",
+      "density": "Density",
+      "gdp_per_capita": "GDP per capita",
+      "per_capita": "per capita",
+      "metric_potential": "{metric} potential",
+      "metric_total": "{metric} — Total",
+      "share_of_total": "{share} of total",
+      "share_of_urban": "{share} of urban",
+      "ibge_more": "More data on IBGE Cidades"
     },
     "infrastructure": {
       "na": "N/A",
@@ -519,6 +571,104 @@
       "c_slight": "Slightly carbon-rich (30–40)",
       "c_mod": "Carbon-rich (40–55)",
       "c_rich": "Carbon excess (> 55)"
+    },
+    "metrics": {
+      "biomass_tons": {
+        "label": "Biomass",
+        "legend": "Biomass (t/year)",
+        "unit": "t/year"
+      },
+      "biogas_m3": {
+        "label": "Biogas",
+        "legend": "Biogas (Nm³/day)",
+        "unit": "Nm³/day"
+      },
+      "methane_m3": {
+        "label": "Methane",
+        "legend": "Methane CH₄ (Nm³/day)",
+        "unit": "Nm³/day"
+      },
+      "biomethane_m3": {
+        "label": "Biomethane",
+        "legend": "Biomethane (Nm³/day)",
+        "unit": "Nm³/day"
+      },
+      "bioenergy_mwh": {
+        "label": "Bioenergy",
+        "legend": "Bioenergy (MWh/year)",
+        "unit": "MWh/year"
+      },
+      "ch4_per_capita": {
+        "label": "Per capita",
+        "legend": "Biomethane per capita (Nm³/inhabitant·year)",
+        "unit": "Nm³/inhab·year"
+      }
+    },
+    "palettes": {
+      "ylgnbu": {
+        "label": "Green-Blue (default)",
+        "note": "YlGnBu · the platform's default scale"
+      },
+      "greens": {
+        "label": "Greens",
+        "note": "Sequential · agricultural emphasis"
+      },
+      "ylorrd": {
+        "label": "Yellow-Red",
+        "note": "Warm sequential · intensity"
+      },
+      "bupu": {
+        "label": "Blue-Purple",
+        "note": "Cool sequential · urban focus"
+      },
+      "plasma": {
+        "label": "Plasma",
+        "note": "Vibrant · high contrast"
+      },
+      "viridis": {
+        "label": "Viridis",
+        "note": "Perceptually uniform · safe for every type of color blindness"
+      },
+      "cividis": {
+        "label": "Cividis",
+        "note": "Optimized for deuteranopia and protanopia"
+      },
+      "blues": {
+        "label": "Blue (single hue)",
+        "note": "Single hue · monotonic lightness"
+      },
+      "heading": "Color scale",
+      "group_aria": "Map color scale",
+      "cvd_safe": "Color-blind safe"
+    },
+    "legend": {
+      "zero": "Zero",
+      "expand": "Expand legend",
+      "collapse": "Collapse legend",
+      "cvd_palette": "Palette (color blindness)",
+      "cvd_palette_aria": "Color-blind-safe palette",
+      "mg_beta": "Minas Gerais — beta pilot"
+    },
+    "potentialCategory": {
+      "high": "High potential",
+      "medium": "Medium potential",
+      "low": "Low potential",
+      "unclassified": "Unclassified"
+    },
+    "hover": {
+      "click_for_details": "Click for details"
+    },
+    "popup": {
+      "data_unavailable": "Data not available",
+      "population": "Population",
+      "area": "Area",
+      "region": "Region",
+      "sector_distribution": "Distribution by sector",
+      "main_residues": "Main residues",
+      "references_note": "Each residue has its own analyses and scientific references"
+    },
+    "stat_strip": {
+      "theoretical": "theoretical"
     }
   },
   "metadata": {

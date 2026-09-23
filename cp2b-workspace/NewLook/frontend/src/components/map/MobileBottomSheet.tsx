@@ -7,7 +7,8 @@ import type { ResidueType, BiomassType } from './FloatingControlPanel';
 import type { VisualizationMode } from './LeftFilterPanel';
 import type { DisplayMetric, ResidueCNMatrix, ColorMode } from '@/types/geospatial';
 import { DISPLAY_METRICS, METRIC_SPECS } from '@/lib/mapMetrics';
-import { MAP_SCENARIOS, SCENARIO_LABEL, type MapScenarioKey } from '@/data/scenarioFactors';
+import { MAP_SCENARIOS, type MapScenarioKey } from '@/data/scenarioFactors';
+import { useMetricText } from '@/hooks/useMetricText';
 
 interface Layer {
   id: string;
@@ -48,9 +49,6 @@ interface MobileBottomSheetProps {
 }
 
 type ActiveSheet = 'filters' | 'layers' | null;
-
-// Labels come from scenarioFactors so the sheet, the legend and the tooltip agree.
-const SCENARIO_LABELS = SCENARIO_LABEL;
 
 const RESIDUE_META = [
   { value: 'sugarcane' as const, category: 'agricultural' as const, icon: '🌾' },
@@ -100,6 +98,7 @@ export default function MobileBottomSheet({
   scenario, onScenarioChange, daltonic, onToggleDaltonic, scopeUf = 'SP',
 }: MobileBottomSheetProps) {
   const t = useTranslations('Map');
+  const metricText = useMetricText();
   const [activeSheet, setActiveSheet] = useState<ActiveSheet>(null);
   const [showBiomassTypes, setShowBiomassTypes] = useState(false);
   const [showResidues, setShowResidues] = useState(false);
@@ -183,7 +182,7 @@ export default function MobileBottomSheet({
                   </div>
                 </div>
 
-                {/* Metric toggle — Biomassa / Biogás / Biometano / Bioenergia */}
+                {/* Metric toggle — biomass / biogas / biomethane / bioenergy */}
                 {onDisplayMetricChange && (
                   <div className="grid grid-cols-2 gap-1.5">
                     {DISPLAY_METRICS.map((m) => {
@@ -200,7 +199,7 @@ export default function MobileBottomSheet({
                               : 'bg-white text-gray-500 border border-gray-200'
                           }`}
                         >
-                          {spec.icon} {spec.toggleLabel}
+                          {spec.icon} {metricText(m).label}
                         </button>
                       );
                     })}
@@ -373,7 +372,7 @@ export default function MobileBottomSheet({
                         }`}
                         style={scenario === key ? { backgroundColor: color } : undefined}
                       >
-                        {SCENARIO_LABELS[key]}
+                        {t(`scenario_${key}`)}
                       </button>
                     ))}
                   </div>

@@ -26,14 +26,16 @@ import { Link } from '@/navigation';
 import type { DisplayMetric, MunicipalityFeature } from '@/types/geospatial';
 import {
   isServedScenario,
-  SCENARIO_LABEL,
   SERVED_SCENARIO_RESIDUE_FIELD,
   type MapScenarioKey,
 } from '@/data/scenarioFactors';
 import { getSectorMetricValue, getResidueTonsOrNull } from '@/lib/mapValues';
 import { useTranslations } from 'next-intl';
 import { useMunicipalityMetrics } from '@/hooks/useGeospatialData';
-import { getMetricSpec, formatCompact } from '@/lib/mapMetrics';
+import { getMetricSpec } from '@/lib/mapMetrics';
+import { MISSING_VALUE, type Formatters } from '@/lib/format';
+import { useFormat } from '@/hooks/useFormat';
+import { useMetricText } from '@/hooks/useMetricText';
 import type { ResidueType } from '@/components/map/FloatingControlPanel';
 
 interface MunicipalityProfilePanelProps {
@@ -55,6 +57,9 @@ export default function MunicipalityProfilePanel({
   const t = useTranslations('Map.profilePanel');
   const tMap = useTranslations('Map');
   const tResidues = useTranslations('Map.residues');
+  const tCommon = useTranslations('common');
+  const format = useFormat();
+  const metricText = useMetricText();
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
     new Set(['biomass'])
   );
@@ -81,39 +86,20 @@ export default function MunicipalityProfilePanel({
     });
   };
 
-  const formatNumber = (value: number | undefined | null) => {
-    if (value === undefined || value === null) return 'N/A';
-    return value.toLocaleString('pt-BR');
-  };
-
-  const formatCurrency = (value: number | undefined | null) => {
-    if (value === undefined || value === null || value <= 0) return 'N/A';
-    return value.toLocaleString('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-      maximumFractionDigits: 0,
-    });
-  };
-
-  const formatBigNumber = (value: number | undefined | null) => {
-    if (value === undefined || value === null) return 'N/A';
-    if (value >= 1000000) {
-      return `${(value / 1000000).toFixed(2)}M`;
-    }
-    if (value >= 1000) {
-      return `${(value / 1000).toFixed(2)}K`;
-    }
-    return value.toFixed(0);
-  };
+  // A GDP of zero is a missing figure, not a municipality with no economy.
+  const formatCurrency = (value: number | undefined | null) =>
+    value != null && value > 0 ? format.currency(value) : MISSING_VALUE;
 
   // Per-residue rows must separate "we measured none" from "we have no data".
   // Sugarcane outside São Paulo has never been promoted, so its column is NULL,
   // and the old formatTons(getResidueBiomassTons(...)) rendered that as
-  // "0 t/ano" — stating the municipality grows no cane. Same distinction the
+  // "0 t/year" — stating the municipality grows no cane. Same distinction the
   // choropleth already makes with its no_data grey.
   const formatResidue = (p: typeof props, residue: ResidueType) => {
     const tons = getResidueTonsOrNull(p, residue);
-    return tons === null ? 'Sem dados' : `${formatBigNumber(tons)} t/ano`;
+    return tons === null
+      ? tCommon('states.no_data')
+      : `${format.compact(tons, { decimals: 2 })} ${tCommon('units.t_year')}`;
   };
 
   // The headline figure and the sector split follow the ACTIVE MAP METRIC, so the
@@ -121,6 +107,7 @@ export default function MunicipalityProfilePanel({
   // value is read from the served payload through the metric registry — the panel
   // derives nothing itself (see mapValues.getSectorMetricValue).
   const spec = getMetricSpec(metric);
+  const text = metricText(metric);
   const sectorRaw = {
     agricultural: getSectorMetricValue(props, 'agricultural', metric, scenario),
     livestock: getSectorMetricValue(props, 'livestock', metric, scenario),
@@ -131,8 +118,8 @@ export default function MunicipalityProfilePanel({
     forestry: getSectorMetricValue(props, 'forestry', metric, scenario),
   };
 
-  // Display units (t/ano, Nm³/dia, MWh/ano) come from the registry, so the panel
-  // and the legend can never disagree about what a number means.
+  // Display units (t/year, Nm³/day, MWh/year) come from the same catalog entries
+  // as the legend's, so the two can never disagree about what a number means.
   const toDisplay = (v: number | null) => (v === null ? null : spec.toDisplay(v));
   const agriculturalValue = toDisplay(sectorRaw.agricultural);
   const livestockValue = toDisplay(sectorRaw.livestock);
@@ -144,7 +131,7 @@ export default function MunicipalityProfilePanel({
   // the sector rows, which made the panel depend on a breakdown it does not
   // always have: under the default scenario (Real) the per-sector columns are
   // not in the map payload, so every sector was null, the sum was 0, and the
-  // panel printed "Sem dados" over a municipality the map was painting green.
+  // panel printed "No data" over a municipality the map was painting green.
   const totalValue = toDisplay(
     spec.rawValue(props, { biomassType: 'total', selectedResidues: [], scenario }).value
   );
@@ -161,7 +148,7 @@ export default function MunicipalityProfilePanel({
   const forestryPercent = share(forestryValue);
 
   // A total with no breakdown at all is worth saying out loud, so the empty
-  // "Composição por Fonte" is not read as three genuine zeroes.
+  // "Composition by Source" is not read as three genuine zeroes.
   const hasSectorSplit =
     agriculturalValue !== null || livestockValue !== null || urbanValue !== null;
 
@@ -171,9 +158,9 @@ export default function MunicipalityProfilePanel({
   };
   const servedUrbanStreams = isServedScenario(scenario)
     ? [
-        { id: 'rsu', label: 'FORSU', value: propertyValue(SERVED_SCENARIO_RESIDUE_FIELD(scenario, 'rsu')) },
-        { id: 'rpo', label: 'Poda urbana', value: propertyValue(SERVED_SCENARIO_RESIDUE_FIELD(scenario, 'rpo')) },
-        { id: 'sewage', label: 'Lodo de ETE', value: propertyValue(SERVED_SCENARIO_RESIDUE_FIELD(scenario, 'sewage')) },
+        { id: 'rsu', label: tMap('urbanTotals.streams.rsu'), value: propertyValue(SERVED_SCENARIO_RESIDUE_FIELD(scenario, 'rsu')) },
+        { id: 'rpo', label: tMap('urbanTotals.streams.rpo'), value: propertyValue(SERVED_SCENARIO_RESIDUE_FIELD(scenario, 'rpo')) },
+        { id: 'sewage', label: tMap('urbanTotals.streams.sewage'), value: propertyValue(SERVED_SCENARIO_RESIDUE_FIELD(scenario, 'sewage')) },
       ]
     : [];
   const urbanScenarioTotal = servedUrbanStreams.reduce((sum, stream) => sum + (stream.value ?? 0), 0);
@@ -217,7 +204,7 @@ export default function MunicipalityProfilePanel({
             <button
               onClick={onClose}
               className="-mr-1 flex h-11 w-11 items-center justify-center rounded-lg hover:bg-white/20 transition-colors"
-              title="Fechar"
+              title={tCommon('actions.close')}
               aria-label={t('close_aria')}
             >
               <X className="w-6 h-6" />
@@ -249,19 +236,21 @@ export default function MunicipalityProfilePanel({
                 <div className="flex justify-between">
                   <span className="text-gray-500 dark:text-gray-400">{t('biogas_potential')}</span>
                   <span className="font-semibold text-gray-900 dark:text-white">
-                    {props.mun_total_GWh != null ? `${props.mun_total_GWh.toFixed(1)} GWh/ano` : 'N/A'}
+                    {props.mun_total_GWh != null
+                      ? `${format.number(props.mun_total_GWh, { decimals: 1, minDecimals: 1 })} ${tCommon('units.gwh_year')}`
+                      : MISSING_VALUE}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500 dark:text-gray-400">Streams ativos</span>
+                  <span className="text-gray-500 dark:text-gray-400">{t('active_streams')}</span>
                   <span className="font-semibold text-gray-900 dark:text-white">
-                    {props.mun_n_streams ?? 'N/A'}
+                    {props.mun_n_streams ?? MISSING_VALUE}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500 dark:text-gray-400">Stream dominante</span>
+                  <span className="text-gray-500 dark:text-gray-400">{t('dominant_stream')}</span>
                   <span className="font-semibold text-gray-900 dark:text-white capitalize">
-                    {props.mun_dominant_stream?.replace('_', ' ') ?? 'N/A'}
+                    {props.mun_dominant_stream?.replace('_', ' ') ?? MISSING_VALUE}
                   </span>
                 </div>
               </div>
@@ -279,39 +268,39 @@ export default function MunicipalityProfilePanel({
               <StatCard
                 icon={<Users className="w-4 h-4 text-blue-600" />}
                 label={t('population')}
-                value={formatNumber(props.population)}
-                subtitle={`habitantes${props.population_year ? ` (${props.population_year})` : ''}`}
+                value={format.number(props.population)}
+                subtitle={`${t('inhabitants')}${props.population_year ? ` (${props.population_year})` : ''}`}
               />
               <StatCard
                 icon={<Maximize className="w-4 h-4 text-green-600" />}
                 label={t('area')}
-                value={formatNumber(props.area_km2)}
-                subtitle={`km²${props.area_year ? ` (${props.area_year})` : ''}`}
+                value={format.number(props.area_km2)}
+                subtitle={`${tCommon('units.km2')}${props.area_year ? ` (${props.area_year})` : ''}`}
               />
               <StatCard
                 icon={<Users className="w-4 h-4 text-purple-600" />}
-                label="Densidade"
+                label={t('density')}
                 value={
                   props.population_density
-                    ? formatNumber(Math.round(props.population_density))
+                    ? format.number(props.population_density)
                     : props.population && props.area_km2
-                    ? formatNumber(Math.round(props.population / props.area_km2))
-                    : 'N/A'
+                    ? format.number(props.population / props.area_km2)
+                    : MISSING_VALUE
                 }
                 subtitle={t('density_unit')}
               />
               <StatCard
                 icon={<TrendingUp className="w-4 h-4 text-orange-600" />}
-                label="PIB per capita"
+                label={t('gdp_per_capita')}
                 value={formatCurrency(props.gdp_per_capita)}
-                subtitle={`per capita${props.gdp_year ? ` (${props.gdp_year})` : ''}`}
+                subtitle={`${t('per_capita')}${props.gdp_year ? ` (${props.gdp_year})` : ''}`}
               />
             </div>
           </Section>
 
           {/* Potential section — follows whichever metric the map is showing */}
           <Section
-            title={`Potencial de ${spec.toggleLabel}`}
+            title={t('metric_potential', { metric: text.label })}
             icon={<Factory className="w-5 h-5" />}
             expanded={expandedSections.has('biomass')}
             onToggle={() => toggleSection('biomass')}
@@ -320,13 +309,13 @@ export default function MunicipalityProfilePanel({
               {/* Headline figure in the active metric */}
               <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-lg p-4 border border-green-200 dark:border-green-800">
                 <div className="text-xs text-green-700 dark:text-green-300 font-medium mb-1">
-                  {spec.icon} {spec.toggleLabel} — Total
+                  {spec.icon} {t('metric_total', { metric: text.label })}
                 </div>
                 <div className="text-2xl font-bold text-green-900 dark:text-green-100 mb-0.5">
-                  {metricTotal > 0 ? formatCompact(metricTotal) : 'Sem dados'}
+                  {metricTotal > 0 ? format.compact(metricTotal) : tCommon('states.no_data')}
                 </div>
                 <div className="text-xs text-green-600 dark:text-green-400">
-                  {spec.unit}
+                  {text.unit}
                 </div>
               </div>
 
@@ -345,7 +334,8 @@ export default function MunicipalityProfilePanel({
                       percentage={agriculturePercent}
                       color="green"
                       icon={<Leaf className="w-4 h-4" />}
-                      unit={spec.unit}
+                      unit={text.unit}
+                      format={format}
                     />
 
                     {/* Livestock */}
@@ -355,7 +345,8 @@ export default function MunicipalityProfilePanel({
                       percentage={livestockPercent}
                       color="yellow"
                       icon={<Factory className="w-4 h-4" />}
-                      unit={spec.unit}
+                      unit={text.unit}
+                      format={format}
                     />
 
                     {/* Urban */}
@@ -365,7 +356,8 @@ export default function MunicipalityProfilePanel({
                       percentage={urbanPercent}
                       color="blue"
                       icon={<Droplets className="w-4 h-4" />}
-                      unit={spec.unit}
+                      unit={text.unit}
+                      format={format}
                     />
 
                     {/* Forestry — served scenarios only */}
@@ -376,7 +368,8 @@ export default function MunicipalityProfilePanel({
                         percentage={forestryPercent}
                         color="emerald"
                         icon={<Trees className="w-4 h-4" />}
-                        unit={spec.unit}
+                        unit={text.unit}
+                        format={format}
                       />
                     )}
                   </>
@@ -437,7 +430,7 @@ export default function MunicipalityProfilePanel({
                   <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 dark:border-blue-900 dark:bg-blue-950/30">
                     <p className="text-[11px] font-medium text-blue-700 dark:text-blue-300">{t('urban_total')}</p>
                     <p className="text-xl font-bold text-blue-950 dark:text-blue-100">
-                      {formatCompact(urbanScenarioTotal)}
+                      {format.compact(urbanScenarioTotal)}
                       <span className="ml-1 text-xs font-medium">{t('ch4_unit')}</span>
                     </p>
                   </div>
@@ -493,7 +486,7 @@ export default function MunicipalityProfilePanel({
               className="flex items-center justify-between p-4 rounded-lg bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors group"
             >
               <span className="text-sm font-medium text-gray-900 dark:text-white">
-                Ver mais dados no IBGE
+                {t('ibge_more')}
               </span>
               <ExternalLink className="w-4 h-4 text-gray-500 group-hover:text-blue-600 dark:group-hover:text-blue-400" />
             </a>
@@ -563,9 +556,11 @@ interface ProgressBarProps {
   color: 'green' | 'yellow' | 'blue' | 'emerald';
   icon: React.ReactNode;
   unit: string;
+  format: Formatters;
 }
 
-function ProgressBar({ label, value, percentage, color, icon, unit }: ProgressBarProps) {
+function ProgressBar({ label, value, percentage, color, icon, unit, format }: ProgressBarProps) {
+  const t = useTranslations('Map.profilePanel');
   const colorClasses = {
     green: {
       bg: 'bg-green-500',
@@ -599,7 +594,7 @@ function ProgressBar({ label, value, percentage, color, icon, unit }: ProgressBa
           <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{label}</span>
         </div>
         <div className="text-sm font-semibold text-gray-900 dark:text-white">
-          {value.toLocaleString('pt-BR', { maximumFractionDigits: 0 })} {unit}
+          {format.number(value)} {unit}
         </div>
       </div>
       <div className="relative h-2 bg-gray-200 dark:bg-slate-700 rounded-full overflow-hidden">
@@ -609,7 +604,7 @@ function ProgressBar({ label, value, percentage, color, icon, unit }: ProgressBa
         />
       </div>
       <div className="text-xs text-gray-500 dark:text-gray-400 text-right">
-        {percentage.toFixed(1)}% do total
+        {t('share_of_total', { share: format.percent(percentage) })}
       </div>
     </div>
   );
@@ -621,19 +616,24 @@ interface DetailRowProps {
 }
 
 function UrbanStreamRow({ label, value, total }: { label: string; value: number | null; total: number }) {
+  const t = useTranslations('Map.profilePanel');
+  const tCommon = useTranslations('common');
+  const format = useFormat();
   const percentage = value !== null && total > 0 ? (value / total) * 100 : 0;
   return (
     <div className="space-y-1.5">
       <div className="flex items-center justify-between gap-3 text-sm">
         <span className="font-medium text-gray-700 dark:text-gray-300">{label}</span>
         <span className="text-right font-semibold text-gray-950 dark:text-white">
-          {value === null ? 'Sem dados' : `${formatCompact(value)} Nm³ CH₄/ano`}
+          {value === null ? tCommon('states.no_data') : `${format.compact(value)} ${tCommon('units.nm3_ch4_year')}`}
         </span>
       </div>
       <div className="h-1.5 overflow-hidden rounded-full bg-gray-200 dark:bg-slate-700">
         <div className="h-full rounded-full bg-blue-600" style={{ width: `${Math.min(percentage, 100)}%` }} />
       </div>
-      <p className="text-right text-[10px] text-gray-500 dark:text-gray-400">{percentage.toFixed(1)}% do urbano</p>
+      <p className="text-right text-[10px] text-gray-500 dark:text-gray-400">
+        {t('share_of_urban', { share: format.percent(percentage) })}
+      </p>
     </div>
   );
 }

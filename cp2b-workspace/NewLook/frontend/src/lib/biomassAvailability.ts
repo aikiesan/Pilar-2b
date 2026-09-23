@@ -21,27 +21,34 @@
 import type { MunicipalityProperties } from '@/types/geospatial';
 import type { BiomassType, ResidueType } from '@/components/map/FloatingControlPanel';
 
+/**
+ * Where each residue's served availability is read from, and which sector it
+ * belongs to. Display names are copy: they live in messages under
+ * Map.residues.<type>.
+ */
 type ResidueConfig = {
-  label: string;
   sector: Exclude<BiomassType, 'total'>;
   /** The served GeoJSON property this residue's availability is read from. */
   biomassField: keyof MunicipalityProperties;
 };
 
 export const BIOMASS_RESIDUES: Record<ResidueType, ResidueConfig> = {
-  sugarcane: { label: 'Cana', sector: 'agricultural', biomassField: 'sugarcane_biomass_tons_year' },
-  soybean: { label: 'Soja', sector: 'agricultural', biomassField: 'soybean_biomass_tons_year' },
-  corn: { label: 'Milho', sector: 'agricultural', biomassField: 'corn_biomass_tons_year' },
-  coffee: { label: 'Café', sector: 'agricultural', biomassField: 'coffee_biomass_tons_year' },
-  citrus: { label: 'Citrus', sector: 'agricultural', biomassField: 'citrus_biomass_tons_year' },
-  cattle: { label: 'Bovinos', sector: 'livestock', biomassField: 'cattle_biomass_tons_year' },
-  swine: { label: 'Suínos', sector: 'livestock', biomassField: 'swine_biomass_tons_year' },
-  poultry: { label: 'Aves', sector: 'livestock', biomassField: 'poultry_biomass_tons_year' },
-  aquaculture: { label: 'Aquicultura', sector: 'livestock', biomassField: 'aquaculture_biomass_tons_year' },
-  rsu: { label: 'FORSU', sector: 'urban', biomassField: 'rsu_biomass_tons_year' },
-  rpo: { label: 'Poda urbana', sector: 'urban', biomassField: 'rpo_biomass_tons_year' },
-  sewage: { label: 'Lodo de ETE', sector: 'urban', biomassField: 'sewage_biomass_tons_year' },
+  sugarcane: { sector: 'agricultural', biomassField: 'sugarcane_biomass_tons_year' },
+  soybean: { sector: 'agricultural', biomassField: 'soybean_biomass_tons_year' },
+  corn: { sector: 'agricultural', biomassField: 'corn_biomass_tons_year' },
+  coffee: { sector: 'agricultural', biomassField: 'coffee_biomass_tons_year' },
+  citrus: { sector: 'agricultural', biomassField: 'citrus_biomass_tons_year' },
+  cattle: { sector: 'livestock', biomassField: 'cattle_biomass_tons_year' },
+  swine: { sector: 'livestock', biomassField: 'swine_biomass_tons_year' },
+  poultry: { sector: 'livestock', biomassField: 'poultry_biomass_tons_year' },
+  aquaculture: { sector: 'livestock', biomassField: 'aquaculture_biomass_tons_year' },
+  rsu: { sector: 'urban', biomassField: 'rsu_biomass_tons_year' },
+  rpo: { sector: 'urban', biomassField: 'rpo_biomass_tons_year' },
+  sewage: { sector: 'urban', biomassField: 'sewage_biomass_tons_year' },
 };
+
+/** Every residue type, in registry order (agricultural → livestock → urban). */
+export const RESIDUE_TYPES = Object.keys(BIOMASS_RESIDUES) as ResidueType[];
 
 export const RESIDUES_BY_SECTOR: Record<Exclude<BiomassType, 'total'>, ResidueType[]> = {
   agricultural: ['sugarcane', 'soybean', 'corn', 'coffee', 'citrus'],

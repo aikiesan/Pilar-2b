@@ -13,7 +13,7 @@ import {
   getMetricColor,
   getMetricSpec,
   legendItems,
-  formatMetricValue,
+  describeLegendRow,
   RAMP_DEFAULT,
   RAMP_DALTONIC,
   RAMP_TIERS,
@@ -24,6 +24,7 @@ import {
   rampFor,
 } from './mapMetrics';
 import { MWH_PER_M3_CH4 } from './mapValues';
+import { formatCompact } from './format';
 
 const props = (o: Record<string, unknown>): MunicipalityProperties =>
   o as unknown as MunicipalityProperties;
@@ -48,7 +49,7 @@ describe('mapMetrics — registry wiring', () => {
     // Not a toggle, but ?metric=methane_m3 must not fall over, and bioenergia
     // reads this band.
     expect(METRIC_SPECS.methane_m3.rawValue).toBeDefined();
-    expect(getMetricSpec('methane_m3' as DisplayMetric).unit).toBe('Nm³/dia');
+    expect(getMetricSpec('methane_m3' as DisplayMetric).key).toBe('methane_m3');
   });
 
   it('biomass reads served tonnage (t/ano, no conversion)', () => {
@@ -246,13 +247,17 @@ describe('mapMetrics — adaptive log scale', () => {
   });
 });
 
-describe('mapMetrics — legend + formatting', () => {
+describe('mapMetrics — legend', () => {
+  const labels = { zero: 'Zero', noData: 'No data' };
+  const compact = (value: number) => formatCompact(value, 'en');
+
   it('legend has eight ramp tiers + zero + no_data, in the daltonic palette when on', () => {
     const items = legendItems(METRIC_SPECS.biogas_m3, true, 'blues');
     expect(items).toHaveLength(RAMP_TIERS + 2);
     expect(items[0].color).toBe(CVD_PALETTES.blues.ramp[RAMP_TIERS - 1]);
-    expect(items[0].label).toContain('>');
-    expect(items[items.length - 1].label).toBe('Sem dados');
+    expect(items[0].kind).toBe('above');
+    expect(items[items.length - 2]).toEqual({ kind: 'zero', color: ZERO_FILL });
+    expect(items[items.length - 1].kind).toBe('noData');
   });
 
   it('legend prints the SAME limits the choropleth was painted with', () => {
@@ -261,13 +266,21 @@ describe('mapMetrics — legend + formatting', () => {
     const breaks = [10, 100, 1_000, 10_000, 100_000, 1_000_000, 10_000_000];
     const items = legendItems(METRIC_SPECS.biogas_m3, false, undefined, breaks);
     expect(items).toHaveLength(RAMP_TIERS + 2);
-    expect(items[0].label).toBe('> 10M');
-    expect(items[RAMP_TIERS - 1].label).toBe('< 10');
+    expect(describeLegendRow(items[0], compact, labels)).toBe('> 10M');
+    expect(describeLegendRow(items[1], compact, labels)).toBe('1M – 10M');
+    expect(describeLegendRow(items[RAMP_TIERS - 1], compact, labels)).toBe('< 10');
   });
 
-  it('formatMetricValue shows the unit and null → sem dados', () => {
-    expect(formatMetricValue(365_000, METRIC_SPECS.biogas_m3)).toContain('Nm³/dia');
-    expect(formatMetricValue(null, METRIC_SPECS.biogas_m3)).toBe('sem dados');
+  it('describes zero and no-data rows with the catalog labels it is given', () => {
+    const items = legendItems(METRIC_SPECS.biogas_m3, false);
+    expect(describeLegendRow(items[items.length - 2], compact, labels)).toBe('Zero');
+    expect(describeLegendRow(items[items.length - 1], compact, labels)).toBe('No data');
+  });
+
+  it('formats the limits in the locale it is handed', () => {
+    const items = legendItems(METRIC_SPECS.biogas_m3, false, undefined, [1_500, 2_500, 3_500, 4_500, 5_500, 6_500, 7_500]);
+    const ptCompact = (value: number) => formatCompact(value, 'pt-BR').replace(/\u00a0/g, ' ');
+    expect(describeLegendRow(items[0], ptCompact, labels)).toBe('> 7,5 mil');
   });
 });
 

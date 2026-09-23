@@ -58,7 +58,50 @@
       "switch_to_en": "Switch to English",
       "switch_to_pt": "Mudar para Português"
     },
-    "copyright": "© 2025 PILAR-2b. Plataforma Inteligente de Localização e Aproveitamento de Resíduos para Biogas e Bioprodutos."
+    "copyright": "© 2025 PILAR-2b. Plataforma Inteligente de Localização e Aproveitamento de Resíduos para Biogas e Bioprodutos.",
+    "actions": {
+      "close": "Fechar",
+      "back": "Voltar",
+      "cancel": "Cancelar",
+      "clear": "Limpar",
+      "apply": "Aplicar",
+      "save": "Salvar",
+      "retry": "Tentar novamente",
+      "export": "Exportar",
+      "download": "Baixar",
+      "share": "Compartilhar",
+      "copy": "Copiar",
+      "copied": "Copiado!",
+      "search": "Buscar",
+      "show_more": "Ver mais",
+      "show_less": "Ver menos"
+    },
+    "states": {
+      "loading": "Carregando…",
+      "no_data": "Sem dados",
+      "error": "Não foi possível carregar os dados.",
+      "not_found": "Nada encontrado"
+    },
+    "sectors": {
+      "agricultural": "Agrícola",
+      "livestock": "Pecuária",
+      "urban": "Urbano",
+      "industrial": "Industrial",
+      "forestry": "Florestal"
+    },
+    "units": {
+      "t_year": "t/ano",
+      "m3_year": "m³/ano",
+      "m3_day": "m³/dia",
+      "nm3_day": "Nm³/dia",
+      "nm3_ch4_year": "Nm³ CH₄/ano",
+      "mwh_year": "MWh/ano",
+      "km": "km",
+      "km2": "km²",
+      "ha": "ha",
+      "inhab_km2": "hab./km²",
+      "gwh_year": "GWh/ano"
+    }
   },
   "auth": {
     "errors": {
@@ -265,7 +308,6 @@
   },
   "Map": {
     "title": "Mapa Interativo",
-    "legend": "Legenda do Mapa",
     "loading_map": "Carregando mapa...",
     "loading": {
       "title": "Carregando Mapa Interativo",
@@ -471,7 +513,17 @@
       "no_urban_inventory_mg": "Sem inventário urbano validado para MG",
       "urban_note": "FORSU, poda urbana e lodo de ETE não foram inferidos a partir da população.",
       "full_profile": "Ver Perfil Completo",
-      "per_year_unit": "m³/ano"
+      "active_streams": "Streams ativos",
+      "dominant_stream": "Stream dominante",
+      "inhabitants": "habitantes",
+      "density": "Densidade",
+      "gdp_per_capita": "PIB per capita",
+      "per_capita": "per capita",
+      "metric_potential": "Potencial de {metric}",
+      "metric_total": "{metric} — Total",
+      "share_of_total": "{share} do total",
+      "share_of_urban": "{share} do urbano",
+      "ibge_more": "Ver mais dados no IBGE"
     },
     "infrastructure": {
       "na": "N/A",
@@ -519,6 +571,104 @@
       "c_slight": "Levemente rico em Carbono (30–40)",
       "c_mod": "Rico em Carbono (40–55)",
       "c_rich": "Excesso de Carbono (> 55)"
+    },
+    "metrics": {
+      "biomass_tons": {
+        "label": "Biomassa",
+        "legend": "Biomassa (t/ano)",
+        "unit": "t/ano"
+      },
+      "biogas_m3": {
+        "label": "Biogás",
+        "legend": "Biogás (Nm³/dia)",
+        "unit": "Nm³/dia"
+      },
+      "methane_m3": {
+        "label": "Metano",
+        "legend": "Metano CH₄ (Nm³/dia)",
+        "unit": "Nm³/dia"
+      },
+      "biomethane_m3": {
+        "label": "Biometano",
+        "legend": "Biometano (Nm³/dia)",
+        "unit": "Nm³/dia"
+      },
+      "bioenergy_mwh": {
+        "label": "Bioenergia",
+        "legend": "Bioenergia (MWh/ano)",
+        "unit": "MWh/ano"
+      },
+      "ch4_per_capita": {
+        "label": "Per capita",
+        "legend": "Biometano per capita (Nm³/hab·ano)",
+        "unit": "Nm³/hab·ano"
+      }
+    },
+    "palettes": {
+      "ylgnbu": {
+        "label": "Verde-Azul (padrão)",
+        "note": "YlGnBu · escala padrão da plataforma"
+      },
+      "greens": {
+        "label": "Verdes",
+        "note": "Sequencial · ênfase agrícola"
+      },
+      "ylorrd": {
+        "label": "Amarelo-Vermelho",
+        "note": "Sequencial quente · intensidade"
+      },
+      "bupu": {
+        "label": "Azul-Roxo",
+        "note": "Sequencial frio · foco urbano"
+      },
+      "plasma": {
+        "label": "Plasma",
+        "note": "Vibrante · alto contraste"
+      },
+      "viridis": {
+        "label": "Viridis",
+        "note": "Perceptualmente uniforme · segura para todos os tipos de daltonismo"
+      },
+      "cividis": {
+        "label": "Cividis",
+        "note": "Otimizada para deuteranopia/protanopia"
+      },
+      "blues": {
+        "label": "Azul (mono)",
+        "note": "Tom único · luminância monotônica"
+      },
+      "heading": "Escala de cores",
+      "group_aria": "Escala de cores do mapa",
+      "cvd_safe": "Segura para daltonismo"
+    },
+    "legend": {
+      "zero": "Zero",
+      "expand": "Expandir legenda",
+      "collapse": "Recolher legenda",
+      "cvd_palette": "Paleta (daltonismo)",
+      "cvd_palette_aria": "Paleta para daltonismo",
+      "mg_beta": "Minas Gerais — piloto beta"
+    },
+    "potentialCategory": {
+      "high": "Alto potencial",
+      "medium": "Médio potencial",
+      "low": "Baixo potencial",
+      "unclassified": "Sem classificação"
+    },
+    "hover": {
+      "click_for_details": "Clique para detalhes"
+    },
+    "popup": {
+      "data_unavailable": "Dados não disponíveis",
+      "population": "População",
+      "area": "Área",
+      "region": "Região",
+      "sector_distribution": "Distribuição por setor",
+      "main_residues": "Principais resíduos",
+      "references_note": "Cada resíduo possui análises e referências científicas próprias"
+    },
+    "stat_strip": {
+      "theoretical": "teórico"
     }
   },
   "metadata": {

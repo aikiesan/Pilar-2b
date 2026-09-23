@@ -22,7 +22,8 @@ import type { VisualizationMode } from './LeftFilterPanel';
 import type { DisplayMetric, ResidueCNMatrix, ColorMode } from '@/types/geospatial';
 import { useSummaryStatistics } from '@/hooks/useGeospatialData';
 import { useMapPalette } from '@/hooks/useMapPalette';
-import { formatBiogasShort } from '@/lib/mapUtils';
+import { useFormat } from '@/hooks/useFormat';
+import { useMetricText } from '@/hooks/useMetricText';
 import { DISPLAY_METRICS, METRIC_SPECS, MAP_PALETTES } from '@/lib/mapMetrics';
 import {
   THEMATIC_PRESETS,
@@ -34,7 +35,6 @@ import { DATA_EXPORT_ENABLED } from '@/lib/featureFlags';
 import { MG_BETA_LAYER_ID, BETA_NOTICE } from '@/lib/mapScope';
 import {
   isServedScenario,
-  SCENARIO_LABEL,
   DEFAULT_MAP_SCENARIO,
   type MapScenarioKey,
 } from '@/data/scenarioFactors';
@@ -195,6 +195,7 @@ function FiltersSection({
   onColorModeChange: (mode: ColorMode) => void;
   scopeUf?: 'SP' | 'MG';
 }) {
+  const metricText = useMetricText();
   const vizModes: { value: VisualizationMode; label: string; disabled?: boolean }[] = [
     { value: 'choropleth', label: t('vizModes.choropleth') },
     { value: 'heatmap', label: t('vizModes.heatmap') },
@@ -237,14 +238,14 @@ function FiltersSection({
                 key={m}
                 onClick={() => onDisplayMetricChange(m)}
                 aria-pressed={active}
-                title={spec.legendTitle}
+                title={metricText(m).legend}
                 className={`py-2 text-[11px] font-bold uppercase tracking-wide rounded-lg transition-colors ${
                   active
                     ? `${spec.activeClass} text-white`
                     : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-200'
                 }`}
               >
-                {spec.icon} {spec.toggleLabel}
+                {spec.icon} {metricText(m).label}
               </button>
             );
           })}
@@ -316,6 +317,7 @@ function ThemesSection({
   residueBreakdownAvailable?: boolean;
   availableResidueCategories?: Array<'agricultural' | 'livestock' | 'urban'>;
 }) {
+  const tMap = useTranslations('Map');
   const [palette, setPalette] = useMapPalette();
   const groups: ThematicPresetGroup[] = ['setorial', 'residuo', 'energia', 'logistica', 'analise'];
 
@@ -391,11 +393,12 @@ function ThemesSection({
       {/* Colour scale — the general palette, applies to any choropleth. */}
       <div className="border-t border-gray-100 pt-3">
         <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-gray-500">
-          Escala de cores
+          {tMap('palettes.heading')}
         </span>
-        <div className="grid grid-cols-2 gap-1" role="radiogroup" aria-label="Escala de cores do mapa">
+        <div className="grid grid-cols-2 gap-1" role="radiogroup" aria-label={tMap('palettes.group_aria')}>
           {Object.values(MAP_PALETTES).map((p) => {
             const active = palette === p.id;
+            const name = tMap(`palettes.${p.id}.label`);
             return (
               <button
                 key={p.id}
@@ -403,7 +406,7 @@ function ThemesSection({
                 role="radio"
                 aria-checked={active}
                 onClick={() => setPalette(p.id)}
-                title={`${p.label} — ${p.note}`}
+                title={`${name} — ${tMap(`palettes.${p.id}.note`)}`}
                 className={`rounded-md border p-1 transition-all ${
                   active ? 'border-gray-800 ring-1 ring-gray-800' : 'border-gray-200 hover:border-gray-400'
                 }`}
@@ -414,8 +417,8 @@ function ThemesSection({
                   ))}
                 </span>
                 <span className="mt-0.5 flex items-center justify-center gap-0.5 text-[8px] font-semibold text-gray-600">
-                  {p.label}
-                  {p.cvdSafe && <span title="Segura para daltonismo" aria-hidden="true">·♿</span>}
+                  {name}
+                  {p.cvdSafe && <span title={tMap('palettes.cvd_safe')} aria-hidden="true">·♿</span>}
                 </span>
               </button>
             );
@@ -620,6 +623,9 @@ function StatStrip({ municipalityCount, totalMunicipalities, filterCount, betaMu
   scenario: MapScenarioKey;
   scopeUf?: 'SP' | 'MG';
 }) {
+  const tMap = useTranslations('Map');
+  const tCommon = useTranslations('common');
+  const format = useFormat();
   const { data } = useSummaryStatistics();
   // The strip used to show `total_biogas_m3_year` — 19.9 bi, the THEORETICAL
   // volume, with no availability correction and no relation to the scenario the
@@ -629,9 +635,9 @@ function StatStrip({ municipalityCount, totalMunicipalities, filterCount, betaMu
   // the theoretical figure it is, never as the platform's headline.
   const tier = scopeUf === 'SP' && isServedScenario(scenario) ? data?.scenarios?.[scenario] : undefined;
   const headline = scopeUf === 'SP' ? (tier ? tier.ch4_m3_year : data?.total_biogas_m3_year) : undefined;
-  const headlineLabel = tier
-    ? `Nm³ CH₄/ano · ${SCENARIO_LABEL[scenario]}`
-    : 'Nm³ CH₄/ano · teórico';
+  const headlineLabel = `${tCommon('units.nm3_ch4_year')} · ${
+    tier ? tMap(`scenario_${scenario}`) : tMap('stat_strip.theoretical')
+  }`;
   return (
     <div className="px-3 py-2 border-b border-gray-100 bg-gradient-to-r from-green-50 to-white flex-shrink-0">
       <div className="flex items-center gap-2">
@@ -646,7 +652,7 @@ function StatStrip({ municipalityCount, totalMunicipalities, filterCount, betaMu
             className="ml-auto text-[10px] text-green-700 font-semibold shrink-0"
             title={tier?.description}
           >
-            {formatBiogasShort(headline)} {headlineLabel}
+            {format.compact(headline)} {headlineLabel}
           </span>
         )}
         {filterCount > 0 && !data && (
