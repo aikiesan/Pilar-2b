@@ -10,7 +10,7 @@ import { GeoJSON } from 'react-leaflet';
 import type { GeoJsonObject, Feature } from 'geojson';
 import type { MunicipalityCollection, MunicipalityFeature, MunicipalityProperties, DisplayMetric } from '@/types/geospatial';
 import type { ColorMode } from '@/types/geospatial';
-import type { BiomassType, ResidueType } from './FloatingControlPanel';
+import type { BiomassType, ResidueType } from '@/types/map';
 import MunicipalityPopup from '../dashboard/MunicipalityPopup';
 import L from 'leaflet';
 import { createRoot } from 'react-dom/client';

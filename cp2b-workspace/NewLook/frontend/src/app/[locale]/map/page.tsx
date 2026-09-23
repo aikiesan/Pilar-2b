@@ -9,8 +9,7 @@
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import dynamic from 'next/dynamic'
-import type { FilterCriteria } from '@/components/dashboard/FilterPanel'
-import type { BiomassType } from '@/components/map/FloatingControlPanel'
+import type { FilterCriteria, BiomassType } from '@/types/map'
 
 function MapLoadingSkeleton() {
   const t = useTranslations('Map')

@@ -10,7 +10,7 @@ import React, { useEffect, useRef, useMemo } from 'react';
 import { useMap, CircleMarker, Tooltip } from 'react-leaflet';
 import L from 'leaflet';
 import type { MunicipalityCollection } from '@/types/geospatial';
-import type { ResidueType } from './FloatingControlPanel';
+import type { ResidueType } from '@/types/map';
 
 interface HeatmapLayerProps {
   data: MunicipalityCollection;

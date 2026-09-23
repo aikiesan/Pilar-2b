@@ -13,7 +13,7 @@ import { useTranslations } from 'next-intl';
 import { MapContainer, TileLayer, ScaleControl, ZoomControl, useMap } from 'react-leaflet';
 import dynamic from 'next/dynamic';
 import { useGeospatialData, useCodigestionClusters, useResidueCNMatrix, useIntermediateRegionsGeoJSON } from '@/hooks/useGeospatialData';
-import type { FilterCriteria } from '@/components/dashboard/FilterPanel';
+import type { FilterCriteria, BiomassType, ResidueType, VisualizationMode } from '@/types/map';
 import type { MunicipalityCollection, MunicipalityFeature, DisplayMetric, CodigestionCluster } from '@/types/geospatial';
 import { MAP_SCENARIOS, DEFAULT_MAP_SCENARIO, applyScenarioToProps, isServedScenario, type MapScenarioKey } from '@/data/scenarioFactors';
 import { DISPLAY_METRICS, getMetricSpec, computeAdaptiveBreaks, DEFAULT_MAP_PALETTE } from '@/lib/mapMetrics';
@@ -38,8 +38,6 @@ import {
   SP_MUNICIPALITY_COUNT,
   MG_MUNICIPALITY_COUNT,
 } from '@/lib/mapScope';
-import type { BiomassType, ResidueType } from './FloatingControlPanel';
-import type { VisualizationMode } from './LeftFilterPanel';
 import { type ColorMode } from '@/types/geospatial';
 import type { InfrastructureLayerStatus, NationalLayer } from './InfrastructureLayer';
 import {

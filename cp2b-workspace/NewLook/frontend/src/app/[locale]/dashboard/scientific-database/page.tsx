@@ -62,7 +62,8 @@ import {
   KINETIC_COLORS,
   SECTOR_LABELS,
   PARAMETER_LABELS,
-  formatBMPError
+  formatBMPError,
+  type SectorCode,
 } from '@/types/scientific'
 
 import ParameterWithReference from '@/components/scientific/ParameterWithReference';
@@ -81,7 +82,6 @@ import {
   getAllReferences
 } from '@/services/scientificApi'
 
-import type { SectorCode } from '@/services/residuosApi'
 import { logger } from '@/lib/logger'
 
 // ── Citation export helpers ───────────────────────────────────────────────────

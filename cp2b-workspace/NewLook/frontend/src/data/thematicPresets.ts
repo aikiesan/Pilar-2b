@@ -19,8 +19,7 @@
  * the served scenario shares the choropleth paints.
  */
 
-import type { VisualizationMode } from '@/components/map/LeftFilterPanel';
-import type { BiomassType, ResidueType } from '@/components/map/FloatingControlPanel';
+import type { VisualizationMode, BiomassType, ResidueType } from '@/types/map';
 import type { DisplayMetric, ColorMode } from '@/types/geospatial';
 import type { MapScenarioKey } from '@/data/scenarioFactors';
 import type { MapPaletteId } from '@/lib/mapMetrics';

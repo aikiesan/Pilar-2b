@@ -101,7 +101,8 @@
       "km2": "km²",
       "ha": "ha",
       "inhab_km2": "hab./km²",
-      "gwh_year": "GWh/ano"
+      "gwh_year": "GWh/ano",
+      "inhabitants": "hab."
     }
   },
   "auth": {
@@ -404,15 +405,6 @@
       "label": "municípios"
     },
     "layers": {
-      "municipalitiesSP": "Municípios",
-      "intermediateRegions": "Regiões Intermediárias (IBGE)",
-      "mapbiomas": "MapBiomas 2024",
-      "biogasPlants": "Plantas de Biomassa (MapBiomas+ANP, 2024)",
-      "pipelines": "Gasodutos (EPE, 2024)",
-      "substations": "Subestações (EPE, 2024)",
-      "transmissionLines": "Linhas de Transmissão (EPE, 2023)",
-      "etes": "ETEs (SNIS, 2023)",
-      "railways": "Rodovias (EPE, 2023)",
       "mapLayers": "Camadas do Mapa"
     },
     "layerGroups": {
@@ -941,6 +933,66 @@
       "title": "Biomassa · {state}",
       "expand": "Expandir painel",
       "collapse": "Recolher painel"
+    },
+    "mobile": {
+      "close_filters": "Fechar filtros",
+      "close_layers": "Fechar camadas",
+      "clear_search": "Limpar busca",
+      "mg_filters_note": "Em MG beta, somente os filtros agrícolas estão validados. Pecuária e urbano aguardam promoção.",
+      "daltonic": "Modo daltônico",
+      "active": "ativo"
+    },
+    "comparePanel": {
+      "title": "Comparação de Municípios",
+      "subtitle": "Compare até 4 municípios lado a lado",
+      "add_label": "Adicionar município à comparação",
+      "add_placeholder": "Digite o nome do município…",
+      "metric_column": "Métrica",
+      "empty_title": "Nenhum município selecionado",
+      "empty_hint": "Use a busca acima para adicionar municípios à comparação",
+      "highest": "Maior valor",
+      "lowest": "Menor valor",
+      "categories": {
+        "overview": "Visão geral",
+        "biogas": "Biogás total"
+      },
+      "metrics": {
+        "population": "População",
+        "area": "Área",
+        "total": "Total"
+      }
+    },
+    "exportPanel": {
+      "title": "Exportar dados",
+      "subtitle": "Escolha o formato para exportação",
+      "formats": {
+        "csv": {
+          "title": "CSV (planilha)",
+          "description": "Dados tabulares compatíveis com Excel"
+        },
+        "geojson": {
+          "title": "GeoJSON (geoespacial)",
+          "description": "Formato padrão para dados geográficos"
+        },
+        "png": {
+          "title": "PNG (imagem)",
+          "description": "Captura visual do mapa atual"
+        }
+      },
+      "status": {
+        "loading": "Exportando…",
+        "success": "Download iniciado!",
+        "error": "Erro: {message}"
+      },
+      "errors": {
+        "no_data": "Nenhum dado disponível para exportar",
+        "map_not_found": "Mapa não encontrado",
+        "image_failed": "Falha ao gerar a imagem",
+        "unknown": "Erro desconhecido"
+      },
+      "note_label": "Nota:",
+      "note": "Os dados exportados incluem apenas os municípios visíveis com os filtros atuais aplicados.",
+      "note_count": "{count, plural, one {{formatted} município será exportado.} other {{formatted} municípios serão exportados.}}"
     }
   },
   "metadata": {

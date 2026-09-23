@@ -473,3 +473,6 @@ export function formatBMPError(experimental: number, simulated: number): string 
   const error = ((simulated - experimental) / experimental * 100)
   return `${error >= 0 ? '+' : ''}${error.toFixed(1)}%`
 }
+
+/** Sector codes as the backend's residue database writes them (identifiers, not copy). */
+export type SectorCode = 'AG_AGRICULTURA' | 'PC_PECUARIA' | 'UR_URBANO' | 'IN_INDUSTRIAL'

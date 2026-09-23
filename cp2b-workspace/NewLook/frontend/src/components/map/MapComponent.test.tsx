@@ -113,10 +113,8 @@ jest.mock('./MapBiomasLayer', () => ({
   ),
 }));
 
-// Note: LeftFilterPanel is only imported for its VisualizationMode type in
-// MapComponent.tsx — DesktopLeftPanel is the component that's actually
-// rendered and receives search/visualization-mode/layer props, so it's the
-// one mocked with interactive elements below.
+// DesktopLeftPanel receives the search/visualization-mode/layer props, so it's
+// the one mocked with interactive elements below.
 
 jest.mock('./DesktopLeftPanel', () => ({
   __esModule: true,

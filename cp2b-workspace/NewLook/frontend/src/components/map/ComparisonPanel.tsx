@@ -6,6 +6,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import {
   X,
   Plus,
@@ -20,6 +21,8 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import type { MunicipalityFeature } from '@/types/geospatial';
+import { MISSING_VALUE } from '@/lib/format';
+import { useFormat } from '@/hooks/useFormat';
 
 interface ComparisonPanelProps {
   municipalities: MunicipalityFeature[];
@@ -40,6 +43,10 @@ export default function ComparisonPanel({
   onClose,
   visible,
 }: ComparisonPanelProps) {
+  const t = useTranslations('Map.comparePanel');
+  const tMap = useTranslations('Map');
+  const tCommon = useTranslations('common');
+  const format = useFormat();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<MetricCategory>('overview');
 
@@ -50,55 +57,46 @@ export default function ComparisonPanel({
   );
 
   const categories: Array<{ id: MetricCategory; label: string; icon: React.ReactNode }> = [
-    { id: 'overview', label: 'Visão Geral', icon: <BarChart3 className="w-4 h-4" /> },
-    { id: 'biogas', label: 'Biogás Total', icon: <Factory className="w-4 h-4" /> },
-    { id: 'agriculture', label: 'Agrícola', icon: <Leaf className="w-4 h-4" /> },
-    { id: 'livestock', label: 'Pecuária', icon: <Factory className="w-4 h-4" /> },
-    { id: 'urban', label: 'Urbano', icon: <Droplets className="w-4 h-4" /> },
+    { id: 'overview', label: t('categories.overview'), icon: <BarChart3 className="w-4 h-4" /> },
+    { id: 'biogas', label: t('categories.biogas'), icon: <Factory className="w-4 h-4" /> },
+    { id: 'agriculture', label: tCommon('sectors.agricultural'), icon: <Leaf className="w-4 h-4" /> },
+    { id: 'livestock', label: tCommon('sectors.livestock'), icon: <Factory className="w-4 h-4" /> },
+    { id: 'urban', label: tCommon('sectors.urban'), icon: <Droplets className="w-4 h-4" /> },
   ];
 
-  const formatNumber = (value: number | undefined | null) => {
-    if (value === undefined || value === null || value === 0) return '-';
-    if (value >= 1000000) return `${(value / 1000000).toFixed(2)}M`;
-    if (value >= 1000) return `${(value / 1000).toFixed(1)}K`;
-    return value.toFixed(0);
-  };
+  // Zero reads as missing here, as it always did: a comparison row of zeros
+  // says "no data" more honestly than "0 m³/year" on every column.
+  const formatNumber = (value: number | undefined | null) =>
+    value ? format.compact(value, { decimals: 2 }) : MISSING_VALUE;
+
+  const biogasUnit = tCommon('units.m3_year');
+  const residueMetric = (residue: 'sugarcane' | 'soybean' | 'corn' | 'coffee' | 'citrus' | 'cattle' | 'swine' | 'poultry' | 'aquaculture' | 'rsu' | 'rpo') => ({
+    label: tMap(`residues.${residue}`),
+    key: `${residue}_biogas_m3_year`,
+    unit: biogasUnit,
+  });
 
   const getMetrics = (category: MetricCategory) => {
     switch (category) {
       case 'overview':
         return [
-          { label: 'População', key: 'population', unit: 'hab' },
-          { label: 'Área', key: 'area_km2', unit: 'km²' },
-          { label: 'Biogás Total', key: 'total_biogas_m3_year', unit: 'm³/ano' },
+          { label: t('metrics.population'), key: 'population', unit: tCommon('units.inhabitants') },
+          { label: t('metrics.area'), key: 'area_km2', unit: tCommon('units.km2') },
+          { label: t('categories.biogas'), key: 'total_biogas_m3_year', unit: biogasUnit },
         ];
       case 'biogas':
         return [
-          { label: 'Total', key: 'total_biogas_m3_year', unit: 'm³/ano' },
-          { label: 'Agrícola', key: 'agricultural_biogas_m3_year', unit: 'm³/ano' },
-          { label: 'Pecuária', key: 'livestock_biogas_m3_year', unit: 'm³/ano' },
-          { label: 'Urbano', key: 'urban_biogas_m3_year', unit: 'm³/ano' },
+          { label: t('metrics.total'), key: 'total_biogas_m3_year', unit: biogasUnit },
+          { label: tCommon('sectors.agricultural'), key: 'agricultural_biogas_m3_year', unit: biogasUnit },
+          { label: tCommon('sectors.livestock'), key: 'livestock_biogas_m3_year', unit: biogasUnit },
+          { label: tCommon('sectors.urban'), key: 'urban_biogas_m3_year', unit: biogasUnit },
         ];
       case 'agriculture':
-        return [
-          { label: 'Cana-de-açúcar', key: 'sugarcane_biogas_m3_year', unit: 'm³/ano' },
-          { label: 'Soja', key: 'soybean_biogas_m3_year', unit: 'm³/ano' },
-          { label: 'Milho', key: 'corn_biogas_m3_year', unit: 'm³/ano' },
-          { label: 'Café', key: 'coffee_biogas_m3_year', unit: 'm³/ano' },
-          { label: 'Citros', key: 'citrus_biogas_m3_year', unit: 'm³/ano' },
-        ];
+        return (['sugarcane', 'soybean', 'corn', 'coffee', 'citrus'] as const).map(residueMetric);
       case 'livestock':
-        return [
-          { label: 'Bovinos', key: 'cattle_biogas_m3_year', unit: 'm³/ano' },
-          { label: 'Suínos', key: 'swine_biogas_m3_year', unit: 'm³/ano' },
-          { label: 'Aves', key: 'poultry_biogas_m3_year', unit: 'm³/ano' },
-          { label: 'Aquicultura', key: 'aquaculture_biogas_m3_year', unit: 'm³/ano' },
-        ];
+        return (['cattle', 'swine', 'poultry', 'aquaculture'] as const).map(residueMetric);
       case 'urban':
-        return [
-          { label: 'RSU', key: 'rsu_biogas_m3_year', unit: 'm³/ano' },
-          { label: 'RPO', key: 'rpo_biogas_m3_year', unit: 'm³/ano' },
-        ];
+        return (['rsu', 'rpo'] as const).map(residueMetric);
       default:
         return [];
     }
@@ -112,6 +110,7 @@ export default function ComparisonPanel({
       <div
         className="fixed inset-0 bg-black/30 backdrop-blur-sm z-[1100] transition-opacity"
         onClick={onClose}
+        aria-hidden="true"
       />
 
       {/* Comparison Panel */}
@@ -120,14 +119,14 @@ export default function ComparisonPanel({
         <div className="bg-gradient-to-r from-purple-600 to-purple-700 dark:from-purple-700 dark:to-purple-800 text-white p-6 flex-shrink-0">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-bold mb-1">Comparação de Municípios</h2>
+              <h2 className="text-2xl font-bold mb-1">{t('title')}</h2>
               <p className="text-sm opacity-90">
-                Compare até 4 municípios lado a lado
+                {t('subtitle')}
               </p>
             </div>
             <button
               onClick={onClose}
-              aria-label="Fechar"
+              aria-label={tCommon('actions.close')}
               className="p-2 rounded-lg hover:bg-white/20 transition-colors"
             >
               <X className="w-6 h-6" aria-hidden="true" />
@@ -141,13 +140,13 @@ export default function ComparisonPanel({
           {selectedMunicipalities.length < 4 && (
             <div className="p-6 border-b border-gray-200 dark:border-slate-700">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Adicionar Município para Comparação
+                {t('add_label')}
               </label>
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Digite o nome do município..."
+                placeholder={t('add_placeholder')}
                 className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-slate-800 dark:text-white"
               />
               {searchQuery && filteredMunicipalities.length > 0 && (
@@ -209,7 +208,7 @@ export default function ComparisonPanel({
                 <thead>
                   <tr>
                     <th className="sticky left-0 bg-white dark:bg-slate-900 p-4 text-left font-semibold text-gray-900 dark:text-white border-b-2 border-gray-200 dark:border-slate-700">
-                      Métrica
+                      {t('metric_column')}
                     </th>
                     {selectedMunicipalities.map((mun) => (
                       <th
@@ -301,10 +300,10 @@ export default function ComparisonPanel({
               <div className="text-center">
                 <Plus className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                  Nenhum Município Selecionado
+                  {t('empty_title')}
                 </h3>
                 <p className="text-gray-500 dark:text-gray-400 max-w-md">
-                  Use a busca acima para adicionar municípios à comparação
+                  {t('empty_hint')}
                 </p>
               </div>
             </div>
@@ -316,11 +315,11 @@ export default function ComparisonPanel({
               <div className="flex items-center justify-center space-x-6 text-sm">
                 <div className="flex items-center space-x-2">
                   <TrendingUp className="w-4 h-4 text-green-600" />
-                  <span className="text-gray-700 dark:text-gray-300">Maior valor</span>
+                  <span className="text-gray-700 dark:text-gray-300">{t('highest')}</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <TrendingDown className="w-4 h-4 text-red-600" />
-                  <span className="text-gray-700 dark:text-gray-300">Menor valor</span>
+                  <span className="text-gray-700 dark:text-gray-300">{t('lowest')}</span>
                 </div>
               </div>
             </div>

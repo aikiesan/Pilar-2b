@@ -3,13 +3,11 @@
 import React, { useState, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import { Search, Layers, ChevronDown, ChevronUp, X } from 'lucide-react';
-import type { ResidueType, BiomassType } from './FloatingControlPanel';
-import type { VisualizationMode } from './LeftFilterPanel';
+import type { ResidueType, BiomassType, VisualizationMode } from '@/types/map';
 import type { DisplayMetric, ResidueCNMatrix, ColorMode } from '@/types/geospatial';
 import { DISPLAY_METRICS, METRIC_SPECS } from '@/lib/mapMetrics';
 import { MAP_SCENARIOS, type MapScenarioKey } from '@/data/scenarioFactors';
 import { useMetricText } from '@/hooks/useMetricText';
-import type { Messages } from '@/types/i18n';
 
 interface Layer {
   id: string;
@@ -73,17 +71,6 @@ const BIOMASS_META: { value: BiomassType; icon: string }[] = [
   { value: 'urban', icon: '🏙️' },
 ];
 
-const LAYER_KEY_MAP: Record<string, `layers.${keyof Messages['Map']['layers']}`> = {
-  'municipalities': 'layers.municipalitiesSP',
-  'intermediate-regions': 'layers.intermediateRegions',
-  'mapbiomas': 'layers.mapbiomas',
-  'biogas-plants': 'layers.biogasPlants',
-  'pipelines': 'layers.pipelines',
-  'substations': 'layers.substations',
-  'transmission-lines': 'layers.transmissionLines',
-  'etes': 'layers.etes',
-  'railways': 'layers.railways',
-};
 
 import ColorModeSelector, { buildColorModeOptions } from './ColorModeSelector';
 
@@ -121,12 +108,8 @@ export default function MobileBottomSheet({
     setActiveSheet(prev => prev === tab ? null : tab);
   };
 
-  // i18n label where one exists (the SP layers); otherwise the layer's own
-  // Portuguese name, never a raw snake_case id (the national MapBiomas layers).
-  const getLayerName = (layer: Layer) => {
-    const key = LAYER_KEY_MAP[layer.id];
-    return key ? t(key) : layer.name;
-  };
+  // Layers arrive named in the page locale (MapComponent reads Map.layerNames).
+  const getLayerName = (layer: Layer) => layer.name;
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-[1200] flex flex-col md:hidden">
@@ -146,7 +129,7 @@ export default function MobileBottomSheet({
               <button
                 type="button"
                 onClick={() => setActiveSheet(null)}
-                aria-label={activeSheet === 'filters' ? 'Fechar filtros' : 'Fechar camadas'}
+                aria-label={activeSheet === 'filters' ? t('mobile.close_filters') : t('mobile.close_layers')}
                 className="flex h-11 w-11 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100"
               >
                 <X className="w-5 h-5" aria-hidden="true" />
@@ -174,7 +157,7 @@ export default function MobileBottomSheet({
                       <button
                         type="button"
                         onClick={() => onSearchChange('')}
-                        aria-label="Limpar busca"
+                        aria-label={t('mobile.clear_search')}
                         className="absolute right-0 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center text-gray-400 hover:text-gray-600"
                       >
                         <X className="w-4 h-4" />
@@ -217,7 +200,7 @@ export default function MobileBottomSheet({
                       { value: 'choropleth' as const, label: t('vizModes.choropleth'), color: 'bg-blue-600', disabled: false },
                       { value: 'heatmap' as const, label: t('vizModes.heatmap'), color: 'bg-orange-500', disabled: false },
                       { value: 'bubble' as const, label: t('vizModes.bubble'), color: 'bg-green-600', disabled: false },
-                      { value: 'clusters' as const, label: '⚗️ Co-digestão', color: 'bg-violet-600', disabled: true },
+                      { value: 'clusters' as const, label: `⚗️ ${t('vizModes.clusters')}`, color: 'bg-violet-600', disabled: true },
                     ] as const).map(opt => (
                       <button
                         key={opt.value}
@@ -307,7 +290,7 @@ export default function MobileBottomSheet({
                     <div className="space-y-3">
                       {enabledCategories.length < 3 && (
                         <p className="rounded-md bg-amber-50 px-3 py-2 text-[11px] leading-snug text-amber-800 ring-1 ring-amber-200">
-                          ⓘ Em MG beta, somente os filtros agrícolas estão validados. Pecuária e urbano aguardam promoção.
+                          ⓘ {t('mobile.mg_filters_note')}
                         </p>
                       )}
                       {filterCount > 0 && (
@@ -391,7 +374,7 @@ export default function MobileBottomSheet({
                       daltonic ? 'bg-slate-700 text-white border-transparent' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
                     }`}
                   >
-                    👁 Modo daltônico {daltonic ? '· ativo' : ''}
+                    👁 {t('mobile.daltonic')} {daltonic ? `· ${t('mobile.active')}` : ''}
                   </button>
                 </div>
               </>
@@ -475,7 +458,7 @@ export default function MobileBottomSheet({
         >
           <Search className="w-5 h-5" />
           <span className="text-[10px] font-semibold">
-            Filtros
+            {t('panels.filters')}
             {filterCount > 0 && <span className="ml-1 text-green-600">({filterCount})</span>}
           </span>
         </button>
@@ -489,7 +472,7 @@ export default function MobileBottomSheet({
         >
           <Layers className="w-5 h-5" />
           <span className="text-[10px] font-semibold">
-            Camadas
+            {t('panels.layers')}
             {activeLayerCount > 1 && <span className="ml-1 text-blue-600">({activeLayerCount})</span>}
           </span>
         </button>

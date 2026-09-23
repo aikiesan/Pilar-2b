@@ -36,7 +36,7 @@ import { getMetricSpec } from '@/lib/mapMetrics';
 import { MISSING_VALUE, type Formatters } from '@/lib/format';
 import { useFormat } from '@/hooks/useFormat';
 import { useMetricText } from '@/hooks/useMetricText';
-import type { ResidueType } from '@/components/map/FloatingControlPanel';
+import type { ResidueType } from '@/types/map';
 
 interface MunicipalityProfilePanelProps {
   municipality: MunicipalityFeature | null;

@@ -17,8 +17,7 @@ import {
   Map,
   Sparkles,
 } from 'lucide-react';
-import type { ResidueType, BiomassType } from './FloatingControlPanel';
-import type { VisualizationMode } from './LeftFilterPanel';
+import type { ResidueType, BiomassType, VisualizationMode } from '@/types/map';
 import type { DisplayMetric, ResidueCNMatrix, ColorMode } from '@/types/geospatial';
 import { useSummaryStatistics } from '@/hooks/useGeospatialData';
 import { useMapPalette } from '@/hooks/useMapPalette';

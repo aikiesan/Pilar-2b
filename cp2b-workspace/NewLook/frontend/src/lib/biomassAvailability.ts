@@ -19,7 +19,7 @@
  */
 
 import type { MunicipalityProperties } from '@/types/geospatial';
-import type { BiomassType, ResidueType } from '@/components/map/FloatingControlPanel';
+import type { BiomassType, ResidueType } from '@/types/map';
 
 /**
  * Where each residue's served availability is read from, and which sector it

@@ -101,7 +101,8 @@
       "km2": "km²",
       "ha": "ha",
       "inhab_km2": "inhab./km²",
-      "gwh_year": "GWh/year"
+      "gwh_year": "GWh/year",
+      "inhabitants": "inhab."
     }
   },
   "auth": {
@@ -404,15 +405,6 @@
       "label": "municipalities"
     },
     "layers": {
-      "municipalitiesSP": "Municipalities",
-      "intermediateRegions": "Intermediate Regions (IBGE)",
-      "mapbiomas": "MapBiomas 2024",
-      "biogasPlants": "Biomass Plants (MapBiomas+ANP, 2024)",
-      "pipelines": "Pipelines (EPE, 2024)",
-      "substations": "Substations (EPE, 2024)",
-      "transmissionLines": "Transmission Lines (EPE, 2023)",
-      "etes": "WWTPs (SNIS, 2023)",
-      "railways": "Highways (EPE, 2023)",
       "mapLayers": "Map Layers"
     },
     "layerGroups": {
@@ -941,6 +933,66 @@
       "title": "Biomass · {state}",
       "expand": "Expand panel",
       "collapse": "Collapse panel"
+    },
+    "mobile": {
+      "close_filters": "Close filters",
+      "close_layers": "Close layers",
+      "clear_search": "Clear search",
+      "mg_filters_note": "In the MG beta, only the agricultural filters are validated. Livestock and urban are awaiting publication.",
+      "daltonic": "Color-blind mode",
+      "active": "on"
+    },
+    "comparePanel": {
+      "title": "Municipality Comparison",
+      "subtitle": "Compare up to 4 municipalities side by side",
+      "add_label": "Add a municipality to compare",
+      "add_placeholder": "Type a municipality name…",
+      "metric_column": "Metric",
+      "empty_title": "No municipality selected",
+      "empty_hint": "Use the search above to add municipalities to the comparison",
+      "highest": "Highest value",
+      "lowest": "Lowest value",
+      "categories": {
+        "overview": "Overview",
+        "biogas": "Total biogas"
+      },
+      "metrics": {
+        "population": "Population",
+        "area": "Area",
+        "total": "Total"
+      }
+    },
+    "exportPanel": {
+      "title": "Export Data",
+      "subtitle": "Choose an export format",
+      "formats": {
+        "csv": {
+          "title": "CSV (spreadsheet)",
+          "description": "Tabular data that opens in Excel"
+        },
+        "geojson": {
+          "title": "GeoJSON (geospatial)",
+          "description": "The standard format for geographic data"
+        },
+        "png": {
+          "title": "PNG (image)",
+          "description": "A snapshot of the current map"
+        }
+      },
+      "status": {
+        "loading": "Exporting…",
+        "success": "Download started!",
+        "error": "Error: {message}"
+      },
+      "errors": {
+        "no_data": "There is no data to export",
+        "map_not_found": "The map could not be found",
+        "image_failed": "The image could not be generated",
+        "unknown": "Unknown error"
+      },
+      "note_label": "Note:",
+      "note": "The export includes only the municipalities visible with the current filters.",
+      "note_count": "{count, plural, one {{formatted} municipality will be exported.} other {{formatted} municipalities will be exported.}}"
     }
   },
   "metadata": {

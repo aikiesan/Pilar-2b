@@ -6,10 +6,11 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import {
   Download,
   FileText,
-  Image,
+  Image as ImageIcon,
   Map as MapIcon,
   Check,
   X,
@@ -19,6 +20,15 @@ import type { MunicipalityCollection } from '@/types/geospatial';
 import html2canvas from 'html2canvas';
 import { logger } from '@/lib/logger';
 import { DATA_EXPORT_ENABLED } from '@/lib/featureFlags';
+import { useFormat } from '@/hooks/useFormat';
+
+/** An export failure the user can be told about; the text is Map.exportPanel.errors.<code>. */
+class ExportError extends Error {
+  constructor(readonly code: 'no_data' | 'map_not_found' | 'image_failed') {
+    super(code);
+    this.name = 'ExportError';
+  }
+}
 
 interface ExportControlProps {
   data: MunicipalityCollection | null;
@@ -37,6 +47,9 @@ export default function ExportControl({
   const [exportStatus, setExportStatus] = useState<ExportStatus>('idle');
   const [selectedFormat, setSelectedFormat] = useState<ExportFormat | null>(null);
   const [errorMessage, setErrorMessage] = useState<string>('');
+  const t = useTranslations('Map.exportPanel');
+  const tCommon = useTranslations('common');
+  const format = useFormat();
 
   // Beta: the dataset is still being validated, so no copy leaves the browser.
   // MapComponent and DesktopLeftPanel already withhold this control; this guard
@@ -70,7 +83,13 @@ export default function ExportControl({
     } catch (error) {
       logger.error('Export error:', error);
       setExportStatus('error');
-      setErrorMessage(error instanceof Error ? error.message : 'Erro desconhecido');
+      setErrorMessage(
+        error instanceof ExportError
+          ? t(`errors.${error.code}`)
+          : error instanceof Error
+            ? error.message
+            : t('errors.unknown')
+      );
       setTimeout(() => {
         setExportStatus('idle');
         setSelectedFormat(null);
@@ -81,7 +100,7 @@ export default function ExportControl({
 
   const exportToCSV = async () => {
     if (!data || !data.features || data.features.length === 0) {
-      throw new Error('Nenhum dado disponível para exportar');
+      throw new ExportError('no_data');
     }
 
     // Prepare CSV headers
@@ -155,7 +174,7 @@ export default function ExportControl({
 
   const exportToGeoJSON = async () => {
     if (!data) {
-      throw new Error('Nenhum dado disponível para exportar');
+      throw new ExportError('no_data');
     }
 
     // Create GeoJSON content
@@ -177,7 +196,7 @@ export default function ExportControl({
     // Find the map container
     const mapContainer = document.querySelector('.leaflet-container');
     if (!mapContainer) {
-      throw new Error('Mapa não encontrado');
+      throw new ExportError('map_not_found');
     }
 
     // Use html2canvas to capture the map
@@ -193,7 +212,7 @@ export default function ExportControl({
     // "Download iniciado!" toast would fire before anything was downloaded.
     const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve));
     if (!blob) {
-      throw new Error('Falha ao gerar imagem');
+      throw new ExportError('image_failed');
     }
 
     // Create and download file
@@ -225,11 +244,11 @@ export default function ExportControl({
   const getStatusText = () => {
     switch (exportStatus) {
       case 'loading':
-        return 'Exportando...';
+        return t('status.loading');
       case 'success':
-        return 'Download iniciado!';
+        return t('status.success');
       case 'error':
-        return `Erro: ${errorMessage}`;
+        return t('status.error', { message: errorMessage });
       default:
         return '';
     }
@@ -241,6 +260,7 @@ export default function ExportControl({
       <div
         className="fixed inset-0 bg-black/30 backdrop-blur-sm z-[1050] transition-opacity"
         onClick={onClose}
+        aria-hidden="true"
       />
 
       {/* Export Panel */}
@@ -254,16 +274,16 @@ export default function ExportControl({
               </div>
               <div>
                 <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-                  Exportar Dados
+                  {t('title')}
                 </h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Escolha o formato para exportação
+                  {t('subtitle')}
                 </p>
               </div>
             </div>
             <button
               onClick={onClose}
-              aria-label="Fechar"
+              aria-label={tCommon('actions.close')}
               className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
             >
               <X className="w-5 h-5 text-gray-500" aria-hidden="true" />
@@ -274,24 +294,24 @@ export default function ExportControl({
           <div className="space-y-3 mb-6">
             <ExportButton
               icon={<FileText className="w-6 h-6" />}
-              title="CSV (Planilha)"
-              description="Dados tabulares compatíveis com Excel"
+              title={t('formats.csv.title')}
+              description={t('formats.csv.description')}
               onClick={() => handleExport('csv')}
               disabled={exportStatus === 'loading'}
               statusIcon={getStatusIcon('csv')}
             />
             <ExportButton
               icon={<MapIcon className="w-6 h-6" />}
-              title="GeoJSON (Geoespacial)"
-              description="Formato padrão para dados geográficos"
+              title={t('formats.geojson.title')}
+              description={t('formats.geojson.description')}
               onClick={() => handleExport('geojson')}
               disabled={exportStatus === 'loading'}
               statusIcon={getStatusIcon('geojson')}
             />
             <ExportButton
-              icon={<Image className="w-6 h-6" />}
-              title="PNG (Imagem)"
-              description="Captura visual do mapa atual"
+              icon={<ImageIcon className="w-6 h-6" />}
+              title={t('formats.png.title')}
+              description={t('formats.png.description')}
               onClick={() => handleExport('png')}
               disabled={exportStatus === 'loading'}
               statusIcon={getStatusIcon('png')}
@@ -326,9 +346,8 @@ export default function ExportControl({
           {/* Info */}
           <div className="mt-6 p-4 bg-gray-50 dark:bg-slate-800 rounded-lg">
             <p className="text-xs text-gray-600 dark:text-gray-400">
-              <strong>Nota:</strong> Os dados exportados incluem apenas os municípios
-              visíveis com os filtros atuais aplicados.
-              {data && ` ${data.features.length} municípios serão exportados.`}
+              <strong>{t('note_label')}</strong> {t('note')}
+              {data && ` ${t('note_count', { count: data.features.length, formatted: format.number(data.features.length) })}`}
             </p>
           </div>
         </div>
