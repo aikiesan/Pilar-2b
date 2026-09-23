@@ -102,7 +102,9 @@
       "ha": "ha",
       "inhab_km2": "hab./km²",
       "gwh_year": "GWh/ano",
-      "inhabitants": "hab."
+      "inhabitants": "hab.",
+      "gj_year": "GJ/ano",
+      "tco2eq_year": "tCO₂eq/ano"
     }
   },
   "auth": {
@@ -1844,7 +1846,11 @@
       "email": "E-mail",
       "municipio": "Município (SP)",
       "municipioPlaceholder": "Digite o município...",
-      "lgpdConsent": "Concordo com o uso dos meus dados pelo CP2B/UNICAMP para fins de pesquisa e contato técnico, em conformidade com a LGPD."
+      "lgpdConsent": "Concordo com o uso dos meus dados pelo CP2B/UNICAMP para fins de pesquisa e contato técnico, em conformidade com a LGPD.",
+      "emailPlaceholder": "seu@email.com.br",
+      "municipioManualPlaceholder": "Digite o nome do município",
+      "municipioLoading": "Carregando municípios…",
+      "municipioListUnavailable": "Não foi possível carregar a lista de municípios; digite o nome."
     },
     "step2": {
       "title": "Atividade",
@@ -1860,7 +1866,7 @@
       "soy": "Soja",
       "soyDesc": "Palha pós-colheita",
       "coffee": "Café",
-      "coffeeDesc": "Borra e casca",
+      "coffeeDesc": "Casca de café",
       "citrus": "Citros",
       "citrusDesc": "Bagaço de laranja/limão",
       "tons": "Toneladas/ano",
@@ -1882,7 +1888,20 @@
       "galPostura": "Galináceos — Postura",
       "galCorte": "Galináceos — Corte",
       "heads": "cabeças",
-      "seasonalWarning": "Biomassa sazonal. Os cálculos consideram armazenamento com redução de eficiência (~20%). No futuro você poderá combinar com outra biomassa."
+      "seasonalWarning": "Biomassa sazonal. Os cálculos consideram armazenamento com redução de eficiência (~20%). No futuro você poderá combinar com outra biomassa.",
+      "change": "Trocar",
+      "preview": "~ {value} m³ de biogás/ano estimados (cenário ideal)",
+      "caneEquivalent": "≈ {value} t/ano",
+      "reference": {
+        "caneTons": "Referência: pequeno produtor 100–500 t/ano (2–7 ha)",
+        "caneHectares": "Referência: pequena propriedade 2–10 ha (150–850 t/ano)",
+        "crop": "Referência: pequeno produtor 50–300 t de resíduo/ano",
+        "swine": "Referência: pequena granja 50–500 cabeças",
+        "cattle_beef": "Referência: pequena propriedade 20–200 cabeças",
+        "cattle_dairy": "Referência: pequena propriedade 10–80 cabeças",
+        "poultry_eggs": "Referência: pequeno aviário 500–5.000 aves",
+        "poultry_meat": "Referência: pequeno aviário 500–5.000 aves"
+      }
     },
     "step3": {
       "title": "Sazonalidade",
@@ -1890,7 +1909,7 @@
       "livestockNote": "Pecuária: geração contínua ao longo do ano. Confirme ou ajuste se houver entressafra.",
       "cropNote": "Meses de colheita/processamento selecionados automaticamente. Ajuste conforme seu calendário.",
       "toggleHint": "Clique nos meses para incluir ou excluir do cálculo.",
-      "monthsActive": "meses ativos",
+      "monthsActive": "{count, plural, one {# mês ativo} other {# meses ativos}}",
       "shortSafraWarning": "Safra curta pode reduzir viabilidade econômica"
     },
     "step4": {
@@ -1923,7 +1942,7 @@
       "digestateSub": "Estimativa digestato sólido/líquido",
       "carbonSub": "Emissões evitadas — elegível VCM/RenovaBio",
       "primaryOutputs": "Saídas selecionadas",
-      "secondaryOutputs": "Também calculado (não selecionado)",
+      "secondaryOutputs": "Também calculado — não selecionado ({count})",
       "notSelected": "Não incluído no plano — clique em Nova simulação para adicionar",
       "priceSliders": "Ajustar preços SP 2025",
       "priceSlidersHint": "Mova os sliders para simular diferentes cenários de preço. Os indicadores financeiros atualizam em tempo real.",
@@ -1933,14 +1952,115 @@
       "priceDiesel": "Preço diesel",
       "methodology": "Metodologia e fontes",
       "financialTitle": "Indicadores Financeiros (estimativa)",
-      "capex": "Investimento inicial estimado",
-      "payback": "Payback (mín – esp – máx)",
+      "payback": "Payback estimado",
       "annualRevenue": "Receita/economia anual máx.",
-      "years": "anos",
-      "paybackIndeterminate": "Indeterminado",
       "financialDisclaimer": "Estimativas baseadas em tarifas médias SP 2025. Projeto executivo requer análise técnica detalhada.",
       "feedback": "Enviar feedback / Reportar inconsistência",
-      "newCalculation": "Nova simulação"
+      "newCalculation": "Nova simulação",
+      "activity": "{activity} ({quantity})",
+      "biogasTotal": "{value} m³",
+      "scenarioHeading": "Cenário de implantação",
+      "selected": "Selecionado ✓",
+      "select": "Selecionar",
+      "technology": "Tecnologia",
+      "utilization": "Aproveitamento",
+      "utilizationValue": "{percent} da biomassa",
+      "startup": "Início de operação",
+      "startupValue": "{count, plural, one {# mês} other {# meses}} até plena carga",
+      "investmentFrom": "A partir de {amount}",
+      "paybackFrom": "A partir de {years, plural, one {# ano} other {# anos}}",
+      "paybackYears": "{years, plural, one {# ano} other {# anos}}",
+      "paybackUnknown": "Não é possível estimar neste caso",
+      "paybackScenarios": "ver cenários ▾",
+      "paybackOptimistic": "🟢 Otimista: {value} — operação plena, boas tarifas",
+      "paybackExpected": "🟡 Esperado: {value} — curva de aprendizado incluída",
+      "paybackConservative": "🔴 Conservador: {value}",
+      "perYear": "{amount}/ano",
+      "expectedPerYear": "esperado: {amount}/ano",
+      "comparisonTitle": "📊 Comparativo — payback otimista–conservador",
+      "comparisonYears": "anos (otimista)",
+      "comparisonUnknown": "não estimável",
+      "chartEnergy": "Energia",
+      "chartBiogas": "Biogás",
+      "energySavings": "Economia: {amount}/ano",
+      "dieselEquivalent": "≈ {liters} L de diesel",
+      "carbonRevenue": "{amount}/ano (VCM/RenovaBio)",
+      "investment": "📊 Investimento estimado",
+      "paybackHeading": "⏱ Payback estimado",
+      "scenariosHelpTitle": "💡 Entenda os cenários",
+      "scenariosAssumptions": "Payback otimista: CAPEX mínimo, {bestRevenue} de realização de receita, {bestMaintenance} de manutenção/ano. Payback conservador: CAPEX máximo, {worstRevenue} de realização, {worstMaintenance} de manutenção/ano, +{startup} de startup. “Não é possível estimar” = acima de {horizon} anos.",
+      "method": {
+        "methodLabel": "Metodologia:",
+        "methodText": "Potencial Bioquímico de Metano (BMP) normalizado por Sólidos Voláteis (SV). Distribuição mensal proporcional ao calendário selecionado.",
+        "bmpLabel": "BMP utilizado:",
+        "compositionLabel": "Composição do biogás:",
+        "composition": "{ch4} | PCI CH₄: {lhv} MJ/m³",
+        "efficiencyLabel": "Eficiências:",
+        "efficiency": "Elétrica {electrical} (motor-gerador); Térmica {thermal} (recuperação de calor)",
+        "pricesLabel": "Preços padrão SP 2025:",
+        "prices": "Tarifa CPFL/Enel {tariff}/kWh; Biometano {biomethane}/m³; Carbono {carbon}/tCO₂eq (VCM)",
+        "sourcesLabel": "Fontes:",
+        "disclaimer": "Estimativas para viabilidade preliminar. Projeto executivo requer estudo técnico detalhado.",
+        "streamBmp": "{stream}: {bmp} m³ CH₄/tSV",
+        "speciesPpb": "{species}: {ppb} m³/cab·ano",
+        "cropBmp": "{bmp} m³ CH₄/tSV (SV = {vs}, disponibilidade = {availability})",
+        "ch4PerStream": "{low}–{high} CH₄ por fluxo",
+        "ch4Livestock": "{low}–{high} CH₄ (lagoa coberta/CSTR)",
+        "ch4Crop": "{value} CH₄"
+      }
+    },
+    "streams": {
+      "bagaco": {
+        "name": "Bagaço",
+        "note": "{percent} disponível p/ biogás (resto: cogeração)"
+      },
+      "palha": {
+        "name": "Palha / Palhiço",
+        "note": "{percent} disponível p/ biogás (resto: cobertura do solo)"
+      },
+      "vinhaca": {
+        "name": "Vinhaça",
+        "note": "{percent} disponível p/ biogás (10% fertirrigação obrigatória)"
+      },
+      "torta": {
+        "name": "Torta de filtro",
+        "note": "{percent} disponível p/ biogás (resto: adubo)"
+      }
+    },
+    "breakdown": {
+      "caneTitle": "📦 Resíduos gerados pelo seu processo:",
+      "generated": "{value} t geradas",
+      "toBiogas": "→ {value} t p/ biogás",
+      "caneTotals": "Total de resíduos gerados: <strong>{total} t/ano</strong> • Para biogás: <strong>{biogas} t/ano</strong>",
+      "herdTitle": "📦 Estimativa de resíduos do seu rebanho:",
+      "speciesHeads": "{species} — {count, plural, one {# cabeça} other {# cabeças}}",
+      "manure": "≈ {value} m³ de esterco/ano",
+      "potential": "Potencial (PPB)",
+      "biogasYear": "→ {value} m³ de biogás/ano",
+      "cropTitle": "📦 Estimativa de resíduo gerado:",
+      "cropTotal": "Total de resíduo informado",
+      "cropAvailable": "Disponível para o biodigestor ({percent})",
+      "cropOther": "Outros usos / perdas ({percent})",
+      "cropVs": "Sólidos voláteis (SV) disponíveis",
+      "cropVsValue": "{value} t SV/ano",
+      "source": "Fonte dos parâmetros: {source}"
+    },
+    "scenarios": {
+      "min": {
+        "label": "Básico",
+        "technology": "Lagoa coberta / tubular PVC",
+        "help": "Tecnologia mais simples e acessível, adequada para pequenas propriedades. Aproveita cerca de {utilization} do potencial. O payback é mais curto porque o investimento é menor, mas a geração também é menor."
+      },
+      "avg": {
+        "label": "Ideal",
+        "technology": "Biodigestor CSTR",
+        "help": "Configuração mais comum em propriedades de médio porte. Aproveita {utilization} do potencial. O payback esperado considera curva de aprendizado e manutenção — mais honesto que promessas de vendedores."
+      },
+      "max": {
+        "label": "Avançado",
+        "technology": "CSTR + upgrading / CHP premium",
+        "help": "Máxima eficiência para grandes operações. O payback conservador pode ser longo para operações pequenas — não significa inviabilidade, mas que a receita não cobre o investimento no horizonte de {horizon} anos."
+      }
     }
   },
   "guide": {

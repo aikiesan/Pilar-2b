@@ -2,9 +2,12 @@
 
 import { useTranslations } from 'next-intl'
 import type { Messages } from '@/types/i18n'
+import type { Formatters } from '@/lib/format'
+import { useFormat } from '@/hooks/useFormat'
 import type { ActivityType, LivestockSpecies, CropType } from '../calculatorEngine'
 import {
   hectaresToCane,
+  isLivestockActivity,
   CROP_PARAMS,
   SUGARCANE_STREAMS,
   LIVESTOCK_PPB,
@@ -29,10 +32,12 @@ interface Props {
   onBack: () => void
 }
 
-/** A key under calculator.step2 — checked against the catalog. */
-type Step2Key = keyof Messages['calculator']['step2']
+/** A message (not a group) under calculator.step2 — checked against the catalog. */
+type Step2 = Messages['calculator']['step2']
+type Step2Key = { [K in keyof Step2]: Step2[K] extends string ? K : never }[keyof Step2]
 
-const LIVESTOCK_SPECIES: { key: LivestockSpecies; emoji: string; labelKey: Step2Key }[] = [
+/** Livestock species in form order; their names are calculator.step2.<labelKey>. */
+export const LIVESTOCK_SPECIES: { key: LivestockSpecies; emoji: string; labelKey: Step2Key }[] = [
   { key: 'swine',        emoji: '🐖', labelKey: 'suinos' },
   { key: 'cattle_beef',  emoji: '🐄', labelKey: 'bovinosCorte' },
   { key: 'cattle_dairy', emoji: '🥛', labelKey: 'bovinosLeite' },
@@ -51,16 +56,12 @@ const ACTIVITY_OPTIONS: { key: ActivityType; emoji: string; labelKey: Step2Key; 
   { key: 'poultry',   emoji: '🐔', labelKey: 'poultry',    descKey: 'poultryDesc'    },
 ]
 
-const LIVESTOCK_CATEGORY_TYPES = new Set<ActivityType>(['livestock', 'swine', 'cattle', 'poultry'])
 const CROP_TYPES: CropType[] = ['corn', 'soy', 'coffee', 'citrus']
 
-function fmt(n: number): string {
-  return n.toLocaleString('pt-BR', { maximumFractionDigits: 0 })
-}
+type CalculatorT = ReturnType<typeof useTranslations<'calculator'>>
 
-function fmtBiogas(m3: number): string {
-  return m3.toLocaleString('pt-BR', { maximumFractionDigits: 0 })
-}
+/** A 0–1 fraction as a percentage. */
+const pct = (format: Formatters, fraction: number) => format.percent(fraction * 100, { decimals: 0 })
 
 // ── Logarithmic scale helpers ────────────────────────────────────────────────
 // Converts a linear slider position (0–1000) ↔ an exponential value (0–max).
@@ -81,9 +82,12 @@ interface SliderProps {
   max: number
   step?: number
   log?: boolean
+  /** Accessible name — the label of the number field it mirrors. */
+  label: string
   onChange: (v: number) => void
 }
-function Slider({ value, max, step = 1, log = false, onChange }: SliderProps) {
+function Slider({ value, max, step = 1, log = false, label, onChange }: SliderProps) {
+  const format = useFormat()
   const pos = log ? valueToPos(value, max) : value
   const sliderMax = log ? 1000 : max
   const pct = ((pos / sliderMax) * 100).toFixed(1)
@@ -96,6 +100,8 @@ function Slider({ value, max, step = 1, log = false, onChange }: SliderProps) {
         max={sliderMax}
         step={log ? 1 : step}
         value={pos}
+        aria-label={label}
+        aria-valuetext={format.number(value)}
         style={{ '--range-pct': `${pct}%` } as React.CSSProperties}
         onChange={e => {
           const rawPos = parseFloat(e.target.value) || 0
@@ -108,7 +114,7 @@ function Slider({ value, max, step = 1, log = false, onChange }: SliderProps) {
       />
       <div className="flex justify-between text-xs text-gray-400 dark:text-slate-500 mt-0.5">
         <span>0</span>
-        <span>{fmt(max)}</span>
+        <span>{format.number(max)}</span>
       </div>
     </div>
   )
@@ -116,76 +122,84 @@ function Slider({ value, max, step = 1, log = false, onChange }: SliderProps) {
 
 // ── Residue Breakdown Panels ─────────────────────────────────────────────────
 
-const STREAM_LABELS: Record<keyof typeof SUGARCANE_STREAMS, { label: string; emoji: string; note: string }> = {
-  bagaco:  { label: 'Bagaço',          emoji: '🟫', note: `${(SUGARCANE_STREAMS.bagaco.fde  * 100).toFixed(0)}% disponível p/ biogás (resto: cogeração)` },
-  palha:   { label: 'Palha / Palhiço', emoji: '🟡', note: `${(SUGARCANE_STREAMS.palha.fde   * 100).toFixed(0)}% disponível p/ biogás (resto: cobertura do solo)` },
-  vinhaca: { label: 'Vinhaça',         emoji: '🟤', note: `${(SUGARCANE_STREAMS.vinhaca.fde * 100).toFixed(0)}% disponível p/ biogás (10% fertirrigação obrigatória)` },
-  torta:   { label: 'Torta de filtro', emoji: '⚫', note: `${(SUGARCANE_STREAMS.torta.fde   * 100).toFixed(0)}% disponível p/ biogás (resto: adubo)` },
-}
+type StreamKey = keyof typeof SUGARCANE_STREAMS & keyof Messages['calculator']['streams']
+const STREAM_EMOJI: Record<StreamKey, string> = { bagaco: '🟫', palha: '🟡', vinhaca: '🟤', torta: '⚫' }
 
-function SugarcaneBreakdown({ tonsRaw }: { tonsRaw: number }) {
+function SugarcaneBreakdown({ tonsRaw, t, format }: { tonsRaw: number; t: CalculatorT; format: Formatters }) {
   if (tonsRaw <= 0) return null
+  const streams = Object.entries(SUGARCANE_STREAMS) as [StreamKey, (typeof SUGARCANE_STREAMS)[StreamKey]][]
   return (
     <div className="mt-4 p-3 panel-amber rounded-xl space-y-1">
-      <p className="text-xs font-semibold text-amber-800 dark:text-amber-300 mb-2">📦 Resíduos gerados pelo seu processo:</p>
-      {(Object.entries(SUGARCANE_STREAMS) as [keyof typeof SUGARCANE_STREAMS, typeof SUGARCANE_STREAMS[keyof typeof SUGARCANE_STREAMS]][]).map(([key, s]) => {
+      <p className="text-xs font-semibold text-amber-800 dark:text-amber-300 mb-2">{t('breakdown.caneTitle')}</p>
+      {streams.map(([key, s]) => {
         const total = tonsRaw * s.rpr
         const available = total * s.fde
-        const meta = STREAM_LABELS[key]
         return (
           <div key={key} className="flex items-start gap-2 text-xs">
-            <span className="mt-0.5">{meta.emoji}</span>
+            <span className="mt-0.5" aria-hidden="true">{STREAM_EMOJI[key]}</span>
             <div className="flex-1">
               <div className="flex justify-between">
-                <span className="font-medium text-gray-700 dark:text-slate-300">{meta.label}</span>
-                <span className="font-semibold text-amber-700 dark:text-amber-400">{fmt(total)} t geradas</span>
+                <span className="font-medium text-gray-700 dark:text-slate-300">{t(`streams.${key}.name`)}</span>
+                <span className="font-semibold text-amber-700 dark:text-amber-400">
+                  {t('breakdown.generated', { value: format.number(total) })}
+                </span>
               </div>
               <div className="flex justify-between text-gray-500 dark:text-slate-400">
-                <span className="italic">{meta.note}</span>
-                <span className="text-green-700 dark:text-emerald-400 font-medium">→ {fmt(available)} t p/ biogás</span>
+                <span className="italic">{t(`streams.${key}.note`, { percent: pct(format, s.fde) })}</span>
+                <span className="text-green-700 dark:text-emerald-400 font-medium">
+                  {t('breakdown.toBiogas', { value: format.number(available) })}
+                </span>
               </div>
             </div>
           </div>
         )
       })}
       <p className="text-xs text-gray-400 dark:text-slate-500 pt-1 border-t border-amber-100 dark:border-amber-800/50 mt-2">
-        Total resíduos gerados: <strong>{fmt(Object.values(SUGARCANE_STREAMS).reduce((s, r) => s + tonsRaw * r.rpr, 0))} t/ano</strong> •
-        Para biogás: <strong>{fmt(Object.values(SUGARCANE_STREAMS).reduce((s, r) => s + tonsRaw * r.rpr * r.fde, 0))} t/ano</strong>
+        {t.rich('breakdown.caneTotals', {
+          total: format.number(streams.reduce((sum, [, r]) => sum + tonsRaw * r.rpr, 0)),
+          biogas: format.number(streams.reduce((sum, [, r]) => sum + tonsRaw * r.rpr * r.fde, 0)),
+          strong: (chunks) => <strong>{chunks}</strong>,
+        })}
       </p>
     </div>
   )
 }
 
-const LIVESTOCK_LABELS: Record<LivestockSpecies, { label: string; emoji: string; manureM3: number }> = {
-  swine:          { label: 'Suínos',             emoji: '🐖', manureM3: 3.5  },
-  cattle_beef:    { label: 'Bovinos de Corte',   emoji: '🐄', manureM3: 10.0 },
-  cattle_dairy:   { label: 'Bovinos de Leite',   emoji: '🥛', manureM3: 14.0 },
-  poultry_eggs:   { label: 'Galináceos Postura', emoji: '🥚', manureM3: 0.04 },
-  poultry_meat:   { label: 'Galináceos Corte',   emoji: '🍗', manureM3: 0.02 },
+// Manure volume per head and year, for this preview only (the engine's digestate
+// estimate uses its own tonnage table, MANURE_TONS_PER_HEAD_YEAR).
+const MANURE_M3_PER_HEAD_YEAR: Record<LivestockSpecies, number> = {
+  swine: 3.5, cattle_beef: 10.0, cattle_dairy: 14.0, poultry_eggs: 0.04, poultry_meat: 0.02,
 }
 
-function LivestockBreakdown({ heads }: { heads: Partial<Record<LivestockSpecies, number>> }) {
-  const entries = (Object.entries(heads) as [LivestockSpecies, number][]).filter(([, v]) => v > 0)
+function LivestockBreakdown({ heads, t, format }: {
+  heads: Partial<Record<LivestockSpecies, number>>; t: CalculatorT; format: Formatters
+}) {
+  const entries = LIVESTOCK_SPECIES.filter(({ key }) => (heads[key] ?? 0) > 0)
   if (entries.length === 0) return null
   return (
     <div className="mt-4 p-3 panel-amber rounded-xl space-y-2">
-      <p className="text-xs font-semibold text-amber-800 dark:text-amber-300 mb-2">📦 Estimativa de resíduos do seu rebanho:</p>
-      {entries.map(([species, count]) => {
-        const meta = LIVESTOCK_LABELS[species]
-        const ppb = LIVESTOCK_PPB[species]
-        const manureTotal = count * meta.manureM3
-        const biogasYear = count * ppb.ppb
+      <p className="text-xs font-semibold text-amber-800 dark:text-amber-300 mb-2">{t('breakdown.herdTitle')}</p>
+      {entries.map(({ key, emoji, labelKey }) => {
+        const count = heads[key] ?? 0
+        const manureTotal = count * MANURE_M3_PER_HEAD_YEAR[key]
+        const biogasYear = count * LIVESTOCK_PPB[key].ppb
         return (
-          <div key={species} className="flex items-start gap-2 text-xs">
-            <span className="mt-0.5">{meta.emoji}</span>
+          <div key={key} className="flex items-start gap-2 text-xs">
+            <span className="mt-0.5" aria-hidden="true">{emoji}</span>
             <div className="flex-1">
               <div className="flex justify-between">
-                <span className="font-medium text-gray-700 dark:text-slate-300">{meta.label} — {fmt(count)} cabeças</span>
-                <span className="font-semibold text-amber-700 dark:text-amber-400">≈ {fmt(manureTotal)} m³ esterco/ano</span>
+                <span className="font-medium text-gray-700 dark:text-slate-300">
+                  {t('breakdown.speciesHeads', { species: t(`step2.${labelKey}`), count })}
+                </span>
+                <span className="font-semibold text-amber-700 dark:text-amber-400">
+                  {t('breakdown.manure', { value: format.number(manureTotal) })}
+                </span>
               </div>
               <div className="flex justify-between text-gray-500 dark:text-slate-400">
-                <span className="italic">Potencial (PPB)</span>
-                <span className="text-green-700 dark:text-emerald-400 font-medium">→ {fmt(biogasYear)} m³ biogás/ano</span>
+                <span className="italic">{t('breakdown.potential')}</span>
+                <span className="text-green-700 dark:text-emerald-400 font-medium">
+                  {t('breakdown.biogasYear', { value: format.number(biogasYear) })}
+                </span>
               </div>
             </div>
           </div>
@@ -195,41 +209,74 @@ function LivestockBreakdown({ heads }: { heads: Partial<Record<LivestockSpecies,
   )
 }
 
-function CropBreakdown({ cropType, tonnes }: { cropType: CropType; tonnes: number }) {
+function CropBreakdown({ cropType, tonnes, t, format, perYear }: {
+  cropType: CropType; tonnes: number; t: CalculatorT; format: Formatters; perYear: (tons: number) => string
+}) {
   if (tonnes <= 0) return null
   const p = CROP_PARAMS[cropType]
   const available = tonnes * p.avail
   const notUsed = tonnes - available
   return (
     <div className="mt-4 p-3 panel-amber rounded-xl space-y-1 text-xs">
-      <p className="text-xs font-semibold text-amber-800 dark:text-amber-300 mb-2">📦 Estimativa de resíduo gerado:</p>
+      <p className="text-xs font-semibold text-amber-800 dark:text-amber-300 mb-2">{t('breakdown.cropTitle')}</p>
       <div className="flex justify-between">
-        <span className="text-gray-600 dark:text-slate-400">Total de resíduo informado</span>
-        <span className="font-semibold text-gray-800 dark:text-slate-200">{fmt(tonnes)} t/ano</span>
+        <span className="text-gray-600 dark:text-slate-400">{t('breakdown.cropTotal')}</span>
+        <span className="font-semibold text-gray-800 dark:text-slate-200">{perYear(tonnes)}</span>
       </div>
       <div className="flex justify-between">
-        <span className="text-gray-600 dark:text-slate-400">Disponível para biodigestor ({(p.avail * 100).toFixed(0)}%)</span>
-        <span className="font-semibold text-green-700 dark:text-emerald-400">{fmt(available)} t/ano</span>
+        <span className="text-gray-600 dark:text-slate-400">
+          {t('breakdown.cropAvailable', { percent: pct(format, p.avail) })}
+        </span>
+        <span className="font-semibold text-green-700 dark:text-emerald-400">{perYear(available)}</span>
       </div>
       <div className="flex justify-between text-gray-400 dark:text-slate-500">
-        <span>Outros usos / perdas ({(100 - p.avail * 100).toFixed(0)}%)</span>
-        <span>{fmt(notUsed)} t/ano</span>
+        <span>{t('breakdown.cropOther', { percent: pct(format, 1 - p.avail) })}</span>
+        <span>{perYear(notUsed)}</span>
       </div>
       <div className="flex justify-between border-t border-amber-100 dark:border-amber-800/50 pt-1 mt-1">
-        <span className="text-gray-500 dark:text-slate-400">Sólidos Voláteis (SV) disponíveis</span>
-        <span className="font-medium text-gray-700 dark:text-slate-300">{fmt(available * p.vs)} t SV/ano</span>
+        <span className="text-gray-500 dark:text-slate-400">{t('breakdown.cropVs')}</span>
+        <span className="font-medium text-gray-700 dark:text-slate-300">
+          {t('breakdown.cropVsValue', { value: format.number(available * p.vs) })}
+        </span>
       </div>
-      <p className="text-gray-400 dark:text-slate-500 pt-1">Fonte dos parâmetros: {p.source}</p>
+      <p className="text-gray-400 dark:text-slate-500 pt-1">{t('breakdown.source', { source: p.source })}</p>
+    </div>
+  )
+}
+
+type ActivityOption = (typeof ACTIVITY_OPTIONS)[number]
+
+/** The chosen activity, with a button to pick another. */
+function ActivityBanner({ option, onChange, t }: { option: ActivityOption | undefined; onChange: () => void; t: CalculatorT }) {
+  if (!option) return null
+  return (
+    <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-emerald-900/20 border border-green-200 dark:border-emerald-800 rounded-xl">
+      <div className="flex items-center gap-2">
+        <span className="text-2xl" aria-hidden="true">{option.emoji}</span>
+        <div>
+          <p className="font-semibold text-gray-800 dark:text-slate-200 text-sm">{t(`step2.${option.labelKey}`)}</p>
+          <p className="text-xs text-gray-500 dark:text-slate-400">{t(`step2.${option.descKey}`)}</p>
+        </div>
+      </div>
+      <button
+        onClick={onChange}
+        className="text-xs text-gray-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 transition-colors px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20"
+      >
+        <span aria-hidden="true">× </span>{t('step2.change')}
+      </button>
     </div>
   )
 }
 
 export default function StepAtividade({ data, onChange, onNext, onBack }: Props) {
   const t = useTranslations('calculator')
+  const tUnits = useTranslations('common.units')
+  const format = useFormat()
+  const perYear = (tons: number) => `${format.number(tons)} ${tUnits('t_year')}`
   const set = (patch: Partial<AtividadeData>) => onChange({ ...data, ...patch })
 
   const isSugarcane = data.activityType === 'sugarcane'
-  const isLivestock = data.activityType !== null && LIVESTOCK_CATEGORY_TYPES.has(data.activityType)
+  const isLivestock = isLivestockActivity(data.activityType)
   const isCrop = data.activityType !== null && CROP_TYPES.includes(data.activityType as CropType)
 
   // Species visible for the selected livestock category
@@ -248,12 +295,8 @@ export default function StepAtividade({ data, onChange, onNext, onBack }: Props)
   })()
 
   const caneHint = data.sugarcaneType === 'hectares' && data.sugarcaneValue > 0
-    ? `≈ ${Math.round(hectaresToCane(data.sugarcaneValue)).toLocaleString('pt-BR')} t/ano`
+    ? t('step2.caneEquivalent', { value: format.number(hectaresToCane(data.sugarcaneValue)) })
     : null
-
-  const cropLabel = isCrop && data.activityType
-    ? CROP_PARAMS[data.activityType as CropType].descLabel
-    : ''
 
   const selectedOption = ACTIVITY_OPTIONS.find(o => o.key === data.activityType)
 
@@ -276,32 +319,6 @@ export default function StepAtividade({ data, onChange, onNext, onBack }: Props)
     }
     return null
   })()
-
-  // Shared activity header banner with "× Trocar" chip
-  function ActivityBanner() {
-    if (!selectedOption) return null
-    return (
-      <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-emerald-900/20 border border-green-200 dark:border-emerald-800 rounded-xl">
-        <div className="flex items-center gap-2">
-          <span className="text-2xl">{selectedOption.emoji}</span>
-          <div>
-            <p className="font-semibold text-gray-800 dark:text-slate-200 text-sm">
-              {t(`step2.${selectedOption.labelKey}`)}
-            </p>
-            <p className="text-xs text-gray-500 dark:text-slate-400">
-              {t(`step2.${selectedOption.descKey}`)}
-            </p>
-          </div>
-        </div>
-        <button
-          onClick={() => set({ activityType: null })}
-          className="text-xs text-gray-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 transition-colors px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20"
-        >
-          × Trocar
-        </button>
-      </div>
-    )
-  }
 
   return (
     <div className="space-y-5">
@@ -338,13 +355,14 @@ export default function StepAtividade({ data, onChange, onNext, onBack }: Props)
       {/* Sugarcane input */}
       {isSugarcane && (
         <div className="space-y-4">
-          <ActivityBanner />
+          <ActivityBanner option={selectedOption} onChange={() => set({ activityType: null })} t={t} />
 
           <div className="flex rounded-lg overflow-hidden border border-gray-300 dark:border-slate-600">
             {(['tons', 'hectares'] as const).map(opt => (
               <button
                 key={opt}
                 onClick={() => set({ sugarcaneType: opt, sugarcaneValue: 0 })}
+                aria-pressed={data.sugarcaneType === opt}
                 className={`flex-1 py-2 text-sm font-medium transition-colors
                   ${data.sugarcaneType === opt
                     ? 'bg-green-600 dark:bg-emerald-600 text-white'
@@ -356,10 +374,11 @@ export default function StepAtividade({ data, onChange, onNext, onBack }: Props)
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
+            <label htmlFor="calc-sugarcane" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
               {data.sugarcaneType === 'tons' ? t('step2.tonsLabel') : t('step2.hectaresLabel')}
             </label>
             <input
+              id="calc-sugarcane"
               type="number"
               min={0}
               value={data.sugarcaneValue || ''}
@@ -372,23 +391,24 @@ export default function StepAtividade({ data, onChange, onNext, onBack }: Props)
               max={data.sugarcaneType === 'hectares' ? 1000 : 10000}
               step={data.sugarcaneType === 'hectares' ? 10 : 100}
               log
+              label={data.sugarcaneType === 'tons' ? t('step2.tonsLabel') : t('step2.hectaresLabel')}
               onChange={v => set({ sugarcaneValue: v })}
             />
             <p className="text-xs text-gray-400 dark:text-slate-500 mt-1 italic">
-              {data.sugarcaneType === 'tons'
-                ? 'Referência: pequeno produtor 100–500 t/ano (2–7 ha)'
-                : 'Referência: pequena propriedade 2–10 ha (150–850 t/ano)'}
+              {data.sugarcaneType === 'tons' ? t('step2.reference.caneTons') : t('step2.reference.caneHectares')}
             </p>
             {caneHint && <p className="text-xs text-green-600 dark:text-emerald-400 mt-1">📊 {caneHint}</p>}
             {biogasPreview !== null && biogasPreview > 0 && (
               <p className="text-xs text-green-700 dark:text-emerald-400 font-medium mt-1">
-                🔬 ~ {fmtBiogas(biogasPreview)} m³ biogás/ano estimado (cenário ideal)
+                🔬 {t('step2.preview', { value: format.number(biogasPreview) })}
               </p>
             )}
           </div>
 
           <SugarcaneBreakdown
             tonsRaw={data.sugarcaneType === 'hectares' ? hectaresToCane(data.sugarcaneValue) : data.sugarcaneValue}
+            t={t}
+            format={format}
           />
         </div>
       )}
@@ -396,7 +416,7 @@ export default function StepAtividade({ data, onChange, onNext, onBack }: Props)
       {/* Generic crop input */}
       {isCrop && (
         <div className="space-y-4">
-          <ActivityBanner />
+          <ActivityBanner option={selectedOption} onChange={() => set({ activityType: null })} t={t} />
 
           {/* Seasonal warning banner */}
           <div className="flex items-start gap-2 p-3 panel-yellow rounded-xl text-xs text-yellow-800 dark:text-yellow-300">
@@ -405,10 +425,11 @@ export default function StepAtividade({ data, onChange, onNext, onBack }: Props)
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
+            <label htmlFor="calc-crop-tonnes" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
               {t('step2.cropTonnesLabel')}
             </label>
             <input
+              id="calc-crop-tonnes"
               type="number"
               min={0}
               value={data.cropTonnes || ''}
@@ -421,21 +442,26 @@ export default function StepAtividade({ data, onChange, onNext, onBack }: Props)
               max={10000}
               step={50}
               log
+              label={t('step2.cropTonnesLabel')}
               onChange={v => set({ cropTonnes: v })}
             />
-            <p className="text-xs text-gray-400 dark:text-slate-500 mt-1 italic">
-              Referência: pequeno produtor 50–300 t resíduo/ano
-            </p>
+            <p className="text-xs text-gray-400 dark:text-slate-500 mt-1 italic">{t('step2.reference.crop')}</p>
             <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">{t('step2.cropTonnesHint')}</p>
             {biogasPreview !== null && biogasPreview > 0 && (
               <p className="text-xs text-green-700 dark:text-emerald-400 font-medium mt-1">
-                🔬 ~ {fmtBiogas(biogasPreview)} m³ biogás/ano estimado (cenário ideal)
+                🔬 {t('step2.preview', { value: format.number(biogasPreview) })}
               </p>
             )}
           </div>
 
           {isCrop && data.activityType && (
-            <CropBreakdown cropType={data.activityType as CropType} tonnes={data.cropTonnes} />
+            <CropBreakdown
+              cropType={data.activityType as CropType}
+              tonnes={data.cropTonnes}
+              t={t}
+              format={format}
+              perYear={perYear}
+            />
           )}
         </div>
       )}
@@ -443,16 +469,19 @@ export default function StepAtividade({ data, onChange, onNext, onBack }: Props)
       {/* Livestock input */}
       {isLivestock && (
         <div className="space-y-4">
-          <ActivityBanner />
+          <ActivityBanner option={selectedOption} onChange={() => set({ activityType: null })} t={t} />
 
           <p className="text-sm font-medium text-gray-700 dark:text-slate-300">{t('step2.livestockInstructions')}</p>
           <div className="space-y-5">
             {visibleSpecies.map(({ key, emoji, labelKey }) => (
               <div key={key} className="space-y-1.5">
                 <div className="flex items-center gap-3">
-                  <span className="text-xl w-7 text-center shrink-0">{emoji}</span>
-                  <label className="flex-1 text-sm text-gray-700 dark:text-slate-300">{t(`step2.${labelKey}`)}</label>
+                  <span className="text-xl w-7 text-center shrink-0" aria-hidden="true">{emoji}</span>
+                  <label htmlFor={`calc-heads-${key}`} className="flex-1 text-sm text-gray-700 dark:text-slate-300">
+                    {t(`step2.${labelKey}`)}
+                  </label>
                   <input
+                    id={`calc-heads-${key}`}
                     type="number"
                     min={0}
                     max={5000}
@@ -468,32 +497,31 @@ export default function StepAtividade({ data, onChange, onNext, onBack }: Props)
                   max={5000}
                   step={10}
                   log
+                  label={t(`step2.${labelKey}`)}
                   onChange={v => set({ livestockHeads: { ...data.livestockHeads, [key]: v } })}
                 />
-                <p className="text-xs text-gray-400 dark:text-slate-500 italic">
-                  {key === 'swine'        && 'Referência: pequena granja 50–500 cabeças'}
-                  {key === 'cattle_beef'  && 'Referência: pequena propriedade 20–200 cabeças'}
-                  {key === 'cattle_dairy' && 'Referência: pequena propriedade 10–80 cabeças'}
-                  {key === 'poultry_eggs' && 'Referência: pequeno aviário 500–5.000 aves'}
-                  {key === 'poultry_meat' && 'Referência: pequeno aviário 500–5.000 aves'}
-                </p>
+                <p className="text-xs text-gray-400 dark:text-slate-500 italic">{t(`step2.reference.${key}`)}</p>
               </div>
             ))}
           </div>
 
           {biogasPreview !== null && biogasPreview > 0 && (
             <p className="text-xs text-green-700 dark:text-emerald-400 font-medium">
-              🔬 ~ {fmtBiogas(biogasPreview)} m³ biogás/ano estimado (cenário ideal)
+              🔬 {t('step2.preview', { value: format.number(biogasPreview) })}
             </p>
           )}
 
-          <LivestockBreakdown heads={
-            Object.fromEntries(
-              visibleSpecies
-                .filter(sp => (data.livestockHeads[sp.key] ?? 0) > 0)
-                .map(sp => [sp.key, data.livestockHeads[sp.key]])
-            ) as Partial<Record<LivestockSpecies, number>>
-          } />
+          <LivestockBreakdown
+            heads={
+              Object.fromEntries(
+                visibleSpecies
+                  .filter(sp => (data.livestockHeads[sp.key] ?? 0) > 0)
+                  .map(sp => [sp.key, data.livestockHeads[sp.key]])
+              ) as Partial<Record<LivestockSpecies, number>>
+            }
+            t={t}
+            format={format}
+          />
         </div>
       )}
 

@@ -102,7 +102,9 @@
       "ha": "ha",
       "inhab_km2": "inhab./km²",
       "gwh_year": "GWh/year",
-      "inhabitants": "inhab."
+      "inhabitants": "inhab.",
+      "gj_year": "GJ/year",
+      "tco2eq_year": "tCO₂eq/year"
     }
   },
   "auth": {
@@ -1844,7 +1846,11 @@
       "email": "Email",
       "municipio": "Municipality (SP)",
       "municipioPlaceholder": "Type municipality...",
-      "lgpdConsent": "I consent to the use of my data by CP2B/UNICAMP for research and technical contact purposes, in accordance with LGPD."
+      "lgpdConsent": "I consent to the use of my data by CP2B/UNICAMP for research and technical contact purposes, in accordance with LGPD.",
+      "emailPlaceholder": "you@example.com",
+      "municipioManualPlaceholder": "Type the municipality name",
+      "municipioLoading": "Loading municipalities…",
+      "municipioListUnavailable": "The municipality list could not be loaded; type the name instead."
     },
     "step2": {
       "title": "Activity",
@@ -1860,7 +1866,7 @@
       "soy": "Soybean",
       "soyDesc": "Post-harvest straw",
       "coffee": "Coffee",
-      "coffeeDesc": "Grounds and husk",
+      "coffeeDesc": "Coffee husk",
       "citrus": "Citrus",
       "citrusDesc": "Orange/lemon pulp",
       "tons": "Tonnes/year",
@@ -1882,7 +1888,20 @@
       "galPostura": "Laying Hens",
       "galCorte": "Broiler Chickens",
       "heads": "heads",
-      "seasonalWarning": "Seasonal biomass. The calculations assume storage with an efficiency loss (~20%). Combining it with other biomass will be possible in a future release."
+      "seasonalWarning": "Seasonal biomass. The calculations assume storage with an efficiency loss (~20%). Combining it with other biomass will be possible in a future release.",
+      "change": "Change",
+      "preview": "~ {value} m³ of biogas/year estimated (ideal scenario)",
+      "caneEquivalent": "≈ {value} t/year",
+      "reference": {
+        "caneTons": "Reference: small grower, 100–500 t/year (2–7 ha)",
+        "caneHectares": "Reference: small farm, 2–10 ha (150–850 t/year)",
+        "crop": "Reference: small grower, 50–300 t of residue/year",
+        "swine": "Reference: small farm, 50–500 head",
+        "cattle_beef": "Reference: small farm, 20–200 head",
+        "cattle_dairy": "Reference: small farm, 10–80 head",
+        "poultry_eggs": "Reference: small poultry farm, 500–5,000 birds",
+        "poultry_meat": "Reference: small poultry farm, 500–5,000 birds"
+      }
     },
     "step3": {
       "title": "Seasonality",
@@ -1890,7 +1909,7 @@
       "livestockNote": "Livestock: continuous year-round generation. Adjust if there is an off-season.",
       "cropNote": "Harvest/processing months pre-selected. Adjust to match your calendar.",
       "toggleHint": "Click months to include or exclude from the calculation.",
-      "monthsActive": "active months",
+      "monthsActive": "{count, plural, one {# active month} other {# active months}}",
       "shortSafraWarning": "Short harvest season may reduce economic viability"
     },
     "step4": {
@@ -1923,7 +1942,7 @@
       "digestateSub": "Solid/liquid digestate estimate",
       "carbonSub": "Avoided emissions — eligible VCM/RenovaBio",
       "primaryOutputs": "Selected outputs",
-      "secondaryOutputs": "Also calculated (not selected)",
+      "secondaryOutputs": "Also calculated — not selected ({count})",
       "notSelected": "Not included in plan — click New simulation to add",
       "priceSliders": "Adjust SP 2025 prices",
       "priceSlidersHint": "Move sliders to simulate different price scenarios. Financial indicators update in real time.",
@@ -1933,14 +1952,115 @@
       "priceDiesel": "Diesel price",
       "methodology": "Methodology & sources",
       "financialTitle": "Financial Indicators (estimate)",
-      "capex": "Estimated initial investment",
       "payback": "Estimated payback",
       "annualRevenue": "Max annual revenue/savings",
-      "years": "years",
-      "paybackIndeterminate": "Indeterminate",
       "financialDisclaimer": "Estimates based on SP 2025 average tariffs. Detailed engineering analysis required for actual project.",
       "feedback": "Send feedback / Report inconsistency",
-      "newCalculation": "New simulation"
+      "newCalculation": "New simulation",
+      "activity": "{activity} ({quantity})",
+      "biogasTotal": "{value} m³",
+      "scenarioHeading": "Deployment scenario",
+      "selected": "Selected ✓",
+      "select": "Select",
+      "technology": "Technology",
+      "utilization": "Utilization",
+      "utilizationValue": "{percent} of the biomass",
+      "startup": "Start-up",
+      "startupValue": "{count, plural, one {# month} other {# months}} to full load",
+      "investmentFrom": "From {amount}",
+      "paybackFrom": "From {years, plural, one {# year} other {# years}}",
+      "paybackYears": "{years, plural, one {# year} other {# years}}",
+      "paybackUnknown": "Cannot be estimated in this case",
+      "paybackScenarios": "see scenarios ▾",
+      "paybackOptimistic": "🟢 Optimistic: {value} — full operation, good tariffs",
+      "paybackExpected": "🟡 Expected: {value} — learning curve included",
+      "paybackConservative": "🔴 Conservative: {value}",
+      "perYear": "{amount}/year",
+      "expectedPerYear": "expected: {amount}/year",
+      "comparisonTitle": "📊 Comparison — payback, optimistic to conservative",
+      "comparisonYears": "years (optimistic)",
+      "comparisonUnknown": "not estimable",
+      "chartEnergy": "Energy",
+      "chartBiogas": "Biogas",
+      "energySavings": "Savings: {amount}/year",
+      "dieselEquivalent": "≈ {liters} L of diesel",
+      "carbonRevenue": "{amount}/year (VCM/RenovaBio)",
+      "investment": "📊 Estimated investment",
+      "paybackHeading": "⏱ Estimated payback",
+      "scenariosHelpTitle": "💡 Understanding the scenarios",
+      "scenariosAssumptions": "Optimistic payback: minimum CAPEX, {bestRevenue} revenue realization, {bestMaintenance} maintenance per year. Conservative payback: maximum CAPEX, {worstRevenue} realization, {worstMaintenance} maintenance per year, +{startup} start-up cost. “Cannot be estimated” = over {horizon} years.",
+      "method": {
+        "methodLabel": "Method:",
+        "methodText": "Biochemical methane potential (BMP) normalized by volatile solids (VS). Monthly distribution proportional to the selected calendar.",
+        "bmpLabel": "BMP used:",
+        "compositionLabel": "Biogas composition:",
+        "composition": "{ch4} | CH₄ LHV: {lhv} MJ/m³",
+        "efficiencyLabel": "Efficiencies:",
+        "efficiency": "Electrical {electrical} (engine-generator); thermal {thermal} (heat recovery)",
+        "pricesLabel": "SP 2025 default prices:",
+        "prices": "CPFL/Enel tariff {tariff}/kWh; biomethane {biomethane}/m³; carbon {carbon}/tCO₂eq (VCM)",
+        "sourcesLabel": "Sources:",
+        "disclaimer": "Estimates for a preliminary viability check. An engineering design requires a detailed technical study.",
+        "streamBmp": "{stream}: {bmp} m³ CH₄/t VS",
+        "speciesPpb": "{species}: {ppb} m³/head·year",
+        "cropBmp": "{bmp} m³ CH₄/t VS (VS = {vs}, availability = {availability})",
+        "ch4PerStream": "{low}–{high} CH₄ per stream",
+        "ch4Livestock": "{low}–{high} CH₄ (covered lagoon/CSTR)",
+        "ch4Crop": "{value} CH₄"
+      }
+    },
+    "streams": {
+      "bagaco": {
+        "name": "Bagasse",
+        "note": "{percent} available for biogas (rest: cogeneration)"
+      },
+      "palha": {
+        "name": "Straw / trash",
+        "note": "{percent} available for biogas (rest: soil cover)"
+      },
+      "vinhaca": {
+        "name": "Vinasse",
+        "note": "{percent} available for biogas (10% mandatory fertigation)"
+      },
+      "torta": {
+        "name": "Filter cake",
+        "note": "{percent} available for biogas (rest: fertilizer)"
+      }
+    },
+    "breakdown": {
+      "caneTitle": "📦 Residues from your process:",
+      "generated": "{value} t generated",
+      "toBiogas": "→ {value} t for biogas",
+      "caneTotals": "Total residues generated: <strong>{total} t/year</strong> • For biogas: <strong>{biogas} t/year</strong>",
+      "herdTitle": "📦 Estimated residues from your herd:",
+      "speciesHeads": "{species} — {count, plural, one {# head} other {# head}}",
+      "manure": "≈ {value} m³ of manure/year",
+      "potential": "Potential (PPB)",
+      "biogasYear": "→ {value} m³ of biogas/year",
+      "cropTitle": "📦 Estimated residue:",
+      "cropTotal": "Total residue entered",
+      "cropAvailable": "Available for the digester ({percent})",
+      "cropOther": "Other uses / losses ({percent})",
+      "cropVs": "Volatile solids (VS) available",
+      "cropVsValue": "{value} t VS/year",
+      "source": "Parameter source: {source}"
+    },
+    "scenarios": {
+      "min": {
+        "label": "Basic",
+        "technology": "Covered lagoon / tubular PVC",
+        "help": "The simplest and most affordable technology, suited to small farms. It uses about {utilization} of the potential. Payback is shorter because the investment is smaller, but so is the output."
+      },
+      "avg": {
+        "label": "Ideal",
+        "technology": "CSTR digester",
+        "help": "The most common setup on medium-sized farms. It uses {utilization} of the potential. The expected payback includes the learning curve and maintenance — more honest than a sales pitch."
+      },
+      "max": {
+        "label": "Advanced",
+        "technology": "CSTR + upgrading / premium CHP",
+        "help": "Maximum efficiency for large operations. The conservative payback can be long for small operations — that does not mean the project is unviable, only that revenue does not cover the investment within a {horizon}-year horizon."
+      }
     }
   },
   "guide": {

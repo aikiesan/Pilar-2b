@@ -7,6 +7,10 @@
  *   - Denis Miranda 2022 (cross-validation: cattle + corn straw BMP, Amazon context)
  *   - MAPA, CEPEA for citrus/coffee/soy residue availability factors
  *
+ * No display text lives here: names, units and explanations are in the
+ * `calculator` message catalog, keyed by the identifiers below (activity and
+ * output types, scenario tiers, CAPEX levels, sugarcane streams).
+ *
  * Unit conventions throughout:
  *   biomass  → tonnes (metric tons)
  *   biogas   → m³/year
@@ -49,26 +53,30 @@ const MJ_TO_KWH            = 1 / 3.6
 // vs. CSTR+upgrading/CHP are fundamentally different investment levels (4–12×).
 // Each scenario has its own tier table; scale (volume) selects the row within it.
 // Sources: SEBRAE 2020, PROBIOGÁS/BNDES 2021, ANEEL 2022, EPE 2023
+export type CapexLevel = 'low' | 'medium' | 'high'
 export interface CapexTier {
-  label: 'Baixo' | 'Médio' | 'Alto'
-  range: string
+  /** Investment level for the plant's scale. Display name: calculator.capex.<level>. */
+  level: CapexLevel
+  /** Reference range, BRL. */
+  low: number
+  high: number
   mid: number
 }
 export const SCENARIO_CAPEX_TIERS: Record<'min' | 'avg' | 'max', CapexTier[]> = {
-  min: [  // Lagoa coberta / tubular PVC — civil works dominant, minimal machinery
-    { label: 'Baixo', range: 'R$ 40k – 180k',   mid: 80_000    },
-    { label: 'Médio', range: 'R$ 200k – 1M',     mid: 500_000   },
-    { label: 'Alto',  range: 'R$ 1M – 6M',       mid: 3_000_000 },
+  min: [  // Covered lagoon / tubular PVC — civil works dominant, minimal machinery
+    { level: 'low',    low: 40_000,     high: 180_000,    mid: 80_000     },
+    { level: 'medium', low: 200_000,    high: 1_000_000,  mid: 500_000    },
+    { level: 'high',   low: 1_000_000,  high: 6_000_000,  mid: 3_000_000  },
   ],
-  avg: [  // Biodigestor CSTR — engineered tank + mixing + instrumentation
-    { label: 'Baixo', range: 'R$ 150k – 700k',   mid: 350_000    },
-    { label: 'Médio', range: 'R$ 700k – 4M',     mid: 2_000_000  },
-    { label: 'Alto',  range: 'R$ 4M – 25M',      mid: 12_000_000 },
+  avg: [  // CSTR digester — engineered tank + mixing + instrumentation
+    { level: 'low',    low: 150_000,    high: 700_000,    mid: 350_000    },
+    { level: 'medium', low: 700_000,    high: 4_000_000,  mid: 2_000_000  },
+    { level: 'high',   low: 4_000_000,  high: 25_000_000, mid: 12_000_000 },
   ],
   max: [  // CSTR + upgrading / CHP premium — full biogas-to-energy chain
-    { label: 'Baixo', range: 'R$ 500k – 2M',     mid: 900_000    },
-    { label: 'Médio', range: 'R$ 3M – 12M',      mid: 6_000_000  },
-    { label: 'Alto',  range: 'R$ 20M – 60M',     mid: 35_000_000 },
+    { level: 'low',    low: 500_000,    high: 2_000_000,  mid: 900_000    },
+    { level: 'medium', low: 3_000_000,  high: 12_000_000, mid: 6_000_000  },
+    { level: 'high',   low: 20_000_000, high: 60_000_000, mid: 35_000_000 },
   ],
 }
 // Backward-compat alias (CSTR baseline = avg scenario tiers)
@@ -125,34 +133,30 @@ export const LIVESTOCK_CATEGORY_SPECIES: Record<'swine' | 'cattle' | 'poultry', 
 // Sources per crop listed in data/canonical_parameters/feedstocks.yaml
 export type CropType = 'corn' | 'soy' | 'coffee' | 'citrus'
 
+// Residue names: calculator.step2.<crop> / <crop>Desc. `source` is a citation.
 export const CROP_PARAMS: Record<CropType, {
-  bmp: number; vs: number; avail: number; ch4: number
-  label: string; descLabel: string; source: string
+  bmp: number; vs: number; avail: number; ch4: number; source: string
 }> = {
   // PALHA_MILHO: Herrmann et al. 2012 https://doi.org/10.1016/j.biortech.2011.12.074
   corn:   { bmp: 230, vs: 0.86, avail: 0.50, ch4: 0.55,
-            label: 'Milho (palha+sabugo)', descLabel: 'Palha e sabugo de milho',
             source: 'Herrmann et al. (2012) doi:10.1016/j.biortech.2011.12.074' },
   // PALHA_SOJA: Kafle & Chen 2016 https://doi.org/10.1016/j.wasman.2015.10.021
   soy:    { bmp: 220, vs: 0.85, avail: 0.45, ch4: 0.55,
-            label: 'Soja (palha)', descLabel: 'Palha de soja pós-colheita',
             source: 'Kafle & Chen (2016) doi:10.1016/j.wasman.2015.10.021' },
   // CASCA_CAFE: Okonkwo et al. 2021 https://doi.org/10.1016/j.biteb.2021.100830
   coffee: { bmp: 140, vs: 0.93, avail: 0.70, ch4: 0.58,
-            label: 'Café (casca)', descLabel: 'Casca de café',
             source: 'Okonkwo et al. (2021) doi:10.1016/j.biteb.2021.100830' },
   // BAGACO_CITROS: Wikandari et al. 2014 https://doi.org/10.1016/j.biortech.2014.07.074
   citrus: { bmp: 230, vs: 0.88, avail: 0.60, ch4: 0.56,
-            label: 'Citros (bagaço)', descLabel: 'Bagaço de laranja/limão',
             source: 'Wikandari et al. (2014) doi:10.1016/j.biortech.2014.07.074' },
 }
 
 // Default harvest months per crop (used to pre-fill StepSazonalidade)
 export const CROP_DEFAULT_MONTHS: Record<CropType, number[]> = {
-  corn:   [7, 8, 9],           // safrinha SP
-  soy:    [2, 3, 4],           // verão SP
-  coffee: [6, 7, 8, 9],        // safra principal SP
-  citrus: [6, 7, 8, 9, 10],   // temporada de processamento
+  corn:   [7, 8, 9],           // SP second-crop (safrinha) harvest
+  soy:    [2, 3, 4],           // SP summer harvest
+  coffee: [6, 7, 8, 9],        // SP main harvest
+  citrus: [6, 7, 8, 9, 10],   // processing season
 }
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -171,9 +175,8 @@ export const ALL_OUTPUT_TYPES: OutputType[] = ['energy', 'biomethane', 'digestat
 // ── Scenario tiers ────────────────────────────────────────────────────────────
 export type ScenarioTier = 'min' | 'avg' | 'max'
 
+/** Display names: calculator.scenarios.<tier>.label / .technology. */
 export interface ScenarioFactor {
-  labelPt: string
-  technology: string
   utilization: number   // fraction of biomass effectively processed
   startupMonths: number // months to reach full operation (kinetics curve)
   bmpFactor: number
@@ -183,9 +186,9 @@ export interface ScenarioFactor {
 }
 
 export const SCENARIO_FACTORS: Record<ScenarioTier, ScenarioFactor> = {
-  min: { labelPt: 'Básico',   technology: 'Lagoa coberta / tubular PVC',   utilization: 0.55, startupMonths: 4,  bmpFactor: 0.75, elecEff: 0.28, thermalEff: 0.40, biocharYield: 0.20 },
-  avg: { labelPt: 'Ideal',    technology: 'Biodigestor CSTR',               utilization: 0.75, startupMonths: 6,  bmpFactor: 1.00, elecEff: 0.35, thermalEff: 0.50, biocharYield: 0.28 },
-  max: { labelPt: 'Avançado', technology: 'CSTR + upgrading / CHP premium', utilization: 0.90, startupMonths: 10, bmpFactor: 1.20, elecEff: 0.42, thermalEff: 0.60, biocharYield: 0.35 },
+  min: { utilization: 0.55, startupMonths: 4,  bmpFactor: 0.75, elecEff: 0.28, thermalEff: 0.40, biocharYield: 0.20 },  // covered lagoon / tubular PVC
+  avg: { utilization: 0.75, startupMonths: 6,  bmpFactor: 1.00, elecEff: 0.35, thermalEff: 0.50, biocharYield: 0.28 },  // CSTR digester
+  max: { utilization: 0.90, startupMonths: 10, bmpFactor: 1.20, elecEff: 0.42, thermalEff: 0.60, biocharYield: 0.35 },  // CSTR + upgrading / CHP
 }
 
 // ── Realistic payback factors ─────────────────────────────────────────────────
@@ -198,13 +201,31 @@ const REVENUE_WORST = 0.45           // conservative: year-1-2 learning curve, b
 const MAINT_LOW  = 0.03              // annual maintenance as % of CAPEX (simple system)
 const MAINT_MID  = 0.05              // mid-tier
 const MAINT_HIGH = 0.08              // complex system with upgrading
-const CAPEX_LOW_FACTOR  = 0.65       // CAPEX range bottom around tier mid
+export const CAPEX_LOW_FACTOR  = 0.65  // CAPEX range bottom around tier mid
 const CAPEX_HIGH_FACTOR = 1.50       // CAPEX range top around tier mid
+const BEST_STARTUP_FACTOR  = 1.06    // best case: minimal consultancy overhead
+const WORST_STARTUP_FACTOR = 1.25    // conservative case: extended startup
+/** Beyond this many years the conservative payback is reported as not estimable. */
+export const PAYBACK_HORIZON_YEARS = 40
+/** Sentinel for a payback that cannot be estimated (revenue never covers cost). */
+export const PAYBACK_UNKNOWN = 999
+
+export const isPaybackKnown = (years: number): boolean => years < PAYBACK_UNKNOWN
+
+/** The assumptions the results screen explains — read from here so the text never drifts. */
+export const ASSUMPTIONS = {
+  ch4LhvMjPerM3: CH4_LHV_MJ_PER_M3,
+  elecEfficiency: ELEC_EFFICIENCY,
+  thermalEfficiency: THERMAL_EFFICIENCY,
+  best:  { revenue: REVENUE_BEST,  maintenance: MAINT_LOW },
+  worst: { revenue: REVENUE_WORST, maintenance: MAINT_HIGH, startupOverhead: WORST_STARTUP_FACTOR - 1 },
+  paybackHorizonYears: PAYBACK_HORIZON_YEARS,
+} as const
 
 export interface PaybackRange {
-  min: number   // best case (anos)
-  avg: number   // expected realistic (anos)
-  max: number   // conservative (anos); 999 = Indeterminado
+  min: number   // best case (years)
+  avg: number   // expected realistic (years)
+  max: number   // conservative (years); PAYBACK_UNKNOWN = not estimable
 }
 
 export interface SugarcaneInput {
@@ -217,8 +238,8 @@ export interface LivestockInput {
 }
 
 export interface MonthlyDistribution {
+  /** 1–12. Display names come from the locale (useFormat().month). */
   month: number
-  monthLabel: string
   biogas: number
   energy: number
 }
@@ -246,19 +267,23 @@ export interface FinancialResult {
   carbonRevBrlYear: number
 }
 
+/** What the user entered, as data; the results screen words it. */
+export interface ActivityQuantity {
+  value: number
+  unit: 'ha' | 't' | 'heads'
+}
+
 export interface CalculationResult {
   outputs: OutputResult
   financials: FinancialResult
   selectedOutputs: OutputType[]
   inputSummary: {
-    activityLabel: string
+    activityType: ActivityType
+    quantity: ActivityQuantity
     biomassEstimateTons: number
     activeMonths: number
-    activityType: ActivityType
   }
 }
-
-const MONTH_LABELS = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez']
 
 // ── Core functions ────────────────────────────────────────────────────────────
 
@@ -325,15 +350,14 @@ export function calcBiogasFromCrop(cropType: CropType, tonnes: number): {
 export function spreadToMonths(biogasYearly: number, activeMonths: number[]): MonthlyDistribution[] {
   const perMonth = activeMonths.length > 0 ? biogasYearly / activeMonths.length : 0
   const activeSet = new Set(activeMonths)
-  return MONTH_LABELS.map((label, idx) => {
-    const m = idx + 1
-    const biogas = activeSet.has(m) ? perMonth : 0
-    return { month: m, monthLabel: label, biogas, energy: 0 }
+  return Array.from({ length: 12 }, (_, idx) => {
+    const month = idx + 1
+    return { month, biogas: activeSet.has(month) ? perMonth : 0, energy: 0 }
   })
 }
 
 /** Compute all 6 outputs — always returns full values regardless of selection.
- *  dryLignoCellulosic: dry lignocellulosic biomass available for pyrolysis (t/ano).
+ *  dryLignoCellulosic: dry lignocellulosic biomass available for pyrolysis (t/year).
  *  Pass strawTons for sugarcane, biomassTotal*0.87 for crops, 0 for livestock (manure unsuitable). */
 export function calcOutputs(
   biogasM3Year: number,
@@ -406,7 +430,8 @@ function roundYears(y: number): number {
 }
 
 export function calcPaybackRange(annualRevNominal: number, tier: CapexTier): PaybackRange {
-  if (annualRevNominal <= 0) return { min: 999, avg: 999, max: 999 }
+  const UNKNOWN = PAYBACK_UNKNOWN
+  if (annualRevNominal <= 0) return { min: UNKNOWN, avg: UNKNOWN, max: UNKNOWN }
 
   const cm = tier.mid
   const cl = cm * CAPEX_LOW_FACTOR
@@ -414,21 +439,21 @@ export function calcPaybackRange(annualRevNominal: number, tier: CapexTier): Pay
 
   // Best case: low CAPEX, good revenue, minimal overhead + maintenance
   const netBest = annualRevNominal * REVENUE_BEST - cl * MAINT_LOW
-  const pb_min = netBest > 0 ? (cl * (1 + 0.06)) / netBest : 999
+  const pb_min = netBest > 0 ? (cl * BEST_STARTUP_FACTOR) / netBest : UNKNOWN
 
   // Expected case: mid CAPEX, realistic revenue realization, standard maintenance
   const netAvg  = annualRevNominal * REVENUE_AVG - cm * MAINT_MID
-  const pb_avg  = netAvg > 0  ? (cm * (1 + STARTUP_COST_FACTOR)) / netAvg : 999
+  const pb_avg  = netAvg > 0  ? (cm * (1 + STARTUP_COST_FACTOR)) / netAvg : UNKNOWN
 
   // Conservative case: high CAPEX, poor realization (kinetics curve, low tariffs, downtime),
   // high maintenance, extended startup overhead
   const netWorst = annualRevNominal * REVENUE_WORST - ch * MAINT_HIGH
-  const pb_max  = netWorst > 0 ? Math.min((ch * 1.25) / netWorst, 40) : 999
+  const pb_max  = netWorst > 0 ? Math.min((ch * WORST_STARTUP_FACTOR) / netWorst, PAYBACK_HORIZON_YEARS) : UNKNOWN
 
   return {
-    min: pb_min < 999 ? roundYears(Math.max(pb_min, 0.5)) : 999,
-    avg: pb_avg < 999 ? roundYears(pb_avg) : 999,
-    max: pb_max >= 40  ? 999 : roundYears(pb_max),
+    min: pb_min < UNKNOWN ? roundYears(Math.max(pb_min, 0.5)) : UNKNOWN,
+    avg: pb_avg < UNKNOWN ? roundYears(pb_avg) : UNKNOWN,
+    max: pb_max >= PAYBACK_HORIZON_YEARS ? UNKNOWN : roundYears(pb_max),
   }
 }
 
@@ -436,7 +461,7 @@ export function calcPaybackRange(annualRevNominal: number, tier: CapexTier): Pay
  * Calculate financial indicators from computed outputs.
  * selectedOutputs controls which revenue streams are shown in the display breakdown,
  * but payback is always computed from the full economic potential (energy + carbon)
- * so that selecting only digestate/heat/biochar doesn't collapse payback to 999.
+ * so that selecting only digestate/heat/biochar doesn't collapse payback to PAYBACK_UNKNOWN.
  * prices allows overriding SP 2025 defaults (used by sliders in ResultsDashboard).
  */
 export function calcFinancials(
@@ -477,10 +502,9 @@ export function calcFinancials(
 
 // ── Main entry point ──────────────────────────────────────────────────────────
 
-const LIVESTOCK_ACTIVITY_TYPES = new Set<ActivityType>(['livestock', 'swine', 'cattle', 'poultry'])
-const LIVESTOCK_CATEGORY_LABEL: Record<string, string> = {
-  livestock: 'Pecuária', swine: 'Suínos', cattle: 'Bovinos', poultry: 'Aves',
-}
+export const LIVESTOCK_ACTIVITY_TYPES: ReadonlySet<ActivityType> = new Set<ActivityType>(['livestock', 'swine', 'cattle', 'poultry'])
+export const isLivestockActivity = (type: ActivityType | null): boolean =>
+  type !== null && LIVESTOCK_ACTIVITY_TYPES.has(type)
 
 export function runCalculation(
   activityType: ActivityType,
@@ -490,7 +514,8 @@ export function runCalculation(
   selectedOutputs: OutputType[],
   cropInput?: { tonnes: number },
 ): CalculationResult {
-  let biogasM3 = 0, ch4 = 0.60, biomass = 0, dryLigno = 0, activityLabel = ''
+  let biogasM3 = 0, ch4 = 0.60, biomass = 0, dryLigno = 0
+  let quantity: ActivityQuantity = { value: 0, unit: 't' }
 
   if (activityType === 'sugarcane' && sugarcaneInput) {
     const tonsRaw = sugarcaneInput.type === 'hectares'
@@ -499,9 +524,9 @@ export function runCalculation(
     const r = calcBiogasFromSugarcane(tonsRaw)
     biogasM3 = r.biogasM3; ch4 = r.ch4Weighted; biomass = r.biomassTotal
     dryLigno = r.strawTons * SUGARCANE_STREAMS.palha.vs
-    activityLabel = `Cana-de-açúcar (${sugarcaneInput.type === 'hectares'
-      ? sugarcaneInput.value + ' ha'
-      : tonsRaw.toLocaleString('pt-BR') + ' t'})`
+    quantity = sugarcaneInput.type === 'hectares'
+      ? { value: sugarcaneInput.value, unit: 'ha' }
+      : { value: tonsRaw, unit: 't' }
 
   } else if (LIVESTOCK_ACTIVITY_TYPES.has(activityType) && livestockInput) {
     const catKey = activityType as 'livestock' | 'swine' | 'cattle' | 'poultry'
@@ -518,14 +543,14 @@ export function runCalculation(
     const r = calcBiogasFromLivestock(heads)
     biogasM3 = r.biogasM3; ch4 = r.ch4Weighted; biomass = r.biomassTotal
     dryLigno = 0
-    activityLabel = `Pecuária — ${LIVESTOCK_CATEGORY_LABEL[catKey]}`
+    quantity = { value: Object.values(heads).reduce((sum: number, n) => sum + (n ?? 0), 0), unit: 'heads' }
 
   } else if (cropInput && activityType in CROP_PARAMS) {
     const r = calcBiogasFromCrop(activityType as CropType, cropInput.tonnes)
     biogasM3 = r.biogasM3; ch4 = r.ch4Weighted; biomass = r.biomassTotal
     const p = CROP_PARAMS[activityType as CropType]
     dryLigno = biomass * p.vs
-    activityLabel = `${p.label} (${cropInput.tonnes.toLocaleString('pt-BR')} t)`
+    quantity = { value: cropInput.tonnes, unit: 't' }
   }
 
   const outputs    = calcOutputs(biogasM3, ch4, biomass, dryLigno, activeMonths)
@@ -536,10 +561,10 @@ export function runCalculation(
     financials,
     selectedOutputs,
     inputSummary: {
-      activityLabel,
+      activityType,
+      quantity,
       biomassEstimateTons: biomass,
       activeMonths: activeMonths.length,
-      activityType,
     },
   }
 }

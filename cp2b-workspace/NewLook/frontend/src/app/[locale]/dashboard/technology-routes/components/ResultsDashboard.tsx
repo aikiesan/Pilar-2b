@@ -10,6 +10,10 @@ import {
   calcFinancials,
   calcPaybackRange,
   getCapexTier,
+  isLivestockActivity,
+  isPaybackKnown,
+  ASSUMPTIONS,
+  CAPEX_LOW_FACTOR,
   DEFAULT_PRICES,
   ALL_OUTPUT_TYPES,
   CROP_PARAMS,
@@ -18,8 +22,12 @@ import {
   SCENARIO_FACTORS,
   applyScenario,
 } from '../calculatorEngine'
-import type { PaybackRange } from '../calculatorEngine'
+import { useCalculatorText } from '../useCalculatorText'
+import { LIVESTOCK_SPECIES } from './StepAtividade'
 import { useTheme } from '@/contexts/ThemeContext'
+import { useFormat } from '@/hooks/useFormat'
+import type { Formatters } from '@/lib/format'
+import type { Messages } from '@/types/i18n'
 
 interface Props {
   result: CalculationResult
@@ -29,26 +37,13 @@ interface Props {
 
 type ChartMode = 'biogas' | 'energy'
 
-const CAPEX_LOW_FACTOR = 0.65
-// Note: CAPEX_SCENARIO_MULTIPLIER removed — each scenario now has its own tier
-// table in calculatorEngine.ts (SCENARIO_CAPEX_TIERS), reflecting real technology
-// cost differences: lagoa coberta → CSTR → CSTR+CHP is roughly 4× and 3× steps.
-
+// Each scenario has its own CAPEX tier table (SCENARIO_CAPEX_TIERS in the
+// engine), reflecting real technology cost differences: covered lagoon → CSTR →
+// CSTR+CHP is roughly 4× and 3× steps.
 const SCENARIO_EMOJIS: Record<ScenarioTier, string> = { min: '🌱', avg: '⚙️', max: '🚀' }
 const SCENARIO_ORDER: ScenarioTier[] = ['min', 'avg', 'max']
 
-function fmt(n: number, decimals = 0): string {
-  return n.toLocaleString('pt-BR', { maximumFractionDigits: decimals })
-}
-function fmtCurrency(n: number): string {
-  return n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })
-}
-function fmtSlider(val: number, unit: string): string {
-  return `${val.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${unit}`
-}
-function fmtK(n: number): string {
-  return `${Math.round(n / 1000)}k`
-}
+type CalculatorT = ReturnType<typeof useTranslations<'calculator'>>
 
 interface MetricCardProps {
   emoji: string; label: string; value: string; sub?: string; highlight?: boolean; muted?: boolean
@@ -76,43 +71,50 @@ function MetricCard({ emoji, label, value, sub, highlight, muted }: MetricCardPr
   )
 }
 
-const OUTPUT_META: Record<OutputType, { emoji: string; label: string }> = {
-  energy:     { emoji: '⚡', label: 'Energia Elétrica' },
-  biomethane: { emoji: '⛽', label: 'Biometano'        },
-  digestate:  { emoji: '🌱', label: 'Digestato'        },
-  thermal:    { emoji: '🔥', label: 'Energia Térmica'  },
-  biochar:    { emoji: '🪨', label: 'Biochar'           },
-  carbon:     { emoji: '🌍', label: 'CO₂eq evitado'    },
+/** Output names: calculator.results.<type>. */
+const OUTPUT_EMOJI: Record<OutputType, string> = {
+  energy: '⚡', biomethane: '⛽', digestate: '🌱', thermal: '🔥', biochar: '🪨', carbon: '🌍',
 }
 
-function outputValue(type: OutputType, outputs: CalculationResult['outputs']): string {
-  switch(type) {
-    case 'energy':     return `${fmt(outputs.energyKwhYear / 1000, 1)} MWh/ano`
-    case 'biomethane': return `${fmt(outputs.biomethaneM3Year)} m³/ano`
-    case 'digestate':  return `${fmt(outputs.digestateTonsYear, 0)} t/ano`
-    case 'thermal':    return `${fmt(outputs.thermalMjYear / 1000, 0)} GJ/ano`
-    case 'biochar':    return `${fmt(outputs.biocharTonsYear, 1)} t/ano`
-    case 'carbon':     return `${fmt(outputs.co2TonsYear, 1)} tCO₂eq`
-  }
-}
+type StreamKey = keyof typeof SUGARCANE_STREAMS & keyof Messages['calculator']['streams']
 
-function methodologyText(activityType: ActivityType): { bmp: string; ch4: string; source: string } {
+/** A 0–1 fraction as a percentage. */
+const pct = (format: Formatters, fraction: number) => format.percent(fraction * 100, { decimals: 0 })
+
+/** The methodology note for an activity, from the engine's own coefficients. */
+function methodologyText(
+  activityType: ActivityType,
+  t: CalculatorT,
+  format: Formatters
+): { bmp: string; ch4: string; source: string } {
   if (activityType === 'sugarcane') {
-    const bmps = Object.entries(SUGARCANE_STREAMS).map(([k, s]) => `${k}: ${s.bmp} m³ CH₄/tVS`).join(', ')
-    return { bmp: bmps, ch4: '55–65% CH₄ por fluxo', source: 'UNICA 2023; EMBRAPA Agroenergia; NBR 15.527' }
-  }
-  if (['livestock', 'swine', 'cattle', 'poultry'].includes(activityType)) {
+    const streams = Object.entries(SUGARCANE_STREAMS) as [StreamKey, (typeof SUGARCANE_STREAMS)[StreamKey]][]
+    const ch4 = streams.map(([, s]) => s.ch4)
     return {
-      bmp: 'Suínos: 200 m³/cab·ano; Bovinos corte: 350; Bovinos leite: 500; Galináceos: 0,8–1,4',
-      ch4: '60–65% CH₄ (lagoa coberta/CSTR)',
-      source: 'EMBRAPA 2023; Chernicharo 2016; IEA Bioenergy',
+      bmp: streams
+        .map(([key, s]) => t('results.method.streamBmp', { stream: t(`streams.${key}.name`), bmp: format.number(s.bmp) }))
+        .join(', '),
+      ch4: t('results.method.ch4PerStream', { low: pct(format, Math.min(...ch4)), high: pct(format, Math.max(...ch4)) }),
+      source: 'UNICA 2023; EMBRAPA Agroenergia; NBR 15.527', // i18n-exempt: citations
+    }
+  }
+  if (isLivestockActivity(activityType)) {
+    const ch4 = LIVESTOCK_SPECIES.map(({ key }) => LIVESTOCK_PPB[key].ch4)
+    return {
+      bmp: LIVESTOCK_SPECIES
+        .map(({ key, labelKey }) =>
+          t('results.method.speciesPpb', { species: t(`step2.${labelKey}`), ppb: format.number(LIVESTOCK_PPB[key].ppb, { decimals: 1 }) })
+        )
+        .join('; '),
+      ch4: t('results.method.ch4Livestock', { low: pct(format, Math.min(...ch4)), high: pct(format, Math.max(...ch4)) }),
+      source: 'EMBRAPA 2023; Chernicharo 2016; IEA Bioenergy', // i18n-exempt: citations
     }
   }
   if (activityType in CROP_PARAMS) {
     const p = CROP_PARAMS[activityType as keyof typeof CROP_PARAMS]
     return {
-      bmp: `${p.bmp} m³ CH₄/tVS (VS=${(p.vs*100).toFixed(0)}%, disponibilidade=${(p.avail*100).toFixed(0)}%)`,
-      ch4: `${(p.ch4*100).toFixed(0)}% CH₄`,
+      bmp: t('results.method.cropBmp', { bmp: format.number(p.bmp), vs: pct(format, p.vs), availability: pct(format, p.avail) }),
+      ch4: t('results.method.ch4Crop', { value: pct(format, p.ch4) }),
       source: p.source,
     }
   }
@@ -121,6 +123,8 @@ function methodologyText(activityType: ActivityType): { bmp: string; ch4: string
 
 export default function ResultsDashboard({ result, municipalityName, onReset }: Props) {
   const t = useTranslations('calculator')
+  const format = useFormat()
+  const text = useCalculatorText()
   const { resolvedTheme } = useTheme()
   const isDark = resolvedTheme === 'dark'
 
@@ -152,12 +156,14 @@ export default function ResultsDashboard({ result, municipalityName, onReset }: 
   })
 
   const chartData = outputs.monthly.map(m => ({
-    name: m.monthLabel,
+    name: format.month(m.month),
     value: chartMode === 'energy' ? Math.round(m.energy) : Math.round(m.biogas),
   }))
 
   const secondaryOutputs = ALL_OUTPUT_TYPES.filter(o => !selectedOutputs.includes(o))
-  const method = methodologyText(inputSummary.activityType)
+  const method = methodologyText(inputSummary.activityType, t, format)
+  const brl = (amount: number) => format.currency(amount)
+  const brlFrom = (amount: number) => t('results.investmentFrom', { amount: format.currency(amount, { compact: true }) })
 
   // Dark-mode-aware chart colors
   const chartGrid   = isDark ? '#334155' : '#f0f0f0'
@@ -168,20 +174,23 @@ export default function ResultsDashboard({ result, municipalityName, onReset }: 
     setPrices(p => ({ ...p, [key]: val }))
   }
 
+  const sliderValue = (value: number, unit: string) =>
+    `${format.number(value, { decimals: 2, minDecimals: 2 })} ${unit}`
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="text-center p-4 bg-gradient-to-br from-green-600 to-green-700 dark:from-emerald-700 dark:to-emerald-800 rounded-2xl text-white">
         <p className="text-sm opacity-80 mb-1">{t('results.potentialHeader', { municipality: municipalityName })}</p>
-        <p className="text-3xl font-bold">{fmt(outputs.totalBiogasM3Year)} m³</p>
+        <p className="text-3xl font-bold">{t('results.biogasTotal', { value: format.number(outputs.totalBiogasM3Year) })}</p>
         <p className="text-sm opacity-80">{t('results.biogasPerYear')}</p>
-        <p className="text-xs mt-1 opacity-60">{inputSummary.activityLabel}</p>
+        <p className="text-xs mt-1 opacity-60">{text.activity(inputSummary.activityType, inputSummary.quantity)}</p>
       </div>
 
       {/* Scenario cards — vertical stacked, expand on click */}
       <div>
         <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-2">
-          Cenário de implantação
+          {t('results.scenarioHeading')}
         </p>
         <div className="space-y-2">
           {scenarioCards.map(({ tier, sf, payback, cl }) => {
@@ -190,6 +199,7 @@ export default function ResultsDashboard({ result, municipalityName, onReset }: 
               <button
                 key={tier}
                 onClick={() => setScenario(tier)}
+                aria-pressed={active}
                 className={`w-full text-left p-3 rounded-xl border-2 transition-all ${
                   active
                     ? 'border-green-500 dark:border-emerald-500 bg-green-50 dark:bg-emerald-900/20'
@@ -201,14 +211,14 @@ export default function ResultsDashboard({ result, municipalityName, onReset }: 
                   <div className="flex items-center gap-2 min-w-0">
                     <span className="shrink-0">{SCENARIO_EMOJIS[tier]}</span>
                     <span className={`font-bold text-sm ${active ? 'text-green-800 dark:text-emerald-300' : 'text-gray-700 dark:text-slate-300'}`}>
-                      {sf.labelPt}
+                      {t(`scenarios.${tier}.label`)}
                     </span>
                     <span className="text-xs text-gray-400 dark:text-slate-500 truncate hidden sm:block">
-                      — {sf.technology}
+                      — {t(`scenarios.${tier}.technology`)}
                     </span>
                   </div>
                   <span className={`text-xs font-semibold shrink-0 ml-2 ${active ? 'text-green-600 dark:text-emerald-400' : 'text-gray-400 dark:text-slate-500'}`}>
-                    {active ? 'Selecionado ✓' : 'Selecionar'}
+                    {active ? t('results.selected') : t('results.select')}
                   </span>
                 </div>
 
@@ -216,28 +226,28 @@ export default function ResultsDashboard({ result, municipalityName, onReset }: 
                 {active && (
                   <div className="mt-3 pt-3 border-t border-green-200 dark:border-emerald-800 grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
                     <div>
-                      <p className="text-gray-500 dark:text-slate-400">Tecnologia</p>
-                      <p className="font-medium text-gray-800 dark:text-slate-200 leading-tight">{sf.technology}</p>
+                      <p className="text-gray-500 dark:text-slate-400">{t('results.technology')}</p>
+                      <p className="font-medium text-gray-800 dark:text-slate-200 leading-tight">{t(`scenarios.${tier}.technology`)}</p>
                     </div>
                     <div>
-                      <p className="text-gray-500 dark:text-slate-400">Aproveitamento</p>
-                      <p className="font-semibold text-gray-800 dark:text-slate-200">{Math.round(sf.utilization * 100)}% da biomassa</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-500 dark:text-slate-400">Início de operação</p>
-                      <p className="font-semibold text-gray-800 dark:text-slate-200">{sf.startupMonths} meses até plena carga</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-500 dark:text-slate-400">Investimento estimado</p>
+                      <p className="text-gray-500 dark:text-slate-400">{t('results.utilization')}</p>
                       <p className="font-semibold text-gray-800 dark:text-slate-200">
-                        A partir de R$ {fmtK(cl)}
+                        {t('results.utilizationValue', { percent: pct(format, sf.utilization) })}
                       </p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500 dark:text-slate-400">{t('results.startup')}</p>
+                      <p className="font-semibold text-gray-800 dark:text-slate-200">
+                        {t('results.startupValue', { count: sf.startupMonths })}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500 dark:text-slate-400">{t('results.investment')}</p>
+                      <p className="font-semibold text-gray-800 dark:text-slate-200">{brlFrom(cl)}</p>
                     </div>
                     <div className="col-span-2">
-                      <p className="text-gray-500 dark:text-slate-400">Payback estimado</p>
-                      <p className="font-semibold text-gray-800 dark:text-slate-200">
-                        {payback.min >= 999 ? 'Não é possível estimar neste caso' : `A partir de ${payback.min} anos`}
-                      </p>
+                      <p className="text-gray-500 dark:text-slate-400">{t('results.payback')}</p>
+                      <p className="font-semibold text-gray-800 dark:text-slate-200">{text.paybackFrom(payback.min)}</p>
                     </div>
                   </div>
                 )}
@@ -266,11 +276,12 @@ export default function ResultsDashboard({ result, municipalityName, onReset }: 
             <div key={key}>
               <div className="flex justify-between text-xs text-gray-600 dark:text-slate-400 mb-1">
                 <span>{label}</span>
-                <span className="font-semibold text-green-700 dark:text-emerald-400">{fmtSlider(prices[key], unit)}</span>
+                <span className="font-semibold text-green-700 dark:text-emerald-400">{sliderValue(prices[key], unit)}</span>
               </div>
               <input
                 type="range" min={min} max={max} step={step}
                 value={prices[key]}
+                aria-label={label}
                 style={{ '--range-pct': `${(((prices[key] - min) / (max - min)) * 100).toFixed(1)}%` } as React.CSSProperties}
                 onChange={e => {
                   const v = parseFloat(e.target.value)
@@ -280,8 +291,8 @@ export default function ResultsDashboard({ result, municipalityName, onReset }: 
                 className="w-full"
               />
               <div className="flex justify-between text-xs text-gray-400 dark:text-slate-500">
-                <span>{fmtSlider(min, unit)}</span>
-                <span>{fmtSlider(max, unit)}</span>
+                <span>{sliderValue(min, unit)}</span>
+                <span>{sliderValue(max, unit)}</span>
               </div>
             </div>
           ))}
@@ -297,6 +308,7 @@ export default function ResultsDashboard({ result, municipalityName, onReset }: 
               <button
                 key={mode}
                 onClick={() => setChartMode(mode)}
+                aria-pressed={chartMode === mode}
                 className={`px-3 py-1 ${
                   chartMode === mode
                     ? 'bg-green-600 dark:bg-emerald-600 text-white'
@@ -323,8 +335,8 @@ export default function ResultsDashboard({ result, municipalityName, onReset }: 
                   fontSize: 12,
                 }}
                 formatter={(v) => [
-                  `${fmt(Number(v))} ${chartMode === 'energy' ? 'kWh' : 'm³'}`,
-                  chartMode === 'energy' ? 'Energia' : 'Biogás',
+                  `${format.number(Number(v))} ${chartMode === 'energy' ? 'kWh' : 'm³'}`,
+                  chartMode === 'energy' ? t('results.chartEnergy') : t('results.chartBiogas'),
                 ]}
               />
               <Bar dataKey="value" fill={chartBarFill} radius={[3,3,0,0]} />
@@ -341,22 +353,21 @@ export default function ResultsDashboard({ result, municipalityName, onReset }: 
           </p>
           <div className="grid grid-cols-2 gap-3">
             {selectedOutputs.map(type => {
-              const meta = OUTPUT_META[type]
               const sub = type === 'energy'
-                ? `Economia: ${fmtCurrency(financials.energySavingsBrlYear)}/ano`
+                ? t('results.energySavings', { amount: brl(financials.energySavingsBrlYear) })
                 : type === 'biomethane'
-                ? `≈ ${fmt(financials.dieselEquivLitersYear)} L diesel`
+                ? t('results.dieselEquivalent', { liters: format.number(financials.dieselEquivLitersYear) })
                 : type === 'carbon'
-                ? `${fmtCurrency(financials.carbonRevBrlYear)}/ano (VCM/RenovaBio)`
+                ? t('results.carbonRevenue', { amount: brl(financials.carbonRevBrlYear) })
                 : type === 'digestate'
                 ? t('results.digestateSub')
                 : undefined
               return (
                 <MetricCard
                   key={type}
-                  emoji={meta.emoji}
-                  label={meta.label}
-                  value={outputValue(type, outputs)}
+                  emoji={OUTPUT_EMOJI[type]}
+                  label={t(`results.${type}`)}
+                  value={text.outputValue(type, outputs)}
                   sub={sub}
                   highlight={type === 'energy' || type === 'biomethane'}
                 />
@@ -372,27 +383,25 @@ export default function ResultsDashboard({ result, municipalityName, onReset }: 
         <p className="font-semibold text-gray-700 dark:text-slate-300 text-sm">{t('results.financialTitle')}</p>
 
         <div className="flex justify-between items-center text-sm">
-          <span className="text-gray-500 dark:text-slate-400">📊 Investimento estimado</span>
+          <span className="text-gray-500 dark:text-slate-400">{t('results.investment')}</span>
           <span className="font-bold text-gray-800 dark:text-slate-200 text-xs">
-            A partir de R$ {fmtK(activeCapex.mid * CAPEX_LOW_FACTOR)}
+            {brlFrom(activeCapex.mid * CAPEX_LOW_FACTOR)}
           </span>
         </div>
 
         {/* Payback — optimistic floor with expandable detail */}
         <div className="flex justify-between items-start text-sm">
-          <span className="text-gray-500 dark:text-slate-400">⏱ Payback estimado</span>
+          <span className="text-gray-500 dark:text-slate-400">{t('results.paybackHeading')}</span>
           <div className="text-right">
-            <p className="font-bold text-gray-800 dark:text-slate-200">
-              {financials.payback.min >= 999 ? 'Não é possível estimar neste caso' : `A partir de ${financials.payback.min} anos`}
-            </p>
+            <p className="font-bold text-gray-800 dark:text-slate-200">{text.paybackFrom(financials.payback.min)}</p>
             <details className="text-xs">
               <summary className="cursor-pointer text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300 select-none">
-                ver cenários ▾
+                {t('results.paybackScenarios')}
               </summary>
               <div className="mt-1 text-left text-gray-500 dark:text-slate-400 max-w-52 space-y-0.5">
-                <p>🟢 Otimista: {financials.payback.min >= 999 ? 'Não é possível estimar neste caso' : `${financials.payback.min} anos`} — operação plena, boas tarifas</p>
-                <p>🟡 Esperado: {financials.payback.avg >= 999 ? 'Não é possível estimar neste caso' : `${financials.payback.avg} anos`} — curva de aprendizado incluída</p>
-                <p>🔴 Conservador: {financials.payback.max >= 999 ? 'Não é possível estimar neste caso' : `${financials.payback.max} anos`}</p>
+                <p>{t('results.paybackOptimistic', { value: text.payback(financials.payback.min) })}</p>
+                <p>{t('results.paybackExpected', { value: text.payback(financials.payback.avg) })}</p>
+                <p>{t('results.paybackConservative', { value: text.payback(financials.payback.max) })}</p>
               </div>
             </details>
           </div>
@@ -401,21 +410,26 @@ export default function ResultsDashboard({ result, municipalityName, onReset }: 
         <div className="flex justify-between items-center text-sm">
           <span className="text-gray-500 dark:text-slate-400">{t('results.annualRevenue')}</span>
           <div className="text-right">
-            <span className="font-bold text-green-700 dark:text-emerald-400">{fmtCurrency(financials.annualRevenueMaxBRL)}/ano</span>
-            <p className="text-xs text-gray-400 dark:text-slate-500">esperado: {fmtCurrency(financials.annualRevenueAvgBRL)}/ano</p>
+            <span className="font-bold text-green-700 dark:text-emerald-400">
+              {t('results.perYear', { amount: brl(financials.annualRevenueMaxBRL) })}
+            </span>
+            <p className="text-xs text-gray-400 dark:text-slate-500">
+              {t('results.expectedPerYear', { amount: brl(financials.annualRevenueAvgBRL) })}
+            </p>
           </div>
         </div>
 
         {/* Scenario comparison mini-table */}
         <div className="pt-2 border-t border-gray-100 dark:border-slate-700">
-          <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 mb-2">📊 Comparativo — payback otimista–conservador</p>
+          <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 mb-2">{t('results.comparisonTitle')}</p>
           <div className="grid grid-cols-3 gap-1 text-xs text-center">
-            {scenarioCards.map(({ tier, sf, payback }) => {
+            {scenarioCards.map(({ tier, payback }) => {
               const active = scenario === tier
               return (
                 <button
                   key={tier}
                   onClick={() => setScenario(tier)}
+                  aria-pressed={active}
                   className={`p-2 rounded-lg border transition-colors ${
                     active
                       ? 'border-green-400 dark:border-emerald-600 bg-green-50 dark:bg-emerald-900/30'
@@ -423,12 +437,14 @@ export default function ResultsDashboard({ result, municipalityName, onReset }: 
                   }`}
                 >
                   <p className={`font-bold text-xs ${active ? 'text-green-700 dark:text-emerald-400' : 'text-gray-600 dark:text-slate-400'}`}>
-                    {sf.labelPt}
+                    {t(`scenarios.${tier}.label`)}
                   </p>
                   <p className={`font-semibold text-xs mt-1 ${active ? 'text-green-800 dark:text-emerald-300' : 'text-gray-700 dark:text-slate-300'}`}>
-                    {payback.min >= 999 ? '—' : `≥ ${payback.min}`}
+                    {isPaybackKnown(payback.min) ? `≥ ${format.number(payback.min, { decimals: 1 })}` : '—'}
                   </p>
-                  <p className="text-gray-400 dark:text-slate-500 text-xs">{payback.min >= 999 ? 'não estimável' : 'anos (otimista)'}</p>
+                  <p className="text-gray-400 dark:text-slate-500 text-xs">
+                    {isPaybackKnown(payback.min) ? t('results.comparisonYears') : t('results.comparisonUnknown')}
+                  </p>
                 </button>
               )
             })}
@@ -445,17 +461,17 @@ export default function ResultsDashboard({ result, municipalityName, onReset }: 
                               bg-gray-50 dark:bg-slate-800/60 hover:bg-gray-100 dark:hover:bg-slate-700/60
                               transition-colors">
             <span className="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide">
-              Também calculado — não selecionado ({secondaryOutputs.length})
+              {t('results.secondaryOutputs', { count: secondaryOutputs.length })}
             </span>
             <span className="text-gray-400 dark:text-slate-500 group-open:rotate-180 transition-transform text-xs">▼</span>
           </summary>
           <div className="px-4 py-3 space-y-1 bg-white dark:bg-slate-900">
             {secondaryOutputs.map(type => (
               <div key={type} className="flex items-center gap-3 py-1.5 border-b border-gray-100 dark:border-slate-800 last:border-0">
-                <span className="text-lg">{OUTPUT_META[type].emoji}</span>
-                <span className="text-sm text-gray-600 dark:text-slate-400 flex-1">{OUTPUT_META[type].label}</span>
+                <span className="text-lg">{OUTPUT_EMOJI[type]}</span>
+                <span className="text-sm text-gray-600 dark:text-slate-400 flex-1">{t(`results.${type}`)}</span>
                 <span className="text-sm font-medium text-gray-700 dark:text-slate-300">
-                  {outputValue(type, outputs)}
+                  {text.outputValue(type, outputs)}
                 </span>
               </div>
             ))}
@@ -468,28 +484,31 @@ export default function ResultsDashboard({ result, municipalityName, onReset }: 
         <summary className="flex items-center justify-between px-4 py-3 cursor-pointer select-none
                             bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30
                             transition-colors text-xs font-medium text-blue-700 dark:text-blue-400">
-          <span>💡 Entenda os cenários</span>
+          <span>{t('results.scenariosHelpTitle')}</span>
           <span className="text-blue-400 dark:text-blue-500 group-open:rotate-180 transition-transform">▼</span>
         </summary>
         <div className="px-4 py-4 space-y-3 bg-white dark:bg-slate-900 text-xs text-gray-600 dark:text-slate-400">
-          <p>
-            <strong className="text-gray-800 dark:text-slate-200">🌱 Básico — Lagoa coberta / tubular PVC</strong><br/>
-            Tecnologia mais simples e acessível, adequada para pequenas propriedades. Aproveita cerca de 55% do potencial.
-            Payback mais curto porque o investimento é menor, mas a geração também é menor.
-          </p>
-          <p>
-            <strong className="text-gray-800 dark:text-slate-200">⚙️ Ideal — Biodigestor CSTR</strong><br/>
-            Configuração mais comum em propriedades de médio porte. Aproveita 75% do potencial.
-            O payback esperado considera curva de aprendizado e manutenção — mais honesto que promessas de vendedores.
-          </p>
-          <p>
-            <strong className="text-gray-800 dark:text-slate-200">🚀 Avançado — CSTR + upgrading / CHP premium</strong><br/>
-            Máxima eficiência para grandes operações. O payback conservador pode ser longo para operações
-            pequenas — não significa inviabilidade, mas que a receita não cobre o investimento no horizonte de 40 anos.
-          </p>
+          {SCENARIO_ORDER.map(tier => (
+            <p key={tier}>
+              <strong className="text-gray-800 dark:text-slate-200">
+                {SCENARIO_EMOJIS[tier]} {t(`scenarios.${tier}.label`)} — {t(`scenarios.${tier}.technology`)}
+              </strong>
+              <br />
+              {t(`scenarios.${tier}.help`, {
+                utilization: pct(format, SCENARIO_FACTORS[tier].utilization),
+                horizon: ASSUMPTIONS.paybackHorizonYears,
+              })}
+            </p>
+          ))}
           <p className="text-gray-400 dark:text-slate-500 pt-1">
-            Payback otimista: CAPEX mínimo, 110% de realização de receita, 3% manutenção/ano.<br/>
-            Payback conservador: CAPEX máximo, 45% de realização, 8% manutenção/ano, +25% startup. &quot;Não é possível estimar&quot; = acima de 40 anos.
+            {t('results.scenariosAssumptions', {
+              bestRevenue: pct(format, ASSUMPTIONS.best.revenue),
+              bestMaintenance: pct(format, ASSUMPTIONS.best.maintenance),
+              worstRevenue: pct(format, ASSUMPTIONS.worst.revenue),
+              worstMaintenance: pct(format, ASSUMPTIONS.worst.maintenance),
+              startup: pct(format, ASSUMPTIONS.worst.startupOverhead),
+              horizon: ASSUMPTIONS.paybackHorizonYears,
+            })}
           </p>
         </div>
       </details>
@@ -503,13 +522,29 @@ export default function ResultsDashboard({ result, municipalityName, onReset }: 
           <span className="text-gray-400 dark:text-slate-500 group-open:rotate-180 transition-transform">▼</span>
         </summary>
         <div className="px-4 py-4 space-y-2 bg-white dark:bg-slate-900 text-xs text-gray-600 dark:text-slate-400">
-          <p><strong className="text-gray-700 dark:text-slate-300">Metodologia:</strong> Potencial Bioquímico de Metano (BMP) normalizado por Sólidos Voláteis (SV). Distribuição mensal proporcional ao calendário selecionado.</p>
-          <p><strong className="text-gray-700 dark:text-slate-300">BMP utilizado:</strong> {method.bmp}</p>
-          <p><strong className="text-gray-700 dark:text-slate-300">Composição do biogás:</strong> {method.ch4} | PCI CH₄: 35,8 MJ/m³</p>
-          <p><strong className="text-gray-700 dark:text-slate-300">Eficiências:</strong> Elétrica 35% (motor-gerador); Térmica 50% (recuperação de calor)</p>
-          <p><strong className="text-gray-700 dark:text-slate-300">Preços padrão SP 2025:</strong> Tarifa CPFL/Enel R$ 0,85/kWh; Biometano R$ 4,50/m³; Carbono R$ 35/tCO₂eq (VCM)</p>
-          <p><strong className="text-gray-700 dark:text-slate-300">Fontes:</strong> {method.source}</p>
-          <p className="text-gray-400 dark:text-slate-500 pt-1">Estimativas para viabilidade preliminar. Projeto executivo requer estudo técnico detalhado.</p>
+          <p><strong className="text-gray-700 dark:text-slate-300">{t('results.method.methodLabel')}</strong> {t('results.method.methodText')}</p>
+          <p><strong className="text-gray-700 dark:text-slate-300">{t('results.method.bmpLabel')}</strong> {method.bmp}</p>
+          <p>
+            <strong className="text-gray-700 dark:text-slate-300">{t('results.method.compositionLabel')}</strong>{' '}
+            {t('results.method.composition', { ch4: method.ch4, lhv: format.number(ASSUMPTIONS.ch4LhvMjPerM3, { decimals: 1 }) })}
+          </p>
+          <p>
+            <strong className="text-gray-700 dark:text-slate-300">{t('results.method.efficiencyLabel')}</strong>{' '}
+            {t('results.method.efficiency', {
+              electrical: pct(format, ASSUMPTIONS.elecEfficiency),
+              thermal: pct(format, ASSUMPTIONS.thermalEfficiency),
+            })}
+          </p>
+          <p>
+            <strong className="text-gray-700 dark:text-slate-300">{t('results.method.pricesLabel')}</strong>{' '}
+            {t('results.method.prices', {
+              tariff: format.currency(DEFAULT_PRICES.energyTariffBrlKwh, { decimals: 2, minDecimals: 2 }),
+              biomethane: format.currency(DEFAULT_PRICES.biomethaneM3, { decimals: 2, minDecimals: 2 }),
+              carbon: format.currency(DEFAULT_PRICES.co2CreditBrlTon),
+            })}
+          </p>
+          <p><strong className="text-gray-700 dark:text-slate-300">{t('results.method.sourcesLabel')}</strong> {method.source}</p>
+          <p className="text-gray-400 dark:text-slate-500 pt-1">{t('results.method.disclaimer')}</p>
         </div>
       </details>
 

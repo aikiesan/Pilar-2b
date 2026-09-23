@@ -4,6 +4,7 @@ import {
   formatCompact,
   formatCurrency,
   formatDate,
+  formatMonth,
   formatNumber,
   formatPercent,
   isFiniteNumber,
@@ -150,5 +151,27 @@ describe('createFormatters', () => {
     expect(en.percent(50)).toBe('50%')
     expect(en.currency(10)).toBe('R$10')
     expect(en.date('2026-01-15T12:00:00Z', { month: 'long', timeZone: 'UTC' })).toBe('January')
+  })
+})
+
+describe('formatMonth', () => {
+  it('names months as labels in each locale', () => {
+    expect(formatMonth(2, 'en')).toBe('Feb')
+    expect(formatMonth(2, 'pt-BR')).toBe('Fev')
+    expect(formatMonth(9, 'pt-BR')).toBe('Set')
+    expect(formatMonth(12, 'en', 'long')).toBe('December')
+    expect(formatMonth(3, 'pt-BR', 'long')).toBe('Março')
+  })
+
+  it.each([0, 13, 1.5, NaN])('renders month %p as the missing marker', (month) => {
+    expect(formatMonth(month, 'en')).toBe(MISSING_VALUE)
+  })
+})
+
+describe('formatCurrency compact', () => {
+  it('shortens large amounts in each locale', () => {
+    expect(formatCurrency(52_000, 'en', { compact: true })).toBe('R$52K')
+    expect(formatCurrency(52_000, 'pt-BR', { compact: true })).toMatch(/^R\$\s52\smil$/)
+    expect(formatCurrency(3_000_000, 'en', { compact: true })).toBe('R$3M')
   })
 })

@@ -36,6 +36,8 @@ export interface DecimalOptions {
 export interface CurrencyOptions extends DecimalOptions {
   /** ISO 4217 code. Every monetary value on the platform is in reais. */
   currency?: string
+  /** Short form for large amounts: "R$52K" (en) / "R$ 52 mil" (pt-BR). */
+  compact?: boolean
 }
 
 /** True for real, finite numbers — rejects null, undefined, NaN and ±Infinity. */
@@ -99,8 +101,30 @@ export function formatPercent(value: Numeric, locale: Locale, options: DecimalOp
 /** Money, in reais by default: 1234567 -> "R$1,234,567" (en) / "R$ 1.234.567" (pt-BR). */
 export function formatCurrency(value: Numeric, locale: Locale, options: CurrencyOptions = {}): string {
   if (!isFiniteNumber(value)) return MISSING_VALUE
-  const { currency = 'BRL', ...digits } = options
+  const { currency = 'BRL', compact = false, ...digits } = options
+  if (compact) {
+    const precision = digits.decimals === undefined ? {} : fractionDigits(digits, digits.decimals)
+    return numberFormat(locale, { style: 'currency', currency, notation: 'compact', ...precision }).format(value)
+  }
   return numberFormat(locale, { style: 'currency', currency, ...fractionDigits(digits, 0) }).format(value)
+}
+
+const monthFormats = new Map<string, Intl.DateTimeFormat>()
+
+/**
+ * A month's name, 1 = January, capitalized for use as a label: "Feb" / "Fev"
+ * (short; pt-BR's abbreviation dot dropped) or "February" / "Fevereiro" (long).
+ */
+export function formatMonth(month: number, locale: Locale, style: 'short' | 'long' = 'short'): string {
+  if (!Number.isInteger(month) || month < 1 || month > 12) return MISSING_VALUE
+  const key = `${locale}|${style}`
+  let format = monthFormats.get(key)
+  if (!format) {
+    format = new Intl.DateTimeFormat(locale, { month: style, timeZone: 'UTC' })
+    monthFormats.set(key, format)
+  }
+  const name = format.format(new Date(Date.UTC(2000, month - 1, 1))).replace(/\.$/, '')
+  return name.charAt(0).toLocaleUpperCase(locale) + name.slice(1)
 }
 
 const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/
@@ -132,6 +156,7 @@ export interface Formatters {
   percent: (value: Numeric, options?: DecimalOptions) => string
   currency: (value: Numeric, options?: CurrencyOptions) => string
   date: (value: Date | string | number | null | undefined, options?: Intl.DateTimeFormatOptions) => string
+  month: (month: number, style?: 'short' | 'long') => string
 }
 
 export function createFormatters(locale: Locale): Formatters {
@@ -142,5 +167,6 @@ export function createFormatters(locale: Locale): Formatters {
     percent: (value, options) => formatPercent(value, locale, options),
     currency: (value, options) => formatCurrency(value, locale, options),
     date: (value, options) => formatDate(value, locale, options),
+    month: (month, style) => formatMonth(month, locale, style),
   }
 }
