@@ -79,6 +79,3 @@ export const BETA_STYLE = {
 
 // The MG pilot notice and its compact badge are copy: Map.beta.notice and
 // Map.beta.badge in the message catalogs.
-
-/** @deprecated Transitional: read Map.beta.badge instead. Removed once MunicipalityLayer moves over. */
-export const BETA_BADGE_LABEL = 'BETA — em validação';

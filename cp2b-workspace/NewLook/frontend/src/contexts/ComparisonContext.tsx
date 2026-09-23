@@ -1,7 +1,12 @@
 'use client';
 
 import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
+import { useTranslations } from 'next-intl';
 import { useToast } from '@/contexts/ToastContext';
+
+/** How many municipalities a comparison holds. */
+export const MIN_COMPARISON = 2;
+export const MAX_COMPARISON = 4;
 
 interface Municipality {
   id: number;
@@ -23,23 +28,23 @@ const ComparisonContext = createContext<ComparisonContextType | undefined>(undef
 export function ComparisonProvider({ children }: { children: React.ReactNode }) {
   const [selectedMunicipalities, setSelectedMunicipalities] = useState<Municipality[]>([]);
   const { addToast } = useToast();
+  const t = useTranslations('comparison');
 
   const addMunicipality = useCallback((municipality: Municipality) => {
-    setSelectedMunicipalities((prev) => {
-      // Check if already selected
-      if (prev.some((m) => m.id === municipality.id)) {
-        return prev;
-      }
-
-      // Limit to 4 municipalities for comparison
-      if (prev.length >= 4) {
-        addToast('Você pode comparar no máximo 4 municípios por vez.', 'warning');
-        return prev;
-      }
-
-      return [...prev, municipality];
-    });
-  }, [addToast]);
+    if (selectedMunicipalities.some((m) => m.id === municipality.id)) return;
+    // The warning is raised here, not inside the state updater: React may run
+    // an updater twice (Strict Mode), which showed the toast twice.
+    if (selectedMunicipalities.length >= MAX_COMPARISON) {
+      addToast(t('limit', { max: MAX_COMPARISON }), 'warning');
+      return;
+    }
+    // The updater re-checks, in case two adds land before a re-render.
+    setSelectedMunicipalities((prev) =>
+      prev.length >= MAX_COMPARISON || prev.some((m) => m.id === municipality.id)
+        ? prev
+        : [...prev, municipality]
+    );
+  }, [selectedMunicipalities, addToast, t]);
 
   const removeMunicipality = useCallback((id: number) => {
     setSelectedMunicipalities((prev) => prev.filter((m) => m.id !== id));

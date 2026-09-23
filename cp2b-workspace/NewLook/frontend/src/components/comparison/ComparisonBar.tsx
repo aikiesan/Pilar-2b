@@ -1,11 +1,15 @@
 'use client';
 
 import React from 'react';
-import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { X, ArrowRight } from 'lucide-react';
-import { useComparison } from '@/contexts/ComparisonContext';
+import { useRouter } from '@/navigation';
+import { MAX_COMPARISON, MIN_COMPARISON, useComparison } from '@/contexts/ComparisonContext';
 
 export default function ComparisonBar() {
+  const t = useTranslations('comparison');
+  const tCommon = useTranslations('common');
+  // Locale-aware: keeps the user in their language on the compare page.
   const router = useRouter();
   const { selectedMunicipalities, removeMunicipality, clearComparison } = useComparison();
 
@@ -25,7 +29,7 @@ export default function ComparisonBar() {
           {/* Selected municipalities */}
           <div className="flex-1 flex items-center gap-2 overflow-x-auto">
             <span className="text-sm font-medium text-gray-700 whitespace-nowrap">
-              Comparar ({selectedMunicipalities.length}/4):
+              {t('selected', { count: selectedMunicipalities.length, max: MAX_COMPARISON })}
             </span>
 
             <div className="flex gap-2">
@@ -38,9 +42,9 @@ export default function ComparisonBar() {
                   <button
                     onClick={() => removeMunicipality(municipality.id)}
                     className="hover:text-green-900 transition-colors"
-                    aria-label={`Remove ${municipality.name}`}
+                    aria-label={t('remove', { name: municipality.name })}
                   >
-                    <X className="h-4 w-4" />
+                    <X className="h-4 w-4" aria-hidden="true" />
                   </button>
                 </div>
               ))}
@@ -53,23 +57,23 @@ export default function ComparisonBar() {
               onClick={clearComparison}
               className="px-4 py-2 text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors"
             >
-              Limpar
+              {tCommon('actions.clear')}
             </button>
 
             <button
               onClick={handleCompare}
-              disabled={selectedMunicipalities.length < 2}
+              disabled={selectedMunicipalities.length < MIN_COMPARISON}
               className="flex items-center gap-2 px-6 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white text-sm font-medium rounded transition-colors"
             >
-              Comparar
-              <ArrowRight className="h-4 w-4" />
+              {t('compare')}
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </button>
           </div>
         </div>
 
-        {selectedMunicipalities.length < 2 && (
+        {selectedMunicipalities.length < MIN_COMPARISON && (
           <p className="text-xs text-gray-500 mt-2">
-            Selecione pelo menos 2 municípios para comparar
+            {t('min_hint', { min: MIN_COMPARISON })}
           </p>
         )}
       </div>

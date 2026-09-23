@@ -14,6 +14,8 @@
 import React, { useMemo } from 'react';
 import { GeoJSON } from 'react-leaflet';
 import L from 'leaflet';
+import { useLocale, useTranslations } from 'next-intl';
+import { useFormat } from '@/hooks/useFormat';
 
 // ── Color scale (mirrors MunicipalityLayer thresholds scaled for region aggregates) ──────────────
 
@@ -46,9 +48,14 @@ export default function IntermediateRegionsMapLayer({
   opacity = 0.7,
   onRegionClick,
 }: IntermediateRegionsMapLayerProps) {
+  const t = useTranslations('Map.regionsLayer');
+  const tCommon = useTranslations('common');
+  const locale = useLocale();
+  const format = useFormat();
+  // Tooltips are bound when the layer mounts, so a new language remounts it.
   const stableKey = useMemo(
-    () => `ir-${geoJSON?.features?.length ?? 0}-${Date.now()}`,
-    [geoJSON]
+    () => `ir-${locale}-${geoJSON?.features?.length ?? 0}-${Date.now()}`,
+    [geoJSON, locale]
   );
 
   if (!geoJSON) return null;
@@ -68,20 +75,24 @@ export default function IntermediateRegionsMapLayer({
 
   const onEachFeature = (feature: any, layer: L.Layer) => {
     const p = feature.properties || {};
-    const name = p.nm_rgint || p.name || 'Região';
+    const name = p.nm_rgint || p.name || t('fallback_name');
     const biogas = Number(p.total_biogas_m3_year ?? 0);
     const biomass = Number(p.total_biomass_tons_year ?? 0);
     const stateCode = p.cd_uf || p.state_code || '';
-    const munCount = p.municipality_count || '–';
+    const munCount = Number(p.municipality_count);
+    const facts = [
+      stateCode ? t('state', { uf: stateCode }) : null,
+      munCount > 0 ? t('municipalities', { count: munCount }) : null,
+    ].filter(Boolean).join(' · ');
 
     const tooltipHtml = `
       <div style="min-width:180px;font-family:sans-serif;font-size:12px">
         <strong>${name}</strong>
-        <div style="color:#555">UF: ${stateCode} · ${munCount} municípios</div>
+        ${facts ? `<div style="color:#555">${facts}</div>` : ''}
         ${biogas > 0
-          ? `<div>🌿 Biogás: <b>${(biogas / 1e6).toFixed(1)} M m³/ano</b></div>
-             <div>📦 Biomassa: ${(biomass / 1e3).toFixed(1)} kt/ano</div>`
-          : '<div style="color:#999">Dados nacionais em carregamento</div>'}
+          ? `<div>🌿 ${t('biogas')}: <b>${format.compact(biogas)} ${tCommon('units.m3_year')}</b></div>
+             <div>📦 ${t('biomass')}: ${format.compact(biomass)} ${tCommon('units.t_year')}</div>`
+          : `<div style="color:#999">${t('loading')}</div>`}
       </div>`;
 
     (layer as L.Path).bindTooltip(tooltipHtml, { sticky: true, opacity: 0.95 });

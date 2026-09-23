@@ -7,6 +7,13 @@
 
 import React, { useCallback, useMemo, useRef } from 'react';
 import { GeoJSON } from 'react-leaflet';
+import {
+  NextIntlClientProvider,
+  useLocale,
+  useMessages,
+  useTimeZone,
+  useTranslations,
+} from 'next-intl';
 import type { GeoJsonObject, Feature } from 'geojson';
 import type { MunicipalityCollection, MunicipalityFeature, MunicipalityProperties, DisplayMetric } from '@/types/geospatial';
 import type { ColorMode } from '@/types/geospatial';
@@ -20,11 +27,13 @@ import {
   isMinasGerais,
   isSaoPaulo,
   BETA_STYLE,
-  BETA_BADGE_LABEL,
   MG_DATA_STROKE,
 } from '@/lib/mapScope';
 import { useCvdPalette } from '@/hooks/useCvdPalette';
 import { useMapPalette } from '@/hooks/useMapPalette';
+import { useFormat } from '@/hooks/useFormat';
+import { useMetricText } from '@/hooks/useMetricText';
+import { useSelectionLabel } from '@/hooks/useSelectionLabel';
 import type { MapScenarioKey } from '@/data/scenarioFactors';
 
 interface MunicipalityLayerProps {
@@ -88,6 +97,17 @@ export default function MunicipalityLayer({
   onMunicipalityClick,
   onMunicipalityHover,
 }: MunicipalityLayerProps) {
+  const t = useTranslations('Map');
+  const tCommon = useTranslations('common');
+  const format = useFormat();
+  const metricText = useMetricText();
+  const selectionLabel = useSelectionLabel();
+  // The click popup is rendered into its own React root (Leaflet owns that DOM
+  // node), which does not inherit this tree's providers — so the catalog is
+  // handed to it explicitly.
+  const locale = useLocale();
+  const messages = useMessages();
+  const timeZone = useTimeZone();
   const metricSpec = getMetricSpec(displayMetric);
   // Selected CVD palette (only used when `daltonic` is on). Reading it here means
   // changing the palette in the legend restyles the choropleth reactively.
@@ -129,7 +149,6 @@ export default function MunicipalityLayer({
   // Style function for polygons (choropleth). Memoized so its identity only
   // changes when the visual inputs change — react-leaflet calls setStyle on
   // the mounted layer whenever the `style` prop identity changes.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const style = useCallback((feature?: Feature) => {
     if (!feature || !feature.properties) return {};
 
@@ -164,49 +183,16 @@ export default function MunicipalityLayer({
     };
     // getMapValue is recreated per render but only depends on the deps listed here,
     // so listing them directly keeps the identity stable.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [colorMode, displayMetric, biomassType, selectedResidues, mapScenario, daltonic, cvdPalette, mapPalette, opacity, scaleBreaks, paintBetaData]);
 
-  // Format a value for display. null -> "sem dados" so the tooltip never shows a
-  // fabricated 0 for a municipality we have no data for.
-  const formatBiogas = (value: number | null): string => {
-    if (value === null) return 'sem dados';
-    if (value >= 1000000000) return `${(value / 1000000000).toFixed(1)}B`;
-    if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`;
-    if (value >= 1000) return `${(value / 1000).toFixed(1)}K`;
-    return value.toFixed(0);
-  };
-
-  // Get label for biomass type or selected residues
-  const getBiomassLabel = (): string => {
-    if (selectedResidues.length > 0) {
-      const residueLabels: Record<ResidueType, string> = {
-        sugarcane: 'Cana-de-açúcar',
-        soybean: 'Soja',
-        corn: 'Milho',
-        coffee: 'Café',
-        citrus: 'Citrus',
-        cattle: 'Bovinos',
-        swine: 'Suínos',
-        poultry: 'Aves',
-        aquaculture: 'Aquicultura',
-        rsu: 'FORSU',
-        rpo: 'Poda urbana',
-        sewage: 'Lodo de ETE'
-      };
-
-      if (selectedResidues.length === 1) {
-        return residueLabels[selectedResidues[0]];
-      }
-      return `${selectedResidues.length} Resíduos`;
-    }
-
-    switch (biomassType) {
-      case 'agricultural': return 'Agrícola';
-      case 'livestock': return 'Pecuária';
-      case 'urban': return 'Urbano';
-      default: return 'Total';
-    }
-  };
+  // Tooltip value in the active metric's display unit. null -> "No data", so the
+  // tooltip never shows a fabricated 0 for a municipality we have no data for.
+  const metricUnit = metricText(displayMetric).unit;
+  const formatTooltipValue = (value: number | null): string =>
+    value === null
+      ? tCommon('states.no_data')
+      : `${format.compact(metricSpec.toDisplay(value))} ${metricUnit}`;
 
   // Event handlers for each feature
   const onEachFeature = (feature: any, layer: L.Layer) => {
@@ -222,10 +208,10 @@ export default function MunicipalityLayer({
       // A beta municipality still gets its value — hiding it would be its own
       // kind of dishonesty — but the value never appears without the caveat
       // attached to it, in the same tooltip, at the same moment it is read.
-      const tooltipBody = !isCanonicalPaint
-        ? `<span style="font-size:11px;color:rgba(255,255,255,0.9);">${getBiomassLabel()}: ${formatBiogas(biogasValue)} ${displayMetric === 'biomass_tons' ? 't/ano' : 'm³/ano'}</span>`
-          + `<br/><span style="font-size:10px;color:#fbbf24;font-weight:600;">⚠ ${BETA_BADGE_LABEL}</span>`
-        : `<span style="font-size:11px;color:rgba(255,255,255,0.9);">${getBiomassLabel()}: ${formatBiogas(biogasValue)} ${displayMetric === 'biomass_tons' ? 't/ano' : 'm³/ano'}</span>`;
+      const valueLine = `<span style="font-size:11px;color:rgba(255,255,255,0.9);">${selectionLabel(biomassType, selectedResidues)}: ${formatTooltipValue(biogasValue)}</span>`;
+      const tooltipBody = isCanonicalPaint
+        ? valueLine
+        : `${valueLine}<br/><span style="font-size:10px;color:#fbbf24;font-weight:600;">⚠ ${t('beta.badge')}</span>`;
 
       layer.bindTooltip(
         `<div style="text-align:center;padding:4px;">
@@ -247,11 +233,13 @@ export default function MunicipalityLayer({
         const root = createRoot(container);
 
         root.render(
-          <MunicipalityPopup
-            properties={props}
-            metric={displayMetric}
-            scenario={mapScenario as MapScenarioKey}
-          />
+          <NextIntlClientProvider locale={locale} messages={messages} timeZone={timeZone}>
+            <MunicipalityPopup
+              properties={props}
+              metric={displayMetric}
+              scenario={mapScenario as MapScenarioKey}
+            />
+          </NextIntlClientProvider>
         );
         // Leaflet re-invokes this factory (new container + root) on every
         // open — unmount when the popup closes, or each open leaks a root.
@@ -330,11 +318,11 @@ export default function MunicipalityLayer({
   return (
     <GeoJSON
       // The key remounts the layer when anything bound at creation time
-      // changes: tooltip/popup content (biomassType, displayMetric, colorMode,
-      // selectedResidues) or the data itself (mapScenario — react-leaflet only
+      // changes: tooltip/popup content (locale, biomassType, displayMetric,
+      // colorMode, selectedResidues) or the data itself (mapScenario — react-leaflet only
       // reads `data` on mount). Opacity is intentionally absent: it flows
       // through the memoized `style` -> setStyle without a remount.
-      key={`${biomassType}-${displayMetric}-${colorMode}-${mapScenario}-${showNationalBeta}-${paintBetaData}-${selectedResidues.join(',')}`}
+      key={`${locale}-${biomassType}-${displayMetric}-${colorMode}-${mapScenario}-${showNationalBeta}-${paintBetaData}-${selectedResidues.join(',')}`}
       data={scopedData as GeoJsonObject}
       style={style}
       onEachFeature={onEachFeature}

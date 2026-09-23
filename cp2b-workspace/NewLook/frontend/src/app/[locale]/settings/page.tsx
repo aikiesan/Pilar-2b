@@ -7,8 +7,8 @@
  */
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
+import { useRouter } from '@/navigation'
 import { Settings, User, Bell, Palette, Shield, HelpCircle, Save, Check } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { DashboardLayout } from '@/components/layout'

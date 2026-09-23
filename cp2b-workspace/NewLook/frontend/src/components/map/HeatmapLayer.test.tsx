@@ -8,6 +8,9 @@ import { MapContainer } from 'react-leaflet';
 import HeatmapLayer from './HeatmapLayer';
 import type { MunicipalityCollection } from '@/types/geospatial';
 
+// Tooltips are copy: resolve them against the real (pt-BR) catalog.
+jest.mock('next-intl', () => jest.requireActual('@/test/mocks/next-intl-real'));
+
 // Mock react-leaflet
 jest.mock('react-leaflet', () => ({
   MapContainer: ({ children }: { children: React.ReactNode }) => <div data-testid="map-container">{children}</div>,
@@ -532,7 +535,25 @@ describe('HeatmapLayer', () => {
       );
 
       const tooltips = getAllByTestId('tooltip');
-      expect(tooltips[0].textContent).toContain('t/ano');
+      // Total tonnage, compact and in pt-BR conventions, with the catalog unit.
+      expect(tooltips[0].textContent).toMatch(/Total: 150\smi t\/ano/);
+    });
+
+    it('names the residue, or counts the residues, the value adds up', () => {
+      const one = render(
+        <MapContainer center={[0, 0]} zoom={10}>
+          <HeatmapLayer data={mockMunicipalityData} selectedResidues={['sugarcane']} />
+        </MapContainer>
+      );
+      expect(one.getAllByTestId('tooltip')[0].textContent).toContain('Cana-de-açúcar:');
+      one.unmount();
+
+      const two = render(
+        <MapContainer center={[0, 0]} zoom={10}>
+          <HeatmapLayer data={mockMunicipalityData} selectedResidues={['sugarcane', 'corn']} />
+        </MapContainer>
+      );
+      expect(two.getAllByTestId('tooltip')[0].textContent).toContain('2 resíduos:');
     });
   });
 

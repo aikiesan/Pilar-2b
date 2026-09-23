@@ -20,14 +20,61 @@ function lookup(path) {
   return path.split('.').reduce((node, key) => (node == null ? undefined : node[key]), messages)
 }
 
-function interpolate(template, values) {
-  if (!values) return template
-  // Only simple {name} arguments; the catalog's ICU plurals are not exercised
-  // by the suites that use this mock. If one ever is, resolve it properly here
-  // rather than letting a plural render as its raw source.
-  return template.replace(/\{(\w+)\}/g, (match, name) =>
-    Object.prototype.hasOwnProperty.call(values, name) ? String(values[name]) : match
-  )
+// Index of the brace that closes the one at `start`.
+function closingBrace(source, start) {
+  let depth = 0
+  for (let i = start; i < source.length; i++) {
+    if (source[i] === '{') depth++
+    else if (source[i] === '}' && --depth === 0) return i
+  }
+  return source.length - 1
+}
+
+// `=0 {…} one {…} other {…}` → { '=0': '…', one: '…', other: '…' }
+function branches(source) {
+  const options = {}
+  let i = 0
+  for (;;) {
+    const match = /^\s*([=\w]+)\s*\{/.exec(source.slice(i))
+    if (!match) return options
+    const open = i + match[0].length - 1
+    const close = closingBrace(source, open)
+    options[match[1]] = source.slice(open + 1, close)
+    i = close + 1
+  }
+}
+
+// Enough ICU for the catalog: {name}, {n, plural, …} with `#`, {v, select, …}.
+// Plurals follow pt-BR rules, the locale this mock serves.
+function format(template, values = {}) {
+  let out = ''
+  for (let i = 0; i < template.length; i++) {
+    if (template[i] !== '{') {
+      out += template[i]
+      continue
+    }
+    const end = closingBrace(template, i)
+    const body = template.slice(i + 1, end)
+    const icu = /^\s*(\w+)\s*,\s*(plural|select)\s*,/.exec(body)
+    if (icu) {
+      const [, name, kind] = icu
+      const options = branches(body.slice(icu[0].length))
+      const value = values[name]
+      let branch =
+        kind === 'plural'
+          ? options[`=${value}`] ?? options[new Intl.PluralRules('pt-BR').select(Number(value))] ?? options.other
+          : options[value] ?? options.other
+      if (kind === 'plural' && branch !== undefined) {
+        branch = branch.replace(/#/g, new Intl.NumberFormat('pt-BR').format(Number(value)))
+      }
+      out += format(branch ?? '', values)
+    } else {
+      const name = body.trim()
+      out += Object.prototype.hasOwnProperty.call(values, name) ? String(values[name]) : `{${body}}`
+    }
+    i = end
+  }
+  return out
 }
 
 function createTranslator(namespace) {
@@ -35,7 +82,7 @@ function createTranslator(namespace) {
 
   const t = (key, values) => {
     const value = lookup(resolve(key))
-    return typeof value === 'string' ? interpolate(value, values) : resolve(key)
+    return typeof value === 'string' ? format(value, values) : resolve(key)
   }
 
   t.raw = (key) => lookup(resolve(key))

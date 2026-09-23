@@ -694,12 +694,6 @@ export default function MapComponent({
     return namedLayers.find(layer => layer.id === layerId)?.name || layerId;
   }, [namedLayers]);
 
-  // ── Derive biomass attribute for BubbleChartLayer ─────────────────────────
-  const metricSuffix = displayMetric === 'biomass_tons' ? 'biomass_tons_year' : 'biogas_m3_year';
-  const biomassAttribute = biomassType === 'total'
-    ? `total_${metricSuffix}`
-    : `${biomassType}_${metricSuffix}`;
-
   // ── Scenario scaling (per-residue, per-municipality) ────────────────────────
   // Baseline = "Médio Prazo". Other scenarios scale each *_biogas_m3_year field by
   // its residue's canonical factor, so each municipality responds to its own mix.
@@ -1063,7 +1057,14 @@ export default function MapComponent({
                   onMunicipalityHover={visualizationMode === 'clusters' ? undefined : handleMunicipalityHover}
                 />
               ) : visualizationMode === 'bubble' ? (
-                <BubbleChartLayer data={activeStateData} opacity={opacity} attribute={biomassAttribute} />
+                <BubbleChartLayer
+                  data={activeStateData}
+                  opacity={opacity}
+                  metric={displayMetric}
+                  biomassType={biomassType}
+                  selectedResidues={selectedResidues}
+                  scenario={mapScenario}
+                />
               ) : (
                 <HeatmapLayer data={activeStateData} selectedResidues={selectedResidues} opacity={opacity} />
               )}

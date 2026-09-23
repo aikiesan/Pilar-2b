@@ -1,6 +1,7 @@
 /**
  * Bubble Chart Layer
- * Proportional symbol visualization for biogas potential
+ * Proportional symbols for the active map metric: one circle per municipality,
+ * sized on a log scale.
  */
 
 'use client';
@@ -8,57 +9,79 @@
 import { useEffect } from 'react';
 import { useMap } from 'react-leaflet';
 import L from 'leaflet';
-import type { MunicipalityCollection } from '@/types/geospatial';
+import type { DisplayMetric, MunicipalityCollection } from '@/types/geospatial';
+import type { BiomassType, ResidueType } from '@/types/map';
+import type { MapScenarioKey } from '@/data/scenarioFactors';
+import { getMetricSpec } from '@/lib/mapMetrics';
+import { useFormat } from '@/hooks/useFormat';
+import { useMetricText } from '@/hooks/useMetricText';
+import { useSelectionLabel } from '@/hooks/useSelectionLabel';
 
 interface BubbleChartLayerProps {
   data: MunicipalityCollection;
   opacity?: number;
-  attribute?: string;
+  metric?: DisplayMetric;
+  biomassType?: BiomassType;
+  selectedResidues?: ResidueType[];
+  scenario?: MapScenarioKey;
 }
+
+const NO_RESIDUES: ResidueType[] = [];
 
 export default function BubbleChartLayer({
   data,
   opacity = 0.7,
-  attribute = 'total_biomass_tons_year',
+  metric = 'biomass_tons',
+  biomassType = 'total',
+  selectedResidues = NO_RESIDUES,
+  scenario = 'baseline',
 }: BubbleChartLayerProps) {
   const map = useMap();
+  const format = useFormat();
+  const metricText = useMetricText();
+  const selectionLabel = useSelectionLabel();
+  const { label, unit } = metricText(metric);
+  // Plain strings, so the effect below re-runs on a change of copy, not of identity.
+  const title = `${label} · ${selectionLabel(biomassType, selectedResidues)}`;
 
   useEffect(() => {
     if (!data || !data.features) return;
 
-    // Find min and max values for scaling
-    const values = data.features
-      .map((feature) => (feature.properties as any)[attribute] || 0)
-      .filter((v) => v > 0);
+    // The same accessor the choropleth paints with (lib/mapMetrics), so a bubble
+    // and a polygon always show the same number. The legacy *_biogas_m3_year
+    // columns this used to read are not in the map payload (fields=map), which
+    // left the biogas bubbles empty.
+    const spec = getMetricSpec(metric);
+    const valueOf = (feature: MunicipalityCollection['features'][number]): number => {
+      const raw = spec.rawValue(feature.properties, { biomassType, selectedResidues, scenario }).value;
+      return raw === null ? 0 : spec.toDisplay(raw);
+    };
 
-    if (values.length === 0) return;
+    const valued = data.features
+      .map((feature) => ({ feature, value: valueOf(feature) }))
+      .filter(({ value }) => value > 0);
 
+    if (valued.length === 0) return;
+
+    const values = valued.map(({ value }) => value);
     const maxValue = Math.max(...values);
     const minValue = Math.min(...values);
 
-    // Unit label follows the attribute (tonnage vs volume).
-    const unit = attribute.includes('biomass_tons') ? 't/ano' : 'm³/ano';
-
-    // Draw largest first so the smallest bubbles end up on top and stay legible,
-    // instead of being buried under the big ones — that flat draw order was the
-    // "muitos círculos, overlap, não dá para ler" problem.
-    const ordered = [...data.features].sort(
-      (a, b) =>
-        (Number((b.properties as any)[attribute]) || 0) -
-        (Number((a.properties as any)[attribute]) || 0)
-    );
+    // Draw largest first so the smallest bubbles end up on top and stay legible
+    // instead of being buried under the big ones.
+    const ordered = valued.sort((a, b) => b.value - a.value);
 
     // Create circle markers
     const markers: L.CircleMarker[] = [];
 
-    ordered.forEach((feature) => {
-      const value = Number((feature.properties as any)[attribute]) || 0;
-      if (value <= 0) return;
+    // Radius on a log scale, kept small (3–20px) so 645 municipalities do not
+    // merge into one blob. One value on screen (or all equal) has no range to
+    // scale across and gets the full size.
+    const logRange = Math.log(maxValue + 1) - Math.log(minValue + 1);
 
-      // Radius on a log scale, kept small (3–20px) so 645 municipalities do not
-      // merge into one blob. Perceptually the smaller cap reads far cleaner.
-      const normalizedValue = (Math.log(value + 1) - Math.log(minValue + 1)) /
-                              (Math.log(maxValue + 1) - Math.log(minValue + 1));
+    ordered.forEach(({ feature, value }) => {
+      const normalizedValue =
+        logRange > 0 ? (Math.log(value + 1) - Math.log(minValue + 1)) / logRange : 1;
       const radius = 3 + normalizedValue * 17; // 3–20px radius
 
       // Get color based on value
@@ -99,8 +122,8 @@ export default function BubbleChartLayer({
         <div class="p-3">
           <h4 class="font-bold text-lg mb-2">${feature.properties.name}</h4>
           <p class="text-sm">
-            <strong>${getAttributeLabel(attribute)}:</strong><br/>
-            ${formatNumber(value)} ${unit}
+            <strong>${title}:</strong><br/>
+            ${format.compact(value)} ${unit}
           </p>
         </div>
       `);
@@ -120,7 +143,7 @@ export default function BubbleChartLayer({
     return () => {
       markers.forEach((marker) => marker.remove());
     };
-  }, [map, data, opacity, attribute]);
+  }, [map, data, opacity, metric, biomassType, selectedResidues, scenario, format, title, unit]);
 
   return null;
 }
@@ -141,7 +164,7 @@ function getCentroid(coordinates: Array<[number, number]>): [number, number] {
 }
 
 function getColor(value: number, min: number, max: number): string {
-  const normalized = (value - min) / (max - min);
+  const normalized = max > min ? (value - min) / (max - min) : 1;
 
   // Color gradient: yellow -> orange -> red
   if (normalized < 0.2) return '#FEF3C7'; // Very light yellow
@@ -164,22 +187,4 @@ function darkenColor(hex: string, factor: number): string {
 
   // Convert back to hex
   return `#${darkR.toString(16).padStart(2, '0')}${darkG.toString(16).padStart(2, '0')}${darkB.toString(16).padStart(2, '0')}`;
-}
-
-function formatNumber(value: number): string {
-  if (value >= 1000000) return `${(value / 1000000).toFixed(2)}M`;
-  if (value >= 1000) return `${(value / 1000).toFixed(1)}K`;
-  return value.toFixed(0);
-}
-
-function getAttributeLabel(attribute: string): string {
-  const labels: Record<string, string> = {
-    total_biogas_m3_year: 'Biogás Total',
-    agricultural_biogas_m3_year: 'Biogás Agrícola',
-    livestock_biogas_m3_year: 'Biogás Pecuário',
-    urban_biogas_m3_year: 'Biogás Urbano',
-    population: 'População',
-    area_km2: 'Área',
-  };
-  return labels[attribute] || attribute;
 }

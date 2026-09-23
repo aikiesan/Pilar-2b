@@ -6,28 +6,21 @@
 
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, Circle, Marker, Popup, GeoJSON, useMapEvents, useMap, ZoomControl } from 'react-leaflet';
 import L from 'leaflet';
+import { useTranslations } from 'next-intl';
 import 'leaflet/dist/leaflet.css';
 import '@/lib/leafletConfig';
+import { useFormat } from '@/hooks/useFormat';
 
 // São Paulo state center coordinates
 const SAO_PAULO_CENTER: [number, number] = [-22.5, -48.5];
 const DEFAULT_ZOOM = 7;
 
-// Tile layer options with error handling
-const TILE_LAYERS = {
-  osm: {
-    url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-    name: 'OpenStreetMap',
-  },
-  satellite: {
-    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-    attribution: '&copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
-    name: 'Satélite',
-  },
+const OSM_TILES = {
+  url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
 };
 
 // Custom marker icon for selected point
@@ -101,6 +94,9 @@ export default function ProximityMap({
   bufferGeometry,
   municipalities
 }: ProximityMapProps) {
+  const t = useTranslations('pages.proximity');
+  const tCommon = useTranslations('common');
+  const format = useFormat();
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -110,7 +106,7 @@ export default function ProximityMap({
   if (!isMounted) {
     return (
       <div className="w-full h-[500px] bg-gray-100 flex items-center justify-center">
-        <p className="text-gray-600">Carregando mapa...</p>
+        <p className="text-gray-600">{t('map.loading')}</p>
       </div>
     );
   }
@@ -153,8 +149,8 @@ export default function ProximityMap({
 
         {/* Base Map Tile Layer with error handling */}
         <TileLayer
-          attribution={TILE_LAYERS.osm.attribution}
-          url={TILE_LAYERS.osm.url}
+          attribution={OSM_TILES.attribution}
+          url={OSM_TILES.url}
           maxZoom={19}
           errorTileUrl="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
         />
@@ -196,13 +192,13 @@ export default function ProximityMap({
             >
               <Popup>
                 <div className="text-sm">
-                  <p className="font-semibold mb-1">Ponto Selecionado</p>
+                  <p className="font-semibold mb-1">{t('selected_point')}</p>
                   <p className="text-gray-600">
                     Lat: {selectedPoint.lat.toFixed(6)}<br />
                     Lng: {selectedPoint.lng.toFixed(6)}
                   </p>
                   <p className="text-emerald-600 mt-1">
-                    Raio: {radius} km
+                    {t('map.radius', { radius: format.number(radius) })}
                   </p>
                 </div>
               </Popup>
@@ -261,11 +257,19 @@ export default function ProximityMap({
                 <div className="text-sm min-w-[180px]">
                   <p className="font-semibold text-gray-900 mb-1">{mun.name}</p>
                   <div className="space-y-0.5 text-gray-600">
-                    <p>Distância: <span className="font-medium">{mun.distance_km?.toFixed(1) || '0'} km</span></p>
-                    <p>População: <span className="font-medium">{(mun.population || 0).toLocaleString('pt-BR')}</span></p>
+                    <p>
+                      {t('map.distance')}{' '}
+                      <span className="font-medium">
+                        {format.number(mun.distance_km ?? 0, { decimals: 1, minDecimals: 1 })} {tCommon('units.km')}
+                      </span>
+                    </p>
+                    <p>
+                      {t('map.population')}{' '}
+                      <span className="font-medium">{format.number(mun.population ?? 0)}</span>
+                    </p>
                   </div>
                   <p className="mt-1 text-emerald-600 font-medium">
-                    Biogás: {((biogas) / 1000000).toFixed(2)} mi m³/ano
+                    {t('map.biogas')} {format.compact(biogas)} {tCommon('units.m3_year')}
                   </p>
                 </div>
               </Popup>
@@ -278,7 +282,7 @@ export default function ProximityMap({
       {!selectedPoint && (
         <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-[1000] bg-white px-4 py-2 rounded-lg shadow-md">
           <p className="text-sm text-gray-600">
-            👆 Clique no mapa para selecionar um ponto de análise
+            👆 {t('click_to_select')}
           </p>
         </div>
       )}
@@ -286,7 +290,7 @@ export default function ProximityMap({
       {/* Coordinates display */}
       <div className="absolute bottom-4 left-4 z-[1000] bg-white px-3 py-2 rounded-lg shadow-md">
         <p className="text-xs text-gray-600">
-          <span className="font-semibold">São Paulo</span> - Estado
+          {t.rich('map.scope', { strong: (chunks) => <span className="font-semibold">{chunks}</span> })}
         </p>
         {selectedPoint && (
           <p className="text-xs text-emerald-600 mt-1">

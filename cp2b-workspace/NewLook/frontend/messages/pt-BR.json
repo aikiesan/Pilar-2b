@@ -993,6 +993,47 @@
       "note_label": "Nota:",
       "note": "Os dados exportados incluem apenas os municípios visíveis com os filtros atuais aplicados.",
       "note_count": "{count, plural, one {{formatted} município será exportado.} other {{formatted} municípios serão exportados.}}"
+    },
+    "selection": {
+      "total": "Total",
+      "residues": "{count, plural, one {# resíduo} other {# resíduos}}"
+    },
+    "codigestion": {
+      "title": "Co-digestão",
+      "cluster": "Cluster {id}",
+      "municipality_count": "{count, plural, one {# município} other {# municípios}}",
+      "best_opportunity": "Melhor oportunidade",
+      "recommended_blend": "Mistura recomendada",
+      "combined_cn": "C:N combinado",
+      "available_feedstock": "Recurso disponível",
+      "combined_feedstock": "Recurso combinado",
+      "blend": "Mistura ({ratio})",
+      "improvement": "Melhora (pontuação)",
+      "municipalities": "Municípios ({count})",
+      "all_pairs": "Todos os pares ({count})",
+      "optimal_band": "{low}–{high} ótimo",
+      "disclaimer": "<strong>Apenas triagem espacial.</strong> A viabilidade química deve ser validada em laboratório antes da implementação.",
+      "substrates": {
+        "sugarcane": "Palha de cana",
+        "soybean": "Palha de soja",
+        "corn": "Palha de milho",
+        "coffee": "Casca de café",
+        "citrus": "Bagaço de citros",
+        "cattle": "Esterco bovino",
+        "swine": "Dejetos de suínos",
+        "poultry": "Cama de aviário",
+        "aquaculture": "Resíduo de aquicultura",
+        "rsu": "FORSU (RSU orgânico)",
+        "rpo": "Lodo de ETE"
+      }
+    },
+    "regionsLayer": {
+      "fallback_name": "Região",
+      "state": "UF: {uf}",
+      "municipalities": "{count, plural, one {# município} other {# municípios}}",
+      "biogas": "Biogás",
+      "biomass": "Biomassa",
+      "loading": "Dados nacionais em carregamento…"
     }
   },
   "metadata": {
@@ -1144,7 +1185,15 @@
       "mapbiomas_badge": "MapBiomas 2023",
       "agricultural_suitability_high": "Alta aptidão agrícola",
       "agricultural_suitability_medium": "Média aptidão agrícola",
-      "agricultural_suitability_low": "Baixa aptidão agrícola"
+      "agricultural_suitability_low": "Baixa aptidão agrícola",
+      "map": {
+        "loading": "Carregando mapa…",
+        "radius": "Raio: {radius} km",
+        "distance": "Distância:",
+        "population": "População:",
+        "biogas": "Biogás:",
+        "scope": "Estado de <strong>São Paulo</strong>"
+      }
     },
     "compare": {
       "title": "Comparação de Municípios",
@@ -2107,5 +2156,12 @@
       "security": "Segurança",
       "data": "Dados"
     }
+  },
+  "comparison": {
+    "selected": "Comparar ({count}/{max}):",
+    "remove": "Remover {name}",
+    "compare": "Comparar",
+    "min_hint": "Selecione pelo menos {min} municípios para comparar",
+    "limit": "Você pode comparar no máximo {max} municípios por vez."
   }
 }

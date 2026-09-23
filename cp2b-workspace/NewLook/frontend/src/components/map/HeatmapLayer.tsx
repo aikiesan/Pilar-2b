@@ -9,8 +9,11 @@
 import React, { useEffect, useRef, useMemo } from 'react';
 import { useMap, CircleMarker, Tooltip } from 'react-leaflet';
 import L from 'leaflet';
+import { useTranslations } from 'next-intl';
 import type { MunicipalityCollection } from '@/types/geospatial';
 import type { ResidueType } from '@/types/map';
+import { useFormat } from '@/hooks/useFormat';
+import { useSelectionLabel } from '@/hooks/useSelectionLabel';
 
 interface HeatmapLayerProps {
   data: MunicipalityCollection;
@@ -35,6 +38,9 @@ export default function HeatmapLayer({
 }: HeatmapLayerProps) {
   const map = useMap();
   const heatLayerRef = useRef<L.Layer | null>(null);
+  const tCommon = useTranslations('common');
+  const format = useFormat();
+  const selectionLabel = useSelectionLabel();
 
   // Calculate residue value for each municipality.
   //
@@ -70,26 +76,6 @@ export default function HeatmapLayer({
       return [sum.lat / ring.length, sum.lng / ring.length];
     }
     return null;
-  };
-
-  // Format biogas value for tooltip display
-  const formatBiogas = (value: number): string => {
-    if (value >= 1_000_000_000) return `${(value / 1_000_000_000).toFixed(1)}B`;
-    if (value >= 1_000_000)     return `${(value / 1_000_000).toFixed(1)}M`;
-    if (value >= 1_000)         return `${(value / 1_000).toFixed(1)}K`;
-    return value.toFixed(0);
-  };
-
-  const getResidueLabel = (): string => {
-    if (selectedResidues.length === 0) return 'Total';
-    const labels: Record<ResidueType, string> = {
-      sugarcane: 'Cana-de-açúcar', soybean: 'Soja', corn: 'Milho',
-      coffee: 'Café', citrus: 'Citrus', cattle: 'Bovinos',
-      swine: 'Suínos', poultry: 'Aves', aquaculture: 'Aquicultura',
-      rsu: 'FORSU', rpo: 'Poda urbana', sewage: 'Lodo de ETE',
-    };
-    if (selectedResidues.length === 1) return labels[selectedResidues[0]];
-    return `${selectedResidues.length} Resíduos`;
   };
 
   // Build point data (memoised so tooltip markers re-render when data changes)
@@ -149,7 +135,9 @@ export default function HeatmapLayer({
     };
   }, [map, points, opacity]);
 
-  const residueLabel = getResidueLabel();
+  // The heatmap weighs tonnage across the selected residues, or the total.
+  const residueLabel = selectionLabel('total', selectedResidues);
+  const unit = tCommon('units.t_year');
 
   return (
     <>
@@ -166,7 +154,7 @@ export default function HeatmapLayer({
               <strong style={{ fontSize: '11px' }}>{point.name}</strong>
               <br />
               <span style={{ fontSize: '10px' }}>
-                {residueLabel}: {formatBiogas(point.value)} t/ano
+                {residueLabel}: {format.compact(point.value)} {unit}
               </span>
             </div>
           </Tooltip>

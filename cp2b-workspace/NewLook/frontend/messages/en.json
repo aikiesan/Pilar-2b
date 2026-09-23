@@ -993,6 +993,47 @@
       "note_label": "Note:",
       "note": "The export includes only the municipalities visible with the current filters.",
       "note_count": "{count, plural, one {{formatted} municipality will be exported.} other {{formatted} municipalities will be exported.}}"
+    },
+    "selection": {
+      "total": "Total",
+      "residues": "{count, plural, one {# residue} other {# residues}}"
+    },
+    "codigestion": {
+      "title": "Co-digestion",
+      "cluster": "Cluster {id}",
+      "municipality_count": "{count, plural, one {# municipality} other {# municipalities}}",
+      "best_opportunity": "Best Opportunity",
+      "recommended_blend": "Recommended blend",
+      "combined_cn": "Combined C:N",
+      "available_feedstock": "Available feedstock",
+      "combined_feedstock": "Combined feedstock",
+      "blend": "Blend ({ratio})",
+      "improvement": "Improvement (score)",
+      "municipalities": "Municipalities ({count})",
+      "all_pairs": "All Pairs ({count})",
+      "optimal_band": "{low}–{high} optimal",
+      "disclaimer": "<strong>Spatial screening only.</strong> Chemical feasibility must be validated in the laboratory before implementation.",
+      "substrates": {
+        "sugarcane": "Sugarcane straw",
+        "soybean": "Soybean straw",
+        "corn": "Corn stover",
+        "coffee": "Coffee husk",
+        "citrus": "Citrus pulp",
+        "cattle": "Cattle manure",
+        "swine": "Swine manure",
+        "poultry": "Poultry litter",
+        "aquaculture": "Aquaculture residue",
+        "rsu": "OFMSW (organic MSW)",
+        "rpo": "WWTP sludge"
+      }
+    },
+    "regionsLayer": {
+      "fallback_name": "Region",
+      "state": "State: {uf}",
+      "municipalities": "{count, plural, one {# municipality} other {# municipalities}}",
+      "biogas": "Biogas",
+      "biomass": "Biomass",
+      "loading": "National data is still loading…"
     }
   },
   "metadata": {
@@ -1144,7 +1185,15 @@
       "mapbiomas_badge": "MapBiomas 2023",
       "agricultural_suitability_high": "High agricultural suitability",
       "agricultural_suitability_medium": "Medium agricultural suitability",
-      "agricultural_suitability_low": "Low agricultural suitability"
+      "agricultural_suitability_low": "Low agricultural suitability",
+      "map": {
+        "loading": "Loading map…",
+        "radius": "Radius: {radius} km",
+        "distance": "Distance:",
+        "population": "Population:",
+        "biogas": "Biogas:",
+        "scope": "<strong>São Paulo</strong> State"
+      }
     },
     "compare": {
       "title": "Municipality Comparison",
@@ -2107,5 +2156,12 @@
       "security": "Security",
       "data": "Data"
     }
+  },
+  "comparison": {
+    "selected": "Compare ({count}/{max}):",
+    "remove": "Remove {name}",
+    "compare": "Compare",
+    "min_hint": "Select at least {min} municipalities to compare",
+    "limit": "You can compare at most {max} municipalities at a time."
   }
 }

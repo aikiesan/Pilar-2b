@@ -272,19 +272,22 @@ class GeospatialClient {
       metadata: {
         total_municipalities: enrichedFeatures.length,
         source: 'IBGE API + Local DB',
-        note: `${enrichedFeatures.length} municípios de São Paulo com geometrias do IBGE e dados de biogás do banco local`,
+        // Developer metadata; no screen shows it.
+        note: `${enrichedFeatures.length} SP municipalities: IBGE geometries merged with local biogas data`,
       },
     };
   }
 
   /**
-   * Get potential category based on biogas value
+   * Potential category from the biogas value, as the backend's category codes
+   * (ALTO / MEDIO / BAIXO). Display names: Map.potentialCategory, via
+   * getPotentialCategoryKey — which reads any other code as unclassified.
    */
   private getPotentialCategory(totalBiogas: number): string {
     if (totalBiogas > 100000000) return 'ALTO';
     if (totalBiogas > 10000000) return 'MEDIO';
     if (totalBiogas > 0) return 'BAIXO';
-    return 'SEM DADOS';
+    return 'SEM DADOS'; // i18n-exempt: category code, shown as Map.potentialCategory.unclassified
   }
 
   /**

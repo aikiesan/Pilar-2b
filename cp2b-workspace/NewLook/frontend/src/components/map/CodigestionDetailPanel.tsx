@@ -1,8 +1,11 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { X, ChevronDown, ChevronUp, FlaskConical } from 'lucide-react';
 import type { CodigestionCluster, CodigestionPair } from '@/types/geospatial';
+import { useFormat } from '@/hooks/useFormat';
+import { clusterNumber, useCodigestionText } from '@/hooks/useCodigestionText';
 
 interface CodigestionDetailPanelProps {
   cluster: CodigestionCluster | null;
@@ -14,24 +17,9 @@ const CN_OPTIMAL_LOW  = 20;
 const CN_OPTIMAL_HIGH = 30;
 const CN_BAR_MAX      = 160;  // max C:N shown on bar
 
-const numberValue = (value: unknown): number => {
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : 0;
-};
-
-const formatCompact = (value: number) =>
-  value >= 1_000_000 ? `${(value / 1_000_000).toFixed(1)}M` :
-  value >= 1_000     ? `${(value / 1_000).toFixed(1)}K` :
-  Math.round(value).toLocaleString('pt-BR');
-
-const formatPairAmount = (pair: CodigestionPair) => {
-  const biomassTons = numberValue(pair.combined_biomass_tons_year);
-  if (biomassTons > 0) return `${formatCompact(biomassTons)} t/ano`;
-
-  return `${formatCompact(numberValue(pair.combined_biogas_m3_year))} m³/ano`;
-};
-
 function CNRatioBar({ cn, label, role }: { cn: number; label: string; role: string }) {
+  const t = useTranslations('Map.codigestion');
+  const format = useFormat();
   const pct = Math.min((cn / CN_BAR_MAX) * 100, 100);
   const optLow  = (CN_OPTIMAL_LOW  / CN_BAR_MAX) * 100;
   const optHigh = (CN_OPTIMAL_HIGH / CN_BAR_MAX) * 100;
@@ -42,7 +30,7 @@ function CNRatioBar({ cn, label, role }: { cn: number; label: string; role: stri
       <div className="flex items-center justify-between mb-1">
         <span className="text-xs text-gray-700 font-medium truncate max-w-[60%]">{label}</span>
         <span className="text-xs font-mono font-bold" style={{ color: roleColor }}>
-          C:N {cn}
+          C:N {format.number(cn, { decimals: 1 })}
         </span>
       </div>
       <div className="relative h-3 bg-gray-100 rounded-full overflow-hidden">
@@ -59,7 +47,9 @@ function CNRatioBar({ cn, label, role }: { cn: number; label: string; role: stri
       </div>
       <div className="flex justify-between text-[9px] text-gray-400 mt-0.5">
         <span>0</span>
-        <span className="text-green-600 font-medium">20–30 ótimo</span>
+        <span className="text-green-600 font-medium">
+          {t('optimal_band', { low: CN_OPTIMAL_LOW, high: CN_OPTIMAL_HIGH })}
+        </span>
         <span>{CN_BAR_MAX}+</span>
       </div>
     </div>
@@ -67,6 +57,9 @@ function CNRatioBar({ cn, label, role }: { cn: number; label: string; role: stri
 }
 
 function PairCard({ pair, rank }: { pair: CodigestionPair; rank: number }) {
+  const t = useTranslations('Map.codigestion');
+  const format = useFormat();
+  const text = useCodigestionText();
   const [open, setOpen] = useState(false);
   const inRange = pair.cn_combined_in_range;
 
@@ -74,19 +67,20 @@ function PairCard({ pair, rank }: { pair: CodigestionPair; rank: number }) {
     <div className="border border-gray-200 rounded-lg overflow-hidden mb-2">
       <button
         onClick={() => setOpen(o => !o)}
+        aria-expanded={open}
         className="w-full flex items-center justify-between px-3 py-2 hover:bg-gray-50 transition-colors"
       >
         <div className="flex items-center gap-2 text-left">
           <span className="text-[10px] text-gray-400 font-mono">#{rank}</span>
           <span className="text-xs font-medium text-gray-700 truncate">
-            {pair.residue_a.label} + {pair.residue_b.label}
+            {text.substrate(pair.residue_a)} + {text.substrate(pair.residue_b)}
           </span>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0 ml-2">
           <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded ${
             inRange ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
           }`}>
-            C:N {pair.cn_combined}
+            C:N {format.number(pair.cn_combined, { decimals: 1 })}
           </span>
           {open ? <ChevronUp className="w-3 h-3 text-gray-400" /> : <ChevronDown className="w-3 h-3 text-gray-400" />}
         </div>
@@ -94,23 +88,27 @@ function PairCard({ pair, rank }: { pair: CodigestionPair; rank: number }) {
 
       {open && (
         <div className="px-3 pb-3 bg-gray-50 border-t border-gray-100 space-y-3">
-          <CNRatioBar cn={pair.residue_a.cn_ratio} label={pair.residue_a.label} role={pair.residue_a.cn_role} />
-          <CNRatioBar cn={pair.residue_b.cn_ratio} label={pair.residue_b.label} role={pair.residue_b.cn_role} />
+          <CNRatioBar cn={pair.residue_a.cn_ratio} label={text.substrate(pair.residue_a)} role={pair.residue_a.cn_role} />
+          <CNRatioBar cn={pair.residue_b.cn_ratio} label={text.substrate(pair.residue_b)} role={pair.residue_b.cn_role} />
 
           <div className="bg-white rounded border border-gray-200 p-2 space-y-1 text-xs text-gray-600">
             <div className="flex justify-between">
-              <span>Mistura ({pair.blend_ratio_A_to_B})</span>
+              <span>{t('blend', { ratio: pair.blend_ratio_A_to_B })}</span>
               <span className={`font-mono font-bold ${inRange ? 'text-green-600' : 'text-amber-600'}`}>
-                C:N {pair.cn_combined}
+                C:N {format.number(pair.cn_combined, { decimals: 1 })}
               </span>
             </div>
             <div className="flex justify-between">
-              <span>Recurso combinado</span>
-              <span className="font-mono">{formatPairAmount(pair)}</span>
+              <span>{t('combined_feedstock')}</span>
+              <span className="font-mono">
+                {text.amount(pair.combined_biomass_tons_year, pair.combined_biogas_m3_year)}
+              </span>
             </div>
             <div className="flex justify-between">
-              <span>Melhora (score)</span>
-              <span className="font-mono text-violet-600">{pair.improvement_score.toFixed(1)}</span>
+              <span>{t('improvement')}</span>
+              <span className="font-mono text-violet-600">
+                {format.number(pair.improvement_score, { decimals: 1, minDecimals: 1 })}
+              </span>
             </div>
           </div>
         </div>
@@ -124,6 +122,10 @@ export default function CodigestionDetailPanel({
   onClose,
   visible,
 }: CodigestionDetailPanelProps) {
+  const t = useTranslations('Map.codigestion');
+  const tCommon = useTranslations('common');
+  const format = useFormat();
+  const text = useCodigestionText();
   const [showAllPairs, setShowAllPairs] = useState(false);
 
   if (!visible || !cluster) return null;
@@ -137,11 +139,14 @@ export default function CodigestionDetailPanel({
         <div>
           <div className="flex items-center gap-2">
             <FlaskConical className="w-4 h-4 text-violet-200" />
-            <h3 className="text-white text-sm font-semibold">Co-digestão</h3>
+            <h3 className="text-white text-sm font-semibold">{t('title')}</h3>
           </div>
-          <p className="text-violet-200 text-[11px] mt-0.5">{cluster.cluster_id} · {cluster.municipality_count} municípios</p>
+          <p className="text-violet-200 text-[11px] mt-0.5">
+            {t('cluster', { id: clusterNumber(cluster.cluster_id) })} ·{' '}
+            {t('municipality_count', { count: cluster.municipality_count })}
+          </p>
         </div>
-        <button onClick={onClose} aria-label="Fechar" className="text-violet-200 hover:text-white transition-colors">
+        <button onClick={onClose} aria-label={tCommon('actions.close')} className="text-violet-200 hover:text-white transition-colors">
           <X className="w-4 h-4" aria-hidden="true" />
         </button>
       </div>
@@ -150,26 +155,28 @@ export default function CodigestionDetailPanel({
         {/* Top pair summary */}
         <div>
           <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-2">
-            Melhor Oportunidade
+            {t('best_opportunity')}
           </div>
           <div className="bg-violet-50 border border-violet-200 rounded-lg p-3 space-y-2">
-            <CNRatioBar cn={top.residue_a.cn_ratio} label={top.residue_a.label} role={top.residue_a.cn_role} />
-            <CNRatioBar cn={top.residue_b.cn_ratio} label={top.residue_b.label} role={top.residue_b.cn_role} />
+            <CNRatioBar cn={top.residue_a.cn_ratio} label={text.substrate(top.residue_a)} role={top.residue_a.cn_role} />
+            <CNRatioBar cn={top.residue_b.cn_ratio} label={text.substrate(top.residue_b)} role={top.residue_b.cn_role} />
 
             <div className="border-t border-violet-200 pt-2 space-y-1 text-xs">
               <div className="flex justify-between">
-                <span className="text-gray-600">Mistura recomendada</span>
+                <span className="text-gray-600">{t('recommended_blend')}</span>
                 <span className="font-mono text-gray-800">{top.blend_ratio_A_to_B}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">C:N combinado</span>
+                <span className="text-gray-600">{t('combined_cn')}</span>
                 <span className={`font-mono font-bold ${top.cn_combined_in_range ? 'text-green-600' : 'text-amber-600'}`}>
-                  {top.cn_combined} {top.cn_combined_in_range ? '✓' : '~'}
+                  {format.number(top.cn_combined, { decimals: 1 })} {top.cn_combined_in_range ? '✓' : '~'}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Recurso disponível</span>
-                <span className="font-mono">{formatPairAmount(top)}</span>
+                <span className="text-gray-600">{t('available_feedstock')}</span>
+                <span className="font-mono">
+                  {text.amount(top.combined_biomass_tons_year, top.combined_biogas_m3_year)}
+                </span>
               </div>
             </div>
           </div>
@@ -178,13 +185,15 @@ export default function CodigestionDetailPanel({
         {/* Municipalities */}
         <div>
           <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-2">
-            Municípios ({cluster.municipality_count})
+            {t('municipalities', { count: cluster.municipality_count })}
           </div>
           <div className="space-y-1 max-h-36 overflow-y-auto">
             {cluster.municipalities.map(m => (
               <div key={m.ibge_code} className="flex justify-between text-xs px-2 py-1 rounded hover:bg-gray-50">
                 <span className="text-gray-700 truncate">{m.name}</span>
-                <span className="text-gray-400 flex-shrink-0 ml-2">{m.distance_from_centroid_km} km</span>
+                <span className="text-gray-400 flex-shrink-0 ml-2">
+                  {format.number(m.distance_from_centroid_km, { decimals: 1 })} {tCommon('units.km')}
+                </span>
               </div>
             ))}
           </div>
@@ -195,9 +204,10 @@ export default function CodigestionDetailPanel({
           <div>
             <button
               onClick={() => setShowAllPairs(o => !o)}
+              aria-expanded={showAllPairs}
               className="flex items-center justify-between w-full text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-2 hover:text-gray-700 transition-colors"
             >
-              <span>Todos os Pares ({cluster.all_qualifying_pairs.length})</span>
+              <span>{t('all_pairs', { count: cluster.all_qualifying_pairs.length })}</span>
               {showAllPairs ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
             </button>
             {showAllPairs && (
@@ -214,7 +224,7 @@ export default function CodigestionDetailPanel({
       {/* Disclaimer footer */}
       <div className="flex-shrink-0 px-3 py-2 bg-amber-50 border-t border-amber-200">
         <p className="text-[10px] text-amber-700 leading-relaxed">
-          ⚗️ <strong>Triagem espacial apenas.</strong> Viabilidade química deve ser validada laboratorialmente antes da implementação.
+          ⚗️ {t.rich('disclaimer', { strong: (chunks) => <strong>{chunks}</strong> })}
         </p>
       </div>
     </div>
