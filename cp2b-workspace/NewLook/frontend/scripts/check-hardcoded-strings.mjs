@@ -36,9 +36,7 @@ const report = process.argv.includes('--report');
 /** Files still carrying hardcoded Portuguese. Only ever delete from this list. */
 const PENDING = [
   'src/app/[locale]/dashboard/advanced-analysis/page.tsx',
-  'src/app/[locale]/dashboard/proximity/page.tsx',
   'src/app/[locale]/dashboard/scientific-database/page.tsx',
-  'src/app/[locale]/municipality/[ibge_code]/page.tsx',
   'src/components/analysis/ReferencesModal.tsx',
   'src/components/analysis/ScenarioComparator.tsx',
   'src/components/analysis/ScenarioSelector.tsx',
@@ -50,7 +48,6 @@ const PENDING = [
   'src/components/scientific/ReferencePopover.tsx',
   'src/data/residueFactors.ts',
   'src/data/scientificData.ts',
-  'src/services/proximityApi.ts',
   'src/services/scientificApi.ts',
   'src/types/analysis.ts',
   'src/types/scientific.ts',

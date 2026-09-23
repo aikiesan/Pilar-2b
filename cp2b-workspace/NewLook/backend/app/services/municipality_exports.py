@@ -4,6 +4,10 @@ Both renderers take what `municipality_dossier.collect()` returns and nothing
 else, so the CLI export, the XLSX download and the PDF report always describe
 the same municipality the same way.
 
+Both are offered in pt-BR (the default — the dossier is a deliverable for
+Brazilian planners) and in English, via ``lang``. Every word comes from
+app.services.dossier_text; nothing here is copy.
+
 The PDF's locator map is drawn from PostGIS geometry as vector paths — no tile
 server, no API key, no network at render time, and it stays sharp at any zoom.
 """
@@ -31,34 +35,36 @@ from reportlab.platypus import (
     TableStyle,
 )
 
+from app.services.dossier_text import (
+    DEFAULT_LANG,
+    POTENTIAL_CATEGORIES,
+    RESIDUE_SECTORS,
+    SECTORS,
+    Lang,
+    residue_name,
+    sector_name,
+    text,
+)
+
 SHEET_NAME_LIMIT = 31  # Excel's hard cap on sheet names.
 
-# The workbook is a deliverable for Brazilian planners and researchers, so it is
-# written in pt-BR. Each residue maps to the column prefix the municipalities
-# table uses; not every residue carries every column (sewage has no biogas total,
-# forestry has no biomass tonnage), and a missing column reads as "—", never 0.
-RESIDUOS: tuple[tuple[str, str, str], ...] = (
-    ("sugarcane", "Cana-de-açúcar", "Agrícola"),
-    ("soybean", "Soja", "Agrícola"),
-    ("corn", "Milho", "Agrícola"),
-    ("coffee", "Café", "Agrícola"),
-    ("citrus", "Citros", "Agrícola"),
-    ("cattle", "Bovinos", "Pecuária"),
-    ("swine", "Suínos", "Pecuária"),
-    ("poultry", "Aves", "Pecuária"),
-    ("aquaculture", "Aquicultura", "Pecuária"),
-    ("rsu", "RSU — resíduos sólidos urbanos", "Urbano"),
-    ("rpo", "RPO — resíduos de poda", "Urbano"),
-    ("sewage", "Esgoto", "Urbano"),
-    ("forestry", "Florestal", "Florestal"),
-)
 
-SETORES: tuple[tuple[str, str], ...] = (
-    ("agricultural", "Agrícola"),
-    ("livestock", "Pecuária"),
-    ("urban", "Urbano"),
-    ("forestry", "Florestal"),
-)
+def residues(lang: Lang = DEFAULT_LANG) -> tuple[tuple[str, str, str], ...]:
+    """(key, name, sector name) for each residue, in dossier order.
+
+    Each key is the column prefix the municipalities table uses; not every
+    residue carries every column (sewage has no biogas total, forestry has no
+    biomass tonnage), and a missing column reads as "—", never 0.
+    """
+    return tuple(
+        (key, residue_name(key, lang) or key, sector_name(sector, lang) or sector)
+        for key, sector in RESIDUE_SECTORS
+    )
+
+
+# The pt-BR tables, as the CLI exporter and older callers know them.
+RESIDUOS: tuple[tuple[str, str, str], ...] = residues("pt-BR")
+SETORES: tuple[tuple[str, str], ...] = tuple((k, sector_name(k, "pt-BR") or k) for k in SECTORS)
 
 HEADER_FILL = "FF1F7A4D"
 HEADER_FONT = "FFFFFFFF"
@@ -103,67 +109,82 @@ def _num(value: Any) -> float | None:
     return None if pd.isna(out) else out
 
 
-def _sheet_resumo(who: dict, muni: dict) -> pd.DataFrame:
+def potential_category(code: Any, lang: Lang = DEFAULT_LANG) -> Any:
+    """The backend's ALTO / MEDIO / BAIXO code, worded for the reader."""
+    if code is None:
+        return None
+    return POTENTIAL_CATEGORIES.get(lang, POTENTIAL_CATEGORIES[DEFAULT_LANG]).get(str(code), code)
+
+
+def _sheet_resumo(who: dict, muni: dict, lang: Lang = DEFAULT_LANG) -> pd.DataFrame:
     """Identification and the headline figures, the one page most readers need."""
+    t = text(lang)
     rows = [
-        ("IDENTIFICAÇÃO", None, None),
-        ("Município", who.get("municipality_name"), None),
-        ("Código IBGE", who.get("ibge_code"), None),
-        ("UF", who.get("uf"), None),
-        ("Região imediata", who.get("immediate_region"), None),
-        ("Região intermediária", who.get("intermediate_region"), None),
-        ("Área", _num(who.get("area_km2")), "km²"),
-        ("População", _num(who.get("population")), f"hab. ({who.get('population_year') or '—'})"),
-        ("Densidade demográfica", _num(muni.get("population_density")), "hab./km²"),
+        (t["sec_identification"], None, None),
+        (t["municipality"], who.get("municipality_name"), None),
+        (t["ibge_code"], who.get("ibge_code"), None),
+        (t["uf"], who.get("uf"), None),
+        (t["immediate_region"], who.get("immediate_region"), None),
+        (t["intermediate_region"], who.get("intermediate_region"), None),
+        (t["area"], _num(who.get("area_km2")), "km²"),
+        (
+            t["population"],
+            _num(who.get("population")),
+            t["population_unit"].format(year=who.get("population_year") or "—"),
+        ),
+        (t["density"], _num(muni.get("population_density")), t["density_unit"]),
         (None, None, None),
-        ("POTENCIAL DE BIOGÁS", None, None),
-        ("Potencial total", _num(muni.get("total_biogas_m3_year")), "m³/ano"),
-        ("Potencial diário", _num(muni.get("total_biogas_m3_day")), "m³/dia"),
-        ("Classe de potencial", who.get("potential_category"), None),
+        (t["sec_biogas"], None, None),
+        (t["total_potential"], _num(muni.get("total_biogas_m3_year")), t["unit_m3_year"]),
+        (t["daily_potential"], _num(muni.get("total_biogas_m3_day")), t["unit_m3_day"]),
+        (t["potential_class"], potential_category(who.get("potential_category"), lang), None),
         (None, None, None),
-        ("ENERGIA E EMISSÕES", None, None),
-        ("Energia potencial", _num(muni.get("energy_potential_mwh_year")), "MWh/ano"),
-        ("Energia potencial", _num(muni.get("energy_potential_kwh_day")), "kWh/dia"),
-        ("CO₂ evitado", _num(muni.get("co2_reduction_tons_year")), "t/ano"),
+        (t["sec_energy"], None, None),
+        (t["energy_potential"], _num(muni.get("energy_potential_mwh_year")), t["unit_mwh_year"]),
+        (t["energy_potential"], _num(muni.get("energy_potential_kwh_day")), t["unit_kwh_day"]),
+        (t["co2_avoided"], _num(muni.get("co2_reduction_tons_year")), t["unit_t_year"]),
         (None, None, None),
-        ("BIOMASSA", None, None),
-        ("Biomassa total", _num(muni.get("total_biomass_tons_year")), "t/ano"),
+        (t["sec_biomass"], None, None),
+        (t["total_biomass"], _num(muni.get("total_biomass_tons_year")), t["unit_t_year"]),
         (None, None, None),
-        ("METANO (CH₄)", None, None),
-        ("CH₄ cenário Real", _num(muni.get("ch4_real_m3_year")), "m³/ano"),
-        ("CH₄ cenário Ideal", _num(muni.get("ch4_ideal_m3_year")), "m³/ano"),
+        (t["sec_methane"], None, None),
+        (t["ch4_real"], _num(muni.get("ch4_real_m3_year")), t["unit_m3_year"]),
+        (t["ch4_ideal"], _num(muni.get("ch4_ideal_m3_year")), t["unit_m3_year"]),
         (None, None, None),
-        ("PROCEDÊNCIA", None, None),
-        ("Confiança dos dados", who.get("data_confidence"), None),
-        ("Extraído em (UTC)", datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M"), None),
-        ("Fonte", "PILAR-2b", None),
+        (t["sec_provenance"], None, None),
+        (t["data_confidence"], who.get("data_confidence"), None),
+        (t["extracted_at"], datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M"), None),
+        (t["source"], "PILAR-2b", None),
     ]
-    return pd.DataFrame(rows, columns=["Indicador", "Valor", "Unidade"])
+    return pd.DataFrame(rows, columns=[t["col_indicator"], t["col_value"], t["col_unit"]])
 
 
-def _sheet_setores(muni: dict) -> pd.DataFrame:
+def _sheet_setores(muni: dict, lang: Lang = DEFAULT_LANG) -> pd.DataFrame:
     """Biogas, biomass and both CH4 scenarios per sector, with each one's share."""
+    t = text(lang)
+    biomass, biogas = t["col_biomass"], t["col_biogas"]
+    real, ideal, share = t["col_ch4_real"], t["col_ch4_ideal"], t["col_share"]
     rows = []
-    for key, label in SETORES:
+    for key in SECTORS:
         rows.append(
             {
-                "Setor": label,
-                "Biomassa (t/ano)": _num(muni.get(f"{key}_biomass_tons_year")),
-                "Biogás (m³/ano)": _num(muni.get(f"{key}_biogas_m3_year")),
-                "CH₄ Real (m³/ano)": _num(muni.get(f"ch4_real_{key}_m3_year")),
-                "CH₄ Ideal (m³/ano)": _num(muni.get(f"ch4_ideal_{key}_m3_year")),
+                t["col_sector"]: sector_name(key, lang) or key,
+                biomass: _num(muni.get(f"{key}_biomass_tons_year")),
+                biogas: _num(muni.get(f"{key}_biogas_m3_year")),
+                real: _num(muni.get(f"ch4_real_{key}_m3_year")),
+                ideal: _num(muni.get(f"ch4_ideal_{key}_m3_year")),
             }
         )
     frame = pd.DataFrame(rows)
-    total = frame["Biogás (m³/ano)"].sum(skipna=True)
-    frame["% do biogás"] = frame["Biogás (m³/ano)"] / total if total else None
+    total = frame[biogas].sum(skipna=True)
+    frame[share] = frame[biogas] / total if total else None
     total_row = {
-        "Setor": "TOTAL",
-        "Biomassa (t/ano)": frame["Biomassa (t/ano)"].sum(skipna=True),
-        "Biogás (m³/ano)": total,
-        "CH₄ Real (m³/ano)": frame["CH₄ Real (m³/ano)"].sum(skipna=True),
-        "CH₄ Ideal (m³/ano)": frame["CH₄ Ideal (m³/ano)"].sum(skipna=True),
-        "% do biogás": 1.0 if total else None,
+        t["col_sector"]: t["total"],
+        biomass: frame[biomass].sum(skipna=True),
+        biogas: total,
+        real: frame[real].sum(skipna=True),
+        ideal: frame[ideal].sum(skipna=True),
+        share: 1.0 if total else None,
     }
     return pd.concat([frame, pd.DataFrame([total_row])], ignore_index=True)
 
@@ -182,73 +203,85 @@ def _coalesce(*values: Any) -> float | None:
     return None
 
 
-def _sheet_residuos(muni: dict, streams: list[dict]) -> pd.DataFrame:
+def _sheet_residuos(muni: dict, streams: list[dict], lang: Lang = DEFAULT_LANG) -> pd.DataFrame:
     """One row per residue, joining the municipality columns to the SP stream table.
 
     The stream table carries energy and the conversion factor actually applied;
     the municipality columns carry the CH4 scenarios. Neither has both, so the
     sheet is the join — which is the whole reason this export exists.
     """
+    t = text(lang)
+    biogas = t["col_biogas"]
     by_stream = {str(r.get("residue_stream") or "").lower(): r for r in streams}
     rows = []
-    for key, label, setor in RESIDUOS:
+    for key, label, setor in residues(lang):
         stream = by_stream.get(key, {})
         rows.append(
             {
-                "Resíduo": label,
-                "Setor": setor,
-                "Biomassa (t/ano)": _coalesce(
+                t["col_residue"]: label,
+                t["col_sector"]: setor,
+                t["col_biomass"]: _coalesce(
                     muni.get(f"{key}_biomass_tons_year"), stream.get("residue_tons_yr")
                 ),
-                "Biogás (m³/ano)": _coalesce(
-                    muni.get(f"{key}_biogas_m3_year"), stream.get("biogas_m3_yr")
-                ),
-                "CH₄ Real (m³/ano)": _num(muni.get(f"ch4_real_{key}_m3_year")),
-                "CH₄ Ideal (m³/ano)": _num(muni.get(f"ch4_ideal_{key}_m3_year")),
-                "Energia (MWh/ano)": _num(stream.get("energy_mwh_yr")),
-                "Fator de conversão": _num(stream.get("conversion_factor")),
-                "Unidade do fator": stream.get("cf_unit"),
+                biogas: _coalesce(muni.get(f"{key}_biogas_m3_year"), stream.get("biogas_m3_yr")),
+                t["col_ch4_real"]: _num(muni.get(f"ch4_real_{key}_m3_year")),
+                t["col_ch4_ideal"]: _num(muni.get(f"ch4_ideal_{key}_m3_year")),
+                t["col_energy"]: _num(stream.get("energy_mwh_yr")),
+                t["col_factor"]: _num(stream.get("conversion_factor")),
+                t["col_factor_unit"]: stream.get("cf_unit"),
             }
         )
     frame = pd.DataFrame(rows)
-    total = frame["Biogás (m³/ano)"].sum(skipna=True)
-    frame["% do biogás"] = frame["Biogás (m³/ano)"] / total if total else None
-    return frame.sort_values("Biogás (m³/ano)", ascending=False, na_position="last")
+    total = frame[biogas].sum(skipna=True)
+    frame[t["col_share"]] = frame[biogas] / total if total else None
+    return frame.sort_values(biogas, ascending=False, na_position="last")
 
 
-def _sheet_series(series: list[dict]) -> pd.DataFrame:
+def _sheet_series(series: list[dict], lang: Lang = DEFAULT_LANG) -> pd.DataFrame:
     """The time series, tidied and sorted — year, variable, value, unit, source."""
+    t = text(lang)
     if not series:
-        return pd.DataFrame({"(sem séries temporais para este município)": []})
+        return pd.DataFrame({t["no_series"]: []})
     frame = pd.DataFrame(series)
     keep = {
-        "year": "Ano",
-        "variable": "Variável",
-        "value": "Valor",
-        "unit": "Unidade",
-        "quality": "Qualidade",
-        "source_id": "Fonte",
+        "year": t["col_year"],
+        "variable": t["col_variable"],
+        "value": t["col_value"],
+        "unit": t["col_unit"],
+        "quality": t["col_quality"],
+        "source_id": t["source"],
     }
     frame = frame[[c for c in keep if c in frame.columns]].rename(columns=keep)
-    return frame.sort_values(["Fonte", "Variável", "Ano"], na_position="last")
+    order = [c for c in (t["source"], t["col_variable"], t["col_year"]) if c in frame.columns]
+    return frame.sort_values(order, na_position="last") if order else frame
 
 
-def _sheet_infra(features: list[dict]) -> pd.DataFrame:
+def _sheet_infra(features: list[dict], lang: Lang = DEFAULT_LANG) -> pd.DataFrame:
+    t = text(lang)
     if not features:
-        return pd.DataFrame({"(nenhuma infraestrutura registrada neste município)": []})
+        return pd.DataFrame({t["no_infra"]: []})
     frame = pd.DataFrame(features)
-    keep = {"layer_id": "Camada", "name": "Nome", "source_id": "Fonte", "attributes": "Atributos"}
+    keep = {
+        "layer_id": t["col_layer"],
+        "name": t["col_name"],
+        "source_id": t["source"],
+        "attributes": t["col_attributes"],
+    }
     frame = frame[[c for c in keep if c in frame.columns]].rename(columns=keep)
-    if "Atributos" in frame.columns:
-        frame["Atributos"] = frame["Atributos"].map(
+    attributes = t["col_attributes"]
+    if attributes in frame.columns:
+        frame[attributes] = frame[attributes].map(
             lambda v: json.dumps(v, ensure_ascii=False) if isinstance(v, (dict, list)) else v
         )
     return frame
 
 
-def _sheet_fontes(sections: dict[str, list[dict]], who: dict) -> pd.DataFrame:
+def _sheet_fontes(
+    sections: dict[str, list[dict]], who: dict, lang: Lang = DEFAULT_LANG
+) -> pd.DataFrame:
     """Where the numbers came from, and what is missing — stated, not implied."""
-    rows: list[tuple[str, Any]] = [("PROCEDÊNCIA DOS DADOS", None)]
+    t = text(lang)
+    rows: list[tuple[str, Any]] = [(t["sec_data_provenance"], None)]
     for record in sections.get("biomass_provenance") or []:
         label = record.get("residue") or record.get("field") or record.get("column_name") or "—"
         rows.append((str(label), record.get("source") or record.get("source_id") or "—"))
@@ -257,36 +290,38 @@ def _sheet_fontes(sections: dict[str, list[dict]], who: dict) -> pd.DataFrame:
         {str(r.get("source_id")) for r in sections.get("timeseries") or [] if r.get("source_id")}
     )
     if sources:
-        rows += [(None, None), ("FONTES DAS SÉRIES TEMPORAIS", None)]
+        rows += [(None, None), (t["sec_series_sources"], None)]
         rows += [(s, None) for s in sources]
 
     typology = (sections.get("typology") or [{}])[0]
-    rows += [(None, None), ("TIPOLOGIA / RELAÇÃO C:N", None)]
-    rows.append(("C:N média aritmética (cn_molar)", typology.get("cn_molar")))
-    rows.append(("C:N balanço N-aditivo (cn_harm)", typology.get("cn_harm")))
+    rows += [(None, None), (t["sec_typology"], None)]
+    rows.append((t["cn_molar"], typology.get("cn_molar")))
+    rows.append((t["cn_harm"], typology.get("cn_harm")))
     if typology.get("cn_harm") is None:
         # Say it outright. A blank cell invites the reader to assume zero.
-        rows.append(
-            (
-                "Observação",
-                "cn_harm ainda não carregado nesta base — a coluna existe "
-                "(migração 031) mas o snapshot do dossiê não foi aplicado.",
-            )
-        )
+        rows.append((t["note"], t["cn_harm_missing"]))
 
     rows += [
         (None, None),
-        ("OBSERVAÇÕES", None),
-        ("Natureza dos números", "Potencial modelado, não produção medida."),
-        ("Confiança dos dados", who.get("data_confidence")),
+        (t["sec_notes"], None),
+        (t["nature"], t["nature_value"]),
+        (t["data_confidence"], who.get("data_confidence")),
     ]
-    return pd.DataFrame(rows, columns=["Item", "Detalhe"])
+    return pd.DataFrame(rows, columns=[t["col_item"], t["col_detail"]])
 
 
 def _style(
-    writer, sheet_name: str, frame: pd.DataFrame, widths: Sequence[int] | None = None
+    writer,
+    sheet_name: str,
+    frame: pd.DataFrame,
+    widths: Sequence[int] | None = None,
+    decimal_columns: frozenset[str] = frozenset(),
 ) -> None:
-    """Header band, frozen top row, sensible widths and thousands separators."""
+    """Header band, frozen top row, sensible widths and thousands separators.
+
+    ``decimal_columns`` keep two decimals (conversion factors); every other
+    numeric column is written as a whole number, every "%" column as a share.
+    """
     from openpyxl.styles import Alignment, Font, PatternFill
 
     ws = writer.sheets[sheet_name]
@@ -309,7 +344,7 @@ def _style(
         if "%" in str(column):
             number_format = "0.0%"
         elif frame[column].dtype.kind in "fi":
-            number_format = "#,##0.00" if "Fator" in str(column) else "#,##0"
+            number_format = "#,##0.00" if column in decimal_columns else "#,##0"
         else:
             continue
         for row in range(2, ws.max_row + 1):
@@ -322,33 +357,40 @@ def _style(
             ws.cell(row=row, column=1).font = Font(bold=True, color="FF1F7A4D")
 
 
-def build_workbook(sections: dict[str, list[dict]], who: dict) -> bytes:
-    """The dossier as a curated pt-BR workbook: six sheets, no raw table dumps.
+def build_workbook(sections: dict[str, list[dict]], who: dict, lang: Lang = DEFAULT_LANG) -> bytes:
+    """The dossier as a curated workbook: six sheets, no raw table dumps.
 
     Deliberately not one sheet per database table. The municipalities row alone is
     98 columns wide and means nothing to a reader; the value is in reshaping it
     into sector and residue tables and joining the SP stream data onto it.
     """
+    t = text(lang)
     muni = (sections.get("municipality") or [{}])[0]
+    streams = sections.get("residue_streams") or []
     sheets: list[tuple[str, pd.DataFrame, Sequence[int] | None]] = [
-        ("Resumo", _sheet_resumo(who, muni), (34, 20, 22)),
-        ("Por setor", _sheet_setores(muni), (16, 20, 20, 20, 20, 14)),
-        ("Por resíduo", _sheet_residuos(muni, sections.get("residue_streams") or []), None),
+        (t["sheet_summary"], _sheet_resumo(who, muni, lang), (34, 20, 22)),
+        (t["sheet_sectors"], _sheet_setores(muni, lang), (16, 20, 20, 20, 20, 14)),
+        (t["sheet_residues"], _sheet_residuos(muni, streams, lang), None),
         (
-            "Séries temporais",
-            _sheet_series(sections.get("timeseries") or []),
+            t["sheet_series"],
+            _sheet_series(sections.get("timeseries") or [], lang),
             (10, 30, 16, 14, 14, 18),
         ),
-        ("Infraestrutura", _sheet_infra(sections.get("infrastructure") or []), (22, 34, 16, 50)),
-        ("Fontes e notas", _sheet_fontes(sections, who), (40, 62)),
+        (
+            t["sheet_infra"],
+            _sheet_infra(sections.get("infrastructure") or [], lang),
+            (22, 34, 16, 50),
+        ),
+        (t["sheet_sources"], _sheet_fontes(sections, who, lang), (40, 62)),
     ]
+    decimals = frozenset({t["col_factor"]})
 
     buffer = BytesIO()
     with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
         for name, frame, widths in sheets:
             safe = frame.map(_naive)
             safe.to_excel(writer, sheet_name=name[:SHEET_NAME_LIMIT], index=False)
-            _style(writer, name[:SHEET_NAME_LIMIT], safe, widths)
+            _style(writer, name[:SHEET_NAME_LIMIT], safe, widths, decimals)
     return buffer.getvalue()
 
 
@@ -427,7 +469,9 @@ def _fit(rings: Iterable[Sequence[Sequence[float]]], width: float, height: float
     return project
 
 
-def _locator_map(state_geojson: str | None, muni_geojson: str | None, uf: str):
+def _locator_map(
+    state_geojson: str | None, muni_geojson: str | None, uf: str, lang: Lang = DEFAULT_LANG
+):
     """The municipality picked out inside its state outline, as vector paths."""
     from reportlab.graphics.shapes import Drawing, Polygon, String
 
@@ -439,7 +483,11 @@ def _locator_map(state_geojson: str | None, muni_geojson: str | None, uf: str):
     muni_rings = _ring(muni)
     project = _fit(state_rings or muni_rings, MAP_W, MAP_H)
     if project is None:
-        drawing.add(String(8, MAP_H / 2, "Geometry unavailable", fontSize=9, fillColor=MUTED))
+        drawing.add(
+            String(
+                8, MAP_H / 2, text(lang)["pdf_geometry_unavailable"], fontSize=9, fillColor=MUTED
+            )
+        )
         return drawing
 
     for ring in state_rings:
@@ -460,15 +508,21 @@ def _locator_map(state_geojson: str | None, muni_geojson: str | None, uf: str):
                 strokeWidth=1.1,
             )
         )
-    drawing.add(String(4, 4, f"Location within {uf}", fontSize=7.5, fillColor=MUTED))
+    caption = text(lang)["pdf_location_within"].format(uf=uf)
+    drawing.add(String(4, 4, caption, fontSize=7.5, fillColor=MUTED))
     return drawing
 
 
-def _fmt(value: Any, digits: int = 0) -> str:
+def _fmt(value: Any, digits: int = 0, lang: Lang = DEFAULT_LANG) -> str:
+    """Space-grouped thousands (read the same in both languages; a plain space,
+    since the PDF's base fonts have no thin space) and the language's decimal
+    mark: 1 234.5 (en) / 1 234,5 (pt-BR)."""
     if value is None or (isinstance(value, float) and pd.isna(value)):
         return "—"
     if isinstance(value, (int, float)):
-        return f"{float(value):,.{digits}f}".replace(",", " ")
+        grouped = f"{float(value):,.{digits}f}"
+        decimal = "," if lang == "pt-BR" else "."
+        return grouped.replace(",", " ").replace(".", decimal)
     return str(value)
 
 
@@ -510,13 +564,32 @@ def _data_table(header: Sequence[str], body: Sequence[Sequence[Any]], widths) ->
     return table
 
 
+def _stream_label(stream: dict, lang: Lang) -> str:
+    """A residue stream by its key, in ``lang``; the served names are the fallback."""
+    key = str(stream.get("residue_stream") or "").lower()
+    return residue_name(key, lang) or str(
+        stream.get("residue_stream_pt") or stream.get("residue_stream") or "—"
+    )
+
+
+def _stream_sector(stream: dict, lang: Lang) -> str:
+    key = str(stream.get("sector") or "").lower()
+    return sector_name(key, lang) or str(stream.get("sector_pt") or stream.get("sector") or "—")
+
+
 def build_pdf(
     sections: dict[str, list[dict]],
     who: dict,
     muni_geojson: str | None = None,
     state_geojson: str | None = None,
+    lang: Lang = DEFAULT_LANG,
 ) -> bytes:
     """A two-page municipal report: headline figures, locator map, residue detail."""
+    t = text(lang)
+
+    def fmt(value: Any, digits: int = 0) -> str:
+        return _fmt(value, digits, lang)
+
     style = _styles()
     buffer = BytesIO()
     doc = SimpleDocTemplate(
@@ -543,36 +616,33 @@ def build_pdf(
     )
     story.append(Spacer(1, 10))
 
+    population_year = who.get("population_year")
     headline = [
-        ("Total biogas potential", f"{_fmt(muni.get('total_biogas_m3_year'))} m³/year"),
-        ("Energy potential", f"{_fmt(muni.get('energy_potential_mwh_year'))} MWh/year"),
-        ("CO₂ avoided", f"{_fmt(muni.get('co2_reduction_tons_year'))} t/year"),
-        ("Total biomass", f"{_fmt(muni.get('total_biomass_tons_year'))} t/year"),
-        ("Potential category", str(who.get("potential_category") or "—")),
-        ("Population", f"{_fmt(who.get('population'))} ({_fmt(who.get('population_year'))})"),
-        ("Area", f"{_fmt(who.get('area_km2'), 1)} km²"),
-        ("Data confidence", str(who.get("data_confidence") or "—")),
+        (t["pdf_total_biogas"], f"{fmt(muni.get('total_biogas_m3_year'))} {t['unit_m3_year']}"),
+        (t["pdf_energy"], f"{fmt(muni.get('energy_potential_mwh_year'))} {t['unit_mwh_year']}"),
+        (t["pdf_co2"], f"{fmt(muni.get('co2_reduction_tons_year'))} {t['unit_t_year']}"),
+        (t["pdf_biomass"], f"{fmt(muni.get('total_biomass_tons_year'))} {t['unit_t_year']}"),
+        (t["pdf_category"], str(potential_category(who.get("potential_category"), lang) or "—")),
+        # A year is a label, not a quantity: no thousands separator.
+        (t["pdf_population"], f"{fmt(who.get('population'))} ({population_year or '—'})"),
+        (t["pdf_area"], f"{fmt(who.get('area_km2'), 1)} km²"),
+        (t["pdf_confidence"], str(who.get("data_confidence") or "—")),
     ]
     story.append(_kv_table(headline))
     story.append(Spacer(1, 12))
 
-    story.append(Paragraph("Location", style["h2"]))
-    story.append(_locator_map(state_geojson, muni_geojson, str(who.get("uf") or "")))
+    story.append(Paragraph(t["pdf_location"], style["h2"]))
+    story.append(_locator_map(state_geojson, muni_geojson, str(who.get("uf") or ""), lang))
 
     # ── Sector breakdown ─────────────────────────────────────────────────────
-    sectors = [
-        ("Agricultural", muni.get("agricultural_biogas_m3_year")),
-        ("Livestock", muni.get("livestock_biogas_m3_year")),
-        ("Urban", muni.get("urban_biogas_m3_year")),
-        ("Forestry", muni.get("forestry_biogas_m3_year")),
-    ]
+    sectors = [(sector_name(k, lang) or k, muni.get(f"{k}_biogas_m3_year")) for k in SECTORS]
     total = sum(float(v or 0) for _, v in sectors) or 1.0
     story.append(PageBreak())
-    story.append(Paragraph("Biogas potential by sector", style["h2"]))
+    story.append(Paragraph(t["pdf_by_sector"], style["h2"]))
     story.append(
         _data_table(
-            ["Sector", "m³/year", "share"],
-            [(n, _fmt(v), f"{100 * float(v or 0) / total:.1f}%") for n, v in sectors],
+            [t["pdf_col_sector"], t["pdf_col_m3_year"], t["pdf_col_share"]],
+            [(n, fmt(v), f"{fmt(100 * float(v or 0) / total, 1)}%") for n, v in sectors],
             widths=(70 * mm, 55 * mm, 25 * mm),
         )
     )
@@ -582,17 +652,23 @@ def build_pdf(
     streams = sections.get("residue_streams") or []
     if streams:
         ordered = sorted(streams, key=lambda r: float(r.get("biogas_m3_yr") or 0), reverse=True)
-        story.append(Paragraph("Residue streams", style["h2"]))
+        story.append(Paragraph(t["pdf_streams"], style["h2"]))
         story.append(
             _data_table(
-                ["Stream", "Sector", "t/year", "m³ biogas/year", "MWh/year"],
+                [
+                    t["pdf_col_stream"],
+                    t["pdf_col_sector"],
+                    t["pdf_col_t_year"],
+                    t["pdf_col_biogas"],
+                    t["pdf_col_mwh"],
+                ],
                 [
                     (
-                        str(r.get("residue_stream_pt") or r.get("residue_stream") or "—"),
-                        str(r.get("sector_pt") or r.get("sector") or "—"),
-                        _fmt(r.get("residue_tons_yr")),
-                        _fmt(r.get("biogas_m3_yr")),
-                        _fmt(r.get("energy_mwh_yr")),
+                        _stream_label(r, lang),
+                        _stream_sector(r, lang),
+                        fmt(r.get("residue_tons_yr")),
+                        fmt(r.get("biogas_m3_yr")),
+                        fmt(r.get("energy_mwh_yr")),
                     )
                     for r in ordered
                 ],
@@ -610,24 +686,21 @@ def build_pdf(
     if provenance or sources:
         bits = []
         if sources:
-            bits.append(f"Time series sources: {', '.join(sources)}.")
+            bits.append(t["pdf_series_sources"].format(sources=", ".join(sources)))
         if provenance:
-            bits.append(f"{len(provenance)} biomass provenance record(s) held.")
+            bits.append(t["pdf_provenance_count"].format(count=len(provenance)))
         story.append(
             KeepTogether(
-                [Paragraph("Provenance", style["h2"]), Paragraph(" ".join(bits), style["body"])]
+                [
+                    Paragraph(t["pdf_provenance"], style["h2"]),
+                    Paragraph(" ".join(bits), style["body"]),
+                ]
             )
         )
 
     story.append(Spacer(1, 14))
-    story.append(
-        Paragraph(
-            f"Generated by PILAR-2b on "
-            f"{datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}. "
-            "Figures are modelled potential, not measured production.",
-            style["note"],
-        )
-    )
+    when = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    story.append(Paragraph(t["pdf_generated"].format(when=when), style["note"]))
 
     doc.build(story)
     return buffer.getvalue()

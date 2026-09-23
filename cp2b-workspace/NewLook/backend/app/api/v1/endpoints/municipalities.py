@@ -7,7 +7,7 @@ import json
 import logging
 import os
 import re
-from typing import Optional
+from typing import Annotated, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 
@@ -20,6 +20,7 @@ from app.services.canonical_loader import (
     biomass_tons_from_collected_waste,
     biomass_tons_from_units,
 )
+from app.services.dossier_text import DEFAULT_LANG, Lang
 from app.services.map_metrics import compute_municipality_map_metrics
 
 logger = logging.getLogger(__name__)
@@ -878,7 +879,7 @@ async def get_municipality(municipality_id: str):
 # FastAPI's threadpool instead.
 
 
-def _dossier(ibge_code: str, want_pdf: bool) -> tuple[bytes, str]:
+def _dossier(ibge_code: str, want_pdf: bool, lang: Lang = DEFAULT_LANG) -> tuple[bytes, str]:
     """Gather one municipality and render it, returning (payload, filename).
 
     Goes through app.services.municipality_dossier — the same gatherer the CLI
@@ -905,8 +906,8 @@ def _dossier(ibge_code: str, want_pdf: bool) -> tuple[bytes, str]:
 
     stem = f"{ibge_code}_{ascii_slug(who['municipality_name'])}"
     if want_pdf:
-        return build_pdf(sections, who, shape, outline), f"{stem}.pdf"
-    return build_workbook(sections, who), f"{stem}.xlsx"
+        return build_pdf(sections, who, shape, outline, lang), f"{stem}.pdf"
+    return build_workbook(sections, who, lang), f"{stem}.xlsx"
 
 
 def _attachment(payload: bytes, filename: str, media_type: str) -> Response:
@@ -922,10 +923,15 @@ def _attachment(payload: bytes, filename: str, media_type: str) -> Response:
     )
 
 
+# The language of the download: the profile page passes its own locale, so an
+# English reader gets an English workbook and report.
+DossierLang = Annotated[Lang, Query(description="Report language: pt-BR (default) or en")]
+
+
 @router.get("/{ibge_code}/dossie.xlsx", tags=["exports"])
-def download_municipality_workbook(ibge_code: str) -> Response:
-    """Curated pt-BR workbook: Resumo, Setores, Por resíduo, Séries, Infraestrutura, Fontes."""
-    payload, filename = _dossier(ibge_code, want_pdf=False)
+def download_municipality_workbook(ibge_code: str, lang: DossierLang = DEFAULT_LANG) -> Response:
+    """Curated six-sheet workbook — summary, sectors, residues, series, infrastructure, sources."""
+    payload, filename = _dossier(ibge_code, want_pdf=False, lang=lang)
     return _attachment(
         payload,
         filename,
@@ -934,7 +940,7 @@ def download_municipality_workbook(ibge_code: str) -> Response:
 
 
 @router.get("/{ibge_code}/dossie.pdf", tags=["exports"])
-def download_municipality_report(ibge_code: str) -> Response:
+def download_municipality_report(ibge_code: str, lang: DossierLang = DEFAULT_LANG) -> Response:
     """Municipal report as PDF, with the locator map drawn as vector (no tiles)."""
-    payload, filename = _dossier(ibge_code, want_pdf=True)
+    payload, filename = _dossier(ibge_code, want_pdf=True, lang=lang)
     return _attachment(payload, filename, "application/pdf")

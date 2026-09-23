@@ -214,9 +214,12 @@ class MapBiomasService:
                         agricultural_pixels += count
 
                 # Find dominant class
+                # The id travels with the (Portuguese) name so clients can name the
+                # class in their own language.
+                dominant_class_id: Optional[int] = None
                 if pixel_counts:
-                    dominant_class_id = pixel_counts.most_common(1)[0][0]
-                    dominant_info = MAPBIOMAS_CLASSES.get(int(dominant_class_id), {})
+                    dominant_class_id = int(pixel_counts.most_common(1)[0][0])
+                    dominant_info = MAPBIOMAS_CLASSES.get(dominant_class_id, {})
                     dominant_class = dominant_info.get("name", f"Classe {dominant_class_id}")
                 else:
                     dominant_class = "unknown"
@@ -231,6 +234,7 @@ class MapBiomasService:
                     "total_area_km2": round(total_area_km2, 2),
                     "by_class": by_class,
                     "dominant_class": dominant_class,
+                    "dominant_class_id": dominant_class_id,
                     "agricultural_percent": round(agricultural_percent, 2),
                     "total_pixels": total_pixels,
                     "pixel_resolution_m": round(np.sqrt(pixel_area_km2) * 1000, 2),

@@ -97,6 +97,8 @@ class LandUseResult(BaseModel):
     total_area_km2: float
     by_class: Dict[str, Dict[str, Any]]  # class_id -> {name, color, area_km2, percent}
     dominant_class: str
+    # MapBiomas id of dominant_class, so clients can name it in their language.
+    dominant_class_id: Optional[int] = None
     agricultural_percent: float
 
 

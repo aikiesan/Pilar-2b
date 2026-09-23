@@ -1,20 +1,21 @@
 import { DATA_EXPORT_ENABLED, DATA_EXPORT_DISABLED_REASON } from '@/lib/featureFlags';
 /**
  * Proximity Analysis API service for PILAR-2b V3
- * Handles spatial analysis with MapBiomas integration
- * Sprint 4: Added retry logic, timeout handling, and better error messages
- * Enhanced: Added frontend caching and request queue integration
+ * Handles spatial analysis with MapBiomas integration: retry, timeout, frontend
+ * caching and the request queue.
+ *
+ * No user-facing text here: failures are thrown as ProximityError with a code,
+ * and the page words them (pages.proximity.errors). CSV headers are passed in by
+ * the caller, in the page's language.
  */
 
 import { retryOperation, measurePerformance } from '@/lib/performance';
 import { logger } from '@/lib/logger';
 import { getFromCache, setInCache, generateCacheKey, CACHE_DURATION } from '@/lib/apiCache';
-import { fetchWithQueue } from '@/lib/apiQueue';
+import type { Locale } from '@/config/i18n';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
-const REQUEST_TIMEOUT = 120000; // 120 seconds - increased for debugging
-
-// Types matching backend Pydantic models
+const REQUEST_TIMEOUT = 120000; // 120 seconds
 
 export interface ProximityAnalysisRequest {
   latitude: number;
@@ -23,110 +24,124 @@ export interface ProximityAnalysisRequest {
   infrastructure_types?: string[];
 }
 
-export interface LandUseData {
-  class_name: string;
-  percentage: number;
-  area_km2: number;
-  color: string;
-}
-
-export interface MunicipalityData {
+/** One MapBiomas class inside the buffer, keyed by its class id. */
+export interface LandUseClass {
+  class_id: number;
+  /** Portuguese class name as served; display names come from the catalog by class_id. */
   name: string;
-  ibge_code: string;
-  distance_km: number;
-  biogas_m3_year: number;
-  population: number;
+  color: string;
+  /** agricultural | forestry | forest | water | grassland | urban | other | nodata | unknown */
+  category: string;
+  pixel_count: number;
+  area_km2: number;
+  percent: number;
 }
 
-export interface InfrastructureItem {
+export interface ProximityMunicipality {
+  name: string;
+  ibge_code?: string;
+  distance_km?: number;
+  biogas_m3_year?: number;
+  population?: number;
+  [key: string]: unknown;
+}
+
+export interface ProximityInfrastructure {
   type: string;
   name: string | null;
   distance_km: number;
-  found: boolean;
-  note?: string;
-  properties?: Record<string, any>;
-  coordinates?: {
-    latitude: number;
-    longitude: number;
-  };
+  coordinates?: { latitude: number; longitude: number };
+  [key: string]: unknown;
 }
 
-export interface BiogasBreakdown {
-  agricultural: number;
-  livestock: number;
-  urban: number;
-  total: number;
-}
-
-export interface ProximityAnalysisResponse {
-  analysis_point: {
-    latitude: number;
-    longitude: number;
+/** The /proximity/analyze response, as the backend sends it. */
+export interface ProximityAnalysisResult {
+  analysis_id: string;
+  request: { latitude: number; longitude: number; radius_km: number };
+  results: {
+    buffer_geometry: unknown;
+    municipalities: ProximityMunicipality[];
+    biogas_potential?: {
+      total_m3_year: number;
+      by_category: Record<string, number>;
+      energy_potential_mwh_year: number;
+      co2_reduction_tons_year: number;
+      homes_powered_equivalent: number;
+    };
+    land_use?: {
+      total_area_km2: number;
+      by_class: Record<string, LandUseClass>;
+      dominant_class: string;
+      /** Present on newer backends; otherwise derive it with dominantLandUseClass(). */
+      dominant_class_id?: number;
+      agricultural_percent: number;
+    };
+    infrastructure?: ProximityInfrastructure[];
   };
-  radius_km: number;
-  land_use: {
-    total_area_km2: number;
-    by_class: Record<string, {
-      class_id: number;
-      name: string;
-      color: string;
-      category: string;
-      pixel_count: number;
-      area_km2: number;
-      percent: number;
-    }>;
-    dominant_class: string;
-    agricultural_percent: number;
-    total_pixels?: number;
-    pixel_resolution_m?: number;
-    error?: string;
-    // Legacy support
-    agricultural_percentage?: number;
-    breakdown?: LandUseData[];
-  };
-  municipalities: MunicipalityData[];
-  biogas_potential: BiogasBreakdown;
-  infrastructure: InfrastructureItem[];
   summary: {
+    total_area_km2: number;
     total_municipalities: number;
     total_population: number;
-    avg_distance_km: number;
     total_biogas_m3_year: number;
+    energy_potential_mwh_year: number;
+    radius_recommendation: string;
   };
-  processing_time_seconds: number;
+  metadata: {
+    analysis_timestamp: string;
+    processing_time_ms: number;
+  };
+  from_cache?: boolean;
 }
 
-export interface RadiusRecommendation {
-  radius_km: number;
-  category: 'optimal' | 'good' | 'acceptable' | 'cautionary';
-  color: string;
-  description: string;
-  typical_use_case: string;
+export type ProximityErrorCode =
+  | 'rate_limited'
+  | 'timeout'
+  | 'network'
+  | 'invalid_coordinates'
+  | 'invalid_radius'
+  | 'server';
+
+/** A failed analysis. `code` selects the message; `retryAfter` is in seconds. */
+export class ProximityError extends Error {
+  constructor(
+    readonly code: ProximityErrorCode,
+    readonly retryAfter?: number,
+    readonly status?: number
+  ) {
+    super(`proximity analysis failed: ${code}${status ? ` (HTTP ${status})` : ''}`);
+    this.name = 'ProximityError';
+  }
 }
 
-export interface InfrastructureType {
-  key: string;
-  label: string;
-  icon: string;
-  description: string;
+/** Backend validation codes (ValidationService) → our error codes. */
+const VALIDATION_CODES: Record<string, ProximityErrorCode> = {
+  INVALID_COORDINATES: 'invalid_coordinates',
+  INVALID_RADIUS: 'invalid_radius',
+};
+
+/** The class covering the most of the buffer, when the backend did not name its id. */
+export function dominantLandUseClass(byClass: Record<string, LandUseClass>): LandUseClass | null {
+  let best: LandUseClass | null = null;
+  for (const entry of Object.values(byClass)) {
+    if (!best || entry.pixel_count > best.pixel_count) best = entry;
+  }
+  return best;
 }
 
 /**
- * Perform proximity analysis for a given point and radius
- * Sprint 4: Added timeout, retry logic, and performance measurement
- * Enhanced: Added frontend caching to reduce API calls
+ * Perform proximity analysis for a given point and radius, with timeout,
+ * retries and a frontend cache.
  */
 export async function analyzeProximity(
   request: ProximityAnalysisRequest
-): Promise<ProximityAnalysisResponse> {
-  // Check frontend cache first
+): Promise<ProximityAnalysisResult> {
   const cacheKey = generateCacheKey('proximity-analysis', {
     lat: request.latitude.toFixed(4),
     lng: request.longitude.toFixed(4),
     radius: request.radius_km.toString(),
   });
 
-  const cached = getFromCache<ProximityAnalysisResponse>(cacheKey);
+  const cached = getFromCache<ProximityAnalysisResult>(cacheKey);
   if (cached) {
     logger.info('🚀 Frontend cache hit - instant response');
     return cached;
@@ -134,12 +149,10 @@ export async function analyzeProximity(
 
   return measurePerformance('Proximity Analysis', async () => {
     return retryOperation(async () => {
-      // Create abort controller for timeout
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
 
       try {
-        // Log request for debugging
         logger.info('📍 Proximity Analysis Request:', {
           latitude: request.latitude,
           longitude: request.longitude,
@@ -148,9 +161,7 @@ export async function analyzeProximity(
 
         const response = await fetch(`${API_BASE_URL}/api/v1/proximity/analyze`, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(request),
           signal: controller.signal,
         });
@@ -158,26 +169,19 @@ export async function analyzeProximity(
         clearTimeout(timeoutId);
 
         if (!response.ok) {
-          // Handle rate limiting (429)
+          const data = await response.json().catch(() => ({}));
           if (response.status === 429) {
-            const data = await response.json().catch(() => ({ retry_after: 60 }));
-            const error = new Error(
-              `❌ Taxa de requisições excedida\n💡 Aguarde ${data.retry_after || 60} segundos e tente novamente.`
-            ) as any;
-            error.status = 429;
-            throw error;
+            throw new ProximityError('rate_limited', Number(data.retry_after) || 60, 429);
           }
-
-          // Handle other errors
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(
-            errorData.detail || `Erro na análise: ${response.statusText}`
-          );
+          // 400s carry { detail: { error, code, suggestion } }; the error text is
+          // the backend's own (Portuguese), so only the code is used.
+          const code = VALIDATION_CODES[data?.detail?.code] ?? 'server';
+          logger.warn('Proximity analysis rejected:', response.status, data?.detail);
+          throw new ProximityError(code, undefined, response.status);
         }
 
-        const result = await response.json();
+        const result: ProximityAnalysisResult = await response.json();
 
-        // Log full response for debugging
         logger.info('✅ API Response received:', {
           municipalities: result.results?.municipalities?.length || 0,
           totalBiogas: result.summary?.total_biogas_m3_year || 0,
@@ -185,152 +189,123 @@ export async function analyzeProximity(
           hasLandUse: !!result.results?.land_use,
           hasBiogasPotential: !!result.results?.biogas_potential,
         });
-        
-        // Log the full result structure for debugging
-        logger.debug('Full API result structure:', JSON.stringify(result, null, 2));
+        if (result.from_cache) logger.info('✅ Backend cache hit');
 
-        // Log cache hits from backend
-        if (result.from_cache) {
-          logger.info('✅ Backend cache hit (resposta instantânea)');
-        }
-
-        // Store in frontend cache
         setInCache(cacheKey, result, CACHE_DURATION.analysis);
-
         return result;
-      } catch (error: any) {
+      } catch (error: unknown) {
         clearTimeout(timeoutId);
-
-        // Handle timeout
-        if (error.name === 'AbortError') {
-          throw new Error(
-            '❌ Tempo limite excedido\n💡 A análise está demorando muito. Tente novamente com um raio menor.'
-          );
-        }
-
-        // Handle network errors
-        if (error.message && error.message.includes('fetch')) {
-          throw new Error(
-            '❌ Erro de conexão\n💡 Verifique sua conexão com a internet e tente novamente.'
-          );
-        }
-
-        // Log error details
+        if (error instanceof ProximityError) throw error;
+        if (error instanceof Error && error.name === 'AbortError') throw new ProximityError('timeout');
+        if (error instanceof TypeError) throw new ProximityError('network'); // fetch() network failure
         logger.error('❌ Proximity analysis failed:', error);
-
         throw error;
       }
-    }, 2, 1000); // Max 2 retries, 1 second initial delay
+    }, 2, 1000, isRetryable); // Max 2 retries, 1 second initial delay
   });
 }
 
 /**
- * Get radius recommendations based on CP2B methodology
+ * Only transient failures are retried: a dropped connection or a server error.
+ * A rejected point or radius will be rejected again, a rate limit is made worse
+ * by hammering, and a 2-minute timeout should not become a 6-minute wait.
  */
-export async function getRadiusRecommendations(): Promise<RadiusRecommendation[]> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/proximity/radius-recommendations`);
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch recommendations: ${response.statusText}`);
-  }
-
-  return response.json();
+function isRetryable(error: unknown): boolean {
+  if (!(error instanceof ProximityError)) return true;
+  return error.code === 'network' || (error.code === 'server' && (error.status ?? 500) >= 500);
 }
 
-/**
- * Validate if a point is within valid bounds
- */
-export async function validatePoint(
-  latitude: number,
-  longitude: number
-): Promise<{ valid: boolean; message: string }> {
-  const params = new URLSearchParams({
-    latitude: latitude.toString(),
-    longitude: longitude.toString(),
-  });
-
-  const response = await fetch(
-    `${API_BASE_URL}/api/v1/proximity/validate-point?${params}`
-  );
-
-  if (!response.ok) {
-    throw new Error(`Failed to validate point: ${response.statusText}`);
-  }
-
-  return response.json();
+/** Column and row headings for the CSV export, in the page's language. */
+export interface ProximityCsvHeaders {
+  municipalities: [name: string, ibge: string, distance: string, biogas: string, population: string];
+  landUse: [className: string, percent: string, area: string];
+  infrastructure: [type: string, name: string, distance: string, latitude: string, longitude: string];
+  summary: {
+    metric: string;
+    value: string;
+    latitude: string;
+    longitude: string;
+    radius: string;
+    municipalities: string;
+    population: string;
+    avgDistance: string;
+    totalBiogas: string;
+    agricultural: string;
+    livestock: string;
+    urban: string;
+    agriculturalLand: string;
+    processingTime: string;
+  };
+  /** Display name of a land-use class, by its MapBiomas id. */
+  landUseClass: (entry: LandUseClass) => string;
 }
 
-/**
- * Get available infrastructure types
- */
-export async function getInfrastructureTypes(): Promise<InfrastructureType[]> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/proximity/infrastructure-types`);
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch infrastructure types: ${response.statusText}`);
-  }
-
-  return response.json();
+/** Quotes a CSV field when it holds a comma, quote or line break. */
+function csvField(value: string | number): string {
+  const text = String(value);
+  return /[",\n\r]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
 }
 
+const csv = (rows: (string | number)[][]) => rows.map((row) => row.map(csvField).join(',')).join('\n');
+
 /**
- * Export analysis results as CSV
+ * Export analysis results as four CSV files. Numbers use a dot decimal
+ * separator, as data files should, whatever the page language.
  */
-export function exportAnalysisToCSV(analysis: ProximityAnalysisResponse): void {
+export function exportAnalysisToCSV(result: ProximityAnalysisResult, headers: ProximityCsvHeaders): void {
   const timestamp = new Date().toISOString().split('T')[0];
-  
-  // Create municipalities CSV
-  const municipalitiesCSV = [
-    ['Município', 'Código IBGE', 'Distância (km)', 'Biogás (m³/ano)', 'População'],
-    ...analysis.municipalities.map(m => [
+  const { municipalities } = result.results;
+  const landUse = Object.values(result.results.land_use?.by_class ?? {});
+  const infrastructure = result.results.infrastructure ?? [];
+  const byCategory = result.results.biogas_potential?.by_category ?? {};
+  const distances = municipalities.map((m) => Number(m.distance_km) || 0);
+  const avgDistance = distances.length ? distances.reduce((a, b) => a + b, 0) / distances.length : 0;
+  const fixed = (value: unknown, digits = 2) => (Number(value) || 0).toFixed(digits);
+
+  const municipalitiesCSV = csv([
+    headers.municipalities,
+    ...municipalities.map((m) => [
       m.name,
-      m.ibge_code,
-      m.distance_km.toFixed(2),
-      m.biogas_m3_year.toFixed(2),
-      m.population.toString()
-    ])
-  ].map(row => row.join(',')).join('\n');
+      m.ibge_code ?? '',
+      fixed(m.distance_km),
+      fixed(m.biogas_m3_year),
+      String(Number(m.population) || 0),
+    ]),
+  ]);
 
-  // Create land use CSV
-  const landUseCSV = [
-    ['Classe de Uso', 'Porcentagem (%)', 'Área (km²)'],
-    ...(analysis.land_use.breakdown || []).map(lu => [
-      lu.class_name,
-      lu.percentage.toFixed(2),
-      lu.area_km2.toFixed(2)
-    ])
-  ].map(row => row.join(',')).join('\n');
+  const landUseCSV = csv([
+    headers.landUse,
+    ...landUse.map((entry) => [headers.landUseClass(entry), fixed(entry.percent), fixed(entry.area_km2)]),
+  ]);
 
-  // Create infrastructure CSV
-  const infrastructureCSV = [
-    ['Tipo', 'Nome', 'Distância (km)', 'Latitude', 'Longitude'],
-    ...analysis.infrastructure.map(inf => [
+  const infrastructureCSV = csv([
+    headers.infrastructure,
+    ...infrastructure.map((inf) => [
       inf.type,
-      inf.name || '',
-      inf.distance_km.toFixed(2),
-      inf.coordinates?.latitude?.toFixed(6) || '',
-      inf.coordinates?.longitude?.toFixed(6) || ''
-    ])
-  ].map(row => row.join(',')).join('\n');
+      inf.name ?? '',
+      fixed(inf.distance_km),
+      inf.coordinates ? inf.coordinates.latitude.toFixed(6) : '',
+      inf.coordinates ? inf.coordinates.longitude.toFixed(6) : '',
+    ]),
+  ]);
 
-  // Create summary CSV
-  const summaryCSV = [
-    ['Métrica', 'Valor'],
-    ['Ponto de Análise (Lat)', analysis.analysis_point.latitude.toFixed(6)],
-    ['Ponto de Análise (Lng)', analysis.analysis_point.longitude.toFixed(6)],
-    ['Raio (km)', analysis.radius_km.toString()],
-    ['Total de Municípios', analysis.summary.total_municipalities.toString()],
-    ['População Total', analysis.summary.total_population.toString()],
-    ['Distância Média (km)', analysis.summary.avg_distance_km.toFixed(2)],
-    ['Potencial Total de Biogás (m³/ano)', analysis.summary.total_biogas_m3_year.toFixed(2)],
-    ['Potencial Agrícola (m³/ano)', analysis.biogas_potential.agricultural.toFixed(2)],
-    ['Potencial Pecuário (m³/ano)', analysis.biogas_potential.livestock.toFixed(2)],
-    ['Potencial Urbano (m³/ano)', analysis.biogas_potential.urban.toFixed(2)],
-    ['Uso Agrícola do Solo (%)', (analysis.land_use.agricultural_percent || 0).toFixed(2)],
-    ['Tempo de Processamento (s)', analysis.processing_time_seconds.toFixed(2)]
-  ].map(row => row.join(',')).join('\n');
+  const s = headers.summary;
+  const summaryCSV = csv([
+    [s.metric, s.value],
+    [s.latitude, result.request.latitude.toFixed(6)],
+    [s.longitude, result.request.longitude.toFixed(6)],
+    [s.radius, String(result.request.radius_km)],
+    [s.municipalities, String(result.summary.total_municipalities)],
+    [s.population, String(result.summary.total_population)],
+    [s.avgDistance, avgDistance.toFixed(2)],
+    [s.totalBiogas, fixed(result.summary.total_biogas_m3_year)],
+    [s.agricultural, fixed(byCategory.agricultural)],
+    [s.livestock, fixed(byCategory.livestock)],
+    [s.urban, fixed(byCategory.urban)],
+    [s.agriculturalLand, fixed(result.results.land_use?.agricultural_percent)],
+    [s.processingTime, (result.metadata.processing_time_ms / 1000).toFixed(2)],
+  ]);
 
-  // Download all CSVs as separate files
   downloadCSV(summaryCSV, `proximity_summary_${timestamp}.csv`);
   downloadCSV(municipalitiesCSV, `proximity_municipalities_${timestamp}.csv`);
   downloadCSV(landUseCSV, `proximity_land_use_${timestamp}.csv`);
@@ -347,7 +322,7 @@ function downloadCSV(content: string, filename: string): void {
     console.warn(DATA_EXPORT_DISABLED_REASON);
     return;
   }
-  const blob = new Blob(['\uFEFF' + content], { type: 'text/csv;charset=utf-8;' });
+  const blob = new Blob(['﻿' + content], { type: 'text/csv;charset=utf-8;' });
   const link = document.createElement('a');
   link.href = URL.createObjectURL(blob);
   link.download = filename;
@@ -356,20 +331,22 @@ function downloadCSV(content: string, filename: string): void {
 }
 
 /**
- * Generate shareable URL with analysis parameters
+ * Shareable URL for an analysis, in the sharer's language (a link without the
+ * locale prefix would open in Portuguese for everyone).
  */
 export function generateShareURL(
   latitude: number,
   longitude: number,
-  radiusKm: number
+  radiusKm: number,
+  locale: Locale
 ): string {
   const params = new URLSearchParams({
     lat: latitude.toFixed(6),
     lng: longitude.toFixed(6),
-    radius: radiusKm.toString()
+    radius: radiusKm.toString(),
   });
 
-  return `${window.location.origin}/dashboard/proximity?${params.toString()}`;
+  return `${window.location.origin}/${locale}/dashboard/proximity?${params.toString()}`;
 }
 
 /**
@@ -385,7 +362,7 @@ export function parseShareURL(): {
   }
 
   const params = new URLSearchParams(window.location.search);
-  
+
   const lat = params.get('lat');
   const lng = params.get('lng');
   const radius = params.get('radius');
@@ -393,7 +370,6 @@ export function parseShareURL(): {
   return {
     latitude: lat ? parseFloat(lat) : null,
     longitude: lng ? parseFloat(lng) : null,
-    radiusKm: radius ? parseInt(radius, 10) : null
+    radiusKm: radius ? parseInt(radius, 10) : null,
   };
 }
-

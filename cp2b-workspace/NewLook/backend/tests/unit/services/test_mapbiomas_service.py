@@ -176,6 +176,7 @@ class TestAnalyzeBuffer:
         assert result["total_area_km2"] > 0
         assert "by_class" in result
         assert result["dominant_class"] == "Cana-de-açúcar"  # Class 20
+        assert result["dominant_class_id"] == 20
         assert result["agricultural_percent"] == 70.0
 
     @patch("app.services.mapbiomas_service.rasterio")
@@ -555,6 +556,7 @@ class TestPixelCalculations:
 
         # Coffee should be dominant
         assert result["dominant_class"] == "Café"
+        assert result["dominant_class_id"] == 46
         assert result["by_class"]["46"]["percent"] == 60.0
 
 
