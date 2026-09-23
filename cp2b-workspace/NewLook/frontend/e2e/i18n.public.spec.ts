@@ -23,13 +23,14 @@
  *     registered Portuguese name on the citation page, which is a proper noun
  *     and correct to leave untranslated.
  *
- * ROUTES is a ratchet: it lists the pages verified clean. As each page in
- * PENDING is extracted to the message catalogs, move it up. Do not add a route
- * here until it passes, and never relax a marker to make a page go green —
- * that is how the test above got hollowed out.
+ * The routes checked are a ratchet, kept in ./routes.ts (LOCALE_CHECKED_ROUTES)
+ * so the same list also drives the warm-up in ./global-setup.ts. Add a page
+ * there once it is extracted to the catalogs and passes; never relax a marker
+ * to make a page go green — that is how the test above got hollowed out.
  */
 
 import { test, expect } from '@playwright/test';
+import { LOCALE_CHECKED_ROUTES as ROUTES } from './routes';
 
 /** Portuguese UI chrome. Never a proper noun, never a domain value. */
 const PORTUGUESE_UI = [
@@ -52,23 +53,6 @@ const PORTUGUESE_UI = [
   'Dados e documentação',
 ];
 
-/** Verified free of Portuguese UI text. Extend as pages are extracted. */
-const ROUTES = [
-  '/en/map',
-  '/en/dashboard',
-  '/en/dashboard/technology-routes',
-  '/en/sobre',
-  '/en/about',
-  '/en/guide',
-  '/en/cite',
-];
-
-/**
- * Every public page is on the list. Dashboard sub-pages (proximity,
- * advanced-analysis, scientific-database) are still untranslated and tracked in
- * docs/planning/ROADMAP_2026-09_EN_AND_LEAN.md — add each one here as it lands.
- */
-
 test.describe('Locale integrity — /en/ renders no Portuguese UI', () => {
   for (const route of ROUTES) {
     test(`${route} has no Portuguese UI text`, async ({ page }) => {
@@ -83,8 +67,9 @@ test.describe('Locale integrity — /en/ renders no Portuguese UI', () => {
       // Liveness first. "No Portuguese on the page" is trivially true of a 500
       // error page, so without these two assertions a fully broken app scores a
       // perfect run — which is exactly what happened the first time this suite
-      // was pointed at the Docker container: every route 500'd on a corrupted
-      // Turbopack cache and 7 of 8 tests still reported green.
+      // was pointed at the Docker container: every route 500'd on a corrupt
+      // .next/dev/prerender-manifest.json (see global-setup.ts) and 7 of 8 tests
+      // still reported green.
       expect(response?.status(), `${route} did not return a successful status`).toBeLessThan(400);
       expect(
         text.length,

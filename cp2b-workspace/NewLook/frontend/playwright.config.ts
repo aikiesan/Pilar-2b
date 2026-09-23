@@ -16,6 +16,11 @@ export default defineConfig({
   // Test directory
   testDir: './e2e',
 
+  // Compiles every public route one at a time before workers start. Without it,
+  // parallel first-requests corrupt next dev's prerender manifest and every route
+  // 500s until .next is wiped — see e2e/global-setup.ts.
+  globalSetup: './e2e/global-setup.ts',
+
   // Run tests in parallel
   fullyParallel: true,
 
