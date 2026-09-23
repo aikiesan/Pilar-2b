@@ -263,26 +263,6 @@
       "aria_label": "Watch platform video demonstration"
     }
   },
-  "_DEPRECATED_STUBS": {
-    "_note": "Home, About, Dashboard, Login, Register, Settings are unused legacy scaffolding. Active namespaces: landing, auth, common, Map, pages, dashboard_hub, settings_page, metadata."
-  },
-  "Home": {
-    "title": "Welcome",
-    "description": "Your description here"
-  },
-  "About": {
-    "title": "About Us",
-    "description": "Learn about our platform"
-  },
-  "Dashboard": {
-    "title": "Dashboard",
-    "welcome": "Welcome back"
-  },
-  "Login": {
-    "title": "Login",
-    "email": "Email",
-    "password": "Password"
-  },
   "Map": {
     "title": "Interactive Map",
     "legend": "Map Legend",
@@ -436,8 +416,6 @@
     },
     "closePanel": "Close panel",
     "expandPanel": "Expand filter panel",
-    "vis": "Vis",
-    "clearAll": "Clear",
     "scenario_label": "Scenario",
     "map_aria_label": "Interactive map of biogas potential across {state} municipalities",
     "map_keyboard_help": "Interactive map. With the map focused, use the arrow keys to pan and the plus and minus keys to zoom in and out. The same data is also available as tables and rankings on the analysis pages.",
@@ -542,14 +520,6 @@
       "c_mod": "Carbon-rich (40–55)",
       "c_rich": "Carbon excess (> 55)"
     }
-  },
-  "Register": {
-    "title": "Create Account",
-    "name": "Full Name"
-  },
-  "Settings": {
-    "title": "Settings",
-    "language": "Language"
   },
   "metadata": {
     "title": "PILAR-2b - Intelligent Waste Location and Utilization Platform for Biogas and Bioproducts",
@@ -1083,45 +1053,6 @@
     "two_factor": "Two-factor authentication",
     "session_timeout": "Session timeout (minutes)"
   },
-  "dashboard_page": {
-    "loading": "Loading municipality data...",
-    "error_heading": "Error Loading Data",
-    "retry": "Try Again",
-    "page_title": "PILAR-2b Dashboard V3",
-    "export": "Export Data",
-    "stat_municipalities": "Municipalities",
-    "stat_population": "Total Population",
-    "stat_area": "Total Area (km²)",
-    "stat_avg_biogas": "Average Biogas Potential",
-    "table_heading": "São Paulo Municipalities",
-    "results_count": "{filtered} of {total} municipalities",
-    "search_placeholder": "Search municipality...",
-    "col_municipality": "Municipality",
-    "col_ibge": "IBGE Code",
-    "col_population": "Population",
-    "col_area": "Area (km²)",
-    "col_biogas": "Biogas Potential",
-    "no_results": "No municipality found for \"{term}\""
-  },
-  "map_page": {
-    "loading": "Loading map...",
-    "error_heading": "Error Loading Map",
-    "retry": "Try Again",
-    "title": "Biogas Potential Map — São Paulo",
-    "municipalities_count": "{count} municipalities",
-    "layers_heading": "Map Layers",
-    "layer_osm": "OpenStreetMap",
-    "layer_satellite": "Satellite",
-    "layer_terrain": "Terrain",
-    "zoom_in": "Zoom In",
-    "zoom_out": "Zoom Out",
-    "reset_view": "Reset View",
-    "legend_title": "Biogas Potential (m³/year)",
-    "popup_ibge": "IBGE Code:",
-    "popup_population": "Population:",
-    "popup_area": "Area:",
-    "popup_biogas": "Biogas Potential:"
-  },
   "charts": {
     "loading": "Loading data...",
     "no_data": "No data available",
@@ -1273,23 +1204,16 @@
     },
     "residue_selector": {
       "placeholder": "Select one or more residues...",
-      "filter_title": "Residue Filter",
-      "select_all": "Select All",
       "livestock": "Livestock Residues",
       "urban": "Urban Residues",
       "industrial": "Industrial Residues",
       "agricultural": "Agricultural Residues",
       "clear": "Clear",
-      "apply_filter": "Apply Filter",
-      "none_selected": "No residues selected",
       "selected_count": "{count} residue(s) selected",
-      "agricultural_crops": "Agricultural Crops",
-      "residue_types": "Residue Type",
       "category_label_agricultural": "Agricultural",
       "category_label_livestock": "Livestock",
       "category_label_urban": "Urban",
       "residues_in_group": "{count} residues",
-      "not_viable": "FDE = 0% — Not viable for biogas",
       "apply_filters": "Apply Filters"
     },
     "export_options": {
@@ -1360,76 +1284,6 @@
       "fs_desc": "Availability throughout the year",
       "fl_label": "FL — Logistics Factor",
       "fl_desc": "Transport feasibility"
-    }
-  },
-  "technology_routes": {
-    "wizard": {
-      "title": "Route Wizard",
-      "step1_title": "Residue & quantity",
-      "step2_title": "Availability",
-      "step3_title": "Process configuration",
-      "step_indicator": "Step {current} of {total}",
-      "residue_label": "Residue type",
-      "residue_placeholder": "Select a residue...",
-      "category_urban": "Urban",
-      "category_livestock": "Livestock",
-      "category_agricultural": "Agricultural",
-      "category_industrial": "Industrial",
-      "amount_label": "Available quantity (t/year)",
-      "sp_reference": "SP reference",
-      "availability_hint": "Select the months when the residue is available",
-      "select_all_months": "Select all",
-      "clear_months": "Clear",
-      "months_selected": "{count} month(s) selected",
-      "seasonal_warning": "seasonality active",
-      "loading_technologies": "Loading technologies...",
-      "no_technologies_found": "No technologies found in the database. Please ensure your backend migrations have been run.",
-      "pretreatment_label": "Pre-treatment",
-      "optional": "optional",
-      "none": "None",
-      "digester_label": "Digestion technology",
-      "digester_placeholder": "Select a digester...",
-      "outputs_label": "Desired uses or outputs",
-      "outcomes_label": "What do you want to produce?",
-      "purification_label": "How to purify the biomethane?",
-      "price_overrides_label": "Adjust reference prices (default: SP 2025)",
-      "tariff_elec": "Electricity",
-      "tariff_fuel": "Biomethane",
-      "tariff_heat": "Heat / Steam",
-      "tariff_fert": "Biofertilizer",
-      "tariff_co2": "Carbon Credits",
-      "close": "Close",
-      "cancel": "Cancel",
-      "back": "Back",
-      "next": "Next",
-      "generate": "Generate Route"
-    },
-    "results": {
-      "title": "Wizard Results",
-      "no_residue": "Residue data not found",
-      "residue": "Residue",
-      "amount": "Amount",
-      "rpr": "Residue fraction (RPR)",
-      "theoretical_biogas": "Theoretical Biogas",
-      "available_biogas": "Available Biogas",
-      "energy_potential": "Energy Potential",
-      "ch4_equivalent": "CH₄ Equivalent",
-      "availability": "Availability",
-      "months": "months",
-      "seasonal_note": "Seasonal residue",
-      "seasonal_desc": "Available in {months} months of the year. Adjusted annual values reflect seasonality.",
-      "adjusted_label": "Adjusted Annual Values",
-      "biogas": "biogas",
-      "revenue_title": "Estimated Revenue",
-      "revenue_electricity": "Electricity",
-      "revenue_biomethane": "Biomethane",
-      "revenue_heat": "Heat / Steam",
-      "revenue_fertilizer": "Biofertilizer",
-      "revenue_carbon": "Carbon Credits",
-      "revenue_total": "Estimated Gross Revenue",
-      "per_year": "per year",
-      "revenue_disclaimer": "simplified estimate · excludes CAPEX/OPEX",
-      "revenue_source": "Sources: CPFL Paulista, Comgás CP, MFRural SP — 2025–2026"
     }
   },
   "cookieConsent": {

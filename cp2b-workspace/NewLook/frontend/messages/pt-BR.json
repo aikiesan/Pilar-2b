@@ -263,26 +263,6 @@
       "aria_label": "Assistir demonstração em vídeo da plataforma"
     }
   },
-  "_DEPRECATED_STUBS": {
-    "_note": "Home, About, Dashboard, Login, Register, Settings são scaffolding legado não utilizado. Namespaces ativos: landing, auth, common, Map, pages, dashboard_hub, settings_page, metadata."
-  },
-  "Home": {
-    "title": "Bem-vindo",
-    "description": "Sua descrição aqui"
-  },
-  "About": {
-    "title": "Sobre Nós",
-    "description": "Saiba mais sobre nossa plataforma"
-  },
-  "Dashboard": {
-    "title": "Dashboard",
-    "welcome": "Bem-vindo de volta"
-  },
-  "Login": {
-    "title": "Entrar",
-    "email": "E-mail",
-    "password": "Senha"
-  },
   "Map": {
     "title": "Mapa Interativo",
     "legend": "Legenda do Mapa",
@@ -436,8 +416,6 @@
     },
     "closePanel": "Fechar painel",
     "expandPanel": "Expandir painel de filtros",
-    "vis": "Vis",
-    "clearAll": "Limpar",
     "scenario_label": "Cenário",
     "map_aria_label": "Mapa interativo do potencial de biogás dos municípios de {state}",
     "map_keyboard_help": "Mapa interativo. Com o foco no mapa, use as setas do teclado para mover e as teclas mais e menos para aproximar e afastar. Os mesmos dados também estão disponíveis em tabelas e rankings nas páginas de análise.",
@@ -542,14 +520,6 @@
       "c_mod": "Rico em Carbono (40–55)",
       "c_rich": "Excesso de Carbono (> 55)"
     }
-  },
-  "Register": {
-    "title": "Criar Conta",
-    "name": "Nome Completo"
-  },
-  "Settings": {
-    "title": "Configurações",
-    "language": "Idioma"
   },
   "metadata": {
     "title": "PILAR-2b - Plataforma Inteligente de Localização e Aproveitamento de Resíduos para Biogas e Bioprodutos",
@@ -1083,45 +1053,6 @@
     "two_factor": "Autenticação de dois fatores",
     "session_timeout": "Tempo limite da sessão (minutos)"
   },
-  "dashboard_page": {
-    "loading": "Carregando dados dos municípios...",
-    "error_heading": "Erro ao Carregar Dados",
-    "retry": "Tentar Novamente",
-    "page_title": "Dashboard PILAR-2b V3",
-    "export": "Exportar Dados",
-    "stat_municipalities": "Municípios",
-    "stat_population": "População Total",
-    "stat_area": "Área Total (km²)",
-    "stat_avg_biogas": "Potencial Médio de Biogás",
-    "table_heading": "Municípios de São Paulo",
-    "results_count": "{filtered} de {total} municípios",
-    "search_placeholder": "Buscar município...",
-    "col_municipality": "Município",
-    "col_ibge": "Código IBGE",
-    "col_population": "População",
-    "col_area": "Área (km²)",
-    "col_biogas": "Potencial Biogás",
-    "no_results": "Nenhum município encontrado para \"{term}\""
-  },
-  "map_page": {
-    "loading": "Carregando mapa...",
-    "error_heading": "Erro ao Carregar Mapa",
-    "retry": "Tentar Novamente",
-    "title": "Mapa de Potencial Biogás — São Paulo",
-    "municipalities_count": "{count} municípios",
-    "layers_heading": "Camadas do Mapa",
-    "layer_osm": "OpenStreetMap",
-    "layer_satellite": "Satélite",
-    "layer_terrain": "Terreno",
-    "zoom_in": "Aumentar Zoom",
-    "zoom_out": "Diminuir Zoom",
-    "reset_view": "Resetar Vista",
-    "legend_title": "Potencial Biogás (m³/ano)",
-    "popup_ibge": "Código IBGE:",
-    "popup_population": "População:",
-    "popup_area": "Área:",
-    "popup_biogas": "Potencial Biogás:"
-  },
   "charts": {
     "loading": "Carregando dados...",
     "no_data": "Sem dados disponíveis",
@@ -1273,23 +1204,16 @@
     },
     "residue_selector": {
       "placeholder": "Selecione um ou mais resíduos...",
-      "filter_title": "Filtro de Resíduos",
-      "select_all": "Selecionar Todos",
       "livestock": "Resíduos Pecuários",
       "urban": "Resíduos Urbanos",
       "industrial": "Resíduos Industriais",
       "agricultural": "Resíduos Agrícolas",
       "clear": "Limpar",
-      "apply_filter": "Aplicar Filtro",
-      "none_selected": "Nenhum resíduo selecionado",
       "selected_count": "{count} resíduo(s) selecionado(s)",
-      "agricultural_crops": "Culturas Agrícolas",
-      "residue_types": "Tipos de Resíduo",
       "category_label_agricultural": "Agrícola",
       "category_label_livestock": "Pecuário",
       "category_label_urban": "Urbano",
       "residues_in_group": "{count} resíduos",
-      "not_viable": "FDE = 0% - Não viável para biogás",
       "apply_filters": "Aplicar Filtros"
     },
     "export_options": {
@@ -1360,76 +1284,6 @@
       "fs_desc": "Disponibilidade ao longo do ano",
       "fl_label": "FL - Fator de Logística",
       "fl_desc": "Viabilidade de transporte"
-    }
-  },
-  "technology_routes": {
-    "wizard": {
-      "title": "Assistente de Rotas",
-      "step1_title": "Resíduo e quantidade",
-      "step2_title": "Disponibilidade",
-      "step3_title": "Configuração do processo",
-      "step_indicator": "Passo {current} de {total}",
-      "residue_label": "Tipo de resíduo",
-      "residue_placeholder": "Selecione um resíduo...",
-      "category_urban": "Urbano",
-      "category_livestock": "Pecuário",
-      "category_agricultural": "Agrícola",
-      "category_industrial": "Industrial",
-      "amount_label": "Quantidade disponível (t/ano)",
-      "sp_reference": "Referência SP",
-      "availability_hint": "Selecione os meses em que o resíduo está disponível",
-      "select_all_months": "Selecionar todos",
-      "clear_months": "Limpar",
-      "months_selected": "{count} mês(es) selecionado(s)",
-      "seasonal_warning": "sazonalidade ativa",
-      "loading_technologies": "Carregando tecnologias...",
-      "no_technologies_found": "Nenhuma tecnologia encontrada no banco de dados. Verifique se as migrações do backend foram executadas.",
-      "pretreatment_label": "Pré-tratamento",
-      "optional": "opcional",
-      "none": "Nenhum",
-      "digester_label": "Tecnologia de digestão",
-      "digester_placeholder": "Selecione um digestor...",
-      "outputs_label": "Usos ou saídas desejadas",
-      "outcomes_label": "O que você quer produzir?",
-      "purification_label": "Como purificar o biometano?",
-      "price_overrides_label": "Ajustar preços de referência (padrão: SP 2025)",
-      "tariff_elec": "Energia Elétrica",
-      "tariff_fuel": "Biometano",
-      "tariff_heat": "Calor / Vapor",
-      "tariff_fert": "Biofertilizante",
-      "tariff_co2": "Créditos CO₂",
-      "close": "Fechar",
-      "cancel": "Cancelar",
-      "back": "Voltar",
-      "next": "Próximo",
-      "generate": "Gerar Rota"
-    },
-    "results": {
-      "title": "Resultados do Assistente",
-      "no_residue": "Dados do resíduo não encontrados",
-      "residue": "Resíduo",
-      "amount": "Quantidade",
-      "rpr": "Fração do resíduo (RPR)",
-      "theoretical_biogas": "Biogás Teórico",
-      "available_biogas": "Biogás Disponível",
-      "energy_potential": "Potencial Energético",
-      "ch4_equivalent": "Equivalente CH₄",
-      "availability": "Disponibilidade",
-      "months": "meses",
-      "seasonal_note": "Resíduo sazonal",
-      "seasonal_desc": "Disponível em {months} meses do ano. Os valores anuais ajustados refletem a sazonalidade.",
-      "adjusted_label": "Valores Anuais Ajustados",
-      "biogas": "biogás",
-      "revenue_title": "Receita Estimada",
-      "revenue_electricity": "Energia Elétrica",
-      "revenue_biomethane": "Biometano",
-      "revenue_heat": "Calor / Vapor",
-      "revenue_fertilizer": "Biofertilizante",
-      "revenue_carbon": "Créditos de Carbono",
-      "revenue_total": "Receita Bruta Total Estimada",
-      "per_year": "por ano",
-      "revenue_disclaimer": "estimativa simplificada · sem CAPEX/OPEX",
-      "revenue_source": "Referências: CPFL Paulista, Comgás CP, MFRural SP — 2025–2026"
     }
   },
   "cookieConsent": {
@@ -1710,7 +1564,7 @@
           "content": "1. Clique em qualquer local do mapa interativo para definir o ponto de interesse (latitude e longitude).\n2. Ajuste o controle deslizante do \"Raio de Captação\" (de 10 km a 100 km), acompanhando as recomendações de viabilidade logística.\n3. Clique no botão \"Analisar\" para processar os dados espaciais.\n4. Explore os resultados: área agricultável, distribuição detalhada de classes do MapBiomas e indicadores de energia.\n5. Utilize o botão \"Exportar Dados\" para baixar a planilha em CSV ou \"Compartilhar\" para gerar um link direto com a coordenada e raio analisados."
         }
       ]
-    } 
+    }
   },
   "tour": {
     "steps": {

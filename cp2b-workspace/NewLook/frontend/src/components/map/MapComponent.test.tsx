@@ -65,13 +65,8 @@ jest.mock('@/hooks/useGeospatialData', () => ({
   useMunicipalityMetrics: () => ({ data: undefined, isLoading: false, error: null }),
 }));
 
-// useCnProfiles lives in a separate module and also calls React Query —
-// stub it so the component doesn't need a QueryClientProvider.
-jest.mock('@/hooks/useCnProfiles', () => ({
-  useCnProfiles: () => ({ profiles: [], profilesMap: {}, isLoading: false, error: null }),
-}));
-
-// Same for the beta typology hook.
+// The beta typology hook lives in a separate module and also calls React
+// Query — stub it so the component doesn't need a QueryClientProvider.
 jest.mock('@/hooks/useTypologyProfiles', () => ({
   useTypologyProfiles: () => ({ typology: [], typologyMap: {}, isLoading: false, error: null }),
 }));
@@ -185,11 +180,6 @@ jest.mock('./BiomassLayerLegend', () => ({
     layerIds.length > 0 ? (
       <div data-testid="biomass-layer-legend">{layerIds.join(',')}</div>
     ) : null,
-}));
-
-jest.mock('./ReferencesPanel', () => ({
-  __esModule: true,
-  default: () => <div data-testid="references-panel">References</div>,
 }));
 
 jest.mock('./MapLoadingSkeleton', () => ({

@@ -62,7 +62,6 @@ Standard open-source project files at `cp2b-workspace/NewLook/`:
 | [`architecture/HOW_TO_ADD_TECHNOLOGIES.md`](architecture/HOW_TO_ADD_TECHNOLOGIES.md) | Quick start: add new technology cards via SQL (154 lines) |
 | [`architecture/ENHANCED_MAP_INTEGRATION_GUIDE.md`](architecture/ENHANCED_MAP_INTEGRATION_GUIDE.md) | Enhanced map visualization integration guide (478 lines) |
 | [`architecture/PERFORMANCE_OPTIMIZATIONS.md`](architecture/PERFORMANCE_OPTIMIZATIONS.md) | Performance optimization details — map loading, caching, bundle size (525 lines) |
-| [`architecture/REFERENCES_SYSTEM.md`](architecture/REFERENCES_SYSTEM.md) | Bibliographic references system — FDE factors, scientific database (368 lines) |
 
 ---
 
