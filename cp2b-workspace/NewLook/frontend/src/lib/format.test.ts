@@ -127,6 +127,12 @@ describe('formatDate', () => {
     expect(formatDate(Date.parse(date), 'en', { month: 'short', timeZone: 'UTC' })).toBe('Sep')
   })
 
+  it('keeps a date-only string on the day written, in any time zone', () => {
+    // UTC midnight is 21:00 the day before in São Paulo; the day must not slip.
+    expect(formatDate('2026-06-25', 'pt-BR')).toBe('25 de junho de 2026')
+    expect(formatDate('2026-06-25', 'en')).toBe('June 25, 2026')
+  })
+
   it.each([null, undefined, '', 'not a date'])('renders %p as the missing marker', (value) => {
     expect(formatDate(value, 'en')).toBe(MISSING_VALUE)
   })

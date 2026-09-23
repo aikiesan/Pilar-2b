@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { Calendar, CheckCircle2 } from 'lucide-react'
 
 export interface TimelineEvent {
@@ -24,7 +25,10 @@ interface TimelineProps {
  * @param events - Array of timeline events
  * @param className - Additional CSS classes
  */
+const STATUS_ICON = { completed: '✓', 'in-progress': '⚡', upcoming: '⏳' } as const
+
 export default function Timeline({ events, className = '' }: TimelineProps) {
+  const t = useTranslations('timeline.status')
   const [visibleEvents, setVisibleEvents] = useState<Set<number>>(new Set())
   const eventRefs = useRef<(HTMLDivElement | null)[]>([])
 
@@ -144,9 +148,7 @@ export default function Timeline({ events, className = '' }: TimelineProps) {
                         : 'bg-gray-100 text-gray-800'
                     }`}
                   >
-                    {event.status === 'completed' && '✓ Concluído'}
-                    {event.status === 'in-progress' && '⚡ Em Andamento'}
-                    {event.status === 'upcoming' && '⏳ Planejado'}
+                    <span aria-hidden="true">{STATUS_ICON[event.status]}</span>&nbsp;{t(event.status)}
                   </span>
                 </div>
               )}

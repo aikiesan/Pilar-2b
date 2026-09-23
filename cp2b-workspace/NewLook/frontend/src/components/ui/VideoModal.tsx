@@ -1,13 +1,14 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
+import { useTranslations } from 'next-intl'
 import { X } from 'lucide-react'
 
 interface VideoModalProps {
   isOpen: boolean
   onClose: () => void
-  videoUrl?: string
-  title?: string
+  videoUrl: string
+  title: string
 }
 
 /**
@@ -19,12 +20,8 @@ interface VideoModalProps {
  * @param videoUrl - URL of the video (YouTube, Vimeo, or direct video file)
  * @param title - Title for accessibility
  */
-export default function VideoModal({
-  isOpen,
-  onClose,
-  videoUrl = 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-  title = 'Demo da Plataforma PILAR-2b'
-}: VideoModalProps) {
+export default function VideoModal({ isOpen, onClose, videoUrl, title }: VideoModalProps) {
+  const t = useTranslations('videoModal')
   const modalRef = useRef<HTMLDivElement>(null)
   const closeButtonRef = useRef<HTMLButtonElement>(null)
 
@@ -129,9 +126,9 @@ export default function VideoModal({
           ref={closeButtonRef}
           onClick={onClose}
           className="absolute -top-12 right-0 p-2 text-white hover:text-cp2b-lime transition-colors focus:outline-none focus:ring-2 focus:ring-cp2b-lime rounded-lg"
-          aria-label="Fechar modal de vídeo"
+          aria-label={t('close')}
         >
-          <X className="w-8 h-8" />
+          <X className="w-8 h-8" aria-hidden="true" />
         </button>
 
         {/* Video Container */}

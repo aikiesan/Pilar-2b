@@ -35,7 +35,6 @@ const report = process.argv.includes('--report');
 
 /** Files still carrying hardcoded Portuguese. Only ever delete from this list. */
 const PENDING = [
-  'src/app/[locale]/accessibility/page.tsx',
   'src/app/[locale]/dashboard/advanced-analysis/page.tsx',
   'src/app/[locale]/dashboard/proximity/page.tsx',
   'src/app/[locale]/dashboard/scientific-database/page.tsx',
@@ -44,10 +43,6 @@ const PENDING = [
   'src/app/[locale]/dashboard/technology-routes/components/StepAtividade.tsx',
   'src/app/[locale]/dashboard/technology-routes/components/StepIdentificacao.tsx',
   'src/app/[locale]/municipality/[ibge_code]/page.tsx',
-  'src/app/[locale]/privacy/page.tsx',
-  'src/app/[locale]/settings/page.tsx',
-  'src/app/[locale]/terms/page.tsx',
-  'src/components/ErrorBoundary.tsx',
   'src/components/analysis/ReferencesModal.tsx',
   'src/components/analysis/ScenarioComparator.tsx',
   'src/components/analysis/ScenarioSelector.tsx',
@@ -55,13 +50,8 @@ const PENDING = [
   'src/components/analysis/TopMunicipalitiesMiniCard.tsx',
   'src/components/analysis/charts/CategoryComparisonChart.tsx',
   'src/components/analysis/charts/RegionalPieChart.tsx',
-  'src/components/layout/Footer.tsx',
   'src/components/scientific/ParameterWithReference.tsx',
   'src/components/scientific/ReferencePopover.tsx',
-  'src/components/ui/NewsletterSignup.tsx',
-  'src/components/ui/Timeline.tsx',
-  'src/components/ui/VideoModal.tsx',
-  'src/contexts/AuthContext.tsx',
   'src/data/residueFactors.ts',
   'src/data/scientificData.ts',
   'src/services/proximityApi.ts',

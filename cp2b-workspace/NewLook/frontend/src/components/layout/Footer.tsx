@@ -5,6 +5,8 @@ import Image from 'next/image'
 import { Link } from '@/navigation'
 import { useTranslations } from 'next-intl'
 import { ArrowUp, Mail, CheckCircle2, AlertCircle } from 'lucide-react'
+import { validateEmail, type ValidationError } from '@/lib/validation'
+import { useValidationMessage } from '@/hooks/useValidationMessage'
 
 // Social icons removed from lucide-react v1.x — inline SVGs
 function InstagramIcon({ className }: { className?: string }) {
@@ -49,13 +51,18 @@ function WhatsAppIcon({ className }: { className?: string }) {
 export default function Footer() {
   const t = useTranslations('landing')
   const tNav = useTranslations('common.nav')
+  const tAuth = useTranslations('common.auth')
+  const validationMessage = useValidationMessage()
 
   const [email, setEmail] = useState('')
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
+  const [emailError, setEmailError] = useState<ValidationError | null>(null)
 
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    const problem = validateEmail(email)
+    setEmailError(problem)
+    if (problem) {
       setStatus('error')
       return
     }
@@ -99,8 +106,8 @@ export default function Footer() {
     { href: '/map', label: tNav('map') },
     { href: '/dashboard', label: tNav('dashboard') },
     { href: '/about', label: tNav('about') },
-    { href: '/cite', label: t('footer.about') === 'About' ? 'How to Cite' : 'Como Citar' },
-    { href: '/login', label: t('footer.about') === 'About' ? 'Login' : 'Entrar' },
+    { href: '/cite', label: tNav('cite') },
+    { href: '/login', label: tAuth('login') },
   ]
 
   return (
@@ -136,11 +143,12 @@ export default function Footer() {
                   id="footer-email"
                   type="email"
                   value={email}
-                  onChange={(e) => { setEmail(e.target.value); setStatus('idle') }}
+                  onChange={(e) => { setEmail(e.target.value); setStatus('idle'); setEmailError(null) }}
                   placeholder={t('footer.newsletter_email_placeholder')}
                   className="w-full px-4 py-2.5 text-sm bg-white/5 border border-white/15 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cp2b-lime focus:border-transparent transition-colors"
                   disabled={status === 'loading' || status === 'success'}
                   aria-describedby="footer-newsletter-status"
+                  aria-invalid={emailError !== null}
                 />
               </div>
               <button
@@ -161,10 +169,10 @@ export default function Footer() {
                 {t('footer.newsletter_success')}
               </p>
             )}
-            {status === 'error' && (
+            {status === 'error' && emailError && (
               <p className="flex items-center gap-2 text-xs text-red-400">
                 <AlertCircle className="w-3.5 h-3.5" aria-hidden="true" />
-                {t('footer.newsletter_error')}
+                {validationMessage(emailError)}
               </p>
             )}
           </div>
@@ -216,7 +224,7 @@ export default function Footer() {
             <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-4">
               {t('footer.quick_links')}
             </p>
-            <nav aria-label="Footer quick links">
+            <nav aria-label={t('footer.quick_links')}>
               <ul className="space-y-2.5 list-none">
                 {quickLinks.map((link) => (
                   <li key={link.href}>
@@ -259,7 +267,7 @@ export default function Footer() {
             </div>
 
             <div className="mt-6 space-y-1">
-              <p className="text-xs text-gray-500">São Paulo, Brasil</p>
+              <p className="text-xs text-gray-500">{t('footer.location')}</p>
               <a
                 href="https://nipe.unicamp.br/cp2b/"
                 target="_blank"
@@ -279,7 +287,7 @@ export default function Footer() {
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-500">
 
             {/* Legal links */}
-            <nav aria-label="Legal links">
+            <nav aria-label={t('footer.legal_links')}>
               <ul className="flex items-center gap-1 list-none">
                 <li>
                   <Link

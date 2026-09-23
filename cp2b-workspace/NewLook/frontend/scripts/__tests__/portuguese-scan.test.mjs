@@ -108,6 +108,19 @@ test('the English half of a localized record is still checked', () => {
   assert.deepEqual(texts(source, 'x.ts'), ['Bagaço de cana']);
 });
 
+test('the Portuguese half may be a whole document, however deep', () => {
+  const source = `const doc = {
+    'pt-BR': { title: 'Termos de Uso', sections: [{ h: 'Objeto', p: ['Você concorda com estes termos.'] }] },
+    en: { title: 'Terms of Use', sections: [{ h: 'Scope', p: ['Você concorda.'] }] },
+  }`;
+  assert.deepEqual(texts(source, 'x.ts'), ['Você concorda.']);
+});
+
+test('code inside the Portuguese half is still code, not data', () => {
+  const source = `const doc = { 'pt-BR': { render: () => 'Não há dados' } }`;
+  assert.deepEqual(texts(source, 'x.ts'), ['Não há dados']);
+});
+
 test('honors i18n-exempt with a reason, on the line or the line above', () => {
   const source = `
     const state = 'São Paulo' // i18n-exempt: proper noun

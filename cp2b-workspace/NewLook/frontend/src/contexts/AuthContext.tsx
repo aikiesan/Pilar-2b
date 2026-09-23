@@ -43,7 +43,7 @@ const AUTH_DISABLED = process.env.NEXT_PUBLIC_DISABLE_AUTH === 'true'
 const TEST_USER: UserProfile = {
   id: '00000000-0000-0000-0000-000000000000',
   email: 'test@example.org',
-  full_name: 'Usuário de Teste',
+  full_name: 'Test User',
   role: 'interno',
   clearance: 2,
   is_active: true,

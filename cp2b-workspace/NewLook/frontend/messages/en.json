@@ -107,10 +107,7 @@
   },
   "auth": {
     "errors": {
-      "fill_all_fields": "Please fill in all fields",
       "login_failed": "Login failed. Please check your credentials.",
-      "password_min_length": "Password must be at least 6 characters",
-      "passwords_no_match": "Passwords do not match",
       "registration_failed": "Registration failed. Please try again."
     },
     "login": {
@@ -285,7 +282,6 @@
       "newsletter_email_placeholder": "Your email",
       "newsletter_submit": "Subscribe",
       "newsletter_success": "Thank you! You'll receive our updates soon.",
-      "newsletter_error": "Please enter a valid email.",
       "quick_links": "Quick Links",
       "connect": "Connect",
       "privacy": "Privacy Policy",
@@ -297,7 +293,9 @@
       "whatsapp_label": "WhatsApp PILAR-2b",
       "instagram_label": "Instagram @centro_biogas_cp2b",
       "linkedin_label": "LinkedIn PILAR-2b / CP2b",
-      "youtube_label": "YouTube CP2b"
+      "youtube_label": "YouTube CP2b",
+      "location": "São Paulo, Brazil",
+      "legal_links": "Legal links"
     },
     "navigation": {
       "previous": "Previous",
@@ -1574,7 +1572,10 @@
     "security_heading": "Security",
     "security_subtitle": "Manage your account security",
     "two_factor": "Two-factor authentication",
-    "session_timeout": "Session timeout (minutes)"
+    "session_timeout": "Session timeout (minutes)",
+    "change_password": "Change Password",
+    "help_title": "Need help?",
+    "help_body": "Contact our support team for technical assistance."
   },
   "charts": {
     "loading": "Loading data...",
@@ -2163,5 +2164,43 @@
     "compare": "Compare",
     "min_hint": "Select at least {min} municipalities to compare",
     "limit": "You can compare at most {max} municipalities at a time."
+  },
+  "legal": {
+    "updated": "Last updated: {date}"
+  },
+  "errorBoundary": {
+    "title": "Something went wrong",
+    "message": "Sorry, something unexpected went wrong. Try again, or go back to the home page.",
+    "details": "Error details (development only)",
+    "home": "Go to the home page"
+  },
+  "validation": {
+    "required": "Please fill in all required fields.",
+    "email_invalid": "Enter a valid email address.",
+    "password_too_short": "The password must be at least {min} characters long.",
+    "passwords_mismatch": "The passwords do not match.",
+    "consent_required": "Your consent is needed to continue."
+  },
+  "newsletter": {
+    "title": "Stay Up to Date",
+    "description": "Get updates on new features, analyses and biogas insights.",
+    "email_label": "Email address",
+    "email_placeholder": "you@example.com",
+    "submit": "Subscribe for free",
+    "processing": "Processing…",
+    "subscribed": "Subscribed!",
+    "success": "Thank you! You will receive our updates soon.",
+    "failure": "Your request could not be processed. Please try again.",
+    "privacy": "We respect your privacy. You can unsubscribe at any time."
+  },
+  "videoModal": {
+    "close": "Close video"
+  },
+  "timeline": {
+    "status": {
+      "completed": "Completed",
+      "in-progress": "In progress",
+      "upcoming": "Planned"
+    }
   }
 }

@@ -93,6 +93,37 @@ const MATCHER_METHODS = new Set([
 ]);
 const BARE_EXEMPT = /i18n-exempt(?!:\s*\S)(?!-file)/;
 
+/** Nodes a string can sit inside while still being plain data. */
+function isDataNode(n) {
+  return (
+    ts.isObjectLiteralExpression(n) ||
+    ts.isArrayLiteralExpression(n) ||
+    ts.isPropertyAssignment(n) ||
+    ts.isParenthesizedExpression(n) ||
+    ts.isAsExpression(n) ||
+    ts.isSatisfiesExpression?.(n) ||
+    ts.isTemplateExpression(n) ||
+    ts.isTemplateSpan(n) ||
+    (ts.isBinaryExpression(n) && n.operatorToken.kind === ts.SyntaxKind.PlusToken)
+  );
+}
+
+/**
+ * A localized record's Portuguese half: `{ 'pt-BR': '…', en: '…' }`, where the
+ * half may itself be a whole structure — `{ 'pt-BR': { title, sections: […] } }`.
+ * Walks up through data nodes only, so a function inside the half is still
+ * scanned like any other code.
+ */
+function isInPortugueseHalf(node) {
+  for (let child = node, n = node.parent; n && isDataNode(n); child = n, n = n.parent) {
+    if (ts.isPropertyAssignment(n) && n.initializer === child) {
+      const name = n.name;
+      if ((ts.isStringLiteral(name) || ts.isIdentifier(name)) && name.text === 'pt-BR') return true;
+    }
+  }
+  return false;
+}
+
 function isCodeContext(node) {
   const parent = node.parent;
   if (!parent) return false;
@@ -119,11 +150,7 @@ function isCodeContext(node) {
       return true;
     }
   }
-  // A localized record's Portuguese half: { 'pt-BR': '…', en: '…' }.
-  if (ts.isPropertyAssignment(parent) && parent.initializer === node) {
-    const name = parent.name;
-    if ((ts.isStringLiteral(name) || ts.isIdentifier(name)) && name.text === 'pt-BR') return true;
-  }
+  if (isInPortugueseHalf(node)) return true;
   // Developer output.
   for (let n = parent; n; n = n.parent) {
     if (ts.isCallExpression(n)) {

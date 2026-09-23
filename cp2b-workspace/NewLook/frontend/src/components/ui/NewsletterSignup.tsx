@@ -1,206 +1,93 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { Mail, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react'
+import { validateEmail } from '@/lib/validation'
+import { useValidationMessage } from '@/hooks/useValidationMessage'
 
 interface NewsletterSignupProps {
   title?: string
   description?: string
   className?: string
-  variant?: 'default' | 'compact' | 'inline'
 }
 
+type Status = 'idle' | 'loading' | 'success' | 'error'
+
 /**
- * NewsletterSignup Component
- * Accessible form for newsletter subscriptions
+ * Newsletter sign-up card (About pages).
  *
- * @param title - Heading text
- * @param description - Descriptive text
- * @param className - Additional CSS classes
- * @param variant - Layout variant (default, compact, inline)
+ * NOTE: there is no newsletter service yet — the submission below is
+ * simulated, as it was before this component was translated. Wire it to a
+ * real endpoint before relying on it.
  */
-export default function NewsletterSignup({
-  title = 'Fique por dentro das novidades',
-  description = 'Receba atualizações sobre novos recursos, análises e insights sobre biogás.',
-  className = '',
-  variant = 'default'
-}: NewsletterSignupProps) {
+export default function NewsletterSignup({ title, description, className = '' }: NewsletterSignupProps) {
+  const t = useTranslations('newsletter')
+  const validationMessage = useValidationMessage()
   const [email, setEmail] = useState('')
-  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
+  const [status, setStatus] = useState<Status>('idle')
   const [message, setMessage] = useState('')
+
+  const resetLater = () =>
+    setTimeout(() => {
+      setStatus('idle')
+      setMessage('')
+    }, 5000)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    // Validate email
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    const problem = validateEmail(email)
+    if (problem) {
       setStatus('error')
-      setMessage('Por favor, insira um email válido.')
+      setMessage(validationMessage(problem))
       return
     }
 
     setStatus('loading')
-
-    // Simulate API call (replace with actual API endpoint)
     try {
-      // TODO: Replace with actual newsletter API endpoint
+      // TODO: replace with the newsletter API once one exists.
       await new Promise((resolve) => setTimeout(resolve, 1500))
-
-      // For now, just show success
       setStatus('success')
-      setMessage('Obrigado! Você receberá nossas atualizações em breve.')
+      setMessage(t('success'))
       setEmail('')
-
-      // Reset after 5 seconds
-      setTimeout(() => {
-        setStatus('idle')
-        setMessage('')
-      }, 5000)
-    } catch (error) {
+    } catch {
       setStatus('error')
-      setMessage('Erro ao processar sua solicitação. Tente novamente.')
-
-      // Reset after 5 seconds
-      setTimeout(() => {
-        setStatus('idle')
-        setMessage('')
-      }, 5000)
+      setMessage(t('failure'))
     }
+    resetLater()
   }
 
-  // Compact variant (small, inline)
-  if (variant === 'compact') {
-    return (
-      <div className={`${className}`}>
-        <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2">
-          <div className="flex-1">
-            <label htmlFor="newsletter-email-compact" className="sr-only">
-              Email
-            </label>
-            <input
-              id="newsletter-email-compact"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="seu@email.com"
-              disabled={status === 'loading' || status === 'success'}
-              className="w-full px-4 py-2 text-sm border border-gray-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-cp2b-lime bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 disabled:opacity-50"
-              aria-describedby={message ? 'newsletter-message-compact' : undefined}
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={status === 'loading' || status === 'success'}
-            className="px-6 py-2 text-sm font-semibold text-white bg-cp2b-green hover:bg-cp2b-dark-green disabled:bg-gray-400 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cp2b-lime"
-          >
-            {status === 'loading' ? (
-              <Loader2 className="w-4 h-4 animate-spin inline" />
-            ) : status === 'success' ? (
-              <CheckCircle2 className="w-4 h-4 inline" />
-            ) : (
-              'Assinar'
-            )}
-          </button>
-        </form>
-        {message && (
-          <p
-            id="newsletter-message-compact"
-            className={`mt-2 text-xs ${
-              status === 'success' ? 'text-green-600' : 'text-red-600'
-            }`}
-            role="alert"
-          >
-            {message}
-          </p>
-        )}
-      </div>
-    )
-  }
+  const busy = status === 'loading' || status === 'success'
 
-  // Inline variant (text + input in one line)
-  if (variant === 'inline') {
-    return (
-      <div className={`${className}`}>
-        <form onSubmit={handleSubmit} className="flex items-center gap-3">
-          <Mail className="w-5 h-5 text-cp2b-green flex-shrink-0" />
-          <div className="flex-1">
-            <label htmlFor="newsletter-email-inline" className="sr-only">
-              Email
-            </label>
-            <input
-              id="newsletter-email-inline"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Digite seu email"
-              disabled={status === 'loading' || status === 'success'}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-cp2b-lime bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 disabled:opacity-50"
-              aria-describedby={message ? 'newsletter-message-inline' : undefined}
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={status === 'loading' || status === 'success'}
-            className="px-6 py-2 font-semibold text-white bg-cp2b-green hover:bg-cp2b-dark-green disabled:bg-gray-400 rounded-lg transition-colors flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cp2b-lime"
-          >
-            {status === 'loading' ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
-            ) : status === 'success' ? (
-              <>
-                <CheckCircle2 className="w-5 h-5" />
-                Inscrito!
-              </>
-            ) : (
-              'Inscrever'
-            )}
-          </button>
-        </form>
-        {message && (
-          <p
-            id="newsletter-message-inline"
-            className={`mt-2 text-sm ${
-              status === 'success' ? 'text-green-600' : 'text-red-600'
-            }`}
-            role="alert"
-          >
-            {message}
-          </p>
-        )}
-      </div>
-    )
-  }
-
-  // Default variant (full card with title and description)
   return (
     <div className={`bg-gradient-to-br from-cp2b-lime-light to-green-50 dark:from-slate-800 dark:to-slate-900 rounded-2xl p-8 border border-cp2b-lime/30 dark:border-slate-700 ${className}`}>
-      {/* Icon */}
       <div className="inline-flex p-3 rounded-xl bg-cp2b-green/10 mb-4">
-        <Mail className="w-8 h-8 text-cp2b-green" />
+        <Mail className="w-8 h-8 text-cp2b-green" aria-hidden="true" />
       </div>
 
-      {/* Title */}
       <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-        {title}
+        {title ?? t('title')}
       </h3>
 
-      {/* Description */}
       <p className="text-gray-600 dark:text-gray-300 mb-6">
-        {description}
+        {description ?? t('description')}
       </p>
 
-      {/* Form */}
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4" noValidate>
         <div>
           <label htmlFor="newsletter-email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Endereço de email
+            {t('email_label')}
           </label>
           <input
             id="newsletter-email"
             type="email"
+            autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="seu@email.com"
-            disabled={status === 'loading' || status === 'success'}
+            placeholder={t('email_placeholder')}
+            disabled={busy}
+            aria-invalid={status === 'error'}
             className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-cp2b-lime bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 disabled:opacity-50"
             aria-describedby={message ? 'newsletter-message' : undefined}
           />
@@ -208,29 +95,28 @@ export default function NewsletterSignup({
 
         <button
           type="submit"
-          disabled={status === 'loading' || status === 'success'}
+          disabled={busy}
           className="w-full px-6 py-3 font-semibold text-white bg-cp2b-green hover:bg-cp2b-dark-green disabled:bg-gray-400 rounded-lg transition-all hover:scale-[1.02] flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cp2b-lime"
         >
           {status === 'loading' ? (
             <>
-              <Loader2 className="w-5 h-5 animate-spin" />
-              Processando...
+              <Loader2 className="w-5 h-5 animate-spin" aria-hidden="true" />
+              {t('processing')}
             </>
           ) : status === 'success' ? (
             <>
-              <CheckCircle2 className="w-5 h-5" />
-              Inscrito com sucesso!
+              <CheckCircle2 className="w-5 h-5" aria-hidden="true" />
+              {t('subscribed')}
             </>
           ) : (
             <>
-              Inscrever-se gratuitamente
-              <Mail className="w-5 h-5" />
+              {t('submit')}
+              <Mail className="w-5 h-5" aria-hidden="true" />
             </>
           )}
         </button>
       </form>
 
-      {/* Status Message */}
       {message && (
         <div
           id="newsletter-message"
@@ -242,18 +128,15 @@ export default function NewsletterSignup({
           role="alert"
         >
           {status === 'success' ? (
-            <CheckCircle2 className="w-5 h-5 flex-shrink-0 mt-0.5" />
+            <CheckCircle2 className="w-5 h-5 flex-shrink-0 mt-0.5" aria-hidden="true" />
           ) : (
-            <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+            <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" aria-hidden="true" />
           )}
           <p className="text-sm">{message}</p>
         </div>
       )}
 
-      {/* Privacy Note */}
-      <p className="mt-4 text-xs text-gray-500 dark:text-gray-400">
-        Respeitamos sua privacidade. Você pode cancelar a inscrição a qualquer momento.
-      </p>
+      <p className="mt-4 text-xs text-gray-500 dark:text-gray-400">{t('privacy')}</p>
     </div>
   )
 }

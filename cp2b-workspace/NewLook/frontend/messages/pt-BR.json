@@ -107,10 +107,7 @@
   },
   "auth": {
     "errors": {
-      "fill_all_fields": "Por favor, preencha todos os campos",
       "login_failed": "Falha no login. Verifique suas credenciais.",
-      "password_min_length": "A senha deve ter no mínimo 6 caracteres",
-      "passwords_no_match": "As senhas não coincidem",
       "registration_failed": "Falha no registro. Tente novamente."
     },
     "login": {
@@ -285,7 +282,6 @@
       "newsletter_email_placeholder": "Seu e-mail",
       "newsletter_submit": "Inscrever",
       "newsletter_success": "Obrigado! Você receberá nossas novidades em breve.",
-      "newsletter_error": "Por favor, insira um e-mail válido.",
       "quick_links": "Links Rápidos",
       "connect": "Conecte-se",
       "privacy": "Política de Privacidade",
@@ -297,7 +293,9 @@
       "whatsapp_label": "WhatsApp PILAR-2b",
       "instagram_label": "Instagram @centro_biogas_cp2b",
       "linkedin_label": "LinkedIn PILAR-2b / CP2b",
-      "youtube_label": "YouTube CP2b"
+      "youtube_label": "YouTube CP2b",
+      "location": "São Paulo, Brasil",
+      "legal_links": "Links legais"
     },
     "navigation": {
       "previous": "Anterior",
@@ -1574,7 +1572,10 @@
     "security_heading": "Segurança",
     "security_subtitle": "Gerencie a segurança da sua conta",
     "two_factor": "Autenticação de dois fatores",
-    "session_timeout": "Tempo limite da sessão (minutos)"
+    "session_timeout": "Tempo limite da sessão (minutos)",
+    "change_password": "Alterar senha",
+    "help_title": "Precisa de ajuda?",
+    "help_body": "Entre em contato com nossa equipe de suporte para assistência técnica."
   },
   "charts": {
     "loading": "Carregando dados...",
@@ -2163,5 +2164,43 @@
     "compare": "Comparar",
     "min_hint": "Selecione pelo menos {min} municípios para comparar",
     "limit": "Você pode comparar no máximo {max} municípios por vez."
+  },
+  "legal": {
+    "updated": "Última atualização: {date}"
+  },
+  "errorBoundary": {
+    "title": "Algo deu errado",
+    "message": "Desculpe, ocorreu um erro inesperado. Tente novamente ou volte para a página inicial.",
+    "details": "Detalhes do erro (apenas em desenvolvimento)",
+    "home": "Ir para o início"
+  },
+  "validation": {
+    "required": "Preencha todos os campos obrigatórios.",
+    "email_invalid": "Informe um e-mail válido.",
+    "password_too_short": "A senha deve ter pelo menos {min} caracteres.",
+    "passwords_mismatch": "As senhas não coincidem.",
+    "consent_required": "É preciso dar seu consentimento para continuar."
+  },
+  "newsletter": {
+    "title": "Fique por dentro das novidades",
+    "description": "Receba atualizações sobre novos recursos, análises e insights sobre biogás.",
+    "email_label": "Endereço de e-mail",
+    "email_placeholder": "seu@email.com",
+    "submit": "Inscrever-se gratuitamente",
+    "processing": "Processando…",
+    "subscribed": "Inscrição feita!",
+    "success": "Obrigado! Você receberá nossas atualizações em breve.",
+    "failure": "Não foi possível processar sua solicitação. Tente novamente.",
+    "privacy": "Respeitamos sua privacidade. Você pode cancelar a inscrição a qualquer momento."
+  },
+  "videoModal": {
+    "close": "Fechar vídeo"
+  },
+  "timeline": {
+    "status": {
+      "completed": "Concluído",
+      "in-progress": "Em andamento",
+      "upcoming": "Planejado"
+    }
   }
 }

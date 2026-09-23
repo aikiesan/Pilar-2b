@@ -103,6 +103,8 @@ export function formatCurrency(value: Numeric, locale: Locale, options: Currency
   return numberFormat(locale, { style: 'currency', currency, ...fractionDigits(digits, 0) }).format(value)
 }
 
+const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/
+
 /**
  * A calendar date, long form by default: "September 23, 2026" (en) /
  * "23 de setembro de 2026" (pt-BR). Unparseable input renders as missing.
@@ -115,7 +117,11 @@ export function formatDate(
   if (value === null || value === undefined || value === '') return MISSING_VALUE
   const date = value instanceof Date ? value : new Date(value)
   if (Number.isNaN(date.getTime())) return MISSING_VALUE
-  return new Intl.DateTimeFormat(locale, options).format(date)
+  // A date-only string ("2026-06-25") names a calendar day, not an instant.
+  // `new Date()` reads it as UTC midnight — the previous evening in Brazil — so
+  // it is formatted in UTC, and the day shown is the day written.
+  const calendarDay = typeof value === 'string' && DATE_ONLY.test(value)
+  return new Intl.DateTimeFormat(locale, calendarDay ? { timeZone: 'UTC', ...options } : options).format(date)
 }
 
 /** The formatters above with the locale bound — what `useFormat()` returns. */
