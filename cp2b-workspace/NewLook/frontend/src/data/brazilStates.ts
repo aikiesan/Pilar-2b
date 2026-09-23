@@ -1,3 +1,4 @@
+// i18n-exempt-file: Brazilian state names are proper nouns, written the same in English.
 /**
  * Brazilian states (UFs) for the map scope switcher.
  *

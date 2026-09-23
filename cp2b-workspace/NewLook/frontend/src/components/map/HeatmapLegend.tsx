@@ -6,21 +6,39 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { ChevronDown, ChevronUp } from 'lucide-react';
+import { useFormat } from '@/hooks/useFormat';
 
-// Legend items matching the heatmap color scale in HeatmapLayer
-const legendItems = [
-  { color: '#800026', label: '> 500M', description: 'Muito Alto' },
-  { color: '#bd0026', label: '100M - 500M', description: 'Alto' },
-  { color: '#f03b20', label: '50M - 100M', description: 'Médio-Alto' },
-  { color: '#fd8d3c', label: '10M - 50M', description: 'Médio' },
-  { color: '#fecc5c', label: '1M - 10M', description: 'Baixo' },
-  { color: '#ffffb2', label: '< 1M', description: 'Muito Baixo' },
-  { color: '#cccccc', label: 'Sem dados', description: '' },
+// Bands matching the heatmap color scale in HeatmapLayer, high → low.
+const BANDS: { color: string; from?: number; to?: number }[] = [
+  { color: '#800026', from: 500e6 },
+  { color: '#bd0026', from: 100e6, to: 500e6 },
+  { color: '#f03b20', from: 50e6, to: 100e6 },
+  { color: '#fd8d3c', from: 10e6, to: 50e6 },
+  { color: '#fecc5c', from: 1e6, to: 10e6 },
+  { color: '#ffffb2', to: 1e6 },
 ];
+const NO_DATA_COLOR = '#cccccc';
 
 export default function HeatmapLegend() {
+  const t = useTranslations('Map');
+  const tCommon = useTranslations('common');
+  const format = useFormat();
   const [isCollapsed, setIsCollapsed] = useState(false);
+
+  const legendItems = [
+    ...BANDS.map(({ color, from, to }) => ({
+      color,
+      label:
+        from !== undefined && to !== undefined
+          ? `${format.compact(from)} – ${format.compact(to)}`
+          : from !== undefined
+            ? `> ${format.compact(from)}`
+            : `< ${format.compact(to)}`,
+    })),
+    { color: NO_DATA_COLOR, label: tCommon('states.no_data') },
+  ];
 
   return (
     <div>
@@ -28,12 +46,12 @@ export default function HeatmapLegend() {
         {/* Header */}
         <div className="flex items-center justify-between px-3 py-2.5 bg-gradient-to-r from-orange-50 to-white border-b border-orange-100">
           <span className="text-[10px] font-semibold text-gray-700 uppercase tracking-wide">
-            🔥 Concentração
+            🔥 {t('heatmap_legend.title')}
           </span>
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
             className="text-gray-400 hover:text-gray-600 focus:outline-none transition-colors rounded-full hover:bg-gray-100 p-0.5"
-            aria-label={isCollapsed ? 'Expandir legenda' : 'Recolher legenda'}
+            aria-label={isCollapsed ? t('legend.expand') : t('legend.collapse')}
             aria-expanded={!isCollapsed}
           >
             {isCollapsed ? (

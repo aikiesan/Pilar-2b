@@ -322,7 +322,8 @@
       "layers": "Layers",
       "insights": "Insights",
       "dataSources": "Data Sources",
-      "tools": "Tools"
+      "tools": "Tools",
+      "themes": "Themes"
     },
     "search": {
       "label": "Search Municipality",
@@ -382,7 +383,8 @@
       "label": "Visualization Mode",
       "choropleth": "Choropleth",
       "heatmap": "Heat",
-      "bubble": "Bubbles"
+      "bubble": "Bubbles",
+      "clusters": "Co-digestion"
     },
     "colorModes": {
       "label": "Choropleth Mode",
@@ -484,7 +486,138 @@
       "hide": "Hide thematic maps",
       "title": "Thematic maps",
       "validating_tooltip": "{description} Under validation for MG.",
-      "validating_badge": "VALIDATING"
+      "validating_badge": "VALIDATING",
+      "short_title": "Themes",
+      "presets": {
+        "total": {
+          "label": "Total potential",
+          "description": "Total biomass by municipality, all sectors combined."
+        },
+        "agricola": {
+          "label": "Agricultural",
+          "description": "Agricultural residues — sugarcane, soybean, corn, coffee, citrus."
+        },
+        "pecuaria": {
+          "label": "Livestock",
+          "description": "Cattle, swine, poultry and aquaculture manure."
+        },
+        "urbano": {
+          "label": "Urban",
+          "description": "OFMSW, urban pruning and WWTP sludge in the selected scenario."
+        },
+        "cana": {
+          "label": "Sugarcane",
+          "description": "Sugarcane straw and bagasse — the state's largest stream."
+        },
+        "soja": {
+          "label": "Soybean",
+          "description": "Soybean straw by municipality."
+        },
+        "milho": {
+          "label": "Corn",
+          "description": "Corn straw and cobs."
+        },
+        "cafe": {
+          "label": "Coffee",
+          "description": "Coffee husk and pulp."
+        },
+        "citrus": {
+          "label": "Citrus",
+          "description": "Citrus pulp (orange)."
+        },
+        "bovinos": {
+          "label": "Cattle",
+          "description": "Cattle manure by municipality."
+        },
+        "suinos": {
+          "label": "Swine",
+          "description": "Swine manure — a high yield per head."
+        },
+        "aves": {
+          "label": "Poultry",
+          "description": "Poultry litter and manure."
+        },
+        "rsu": {
+          "label": "OFMSW",
+          "description": "Organic fraction of municipal solid waste."
+        },
+        "biometano": {
+          "label": "Biomethane",
+          "description": "Biomethane potential (Nm³/day) in the Real scenario."
+        },
+        "bioenergia": {
+          "label": "Bioenergy",
+          "description": "Energy potential (MWh/year) from methane."
+        },
+        "escoamento": {
+          "label": "Gas offtake & pipelines",
+          "description": "Total potential over the gas pipeline network and biogas plants — where there is infrastructure to move the gas."
+        },
+        "aquicultura": {
+          "label": "Aquaculture",
+          "description": "Fish-farming effluent and sludge."
+        },
+        "rpo": {
+          "label": "Urban pruning",
+          "description": "Urban pruning and weeding residues."
+        },
+        "sewage": {
+          "label": "WWTP sludge",
+          "description": "CH₄ potential of sludge from wastewater treatment plants."
+        },
+        "biogas": {
+          "label": "Raw biogas",
+          "description": "Raw biogas (Nm³/day) — methane plus the CO₂ that comes with it."
+        },
+        "rede_eletrica": {
+          "label": "Power grid (SIN)",
+          "description": "Bioenergy over substations and transmission lines — where electricity can be fed in."
+        },
+        "usinas": {
+          "label": "Existing plants",
+          "description": "Theoretical potential vs. plants already in operation (biogas, ethanol, biomass power)."
+        },
+        "restricoes": {
+          "label": "Environmental constraints",
+          "description": "Protected areas, Indigenous lands and settlements — where licensing is not possible."
+        },
+        "rodovias": {
+          "label": "Highways & offtake",
+          "description": "Road network and gas gathering pipelines over the potential."
+        },
+        "clusters": {
+          "label": "Typologies (K4)",
+          "description": "K-means clustering of municipalities by biomass profile (2023)."
+        },
+        "calor": {
+          "label": "Heat map",
+          "description": "Potential density as a heat surface."
+        },
+        "bolhas": {
+          "label": "Proportional bubbles",
+          "description": "Potential per municipality as sized bubbles."
+        },
+        "per_capita": {
+          "label": "Per capita potential",
+          "description": "Biomethane per inhabitant (Nm³/inhabitant·year) — potential normalized by resident population (2022 Census)."
+        }
+      },
+      "group_labels": {
+        "setorial": "Sectors",
+        "residuo": "By residue",
+        "energia": "Energy",
+        "logistica": "Logistics",
+        "analise": "Analyses"
+      },
+      "group_titles": {
+        "setorial": "Sectors",
+        "residuo": "By residue",
+        "energia": "Energy",
+        "logistica": "Logistics & infrastructure",
+        "analise": "Advanced analyses"
+      },
+      "panel_intro": "Ready-made thematic maps — one click sets the live map's metric, colors, residue and scenario.",
+      "mg_note": "In the MG pilot, the agricultural themes are active. Livestock and urban are awaiting publication and validation."
     },
     "profilePanel": {
       "detail_aria": "Details for the municipality of {name}",
@@ -640,7 +773,8 @@
       },
       "heading": "Color scale",
       "group_aria": "Map color scale",
-      "cvd_safe": "Color-blind safe"
+      "cvd_safe": "Color-blind safe",
+      "scope_note": "Applies to the choropleth map. Color-blind mode, when on, takes precedence over this choice."
     },
     "legend": {
       "zero": "Zero",
@@ -648,7 +782,8 @@
       "collapse": "Collapse legend",
       "cvd_palette": "Palette (color blindness)",
       "cvd_palette_aria": "Color-blind-safe palette",
-      "mg_beta": "Minas Gerais — beta pilot"
+      "mg_beta": "Minas Gerais — beta pilot",
+      "title": "Legend"
     },
     "potentialCategory": {
       "high": "High potential",
@@ -669,7 +804,143 @@
       "references_note": "Each residue has its own analyses and scientific references"
     },
     "stat_strip": {
-      "theoretical": "theoretical"
+      "theoretical": "theoretical",
+      "municipalities": "municipalities",
+      "filters": "{count, plural, one {# filter} other {# filters}}",
+      "mg_beta": "+{count} MG municipalities in beta, not included in the total"
+    },
+    "plants": {
+      "biogas": {
+        "name": "Biogas",
+        "description": "Biogas production plants"
+      },
+      "ethanol": {
+        "name": "Ethanol",
+        "description": "Ethanol mills"
+      },
+      "biomass_thermal": {
+        "name": "Biomass power plant",
+        "description": "Biomass-fired thermal power plants"
+      },
+      "biodiesel": {
+        "name": "Biodiesel",
+        "description": "Biodiesel production plants"
+      },
+      "biomethane": {
+        "name": "Biomethane",
+        "description": "Biomethane production plants"
+      }
+    },
+    "plantsLegend": {
+      "show": "Plant legend",
+      "title": "Legend: biomass plants",
+      "source": "Source:",
+      "year": "Year:",
+      "mapbiomas_note": "Annual land-cover and land-use mapping of Brazil",
+      "anp_note": "Brazil's National Agency of Petroleum, Natural Gas and Biofuels"
+    },
+    "basemaps": {
+      "mapa": "Map",
+      "satelite": "Satellite",
+      "terreno": "Terrain",
+      "light": "Light canvas",
+      "switch": "Change basemap",
+      "heading": "Basemap"
+    },
+    "beta": {
+      "notice": "Minas Gerais — beta pilot. PAM 2023, PPM 2024, Census 2022 and OFMSW/SNIS-RS 2022 are published; urban pruning and WWTP sludge are still being validated.",
+      "badge": "BETA — under validation"
+    },
+    "typology": {
+      "classes": {
+        "livestock": "Livestock",
+        "sugarcane": "Sugarcane",
+        "mixed": "Mixed/diversified",
+        "forestry": "Forestry",
+        "urban": "Urban — MSW and sewage",
+        "grains": "Grains and agro-industrial residues",
+        "coffee": "Coffee"
+      },
+      "regime": {
+        "n_deficit": "Nitrogen-deficient",
+        "sweet": "Balanced",
+        "n_excess": "Nitrogen excess"
+      }
+    },
+    "layerNames": {
+      "municipalities": "Municipalities (SP + MG beta)",
+      "mg-beta": "Minas Gerais municipalities (BETA)",
+      "intermediate-regions": "Intermediate regions (IBGE)",
+      "mapbiomas": "MapBiomas 2024",
+      "biogas_plant": "Biogas plants (MapBiomas, BR)",
+      "ethanol_plant": "Ethanol mills (MapBiomas, BR)",
+      "biomass_thermal_plant": "Biomass power plants (MapBiomas, BR)",
+      "biodiesel_plant": "Biodiesel plants (MapBiomas, BR)",
+      "slaughterhouse": "Slaughterhouses (MapBiomas, BR)",
+      "substation": "Substations (MapBiomas, BR)",
+      "transmission_line": "Transmission lines (MapBiomas, BR)",
+      "gas_pipeline_transport": "Gas transmission pipelines (MapBiomas, BR)",
+      "gas_pipeline_distribution": "Gas distribution pipelines (MapBiomas, BR)",
+      "gas_delivery_point": "Gas delivery points (MapBiomas, BR)",
+      "compression_station": "Compressor stations (MapBiomas, BR)",
+      "gas_processing_unit": "Gas processing plants (MapBiomas, BR)",
+      "gas_pipeline_outflow": "Gas gathering pipelines (MapBiomas, BR)",
+      "protected_area_state": "Strictly protected areas (MapBiomas, BR)",
+      "indigenous_territory": "Indigenous lands (MapBiomas, BR)",
+      "settlement": "Rural settlements (MapBiomas, BR)",
+      "highway_state": "Paved state highways (MapBiomas, BR)",
+      "highway_federal": "Paved federal highways (MapBiomas, BR)",
+      "etes": "WWTPs (SNIS, 2023 — SP)",
+      "railways": "Highways (EPE, 2023 — SP)"
+    },
+    "daltonic": {
+      "title": "Color-blind mode — a palette safe for color vision deficiency",
+      "toggle": "Color-blind"
+    },
+    "layerAlert": {
+      "unavailable": "{layer} unavailable",
+      "empty": "The server returned an empty layer."
+    },
+    "scope": {
+      "toggle_title": "Switch between São Paulo and the Minas Gerais beta pilot",
+      "sp_option": "São Paulo (canonical)",
+      "mg_option": "Minas Gerais (beta pilot)",
+      "shown": "{count} municipalities shown"
+    },
+    "heatmap_legend": {
+      "title": "Concentration"
+    },
+    "mapbiomasLegend": {
+      "subtitle": "Agricultural land use",
+      "source": "Source: MapBiomas Collection 8",
+      "classes": {
+        "9": "Forest plantation",
+        "15": "Pasture",
+        "20": "Sugarcane",
+        "39": "Soybean",
+        "40": "Rice",
+        "41": "Other temporary crops",
+        "46": "Coffee",
+        "47": "Citrus",
+        "48": "Other perennial crops",
+        "62": "Cotton"
+      }
+    },
+    "dataSourceDetails": {
+      "pam": "Municipal Agricultural Production",
+      "mapbiomas": "Land cover and land use",
+      "conab": "Harvests and agricultural production",
+      "ppm": "Municipal Livestock Survey",
+      "abpa": "Poultry and swine by municipality",
+      "snis": "National Sanitation Information System",
+      "munic": "Municipal solid waste",
+      "epe": "Gas pipelines, substations and transmission lines",
+      "anp": "Biomass and biogas plants"
+    },
+    "panel": {
+      "title": "Biomass · {state}",
+      "expand": "Expand panel",
+      "collapse": "Collapse panel"
     }
   },
   "metadata": {

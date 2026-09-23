@@ -322,7 +322,8 @@
       "layers": "Camadas",
       "insights": "Insights",
       "dataSources": "Fontes de Dados",
-      "tools": "Ferramentas"
+      "tools": "Ferramentas",
+      "themes": "Temas"
     },
     "search": {
       "label": "Buscar Município",
@@ -382,7 +383,8 @@
       "label": "Modo de Visualização",
       "choropleth": "Coroplético",
       "heatmap": "Calor",
-      "bubble": "Bolhas"
+      "bubble": "Bolhas",
+      "clusters": "Co-digestão"
     },
     "colorModes": {
       "label": "Modo Coroplético",
@@ -484,7 +486,138 @@
       "hide": "Ocultar mapas temáticos",
       "title": "Mapas temáticos",
       "validating_tooltip": "{description} Em validação para MG.",
-      "validating_badge": "EM VALIDAÇÃO"
+      "validating_badge": "EM VALIDAÇÃO",
+      "short_title": "Temas",
+      "presets": {
+        "total": {
+          "label": "Potencial Total",
+          "description": "Biomassa total consolidada por município (todos os setores)."
+        },
+        "agricola": {
+          "label": "Agrícola",
+          "description": "Resíduos agrícolas — cana, soja, milho, café, citrus."
+        },
+        "pecuaria": {
+          "label": "Pecuária",
+          "description": "Dejetos de bovinos, suínos, aves e aquicultura."
+        },
+        "urbano": {
+          "label": "Urbano",
+          "description": "FORSU, poda urbana e lodo de ETE no cenário selecionado."
+        },
+        "cana": {
+          "label": "Cana-de-açúcar",
+          "description": "Palha e bagaço de cana — o maior fluxo do estado."
+        },
+        "soja": {
+          "label": "Soja",
+          "description": "Palhada de soja por município."
+        },
+        "milho": {
+          "label": "Milho",
+          "description": "Palhada e sabugo de milho."
+        },
+        "cafe": {
+          "label": "Café",
+          "description": "Casca e polpa de café."
+        },
+        "citrus": {
+          "label": "Citrus",
+          "description": "Bagaço de citros (laranja)."
+        },
+        "bovinos": {
+          "label": "Bovinos",
+          "description": "Dejetos de bovinos por município."
+        },
+        "suinos": {
+          "label": "Suínos",
+          "description": "Dejetos de suínos — alto rendimento por cabeça."
+        },
+        "aves": {
+          "label": "Aves",
+          "description": "Cama de frango e dejetos de aves."
+        },
+        "rsu": {
+          "label": "FORSU",
+          "description": "Fração orgânica dos resíduos sólidos urbanos."
+        },
+        "biometano": {
+          "label": "Biometano",
+          "description": "Potencial de biometano (Nm³/dia) no cenário Real."
+        },
+        "bioenergia": {
+          "label": "Bioenergia",
+          "description": "Energia potencial (MWh/ano) a partir do metano."
+        },
+        "escoamento": {
+          "label": "Escoamento & Gasodutos",
+          "description": "Potencial total sobre a malha de gasodutos e usinas de biogás — onde há infraestrutura para escoar."
+        },
+        "aquicultura": {
+          "label": "Aquicultura",
+          "description": "Efluentes e lodo de piscicultura."
+        },
+        "rpo": {
+          "label": "Poda urbana",
+          "description": "Resíduos de poda e capina urbana."
+        },
+        "sewage": {
+          "label": "Lodo de ETE",
+          "description": "Potencial de CH₄ associado ao lodo de estações de tratamento."
+        },
+        "biogas": {
+          "label": "Biogás bruto",
+          "description": "Biogás bruto (Nm³/dia) — metano + o CO₂ que vem junto."
+        },
+        "rede_eletrica": {
+          "label": "Rede elétrica (SIN)",
+          "description": "Bioenergia sobre subestações e linhas de transmissão — onde injetar eletricidade."
+        },
+        "usinas": {
+          "label": "Usinas existentes",
+          "description": "Potencial teórico vs. plantas já instaladas (biogás, etanol, UTE a biomassa)."
+        },
+        "restricoes": {
+          "label": "Restrições ambientais",
+          "description": "Áreas protegidas, terras indígenas e assentamentos — onde não se licencia."
+        },
+        "rodovias": {
+          "label": "Rodovias & escoamento",
+          "description": "Malha rodoviária e gasodutos de escoamento sobre o potencial."
+        },
+        "clusters": {
+          "label": "Tipologias (K4)",
+          "description": "Agrupamento K-means dos municípios por perfil de biomassa (2023)."
+        },
+        "calor": {
+          "label": "Mapa de calor",
+          "description": "Densidade do potencial como superfície de calor."
+        },
+        "bolhas": {
+          "label": "Bolhas proporcionais",
+          "description": "Potencial por município como bolhas dimensionadas."
+        },
+        "per_capita": {
+          "label": "Potencial per capita",
+          "description": "Biometano por habitante (Nm³/hab·ano) — potencial normalizado pela população residente (Censo 2022)."
+        }
+      },
+      "group_labels": {
+        "setorial": "Setoriais",
+        "residuo": "Por resíduo",
+        "energia": "Energia",
+        "logistica": "Logística",
+        "analise": "Análises"
+      },
+      "group_titles": {
+        "setorial": "Setoriais",
+        "residuo": "Por resíduo",
+        "energia": "Energia",
+        "logistica": "Logística & Infraestrutura",
+        "analise": "Análises avançadas"
+      },
+      "panel_intro": "Mapas temáticos prontos — um clique ajusta métrica, cor, resíduo e cenário do mapa ao vivo.",
+      "mg_note": "No piloto MG, os temas agrícolas estão ativos. Pecuária e urbano aguardam promoção e validação."
     },
     "profilePanel": {
       "detail_aria": "Detalhes do município de {name}",
@@ -640,7 +773,8 @@
       },
       "heading": "Escala de cores",
       "group_aria": "Escala de cores do mapa",
-      "cvd_safe": "Segura para daltonismo"
+      "cvd_safe": "Segura para daltonismo",
+      "scope_note": "Vale para o mapa coroplético. O modo daltônico, quando ativo, tem prioridade sobre esta escolha."
     },
     "legend": {
       "zero": "Zero",
@@ -648,7 +782,8 @@
       "collapse": "Recolher legenda",
       "cvd_palette": "Paleta (daltonismo)",
       "cvd_palette_aria": "Paleta para daltonismo",
-      "mg_beta": "Minas Gerais — piloto beta"
+      "mg_beta": "Minas Gerais — piloto beta",
+      "title": "Legenda"
     },
     "potentialCategory": {
       "high": "Alto potencial",
@@ -669,7 +804,143 @@
       "references_note": "Cada resíduo possui análises e referências científicas próprias"
     },
     "stat_strip": {
-      "theoretical": "teórico"
+      "theoretical": "teórico",
+      "municipalities": "municípios",
+      "filters": "{count, plural, one {# filtro} other {# filtros}}",
+      "mg_beta": "+{count} municípios de MG em beta, não somados ao total"
+    },
+    "plants": {
+      "biogas": {
+        "name": "Biogás",
+        "description": "Plantas de produção de biogás"
+      },
+      "ethanol": {
+        "name": "Etanol",
+        "description": "Usinas de produção de etanol"
+      },
+      "biomass_thermal": {
+        "name": "Biomassa UTE",
+        "description": "Usinas termelétricas a biomassa"
+      },
+      "biodiesel": {
+        "name": "Biodiesel",
+        "description": "Usinas de produção de biodiesel"
+      },
+      "biomethane": {
+        "name": "Biometano",
+        "description": "Plantas de produção de biometano"
+      }
+    },
+    "plantsLegend": {
+      "show": "Legenda das plantas",
+      "title": "Legenda: plantas de biomassa",
+      "source": "Fonte:",
+      "year": "Ano:",
+      "mapbiomas_note": "Projeto de mapeamento anual da cobertura e uso do solo do Brasil",
+      "anp_note": "Agência Nacional do Petróleo, Gás Natural e Biocombustíveis"
+    },
+    "basemaps": {
+      "mapa": "Mapa",
+      "satelite": "Satélite",
+      "terreno": "Terreno",
+      "light": "Tela clara",
+      "switch": "Trocar mapa base",
+      "heading": "Mapa base"
+    },
+    "beta": {
+      "notice": "Minas Gerais — piloto beta. PAM 2023, PPM 2024, Censo 2022 e FORSU/SNIS-RS 2022 promovidos; poda urbana e lodo de ETE permanecem em validação.",
+      "badge": "BETA — em validação"
+    },
+    "typology": {
+      "classes": {
+        "livestock": "Pecuário",
+        "sugarcane": "Cana-de-açúcar",
+        "mixed": "Misto/diversificado",
+        "forestry": "Florestal",
+        "urban": "Urbano — RSU e esgoto",
+        "grains": "Grãos e resíduos agroindustriais",
+        "coffee": "Café"
+      },
+      "regime": {
+        "n_deficit": "Deficiente em N",
+        "sweet": "Equilibrado",
+        "n_excess": "Excesso de N"
+      }
+    },
+    "layerNames": {
+      "municipalities": "Municípios SP + MG beta",
+      "mg-beta": "Municípios de Minas Gerais (BETA)",
+      "intermediate-regions": "Regiões Intermediárias (IBGE)",
+      "mapbiomas": "MapBiomas 2024",
+      "biogas_plant": "Usinas de Biogás (MapBiomas, BR)",
+      "ethanol_plant": "Usinas de Etanol (MapBiomas, BR)",
+      "biomass_thermal_plant": "UTEs a Biomassa (MapBiomas, BR)",
+      "biodiesel_plant": "Usinas de Biodiesel (MapBiomas, BR)",
+      "slaughterhouse": "Frigoríficos (MapBiomas, BR)",
+      "substation": "Subestações (MapBiomas, BR)",
+      "transmission_line": "Linhas de Transmissão (MapBiomas, BR)",
+      "gas_pipeline_transport": "Gasodutos de Transporte (MapBiomas, BR)",
+      "gas_pipeline_distribution": "Gasodutos de Distribuição (MapBiomas, BR)",
+      "gas_delivery_point": "Pontos de Entrega de Gás (MapBiomas, BR)",
+      "compression_station": "Estações de Compressão (MapBiomas, BR)",
+      "gas_processing_unit": "UPGNs (MapBiomas, BR)",
+      "gas_pipeline_outflow": "Gasodutos de Escoamento (MapBiomas, BR)",
+      "protected_area_state": "UCs de Proteção Integral (MapBiomas, BR)",
+      "indigenous_territory": "Terras Indígenas (MapBiomas, BR)",
+      "settlement": "Assentamentos (MapBiomas, BR)",
+      "highway_state": "Rodovias Estaduais pavimentadas (MapBiomas, BR)",
+      "highway_federal": "Rodovias Federais pavimentadas (MapBiomas, BR)",
+      "etes": "ETEs (SNIS, 2023 — SP)",
+      "railways": "Rodovias (EPE, 2023 — SP)"
+    },
+    "daltonic": {
+      "title": "Modo daltônico — paleta segura para daltonismo",
+      "toggle": "Daltônico"
+    },
+    "layerAlert": {
+      "unavailable": "{layer} indisponível",
+      "empty": "O servidor retornou uma camada vazia."
+    },
+    "scope": {
+      "toggle_title": "Alternar entre São Paulo e o piloto beta de Minas Gerais",
+      "sp_option": "São Paulo (canônico)",
+      "mg_option": "Minas Gerais (piloto beta)",
+      "shown": "{count} municípios exibidos"
+    },
+    "heatmap_legend": {
+      "title": "Concentração"
+    },
+    "mapbiomasLegend": {
+      "subtitle": "Uso do solo agropecuário",
+      "source": "Fonte: MapBiomas Coleção 8",
+      "classes": {
+        "9": "Silvicultura",
+        "15": "Pastagem",
+        "20": "Cana-de-açúcar",
+        "39": "Soja",
+        "40": "Arroz",
+        "41": "Outras temporárias",
+        "46": "Café",
+        "47": "Citros",
+        "48": "Outras perenes",
+        "62": "Algodão"
+      }
+    },
+    "dataSourceDetails": {
+      "pam": "Produção Agrícola Municipal",
+      "mapbiomas": "Cobertura e uso do solo",
+      "conab": "Safra e produção agrícola",
+      "ppm": "Pesquisa da Pecuária Municipal",
+      "abpa": "Aves e suínos por município",
+      "snis": "Sistema Nacional de Informações sobre Saneamento",
+      "munic": "Resíduos sólidos municipais",
+      "epe": "Gasodutos, subestações e linhas de transmissão",
+      "anp": "Plantas de biomassa e biogás"
+    },
+    "panel": {
+      "title": "Biomassa · {state}",
+      "expand": "Expandir painel",
+      "collapse": "Recolher painel"
     }
   },
   "metadata": {

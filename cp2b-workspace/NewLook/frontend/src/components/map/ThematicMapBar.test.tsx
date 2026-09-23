@@ -2,6 +2,9 @@ import { fireEvent, render, screen } from '@testing-library/react';
 
 import ThematicMapBar from './ThematicMapBar';
 
+// Preset and group names come from the catalog; assert on the pt-BR copy.
+jest.mock('next-intl', () => jest.requireActual('@/test/mocks/next-intl-real'));
+
 describe('ThematicMapBar', () => {
   it('keeps agriculture available while disabling unvalidated MG sectors', () => {
     const onApplyPreset = jest.fn();

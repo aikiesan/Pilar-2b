@@ -79,14 +79,15 @@ export default function ThematicMapBar({
           aria-expanded={!collapsed}
         >
           <span aria-hidden="true">🗺️</span>
-          <span className="sm:hidden">Temas</span>
+          <span className="sm:hidden">{t('short_title')}</span>
           <span className="hidden sm:inline">{t('title')}</span>
           <span aria-hidden="true" className="text-gray-400">{collapsed ? '▸' : '▾'}</span>
         </button>
 
         {!collapsed && (
           <div className="flex min-w-0 flex-1 flex-nowrap items-center gap-0.5 md:flex-none md:flex-wrap md:gap-1.5">
-            {PRESET_GROUP_META.map(({ group, label, icon }, index) => {
+            {PRESET_GROUP_META.map(({ group, icon }, index) => {
+              const label = t(`group_labels.${group}`);
               const items = THEMATIC_PRESETS.filter((p) => p.group === group);
               if (items.length === 0) return null;
               const isOpen = openGroup === group;
@@ -143,7 +144,11 @@ export default function ThematicMapBar({
                             aria-selected={active}
                             disabled={disabled}
                             onClick={() => apply(preset)}
-                            title={disabled ? t('validating_tooltip', { description: preset.description }) : preset.description}
+                            title={
+                              disabled
+                                ? t('validating_tooltip', { description: t(`presets.${preset.id}.description`) })
+                                : t(`presets.${preset.id}.description`)
+                            }
                             className={`flex min-h-11 w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left transition-colors md:min-h-0 ${
                               disabled
                                 ? 'cursor-not-allowed bg-gray-50 opacity-45'
@@ -155,7 +160,7 @@ export default function ThematicMapBar({
                             <span aria-hidden="true" className="text-base leading-none">{preset.icon}</span>
                             <span className="min-w-0 flex-1">
                               <span className="block truncate text-[11px] font-semibold text-gray-800">
-                                {preset.label}
+                                {t(`presets.${preset.id}.label`)}
                               </span>
                               <span
                                 aria-hidden="true"

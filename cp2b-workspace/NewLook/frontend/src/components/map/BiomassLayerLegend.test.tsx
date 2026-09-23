@@ -11,6 +11,9 @@ import { render, screen } from '@testing-library/react';
 import BiomassLayerLegend from './BiomassLayerLegend';
 import { PLANT_LAYERS } from '@/lib/plantLayers';
 
+// Assert on the names a reader sees: resolve keys against the real pt-BR catalog.
+jest.mock('next-intl', () => jest.requireActual('@/test/mocks/next-intl-real'));
+
 describe('BiomassLayerLegend', () => {
   it('renders nothing when no plant layer is on', () => {
     const { container } = render(<BiomassLayerLegend layerIds={[]} />);

@@ -25,7 +25,6 @@
  */
 export const DATA_EXPORT_ENABLED = false;
 
-/** Human-readable reason, shown where an export used to be offered. */
+/** Developer-facing reason, logged where an export used to be offered. */
 export const DATA_EXPORT_DISABLED_REASON =
-  'Exportação de dados temporariamente indisponível durante a fase beta, ' +
-  'enquanto a base nacional passa por validação.';
+  'Data export is temporarily disabled during the beta, while the national database is validated.';

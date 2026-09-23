@@ -1,5 +1,5 @@
 /**
- * Thematic map presets — one-click "mapas temáticos já prontos".
+ * Thematic map presets — one-click, ready-made thematic maps.
  *
  * Each preset is a named bundle of the map's existing controls (visualization
  * mode, metric, sector, residue selection, scenario, colour palette, optional
@@ -24,6 +24,7 @@ import type { BiomassType, ResidueType } from '@/components/map/FloatingControlP
 import type { DisplayMetric, ColorMode } from '@/types/geospatial';
 import type { MapScenarioKey } from '@/data/scenarioFactors';
 import type { MapPaletteId } from '@/lib/mapMetrics';
+import type { Messages } from '@/types/i18n';
 
 export type ThematicPresetGroup = 'setorial' | 'residuo' | 'energia' | 'logistica' | 'analise';
 
@@ -40,31 +41,28 @@ export interface ThematicPresetConfig {
   layers?: string[];
 }
 
+/**
+ * A preset's name and description are copy: Map.thematic.presets.<id>.label and
+ * .description. Group names likewise: Map.thematic.groups (short),
+ * .group_labels (ribbon) and .group_titles (side panel).
+ */
 export interface ThematicPreset {
-  id: string;
-  label: string;
+  id: ThematicPresetId;
   icon: string;
-  description: string;
   group: ThematicPresetGroup;
   config: ThematicPresetConfig;
 }
 
-export const PRESET_GROUP_LABELS: Record<ThematicPresetGroup, string> = {
-  setorial: 'Setoriais',
-  residuo: 'Por resíduo',
-  energia: 'Energia',
-  logistica: 'Logística & Infraestrutura',
-  analise: 'Análises avançadas',
-};
+export type ThematicPresetId = keyof Messages['Map']['thematic']['presets'];
 
-// Ribbon category metadata: short label + icon for the top-bar dropdown chips.
-// Order here is the order the categories appear in the ribbon.
-export const PRESET_GROUP_META: { group: ThematicPresetGroup; label: string; icon: string }[] = [
-  { group: 'setorial', label: 'Setoriais', icon: '⚡' },
-  { group: 'residuo', label: 'Por resíduo', icon: '🌾' },
-  { group: 'energia', label: 'Energia', icon: '🔥' },
-  { group: 'logistica', label: 'Logística', icon: '🚛' },
-  { group: 'analise', label: 'Análises', icon: '🧪' },
+// Ribbon category metadata: icon for the top-bar dropdown chips. Order here is
+// the order the categories appear in the ribbon.
+export const PRESET_GROUP_META: { group: ThematicPresetGroup; icon: string }[] = [
+  { group: 'setorial', icon: '⚡' },
+  { group: 'residuo', icon: '🌾' },
+  { group: 'energia', icon: '🔥' },
+  { group: 'logistica', icon: '🚛' },
+  { group: 'analise', icon: '🧪' },
 ];
 
 // Base config shared by most presets: choropleth, biogas colour mode, Real
@@ -82,33 +80,25 @@ export const THEMATIC_PRESETS: ThematicPreset[] = [
   // ── Setoriais ─────────────────────────────────────────────────────────────
   {
     id: 'total',
-    label: 'Potencial Total',
     icon: '⚡',
-    description: 'Biomassa total consolidada por município (todos os setores).',
     group: 'setorial',
     config: { ...BASE, biomassType: 'total', palette: 'ylgnbu' },
   },
   {
     id: 'agricola',
-    label: 'Agrícola',
     icon: '🌾',
-    description: 'Resíduos agrícolas — cana, soja, milho, café, citrus.',
     group: 'setorial',
     config: { ...BASE, biomassType: 'agricultural', palette: 'greens' },
   },
   {
     id: 'pecuaria',
-    label: 'Pecuária',
     icon: '🐄',
-    description: 'Dejetos de bovinos, suínos, aves e aquicultura.',
     group: 'setorial',
     config: { ...BASE, biomassType: 'livestock', palette: 'ylorrd' },
   },
   {
     id: 'urbano',
-    label: 'Urbano',
     icon: '🏙️',
-    description: 'FORSU, poda urbana e lodo de ETE no cenário selecionado.',
     group: 'setorial',
     config: {
       ...BASE,
@@ -122,73 +112,55 @@ export const THEMATIC_PRESETS: ThematicPreset[] = [
   // ── Por resíduo ─────────────────────────────────────────────────────────────
   {
     id: 'cana',
-    label: 'Cana-de-açúcar',
     icon: '🌾',
-    description: 'Palha e bagaço de cana — o maior fluxo do estado.',
     group: 'residuo',
     config: { ...BASE, selectedResidues: ['sugarcane'], palette: 'greens' },
   },
   {
     id: 'soja',
-    label: 'Soja',
     icon: '🌿',
-    description: 'Palhada de soja por município.',
     group: 'residuo',
     config: { ...BASE, selectedResidues: ['soybean'], palette: 'greens' },
   },
   {
     id: 'milho',
-    label: 'Milho',
     icon: '🌽',
-    description: 'Palhada e sabugo de milho.',
     group: 'residuo',
     config: { ...BASE, selectedResidues: ['corn'], palette: 'greens' },
   },
   {
     id: 'cafe',
-    label: 'Café',
     icon: '☕',
-    description: 'Casca e polpa de café.',
     group: 'residuo',
     config: { ...BASE, selectedResidues: ['coffee'], palette: 'ylorrd' },
   },
   {
     id: 'citrus',
-    label: 'Citrus',
     icon: '🍊',
-    description: 'Bagaço de citros (laranja).',
     group: 'residuo',
     config: { ...BASE, selectedResidues: ['citrus'], palette: 'ylorrd' },
   },
   {
     id: 'bovinos',
-    label: 'Bovinos',
     icon: '🐄',
-    description: 'Dejetos de bovinos por município.',
     group: 'residuo',
     config: { ...BASE, selectedResidues: ['cattle'], palette: 'bupu' },
   },
   {
     id: 'suinos',
-    label: 'Suínos',
     icon: '🐷',
-    description: 'Dejetos de suínos — alto rendimento por cabeça.',
     group: 'residuo',
     config: { ...BASE, selectedResidues: ['swine'], palette: 'bupu' },
   },
   {
     id: 'aves',
-    label: 'Aves',
     icon: '🐔',
-    description: 'Cama de frango e dejetos de aves.',
     group: 'residuo',
     config: { ...BASE, selectedResidues: ['poultry'], palette: 'bupu' },
   },
   {
     id: 'rsu',
-    label: 'FORSU',
     icon: '🗑️',
-    description: 'Fração orgânica dos resíduos sólidos urbanos.',
     group: 'residuo',
     config: { ...BASE, selectedResidues: ['rsu'], palette: 'plasma' },
   },
@@ -196,17 +168,13 @@ export const THEMATIC_PRESETS: ThematicPreset[] = [
   // ── Energia ─────────────────────────────────────────────────────────────────
   {
     id: 'biometano',
-    label: 'Biometano',
     icon: '🔥',
-    description: 'Potencial de biometano (Nm³/dia) no cenário Real.',
     group: 'energia',
     config: { ...BASE, displayMetric: 'biomethane_m3', palette: 'plasma' },
   },
   {
     id: 'bioenergia',
-    label: 'Bioenergia',
     icon: '🔋',
-    description: 'Energia potencial (MWh/ano) a partir do metano.',
     group: 'energia',
     config: { ...BASE, displayMetric: 'bioenergy_mwh', palette: 'ylorrd' },
   },
@@ -214,10 +182,7 @@ export const THEMATIC_PRESETS: ThematicPreset[] = [
   // ── Logística & Infraestrutura ──────────────────────────────────────────────
   {
     id: 'escoamento',
-    label: 'Escoamento & Gasodutos',
     icon: '🛢️',
-    description:
-      'Potencial total sobre a malha de gasodutos e usinas de biogás — onde há infraestrutura para escoar.',
     group: 'logistica',
     config: {
       ...BASE,
@@ -231,25 +196,19 @@ export const THEMATIC_PRESETS: ThematicPreset[] = [
   // ── Por resíduo (complementos) ──────────────────────────────────────────────
   {
     id: 'aquicultura',
-    label: 'Aquicultura',
     icon: '🐟',
-    description: 'Efluentes e lodo de piscicultura.',
     group: 'residuo',
     config: { ...BASE, selectedResidues: ['aquaculture'], palette: 'bupu' },
   },
   {
     id: 'rpo',
-    label: 'Poda urbana',
     icon: '♻️',
-    description: 'Resíduos de poda e capina urbana.',
     group: 'residuo',
     config: { ...BASE, selectedResidues: ['rpo'], palette: 'plasma' },
   },
   {
     id: 'sewage',
-    label: 'Lodo de ETE',
     icon: '💧',
-    description: 'Potencial de CH₄ associado ao lodo de estações de tratamento.',
     group: 'residuo',
     config: {
       ...BASE,
@@ -263,9 +222,7 @@ export const THEMATIC_PRESETS: ThematicPreset[] = [
   // ── Energia (complemento) ───────────────────────────────────────────────────
   {
     id: 'biogas',
-    label: 'Biogás bruto',
     icon: '⚡',
-    description: 'Biogás bruto (Nm³/dia) — metano + o CO₂ que vem junto.',
     group: 'energia',
     config: { ...BASE, displayMetric: 'biogas_m3', palette: 'plasma' },
   },
@@ -273,9 +230,7 @@ export const THEMATIC_PRESETS: ThematicPreset[] = [
   // ── Logística & Infraestrutura (complementos) ───────────────────────────────
   {
     id: 'rede_eletrica',
-    label: 'Rede elétrica (SIN)',
     icon: '🔌',
-    description: 'Bioenergia sobre subestações e linhas de transmissão — onde injetar eletricidade.',
     group: 'logistica',
     config: {
       ...BASE,
@@ -286,9 +241,7 @@ export const THEMATIC_PRESETS: ThematicPreset[] = [
   },
   {
     id: 'usinas',
-    label: 'Usinas existentes',
     icon: '🏭',
-    description: 'Potencial teórico vs. plantas já instaladas (biogás, etanol, UTE a biomassa).',
     group: 'logistica',
     config: {
       ...BASE,
@@ -298,9 +251,7 @@ export const THEMATIC_PRESETS: ThematicPreset[] = [
   },
   {
     id: 'restricoes',
-    label: 'Restrições ambientais',
     icon: '🛡️',
-    description: 'Áreas protegidas, terras indígenas e assentamentos — onde não se licencia.',
     group: 'logistica',
     config: {
       ...BASE,
@@ -310,9 +261,7 @@ export const THEMATIC_PRESETS: ThematicPreset[] = [
   },
   {
     id: 'rodovias',
-    label: 'Rodovias & escoamento',
     icon: '🛣️',
-    description: 'Malha rodoviária e gasodutos de escoamento sobre o potencial.',
     group: 'logistica',
     config: {
       ...BASE,
@@ -328,34 +277,25 @@ export const THEMATIC_PRESETS: ThematicPreset[] = [
   // mas pouco informativo como "test drive").
   {
     id: 'clusters',
-    label: 'Tipologias (K4)',
     icon: '🧩',
-    description: 'Agrupamento K-means dos municípios por perfil de biomassa (2023).',
     group: 'analise',
     config: { ...BASE, colorMode: 'tipologia' },
   },
   {
     id: 'calor',
-    label: 'Mapa de calor',
     icon: '🔥',
-    description: 'Densidade do potencial como superfície de calor.',
     group: 'analise',
     config: { ...BASE, visualizationMode: 'heatmap' },
   },
   {
     id: 'bolhas',
-    label: 'Bolhas proporcionais',
     icon: '⭕',
-    description: 'Potencial por município como bolhas dimensionadas.',
     group: 'analise',
     config: { ...BASE, visualizationMode: 'bubble' },
   },
   {
     id: 'per_capita',
-    label: 'Potencial per capita',
     icon: '👥',
-    description:
-      'Biometano por habitante (Nm³/hab·ano) — potencial normalizado pela população residente (Censo 2022).',
     group: 'analise',
     config: { ...BASE, displayMetric: 'ch4_per_capita', palette: 'bupu' },
   },

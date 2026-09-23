@@ -32,19 +32,9 @@ jest.mock('next/dynamic', () => ({
   },
 }));
 
-// Mock next-intl. Resolve real pt-BR strings for the component's namespace so
-// text assertions (e.g. "Erro ao Carregar Mapa") match the shipped copy rather
-// than raw keys.
-jest.mock('next-intl', () => {
-  const messages = require('../../../messages/pt-BR.json');
-  return {
-    useTranslations: (namespace?: string) => (key: string) => {
-      const path = namespace ? `${namespace}.${key}` : key;
-      const value = path.split('.').reduce((acc: any, part) => (acc == null ? acc : acc[part]), messages);
-      return typeof value === 'string' ? value : key;
-    },
-  };
-});
+// Resolve real pt-BR strings so text assertions (e.g. "Erro ao Carregar Mapa")
+// match the shipped copy rather than raw keys.
+jest.mock('next-intl', () => jest.requireActual('@/test/mocks/next-intl-real'));
 
 // Mock Leaflet CSS imports
 jest.mock('leaflet/dist/leaflet.css', () => ({}));

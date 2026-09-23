@@ -77,10 +77,8 @@ export const BETA_STYLE = {
   fillOpacity: 0.18,
 } as const;
 
-/** Shown wherever an MG pilot value is surfaced (tooltip, profile panel, legend). */
-export const BETA_NOTICE =
-  'Minas Gerais — piloto beta. PAM 2023, PPM 2024, Censo 2022 e FORSU/SNIS-RS ' +
-  '2022 promovidos; poda urbana e lodo de ETE permanecem em validação.';
+// The MG pilot notice and its compact badge are copy: Map.beta.notice and
+// Map.beta.badge in the message catalogs.
 
-/** Compact variant for tooltips and badges, where the full sentence does not fit. */
+/** @deprecated Transitional: read Map.beta.badge instead. Removed once MunicipalityLayer moves over. */
 export const BETA_BADGE_LABEL = 'BETA — em validação';
