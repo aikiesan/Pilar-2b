@@ -5,14 +5,11 @@
 
 'use client';
 
-import { useQuery, useQueries } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { logger } from '@/lib/logger';
 import { geospatialClient } from '@/lib/api/geospatialClient';
 import { queryKeys } from '@/lib/queryClient';
 import type {
-  MunicipalityCollection,
-  SummaryStatistics,
-  MunicipalityFeature,
   CodigestionClustersResponse,
   ResidueCNMatrix,
 } from '@/types/geospatial';
@@ -65,57 +62,6 @@ export function useSummaryStatistics() {
   const queryResult = useQuery({
     queryKey: queryKeys.statistics.summary(),
     queryFn: () => geospatialClient.getSummaryStatistics(),
-    staleTime: 1000 * 60 * 5,
-    gcTime: 1000 * 60 * 10,
-  });
-
-  return {
-    data: queryResult.data || null,
-    loading: queryResult.isLoading,
-    error: queryResult.error as Error | null,
-    isSuccess: queryResult.isSuccess,
-    isFetching: queryResult.isFetching,
-    refetch: queryResult.refetch,
-  };
-}
-
-/**
- * Hook to fetch municipality detail with caching
- */
-export function useMunicipalityDetail(municipalityId: string | null) {
-  const queryResult = useQuery({
-    queryKey: queryKeys.municipalities.detail(municipalityId || ''),
-    queryFn: () => {
-      if (!municipalityId) {
-        throw new Error('Municipality ID is required');
-      }
-      return geospatialClient.getMunicipalityDetail(municipalityId);
-    },
-    enabled: !!municipalityId, // Only run query if ID is provided
-    staleTime: 1000 * 60 * 5,
-    gcTime: 1000 * 60 * 10,
-  });
-
-  return {
-    data: queryResult.data || null,
-    loading: queryResult.isLoading,
-    error: queryResult.error as Error | null,
-    isSuccess: queryResult.isSuccess,
-    isFetching: queryResult.isFetching,
-    refetch: queryResult.refetch,
-  };
-}
-
-/**
- * Hook to fetch rankings with caching
- */
-export function useRankings(
-  criteria: 'total' | 'agricultural' | 'livestock' | 'urban' = 'total',
-  limit: number = 10
-) {
-  const queryResult = useQuery({
-    queryKey: queryKeys.statistics.rankings(criteria, limit),
-    queryFn: () => geospatialClient.getRankings(criteria, limit),
     staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 10,
   });
@@ -303,40 +249,6 @@ export function useIntermediateRegionsGeoJSON(params: {
     refetch: queryResult.refetch,
   };
 }
-
-/**
- * Hook to prefetch all critical data in parallel
- * Use this to warm up the cache before rendering heavy components
- */
-export function usePrefetchCriticalData() {
-  const results = useQueries({
-    queries: [
-      {
-        queryKey: queryKeys.municipalities.geojson(),
-        queryFn: () => geospatialClient.getMunicipalitiesGeoJSON(),
-        staleTime: 1000 * 60 * 5,
-      },
-      {
-        queryKey: queryKeys.statistics.summary(),
-        queryFn: () => geospatialClient.getSummaryStatistics(),
-        staleTime: 1000 * 60 * 5,
-      },
-    ],
-  });
-
-  const isLoading = results.some((result) => result.isLoading);
-  const isError = results.some((result) => result.isError);
-  const errors = results.filter((result) => result.error).map((r) => r.error);
-
-  return {
-    isLoading,
-    isError,
-    errors,
-    municipalitiesData: results[0].data as MunicipalityCollection | undefined,
-    statisticsData: results[1].data as SummaryStatistics | undefined,
-  };
-}
-
 
 /**
  * Full properties for one municipality, fetched on demand.

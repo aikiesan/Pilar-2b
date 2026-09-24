@@ -15,12 +15,6 @@ export interface UserProfile {
   updated_at: string
 }
 
-export interface AuthResponse {
-  access_token: string
-  token_type: string
-  user: UserProfile
-}
-
 export interface LoginCredentials {
   email: string
   password: string

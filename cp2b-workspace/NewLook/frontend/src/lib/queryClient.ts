@@ -56,8 +56,6 @@ export const queryKeys = {
   municipalities: {
     all: ['municipalities'] as const,
     geojson: () => [...queryKeys.municipalities.all, 'geojson'] as const,
-    list: () => [...queryKeys.municipalities.all, 'list'] as const,
-    detail: (id: string) => [...queryKeys.municipalities.all, 'detail', id] as const,
   },
 
   // Infrastructure layers
@@ -70,14 +68,6 @@ export const queryKeys = {
   statistics: {
     all: ['statistics'] as const,
     summary: () => [...queryKeys.statistics.all, 'summary'] as const,
-    rankings: (criteria: string, limit: number) =>
-      [...queryKeys.statistics.all, 'rankings', criteria, limit] as const,
-  },
-
-  // MapBiomas
-  mapbiomas: {
-    all: ['mapbiomas'] as const,
-    layer: () => [...queryKeys.mapbiomas.all, 'layer'] as const,
   },
 
   // Co-digestion clustering and C:N analysis
@@ -86,10 +76,7 @@ export const queryKeys = {
     clusters: (radiusKm: number, minBiomass: number) =>
       [...queryKeys.codigestion.all, 'clusters', radiusKm, minBiomass] as const,
     cnMatrix: () => [...queryKeys.codigestion.all, 'cn-matrix'] as const,
-    cnProfiles: () => [...queryKeys.codigestion.all, 'cn-profiles'] as const,
     typology: () => [...queryKeys.codigestion.all, 'typology'] as const,
-    pairingCandidates: (ibgeCode: string, radiusKm: number) =>
-      [...queryKeys.codigestion.all, 'pairing-candidates', ibgeCode, radiusKm] as const,
   },
 
   // National intermediate regions (Phase 1)
@@ -97,7 +84,5 @@ export const queryKeys = {
     all: ['intermediate-regions'] as const,
     geojson: (stateCode?: string) =>
       [...queryKeys.intermediateRegions.all, 'geojson', stateCode ?? 'all'] as const,
-    rankings: (metric: string, limit: number) =>
-      [...queryKeys.intermediateRegions.all, 'rankings', metric, limit] as const,
   },
 };

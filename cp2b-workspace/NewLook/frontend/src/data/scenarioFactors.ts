@@ -72,8 +72,6 @@ export const SERVED_SCENARIO_RESIDUE_FIELD = (
 
 /** CH₄ fraction of raw biogas — FIESP 2025, matching the backend constant. */
 export const CH4_FRACTION_OF_BIOGAS = 0.625;
-/** Methane LHV in kWh/Nm³ — Bueno et al. 2016, matching the backend constant. */
-export const CH4_LHV_KWH_M3 = 9.94;
 
 /** The four band scenarios — the only ones that carry per-residue multipliers. */
 export type BandScenarioKey = 'baseline' | 'conservador' | 'fronteira' | 'otimista';

@@ -304,12 +304,6 @@ export type BiomassSector = 'agricultural' | 'livestock' | 'urban';
  * /statistics/summary aggregates by, so the two levels can be compared.
  */
 export type ServedSector = BiomassSector | 'forestry';
-export const SERVED_SECTORS: ServedSector[] = [
-  'agricultural',
-  'livestock',
-  'urban',
-  'forestry',
-];
 
 /** Municipality property holding one sector's CH₄ for a served scenario. */
 export const SERVED_SECTOR_FIELD = (tier: ServedScenarioKey, sector: ServedSector): string =>

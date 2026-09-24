@@ -211,41 +211,6 @@ export interface ResidueCNMatrix {
   optimal_range: { low: number; high: number };
 }
 
-export interface MunicipalityCnProfile {
-  ibge_code: string;
-  municipality_name: string;
-  centroid_lat: number;
-  centroid_lng: number;
-  cn_ratio_weighted: number;
-  cn_label: 'C-RICH' | 'BALANCED' | 'N-RICH';
-  dominant_residue: string | null;
-  total_biogas_m3_year: number;
-  residue_breakdown: Record<string, { biogas_m3: number; cn: number }>;
-}
-
-export interface MunicipalityCnProfilesResponse {
-  profiles: MunicipalityCnProfile[];
-  count: number;
-}
-
-export interface PairingCandidate {
-  ibge_code: string;
-  municipality_name: string;
-  distance_km: number;
-  cn_ratio_weighted: number;
-  cn_label: 'C-RICH' | 'BALANCED' | 'N-RICH';
-  dominant_residue: string | null;
-  total_biogas_m3_year: number;
-  cn_blended: number;
-  improvement_score: number;
-}
-
-export interface PairingCandidatesResponse {
-  ibge_code: string;
-  radius_km: number;
-  candidates: PairingCandidate[];
-}
-
 /** A GeoJSON position: [longitude, latitude]. */
 export type Position = [number, number];
 
@@ -352,56 +317,4 @@ export interface SummaryStatistics {
     urban: number;
   };
   note?: string;
-}
-
-// Municipality list item (simplified)
-export interface MunicipalityListItem {
-  id: string | number;
-  name: string;
-  ibge_code: string | number;
-  population: number;
-  total_biogas_m3_year: number;
-  potential_category: string;
-  immediate_region: string;
-}
-
-// Rankings response
-export interface RankingsResponse {
-  criteria: 'total' | 'agricultural' | 'livestock' | 'urban';
-  total_ranked: number;
-  rankings: Array<{
-    rank: number;
-    id: string | number;
-    name: string;
-    ibge_code: string | number;
-    biogas_m3_year: number;
-    population: number;
-    category: string;
-  }>;
-}
-
-// Map styles
-export interface MapStyle {
-  fillColor: string;
-  weight: number;
-  opacity: number;
-  color: string;
-  fillOpacity: number;
-}
-
-// Color scale thresholds
-export interface ColorScale {
-  veryHigh: number;
-  high: number;
-  medium: number;
-  low: number;
-  veryLow: number;
-}
-
-// Legend item
-export interface LegendItem {
-  color: string;
-  label: string;
-  minValue: number;
-  maxValue?: number;
 }

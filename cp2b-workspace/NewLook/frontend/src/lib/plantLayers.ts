@@ -74,8 +74,6 @@ export const PLANT_LAYERS: Record<PlantLayerId, PlantTypeInfo> = {
   },
 };
 
-export const PLANT_LAYER_IDS = Object.keys(PLANT_LAYERS) as PlantLayerId[];
-
 export function isPlantLayer(id: string): id is PlantLayerId {
   return id in PLANT_LAYERS;
 }
