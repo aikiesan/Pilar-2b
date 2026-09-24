@@ -1146,7 +1146,7 @@ export default function MapComponent({
                   {t('layerAlert.unavailable', { layer: getLayerLabel(status.layerType) })}
                 </p>
                 <p className="mt-1 leading-snug">
-                  {status.message || t('layerAlert.empty')}
+                  {status.state === 'error' ? t('layerAlert.error') : t('layerAlert.empty')}
                 </p>
               </div>
             ))}

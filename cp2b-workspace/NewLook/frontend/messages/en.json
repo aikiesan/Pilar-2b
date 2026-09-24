@@ -110,7 +110,14 @@
   "auth": {
     "errors": {
       "login_failed": "Login failed. Please check your credentials.",
-      "registration_failed": "Registration failed. Please try again."
+      "registration_failed": "Registration failed. Please try again.",
+      "invalid_credentials": "Incorrect email or password.",
+      "account_inactive": "This account is inactive. Contact the administrator.",
+      "account_locked": "This account is temporarily locked after repeated failed attempts. Try again in a few minutes.",
+      "email_taken": "An account with this email already exists.",
+      "invite_only": "Accounts are created by invitation only. Ask the CP2B team for access.",
+      "too_many_attempts": "Too many attempts. Wait a minute and try again.",
+      "network": "The server could not be reached. Check your connection and try again."
     },
     "login": {
       "back_to_home": "Back to home page - PILAR-2b",
@@ -655,8 +662,6 @@
     "infrastructure": {
       "na": "N/A",
       "no_name": "Unnamed",
-      "load_failed": "Failed to load the {layer} layer",
-      "layer_empty": "This layer has no features available on the server",
       "names": {
         "road": "Road",
         "pipeline": "Gas pipeline",
@@ -689,6 +694,9 @@
         "system": "System",
         "population_served": "Population served",
         "removal_efficiency": "Removal efficiency"
+      },
+      "units": {
+        "inches": "{value} in"
       }
     },
     "cnLegend": {
@@ -892,7 +900,8 @@
     },
     "layerAlert": {
       "unavailable": "{layer} unavailable",
-      "empty": "The server returned an empty layer."
+      "empty": "The server returned an empty layer.",
+      "error": "The layer could not be loaded. Try again later."
     },
     "scope": {
       "toggle_title": "Switch between São Paulo and the Minas Gerais beta pilot",

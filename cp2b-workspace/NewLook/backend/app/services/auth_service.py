@@ -52,6 +52,20 @@ def _credentials_error(detail: str = "Could not validate credentials") -> HTTPEx
     )
 
 
+def _auth_error(status_code: int, code: str, message: str) -> HTTPException:
+    """An error the sign-in and sign-up forms explain to the user.
+
+    `code` is stable, so the frontend words it in the page's language; `message`
+    is the English fallback for any other client.
+    """
+    headers = (
+        {"WWW-Authenticate": "Bearer"} if status_code == status.HTTP_401_UNAUTHORIZED else None
+    )
+    return HTTPException(
+        status_code=status_code, detail={"code": code, "message": message}, headers=headers
+    )
+
+
 def _row_to_profile(row: dict) -> UserProfile:
     return UserProfile(
         id=str(row["id"]),
@@ -124,8 +138,8 @@ class AuthService:
         except Exception as e:
             # Unique-violation on email → 409 (do not leak internals).
             if "unique" in str(e).lower() or "duplicate" in str(e).lower():
-                raise HTTPException(
-                    status_code=status.HTTP_409_CONFLICT, detail="Email already registered"
+                raise _auth_error(
+                    status.HTTP_409_CONFLICT, "email_taken", "Email already registered"
                 )
             logger.error("create_user failed: %s", e)
             raise HTTPException(status_code=500, detail="Could not create user")
@@ -146,17 +160,20 @@ class AuthService:
             row = cur.fetchone()
 
             # Uniform error to avoid user enumeration.
-            invalid = _credentials_error("Invalid email or password")
+            invalid = _auth_error(
+                status.HTTP_401_UNAUTHORIZED, "invalid_credentials", "Invalid email or password"
+            )
             if row is None:
                 raise invalid
             if not row["is_active"]:
-                raise HTTPException(
-                    status_code=status.HTTP_403_FORBIDDEN, detail="Account is inactive"
+                raise _auth_error(
+                    status.HTTP_403_FORBIDDEN, "account_inactive", "Account is inactive"
                 )
             if row["locked_until"] and row["locked_until"] > _now():
-                raise HTTPException(
-                    status_code=status.HTTP_403_FORBIDDEN,
-                    detail="Account temporarily locked. Try again later.",
+                raise _auth_error(
+                    status.HTTP_403_FORBIDDEN,
+                    "account_locked",
+                    "Account temporarily locked. Try again later.",
                 )
 
             if not self.verify_password(login.password, row["password_hash"]):

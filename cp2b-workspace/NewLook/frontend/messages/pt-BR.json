@@ -110,7 +110,14 @@
   "auth": {
     "errors": {
       "login_failed": "Falha no login. Verifique suas credenciais.",
-      "registration_failed": "Falha no registro. Tente novamente."
+      "registration_failed": "Falha no registro. Tente novamente.",
+      "invalid_credentials": "E-mail ou senha incorretos.",
+      "account_inactive": "Esta conta está inativa. Fale com o administrador.",
+      "account_locked": "Conta bloqueada temporariamente após tentativas malsucedidas. Tente novamente em alguns minutos.",
+      "email_taken": "Já existe uma conta com este e-mail.",
+      "invite_only": "As contas são criadas apenas por convite. Solicite acesso à equipe do CP2B.",
+      "too_many_attempts": "Muitas tentativas. Aguarde um minuto e tente novamente.",
+      "network": "Não foi possível contatar o servidor. Verifique sua conexão e tente novamente."
     },
     "login": {
       "back_to_home": "Voltar para página inicial - PILAR-2b",
@@ -655,8 +662,6 @@
     "infrastructure": {
       "na": "N/A",
       "no_name": "Sem nome",
-      "load_failed": "Falha ao carregar a camada {layer}",
-      "layer_empty": "Camada sem feições disponíveis no servidor",
       "names": {
         "road": "Rodovia",
         "pipeline": "Gasoduto",
@@ -689,6 +694,9 @@
         "system": "Sistema",
         "population_served": "População Atendida",
         "removal_efficiency": "Eficiência Remoção"
+      },
+      "units": {
+        "inches": "{value} pol"
       }
     },
     "cnLegend": {
@@ -892,7 +900,8 @@
     },
     "layerAlert": {
       "unavailable": "{layer} indisponível",
-      "empty": "O servidor retornou uma camada vazia."
+      "empty": "O servidor retornou uma camada vazia.",
+      "error": "A camada não pôde ser carregada. Tente novamente mais tarde."
     },
     "scope": {
       "toggle_title": "Alternar entre São Paulo e o piloto beta de Minas Gerais",

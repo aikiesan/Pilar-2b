@@ -9,7 +9,7 @@ import { Link, useRouter } from '@/navigation'
 import Image from 'next/image'
 import { LogIn, AlertCircle } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
-import { getErrorMessage } from '@/types/errors'
+import { AuthError } from '@/lib/authErrors'
 import { useTranslations } from 'next-intl'
 import { logger } from '@/lib/logger'
 import { firstError, validateEmail, validateRequired } from '@/lib/validation'
@@ -66,7 +66,7 @@ export default function LoginPage() {
       // Signal that we should navigate once user is loaded
       setShouldNavigate(true)
     } catch (err: unknown) {
-      setError(getErrorMessage(err) || t('errors.login_failed'))
+      setError(t(`errors.${err instanceof AuthError ? err.code : 'login_failed'}`))
       setIsSubmitting(false)
     }
   }

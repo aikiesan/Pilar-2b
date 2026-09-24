@@ -1015,10 +1015,10 @@ async def get_summary_statistics():
                 **_tier(
                     f("ch4_real"), f("real_agri"), f("real_live"), f("real_urban"), f("real_forest")
                 ),
-                "label": "Cenário Real (curto prazo)",
+                "label": "Real Scenario (short term)",
                 "description": (
-                    "Resíduo que efetivamente chega a um digestor hoje: taxas de "
-                    "coleta e usos concorrentes atuais."
+                    "Residue that actually reaches a digester today: current "
+                    "collection rates and competing uses."
                 ),
             },
             "ideal": {
@@ -1029,11 +1029,11 @@ async def get_summary_statistics():
                     f("ideal_urban"),
                     f("ideal_forest"),
                 ),
-                "label": "Cenário Ideal (fronteira)",
+                "label": "Ideal Scenario (frontier)",
                 "description": (
-                    "100% do resíduo gerado coletado e tratado (Atlas de Bioenergia "
-                    "SP 2020). Hipótese de infraestrutura — a química é a mesma do "
-                    "Cenário Real."
+                    "100% of the residue generated is collected and treated (Atlas de "
+                    "Bioenergia SP 2020). An infrastructure assumption: the chemistry "
+                    "is the same as in the Real Scenario."
                 ),
             },
         }
@@ -1042,7 +1042,7 @@ async def get_summary_statistics():
 
         return {
             "scope": "SP",
-            "scope_label": "Estado de São Paulo",
+            "scope_label": "São Paulo State",
             "total_municipalities": n,
             # LEGACY KEY — the stored column is named *_biogas_m3_year but holds
             # METHANE, not biogas: the pipeline computes
@@ -1108,13 +1108,12 @@ async def get_summary_statistics():
                 ),
             },
             "note": (
-                f"Dados de {n} municípios do estado de São Paulo. "
-                "Municípios fora de SP estão carregados no mapa como camada beta "
-                "em validação e NÃO entram neste total. "
-                "Os volumes são de METANO (CH₄): o BMP que os gera está em "
-                "NmL CH₄/gVS. O biogás bruto equivalente usa a fração de "
-                f"{CH4_FRACTION_OF_BIOGAS} Nm³ CH₄/Nm³ biogás (FIESP 2025). "
-                "Médias diárias consideram 365 dias/ano."
+                f"Data for {n} municipalities of São Paulo State. Municipalities "
+                "outside SP are on the map as a beta layer under validation and are "
+                "NOT in this total. Volumes are METHANE (CH4): the BMP they come from "
+                "is in NmL CH4/gVS. Raw biogas uses a fraction of "
+                f"{CH4_FRACTION_OF_BIOGAS} Nm3 CH4/Nm3 biogas (FIESP 2025). "
+                "Daily averages assume 365 days a year."
             ),
         }
 
@@ -1122,7 +1121,7 @@ async def get_summary_statistics():
         logger.error(f"🔥 Error in get_summary_statistics: {e}", exc_info=True)
         return {
             "scope": "SP",
-            "scope_label": "Estado de São Paulo",
+            "scope_label": "São Paulo State",
             "total_municipalities": 0,
             "total_biogas_m3_year": 0,
             "total_biogas_m3_day": 0,
@@ -1145,7 +1144,7 @@ async def get_summary_statistics():
             "scenarios": {},
             "sector_percentages": {"agricultural": 0, "livestock": 0, "urban": 0, "forestry": 0},
             "error": "Failed to load data",
-            "note": "Erro ao carregar dados - usando valores padrão",
+            "note": "Could not load the data; returning default values",
         }
 
 

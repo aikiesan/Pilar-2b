@@ -9,7 +9,7 @@ import { Link, useRouter } from '@/navigation'
 import Image from 'next/image'
 import { UserPlus, AlertCircle, CheckCircle } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
-import { getErrorMessage } from '@/types/errors'
+import { AuthError } from '@/lib/authErrors'
 import { useTranslations } from 'next-intl'
 import {
   firstError,
@@ -65,7 +65,7 @@ export default function RegisterPage() {
       // Use locale-aware router for navigation
       router.push('/dashboard')
     } catch (err: unknown) {
-      setError(getErrorMessage(err) || t('errors.registration_failed'))
+      setError(t(`errors.${err instanceof AuthError ? err.code : 'registration_failed'}`))
     }
   }
 

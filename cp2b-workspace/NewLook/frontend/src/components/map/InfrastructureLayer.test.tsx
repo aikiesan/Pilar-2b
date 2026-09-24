@@ -178,12 +178,13 @@ describe('InfrastructureLayer', () => {
       );
 
       expect(queryByTestId('infrastructure-geojson')).not.toBeInTheDocument();
+      // The server's English note is logged, not handed to the map to display.
       expect(onStatus).toHaveBeenCalledWith({
         layerType: 'settlement',
         state: 'empty',
         featureCount: 0,
-        message
       });
+      expect(logger.info).toHaveBeenCalledWith('settlement layer is empty:', message);
       expect(logger.error).not.toHaveBeenCalled();
     });
 

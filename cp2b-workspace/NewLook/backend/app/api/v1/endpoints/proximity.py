@@ -369,7 +369,7 @@ async def validate_point(
     warnings = []
 
     if not within_br:
-        warnings.append("Ponto fora dos limites do Brasil")
+        warnings.append("Point outside Brazil's bounds")
 
     return {
         "valid": within_br,

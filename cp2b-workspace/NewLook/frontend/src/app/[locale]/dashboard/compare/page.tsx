@@ -7,6 +7,8 @@ import { useTranslations } from 'next-intl';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import Breadcrumb from '@/components/ui/Breadcrumb';
 import { useBreadcrumbs } from '@/hooks/useBreadcrumbs';
+import { useFormat } from '@/hooks/useFormat';
+import { logger } from '@/lib/logger';
 
 interface MunicipalityData {
   id: number;
@@ -29,6 +31,7 @@ function ComparePageContent() {
   const searchParams = useSearchParams();
   const t = useTranslations('pages');
   const breadcrumbs = useBreadcrumbs();
+  const format = useFormat();
   const [municipalities, setMunicipalities] = useState<MunicipalityData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -42,7 +45,8 @@ function ComparePageContent() {
           return;
         }
 
-        const ids = idsParam.split(',').map((id) => parseInt(id.trim()));
+        // Only whole numbers: anything else in the address would fetch /municipalities/NaN.
+        const ids = idsParam.split(',').map((id) => Number(id.trim())).filter(Number.isInteger);
 
         if (ids.length < 2) {
           setError(t('compare.min_municipalities_error'));
@@ -63,7 +67,9 @@ function ComparePageContent() {
         const data = await Promise.all(promises);
         setMunicipalities(data);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load municipalities');
+        // The raw message ("Municipality 42 not found", "Failed to fetch") is for the log.
+        logger.error('Comparison load failed:', err);
+        setError(t('compare.error'));
       } finally {
         setLoading(false);
       }
@@ -72,18 +78,10 @@ function ComparePageContent() {
     fetchMunicipalities();
   }, [searchParams, router, t]);
 
-  const formatNumber = (num: number | null | undefined): string => {
-    if (num === null || num === undefined) return 'N/A';
-    return new Intl.NumberFormat('pt-BR').format(Math.round(num));
-  };
-
-  const formatDecimal = (num: number | null | undefined, decimals: number = 2): string => {
-    if (num === null || num === undefined) return 'N/A';
-    return new Intl.NumberFormat('pt-BR', {
-      minimumFractionDigits: decimals,
-      maximumFractionDigits: decimals
-    }).format(num);
-  };
+  // In the page's number format ("1,234" / "1.234"); a missing value is a dash.
+  const formatNumber = (num: number | null | undefined): string => format.number(num, { decimals: 0 });
+  const formatDecimal = (num: number | null | undefined, decimals: number = 2): string =>
+    format.number(num, { decimals, minDecimals: decimals });
 
   const getComparisonIcon = (values: number[], index: number) => {
     const value = values[index];

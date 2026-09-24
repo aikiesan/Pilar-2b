@@ -647,7 +647,8 @@ function StatStrip({ municipalityCount, totalMunicipalities, filterCount, betaMu
         {headline !== undefined && (
           <span
             className="ml-auto text-[10px] text-green-700 font-semibold shrink-0"
-            title={tier?.description}
+            // The catalog's tip, not the summary's `description`: that one is Portuguese only.
+            title={tier && isServedScenario(scenario) ? tMap(`scenario_${scenario}_tip`) : undefined}
           >
             {format.compact(headline)} {headlineLabel}
           </span>

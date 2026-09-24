@@ -84,26 +84,6 @@ export interface DistributionResponse {
   category: string;
 }
 
-export interface ResidueType {
-  key: string;
-  label: string;
-  column: string;
-}
-
-export interface CategoryConfig {
-  label: string;
-  icon: string;
-  residues: ResidueType[];
-}
-
-export interface ResidueConfigResponse {
-  categories: {
-    agricultural: CategoryConfig;
-    livestock: CategoryConfig;
-    urban: CategoryConfig;
-  };
-}
-
 export interface StreamStatisticsResponse {
   total: number;
   streams: Record<string, number>;
@@ -228,18 +208,5 @@ export async function getStatisticsByStream(
   if (!response.ok) {
     throw new Error(`Failed to fetch stream statistics: ${response.statusText}`);
   }
-  return response.json();
-}
-
-/**
- * Get residue configuration
- */
-export async function getResidueConfig(): Promise<ResidueConfigResponse> {
-  const response = await authenticatedFetch(`${API_BASE_URL}/api/v1/analysis/residue-config`);
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch residue config: ${response.statusText}`);
-  }
-
   return response.json();
 }

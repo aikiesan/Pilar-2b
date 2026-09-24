@@ -213,6 +213,7 @@ def test_login_rejects_locked_account(svc, cursor):
     with pytest.raises(HTTPException) as e:
         asyncio.run(svc.login_user(UserLogin(email=row["email"], password="Password123")))
     assert e.value.status_code == 403
+    assert e.value.detail["code"] == "account_locked"
 
 
 def test_login_rejects_inactive_account(svc, cursor):
@@ -221,6 +222,7 @@ def test_login_rejects_inactive_account(svc, cursor):
     with pytest.raises(HTTPException) as e:
         asyncio.run(svc.login_user(UserLogin(email=row["email"], password="Password123")))
     assert e.value.status_code == 403
+    assert e.value.detail["code"] == "account_inactive"
 
 
 def test_login_unknown_email_is_401(svc, cursor):
@@ -230,6 +232,9 @@ def test_login_unknown_email_is_401(svc, cursor):
             svc.login_user(UserLogin(email="nobody@cp2b.unicamp.br", password="Password123"))
         )
     assert e.value.status_code == 401
+    # The same code as a wrong password: the error must not reveal which emails exist.
+    assert e.value.detail["code"] == "invalid_credentials"
+    assert e.value.headers == {"WWW-Authenticate": "Bearer"}
 
 
 # ── admin create user (DB) ────────────────────────────────────────────────────
@@ -247,3 +252,21 @@ def test_create_user_returns_profile(svc, cursor):
     assert profile.email == created["email"]
     assert profile.role == "autenticado"
     assert profile.clearance == 0
+
+
+def test_create_user_duplicate_email_is_409_with_a_code(svc, cursor):
+    def duplicate(sql, params=None):
+        raise Exception('duplicate key value violates unique constraint "auth_users_email_key"')
+
+    cursor.execute = duplicate
+    data = AdminCreateUser(
+        email="taken@cp2b.unicamp.br",
+        password="Password123",
+        full_name="Test User",
+        role="autenticado",
+        clearance=0,
+    )
+    with pytest.raises(HTTPException) as e:
+        asyncio.run(svc.create_user(data))
+    assert e.value.status_code == 409
+    assert e.value.detail == {"code": "email_taken", "message": "Email already registered"}

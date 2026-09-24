@@ -45,7 +45,8 @@ export default function DistributionHistogram({
 
   // Prepare chart data
   const chartData: ChartData<'bar'> = {
-    labels: histogram.map(bin => bin.label),
+    // The backend's own bin label is English-formatted ("0.5-1.2M"); build it here.
+    labels: histogram.map(bin => `${format.compact(bin.bin_start)}–${format.compact(bin.bin_end)}`),
     datasets: [
       {
         label: t('histogram_dataset'),
