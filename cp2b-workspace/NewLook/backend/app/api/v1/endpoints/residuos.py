@@ -463,7 +463,7 @@ async def compare_residuos(ids: str = Query(..., description="Comma-separated re
 
 
 @router.get("/{residuo_id}/references")
-async def get_residuo_references(residuo_id: int, parameter_type: Optional[str] = None):
+async def get_residuo_references(residuo_id: int):
     try:
         with get_db() as conn:
             residuos = _rows(conn, "SELECT nome, codigo FROM residuos WHERE id = %s", [residuo_id])

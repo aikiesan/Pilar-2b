@@ -45,23 +45,6 @@ logger = logging.getLogger(__name__)
 # SECURITY: Input Validation Constants
 # ============================================================================
 
-VALID_REGIONS = {
-    "Central",
-    "Bauru",
-    "Araçatuba",
-    "Ribeirão Preto",
-    "Campinas",
-    "São José dos Campos",
-    "Sorocaba",
-    "Santos",
-    "São Paulo",
-    "Presidente Prudente",
-    "Marília",
-    "Registro",
-    "Franca",
-    "São José do Rio Preto",
-}
-
 ALLOWED_SORT_COLUMNS = {
     "biogas": "total_biogas_m3_year",
     "name": "municipality_name",
@@ -135,13 +118,6 @@ class ProximityQuery(BaseModel):
     latitude: float = Field(..., ge=-90, le=90)
     longitude: float = Field(..., ge=-180, le=180)
     radius_km: float = Field(..., gt=0, le=500)
-
-
-class MapBounds(BaseModel):
-    min_lat: float
-    min_lng: float
-    max_lat: float
-    max_lng: float
 
 
 # ============================================================================

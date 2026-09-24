@@ -217,13 +217,3 @@ def get_all_cache_stats() -> dict:
         "municipality": municipality_cache.get_stats(),
         "economic": economic_cache.get_stats(),
     }
-
-
-def get_cache_service() -> LRUCache:
-    """
-    Get economic cache instance for dependency injection.
-
-    Returns:
-        LRUCache instance for economic simulation caching
-    """
-    return economic_cache
