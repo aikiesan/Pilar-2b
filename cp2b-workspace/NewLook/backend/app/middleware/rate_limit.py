@@ -24,19 +24,17 @@ limiter = Limiter(
 
 def get_client_ip(request: Request) -> str:
     """
-    Get client IP address from request.
-    Handles X-Forwarded-For header for proxied requests.
+    The client's IP address, as the rate limits count it.
 
-    Args:
-        request: FastAPI request object
+    Behind the Apache proxy this is already the real client: uvicorn's proxy
+    headers (on by default, trusting 127.0.0.1) take it from the right end of
+    X-Forwarded-For, the address Apache itself saw. This used to read the
+    header's first entry instead, which the caller writes: a new
+    X-Forwarded-For per attempt walked past the 3/minute login limit.
 
-    Returns:
-        Client IP address as string
+    Behind another proxy (a load balancer, a PaaS edge), set
+    FORWARDED_ALLOW_IPS to its address so uvicorn trusts its headers too.
     """
-    forwarded = request.headers.get("X-Forwarded-For")
-    if forwarded:
-        # Take the first IP in the chain
-        return forwarded.split(",")[0].strip()
     return request.client.host if request.client else "unknown"
 
 

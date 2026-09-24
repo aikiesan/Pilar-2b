@@ -34,7 +34,7 @@ def test_no_http_error_detail_carries_exception_text():
 @pytest.mark.parametrize(
     "line",
     [
-        'raise HTTPException(status_code=500, detail=str(e))',
+        "raise HTTPException(status_code=500, detail=str(e))",
         'raise HTTPException(status_code=500, detail=f"Database error: {e}")',
         'raise HTTPException(status_code=500, detail=f"Clustering error: {str(e)}")',
         'raise HTTPException(status_code=500, detail=f"Error: {type(e).__name__}")',
