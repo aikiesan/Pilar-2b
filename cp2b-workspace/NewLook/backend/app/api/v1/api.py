@@ -12,7 +12,6 @@ from app.api.v1.endpoints import (
     infrastructure,
     intermediate_regions,
     mapbiomas,
-    maps,
     municipalities,
     proximity,
     residuos,
@@ -29,8 +28,6 @@ api_router.include_router(auth.router, prefix="/auth", tags=["authentication"])
 api_router.include_router(municipalities.router, prefix="/municipalities", tags=["municipalities"])
 
 api_router.include_router(analysis.router, prefix="/analysis", tags=["analysis"])
-
-api_router.include_router(maps.router, prefix="/maps", tags=["maps"])
 
 api_router.include_router(geospatial.router, prefix="/geospatial", tags=["geospatial", "postgis"])
 
