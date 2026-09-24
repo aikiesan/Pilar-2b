@@ -120,20 +120,24 @@ def get_db():
 
         yield conn
 
-    except psycopg2.Error as e:
-        logger.error(f"Database error: {e}")
+        # End the block's transaction, so a pooled connection never carries a
+        # stale snapshot into its next use.
+        conn.commit()
+
+    except BaseException as e:
+        # Any failure rolls back: the database's own, or the caller's (an
+        # HTTPException raised mid-block). Only psycopg2.Error used to, so any
+        # other exception fell through to a commit of what the block had written.
+        if isinstance(e, psycopg2.Error):
+            logger.error(f"Database error: {e}")
         if conn:
-            conn.rollback()
+            try:
+                conn.rollback()
+            except Exception:
+                pass  # connection already unusable; keep the original error
         raise
     finally:
         if conn:
-            # Commit any pending transaction to ensure fresh data on next use
-            # This prevents stale transaction snapshots when connection is reused
-            try:
-                conn.commit()
-            except Exception:
-                pass  # Connection might already be in error state
-
             # Return connection to pool instead of closing it
             connection_pool.putconn(conn)
             logger.debug("Connection returned to pool")
