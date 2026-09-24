@@ -148,7 +148,7 @@ These remain in their respective directories for context:
 | `backend/data/README.md` | Geospatial data directory — shapefiles, rasters (104 lines) |
 | `backend/data/shapefiles/brazil/README.md` | Brazil intermediary regions shapefile — 133 regions (224 lines) |
 | `backend/migrations/README.md` | Migrations directory overview (146 lines) |
-| `backend/app/migrations/README.md` | V2 to V3 migration guide — schema migration history (355 lines) |
+| `backend/app/migrations/README.md` | How migrations are applied (Docker, VM) and written; the legacy `backend/migrations/` |
 | `backend/scripts/archive/README.md` | Archived scripts — kept for reference (85 lines) |
 
 ---

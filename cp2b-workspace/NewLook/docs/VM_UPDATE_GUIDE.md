@@ -31,6 +31,8 @@ cd /var/www/pilar2b/repo
 ### 2. Pull latest code
 
 ```bash
+OLD=$(git rev-parse --short HEAD); echo "rollback point: $OLD"   # note it down
+git restore cp2b-workspace/NewLook/frontend/next-env.d.ts        # `next build` rewrites it
 git pull origin main
 ```
 
@@ -50,10 +52,11 @@ pip install -r requirements.txt --quiet
 
 ### 4. Database: apply new migrations (only if new `.sql` files landed in `backend/app/migrations/`)
 
-Check for new migrations since last deploy:
+List the migration files the pull added (same shell as step 2, so `$OLD` is set):
 
 ```bash
-git log --oneline --diff-filter=A -- 'backend/app/migrations/*.sql' | head -10
+cd /var/www/pilar2b/repo
+git diff --name-only --diff-filter=A "$OLD" HEAD -- cp2b-workspace/NewLook/backend/app/migrations/
 ```
 
 If there are new migrations, apply **each new file**, in order, with `psql`:
