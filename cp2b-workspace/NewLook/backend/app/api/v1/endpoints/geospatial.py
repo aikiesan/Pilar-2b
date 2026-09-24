@@ -160,10 +160,8 @@ def _load_geo_gdf():
         elif SHAPEFILE_PATH_ALT.exists():
             shapefile_to_use = SHAPEFILE_PATH_ALT
         else:
-            raise HTTPException(
-                status_code=500,
-                detail=f"Shapefile not found at {SHAPEFILE_PATH} or {SHAPEFILE_PATH_ALT}",
-            )
+            logger.error("Shapefile not found at %s or %s", SHAPEFILE_PATH, SHAPEFILE_PATH_ALT)
+            raise HTTPException(status_code=500, detail="Municipality boundaries unavailable")
         _geo_gdf = gpd.read_file(shapefile_to_use)
         logger.info(f"✅ Loaded {len(_geo_gdf)} municipality polygons from shapefile")
     return _geo_gdf

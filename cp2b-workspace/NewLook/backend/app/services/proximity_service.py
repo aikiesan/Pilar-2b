@@ -121,6 +121,24 @@ _LOCAL_SHAPEFILE_DIR = (
 # Use Railway path if it exists, otherwise fall back to local
 SHAPEFILE_DIR = _RAILWAY_SHAPEFILE_DIR if _RAILWAY_SHAPEFILE_DIR.exists() else _LOCAL_SHAPEFILE_DIR
 
+_shapefiles: Dict[Path, gpd.GeoDataFrame] = {}
+
+
+def read_shapefile_wgs84(path: Path) -> gpd.GeoDataFrame:
+    """A shapefile in WGS84, read and reprojected once per process.
+
+    Every proximity analysis used to re-read and re-parse the state's
+    municipality polygons and each infrastructure layer from disk. The frame is
+    shared between requests: callers read it and never modify it.
+    """
+    gdf = _shapefiles.get(path)
+    if gdf is None:
+        gdf = gpd.read_file(path)
+        if gdf.crs != WGS84:
+            gdf = gdf.to_crs(WGS84)
+        _shapefiles[path] = gdf
+    return gdf
+
 
 class ProximityService:
     """Service for proximity analysis using PostGIS"""
@@ -190,11 +208,7 @@ class ProximityService:
                 logger.warning(f"Municipalities shapefile not found: {shapefile_path}")
                 return buffer_geojson, municipalities
 
-            gdf = gpd.read_file(shapefile_path)
-
-            # Ensure WGS84
-            if gdf.crs != WGS84:
-                gdf = gdf.to_crs(WGS84)
+            gdf = read_shapefile_wgs84(shapefile_path)
 
             # Get biogas data from Supabase REST with multiple lookup keys
             biogas_data = {}
@@ -711,11 +725,7 @@ class ProximityService:
                 continue
 
             try:
-                gdf = gpd.read_file(shapefile_path)
-
-                # Ensure WGS84
-                if gdf.crs != WGS84:
-                    gdf = gdf.to_crs(WGS84)
+                gdf = read_shapefile_wgs84(shapefile_path)
 
                 # Transform point to UTM for accurate distance
                 point_utm = transform(self.wgs84_to_utm, point)
