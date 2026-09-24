@@ -16,11 +16,18 @@ import {
   X,
   Loader2,
 } from 'lucide-react';
-import type { MunicipalityCollection } from '@/types/geospatial';
+import type { MunicipalityCollection, MunicipalityProperties } from '@/types/geospatial';
 import html2canvas from 'html2canvas';
 import { logger } from '@/lib/logger';
 import { DATA_EXPORT_ENABLED } from '@/lib/featureFlags';
+import { datedFilename, downloadBlob, downloadCsv, toCsv, type CsvValue } from '@/lib/download';
 import { useFormat } from '@/hooks/useFormat';
+
+/** Residue streams with a biogas column of their own, in export order; names: Map.residues.<key>. */
+const RESIDUE_COLUMNS = [
+  'sugarcane', 'soybean', 'corn', 'coffee', 'citrus', 'cattle', 'swine', 'poultry', 'aquaculture', 'rsu', 'rpo',
+] as const;
+const SECTOR_COLUMNS = ['agricultural', 'livestock', 'urban'] as const;
 
 /** An export failure the user can be told about; the text is Map.exportPanel.errors.<code>. */
 class ExportError extends Error {
@@ -49,6 +56,7 @@ export default function ExportControl({
   const [errorMessage, setErrorMessage] = useState<string>('');
   const t = useTranslations('Map.exportPanel');
   const tCommon = useTranslations('common');
+  const tResidues = useTranslations('Map.residues');
   const format = useFormat();
 
   // Beta: the dataset is still being validated, so no copy leaves the browser.
@@ -103,73 +111,29 @@ export default function ExportControl({
       throw new ExportError('no_data');
     }
 
-    // Prepare CSV headers
-    const headers = [
-      'IBGE Code',
-      'Municipality',
-      'Region',
-      'Population',
-      'Area (km²)',
-      'Total Biogas (m³/year)',
-      'Agricultural Biogas (m³/year)',
-      'Livestock Biogas (m³/year)',
-      'Urban Biogas (m³/year)',
-      'Sugarcane Biogas (m³/year)',
-      'Soybean Biogas (m³/year)',
-      'Corn Biogas (m³/year)',
-      'Coffee Biogas (m³/year)',
-      'Citrus Biogas (m³/year)',
-      'Cattle Biogas (m³/year)',
-      'Swine Biogas (m³/year)',
-      'Poultry Biogas (m³/year)',
-      'Aquaculture Biogas (m³/year)',
-      'RSU Biogas (m³/year)',
-      'RPO Biogas (m³/year)',
+    // Heading and value side by side, so the two cannot drift apart.
+    const biogasOf = (source: string) => t('csv.biogas_of', { source });
+    const columns: Array<[string, (p: MunicipalityProperties) => CsvValue]> = [
+      [t('csv.ibge_code'), (p) => p.ibge_code],
+      [t('csv.municipality'), (p) => p.name],
+      [t('csv.region'), (p) => p.intermediate_region],
+      [t('csv.population'), (p) => p.population || 0],
+      [t('csv.area_km2'), (p) => p.area_km2 || 0],
+      [t('csv.total_biogas'), (p) => p.total_biogas_m3_year || 0],
+      ...SECTOR_COLUMNS.map((sector): [string, (p: MunicipalityProperties) => CsvValue] => [
+        biogasOf(tCommon(`sectors.${sector}`)),
+        (p) => p[`${sector}_biogas_m3_year`] || 0,
+      ]),
+      ...RESIDUE_COLUMNS.map((residue): [string, (p: MunicipalityProperties) => CsvValue] => [
+        biogasOf(tResidues(residue)),
+        (p) => p[`${residue}_biogas_m3_year`] || 0,
+      ]),
     ];
 
-    // Prepare CSV rows
-    const rows = data.features.map((feature) => {
-      const p = feature.properties;
-      return [
-        p.ibge_code,
-        p.name,
-        p.intermediate_region,
-        p.population || 0,
-        p.area_km2 || 0,
-        p.total_biogas_m3_year || 0,
-        p.agricultural_biogas_m3_year || 0,
-        p.livestock_biogas_m3_year || 0,
-        p.urban_biogas_m3_year || 0,
-        p.sugarcane_biogas_m3_year || 0,
-        p.soybean_biogas_m3_year || 0,
-        p.corn_biogas_m3_year || 0,
-        p.coffee_biogas_m3_year || 0,
-        p.citrus_biogas_m3_year || 0,
-        p.cattle_biogas_m3_year || 0,
-        p.swine_biogas_m3_year || 0,
-        p.poultry_biogas_m3_year || 0,
-        p.aquaculture_biogas_m3_year || 0,
-        p.rsu_biogas_m3_year || 0,
-        p.rpo_biogas_m3_year || 0,
-      ];
-    });
-
-    // Create CSV content
-    const csvContent = [
-      headers.join(','),
-      ...rows.map((row) => row.join(',')),
-    ].join('\n');
-
-    // Create and download file
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `cp2b-biogas-data-${new Date().toISOString().split('T')[0]}.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    downloadCsv(
+      toCsv([columns.map(([heading]) => heading), ...data.features.map((f) => columns.map(([, value]) => value(f.properties)))]),
+      datedFilename('cp2b-biogas-data', 'csv')
+    );
   };
 
   const exportToGeoJSON = async () => {
@@ -180,16 +144,7 @@ export default function ExportControl({
     // Create GeoJSON content
     const geoJSONContent = JSON.stringify(data, null, 2);
 
-    // Create and download file
-    const blob = new Blob([geoJSONContent], { type: 'application/json' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `cp2b-biogas-geodata-${new Date().toISOString().split('T')[0]}.geojson`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    downloadBlob(new Blob([geoJSONContent], { type: 'application/geo+json' }), datedFilename('cp2b-biogas-geodata', 'geojson'));
   };
 
   const exportToPNG = async () => {
@@ -215,15 +170,7 @@ export default function ExportControl({
       throw new ExportError('image_failed');
     }
 
-    // Create and download file
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `cp2b-biogas-map-${new Date().toISOString().split('T')[0]}.png`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    downloadBlob(blob, datedFilename('cp2b-biogas-map', 'png'));
   };
 
   const getStatusIcon = (format: ExportFormat) => {

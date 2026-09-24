@@ -8,7 +8,8 @@
 import { useState } from 'react';
 import { Wheat, Beef, Building2, Factory, Check, ChevronDown, ChevronRight } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { getResiduesByCategory, getParentCrop } from '@/data/residueFactors';
+import { getResiduesByCategory, getParentCrop, type ParentCrop } from '@/data/residueFactors';
+import { useLocalize } from '@/hooks/useLocalize';
 
 export type ResidueCategory = 'agricultural' | 'livestock' | 'urban' | 'industrial';
 
@@ -37,6 +38,8 @@ export default function SimpleResidueSelector({
   onApply
 }: SimpleResidueSelectorProps) {
   const t = useTranslations('analysis')
+  const tResidues = useTranslations('Map.residues')
+  const localize = useLocalize()
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(['all']));
 
   // Get residues for current category
@@ -46,7 +49,7 @@ export default function SimpleResidueSelector({
   const residueGroups: ResidueGroup[] = (() => {
     if (selectedCategory === 'agricultural') {
       // Group by parent crop for agricultural only
-      const grouped = new Map<string, typeof categoryResidues>();
+      const grouped = new Map<ParentCrop, typeof categoryResidues>();
       categoryResidues.forEach(residue => {
         const parent = getParentCrop(residue.code);
         if (!grouped.has(parent)) {
@@ -55,12 +58,13 @@ export default function SimpleResidueSelector({
         grouped.get(parent)!.push(residue);
       });
 
+      // Groups are keyed by crop, so an expanded group stays open across languages.
       return Array.from(grouped.entries()).map(([parent, residues]) => ({
-        id: parent.toLowerCase().replace(/\s+/g, '-'),
-        label: parent,
+        id: parent,
+        label: parent === 'other' ? t('residue_selector.other_crops') : tResidues(parent),
         residues: residues.map(r => ({
           code: r.code,
-          name: r.name
+          name: localize(r.name)
         }))
       }));
     } else if (selectedCategory === 'industrial') {
@@ -70,7 +74,7 @@ export default function SimpleResidueSelector({
         label: t('residue_selector.industrial'),
         residues: categoryResidues.map(r => ({
           code: r.code,
-          name: r.name
+          name: localize(r.name)
         }))
       }];
     } else {
@@ -80,7 +84,7 @@ export default function SimpleResidueSelector({
         label: selectedCategory === 'livestock' ? t('residue_selector.livestock') : t('residue_selector.urban'),
         residues: categoryResidues.map(r => ({
           code: r.code,
-          name: r.name
+          name: localize(r.name)
         }))
       }];
     }
@@ -250,7 +254,7 @@ export default function SimpleResidueSelector({
                   <div
                     role="checkbox"
                     aria-checked={allSelected}
-                    aria-label="Selecionar todos os resíduos"
+                    aria-label={t('residue_selector.select_all', { group: group.label })}
                     tabIndex={0}
                     className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-all focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-1 ${
                       allSelected

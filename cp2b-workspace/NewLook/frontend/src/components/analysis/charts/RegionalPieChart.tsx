@@ -10,6 +10,7 @@ import {
 } from 'chart.js';
 import { Doughnut } from 'react-chartjs-2';
 import { useTranslations } from 'next-intl';
+import { useFormat } from '@/hooks/useFormat';
 import { RegionData } from '@/services/analysisApi';
 
 // Register Chart.js components
@@ -60,6 +61,8 @@ export default function RegionalPieChart({
   maxRegions = 8
 }: RegionalPieChartProps) {
   const t = useTranslations('charts');
+  const tCommon = useTranslations('common');
+  const format = useFormat();
   // Process data - group smaller regions into "Outros"
   let processedData = [...data];
   if (data.length > maxRegions) {
@@ -103,7 +106,7 @@ export default function RegionalPieChart({
             const data = chart.data;
             if (data.labels && data.datasets[0].data) {
               return data.labels.map((label, i) => ({
-                text: `${label} (${processedData[i]?.percentage.toFixed(1)}%)`,
+                text: `${label} (${format.percent(processedData[i]?.percentage ?? 0)})`,
                 fillStyle: COLORS[i],
                 strokeStyle: BORDER_COLORS[i],
                 lineWidth: 2,
@@ -132,12 +135,7 @@ export default function RegionalPieChart({
             const label = context.label || '';
             const percentage = processedData[context.dataIndex]?.percentage || 0;
 
-            if (value >= 1000000) {
-              return `${label}: ${(value / 1000000).toFixed(2)}M m³/ano (${percentage.toFixed(1)}%)`;
-            } else if (value >= 1000) {
-              return `${label}: ${(value / 1000).toFixed(2)}k m³/ano (${percentage.toFixed(1)}%)`;
-            }
-            return `${label}: ${value.toFixed(2)} m³/ano (${percentage.toFixed(1)}%)`;
+            return `${label}: ${format.compact(value, { decimals: 2 })} ${tCommon('units.m3_year')} (${format.percent(percentage)})`;
           }
         }
       }
@@ -168,7 +166,7 @@ export default function RegionalPieChart({
 
   return (
     <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100 hover:shadow-lg transition-shadow">
-      <div className="h-[400px]" role="img" aria-label="Distribuição regional do potencial de biogás">
+      <div className="h-[400px]" role="img" aria-label={title ?? t('chart_regional')}>
         <Doughnut data={chartData} options={options} />
       </div>
     </div>

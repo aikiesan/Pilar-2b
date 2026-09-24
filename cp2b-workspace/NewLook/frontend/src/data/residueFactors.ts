@@ -1,586 +1,509 @@
 /**
- * Detailed Residue Data with Individual FDE Factors
- * Source: FDE_Disponibilidade_Residuos_CP2B.csv
- * Each residue has its own FC, FCp, FS, FL factors
+ * Residue-level FDE factors for the advanced analysis.
+ *
+ * Source: backend/data/FDE_Disponibilidade_Residuos_CP2B.xlsx (sheet
+ * Fatores_Totais), which also holds each residue's classification, SP potential
+ * and validation sources (sheets Ref_Docs, Ref_Sugarcane). Kept here is what the
+ * analysis computes with or displays: each residue's name, its FC, FCp, FS and
+ * FL with their justifications, and its BMP. FDE is always computed from the
+ * four factors (calculateFDE), never stored.
  */
+
+import type { Localized } from '@/lib/localized'
+
+export type FactorKey = 'fc' | 'fcp' | 'fs' | 'fl'
+
+// Justifications the sheet gives for many residues.
+const CONTINUOUS_GENERATION: Localized = { 'pt-BR': 'Geração contínua; 95% do ano', en: 'Continuous generation; 95% of the year' }
+const SUGARCANE_HARVEST: Localized = { 'pt-BR': 'Safra cana: Abril-Novembro', en: 'Sugarcane harvest: April–November' }
+const CITRUS_HARVEST: Localized = { 'pt-BR': 'Safra citros: Abril-Dezembro; 90%', en: 'Citrus harvest: April–December; 90%' }
+const CITRUS_BELT: Localized = { 'pt-BR': 'Cinturão citros; 30-40km', en: 'Citrus belt; 30–40 km' }
+const COFFEE_HARVEST: Localized = { 'pt-BR': 'Safra café: Junho-Setembro; 85%', en: 'Coffee harvest: June–September; 85%' }
 
 export interface DetailedResidue {
   code: string
-  name: string
-  sector: 'URBANO' | 'PECUÁRIA' | 'AGRICULTURA' | 'INDÚSTRIA'
+  /** Display name, in both languages. */
+  name: Localized
+  /** Sector, as the analysis groups residues. */
   category: 'urban' | 'livestock' | 'agricultural' | 'industrial'
-  
+
   // FDE Correction Factors
   fc: number      // Collection Factor
-  fcp: number     // Competition Factor  
+  fcp: number     // Competition Factor
   fs: number      // Seasonal Factor
   fl: number      // Logistics Factor
-  fde: number     // Final FDE (%)
-  
+
   // Technical Data
   bmp: number     // Biochemical Methane Potential (m³/kg SV)
   // Residue-to-Product Ratio: fraction of this sub-residue relative to parent crop mass.
   // Used to apportion a shared DB stream (e.g. "sugarcane") among multiple frontend codes.
   // Omit (or set 1.0) for residues with a 1-to-1 stream mapping.
   rpr?: number
-  classification: string
   confidence: 'HIGH' | 'MEDIUM' | 'LOW'
-  
-  // Justifications
-  fcJustification: string
-  fcpJustification: string
-  fsJustification: string
-  flJustification: string
-  
-  // Observations
-  observation?: string
-  potentialSP?: string
+  /** Why each factor has its value (shown beside its slider). */
+  justification: Record<FactorKey, Localized>
 }
 
 export const DETAILED_RESIDUES: DetailedResidue[] = [
-  // URBANO
+  // Urban
   {
     code: 'URB_LODO_PRIMARIO',
-    name: 'Lodo Primário (ETEs)',
-    sector: 'URBANO',
+    name: { 'pt-BR': 'Lodo Primário (ETEs)', en: 'Primary sludge (WWTPs)' },
     category: 'urban',
     fc: 0.85,
     fcp: 0.25,
     fs: 0.95,
     fl: 0.9,
-    fde: 54.51,
     bmp: 0.25,
     rpr: 0.40,
-    classification: '🟢 EXCEPCIONAL (40%+)',
     confidence: 'HIGH',
-    fcJustification: 'ETEs centralizam; 85% coletável peneiramento',
-    fcpJustification: 'CETESB/SABESP: 25% compostagem/agricultura → 75% disponível',
-    fsJustification: 'Geração contínua; 95% do ano',
-    flJustification: 'Centralizado ETEs; 15-20km; viável',
-    potentialSP: '~500k ton/ano',
-    observation: 'SABESP: ETEs maiores com biodigestores; validar co-investimento'
+    justification: {
+      fc: { 'pt-BR': 'ETEs centralizam; 85% coletável peneiramento', en: 'Centralized at WWTPs; 85% recoverable by screening' },
+      fcp: { 'pt-BR': 'CETESB/SABESP: 25% compostagem/agricultura → 75% disponível', en: 'CETESB/SABESP: 25% goes to composting/agriculture → 75% available' },
+      fs: CONTINUOUS_GENERATION,
+      fl: { 'pt-BR': 'Centralizado ETEs; 15-20km; viável', en: 'Centralized at WWTPs; 15–20 km; viable' },
+    },
   },
   {
     code: 'URB_LODO_SECUNDARIO',
-    name: 'Lodo Secundário (ETEs)',
-    sector: 'URBANO',
+    name: { 'pt-BR': 'Lodo Secundário (ETEs)', en: 'Secondary sludge (WWTPs)' },
     category: 'urban',
     fc: 0.82,
     fcp: 0.3,
     fs: 0.95,
     fl: 0.85,
-    fde: 46.35,
     bmp: 0.28,
     rpr: 0.40,
-    classification: '🟢 EXCEPCIONAL (40%+)',
     confidence: 'HIGH',
-    fcJustification: 'Sistemas secundários; 82% coletável',
-    fcpJustification: 'CETESB: 30% fertilização → 70% disponível',
-    fsJustification: 'Geração contínua; 95% do ano',
-    flJustification: 'Centralizado ETEs; 15-25km; viável',
-    potentialSP: '~300k ton/ano',
-    observation: 'Maior MO que primário; excelente para biogás'
+    justification: {
+      fc: { 'pt-BR': 'Sistemas secundários; 82% coletável', en: 'Secondary treatment systems; 82% collectable' },
+      fcp: { 'pt-BR': 'CETESB: 30% fertilização → 70% disponível', en: 'CETESB: 30% used as fertilizer → 70% available' },
+      fs: CONTINUOUS_GENERATION,
+      fl: { 'pt-BR': 'Centralizado ETEs; 15-25km; viável', en: 'Centralized at WWTPs; 15–25 km; viable' },
+    },
   },
   {
     code: 'URB_FORSU_SEPARADA',
-    name: 'FORSU - Fração Orgânica Separada',
-    sector: 'URBANO',
+    name: { 'pt-BR': 'FORSU - Fração Orgânica Separada', en: 'OFMSW — source-separated organic fraction' },
     category: 'urban',
     fc: 0.9,
     fcp: 0.35,
     fs: 0.9,
     fl: 0.8,
-    fde: 42.12,
     bmp: 0.35,
     rpr: 0.20,
-    classification: '🟢 EXCEPCIONAL (40%+)',
     confidence: 'MEDIUM',
-    fcJustification: 'Separação na fonte; 90% de pureza',
-    fcpJustification: 'ABRELPE: 35% uso animal/compostagem → 65% disponível',
-    fsJustification: 'Coleta seletiva; variação sazonal ~10%',
-    flJustification: 'Distribuído pontos coleta; 25km; razoável',
-    potentialSP: '~150k ton/ano',
-    observation: 'Municipios coleta seletiva: São Paulo, Campinas, Santos'
+    justification: {
+      fc: { 'pt-BR': 'Separação na fonte; 90% de pureza', en: 'Source separation; 90% purity' },
+      fcp: { 'pt-BR': 'ABRELPE: 35% uso animal/compostagem → 65% disponível', en: 'ABRELPE: 35% goes to animal feed/composting → 65% available' },
+      fs: { 'pt-BR': 'Coleta seletiva; variação sazonal ~10%', en: 'Separate collection; ~10% seasonal variation' },
+      fl: { 'pt-BR': 'Distribuído pontos coleta; 25km; razoável', en: 'Spread across collection points; 25 km; reasonable' },
+    },
   },
   
-  // PECUÁRIA
+  // Livestock
   {
     code: 'PEC_DEJETOS_LIQUIDOS_SUINO',
-    name: 'Dejetos Líquidos Suínos',
-    sector: 'PECUÁRIA',
+    name: { 'pt-BR': 'Dejetos Líquidos Suínos', en: 'Liquid swine manure' },
     category: 'livestock',
     fc: 0.9,
     fcp: 0.45,
     fs: 0.95,
     fl: 0.75,
-    fde: 35.27,
     bmp: 0.32,
-    classification: '🟢 MUITO BOM (25-39%)',
     confidence: 'HIGH',
-    fcJustification: 'Sistemas confinados; 90% coletável',
-    fcpJustification: 'EMBRAPA: 45% fertirrigação direta → 55% disponível',
-    fsJustification: 'Geração contínua; 95% do ano',
-    flJustification: 'Concentrado regiões; viável transporte',
-    potentialSP: '~2,5M m³/ano',
-    observation: 'Alto potencial metanogênico; Marília, Sorocaba concentram'
+    justification: {
+      fc: { 'pt-BR': 'Sistemas confinados; 90% coletável', en: 'Confined systems; 90% collectable' },
+      fcp: { 'pt-BR': 'EMBRAPA: 45% fertirrigação direta → 55% disponível', en: 'EMBRAPA: 45% direct fertigation → 55% available' },
+      fs: CONTINUOUS_GENERATION,
+      fl: { 'pt-BR': 'Concentrado regiões; viável transporte', en: 'Regionally concentrated; transport viable' },
+    },
   },
   {
     code: 'PEC_ESTERCO_BOVINO',
-    name: 'Esterco Bovino',
-    sector: 'PECUÁRIA',
+    name: { 'pt-BR': 'Esterco Bovino', en: 'Cattle manure' },
     category: 'livestock',
     fc: 0.8,
     fcp: 0.55,
     fs: 0.85,
     fl: 0.7,
-    fde: 19.32,
     bmp: 0.18,
-    classification: '🟡 BOM (15-24%)',
     confidence: 'HIGH',
-    fcJustification: 'Confinamento; 80% coletável',
-    fcpJustification: 'EMBRAPA: 55% fertilização → 45% disponível',
-    fsJustification: 'Sazonalidade moderada ~15%',
-    flJustification: 'Dispersão regional; transporte moderado',
-    potentialSP: '~15M ton/ano',
-    observation: 'Necessita co-digestão; dispersão geográfica'
+    justification: {
+      fc: { 'pt-BR': 'Confinamento; 80% coletável', en: 'Confinement systems; 80% collectable' },
+      fcp: { 'pt-BR': 'EMBRAPA: 55% fertilização → 45% disponível', en: 'EMBRAPA: 55% used as fertilizer → 45% available' },
+      fs: { 'pt-BR': 'Sazonalidade moderada ~15%', en: 'Moderate seasonality (~15%)' },
+      fl: { 'pt-BR': 'Dispersão regional; transporte moderado', en: 'Regionally dispersed; moderate transport' },
+    },
   },
   {
     code: 'PEC_CAMA_AVIARIO',
-    name: 'Cama de Aviário',
-    sector: 'PECUÁRIA',
+    name: { 'pt-BR': 'Cama de Aviário', en: 'Poultry litter' },
     category: 'livestock',
     fc: 0.8,
     fcp: 0.5,
     fs: 0.9,
     fl: 0.75,
-    fde: 27.0,
     bmp: 0.22,
-    classification: '🟢 MUITO BOM (25-39%)',
     confidence: 'MEDIUM',
-    fcJustification: 'Sistemas comerciais; 80% coletável',
-    fcpJustification: 'Compete com ração animal; 50% não-disponível',
-    fsJustification: 'Safra continua; variação ~10%',
-    flJustification: 'Concentrado litoral; 30km transporte',
-    potentialSP: '~800k ton/ano',
-    observation: 'Competição ração animal não quantificada; validar'
+    justification: {
+      fc: { 'pt-BR': 'Sistemas comerciais; 80% coletável', en: 'Commercial operations; 80% collectable' },
+      fcp: { 'pt-BR': 'Compete com ração animal; 50% não-disponível', en: 'Competes with animal feed; 50% unavailable' },
+      fs: { 'pt-BR': 'Safra continua; variação ~10%', en: 'Year-round production; ~10% variation' },
+      fl: { 'pt-BR': 'Concentrado litoral; 30km transporte', en: 'Concentrated near the coast; 30 km transport' },
+    },
   },
   
-  // AGRICULTURA - CANA
+  // Agricultural: sugarcane
   {
     code: 'AG_CANA_BAGACO',
-    name: 'Bagaço de Cana',
-    sector: 'AGRICULTURA',
+    name: { 'pt-BR': 'Bagaço de Cana', en: 'Sugarcane bagasse' },
     category: 'agricultural',
     fc: 0.95,
     fcp: 1.0,
     fs: 0.9,
     fl: 0.9,
-    fde: 0.0,
     bmp: 0.35,
     rpr: 0.28,
-    classification: '⚫ INVIÁVEL (0%)',
     confidence: 'HIGH',
-    fcJustification: '95% gerado em usinas centralizadas',
-    fcpJustification: '🚨 CRÍTICO: 100% cogeração CETESB obrigatória → 0% disponível',
-    fsJustification: 'Safra cana: Abril-Novembro',
-    flJustification: 'Co-localizado; <5km; alta viabilidade',
-    potentialSP: 'ZERO (inviável)',
-    observation: '🚨 FDE=0% INVIÁVEL: 21.218 GWh bioeletricidade UNICA 2024'
+    justification: {
+      fc: { 'pt-BR': '95% gerado em usinas centralizadas', en: '95% generated at centralized mills' },
+      fcp: { 'pt-BR': '🚨 CRÍTICO: 100% cogeração CETESB obrigatória → 0% disponível', en: '🚨 CRITICAL: 100% goes to cogeneration, required by CETESB → 0% available' },
+      fs: SUGARCANE_HARVEST,
+      fl: { 'pt-BR': 'Co-localizado; <5km; alta viabilidade', en: 'Co-located; <5 km; highly viable' },
+    },
   },
   {
     code: 'AG_CANA_PALHA',
-    name: 'Palha de Cana',
-    sector: 'AGRICULTURA',
+    name: { 'pt-BR': 'Palha de Cana', en: 'Sugarcane straw' },
     category: 'agricultural',
     fc: 0.85,
     fcp: 0.9,
     fs: 0.9,
     fl: 0.85,
-    fde: 6.5,
     bmp: 0.3,
     rpr: 0.14,
-    classification: '🟠 REGULAR (5-9%)',
     confidence: 'MEDIUM',
-    fcJustification: '85% coletável mecanicamente',
-    fcpJustification: '🚨 CRÍTICO: 90% retenção solo 5-15t/ha UNESP → 10% disponível',
-    fsJustification: 'Safra cana: Abril-Novembro',
-    flJustification: 'Co-localizado; <10km econômico',
-    potentialSP: '~50k ton/ano',
-    observation: '🚨 FDE REAL=0-2%: Retenção solo obrigatória'
+    justification: {
+      fc: { 'pt-BR': '85% coletável mecanicamente', en: '85% mechanically collectable' },
+      fcp: { 'pt-BR': '🚨 CRÍTICO: 90% retenção solo 5-15t/ha UNESP → 10% disponível', en: '🚨 CRITICAL: 90% stays on the soil (5–15 t/ha, UNESP) → 10% available' },
+      fs: SUGARCANE_HARVEST,
+      fl: { 'pt-BR': 'Co-localizado; <10km econômico', en: 'Co-located; economical under 10 km' },
+    },
   },
   {
     code: 'AG_CANA_TORTA_FILTRO',
-    name: 'Torta de Filtro (cana)',
-    sector: 'AGRICULTURA',
+    name: { 'pt-BR': 'Torta de Filtro (cana)', en: 'Filter cake (sugarcane)' },
     category: 'agricultural',
     fc: 0.95,
     fcp: 0.67,
     fs: 0.9,
     fl: 0.9,
-    fde: 25.39,
     bmp: 0.28,
     rpr: 0.03,
-    classification: '🟢 MUITO BOM (25-39%)',
     confidence: 'HIGH',
-    fcJustification: '95% gerado centralizado em filtros',
-    fcpJustification: 'UNICA: 67% fertilização → 33% disponível excedente',
-    fsJustification: 'Safra cana: Abril-Novembro',
-    flJustification: 'Co-localizado; <15km viável',
-    potentialSP: '~4M ton/ano',
-    observation: 'Excedente validado UNICA; co-digestão com vinhaça otimiza'
+    justification: {
+      fc: { 'pt-BR': '95% gerado centralizado em filtros', en: '95% generated centrally at the filters' },
+      fcp: { 'pt-BR': 'UNICA: 67% fertilização → 33% disponível excedente', en: 'UNICA: 67% used as fertilizer → 33% surplus available' },
+      fs: SUGARCANE_HARVEST,
+      fl: { 'pt-BR': 'Co-localizado; <15km viável', en: 'Co-located; viable under 15 km' },
+    },
   },
   {
     code: 'AG_CANA_VINHACA',
-    name: 'Vinhaça (caldo destilação etanol)',
-    sector: 'AGRICULTURA',
+    name: { 'pt-BR': 'Vinhaça (caldo destilação etanol)', en: 'Vinasse (ethanol distillation residue)' },
     category: 'agricultural',
     fc: 0.95,
     fcp: 0.85,
     fs: 0.9,
     fl: 0.9,
-    fde: 11.54,
     bmp: 0.35,
     rpr: 0.12,
-    classification: '🟡 RAZOÁVEL (10-14%)',
     confidence: 'HIGH',
-    fcJustification: '95% gerado em destilarias',
-    fcpJustification: '🚨 CETESB P4.231 fertirrigação obrigatória 85% → 15% excedente',
-    fsJustification: 'Safra cana: Abril-Novembro',
-    flJustification: 'Co-localizado; pipeline on-site',
-    potentialSP: '~10M m³/ano',
-    observation: '🚨 CETESB P4.231 fertirrigação mandatória 85%'
+    justification: {
+      fc: { 'pt-BR': '95% gerado em destilarias', en: '95% generated at distilleries' },
+      fcp: { 'pt-BR': '🚨 CETESB P4.231 fertirrigação obrigatória 85% → 15% excedente', en: '🚨 CETESB P4.231 mandates fertigation for 85% → 15% surplus' },
+      fs: SUGARCANE_HARVEST,
+      fl: { 'pt-BR': 'Co-localizado; pipeline on-site', en: 'Co-located; on-site pipeline' },
+    },
   },
   
-  // AGRICULTURA - MILHO
+  // Agricultural: corn
   {
     code: 'AG_MILHO_PALHA',
-    name: 'Palha de Milho',
-    sector: 'AGRICULTURA',
+    name: { 'pt-BR': 'Palha de Milho', en: 'Corn stover' },
     category: 'agricultural',
     fc: 0.7,
     fcp: 0.85,
     fs: 0.85,
     fl: 0.6,
-    fde: 5.36,
     bmp: 0.25,
-    classification: '🟠 REGULAR (5-9%)',
     confidence: 'LOW',
-    fcJustification: '70% recuperável campo; colheita mecânica',
-    fcpJustification: '85% PD exige cobertura 3-5t/ha → 15% disponível',
-    fsJustification: 'Safra milho: Fevereiro-Maio; 85%',
-    flJustification: 'Disperso região; 50-100km; marginal',
-    potentialSP: '~100k ton/ano',
-    observation: 'Plantio direto 70% SP; competição silagem'
+    justification: {
+      fc: { 'pt-BR': '70% recuperável campo; colheita mecânica', en: '70% recoverable in the field; mechanical harvesting' },
+      fcp: { 'pt-BR': '85% PD exige cobertura 3-5t/ha → 15% disponível', en: '85%: no-till farming needs 3–5 t/ha of cover → 15% available' },
+      fs: { 'pt-BR': 'Safra milho: Fevereiro-Maio; 85%', en: 'Corn harvest: February–May; 85%' },
+      fl: { 'pt-BR': 'Disperso região; 50-100km; marginal', en: 'Dispersed across the region; 50–100 km; marginal' },
+    },
   },
   
-  // AGRICULTURA - SOJA
+  // Agricultural: soybean
   {
     code: 'AG_SOJA_PALHA',
-    name: 'Palha de Soja',
-    sector: 'AGRICULTURA',
+    name: { 'pt-BR': 'Palha de Soja', en: 'Soybean straw' },
     category: 'agricultural',
     fc: 0.6,
     fcp: 1.0,
     fs: 0.8,
     fl: 0.6,
-    fde: 0.0,
     bmp: 0.22,
-    classification: '⚫ INVIÁVEL (0%)',
     confidence: 'HIGH',
-    fcJustification: '60% recuperável; soja baixa palha 2-3t/ha',
-    fcpJustification: '🚨 CRÍTICO: 100% PD; certificação exige cobertura → 0% disponível',
-    fsJustification: 'Safra soja: Janeiro-Fevereiro; 80%',
-    flJustification: 'Disperso; 60-100km inviável',
-    potentialSP: 'ZERO (inviável)',
-    observation: '🚨 FDE=0% INVIÁVEL: 85% SP em PD; certificação exige cobertura'
+    justification: {
+      fc: { 'pt-BR': '60% recuperável; soja baixa palha 2-3t/ha', en: '60% recoverable; soybean leaves little straw (2–3 t/ha)' },
+      fcp: { 'pt-BR': '🚨 CRÍTICO: 100% PD; certificação exige cobertura → 0% disponível', en: '🚨 CRITICAL: 100% no-till; certification requires ground cover → 0% available' },
+      fs: { 'pt-BR': 'Safra soja: Janeiro-Fevereiro; 80%', en: 'Soybean harvest: January–February; 80%' },
+      fl: { 'pt-BR': 'Disperso; 60-100km inviável', en: 'Dispersed; 60–100 km, not viable' },
+    },
   },
   
-  // AGRICULTURA - CITROS
+  // Agricultural: citrus
   {
     code: 'AG_CITROS_BAGACO',
-    name: 'Bagaço de Citros',
-    sector: 'AGRICULTURA',
+    name: { 'pt-BR': 'Bagaço de Citros', en: 'Citrus bagasse' },
     category: 'agricultural',
     fc: 0.85,
     fcp: 0.7,
     fs: 0.9,
     fl: 0.75,
-    fde: 17.21,
     bmp: 0.28,
     rpr: 0.50,
-    classification: '🟡 BOM (15-24%)',
     confidence: 'MEDIUM',
-    fcJustification: '85% processamento suco concentrado',
-    fcpJustification: '🚨 REGIONAL: Bebedouro (Cargill) varia geograficamente',
-    fsJustification: 'Safra citros: Abril-Dezembro; 90%',
-    flJustification: 'Cinturão citros; 30-40km',
-    potentialSP: '~300k ton/ano (*)',
-    observation: '🚨 REGIONALIZADO: Bebedouro 2-3%'
+    justification: {
+      fc: { 'pt-BR': '85% processamento suco concentrado', en: '85% from concentrated juice processing' },
+      fcp: { 'pt-BR': '🚨 REGIONAL: Bebedouro (Cargill) varia geograficamente', en: '🚨 REGIONAL: Bebedouro (Cargill); varies by location' },
+      fs: CITRUS_HARVEST,
+      fl: CITRUS_BELT,
+    },
   },
   {
     code: 'AG_CITROS_CASCAS',
-    name: 'Cascas de Citros',
-    sector: 'AGRICULTURA',
+    name: { 'pt-BR': 'Cascas de Citros', en: 'Citrus peels' },
     category: 'agricultural',
     fc: 0.8,
     fcp: 0.7,
     fs: 0.9,
     fl: 0.75,
-    fde: 16.2,
     bmp: 0.25,
     rpr: 0.30,
-    classification: '🟡 BOM (15-24%)',
     confidence: 'MEDIUM',
-    fcJustification: '80% descascamento/processamento',
-    fcpJustification: 'Similar bagaço citros - competição pectina regional',
-    fsJustification: 'Safra citros: Abril-Dezembro; 90%',
-    flJustification: 'Cinturão citros; 30-40km',
-    potentialSP: '~250k ton/ano (*)',
-    observation: 'Competição pectina similar bagaço; regional'
+    justification: {
+      fc: { 'pt-BR': '80% descascamento/processamento', en: '80% from peeling/processing' },
+      fcp: { 'pt-BR': 'Similar bagaço citros - competição pectina regional', en: 'Like citrus bagasse: regional competition from pectin production' },
+      fs: CITRUS_HARVEST,
+      fl: CITRUS_BELT,
+    },
   },
   {
     code: 'AG_CITROS_POLPA',
-    name: 'Polpa de Citros (resíduo seco)',
-    sector: 'AGRICULTURA',
+    name: { 'pt-BR': 'Polpa de Citros (resíduo seco)', en: 'Citrus pulp (dry residue)' },
     category: 'agricultural',
     fc: 0.75,
     fcp: 0.75,
     fs: 0.9,
     fl: 0.7,
-    fde: 11.81,
     bmp: 0.2,
     rpr: 0.20,
-    classification: '🟡 RAZOÁVEL (10-14%)',
     confidence: 'MEDIUM',
-    fcJustification: '75% secagem polpa',
-    fcpJustification: '75% vai ração animal (produto comercial) → 25% disponível',
-    fsJustification: 'Safra citros; 90%',
-    flJustification: 'Polpa transportável; 40-60km',
-    potentialSP: '~150k ton/ano',
-    observation: 'Produto comercial (R$ 150-200/ton) compete'
+    justification: {
+      fc: { 'pt-BR': '75% secagem polpa', en: '75% from pulp drying' },
+      fcp: { 'pt-BR': '75% vai ração animal (produto comercial) → 25% disponível', en: '75% goes to animal feed (a commercial product) → 25% available' },
+      fs: { 'pt-BR': 'Safra citros; 90%', en: 'Citrus harvest; 90%' },
+      fl: { 'pt-BR': 'Polpa transportável; 40-60km', en: 'Pulp is transportable; 40–60 km' },
+    },
   },
   
-  // AGRICULTURA - CAFÉ
+  // Agricultural: coffee
   {
     code: 'AG_CAFE_POLPA',
-    name: 'Polpa de Café',
-    sector: 'AGRICULTURA',
+    name: { 'pt-BR': 'Polpa de Café', en: 'Coffee pulp' },
     category: 'agricultural',
     fc: 0.8,
     fcp: 0.6,
     fs: 0.85,
     fl: 0.7,
-    fde: 19.04,
     bmp: 0.32,
     rpr: 0.45,
-    classification: '🟡 BOM (15-24%)',
     confidence: 'MEDIUM',
-    fcJustification: '80% beneficiamento via úmida',
-    fcpJustification: '60% compostagem cafezais + ração → 40% disponível',
-    fsJustification: 'Safra café: Junho-Setembro; 85%',
-    flJustification: 'Região cafeeira; 40-60km',
-    potentialSP: '~200k ton/ano',
-    observation: 'Via úmida domina arábica; focar grandes benefícios'
+    justification: {
+      fc: { 'pt-BR': '80% beneficiamento via úmida', en: '80% from wet processing' },
+      fcp: { 'pt-BR': '60% compostagem cafezais + ração → 40% disponível', en: '60% composted on coffee farms or fed to animals → 40% available' },
+      fs: COFFEE_HARVEST,
+      fl: { 'pt-BR': 'Região cafeeira; 40-60km', en: 'Coffee-growing region; 40–60 km' },
+    },
   },
   {
     code: 'AG_CAFE_CASCA',
-    name: 'Casca de Café',
-    sector: 'AGRICULTURA',
+    name: { 'pt-BR': 'Casca de Café', en: 'Coffee husk' },
     category: 'agricultural',
     fc: 0.7,
     fcp: 0.5,
     fs: 0.85,
     fl: 0.65,
-    fde: 19.34,
     bmp: 0.25,
     rpr: 0.35,
-    classification: '🟡 BOM (15-24%)',
     confidence: 'MEDIUM',
-    fcJustification: '70% beneficiamento',
-    fcpJustification: '50% combustível fornalhas + compostagem → 50% disponível',
-    fsJustification: 'Safra café: Junho-Setembro; 85%',
-    flJustification: 'Disperso região; 60-80km',
-    potentialSP: '~100k ton/ano',
-    observation: 'Casca queimada; compete energia térmica'
+    justification: {
+      fc: { 'pt-BR': '70% beneficiamento', en: '70% from processing' },
+      fcp: { 'pt-BR': '50% combustível fornalhas + compostagem → 50% disponível', en: '50% burned in furnaces or composted → 50% available' },
+      fs: COFFEE_HARVEST,
+      fl: { 'pt-BR': 'Disperso região; 60-80km', en: 'Dispersed across the region; 60–80 km' },
+    },
   },
   {
     code: 'AG_CAFE_MUCILAGEM',
-    name: 'Mucilagem de Café',
-    sector: 'AGRICULTURA',
+    name: { 'pt-BR': 'Mucilagem de Café', en: 'Coffee mucilage' },
     category: 'agricultural',
     fc: 0.85,
     fcp: 0.55,
     fs: 0.8,
     fl: 0.7,
-    fde: 21.42,
     bmp: 0.35,
     rpr: 0.20,
-    classification: '🟡 BOM (15-24%)',
     confidence: 'MEDIUM',
-    fcJustification: '85% despolpamento via úmida',
-    fcpJustification: '55% compostagem + fermentação → 45% disponível',
-    fsJustification: 'Safra café via úmida; 80%',
-    flJustification: 'Benefícios via úmida; 45-65km',
-    potentialSP: '~120k ton/ano',
-    observation: 'Apenas 30% café SP via úmida; potencial regional'
+    justification: {
+      fc: { 'pt-BR': '85% despolpamento via úmida', en: '85% from wet pulping' },
+      fcp: { 'pt-BR': '55% compostagem + fermentação → 45% disponível', en: '55% composted or fermented → 45% available' },
+      fs: { 'pt-BR': 'Safra café via úmida; 80%', en: 'Wet-process coffee harvest; 80%' },
+      fl: { 'pt-BR': 'Benefícios via úmida; 45-65km', en: 'Wet-processing mills; 45–65 km' },
+    },
   },
 
-  // ========================================
-  // INDUSTRIAL RESIDUES (7 types)
-  // ========================================
+  // Industrial
 
-  // 1. Bagaço de Malte (Malt Bagasse) - Brewery
   {
     code: 'IND_BAGACO_MALTE',
-    name: 'Bagaço de Malte',
+    name: { 'pt-BR': 'Bagaço de Malte', en: 'Brewers\' spent grain' },
     category: 'industrial',
-    sector: 'INDÚSTRIA',
     fc: 0.85,
     fcp: 0.70,
     fs: 0.95,
     fl: 0.75,
-    fde: 18.09,
     bmp: 0.28,
-    classification: '🟡 BOM (15-24%)',
     confidence: 'MEDIUM',
-    fcJustification: '85% coletável em cervejarias',
-    fcpJustification: '70% competição com ração animal (R$ 80-120/ton)',
-    fsJustification: 'Produção contínua; 95% ano',
-    flJustification: 'Cervejarias concentradas; 20-30km',
-    potentialSP: '~50k ton/ano',
-    observation: 'Forte competição com ração animal; mercado estabelecido'
+    justification: {
+      fc: { 'pt-BR': '85% coletável em cervejarias', en: '85% collectable at breweries' },
+      fcp: { 'pt-BR': '70% competição com ração animal (R$ 80-120/ton)', en: '70% competes with animal feed (R$ 80–120/t)' },
+      fs: { 'pt-BR': 'Produção contínua; 95% do ano', en: 'Continuous production; 95% of the year' },
+      fl: { 'pt-BR': 'Cervejarias concentradas; 20-30km', en: 'Breweries are concentrated; 20–30 km' },
+    },
   },
 
-  // 2. Trub (cervejaria) - Brewery
   {
     code: 'IND_TRUB_CERVEJA',
-    name: 'Trub (cervejaria)',
+    name: { 'pt-BR': 'Trub (cervejaria)', en: 'Trub (brewery)' },
     category: 'industrial',
-    sector: 'INDÚSTRIA',
     fc: 0.80,
     fcp: 0.75,
     fs: 0.95,
     fl: 0.70,
-    fde: 13.30,
     bmp: 0.20,
-    classification: '🟡 RAZOÁVEL (10-14%)',
     confidence: 'MEDIUM',
-    fcJustification: '80% coletável em processo cervejeiro',
-    fcpJustification: '75% competição com uso industrial',
-    fsJustification: 'Geração contínua; 95% ano',
-    flJustification: 'Cervejarias; 25km média',
-    potentialSP: '~15k ton/ano',
-    observation: 'Quantidade menor; alta heterogeneidade'
+    justification: {
+      fc: { 'pt-BR': '80% coletável em processo cervejeiro', en: '80% collectable in the brewing process' },
+      fcp: { 'pt-BR': '75% competição com uso industrial', en: '75% competes with industrial uses' },
+      fs: CONTINUOUS_GENERATION,
+      fl: { 'pt-BR': 'Cervejarias; 25km média', en: 'Breweries; 25 km on average' },
+    },
   },
 
-  // 3. Soro de Laticínios (Dairy Whey) - Highest BMP!
   {
     code: 'IND_SORO_LATICINIOS',
-    name: 'Soro de Laticínios',
+    name: { 'pt-BR': 'Soro de Laticínios', en: 'Dairy whey' },
     category: 'industrial',
-    sector: 'INDÚSTRIA',
     fc: 0.75,
     fcp: 0.60,
     fs: 0.95,
     fl: 0.65,
-    fde: 17.81,
     bmp: 0.38,
-    classification: '🟡 BOM (15-24%)',
     confidence: 'MEDIUM',
-    fcJustification: '75% coletável em laticínios',
-    fcpJustification: '60% EMBRAPA: ração animal → 40% disponível',
-    fsJustification: 'Geração contínua; 95% ano',
-    flJustification: 'Laticínios dispersos; 50-80km (líquido)',
-    potentialSP: '~80k ton/ano',
-    observation: 'Alto BMP (0.38) mas transporte líquido custoso'
+    justification: {
+      fc: { 'pt-BR': '75% coletável em laticínios', en: '75% collectable at dairies' },
+      fcp: { 'pt-BR': '60% EMBRAPA: ração animal → 40% disponível', en: 'EMBRAPA: 60% goes to animal feed → 40% available' },
+      fs: CONTINUOUS_GENERATION,
+      fl: { 'pt-BR': 'Laticínios dispersos; 50-80km (líquido)', en: 'Dairies are dispersed; 50–80 km (liquid)' },
+    },
   },
 
-  // 4. Resíduos Abatedouro - Meat Processing
   {
     code: 'IND_RESIDUO_ABATEDOURO',
-    name: 'Resíduos Abatedouro',
+    name: { 'pt-BR': 'Resíduos Abatedouro', en: 'Slaughterhouse waste' },
     category: 'industrial',
-    sector: 'INDÚSTRIA',
     fc: 0.70,
     fcp: 0.50,
     fs: 0.95,
     fl: 0.70,
-    fde: 23.33,
     bmp: 0.30,
-    classification: '🟡 BOM (15-24%)',
     confidence: 'MEDIUM',
-    fcJustification: '70% coletável (separação resíduos)',
-    fcpJustification: '50% competição com adubo/ração',
-    fsJustification: 'Geração contínua; 95% ano',
-    flJustification: 'Polos frigoríficos; 25-35km',
-    potentialSP: '~40k ton/ano',
-    observation: 'Alta heterogeneidade; restrições MAPA'
+    justification: {
+      fc: { 'pt-BR': '70% coletável (separação resíduos)', en: '70% collectable (waste separation)' },
+      fcp: { 'pt-BR': '50% competição com adubo/ração', en: '50% competes with fertilizer/feed' },
+      fs: CONTINUOUS_GENERATION,
+      fl: { 'pt-BR': 'Polos frigoríficos; 25-35km', en: 'Meatpacking hubs; 25–35 km' },
+    },
   },
 
-  // 5. Vísceras Não Comestíveis - Highest FDE!
   {
     code: 'IND_VISCERAS_NAO_COMESTIVEIS',
-    name: 'Vísceras Não Comestíveis',
+    name: { 'pt-BR': 'Vísceras Não Comestíveis', en: 'Inedible offal' },
     category: 'industrial',
-    sector: 'INDÚSTRIA',
     fc: 0.75,
     fcp: 0.55,
     fs: 0.95,
     fl: 0.75,
-    fde: 24.05,
     bmp: 0.35,
-    classification: '🟡 BOM (15-24%)',
     confidence: 'MEDIUM',
-    fcJustification: '75% coletável (separação)',
-    fcpJustification: '55% compete com farinha animal (MAPA)',
-    fsJustification: 'Geração contínua; 95% ano',
-    flJustification: 'Polos frigoríficos regionais; viável',
-    potentialSP: '~50k ton/ano',
-    observation: 'Regulamentações MAPA rigorosas; farinha animal priorizada'
+    justification: {
+      fc: { 'pt-BR': '75% coletável (separação)', en: '75% collectable (separation)' },
+      fcp: { 'pt-BR': '55% compete com farinha animal (MAPA)', en: '55% competes with rendering into animal meal (MAPA)' }, // i18n-exempt: MAPA, Brazil's agriculture ministry
+      fs: CONTINUOUS_GENERATION,
+      fl: { 'pt-BR': 'Polos frigoríficos regionais; viável', en: 'Regional meatpacking hubs; viable' },
+    },
   },
 
-  // 6. Resíduos Processamento Vegetal
   {
     code: 'IND_RESIDUO_PROCESSAMENTO_VEGETAL',
-    name: 'Resíduos Processamento Vegetal',
+    name: { 'pt-BR': 'Resíduos Processamento Vegetal', en: 'Vegetable processing waste' },
     category: 'industrial',
-    sector: 'INDÚSTRIA',
     fc: 0.60,
     fcp: 0.70,
     fs: 0.80,
     fl: 0.60,
-    fde: 8.64,
     bmp: 0.22,
-    classification: '🟠 REGULAR (5-9%)',
     confidence: 'LOW',
-    fcJustification: '60% coletável; varia por tipo',
-    fcpJustification: '70% competição com compostagem/ração',
-    fsJustification: 'Processamento contínuo; ~20% variação',
-    flJustification: 'Região dispersa; transporte custoso',
-    potentialSP: '~150k ton/ano',
-    observation: 'Cadeias valor não mapeadas; alta heterogeneidade'
+    justification: {
+      fc: { 'pt-BR': '60% coletável; varia por tipo', en: '60% collectable; varies by type' },
+      fcp: { 'pt-BR': '70% competição com compostagem/ração', en: '70% competes with composting/feed' },
+      fs: { 'pt-BR': 'Processamento contínuo; ~20% variação', en: 'Continuous processing; ~20% variation' },
+      fl: { 'pt-BR': 'Região dispersa; transporte custoso', en: 'Dispersed region; costly transport' },
+    },
   },
 
-  // 7. Casca de Eucalipto (Eucalyptus Bark - Forestry)
   {
     code: 'IND_CASCA_EUCALIPTO',
-    name: 'Casca de Eucalipto (florestal)',
+    name: { 'pt-BR': 'Casca de Eucalipto (florestal)', en: 'Eucalyptus bark (forestry)' },
     category: 'industrial',
-    sector: 'INDÚSTRIA',
     fc: 0.70,
     fcp: 0.50,
     fs: 0.85,
     fl: 0.50,
-    fde: 14.88,
     bmp: 0.20,
-    classification: '🟡 RAZOÁVEL (10-14%)',
     confidence: 'LOW',
-    fcJustification: '70% coletável em processamento madeira',
-    fcpJustification: '50% competição com energia térmica/celulose',
-    fsJustification: 'Processamento contínuo; ~15% variação',
-    flJustification: '🚨 Baixa densidade (150-200 kg/m³); >50km inviável',
-    potentialSP: '~200k ton/ano',
-    observation: '🚨 Densidade baixa; necessita densificação para transporte'
+    justification: {
+      fc: { 'pt-BR': '70% coletável em processamento madeira', en: '70% collectable at wood processing' },
+      fcp: { 'pt-BR': '50% competição com energia térmica/celulose', en: '50% competes with thermal energy/pulp' },
+      fs: { 'pt-BR': 'Processamento contínuo; ~15% variação', en: 'Continuous processing; ~15% variation' },
+      fl: { 'pt-BR': '🚨 Baixa densidade (150-200 kg/m³); >50km inviável', en: '🚨 Low density (150–200 kg/m³); not viable beyond 50 km' },
+    },
   }
 ]
 
@@ -594,13 +517,15 @@ export const getResidueByCode = (code: string): DetailedResidue | undefined => {
   return DETAILED_RESIDUES.find(r => r.code === code)
 }
 
-// Get parent crop/source for agricultural residues
-export const getParentCrop = (code: string): string => {
-  if (code.startsWith('AG_CANA_')) return 'Cana-de-Açúcar'
-  if (code.startsWith('AG_MILHO_')) return 'Milho'
-  if (code.startsWith('AG_SOJA_')) return 'Soja'
-  if (code.startsWith('AG_CITROS_')) return 'Citros'
-  if (code.startsWith('AG_CAFE_')) return 'Café'
-  return 'Outros'
-}
+/** The crop an agricultural residue comes from; names: Map.residues.<crop>. */
+export type ParentCrop = 'sugarcane' | 'corn' | 'soybean' | 'citrus' | 'coffee' | 'other'
 
+// Get parent crop/source for agricultural residues
+export const getParentCrop = (code: string): ParentCrop => {
+  if (code.startsWith('AG_CANA_')) return 'sugarcane'
+  if (code.startsWith('AG_MILHO_')) return 'corn'
+  if (code.startsWith('AG_SOJA_')) return 'soybean'
+  if (code.startsWith('AG_CITROS_')) return 'citrus'
+  if (code.startsWith('AG_CAFE_')) return 'coffee'
+  return 'other'
+}

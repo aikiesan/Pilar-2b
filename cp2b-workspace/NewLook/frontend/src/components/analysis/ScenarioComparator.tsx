@@ -18,6 +18,8 @@ import {
 } from 'recharts'
 import { Layers, Check, Info } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { useFormat } from '@/hooks/useFormat'
+import { MISSING_VALUE } from '@/lib/format'
 import {
   Scenario,
   PREDEFINED_SCENARIOS,
@@ -41,6 +43,10 @@ export default function ScenarioComparator({
   loading = false
 }: ScenarioComparatorProps) {
   const t = useTranslations('analysis')
+  const tCommon = useTranslations('common')
+  const format = useFormat()
+  // The potential is a biogas volume: the "t/ano" this used to print was wrong.
+  const volume = (m3PerYear: number) => `${format.compact(m3PerYear)} ${tCommon('units.m3_year')}`
   const [selectedScenarioId, setSelectedScenarioId] = useState<string>('realistic')
 
   // Calculate results for all scenarios
@@ -48,13 +54,11 @@ export default function ScenarioComparator({
     return PREDEFINED_SCENARIOS.map(scenario => {
       const fde = calculateFDE(scenario.factors)
       const available = theoreticalPotential * fde
-      const biogas = available * 600
 
       return {
         ...scenario,
         fde,
         available,
-        biogas,
         percentage: fde * 100
       }
     })
@@ -67,7 +71,6 @@ export default function ScenarioComparator({
     return {
       fde,
       available: theoreticalPotential * fde,
-      biogas: theoreticalPotential * fde * 600,
       percentage: fde * 100
     }
   }, [currentFactors, theoreticalPotential])
@@ -77,7 +80,7 @@ export default function ScenarioComparator({
     const data = scenarioResults.map(s => ({
       name: t(s.nameKey),
       fde: s.percentage,
-      available: s.available / 1e6,
+      available: s.available,
       color: s.color
     }))
 
@@ -89,7 +92,7 @@ export default function ScenarioComparator({
         data.push({
           name: t('scenario_comparator.col_custom'),
           fde: currentResult.percentage,
-          available: currentResult.available / 1e6,
+          available: currentResult.available,
           color: '#059669'
         })
       }
@@ -97,14 +100,6 @@ export default function ScenarioComparator({
 
     return data
   }, [scenarioResults, currentResult, t])
-
-  // Format numbers
-  const formatValue = (value: number): string => {
-    if (value >= 1e9) return `${(value / 1e9).toFixed(2)}B`
-    if (value >= 1e6) return `${(value / 1e6).toFixed(2)}M`
-    if (value >= 1e3) return `${(value / 1e3).toFixed(2)}k`
-    return value.toFixed(0)
-  }
 
   // Handle scenario selection
   const handleSelectScenario = (scenario: Scenario) => {
@@ -172,7 +167,7 @@ export default function ScenarioComparator({
                   className="text-sm font-mono font-bold"
                   style={{ color: scenario.color }}
                 >
-                  {scenario.percentage.toFixed(1)}%
+                  {format.percent(scenario.percentage)}
                 </span>
               </div>
             </div>
@@ -211,11 +206,11 @@ export default function ScenarioComparator({
                       <div className="space-y-1 text-sm">
                         <p>
                           <span className="text-gray-500">{t('scenario_comparator.fde_label')}</span>{' '}
-                          <span className="font-mono font-semibold">{data.fde.toFixed(1)}%</span>
+                          <span className="font-mono font-semibold">{format.percent(data.fde)}</span>
                         </p>
                         <p>
                           <span className="text-gray-500">{t('scenario_comparator.col_available')}:</span>{' '}
-                          <span className="font-mono font-semibold">{data.available.toFixed(2)}M t/ano</span>
+                          <span className="font-mono font-semibold">{volume(data.available)}</span>
                         </p>
                       </div>
                     </div>
@@ -266,27 +261,27 @@ export default function ScenarioComparator({
                   </div>
                 </td>
                 <td className="text-center py-3 px-4 font-mono text-gray-600">
-                  {(scenario.factors.fc * 100).toFixed(0)}%
+                  {format.percent(scenario.factors.fc * 100, { decimals: 0 })}
                 </td>
                 <td className="text-center py-3 px-4 font-mono text-gray-600">
-                  {(scenario.factors.fcp * 100).toFixed(0)}%
+                  {format.percent(scenario.factors.fcp * 100, { decimals: 0 })}
                 </td>
                 <td className="text-center py-3 px-4 font-mono text-gray-600">
-                  {(scenario.factors.fs * 100).toFixed(0)}%
+                  {format.percent(scenario.factors.fs * 100, { decimals: 0 })}
                 </td>
                 <td className="text-center py-3 px-4 font-mono text-gray-600">
-                  {(scenario.factors.fl * 100).toFixed(0)}%
+                  {format.percent(scenario.factors.fl * 100, { decimals: 0 })}
                 </td>
                 <td className="text-center py-3 px-4">
                   <span
                     className="font-mono font-bold"
                     style={{ color: scenario.color }}
                   >
-                    {scenario.percentage.toFixed(1)}%
+                    {format.percent(scenario.percentage)}
                   </span>
                 </td>
                 <td className="text-right py-3 px-4 font-mono font-semibold text-gray-900">
-                  {formatValue(scenario.available)} t/ano
+                  {volume(scenario.available)}
                 </td>
               </tr>
             ))}
@@ -301,24 +296,24 @@ export default function ScenarioComparator({
                   </div>
                 </td>
                 <td className="text-center py-3 px-4 font-mono text-gray-600">
-                  {currentFactors ? (currentFactors.fc * 100).toFixed(0) : '-'}%
+                  {currentFactors ? format.percent(currentFactors.fc * 100, { decimals: 0 }) : MISSING_VALUE}
                 </td>
                 <td className="text-center py-3 px-4 font-mono text-gray-600">
-                  {currentFactors ? (currentFactors.fcp * 100).toFixed(0) : '-'}%
+                  {currentFactors ? format.percent(currentFactors.fcp * 100, { decimals: 0 }) : MISSING_VALUE}
                 </td>
                 <td className="text-center py-3 px-4 font-mono text-gray-600">
-                  {currentFactors ? (currentFactors.fs * 100).toFixed(0) : '-'}%
+                  {currentFactors ? format.percent(currentFactors.fs * 100, { decimals: 0 }) : MISSING_VALUE}
                 </td>
                 <td className="text-center py-3 px-4 font-mono text-gray-600">
-                  {currentFactors ? (currentFactors.fl * 100).toFixed(0) : '-'}%
+                  {currentFactors ? format.percent(currentFactors.fl * 100, { decimals: 0 }) : MISSING_VALUE}
                 </td>
                 <td className="text-center py-3 px-4">
                   <span className="font-mono font-bold text-emerald-600">
-                    {currentResult.percentage.toFixed(1)}%
+                    {format.percent(currentResult.percentage)}
                   </span>
                 </td>
                 <td className="text-right py-3 px-4 font-mono font-semibold text-gray-900">
-                  {formatValue(currentResult.available)} t/ano
+                  {volume(currentResult.available)}
                 </td>
               </tr>
             )}

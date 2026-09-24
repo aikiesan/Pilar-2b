@@ -31,6 +31,9 @@ import ts from 'typescript';
 /** Characters that occur in Portuguese and not in English UI text. */
 export const PORTUGUESE_CHARS = /[ãõçáéíóúâêôàÃÕÇÁÉÍÓÚÂÊÔÀ]/;
 
+/** A rate or density written the Portuguese way: "/ano", "/dia", "hab/…". */
+export const PORTUGUESE_UNIT = /\/(ano|dia|mês|mes)\b|\bhab\.?\//;
+
 /**
  * Unaccented words that are Portuguese and not English. Deliberately excludes
  * words both languages share ("total", "real", "ideal", "area", "biogas") and
@@ -66,6 +69,9 @@ export function looksPortuguese(text) {
   // URLs and e-mail addresses carry "com", "de" and friends as domain parts.
   if (/:\/\/|www\.|\S+@\S+\.\S+/.test(value)) return false;
   if (PORTUGUESE_CHARS.test(value)) return true;
+  // Portuguese units read as one token ("m³/ano", "t/dia", "hab/km²") and would
+  // otherwise pass as identifiers below.
+  if (PORTUGUESE_UNIT.test(value)) return true;
 
   const words = value.match(/[A-Za-zÀ-ÿ]+/g) ?? [];
   if (words.length === 1) {

@@ -39,6 +39,7 @@ import {
 import { defaultLocale, isLocale } from '@/config/i18n'
 import { useFormat } from '@/hooks/useFormat'
 import { logger } from '@/lib/logger'
+import { DATA_EXPORT_ENABLED } from '@/lib/featureFlags'
 import type { Messages } from '@/types/i18n'
 
 function MapLoading() {
@@ -430,13 +431,15 @@ function ProximityAnalysisContent() {
                   <Share2 className="h-4 w-4 mr-2" aria-hidden="true" />
                   {tp('share')}
                 </button>
-                <button
-                  onClick={handleExport}
-                  className="inline-flex items-center px-3 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700"
-                >
-                  <Download className="h-4 w-4 mr-2" aria-hidden="true" />
-                  {tp('export')}
-                </button>
+                {DATA_EXPORT_ENABLED && (
+                  <button
+                    onClick={handleExport}
+                    className="inline-flex items-center px-3 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700"
+                  >
+                    <Download className="h-4 w-4 mr-2" aria-hidden="true" />
+                    {tp('export')}
+                  </button>
+                )}
               </div>
             </div>
 

@@ -13,6 +13,7 @@ import {
 } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
 import { useTranslations } from 'next-intl';
+import { useFormat } from '@/hooks/useFormat';
 import { Municipality } from '@/services/analysisApi';
 
 // Register Chart.js components
@@ -39,6 +40,8 @@ export default function TopMunicipalitiesChart({
   maxItems = 10
 }: TopMunicipalitiesChartProps) {
   const t = useTranslations('charts');
+  const tCommon = useTranslations('common');
+  const format = useFormat();
 
   // Prepare chart data
   const chartData: ChartData<'bar'> = {
@@ -75,14 +78,8 @@ export default function TopMunicipalitiesChart({
       tooltip: {
         callbacks: {
           label: (context) => {
-            const value = context.parsed.x;
-            if (value == null) return '0 m³/year';
-            if (value >= 1000000) {
-              return `${(value / 1000000).toFixed(2)}M m³/year`;
-            } else if (value >= 1000) {
-              return `${(value / 1000).toFixed(2)}k m³/year`;
-            }
-            return `${value.toFixed(2)} m³/year`;
+            const value = context.parsed.x ?? 0;
+            return `${format.compact(value, { decimals: 2 })} ${tCommon('units.m3_year')}`;
           }
         }
       }
@@ -100,13 +97,7 @@ export default function TopMunicipalitiesChart({
         },
         ticks: {
           callback: (value) => {
-            const num = Number(value);
-            if (num >= 1000000) {
-              return `${(num / 1000000).toFixed(1)}M`;
-            } else if (num >= 1000) {
-              return `${(num / 1000).toFixed(0)}k`;
-            }
-            return num.toString();
+            return format.compact(Number(value));
           },
           color: '#6B7280',
           font: {

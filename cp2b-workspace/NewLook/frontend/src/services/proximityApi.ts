@@ -1,4 +1,4 @@
-import { DATA_EXPORT_ENABLED, DATA_EXPORT_DISABLED_REASON } from '@/lib/featureFlags';
+import { datedFilename, downloadCsv, toCsv } from '@/lib/download';
 /**
  * Proximity Analysis API service for PILAR-2b V3
  * Handles spatial analysis with MapBiomas integration: retry, timeout, frontend
@@ -240,20 +240,11 @@ export interface ProximityCsvHeaders {
   landUseClass: (entry: LandUseClass) => string;
 }
 
-/** Quotes a CSV field when it holds a comma, quote or line break. */
-function csvField(value: string | number): string {
-  const text = String(value);
-  return /[",\n\r]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
-}
-
-const csv = (rows: (string | number)[][]) => rows.map((row) => row.map(csvField).join(',')).join('\n');
-
 /**
  * Export analysis results as four CSV files. Numbers use a dot decimal
  * separator, as data files should, whatever the page language.
  */
 export function exportAnalysisToCSV(result: ProximityAnalysisResult, headers: ProximityCsvHeaders): void {
-  const timestamp = new Date().toISOString().split('T')[0];
   const { municipalities } = result.results;
   const landUse = Object.values(result.results.land_use?.by_class ?? {});
   const infrastructure = result.results.infrastructure ?? [];
@@ -262,7 +253,7 @@ export function exportAnalysisToCSV(result: ProximityAnalysisResult, headers: Pr
   const avgDistance = distances.length ? distances.reduce((a, b) => a + b, 0) / distances.length : 0;
   const fixed = (value: unknown, digits = 2) => (Number(value) || 0).toFixed(digits);
 
-  const municipalitiesCSV = csv([
+  const municipalitiesCSV = toCsv([
     headers.municipalities,
     ...municipalities.map((m) => [
       m.name,
@@ -273,12 +264,12 @@ export function exportAnalysisToCSV(result: ProximityAnalysisResult, headers: Pr
     ]),
   ]);
 
-  const landUseCSV = csv([
+  const landUseCSV = toCsv([
     headers.landUse,
     ...landUse.map((entry) => [headers.landUseClass(entry), fixed(entry.percent), fixed(entry.area_km2)]),
   ]);
 
-  const infrastructureCSV = csv([
+  const infrastructureCSV = toCsv([
     headers.infrastructure,
     ...infrastructure.map((inf) => [
       inf.type,
@@ -290,7 +281,7 @@ export function exportAnalysisToCSV(result: ProximityAnalysisResult, headers: Pr
   ]);
 
   const s = headers.summary;
-  const summaryCSV = csv([
+  const summaryCSV = toCsv([
     [s.metric, s.value],
     [s.latitude, result.request.latitude.toFixed(6)],
     [s.longitude, result.request.longitude.toFixed(6)],
@@ -306,28 +297,10 @@ export function exportAnalysisToCSV(result: ProximityAnalysisResult, headers: Pr
     [s.processingTime, (result.metadata.processing_time_ms / 1000).toFixed(2)],
   ]);
 
-  downloadCSV(summaryCSV, `proximity_summary_${timestamp}.csv`);
-  downloadCSV(municipalitiesCSV, `proximity_municipalities_${timestamp}.csv`);
-  downloadCSV(landUseCSV, `proximity_land_use_${timestamp}.csv`);
-  downloadCSV(infrastructureCSV, `proximity_infrastructure_${timestamp}.csv`);
-}
-
-/**
- * Helper function to trigger CSV download
- */
-function downloadCSV(content: string, filename: string): void {
-  // Beta: no dataset leaves the browser. Gated at the primitive so every caller
-  // is covered, including any added later. See lib/featureFlags.
-  if (!DATA_EXPORT_ENABLED) {
-    console.warn(DATA_EXPORT_DISABLED_REASON);
-    return;
-  }
-  const blob = new Blob(['﻿' + content], { type: 'text/csv;charset=utf-8;' });
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = filename;
-  link.click();
-  URL.revokeObjectURL(link.href);
+  downloadCsv(summaryCSV, datedFilename('proximity-summary', 'csv'));
+  downloadCsv(municipalitiesCSV, datedFilename('proximity-municipalities', 'csv'));
+  downloadCsv(landUseCSV, datedFilename('proximity-land-use', 'csv'));
+  downloadCsv(infrastructureCSV, datedFilename('proximity-infrastructure', 'csv'));
 }
 
 /**

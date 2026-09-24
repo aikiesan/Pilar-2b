@@ -3,6 +3,7 @@
 import React, { useMemo } from 'react'
 import { GitBranch, Info } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { useFormat } from '@/hooks/useFormat'
 
 /** The `charts` translator, passed down to the SVG sub-components. */
 type ChartsTranslator = ReturnType<typeof useTranslations<'charts'>>
@@ -75,11 +76,10 @@ function bandPath(
   ].join(' ')
 }
 
-function formatValue(v: number): string {
-  if (v >= 1e9) return `${(v / 1e9).toFixed(2)}B`
-  if (v >= 1e6) return `${(v / 1e6).toFixed(2)}M`
-  if (v >= 1e3) return `${(v / 1e3).toFixed(2)}k`
-  return v.toFixed(0)
+/** Volumes in the page's number conventions: "1.23M" (en) / "1,23 mi" (pt-BR). */
+function useVolume(): (v: number) => string {
+  const format = useFormat()
+  return (v: number) => format.compact(v, { decimals: 2 })
 }
 
 function computeFlow(theoretical: number, factors: CorrectionFactors): SankeyFlow {
@@ -128,6 +128,8 @@ function ClassicSankey({
   t: ChartsTranslator
   leftLabel?: string
 }) {
+  const formatValue = useVolume()
+  const format = useFormat()
   const { theoretical, losses, availableBiogas } = flow
 
   const SVG_W   = 700
@@ -207,7 +209,7 @@ function ClassicSankey({
       {/* Segment labels */}
       {SEGS_META.map((seg, i) => {
         const midY = rightY[i] + segH[i] / 2
-        const pct  = ((values[i] / theoretical) * 100).toFixed(1)
+        const pct  = format.percent((values[i] / theoretical) * 100)
         return (
           <g key={`lbl-${i}`}>
             <text
@@ -224,7 +226,7 @@ function ClassicSankey({
               fontSize={10} fontFamily="monospace"
               fill="#6B7280"
             >
-              {formatValue(values[i])} ({pct}%)
+              {formatValue(values[i])} ({pct})
             </text>
           </g>
         )
@@ -262,6 +264,9 @@ function MultiResiduesSankey({
   residues: ResidueStream[]
   t: ChartsTranslator
 }) {
+  const formatValue = useVolume()
+  const format = useFormat()
+  const tCommon = useTranslations('common')
   const SVG_W        = 700
   const TOP_PAD      = 20
   const BOT_PAD      = 28
@@ -399,7 +404,7 @@ function MultiResiduesSankey({
           {SEGS_META.map((seg, i) => {
             if (scaledH[i] < 28) return null
             const midY = rightY[i] + scaledH[i] / 2
-            const pct  = ((values[i] / res.theoretical) * 100).toFixed(1)
+            const pct  = format.percent((values[i] / res.theoretical) * 100)
             return (
               <g key={`lbl-${gi}-${i}`}>
                 <text
@@ -416,7 +421,7 @@ function MultiResiduesSankey({
                   fontSize={9} fontFamily="monospace"
                   fill="#6B7280"
                 >
-                  {formatValue(values[i])} ({pct}%)
+                  {formatValue(values[i])} ({pct})
                 </text>
               </g>
             )
@@ -434,7 +439,7 @@ function MultiResiduesSankey({
             x={LEFT_X + BAR_W / 2} y={gt - 2}
             textAnchor="middle" fontSize={9} fontFamily="monospace" fill="#6B7280"
           >
-            {formatValue(res.theoretical)} m³/ano
+            {formatValue(res.theoretical)} {tCommon('units.m3_year')}
           </text>
 
           {/* Right summary label (center-right of the group) */}
@@ -445,7 +450,7 @@ function MultiResiduesSankey({
               fontSize={10} fontWeight={600}
               fill="#15803D"
             >
-              FDE {(fde * 100).toFixed(1)}% → {formatValue(res.theoretical * fde)} m³/ano
+              FDE {format.percent(fde * 100)} → {formatValue(res.theoretical * fde)} {tCommon('units.m3_year')}
             </text>
           )}
         </g>
@@ -465,6 +470,8 @@ export default function BiomassFlowSankey({
   residues,
 }: BiomassFlowSankeyProps) {
   const t = useTranslations('charts')
+  const formatValue = useVolume()
+  const format = useFormat()
 
   const flow = useMemo((): SankeyFlow | null => {
     if (theoreticalPotential <= 0) return null
@@ -552,17 +559,17 @@ export default function BiomassFlowSankey({
           <div className="text-center p-3 bg-red-50 rounded-lg">
             <div className="text-xs text-gray-500 mb-1">{t('sankey_summary_total_losses')}</div>
             <div className="font-mono font-semibold text-red-600">{formatValue(totalLosses)}</div>
-            <div className="text-xs text-gray-400">{((totalLosses / theoreticalPotential) * 100).toFixed(1)}%</div>
+            <div className="text-xs text-gray-400">{format.percent((totalLosses / theoreticalPotential) * 100)}</div>
           </div>
           <div className="text-center p-3 bg-green-50 rounded-lg">
             <div className="text-xs text-gray-500 mb-1">{t('sankey_summary_to_biogas')}</div>
             <div className="font-mono font-semibold text-green-700">{formatValue(availableBiogas)}</div>
-            <div className="text-xs text-gray-400">{(fdeValue * 100).toFixed(1)}% FDE</div>
+            <div className="text-xs text-gray-400">{format.percent(fdeValue * 100)} FDE</div>
           </div>
           <div className="text-center p-3 bg-blue-50 rounded-lg">
             <div className="text-xs text-gray-500 mb-1">{t('sankey_summary_ch4')}</div>
             <div className="font-mono font-semibold text-blue-700">{formatValue(ch4Equivalent)}</div>
-            <div className="text-xs text-gray-400">{t('sankey_ch4_fraction', { pct: (ch4Fraction * 100).toFixed(0) })}</div>
+            <div className="text-xs text-gray-400">{t('sankey_ch4_fraction', { pct: format.number(ch4Fraction * 100) })}</div>
           </div>
         </div>
       </div>

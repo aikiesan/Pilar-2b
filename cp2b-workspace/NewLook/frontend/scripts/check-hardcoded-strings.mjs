@@ -35,21 +35,12 @@ const report = process.argv.includes('--report');
 
 /** Files still carrying hardcoded Portuguese. Only ever delete from this list. */
 const PENDING = [
-  'src/app/[locale]/dashboard/advanced-analysis/page.tsx',
   'src/app/[locale]/dashboard/scientific-database/page.tsx',
   'src/components/analysis/ReferencesModal.tsx',
-  'src/components/analysis/ScenarioComparator.tsx',
-  'src/components/analysis/ScenarioSelector.tsx',
-  'src/components/analysis/SimpleResidueSelector.tsx',
-  'src/components/analysis/TopMunicipalitiesMiniCard.tsx',
-  'src/components/analysis/charts/CategoryComparisonChart.tsx',
-  'src/components/analysis/charts/RegionalPieChart.tsx',
   'src/components/scientific/ParameterWithReference.tsx',
   'src/components/scientific/ReferencePopover.tsx',
-  'src/data/residueFactors.ts',
   'src/data/scientificData.ts',
   'src/services/scientificApi.ts',
-  'src/types/analysis.ts',
   'src/types/scientific.ts',
 ];
 

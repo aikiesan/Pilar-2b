@@ -3,8 +3,16 @@
 import { useState, useMemo } from 'react';
 import { RotateCcw, Info, TrendingUp } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { getResidueByCode } from '@/data/residueFactors';
+import { useLocalize } from '@/hooks/useLocalize';
+import { useFormat } from '@/hooks/useFormat';
+import { getResidueByCode, type DetailedResidue } from '@/data/residueFactors';
 import { CorrectionFactors, calculateFDE, ResidueFactorOverrides } from '@/types/analysis';
+
+const CONFIDENCE_KEY = {
+  HIGH: 'per_residue_editor.confidence_high',
+  MEDIUM: 'per_residue_editor.confidence_medium',
+  LOW: 'per_residue_editor.confidence_low',
+} as const satisfies Record<DetailedResidue['confidence'], string>;
 
 interface PerResidueFactorEditorProps {
   selectedResidueCodes: string[];
@@ -20,7 +28,13 @@ export default function PerResidueFactorEditor({
   showAggregatedFDE = true
 }: PerResidueFactorEditorProps) {
   const t = useTranslations('analysis')
-  const [activeTab, setActiveTab] = useState<string>(selectedResidueCodes[0] || '');
+  const localize = useLocalize()
+  const format = useFormat()
+  // FDE in percentage points, always two decimals: "54.51%" / "54,51%".
+  const fdePercent = (value: number) => format.percent(value, { decimals: 2, minDecimals: 2 })
+  const [chosenTab, setActiveTab] = useState<string>(selectedResidueCodes[0] || '');
+  // The chosen residue, or the first one once it has been deselected.
+  const activeTab = selectedResidueCodes.includes(chosenTab) ? chosenTab : (selectedResidueCodes[0] ?? '');
 
   // Get residue details
   const residues = useMemo(() => {
@@ -28,13 +42,6 @@ export default function PerResidueFactorEditor({
       .map(code => getResidueByCode(code))
       .filter(r => r !== undefined);
   }, [selectedResidueCodes]);
-
-  // Set active tab when residues change
-  useMemo(() => {
-    if (selectedResidueCodes.length > 0 && !selectedResidueCodes.includes(activeTab)) {
-      setActiveTab(selectedResidueCodes[0]);
-    }
-  }, [selectedResidueCodes, activeTab]);
 
   // Get effective factors for a residue (override or default)
   const getEffectiveFactors = (residueCode: string): CorrectionFactors => {
@@ -67,18 +74,11 @@ export default function PerResidueFactorEditor({
     onChange(newOverrides);
   };
 
-  // Calculate weighted average FDE
-  const weightedFDE = useMemo(() => {
-    if (!showAggregatedFDE || selectedResidueCodes.length === 0) return null;
-
-    // For simplicity, assuming equal weight (in real scenario, would use actual potentials)
-    let totalFDE = 0;
-    selectedResidueCodes.forEach(code => {
-      const factors = getEffectiveFactors(code);
-      totalFDE += calculateFDE(factors);
-    });
-    return (totalFDE / selectedResidueCodes.length) * 100;
-  }, [selectedResidueCodes, factorOverrides, showAggregatedFDE]);
+  // Mean FDE of the selected residues, each counted equally.
+  const averageFDE = showAggregatedFDE && selectedResidueCodes.length > 0
+    ? (selectedResidueCodes.reduce((sum, code) => sum + calculateFDE(getEffectiveFactors(code)), 0) /
+        selectedResidueCodes.length) * 100
+    : null;
 
   // Factor configuration for sliders
   const factorConfig: Array<{
@@ -145,6 +145,7 @@ export default function PerResidueFactorEditor({
   const activeFactors = getEffectiveFactors(activeTab);
   const activeFDE = calculateFDE(activeFactors) * 100;
   const isCustom = factorOverrides[activeTab] !== undefined;
+  const defaultFDE = activeResidue ? calculateFDE(activeResidue) * 100 : activeFDE;
 
   return (
     <div className="bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden">
@@ -172,7 +173,7 @@ export default function PerResidueFactorEditor({
             const hasOverride = factorOverrides[residue.code] !== undefined;
             return (
               <option key={residue.code} value={residue.code}>
-                {residue.name} {hasOverride ? t('per_residue_editor.modified_label') : ''}
+                {localize(residue.name)} {hasOverride ? t('per_residue_editor.modified_label') : ''}
               </option>
             );
           })}
@@ -184,7 +185,7 @@ export default function PerResidueFactorEditor({
             <div className="pb-4 border-b border-gray-100">
               <div className="flex flex-col items-start gap-2 mb-2">
                 <div>
-                  <h4 className="font-semibold text-gray-900 break-words">{activeResidue.name}</h4>
+                  <h4 className="font-semibold text-gray-900 break-words">{localize(activeResidue.name)}</h4>
                   <p className="text-xs text-gray-600 mt-0.5">{t('per_residue_editor.code_label')} {activeResidue.code}</p>
                 </div>
                 {isCustom && (
@@ -202,11 +203,11 @@ export default function PerResidueFactorEditor({
               <div className="flex items-center gap-3 mt-3">
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-medium text-gray-600">{t('per_residue_editor.current_fde')}</span>
-                  <span className="text-base font-bold text-purple-700">{activeFDE.toFixed(2)}%</span>
+                  <span className="text-base font-bold text-purple-700">{fdePercent(activeFDE)}</span>
                 </div>
-                {activeResidue.fde !== activeFDE && (
+                {isCustom && (
                   <div className="flex items-center gap-1 text-xs text-gray-600">
-                    <span>{t('per_residue_editor.default_fde', { value: activeResidue.fde.toFixed(2) })}</span>
+                    <span>{t('per_residue_editor.default_fde', { value: fdePercent(defaultFDE) })}</span>
                   </div>
                 )}
               </div>
@@ -218,7 +219,7 @@ export default function PerResidueFactorEditor({
                   activeResidue.confidence === 'MEDIUM' ? 'bg-yellow-100 text-yellow-700 border-yellow-300' :
                   'bg-gray-100 text-gray-700 border-gray-300'
                 }`}>
-                  {t('per_residue_editor.confidence_label')} {activeResidue.confidence}
+                  {t('per_residue_editor.confidence_label')} {t(CONFIDENCE_KEY[activeResidue.confidence])}
                 </span>
               </div>
             </div>
@@ -229,8 +230,7 @@ export default function PerResidueFactorEditor({
                 const value = activeFactors[config.key];
                 const defaultValue = getResidueByCode(activeTab)?.[config.key] || 0;
                 const isModified = isCustom && value !== defaultValue;
-                const justificationKey = `${config.key}Justification` as keyof typeof activeResidue;
-                const justification = activeResidue[justificationKey] as string || '';
+                const justification = localize(activeResidue.justification[config.key]);
 
                 return (
                   <div key={config.key} className="space-y-2">
@@ -239,15 +239,12 @@ export default function PerResidueFactorEditor({
                         <label className="text-sm font-medium text-gray-700">
                           {config.label}
                         </label>
-                        {justification && (
-                          <div className="group relative">
-                            <Info className="w-4 h-4 text-gray-400 cursor-help" />
-                            {/* TOOLTIP POSITION FIX */}
-                            <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 max-w-[200px]" style={{whiteSpace: 'normal'}}>
-                              {justification}
-                            </div>
-                          </div>
-                        )}
+                        <span tabIndex={0} aria-label={justification} className="group relative rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500">
+                          <Info className="w-4 h-4 text-gray-400 cursor-help" aria-hidden="true" />
+                          <span role="tooltip" className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-48 bg-gray-900 text-white text-xs px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity pointer-events-none z-10">
+                            {justification}
+                          </span>
+                        </span>
                       </div>
                       <div className="flex items-center gap-2">
                         <span className={`text-sm font-semibold ${isModified ? 'text-purple-700' : 'text-gray-900'}`}>
@@ -287,19 +284,19 @@ export default function PerResidueFactorEditor({
                 FDE = FC × (1 - FCp) × FS × FL
               </div>
               <div className="text-xs text-gray-700 font-mono mt-1 break-all">
-                FDE = {(activeFactors.fc * 100).toFixed(0)}% × {((1 - activeFactors.fcp) * 100).toFixed(0)}% × {(activeFactors.fs * 100).toFixed(0)}% × {(activeFactors.fl * 100).toFixed(0)}% = {activeFDE.toFixed(2)}%
+                FDE = {(activeFactors.fc * 100).toFixed(0)}% × {((1 - activeFactors.fcp) * 100).toFixed(0)}% × {(activeFactors.fs * 100).toFixed(0)}% × {(activeFactors.fl * 100).toFixed(0)}% = {fdePercent(activeFDE)}
               </div>
             </div>
           </>
         )}
       </div>
 
-      {/* Weighted FDE Summary (if multiple residues) */}
-      {showAggregatedFDE && selectedResidueCodes.length > 1 && weightedFDE !== null && (
+      {/* Average FDE summary (if multiple residues) */}
+      {showAggregatedFDE && selectedResidueCodes.length > 1 && averageFDE !== null && (
         <div className="p-4 bg-gradient-to-r from-purple-50 to-blue-50 border-t border-gray-200">
           <div className="flex flex-wrap items-center justify-between">
-            <span className="text-sm font-medium text-gray-700">{t('per_residue_editor.weighted_fde')}</span>
-            <span className="text-lg font-bold text-purple-700">{weightedFDE.toFixed(2)}%</span>
+            <span className="text-sm font-medium text-gray-700">{t('per_residue_editor.average_fde')}</span>
+            <span className="text-lg font-bold text-purple-700">{fdePercent(averageFDE)}</span>
           </div>
           <p className="text-xs text-gray-600 mt-1">
             {t('per_residue_editor.based_on_count', { count: selectedResidueCodes.length })}

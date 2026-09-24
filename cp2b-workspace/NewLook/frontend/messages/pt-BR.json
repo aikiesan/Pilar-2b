@@ -335,7 +335,7 @@
       "soybean": "Soja",
       "corn": "Milho",
       "coffee": "Café",
-      "citrus": "Citrus",
+      "citrus": "Citros",
       "cattle": "Bovinos",
       "swine": "Suínos",
       "poultry": "Aves",
@@ -1003,7 +1003,16 @@
       },
       "note_label": "Nota:",
       "note": "Os dados exportados incluem apenas os municípios visíveis com os filtros atuais aplicados.",
-      "note_count": "{count, plural, one {{formatted} município será exportado.} other {{formatted} municípios serão exportados.}}"
+      "note_count": "{count, plural, one {{formatted} município será exportado.} other {{formatted} municípios serão exportados.}}",
+      "csv": {
+        "ibge_code": "Código IBGE",
+        "municipality": "Município",
+        "region": "Região intermediária",
+        "population": "População",
+        "area_km2": "Área (km²)",
+        "total_biogas": "Biogás total (m³/ano)",
+        "biogas_of": "Biogás — {source} (m³/ano)"
+      }
     },
     "selection": {
       "total": "Total",
@@ -1105,10 +1114,17 @@
       "industrial_selection_title": "Selecione Resíduos Industriais Específicos",
       "industrial_selection_desc": "Escolha tipos específicos de resíduos industriais para incluir na análise",
       "references_available_title": "Referências Científicas Disponíveis",
-      "references_available_desc": "Referências disponíveis para os tipos de resíduos selecionados",
-      "residues_selected": "{count} resíduos",
+      "residues_selected": "{count, plural, one {# resíduo} other {# resíduos}}",
       "unit_m3_year": "m³/ano (100%)",
-      "unit_m3_year_pct": "m³/ano ({pct}%)"
+      "unit_m3_year_pct": "m³/ano ({pct}%)",
+      "csv_rank": "Posição",
+      "csv_fde": "FDE (%)",
+      "csv_scenario": "Cenário",
+      "industrial_selection_body": "Para visualizar dados precisos da categoria Industrial, selecione um ou mais resíduos industriais específicos (Bagaço de Malte, Soro de Laticínios, Resíduos de Abatedouro etc.) no painel lateral. Os cálculos usam os dados municipais reais dos resíduos selecionados, com os fatores FDE de cada um.",
+      "references_available_body": "Cada resíduo possui análises e referências científicas próprias, que podem ser consultadas na <link>base científica</link> ou pelo botão <strong>Referências</strong> acima.",
+      "integrated_adjustment": "Ajuste integrado",
+      "integrated_adjustment_hint": "Os ajustes aqui refletem em tempo real na visualização",
+      "table_summary": "{count, plural, one {# município} other {# municípios}} | FDE: {fde} | {scenario}"
     },
     "scientific_database": {
       "title": "Base de Conhecimento Científico",
@@ -1710,7 +1726,9 @@
     "sankey_summary_ch4": "Equiv. CH₄",
     "sankey_alluvial_title": "Fluxo de Biomassa — Proporcional",
     "sankey_left_label": "Potencial Teórico",
-    "sankey_right_label": "Distribuição"
+    "sankey_right_label": "Distribuição",
+    "category_comparison_count": "{count, plural, one {# município} other {# municípios}}",
+    "category_comparison_average": "Média: {value}"
   },
   "analysis": {
     "scenarios": {
@@ -1811,14 +1829,9 @@
       "category_label_livestock": "Pecuário",
       "category_label_urban": "Urbano",
       "residues_in_group": "{count} resíduos",
-      "apply_filters": "Aplicar Filtros"
-    },
-    "export_options": {
-      "csv_label": "Dados tabulares para Excel",
-      "xlsx_label": "Planilha com múltiplas abas",
-      "pdf_label": "Relatório com gráficos",
-      "geojson_label": "Para software GIS",
-      "json_label": "Dados estruturados para API"
+      "apply_filters": "Aplicar Filtros",
+      "other_crops": "Outros",
+      "select_all": "Selecionar todos os resíduos de {group}"
     },
     "references_modal": {
       "heading": "Referências Científicas",
@@ -1868,11 +1881,10 @@
       "code_label": "Código:",
       "restore_default": "Restaurar Padrão",
       "current_fde": "FDE Atual:",
-      "default_fde": "Padrão: {value}%",
+      "default_fde": "Padrão: {value}",
       "confidence_label": "Confiança:",
       "fde_calc_heading": "Cálculo FDE",
-      "weighted_fde": "FDE Médio Ponderado (todos resíduos):",
-      "based_on_count": "Baseado em {count} resíduos selecionados",
+      "based_on_count": "{count, plural, one {Com base em # resíduo selecionado} other {Com base em # resíduos selecionados}}",
       "fc_label": "FC - Fator de Coleta",
       "fc_desc": "Eficiência de coleta do resíduo",
       "fcp_label": "FCp - Fator de Competição",
@@ -1880,13 +1892,26 @@
       "fs_label": "FS - Fator de Sazonalidade",
       "fs_desc": "Disponibilidade ao longo do ano",
       "fl_label": "FL - Fator de Logística",
-      "fl_desc": "Viabilidade de transporte"
+      "fl_desc": "Viabilidade de transporte",
+      "average_fde": "FDE médio (todos os resíduos):",
+      "confidence_high": "Alta",
+      "confidence_medium": "Média",
+      "confidence_low": "Baixa"
     },
     "factor_sliders": {
       "heading": "Fatores de correção",
       "reset": "Redefinir",
       "reset_title": "Redefinir para os valores padrão",
       "resulting_fde": "FDE resultante:"
+    },
+    "scenario_selector": {
+      "title": "Cenários de Análise"
+    },
+    "top_card": {
+      "title": "Top {count} municípios",
+      "empty": "Nenhum município encontrado",
+      "view_all": "Ver todos",
+      "more": "{count, plural, one {+# município adicional} other {+# municípios adicionais}}"
     }
   },
   "cookieConsent": {

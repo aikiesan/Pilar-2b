@@ -1003,7 +1003,16 @@
       },
       "note_label": "Note:",
       "note": "The export includes only the municipalities visible with the current filters.",
-      "note_count": "{count, plural, one {{formatted} municipality will be exported.} other {{formatted} municipalities will be exported.}}"
+      "note_count": "{count, plural, one {{formatted} municipality will be exported.} other {{formatted} municipalities will be exported.}}",
+      "csv": {
+        "ibge_code": "IBGE code",
+        "municipality": "Municipality",
+        "region": "Intermediate region",
+        "population": "Population",
+        "area_km2": "Area (km²)",
+        "total_biogas": "Total biogas (m³/year)",
+        "biogas_of": "Biogas — {source} (m³/year)"
+      }
     },
     "selection": {
       "total": "Total",
@@ -1105,10 +1114,17 @@
       "industrial_selection_title": "Select Specific Industrial Residues",
       "industrial_selection_desc": "Choose specific industrial residue types to include in the analysis",
       "references_available_title": "Scientific References Available",
-      "references_available_desc": "References are available for the selected residue types",
-      "residues_selected": "{count} residues",
+      "residues_selected": "{count, plural, one {# residue} other {# residues}}",
       "unit_m3_year": "m³/year (100%)",
-      "unit_m3_year_pct": "m³/year ({pct}%)"
+      "unit_m3_year_pct": "m³/year ({pct}%)",
+      "csv_rank": "Rank",
+      "csv_fde": "FDE (%)",
+      "csv_scenario": "Scenario",
+      "industrial_selection_body": "For accurate Industrial figures, select one or more specific industrial residues (brewers' spent grain, dairy whey, slaughterhouse waste, etc.) in the side panel. The calculations then use the real municipal data for those residues, each with its own FDE factors.",
+      "references_available_body": "Each residue has its own analyses and scientific references, which you can browse in the <link>scientific database</link> or with the <strong>References</strong> button above.",
+      "integrated_adjustment": "Integrated adjustment",
+      "integrated_adjustment_hint": "Changes here update the charts in real time",
+      "table_summary": "{count, plural, one {# municipality} other {# municipalities}} | FDE: {fde} | {scenario}"
     },
     "scientific_database": {
       "title": "Scientific Knowledge Base",
@@ -1710,7 +1726,9 @@
     "sankey_summary_ch4": "CH₄ Equivalent",
     "sankey_alluvial_title": "Biomass Flow — Proportional",
     "sankey_left_label": "Theoretical Potential",
-    "sankey_right_label": "Distribution"
+    "sankey_right_label": "Distribution",
+    "category_comparison_count": "{count, plural, one {# municipality} other {# municipalities}}",
+    "category_comparison_average": "Average: {value}"
   },
   "analysis": {
     "scenarios": {
@@ -1811,14 +1829,9 @@
       "category_label_livestock": "Livestock",
       "category_label_urban": "Urban",
       "residues_in_group": "{count} residues",
-      "apply_filters": "Apply Filters"
-    },
-    "export_options": {
-      "csv_label": "Tabular data for Excel",
-      "xlsx_label": "Spreadsheet with multiple tabs",
-      "pdf_label": "Report with charts",
-      "geojson_label": "For GIS software",
-      "json_label": "Structured data for API"
+      "apply_filters": "Apply Filters",
+      "other_crops": "Other",
+      "select_all": "Select all {group} residues"
     },
     "references_modal": {
       "heading": "Scientific References",
@@ -1868,11 +1881,10 @@
       "code_label": "Code:",
       "restore_default": "Restore Default",
       "current_fde": "Current FDE:",
-      "default_fde": "Default: {value}%",
+      "default_fde": "Default: {value}",
       "confidence_label": "Confidence:",
       "fde_calc_heading": "FDE Calculation",
-      "weighted_fde": "Weighted Average FDE (all residues):",
-      "based_on_count": "Based on {count} selected residues",
+      "based_on_count": "{count, plural, one {Based on # selected residue} other {Based on # selected residues}}",
       "fc_label": "FC — Collection Factor",
       "fc_desc": "Residue collection efficiency",
       "fcp_label": "FCp — Competition Factor",
@@ -1880,13 +1892,26 @@
       "fs_label": "FS — Seasonality Factor",
       "fs_desc": "Availability throughout the year",
       "fl_label": "FL — Logistics Factor",
-      "fl_desc": "Transport feasibility"
+      "fl_desc": "Transport feasibility",
+      "average_fde": "Average FDE (all residues):",
+      "confidence_high": "High",
+      "confidence_medium": "Medium",
+      "confidence_low": "Low"
     },
     "factor_sliders": {
       "heading": "Correction factors",
       "reset": "Reset",
       "reset_title": "Reset to the default values",
       "resulting_fde": "Resulting FDE:"
+    },
+    "scenario_selector": {
+      "title": "Analysis Scenarios"
+    },
+    "top_card": {
+      "title": "Top {count} Municipalities",
+      "empty": "No municipality found",
+      "view_all": "View all",
+      "more": "{count, plural, one {+# more municipality} other {+# more municipalities}}"
     }
   },
   "cookieConsent": {

@@ -15,6 +15,7 @@ import {
 } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
 import { useTranslations } from 'next-intl';
+import { useFormat } from '@/hooks/useFormat';
 import { StatisticsByCategoryResponse } from '@/services/analysisApi';
 
 // Register Chart.js components
@@ -40,6 +41,8 @@ export default function CategoryComparisonChart({
 }: CategoryComparisonChartProps) {
   const t = useTranslations('charts');
   const tMap = useTranslations('Map');
+  const tCommon = useTranslations('common');
+  const format = useFormat();
 
   if (loading || !data) {
     return (
@@ -114,7 +117,7 @@ export default function CategoryComparisonChart({
         callbacks: {
           label: (context) => {
             const value = context.parsed.y;
-            return t('category_comparison_tooltip', { value: value?.toFixed(2) ?? '0.00' });
+            return t('category_comparison_tooltip', { value: format.number(value ?? 0, { decimals: 2, minDecimals: 2 }) });
           }
         }
       }
@@ -173,28 +176,34 @@ export default function CategoryComparisonChart({
           <div className="bg-gradient-to-br from-green-50 to-white rounded-lg p-3 border border-green-100">
             <div className="text-xs text-gray-600 mb-1">{tMap('categories.agricultural')}</div>
             <div className="font-bold text-green-900 text-sm">
-              {data.categories.agricultural?.count ?? 0} municípios
+              {t('category_comparison_count', { count: data.categories.agricultural?.count ?? 0 })}
             </div>
             <div className="text-xs text-gray-500 mt-1">
-              Média: {((data.categories.agricultural?.average ?? 0) / 1000000).toFixed(2)}M m³/ano
+              {t('category_comparison_average', {
+                value: `${format.compact(data.categories.agricultural?.average ?? 0, { decimals: 2 })} ${tCommon('units.m3_year')}`,
+              })}
             </div>
           </div>
           <div className="bg-gradient-to-br from-orange-50 to-white rounded-lg p-3 border border-orange-100">
             <div className="text-xs text-gray-600 mb-1">{tMap('categories.livestock')}</div>
             <div className="font-bold text-orange-900 text-sm">
-              {data.categories.livestock?.count ?? 0} municípios
+              {t('category_comparison_count', { count: data.categories.livestock?.count ?? 0 })}
             </div>
             <div className="text-xs text-gray-500 mt-1">
-              Média: {((data.categories.livestock?.average ?? 0) / 1000000).toFixed(2)}M m³/ano
+              {t('category_comparison_average', {
+                value: `${format.compact(data.categories.livestock?.average ?? 0, { decimals: 2 })} ${tCommon('units.m3_year')}`,
+              })}
             </div>
           </div>
           <div className="bg-gradient-to-br from-blue-50 to-white rounded-lg p-3 border border-blue-100">
             <div className="text-xs text-gray-600 mb-1">{tMap('categories.urban')}</div>
             <div className="font-bold text-blue-900 text-sm">
-              {data.categories.urban?.count ?? 0} municípios
+              {t('category_comparison_count', { count: data.categories.urban?.count ?? 0 })}
             </div>
             <div className="text-xs text-gray-500 mt-1">
-              Média: {((data.categories.urban?.average ?? 0) / 1000000).toFixed(2)}M m³/ano
+              {t('category_comparison_average', {
+                value: `${format.compact(data.categories.urban?.average ?? 0, { decimals: 2 })} ${tCommon('units.m3_year')}`,
+              })}
             </div>
           </div>
         </div>

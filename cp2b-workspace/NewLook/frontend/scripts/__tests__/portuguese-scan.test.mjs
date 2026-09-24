@@ -22,6 +22,11 @@ test('looksPortuguese: unaccented Portuguese is caught by its words', () => {
   assert.equal(looksPortuguese('Fechar'), true);
 });
 
+test('looksPortuguese: Portuguese units are caught, English ones are not', () => {
+  for (const text of ['m³/ano', 't/ano', 'Nm³/dia', 'hab/km²', 'hab./km²']) assert.equal(looksPortuguese(text), true, text);
+  for (const text of ['m³/year', 't/year', 'Nm³/day', 'inhab./km²', 'kWh/m³']) assert.equal(looksPortuguese(text), false, text);
+});
+
 test('looksPortuguese: English copy, codes and identifiers are not', () => {
   for (const text of [
     'No data',
@@ -57,7 +62,8 @@ test('finds attributes, object values and ternaries', () => {
     const spec = { label: 'Biomassa', unit: 't/ano' }
     const el = <button title="Fechar" aria-label={open ? 'Recolher legenda' : 'Expandir legenda'} />
     const empty = value ?? 'Sem dados'`;
-  assert.deepEqual(texts(source), ['Biomassa', 'Fechar', 'Recolher legenda', 'Expandir legenda', 'Sem dados']);
+  // 't/ano' too: a Portuguese unit is copy, however identifier-like it looks.
+  assert.deepEqual(texts(source), ['Biomassa', 't/ano', 'Fechar', 'Recolher legenda', 'Expandir legenda', 'Sem dados']);
 });
 
 test('finds the static parts of template literals', () => {

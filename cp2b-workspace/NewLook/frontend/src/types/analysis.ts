@@ -360,8 +360,8 @@ export const FACTOR_DOCUMENTATION: FactorDocumentation[] = [
     contextKey: 'factor_docs.fc_context',
     typicalRange: { min: 0.55, max: 0.95 },
     references: [
-      'UNICA (2023) - Relatorio Tecnico sobre Gestao de Bagaco',
-      'Silva et al. (2021) - Eficiencia de coleta em usinas de SP'
+      'UNICA (2023) - Relatorio Tecnico sobre Gestao de Bagaco', // i18n-exempt: citation
+      'Silva et al. (2021) - Eficiencia de coleta em usinas de SP' // i18n-exempt: citation
     ]
   },
   {
@@ -371,8 +371,8 @@ export const FACTOR_DOCUMENTATION: FactorDocumentation[] = [
     contextKey: 'factor_docs.fcp_context',
     typicalRange: { min: 0, max: 1 },
     references: [
-      'CEPEA/ESALQ - Precos de mercado para subprodutos',
-      'Scarlat et al. (2010) - Metodologia RPR europeia'
+      'CEPEA/ESALQ - Precos de mercado para subprodutos', // i18n-exempt: citation
+      'Scarlat et al. (2010) - Metodologia RPR europeia' // i18n-exempt: citation
     ]
   },
   {
@@ -382,8 +382,8 @@ export const FACTOR_DOCUMENTATION: FactorDocumentation[] = [
     contextKey: 'factor_docs.fs_context',
     typicalRange: { min: 0.70, max: 1.00 },
     references: [
-      'CONAB - Calendario agricola e periodos de safra',
-      'Gonzalez-Salazar et al. (2014) - Analise Monte Carlo'
+      'CONAB - Calendario agricola e periodos de safra', // i18n-exempt: citation
+      'Gonzalez-Salazar et al. (2014) - Analise Monte Carlo' // i18n-exempt: citation
     ]
   },
   {
@@ -393,33 +393,14 @@ export const FACTOR_DOCUMENTATION: FactorDocumentation[] = [
     contextKey: 'factor_docs.fl_context',
     typicalRange: { min: 0.65, max: 1.00 },
     references: [
-      'ANTT - Tabelas de custo de frete',
-      'ABiogas (2020) - Potencial nacional de biogas'
+      'ANTT - Tabelas de custo de frete', // i18n-exempt: citation
+      'ABiogas (2020) - Potencial nacional de biogas' // i18n-exempt: citation
     ]
   }
 ]
 
 // View mode for tabs
 export type AnalysisViewMode = 'cascade' | 'flow' | 'scenarios' | 'table'
-
-// Export format options
-export type ExportFormat = 'csv' | 'xlsx' | 'pdf' | 'geojson' | 'json'
-
-export interface ExportOption {
-  format: ExportFormat
-  icon: string
-  label: string
-  description: string  // legacy PT fallback
-  descKey: string      // i18n key
-}
-
-export const EXPORT_OPTIONS: ExportOption[] = [
-  { format: 'csv',     icon: 'FileSpreadsheet', label: 'CSV',     description: 'Dados tabulares para Excel',      descKey: 'analysis.export_options.csv_label' },
-  { format: 'xlsx',    icon: 'FileSpreadsheet', label: 'Excel',   description: 'Planilha com multiplas abas',     descKey: 'analysis.export_options.xlsx_label' },
-  { format: 'pdf',     icon: 'FileText',        label: 'PDF',     description: 'Relatorio com graficos',          descKey: 'analysis.export_options.pdf_label' },
-  { format: 'geojson', icon: 'Map',             label: 'GeoJSON', description: 'Para software GIS',              descKey: 'analysis.export_options.geojson_label' },
-  { format: 'json',    icon: 'Braces',          label: 'JSON',    description: 'Dados estruturados para API',     descKey: 'analysis.export_options.json_label' }
-]
 
 // ============================================================================
 // PER-RESIDUE CUSTOMIZATION TYPES
@@ -435,13 +416,14 @@ export interface ResidueFactorOverrides {
   [residueCode: string]: CorrectionFactors | null | undefined
 }
 
+/** A scenario's name or description, under analysis.residue_scenarios. */
+export type ResidueScenarioTextKey = `residue_scenarios.${keyof Messages['analysis']['residue_scenarios']}`
+
 // Scenario configuration with per-residue factors
 export interface ResidueScenario {
   type: ScenarioType
-  name: string        // legacy PT fallback
-  nameKey: string     // i18n key
-  description: string // legacy PT fallback
-  descKey: string     // i18n key
+  nameKey: ResidueScenarioTextKey
+  descKey: ResidueScenarioTextKey
   color: string
   // For baseline: uses default factors from residueFactors.ts
   // For conservative/optimistic: applies multiplier to all factors
@@ -453,25 +435,19 @@ export interface ResidueScenario {
 // Default scenarios for the new system
 export const RESIDUE_SCENARIOS: Record<ScenarioType, Omit<ResidueScenario, 'type'>> = {
   baseline: {
-    name: 'Baseline',
     nameKey: 'residue_scenarios.baseline_name',
-    description: 'Fatores padrão baseados em dados da literatura (CSV)',
     descKey: 'residue_scenarios.baseline_desc',
     color: '#3B82F6',
     multiplier: 1.0
   },
   conservative: {
-    name: 'Conservador',
     nameKey: 'residue_scenarios.conservative_name',
-    description: 'Reduz todos os fatores em 20% (pior cenário)',
     descKey: 'residue_scenarios.conservative_desc',
     color: '#F59E0B',
     multiplier: 0.8
   },
   optimistic: {
-    name: 'Otimista',
     nameKey: 'residue_scenarios.optimistic_name',
-    description: 'Aumenta fatores em 15% (melhor cenário)',
     descKey: 'residue_scenarios.optimistic_desc',
     color: '#22C55E',
     multiplier: 1.15
@@ -481,17 +457,13 @@ export const RESIDUE_SCENARIOS: Record<ScenarioType, Omit<ResidueScenario, 'type
     // relaxes the competing-use/collection constraints under dedicated public policy.
     // Sits between Médio Prazo and the technical ceiling; surpasses the FIESP benchmark
     // (~6.4 Mm³/d biometano) by leveraging the residues FIESP does not count.
-    name: 'Fronteira do Biogás',
     nameKey: 'residue_scenarios.frontier_name',
-    description: 'Mobilização realista-alta dos 31 resíduos sob política dedicada (> benchmark FIESP)',
     descKey: 'residue_scenarios.frontier_desc',
     color: '#059669',
     multiplier: 1.3
   },
   custom: {
-    name: 'Personalizado',
     nameKey: 'residue_scenarios.custom_name',
-    description: 'Fatores ajustados manualmente por resíduo',
     descKey: 'residue_scenarios.custom_desc',
     color: '#8B5CF6'
   }
