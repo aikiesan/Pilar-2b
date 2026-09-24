@@ -143,7 +143,7 @@ severity within each stack.
 | `frontend/src/services/scientificApi.ts` L790 & L904 (`getChemicalData()`, `getCoDigestionRecommendations()`) return mock data instead of calling the backend. | Frontend | Medium | Needs a real backend endpoint or an explicit decision to keep it mocked (and remove the TODO if so). |
 | 4 newsletter-related TODOs (`CookieConsent`, `NewsletterSignup`, `Footer`) + 1 Sentry/error-tracking placeholder in `logger.ts`. | Frontend | Low | Small, isolated; fine to pick off individually. |
 | A handful of legitimately-conditional test skips (missing `TEST_DATABASE_URL`, missing canonical YAML fixtures, one PR-gated LGPD test). | Backend/Frontend | N/A | Not a problem — just documented here so nobody "fixes" a skip that's actually correct as-is. |
-| `cp2b-workspace/NewLook/.cursorrules` still describes the old Streamlit-based stack (V2), not the current Next.js/FastAPI stack. Misleading for any contributor or AI assistant using it as ground truth. | Docs | Low | Rewrite or remove; low effort, prevents future confusion. |
+| `cp2b-workspace/NewLook/.cursorrules` still describes the old Streamlit-based stack (V2), not the current Next.js/FastAPI stack. Misleading for any contributor or AI assistant using it as ground truth. | Docs | Low | Rewrite or remove; low effort, prevents future confusion. **Done (2026-09-24)** — rewritten for the Next.js/FastAPI stack: the rules the checks enforce and the pre-push commands. |
 
 ## How to keep this doc alive
 

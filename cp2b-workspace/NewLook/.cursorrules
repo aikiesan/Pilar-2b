@@ -1,54 +1,45 @@
-# Instruções para Claude Code - CP2B Maps V3
+# Assistant instructions — PILAR-2b (CP2B Maps V3)
 
-## Contexto do Projeto
-- Projeto: Plataforma de análise de potencial de biogás (São Paulo)
-- Stack: Python 3.10+, Streamlit, Supabase, PostGIS
-- Prazo: MVP em 4 semanas
-- Objetivo: Sistema com autenticação + 8 módulos de análise
+## What this is
+Biogas and biomethane potential of São Paulo's 645 municipalities, with a beta
+national layer.
+- `frontend/`: Next.js (App Router), TypeScript, next-intl (pt-BR and en),
+  Leaflet, React Query.
+- `backend/`: FastAPI and psycopg2 on PostgreSQL + PostGIS.
+- Production: the Unicamp VM (Apache → PM2: backend :8001, frontend :3002).
+  See `docs/VM_UPDATE_GUIDE.md`.
+- Local: Docker Compose, or `scripts/verify-local.sh`. See
+  `docs/qa/LOCAL_VERIFICATION.md`.
 
-## Padrões de Código
-- Type hints obrigatórios em todas funções
-- Docstrings estilo Google
-- Imports organizados (stdlib → third-party → local)
-- Nomes em inglês (código), comentários em português
-- Logging estruturado (não usar print)
-- Error handling robusto (try/except com logs)
+## Rules the checks enforce
+- No user-facing text in code: it goes in `frontend/messages/{pt-BR,en}.json`.
+  Every `t('key')` is type-checked, and `npm run i18n:check` fails on
+  hardcoded Portuguese and on unused keys (`docs/architecture/I18N_GUIDE.md`).
+- Numbers and dates on screen go through `useFormat()` (`src/lib/format.ts`),
+  never `toFixed` or `toLocaleString`.
+- Markup built as a string (Leaflet popups, tooltips, divIcons) passes every
+  value through `escapeHtml` (`src/lib/html.ts`).
+- A modal uses `useDialog` (Escape, focus, a `role="dialog"` named by its title).
+- API errors answer with a fixed message and log the exception, never
+  `detail=str(e)` (`backend/tests/unit/test_error_details.py`).
+- A request-derived value in a log message goes through `log_safe`
+  (`backend/app/core/log_sanitizer.py`).
+- Migrations: numbered, re-runnable, never edited once applied
+  (`backend/app/migrations/README.md`).
 
-## Estrutura de Funções
-```python
-def nome_funcao(param: tipo) -> tipo_retorno:
-    """Breve descrição.
-
-    Args:
-        param: Descrição do parâmetro
-
-    Returns:
-        Descrição do retorno
-
-    Raises:
-        ErroTipo: Quando ocorre X
-    """
-    try:
-        # Implementação
-        pass
-    except Exception as e:
-        logger.error(f"Erro em nome_funcao: {e}")
-        raise
+## Before pushing
+```bash
+cd frontend && npm run typecheck && npm run lint && npm run i18n:check && npm test && npm run build
+cd backend && black . --check && isort . --check-only \
+  && flake8 app/ --max-line-length=100 --extend-ignore=E203,W503 && pytest
 ```
+`npm run typecheck` covers the tests and e2e specs too. Backend CI runs
+`tests/unit`, `tests/integration` and `tests/compliance` (pytest.ini), so new
+tests go there.
 
-## Princípios
-- WCAG 2.1 AA compliance sempre
-- Performance: cache com @st.cache_data quando apropriado
-- Segurança: nunca hardcode credentials
-- Modularidade: funções pequenas, responsabilidade única
-- Testabilidade: código deve ser testável
-
-## Referências
-- Código V2 em: ../project_map/
-- Dados municipais: 645 municípios SP
-- Metodologia: Papers MCDA (Kaynak & Gümüş 2025)
-
-## Quando Criar Arquivos
-- Sempre pergunte antes de criar novos módulos
-- Siga estrutura em STRUCTURE.md
-- Imports relativos dentro de src/
+## Conventions
+- Code and identifiers in English; comments in the language of the file.
+- Extend the shared helpers (`lib/format`, `lib/html`, `hooks/useDialog`,
+  `log_safe`) rather than writing another copy.
+- WCAG 2.1 AA: labelled controls, keyboard access, no colour-only meaning.
+- Small commits, each with the tests that prove it; say what was verified.

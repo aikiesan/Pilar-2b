@@ -31,7 +31,7 @@ Standard open-source project files at `cp2b-workspace/NewLook/`:
 | `CHANGELOG.md` | — | Version history following Keep a Changelog format (v3.0.3 current) |
 | `CONTRIBUTING.md` | 454 | Contribution guidelines, code standards, PR process for external contributors |
 | `LICENSE` | 675 | GPL-3.0 License (2025) |
-| `.cursorrules` | 53 | AI assistant coding rules — project context, patterns, SOLID principles |
+| `.cursorrules` | 45 | AI assistant rules — the stack, the rules the checks enforce, the pre-push commands |
 
 ---
 
