@@ -5,8 +5,9 @@
 
 'use client';
 
-import React, { useState } from 'react';
+import React, { useId, useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { useDialog } from '@/hooks/useDialog';
 import {
   Download,
   FileText,
@@ -58,6 +59,8 @@ export default function ExportControl({
   const tCommon = useTranslations('common');
   const tResidues = useTranslations('Map.residues');
   const format = useFormat();
+  const titleId = useId();
+  const panelRef = useDialog<HTMLDivElement>(visible && DATA_EXPORT_ENABLED, () => onClose?.());
 
   // Beta: the dataset is still being validated, so no copy leaves the browser.
   // MapComponent and DesktopLeftPanel already withhold this control; this guard
@@ -212,7 +215,14 @@ export default function ExportControl({
 
       {/* Export Panel */}
       <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[1051]">
-        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-slate-700 p-6 w-[500px]">
+        <div
+          ref={panelRef}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={titleId}
+          tabIndex={-1}
+          className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-slate-700 p-6 w-[500px]"
+        >
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-3">
@@ -220,7 +230,7 @@ export default function ExportControl({
                 <Download className="w-6 h-6 text-blue-600 dark:text-blue-400" />
               </div>
               <div>
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                <h3 id={titleId} className="text-xl font-bold text-gray-900 dark:text-white">
                   {t('title')}
                 </h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
