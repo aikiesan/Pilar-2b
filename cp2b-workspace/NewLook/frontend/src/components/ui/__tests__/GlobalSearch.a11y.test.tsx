@@ -11,6 +11,7 @@ jest.mock('@/navigation', () => ({ useRouter: () => ({ push: jest.fn() }) }))
 // per-file mock (see ThemeToggle.a11y.test.tsx). Returning real English strings
 // rather than the key keeps the accessible-name assertions below meaningful.
 jest.mock('next-intl', () => ({
+  useLocale: () => 'en',
   useTranslations: () => (key: string) => {
     const map: Record<string, string> = {
       trigger: 'Search municipality',

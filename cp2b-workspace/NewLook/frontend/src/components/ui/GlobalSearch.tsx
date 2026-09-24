@@ -12,17 +12,11 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from '@/navigation'
 import { useTranslations } from 'next-intl'
 import { useGeospatialData } from '@/hooks/useGeospatialData'
+import { useFormat } from '@/hooks/useFormat'
 import { Search, X, MapPin, TrendingUp } from 'lucide-react'
 import type { MunicipalityFeature } from '@/types/geospatial'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-
-function formatBig(value: number | null | undefined): string {
-  if (value == null || Number.isNaN(value)) return '—'
-  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`
-  if (value >= 1_000) return `${(value / 1_000).toFixed(0)}K`
-  return value.toFixed(0)
-}
 
 function getPotentialColor(value: number): string {
   if (value >= 500_000_000) return 'text-blue-700 dark:text-blue-400'
@@ -41,6 +35,7 @@ interface GlobalSearchProps {
 
 export default function GlobalSearch({ variant = 'light' }: GlobalSearchProps) {
   const t = useTranslations('common.search')
+  const format = useFormat()
   const router = useRouter()
   const { data } = useGeospatialData()
 
@@ -212,7 +207,7 @@ export default function GlobalSearch({ variant = 'light' }: GlobalSearchProps) {
                         <div className="flex items-center gap-1 shrink-0 ml-3">
                           <TrendingUp className="w-3 h-3 text-gray-400" />
                           <span className={`text-xs font-semibold ${getPotentialColor(total)}`}>
-                            {formatBig(total)} {t('per_year')}
+                            {format.compact(total)} {t('per_year')}
                           </span>
                         </div>
                       </li>

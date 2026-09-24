@@ -12,6 +12,7 @@ import {
   X
 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { useFormat } from '@/hooks/useFormat'
 import {
   CorrectionFactors,
   calculateFDE,
@@ -30,6 +31,8 @@ export default function MethodologyPanel({
   onClose
 }: MethodologyPanelProps) {
   const t = useTranslations('analysis')
+  const format = useFormat()
+  const factor = (value: number) => format.number(value, { decimals: 2, minDecimals: 2 })
   const [expandedFactors, setExpandedFactors] = useState<string[]>(['fc'])
 
   const toggleFactor = (factor: string) => {
@@ -88,10 +91,10 @@ export default function MethodologyPanel({
                 FDE = FC &times; (1 - FCp) &times; FS &times; FL
               </div>
               <div className="text-sm font-mono text-gray-600 dark:text-slate-400">
-                {factors.fc.toFixed(2)} &times; {(1 - factors.fcp).toFixed(2)} &times; {factors.fs.toFixed(2)} &times; {factors.fl.toFixed(2)} = {fdeValue.toFixed(3)}
+                {factor(factors.fc)} &times; {factor(1 - factors.fcp)} &times; {factor(factors.fs)} &times; {factor(factors.fl)} = {format.number(fdeValue, { decimals: 3, minDecimals: 3 })}
               </div>
               <div className="mt-3 text-2xl font-bold text-green-600">
-                {(fdeValue * 100).toFixed(1)}%
+                {format.percent(fdeValue * 100, { decimals: 1, minDecimals: 1 })}
               </div>
               <div className="text-xs text-gray-500 dark:text-slate-400">
                 {t('methodology_panel.formula_desc')}
@@ -139,7 +142,7 @@ export default function MethodologyPanel({
                         ? currentValue > 0.5 ? 'text-red-600' : 'text-green-600'
                         : currentValue > 0.7 ? 'text-green-600' : 'text-yellow-600'
                     }`}>
-                      {(currentValue * 100).toFixed(0)}%
+                      {format.percent(currentValue * 100, { decimals: 0 })}
                     </span>
                   </button>
 
@@ -179,7 +182,7 @@ export default function MethodologyPanel({
                             />
                           </div>
                           <span className="text-xs text-gray-600 font-mono whitespace-nowrap">
-                            {(doc.typicalRange.min * 100).toFixed(0)}% - {(doc.typicalRange.max * 100).toFixed(0)}%
+                            {format.percent(doc.typicalRange.min * 100, { decimals: 0 })}–{format.percent(doc.typicalRange.max * 100, { decimals: 0 })}
                           </span>
                         </div>
                       </div>
