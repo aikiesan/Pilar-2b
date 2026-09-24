@@ -7,7 +7,9 @@ import React from 'react';
 import { render, screen, waitFor, act, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import MapComponent from './MapComponent';
-import type { MunicipalityCollection, MunicipalityFeature } from '@/types/geospatial';
+import type { MunicipalityCollection, MunicipalityFeature, MunicipalityProperties } from '@/types/geospatial';
+import type { FilterCriteria } from '@/types/map';
+import { municipalityProps } from '@/test/fixtures/municipality';
 
 // next/dynamic's loader returns a Promise (import('./X')), so calling it and
 // using the result as a component yields "Element type is invalid". The dynamic
@@ -176,13 +178,13 @@ jest.mock('./MapLoadingSkeleton', () => ({
 }));
 
 // Sample test data
-const createMunicipalityFeature = (overrides: Partial<any> = {}): MunicipalityFeature => ({
+const createMunicipalityFeature = (overrides: Partial<MunicipalityProperties> = {}): MunicipalityFeature => ({
   type: 'Feature',
   geometry: {
     type: 'Polygon',
     coordinates: [[[-46.0, -23.0], [-46.1, -23.0], [-46.1, -23.1], [-46.0, -23.1], [-46.0, -23.0]]],
   },
-  properties: {
+  properties: municipalityProps({
     ibge_code: '3550308',
     name: 'São Paulo',
     intermediate_region: 'São Paulo',
@@ -202,7 +204,19 @@ const createMunicipalityFeature = (overrides: Partial<any> = {}): MunicipalityFe
     rsu_biogas_m3_year: 20_000_000,
     rpo_biogas_m3_year: 10_000_000,
     ...overrides,
-  },
+  }),
+});
+
+/** Filters as the map page starts them, with the criteria a test sets on top. */
+const filters = (criteria: Partial<FilterCriteria>): FilterCriteria => ({
+  residueTypes: [],
+  regions: [],
+  searchQuery: '',
+  nearRailway: false,
+  nearPipeline: false,
+  nearSubstation: false,
+  proximityRadius: 50,
+  ...criteria,
 });
 
 const createMunicipalityCollection = (features: MunicipalityFeature[]): MunicipalityCollection => ({
@@ -631,13 +645,13 @@ describe('MapComponent', () => {
     it('should filter by biogas range', async () => {
       render(
         <MapComponent
-          activeFilters={{
+          activeFilters={filters({
             minBiogas: 40_000_000,
             maxBiogas: 150_000_000,
             searchQuery: '',
             residueTypes: [],
             regions: [],
-          }}
+          })}
         />
       );
       act(() => { jest.advanceTimersByTime(1500); });
@@ -651,13 +665,13 @@ describe('MapComponent', () => {
     it('should filter by residue types', async () => {
       render(
         <MapComponent
-          activeFilters={{
+          activeFilters={filters({
             minBiogas: undefined,
             maxBiogas: undefined,
             searchQuery: '',
             residueTypes: ['agricultural'],
             regions: [],
-          }}
+          })}
         />
       );
       act(() => { jest.advanceTimersByTime(1500); });
@@ -670,13 +684,13 @@ describe('MapComponent', () => {
     it('should filter by regions', async () => {
       render(
         <MapComponent
-          activeFilters={{
+          activeFilters={filters({
             minBiogas: undefined,
             maxBiogas: undefined,
             searchQuery: '',
             residueTypes: [],
             regions: ['São Paulo', 'Campinas'],
-          }}
+          })}
         />
       );
       act(() => { jest.advanceTimersByTime(1500); });
@@ -689,13 +703,13 @@ describe('MapComponent', () => {
     it('should show filtered count vs total count', async () => {
       render(
         <MapComponent
-          activeFilters={{
+          activeFilters={filters({
             minBiogas: 60_000_000,
             maxBiogas: undefined,
             searchQuery: '',
             residueTypes: [],
             regions: [],
-          }}
+          })}
         />
       );
       act(() => { jest.advanceTimersByTime(1500); });
@@ -720,13 +734,13 @@ describe('MapComponent', () => {
       render(
         <MapComponent
           searchQuery="Paulo"
-          activeFilters={{
+          activeFilters={filters({
             minBiogas: 50_000_000,
             maxBiogas: undefined,
             searchQuery: '',
             residueTypes: ['agricultural'],
             regions: ['São Paulo'],
-          }}
+          })}
         />
       );
       act(() => { jest.advanceTimersByTime(1500); });
@@ -1029,13 +1043,13 @@ describe('MapComponent', () => {
 
       render(
         <MapComponent
-          activeFilters={{
+          activeFilters={filters({
             minBiogas: 100_000_000, // No municipality meets this
             maxBiogas: undefined,
             searchQuery: '',
             residueTypes: [],
             regions: [],
-          }}
+          })}
         />
       );
       act(() => { jest.advanceTimersByTime(1500); });

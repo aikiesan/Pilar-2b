@@ -14,6 +14,7 @@ import type { MunicipalityCollection } from '@/types/geospatial';
 import type { ResidueType } from '@/types/map';
 import { useFormat } from '@/hooks/useFormat';
 import { useSelectionLabel } from '@/hooks/useSelectionLabel';
+import { markerPosition } from '@/lib/mapUtils';
 
 interface HeatmapLayerProps {
   data: MunicipalityCollection;
@@ -59,34 +60,15 @@ export default function HeatmapLayer({
     );
   };
 
-  // Get centroid [lat, lng] from a GeoJSON geometry
-  const getCentroid = (feature: any): [number, number] | null => {
-    const { type, coordinates } = feature.geometry;
-    if (type === 'Point') {
-      return [coordinates[1], coordinates[0]];
-    }
-    if (type === 'Polygon') {
-      const ring = coordinates[0] as [number, number][];
-      const sum = ring.reduce((acc, [lng, lat]) => ({ lng: acc.lng + lng, lat: acc.lat + lat }), { lng: 0, lat: 0 });
-      return [sum.lat / ring.length, sum.lng / ring.length];
-    }
-    if (type === 'MultiPolygon') {
-      const ring = coordinates[0][0] as [number, number][];
-      const sum = ring.reduce((acc, [lng, lat]) => ({ lng: acc.lng + lng, lat: acc.lat + lat }), { lng: 0, lat: 0 });
-      return [sum.lat / ring.length, sum.lng / ring.length];
-    }
-    return null;
-  };
-
   // Build point data (memoised so tooltip markers re-render when data changes)
   const points = useMemo(() => {
     return data.features
       .map(feature => {
         const value = getResidueValue(feature.properties);
         if (value === 0) return null;
-        const centroid = getCentroid(feature);
-        if (!centroid) return null;
-        return { position: centroid as [number, number], value, name: feature.properties.name };
+        const position = markerPosition(feature.geometry);
+        if (!position) return null;
+        return { position, value, name: feature.properties.name };
       })
       .filter((p): p is { position: [number, number]; value: number; name: string } => p !== null);
   }, [data, selectedResidues]);

@@ -13,6 +13,7 @@ import type { DisplayMetric, MunicipalityCollection } from '@/types/geospatial';
 import type { BiomassType, ResidueType } from '@/types/map';
 import type { MapScenarioKey } from '@/data/scenarioFactors';
 import { getMetricSpec } from '@/lib/mapMetrics';
+import { markerPosition } from '@/lib/mapUtils';
 import { useFormat } from '@/hooks/useFormat';
 import { useMetricText } from '@/hooks/useMetricText';
 import { useSelectionLabel } from '@/hooks/useSelectionLabel';
@@ -87,26 +88,14 @@ export default function BubbleChartLayer({
       // Get color based on value
       const color = getColor(value, minValue, maxValue);
 
-      // Get centroid coordinates
-      // MunicipalityFeature geometry is 'Point' | 'MultiPolygon' (never 'Polygon')
-      const geometry = feature.geometry;
-      let coordinates: [number, number] | null = null;
-
-      if (geometry.type === 'Point') {
-        // Point: coordinates is [lng, lat]
-        const coords = geometry.coordinates as number[];
-        coordinates = [coords[0], coords[1]];
-      } else if (geometry.type === 'MultiPolygon') {
-        // MultiPolygon: coordinates is [][][], use first ring of first polygon
-        const coords = geometry.coordinates as unknown as number[][][][];
-        coordinates = getCentroid(coords[0][0] as Array<[number, number]>);
-      }
-
-      if (!coordinates) return;
+      // A municipality with no outline arrives as a Polygon (a circle around its
+      // centroid), which this layer used to skip; markerPosition handles all three.
+      const position = markerPosition(feature.geometry);
+      if (!position) return;
 
       // Create circle marker
       const circle = L.circleMarker(
-        [coordinates[1], coordinates[0]], // Leaflet uses [lat, lng]
+        position,
         {
           radius,
           fillColor: color,
@@ -149,19 +138,6 @@ export default function BubbleChartLayer({
 }
 
 // Helper functions
-
-function getCentroid(coordinates: Array<[number, number]>): [number, number] {
-  let x = 0;
-  let y = 0;
-  const count = coordinates.length;
-
-  coordinates.forEach(([lng, lat]) => {
-    x += lng;
-    y += lat;
-  });
-
-  return [x / count, y / count];
-}
 
 function getColor(value: number, min: number, max: number): string {
   const normalized = max > min ? (value - min) / (max - min) : 1;

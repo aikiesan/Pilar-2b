@@ -113,6 +113,10 @@ export interface MunicipalityProperties {
   // Per-stream coverage flags (cattle_biomass_coverage, sugarcane_biomass_coverage, …).
   [key: `${string}_biomass_coverage`]: BiomassCoverage | undefined;
 
+  // Per-residue CH₄ shares of the served scenarios (ch4_real_sugarcane_m3_year, …;
+  // migration 029). The map payload omits zero shares, so an absent one is zero.
+  [key: `ch4_${'real' | 'ideal'}_${string}_m3_year`]: number | null | undefined;
+
   // K-means cluster fields (from municipality_summary, null when no match)
   cluster_id?: number | null;
   cluster_label?: string | null;
@@ -242,13 +246,23 @@ export interface PairingCandidatesResponse {
   candidates: PairingCandidate[];
 }
 
+/** A GeoJSON position: [longitude, latitude]. */
+export type Position = [number, number];
+
+/**
+ * A municipality's geometry as the API sends it: its outline (MultiPolygon),
+ * or, for a municipality with no outline, a 5 km circle around its centroid —
+ * which PostGIS returns as a Polygon (ST_Buffer). Point is a bare centroid.
+ */
+export type MunicipalityGeometry =
+  | { type: 'Point'; coordinates: Position }
+  | { type: 'Polygon'; coordinates: Position[][] }
+  | { type: 'MultiPolygon'; coordinates: Position[][][] };
+
 // GeoJSON Feature for municipality
 export interface MunicipalityFeature {
   type: 'Feature';
-  geometry: {
-    type: 'Point' | 'MultiPolygon';
-    coordinates: number[] | number[][][];
-  };
+  geometry: MunicipalityGeometry;
   properties: MunicipalityProperties;
 }
 
