@@ -24,8 +24,8 @@
       "cite": "How to cite PILAR-2b"
     },
     "auth": {
-      "login": "Login",
-      "logout": "Logout",
+      "login": "Sign in",
+      "logout": "Sign out",
       "logout_account": "Sign out",
       "settings": "Settings",
       "user": "User",
@@ -39,14 +39,14 @@
     "search": {
       "trigger": "Search municipality",
       "trigger_aria": "Search municipality (press /)",
-      "placeholder": "Name or IBGE code...",
+      "placeholder": "Name or IBGE code…",
       "input_aria": "Search municipality",
       "results_aria": "Search results",
       "no_results": "No municipality found for \"{query}\"",
       "hints": "↑↓ navigate · Enter select · Esc close",
       "per_year": "m³/year"
     },
-    "logo_alt": "PILAR-2b - Intelligent Platform for Locating and Using Residues for Biogas and Bioproducts",
+    "logo_alt": "PILAR-2b — Intelligent Platform for Locating and Using Residues for Biogas and Bioproducts",
     "badge": {
       "beta": "Beta"
     },
@@ -59,29 +59,14 @@
       "switch_to_pt": "Mudar para Português",
       "group_aria": "Language selection"
     },
-    "copyright": "© 2025 PILAR-2b. Intelligent Waste Location and Utilization Platform for Biogas and Bioproducts.",
     "actions": {
       "close": "Close",
-      "back": "Back",
-      "cancel": "Cancel",
       "clear": "Clear",
-      "apply": "Apply",
-      "save": "Save",
-      "retry": "Try again",
-      "export": "Export",
-      "download": "Download",
-      "share": "Share",
-      "copy": "Copy",
-      "copied": "Copied!",
-      "search": "Search",
-      "show_more": "Show more",
-      "show_less": "Show less"
+      "retry": "Try again"
     },
     "states": {
       "loading": "Loading…",
-      "no_data": "No data",
-      "error": "The data could not be loaded.",
-      "not_found": "Nothing found"
+      "no_data": "No data"
     },
     "sectors": {
       "agricultural": "Agricultural",
@@ -93,8 +78,6 @@
     "units": {
       "t_year": "t/year",
       "m3_year": "m³/year",
-      "m3_day": "m³/day",
-      "nm3_day": "Nm³/day",
       "nm3_ch4_year": "Nm³ CH₄/year",
       "mwh_year": "MWh/year",
       "km": "km",
@@ -109,7 +92,7 @@
   },
   "auth": {
     "errors": {
-      "login_failed": "Login failed. Please check your credentials.",
+      "login_failed": "Sign-in failed. Please check your credentials.",
       "registration_failed": "Registration failed. Please try again.",
       "invalid_credentials": "Incorrect email or password.",
       "account_inactive": "This account is inactive. Contact the administrator.",
@@ -129,7 +112,7 @@
       "password_label": "Password",
       "remember_me": "Remember me",
       "forgot_password": "Forgot password?",
-      "submitting": "Signing in...",
+      "submitting": "Signing in…",
       "submit": "Sign in",
       "new_to_platform": "New to the platform?",
       "create_new_account": "Create new account"
@@ -153,13 +136,13 @@
       "terms_of_service": "Terms of Service",
       "and": "and",
       "privacy_policy": "Privacy Policy",
-      "submitting": "Creating account...",
+      "submitting": "Creating account…",
       "submit": "Create account",
       "already_have_account": "Already have an account?",
       "login": "Sign in"
     },
     "common": {
-      "copyright": "© 2025 PILAR-2b. Intelligent Waste Location and Utilization Platform for Biogas and Bioproducts."
+      "copyright": "© {year} PILAR-2b. Intelligent Platform for Locating and Using Residues for Biogas and Bioproducts."
     }
   },
   "landing": {
@@ -188,12 +171,12 @@
       "proximity_analysis": {
         "alt": "Proximity analysis with collection radius and infrastructure",
         "caption": "Proximity Analysis",
-        "description": "Logistic simulation with collection radius and proximity analysis to existing infrastructure"
+        "description": "Logistics simulation with collection radius and proximity analysis to existing infrastructure"
       },
       "scientific_basis": {
-        "alt": "Scientific basis with references and SAF methodology",
+        "alt": "Scientific basis with references and FDE methodology",
         "caption": "Scientific Basis",
-        "description": "Access the SAF methodology and scientific references that support the platform's analyses"
+        "description": "Access the FDE methodology and scientific references that support the platform's analyses"
       }
     },
     "stats": {
@@ -232,7 +215,7 @@
         "title": "MCDA Analysis",
         "description": "Multi-criteria analysis for municipality prioritization and optimal plant location identification",
         "features": [
-          "8 integrated criteria: SAF, logistics, infrastructure",
+          "8 integrated criteria: FDE, logistics, infrastructure",
           "Configurable weights by stakeholder",
           "Automated ranking of 645 SP municipalities",
           "Validated Territorial Suitability Index (TSI)"
@@ -246,7 +229,7 @@
           "3 access levels: Visitor, Researcher, Admin",
           "AI Assistant 'Bagacinho' with RAG of 58 papers",
           "Updated SIDRA/IBGE database 2018-2024",
-          "Complete SAF Methodology documentation"
+          "Complete FDE Methodology documentation"
         ],
         "cta": "Create Account"
       }
@@ -283,11 +266,9 @@
     },
     "footer": {
       "fapesp_project": "FAPESP 2024/01112-1 · CP2Bsd",
-      "about": "About",
-      "copyright": "© 2025 NIPE-UNICAMP",
+      "copyright": "© {year} NIPE-UNICAMP",
       "newsletter_heading": "Get Our Updates",
       "newsletter_desc": "Subscribe to receive PILAR-2b news, analyses, and biogas sector insights.",
-      "newsletter_name_placeholder": "Your name (optional)",
       "newsletter_email_placeholder": "Your email",
       "newsletter_submit": "Subscribe",
       "newsletter_success": "Thank you! You'll receive our updates soon.",
@@ -296,7 +277,7 @@
       "privacy": "Privacy Policy",
       "terms": "Terms of Use",
       "back_to_top": "Back to top",
-      "platform_acronym": "Intelligent Platform for Location and Utilization of Residues",
+      "platform_acronym": "Intelligent Platform for Locating and Using Residues",
       "platform_2b": "Biogas and Bioproducts",
       "institution": "NIPE-UNICAMP · Campinas, SP",
       "whatsapp_label": "WhatsApp PILAR-2b",
@@ -317,7 +298,7 @@
   },
   "Map": {
     "title": "Interactive Map",
-    "loading_map": "Loading map...",
+    "loading_map": "Loading map…",
     "loading": {
       "title": "Loading Interactive Map",
       "subtitle": "5,571 municipalities in Brazil",
@@ -328,14 +309,13 @@
     "panels": {
       "filters": "Filters",
       "layers": "Layers",
-      "insights": "Insights",
       "dataSources": "Data Sources",
       "tools": "Tools",
       "themes": "Themes"
     },
     "search": {
       "label": "Search Municipality",
-      "placeholder": "Name or IBGE code..."
+      "placeholder": "Name or IBGE code…"
     },
     "residues": {
       "sugarcane": "Sugarcane",
@@ -353,23 +333,11 @@
       "forestry": "Forestry"
     },
     "urbanTotals": {
-      "ariaLabel": "Urban residue totals for {uf}",
-      "title": "Urban residues",
-      "scenario": "{scenario} scenario",
-      "scenarios": {
-        "real": "Real",
-        "ideal": "Ideal"
-      },
       "streams": {
         "rsu": "OFMSW",
         "rpo": "Urban pruning",
         "sewage": "WWTP sludge"
-      },
-      "year": "year",
-      "municipalities": "{count, plural, =0 {no municipality with a value} one {# municipality with a value} other {# municipalities with a value}}",
-      "noDataTitle": "No validated urban inventory for {uf}",
-      "noDataBody": "The beta layer remains visible as a data gap; values were not inferred from population.",
-      "disclaimer": "Scenario CH₄ potential; this is not collected mass in t/year. The SNIS audit remains separate."
+      }
     },
     "categories": {
       "agricultural": "Agricultural",
@@ -378,7 +346,6 @@
     },
     "residueFilter": {
       "label": "Filter by Residue",
-      "clear": "Clear",
       "clearFilters": "Clear filters"
     },
     "biomassTypes": {
@@ -409,8 +376,7 @@
       "label": "Map Opacity"
     },
     "municipalities": {
-      "visible": "Visible Municipalities",
-      "label": "municipalities"
+      "visible": "Visible Municipalities"
     },
     "layers": {
       "mapLayers": "Map Layers"
@@ -441,26 +407,12 @@
       "urban": "Urban",
       "infrastructure": "Infrastructure"
     },
-    "insights": {
-      "totalBiogas": "Total Biogas Potential — SP",
-      "sectorBreakdown": "Distribution by Sector",
-      "top5": "Top 5 Municipalities",
-      "noData": "Data not available."
-    },
-    "status": {
-      "filter": "filter",
-      "filters": "filters",
-      "layers": "layers",
-      "comingSoon": "COMING SOON"
-    },
     "errors": {
       "loadingError": "Error Loading Map",
       "noData": "No Data Available",
       "reloadPage": "Reload Page",
       "tryAgain": "Try Again"
     },
-    "closePanel": "Close panel",
-    "expandPanel": "Expand filter panel",
     "scenario_label": "Scenario",
     "map_aria_label": "Interactive map of biogas potential across {state} municipalities",
     "map_keyboard_help": "Interactive map. With the map focused, use the arrow keys to pan and the plus and minus keys to zoom in and out. The same data is also available as tables and rankings on the analysis pages.",
@@ -468,7 +420,7 @@
     "scenario_baseline": "Mid-term",
     "scenario_fronteira": "Frontier",
     "scenario_otimista": "Optimistic",
-    "scenario_fronteira_tip": "Biogas Frontier: realistic-high mobilisation of all 31 residues — surpasses the FIESP benchmark (~6.4 Mm³/d biomethane).",
+    "scenario_fronteira_tip": "Biogas Frontier: realistic-high mobilization of all 31 residues — surpasses the FIESP benchmark (~6.4 Mm³/d biomethane).",
     "scenario_real": "Real",
     "scenario_ideal": "Ideal",
     "scenario_real_tip": "Real Scenario (short term): residue that actually reaches a digester today — current collection rates and competing uses. SP: 21.5 Mm³/day of biomethane. Method: Atlas de Bioenergia SP 2020.",
@@ -660,7 +612,7 @@
       "ibge_more": "More data on IBGE Cidades"
     },
     "infrastructure": {
-      "na": "N/A",
+      "na": "—",
       "no_name": "Unnamed",
       "names": {
         "road": "Road",
@@ -1066,7 +1018,7 @@
     }
   },
   "metadata": {
-    "title": "PILAR-2b - Intelligent Waste Location and Utilization Platform for Biogas and Bioproducts",
+    "title": "PILAR-2b — Intelligent Platform for Locating and Using Residues for Biogas and Bioproducts",
     "description": "Open-source geospatial framework for analyzing biogas and bioproduct potential from organic waste in São Paulo state. Interactive mapping, multi-criteria analysis, feedstock-dependent correction factors, and scientific database tools for reproducible research.",
     "keywords": "biogas, bioproducts, renewable energy, São Paulo, geospatial analysis, biomass, MCDA, sustainability, FAPESP, open-source, PILAR-2b, framework, reproducible research"
   },
@@ -1075,7 +1027,7 @@
     "advanced_analysis": {
       "title": "Advanced Analysis",
       "literature_base_link": "Scientific base — 399 references (literature review)",
-      "frontier_note": "Biogas Frontier: realistic-high mobilisation of all 31 residues — surpasses the FIESP benchmark (~6.4 Mm³/d biomethane).",
+      "frontier_note": "Biogas Frontier: realistic-high mobilization of all 31 residues — surpasses the FIESP benchmark (~6.4 Mm³/d biomethane).",
       "category_agricultural": "Agricultural",
       "category_livestock": "Livestock",
       "category_urban": "Urban",
@@ -1381,18 +1333,10 @@
       "admin_region": "Administrative Region",
       "area": "Area (km²)",
       "population": "Population",
-      "total_biogas": "Total Biogas",
-      "agricultural": "Agricultural",
-      "livestock": "Livestock",
-      "urban": "Urban",
-      "loading": "Loading comparison data...",
       "error": "Error loading data. Please try again.",
-      "no_municipalities": "No municipalities selected for comparison.",
-      "unit_m3_year": "m³/year",
-      "unit_km2": "km²",
       "min_municipalities_error": "Select at least 2 municipalities to compare",
       "none_found": "No municipality found",
-      "loading_comparison": "Loading comparison...",
+      "loading_comparison": "Loading comparison…",
       "ibge_code": "IBGE Code",
       "biogas_section": "BIOGAS POTENTIAL",
       "energy_section": "ENERGY & ENVIRONMENTAL POTENTIAL",
@@ -1405,23 +1349,14 @@
       "row_co2": "CO₂ Reduction (ton/year)"
     },
     "technology_routes": {
-      "title": "Technology Routes",
-      "subtitle": "Visual Builder for Biogas Processes",
-      "help": "Help",
-      "how_to_use": "How to use",
-      "guide": "Select a residue → Choose processes → Build your technology route",
-      "guide_wizard_done": "Your route has been generated — explore the nodes, click to view scientific references or add more technologies",
-      "wizard_btn": "Wizard"
+      "title": "Technology Routes"
     },
     "municipality": {
-      "loading": "Loading data...",
       "not_found": "Municipality not found",
       "not_found_desc": "No data found for IBGE code {code}.",
       "back_to_map": "Back to Map",
       "download_workbook": "Spreadsheet",
       "download_report": "Report",
-      "map_breadcrumb": "Map",
-      "biogas_profile": "Biogas Profile",
       "copy_url": "URL copied!",
       "location_label": "Municipality in São Paulo State",
       "view_ibge": "View data on IBGE Cidades",
@@ -1517,8 +1452,8 @@
       "values_heading": "Our Values",
       "values_items": [
         "A transdisciplinary approach to innovative solutions",
-        "Circular bioeconomy and the valorisation of residues",
-        "Commitment to the decarbonisation agenda through 2050",
+        "Circular bioeconomy and the valorization of residues",
+        "Commitment to the decarbonization agenda through 2050",
         "Education as an instrument of social transformation",
         "Projects developed with a local approach and designed to be replicated"
       ],
@@ -1536,7 +1471,7 @@
         },
         {
           "title": "Process and Bioprocess Engineering",
-          "description": "Development and optimisation of biodigesters, process scale-up and the integration of production systems."
+          "description": "Development and optimization of biodigesters, process scale-up and the integration of production systems."
         },
         {
           "title": "Integrated Socioeconomic, Environmental and Energy Assessment",
@@ -1548,7 +1483,7 @@
         },
         {
           "title": "Education and Training",
-          "description": "Training of qualified human resources through courses, workshops and postgraduate programmes."
+          "description": "Training of qualified human resources through courses, workshops and postgraduate programs."
         },
         {
           "title": "Scientific Outreach and Communication",
@@ -1595,8 +1530,7 @@
         "abrema": "Brazilian Waste Association"
       },
       "since_1992": "Since 1992",
-      "nipe_heading": "NIPE/UNICAMP",
-      "nipe_body": "The Interdisciplinary Center for Energy Planning is a UNICAMP research centre dedicated to the integrated study of energy, environmental and sustainable-development questions.",
+      "nipe_body": "The Interdisciplinary Center for Energy Planning is a UNICAMP research center dedicated to the integrated study of energy, environmental and sustainable-development questions.",
       "nipe_items": [
         "30+ years of excellence in energy research",
         "A multidisciplinary team of researchers",
@@ -1650,7 +1584,7 @@
     },
     "dashboard_about": {
       "title": "About PILAR-2b",
-      "redirecting": "Redirecting to NIPE Unicamp...",
+      "redirecting": "Redirecting to NIPE Unicamp…",
       "click_here": "Click here if not redirected automatically"
     },
     "settings": {
@@ -1658,7 +1592,7 @@
     }
   },
   "dashboard_hub": {
-    "loading": "Loading dashboard...",
+    "loading": "Loading dashboard…",
     "welcome_title": "Welcome to PILAR-2b",
     "welcome_subtitle": "Complete platform for biogas potential analysis in São Paulo state",
     "hero_institution": "CP2b · NIPE / UNICAMP",
@@ -1668,40 +1602,13 @@
     "path_map": "Explore the Map",
     "path_proximity": "Proximity",
     "path_science": "Routes & Science",
-    "stats_municipalities": "Municipalities",
-    "stats_residues": "Residue Types",
-    "stats_routes": "Technology Routes",
-    "guide_title": "Platform Usage Guide",
-    "guide_step1_title": "Start with the Interactive Map",
-    "guide_step1_items": [
-      "Visualize 645 São Paulo municipalities with biogas potential data",
-      "Filter by residue type (sugarcane, cattle, swine, MSW, etc.)",
-      "Click a municipality to see full details in a horizontal popup",
-      "Activate additional layers: MapBiomas, biogas plants, pipelines, transmission lines"
-    ],
-    "guide_step2_title": "Proximity Analysis",
-    "guide_step2_items": [
-      "Click the map to select a point of interest",
-      "Set a search radius (e.g. 50 km, 100 km)",
-      "View nearby municipalities with aggregated potential",
-      "Analyze nearby infrastructure: pipelines, substations, WWTPs, roads",
-      "Cross-reference with MapBiomas land-use data"
-    ],
-    "guide_step3_title": "Technology Routes & Scientific Knowledge Base",
-    "guide_step3_items": [
-      "Technology Routes: Compare different biogas/biomethane production processes",
-      "Scientific Knowledge Base: Access technical residue data — BMP, TS, VS, C/N",
-      "Consult parameters validated from international scientific literature",
-      "Use to refine calculations and custom analyses"
-    ],
-    "guide_tip": "Tip: Start by exploring the map to identify regions of interest, then use the analysis tools to deepen your assessment.",
     "features_heading": "Available Tools",
     "badge_popular": "Popular",
     "badge_new": "New",
     "feat_map_title": "Interactive Map",
     "feat_map_desc": "Explore biogas potential in 645 São Paulo municipalities with residue-type filters",
     "feat_proximity_title": "Proximity Analysis",
-    "feat_proximity_desc": "Analyse biogas plant feasibility considering nearby infrastructure",
+    "feat_proximity_desc": "Analyze biogas plant feasibility considering nearby infrastructure",
     "feat_routes_title": "Technology Routes",
     "feat_routes_desc": "Compare different biogas and biomethane production technologies",
     "feat_scientific_title": "Scientific Knowledge Base",
@@ -1714,11 +1621,11 @@
     "feat_references_desc": "Scientific bibliography, data sources and documentation. Each residue has its own analyses and scientific references."
   },
   "settings_page": {
-    "loading": "Loading...",
+    "loading": "Loading…",
     "title": "Settings",
     "subtitle": "Manage your account preferences and settings",
     "save": "Save",
-    "saving": "Saving...",
+    "saving": "Saving…",
     "saved": "Saved!",
     "profile_heading": "Profile",
     "profile_subtitle": "Your personal information",
@@ -1751,18 +1658,15 @@
     "help_body": "Contact our support team for technical assistance."
   },
   "charts": {
-    "loading": "Loading data...",
+    "loading": "Loading data…",
     "no_data": "No data available",
     "select_category_cascade": "Select a category to view the cascade",
-    "select_category_flow": "Select a category to view the flow",
     "unit_m3_yr": "m³/year",
     "cascade_title": "Potential Cascade — Theoretical to FDE",
     "cascade_fde_label": "FDE:",
     "cascade_final_label": "Final:",
     "cascade_tooltip_value": "Value:",
     "cascade_tooltip_percent": "% of Theoretical:",
-    "cascade_legend_potential": "Potential",
-    "cascade_legend_losses": "Losses",
     "cascade_factors_heading": "Applied Correction Factors",
     "category_comparison_title": "Comparison Between Waste Categories",
     "category_comparison_dataset": "Total Potential (billion m³/year)",
@@ -1781,7 +1685,7 @@
     "top_municipalities_dataset": "Biogas (m³/year)",
     "top_municipalities_xaxis": "Biogas Potential (m³/year)",
     "sankey_title": "Biomass Flow — Theoretical to Biogas",
-    "sankey_loading": "Loading diagram...",
+    "sankey_loading": "Loading diagram…",
     "sankey_no_data": "No data available",
     "sankey_select_category": "Select a category to view the flow",
     "sankey_node_theoretical": "Theoretical Potential",
@@ -1796,21 +1700,15 @@
     "sankey_summary_input": "Input",
     "sankey_summary_total_losses": "Total Losses",
     "sankey_summary_to_biogas": "To Biogas",
-    "sankey_summary_efficiency": "Efficiency",
     "sankey_legend_title": "Flow Legend",
     "sankey_legend_useful": "Useful flow (to biogas)",
     "sankey_legend_losses": "Losses and competing uses",
-    "sankey_tooltip_volume": "Volume:",
-    "sankey_tooltip_pct": "{pct}% of theoretical",
     "chart_regional": "Regional Distribution",
     "sankey_ch4_label": "CH₄ Equivalent",
     "sankey_ch4_fraction": "Based on {pct}% CH₄ in biogas",
     "sankey_benchmark_label": "FIESP benchmark: ~16 B m³ CH₄/year",
     "sankey_unit": "m³/year",
     "sankey_summary_ch4": "CH₄ Equivalent",
-    "sankey_alluvial_title": "Biomass Flow — Proportional",
-    "sankey_left_label": "Theoretical Potential",
-    "sankey_right_label": "Distribution",
     "category_comparison_count": "{count, plural, one {# municipality} other {# municipalities}}",
     "category_comparison_average": "Average: {value}"
   },
@@ -1825,7 +1723,7 @@
       "pessimistic_name": "Pessimistic",
       "pessimistic_desc": "Scenario with highest losses and competition",
       "frontier_name": "Biogas Frontier",
-      "frontier_desc": "Realistic-high mobilisation of all 31 residues under dedicated policy; surpasses the FIESP benchmark (~6.4 Mm³/d biomethane)"
+      "frontier_desc": "Realistic-high mobilization of all 31 residues under dedicated policy; surpasses the FIESP benchmark (~6.4 Mm³/d biomethane)"
     },
     "residue_scenarios": {
       "baseline_name": "Baseline",
@@ -1835,7 +1733,7 @@
       "optimistic_name": "Optimistic",
       "optimistic_desc": "Increases factors by 15% (best case)",
       "frontier_name": "Biogas Frontier",
-      "frontier_desc": "Realistic-high mobilisation of all 31 residues under dedicated policy (surpasses the FIESP benchmark)",
+      "frontier_desc": "Realistic-high mobilization of all 31 residues under dedicated policy (surpasses the FIESP benchmark)",
       "custom_name": "Custom",
       "custom_desc": "Manually adjusted factors per residue"
     },
@@ -1868,10 +1766,6 @@
       "about_heading": "About the FDE Methodology",
       "about_text": "FDE (Effective Availability Factor) quantifies the fraction of theoretically generated residue that is actually available for biogas production.",
       "interpretation_heading": "Value Interpretation",
-      "high_label": "High (> 0.5)",
-      "medium_label": "Medium (0.3–0.5)",
-      "low_label": "Low (0.15–0.3)",
-      "very_low_label": "Very Low (< 0.15)",
       "view_references": "View Full References",
       "close": "Close",
       "description": "Description",
@@ -1888,7 +1782,7 @@
       "color_red": "Red"
     },
     "scenario_comparator": {
-      "loading": "Loading scenarios...",
+      "loading": "Loading scenarios…",
       "fde_label": "FDE:",
       "col_scenario": "Scenario",
       "col_fc": "FC",
@@ -1902,17 +1796,14 @@
       "title": "Scenario Comparison"
     },
     "residue_selector": {
-      "placeholder": "Select one or more residues...",
       "livestock": "Livestock Residues",
       "urban": "Urban Residues",
       "industrial": "Industrial Residues",
-      "agricultural": "Agricultural Residues",
       "clear": "Clear",
       "selected_count": "{count} residue(s) selected",
       "category_label_agricultural": "Agricultural",
       "category_label_livestock": "Livestock",
       "category_label_urban": "Urban",
-      "residues_in_group": "{count} residues",
       "apply_filters": "Apply Filters",
       "other_crops": "Other",
       "select_all": "Select all {group} residues"
@@ -1936,24 +1827,6 @@
       "source_count": "{count, plural, one {# main source} other {# main sources}}",
       "db_pointer": "Validated scientific references in the database: {count}",
       "open_database": "Open the scientific database"
-    },
-    "tech_routes": {
-      "wizard_step1_title": "Welcome to Technology Routes",
-      "wizard_step1_subtitle": "Build and visualize biogas production process chains",
-      "wizard_educational_heading": "Educational Tool",
-      "wizard_step2_title": "How to use",
-      "wizard_step3_title": "Tips for best results",
-      "wizard_prev": "Back",
-      "wizard_skip": "Skip Tutorial",
-      "wizard_next": "Next",
-      "wizard_start": "Get Started",
-      "wizard_progress": "Step {current} of {total}",
-      "palette_heading": "Technologies",
-      "palette_hint": "Drag to canvas",
-      "palette_search": "Search residue or process...",
-      "palette_all_categories": "All Categories",
-      "palette_count": "{count} option(s) available",
-      "palette_empty": "No technologies found"
     },
     "per_residue_editor": {
       "title": "Factor Adjustment by Residue",
@@ -2015,7 +1888,6 @@
     "common": {
       "next": "Next",
       "back": "Back",
-      "optional": "optional",
       "skip": "Skip (demo mode) →"
     },
     "step1": {
@@ -2024,7 +1896,7 @@
       "nomePlaceholder": "Your name",
       "email": "Email",
       "municipio": "Municipality (SP)",
-      "municipioPlaceholder": "Type municipality...",
+      "municipioPlaceholder": "Type municipality…",
       "lgpdConsent": "I consent to the use of my data by CP2B/UNICAMP for research and technical contact purposes, in accordance with LGPD.",
       "emailPlaceholder": "you@example.com",
       "municipioManualPlaceholder": "Type the municipality name",
@@ -2302,7 +2174,7 @@
         {
           "id": "para-que-serve",
           "title": "What is it for",
-          "content": "•Identify regions with higher energy potential density;\n•Cross-reference data with the location of active infrastructure in the State;\n•Support feasibility studies for new academic research or ventures in the renewable energy sector."
+          "content": "• Identify regions with higher energy potential density;\n• Cross-reference data with the location of active infrastructure in the State;\n• Support feasibility studies for new academic research or ventures in the renewable energy sector."
         },
         {
           "id": "como-usar",
@@ -2323,7 +2195,7 @@
         {
           "id": "para-que-serve",
           "title": "What is it for",
-          "content": "•Compare classes and sub-residues: evaluate the viability of multiple materials together;\n•Map process losses: understand the impact of each factor in the transition from theoretical to real potential;\n•Simulate custom scenarios: adjust the percentages of each variable to reflect your plant's operational reality;\n•Project sensitivity: contrast multiple market and productivity scenarios for the same feedstock.\n"
+          "content": "• Compare classes and sub-residues: evaluate the viability of multiple materials together;\n• Map process losses: understand the impact of each factor in the transition from theoretical to real potential;\n• Simulate custom scenarios: adjust the percentages of each variable to reflect your plant's operational reality;\n• Project sensitivity: contrast multiple market and productivity scenarios for the same feedstock.\n"
         },
         {
           "id": "como-usar",
@@ -2339,12 +2211,12 @@
         {
           "id": "o-que-e",
           "title": "What is it",
-          "content": "The Scientific Knowledge Base brings together the articles and technical reports supporting the platform's data. Each metric used in potential calculations is grounded in auditable bibliographic references available for direct consultation.\nIn addition, the section features two comparative analysis tools among the residues studied in Pillar-2b:\n•Degradation Curves: analysis of methane production kinetics over time.\n•Multi-parameter Comparison: direct contrast between key indicators, such as BMP, C:N, VS, and CH4 Content."
+          "content": "The Scientific Knowledge Base brings together the articles and technical reports supporting the platform's data. Each metric used in potential calculations is grounded in auditable bibliographic references available for direct consultation.\nIn addition, the section features two comparative analysis tools among the residues studied in PILAR-2b:\n• Degradation Curves: analysis of methane production kinetics over time.\n• Multi-parameter Comparison: direct contrast between key indicators, such as BMP, C:N, VS, and CH₄ content."
         },
         {
           "id": "para-que-serve",
           "title": "What is it for",
-          "content": "•Ensure transparency and methodological rigor: confirms the scientific sources supporting the final potential calculation.\n•Support new research: serves as a structured database for advanced studies in biogas and bioproducts.\n•Streamline comparative diagnostics: allows evaluating the performance and physicochemical characteristics of different waste types."
+          "content": "• Ensure transparency and methodological rigor: confirms the scientific sources supporting the final potential calculation.\n• Support new research: serves as a structured database for advanced studies in biogas and bioproducts.\n• Streamline comparative diagnostics: allows evaluating the performance and physicochemical characteristics of different waste types."
         },
         {
           "id": "como-usar",
@@ -2365,12 +2237,12 @@
         {
           "id": "para-que-serve",
           "title": "What is it for",
-          "content": "•Evaluate the techno-economic feasibility of biogas and bioproduct projects;\n•Estimate the investment payback period;\n•Project the annual volume of biogas generated based on biomass availability.\n"
+          "content": "• Evaluate the techno-economic feasibility of biogas and bioproduct projects;\n• Estimate the investment payback period;\n• Project the annual volume of biogas generated based on biomass availability.\n"
         },
         {
           "id": "como-usar",
           "title": "How to use",
-          "content": "1. Access the platform: Log in or sign up with email, password, and municipality;\n2. Select the residue: Choose the biomass of interest for sizing;\n3. Enter the volume: Provide the annual availability (in tons/year) or planted area (in hectares);\n4. Define the harvest season: Indicate crop seasonality distribution across the months;\n5. Choose product and calculate: Select the desired bioproduct and click to calculate potential and view financial indicators."
+          "content": "1. Identify yourself: enter your name, email and municipality, and consent to the use of your data (LGPD);\n2. Select the residue: Choose the biomass of interest for sizing;\n3. Enter the volume: Provide the annual availability (in tons/year) or planted area (in hectares);\n4. Define the harvest season: Indicate crop seasonality distribution across the months;\n5. Choose product and calculate: Select the desired bioproduct and click to calculate potential and view financial indicators."
         }
       ]
     },
@@ -2386,7 +2258,7 @@
         {
           "id": "para-que-serve",
           "title": "What is it for",
-          "content": "\n•Evaluate locational feasibility and optimal economic radius for biomass transport for the installation of biogas and biomethane plants.\n•Identify neighboring municipalities for regional consortium formation.\n•Analyze surrounding land suitability (detailed land use breakdown) for continuous substrate supply."
+          "content": "\n• Evaluate locational feasibility and optimal economic radius for biomass transport for the installation of biogas and biomethane plants.\n• Identify neighboring municipalities for regional consortium formation.\n• Analyze surrounding land suitability (detailed land use breakdown) for continuous substrate supply."
         },
         {
           "id": "como-usar",

@@ -251,7 +251,7 @@ export default function LoginPage() {
 
         {/* Footer */}
         <p className="mt-8 text-center text-sm text-gray-200">
-          {t('common.copyright')}
+          {t('common.copyright', { year: new Date().getFullYear() })}
         </p>
       </div>
     </div>

@@ -17,7 +17,11 @@
  *   - a template key, `t(\`scenario_${id}\`)`, marks every key starting with
  *     `ns.scenario_` as used, since the suffix is only known at runtime;
  *   - a call on a translator the file received as a parameter (namespace
- *     unknown) marks every key ending in `.key` as used, anywhere.
+ *     unknown) marks every key ending in `.key` as used, anywhere;
+ *   - a key kept in data and passed to `t` later — `nameKey:
+ *     'residue_scenarios.baseline_name'`, a validation code `'required'` — is
+ *     used when some string literal in the source equals the key minus one of
+ *     the namespaces a translator is bound to somewhere.
  *
  * It errs towards "used": a false "unused" would invite deleting live copy. So
  * the report can miss dead keys, but a key it lists is very likely dead.
@@ -64,13 +68,19 @@ const CALL = /\b(\w+)(?:\.(rich|raw|has|markup))?\(\s*(?:(['"])([^'"]+)\3|`([^`]
 const exact = new Set();
 const prefixes = new Set();
 const suffixes = new Set();
+/** Every namespace some translator is bound to, and every key-like string literal. */
+const boundNamespaces = new Set();
+const literals = new Set();
+const LITERAL = /(['"`])([\w-]+(?:\.[\w-]+)*)\1/g;
 
 for (const file of SOURCE_DIRS.flatMap((dir) => sourceFiles(dir))) {
   const source = readFileSync(file, 'utf8');
   const namespaces = new Map();
   for (const match of source.matchAll(BINDING)) {
     namespaces.set(match[1], match[3] ?? match[5] ?? '');
+    if (match[3] ?? match[5]) boundNamespaces.add(match[3] ?? match[5]);
   }
+  for (const [, , literal] of source.matchAll(LITERAL)) literals.add(literal);
 
   for (const [, callee, method, , literal, template] of source.matchAll(CALL)) {
     const bound = namespaces.has(callee);
@@ -110,6 +120,10 @@ const isUsed = (key) => {
     return true;
   }
   for (const suffix of suffixes) if (key === suffix || key.endsWith(`.${suffix}`)) return true;
+  if (literals.has(key)) return true;
+  for (const ns of boundNamespaces) {
+    if (key.startsWith(`${ns}.`) && literals.has(key.slice(ns.length + 1))) return true;
+  }
   return false;
 };
 

@@ -311,7 +311,7 @@ export default function Footer() {
 
             {/* Copyright + back to top */}
             <div className="flex items-center gap-4">
-              <span>{t('footer.copyright')}</span>
+              <span>{t('footer.copyright', { year: new Date().getFullYear() })}</span>
               <button
                 onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
                 aria-label={t('footer.back_to_top')}

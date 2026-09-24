@@ -39,14 +39,14 @@
     "search": {
       "trigger": "Buscar município",
       "trigger_aria": "Buscar município (tecla /)",
-      "placeholder": "Nome ou código IBGE...",
+      "placeholder": "Nome ou código IBGE…",
       "input_aria": "Buscar município",
       "results_aria": "Resultados da busca",
       "no_results": "Nenhum município encontrado para \"{query}\"",
       "hints": "↑↓ navegar · Enter selecionar · Esc fechar",
       "per_year": "m³/ano"
     },
-    "logo_alt": "PILAR-2b - Plataforma Inteligente de Localização e Aproveitamento de Resíduos para Biogas e Bioprodutos",
+    "logo_alt": "PILAR-2b — Plataforma Inteligente de Localização e Aproveitamento de Resíduos para Biogás e Bioprodutos",
     "badge": {
       "beta": "Beta"
     },
@@ -59,29 +59,14 @@
       "switch_to_pt": "Mudar para Português",
       "group_aria": "Seleção de idioma"
     },
-    "copyright": "© 2025 PILAR-2b. Plataforma Inteligente de Localização e Aproveitamento de Resíduos para Biogas e Bioprodutos.",
     "actions": {
       "close": "Fechar",
-      "back": "Voltar",
-      "cancel": "Cancelar",
       "clear": "Limpar",
-      "apply": "Aplicar",
-      "save": "Salvar",
-      "retry": "Tentar novamente",
-      "export": "Exportar",
-      "download": "Baixar",
-      "share": "Compartilhar",
-      "copy": "Copiar",
-      "copied": "Copiado!",
-      "search": "Buscar",
-      "show_more": "Ver mais",
-      "show_less": "Ver menos"
+      "retry": "Tentar novamente"
     },
     "states": {
       "loading": "Carregando…",
-      "no_data": "Sem dados",
-      "error": "Não foi possível carregar os dados.",
-      "not_found": "Nada encontrado"
+      "no_data": "Sem dados"
     },
     "sectors": {
       "agricultural": "Agrícola",
@@ -93,8 +78,6 @@
     "units": {
       "t_year": "t/ano",
       "m3_year": "m³/ano",
-      "m3_day": "m³/dia",
-      "nm3_day": "Nm³/dia",
       "nm3_ch4_year": "Nm³ CH₄/ano",
       "mwh_year": "MWh/ano",
       "km": "km",
@@ -129,7 +112,7 @@
       "password_label": "Senha",
       "remember_me": "Lembrar-me",
       "forgot_password": "Esqueceu a senha?",
-      "submitting": "Entrando...",
+      "submitting": "Entrando…",
       "submit": "Entrar",
       "new_to_platform": "Novo na plataforma?",
       "create_new_account": "Criar nova conta"
@@ -153,13 +136,13 @@
       "terms_of_service": "Termos de Serviço",
       "and": "e",
       "privacy_policy": "Política de Privacidade",
-      "submitting": "Criando conta...",
+      "submitting": "Criando conta…",
       "submit": "Criar conta",
       "already_have_account": "Já tem uma conta?",
       "login": "Fazer login"
     },
     "common": {
-      "copyright": "© 2025 PILAR-2b. Plataforma Inteligente de Localização e Aproveitamento de Resíduos para Biogas e Bioprodutos."
+      "copyright": "© {year} PILAR-2b. Plataforma Inteligente de Localização e Aproveitamento de Resíduos para Biogás e Bioprodutos."
     }
   },
   "landing": {
@@ -191,9 +174,9 @@
         "description": "Simulação logística com raios de coleta e análise de proximidade a infraestrutura existente"
       },
       "scientific_basis": {
-        "alt": "Base científica com referências e metodologia SAF",
+        "alt": "Base científica com referências e metodologia FDE",
         "caption": "Base Científica",
-        "description": "Acesse a metodologia SAF e referências científicas que fundamentam as análises da plataforma"
+        "description": "Acesse a metodologia FDE e referências científicas que fundamentam as análises da plataforma"
       }
     },
     "stats": {
@@ -232,7 +215,7 @@
         "title": "Análise MCDA",
         "description": "Análise multicritério para priorização de municípios e identificação de locais ótimos para plantas",
         "features": [
-          "8 critérios integrados: SAF, logística, infraestrutura",
+          "8 critérios integrados: FDE, logística, infraestrutura",
           "Pesos configuráveis por stakeholder",
           "Ranking automatizado dos 645 municípios SP",
           "Índice de Adequação Territorial (IAT) validado"
@@ -246,7 +229,7 @@
           "3 níveis de acesso: Visitante, Pesquisador, Admin",
           "Assistente AI 'Bagacinho' com RAG de 58 papers",
           "Base de dados atualizada SIDRA/IBGE 2018-2024",
-          "Documentação completa da Metodologia SAF"
+          "Documentação completa da Metodologia FDE"
         ],
         "cta": "Criar Conta"
       }
@@ -283,11 +266,9 @@
     },
     "footer": {
       "fapesp_project": "FAPESP 2024/01112-1 · CP2Bsd",
-      "about": "Sobre",
-      "copyright": "© 2025 NIPE-UNICAMP",
+      "copyright": "© {year} NIPE-UNICAMP",
       "newsletter_heading": "Receba Nossas Novidades",
       "newsletter_desc": "Inscreva-se para receber novidades, análises e informações sobre biogás do PILAR-2b.",
-      "newsletter_name_placeholder": "Seu nome (opcional)",
       "newsletter_email_placeholder": "Seu e-mail",
       "newsletter_submit": "Inscrever",
       "newsletter_success": "Obrigado! Você receberá nossas novidades em breve.",
@@ -317,7 +298,7 @@
   },
   "Map": {
     "title": "Mapa Interativo",
-    "loading_map": "Carregando mapa...",
+    "loading_map": "Carregando mapa…",
     "loading": {
       "title": "Carregando Mapa Interativo",
       "subtitle": "5.571 municípios do Brasil",
@@ -328,14 +309,13 @@
     "panels": {
       "filters": "Filtros",
       "layers": "Camadas",
-      "insights": "Insights",
       "dataSources": "Fontes de Dados",
       "tools": "Ferramentas",
       "themes": "Temas"
     },
     "search": {
       "label": "Buscar Município",
-      "placeholder": "Nome ou código IBGE..."
+      "placeholder": "Nome ou código IBGE…"
     },
     "residues": {
       "sugarcane": "Cana-de-açúcar",
@@ -353,23 +333,11 @@
       "forestry": "Silvicultura"
     },
     "urbanTotals": {
-      "ariaLabel": "Totais de resíduos urbanos de {uf}",
-      "title": "Resíduos urbanos",
-      "scenario": "Cenário {scenario}",
-      "scenarios": {
-        "real": "Real",
-        "ideal": "Ideal"
-      },
       "streams": {
         "rsu": "FORSU",
         "rpo": "Poda urbana",
         "sewage": "Lodo de ETE"
-      },
-      "year": "ano",
-      "municipalities": "{count, plural, =0 {nenhum município com valor} one {# município com valor} other {# municípios com valor}}",
-      "noDataTitle": "Sem inventário urbano validado para {uf}",
-      "noDataBody": "A camada beta permanece visível como lacuna de dados; valores não foram inferidos a partir da população.",
-      "disclaimer": "Potencial de CH₄ por cenário; não representa massa coletada em t/ano. A auditoria SNIS permanece separada."
+      }
     },
     "categories": {
       "agricultural": "Agrícola",
@@ -378,7 +346,6 @@
     },
     "residueFilter": {
       "label": "Filtrar por Resíduo",
-      "clear": "Limpar",
       "clearFilters": "Limpar filtros"
     },
     "biomassTypes": {
@@ -409,8 +376,7 @@
       "label": "Opacidade do Mapa"
     },
     "municipalities": {
-      "visible": "Municípios Visíveis",
-      "label": "municípios"
+      "visible": "Municípios Visíveis"
     },
     "layers": {
       "mapLayers": "Camadas do Mapa"
@@ -441,26 +407,12 @@
       "urban": "Urbano",
       "infrastructure": "Infraestrutura"
     },
-    "insights": {
-      "totalBiogas": "Potencial Total de Biogás — SP",
-      "sectorBreakdown": "Distribuição por Setor",
-      "top5": "Top 5 Municípios",
-      "noData": "Dados não disponíveis."
-    },
-    "status": {
-      "filter": "filtro",
-      "filters": "filtros",
-      "layers": "camadas",
-      "comingSoon": "EM BREVE"
-    },
     "errors": {
       "loadingError": "Erro ao Carregar Mapa",
       "noData": "Nenhum Dado Disponível",
       "reloadPage": "Recarregar Página",
       "tryAgain": "Tentar Novamente"
     },
-    "closePanel": "Fechar painel",
-    "expandPanel": "Expandir painel de filtros",
     "scenario_label": "Cenário",
     "map_aria_label": "Mapa interativo do potencial de biogás dos municípios de {state}",
     "map_keyboard_help": "Mapa interativo. Com o foco no mapa, use as setas do teclado para mover e as teclas mais e menos para aproximar e afastar. Os mesmos dados também estão disponíveis em tabelas e rankings nas páginas de análise.",
@@ -660,7 +612,7 @@
       "ibge_more": "Ver mais dados no IBGE"
     },
     "infrastructure": {
-      "na": "N/A",
+      "na": "—",
       "no_name": "Sem nome",
       "names": {
         "road": "Rodovia",
@@ -1066,7 +1018,7 @@
     }
   },
   "metadata": {
-    "title": "PILAR-2b - Plataforma Inteligente de Localização e Aproveitamento de Resíduos para Biogas e Bioprodutos",
+    "title": "PILAR-2b — Plataforma Inteligente de Localização e Aproveitamento de Resíduos para Biogás e Bioprodutos",
     "description": "Framework geoespacial open-source para análise do potencial de produção de biogás e bioprodutos a partir de resíduos orgânicos no estado de São Paulo. Mapeamento interativo, análise multicritério, fatores de correção dependentes de resíduos e ferramentas para pesquisa reproduzível.",
     "keywords": "biogás, bioprodutos, energia renovável, São Paulo, análise geoespacial, biomassa, MCDA, sustentabilidade, FAPESP, open-source, PILAR-2b, framework, pesquisa reproduzível"
   },
@@ -1381,18 +1333,10 @@
       "admin_region": "Região Administrativa",
       "area": "Área (km²)",
       "population": "População",
-      "total_biogas": "Biogás Total",
-      "agricultural": "Agrícola",
-      "livestock": "Pecuária",
-      "urban": "Urbano",
-      "loading": "Carregando dados de comparação...",
       "error": "Erro ao carregar dados. Tente novamente.",
-      "no_municipalities": "Nenhum município selecionado para comparação.",
-      "unit_m3_year": "m³/ano",
-      "unit_km2": "km²",
       "min_municipalities_error": "Selecione pelo menos 2 municípios para comparar",
       "none_found": "Nenhum município encontrado",
-      "loading_comparison": "Carregando comparação...",
+      "loading_comparison": "Carregando comparação…",
       "ibge_code": "IBGE",
       "biogas_section": "POTENCIAL DE BIOGÁS",
       "energy_section": "POTENCIAL ENERGÉTICO E AMBIENTAL",
@@ -1405,23 +1349,14 @@
       "row_co2": "Redução de CO₂ (ton/ano)"
     },
     "technology_routes": {
-      "title": "Rotas Tecnológicas",
-      "subtitle": "Construtor Visual de Processos de Biogás",
-      "help": "Ajuda",
-      "how_to_use": "Como usar",
-      "guide": "Selecione um resíduo → Escolha os processos → Monte sua rota tecnológica",
-      "guide_wizard_done": "Sua rota foi gerada — explore os nós, clique para ver referências científicas ou adicione mais tecnologias",
-      "wizard_btn": "Assistente"
+      "title": "Rotas Tecnológicas"
     },
     "municipality": {
-      "loading": "Carregando dados...",
       "not_found": "Município não encontrado",
       "not_found_desc": "Não encontramos dados para o código IBGE {code}.",
       "back_to_map": "Voltar ao Mapa",
       "download_workbook": "Planilha",
       "download_report": "Relatório",
-      "map_breadcrumb": "Mapa",
-      "biogas_profile": "Perfil de Biogás",
       "copy_url": "URL copiada!",
       "location_label": "Município do estado de São Paulo",
       "view_ibge": "Ver dados no IBGE Cidades",
@@ -1471,7 +1406,7 @@
       "back_aria": "Voltar à página inicial",
       "fapesp_badge": "FAPESP 2025/08745-2",
       "title": "PILAR-2b",
-      "full_name": "Plataforma Inteligente de Localização e Aproveitamento de Resíduos para Biogas e Bioprodutos",
+      "full_name": "Plataforma Inteligente de Localização e Aproveitamento de Resíduos para Biogás e Bioprodutos",
       "subtitle": "Centro de Excelência vinculado ao NIPE/UNICAMP, dedicado à pesquisa e inovação em biogás e bioprodutos para o desenvolvimento sustentável do Estado de São Paulo.",
       "stat_biogas": "m³ biogás/ano",
       "stat_investment": "Investimento",
@@ -1595,7 +1530,6 @@
         "abrema": "Associação Brasileira de Resíduos"
       },
       "since_1992": "Desde 1992",
-      "nipe_heading": "NIPE/UNICAMP",
       "nipe_body": "O Núcleo Interdisciplinar de Planejamento Energético é um centro de pesquisa da UNICAMP dedicado ao estudo integrado de questões energéticas, ambientais e de desenvolvimento sustentável.",
       "nipe_items": [
         "30+ anos de excelência em pesquisa energética",
@@ -1650,7 +1584,7 @@
     },
     "dashboard_about": {
       "title": "Sobre o PILAR-2b",
-      "redirecting": "Redirecionando para o NIPE Unicamp...",
+      "redirecting": "Redirecionando para o NIPE Unicamp…",
       "click_here": "Clique aqui se não for redirecionado automaticamente"
     },
     "settings": {
@@ -1658,7 +1592,7 @@
     }
   },
   "dashboard_hub": {
-    "loading": "Carregando dashboard...",
+    "loading": "Carregando dashboard…",
     "welcome_title": "Bem-vindo ao PILAR-2b",
     "welcome_subtitle": "Plataforma completa para análise de potencial de biogás no estado de São Paulo",
     "hero_institution": "CP2b · NIPE / UNICAMP",
@@ -1668,33 +1602,6 @@
     "path_map": "Explore o Mapa",
     "path_proximity": "Proximidade",
     "path_science": "Rotas & Ciência",
-    "stats_municipalities": "Municípios",
-    "stats_residues": "Tipos de Resíduos",
-    "stats_routes": "Rotas Tecnológicas",
-    "guide_title": "Guia de Uso da Plataforma",
-    "guide_step1_title": "Comece pelo Mapa Interativo",
-    "guide_step1_items": [
-      "Visualize os 645 municípios de São Paulo com dados de potencial de biogás",
-      "Use os filtros por tipo de resíduo (cana-de-açúcar, bovinos, suínos, RSU, etc.)",
-      "Clique em um município para ver detalhes completos em popup horizontal",
-      "Ative camadas adicionais: MapBiomas, plantas de biogás, gasodutos, linhas de transmissão"
-    ],
-    "guide_step2_title": "Análise de Proximidade",
-    "guide_step2_items": [
-      "Clique no mapa para selecionar um ponto de interesse",
-      "Defina um raio de busca (ex: 50km, 100km)",
-      "Veja municípios próximos com potencial agregado",
-      "Analise infraestrutura próxima: gasodutos, subestações, ETEs, rodovias",
-      "Correlacione com dados de uso do solo MapBiomas"
-    ],
-    "guide_step3_title": "Rotas Tecnológicas e Base Científica",
-    "guide_step3_items": [
-      "Rotas Tecnológicas: Compare diferentes processos de produção de biogás/biometano",
-      "Base Científica: Acesse dados técnicos sobre resíduos, BMP, TS, VS, C/N",
-      "Consulte parâmetros validados da literatura científica internacional",
-      "Use para refinar cálculos e análises personalizadas"
-    ],
-    "guide_tip": "Dica: Comece explorando o mapa para identificar regiões de interesse, depois use as ferramentas de análise para aprofundar sua avaliação.",
     "features_heading": "Ferramentas Disponíveis",
     "badge_popular": "Popular",
     "badge_new": "Novo",
@@ -1714,11 +1621,11 @@
     "feat_references_desc": "Bibliografia científica, fontes de dados e documentação. Cada resíduo possui análises e referências científicas diferentes."
   },
   "settings_page": {
-    "loading": "Carregando...",
+    "loading": "Carregando…",
     "title": "Configurações",
     "subtitle": "Gerencie suas preferências e configurações de conta",
     "save": "Salvar",
-    "saving": "Salvando...",
+    "saving": "Salvando…",
     "saved": "Salvo!",
     "profile_heading": "Perfil",
     "profile_subtitle": "Suas informações pessoais",
@@ -1751,18 +1658,15 @@
     "help_body": "Entre em contato com nossa equipe de suporte para assistência técnica."
   },
   "charts": {
-    "loading": "Carregando dados...",
+    "loading": "Carregando dados…",
     "no_data": "Sem dados disponíveis",
     "select_category_cascade": "Selecione uma categoria para visualizar a cascata",
-    "select_category_flow": "Selecione uma categoria para visualizar o fluxo",
     "unit_m3_yr": "m³/ano",
     "cascade_title": "Cascata de Potencial — Teórico para FDE",
     "cascade_fde_label": "FDE:",
     "cascade_final_label": "Final:",
     "cascade_tooltip_value": "Valor:",
     "cascade_tooltip_percent": "% do Teórico:",
-    "cascade_legend_potential": "Potencial",
-    "cascade_legend_losses": "Perdas",
     "cascade_factors_heading": "Fatores de Correção Aplicados",
     "category_comparison_title": "Comparação entre Categorias de Resíduos",
     "category_comparison_dataset": "Potencial Total (bilhões m³/ano)",
@@ -1781,7 +1685,7 @@
     "top_municipalities_dataset": "Biogás (m³/ano)",
     "top_municipalities_xaxis": "Potencial de Biogás (m³/ano)",
     "sankey_title": "Fluxo de Biomassa — Teórico para Biogás",
-    "sankey_loading": "Carregando diagrama...",
+    "sankey_loading": "Carregando diagrama…",
     "sankey_no_data": "Sem dados disponíveis",
     "sankey_select_category": "Selecione uma categoria para visualizar o fluxo",
     "sankey_node_theoretical": "Potencial Teórico",
@@ -1796,21 +1700,15 @@
     "sankey_summary_input": "Entrada",
     "sankey_summary_total_losses": "Perdas Totais",
     "sankey_summary_to_biogas": "Para Biogás",
-    "sankey_summary_efficiency": "Eficiência",
     "sankey_legend_title": "Legenda de Fluxos",
     "sankey_legend_useful": "Fluxo útil (para biogás)",
     "sankey_legend_losses": "Perdas e usos competidores",
-    "sankey_tooltip_volume": "Volume:",
-    "sankey_tooltip_pct": "{pct}% do potencial teórico",
     "chart_regional": "Distribuição Regional",
     "sankey_ch4_label": "Equivalente CH₄",
     "sankey_ch4_fraction": "Baseado em {pct}% de CH₄ no biogás",
     "sankey_benchmark_label": "Referência FIESP: ~16 bilhões m³ CH₄/ano",
     "sankey_unit": "m³/ano",
     "sankey_summary_ch4": "Equiv. CH₄",
-    "sankey_alluvial_title": "Fluxo de Biomassa — Proporcional",
-    "sankey_left_label": "Potencial Teórico",
-    "sankey_right_label": "Distribuição",
     "category_comparison_count": "{count, plural, one {# município} other {# municípios}}",
     "category_comparison_average": "Média: {value}"
   },
@@ -1868,10 +1766,6 @@
       "about_heading": "Sobre a Metodologia FDE",
       "about_text": "O FDE (Fator de Disponibilidade Efetiva) quantifica a fração do resíduo gerado teoricamente que está efetivamente disponível para produção de biogás.",
       "interpretation_heading": "Interpretação dos Valores",
-      "high_label": "Alto (> 0,5)",
-      "medium_label": "Médio (0,3–0,5)",
-      "low_label": "Baixo (0,15–0,3)",
-      "very_low_label": "Muito Baixo (< 0,15)",
       "view_references": "Ver Referências Completas",
       "close": "Fechar",
       "description": "Descrição",
@@ -1888,7 +1782,7 @@
       "color_red": "Vermelho"
     },
     "scenario_comparator": {
-      "loading": "Carregando cenários...",
+      "loading": "Carregando cenários…",
       "fde_label": "FDE:",
       "col_scenario": "Cenário",
       "col_fc": "FC",
@@ -1902,17 +1796,14 @@
       "title": "Comparação de Cenários"
     },
     "residue_selector": {
-      "placeholder": "Selecione um ou mais resíduos...",
       "livestock": "Resíduos Pecuários",
       "urban": "Resíduos Urbanos",
       "industrial": "Resíduos Industriais",
-      "agricultural": "Resíduos Agrícolas",
       "clear": "Limpar",
       "selected_count": "{count} resíduo(s) selecionado(s)",
       "category_label_agricultural": "Agrícola",
       "category_label_livestock": "Pecuário",
       "category_label_urban": "Urbano",
-      "residues_in_group": "{count} resíduos",
       "apply_filters": "Aplicar Filtros",
       "other_crops": "Outros",
       "select_all": "Selecionar todos os resíduos de {group}"
@@ -1936,24 +1827,6 @@
       "source_count": "{count, plural, one {# fonte principal} other {# fontes principais}}",
       "db_pointer": "Referências científicas validadas na base: {count}",
       "open_database": "Abrir a base científica"
-    },
-    "tech_routes": {
-      "wizard_step1_title": "Bem-vindo às Rotas Tecnológicas",
-      "wizard_step1_subtitle": "Monte e visualize cadeias de processos de produção de biogás",
-      "wizard_educational_heading": "Ferramenta Educacional",
-      "wizard_step2_title": "Como usar",
-      "wizard_step3_title": "Dicas para melhores resultados",
-      "wizard_prev": "Anterior",
-      "wizard_skip": "Pular Tutorial",
-      "wizard_next": "Próximo",
-      "wizard_start": "Começar",
-      "wizard_progress": "Passo {current} de {total}",
-      "palette_heading": "Tecnologias",
-      "palette_hint": "Arraste para o canvas",
-      "palette_search": "Buscar resíduo ou processo...",
-      "palette_all_categories": "Todas as Categorias",
-      "palette_count": "{count} opção(ões) disponíveis",
-      "palette_empty": "Nenhuma tecnologia encontrada"
     },
     "per_residue_editor": {
       "title": "Ajuste de Fatores por Resíduo",
@@ -2015,7 +1888,6 @@
     "common": {
       "next": "Próximo",
       "back": "Voltar",
-      "optional": "opcional",
       "skip": "Pular (modo demo) →"
     },
     "step1": {
@@ -2024,7 +1896,7 @@
       "nomePlaceholder": "Seu nome",
       "email": "E-mail",
       "municipio": "Município (SP)",
-      "municipioPlaceholder": "Digite o município...",
+      "municipioPlaceholder": "Digite o município…",
       "lgpdConsent": "Concordo com o uso dos meus dados pelo CP2B/UNICAMP para fins de pesquisa e contato técnico, em conformidade com a LGPD.",
       "emailPlaceholder": "seu@email.com.br",
       "municipioManualPlaceholder": "Digite o nome do município",
@@ -2302,7 +2174,7 @@
         {
           "id": "para-que-serve",
           "title": "Para que serve",
-          "content": "•Identificar regiões com maior densidade de potencial energético;\n•Cruzar dados com a localização de infraestrutura ativa no Estado;\n•Apoiar estudos de viabilidade para novas pesquisas acadêmicas ou empreendimentos no setor energético renovável."
+          "content": "• Identificar regiões com maior densidade de potencial energético;\n• Cruzar dados com a localização de infraestrutura ativa no Estado;\n• Apoiar estudos de viabilidade para novas pesquisas acadêmicas ou empreendimentos no setor energético renovável."
         },
         {
           "id": "como-usar",
@@ -2318,12 +2190,12 @@
         {
           "id": "o-que-e",
           "title": "O que é",
-          "content": "•Modelar estimativas detalhadas de produção de biogás a partir da seleção de resíduos, sub-resíduos e cenários (baseline, conservador, otimista ou fronteira do biogás);\n•Exibir o potencial teórico, as perdas em cada etapa e o potencial real com parâmetros customizáveis, o usuário pode ajustar os fatores de colheita, competição, sazonalidade e logística;\n•Auditar as fórmulas matemáticas aplicadas diretamente na página.\n"
+          "content": "• Modelar estimativas detalhadas de produção de biogás a partir da seleção de resíduos, sub-resíduos e cenários (baseline, conservador, otimista ou fronteira do biogás);\n• Exibir o potencial teórico, as perdas em cada etapa e o potencial real com parâmetros customizáveis, o usuário pode ajustar os fatores de colheita, competição, sazonalidade e logística;\n• Auditar as fórmulas matemáticas aplicadas diretamente na página.\n"
         },
         {
           "id": "para-que-serve",
           "title": "Para que serve",
-          "content": "•Comparar classes e sub-resíduos: avaliar a viabilidade de múltiplos materiais em conjunto;\n•Mapear perdas de processo: compreender o impacto de cada fator na transição do potencial teórico para o potencial real;\n•Simular cenários sob medida: ajustar as porcentagens de cada variável para refletir a realidade operacional da sua planta;\n•Projetar sensibilidade: contrastar múltiplos cenários de mercado e produtividade sobre a mesma matéria-prima.\n"
+          "content": "• Comparar classes e sub-resíduos: avaliar a viabilidade de múltiplos materiais em conjunto;\n• Mapear perdas de processo: compreender o impacto de cada fator na transição do potencial teórico para o potencial real;\n• Simular cenários sob medida: ajustar as porcentagens de cada variável para refletir a realidade operacional da sua planta;\n• Projetar sensibilidade: contrastar múltiplos cenários de mercado e produtividade sobre a mesma matéria-prima.\n"
         },
         {
           "id": "como-usar",
@@ -2339,12 +2211,12 @@
         {
           "id": "o-que-e",
           "title": "O que é",
-          "content": "A Base de Conhecimento Científico reúne os artigos e relatórios técnicos que embasam os dados da plataforma. Cada métrica utilizada nos cálculos de potencial é fundamentada em referências bibliográficas auditáveis e disponíveis para consulta direta.\nAlém disso, a seção conta com duas ferramentas de análise comparativa entre os resíduos estudados no Pilar-2b:\n•Curvas de Degradação: análise da cinética de produção de metano ao longo do tempo.\n•Comparação Multiparâmetros: contraste direto entre indicadores-chave, como BMP, C:N, SV e Teor de CH4."
+          "content": "A Base de Conhecimento Científico reúne os artigos e relatórios técnicos que embasam os dados da plataforma. Cada métrica utilizada nos cálculos de potencial é fundamentada em referências bibliográficas auditáveis e disponíveis para consulta direta.\nAlém disso, a seção conta com duas ferramentas de análise comparativa entre os resíduos estudados no Pilar-2b:\n• Curvas de Degradação: análise da cinética de produção de metano ao longo do tempo.\n• Comparação Multiparâmetros: contraste direto entre indicadores-chave, como BMP, C:N, SV e Teor de CH4."
         },
         {
           "id": "para-que-serve",
           "title": "Para que serve",
-          "content": "•Garantir transparência e rigor metodológico: comprova as fontes científicas que sustentam o cálculo do potencial final.\n•Apoiar novas pesquisas: serve como base de dados estruturada para estudos avançados em biogás e bioprodutos.\n•Agilizar diagnósticos comparativos: permite avaliar o desempenho e as características físico-químicas de diferentes tipos de resíduos."
+          "content": "• Garantir transparência e rigor metodológico: comprova as fontes científicas que sustentam o cálculo do potencial final.\n• Apoiar novas pesquisas: serve como base de dados estruturada para estudos avançados em biogás e bioprodutos.\n• Agilizar diagnósticos comparativos: permite avaliar o desempenho e as características físico-químicas de diferentes tipos de resíduos."
         },
         {
           "id": "como-usar",
@@ -2365,12 +2237,12 @@
         {
           "id": "para-que-serve",
           "title": "Para que serve",
-          "content": "•Avaliar a viabilidade técnico-econômica de projetos de biogás e bioprodutos;\n•Estimar o tempo de retorno financeiro (payback) do investimento;\n•Projetar o volume anual de biogás gerado conforme a disponibilidade de biomassa.\n"
+          "content": "• Avaliar a viabilidade técnico-econômica de projetos de biogás e bioprodutos;\n• Estimar o tempo de retorno financeiro (payback) do investimento;\n• Projetar o volume anual de biogás gerado conforme a disponibilidade de biomassa.\n"
         },
         {
           "id": "como-usar",
           "title": "Como usar",
-          "content": "1. Acessar a plataforma: Faça login ou cadastre-se informando e-mail, senha e município;\n2. Selecionar o resíduo: Escolha a biomassa de interesse para o dimensionamento;\n3. Informar o volume: Insira a disponibilidade anual (em toneladas/ano) ou a área plantada (em hectares);\n4. Definir a safra: Indique a distribuição da sazonalidade da cultura ao longo dos meses;\n5. Escolher o produto e calcular: Selecione o bioproduto desejado e clique para calcular o potencial e visualizar os indicadores financeiros."
+          "content": "1. Identificar-se: informe nome, e-mail e município e autorize o uso dos dados (LGPD);\n2. Selecionar o resíduo: Escolha a biomassa de interesse para o dimensionamento;\n3. Informar o volume: Insira a disponibilidade anual (em toneladas/ano) ou a área plantada (em hectares);\n4. Definir a safra: Indique a distribuição da sazonalidade da cultura ao longo dos meses;\n5. Escolher o produto e calcular: Selecione o bioproduto desejado e clique para calcular o potencial e visualizar os indicadores financeiros."
         }
       ]
     },
@@ -2386,7 +2258,7 @@
         {
           "id": "para-que-serve",
           "title": "Para que serve",
-          "content": "•Avaliar a viabilidade locacional e raio econômico ótimo de transporte de biomassa para instalação de plantas de biogás e biometano.\n•Identificar municípios vizinhos para formação de consórcios regionais.\n•Analisar a aptidão do solo no entorno (detalhamento do uso do solo) para fornecimento contínuo de substratos."
+          "content": "• Avaliar a viabilidade locacional e raio econômico ótimo de transporte de biomassa para instalação de plantas de biogás e biometano.\n• Identificar municípios vizinhos para formação de consórcios regionais.\n• Analisar a aptidão do solo no entorno (detalhamento do uso do solo) para fornecimento contínuo de substratos."
         },
         {
           "id": "como-usar",
