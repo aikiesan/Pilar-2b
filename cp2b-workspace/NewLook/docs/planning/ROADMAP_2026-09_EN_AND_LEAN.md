@@ -101,9 +101,11 @@ the branch list them.
   errors and land-use classes, sign-in/sign-up errors (`detail.code`).
 - `lang=en|pt-BR` on the municipal dossier exports (CSV, XLSX, PDF).
 - English residue names: migration `032_residuos_nome_en.sql` fills
-  `residuos.nome_en`; the kinetics and references endpoints return it.
-  **Apply the migration on the database** — until then the English site shows
-  the Portuguese residue names (the frontend falls back to `nome`).
+  `residuos.nome_en`, and `033_residuos_nome_en_citrus_industrial.sql` the one
+  name 032 could not match on the production database; the kinetics and
+  references endpoints return it. **Apply both on the database** — until then
+  the English site shows the Portuguese residue names (the frontend falls back
+  to `nome`).
 - The API's own messages are English (validation, rate limiting, summary
   labels); nothing on the page shows backend prose untranslated.
 
