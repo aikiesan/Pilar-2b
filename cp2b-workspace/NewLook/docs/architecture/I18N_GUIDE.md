@@ -74,18 +74,20 @@ All run in CI (`frontend-lint-and-build`) and locally:
 | Command | What it catches |
 |---|---|
 | `npm run typecheck` | a `t('key')` that does not exist in the catalog (typed via `src/types/next-intl.d.ts`) |
-| `npm run i18n:check` | the four checks below, in one go |
+| `npm run i18n:check` | the five checks below, in one go |
 | └ `check-i18n-parity.mjs` | a key present in one catalog only, ICU placeholder drift, empty values |
 | └ `check-hardcoded-strings.mjs` | Portuguese UI text hardcoded in any file under `src/` (TypeScript AST; see `scripts/lib/portuguese-scan.mjs`) |
+| └ `i18n-unused-keys.mjs --strict` | a catalog key no source file reads — delete it, or read it where it belongs |
 | └ `check-patch-notes.mjs` | a patch-notes entry missing a locale |
 | └ `npm run i18n:test` | the scanner's own unit tests |
-| `npm run i18n:unused` | *(report)* catalog keys no source file reads |
-| `npx playwright test e2e/i18n.public.spec.ts` | Portuguese UI chrome rendered on `/en/` pages, in a real browser |
+| `npm run i18n:unused` | the same unused-key check, as a report |
+| `npx playwright test e2e/i18n.public.spec.ts` | Portuguese UI chrome rendered on `/en/` pages, in a real browser (signed-in pages with `E2E_OPEN_MODE=1`, see `docs/qa/LOCAL_VERIFICATION.md`) |
 
-The hardcoded-string scan is a **ratchet**. `PENDING` in
-`scripts/check-hardcoded-strings.mjs` lists files not translated yet. A finding
-anywhere else fails the build; a `PENDING` entry with no findings left also
-fails, so when you finish a file, delete its line. The list only shrinks.
+The hardcoded-string scan started as a ratchet: `PENDING` in
+`scripts/check-hardcoded-strings.mjs` listed the files not translated yet, and
+it is now **empty** — every source file is held to the rule. Keep it that way:
+a new file never goes on the list. Accented place names in English text ("the
+municipalities of São Paulo") do not count as Portuguese.
 
 To keep a genuine Portuguese literal, mark it with a reason, on the same line or
 the line above:
@@ -106,7 +108,10 @@ A bare `i18n-exempt` without a reason is rejected.
 2. For each string: reuse a shared key if one fits (§1), otherwise add a key
    under the file's feature namespace in **both** catalogs, in the same place.
 3. Replace ad-hoc number formatting with `useFormat()`.
-4. Remove the file from `PENDING`.
+4. Text that comes from the backend is data, not copy: show a code's label
+   from the catalog (e.g. `auth.errors.<code>`), a record's own name through
+   its English field (`nome_en`, via `useResidueName()`), and never an API
+   error message verbatim.
 5. `npm run typecheck && npm run i18n:check && npm test`.
 6. Check the page in both locales (`/en/…` and `/pt-BR/…`), including popups,
    empty states and error states — the e2e test only sees the initial render.

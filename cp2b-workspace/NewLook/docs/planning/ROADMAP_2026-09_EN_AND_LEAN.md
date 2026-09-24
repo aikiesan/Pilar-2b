@@ -26,6 +26,20 @@
 | Message keys checked against the catalog at compile time | 0 |
 | Unit tests | 710 frontend (128 of them on dead code) · 1150 backend |
 
+## Where it ended (branch `claude/wonderful-brown-5zber2`)
+
+| Measure | Start | Now |
+|---|---|---|
+| Frontend source files (non-test) | 207 | 174 |
+| Files with hardcoded Portuguese (AST scan) | 69 | **0** — `PENDING` is empty |
+| Private number formatters | ~25 | 0 — everything goes through `useFormat()` |
+| Message keys checked at compile time | 0 | all (typed `t()`) |
+| Catalog keys no source file reads | unknown | **0** of 1,751 — enforced by `i18n:check` |
+| Unit tests | 710 frontend · 1150 backend | 727 frontend · 1173 backend, none on dead code |
+| e2e locale routes | 7 | 15 public + 5 signed-in (open mode) |
+
+Diff since `5e798ef`: 248 files, +11.7k / −25.5k lines.
+
 ## Phases
 
 ### Phase 1 — Lean: remove what nothing uses ✅
@@ -59,7 +73,7 @@
 - `npm run typecheck` runs without the incremental cache, so local results
   match CI.
 
-### Phase 4 — Translate the remaining files 🔄
+### Phase 4 — Translate the remaining files ✅
 
 `npm run i18n:scan -- --report` is the live inventory. Work is grouped by
 feature so each group can be reviewed end to end:
@@ -73,27 +87,59 @@ feature so each group can be reviewed end to end:
 | Proximity, municipality, calculator | `dashboard/proximity`, `services/proximityApi`, `municipality/[ibge_code]`, technology-routes steps and engine |
 | Static pages and shell | privacy, terms, accessibility, settings, error boundary, footer, newsletter |
 
-Exit criterion: `PENDING` is empty and every public and dashboard route is in
-the e2e locale test's `ROUTES`.
+Exit criterion met: `PENDING` is empty and every route is in the e2e locale
+test (signed-in pages in open mode, see `e2e/i18n.public.spec.ts`).
 
-### Phase 5 — Backend text that reaches users 🔄
+Along the way the scientific database was rebuilt on backend data only (the
+bundled snapshot, with sample entries and made-up DOIs, is gone) and several
+functional bugs surfaced by the translation were fixed; the commit messages on
+the branch list them.
 
-The API returns some display text in Portuguese (proximity residue and
-infrastructure names; headers of the municipal dossier CSV/XLSX/PDF). Plan:
-stable codes next to every display name so the frontend can translate, and a
-`lang` parameter on the exports.
+### Phase 5 — Backend text that reaches users ✅
 
-### Phase 6 — English quality pass 🔄
+- Stable codes next to display text, worded by the frontend: proximity
+  errors and land-use classes, sign-in/sign-up errors (`detail.code`).
+- `lang=en|pt-BR` on the municipal dossier exports (CSV, XLSX, PDF).
+- English residue names: migration `032_residuos_nome_en.sql` fills
+  `residuos.nome_en`; the kinetics and references endpoints return it.
+  **Apply the migration on the database** — until then the English site shows
+  the Portuguese residue names (the frontend falls back to `nome`).
+- The API's own messages are English (validation, rate limiting, summary
+  labels); nothing on the page shows backend prose untranslated.
 
-Apply the glossary to the existing `en.json`: one expansion of PILAR-2b and
-FDE, SAF → FDE, American spelling, *Sign in/Sign out*, RPO = urban pruning,
-key/label mismatches.
+### Phase 6 — English quality pass ✅
 
-### Phase 7 — Validation and tests 🔄
+Glossary applied to `en.json`: one expansion of PILAR-2b, SAF → FDE, American
+spelling, *Sign in/Sign out*, typographic ellipses, CH₄ with its subscript,
+"—" for missing values, current copyright year.
 
-Shared input validators for the forms (sign-in, registration, newsletter,
-calculator) with localized messages; tests for each; e2e locale coverage for
-every route.
+### Phase 7 — Validation and tests ✅
+
+Shared validators (`src/lib/validation.ts`) for sign-in, registration,
+newsletter and calculator, with localized messages; unit and component tests
+that render the real catalog; e2e locale coverage for every route.
+
+## Open items for the team
+
+Content and data questions the work surfaced but did not decide:
+
+- **Landing page claims**: "All platform data is available for free
+  download" and "GeoJSON and Shapefile export", while exports are off in the
+  beta (`lib/featureFlags`) and there never was a Shapefile export; "Create a
+  free account", while accounts are by invitation; "MapBiomas … 10 m", while
+  the data-sources modal says 30 m (Landsat).
+- **FDE source sheet** (`backend/data/FDE_Disponibilidade_Residuos_CP2B.xlsx`):
+  its FDE column disagrees with its own factors for cattle manure (19.32 vs
+  21.42), dairy whey (17.81 vs 18.53) and two more rows; the platform computes
+  FDE from the factors.
+- **References**: the database links papers to a residue, not to a parameter,
+  and `has_validated_params` is now shown as "Validated data" rather than
+  "Peer-reviewed". Per-parameter provenance would need a column for it.
+- The newsletter form still simulates its submission.
+- Test files are not type-checked (`tsconfig.json` excludes them): 117 type
+  errors remain, mostly partial fixtures (`{ name, total_biogas_m3_year }` for a
+  full `MunicipalityProperties`), writable `NODE_ENV`, and missing `jest-axe`
+  types. Fixing them would let CI type-check the tests too.
 
 ## How to verify locally
 

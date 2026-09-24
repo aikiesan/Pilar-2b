@@ -82,7 +82,7 @@ describe('ProximityMap', () => {
     radius: 10,
     onMapClick: jest.fn(),
     bufferGeometry: null,
-    municipalities: null,
+    municipalities: undefined,
   };
 
   beforeEach(() => {
@@ -435,8 +435,8 @@ describe('ProximityMap', () => {
       expect(screen.getByTestId('popup')).toHaveTextContent(/Biogás: 123 mi m³\/ano/);
     });
 
-    it('should handle null municipalities array', () => {
-      render(<ProximityMap {...defaultProps} municipalities={null} />);
+    it('should handle a missing municipalities array', () => {
+      render(<ProximityMap {...defaultProps} municipalities={undefined} />);
       expect(screen.getByTestId('map-container')).toBeInTheDocument();
     });
 

@@ -23,10 +23,9 @@
  *     registered Portuguese name on the citation page, which is a proper noun
  *     and correct to leave untranslated.
  *
- * ROUTES is a ratchet: it lists the pages verified clean. As each page in
- * PENDING is extracted to the message catalogs, move it up. Do not add a route
- * here until it passes, and never relax a marker to make a page go green —
- * that is how the test above got hollowed out.
+ * Every page is on the lists below; a new page goes on them with its first
+ * commit. Never relax a marker to make a page go green — that is how the test
+ * above got hollowed out.
  */
 
 import { test, expect } from '@playwright/test';
@@ -52,26 +51,52 @@ const PORTUGUESE_UI = [
   'Dados e documentação',
 ];
 
-/** Verified free of Portuguese UI text. Extend as pages are extracted. */
+/** Every public page. */
 const ROUTES = [
+  '/en',
   '/en/map',
   '/en/dashboard',
   '/en/dashboard/technology-routes',
   '/en/sobre',
   '/en/about',
   '/en/guide',
+  '/en/guide/calculadora',
   '/en/cite',
+  '/en/login',
+  '/en/register',
+  '/en/privacy',
+  '/en/terms',
+  '/en/accessibility',
+  '/en/patch-notes',
 ];
 
 /**
- * Every public page is on the list. The signed-in dashboard pages (proximity,
- * advanced analysis, scientific database, calculator) cannot be reached without
- * an account; their copy is held by the source scanner (npm run i18n:scan, no
- * file pending) and by component tests that render the real catalog.
+ * Pages behind sign-in. Without an account they redirect to /login, so they
+ * are checked only against a server in open mode (NEXT_PUBLIC_DISABLE_AUTH=true,
+ * what the public site runs), where a visitor is signed in as the test user:
+ *
+ *   NEXT_PUBLIC_DISABLE_AUTH=true npm run dev          # one terminal
+ *   E2E_OPEN_MODE=1 PLAYWRIGHT_SKIP_WEBSERVER=1 npx playwright test --project=public e2e/i18n.public.spec.ts
+ *
+ * With no backend running they render their error states — which are copy too.
+ */
+const SIGNED_IN_ROUTES = [
+  '/en/dashboard/proximity',
+  '/en/dashboard/advanced-analysis',
+  '/en/dashboard/scientific-database',
+  '/en/dashboard/scientific-database?view=references',
+  '/en/settings',
+];
+
+/**
+ * The source scanner (npm run i18n:scan, no file pending) and the component
+ * tests that render the real catalog hold the signed-in pages' copy in CI; the
+ * open-mode run above checks what they actually render.
  */
 
 test.describe('Locale integrity — /en/ renders no Portuguese UI', () => {
-  for (const route of ROUTES) {
+  const routes = process.env.E2E_OPEN_MODE ? [...ROUTES, ...SIGNED_IN_ROUTES] : ROUTES;
+  for (const route of routes) {
     test(`${route} has no Portuguese UI text`, async ({ page }) => {
       const response = await page.goto(route, { waitUntil: 'domcontentloaded' });
       await page.waitForLoadState('networkidle').catch(() => {

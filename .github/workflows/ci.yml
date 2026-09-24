@@ -37,12 +37,13 @@ jobs:
       # typecheck covers what `next build` already type-checks, but fails in
       # seconds instead of after a full build. Note it does NOT yet cover
       # e2e/, src/test or __tests__ — those are excluded in tsconfig.json and
-      # currently carry 153 errors (tracked in
+      # currently carry 117 errors, mostly partial test fixtures (tracked in
       # docs/planning/ROADMAP_2026-09_EN_AND_LEAN.md).
-      # Two checks: catalog parity, and a scan of the already-translated files
-      # for new hardcoded Portuguese. The scan exists because the e2e locale
-      # test only sees what renders on page load — popups and expandable panels
-      # stayed fully Portuguese underneath a passing /en/map.
+      # i18n:check: catalog parity, a scan of every source file for hardcoded
+      # Portuguese, no unused catalog key, bilingual patch notes, and the
+      # scanner's own tests. The scan exists because the e2e locale test only
+      # sees what renders on page load — popups and expandable panels stayed
+      # fully Portuguese underneath a passing /en/map.
       - name: i18n catalog parity and hardcoded-string scan
         run: npm run i18n:check
       - name: Typecheck
