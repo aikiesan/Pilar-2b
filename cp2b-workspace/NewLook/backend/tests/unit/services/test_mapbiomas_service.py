@@ -279,8 +279,9 @@ class TestAnalyzeBuffer:
         service = MapBiomasService()
         result = service.analyze_buffer(lat=-23.5505, lng=-46.6333, radius_km=5)
 
-        assert "error" in result
-        assert "Unexpected error" in result["error"]
+        # The result reaches API clients: a fixed message, not the exception's text.
+        assert result["error"] == "MapBiomas analysis failed"
+        assert "Unexpected error" not in result["error"]
         assert result["dominant_class"] == "error"
 
     @patch("app.services.mapbiomas_service.rasterio")

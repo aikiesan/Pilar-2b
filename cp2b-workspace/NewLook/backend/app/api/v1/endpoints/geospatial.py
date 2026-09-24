@@ -460,7 +460,7 @@ async def get_municipality_centroids(
         import traceback as _tb
 
         logger.error(f"Error in get_municipality_centroids: {e}\n{_tb.format_exc()}")
-        raise HTTPException(status_code=500, detail=f"Error: {type(e).__name__}: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to fetch municipality centroids")
 
 
 @router.get(
@@ -841,7 +841,7 @@ async def proximity_analysis(query: ProximityQuery):
         raise
     except Exception as e:
         logger.error(f"Error in proximity_analysis: {e}")
-        raise HTTPException(status_code=500, detail=f"Proximity analysis failed: {str(e)}")
+        raise HTTPException(status_code=500, detail="Proximity analysis failed")
 
 
 @router.get(

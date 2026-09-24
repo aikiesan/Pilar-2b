@@ -89,7 +89,7 @@ async def get_codigestion_clusters(
         return result
     except Exception as e:
         logger.error(f"Error computing co-digestion clusters: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Clustering error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Clustering error")
 
 
 @router.get("/clusters/{cluster_id}")
@@ -117,7 +117,7 @@ async def get_cluster_detail(
             _cluster_cache.set(key, result)
         except Exception as e:
             logger.error(f"Error computing clusters for detail lookup: {e}", exc_info=True)
-            raise HTTPException(status_code=500, detail=f"Clustering error: {str(e)}")
+            raise HTTPException(status_code=500, detail="Clustering error")
 
     clusters = result.get("clusters", [])
     for cluster in clusters:
@@ -152,7 +152,7 @@ async def get_municipality_cn_profiles_endpoint(
             _cn_profile_cache = get_municipality_cn_profiles()
         except Exception as e:
             logger.error(f"Error computing municipality C/N profiles: {e}", exc_info=True)
-            raise HTTPException(status_code=500, detail=f"Error computing C/N profiles: {str(e)}")
+            raise HTTPException(status_code=500, detail="Error computing C/N profiles")
     return {"profiles": _cn_profile_cache, "count": len(_cn_profile_cache)}
 
 
@@ -182,7 +182,7 @@ async def get_municipality_typology_endpoint(
             _typology_cache = get_municipality_typology()
         except Exception as e:
             logger.error(f"Error loading municipality typology: {e}", exc_info=True)
-            raise HTTPException(status_code=500, detail=f"Error loading typology: {str(e)}")
+            raise HTTPException(status_code=500, detail="Error loading typology")
     return {"profiles": _typology_cache, "count": len(_typology_cache)}
 
 
@@ -205,7 +205,7 @@ async def get_pairing_candidates_endpoint(
         candidates = get_pairing_candidates(ibge_code=ibge_code, radius_km=radius_km)
     except Exception as e:
         logger.error(f"Error computing pairing candidates: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Error computing candidates: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error computing candidates")
 
     if candidates is None:
         raise HTTPException(status_code=404, detail=f"Municipality '{ibge_code}' not found")
@@ -227,7 +227,7 @@ async def get_residue_cn_matrix():
         return get_residue_cn_matrix()
     except Exception as e:
         logger.error(f"Error fetching C:N matrix: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Error fetching C:N data: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error fetching C:N data")
 
 
 @router.delete("/clusters/cache")

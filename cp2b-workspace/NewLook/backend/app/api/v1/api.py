@@ -13,7 +13,6 @@ from app.api.v1.endpoints import (
     intermediate_regions,
     mapbiomas,
     maps,
-    mock_geospatial,
     municipalities,
     proximity,
     residuos,
@@ -38,9 +37,6 @@ api_router.include_router(geospatial.router, prefix="/geospatial", tags=["geospa
 api_router.include_router(
     infrastructure.router, prefix="/infrastructure", tags=["infrastructure", "geospatial"]
 )
-
-# Mock data endpoints for development (sample data)
-api_router.include_router(mock_geospatial.router, prefix="/mock", tags=["mock-data", "development"])
 
 # MapBiomas raster tile endpoints
 api_router.include_router(

@@ -200,10 +200,11 @@ def get_all_technologies(
             cursor.close()
             return technologies
 
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to fetch technologies")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to fetch technologies: {str(e)}",
+            detail="Failed to fetch technologies",
         )
 
 
@@ -282,10 +283,11 @@ def get_technology_by_id(tech_id: str):
 
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to fetch technology")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to fetch technology: {str(e)}",
+            detail="Failed to fetch technology",
         )
 
 
@@ -370,10 +372,11 @@ def create_custom_technology(
 
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to create custom technology")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to create custom technology: {str(e)}",
+            detail="Failed to create custom technology",
         )
 
 
@@ -412,10 +415,11 @@ def delete_custom_technology(tech_id: str, current_user=Depends(get_current_user
 
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to delete technology")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to delete technology: {str(e)}",
+            detail="Failed to delete technology",
         )
 
 
@@ -459,10 +463,11 @@ def get_user_routes(current_user=Depends(get_current_user)):
 
         return routes
 
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to fetch routes")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to fetch routes: {str(e)}",
+            detail="Failed to fetch routes",
         )
 
 
@@ -499,10 +504,11 @@ def get_route_by_id(route_id: UUID, current_user=Depends(get_current_user)):
 
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to fetch route")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to fetch route: {str(e)}",
+            detail="Failed to fetch route",
         )
 
 
@@ -556,10 +562,11 @@ def create_route(route: UserRouteCreate, current_user=Depends(get_current_user))
             updated_at=row["updated_at"],
         )
 
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to create route")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to create route: {str(e)}",
+            detail="Failed to create route",
         )
 
 
@@ -645,10 +652,11 @@ def update_route(
 
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to update route")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to update route: {str(e)}",
+            detail="Failed to update route",
         )
 
 
@@ -681,10 +689,11 @@ def delete_route(route_id: UUID, current_user=Depends(get_current_user)):
 
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to delete route")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to delete route: {str(e)}",
+            detail="Failed to delete route",
         )
 
 
@@ -726,10 +735,11 @@ def get_public_routes(limit: int = 20, offset: int = 0):
 
         return routes
 
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to fetch public routes")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to fetch public routes: {str(e)}",
+            detail="Failed to fetch public routes",
         )
 
 
@@ -765,10 +775,11 @@ def get_route_by_share_token(share_token: str):
 
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to fetch shared route")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to fetch shared route: {str(e)}",
+            detail="Failed to fetch shared route",
         )
 
 
@@ -849,8 +860,9 @@ def validate_connection(request: ConnectionValidationRequest):
                 target_category=target["category"],
             )
 
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to validate connection")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to validate connection: {str(e)}",
+            detail="Failed to validate connection",
         )

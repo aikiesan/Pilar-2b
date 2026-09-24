@@ -73,7 +73,7 @@ async def get_summary_statistics() -> Dict[str, Any]:
 
     except Exception as e:
         logger.error(f"Failed to fetch summary statistics: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to fetch summary statistics: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to fetch summary statistics")
 
 
 @router.get("/category/{category}")
@@ -119,6 +119,4 @@ async def get_category_statistics(
 
     except Exception as e:
         logger.error(f"Failed to fetch category statistics: {e}")
-        raise HTTPException(
-            status_code=500, detail=f"Failed to fetch category statistics: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail="Failed to fetch category statistics")

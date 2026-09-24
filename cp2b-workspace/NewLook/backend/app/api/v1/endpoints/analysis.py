@@ -2,12 +2,15 @@
 Analysis API endpoints for biogas potential calculations
 """
 
+import logging
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, HTTPException, Query
 
 from app.core.database import get_db
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -265,10 +268,9 @@ async def get_analysis_by_residue(
 
         except HTTPException:
             raise
-        except Exception as e:
-            raise HTTPException(
-                status_code=500, detail=f"Error fetching residue analysis: {str(e)}"
-            )
+        except Exception:
+            logger.exception("Error fetching residue analysis")
+            raise HTTPException(status_code=500, detail="Error fetching residue analysis")
 
     else:
         # Legacy path: query municipalities aggregate columns
@@ -325,10 +327,9 @@ async def get_analysis_by_residue(
 
         except HTTPException:
             raise
-        except Exception as e:
-            raise HTTPException(
-                status_code=500, detail=f"Error fetching residue analysis: {str(e)}"
-            )
+        except Exception:
+            logger.exception("Error fetching residue analysis")
+            raise HTTPException(status_code=500, detail="Error fetching residue analysis")
 
 
 @router.get("/statistics/by-category")
@@ -385,8 +386,9 @@ async def get_statistics_by_category():
 
         return {"categories": categories, "total_municipalities": n_total}
 
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error fetching category statistics: {str(e)}")
+    except Exception:
+        logger.exception("Error fetching category statistics")
+        raise HTTPException(status_code=500, detail="Error fetching category statistics")
 
 
 @router.get("/statistics/by-stream")
@@ -436,8 +438,9 @@ async def get_statistics_by_stream(
             "residue_codes": residue_codes,
         }
 
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error fetching stream statistics: {str(e)}")
+    except Exception:
+        logger.exception("Error fetching stream statistics")
+        raise HTTPException(status_code=500, detail="Error fetching stream statistics")
 
 
 @router.get("/statistics/by-region")
@@ -472,8 +475,9 @@ async def get_statistics_by_region(
             "category": category.value if category else "total",
         }
 
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error fetching regional statistics: {str(e)}")
+    except Exception:
+        logger.exception("Error fetching regional statistics")
+        raise HTTPException(status_code=500, detail="Error fetching regional statistics")
 
 
 @router.get("/distribution")
@@ -529,8 +533,9 @@ async def get_distribution(
             "category": category.value if category else "total",
         }
 
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error calculating distribution: {str(e)}")
+    except Exception:
+        logger.exception("Error calculating distribution")
+        raise HTTPException(status_code=500, detail="Error calculating distribution")
 
 
 @router.get("/residue-config")

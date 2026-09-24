@@ -81,7 +81,7 @@ async def get_sectors():
 
     except Exception as e:
         logger.error(f"Error fetching sectors: {e}\n{traceback.format_exc()}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 # ─── Subsectors ───────────────────────────────────────────────────────────────
@@ -120,7 +120,7 @@ async def get_subsectors(sector_codigo: Optional[str] = None):
 
     except Exception as e:
         logger.error(f"Error fetching subsectors: {e}\n{traceback.format_exc()}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 # ─── Residuos list ────────────────────────────────────────────────────────────
@@ -211,7 +211,7 @@ async def get_residuos(
 
     except Exception as e:
         logger.error(f"Error fetching residuos: {e}\n{traceback.format_exc()}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 # ─── All references ───────────────────────────────────────────────────────────
@@ -286,7 +286,7 @@ async def get_all_references(
 
     except Exception as e:
         logger.error(f"Error fetching all references: {e}\n{traceback.format_exc()}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 # ─── Conversion factors ───────────────────────────────────────────────────────
@@ -329,7 +329,7 @@ async def get_conversion_factors(category: Optional[str] = None):
 
     except Exception as e:
         logger.error(f"Error fetching conversion factors: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Database error")
 
 
 # ─── Summary by sector ────────────────────────────────────────────────────────
@@ -400,7 +400,7 @@ async def get_summary_by_sector():
 
     except Exception as e:
         logger.error(f"Error fetching sector summary: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Database error")
 
 
 # ─── Compare ──────────────────────────────────────────────────────────────────
@@ -456,7 +456,7 @@ async def compare_residuos(ids: str = Query(..., description="Comma-separated re
         raise
     except Exception as e:
         logger.error(f"Error comparing residuos: {e}\n{traceback.format_exc()}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 # ─── References for one residue ───────────────────────────────────────────────
