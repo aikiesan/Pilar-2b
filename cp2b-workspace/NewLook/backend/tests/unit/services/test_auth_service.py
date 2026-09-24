@@ -31,6 +31,7 @@ class FakeCursor:
         self.fetchone_queue = []
         self.fetchall_result = []
         self.executed = []
+        self.committed = []  # statements whose transaction committed
 
     def execute(self, sql, params=None):
         self.executed.append((sql, params))
@@ -67,7 +68,10 @@ def cursor():
 def patch_db(monkeypatch, cursor):
     @contextmanager
     def _ctx():
+        # Like the real helpers: a clean exit commits, an exception rolls back.
+        start = len(cursor.executed)
         yield FakeConn(cursor)
+        cursor.committed.extend(cursor.executed[start:])
 
     monkeypatch.setattr(svc_module, "get_db", _ctx)
     monkeypatch.setattr(svc_module, "get_db_transaction", _ctx)
@@ -188,9 +192,10 @@ def test_login_wrong_password_raises_and_increments(svc, cursor):
         asyncio.run(svc.login_user(UserLogin(email=row["email"], password="WrongPass1")))
     assert e.value.status_code == 401
     # Only UPDATE statements count — the login SELECT also mentions the column.
+    # It must be committed: an update rolled back with the error never counts.
     assert any(
         sql.strip().startswith("UPDATE") and "failed_login_count" in sql
-        for sql, _ in cursor.executed
+        for sql, _ in cursor.committed
     )
 
 
@@ -201,7 +206,7 @@ def test_login_locks_after_max_failures(svc, cursor):
         asyncio.run(svc.login_user(UserLogin(email=row["email"], password="WrongPass1")))
     upd = [
         params
-        for sql, params in cursor.executed
+        for sql, params in cursor.committed
         if sql.strip().startswith("UPDATE") and "locked_until" in sql
     ]
     assert upd and upd[0][1] is not None  # locked_until param set
