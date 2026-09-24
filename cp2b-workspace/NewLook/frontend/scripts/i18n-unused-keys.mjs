@@ -54,7 +54,7 @@ function sourceFiles(dir, out = []) {
     const path = join(dir, name);
     if (statSync(path).isDirectory()) {
       if (name !== '__tests__' && name !== 'test') sourceFiles(path, out);
-    } else if (/\.(tsx?|jsx?)$/.test(name) && !/\.(test|spec)\.|\.d\.ts$/.test(name)) {
+    } else if (/\.(tsx?|jsx?)$/.test(name) && !/\.(test|spec)\.[jt]sx?$|\.d\.ts$/.test(name)) {
       out.push(path);
     }
   }

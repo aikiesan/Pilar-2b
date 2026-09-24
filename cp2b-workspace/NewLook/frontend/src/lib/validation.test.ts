@@ -59,14 +59,26 @@ describe('validatePassword', () => {
   })
 })
 
+/**
+ * A candidate password of `length` characters with the given character
+ * classes. Built rather than written out: secret scanners (GitGuardian) read a
+ * password-shaped literal in a test as a leaked credential.
+ */
+function candidate(length: number, classes: { upper?: boolean; digit?: boolean; symbol?: boolean } = {}): string {
+  const tail = `${classes.upper ? 'Q' : ''}${classes.digit ? '7' : ''}${classes.symbol ? '#' : ''}`
+  return 'q'.repeat(Math.max(0, length - tail.length)) + tail
+}
+
 describe('validatePasswordConfirmation', () => {
+  const typed = candidate(8, { digit: true })
+
   it('requires the confirmation', () => {
-    expect(validatePasswordConfirmation('secret1', '')).toBe('required')
+    expect(validatePasswordConfirmation(typed, '')).toBe('required')
   })
 
   it('must match exactly', () => {
-    expect(validatePasswordConfirmation('secret1', 'Secret1')).toBe('passwords_mismatch')
-    expect(validatePasswordConfirmation('secret1', 'secret1')).toBeNull()
+    expect(validatePasswordConfirmation(typed, typed.toUpperCase())).toBe('passwords_mismatch')
+    expect(validatePasswordConfirmation(typed, typed)).toBeNull()
   })
 })
 
@@ -80,13 +92,13 @@ describe('validateConsent', () => {
 describe('passwordStrength', () => {
   it('scores nothing for an empty password and 100 for a long, varied one', () => {
     expect(passwordStrength('')).toBe(0)
-    expect(passwordStrength('Longer-Pass-2026')).toBe(100)
+    expect(passwordStrength(candidate(16, { upper: true, digit: true, symbol: true }))).toBe(100)
   })
 
   it('grows with length and variety', () => {
-    const weak = passwordStrength('abcdef')
-    const medium = passwordStrength('abcdefghij')
-    const strong = passwordStrength('Abcdefghij1!')
+    const weak = passwordStrength(candidate(PASSWORD_MIN_LENGTH))
+    const medium = passwordStrength(candidate(10))
+    const strong = passwordStrength(candidate(12, { upper: true, digit: true, symbol: true }))
     expect(weak).toBeLessThan(medium)
     expect(medium).toBeLessThan(strong)
   })
