@@ -16,6 +16,7 @@ from typing import Optional
 from fastapi import APIRouter, HTTPException, Query
 
 from app.core.database import get_db
+from app.core.log_sanitizer import log_safe
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -478,7 +479,7 @@ async def get_residuo_references(residuo_id: int, parameter_type: Optional[str] 
     except Exception as e:
         logger.error(
             "Error fetching references for residuo %s: %s",
-            str(residuo_id).replace("\n", " ").replace("\r", " ")[:50],
+            log_safe(residuo_id, 50),
             e,
             exc_info=True,
         )
@@ -556,7 +557,7 @@ async def get_residuo(residuo_id: int):
     except Exception as e:
         logger.error(
             "Error fetching residuo %s: %s",
-            str(residuo_id).replace("\n", " ").replace("\r", " ")[:50],
+            log_safe(residuo_id, 50),
             e,
             exc_info=True,
         )

@@ -9,6 +9,7 @@ import logging
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
+from app.core.log_sanitizer import log_safe
 from app.middleware.auth import get_current_user
 from app.models.auth import UserProfile
 from app.services.cache_service import LRUCache
@@ -72,7 +73,7 @@ async def get_codigestion_clusters(
     if cached is not None:
         logger.info(
             "Returning cached cluster result for %s",
-            key.replace("\n", " ").replace("\r", " ")[:200],
+            log_safe(key),
         )
         return cached
 

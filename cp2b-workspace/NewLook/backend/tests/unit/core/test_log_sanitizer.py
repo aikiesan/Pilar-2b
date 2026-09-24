@@ -8,7 +8,7 @@ import logging
 
 import pytest
 
-from app.core.log_sanitizer import PiiRedactingFilter, redact
+from app.core.log_sanitizer import PiiRedactingFilter, log_safe, redact
 
 
 class TestRedact:
@@ -37,6 +37,18 @@ class TestRedact:
     def test_passes_through_non_pii(self):
         msg = "computed 645 municipalities in 1.2s"
         assert redact(msg) == msg
+
+
+class TestLogSafe:
+    def test_line_breaks_cannot_start_a_new_log_line(self):
+        assert log_safe("3550308\nFAKE ERROR\r\nx") == "3550308 FAKE ERROR  x"
+
+    def test_caps_the_length(self):
+        assert log_safe("x" * 300) == "x" * 200
+        assert log_safe("3550308", 4) == "3550"
+
+    def test_formats_non_strings(self):
+        assert log_safe(3550308) == "3550308"
 
     def test_mixed_pii(self):
         out = redact("mail x@y.com cpf 111.222.333-44")

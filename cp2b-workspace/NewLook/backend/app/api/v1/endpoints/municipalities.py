@@ -12,6 +12,7 @@ from typing import Annotated, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 
 from app.core.database import get_db
+from app.core.log_sanitizer import log_safe
 from app.core.response_cache import cached_json_response
 from app.middleware.auth import optional_auth
 from app.models.auth import UserProfile
@@ -813,7 +814,7 @@ async def get_municipality_metrics(ibge_code: str):
                 row, ibge_code=ibge_code, derived_tons=derived_tons
             ).to_flat_dict()
         except Exception as exc:
-            logger.error(f"canonical metrics failed for {ibge_code}: {exc}")
+            logger.error("canonical metrics failed for %s: %s", log_safe(ibge_code, 50), exc)
             canonical = {}
 
         return {

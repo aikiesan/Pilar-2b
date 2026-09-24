@@ -1,5 +1,5 @@
 """
-PII log sanitiser.
+Log sanitisers: PII redaction, and one-line values for log messages.
 
 A logging filter that redacts personal data from log records before they are
 emitted, supporting data-minimisation in logs (LGPD Art. 6 / Art. 46 security of
@@ -12,6 +12,11 @@ Attach once at application start (root logger):
     import logging
     from app.core.log_sanitizer import PiiRedactingFilter
     logging.getLogger().addFilter(PiiRedactingFilter())
+
+Wrap any request-derived value (an ID, a cache key) put into a log message in
+``log_safe``, so a crafted value cannot forge log lines (CWE-117):
+
+    logger.error("Error fetching residuo %s: %s", log_safe(residuo_id, 50), e)
 """
 
 import logging
@@ -22,6 +27,11 @@ _EMAIL_RE = re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b")
 _CNPJ_RE = re.compile(r"\b\d{2}\.?\d{3}\.?\d{3}/?\d{4}-?\d{2}\b")
 # CPF: 11 digits, formatted (000.000.000-00) or bare.
 _CPF_RE = re.compile(r"\b\d{3}\.?\d{3}\.?\d{3}-?\d{2}\b")
+
+
+def log_safe(value: object, limit: int = 200) -> str:
+    """``value`` as one log line: line breaks become spaces, at most ``limit`` chars."""
+    return str(value).replace("\n", " ").replace("\r", " ")[:limit]
 
 
 def redact(text: str) -> str:

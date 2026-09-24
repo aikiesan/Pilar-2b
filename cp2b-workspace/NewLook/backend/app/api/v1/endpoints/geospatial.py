@@ -15,6 +15,7 @@ from pydantic import BaseModel, Field
 from shapely.geometry import Point
 
 from app.core.database import get_db
+from app.core.log_sanitizer import log_safe
 from app.middleware.auth import optional_auth
 from app.models.auth import UserProfile
 from app.utils.shapefile_loader import get_shapefile_loader
@@ -779,7 +780,7 @@ async def get_municipality(municipality_id: int):
     except Exception as e:
         logger.error(
             "Error in get_municipality %s: %s",
-            str(municipality_id).replace("\n", " ").replace("\r", " ")[:50],
+            log_safe(municipality_id, 50),
             e,
         )
         raise HTTPException(status_code=500, detail="Failed to fetch municipality")

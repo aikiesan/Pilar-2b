@@ -184,9 +184,11 @@ async def health_check():
             )
 
     except Exception as e:
+        # The driver's message can name the host, port and database user: it goes
+        # to the log, not to whoever calls /health.
+        log.error("Health check: database unreachable: %s", e)
         health_status["status"] = "unhealthy"
         health_status["database"] = "disconnected"
-        health_status["error"] = str(e)
         return JSONResponse(status_code=503, content=health_status)  # Service unavailable
 
     return health_status
