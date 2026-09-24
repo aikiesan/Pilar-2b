@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
+import { useIsClient } from '@/hooks/useIsClient';
 import { useJoyride, Step, EventData, STATUS, ACTIONS } from 'react-joyride';
 import { useTranslations } from 'next-intl';
 
@@ -10,12 +11,8 @@ interface TourGuideProps {
 }
 
 export default function TourGuide({ run, onFinish }: TourGuideProps) {
-  const [isMounted, setIsMounted] = useState(false);
+  const isMounted = useIsClient();
   const t = useTranslations('tour');
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   const steps: Step[] = useMemo(() => [
     {
@@ -128,4 +125,4 @@ export default function TourGuide({ run, onFinish }: TourGuideProps) {
 
   // Em vez daquele componente gigante, você apenas renderiza o retorno do Hook
   return <>{Tour}</>;
-}
+}

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useId, useState } from 'react'
 import { Link } from '@/navigation'
 import {
   FileText,
@@ -12,6 +12,7 @@ import {
   X
 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { useDialog } from '@/hooks/useDialog'
 import { useFormat } from '@/hooks/useFormat'
 import {
   CorrectionFactors,
@@ -32,7 +33,9 @@ export default function MethodologyPanel({
 }: MethodologyPanelProps) {
   const t = useTranslations('analysis')
   const format = useFormat()
-  const factor = (value: number) => format.number(value, { decimals: 2, minDecimals: 2 })
+  const twoDecimals = (value: number) => format.number(value, { decimals: 2, minDecimals: 2 })
+  const titleId = useId()
+  const panelRef = useDialog<HTMLDivElement>(isOpen, onClose)
   const [expandedFactors, setExpandedFactors] = useState<string[]>(['fc'])
 
   const toggleFactor = (factor: string) => {
@@ -53,19 +56,27 @@ export default function MethodologyPanel({
 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden">
-      {/* Backdrop */}
+      {/* Clicking the backdrop closes; Escape does the same from the keyboard (useDialog). */}
+      {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events -- keyboard: Escape */}
       <div
         className="absolute inset-0 bg-black/50 transition-opacity"
         onClick={onClose}
       />
 
       {/* Panel */}
-      <div className="absolute right-0 top-0 bottom-0 w-full max-w-lg bg-white dark:bg-slate-800 shadow-2xl overflow-hidden flex flex-col">
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        tabIndex={-1}
+        className="absolute right-0 top-0 bottom-0 w-full max-w-lg bg-white dark:bg-slate-800 shadow-2xl overflow-hidden flex flex-col"
+      >
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-slate-700 bg-gradient-to-r from-green-50 to-white">
           <div className="flex items-center gap-2">
             <BookOpen className="h-5 w-5 text-green-600" />
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-slate-100">
+            <h2 id={titleId} className="text-lg font-semibold text-gray-900 dark:text-slate-100">
               {t('methodology_panel.title')}
             </h2>
           </div>
@@ -91,7 +102,7 @@ export default function MethodologyPanel({
                 FDE = FC &times; (1 - FCp) &times; FS &times; FL
               </div>
               <div className="text-sm font-mono text-gray-600 dark:text-slate-400">
-                {factor(factors.fc)} &times; {factor(1 - factors.fcp)} &times; {factor(factors.fs)} &times; {factor(factors.fl)} = {format.number(fdeValue, { decimals: 3, minDecimals: 3 })}
+                {twoDecimals(factors.fc)} &times; {twoDecimals(1 - factors.fcp)} &times; {twoDecimals(factors.fs)} &times; {twoDecimals(factors.fl)} = {format.number(fdeValue, { decimals: 3, minDecimals: 3 })}
               </div>
               <div className="mt-3 text-2xl font-bold text-green-600">
                 {format.percent(fdeValue * 100, { decimals: 1, minDecimals: 1 })}

@@ -17,7 +17,6 @@ jest.mock('@/lib/logger', () => ({
 }))
 
 process.env.NEXT_PUBLIC_DISABLE_AUTH = 'true'
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 const { AuthProvider, useAuth } = require('../AuthContext')
 
 const createWrapper = () => {

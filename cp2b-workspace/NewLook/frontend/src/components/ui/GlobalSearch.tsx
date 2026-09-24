@@ -8,7 +8,7 @@
  * Data comes from the cached useGeospatialData hook (no extra fetch).
  */
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useId, useRef, useCallback } from 'react'
 import { useRouter } from '@/navigation'
 import { useTranslations } from 'next-intl'
 import { useGeospatialData } from '@/hooks/useGeospatialData'
@@ -45,6 +45,9 @@ export default function GlobalSearch({ variant = 'light' }: GlobalSearchProps) {
 
   const inputRef = useRef<HTMLInputElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+  const listboxId = useId()
+  const optionId = (index: number) => `${listboxId}-option-${index}`
+  const expanded = query.trim().length > 0
 
   // ── Search results ──────────────────────────────────────────────────────────
   const results: MunicipalityFeature[] = (() => {
@@ -88,11 +91,6 @@ export default function GlobalSearch({ variant = 'light' }: GlobalSearchProps) {
     if (open) document.addEventListener('mousedown', onClickOutside)
     return () => document.removeEventListener('mousedown', onClickOutside)
   }, [open])
-
-  // Reset active index when results change
-  useEffect(() => {
-    setActiveIndex(0)
-  }, [results.length])
 
   // ── Navigation ──────────────────────────────────────────────────────────────
   const navigateTo = useCallback(
@@ -152,8 +150,16 @@ export default function GlobalSearch({ variant = 'light' }: GlobalSearchProps) {
               ref={inputRef}
               type="search"
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={(e) => {
+                setQuery(e.target.value)
+                setActiveIndex(0)
+              }}
               onKeyDown={onKeyDownList}
+              role="combobox"
+              aria-expanded={expanded}
+              aria-controls={expanded ? listboxId : undefined}
+              aria-autocomplete="list"
+              aria-activedescendant={expanded && results[activeIndex] ? optionId(activeIndex) : undefined}
               placeholder={t('placeholder')}
               aria-label={t('input_aria')}
               className={`flex-1 bg-transparent text-sm outline-none ${
@@ -170,19 +176,21 @@ export default function GlobalSearch({ variant = 'light' }: GlobalSearchProps) {
           </div>
 
           {/* Results dropdown */}
-          {query.trim() && (
+          {expanded && (
             <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-xl overflow-hidden z-[600]">
               {results.length === 0 ? (
                 <div className="px-4 py-6 text-center text-sm text-gray-500">
                   {t('no_results', { query })}
                 </div>
               ) : (
-                <ul role="listbox" aria-label={t('results_aria')}>
+                <ul id={listboxId} role="listbox" aria-label={t('results_aria')}>
                   {results.map((muni, idx) => {
                     const total = muni.properties.total_biogas_m3_year
                     return (
+                      // eslint-disable-next-line jsx-a11y/click-events-have-key-events -- keyboard: the combobox input (arrows, Enter)
                       <li
                         key={muni.properties.ibge_code}
+                        id={optionId(idx)}
                         role="option"
                         aria-selected={idx === activeIndex}
                         onClick={() => navigateTo(muni)}

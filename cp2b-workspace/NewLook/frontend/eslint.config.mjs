@@ -1,7 +1,7 @@
 import nextConfig from 'eslint-config-next';
 import prettier from 'eslint-config-prettier';
 
-export default [
+const config = [
   {
     ignores: [
       'node_modules/**',
@@ -45,6 +45,11 @@ export default [
       'react-hooks/gating': 'warn',
     },
   },
+  // Command-line tools: what they print is their output.
+  {
+    files: ['scripts/**/*.mjs'],
+    rules: { 'no-console': 'off' },
+  },
   {
     files: ['src/**/*.test.{js,jsx,ts,tsx}', 'src/**/__tests__/**/*.{js,jsx,ts,tsx}'],
     rules: {
@@ -53,3 +58,5 @@ export default [
     },
   },
 ];
+
+export default config;

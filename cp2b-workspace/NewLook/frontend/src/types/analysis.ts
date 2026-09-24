@@ -15,8 +15,8 @@ export interface CorrectionFactors {
 }
 
 // Default correction factor values — calibrated to approach FIESP ~16B m³ CH₄/year benchmark
-// FDE = 0.90 × (1−0.20) × 0.88 × 0.84 ≈ 0.534 (53.4%)
-// Available biogas ≈ 44.84B × 0.534 = 23.9B m³/year × 0.60 CH₄ ≈ 14.3B m³ CH₄/year
+// FDE = 0.90 × (1−0.20) × 0.88 × 0.84 ≈ 0.532 (53.2%)
+// Available biogas ≈ 44.84B × 0.532 ≈ 23.9B m³/year × 0.625 CH₄ ≈ 14.9B m³ CH₄/year
 export const DEFAULT_FACTORS: CorrectionFactors = {
   fc: 0.90,
   fcp: 0.20,

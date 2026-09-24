@@ -11,7 +11,7 @@
  * Switching to Brazil scope (?scope=brazil) is handled by the parent (MapComponent).
  */
 
-import React, { useMemo } from 'react';
+import React from 'react';
 import { GeoJSON } from 'react-leaflet';
 import L from 'leaflet';
 import { useLocale, useTranslations } from 'next-intl';
@@ -43,6 +43,19 @@ interface IntermediateRegionsMapLayerProps {
   onRegionClick?: (feature: any) => void;
 }
 
+const objectIds = new WeakMap<object, number>();
+let lastObjectId = 0;
+
+/** A number that stays the same for the same object, and differs between objects. */
+function objectId(value: object): number {
+  let id = objectIds.get(value);
+  if (id === undefined) {
+    id = ++lastObjectId;
+    objectIds.set(value, id);
+  }
+  return id;
+}
+
 export default function IntermediateRegionsMapLayer({
   geoJSON,
   opacity = 0.7,
@@ -52,11 +65,9 @@ export default function IntermediateRegionsMapLayer({
   const tCommon = useTranslations('common');
   const locale = useLocale();
   const format = useFormat();
-  // Tooltips are bound when the layer mounts, so a new language remounts it.
-  const stableKey = useMemo(
-    () => `ir-${locale}-${geoJSON?.features?.length ?? 0}-${Date.now()}`,
-    [geoJSON, locale]
-  );
+  // Tooltips are bound when the layer mounts, and react-leaflet's GeoJSON does
+  // not redraw new data: a new language or a new FeatureCollection remounts it.
+  const stableKey = `ir-${locale}-${geoJSON ? objectId(geoJSON) : 0}`;
 
   if (!geoJSON) return null;
 

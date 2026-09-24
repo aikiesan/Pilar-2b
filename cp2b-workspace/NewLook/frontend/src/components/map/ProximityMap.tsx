@@ -6,7 +6,8 @@
 
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
+import { useIsClient } from '@/hooks/useIsClient';
 import { MapContainer, TileLayer, Circle, Marker, Popup, GeoJSON, useMapEvents, useMap, ZoomControl } from 'react-leaflet';
 import L from 'leaflet';
 import { useTranslations } from 'next-intl';
@@ -97,11 +98,7 @@ export default function ProximityMap({
   const t = useTranslations('pages.proximity');
   const tCommon = useTranslations('common');
   const format = useFormat();
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
+  const isMounted = useIsClient();
 
   if (!isMounted) {
     return (

@@ -71,7 +71,8 @@ describe('GlobalSearch Accessibility', () => {
       render(<GlobalSearch />)
       // The input only mounts once the search is opened.
       await user.keyboard('/')
-      const input = await screen.findByRole('searchbox')
+      // A combobox (ARIA 1.2): it owns the results listbox and names the active option.
+      const input = await screen.findByRole('combobox')
       expect(input).toBeInTheDocument()
       expect(input).toHaveAccessibleName()
     })
@@ -80,7 +81,8 @@ describe('GlobalSearch Accessibility', () => {
       const user = userEvent.setup()
       render(<GlobalSearch />)
       await user.keyboard('/')
-      const input = await screen.findByRole('searchbox')
+      // A combobox (ARIA 1.2): it owns the results listbox and names the active option.
+      const input = await screen.findByRole('combobox')
       // Focus is applied via a short setTimeout after opening.
       await waitFor(() => expect(input).toHaveFocus())
     })
@@ -109,17 +111,22 @@ describe('GlobalSearch Accessibility', () => {
       }
     })
 
-    it('arrow key navigation works within results', async () => {
+    it('moves the active option with the arrow keys and announces it', async () => {
       const user = userEvent.setup()
       render(<GlobalSearch />)
       await user.keyboard('/')
-      const input = screen.queryByRole('combobox') || screen.queryByRole('searchbox')
-      if (input) {
-        await user.type(input, 'São')
-        await user.keyboard('{ArrowDown}')
-        await user.keyboard('{ArrowDown}')
-        await user.keyboard('{ArrowUp}')
-      }
+      const input = await screen.findByRole('combobox')
+      await user.type(input, '35') // both IBGE codes start with 35
+      const options = screen.getAllByRole('option')
+      expect(options).toHaveLength(2)
+      expect(input).toHaveAttribute('aria-activedescendant', options[0].id)
+
+      await user.keyboard('{ArrowDown}')
+      expect(input).toHaveAttribute('aria-activedescendant', options[1].id)
+      expect(options[1]).toHaveAttribute('aria-selected', 'true')
+
+      await user.keyboard('{ArrowUp}')
+      expect(input).toHaveAttribute('aria-activedescendant', options[0].id)
     })
   })
 
