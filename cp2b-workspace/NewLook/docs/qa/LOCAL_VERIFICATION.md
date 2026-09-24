@@ -109,21 +109,25 @@ pytest -q --no-cov
 If `pip install` fails on Windows (GDAL, Fiona or Rasterio wheels), use the
 Docker route instead — the backend image has them.
 
-### Database: English residue names (migration 032)
+### Database: English residue names (migrations 032 and 033)
 
 `backend/app/migrations/032_residuos_nome_en.sql` fills the residues' English
-names. With Docker it is applied by the `db-migrations` service on
-`docker compose up`. On any other database, apply that one file:
+names; `033_residuos_nome_en_citrus_industrial.sql` adds the one name 032 could
+not match on the production database. With Docker they are applied by the
+`db-migrations` service on `docker compose up`. On any other database, apply
+the two files in order:
 
 ```bash
 cd backend
 psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f app/migrations/032_residuos_nome_en.sql
+psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f app/migrations/033_residuos_nome_en_citrus_industrial.sql
 psql "$DATABASE_URL" -c "SELECT codigo, nome FROM residuos WHERE nome_en IS NULL OR btrim(nome_en) = '';"
 ```
 
-It matches a residue by its uppercase code, its lowercase slug or its
-Portuguese name, only fills names that are empty, and is safe to run more than
-once. The second command lists anything it could not name (expected: nothing).
+032 matches a residue by its uppercase code, its lowercase slug or its
+Portuguese name; 033 by its code. Both only fill names that are empty and are
+safe to run more than once. The last command lists anything still without an
+English name (expected: nothing).
 
 ## 4. What to look at in the browser
 
@@ -139,7 +143,7 @@ places where a person should look, in **both** `/en/` and `/pt-BR/`:
 | Advanced analysis → correction factors | slider labels, tooltips, "Resulting FDE", decimals `0.95` vs `0,95` |
 | `/en/guide/mapa` · `/en/guide/proximidade` | breadcrumb and "Other topics" in English |
 | `/en/guide/does-not-exist` | a 404, not a Portuguese "Tópico não encontrado" |
-| Scientific database → each tab | residue names in English (after migration 032); references filter by sector; picking a residue in *Residue Database* scrolls to its card |
+| Scientific database → each tab | residue names in English (after migrations 032 and 033); references filter by sector; picking a residue in *Residue Database* scrolls to its card |
 | Scientific database, backend stopped | an error banner with *Try again*, not an empty page |
 | Advanced analysis → *References* | the modal closes with Escape; its links stay in the page's language |
 | Sign in with a wrong password | "Incorrect email or password." / "E-mail ou senha incorretos." |
