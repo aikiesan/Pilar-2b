@@ -18,6 +18,7 @@ import type {
 } from '@/types/auth'
 import { authenticatedFetch, setStoredToken, getStoredToken, TOKEN_STORAGE_KEY } from '@/lib/apiClient'
 import { logger } from '@/lib/logger'
+import { AuthError, authErrorFrom } from '@/lib/authErrors'
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
@@ -43,7 +44,7 @@ const AUTH_DISABLED = process.env.NEXT_PUBLIC_DISABLE_AUTH === 'true'
 const TEST_USER: UserProfile = {
   id: '00000000-0000-0000-0000-000000000000',
   email: 'test@example.org',
-  full_name: 'Usuário de Teste',
+  full_name: 'Test User',
   role: 'interno',
   clearance: 2,
   is_active: true,
@@ -123,11 +124,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const res = await authenticatedFetch(`${AUTH}/login`, {
       method: 'POST',
       body: JSON.stringify(credentials),
+    }).catch(() => {
+      throw new AuthError('network')
     })
-    if (!res.ok) {
-      const detail = await res.json().catch(() => ({}))
-      throw new Error(detail?.detail || 'Login failed')
-    }
+    if (!res.ok) throw await authErrorFrom(res, 'login')
     const data = await res.json()
     setStoredToken(data.access_token)
     announceAuthChange()
@@ -140,11 +140,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const res = await authenticatedFetch(`${AUTH}/users`, {
       method: 'POST',
       body: JSON.stringify(data),
+    }).catch(() => {
+      throw new AuthError('network')
     })
-    if (!res.ok) {
-      const detail = await res.json().catch(() => ({}))
-      throw new Error(detail?.detail || 'Registration is invite-only')
-    }
+    if (!res.ok) throw await authErrorFrom(res, 'registration')
   }, [])
 
   const logout = useCallback(async () => {

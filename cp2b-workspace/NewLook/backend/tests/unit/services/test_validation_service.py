@@ -255,7 +255,7 @@ class TestCheckBufferOverlap:
             SAO_PAULO_BOUNDS["min_lat"] + 0.1, -48.5, 50.0
         )
         assert result["extends_beyond_state"] is True
-        assert "sul" in result["directions"]
+        assert "south" in result["directions"]
 
     def test_result_contains_required_keys(self):
         result = ValidationService.check_buffer_overlap(-22.0, -48.5, 10.0)

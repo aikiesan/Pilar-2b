@@ -18,7 +18,7 @@ import type {
   DisplayMetric,
   MunicipalityProperties,
 } from '@/types/geospatial';
-import type { BiomassType, ResidueType } from '@/components/map/FloatingControlPanel';
+import type { BiomassType, ResidueType } from '@/types/map';
 import {
   isServedScenario,
   SERVED_SCENARIO_FIELD,

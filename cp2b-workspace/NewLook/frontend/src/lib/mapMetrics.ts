@@ -13,7 +13,7 @@
 
 import type { MunicipalityProperties } from '@/types/geospatial';
 import type { DisplayMetric } from '@/types/geospatial';
-import type { BiomassType, ResidueType } from '@/components/map/FloatingControlPanel';
+import type { BiomassType, ResidueType } from '@/types/map';
 import type { MapScenarioKey } from '@/data/scenarioFactors';
 import {
   getBiomassMapValue,
@@ -167,11 +167,9 @@ export function rampFor(
 // original monotonic single-hue option for users who prefer it.
 export type CvdPaletteId = 'viridis' | 'cividis' | 'blues';
 
+/** A palette's name and note are copy: they live in messages under Map.palettes.<id>. */
 export interface CvdPalette {
   id: CvdPaletteId;
-  label: string;
-  /** Short note on who it's optimised for. */
-  note: string;
   /** Eight low→high tiers, matching RAMP_DEFAULT. */
   ramp: [string, string, string, string, string, string, string, string];
 }
@@ -179,8 +177,6 @@ export interface CvdPalette {
 export const CVD_PALETTES: Record<CvdPaletteId, CvdPalette> = {
   viridis: {
     id: 'viridis',
-    label: 'Viridis',
-    note: 'Perceptualmente uniforme · segura para todos os tipos',
     ramp: [
       '#440154',
       '#46327e',
@@ -194,8 +190,6 @@ export const CVD_PALETTES: Record<CvdPaletteId, CvdPalette> = {
   },
   cividis: {
     id: 'cividis',
-    label: 'Cividis',
-    note: 'Otimizada para deuteranopia/protanopia',
     ramp: [
       '#00204d',
       '#00336f',
@@ -209,8 +203,6 @@ export const CVD_PALETTES: Record<CvdPaletteId, CvdPalette> = {
   },
   blues: {
     id: 'blues',
-    label: 'Azul (mono)',
-    note: 'Tom único · luminância monotônica',
     ramp: [
       '#eff3ff',
       '#deebf7',
@@ -254,10 +246,9 @@ export type MapPaletteId =
   | 'cividis'
   | 'blues';
 
+/** As with CvdPalette, the name and note live in messages under Map.palettes.<id>. */
 export interface MapPalette {
   id: MapPaletteId;
-  label: string;
-  note: string;
   /** True when the ramp also reads unambiguously for colour-vision deficiency. */
   cvdSafe: boolean;
   /** Eight low→high tiers, matching RAMP_DEFAULT. */
@@ -267,15 +258,11 @@ export interface MapPalette {
 export const MAP_PALETTES: Record<MapPaletteId, MapPalette> = {
   ylgnbu: {
     id: 'ylgnbu',
-    label: 'Verde-Azul (padrão)',
-    note: 'YlGnBu · escala padrão da plataforma',
     cvdSafe: true,
     ramp: RAMP_DEFAULT,
   },
   greens: {
     id: 'greens',
-    label: 'Verdes',
-    note: 'Sequencial · ênfase agrícola',
     cvdSafe: false,
     ramp: [
       '#f7fcf5', '#e5f5e0', '#c7e9c0', '#a1d99b',
@@ -284,8 +271,6 @@ export const MAP_PALETTES: Record<MapPaletteId, MapPalette> = {
   },
   ylorrd: {
     id: 'ylorrd',
-    label: 'Amarelo-Vermelho',
-    note: 'Sequencial quente · intensidade',
     cvdSafe: false,
     ramp: [
       '#ffffcc', '#ffeda0', '#fed976', '#feb24c',
@@ -294,8 +279,6 @@ export const MAP_PALETTES: Record<MapPaletteId, MapPalette> = {
   },
   bupu: {
     id: 'bupu',
-    label: 'Azul-Roxo',
-    note: 'Sequencial frio · foco urbano',
     cvdSafe: false,
     ramp: [
       '#f7fcfd', '#e0ecf4', '#bfd3e6', '#9ebcda',
@@ -304,8 +287,6 @@ export const MAP_PALETTES: Record<MapPaletteId, MapPalette> = {
   },
   plasma: {
     id: 'plasma',
-    label: 'Plasma',
-    note: 'Vibrante · alto contraste',
     cvdSafe: true,
     ramp: [
       '#0d0887', '#5b02a3', '#8b0aa5', '#b83289',
@@ -314,22 +295,16 @@ export const MAP_PALETTES: Record<MapPaletteId, MapPalette> = {
   },
   viridis: {
     id: 'viridis',
-    label: CVD_PALETTES.viridis.label,
-    note: CVD_PALETTES.viridis.note,
     cvdSafe: true,
     ramp: CVD_PALETTES.viridis.ramp,
   },
   cividis: {
     id: 'cividis',
-    label: CVD_PALETTES.cividis.label,
-    note: CVD_PALETTES.cividis.note,
     cvdSafe: true,
     ramp: CVD_PALETTES.cividis.ramp,
   },
   blues: {
     id: 'blues',
-    label: CVD_PALETTES.blues.label,
-    note: CVD_PALETTES.blues.note,
     cvdSafe: true,
     ramp: CVD_PALETTES.blues.ramp,
   },
@@ -353,16 +328,17 @@ export interface MetricContext {
   scenario: MapScenarioKey;
 }
 
+/**
+ * How one choropleth metric is read, converted and coloured.
+ *
+ * Its label, legend title and unit are copy and live in messages under
+ * Map.metrics.<key>; components read them through `useMetricText()`.
+ */
 export interface MetricSpec {
   key: DisplayMetric;
-  toggleLabel: string;
   icon: string;
   /** Tailwind bg for the active toggle button. */
   activeClass: string;
-  /** Legend header, includes the display unit. */
-  legendTitle: string;
-  /** Short unit suffix for popups. */
-  unit: string;
   /**
    * The metric's own low→high colour ramp, RAMP_TIERS long. Overridden in
    * daltonic mode — see rampFor.
@@ -425,12 +401,9 @@ const perDay = (yearly: number) => yearly / DAYS_PER_YEAR;
 export const METRIC_SPECS: Record<DisplayMetric, MetricSpec> = {
   biomass_tons: {
     key: 'biomass_tons',
-    toggleLabel: 'Biomassa',
     icon: '🌿',
     activeClass: 'bg-green-600',
-    legendTitle: 'Biomassa (t/ano)',
     ramp: RAMP_DEFAULT, // YlGnBu — a escala historica da plataforma, preservada
-    unit: 't/ano',
     rawValue: (p, c) => getBiomassMapValue(p, c.biomassType, c.selectedResidues),
     toDisplay: (v) => v,
     breaks: [8_000, 21_000, 53_000, 135_000, 340_000, 865_000, 2_200_000],
@@ -441,12 +414,9 @@ export const METRIC_SPECS: Record<DisplayMetric, MetricSpec> = {
   // methane-recovery number) instead of the ~0.53 volumetric yield.
   biogas_m3: {
     key: 'biogas_m3',
-    toggleLabel: 'Biogás',
     icon: '⚡',
     activeClass: 'bg-blue-600',
-    legendTitle: 'Biogás (Nm³/dia)',
     ramp: RAMP_BLUES, // azul, como o botao bg-blue-600
-    unit: 'Nm³/dia',
     rawValue: (p, c) => getBiogasScenarioValue(p, c.scenario, c.selectedResidues),
     toDisplay: perDay,
     breaks: [2_000, 4_500, 9_500, 20_000, 44_000, 94_000, 200_000],
@@ -454,36 +424,27 @@ export const METRIC_SPECS: Record<DisplayMetric, MetricSpec> = {
   // Methane only — what BMP actually predicts, and the basis for bioenergia.
   methane_m3: {
     key: 'methane_m3',
-    toggleLabel: 'Metano',
     icon: '🔬',
     activeClass: 'bg-cyan-600',
-    legendTitle: 'Metano CH₄ (Nm³/dia)',
     ramp: RAMP_GNBU, // ciano, como o botao bg-cyan-600
-    unit: 'Nm³/dia',
     rawValue: (p, c) => getMethaneScenarioValue(p, c.scenario, c.selectedResidues),
     toDisplay: perDay,
     breaks: [1_300, 2_800, 6_000, 12_800, 27_500, 59_000, 126_000],
   },
   biomethane_m3: {
     key: 'biomethane_m3',
-    toggleLabel: 'Biometano',
     icon: '🔥',
     activeClass: 'bg-orange-600',
-    legendTitle: 'Biometano (Nm³/dia)',
     ramp: RAMP_YLORBR, // laranja, como o botao bg-orange-600
-    unit: 'Nm³/dia',
     rawValue: (p, c) => getBiomethaneScenarioValue(p, c.scenario, c.selectedResidues),
     toDisplay: perDay,
     breaks: [1_300, 2_800, 6_000, 12_800, 27_500, 59_000, 126_000],
   },
   bioenergy_mwh: {
     key: 'bioenergy_mwh',
-    toggleLabel: 'Bioenergia',
     icon: '🔋',
     activeClass: 'bg-purple-600',
-    legendTitle: 'Bioenergia (MWh/ano)',
     ramp: RAMP_BUPU, // roxo, como o botao bg-purple-600
-    unit: 'MWh/ano',
     rawValue: (p, c) => getBioenergyScenarioValue(p, c.scenario, c.selectedResidues),
     toDisplay: (v) => v, // already MWh/yr
     breaks: [4_700, 10_000, 22_000, 47_000, 100_000, 214_000, 460_000],
@@ -495,11 +456,8 @@ export const METRIC_SPECS: Record<DisplayMetric, MetricSpec> = {
   // ladder below only matters when nothing is on screen.
   ch4_per_capita: {
     key: 'ch4_per_capita',
-    toggleLabel: 'Per capita',
     icon: '👥',
     activeClass: 'bg-fuchsia-600',
-    legendTitle: 'Biometano per capita (Nm³/hab·ano)',
-    unit: 'Nm³/hab·ano',
     rawValue: (p, c) => getMethanePerCapitaValue(p, c.scenario, c.selectedResidues),
     toDisplay: (v) => v,
     breaks: [10, 30, 80, 200, 500, 1_200, 3_000],
@@ -548,23 +506,13 @@ export function getMetricColor(
   return ramp[Math.min(b.length, ramp.length - 1)];
 }
 
-/** Compact display-unit formatter (e.g. 1.2M, 250K, 900). */
-export function formatCompact(v: number): string {
-  if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(v >= 10_000_000 ? 0 : 1)}M`;
-  if (v >= 1_000) return `${(v / 1_000).toFixed(v >= 10_000 ? 0 : 1)}K`;
-  return `${Math.round(v)}`;
-}
-
-/** Full display value for one municipality + metric, e.g. "12.3K Nm³/dia". */
-export function formatMetricValue(rawYearly: number | null, spec: MetricSpec): string {
-  if (rawYearly === null) return 'sem dados';
-  return `${formatCompact(spec.toDisplay(rawYearly))} ${spec.unit}`;
-}
-
-export interface LegendItem {
-  color: string;
-  label: string;
-}
+/** One legend row: a colour and what it stands for, without any copy. */
+export type LegendRow =
+  | { kind: 'above'; color: string; from: number }
+  | { kind: 'range'; color: string; from: number; to: number }
+  | { kind: 'below'; color: string; to: number }
+  | { kind: 'zero'; color: string }
+  | { kind: 'noData'; color: string };
 
 /**
  * Legend rows (ramp tiers high→low + zero + no_data) in the metric's display
@@ -577,7 +525,7 @@ export function legendItems(
   paletteId?: CvdPaletteId,
   breaks?: number[] | null,
   mapPaletteId?: MapPaletteId
-): LegendItem[] {
+): LegendRow[] {
   // Same precedence as getMetricColor: daltonic → explicit thematic palette →
   // per-metric hue. Keeps the legend swatches identical to the painted map.
   const ramp = daltonic
@@ -586,15 +534,37 @@ export function legendItems(
       ? getPaletteRamp(mapPaletteId)
       : spec.ramp;
   const b = breaks && breaks.length ? breaks : spec.breaks;
-  const f = formatCompact;
-  const rows: LegendItem[] = [
-    { color: ramp[Math.min(b.length, ramp.length - 1)], label: `> ${f(b[b.length - 1])}` },
+  const rows: LegendRow[] = [
+    { kind: 'above', color: ramp[Math.min(b.length, ramp.length - 1)], from: b[b.length - 1] },
   ];
   for (let i = b.length - 1; i > 0; i--) {
-    rows.push({ color: ramp[i], label: `${f(b[i - 1])} – ${f(b[i])}` });
+    rows.push({ kind: 'range', color: ramp[i], from: b[i - 1], to: b[i] });
   }
-  rows.push({ color: ramp[0], label: `< ${f(b[0])}` });
-  rows.push({ color: ZERO_FILL, label: 'Zero' });
-  rows.push({ color: NO_DATA_FILL, label: 'Sem dados' });
+  rows.push({ kind: 'below', color: ramp[0], to: b[0] });
+  rows.push({ kind: 'zero', color: ZERO_FILL });
+  rows.push({ kind: 'noData', color: NO_DATA_FILL });
   return rows;
+}
+
+/**
+ * The text for a legend row. `formatValue` is the locale's compact formatter
+ * (e.g. `useFormat().compact`); the two labels come from the catalog.
+ */
+export function describeLegendRow(
+  row: LegendRow,
+  formatValue: (value: number) => string,
+  labels: { zero: string; noData: string }
+): string {
+  switch (row.kind) {
+    case 'above':
+      return `> ${formatValue(row.from)}`;
+    case 'range':
+      return `${formatValue(row.from)} – ${formatValue(row.to)}`;
+    case 'below':
+      return `< ${formatValue(row.to)}`;
+    case 'zero':
+      return labels.zero;
+    case 'noData':
+      return labels.noData;
+  }
 }

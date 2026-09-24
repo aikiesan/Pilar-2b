@@ -55,7 +55,9 @@ export async function measurePerformance<T>(
 export async function retryOperation<T>(
   operation: () => Promise<T>,
   maxRetries: number = 3,
-  initialDelay: number = 1000
+  initialDelay: number = 1000,
+  /** Whether a failure is worth another attempt; a rejected request usually is not. */
+  shouldRetry: (error: unknown) => boolean = () => true
 ): Promise<T> {
   let lastError: Error
   
@@ -64,6 +66,7 @@ export async function retryOperation<T>(
       return await operation()
     } catch (error) {
       lastError = error as Error
+      if (!shouldRetry(error)) throw error
       
       if (attempt < maxRetries) {
         const delay = initialDelay * Math.pow(2, attempt) // Exponential backoff

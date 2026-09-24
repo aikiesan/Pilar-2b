@@ -13,7 +13,7 @@ import { useTranslations } from 'next-intl';
 import { MapContainer, TileLayer, ScaleControl, ZoomControl, useMap } from 'react-leaflet';
 import dynamic from 'next/dynamic';
 import { useGeospatialData, useCodigestionClusters, useResidueCNMatrix, useIntermediateRegionsGeoJSON } from '@/hooks/useGeospatialData';
-import type { FilterCriteria } from '@/components/dashboard/FilterPanel';
+import type { FilterCriteria, BiomassType, ResidueType, VisualizationMode } from '@/types/map';
 import type { MunicipalityCollection, MunicipalityFeature, DisplayMetric, CodigestionCluster } from '@/types/geospatial';
 import { MAP_SCENARIOS, DEFAULT_MAP_SCENARIO, applyScenarioToProps, isServedScenario, type MapScenarioKey } from '@/data/scenarioFactors';
 import { DISPLAY_METRICS, getMetricSpec, computeAdaptiveBreaks, DEFAULT_MAP_PALETTE } from '@/lib/mapMetrics';
@@ -23,8 +23,9 @@ import { useTypologyProfiles } from '@/hooks/useTypologyProfiles';
 import { useBetaAccess } from '@/lib/betaAccess';
 import {
   TIPOLOGIA_COLORS, REGIME_COLORS, TIPOLOGIA_ORDER, REGIME_ORDER,
-  REGIME_LABELS,
+  TIPOLOGIA_KEY, REGIME_KEY,
 } from '@/lib/typologyScale';
+import type { Messages } from '@/types/i18n';
 import { hasAnySelectedResidue } from '@/lib/mapValues';
 import { BASEMAPS, DEFAULT_BASEMAP, type BasemapId } from '@/data/basemaps';
 import type { ThematicPreset } from '@/data/thematicPresets';
@@ -37,8 +38,6 @@ import {
   SP_MUNICIPALITY_COUNT,
   MG_MUNICIPALITY_COUNT,
 } from '@/lib/mapScope';
-import type { BiomassType, ResidueType } from './FloatingControlPanel';
-import type { VisualizationMode } from './LeftFilterPanel';
 import { type ColorMode } from '@/types/geospatial';
 import type { InfrastructureLayerStatus, NationalLayer } from './InfrastructureLayer';
 import {
@@ -179,6 +178,49 @@ function parseScopeParam(raw: string | null): MapScope {
 // highways 261 KB — the heaviest single layer, and only if asked for.
 const SP_BBOX_PARAM = '-53.2,-25.4,-44.1,-19.7';
 
+type MapLayerId = keyof Messages['Map']['layerNames'];
+
+interface MapLayerState {
+  id: MapLayerId;
+  visible: boolean;
+  icon: string;
+}
+
+// Snake_case ids are national PostGIS layers (migration 023, MapBiomas 10.1);
+// hyphenated ids are the remaining São Paulo shapefile layers. The national
+// layers supersede their SP counterparts (they cover SP too — e.g. 51 of the
+// 543 biogas plants are in SP), so the SP versions of plants/substations/
+// transmission/pipelines are retired here rather than listed twice.
+// ETEs and highways stay SP-only: there is no national equivalent loaded yet.
+const INITIAL_LAYERS: MapLayerState[] = [
+  { id: 'municipalities', visible: true, icon: '📍' },
+  // São Paulo is the canonical scope and the first thing a visitor should see, so the
+  // Minas Gerais pilot starts hidden. Users opt into it from the layer panel.
+  { id: MG_BETA_LAYER_ID, visible: false, icon: '🧪' },
+  { id: 'intermediate-regions', visible: false, icon: '🗺️' },
+  { id: 'mapbiomas', visible: false, icon: '🌳' },
+  { id: 'biogas_plant', visible: false, icon: '🏭' },
+  { id: 'ethanol_plant', visible: false, icon: '🌾' },
+  { id: 'biomass_thermal_plant', visible: false, icon: '🔥' },
+  { id: 'biodiesel_plant', visible: false, icon: '🛢️' },
+  { id: 'slaughterhouse', visible: false, icon: '🥩' },
+  { id: 'substation', visible: false, icon: '⚡' },
+  { id: 'transmission_line', visible: false, icon: '🔌' },
+  { id: 'gas_pipeline_transport', visible: false, icon: '🔧' },
+  { id: 'gas_pipeline_distribution', visible: false, icon: '🔩' },
+  { id: 'gas_delivery_point', visible: false, icon: '🔷' },
+  { id: 'compression_station', visible: false, icon: '🔶' },
+  { id: 'gas_processing_unit', visible: false, icon: '🔹' },
+  { id: 'gas_pipeline_outflow', visible: false, icon: '🧵' },
+  { id: 'protected_area_state', visible: false, icon: '🌲' },
+  { id: 'indigenous_territory', visible: false, icon: '🪶' },
+  { id: 'settlement', visible: false, icon: '🏘️' },
+  { id: 'highway_state', visible: false, icon: '🛣️' },
+  { id: 'highway_federal', visible: false, icon: '🛤️' },
+  { id: 'etes', visible: false, icon: '💧' },
+  { id: 'railways', visible: false, icon: '🛣️' },
+];
+
 const NATIONAL_INFRA_LAYERS: {
   id: NationalLayer;
   uf?: string;
@@ -238,7 +280,18 @@ export default function MapComponent({
   onSearchChange,
 }: MapComponentProps = {}) {
   const t = useTranslations('Map');
+  const tCommon = useTranslations('common');
   const { data, loading, error } = useGeospatialData();
+
+  // Backend typology/regime values are identifiers; show their catalog label.
+  const typologyLabel = (isTypology: boolean, value: string): string => {
+    if (isTypology) {
+      const key = TIPOLOGIA_KEY[value];
+      return key ? t(`typology.classes.${key}`) : value;
+    }
+    const key = REGIME_KEY[value];
+    return key ? t(`typology.regime.${key}`) : value;
+  };
 
   // ── URL state sync (client-only, safe since ssr:false) ─────────────────────
   const readURLParam = (key: string): string | null => {
@@ -527,40 +580,14 @@ export default function MapComponent({
   }, []);
 
   // ── Layer state ─────────────────────────────────────────────────────────────
-  // Snake_case ids are national PostGIS layers (migration 023, MapBiomas 10.1);
-  // hyphenated ids are the remaining São Paulo shapefile layers. The national
-  // layers supersede their SP counterparts (they cover SP too — e.g. 51 of the
-  // 543 biogas plants are in SP), so the SP versions of plants/substations/
-  // transmission/pipelines are retired here rather than listed twice.
-  // ETEs and Rodovias stay SP-only: there is no national equivalent loaded yet.
-  const [layers, setLayers] = useState([
-    { id: 'municipalities', name: 'Municípios SP + MG beta', visible: true, icon: '📍' },
-    // São Paulo is the canonical scope and the first thing a visitor should see, so the
-    // Minas Gerais pilot starts hidden. Users opt into it from the layer panel.
-    { id: MG_BETA_LAYER_ID, name: 'Municípios de Minas Gerais (BETA)', visible: false, icon: '🧪' },
-    { id: 'intermediate-regions', name: 'Regiões Intermediárias (IBGE)', visible: false, icon: '🗺️' },
-    { id: 'mapbiomas', name: 'MapBiomas 2024', visible: false, icon: '🌳' },
-    { id: 'biogas_plant', name: 'Usinas de Biogás (MapBiomas, BR)', visible: false, icon: '🏭' },
-    { id: 'ethanol_plant', name: 'Usinas de Etanol (MapBiomas, BR)', visible: false, icon: '🌾' },
-    { id: 'biomass_thermal_plant', name: 'UTEs a Biomassa (MapBiomas, BR)', visible: false, icon: '🔥' },
-    { id: 'biodiesel_plant', name: 'Usinas de Biodiesel (MapBiomas, BR)', visible: false, icon: '🛢️' },
-    { id: 'slaughterhouse', name: 'Frigoríficos (MapBiomas, BR)', visible: false, icon: '🥩' },
-    { id: 'substation', name: 'Subestações (MapBiomas, BR)', visible: false, icon: '⚡' },
-    { id: 'transmission_line', name: 'Linhas de Transmissão (MapBiomas, BR)', visible: false, icon: '🔌' },
-    { id: 'gas_pipeline_transport', name: 'Gasodutos de Transporte (MapBiomas, BR)', visible: false, icon: '🔧' },
-    { id: 'gas_pipeline_distribution', name: 'Gasodutos de Distribuição (MapBiomas, BR)', visible: false, icon: '🔩' },
-    { id: 'gas_delivery_point', name: 'Pontos de Entrega de Gás (MapBiomas, BR)', visible: false, icon: '🔷' },
-    { id: 'compression_station', name: 'Estações de Compressão (MapBiomas, BR)', visible: false, icon: '🔶' },
-    { id: 'gas_processing_unit', name: 'UPGNs (MapBiomas, BR)', visible: false, icon: '🔹' },
-    { id: 'gas_pipeline_outflow', name: 'Gasodutos de Escoamento (MapBiomas, BR)', visible: false, icon: '🧵' },
-    { id: 'protected_area_state', name: 'UCs de Proteção Integral (MapBiomas, BR)', visible: false, icon: '🌲' },
-    { id: 'indigenous_territory', name: 'Terras Indígenas (MapBiomas, BR)', visible: false, icon: '🪶' },
-    { id: 'settlement', name: 'Assentamentos (MapBiomas, BR)', visible: false, icon: '🏘️' },
-    { id: 'highway_state', name: 'Rodovias Estaduais pavimentadas (MapBiomas, BR)', visible: false, icon: '🛣️' },
-    { id: 'highway_federal', name: 'Rodovias Federais pavimentadas (MapBiomas, BR)', visible: false, icon: '🛤️' },
-    { id: 'etes', name: 'ETEs (SNIS, 2023 — SP)', visible: false, icon: '💧' },
-    { id: 'railways', name: 'Rodovias (EPE, 2023 — SP)', visible: false, icon: '🛣️' },
-  ]);
+  // Names are copy (Map.layerNames.<id>) and are attached at render time, so
+  // they always follow the page locale; state holds only id, visibility, icon.
+  const [layers, setLayers] = useState<MapLayerState[]>(INITIAL_LAYERS);
+  const tLayerNames = useTranslations('Map.layerNames');
+  const namedLayers = useMemo(
+    () => layers.map((layer) => ({ ...layer, name: tLayerNames(layer.id) })),
+    [layers, tLayerNames]
+  );
   const [infrastructureStatuses, setInfrastructureStatuses] = useState<Record<string, InfrastructureLayerStatus>>({});
 
   const [showMapBiomasLegend, setShowMapBiomasLegend] = useState(false);
@@ -639,14 +666,14 @@ export default function MapComponent({
   }, [visualizationMode, biomassType, selectedResidues, displayMetric, searchQuery, onBiomassTypeChange, syncURL]);
 
   const visibleLayerIds = useMemo(
-    () => layers.filter(l => l.visible).map(l => l.id),
+    () => layers.filter(l => l.visible).map((l): string => l.id),
     [layers]
   );
   // Every plant layer on the map, so the legend explains all of them and only
-  // them. `biogas-plants` is the legacy SP layer, which draws several subtypes
-  // under one id — the legend expands it accordingly.
+  // them. (The legacy SP `biogas-plants` layer is retired from INITIAL_LAYERS;
+  // the legend still knows how to expand it should it come back.)
   const visiblePlantLayerIds = useMemo(
-    () => visibleLayerIds.filter(id => isPlantLayer(id) || id === 'biogas-plants'),
+    () => visibleLayerIds.filter(isPlantLayer),
     [visibleLayerIds]
   );
   // Declared here, above the filtering memo, because the scope filter has to
@@ -664,14 +691,8 @@ export default function MapComponent({
     setInfrastructureStatuses(prev => ({ ...prev, [status.layerType]: status }));
   }, []);
   const getLayerLabel = useCallback((layerId: string) => {
-    return layers.find(layer => layer.id === layerId)?.name || layerId;
-  }, [layers]);
-
-  // ── Derive biomass attribute for BubbleChartLayer ─────────────────────────
-  const metricSuffix = displayMetric === 'biomass_tons' ? 'biomass_tons_year' : 'biogas_m3_year';
-  const biomassAttribute = biomassType === 'total'
-    ? `total_${metricSuffix}`
-    : `${biomassType}_${metricSuffix}`;
+    return namedLayers.find(layer => layer.id === layerId)?.name || layerId;
+  }, [namedLayers]);
 
   // ── Scenario scaling (per-residue, per-municipality) ────────────────────────
   // Baseline = "Médio Prazo". Other scenarios scale each *_biogas_m3_year field by
@@ -819,7 +840,7 @@ export default function MapComponent({
   const isMgScope = scope === '31';
   const activeScopeCount = activeStateData.features.length;
   const activeScopeTotal = isMgScope ? MG_MUNICIPALITY_COUNT : SP_MUNICIPALITY_COUNT;
-  const activeStateName = getState(scope)?.nome ?? 'São Paulo';
+  const activeStateName = getState(scope)?.nome ?? 'São Paulo'; // i18n-exempt: proper noun
 
   const activeBasemap = BASEMAPS[basemap];
 
@@ -838,7 +859,7 @@ export default function MapComponent({
           onVisualizationModeChange={handleVisualizationModeChange}
           opacity={opacity}
           onOpacityChange={handleOpacityChange}
-          layers={layers}
+          layers={namedLayers}
           onLayerToggle={handleLayerToggle}
           municipalityCount={activeScopeCount}
           totalMunicipalities={activeScopeTotal}
@@ -959,12 +980,12 @@ export default function MapComponent({
             type="button"
             onClick={toggleDaltonic}
             aria-pressed={daltonic}
-            title="Modo daltônico — paleta segura para daltonismo"
+            title={t('daltonic.title')}
             className={`rounded-full px-2.5 py-1 text-[11px] font-medium transition-all ${
               daltonic ? 'bg-slate-700 text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100'
             }`}
           >
-            👁 Daltônico
+            👁 {t('daltonic.toggle')}
           </button>
         </div>
 
@@ -1036,7 +1057,14 @@ export default function MapComponent({
                   onMunicipalityHover={visualizationMode === 'clusters' ? undefined : handleMunicipalityHover}
                 />
               ) : visualizationMode === 'bubble' ? (
-                <BubbleChartLayer data={activeStateData} opacity={opacity} attribute={biomassAttribute} />
+                <BubbleChartLayer
+                  data={activeStateData}
+                  opacity={opacity}
+                  metric={displayMetric}
+                  biomassType={biomassType}
+                  selectedResidues={selectedResidues}
+                  scenario={mapScenario}
+                />
               ) : (
                 <HeatmapLayer data={activeStateData} selectedResidues={selectedResidues} opacity={opacity} />
               )}
@@ -1115,10 +1143,10 @@ export default function MapComponent({
                 role="status"
               >
                 <p className="font-semibold">
-                  {getLayerLabel(status.layerType)} indisponível
+                  {t('layerAlert.unavailable', { layer: getLayerLabel(status.layerType) })}
                 </p>
                 <p className="mt-1 leading-snug">
-                  {status.message || 'O servidor retornou uma camada vazia.'}
+                  {status.state === 'error' ? t('layerAlert.error') : t('layerAlert.empty')}
                 </p>
               </div>
             ))}
@@ -1213,7 +1241,7 @@ export default function MapComponent({
             <div className="bg-white rounded-lg px-3 py-2 shadow-lg border border-gray-200 text-xs max-w-[15rem]">
               <p className="font-semibold text-gray-900 mb-1.5 flex items-center gap-1.5">
                 {t(isTip ? 'colorModes.tipologia' : 'colorModes.regime')}
-                <span className="rounded bg-amber-100 px-1 py-0.5 text-[9px] font-bold uppercase text-amber-800">Beta</span>
+                <span className="rounded bg-amber-100 px-1 py-0.5 text-[9px] font-bold uppercase text-amber-800">{tCommon('badge.beta')}</span>
               </p>
               {order.filter((label) => counts.has(label)).map((label) => {
                 const on = highlightClass === label;
@@ -1227,7 +1255,7 @@ export default function MapComponent({
                     }`}
                   >
                     <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: colors[label] }} />
-                    <span className="text-gray-800 truncate">{isTip ? label : (REGIME_LABELS[label] ?? label)}</span>
+                    <span className="text-gray-800 truncate">{typologyLabel(isTip, label)}</span>
                     <span className="text-gray-500 ml-auto pl-2 tabular-nums">{counts.get(label)}</span>
                   </button>
                 );
@@ -1285,7 +1313,7 @@ export default function MapComponent({
                       <button
                         type="button"
                         onClick={() => setLegendOpenMobile(false)}
-                        aria-label="Recolher legenda"
+                        aria-label={t('legend.collapse')}
                         className="absolute -top-2 -right-2 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-white shadow ring-1 ring-black/10"
                       >
                         <span className="block text-base leading-none text-gray-500">×</span>
@@ -1299,7 +1327,7 @@ export default function MapComponent({
                       className="flex min-h-11 items-center gap-1.5 rounded-full bg-white/95 px-3.5 py-2.5 text-xs font-semibold text-gray-700 shadow-lg ring-1 ring-black/5 backdrop-blur"
                     >
                       <span className="h-2.5 w-8 rounded-full bg-gradient-to-r from-[#eff3ff] via-[#6baed6] to-[#08519c]" aria-hidden="true" />
-                      Legenda
+                      {t('legend.title')}
                     </button>
                   )}
                 </div>
@@ -1333,7 +1361,7 @@ export default function MapComponent({
           onVisualizationModeChange={handleVisualizationModeChange}
           opacity={opacity}
           onOpacityChange={handleOpacityChange}
-          layers={layers}
+          layers={namedLayers}
           onLayerToggle={handleLayerToggle}
           municipalityCount={activeScopeCount}
           totalMunicipalities={activeScopeTotal}

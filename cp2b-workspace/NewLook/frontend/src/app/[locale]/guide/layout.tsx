@@ -88,9 +88,9 @@ export default function GuideLayout({
       </aside>
 
       {/* Área de Conteúdo Dinâmico (Direita) */}
-      <main className="flex-1 md:ml-64 p-8 max-w-5xl relative">
+      <div className="flex-1 md:ml-64 p-8 max-w-5xl relative">
         {children}
-      </main>
+      </div>
 
       {/* Controlador de Onboarding e Botão Flutuante de Ajuda */}
       <GuideTourController />

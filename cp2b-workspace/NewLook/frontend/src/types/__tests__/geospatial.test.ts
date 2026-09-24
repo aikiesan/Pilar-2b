@@ -13,9 +13,8 @@ import type {
   MunicipalityCollection,
 } from '../geospatial'
 import type {
-  ProximityAnalysisResponse,
-  MunicipalityData,
-  BiogasBreakdown,
+  ProximityAnalysisResult,
+  ProximityMunicipality,
 } from '../../services/proximityApi'
 
 // ---------------------------------------------------------------------------
@@ -38,13 +37,14 @@ function isMunicipalityFeature(obj: unknown): obj is MunicipalityFeature {
   )
 }
 
-function hasProximityShape(obj: unknown): obj is ProximityAnalysisResponse {
+function hasProximityShape(obj: unknown): obj is ProximityAnalysisResult {
   if (typeof obj !== 'object' || obj === null) return false
   const r = obj as Record<string, unknown>
   return (
-    typeof r['analysis_point'] === 'object' &&
-    typeof r['radius_km'] === 'number' &&
-    typeof r['summary'] === 'object'
+    typeof r['request'] === 'object' &&
+    typeof r['results'] === 'object' &&
+    typeof r['summary'] === 'object' &&
+    typeof r['metadata'] === 'object'
   )
 }
 
@@ -241,84 +241,57 @@ describe('MunicipalityProperties — known gaps', () => {
 })
 
 // ---------------------------------------------------------------------------
-// ProximityAnalysisResponse
+// ProximityAnalysisResult — the /proximity/analyze response as the backend sends it
 // ---------------------------------------------------------------------------
 
-describe('ProximityAnalysisResponse', () => {
-  const validSummary = {
-    total_municipalities: 3,
-    total_population: 450000,
-    avg_distance_km: 12.5,
-    total_biogas_m3_year: 2000000,
-  }
-
-  const validResponse: ProximityAnalysisResponse = {
-    analysis_point: { latitude: -23.5, longitude: -46.6 },
-    radius_km: 20,
-    land_use: {
-      total_area_km2: 1256.6,
-      by_class: {},
-      dominant_class: 'Pastagem',
-      agricultural_percent: 42.3,
+describe('ProximityAnalysisResult', () => {
+  const validResponse: ProximityAnalysisResult = {
+    analysis_id: 'a1',
+    request: { latitude: -23.5, longitude: -46.6, radius_km: 20 },
+    results: {
+      buffer_geometry: null,
+      municipalities: [],
+      land_use: {
+        total_area_km2: 1256.6,
+        by_class: {},
+        dominant_class: 'Pastagem',
+        agricultural_percent: 42.3,
+      },
     },
-    municipalities: [],
-    biogas_potential: { agricultural: 0, livestock: 0, urban: 0, total: 0 },
-    infrastructure: [],
-    summary: validSummary,
-    processing_time_seconds: 1.23,
+    summary: {
+      total_area_km2: 1256.6,
+      total_municipalities: 3,
+      total_population: 450000,
+      total_biogas_m3_year: 2000000,
+      energy_potential_mwh_year: 1000,
+      radius_recommendation: 'optimal',
+    },
+    metadata: { analysis_timestamp: '2026-09-23T12:00:00Z', processing_time_ms: 1230 },
   }
 
   it('is accepted by the shape guard', () => {
     expect(hasProximityShape(validResponse)).toBe(true)
   })
 
-  it('summary fields are all numeric', () => {
+  it('summary figures are numeric', () => {
     const s = validResponse.summary
     expect(typeof s.total_municipalities).toBe('number')
     expect(typeof s.total_population).toBe('number')
-    expect(typeof s.avg_distance_km).toBe('number')
     expect(typeof s.total_biogas_m3_year).toBe('number')
   })
 
-  it('analysis_point has numeric lat and lng', () => {
-    const p = validResponse.analysis_point
-    expect(typeof p.latitude).toBe('number')
-    expect(typeof p.longitude).toBe('number')
-  })
-
-  it('is rejected by the shape guard when analysis_point is missing', () => {
-    const bad = { radius_km: 10, summary: validSummary }
+  it('is rejected by the shape guard when results are missing', () => {
+    const { results: _results, ...bad } = validResponse
     expect(hasProximityShape(bad)).toBe(false)
   })
 
-  it('is rejected by the shape guard when summary is missing', () => {
-    const bad = {
-      analysis_point: { latitude: -23.5, longitude: -46.6 },
-      radius_km: 10,
-    }
+  it('is rejected by the shape guard when metadata is missing', () => {
+    const { metadata: _metadata, ...bad } = validResponse
     expect(hasProximityShape(bad)).toBe(false)
   })
 
-  it('MunicipalityData has required fields', () => {
-    const m: MunicipalityData = {
-      name: 'Campinas',
-      ibge_code: '3509502',
-      distance_km: 8.2,
-      biogas_m3_year: 150000,
-      population: 1213792,
-    }
+  it('a municipality needs only its name', () => {
+    const m: ProximityMunicipality = { name: 'Campinas', distance_km: 8.2 }
     expect(m.name).toBe('Campinas')
-    expect(typeof m.distance_km).toBe('number')
-    expect(typeof m.biogas_m3_year).toBe('number')
-  })
-
-  it('BiogasBreakdown totals match sum of sectors', () => {
-    const b: BiogasBreakdown = {
-      agricultural: 100000,
-      livestock: 200000,
-      urban: 50000,
-      total: 350000,
-    }
-    expect(b.total).toBe(b.agricultural + b.livestock + b.urban)
   })
 })

@@ -1,10 +1,15 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
+import type { Messages } from '@/types/i18n'
 import type { OutputType } from '../calculatorEngine'
 import type { OutputResult } from '../calculatorEngine'
+import { useCalculatorText } from '../useCalculatorText'
 
-const OUTPUT_OPTIONS: { key: OutputType; emoji: string; labelKey: string; descKey: string }[] = [
+/** A key under calculator.step4 — checked against the catalog. */
+type Step4Key = keyof Messages['calculator']['step4']
+
+const OUTPUT_OPTIONS: { key: OutputType; emoji: string; labelKey: Step4Key; descKey: Step4Key }[] = [
   { key: 'energy',     emoji: '⚡', labelKey: 'energy',     descKey: 'energyDesc'     },
   { key: 'biomethane', emoji: '⛽', labelKey: 'biomethane', descKey: 'biomethaneDesc' },
   { key: 'digestate',  emoji: '🌱', labelKey: 'digestate',  descKey: 'digestateDesc'  },
@@ -21,21 +26,9 @@ interface Props {
   previewOutputs: OutputResult | null
 }
 
-function fmtPreview(type: OutputType, outputs: OutputResult): string {
-  const f = (n: number, d = 0) => n.toLocaleString('pt-BR', { maximumFractionDigits: d })
-  switch (type) {
-    case 'energy':     return `${f(outputs.energyKwhYear / 1000, 1)} MWh/ano`
-    case 'biomethane': return `${f(outputs.biomethaneM3Year)} m³/ano`
-    case 'digestate':  return `${f(outputs.digestateTonsYear)} t/ano`
-    case 'thermal':    return `${f(outputs.thermalMjYear / 1000)} GJ/ano`
-    case 'biochar':    return `${f(outputs.biocharTonsYear, 1)} t/ano`
-    case 'carbon':     return `${f(outputs.co2TonsYear, 1)} tCO₂eq`
-  }
-}
-
-
 export default function StepOutputs({ selected, onChange, onNext, onBack, previewOutputs }: Props) {
   const t = useTranslations('calculator')
+  const text = useCalculatorText()
 
   function toggle(key: OutputType) {
     if (selected.includes(key)) {
@@ -73,7 +66,7 @@ export default function StepOutputs({ selected, onChange, onNext, onBack, previe
                 <p className="text-xs text-gray-500 dark:text-slate-400 truncate">{t(`step4.${descKey}`)}</p>
                 {hasPreview && active && (
                   <p className="text-xs text-green-700 dark:text-emerald-400 font-medium mt-0.5">
-                    {fmtPreview(key, previewOutputs!)}
+                    {text.outputValue(key, previewOutputs!)}
                   </p>
                 )}
               </div>

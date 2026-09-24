@@ -83,12 +83,12 @@ export default function AboutPage() {
   // that job, so translating it would silently have changed the colours.
   const partnerships = [
     { name: 'Aalborg University', key: 'aalborg', typeKey: 'international' },
-    { name: 'CIBiogás', key: 'cibiogas', typeKey: 'national' },
+    { name: 'CIBiogás', key: 'cibiogas', typeKey: 'national' }, // i18n-exempt: organization name
     { name: 'LABIOEN/UNICAMP', key: 'labioen', typeKey: 'institutional' },
     { name: 'USP-RCGI', key: 'usp_rcgi', typeKey: 'research' },
     { name: 'UNESP', key: 'unesp', typeKey: 'academic' },
     { name: 'UNICA', key: 'unica', typeKey: 'industry' },
-    { name: 'Abiogás', key: 'abiogas', typeKey: 'association' },
+    { name: 'Abiogás', key: 'abiogas', typeKey: 'association' }, // i18n-exempt: organization name
     { name: 'ABREMA', key: 'abrema', typeKey: 'association' },
   ]
 
@@ -241,6 +241,7 @@ export default function AboutPage() {
                       />
                     </div>
                     <h3 className="text-xl font-bold text-white">{t('coordinator_degree')}</h3>
+                    {/* i18n-exempt: person's name */}
                     <p className="text-green-100">Bruna de Souza Moraes</p>
                   </div>
                 </div>

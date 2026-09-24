@@ -13,6 +13,7 @@ import {
 } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
 import { useTranslations } from 'next-intl';
+import { useFormat } from '@/hooks/useFormat';
 import { HistogramBin, DistributionStatistics } from '@/services/analysisApi';
 
 // Register Chart.js components
@@ -39,10 +40,13 @@ export default function DistributionHistogram({
   loading = false
 }: DistributionHistogramProps) {
   const t = useTranslations('charts');
+  const tCommon = useTranslations('common');
+  const format = useFormat();
 
   // Prepare chart data
   const chartData: ChartData<'bar'> = {
-    labels: histogram.map(bin => bin.label),
+    // The backend's own bin label is English-formatted ("0.5-1.2M"); build it here.
+    labels: histogram.map(bin => `${format.compact(bin.bin_start)}–${format.compact(bin.bin_end)}`),
     datasets: [
       {
         label: t('histogram_dataset'),
@@ -76,7 +80,7 @@ export default function DistributionHistogram({
           title: (tooltipItems) => {
             const index = tooltipItems[0].dataIndex;
             const bin = histogram[index];
-            return `${(bin.bin_start / 1000000).toFixed(2)} - ${(bin.bin_end / 1000000).toFixed(2)} M m³/year`;
+            return `${format.compact(bin.bin_start, { decimals: 2 })} – ${format.compact(bin.bin_end, { decimals: 2 })} ${tCommon('units.m3_year')}`;
           },
           label: (context) => {
             return `${context.parsed.y ?? 0}`;
@@ -168,19 +172,19 @@ export default function DistributionHistogram({
           <div className="bg-gradient-to-br from-blue-50 to-white rounded-lg p-3 border border-blue-100">
             <span className="text-gray-600 block mb-1">{t('histogram_mean')}</span>
             <span className="font-bold text-blue-900 text-base">
-              {(statistics.mean / 1000000).toFixed(2)}M
+              {format.compact(statistics.mean, { decimals: 2 })}
             </span>
           </div>
           <div className="bg-gradient-to-br from-teal-50 to-white rounded-lg p-3 border border-teal-100">
             <span className="text-gray-600 block mb-1">{t('histogram_median')}</span>
             <span className="font-bold text-teal-900 text-base">
-              {(statistics.median / 1000000).toFixed(2)}M
+              {format.compact(statistics.median, { decimals: 2 })}
             </span>
           </div>
           <div className="bg-gradient-to-br from-orange-50 to-white rounded-lg p-3 border border-orange-100">
             <span className="text-gray-600 block mb-1">{t('histogram_std_dev')}</span>
             <span className="font-bold text-orange-900 text-base">
-              {(statistics.std / 1000000).toFixed(2)}M
+              {format.compact(statistics.std, { decimals: 2 })}
             </span>
           </div>
         </div>

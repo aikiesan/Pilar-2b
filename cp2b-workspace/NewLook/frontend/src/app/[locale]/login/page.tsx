@@ -9,14 +9,17 @@ import { Link, useRouter } from '@/navigation'
 import Image from 'next/image'
 import { LogIn, AlertCircle } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
-import { getErrorMessage } from '@/types/errors'
+import { AuthError } from '@/lib/authErrors'
 import { useTranslations } from 'next-intl'
 import { logger } from '@/lib/logger'
+import { firstError, validateEmail, validateRequired } from '@/lib/validation'
+import { useValidationMessage } from '@/hooks/useValidationMessage'
 
 export default function LoginPage() {
   const router = useRouter()
   const { login, loading, user } = useAuth()
   const t = useTranslations('auth')
+  const validationMessage = useValidationMessage()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -51,8 +54,9 @@ export default function LoginPage() {
     setIsSubmitting(true)
 
     // Client-side validation
-    if (!email || !password) {
-      setError(t('errors.fill_all_fields'))
+    const problem = firstError(validateEmail(email), validateRequired(password))
+    if (problem) {
+      setError(validationMessage(problem))
       setIsSubmitting(false)
       return
     }
@@ -62,7 +66,7 @@ export default function LoginPage() {
       // Signal that we should navigate once user is loaded
       setShouldNavigate(true)
     } catch (err: unknown) {
-      setError(getErrorMessage(err) || t('errors.login_failed'))
+      setError(t(`errors.${err instanceof AuthError ? err.code : 'login_failed'}`))
       setIsSubmitting(false)
     }
   }
@@ -247,7 +251,7 @@ export default function LoginPage() {
 
         {/* Footer */}
         <p className="mt-8 text-center text-sm text-gray-200">
-          {t('common.copyright')}
+          {t('common.copyright', { year: new Date().getFullYear() })}
         </p>
       </div>
     </div>

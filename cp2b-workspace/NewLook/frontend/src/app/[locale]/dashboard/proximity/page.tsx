@@ -8,7 +8,7 @@
 import { useEffect, useState, useCallback, useRef, Suspense } from 'react'
 import { useRouter } from '@/navigation'
 import { useSearchParams } from 'next/navigation'
-import { useTranslations } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import Breadcrumb from '@/components/ui/Breadcrumb'
 import dynamic from 'next/dynamic'
 import {
@@ -28,77 +28,68 @@ import {
 import { useAuth } from '@/contexts/AuthContext'
 import {
   analyzeProximity,
+  dominantLandUseClass,
   exportAnalysisToCSV,
   generateShareURL,
-  parseShareURL
+  parseShareURL,
+  ProximityError,
+  type LandUseClass,
+  type ProximityAnalysisResult,
 } from '@/services/proximityApi'
+import { defaultLocale, isLocale } from '@/config/i18n'
+import { useFormat } from '@/hooks/useFormat'
 import { logger } from '@/lib/logger'
+import { DATA_EXPORT_ENABLED } from '@/lib/featureFlags'
+import type { Messages } from '@/types/i18n'
+
+function MapLoading() {
+  const t = useTranslations('pages.proximity')
+  return (
+    <div className="w-full h-[500px] bg-gray-100 dark:bg-slate-800 rounded-lg flex items-center justify-center">
+      <div className="text-center">
+        <Loader2 className="h-8 w-8 text-emerald-600 dark:text-emerald-400 animate-spin mx-auto mb-2" aria-hidden="true" />
+        <p className="text-gray-600 dark:text-gray-400">{t('map.loading')}</p>
+      </div>
+    </div>
+  )
+}
 
 // Dynamically import map to avoid SSR issues
 const ProximityMap = dynamic(() => import('@/components/map/ProximityMap'), {
   ssr: false,
-  loading: () => (
-    <div className="w-full h-[500px] bg-gray-100 dark:bg-slate-800 rounded-lg flex items-center justify-center">
-      <div className="text-center">
-        <Loader2 className="h-8 w-8 text-emerald-600 dark:text-emerald-400 animate-spin mx-auto mb-2" />
-        <p className="text-gray-600 dark:text-gray-400">Carregando mapa...</p>
-      </div>
-    </div>
-  )
+  loading: () => <MapLoading />,
 })
 
-interface AnalysisResult {
-  analysis_id: string
-  request: {
-    latitude: number
-    longitude: number
-    radius_km: number
-  }
-  results: {
-    buffer_geometry: any
-    municipalities: any[]
-    biogas_potential?: {
-      total_m3_year: number
-      by_category: Record<string, number>
-      energy_potential_mwh_year: number
-      co2_reduction_tons_year: number
-      homes_powered_equivalent: number
-    }
-    land_use?: {
-      total_area_km2: number
-      by_class: Record<string, any>
-      dominant_class: string
-      agricultural_percent: number
-    }
-    infrastructure?: any[]
-  }
-  summary: {
-    total_area_km2: number
-    total_municipalities: number
-    total_population: number
-    total_biogas_m3_year: number
-    energy_potential_mwh_year: number
-    radius_recommendation: string
-  }
-  metadata: {
-    analysis_timestamp: string
-    processing_time_ms: number
-  }
-}
+type ClassKey = keyof Messages['Map']['mapbiomasLegend']['classes']
+type CategoryKey = keyof Messages['pages']['proximity']['categories']
+
+/** Radius limits the backend accepts (ValidationService.validate_radius). */
+const RADIUS_MIN_KM = 1
+const RADIUS_MAX_KM = 100
+
+/** Suitability band for agricultural biogas, by the share of farmed land. */
+const suitability = (agriculturalPercent: number): 'high' | 'medium' | 'low' =>
+  agriculturalPercent >= 50 ? 'high' : agriculturalPercent >= 20 ? 'medium' : 'low'
 
 // Inner component that uses useSearchParams
 function ProximityAnalysisContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const t = useTranslations('pages')
+  const tp = useTranslations('pages.proximity')
+  const tClasses = useTranslations('Map.mapbiomasLegend.classes')
+  const tCommon = useTranslations('common')
+  const format = useFormat()
+  const current = useLocale()
+  const locale = isLocale(current) ? current : defaultLocale
   const { user, loading: authLoading, isAuthenticated } = useAuth()
 
   // Analysis state
   const [selectedPoint, setSelectedPoint] = useState<{lat: number, lng: number} | null>(null)
   const [radius, setRadius] = useState(20)
-  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null)
+  const [analysisResult, setAnalysisResult] = useState<ProximityAnalysisResult | null>(null)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<ProximityError | null>(null)
   const [showShareToast, setShowShareToast] = useState(false)
 
   // Parse URL parameters for shared analysis
@@ -149,11 +140,11 @@ function ProximityAnalysisContent() {
       })
 
       if (analysisId !== analysisIdRef.current) return // superseded by a new click
-      setAnalysisResult(result as unknown as AnalysisResult)
-    } catch (err: any) {
+      setAnalysisResult(result)
+    } catch (err: unknown) {
       if (analysisId !== analysisIdRef.current) return
       logger.error('Analysis error:', err);
-      setError(err.message || 'Erro ao realizar análise')
+      setError(err instanceof ProximityError ? err : new ProximityError('server'))
     } finally {
       if (analysisId === analysisIdRef.current) {
         setLoading(false)
@@ -161,63 +152,62 @@ function ProximityAnalysisContent() {
     }
   }
 
+  // A land-use class by its MapBiomas id; the served (Portuguese) name is the fallback.
+  const landUseClassName = (entry: Pick<LandUseClass, 'class_id' | 'name'>): string => {
+    const key = String(entry.class_id) as ClassKey
+    return tClasses.has(key) ? tClasses(key) : entry.name || tp('class_fallback', { id: entry.class_id })
+  }
+  const categoryName = (category: string): string => {
+    const key = category as CategoryKey
+    return tp.has(`categories.${key}`) ? tp(`categories.${key}`) : tp('categories.unknown')
+  }
+  const errorMessage = (e: ProximityError): string => {
+    switch (e.code) {
+      case 'rate_limited': return tp('errors.rate_limited', { seconds: e.retryAfter ?? 60 })
+      case 'invalid_radius': return tp('errors.invalid_radius', { min: RADIUS_MIN_KM, max: RADIUS_MAX_KM })
+      default: return tp(`errors.${e.code}`)
+    }
+  }
+
+  const dominantName = (result: ProximityAnalysisResult): string => {
+    const landUse = result.results.land_use
+    if (!landUse) return ''
+    const id = landUse.dominant_class_id ?? dominantLandUseClass(landUse.by_class)?.class_id
+    return id === undefined ? landUse.dominant_class : landUseClassName({ class_id: id, name: landUse.dominant_class })
+  }
+
   // Export results
   const handleExport = () => {
     if (!analysisResult) return
-
-    // Convert to format expected by export function
-    const exportData = {
-      analysis_point: {
-        latitude: analysisResult.request.latitude,
-        longitude: analysisResult.request.longitude
-      },
-      radius_km: analysisResult.request.radius_km,
-      land_use: {
-        agricultural_percentage: analysisResult.results.land_use?.agricultural_percent || 0,
-        total_area_km2: analysisResult.results.land_use?.total_area_km2 || 0,
-        breakdown: Object.entries(analysisResult.results.land_use?.by_class || {}).map(([key, value]: [string, any]) => ({
-          class_name: value.name || key,
-          percentage: value.percent || 0,
-          area_km2: value.area_km2 || 0,
-          color: value.color || '#888'
-        }))
-      },
-      municipalities: analysisResult.results.municipalities.map((m: any) => ({
-        name: m.name,
-        ibge_code: m.ibge_code || '',
-        distance_km: m.distance_km || 0,
-        biogas_m3_year: m.biogas_m3_year || 0,
-        population: m.population || 0
-      })),
-      biogas_potential: {
-        agricultural: analysisResult.results.biogas_potential?.by_category?.agricultural || 0,
-        livestock: analysisResult.results.biogas_potential?.by_category?.livestock || 0,
-        urban: analysisResult.results.biogas_potential?.by_category?.urban || 0,
-        total: analysisResult.results.biogas_potential?.total_m3_year || 0
-      },
-      infrastructure: (analysisResult.results.infrastructure || []).map((inf: any) => ({
-        type: inf.type,
-        name: inf.name || '',
-        distance_km: inf.distance_km || 0,
-        coordinates: inf.coordinates || { latitude: 0, longitude: 0 }
-      })),
+    exportAnalysisToCSV(analysisResult, {
+      municipalities: [tp('csv.municipality'), tp('csv.ibge_code'), tp('csv.distance_km'), tp('csv.biogas_m3_year'), tp('csv.population')],
+      landUse: [tp('csv.land_use_class'), tp('csv.percent'), tp('csv.area_km2')],
+      infrastructure: [tp('csv.type'), tp('csv.name'), tp('csv.distance_km'), tp('csv.latitude'), tp('csv.longitude')],
       summary: {
-        total_municipalities: analysisResult.summary.total_municipalities,
-        total_population: analysisResult.summary.total_population,
-        avg_distance_km: 0,
-        total_biogas_m3_year: analysisResult.summary.total_biogas_m3_year
+        metric: tp('csv.metric'),
+        value: tp('csv.value'),
+        latitude: tp('csv.point_latitude'),
+        longitude: tp('csv.point_longitude'),
+        radius: tp('csv.radius_km'),
+        municipalities: tp('csv.total_municipalities'),
+        population: tp('csv.total_population'),
+        avgDistance: tp('csv.avg_distance_km'),
+        totalBiogas: tp('csv.total_biogas'),
+        agricultural: tp('csv.agricultural_biogas'),
+        livestock: tp('csv.livestock_biogas'),
+        urban: tp('csv.urban_biogas'),
+        agriculturalLand: tp('csv.agricultural_land'),
+        processingTime: tp('csv.processing_time_s'),
       },
-      processing_time_seconds: analysisResult.metadata.processing_time_ms / 1000
-    }
-
-    exportAnalysisToCSV(exportData as any)
+      landUseClass: landUseClassName,
+    })
   }
 
   // Share analysis
   const handleShare = () => {
     if (!selectedPoint) return
 
-    const url = generateShareURL(selectedPoint.lat, selectedPoint.lng, radius)
+    const url = generateShareURL(selectedPoint.lat, selectedPoint.lng, radius, locale)
     navigator.clipboard.writeText(url)
     setShowShareToast(true)
     setTimeout(() => setShowShareToast(false), 3000)
@@ -232,39 +222,17 @@ function ProximityAnalysisContent() {
   }
 
   const getRadiusLabel = (km: number) => {
-    if (km <= 20) return 'Ótimo'
-    if (km <= 30) return 'Aceitável'
-    if (km <= 50) return 'Limite'
-    return 'Excessivo'
+    if (km <= 20) return tp('radius_optimal')
+    if (km <= 30) return tp('radius_acceptable')
+    if (km <= 50) return tp('radius_limit')
+    return tp('radius_excessive')
   }
 
   const getRadiusBadge = (km: number) => {
-    if (km <= 20) {
-      return {
-        color: 'bg-green-100 text-green-700',
-        icon: '✓',
-        text: 'Logística ideal',
-      }
-    }
-    if (km <= 30) {
-      return {
-        color: 'bg-yellow-100 text-yellow-700',
-        icon: '⚠',
-        text: 'Custos moderados',
-      }
-    }
-    if (km <= 50) {
-      return {
-        color: 'bg-orange-100 text-orange-700',
-        icon: '⚠',
-        text: 'Custos elevados',
-      }
-    }
-    return {
-      color: 'bg-red-100 text-red-700',
-      icon: '✗',
-      text: 'Inviável economicamente',
-    }
+    if (km <= 20) return { color: 'bg-green-100 text-green-700', icon: '✓', text: tp('badge.optimal') }
+    if (km <= 30) return { color: 'bg-yellow-100 text-yellow-700', icon: '⚠', text: tp('badge.moderate') }
+    if (km <= 50) return { color: 'bg-orange-100 text-orange-700', icon: '⚠', text: tp('badge.high') }
+    return { color: 'bg-red-100 text-red-700', icon: '✗', text: tp('badge.unviable') }
   }
 
   if (authLoading) {
@@ -272,7 +240,7 @@ function ProximityAnalysisContent() {
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-slate-900">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cp2b-primary mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-slate-400">Carregando...</p>
+          <p className="mt-4 text-gray-600 dark:text-slate-400">{tCommon('states.loading')}</p>
         </div>
       </div>
     )
@@ -304,21 +272,21 @@ function ProximityAnalysisContent() {
             {/* Instructions */}
             <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md p-4">
               <h3 className="font-semibold text-gray-900 dark:text-slate-100 mb-3 flex items-center">
-                <Info className="h-5 w-5 mr-2 text-emerald-600" />
-                Como usar
+                <Info className="h-5 w-5 mr-2 text-emerald-600" aria-hidden="true" />
+                {tp('how_to_use')}
               </h3>
               <ol className="text-sm text-gray-600 dark:text-slate-400 space-y-2">
                 <li className="flex items-start">
                   <span className="flex-shrink-0 w-5 h-5 bg-emerald-100 text-emerald-600 rounded-full text-xs flex items-center justify-center mr-2 mt-0.5">1</span>
-                  Clique no mapa para selecionar um ponto
+                  {tp('step1')}
                 </li>
                 <li className="flex items-start">
                   <span className="flex-shrink-0 w-5 h-5 bg-emerald-100 text-emerald-600 rounded-full text-xs flex items-center justify-center mr-2 mt-0.5">2</span>
-                  Ajuste o raio de captação
+                  {tp('step2')}
                 </li>
                 <li className="flex items-start">
                   <span className="flex-shrink-0 w-5 h-5 bg-emerald-100 text-emerald-600 rounded-full text-xs flex items-center justify-center mr-2 mt-0.5">3</span>
-                  Clique em &quot;Analisar&quot; para ver os resultados
+                  {tp('step3')}
                 </li>
               </ol>
             </div>
@@ -326,23 +294,23 @@ function ProximityAnalysisContent() {
             {/* Point Selection */}
             <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md p-4">
               <h3 className="font-semibold text-gray-900 dark:text-slate-100 mb-3 flex items-center">
-                <MapPin className="h-5 w-5 mr-2 text-emerald-600" />
-                Ponto Selecionado
+                <MapPin className="h-5 w-5 mr-2 text-emerald-600" aria-hidden="true" />
+                {tp('selected_point')}
               </h3>
               {selectedPoint ? (
                 <div className="space-y-2">
                   <div className="flex items-center text-sm">
-                    <span className="text-gray-500 dark:text-slate-400 w-20">Latitude:</span>
+                    <span className="text-gray-500 dark:text-slate-400 w-20">{tp('latitude')}</span>
                     <span className="font-mono text-gray-900 dark:text-slate-100">{selectedPoint.lat.toFixed(6)}</span>
                   </div>
                   <div className="flex items-center text-sm">
-                    <span className="text-gray-500 dark:text-slate-400 w-20">Longitude:</span>
+                    <span className="text-gray-500 dark:text-slate-400 w-20">{tp('longitude')}</span>
                     <span className="font-mono text-gray-900 dark:text-slate-100">{selectedPoint.lng.toFixed(6)}</span>
                   </div>
                 </div>
               ) : (
                 <p className="text-sm text-gray-500 dark:text-slate-400 italic">
-                  Clique no mapa para selecionar um ponto
+                  {tp('click_to_select')}
                 </p>
               )}
             </div>
@@ -350,8 +318,8 @@ function ProximityAnalysisContent() {
             {/* Radius Control */}
             <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md p-4">
               <h3 className="font-semibold text-gray-900 dark:text-slate-100 mb-3 flex items-center">
-                <Circle className="h-5 w-5 mr-2 text-emerald-600" />
-                Raio de Captação
+                <Circle className="h-5 w-5 mr-2 text-emerald-600" aria-hidden="true" />
+                <label htmlFor="proximity-radius">{tp('capture_radius')}</label>
               </h3>
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
@@ -361,11 +329,13 @@ function ProximityAnalysisContent() {
                   </span>
                 </div>
                 <input
+                  id="proximity-radius"
                   type="range"
                   min="10"
                   max="100"
                   step="5"
                   value={radius}
+                  aria-valuetext={`${radius} km — ${getRadiusLabel(radius)}`}
                   onChange={(e) => setRadius(parseInt(e.target.value))}
                   className="w-full h-2 bg-gradient-to-r from-green-400 via-yellow-400 to-red-400 rounded-lg appearance-none cursor-pointer"
                   style={{
@@ -385,7 +355,7 @@ function ProximityAnalysisContent() {
                 {/* Recommendation Badge */}
                 <div className="mt-2">
                   <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${getRadiusBadge(radius).color}`}>
-                    <span>{getRadiusBadge(radius).icon}</span>
+                    <span aria-hidden="true">{getRadiusBadge(radius).icon}</span>
                     {getRadiusBadge(radius).text}
                   </span>
                 </div>
@@ -404,23 +374,23 @@ function ProximityAnalysisContent() {
             >
               {loading ? (
                 <>
-                  <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                  Analisando...
+                  <Loader2 className="h-5 w-5 mr-2 animate-spin" aria-hidden="true" />
+                  {tp('analyzing')}
                 </>
               ) : (
                 <>
-                  <Zap className="h-5 w-5 mr-2" />
-                  Analisar
+                  <Zap className="h-5 w-5 mr-2" aria-hidden="true" />
+                  {tp('analyze')}
                 </>
               )}
             </button>
 
             {/* Error Display */}
             {error && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4" role="alert">
                 <div className="flex items-start">
-                  <AlertCircle className="h-5 w-5 text-red-600 mr-2 flex-shrink-0 mt-0.5" />
-                  <p className="text-sm text-red-700 whitespace-pre-line">{error}</p>
+                  <AlertCircle className="h-5 w-5 text-red-600 mr-2 flex-shrink-0 mt-0.5" aria-hidden="true" />
+                  <p className="text-sm text-red-700">{errorMessage(error)}</p>
                 </div>
               </div>
             )}
@@ -446,10 +416,11 @@ function ProximityAnalysisContent() {
             {/* Results Header */}
             <div className="flex items-center justify-between">
               <div className="flex items-center">
-                <CheckCircle2 className="h-6 w-6 text-green-600 mr-2" />
-                <h2 className="text-xl font-bold text-gray-900 dark:text-slate-100">Análise de Uso do Solo</h2>
+                <CheckCircle2 className="h-6 w-6 text-green-600 mr-2" aria-hidden="true" />
+                <h2 className="text-xl font-bold text-gray-900 dark:text-slate-100">{tp('land_use_title')}</h2>
                 <span className="ml-3 text-sm text-gray-500 dark:text-slate-400">
-                  {analysisResult.summary?.total_municipalities || 0} municípios • Processado em {analysisResult.metadata.processing_time_ms}ms
+                  {tp('municipalities_count', { count: analysisResult.summary?.total_municipalities || 0 })} •{' '}
+                  {tp('processed_in', { ms: format.number(analysisResult.metadata.processing_time_ms) })}
                 </span>
               </div>
               <div className="flex gap-2">
@@ -457,16 +428,18 @@ function ProximityAnalysisContent() {
                   onClick={handleShare}
                   className="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 dark:text-slate-300 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700"
                 >
-                  <Share2 className="h-4 w-4 mr-2" />
-                  Compartilhar
+                  <Share2 className="h-4 w-4 mr-2" aria-hidden="true" />
+                  {tp('share')}
                 </button>
-                <button
-                  onClick={handleExport}
-                  className="inline-flex items-center px-3 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700"
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Exportar Dados
-                </button>
+                {DATA_EXPORT_ENABLED && (
+                  <button
+                    onClick={handleExport}
+                    className="inline-flex items-center px-3 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700"
+                  >
+                    <Download className="h-4 w-4 mr-2" aria-hidden="true" />
+                    {tp('export')}
+                  </button>
+                )}
               </div>
             </div>
 
@@ -482,29 +455,29 @@ function ProximityAnalysisContent() {
                       <div className="flex items-center justify-between mb-3">
                         <Layers className="h-8 w-8 opacity-80" />
                         <div className="px-3 py-1 bg-white/20 rounded-full text-xs font-medium">
-                          MapBiomas 2023
+                          {tp('mapbiomas_badge')}
                         </div>
                       </div>
-                      <p className="text-sm opacity-90 mb-2">Área Total Analisada</p>
+                      <p className="text-sm opacity-90 mb-2">{tp('total_area')}</p>
                       <p className="text-4xl font-bold mb-1">
-                        {analysisResult.results.land_use.total_area_km2.toFixed(1)}
+                        {format.number(analysisResult.results.land_use.total_area_km2, { decimals: 1, minDecimals: 1 })}
                       </p>
-                      <p className="text-sm opacity-80">quilômetros quadrados</p>
+                      <p className="text-sm opacity-80">{tp('km2')}</p>
                     </div>
 
                     <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl shadow-xl p-6 text-white">
                       <div className="flex items-center justify-between mb-3">
                         <Leaf className="h-8 w-8 opacity-80" />
                         <div className="px-3 py-1 bg-white/20 rounded-full text-xs font-medium">
-                          Uso Agrícola
+                          {tp('agricultural_use')}
                         </div>
                       </div>
-                      <p className="text-sm opacity-90 mb-2">Área Agricultável</p>
+                      <p className="text-sm opacity-90 mb-2">{tp('farmable_area')}</p>
                       <p className="text-4xl font-bold mb-1">
-                        {analysisResult.results.land_use.agricultural_percent.toFixed(1)}%
+                        {format.percent(analysisResult.results.land_use.agricultural_percent)}
                       </p>
                       <p className="text-sm opacity-80">
-                        {(analysisResult.results.land_use.total_area_km2 * analysisResult.results.land_use.agricultural_percent / 100).toFixed(1)} km²
+                        {format.number(analysisResult.results.land_use.total_area_km2 * analysisResult.results.land_use.agricultural_percent / 100, { decimals: 1, minDecimals: 1 })} {tCommon('units.km2')}
                       </p>
                     </div>
 
@@ -512,14 +485,14 @@ function ProximityAnalysisContent() {
                       <div className="flex items-center justify-between mb-3">
                         <Circle className="h-8 w-8 opacity-80" />
                         <div className="px-3 py-1 bg-white/20 rounded-full text-xs font-medium">
-                          Dominante
+                          {tp('dominant_badge')}
                         </div>
                       </div>
-                      <p className="text-sm opacity-90 mb-2">Classe Principal</p>
-                      <p className="text-2xl font-bold mb-1 capitalize">
-                        {analysisResult.results.land_use.dominant_class}
+                      <p className="text-sm opacity-90 mb-2">{tp('main_class')}</p>
+                      <p className="text-2xl font-bold mb-1">
+                        {dominantName(analysisResult)}
                       </p>
-                      <p className="text-sm opacity-80">uso predominante na área</p>
+                      <p className="text-sm opacity-80">{tp('predominant_use')}</p>
                     </div>
                   </div>
 
@@ -527,17 +500,17 @@ function ProximityAnalysisContent() {
                   {analysisResult.results.land_use.by_class && Object.keys(analysisResult.results.land_use.by_class).length > 0 && (
                     <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-8">
                       <h3 className="text-2xl font-bold text-gray-900 dark:text-slate-100 mb-6 flex items-center">
-                        <Layers className="h-6 w-6 mr-3 text-blue-600" />
-                        Distribuição Detalhada do Uso do Solo
+                        <Layers className="h-6 w-6 mr-3 text-blue-600" aria-hidden="true" />
+                        {tp('detailed_distribution')}
                       </h3>
 
                       {/* Large Visual Bar */}
                       <div className="mb-8">
-                        <p className="text-sm font-medium text-gray-600 dark:text-slate-400 mb-3">Proporção Visual</p>
+                        <p className="text-sm font-medium text-gray-600 dark:text-slate-400 mb-3">{tp('visual_proportion')}</p>
                         <div className="w-full h-16 flex rounded-xl overflow-hidden shadow-lg border-2 border-gray-200 dark:border-slate-700">
                           {Object.entries(analysisResult.results.land_use.by_class)
-                            .sort(([, a]: [string, any], [, b]: [string, any]) => (b.percent || 0) - (a.percent || 0))
-                            .map(([classId, classData]: [string, any]) => (
+                            .sort(([, a], [, b]) => (b.percent || 0) - (a.percent || 0))
+                            .map(([classId, classData]) => (
                               <div
                                 key={classId}
                                 style={{
@@ -545,12 +518,12 @@ function ProximityAnalysisContent() {
                                   backgroundColor: classData.color || '#888888'
                                 }}
                                 className="relative group hover:opacity-90 transition-opacity cursor-pointer"
-                                title={`${classData.name}: ${(classData.percent || 0).toFixed(1)}%`}
+                                title={`${landUseClassName(classData)}: ${format.percent(classData.percent || 0)}`}
                               >
                                 {(classData.percent || 0) > 8 && (
                                   <div className="absolute inset-0 flex items-center justify-center">
                                     <span className="text-white font-bold text-xs drop-shadow-lg">
-                                      {(classData.percent || 0).toFixed(0)}%
+                                      {format.percent(classData.percent || 0, { decimals: 0 })}
                                     </span>
                                   </div>
                                 )}
@@ -562,8 +535,8 @@ function ProximityAnalysisContent() {
                       {/* Cards Grid for Land Classes */}
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {Object.entries(analysisResult.results.land_use.by_class)
-                          .sort(([, a]: [string, any], [, b]: [string, any]) => (b.percent || 0) - (a.percent || 0))
-                          .map(([classId, classData]: [string, any]) => (
+                          .sort(([, a], [, b]) => (b.percent || 0) - (a.percent || 0))
+                          .map(([classId, classData]) => (
                             <div
                               key={classId}
                               className="bg-gradient-to-br from-white to-gray-50 dark:from-slate-800 dark:to-slate-700 rounded-xl p-5 border-2 hover:border-gray-300 dark:hover:border-slate-600 transition-all hover:shadow-lg cursor-pointer group"
@@ -579,24 +552,24 @@ function ProximityAnalysisContent() {
                                 <div className="flex-1 min-w-0">
                                   {/* Class Name */}
                                   <h4 className="font-bold text-gray-900 dark:text-slate-100 mb-1 text-base leading-tight">
-                                    {classData.name || `Classe ${classId}`}
+                                    {landUseClassName(classData)}
                                   </h4>
                                   
                                   {/* Category Badge */}
                                   <span className="inline-block px-2 py-0.5 bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-400 rounded text-xs mb-3">
-                                    {classData.category || 'Outros'}
+                                    {categoryName(classData.category)}
                                   </span>
                                   
                                   {/* Stats */}
                                   <div className="space-y-1">
                                     <div className="flex items-baseline gap-2">
                                       <span className="text-2xl font-bold text-gray-900 dark:text-slate-100">
-                                        {(classData.percent || 0).toFixed(1)}%
+                                        {format.percent(classData.percent || 0)}
                                       </span>
-                                      <span className="text-sm text-gray-500 dark:text-slate-400">da área</span>
+                                      <span className="text-sm text-gray-500 dark:text-slate-400">{tp('of_area')}</span>
                                     </div>
                                     <p className="text-sm text-gray-600 dark:text-slate-400 font-medium">
-                                      {(classData.area_km2 || 0).toFixed(2)} km²
+                                      {format.number(classData.area_km2 || 0, { decimals: 2, minDecimals: 2 })} {tCommon('units.km2')}
                                     </p>
                                   </div>
                                 </div>
@@ -632,11 +605,7 @@ function ProximityAnalysisContent() {
                               ? 'text-blue-900'
                               : 'text-yellow-900'
                           }`}>
-                            {analysisResult.results.land_use.agricultural_percent >= 50
-                              ? '✓ Alta Aptidão para Produção de Biogás Agrícola'
-                              : analysisResult.results.land_use.agricultural_percent >= 20
-                              ? 'Aptidão Moderada para Biogás Agrícola'
-                              : 'Baixo Uso Agrícola na Área'}
+                            {tp(`suitability.${suitability(analysisResult.results.land_use.agricultural_percent)}.title`)}
                           </h4>
                           <p className={`text-base leading-relaxed ${
                             analysisResult.results.land_use.agricultural_percent >= 50
@@ -645,11 +614,9 @@ function ProximityAnalysisContent() {
                               ? 'text-blue-800'
                               : 'text-yellow-800'
                           }`}>
-                            {analysisResult.results.land_use.agricultural_percent >= 50
-                              ? `A área possui predominância de uso agrícola (${analysisResult.results.land_use.agricultural_percent.toFixed(1)}%), ideal para coleta de resíduos agrícolas e produção de biogás. Esta região apresenta excelente potencial para instalação de biodigestores.`
-                              : analysisResult.results.land_use.agricultural_percent >= 20
-                              ? `A área possui ${analysisResult.results.land_use.agricultural_percent.toFixed(1)}% de uso agrícola. Há potencial razoável para produção de biogás de fontes agrícolas, podendo ser complementado com outras fontes de biomassa.`
-                              : `Apenas ${analysisResult.results.land_use.agricultural_percent.toFixed(1)}% de uso agrícola. Considere fontes urbanas (RSU) ou pecuárias para viabilizar a produção de biogás nesta região.`}
+                            {tp(`suitability.${suitability(analysisResult.results.land_use.agricultural_percent)}.body`, {
+                              percent: format.percent(analysisResult.results.land_use.agricultural_percent),
+                            })}
                           </p>
                         </div>
                       </div>
@@ -664,11 +631,23 @@ function ProximityAnalysisContent() {
 
       {/* Share Toast */}
       {showShareToast && (
-        <div className="fixed bottom-4 right-4 bg-gray-900 text-white px-4 py-3 rounded-lg shadow-lg flex items-center">
-          <CheckCircle2 className="h-5 w-5 mr-2 text-green-400" />
-          Link copiado para a área de transferência!
+        <div role="status" className="fixed bottom-4 right-4 bg-gray-900 text-white px-4 py-3 rounded-lg shadow-lg flex items-center">
+          <CheckCircle2 className="h-5 w-5 mr-2 text-green-400" aria-hidden="true" />
+          {tp('link_copied')}
         </div>
       )}
+    </div>
+  )
+}
+
+function PageLoading() {
+  const tCommon = useTranslations('common')
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-slate-900">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto"></div>
+        <p className="mt-4 text-gray-600 dark:text-slate-400">{tCommon('states.loading')}</p>
+      </div>
     </div>
   )
 }
@@ -676,14 +655,7 @@ function ProximityAnalysisContent() {
 // Default export with Suspense boundary for useSearchParams
 export default function ProximityAnalysisPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-slate-900">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-slate-400">Carregando...</p>
-        </div>
-      </div>
-    }>
+    <Suspense fallback={<PageLoading />}>
       <ProximityAnalysisContent />
     </Suspense>
   )

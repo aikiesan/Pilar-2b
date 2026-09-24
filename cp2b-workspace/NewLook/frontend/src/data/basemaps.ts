@@ -16,9 +16,9 @@
 
 export type BasemapId = 'mapa' | 'satelite' | 'terreno' | 'light';
 
+/** A basemap's name is copy: it lives in messages under Map.basemaps.<id>. */
 export interface Basemap {
   id: BasemapId;
-  label: string;
   icon: string;
   url: string;
   attribution: string;
@@ -30,7 +30,6 @@ export interface Basemap {
 export const BASEMAPS: Record<BasemapId, Basemap> = {
   mapa: {
     id: 'mapa',
-    label: 'Mapa',
     icon: '🗺️',
     url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
     attribution:
@@ -39,7 +38,6 @@ export const BASEMAPS: Record<BasemapId, Basemap> = {
   },
   satelite: {
     id: 'satelite',
-    label: 'Satélite',
     icon: '🛰️',
     url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
     attribution:
@@ -50,7 +48,6 @@ export const BASEMAPS: Record<BasemapId, Basemap> = {
   },
   terreno: {
     id: 'terreno',
-    label: 'Terreno',
     icon: '⛰️',
     url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
     attribution:
@@ -59,7 +56,6 @@ export const BASEMAPS: Record<BasemapId, Basemap> = {
   },
   light: {
     id: 'light',
-    label: 'Light Canvas',
     icon: '🔆',
     url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
     attribution:

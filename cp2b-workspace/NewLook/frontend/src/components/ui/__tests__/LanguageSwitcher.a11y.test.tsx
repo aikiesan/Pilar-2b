@@ -41,7 +41,9 @@ describe('LanguageSwitcher Accessibility', () => {
   describe('Structure & ARIA', () => {
     it('renders a labelled group with two language buttons', () => {
       render(<LanguageSwitcher />)
-      const group = screen.getByRole('group', { name: 'Language selection' })
+      // The shared next-intl mock returns keys: the group is named from the
+      // catalog (common.lang.group_aria), not from a hardcoded English string.
+      const group = screen.getByRole('group', { name: 'lang.group_aria' })
       expect(group).toBeInTheDocument()
       expect(screen.getAllByRole('button')).toHaveLength(2)
     })

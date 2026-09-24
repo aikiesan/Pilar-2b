@@ -9,13 +9,23 @@ import { Link, useRouter } from '@/navigation'
 import Image from 'next/image'
 import { UserPlus, AlertCircle, CheckCircle } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
-import { getErrorMessage } from '@/types/errors'
+import { AuthError } from '@/lib/authErrors'
 import { useTranslations } from 'next-intl'
+import {
+  firstError,
+  passwordStrength as scorePassword,
+  validateEmail,
+  validatePassword,
+  validatePasswordConfirmation,
+  validateRequired,
+} from '@/lib/validation'
+import { useValidationMessage } from '@/hooks/useValidationMessage'
 
 export default function RegisterPage() {
   const router = useRouter()
   const { register, loading } = useAuth()
   const t = useTranslations('auth')
+  const validationMessage = useValidationMessage()
   const [formData, setFormData] = useState({
     full_name: '',
     email: '',
@@ -25,39 +35,24 @@ export default function RegisterPage() {
   const [error, setError] = useState('')
   const [passwordStrength, setPasswordStrength] = useState(0)
 
-  // Calculate password strength
-  const calculatePasswordStrength = (password: string): number => {
-    let strength = 0
-    if (password.length >= 6) strength += 25
-    if (password.length >= 10) strength += 25
-    if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength += 25
-    if (/\d/.test(password)) strength += 15
-    if (/[^a-zA-Z\d]/.test(password)) strength += 10
-    return Math.min(strength, 100)
-  }
-
   const handlePasswordChange = (password: string) => {
     setFormData((prev) => ({ ...prev, password }))
-    setPasswordStrength(calculatePasswordStrength(password))
+    setPasswordStrength(scorePassword(password))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
 
-    // Client-side validation
-    if (!formData.full_name || !formData.email || !formData.password || !formData.confirmPassword) {
-      setError(t('errors.fill_all_fields'))
-      return
-    }
-
-    if (formData.password.length < 6) {
-      setError(t('errors.password_min_length'))
-      return
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      setError(t('errors.passwords_no_match'))
+    // Client-side validation: the first problem, in field order.
+    const problem = firstError(
+      validateRequired(formData.full_name),
+      validateEmail(formData.email),
+      validatePassword(formData.password),
+      validatePasswordConfirmation(formData.password, formData.confirmPassword)
+    )
+    if (problem) {
+      setError(validationMessage(problem))
       return
     }
 
@@ -70,7 +65,7 @@ export default function RegisterPage() {
       // Use locale-aware router for navigation
       router.push('/dashboard')
     } catch (err: unknown) {
-      setError(getErrorMessage(err) || t('errors.registration_failed'))
+      setError(t(`errors.${err instanceof AuthError ? err.code : 'registration_failed'}`))
     }
   }
 
@@ -336,7 +331,7 @@ export default function RegisterPage() {
 
         {/* Footer */}
         <p className="mt-8 text-center text-sm text-gray-200">
-          {t('common.copyright')}
+          {t('common.copyright', { year: new Date().getFullYear() })}
         </p>
       </div>
     </div>

@@ -10,3 +10,7 @@ export const defaultLocale: Locale = 'pt-BR';
 // This is important for proper routing on Vercel
 export const localePrefix = 'always' as const;
 
+/** Narrows an untyped string (a route param, a stored preference) to a Locale. */
+export function isLocale(value: unknown): value is Locale {
+  return typeof value === 'string' && (locales as readonly string[]).includes(value);
+}

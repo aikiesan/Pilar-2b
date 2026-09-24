@@ -5,6 +5,7 @@
  * Shows scenario descriptions on hover
  */
 
+import { useTranslations } from 'next-intl';
 import { TrendingDown, TrendingUp, BarChart3, Sliders } from 'lucide-react';
 import { ScenarioType, RESIDUE_SCENARIOS } from '@/types/analysis';
 
@@ -19,6 +20,7 @@ export default function ScenarioSelector({
   onScenarioChange,
   hasCustomFactors = false
 }: ScenarioSelectorProps) {
+  const t = useTranslations('analysis');
   const scenarios: Array<{
     type: ScenarioType;
     icon: typeof BarChart3;
@@ -67,7 +69,7 @@ export default function ScenarioSelector({
     <div>
       {/* Title */}
       <h3 className="text-xs font-semibold text-gray-700 mb-2">
-        Cenários de Análise
+        {t('scenario_selector.title')}
       </h3>
 
       {/* Horizontal Tab Grid */}
@@ -82,7 +84,8 @@ export default function ScenarioSelector({
             <button
               key={scenario.type}
               onClick={() => onScenarioChange(scenario.type)}
-              title={`${config.name}: ${config.description}`} // Tooltip on hover
+              title={`${t(config.nameKey)}: ${t(config.descKey)}`} // Tooltip on hover
+              aria-pressed={isActive}
               className={`relative flex flex-col items-center gap-1.5 p-2 rounded-lg border-2 transition-all group ${
                 isActive
                   ? `${scenario.bgColor} ${scenario.borderColor} shadow-sm`
@@ -100,7 +103,7 @@ export default function ScenarioSelector({
               <span className={`text-[10px] font-medium text-center leading-tight ${
                 isActive ? 'text-gray-900' : 'text-gray-600'
               }`}>
-                {config.name}
+                {t(config.nameKey)}
               </span>
 
               {/* Custom Factors Badge */}
@@ -115,8 +118,8 @@ export default function ScenarioSelector({
       {/* Active Scenario Description */}
       {currentScenario && (
         <div className="mt-2 p-2 bg-gray-50 rounded text-[10px] text-gray-600">
-          <span className="font-medium">{RESIDUE_SCENARIOS[currentScenario].name}:</span>{' '}
-          {RESIDUE_SCENARIOS[currentScenario].description}
+          <span className="font-medium">{t(RESIDUE_SCENARIOS[currentScenario].nameKey)}:</span>{' '}
+          {t(RESIDUE_SCENARIOS[currentScenario].descKey)}
         </div>
       )}
     </div>

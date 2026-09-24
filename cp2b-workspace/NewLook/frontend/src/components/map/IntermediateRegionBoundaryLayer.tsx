@@ -9,6 +9,7 @@ import { useEffect, useState, useMemo, useCallback } from 'react'
 import { GeoJSON, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import { logger } from '@/lib/logger'
+import { useFormat } from '@/hooks/useFormat'
 
 interface IntermediateRegionBoundaryLayerProps {
   visible?: boolean
@@ -48,6 +49,7 @@ export default function IntermediateRegionBoundaryLayer({
   showLabels = true,
 }: IntermediateRegionBoundaryLayerProps) {
   const map = useMap()
+  const format = useFormat()
   const [geoJsonData, setGeoJsonData] = useState<RegionCollection | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -131,9 +133,7 @@ export default function IntermediateRegionBoundaryLayer({
   const onEachFeature = useCallback(
     (feature: RegionFeature, layer: L.Layer) => {
       const { nm_rgint, area_km2 } = feature.properties
-      const formattedArea = area_km2
-        ? `${area_km2.toLocaleString('pt-BR', { maximumFractionDigits: 0 })} km²`
-        : ''
+      const formattedArea = area_km2 ? `${format.number(area_km2, { decimals: 0 })} km²` : ''
 
       ;(layer as L.Path).bindTooltip(
         `<strong>${nm_rgint}</strong>${formattedArea ? `<br/>${formattedArea}` : ''}`,
@@ -144,7 +144,7 @@ export default function IntermediateRegionBoundaryLayer({
         }
       )
     },
-    []
+    [format]
   )
 
   // Stable key to prevent GeoJSON re-renders

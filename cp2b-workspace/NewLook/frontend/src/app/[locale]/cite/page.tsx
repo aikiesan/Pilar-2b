@@ -3,15 +3,17 @@
 import { useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 
+// Citations are rendered as published in every locale: ABNT is a Brazilian norm
+// written in Portuguese, and the registered title is the Portuguese name.
 const CITATIONS = {
   abnt:
-    'CEREJO, L. N.; LAMPARELLI, R. A. C.; MORAES, B. de S.; AGUIAR, A. B. S. ' +
-    'PILAR-2b: Plataforma Inteligente de Localização e Aproveitamento de Resíduos para Biogás e Bioprodutos. ' +
-    'Versão 3.0.3. Campinas: NIPE-UNICAMP, 2026. Software registrado no INPI sob nº BR512026003115-0. ' +
-    'Disponível em: https://cp2b.unicamp.br/pilar2b. Acesso em: [data de acesso].',
+    'CEREJO, L. N.; LAMPARELLI, R. A. C.; MORAES, B. de S.; AGUIAR, A. B. S. ' + // i18n-exempt: citation
+    'PILAR-2b: Plataforma Inteligente de Localização e Aproveitamento de Resíduos para Biogás e Bioprodutos. ' + // i18n-exempt: citation
+    'Versão 3.0.3. Campinas: NIPE-UNICAMP, 2026. Software registrado no INPI sob nº BR512026003115-0. ' + // i18n-exempt: citation
+    'Disponível em: https://cp2b.unicamp.br/pilar2b. Acesso em: [data de acesso].', // i18n-exempt: citation
   apa:
-    'Cerejo, L. N., Lamparelli, R. A. C., Moraes, B. de S., & Aguiar, A. B. S. (2026). ' +
-    'PILAR-2b: Plataforma Inteligente de Localização e Aproveitamento de Resíduos para Biogás e Bioprodutos ' +
+    'Cerejo, L. N., Lamparelli, R. A. C., Moraes, B. de S., & Aguiar, A. B. S. (2026). ' + // i18n-exempt: citation
+    'PILAR-2b: Plataforma Inteligente de Localização e Aproveitamento de Resíduos para Biogás e Bioprodutos ' + // i18n-exempt: citation
     '(Version 3.0.3) [Computer software]. NIPE-UNICAMP. https://cp2b.unicamp.br/pilar2b',
   bibtex:
     `@software{pilar2b_2026,
@@ -58,7 +60,7 @@ export default function CitePage() {
   const t = useTranslations('pages.cite');
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-12">
+    <div className="mx-auto max-w-3xl px-4 py-12">
       <h1 className="mb-2 text-3xl font-bold text-gray-900">{t('title')}</h1>
       <p className="mb-8 text-sm text-gray-600">{t('subtitle')}</p>
 
@@ -111,6 +113,6 @@ export default function CitePage() {
           📚 {t('refs_link')}
         </a>
       </section>
-    </main>
+    </div>
   );
 }

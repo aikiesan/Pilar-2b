@@ -1,7 +1,9 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
+import { firstError, validateConsent, validateEmail, validateRequired } from '@/lib/validation'
+import { useValidationMessage } from '@/hooks/useValidationMessage'
 import { fetchSpMunicipalities, type MunicipalityOption } from '../calculatorApi'
 
 export interface IdentificacaoData {
@@ -21,12 +23,11 @@ interface Props {
 
 export default function StepIdentificacao({ data, onChange, onNext, onSkip }: Props) {
   const t = useTranslations('calculator')
+  const validationMessage = useValidationMessage()
   const [municipalities, setMunicipalities] = useState<MunicipalityOption[]>([])
   const [munSearch, setMunSearch] = useState(data.municipality_name)
-  const [showDropdown, setShowDropdown] = useState(false)
   const [loadingMun, setLoadingMun] = useState(true)
   const [munError, setMunError] = useState(false)
-  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     fetchSpMunicipalities()
@@ -37,29 +38,48 @@ export default function StepIdentificacao({ data, onChange, onNext, onSkip }: Pr
       .finally(() => setLoadingMun(false))
   }, [])
 
-  const filtered = munSearch.length >= 2
-    ? municipalities.filter(m => m.municipality_name.toLowerCase().includes(munSearch.toLowerCase())).slice(0, 10)
-    : municipalities.slice(0, 10)
-
   const set = (patch: Partial<IdentificacaoData>) => onChange({ ...data, ...patch })
 
-  const canAdvance = data.nome.trim() !== ''
-    && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)
-    && data.municipality_id !== null
-    && data.consent_lgpd
-
-  function handleMunBlur() {
-    if (closeTimer.current) clearTimeout(closeTimer.current)
-    closeTimer.current = setTimeout(() => setShowDropdown(false), 200)
+  // The suggestions are a native <datalist>: typing filters them, and the
+  // keyboard and screen readers can reach them (the previous hand-made list
+  // answered only to the mouse). A municipality counts as chosen once the text
+  // matches one of them exactly.
+  function handleMunicipalityInput(value: string) {
+    setMunSearch(value)
+    const match = municipalities.find(
+      m => m.municipality_name.localeCompare(value.trim(), 'pt-BR', { sensitivity: 'accent' }) === 0
+    )
+    set(match
+      ? { municipality_id: match.id, municipality_name: match.municipality_name }
+      : { municipality_id: null, municipality_name: '' })
   }
+
+  // When the list could not be loaded the municipality is typed in, so a name
+  // is enough — otherwise the form could never be completed.
+  const municipalityProblem = munError
+    ? validateRequired(data.municipality_name)
+    : data.municipality_id === null ? 'required' as const : null
+  const problem = firstError(
+    validateRequired(data.nome),
+    validateEmail(data.email),
+    municipalityProblem,
+    validateConsent(data.consent_lgpd),
+  )
+  const canAdvance = problem === null
+  // Only the email is checked as the user types: the other fields are plainly
+  // empty or filled, while a malformed address deserves saying why.
+  const emailProblem = data.email.trim() !== '' ? validateEmail(data.email) : null
 
   return (
     <div className="space-y-5">
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
-          {t('step1.nome')} <span className="text-red-500">*</span>
+        <label htmlFor="calc-name" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
+          {t('step1.nome')} <span className="text-red-500" aria-hidden="true">*</span>
         </label>
         <input
+          id="calc-name"
+          required
+          autoComplete="name"
           type="text"
           value={data.nome}
           onChange={e => set({ nome: e.target.value })}
@@ -69,67 +89,70 @@ export default function StepIdentificacao({ data, onChange, onNext, onSkip }: Pr
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
-          {t('step1.email')} <span className="text-red-500">*</span>
+        <label htmlFor="calc-email" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
+          {t('step1.email')} <span className="text-red-500" aria-hidden="true">*</span>
         </label>
         <input
+          id="calc-email"
+          required
+          autoComplete="email"
           type="email"
           value={data.email}
           onChange={e => set({ email: e.target.value })}
-          placeholder="seu@email.com.br"
+          placeholder={t('step1.emailPlaceholder')}
+          aria-invalid={emailProblem !== null}
+          aria-describedby={emailProblem ? 'calc-email-error' : undefined}
           className="input-field"
         />
+        {emailProblem && (
+          <p id="calc-email-error" className="text-xs text-red-600 dark:text-red-400 mt-1">
+            {validationMessage(emailProblem)}
+          </p>
+        )}
       </div>
 
       <div className="relative">
-        <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
-          {t('step1.municipio')} <span className="text-red-500">*</span>
+        <label htmlFor="calc-municipality" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
+          {t('step1.municipio')} <span className="text-red-500" aria-hidden="true">*</span>
         </label>
         {munError ? (
+          <>
           <input
+            id="calc-municipality"
+            required
+            aria-describedby="calc-municipality-note"
             type="text"
             value={munSearch}
             onChange={e => {
               setMunSearch(e.target.value)
               set({ municipality_id: null, municipality_name: e.target.value })
             }}
-            placeholder="Digite o nome do município"
+            placeholder={t('step1.municipioManualPlaceholder')}
             className="w-full border border-amber-300 dark:border-amber-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-amber-400"
           />
+          <p id="calc-municipality-note" className="text-xs text-amber-700 dark:text-amber-400 mt-1">
+            {t('step1.municipioListUnavailable')}
+          </p>
+          </>
         ) : (
           <>
             <input
+              id="calc-municipality"
+              required
               type="text"
+              list="calc-municipality-options"
               value={munSearch}
-              onChange={e => {
-                setMunSearch(e.target.value)
-                setShowDropdown(true)
-                if (!e.target.value) set({ municipality_id: null, municipality_name: '' })
-              }}
-              onFocus={() => setShowDropdown(true)}
-              onBlur={handleMunBlur}
-              placeholder={loadingMun ? 'Carregando municípios…' : t('step1.municipioPlaceholder')}
+              onChange={e => handleMunicipalityInput(e.target.value)}
+              placeholder={loadingMun ? t('step1.municipioLoading') : t('step1.municipioPlaceholder')}
               autoComplete="off"
               disabled={loadingMun}
               className="input-field disabled:opacity-60"
             />
-            {showDropdown && filtered.length > 0 && !loadingMun && (
-              <ul className="absolute z-20 w-full bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg shadow-lg dark:shadow-slate-900/50 mt-1 max-h-52 overflow-y-auto">
-                {filtered.map(m => (
-                  <li
-                    key={m.id}
-                    onMouseDown={() => {
-                      set({ municipality_id: m.id, municipality_name: m.municipality_name })
-                      setMunSearch(m.municipality_name)
-                      setShowDropdown(false)
-                    }}
-                    className="px-3 py-2 text-sm text-gray-700 dark:text-slate-300 cursor-pointer hover:bg-green-50 dark:hover:bg-emerald-900/30"
-                  >
-                    {m.municipality_name}
-                  </li>
-                ))}
-              </ul>
-            )}
+            <datalist id="calc-municipality-options">
+              {municipalities.map(m => (
+                <option key={m.id} value={m.municipality_name} />
+              ))}
+            </datalist>
           </>
         )}
         {data.municipality_id && (

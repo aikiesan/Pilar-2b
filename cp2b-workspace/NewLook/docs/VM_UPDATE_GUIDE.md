@@ -15,7 +15,7 @@ The database is already loaded; only code and dependency updates are needed.
 | Frontend | Next.js via PM2 (`pilar-frontend`), port **3002** |
 | Apache proxy | `/pilar2b/api/*` → `:8001` · `/pilar2b/*` → `:3002` |
 | Python venv | `backend/.venv/` |
-| Latest migration | `013_cp2b_municipality_summary.sql` |
+| Migrations | `backend/app/migrations/NNN_*.sql`, applied one by one with `psql` (step 4) |
 
 ---
 
@@ -56,19 +56,20 @@ Check for new migrations since last deploy:
 git log --oneline --diff-filter=A -- 'backend/app/migrations/*.sql' | head -10
 ```
 
-If there are new migrations, run the migration runner:
+If there are new migrations, apply **each new file**, in order, with `psql`:
 
 ```bash
 cd /var/www/pilar2b/repo/cp2b-workspace/NewLook/backend
-source .venv/bin/activate
-
-# cp2b_migrate.py reads DATABASE_URL from the environment or backend/.env
-DATABASE_URL=$(grep DATABASE_URL .env | cut -d= -f2-) \
-  python scripts/cp2b_migrate.py
+export DATABASE_URL=$(grep '^DATABASE_URL' .env | cut -d= -f2-)
+psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f app/migrations/<NNN_name>.sql
 ```
 
-> **Never re-run migrations that already ran** — `cp2b_migrate.py` tracks applied
-> migrations and skips already-applied ones, but double-check with the script output.
+> ⚠️ `scripts/cp2b_migrate.py` does **not** apply `app/migrations/`: it re-runs
+> two old files (`migrations/012`, `013`) every time. And do not point
+> `scripts/run_migrations.py` at this database unless its `schema_migrations`
+> table lists every migration already applied — otherwise it would re-apply all
+> of them from 001, data updates included. Apply the new file by name, as above,
+> and read what it says about being re-runnable before running it twice.
 
 ---
 
@@ -201,10 +202,9 @@ pm2 logs pilar-backend --lines 10 --nostream
 cd /var/www/pilar2b/repo
 git pull origin main
 cd cp2b-workspace/NewLook/backend
-source .venv/bin/activate
-DATABASE_URL=$(grep DATABASE_URL .env | cut -d= -f2-) \
-  python scripts/cp2b_migrate.py
-pm2 reload pilar-backend --update-env
+export DATABASE_URL=$(grep '^DATABASE_URL' .env | cut -d= -f2-)
+psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f app/migrations/<NNN_name>.sql   # each new file, in order
+pm2 restart pilar-backend --update-env && pm2 save
 ```
 
 ### "PM2 processes are down"

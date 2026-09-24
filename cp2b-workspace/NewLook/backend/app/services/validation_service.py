@@ -54,38 +54,38 @@ class ValidationService:
         if not isinstance(lat, (int, float)) or not isinstance(lng, (int, float)):
             return (
                 False,
-                "❌ Coordenadas inválidas",
-                "💡 Forneça números válidos para latitude e longitude.",
+                "Invalid coordinates",
+                "Provide numbers for latitude and longitude.",
             )
 
         # Check basic lat/lng bounds
         if not -90 <= lat <= 90:
             return (
                 False,
-                "❌ Latitude inválida",
-                f"💡 A latitude deve estar entre -90 e 90 (recebido: {lat})",
+                "Latitude out of range",
+                f"Latitude must be between -90 and 90 (got {lat}).",
             )
 
         if not -180 <= lng <= 180:
             return (
                 False,
-                "❌ Longitude inválida",
-                f"💡 A longitude deve estar entre -180 e 180 (recebido: {lng})",
+                "Longitude out of range",
+                f"Longitude must be between -180 and 180 (got {lng}).",
             )
 
         # Check if point is within São Paulo State bounds
         if not (SAO_PAULO_BOUNDS["min_lat"] <= lat <= SAO_PAULO_BOUNDS["max_lat"]):
             return (
                 False,
-                "❌ Ponto fora do Estado de São Paulo",
-                "💡 Selecione um ponto dentro dos limites do estado.",
+                "Point outside São Paulo State",
+                "Pick a point within the state's borders.",
             )
 
         if not (SAO_PAULO_BOUNDS["min_lng"] <= lng <= SAO_PAULO_BOUNDS["max_lng"]):
             return (
                 False,
-                "❌ Ponto fora do Estado de São Paulo",
-                "💡 Selecione um ponto dentro dos limites do estado.",
+                "Point outside São Paulo State",
+                "Pick a point within the state's borders.",
             )
 
         # Check if point is in ocean (simple heuristic - eastern coast check)
@@ -93,8 +93,8 @@ class ValidationService:
             logger.warning("Point possibly in ocean (coordinates withheld from logs)")
             return (
                 False,
-                "❌ Ponto possivelmente no oceano",
-                "💡 Selecione um ponto em terra firme dentro do estado.",
+                "Point possibly in the ocean",
+                "Pick a point on land within the state.",
             )
 
         return True, None, None
@@ -111,24 +111,23 @@ class ValidationService:
             Tuple of (is_valid, error_message, suggestion)
         """
         if not isinstance(radius_km, (int, float)):
-            return False, "❌ Raio inválido", "💡 Forneça um número válido para o raio."
+            return False, "Invalid radius", "Provide a number for the radius."
 
         if radius_km <= 0:
-            return False, "❌ Raio deve ser positivo", "💡 O raio deve ser maior que zero."
+            return False, "Radius must be positive", "The radius must be greater than zero."
 
         if radius_km < 1:
             return (
                 False,
-                "❌ Raio muito pequeno",
-                "💡 Use um raio de pelo menos 1 km para análises significativas.",
+                "Radius too small",
+                "Use a radius of at least 1 km for a meaningful analysis.",
             )
 
         if radius_km > 100:
             return (
                 False,
-                "❌ Raio muito grande",
-                "💡 O raio máximo permitido é 100 km. Raios maiores podem "
-                "resultar em dados imprecisos.",
+                "Radius too large",
+                "The maximum radius is 100 km; larger ones give unreliable results.",
             )
 
         # Warning for large radius
@@ -173,20 +172,19 @@ class ValidationService:
         result = {"extends_beyond_state": extends_beyond, "directions": []}
 
         if extends_south:
-            result["directions"].append("sul")
+            result["directions"].append("south")
         if extends_north:
-            result["directions"].append("norte")
+            result["directions"].append("north")
         if extends_west:
-            result["directions"].append("oeste")
+            result["directions"].append("west")
         if extends_east:
-            result["directions"].append("leste")
+            result["directions"].append("east")
 
         if extends_beyond:
             direction_str = ", ".join(result["directions"])
             result["warning"] = (
-                f"⚠️ Raio muito grande\n"
-                f"💡 Parte do raio estende-se para {direction_str} além do Estado de São Paulo. "
-                f"Resultados podem estar incompletos."
+                f"Part of the radius extends {direction_str} beyond São Paulo State; "
+                "results may be incomplete."
             )
             logger.warning(f"Buffer extends beyond state: {direction_str}")
 
@@ -235,9 +233,7 @@ class ValidationService:
 
         # Add performance recommendations
         if radius_km > 30:
-            result["warnings"].append(
-                "💡 Recomendação: Raios acima de 30 km podem resultar em análises mais lentas."
-            )
+            result["warnings"].append("A radius above 30 km makes the analysis slower.")
 
         return result
 

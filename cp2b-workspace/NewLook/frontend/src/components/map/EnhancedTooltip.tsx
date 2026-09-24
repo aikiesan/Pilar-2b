@@ -3,10 +3,13 @@
 'use client';
 
 import React from 'react';
+import { useTranslations } from 'next-intl';
 import { MapPin, MousePointerClick } from 'lucide-react';
 import type { DisplayMetric, MunicipalityFeature } from '@/types/geospatial';
-import { SCENARIO_COLOR, SCENARIO_LABEL, type MapScenarioKey } from '@/data/scenarioFactors';
-import { formatCompact, getMetricSpec } from '@/lib/mapMetrics';
+import { SCENARIO_COLOR, type MapScenarioKey } from '@/data/scenarioFactors';
+import { getMetricSpec } from '@/lib/mapMetrics';
+import { useFormat } from '@/hooks/useFormat';
+import { useMetricText } from '@/hooks/useMetricText';
 
 interface EnhancedTooltipProps {
   municipality: MunicipalityFeature;
@@ -23,9 +26,14 @@ export default function EnhancedTooltip({
   metric = 'biomass_tons',
   scenario = 'baseline',
 }: EnhancedTooltipProps) {
+  const t = useTranslations('Map');
+  const tCommon = useTranslations('common');
+  const format = useFormat();
+  const metricText = useMetricText();
   if (!visible) return null;
 
   const props = municipality.properties;
+  const text = metricText(metric);
   const spec = getMetricSpec(metric);
   const rawValue = spec.rawValue(props, {
     biomassType: 'total',
@@ -67,24 +75,24 @@ export default function EnhancedTooltip({
       <div className="mt-2 flex items-end justify-between gap-2 border-t border-gray-200 pt-2 dark:border-slate-700">
         <div className="min-w-0">
           <div className="flex items-center gap-1 text-[11px] font-semibold text-gray-700 dark:text-gray-300">
-            <span>{spec.icon} {spec.toggleLabel}</span>
+            <span>{spec.icon} {text.label}</span>
             {metric !== 'biomass_tons' && (
               <span
                 className="rounded-full px-1.5 py-0.5 text-[10px] font-bold text-white"
                 style={{ backgroundColor: SCENARIO_COLOR[scenario] }}
               >
-                {SCENARIO_LABEL[scenario]}
+                {t(`scenario_${scenario}`)}
               </span>
             )}
           </div>
           <p className="truncate text-base font-bold text-gray-900 dark:text-white">
-            {displayValue !== null && displayValue > 0 ? formatCompact(displayValue) : 'Sem dados'}
-            <span className="ml-1 text-[11px] font-medium text-gray-700 dark:text-gray-300">{spec.unit}</span>
+            {displayValue !== null && displayValue > 0 ? format.compact(displayValue) : tCommon('states.no_data')}
+            <span className="ml-1 text-[11px] font-medium text-gray-700 dark:text-gray-300">{text.unit}</span>
           </p>
         </div>
         <span className="flex shrink-0 items-center gap-1 text-[11px] font-semibold text-green-800 dark:text-emerald-300">
           <MousePointerClick className="h-3.5 w-3.5" />
-          Clique para detalhes
+          {t('hover.click_for_details')}
         </span>
       </div>
     </div>

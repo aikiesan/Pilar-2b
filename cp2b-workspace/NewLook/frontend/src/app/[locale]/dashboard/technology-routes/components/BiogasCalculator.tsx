@@ -9,17 +9,12 @@ import StepOutputs from './StepOutputs'
 import ResultsDashboard from './ResultsDashboard'
 import {
   runCalculation,
-  calcBiogasFromSugarcane,
-  calcBiogasFromLivestock,
-  calcBiogasFromCrop,
-  calcOutputs,
-  hectaresToCane,
+  isLivestockActivity,
   type OutputType,
   type CalculationResult,
   type CropType,
   type OutputResult,
   CROP_DEFAULT_MONTHS,
-  LIVESTOCK_CATEGORY_SPECIES,
 } from '../calculatorEngine'
 import { submitLead } from '../calculatorApi'
 
@@ -33,7 +28,24 @@ const STEP_TITLES = [
 ] as const
 
 const CROP_TYPES: CropType[] = ['corn', 'soy', 'coffee', 'citrus']
-const LIVESTOCK_TYPES = new Set(['livestock', 'swine', 'cattle', 'poultry'])
+
+/** Runs the engine on the form's current answers; null before an activity is chosen. */
+function calculate(
+  atividade: AtividadeData,
+  activeMonths: number[],
+  selectedOutputs: OutputType[],
+): CalculationResult | null {
+  const { activityType } = atividade
+  if (!activityType) return null
+  return runCalculation(
+    activityType,
+    activityType === 'sugarcane' ? { type: atividade.sugarcaneType, value: atividade.sugarcaneValue } : null,
+    isLivestockActivity(activityType) ? { heads: atividade.livestockHeads } : null,
+    activeMonths,
+    selectedOutputs,
+    CROP_TYPES.includes(activityType as CropType) ? { tonnes: atividade.cropTonnes } : undefined,
+  )
+}
 
 export default function BiogasCalculator() {
   const t = useTranslations('calculator')
@@ -57,34 +69,11 @@ export default function BiogasCalculator() {
   const [selectedOutputs, setSelectedOutputs] = useState<OutputType[]>([])
   const [calcResult, setCalcResult] = useState<CalculationResult | null>(null)
 
-  // Compute preview outputs (avg scenario) for StepOutputs
+  // Preview outputs (avg scenario) for StepOutputs — the same engine call as
+  // the final result, so the preview and the results screen always agree.
   const previewOutputs = useMemo((): OutputResult | null => {
-    const { activityType, sugarcaneType, sugarcaneValue, livestockHeads, cropTonnes } = atividade
-    if (!activityType) return null
-
-    let biogasM3 = 0, ch4 = 0.60, biomass = 0, dryLigno = 0
-
-    if (activityType === 'sugarcane' && sugarcaneValue > 0) {
-      const tonsRaw = sugarcaneType === 'hectares' ? hectaresToCane(sugarcaneValue) : sugarcaneValue
-      const r = calcBiogasFromSugarcane(tonsRaw)
-      biogasM3 = r.biogasM3; ch4 = r.ch4Weighted; biomass = r.biomassTotal; dryLigno = r.strawTons
-    } else if (LIVESTOCK_TYPES.has(activityType)) {
-      const catKey = activityType as 'livestock' | 'swine' | 'cattle' | 'poultry'
-      const speciesFilter = catKey === 'livestock' ? null : LIVESTOCK_CATEGORY_SPECIES[catKey as 'swine' | 'cattle' | 'poultry']
-      const heads = speciesFilter
-        ? Object.fromEntries(
-            speciesFilter.filter(s => (livestockHeads[s] ?? 0) > 0).map(s => [s, livestockHeads[s]])
-          )
-        : livestockHeads
-      const r = calcBiogasFromLivestock(heads)
-      biogasM3 = r.biogasM3; ch4 = r.ch4Weighted; biomass = r.biomassTotal
-    } else if (CROP_TYPES.includes(activityType as CropType) && cropTonnes > 0) {
-      const r = calcBiogasFromCrop(activityType as CropType, cropTonnes)
-      biogasM3 = r.biogasM3; ch4 = r.ch4Weighted; biomass = r.biomassTotal; dryLigno = biomass * 0.87
-    }
-
-    if (biogasM3 <= 0) return null
-    return calcOutputs(biogasM3, ch4, biomass, dryLigno, activeMonths)
+    const result = calculate(atividade, activeMonths, [])
+    return result && result.outputs.totalBiogasM3Year > 0 ? result.outputs : null
   }, [atividade, activeMonths])
 
   function handleAtividadeChange(d: AtividadeData) {
@@ -104,21 +93,11 @@ export default function BiogasCalculator() {
   }
 
   async function handleCalculate() {
-    if (!atividade.activityType) return
+    const result = calculate(atividade, activeMonths, selectedOutputs)
+    if (!result || !atividade.activityType) return
 
     const isSugarcane = atividade.activityType === 'sugarcane'
-    const isLivestock = atividade.activityType !== null &&
-      LIVESTOCK_TYPES.has(atividade.activityType)
     const isCrop = CROP_TYPES.includes(atividade.activityType as CropType)
-
-    const result = runCalculation(
-      atividade.activityType,
-      isSugarcane ? { type: atividade.sugarcaneType, value: atividade.sugarcaneValue } : null,
-      isLivestock  ? { heads: atividade.livestockHeads } : null,
-      activeMonths,
-      selectedOutputs,
-      isCrop ? { tonnes: atividade.cropTonnes } : undefined,
-    )
 
     setCalcResult(result)
     setStep('results')

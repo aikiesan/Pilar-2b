@@ -7,7 +7,7 @@
  */
 
 import type { MunicipalityProperties } from '@/types/geospatial';
-import type { ResidueType } from '@/components/map/FloatingControlPanel';
+import type { ResidueType } from '@/types/map';
 import {
   BIOMASS_RESIDUES,
   RESIDUES_BY_SECTOR,

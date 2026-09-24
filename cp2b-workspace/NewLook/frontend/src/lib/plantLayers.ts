@@ -17,12 +17,15 @@ export type PlantLayerId =
   | 'biomass_thermal_plant'
   | 'biodiesel_plant';
 
+/** Catalog key for a plant type: Map.plants.<key>.{name,description}. */
+export type PlantTypeKey = 'biogas' | 'ethanol' | 'biomass_thermal' | 'biodiesel' | 'biomethane';
+
 export interface PlantTypeInfo {
-  name: string;
+  key: PlantTypeKey;
   icon: string;
   color: string;
   borderColor: string;
-  description: string;
+  /** Dataset name, cited as published. */
   dataSource: string;
   year: string;
 }
@@ -35,29 +38,26 @@ export interface PlantTypeInfo {
  */
 export const PLANT_LAYERS: Record<PlantLayerId, PlantTypeInfo> = {
   biogas_plant: {
-    name: 'Biogás',
+    key: 'biogas',
     icon: '🏭',
     color: '#27AE60',
     borderColor: '#1E5128',
-    description: 'Plantas de produção de biogás',
     dataSource: 'MapBiomas — INFRAESTRUTURA',
     year: '2024',
   },
   ethanol_plant: {
-    name: 'Etanol',
+    key: 'ethanol',
     icon: '🌽',
     color: '#9B59B6',
     borderColor: '#6C3483',
-    description: 'Usinas de produção de etanol',
     dataSource: 'MapBiomas — INFRAESTRUTURA',
     year: '2024',
   },
   biomass_thermal_plant: {
-    name: 'Biomassa UTE',
+    key: 'biomass_thermal',
     icon: '⚡',
     color: '#E67E22',
     borderColor: '#BA4A00',
-    description: 'Usinas termelétricas a biomassa',
     dataSource: 'MapBiomas — INFRAESTRUTURA',
     year: '2024',
   },
@@ -65,11 +65,10 @@ export const PLANT_LAYERS: Record<PlantLayerId, PlantTypeInfo> = {
   // type on the map under another type's colour. Brown is free in the palette
   // above and reads as oil, which is what a biodiesel plant handles.
   biodiesel_plant: {
-    name: 'Biodiesel',
+    key: 'biodiesel',
     icon: '🛢️',
     color: '#8D6E63',
     borderColor: '#5D4037',
-    description: 'Usinas de produção de biodiesel',
     dataSource: 'MapBiomas — INFRAESTRUTURA',
     year: '2024',
   },
@@ -88,11 +87,10 @@ export function isPlantLayer(id: string): id is PlantLayerId {
  * layer, but exported so both the marker code and the legend can use it there.
  */
 export const BIOMETHANE_PLANT: PlantTypeInfo = {
-  name: 'Biometano',
+  key: 'biomethane',
   icon: '💨',
   color: '#3498DB',
   borderColor: '#1F618D',
-  description: 'Plantas de produção de biometano',
   dataSource: 'MapBiomas + ANP',
   year: '2024',
 };

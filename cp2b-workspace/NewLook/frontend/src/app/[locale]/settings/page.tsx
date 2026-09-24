@@ -7,11 +7,12 @@
  */
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { useTranslations } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
+import { useRouter } from '@/navigation'
+import { isLocale } from '@/config/i18n'
+import { useLocaleSwitch } from '@/components/ui/LanguageSwitcher'
 import { Settings, User, Bell, Palette, Shield, HelpCircle, Save, Check } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
-import { DashboardLayout } from '@/components/layout'
 import { logger } from '@/lib/logger'
 import Breadcrumb from '@/components/ui/Breadcrumb'
 import { useBreadcrumbs } from '@/hooks/useBreadcrumbs'
@@ -25,7 +26,6 @@ interface UserSettings {
   }
   appearance: {
     theme: 'light' | 'dark' | 'auto'
-    language: string
     compactMode: boolean
   }
   security: {
@@ -38,6 +38,8 @@ export default function SettingsPage() {
   const router = useRouter()
   const { user, loading, isAuthenticated } = useAuth()
   const t = useTranslations('settings_page')
+  const locale = useLocale()
+  const switchLocale = useLocaleSwitch()
   const breadcrumbs = useBreadcrumbs()
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -51,7 +53,6 @@ export default function SettingsPage() {
     },
     appearance: {
       theme: 'light',
-      language: 'pt-BR',
       compactMode: false,
     },
     security: {
@@ -93,18 +94,16 @@ export default function SettingsPage() {
 
   if (loading) {
     return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center h-[calc(100vh-64px)]">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600" role="status" aria-label={t('loading')}></div>
-        </div>
-      </DashboardLayout>
+      <div className="flex items-center justify-center h-[calc(100vh-64px)]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600" role="status" aria-label={t('loading')}></div>
+      </div>
     )
   }
 
   if (!user) return null
 
   return (
-    <DashboardLayout>
+    <>
       {/* Breadcrumb */}
       <div className="bg-white border-b dark:bg-slate-800 dark:border-slate-700">
         <Breadcrumb items={breadcrumbs} />
@@ -276,16 +275,17 @@ export default function SettingsPage() {
                   </label>
                   <select
                     id="language-select"
-                    value={settings.appearance.language}
-                    onChange={(e) => setSettings({
-                      ...settings,
-                      appearance: { ...settings.appearance, language: e.target.value }
-                    })}
+                    // The language is the page's URL, not a stored preference:
+                    // choosing one moves to the same page in that language.
+                    value={locale}
+                    onChange={(e) => {
+                      if (isLocale(e.target.value)) switchLocale(e.target.value)
+                    }}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                   >
-                    <option value="pt-BR">Português (Brasil)</option>
-                    <option value="en-US">English (US)</option>
-                    <option value="es-ES">Español</option>
+                    {/* Each language is named in itself, so it can be found in either UI. */}
+                    <option value="pt-BR">Português (Brasil)</option>{/* i18n-exempt: language endonym */}
+                    <option value="en">English</option>
                   </select>
                 </div>
 
@@ -373,7 +373,7 @@ export default function SettingsPage() {
                   <button
                     className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
                   >
-                    Alterar Senha
+                    {t('change_password')}
                   </button>
                 </div>
               </div>
@@ -385,15 +385,13 @@ export default function SettingsPage() {
             <div className="flex items-start gap-3">
               <HelpCircle className="h-5 w-5 text-blue-600 mt-0.5" aria-hidden="true" />
               <div>
-                <h3 className="font-medium text-blue-900">Precisa de ajuda?</h3>
-                <p className="text-sm text-blue-700 mt-1">
-                  Entre em contato com nossa equipe de suporte para assistência técnica.
-                </p>
+                <h3 className="font-medium text-blue-900">{t('help_title')}</h3>
+                <p className="text-sm text-blue-700 mt-1">{t('help_body')}</p>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    </>
   )
 }

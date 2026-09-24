@@ -8,14 +8,22 @@
 import React, { useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import type { DisplayMetric } from '@/types/geospatial';
-import { getMetricSpec, legendItems as buildLegendItems, CVD_PALETTES, type CvdPaletteId } from '@/lib/mapMetrics';
+import {
+  getMetricSpec,
+  legendItems as buildLegendItems,
+  describeLegendRow,
+  CVD_PALETTES,
+  type CvdPaletteId,
+} from '@/lib/mapMetrics';
 import { BETA_FILL } from '@/lib/mapScope';
 import { useCvdPalette } from '@/hooks/useCvdPalette';
 import { useMapPalette } from '@/hooks/useMapPalette';
+import { useFormat } from '@/hooks/useFormat';
+import { useMetricText } from '@/hooks/useMetricText';
 import { useTranslations } from 'next-intl';
 import { isServedScenario, SCENARIO_COLOR, type MapScenarioKey } from '@/data/scenarioFactors';
 
-// 'Zero' and 'Sem dados' are deliberately separate: the near-white swatch is a
+// "Zero" and "No data" are deliberately separate: the near-white swatch is a
 // real zero (we looked; there is none), the grey is no_data (never loaded). The
 // map keeps them distinct — see MunicipalityLayer NO_DATA_STYLE / migration 025.
 // Ranges, colours and units all come from the metric registry (lib/mapMetrics),
@@ -26,7 +34,7 @@ export default function MapLegend({
   showNationalBeta = false,
   scenario = 'baseline',
   scaleBreaks = null,
-  scopeLabel = 'São Paulo',
+  scopeLabel = 'São Paulo', // i18n-exempt: proper noun, the same in both languages
   betaScope = false,
 }: {
   displayMetric?: DisplayMetric;
@@ -47,11 +55,18 @@ export default function MapLegend({
   betaScope?: boolean;
 }) {
   const t = useTranslations('Map');
+  const tCommon = useTranslations('common');
+  const format = useFormat();
+  const metricText = useMetricText();
   const [cvdPalette, setCvdPalette] = useCvdPalette();
   const [mapPalette] = useMapPalette();
   const spec = getMetricSpec(displayMetric);
-  const legendItems = buildLegendItems(spec, daltonic, cvdPalette, scaleBreaks, mapPalette);
-  const title = spec.legendTitle;
+  const rowLabels = { zero: t('legend.zero'), noData: tCommon('states.no_data') };
+  const legendItems = buildLegendItems(spec, daltonic, cvdPalette, scaleBreaks, mapPalette).map((row) => ({
+    color: row.color,
+    label: describeLegendRow(row, (value) => format.compact(value), rowLabels),
+  }));
+  const title = metricText(displayMetric).legend;
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   // Biomassa is the resource itself and does not move with the scenario, so
@@ -84,7 +99,7 @@ export default function MapLegend({
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
             className="text-gray-400 hover:text-gray-600 focus:outline-none transition-colors rounded-full hover:bg-gray-100 p-0.5"
-            aria-label={isCollapsed ? 'Expandir legenda' : 'Recolher legenda'}
+            aria-label={isCollapsed ? t('legend.expand') : t('legend.collapse')}
             aria-expanded={!isCollapsed}
           >
             {isCollapsed ? (
@@ -100,12 +115,13 @@ export default function MapLegend({
         {!isCollapsed && daltonic && (
           <div className="px-3 pt-2.5">
             <span className="mb-1 block text-[9px] font-bold uppercase tracking-wide text-gray-400">
-              Paleta (daltônico)
+              {t('legend.cvd_palette')}
             </span>
-            <div className="flex gap-1" role="radiogroup" aria-label="Paleta para daltonismo">
+            <div className="flex gap-1" role="radiogroup" aria-label={t('legend.cvd_palette_aria')}>
               {(Object.keys(CVD_PALETTES) as CvdPaletteId[]).map((id) => {
                 const p = CVD_PALETTES[id];
                 const active = cvdPalette === id;
+                const name = t(`palettes.${id}.label`);
                 return (
                   <button
                     key={id}
@@ -113,7 +129,7 @@ export default function MapLegend({
                     role="radio"
                     aria-checked={active}
                     onClick={() => setCvdPalette(id)}
-                    title={`${p.label} — ${p.note}`}
+                    title={`${name} — ${t(`palettes.${id}.note`)}`}
                     className={`flex-1 rounded-md border p-1 transition-all ${
                       active ? 'border-gray-800 ring-1 ring-gray-800' : 'border-gray-200 hover:border-gray-400'
                     }`}
@@ -123,7 +139,7 @@ export default function MapLegend({
                         <span key={c} className="flex-1" style={{ backgroundColor: c }} />
                       ))}
                     </span>
-                    <span className="mt-0.5 block text-[8px] font-semibold text-gray-600">{p.label}</span>
+                    <span className="mt-0.5 block text-[8px] font-semibold text-gray-600">{name}</span>
                   </button>
                 );
               })}
@@ -165,7 +181,7 @@ export default function MapLegend({
                     aria-hidden="true"
                   />
                   <span className="text-[10px] text-gray-500 font-medium flex-1 leading-tight">
-                    Minas Gerais — piloto beta
+                    {t('legend.mg_beta')}
                   </span>
                 </div>
               </div>

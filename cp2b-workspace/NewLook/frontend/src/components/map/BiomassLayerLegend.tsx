@@ -6,6 +6,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { ChevronUp, ChevronDown, X, Info } from 'lucide-react';
 import {
   PLANT_LAYERS,
@@ -25,6 +26,8 @@ interface BiomassLayerLegendProps {
 }
 
 export default function BiomassLayerLegend({ layerIds = [] }: BiomassLayerLegendProps) {
+  const t = useTranslations('Map');
+  const tCommon = useTranslations('common');
   const [isExpanded, setIsExpanded] = useState(false);
   const [isHidden, setIsHidden] = useState(false);
 
@@ -39,8 +42,8 @@ export default function BiomassLayerLegend({ layerIds = [] }: BiomassLayerLegend
       ? [PLANT_LAYERS[id]]
       : [];
     for (const entry of entries) {
-      if (seen.has(entry.name)) continue;
-      seen.add(entry.name);
+      if (seen.has(entry.key)) continue;
+      seen.add(entry.key);
       plantTypes.push(entry);
     }
   }
@@ -57,7 +60,7 @@ export default function BiomassLayerLegend({ layerIds = [] }: BiomassLayerLegend
         className="bg-white/95 backdrop-blur-sm shadow-lg rounded-lg px-3 py-2 text-xs text-gray-600 hover:bg-white transition-colors flex items-center gap-1"
       >
         <Info size={14} />
-        Legenda Plantas
+        {t('plantsLegend.show')}
       </button>
     );
   }
@@ -69,20 +72,20 @@ export default function BiomassLayerLegend({ layerIds = [] }: BiomassLayerLegend
         <div className="flex items-center justify-between bg-gradient-to-r from-green-600 to-green-700 px-3 py-2">
           <div className="flex items-center gap-2">
             <Info size={14} className="text-white" />
-            <h3 className="text-sm font-semibold text-white">Legenda: Plantas de Biomassa</h3>
+            <h3 className="text-sm font-semibold text-white">{t('plantsLegend.title')}</h3>
           </div>
           <div className="flex items-center gap-1">
             <button
               onClick={() => setIsExpanded(!isExpanded)}
               className="text-white/80 hover:text-white transition-colors p-1"
-              aria-label={isExpanded ? 'Recolher' : 'Expandir'}
+              aria-label={isExpanded ? t('legend.collapse') : t('legend.expand')}
             >
               {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
             </button>
             <button
               onClick={() => setIsHidden(true)}
               className="text-white/80 hover:text-white transition-colors p-1"
-              aria-label="Fechar"
+              aria-label={tCommon('actions.close')}
             >
               <X size={16} />
             </button>
@@ -94,7 +97,7 @@ export default function BiomassLayerLegend({ layerIds = [] }: BiomassLayerLegend
           {/* Plant Types */}
           <div className="space-y-2">
             {plantTypes.map((type) => (
-              <div key={type.name} className="flex items-start gap-2">
+              <div key={type.key} className="flex items-start gap-2">
                 {/* Icon */}
                 <div
                   style={{
@@ -110,16 +113,16 @@ export default function BiomassLayerLegend({ layerIds = [] }: BiomassLayerLegend
 
                 {/* Info */}
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-gray-900">{type.name}</div>
-                  <div className="text-xs text-gray-600">{type.description}</div>
+                  <div className="text-sm font-medium text-gray-900">{t(`plants.${type.key}.name`)}</div>
+                  <div className="text-xs text-gray-600">{t(`plants.${type.key}.description`)}</div>
                   {isExpanded && (
                     <div className="mt-1 text-xs text-gray-500">
                       <div className="flex items-center gap-1">
-                        <span className="font-medium">Fonte:</span>
+                        <span className="font-medium">{t('plantsLegend.source')}</span>
                         <span>{type.dataSource}</span>
                       </div>
                       <div>
-                        <span className="font-medium">Ano:</span> {type.year}
+                        <span className="font-medium">{t('plantsLegend.year')}</span> {type.year}
                       </div>
                     </div>
                   )}
@@ -132,10 +135,10 @@ export default function BiomassLayerLegend({ layerIds = [] }: BiomassLayerLegend
           {isExpanded && (
             <div className="mt-3 pt-3 border-t border-gray-200">
               <p className="text-xs text-gray-500">
-                <strong>MapBiomas:</strong> Projeto de mapeamento anual da cobertura e uso do solo do Brasil
+                <strong>MapBiomas:</strong> {t('plantsLegend.mapbiomas_note')}
               </p>
               <p className="text-xs text-gray-500 mt-1">
-                <strong>ANP:</strong> Agência Nacional do Petróleo, Gás Natural e Biocombustíveis
+                <strong>ANP:</strong> {t('plantsLegend.anp_note')}
               </p>
             </div>
           )}

@@ -224,7 +224,7 @@ async def get_all_references(
     try:
         with get_db() as conn:
             all_refs = _rows(conn, "SELECT * FROM scientific_references")
-            residuos = _rows(conn, "SELECT id, codigo, nome, sector_codigo FROM residuos")
+            residuos = _rows(conn, "SELECT id, codigo, nome, nome_en, sector_codigo FROM residuos")
             sectors = _rows(conn, "SELECT codigo, nome FROM sectors")
 
         residuo_by_codigo = {r["codigo"]: r for r in residuos}
@@ -254,6 +254,7 @@ async def get_all_references(
                     "residuo_codigo": ref.get("primary_residue"),
                     "residuo_id": residuo.get("id"),
                     "residuo_nome": residuo.get("nome"),
+                    "residuo_nome_en": residuo.get("nome_en") or None,
                     "sector_codigo": sc,
                     "sector_nome": sector_map.get(sc, ""),
                     "parameter_type": None,

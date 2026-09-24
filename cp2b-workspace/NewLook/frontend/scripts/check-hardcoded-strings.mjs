@@ -1,105 +1,109 @@
 #!/usr/bin/env node
 /**
- * Guards already-translated files against new hardcoded Portuguese.
+ * Fails when Portuguese UI text is hardcoded in the source instead of read from
+ * the message catalogs.
  *
  * The e2e locale test (`e2e/i18n.public.spec.ts`) only sees what renders on page
- * load. Popups, expandable panels and empty states are invisible to it — which
- * is exactly how `MunicipalityProfilePanel` and `InfrastructureLayer` stayed
- * fully Portuguese while `/en/map` passed. This catches those, statically, with
- * no browser and no backend, so it can run in the blocking lint job.
+ * load; popups, expandable panels and empty states are invisible to it. This
+ * check is static — no browser, no backend — so it runs in the blocking lint
+ * job and covers every file.
  *
- * It is a ratchet, not a sweep: it checks only `CLEAN_FILES`, the files already
- * extracted to the catalogs. Add a file to that list the moment you finish it.
- * Running it over the whole tree would just report the work not yet done and
- * would have to be non-blocking, which would make it worthless as a gate.
+ * Scope: every .ts/.tsx file under src/, tests excluded. Detection lives in
+ * scripts/lib/portuguese-scan.mjs (TypeScript AST; see its header for what is
+ * treated as code rather than copy).
+ *
+ * Ratchet: PENDING lists the files not translated yet. A finding in any other
+ * file fails; so does a PENDING entry that has no findings left, so the list can
+ * only shrink. When you finish translating a file, delete its line here.
  *
  * To allow a genuine Portuguese literal — a proper noun, an official dataset
- * name, a scientific term — put `i18n-exempt` in a comment on the same line.
+ * name, a citation — add `i18n-exempt: <reason>` in a comment on that line or
+ * the line above. A marker without a reason is rejected.
  *
- * Run: npm run i18n:scan
+ * Run: npm run i18n:scan              (the gate)
+ *      npm run i18n:scan -- --report  (findings per file, including PENDING)
  */
 
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
+import { dirname, join, relative, sep } from 'node:path';
+import { scanSource } from './lib/portuguese-scan.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
+const SRC = join(ROOT, 'src');
+const report = process.argv.includes('--report');
 
-/** Files whose user-facing strings all live in messages/. Keep this growing. */
-const CLEAN_FILES = [
-  'src/app/[locale]/about/page.tsx',
-  'src/app/[locale]/cite/page.tsx',
-  'src/app/[locale]/guide/page.tsx',
-  'src/app/[locale]/guide/layout.tsx',
-  'src/app/[locale]/dashboard/technology-routes/page.tsx',
-  'src/components/ui/GlobalSearch.tsx',
-  'src/components/map/MapLoadingSkeleton.tsx',
-  'src/components/map/MunicipalityProfilePanel.tsx',
-  'src/components/map/InfrastructureLayer.tsx',
-  'src/components/map/ThematicMapBar.tsx',
-  'src/components/layout/UnifiedHeader.tsx',
-  'src/app/[locale]/patch-notes/page.tsx',
+/** Files still carrying hardcoded Portuguese. Only ever delete from this list. */
+const PENDING = [
 ];
 
-/** Characters that appear in Portuguese but not in English. */
-const PORTUGUESE_CHARS = /[ãõçáéíóúâêôàÃÕÇÁÉÍÓÚÂÊÔÀ]/;
-
-/** Attributes whose value is read by a user or a screen reader. */
-const LOCALIZED_ATTRS = /\b(placeholder|aria-label|title|alt|label|subtitle)="([^"]*)"/g;
-
-/** JSX text between tags, e.g. `>Município<`. */
-const JSX_TEXT = />([^<>{}]*)</g;
-
-/** Strips comments so prose in them is never flagged. */
-function stripComments(source) {
-  return source
-    .replace(/\/\*[\s\S]*?\*\//g, (block) => block.replace(/[^\n]/g, ' '))
-    .replace(/(^|[^:])\/\/[^\n]*/g, (match, prefix) => prefix + ' '.repeat(match.length - prefix.length));
+function sourceFiles(dir, out = []) {
+  for (const name of readdirSync(dir)) {
+    const path = join(dir, name);
+    if (statSync(path).isDirectory()) {
+      if (name !== '__tests__' && name !== 'test') sourceFiles(path, out);
+    } else if (/\.tsx?$/.test(name) && !/\.(test|spec)\.tsx?$|\.d\.ts$/.test(name)) {
+      out.push(path);
+    }
+  }
+  return out;
 }
 
+const toPosix = (path) => path.split(sep).join('/');
+const pending = new Set(PENDING);
 const problems = [];
+const perFile = [];
 
-for (const relative of CLEAN_FILES) {
-  let source;
-  try {
-    source = readFileSync(join(ROOT, relative), 'utf8');
-  } catch {
-    problems.push(`${relative}: listed as clean but could not be read — update CLEAN_FILES`);
+for (const path of sourceFiles(SRC)) {
+  const file = toPosix(relative(ROOT, path));
+  const { findings, bareExemptions } = scanSource(readFileSync(path, 'utf8'), path);
+
+  for (const line of bareExemptions) {
+    problems.push(`${file}:${line}  i18n-exempt needs a reason: \`i18n-exempt: <why>\``);
+  }
+  if (findings.length) perFile.push([findings.length, file]);
+
+  if (pending.has(file)) {
+    if (findings.length === 0) problems.push(`${file}  is clean now — remove it from PENDING`);
     continue;
   }
+  for (const { line, text } of findings) {
+    problems.push(`${file}:${line}  ${text.slice(0, 80)}`);
+  }
+}
 
-  const rawLines = source.split('\n');
-  const lines = stripComments(source).split('\n');
+for (const file of pending) {
+  try {
+    statSync(join(ROOT, file));
+  } catch {
+    problems.push(`${file}  is listed in PENDING but does not exist — remove it`);
+  }
+}
 
-  lines.forEach((line, index) => {
-    // `i18n-exempt` is read from the ORIGINAL line: the marker lives in a
-    // comment, which stripComments has already blanked out.
-    if (rawLines[index].includes('i18n-exempt')) return;
-
-    const found = new Set();
-
-    for (const [, text] of line.matchAll(JSX_TEXT)) {
-      if (PORTUGUESE_CHARS.test(text) && text.trim()) found.add(text.trim());
-    }
-    for (const [, , value] of line.matchAll(LOCALIZED_ATTRS)) {
-      if (PORTUGUESE_CHARS.test(value)) found.add(value);
-    }
-
-    for (const text of found) {
-      problems.push(`${relative}:${index + 1}  ${text.slice(0, 70)}`);
-    }
-  });
+if (report) {
+  perFile.sort((a, b) => b[0] - a[0]);
+  const total = perFile.reduce((sum, [count]) => sum + count, 0);
+  console.log(`${total} Portuguese literal(s) in ${perFile.length} file(s):\n`);
+  for (const [count, file] of perFile) {
+    console.log(`  ${String(count).padStart(4)}  ${file}${pending.has(file) ? '' : '   ← not in PENDING'}`);
+  }
+  console.log('');
 }
 
 if (problems.length > 0) {
-  console.error(`✖ hardcoded Portuguese in files that should be fully translated:\n`);
+  console.error(`✖ hardcoded Portuguese outside the message catalogs (${problems.length}):\n`);
   for (const problem of problems) console.error(`  ${problem}`);
   console.error(
     `\nMove each string into messages/en.json and messages/pt-BR.json and read it` +
-      `\nwith t(). If it is a proper noun or an official dataset name, add an` +
-      `\n\`i18n-exempt\` comment on that line saying why.`
+      `\nwith t(). For record-level data use a { 'pt-BR', en } field (src/lib/localized.ts).` +
+      `\nIf it is a proper noun or an official dataset name, add` +
+      `\n\`i18n-exempt: <reason>\` in a comment on that line.`
   );
   process.exit(1);
 }
 
-console.log(`✓ no hardcoded Portuguese in ${CLEAN_FILES.length} translated files`);
+const scanned = sourceFiles(SRC).length;
+console.log(
+  `✓ no hardcoded Portuguese in ${scanned - pending.size} of ${scanned} source files` +
+    (pending.size ? ` (${pending.size} pending translation)` : '')
+);

@@ -3,10 +3,13 @@ import pandas as pd
 from app.services.municipality_exports import (
     RESIDUOS,
     _coalesce,
+    _fmt,
     _sheet_residuos,
     _sheet_setores,
     ascii_slug,
+    build_pdf,
     build_workbook,
+    potential_category,
 )
 
 WHO = {
@@ -116,3 +119,64 @@ def test_workbook_has_the_six_curated_sheets_and_no_raw_table_dump():
 def test_filenames_fold_accents_for_content_disposition():
     assert ascii_slug("Lençóis Paulista") == "lencois_paulista"
     assert ascii_slug("São João da Boa Vista") == "sao_joao_da_boa_vista"
+
+
+# ── English edition ──────────────────────────────────────────────────────────
+
+SECTIONS = {
+    "municipality": [MUNI],
+    "residue_streams": [
+        {"residue_stream": "sugarcane", "sector": "agricultural", "biogas_m3_yr": 81216000.0}
+    ],
+    "timeseries": [],
+    "infrastructure": [],
+}
+
+
+def test_the_english_workbook_names_its_sheets_in_english():
+    from io import BytesIO
+
+    book = pd.ExcelFile(BytesIO(build_workbook(SECTIONS, WHO, "en")))
+
+    assert book.sheet_names == [
+        "Summary",
+        "By sector",
+        "By residue",
+        "Time series",
+        "Infrastructure",
+        "Sources and notes",
+    ]
+
+
+def test_the_english_sheets_reconcile_like_the_portuguese_ones():
+    frame = _sheet_setores(MUNI, "en")
+    total = frame.loc[frame["Sector"] == "TOTAL", "Biogas (m³/year)"].iloc[0]
+
+    assert total == MUNI["total_biogas_m3_year"]
+    assert set(frame["Sector"]) == {"Agricultural", "Livestock", "Urban", "Forestry", "TOTAL"}
+
+
+def test_english_residue_rows_keep_zero_and_absent_apart():
+    frame = _sheet_residuos(MUNI, [], "en").set_index("Residue")
+
+    assert frame.loc["Aquaculture", "Biogas (m³/year)"] == 0.0
+    assert pd.isna(frame.loc["Sewage", "Biogas (m³/year)"])
+
+
+def test_the_potential_category_is_worded_per_language():
+    assert potential_category("ALTO", "en") == "High"
+    assert potential_category("ALTO", "pt-BR") == "Alto"
+    assert potential_category("SEM DADOS", "en") == "SEM DADOS"  # unknown codes pass through
+    assert potential_category(None, "en") is None
+
+
+def test_numbers_use_the_language_decimal_mark():
+    assert _fmt(1234.5, 1, "en") == "1 234.5"
+    assert _fmt(1234.5, 1, "pt-BR") == "1 234,5"
+    assert _fmt(None, 0, "en") == "—"
+
+
+def test_the_report_renders_in_both_languages():
+    for lang in ("pt-BR", "en"):
+        pdf = build_pdf(SECTIONS, WHO, None, None, lang)
+        assert pdf.startswith(b"%PDF"), lang

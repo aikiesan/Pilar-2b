@@ -6,6 +6,7 @@ workbook is the reference for what a municipal report may contain.
 
     python -m scripts.export_municipality_dossier 3526803
     python -m scripts.export_municipality_dossier 3526803 --out-dir exports/
+    python -m scripts.export_municipality_dossier 3526803 --lang en
 
 Reads through app.services.municipality_dossier, the same gatherer the download
 buttons use, so the CLI output and the in-app export cannot diverge.
@@ -23,6 +24,7 @@ import psycopg2
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from app.services.dossier_text import DEFAULT_LANG, LANGS  # noqa: E402
 from app.services.municipality_dossier import (  # noqa: E402
     collect,
     geojson,
@@ -41,6 +43,12 @@ def main() -> int:
     ap.add_argument("ibge_code", help="7-digit IBGE municipality code, e.g. 3526803")
     ap.add_argument("--out-dir", default="exports", help="where to write (default: exports/)")
     ap.add_argument("--json", action="store_true", help="also write the raw sections as JSON")
+    ap.add_argument(
+        "--lang",
+        choices=LANGS,
+        default=DEFAULT_LANG,
+        help=f"report language (default: {DEFAULT_LANG})",
+    )
     args = ap.parse_args()
 
     out_dir = Path(args.out_dir)
@@ -58,10 +66,10 @@ def main() -> int:
     stem = f"{args.ibge_code}_{ascii_slug(who['municipality_name'])}"
 
     xlsx_path = out_dir / f"{stem}.xlsx"
-    xlsx_path.write_bytes(build_workbook(sections, who))
+    xlsx_path.write_bytes(build_workbook(sections, who, args.lang))
 
     pdf_path = out_dir / f"{stem}.pdf"
-    pdf_path.write_bytes(build_pdf(sections, who, shape, outline))
+    pdf_path.write_bytes(build_pdf(sections, who, shape, outline, args.lang))
 
     print(f"{who['municipality_name']} ({who['uf']}) — {args.ibge_code}")
     for name, rows in sections.items():

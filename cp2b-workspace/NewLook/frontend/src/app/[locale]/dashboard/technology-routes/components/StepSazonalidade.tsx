@@ -2,11 +2,10 @@
 
 import { useTranslations } from 'next-intl'
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Cell
 } from 'recharts'
-import type { ActivityType } from '../calculatorEngine'
-
-const MONTHS = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez']
+import { useFormat } from '@/hooks/useFormat'
+import { isLivestockActivity, type ActivityType } from '../calculatorEngine'
 
 // Default safra SP: Apr (4) → Dec (12)
 export const DEFAULT_CANE_MONTHS = [4,5,6,7,8,9,10,11,12]
@@ -22,6 +21,7 @@ interface Props {
 
 export default function StepSazonalidade({ activeMonths, activityType, onChange, onNext, onBack }: Props) {
   const t = useTranslations('calculator')
+  const format = useFormat()
 
   const toggle = (m: number) => {
     if (activeMonths.includes(m)) {
@@ -32,10 +32,10 @@ export default function StepSazonalidade({ activeMonths, activityType, onChange,
     }
   }
 
-  const chartData = MONTHS.map((label, i) => ({
-    label,
-    month: i + 1,
-    value: activeMonths.includes(i + 1) ? 1 : 0,
+  const chartData = ALL_MONTHS.map(month => ({
+    label: format.month(month),
+    month,
+    value: activeMonths.includes(month) ? 1 : 0,
   }))
 
   return (
@@ -44,7 +44,7 @@ export default function StepSazonalidade({ activeMonths, activityType, onChange,
         <p className="text-sm text-gray-600 dark:text-slate-400 mb-1">
           {activityType === 'sugarcane'
             ? t('step3.caneNote')
-            : activityType === 'livestock'
+            : isLivestockActivity(activityType)
               ? t('step3.livestockNote')
               : t('step3.cropNote')}
         </p>
@@ -74,26 +74,27 @@ export default function StepSazonalidade({ activeMonths, activityType, onChange,
 
       {/* Month toggle buttons */}
       <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
-        {MONTHS.map((label, i) => {
-          const m = i + 1
+        {ALL_MONTHS.map(m => {
           const active = activeMonths.includes(m)
           return (
             <button
               key={m}
               onClick={() => toggle(m)}
+              aria-pressed={active}
+              aria-label={format.month(m, 'long')}
               className={`py-1.5 rounded-lg text-xs font-medium border transition-colors
                 ${active
                   ? 'bg-green-600 text-white border-green-600'
                   : 'bg-white dark:bg-slate-800 text-gray-500 dark:text-slate-400 border-gray-300 dark:border-slate-600 hover:border-green-400 dark:hover:border-emerald-500'}`}
             >
-              {label}
+              {format.month(m)}
             </button>
           )
         })}
       </div>
 
       <p className="text-center text-xs text-gray-500 dark:text-slate-400">
-        {activeMonths.length} {t('step3.monthsActive')}
+        {t('step3.monthsActive', { count: activeMonths.length })}
         {activityType === 'sugarcane' && activeMonths.length < 6 && (
           <span className="ml-2 text-amber-500">⚠ {t('step3.shortSafraWarning')}</span>
         )}

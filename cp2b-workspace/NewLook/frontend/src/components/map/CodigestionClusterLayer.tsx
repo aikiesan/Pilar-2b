@@ -2,7 +2,10 @@
 
 import React from 'react';
 import { GeoJSON } from 'react-leaflet';
+import { useLocale, useTranslations } from 'next-intl';
 import type { CodigestionCluster } from '@/types/geospatial';
+import { useFormat } from '@/hooks/useFormat';
+import { clusterNumber, useCodigestionText } from '@/hooks/useCodigestionText';
 
 interface CodigestionClusterLayerProps {
   clusters: CodigestionCluster[];
@@ -27,6 +30,11 @@ export default function CodigestionClusterLayer({
   selectedClusterId,
   onClusterClick,
 }: CodigestionClusterLayerProps) {
+  const t = useTranslations('Map.codigestion');
+  const locale = useLocale();
+  const format = useFormat();
+  const text = useCodigestionText();
+
   if (!clusters || clusters.length === 0) return null;
 
   // Only render convex hull polygons for small clusters (≤30 municipalities).
@@ -45,11 +53,10 @@ export default function CodigestionClusterLayer({
           cluster_id: cluster.cluster_id,
           cluster_score: toFiniteNumber(cluster.cluster_score),
           municipality_count: toFiniteNumber(cluster.municipality_count),
-          top_residue_a: cluster.top_pair.residue_a?.label ?? 'Residuo A',
-          top_residue_b: cluster.top_pair.residue_b?.label ?? 'Residuo B',
+          top_residue_a: text.substrate(cluster.top_pair.residue_a),
+          top_residue_b: text.substrate(cluster.top_pair.residue_b),
           cn_combined: toFiniteNumber(cluster.top_pair.cn_combined),
-          total_feedstock_value: toFiniteNumber(cluster.total_biomass_tons_year),
-          total_biogas_m3_year: toFiniteNumber(cluster.total_biogas_m3_year),
+          amount: text.amount(cluster.total_biomass_tons_year, cluster.total_biogas_m3_year),
         },
       })),
   };
@@ -68,31 +75,16 @@ export default function CodigestionClusterLayer({
     };
   };
 
-  const formatTons = (value: unknown): string => {
-    const v = toFiniteNumber(value);
-    if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(1)}M`;
-    if (v >= 1_000)     return `${(v / 1_000).toFixed(1)}K`;
-    return Math.round(v).toLocaleString('pt-BR');
-  };
-
-  const getClusterAmountLabel = (props: GeoJSON.GeoJsonProperties): string => {
-    const biomassTons = toFiniteNumber(props?.total_feedstock_value);
-    if (biomassTons > 0) return `${formatTons(biomassTons)} t/ano`;
-
-    const biogasM3 = toFiniteNumber(props?.total_biogas_m3_year);
-    return `${formatTons(biogasM3)} m³/ano`;
-  };
-
   const onEachFeature = (feature: GeoJSON.Feature, layer: L.Layer) => {
     if (!feature.properties) return;
     const p = feature.properties;
 
     layer.bindTooltip(
       `<div style="text-align:center;padding:4px;">
-        <strong style="font-size:11px;color:#4c1d95;">Cluster ${p.cluster_id}</strong><br/>
+        <strong style="font-size:11px;color:#4c1d95;">${t('cluster', { id: clusterNumber(p.cluster_id) })}</strong><br/>
         <span style="font-size:10px;color:#555;">${p.top_residue_a} + ${p.top_residue_b}</span><br/>
-        <span style="font-size:10px;color:#555;">C:N combinado: <b>${p.cn_combined}</b></span><br/>
-        <span style="font-size:10px;color:#555;">${p.municipality_count} municípios · ${getClusterAmountLabel(p)}</span>
+        <span style="font-size:10px;color:#555;">${t('combined_cn')}: <b>${format.number(p.cn_combined, { decimals: 1 })}</b></span><br/>
+        <span style="font-size:10px;color:#555;">${t('municipality_count', { count: p.municipality_count })} · ${p.amount}</span>
       </div>`,
       { permanent: false, direction: 'top', className: 'custom-tooltip', offset: [0, -6] }
     );
@@ -117,7 +109,7 @@ export default function CodigestionClusterLayer({
 
   return (
     <GeoJSON
-      key={`clusters-${clusters.length}-${selectedClusterId}`}
+      key={`clusters-${locale}-${clusters.length}-${selectedClusterId}`}
       data={geojsonData as GeoJSON.GeoJsonObject}
       style={style}
       onEachFeature={onEachFeature}

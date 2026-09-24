@@ -1,5 +1,10 @@
 const nextJest = require('next/jest')
 
+// Run the suites in the users' time zone rather than the machine's (CI is UTC),
+// so a date that slips a day in Brazil fails here too. Set before the workers
+// start, which inherit it.
+process.env.TZ = 'America/Sao_Paulo'
+
 /** @type {import('jest').Config} */
 const createJestConfig = nextJest({
   // Provide the path to your Next.js app to load next.config.js and .env files in your test environment

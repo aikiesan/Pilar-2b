@@ -11,13 +11,14 @@ import { GeoJSON, Marker, Popup } from 'react-leaflet';
 import type { GeoJsonObject, Feature } from 'geojson';
 import L from 'leaflet';
 import { logger } from '@/lib/logger';
+import { useFormat } from '@/hooks/useFormat';
 import { useInfrastructureLayer } from '@/hooks/useGeospatialData';
 import { PLANT_LAYERS, BIOMETHANE_PLANT, type PlantTypeInfo } from '@/lib/plantLayers';
 
+/** What a layer's load came to. The map words it (Map.layerAlert); server notes go to the log. */
 export type InfrastructureLayerStatus = {
   layerType: string;
   state: 'loading' | 'empty' | 'error' | 'ready';
-  message?: string;
   featureCount?: number;
 };
 
@@ -341,6 +342,7 @@ function popupTitle(name: string): string {
 
 export default function InfrastructureLayer({ layerType, onStatus, uf, bbox, pane }: InfrastructureLayerProps) {
   const t = useTranslations('Map.infrastructure');
+  const format = useFormat();
   // Use React Query hook for automatic caching and background refetching
   const { data, loading, error, isFetching } = useInfrastructureLayer(layerType, true, uf, bbox);
   const featureCount = Array.isArray(data?.features) ? data.features.length : 0;
@@ -354,21 +356,15 @@ export default function InfrastructureLayer({ layerType, onStatus, uf, bbox, pan
     }
 
     if (error) {
-      onStatus({
-        layerType,
-        state: 'error',
-        message: error.message || t('load_failed', { layer: layerType }),
-      });
+      onStatus({ layerType, state: 'error' });
       return;
     }
 
     if (data && featureCount === 0) {
-      onStatus({
-        layerType,
-        state: 'empty',
-        featureCount,
-        message: data.metadata?.error || data.metadata?.note || t('layer_empty'),
-      });
+      // The server's explanation ("No features loaded for layer …") is English-only.
+      const note = data.metadata?.error || data.metadata?.note;
+      if (note) logger.info(`${layerType} layer is empty:`, note);
+      onStatus({ layerType, state: 'empty', featureCount });
       return;
     }
 
@@ -492,9 +488,9 @@ export default function InfrastructureLayer({ layerType, onStatus, uf, bbox, pan
       rows = [
         [t('fields.type'), props.name || t('names.pipeline')],
         [t('fields.operator'), props.Transporta || props.operator],
-        [t('fields.diameter'), props.Diam_Pol_x ? `${props.Diam_Pol_x} pol` : null],
-        [t('fields.max_pressure'), props.P_Max_Op ? `${props.P_Max_Op} bar` : null],
-        [t('fields.length'), props.COMPRIM_KM ? `${props.COMPRIM_KM.toFixed(1)} km` : null],
+        [t('fields.diameter'), props.Diam_Pol_x ? t('units.inches', { value: format.number(props.Diam_Pol_x) }) : null],
+        [t('fields.max_pressure'), props.P_Max_Op ? `${format.number(props.P_Max_Op)} bar` : null],
+        [t('fields.length'), props.COMPRIM_KM ? `${format.number(props.COMPRIM_KM, { decimals: 1, minDecimals: 1 })} km` : null],
         [t('fields.status'), props.situaDuo],
       ];
       if (props.MUNIC_ORIG && props.MUNIC_DEST) {
@@ -513,7 +509,7 @@ export default function InfrastructureLayer({ layerType, onStatus, uf, bbox, pan
       // Actual fields: nome, potencia, combust, propriet, ceg, ini_oper
       name = props.nome || props.name || t('names.substation');
       rows = [
-        [t('fields.power'), props.potencia ? `${props.potencia.toLocaleString()} kW` : null],
+        [t('fields.power'), props.potencia ? `${format.number(props.potencia)} kW` : null],
         [t('fields.fuel'), props.combust],
         [t('fields.owner'), props.propriet],
         [t('fields.ceg'), props.ceg],
@@ -537,8 +533,8 @@ export default function InfrastructureLayer({ layerType, onStatus, uf, bbox, pan
         [t('fields.status'), props.ETE_DS_STA],
         [t('fields.treatment_type'), props.ETE_DS_TIP],
         [t('fields.system'), props.ETE_DS_TI],
-        [t('fields.population_served'), props.ETE_QT_POP ? props.ETE_QT_POP.toLocaleString() : null],
-        [t('fields.removal_efficiency'), props.ETE_PC_REM ? `${props.ETE_PC_REM}%` : null],
+        [t('fields.population_served'), props.ETE_QT_POP ? format.number(props.ETE_QT_POP) : null],
+        [t('fields.removal_efficiency'), props.ETE_PC_REM ? format.percent(props.ETE_PC_REM) : null],
       ];
     } else {
       // Default popup for other layers (admin regions, etc.)

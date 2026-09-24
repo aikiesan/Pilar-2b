@@ -19,6 +19,7 @@ import {
 } from 'recharts'
 import { TrendingDown, Info } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { useFormat } from '@/hooks/useFormat'
 import {
   CorrectionFactors,
   calculateFDE,
@@ -50,6 +51,7 @@ export default function PotentialCascadeChart({
   showLegend = true
 }: PotentialCascadeChartProps) {
   const t = useTranslations('charts')
+  const format = useFormat()
 
   // Calculate cascade values
   const cascadeData = useMemo((): CascadeDataPoint[] => {
@@ -76,7 +78,7 @@ export default function PotentialCascadeChart({
         fill: '#DC143C',
         isLoss: true,
         percentage: -((1 - factors.fc) * 100),
-        description: `FC=${(factors.fc * 100).toFixed(0)}%`
+        description: `FC=${format.percent(factors.fc * 100, { decimals: 0 })}`
       },
       {
         name: t('sankey_node_collected'),
@@ -92,7 +94,7 @@ export default function PotentialCascadeChart({
         fill: '#DC143C',
         isLoss: true,
         percentage: -(factors.fcp * factors.fc * 100),
-        description: `FCp=${(factors.fcp * 100).toFixed(0)}%`
+        description: `FCp=${format.percent(factors.fcp * 100, { decimals: 0 })}`
       },
       {
         name: t('sankey_node_available'),
@@ -108,7 +110,7 @@ export default function PotentialCascadeChart({
         fill: '#DC143C',
         isLoss: true,
         percentage: -((1 - factors.fs) * (afterFCp / theoreticalPotential) * 100),
-        description: `FS=${(factors.fs * 100).toFixed(0)}%`
+        description: `FS=${format.percent(factors.fs * 100, { decimals: 0 })}`
       },
       {
         name: t('sankey_node_adjusted'),
@@ -124,7 +126,7 @@ export default function PotentialCascadeChart({
         fill: '#DC143C',
         isLoss: true,
         percentage: -((1 - factors.fl) * (afterFS / theoreticalPotential) * 100),
-        description: `FL=${(factors.fl * 100).toFixed(0)}%`
+        description: `FL=${format.percent(factors.fl * 100, { decimals: 0 })}`
       },
       {
         name: t('sankey_node_biogas'),
@@ -132,10 +134,10 @@ export default function PotentialCascadeChart({
         fill: '#006400',
         isLoss: false,
         percentage: fdePercent,
-        description: `${fdePercent.toFixed(1)}%`
+        description: format.percent(fdePercent)
       }
     ]
-  }, [theoreticalPotential, factors, t])
+  }, [theoreticalPotential, factors, t, format])
 
   // Filter to show only cumulative values (not losses) for cleaner waterfall
   const chartData = useMemo(() => {
@@ -143,17 +145,13 @@ export default function PotentialCascadeChart({
   }, [cascadeData])
 
   // Format numbers for display
-  const formatValue = (value: number): string => {
-    if (value >= 1e9) return `${(value / 1e9).toFixed(2)}B`
-    if (value >= 1e6) return `${(value / 1e6).toFixed(2)}M`
-    if (value >= 1e3) return `${(value / 1e3).toFixed(2)}k`
-    return value.toFixed(0)
-  }
+  const formatValue = (value: number): string => format.compact(value, { decimals: 2 })
 
-  // Custom tooltip
-  const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: Array<{ payload: CascadeDataPoint }> }) => {
-    if (active && payload && payload.length) {
-      const data = payload[0].payload
+  // Tooltip content, as a render function: a component declared here would be
+  // a new component type on every render, remounting the tooltip each time.
+  const renderTooltip = ({ active, payload }: { active?: boolean; payload?: ReadonlyArray<{ payload?: CascadeDataPoint }> }) => {
+    const data = payload?.[0]?.payload
+    if (active && data) {
       return (
         <div className="bg-white p-4 rounded-lg shadow-lg border border-gray-200 max-w-xs">
           <p className="font-semibold text-gray-900 mb-2">{data.name}</p>
@@ -165,7 +163,7 @@ export default function PotentialCascadeChart({
             </p>
             <p className="text-sm">
               <span className="text-gray-500">{t('cascade_tooltip_percent')}</span>{' '}
-              <span className="font-mono font-semibold">{data.percentage.toFixed(1)}%</span>
+              <span className="font-mono font-semibold">{format.percent(data.percentage)}</span>
             </p>
           </div>
         </div>
@@ -222,7 +220,7 @@ export default function PotentialCascadeChart({
         <div className="flex items-center gap-4 text-sm">
           <div className="flex items-center gap-2">
             <span className="text-gray-500">{t('cascade_fde_label')}</span>
-            <span className="font-mono font-bold text-green-600">{(fdeValue * 100).toFixed(1)}%</span>
+            <span className="font-mono font-bold text-green-600">{format.percent(fdeValue * 100)}</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-gray-500">{t('cascade_final_label')}</span>
@@ -253,7 +251,7 @@ export default function PotentialCascadeChart({
               axisLine={{ stroke: '#E5E7EB' }}
               tickFormatter={formatValue}
             />
-            <Tooltip content={<CustomTooltip />} />
+            <Tooltip content={renderTooltip} />
             <ReferenceLine y={0} stroke="#000" />
             <Bar
               dataKey="value"
@@ -297,19 +295,19 @@ export default function PotentialCascadeChart({
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
           <div>
             <span className="text-gray-500 block">FC</span>
-            <span className="font-mono font-semibold text-gray-900">{(factors.fc * 100).toFixed(0)}%</span>
+            <span className="font-mono font-semibold text-gray-900">{format.percent(factors.fc * 100, { decimals: 0 })}</span>
           </div>
           <div>
             <span className="text-gray-500 block">FCp</span>
-            <span className="font-mono font-semibold text-gray-900">{(factors.fcp * 100).toFixed(0)}%</span>
+            <span className="font-mono font-semibold text-gray-900">{format.percent(factors.fcp * 100, { decimals: 0 })}</span>
           </div>
           <div>
             <span className="text-gray-500 block">FS</span>
-            <span className="font-mono font-semibold text-gray-900">{(factors.fs * 100).toFixed(0)}%</span>
+            <span className="font-mono font-semibold text-gray-900">{format.percent(factors.fs * 100, { decimals: 0 })}</span>
           </div>
           <div>
             <span className="text-gray-500 block">FL</span>
-            <span className="font-mono font-semibold text-gray-900">{(factors.fl * 100).toFixed(0)}%</span>
+            <span className="font-mono font-semibold text-gray-900">{format.percent(factors.fl * 100, { decimals: 0 })}</span>
           </div>
         </div>
       </div>

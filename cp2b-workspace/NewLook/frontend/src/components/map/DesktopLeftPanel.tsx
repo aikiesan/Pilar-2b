@@ -17,24 +17,27 @@ import {
   Map,
   Sparkles,
 } from 'lucide-react';
-import type { ResidueType, BiomassType } from './FloatingControlPanel';
-import type { VisualizationMode } from './LeftFilterPanel';
+import type { ResidueType, BiomassType, VisualizationMode } from '@/types/map';
 import type { DisplayMetric, ResidueCNMatrix, ColorMode } from '@/types/geospatial';
 import { useSummaryStatistics } from '@/hooks/useGeospatialData';
 import { useMapPalette } from '@/hooks/useMapPalette';
-import { formatBiogasShort } from '@/lib/mapUtils';
+import { useFormat } from '@/hooks/useFormat';
+import { useMetricText } from '@/hooks/useMetricText';
 import { DISPLAY_METRICS, METRIC_SPECS, MAP_PALETTES } from '@/lib/mapMetrics';
 import {
   THEMATIC_PRESETS,
-  PRESET_GROUP_LABELS,
   type ThematicPreset,
   type ThematicPresetGroup,
 } from '@/data/thematicPresets';
 import { DATA_EXPORT_ENABLED } from '@/lib/featureFlags';
-import { MG_BETA_LAYER_ID, BETA_NOTICE } from '@/lib/mapScope';
+import { MG_BETA_LAYER_ID } from '@/lib/mapScope';
+import type { Messages } from '@/types/i18n';
+
+/** The `Map` translator, handed to the section components below. */
+type MapTranslator = ReturnType<typeof useTranslations<'Map'>>;
+type DataSourceDetailKey = keyof Messages['Map']['dataSourceDetails'];
 import {
   isServedScenario,
-  SCENARIO_LABEL,
   DEFAULT_MAP_SCENARIO,
   type MapScenarioKey,
 } from '@/data/scenarioFactors';
@@ -88,19 +91,9 @@ type TabId = 'filters' | 'temas' | 'layers' | 'data' | 'tools';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const LAYER_KEY_MAP: Record<string, string> = {
-  'municipalities': 'layers.municipalitiesSP',
-  'intermediate-regions': 'layers.intermediateRegions',
-  'mapbiomas': 'layers.mapbiomas',
-  'biogas-plants': 'layers.biogasPlants',
-  'pipelines': 'layers.pipelines',
-  'substations': 'layers.substations',
-  'transmission-lines': 'layers.transmissionLines',
-  'etes': 'layers.etes',
-  'railways': 'layers.railways',
-};
+type LayerGroupKey = `layerGroups.${keyof Messages['Map']['layerGroups']}`;
 
-const LAYER_GROUPS = [
+const LAYER_GROUPS: { labelKey: LayerGroupKey; ids: readonly string[] }[] = [
   { labelKey: 'layerGroups.base', ids: ['municipalities', MG_BETA_LAYER_ID, 'intermediate-regions'] },
   { labelKey: 'layerGroups.environmental', ids: ['mapbiomas'] },
   {
@@ -132,15 +125,21 @@ const LAYER_GROUPS = [
   },
 ] as const;
 
-const DATA_SOURCES = [
+const DATA_SOURCES: {
+  categoryKey: 'dataSources.agricultural' | 'dataSources.livestock' | 'dataSources.urban' | 'dataSources.infrastructure';
+  color: string;
+  icon: string;
+  sources: { name: string; detailKey: DataSourceDetailKey; year: string; url: string }[];
+}[] = [
   {
     categoryKey: 'dataSources.agricultural',
     color: 'text-green-700',
     icon: '🌾',
     sources: [
-      { name: 'IBGE - PAM', detail: 'Produção Agrícola Municipal', year: '2024', url: 'https://sidra.ibge.gov.br/pesquisa/pam/tabelas' },
-      { name: 'MapBiomas 10.0', detail: 'Cobertura e Uso do Solo', year: '2024', url: 'https://brasil.mapbiomas.org' },
-      { name: 'MAPA / CONAB', detail: 'Safra e produção agrícola', year: '2024', url: 'https://www.conab.gov.br' },
+      { name: 'IBGE - PAM', detailKey: 'pam', year: '2024', url: 'https://sidra.ibge.gov.br/pesquisa/pam/tabelas' },
+      { name: 'MapBiomas 10.0', detailKey: 'mapbiomas', year: '2024', url: 'https://brasil.mapbiomas.org' },
+      // i18n-exempt: agency acronyms (Ministry of Agriculture / CONAB)
+      { name: 'MAPA / CONAB', detailKey: 'conab', year: '2024', url: 'https://www.conab.gov.br' },
     ],
   },
   {
@@ -148,8 +147,8 @@ const DATA_SOURCES = [
     color: 'text-yellow-700',
     icon: '🐄',
     sources: [
-      { name: 'IBGE - PPM', detail: 'Pesquisa Pecuária Municipal', year: '2024', url: 'https://sidra.ibge.gov.br/pesquisa/ppm/tabelas' },
-      { name: 'PNUD / ABPA', detail: 'Aves e suínos por município', year: '2024', url: '' },
+      { name: 'IBGE - PPM', detailKey: 'ppm', year: '2024', url: 'https://sidra.ibge.gov.br/pesquisa/ppm/tabelas' },
+      { name: 'PNUD / ABPA', detailKey: 'abpa', year: '2024', url: '' },
     ],
   },
   {
@@ -157,8 +156,8 @@ const DATA_SOURCES = [
     color: 'text-blue-700',
     icon: '🏙️',
     sources: [
-      { name: 'SNIS', detail: 'Sistema Nacional de Info. Saneamento', year: '2023', url: 'https://www.gov.br/cidades/pt-br/assuntos/saneamento/snis' },
-      { name: 'IBGE - MUNIC', detail: 'Resíduos sólidos municipais', year: '2023', url: 'https://www.ibge.gov.br/pesquisas/munic' },
+      { name: 'SNIS', detailKey: 'snis', year: '2023', url: 'https://www.gov.br/cidades/pt-br/assuntos/saneamento/snis' },
+      { name: 'IBGE - MUNIC', detailKey: 'munic', year: '2023', url: 'https://www.ibge.gov.br/pesquisas/munic' },
     ],
   },
   {
@@ -166,8 +165,8 @@ const DATA_SOURCES = [
     color: 'text-purple-700',
     icon: '⚡',
     sources: [
-      { name: 'EPE', detail: 'Gasodutos, subestações, linhas', year: '2023-24', url: 'https://www.epe.gov.br' },
-      { name: 'ANP', detail: 'Plantas de biomassa e biogás', year: '2024', url: 'https://www.gov.br/anp' },
+      { name: 'EPE', detailKey: 'epe', year: '2023-24', url: 'https://www.epe.gov.br' },
+      { name: 'ANP', detailKey: 'anp', year: '2024', url: 'https://www.gov.br/anp' },
     ],
   },
 ];
@@ -190,16 +189,17 @@ function FiltersSection({
   onVisualizationModeChange: (m: VisualizationMode) => void;
   displayMetric?: DisplayMetric;
   onDisplayMetricChange?: (metric: DisplayMetric) => void;
-  t: ReturnType<typeof useTranslations>;
+  t: MapTranslator;
   colorMode: ColorMode;
   onColorModeChange: (mode: ColorMode) => void;
   scopeUf?: 'SP' | 'MG';
 }) {
+  const metricText = useMetricText();
   const vizModes: { value: VisualizationMode; label: string; disabled?: boolean }[] = [
     { value: 'choropleth', label: t('vizModes.choropleth') },
     { value: 'heatmap', label: t('vizModes.heatmap') },
     { value: 'bubble', label: t('vizModes.bubble') },
-    { value: 'clusters', label: '⚗️ Co-digestão', disabled: true },
+    { value: 'clusters', label: `⚗️ ${t('vizModes.clusters')}`, disabled: true },
   ];
 
   return (
@@ -237,14 +237,14 @@ function FiltersSection({
                 key={m}
                 onClick={() => onDisplayMetricChange(m)}
                 aria-pressed={active}
-                title={spec.legendTitle}
+                title={metricText(m).legend}
                 className={`py-2 text-[11px] font-bold uppercase tracking-wide rounded-lg transition-colors ${
                   active
                     ? `${spec.activeClass} text-white`
                     : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-200'
                 }`}
               >
-                {spec.icon} {spec.toggleLabel}
+                {spec.icon} {metricText(m).label}
               </button>
             );
           })}
@@ -316,18 +316,19 @@ function ThemesSection({
   residueBreakdownAvailable?: boolean;
   availableResidueCategories?: Array<'agricultural' | 'livestock' | 'urban'>;
 }) {
+  const tMap = useTranslations('Map');
   const [palette, setPalette] = useMapPalette();
   const groups: ThematicPresetGroup[] = ['setorial', 'residuo', 'energia', 'logistica', 'analise'];
 
   return (
     <div className="space-y-4">
       <p className="rounded-md bg-green-50 px-2.5 py-2 text-[10px] leading-snug text-green-800 ring-1 ring-green-100">
-        🗺️ Mapas temáticos prontos — um clique ajusta métrica, cor, resíduo e cenário do mapa ao vivo.
+        🗺️ {tMap('thematic.panel_intro')}
       </p>
 
       {!residueBreakdownAvailable && (
         <p className="rounded-md bg-amber-50 px-2 py-1.5 text-[10px] leading-snug text-amber-800 ring-1 ring-amber-200">
-          ⓘ No piloto MG, temas agrícolas estão ativos. Pecuária e urbano aguardam promoção e validação.
+          ⓘ {tMap('thematic.mg_note')}
         </p>
       )}
 
@@ -337,7 +338,7 @@ function ThemesSection({
         return (
           <div key={g}>
             <p className="mb-1.5 text-[9px] font-bold uppercase tracking-wider text-gray-400">
-              {PRESET_GROUP_LABELS[g]}
+              {tMap(`thematic.group_titles.${g}`)}
             </p>
             <div className="grid grid-cols-2 gap-1.5">
               {items.map((preset) => {
@@ -359,7 +360,7 @@ function ThemesSection({
                     type="button"
                     onClick={() => enabled && onApplyPreset?.(preset)}
                     disabled={!enabled}
-                    title={preset.description}
+                    title={tMap(`thematic.presets.${preset.id}.description`)}
                     aria-pressed={active}
                     className={`flex flex-col gap-1 rounded-lg border p-2 text-left transition-all ${
                       !enabled
@@ -371,7 +372,7 @@ function ThemesSection({
                   >
                     <span className="flex items-center gap-1 text-[11px] font-semibold text-gray-800">
                       <span aria-hidden="true">{preset.icon}</span>
-                      <span className="truncate">{preset.label}</span>
+                      <span className="truncate">{tMap(`thematic.presets.${preset.id}.label`)}</span>
                     </span>
                     {ramp && (
                       <span className="flex h-1.5 w-full overflow-hidden rounded-full" aria-hidden="true">
@@ -391,11 +392,12 @@ function ThemesSection({
       {/* Colour scale — the general palette, applies to any choropleth. */}
       <div className="border-t border-gray-100 pt-3">
         <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-gray-500">
-          Escala de cores
+          {tMap('palettes.heading')}
         </span>
-        <div className="grid grid-cols-2 gap-1" role="radiogroup" aria-label="Escala de cores do mapa">
+        <div className="grid grid-cols-2 gap-1" role="radiogroup" aria-label={tMap('palettes.group_aria')}>
           {Object.values(MAP_PALETTES).map((p) => {
             const active = palette === p.id;
+            const name = tMap(`palettes.${p.id}.label`);
             return (
               <button
                 key={p.id}
@@ -403,7 +405,7 @@ function ThemesSection({
                 role="radio"
                 aria-checked={active}
                 onClick={() => setPalette(p.id)}
-                title={`${p.label} — ${p.note}`}
+                title={`${name} — ${tMap(`palettes.${p.id}.note`)}`}
                 className={`rounded-md border p-1 transition-all ${
                   active ? 'border-gray-800 ring-1 ring-gray-800' : 'border-gray-200 hover:border-gray-400'
                 }`}
@@ -414,15 +416,15 @@ function ThemesSection({
                   ))}
                 </span>
                 <span className="mt-0.5 flex items-center justify-center gap-0.5 text-[8px] font-semibold text-gray-600">
-                  {p.label}
-                  {p.cvdSafe && <span title="Segura para daltonismo" aria-hidden="true">·♿</span>}
+                  {name}
+                  {p.cvdSafe && <span title={tMap('palettes.cvd_safe')} aria-hidden="true">·♿</span>}
                 </span>
               </button>
             );
           })}
         </div>
         <p className="mt-1.5 text-[9px] leading-snug text-gray-400">
-          Vale para o mapa coroplético. O modo daltônico, quando ativo, tem prioridade sobre esta escolha.
+          {tMap('palettes.scope_note')}
         </p>
       </div>
     </div>
@@ -438,18 +440,13 @@ function LayersSection({
   onOpacityChange: (v: number) => void;
   layers: Layer[];
   onLayerToggle: (id: string, visible: boolean) => void;
-  t: ReturnType<typeof useTranslations>;
+  t: MapTranslator;
 }) {
-  // Prefer the i18n label for the (SP) layers that have one; otherwise fall back
-  // to the layer's own name (the national MapBiomas layers carry a Portuguese
-  // name from MapComponent) rather than showing a raw snake_case id.
-  const getLayerName = (layer: Layer) => {
-    const key = LAYER_KEY_MAP[layer.id];
-    return key ? t(key) : layer.name;
-  };
+  // Layers arrive named in the page locale (MapComponent reads Map.layerNames).
+  const getLayerName = (layer: Layer) => layer.name;
 
   const getGroupedLayers = () => {
-    const grouped: { labelKey: string; items: Layer[] }[] = [];
+    const grouped: { labelKey: LayerGroupKey; items: Layer[] }[] = [];
     for (const group of LAYER_GROUPS) {
       const items = group.ids.map(id => layers.find(l => l.id === id)).filter((l): l is Layer => l !== undefined);
       if (items.length > 0) grouped.push({ labelKey: group.labelKey, items });
@@ -525,7 +522,7 @@ function LayersSection({
                         layer, so it is the one place the disclosure must be free. */}
                     {isBeta && (
                       <p className="text-[9px] text-amber-700 leading-snug mt-0.5 pr-10">
-                        {BETA_NOTICE}
+                        {t('beta.notice')}
                       </p>
                     )}
                   </div>
@@ -539,7 +536,7 @@ function LayersSection({
   );
 }
 
-function DataSourcesSection({ t }: { t: ReturnType<typeof useTranslations> }) {
+function DataSourcesSection({ t }: { t: MapTranslator }) {
   return (
     <div className="space-y-3">
       {DATA_SOURCES.map(cat => (
@@ -552,7 +549,7 @@ function DataSourcesSection({ t }: { t: ReturnType<typeof useTranslations> }) {
               <div key={src.name} className="flex items-start justify-between gap-1.5 text-[10px] bg-white border border-gray-200 rounded-lg px-2.5 py-2 hover:border-green-200 transition-colors">
                 <div className="min-w-0">
                   <p className="font-semibold text-gray-800 truncate">{src.name}</p>
-                  <p className="text-gray-500 text-[9px] truncate">{src.detail} · {src.year}</p>
+                  <p className="text-gray-500 text-[9px] truncate">{t(`dataSourceDetails.${src.detailKey}`)} · {src.year}</p>
                 </div>
                 {src.url && (
                   <a href={src.url} target="_blank" rel="noopener noreferrer"
@@ -574,17 +571,20 @@ function ToolsSection({
 }: {
   onOpenComparison: () => void;
   onOpenExport: () => void;
-  t: ReturnType<typeof useTranslations>;
+  t: MapTranslator;
 }) {
   // Export is withheld during beta (lib/featureFlags). The tool is removed from
   // the list rather than disabled in place: a greyed-out button invites people to
   // ask when it returns, and the honest answer is "when the data is validated",
   // which the beta banner already says.
-  const tools = [
+  type ToolKey = `tools.${keyof Messages['Map']['tools']}`;
+  type Tool = { icon: React.ReactNode; titleKey: ToolKey; descKey: ToolKey; ctaKey: ToolKey; onClick: () => void };
+  const exportTools: Tool[] = DATA_EXPORT_ENABLED
+    ? [{ icon: <Download className="w-5 h-5" />, titleKey: 'tools.export', descKey: 'tools.exportDesc', ctaKey: 'tools.open', onClick: onOpenExport }]
+    : [];
+  const tools: Tool[] = [
     { icon: <BarChart3 className="w-5 h-5" />, titleKey: 'tools.compare', descKey: 'tools.compareDesc', ctaKey: 'tools.open', onClick: onOpenComparison },
-    ...(DATA_EXPORT_ENABLED
-      ? [{ icon: <Download className="w-5 h-5" />, titleKey: 'tools.export', descKey: 'tools.exportDesc', ctaKey: 'tools.open', onClick: onOpenExport }]
-      : []),
+    ...exportTools,
     {
       icon: <Link className="w-5 h-5" />, titleKey: 'tools.share', descKey: 'tools.shareDesc', ctaKey: 'tools.copyUrl',
       onClick: () => { if (typeof window !== 'undefined') navigator.clipboard.writeText(window.location.href); },
@@ -620,6 +620,9 @@ function StatStrip({ municipalityCount, totalMunicipalities, filterCount, betaMu
   scenario: MapScenarioKey;
   scopeUf?: 'SP' | 'MG';
 }) {
+  const tMap = useTranslations('Map');
+  const tCommon = useTranslations('common');
+  const format = useFormat();
   const { data } = useSummaryStatistics();
   // The strip used to show `total_biogas_m3_year` — 19.9 bi, the THEORETICAL
   // volume, with no availability correction and no relation to the scenario the
@@ -629,9 +632,9 @@ function StatStrip({ municipalityCount, totalMunicipalities, filterCount, betaMu
   // the theoretical figure it is, never as the platform's headline.
   const tier = scopeUf === 'SP' && isServedScenario(scenario) ? data?.scenarios?.[scenario] : undefined;
   const headline = scopeUf === 'SP' ? (tier ? tier.ch4_m3_year : data?.total_biogas_m3_year) : undefined;
-  const headlineLabel = tier
-    ? `Nm³ CH₄/ano · ${SCENARIO_LABEL[scenario]}`
-    : 'Nm³ CH₄/ano · teórico';
+  const headlineLabel = `${tCommon('units.nm3_ch4_year')} · ${
+    tier ? tMap(`scenario_${scenario}`) : tMap('stat_strip.theoretical')
+  }`;
   return (
     <div className="px-3 py-2 border-b border-gray-100 bg-gradient-to-r from-green-50 to-white flex-shrink-0">
       <div className="flex items-center gap-2">
@@ -639,26 +642,26 @@ function StatStrip({ municipalityCount, totalMunicipalities, filterCount, betaMu
         <span className="text-xs text-gray-600 truncate">
           <span className="font-bold text-green-700">{municipalityCount}</span>
           <span className="text-gray-400">/{totalMunicipalities}</span>
-          {' '}municípios <span className="font-semibold text-green-700">{scopeUf}</span>
+          {' '}{tMap('stat_strip.municipalities')} <span className="font-semibold text-green-700">{scopeUf}</span>
         </span>
         {headline !== undefined && (
           <span
             className="ml-auto text-[10px] text-green-700 font-semibold shrink-0"
-            title={tier?.description}
+            // The catalog's tip, not the summary's `description`: that one is Portuguese only.
+            title={tier && isServedScenario(scenario) ? tMap(`scenario_${scenario}_tip`) : undefined}
           >
-            {formatBiogasShort(headline)} {headlineLabel}
+            {format.compact(headline)} {headlineLabel}
           </span>
         )}
         {filterCount > 0 && !data && (
           <span className="ml-auto text-[10px] bg-green-100 text-green-700 font-semibold px-1.5 py-0.5 rounded-full shrink-0">
-            {filterCount} filtro{filterCount > 1 ? 's' : ''}
+            {tMap('stat_strip.filters', { count: filterCount })}
           </span>
         )}
       </div>
       {betaMunicipalityCount > 0 && (
         <p className="mt-1 text-[9px] text-gray-400 leading-snug">
-          🧪 +{betaMunicipalityCount.toLocaleString('pt-BR')} municípios de MG em beta,
-          não somados ao total
+          🧪 {tMap('stat_strip.mg_beta', { count: format.number(betaMunicipalityCount) })}
         </p>
       )}
     </div>
@@ -689,11 +692,11 @@ export default function DesktopLeftPanel({
   const activeLayerCount = layers.filter(l => l.visible).length;
 
   const tabs: { id: TabId; icon: React.ReactNode; label: string; badge?: number }[] = [
-    { id: 'filters', icon: <Search className="w-3.5 h-3.5" />, label: 'Filtros', badge: filterCount > 0 ? filterCount : undefined },
-    { id: 'temas', icon: <Sparkles className="w-3.5 h-3.5" />, label: 'Temas' },
-    { id: 'layers', icon: <Layers className="w-3.5 h-3.5" />, label: 'Camadas', badge: activeLayerCount > 1 ? activeLayerCount : undefined },
-    { id: 'data', icon: <Database className="w-3.5 h-3.5" />, label: 'Dados' },
-    { id: 'tools', icon: <Wrench className="w-3.5 h-3.5" />, label: 'Tools' },
+    { id: 'filters', icon: <Search className="w-3.5 h-3.5" />, label: t('panels.filters'), badge: filterCount > 0 ? filterCount : undefined },
+    { id: 'temas', icon: <Sparkles className="w-3.5 h-3.5" />, label: t('panels.themes') },
+    { id: 'layers', icon: <Layers className="w-3.5 h-3.5" />, label: t('panels.layers'), badge: activeLayerCount > 1 ? activeLayerCount : undefined },
+    { id: 'data', icon: <Database className="w-3.5 h-3.5" />, label: t('panels.dataSources') },
+    { id: 'tools', icon: <Wrench className="w-3.5 h-3.5" />, label: t('panels.tools') },
   ];
 
   return (
@@ -705,13 +708,15 @@ export default function DesktopLeftPanel({
             {/* The platform's scope is São Paulo + the Minas Gerais pilot, not
                 the country — the title said "Brasil" while the map showed one
                 state, which read as a loading failure. */}
-            Biomassa {scopeUf === 'MG' ? 'Minas Gerais' : 'São Paulo'}
+            {t('panel.title', {
+              state: scopeUf === 'MG' ? 'Minas Gerais' : 'São Paulo', // i18n-exempt: proper nouns
+            })}
           </span>
         )}
         <button
           onClick={() => setCollapsed(c => !c)}
           className={`p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 transition-colors flex-shrink-0 ${collapsed ? 'mx-auto' : 'ml-auto'}`}
-          title={collapsed ? 'Expandir painel' : 'Recolher painel'}
+          title={collapsed ? t('panel.expand') : t('panel.collapse')}
         >
           {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
         </button>

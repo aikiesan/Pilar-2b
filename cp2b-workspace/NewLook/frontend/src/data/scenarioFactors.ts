@@ -121,16 +121,8 @@ export const SCENARIO_COLOR: Record<MapScenarioKey, string> = Object.fromEntries
   MAP_SCENARIOS.map(({ key, color }) => [key, color])
 ) as Record<MapScenarioKey, string>;
 
-/** Short label for compact surfaces (tooltip badge, mobile sheet). Full labels
- *  and tooltips live in the i18n messages under the `Map` namespace. */
-export const SCENARIO_LABEL: Record<MapScenarioKey, string> = {
-  baseline: 'Médio Prazo',
-  conservador: 'Conservador',
-  fronteira: 'Fronteira',
-  otimista: 'Otimista',
-  real: 'Real',
-  ideal: 'Ideal',
-};
+// Scenario names are copy: short labels live in messages as Map.scenario_<key>,
+// tooltips as Map.scenario_<key>_tip.
 
 // Residue keys whose *_biogas_m3_year fields get scaled, in sector groups.
 export const SCENARIO_SECTOR_RESIDUES: Record<'agricultural' | 'livestock' | 'urban', string[]> = {

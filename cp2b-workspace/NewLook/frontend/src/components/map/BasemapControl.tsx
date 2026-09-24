@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * BasemapControl — floating basemap switcher (Mapa / Satélite / Terreno / Light).
+ * BasemapControl — floating basemap switcher (map / satellite / terrain / light).
  *
  * A pure overlay: it only reports the chosen BasemapId upward. The actual
  * TileLayer swap happens inside MapComponent's MapContainer, since tile layers
@@ -11,6 +11,7 @@
  */
 
 import React, { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { BASEMAPS, BASEMAP_ORDER, type BasemapId } from '@/data/basemaps';
 
 interface BasemapControlProps {
@@ -19,6 +20,7 @@ interface BasemapControlProps {
 }
 
 export default function BasemapControl({ value, onChange }: BasemapControlProps) {
+  const t = useTranslations('Map.basemaps');
   const [open, setOpen] = useState(false);
   const active = BASEMAPS[value];
 
@@ -28,12 +30,12 @@ export default function BasemapControl({ value, onChange }: BasemapControlProps)
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
-        aria-label="Trocar mapa base"
-        title="Mapa base"
+        aria-label={t('switch')}
+        title={t('heading')}
         className="flex min-h-11 min-w-11 items-center justify-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-xs font-semibold text-gray-700 shadow-lg ring-1 ring-black/5 backdrop-blur transition-colors hover:bg-white md:min-h-0 md:min-w-0"
       >
         <span aria-hidden="true">{active.icon}</span>
-        <span className="hidden sm:inline">{active.label}</span>
+        <span className="hidden sm:inline">{t(active.id)}</span>
         <span aria-hidden="true" className={`text-[9px] text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`}>
           ▾
         </span>
@@ -42,7 +44,7 @@ export default function BasemapControl({ value, onChange }: BasemapControlProps)
       {open && (
         <div
           role="radiogroup"
-          aria-label="Mapa base"
+          aria-label={t('heading')}
           className="flex flex-col gap-0.5 rounded-xl bg-white/95 p-1.5 shadow-xl ring-1 ring-black/5 backdrop-blur"
         >
           {BASEMAP_ORDER.map((id) => {
@@ -65,7 +67,7 @@ export default function BasemapControl({ value, onChange }: BasemapControlProps)
                 }`}
               >
                 <span aria-hidden="true" className="text-sm">{b.icon}</span>
-                <span className="flex-1">{b.label}</span>
+                <span className="flex-1">{t(b.id)}</span>
                 {isActive && <span aria-hidden="true" className="text-[10px]">✓</span>}
               </button>
             );

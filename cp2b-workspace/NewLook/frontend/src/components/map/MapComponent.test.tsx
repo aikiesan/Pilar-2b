@@ -32,19 +32,9 @@ jest.mock('next/dynamic', () => ({
   },
 }));
 
-// Mock next-intl. Resolve real pt-BR strings for the component's namespace so
-// text assertions (e.g. "Erro ao Carregar Mapa") match the shipped copy rather
-// than raw keys.
-jest.mock('next-intl', () => {
-  const messages = require('../../../messages/pt-BR.json');
-  return {
-    useTranslations: (namespace?: string) => (key: string) => {
-      const path = namespace ? `${namespace}.${key}` : key;
-      const value = path.split('.').reduce((acc: any, part) => (acc == null ? acc : acc[part]), messages);
-      return typeof value === 'string' ? value : key;
-    },
-  };
-});
+// Resolve real pt-BR strings so text assertions (e.g. "Erro ao Carregar Mapa")
+// match the shipped copy rather than raw keys.
+jest.mock('next-intl', () => jest.requireActual('@/test/mocks/next-intl-real'));
 
 // Mock Leaflet CSS imports
 jest.mock('leaflet/dist/leaflet.css', () => ({}));
@@ -65,13 +55,8 @@ jest.mock('@/hooks/useGeospatialData', () => ({
   useMunicipalityMetrics: () => ({ data: undefined, isLoading: false, error: null }),
 }));
 
-// useCnProfiles lives in a separate module and also calls React Query —
-// stub it so the component doesn't need a QueryClientProvider.
-jest.mock('@/hooks/useCnProfiles', () => ({
-  useCnProfiles: () => ({ profiles: [], profilesMap: {}, isLoading: false, error: null }),
-}));
-
-// Same for the beta typology hook.
+// The beta typology hook lives in a separate module and also calls React
+// Query — stub it so the component doesn't need a QueryClientProvider.
 jest.mock('@/hooks/useTypologyProfiles', () => ({
   useTypologyProfiles: () => ({ typology: [], typologyMap: {}, isLoading: false, error: null }),
 }));
@@ -128,10 +113,8 @@ jest.mock('./MapBiomasLayer', () => ({
   ),
 }));
 
-// Note: LeftFilterPanel is only imported for its VisualizationMode type in
-// MapComponent.tsx — DesktopLeftPanel is the component that's actually
-// rendered and receives search/visualization-mode/layer props, so it's the
-// one mocked with interactive elements below.
+// DesktopLeftPanel receives the search/visualization-mode/layer props, so it's
+// the one mocked with interactive elements below.
 
 jest.mock('./DesktopLeftPanel', () => ({
   __esModule: true,
@@ -185,11 +168,6 @@ jest.mock('./BiomassLayerLegend', () => ({
     layerIds.length > 0 ? (
       <div data-testid="biomass-layer-legend">{layerIds.join(',')}</div>
     ) : null,
-}));
-
-jest.mock('./ReferencesPanel', () => ({
-  __esModule: true,
-  default: () => <div data-testid="references-panel">References</div>,
 }));
 
 jest.mock('./MapLoadingSkeleton', () => ({

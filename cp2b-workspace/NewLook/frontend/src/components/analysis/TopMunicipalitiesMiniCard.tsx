@@ -3,7 +3,11 @@
  * Replaces the large TopMunicipalitiesChart in cascade view for space efficiency
  */
 
+'use client'
+
+import { useTranslations } from 'next-intl'
 import { ArrowRight, MapPin, TrendingUp } from 'lucide-react'
+import { useFormat } from '@/hooks/useFormat'
 
 interface Municipality {
   id: number
@@ -25,9 +29,12 @@ export default function TopMunicipalitiesMiniCard({
   data,
   loading = false,
   maxItems = 5,
-  title = 'Top 5 Municípios',
+  title,
   onViewAll
 }: TopMunicipalitiesMiniCardProps) {
+  const t = useTranslations('analysis.top_card')
+  const format = useFormat()
+  const heading = title ?? t('title', { count: maxItems })
   // Get top N municipalities
   const topMunicipalities = data.slice(0, maxItems)
 
@@ -35,14 +42,6 @@ export default function TopMunicipalitiesMiniCard({
   const maxBiogas = topMunicipalities.length > 0
     ? Math.max(...topMunicipalities.map(m => m.biogas_m3_year))
     : 1
-
-  // Format large numbers
-  const formatValue = (value: number): string => {
-    if (value >= 1e9) return `${(value / 1e9).toFixed(1)}B`
-    if (value >= 1e6) return `${(value / 1e6).toFixed(0)}M`
-    if (value >= 1e3) return `${(value / 1e3).toFixed(0)}k`
-    return value.toFixed(0)
-  }
 
   // Get color for rank position
   const getRankColor = (index: number): string => {
@@ -58,7 +57,7 @@ export default function TopMunicipalitiesMiniCard({
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
             <TrendingUp className="h-4 w-4 text-green-600" />
-            {title}
+            {heading}
           </h3>
         </div>
         <div className="space-y-3 animate-pulse">
@@ -81,7 +80,7 @@ export default function TopMunicipalitiesMiniCard({
       <div className="bg-white rounded-xl shadow-md p-5 border border-gray-100">
         <div className="text-center py-8 text-gray-500">
           <MapPin className="h-10 w-10 mx-auto mb-2 text-gray-300" />
-          <p className="text-sm">Nenhum município encontrado</p>
+          <p className="text-sm">{t('empty')}</p>
         </div>
       </div>
     )
@@ -94,15 +93,15 @@ export default function TopMunicipalitiesMiniCard({
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
             <TrendingUp className="h-4 w-4 text-green-600" />
-            {title}
+            {heading}
           </h3>
           {onViewAll && (
             <button
               onClick={onViewAll}
               className="text-xs text-green-600 hover:text-green-700 font-medium flex items-center gap-1 transition-colors"
             >
-              Ver todos
-              <ArrowRight className="h-3 w-3" />
+              {t('view_all')}
+              <ArrowRight className="h-3 w-3" aria-hidden="true" />
             </button>
           )}
         </div>
@@ -130,7 +129,7 @@ export default function TopMunicipalitiesMiniCard({
                       {municipality.municipality_name}
                     </h4>
                     <span className="text-sm font-bold text-gray-900 whitespace-nowrap">
-                      {formatValue(municipality.biogas_m3_year)}
+                      {format.compact(municipality.biogas_m3_year)}
                     </span>
                   </div>
 
@@ -159,7 +158,7 @@ export default function TopMunicipalitiesMiniCard({
       {data.length > maxItems && (
         <div className="px-5 pb-4 text-center">
           <p className="text-xs text-gray-500">
-            +{data.length - maxItems} municípios adicionais
+            {t('more', { count: data.length - maxItems })}
           </p>
         </div>
       )}

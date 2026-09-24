@@ -6,7 +6,7 @@
  * Based on FDE (Fator de Disponibilidade Efetiva) methodology
  */
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
-import { useRouter } from '@/navigation'
+import { Link, useRouter } from '@/navigation'
 import { useTranslations } from 'next-intl'
 import Breadcrumb from '@/components/ui/Breadcrumb'
 import {
@@ -55,6 +55,7 @@ const ScenarioSelector = dynamic(() => import('@/components/analysis/ScenarioSel
 const ReferencesModal = dynamic(() => import('@/components/analysis/ReferencesModal'), { ssr: false })
 
 import { DATA_EXPORT_ENABLED } from '@/lib/featureFlags';
+import { datedFilename, downloadCsv, toCsv } from '@/lib/download';
 
 // API
 import {
@@ -87,6 +88,9 @@ import {
 
 // Data
 import { getResidueByCode, DETAILED_RESIDUES } from '@/data/residueFactors'
+import { useLocalize } from '@/hooks/useLocalize'
+import { useFormat } from '@/hooks/useFormat'
+import { MISSING_VALUE } from '@/lib/format'
 import { logger } from '@/lib/logger'
 import type { ResidueStream } from '@/components/analysis/charts/BiomassFlowSankey'
 
@@ -150,6 +154,12 @@ function computeRPRAdjustedBiogas(
 export default function AdvancedAnalysisPage() {
   const router = useRouter()
   const t = useTranslations('pages')
+  const tAnalysis = useTranslations('analysis')
+  const tCommon = useTranslations('common')
+  const localize = useLocalize()
+  const format = useFormat()
+  // "12.3B m³/year" — the theoretical totals quoted beside the charts.
+  const m3PerYear = (value: number) => `${format.compact(value)} ${tCommon('units.m3_year')}`
   const { user, loading: authLoading, isAuthenticated } = useAuth()
 
   const toApiCategory = (category: ResidueCategory): ApiCategory | undefined => {
@@ -168,6 +178,7 @@ export default function AdvancedAnalysisPage() {
 
   // Scenario system state
   const [currentScenario, setCurrentScenario] = useState<ScenarioType>('baseline')
+  const scenarioName = tAnalysis(RESIDUE_SCENARIOS[currentScenario].nameKey)
   const [residueFactorOverrides, setResidueFactorOverrides] = useState<ResidueFactorOverrides>({})
 
   // Legacy correction factors state (for backward compatibility)
@@ -269,7 +280,7 @@ export default function AdvancedAnalysisPage() {
       const theoretical = theoreticalPotential / selectedResidueCodes.length
       return {
         code,
-        name: residue?.name || code,
+        name: residue ? localize(residue.name) : code,
         theoretical
       }
     })
@@ -285,7 +296,7 @@ export default function AdvancedAnalysisPage() {
       fs: Math.sqrt(avgFDE),
       fl: Math.sqrt(avgFDE)
     }
-  }, [selectedResidueCodes, currentScenario, residueFactorOverrides, factors, theoreticalPotential])
+  }, [selectedResidueCodes, currentScenario, residueFactorOverrides, factors, theoreticalPotential, localize])
 
   // Calculate FDE-adjusted potential
   const fdeAdjustedPotential = useMemo(() => {
@@ -314,7 +325,7 @@ export default function AdvancedAnalysisPage() {
             : applyScenarioMultiplier(baseFactors, scenarioConfig.multiplier || 1)
 
         return {
-          name: residue.name,
+          name: localize(residue.name),
           code,
           theoretical,
           factors: adjustedFactors,
@@ -324,7 +335,7 @@ export default function AdvancedAnalysisPage() {
       .filter((s): s is ResidueStream => s !== null)
 
     return streams.length >= 2 ? streams : undefined
-  }, [selectedResidueCodes, streamTons, streamBiogas, currentScenario, residueFactorOverrides])
+  }, [selectedResidueCodes, streamTons, streamBiogas, currentScenario, residueFactorOverrides, localize])
 
   // Handle scenario change
   const handleScenarioChange = (scenario: ScenarioType) => {
@@ -384,7 +395,7 @@ export default function AdvancedAnalysisPage() {
       setTopMunicipalities(munResult.value.data)
     } else if (munResult.status === 'rejected') {
       logger.error('Error fetching municipalities:', munResult.reason)
-      setError(t('advanced_analysis.error_load_municipalities') || 'Erro ao carregar dados dos municipios')
+      setError(t('advanced_analysis.error_load_municipalities'))
     }
     setLoadingMunicipalities(false)
 
@@ -426,7 +437,7 @@ export default function AdvancedAnalysisPage() {
       setStreamTons({})
       setStreamBiogas({})
     }
-  }, [selectedCategory, selectedResidueCodes])
+  }, [selectedCategory, selectedResidueCodes, t])
 
   // Debounced refetch when residue selection or category changes
   useEffect(() => {
@@ -481,31 +492,29 @@ export default function AdvancedAnalysisPage() {
 
   // Export to CSV
   const handleExportCSV = useCallback(() => {
-    if (!DATA_EXPORT_ENABLED) return;  // beta: see lib/featureFlags
-    const headers = ['Posicao', 'Municipio', 'Regiao', 'Biogas (m3/ano)', 'Populacao', 'FDE (%)', 'Cenario']
+    // Headers in the page's language; numbers with a dot decimal, as data files should.
+    const headers = [
+      t('advanced_analysis.csv_rank'),
+      t('advanced_analysis.col_municipality'),
+      t('advanced_analysis.col_region'),
+      t('advanced_analysis.col_biogas'),
+      t('advanced_analysis.col_population'),
+      t('advanced_analysis.csv_fde'),
+      t('advanced_analysis.csv_scenario'),
+    ]
     const fdePercent = (calculateFDE(effectiveFactors) * 100).toFixed(1)
-    const scenarioName = RESIDUE_SCENARIOS[currentScenario].name
     const rows = filteredMunicipalities.map((m, idx) => [
       idx + 1,
       m.municipality_name,
-      m.administrative_region || 'N/A',
+      m.administrative_region || '',
       m.biogas_m3_year.toFixed(2),
-      m.population || 'N/A',
+      m.population ?? '',
       fdePercent,
       scenarioName
     ])
 
-    const csv = [
-      headers.join(','),
-      ...rows.map(row => row.join(','))
-    ].join('\n')
-
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
-    const link = document.createElement('a')
-    link.href = URL.createObjectURL(blob)
-    link.download = `analise_${selectedCategory}_${currentScenario}_fde${fdePercent}_${new Date().toISOString().split('T')[0]}.csv`
-    link.click()
-  }, [filteredMunicipalities, selectedCategory, effectiveFactors, currentScenario])
+    downloadCsv(toCsv([headers, ...rows]), datedFilename(`analysis-${selectedCategory}-${currentScenario}`, 'csv'))
+  }, [filteredMunicipalities, selectedCategory, effectiveFactors, currentScenario, scenarioName, t])
 
   // Initial data fetch - only run once when authenticated
   const hasInitiallyFetched = useRef(false)
@@ -529,7 +538,7 @@ export default function AdvancedAnalysisPage() {
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cp2b-primary mx-auto"></div>
-          <p className="mt-4 text-gray-600">Carregando...</p>
+          <p className="mt-4 text-gray-600">{tCommon('states.loading')}</p>
         </div>
       </div>
     )
@@ -592,14 +601,16 @@ export default function AdvancedAnalysisPage() {
                 <RefreshCw className={`h-4 w-4 ${(loadingMunicipalities || loadingStats) ? 'animate-spin' : ''}`} />
                 {t('scientific_database.refresh')}
               </button>
-              <button
-                onClick={handleExportCSV}
-                disabled={filteredMunicipalities.length === 0}
-                className="flex items-center gap-2 px-4 py-2.5 bg-white/20 hover:bg-white/30 disabled:bg-white/10 disabled:cursor-not-allowed rounded-lg text-sm font-medium transition-all backdrop-blur-sm border border-white/20"
-              >
-                <Download className="h-4 w-4" />
-                {t('advanced_analysis.download')}
-              </button>
+              {DATA_EXPORT_ENABLED && (
+                <button
+                  onClick={handleExportCSV}
+                  disabled={filteredMunicipalities.length === 0}
+                  className="flex items-center gap-2 px-4 py-2.5 bg-white/20 hover:bg-white/30 disabled:bg-white/10 disabled:cursor-not-allowed rounded-lg text-sm font-medium transition-all backdrop-blur-sm border border-white/20"
+                >
+                  <Download className="h-4 w-4" aria-hidden="true" />
+                  {t('advanced_analysis.download')}
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -624,11 +635,7 @@ export default function AdvancedAnalysisPage() {
             <Info className="h-5 w-5 flex-shrink-0 mt-0.5 text-blue-600" />
             <div className="flex-1">
               <h3 className="font-semibold mb-1 text-blue-900">{t('advanced_analysis.industrial_selection_title')}</h3>
-              <p className="text-sm text-blue-800">
-                Para visualizar dados precisos da categoria Industrial, selecione um ou mais resíduos industriais específicos
-                (Torta de Filtro, Vinhaça, Bagaço de Malte, etc.) no painel lateral.
-                Os cálculos serão baseados nos dados municipais reais para os resíduos selecionados com seus fatores FDE individuais.
-              </p>
+              <p className="text-sm text-blue-800">{t('advanced_analysis.industrial_selection_body')}</p>
             </div>
           </div>
         )}
@@ -637,13 +644,18 @@ export default function AdvancedAnalysisPage() {
         <div className="bg-indigo-50 border-l-4 border-indigo-500 text-indigo-700 px-6 py-4 rounded-lg mb-6 shadow-sm flex items-start gap-3">
           <BookOpen className="h-5 w-5 flex-shrink-0 mt-0.5 text-indigo-600" />
           <div className="flex-1">
-            <h3 className="font-semibold mb-1 text-indigo-900">Referências Científicas Disponíveis</h3>
+            <h3 className="font-semibold mb-1 text-indigo-900">{t('advanced_analysis.references_available_title')}</h3>
             <p className="text-sm text-indigo-800">
-              Cada resíduo possui análises e referências científicas diferentes que podem ser consultadas na{' '}
-              <a href="/dashboard/references" className="font-semibold underline hover:text-indigo-900">
-                página de Referências
-              </a>
-              {' '}ou clicando no botão <strong>Referências</strong> acima.
+              {/* There is no /dashboard/references page (the link always 404'd): the
+                  references live in the scientific database. */}
+              {t.rich('advanced_analysis.references_available_body', {
+                link: (chunks) => (
+                  <Link href="/dashboard/scientific-database?view=references" className="font-semibold underline hover:text-indigo-900">
+                    {chunks}
+                  </Link>
+                ),
+                strong: (chunks) => <strong>{chunks}</strong>,
+              })}
             </p>
           </div>
         </div>
@@ -772,10 +784,10 @@ export default function AdvancedAnalysisPage() {
                   <div className="mb-3 pb-3 border-b border-blue-200">
                     <div className="flex items-center gap-2 mb-1">
                       <GitBranch className="h-4 w-4 text-blue-600" />
-                      <h4 className="text-xs font-semibold text-blue-900">Ajuste Integrado</h4>
+                      <h4 className="text-xs font-semibold text-blue-900">{t('advanced_analysis.integrated_adjustment')}</h4>
                     </div>
                     <p className="text-[10px] text-blue-700">
-                      Os ajustes aqui refletem em tempo real na visualização
+                      {t('advanced_analysis.integrated_adjustment_hint')}
                     </p>
                   </div>
 
@@ -895,7 +907,7 @@ export default function AdvancedAnalysisPage() {
                       currentScenario === 'optimistic' ? 'bg-green-100 text-green-700' :
                       'bg-purple-100 text-purple-700'
                     }`}>
-                      {RESIDUE_SCENARIOS[currentScenario].name}
+                      {scenarioName}
                     </span>
                   </div>
 
@@ -908,17 +920,17 @@ export default function AdvancedAnalysisPage() {
                       <p>
                         <span className="font-medium">{t('advanced_analysis.label_residues')}</span> {selectedResidueCodes.length}
                         <br />
-                        <span className="text-xs">({(filteredTheoreticalPotential / 1e9).toFixed(2)}B m³/ano)</span>
+                        <span className="text-xs">({m3PerYear(filteredTheoreticalPotential)})</span>
                       </p>
                     ) : (
                       <p>
                         <span className="font-medium">{t('advanced_analysis.label_all_residues')}</span>
                         <br />
-                        <span className="text-xs">({(totalTheoreticalPotential / 1e9).toFixed(2)}B m³/ano)</span>
+                        <span className="text-xs">({m3PerYear(totalTheoreticalPotential)})</span>
                       </p>
                     )}
                     <p>
-                      <span className="font-medium">{t('advanced_analysis.label_fde')}</span> {(calculateFDE(effectiveFactors) * 100).toFixed(2)}%
+                      <span className="font-medium">{t('advanced_analysis.label_fde')}</span> {format.percent(calculateFDE(effectiveFactors) * 100, { decimals: 2, minDecimals: 2 })}
                     </p>
                   </div>
                 </div>
@@ -939,7 +951,7 @@ export default function AdvancedAnalysisPage() {
                     <PotentialCascadeChart
                       theoreticalPotential={theoreticalPotential}
                       factors={effectiveFactors}
-                      title={`${t('advanced_analysis.tab_cascade')} - ${RESIDUE_SCENARIOS[currentScenario].name}${selectedResidueCodes.length > 0 ? ` (${selectedResidueCodes.length})` : ''}`}
+                      title={`${t('advanced_analysis.tab_cascade')} - ${scenarioName}${selectedResidueCodes.length > 0 ? ` (${selectedResidueCodes.length})` : ''}`}
                       loading={loadingStats}
                     />
                   </div>
@@ -965,7 +977,7 @@ export default function AdvancedAnalysisPage() {
                       currentScenario === 'optimistic' ? 'bg-green-100 text-green-700' :
                       'bg-purple-100 text-purple-700'
                     }`}>
-                      {RESIDUE_SCENARIOS[currentScenario].name}
+                      {scenarioName}
                     </span>
                   </div>
 
@@ -973,11 +985,11 @@ export default function AdvancedAnalysisPage() {
                     <p>
                       <span className="font-medium">{t('advanced_analysis.label_potential')}</span>{' '}
                       {selectedResidueCodes.length > 0
-                        ? `${selectedResidueCodes.length} (${(filteredTheoreticalPotential / 1e9).toFixed(2)}B m³/ano)`
-                        : `${t('advanced_analysis.label_all_residues')} (${(totalTheoreticalPotential / 1e9).toFixed(2)}B m³/ano)`}
+                        ? `${t('advanced_analysis.residues_selected', { count: selectedResidueCodes.length })} (${m3PerYear(filteredTheoreticalPotential)})`
+                        : `${t('advanced_analysis.label_all_residues')} (${m3PerYear(totalTheoreticalPotential)})`}
                     </p>
                     <p>
-                      <span className="font-medium">{t('advanced_analysis.label_fde')}</span> {(calculateFDE(effectiveFactors) * 100).toFixed(2)}%
+                      <span className="font-medium">{t('advanced_analysis.label_fde')}</span> {format.percent(calculateFDE(effectiveFactors) * 100, { decimals: 2, minDecimals: 2 })}
                     </p>
                   </div>
                 </div>
@@ -987,7 +999,7 @@ export default function AdvancedAnalysisPage() {
                   theoreticalPotential={theoreticalPotential}
                   factors={effectiveFactors}
                   residues={residueStreams}
-                  title={`${t('advanced_analysis.tab_flow')} - ${RESIDUE_SCENARIOS[currentScenario].name}`}
+                  title={`${t('advanced_analysis.tab_flow')} - ${scenarioName}`}
                   loading={loadingStats}
                 />
 
@@ -1049,30 +1061,36 @@ export default function AdvancedAnalysisPage() {
                       {t('advanced_analysis.table_ranking')}
                     </h3>
                     <p className="text-xs sm:text-sm text-gray-500 mt-1">
-                      {filteredMunicipalities.length} municipio(s) | FDE: {(calculateFDE(effectiveFactors) * 100).toFixed(1)}% | {RESIDUE_SCENARIOS[currentScenario].name}
+                      {t('advanced_analysis.table_summary', {
+                        count: filteredMunicipalities.length,
+                        fde: format.percent(calculateFDE(effectiveFactors) * 100),
+                        scenario: scenarioName,
+                      })}
                     </p>
                   </div>
-                  <button
-                    onClick={handleExportCSV}
-                    className="flex items-center justify-center gap-2 px-4 py-2 text-xs sm:text-sm font-medium text-gray-700 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded-lg transition-colors w-full sm:w-auto"
-                  >
-                    <Download className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                    {t('advanced_analysis.export_csv')}
-                  </button>
+                  {DATA_EXPORT_ENABLED && (
+                    <button
+                      onClick={handleExportCSV}
+                      className="flex items-center justify-center gap-2 px-4 py-2 text-xs sm:text-sm font-medium text-gray-700 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded-lg transition-colors w-full sm:w-auto"
+                    >
+                      <Download className="h-3.5 w-3.5 sm:h-4 sm:w-4" aria-hidden="true" />
+                      {t('advanced_analysis.export_csv')}
+                    </button>
+                  )}
                 </div>
 
                 <div className="overflow-x-auto rounded-lg border border-gray-200">
                   <table className="w-full text-sm">
                     <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
                       <tr className="border-b border-gray-200">
-                        <th className="text-left py-4 px-4 font-semibold text-gray-700 w-16">#</th>
-                        <th className="text-left py-4 px-4 font-semibold text-gray-700">Municipio</th>
-                        <th className="text-left py-4 px-4 font-semibold text-gray-700">Regiao</th>
+                        <th className="text-left py-4 px-4 font-semibold text-gray-700 w-16">{t('advanced_analysis.col_rank')}</th>
+                        <th className="text-left py-4 px-4 font-semibold text-gray-700">{t('advanced_analysis.col_municipality')}</th>
+                        <th className="text-left py-4 px-4 font-semibold text-gray-700">{t('advanced_analysis.col_region')}</th>
                         <th className="text-right py-4 px-4 font-semibold text-gray-700 min-w-[140px]">
-                          Biogas (m3/ano)
+                          {t('advanced_analysis.col_biogas')}
                         </th>
                         <th className="text-right py-4 px-4 font-semibold text-gray-700 min-w-[120px]">
-                          Populacao
+                          {t('advanced_analysis.col_population')}
                         </th>
                       </tr>
                     </thead>
@@ -1090,24 +1108,19 @@ export default function AdvancedAnalysisPage() {
                           </td>
                           <td className="py-4 px-4 text-gray-600">
                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                              {municipality.administrative_region || 'N/A'}
+                              {municipality.administrative_region || MISSING_VALUE}
                             </span>
                           </td>
                           <td className="py-4 px-4 text-right">
                             <div className="flex flex-col items-end">
                               <span className="font-mono font-semibold text-gray-900">
-                                {municipality.biogas_m3_year >= 1000000
-                                  ? `${(municipality.biogas_m3_year / 1000000).toFixed(2)}M`
-                                  : municipality.biogas_m3_year >= 1000
-                                  ? `${(municipality.biogas_m3_year / 1000).toFixed(2)}k`
-                                  : municipality.biogas_m3_year.toFixed(2)
-                                }
+                                {format.compact(municipality.biogas_m3_year, { decimals: 2 })}
                               </span>
-                              <span className="text-xs text-gray-500">m3/ano</span>
+                              <span className="text-xs text-gray-500">{tCommon('units.m3_year')}</span>
                             </div>
                           </td>
                           <td className="py-4 px-4 text-right text-gray-700 font-medium">
-                            {municipality.population?.toLocaleString('pt-BR') || '-'}
+                            {format.number(municipality.population)}
                           </td>
                         </tr>
                       ))}
@@ -1118,7 +1131,7 @@ export default function AdvancedAnalysisPage() {
                 {filteredMunicipalities.length > 50 && (
                   <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between">
                     <div className="text-sm text-gray-500">
-                      Mostrando 50 de {filteredMunicipalities.length} municipios
+                      {t('advanced_analysis.showing_results', { count: filteredMunicipalities.length })}
                     </div>
                   </div>
                 )}
@@ -1129,8 +1142,8 @@ export default function AdvancedAnalysisPage() {
               <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
                 <div className="text-center py-12 text-gray-500">
                   <Search className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                  <p className="text-lg font-medium mb-1">Nenhum municipio encontrado</p>
-                  <p className="text-sm">Tente ajustar os filtros de busca</p>
+                  <p className="text-lg font-medium mb-1">{t('advanced_analysis.no_municipalities')}</p>
+                  <p className="text-sm">{t('advanced_analysis.no_municipalities_hint')}</p>
                 </div>
               </div>
             )}

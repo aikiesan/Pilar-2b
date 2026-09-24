@@ -9,3 +9,7 @@ tsconfig.tsbuildinfo
 # Test artifacts
 /test-results/
 *.trace.zip
+
+# Written by `next dev` (Next.js 16.3 agent rules). Regenerated on every dev start.
+/AGENTS.md
+/CLAUDE.md
