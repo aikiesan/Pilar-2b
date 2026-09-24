@@ -35,13 +35,6 @@ const report = process.argv.includes('--report');
 
 /** Files still carrying hardcoded Portuguese. Only ever delete from this list. */
 const PENDING = [
-  'src/app/[locale]/dashboard/scientific-database/page.tsx',
-  'src/components/analysis/ReferencesModal.tsx',
-  'src/components/scientific/ParameterWithReference.tsx',
-  'src/components/scientific/ReferencePopover.tsx',
-  'src/data/scientificData.ts',
-  'src/services/scientificApi.ts',
-  'src/types/scientific.ts',
 ];
 
 function sourceFiles(dir, out = []) {

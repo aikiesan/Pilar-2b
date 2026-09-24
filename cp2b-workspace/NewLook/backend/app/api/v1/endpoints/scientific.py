@@ -65,6 +65,7 @@ async def get_kinetics(sector_codigo: Optional[str] = None, classification: Opti
                 SELECT
                     r.id as residue_id,
                     r.nome as residue_name,
+                    r.nome_en as residue_name_en,
                     r.sector_codigo as sector,
                     r.bmp_medio as bmp_experimental,
                     r.kinetics,
@@ -127,6 +128,8 @@ async def get_kinetics(sector_codigo: Optional[str] = None, classification: Opti
                 mapped_item = {
                     "residue_id": row_dict["residue_id"],
                     "residue_name": row_dict["residue_name"],
+                    # English name, when the database has one (migration 032).
+                    "residue_name_en": row_dict.get("residue_name_en") or None,
                     "sector": row_dict["sector"],
                     # Kinetic Constants
                     "k_slow": safe_float(kinetics_data.get("k_slow"), 0.05),

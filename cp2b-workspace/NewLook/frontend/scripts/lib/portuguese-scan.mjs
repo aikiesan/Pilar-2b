@@ -31,6 +31,14 @@ import ts from 'typescript';
 /** Characters that occur in Portuguese and not in English UI text. */
 export const PORTUGUESE_CHARS = /[ãõçáéíóúâêôàÃÕÇÁÉÍÓÚÂÊÔÀ]/;
 
+/**
+ * Accented place names that English text uses as they are ("the municipalities
+ * of São Paulo"). Removed before the checks below, so they are never the reason
+ * a string counts as Portuguese.
+ */
+export const ACCENTED_PLACE_NAMES =
+  /(?<![A-Za-zÀ-ÿ])(?:São Paulo|Ribeirão Preto|São José dos Campos|Paraná|Goiás|Ceará|Piauí|Pará|Amapá|Maranhão|Rondônia|Brasília|Espírito Santo)(?![A-Za-zÀ-ÿ])/g;
+
 /** A rate or density written the Portuguese way: "/ano", "/dia", "hab/…". */
 export const PORTUGUESE_UNIT = /\/(ano|dia|mês|mes)\b|\bhab\.?\//;
 
@@ -64,7 +72,7 @@ export const PORTUGUESE_WORDS = new Set([
 
 /** True when `text` reads as Portuguese UI copy. */
 export function looksPortuguese(text) {
-  const value = text.replace(/\s+/g, ' ').trim();
+  const value = text.replace(ACCENTED_PLACE_NAMES, ' ').replace(/\s+/g, ' ').trim();
   if (!/[A-Za-zÀ-ÿ]{2,}/.test(value)) return false;
   // URLs and e-mail addresses carry "com", "de" and friends as domain parts.
   if (/:\/\/|www\.|\S+@\S+\.\S+/.test(value)) return false;

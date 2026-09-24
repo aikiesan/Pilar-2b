@@ -190,6 +190,14 @@ class TestKineticsEndpointBranches:
         assert response.status_code == 200
         assert response.json()["count"] == 2
 
+    def test_returns_the_english_name_when_there_is_one(self, client, mock_db_connection):
+        mock_conn, _ = mock_db_connection
+        translated = {**_valid_db_row(), "residue_name_en": "Vinasse"}
+        untranslated = {**_valid_db_row(), "residue_name_en": None}
+        _make_cursor([translated, untranslated], mock_conn)
+        data = client.get("/api/v1/scientific/kinetics").json()["data"]
+        assert [d["residue_name_en"] for d in data] == ["Vinasse", None]
+
 
 # ─── maps.py endpoint coverage ────────────────────────────────────────────────
 

@@ -27,6 +27,15 @@ test('looksPortuguese: Portuguese units are caught, English ones are not', () =>
   for (const text of ['m³/year', 't/year', 'Nm³/day', 'inhab./km²', 'kWh/m³']) assert.equal(looksPortuguese(text), false, text);
 });
 
+test('looksPortuguese: accented place names do not make English text Portuguese', () => {
+  assert.equal(looksPortuguese('Coverage: the 645 municipalities of São Paulo'), false);
+  assert.equal(looksPortuguese('Paraná and Goiás'), false);
+  assert.equal(looksPortuguese('São Paulo'), false);
+  // ...while Portuguese that names them still is.
+  assert.equal(looksPortuguese('Municípios de São Paulo'), true);
+  assert.equal(looksPortuguese('Cobertura: municípios do Paraná'), true);
+});
+
 test('looksPortuguese: English copy, codes and identifiers are not', () => {
   for (const text of [
     'No data',
@@ -137,8 +146,8 @@ test('honors i18n-exempt with a reason, on the line or the line above', () => {
 });
 
 test('a marker without a reason exempts nothing and is itself reported', () => {
-  const { findings, bareExemptions } = scanSource(`const s = 'São Paulo' // i18n-exempt\n`, 'x.ts');
-  assert.deepEqual(findings, [{ line: 1, text: 'São Paulo' }]);
+  const { findings, bareExemptions } = scanSource(`const s = 'Município' // i18n-exempt\n`, 'x.ts');
+  assert.deepEqual(findings, [{ line: 1, text: 'Município' }]);
   assert.deepEqual(bareExemptions, [1]);
 });
 

@@ -4,5 +4,4 @@
  */
 
 export { default as UnifiedHeader } from './UnifiedHeader'
-export { default as DashboardLayout } from './DashboardLayout'
 export { default as Footer } from './Footer'

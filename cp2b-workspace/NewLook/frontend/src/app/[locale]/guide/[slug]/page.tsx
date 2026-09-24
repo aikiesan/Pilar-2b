@@ -102,7 +102,7 @@ export default async function GuideArticlePage({ params }: { params: Promise<{ s
           </div>
         </aside>
 
-        <main className="flex-1 max-w-3xl">
+        <article className="flex-1 max-w-3xl">
           <span className="text-cp2b-green font-semibold text-sm tracking-wide uppercase">{tNav('guide')}</span>
           <h1 className="text-4xl font-bold text-gray-900 dark:text-white mt-2 mb-4">{t(`${slug}.title`)}</h1>
           <p className="text-xl text-gray-600 dark:text-gray-300 mb-12 leading-relaxed">{t(`${slug}.subtitle`)}</p>
@@ -117,7 +117,7 @@ export default async function GuideArticlePage({ params }: { params: Promise<{ s
               </section>
             ))}
           </div>
-        </main>
+        </article>
       </div>
     </div>
   );

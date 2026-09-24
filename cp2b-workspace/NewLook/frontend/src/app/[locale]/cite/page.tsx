@@ -60,7 +60,7 @@ export default function CitePage() {
   const t = useTranslations('pages.cite');
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-12">
+    <div className="mx-auto max-w-3xl px-4 py-12">
       <h1 className="mb-2 text-3xl font-bold text-gray-900">{t('title')}</h1>
       <p className="mb-8 text-sm text-gray-600">{t('subtitle')}</p>
 
@@ -113,6 +113,6 @@ export default function CitePage() {
           📚 {t('refs_link')}
         </a>
       </section>
-    </main>
+    </div>
   );
 }

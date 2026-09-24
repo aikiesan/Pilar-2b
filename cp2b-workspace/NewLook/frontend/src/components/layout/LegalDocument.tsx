@@ -37,7 +37,7 @@ export default function LegalDocument({ version, text }: LegalDocumentProps) {
   const doc = useLocalize()(text)
 
   return (
-    <main className="max-w-3xl mx-auto px-4 py-16">
+    <article className="max-w-3xl mx-auto px-4 py-16">
       <h1 className="text-3xl font-bold mb-2">{doc.title}</h1>
       <p className="text-sm text-gray-500 mb-4">
         {t('updated', { date: format.date(version) })}
@@ -60,6 +60,6 @@ export default function LegalDocument({ version, text }: LegalDocumentProps) {
           ))}
         </section>
       ))}
-    </main>
+    </article>
   )
 }

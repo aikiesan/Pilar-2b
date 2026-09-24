@@ -13,7 +13,6 @@ import { isLocale } from '@/config/i18n'
 import { useLocaleSwitch } from '@/components/ui/LanguageSwitcher'
 import { Settings, User, Bell, Palette, Shield, HelpCircle, Save, Check } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
-import { DashboardLayout } from '@/components/layout'
 import { logger } from '@/lib/logger'
 import Breadcrumb from '@/components/ui/Breadcrumb'
 import { useBreadcrumbs } from '@/hooks/useBreadcrumbs'
@@ -95,18 +94,16 @@ export default function SettingsPage() {
 
   if (loading) {
     return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center h-[calc(100vh-64px)]">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600" role="status" aria-label={t('loading')}></div>
-        </div>
-      </DashboardLayout>
+      <div className="flex items-center justify-center h-[calc(100vh-64px)]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600" role="status" aria-label={t('loading')}></div>
+      </div>
     )
   }
 
   if (!user) return null
 
   return (
-    <DashboardLayout>
+    <>
       {/* Breadcrumb */}
       <div className="bg-white border-b dark:bg-slate-800 dark:border-slate-700">
         <Breadcrumb items={breadcrumbs} />
@@ -395,6 +392,6 @@ export default function SettingsPage() {
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    </>
   )
 }

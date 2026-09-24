@@ -64,9 +64,10 @@ const ROUTES = [
 ];
 
 /**
- * Every public page is on the list. Dashboard sub-pages (proximity,
- * advanced-analysis, scientific-database) are still untranslated and tracked in
- * docs/planning/ROADMAP_2026-09_EN_AND_LEAN.md — add each one here as it lands.
+ * Every public page is on the list. The signed-in dashboard pages (proximity,
+ * advanced analysis, scientific database, calculator) cannot be reached without
+ * an account; their copy is held by the source scanner (npm run i18n:scan, no
+ * file pending) and by component tests that render the real catalog.
  */
 
 test.describe('Locale integrity — /en/ renders no Portuguese UI', () => {

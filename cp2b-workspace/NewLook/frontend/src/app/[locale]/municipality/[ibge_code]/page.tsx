@@ -277,7 +277,7 @@ export default function MunicipalityPage() {
         <Breadcrumb items={breadcrumbs} />
       </div>
 
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 print:py-4">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 print:py-4">
         {/* ── Actions ── */}
         <div className="flex items-center justify-end mb-6 print:hidden">
           <div className="flex items-center gap-2">
@@ -530,7 +530,7 @@ export default function MunicipalityPage() {
           {/* Guarded: a bare `window` would throw if this ever rendered on the server. */}
           <p>PILAR-2b BiogasAtlas · {format.date(new Date())} · {typeof window !== 'undefined' ? window.location.href : ''}</p>
         </div>
-      </main>
+      </div>
     </div>
   )
 }

@@ -350,6 +350,57 @@ class TestGetAllReferences:
         response = client.get("/api/v1/residuos/references/all?limit=50&offset=0")
         assert response.status_code == 200
 
+    def test_carries_the_residue_name_in_both_languages(self, client, mock_db_connection):
+        _, mock_cursor = mock_db_connection
+        ref = {
+            "id": 7,
+            "primary_residue": "palha_soja",
+            "authors": "Silva",
+            "title": "BMP",
+            "year": 2020,
+        }
+        mock_cursor.fetchall.side_effect = [
+            [ref],  # SELECT * FROM scientific_references
+            [
+                {
+                    "id": 1,
+                    "codigo": "palha_soja",
+                    "nome": "Palha de Soja",
+                    "nome_en": "Soybean Straw",
+                    "sector_codigo": "AG",
+                }
+            ],
+            [{"codigo": "AG", "nome": "Agrícola"}],
+        ]
+        (only,) = client.get("/api/v1/residuos/references/all").json()["references"]
+        assert only["residuo_nome"] == "Palha de Soja"
+        assert only["residuo_nome_en"] == "Soybean Straw"
+
+    def test_english_name_is_null_until_translated(self, client, mock_db_connection):
+        _, mock_cursor = mock_db_connection
+        ref = {
+            "id": 7,
+            "primary_residue": "palha_soja",
+            "authors": "Silva",
+            "title": "BMP",
+            "year": 2020,
+        }
+        mock_cursor.fetchall.side_effect = [
+            [ref],
+            [
+                {
+                    "id": 1,
+                    "codigo": "palha_soja",
+                    "nome": "Palha de Soja",
+                    "nome_en": "",
+                    "sector_codigo": "AG",
+                }
+            ],
+            [],
+        ]
+        (only,) = client.get("/api/v1/residuos/references/all").json()["references"]
+        assert only["residuo_nome_en"] is None
+
 
 # ─── Conversion factors endpoint ──────────────────────────────────────────────
 

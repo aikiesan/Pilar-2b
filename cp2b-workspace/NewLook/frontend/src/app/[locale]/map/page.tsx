@@ -52,13 +52,13 @@ export default function PublicMapPage() {
       {/*
         min-h-0 é obrigatório, não decorativo. Um item flex tem
         `min-height: auto`, que o impede de encolher abaixo do próprio conteúdo:
-        sem isso, este <main> media 856px dentro de um pai de 656px, a barra
+        sem isso, este <div> media 856px dentro de um pai de 656px, a barra
         lateral herdava a altura estourada e o `overflow-y-auto` interno dela
         nunca engatava — as últimas camadas simplesmente ficavam fora da tela,
         sem barra de rolagem. Só apareceu quando a aba Camadas passou de 11 para
         20 itens; com a lista curta, o vazamento cabia na viewport e não se via.
       */}
-      <main className="flex-1 relative min-h-0">
+      <div className="flex-1 relative min-h-0">
         <MapComponent
           activeFilters={activeFilters}
           biomassType={biomassType}
@@ -68,7 +68,7 @@ export default function PublicMapPage() {
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
         />
-      </main>
+      </div>
     </div>
   )
 }

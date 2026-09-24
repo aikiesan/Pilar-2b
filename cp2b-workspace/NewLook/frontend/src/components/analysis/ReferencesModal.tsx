@@ -1,711 +1,645 @@
 /**
- * PILAR-2b V3 - Scientific References Modal
- * Displays all scientific references and data sources used in analysis
+ * The references and data sources behind the advanced analysis.
+ *
+ * Source and organization names are proper nouns and publication titles are
+ * cited as published, so they stay in their original language; what describes
+ * them is written in both.
  */
 
 'use client';
 
-import React, { useState } from 'react';
-import { X, ExternalLink, BookOpen, Beaker, FileText, CheckCircle2, Database } from 'lucide-react';
+import React, { useId, useRef, useState } from 'react';
+import { BookOpen, Database, ExternalLink, FileText, Beaker, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { Link } from '@/navigation';
+import { useDialog } from '@/hooks/useDialog';
+import { useLocalize } from '@/hooks/useLocalize';
+import type { Localized } from '@/lib/localized';
 
 interface ReferencesModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-interface Reference {
-  residue: string;
+/** A name that is either a proper noun (one spelling) or a description (two). */
+type Name = string | Localized;
+
+/** A residue whose literature lives in the scientific database. */
+interface DatabasePointer {
+  kind: 'database';
+  residue: Localized;
+  /** How many validated references the database holds for it ("22+", "3–4"). */
+  references: string;
+}
+
+/** A source outside the platform. */
+interface ExternalReference {
+  kind: 'external';
+  topic: Localized;
   authors: string;
   year: number;
-  doi?: string;
-  url?: string;
-  description?: string;
-  journal?: string;
+  url: string;
+  /** The publication's own title, as published. */
+  title?: string;
+  description?: Localized;
 }
 
 interface ReferenceCategory {
-  category: string;
+  category: Localized;
   emoji: string;
   color: string;
   bgColor: string;
-  references: Reference[];
+  references: Array<DatabasePointer | ExternalReference>;
 }
+
+const db = (residue: Localized, references: string): DatabasePointer => ({ kind: 'database', residue, references });
 
 const REFERENCES: ReferenceCategory[] = [
   {
-    category: 'Cana-de-Açúcar',
+    category: { 'pt-BR': 'Cana-de-açúcar', en: 'Sugarcane' },
     emoji: '🌱',
     color: 'border-green-500',
     bgColor: 'bg-green-50 dark:bg-green-900/20',
     references: [
-      {
-        residue: 'Bagaço',
-        authors: 'Ver base de dados científica',
-        year: 2024,
-        url: '/pt-BR/dashboard/scientific-database',
-        description: '39 referências científicas validadas para bagaço de cana'
-      },
-      {
-        residue: 'Vinhaça',
-        authors: 'Ver base de dados científica',
-        year: 2024,
-        url: '/pt-BR/dashboard/scientific-database',
-        description: '27 referências científicas validadas para vinhaça de cana'
-      },
-      {
-        residue: 'Torta de Filtro',
-        authors: 'Ver base de dados científica',
-        year: 2024,
-        url: '/pt-BR/dashboard/scientific-database',
-        description: '20 referências científicas validadas para torta de filtro'
-      },
-      {
-        residue: 'Palha',
-        authors: 'Ver base de dados científica',
-        year: 2024,
-        url: '/pt-BR/dashboard/scientific-database',
-        description: '31 referências científicas validadas para palha de cana'
-      }
-    ]
+      db({ 'pt-BR': 'Bagaço', en: 'Bagasse' }, '39'),
+      db({ 'pt-BR': 'Vinhaça', en: 'Vinasse' }, '27'),
+      db({ 'pt-BR': 'Torta de filtro', en: 'Filter cake' }, '20'),
+      db({ 'pt-BR': 'Palha', en: 'Straw' }, '31'),
+    ],
   },
   {
-    category: 'Pecuária',
+    category: { 'pt-BR': 'Pecuária', en: 'Livestock' },
     emoji: '🐄',
     color: 'border-amber-500',
     bgColor: 'bg-amber-50 dark:bg-amber-900/20',
     references: [
-      {
-        residue: 'Dejeto Bovino',
-        authors: 'Ver base de dados científica',
-        year: 2024,
-        url: '/pt-BR/dashboard/scientific-database',
-        description: '4 referências científicas validadas para dejetos bovinos'
-      },
-      {
-        residue: 'Dejeto Suíno',
-        authors: 'Ver base de dados científica',
-        year: 2024,
-        url: '/pt-BR/dashboard/scientific-database',
-        description: '22+ referências científicas validadas para dejetos suínos'
-      },
-      {
-        residue: 'Cama de Frango',
-        authors: 'Ver base de dados científica',
-        year: 2024,
-        url: '/pt-BR/dashboard/scientific-database',
-        description: '3 referências científicas validadas para cama de aviário'
-      }
-    ]
+      db({ 'pt-BR': 'Dejeto bovino', en: 'Cattle manure' }, '4'),
+      db({ 'pt-BR': 'Dejeto suíno', en: 'Swine manure' }, '22+'),
+      db({ 'pt-BR': 'Cama de frango', en: 'Poultry litter' }, '3'),
+    ],
   },
   {
-    category: 'Citros',
+    category: { 'pt-BR': 'Citros', en: 'Citrus' },
     emoji: '🍊',
     color: 'border-orange-500',
     bgColor: 'bg-orange-50 dark:bg-orange-900/20',
-    references: [
-      {
-        residue: 'Bagaço de Laranja',
-        authors: 'Ver base de dados científica',
-        year: 2024,
-        url: '/pt-BR/dashboard/scientific-database',
-        description: '3-4 referências científicas validadas para cascas de citros'
-      }
-    ]
+    references: [db({ 'pt-BR': 'Bagaço e cascas de laranja', en: 'Orange bagasse and peels' }, '3–4')],
   },
   {
-    category: 'Urbano',
+    category: { 'pt-BR': 'Urbano', en: 'Urban' },
     emoji: '🏙️',
     color: 'border-blue-500',
     bgColor: 'bg-blue-50 dark:bg-blue-900/20',
     references: [
       {
-        residue: 'RSU (Resíduos Sólidos Urbanos)',
+        kind: 'external',
+        topic: { 'pt-BR': 'RSU (resíduos sólidos urbanos)', en: 'MSW (municipal solid waste)' },
         authors: 'IPEA',
         year: 2012,
         url: 'https://www.ipea.gov.br/portal/publicacao-item?id=34419',
-        description: 'Diagnóstico dos Resíduos Sólidos Urbanos - Relatório de Pesquisa'
+        title: 'Diagnóstico dos Resíduos Sólidos Urbanos: Relatório de Pesquisa', // i18n-exempt: publication title
       },
       {
-        residue: 'Lodo de ETE',
+        kind: 'external',
+        topic: { 'pt-BR': 'Lodo de ETE', en: 'WWTP sludge' },
         authors: 'SNIS',
         year: 2023,
         url: 'https://www.gov.br/cidades/pt-br/acesso-a-informacao/acoes-e-programas/saneamento/snis',
-        description: 'Sistema Nacional de Informações sobre Saneamento - Diagnóstico Anual'
-      }
-    ]
+        title: 'Sistema Nacional de Informações sobre Saneamento: Diagnóstico Anual', // i18n-exempt: publication title
+      },
+    ],
   },
   {
-    category: 'Metodologia',
+    category: { 'pt-BR': 'Metodologia', en: 'Methodology' },
     emoji: '📚',
     color: 'border-purple-500',
     bgColor: 'bg-purple-50 dark:bg-purple-900/20',
     references: [
       {
-        residue: 'Fatores de Correção SAF',
+        kind: 'external',
+        topic: { 'pt-BR': 'Fatores de correção FDE', en: 'FDE correction factors' },
         authors: 'CETESB',
         year: 2018,
         url: 'https://cetesb.sp.gov.br/biogas/',
-        description: 'Guia Técnico Ambiental de Inventário de Emissões de Gases de Efeito Estufa'
+        title: 'Guia Técnico Ambiental de Inventário de Emissões de Gases de Efeito Estufa', // i18n-exempt: publication title
       },
       {
-        residue: 'Metodologia DBFZ',
+        kind: 'external',
+        topic: { 'pt-BR': 'Metodologia DBFZ', en: 'DBFZ methodology' },
         authors: 'DBFZ - Deutsches Biomasseforschungszentrum',
         year: 2023,
         url: 'https://www.dbfz.de/',
-        description: 'Modelo de três frações para cinética de degradação anaeróbica (k_slow, k_med, k_fast)'
-      }
-    ]
-  }
+        description: {
+          'pt-BR': 'Modelo de três frações para a cinética de degradação anaeróbia (k_slow, k_med, k_fast)',
+          en: 'Three-fraction model of anaerobic degradation kinetics (k_slow, k_med, k_fast)',
+        },
+      },
+    ],
+  },
 ];
 
-// Data Sources for Agricultural, Livestock, Urban and Operational Plants
 interface DataSource {
-  name: string;
+  name: Name;
   organization: string;
   url?: string;
-  type?: string;
+  type?: Localized;
   year?: string;
-  description?: string;
-  details?: string[];
+  description?: Localized;
+  details?: Localized<string[]>;
 }
 
 interface DataSourceCategory {
-  category: string;
+  category: Localized;
   emoji: string;
   color: string;
   bgColor: string;
   sources: DataSource[];
-  subcategories?: {
-    title: string;
-    sources: DataSource[];
-  }[];
+  subcategories?: { title: Localized; sources: DataSource[] }[];
 }
 
 const DATA_SOURCES: DataSourceCategory[] = [
   {
-    category: 'Setor Agrícola',
+    category: { 'pt-BR': 'Setor Agrícola', en: 'Agricultural Sector' },
     emoji: '🌾',
     color: 'border-green-500',
     bgColor: 'bg-green-50 dark:bg-green-900/20',
     sources: [
       {
-        name: 'IBGE - Produção Agrícola Municipal (PAM)',
+        name: 'IBGE - Produção Agrícola Municipal (PAM)', // i18n-exempt: official survey name
         organization: 'SIDRA/IBGE',
         url: 'https://sidra.ibge.gov.br/pesquisa/pam/tabelas',
-        type: 'Dados oficiais municipais',
+        type: { 'pt-BR': 'Dados oficiais municipais', en: 'Official municipal data' },
         year: '2024',
-        description: 'Área plantada, área colhida, quantidade produzida, rendimento médio, valor da produção',
-        details: [
-          'Tabela SIDRA 1612: Lavouras temporárias e permanentes',
-          'Atualização: Anual (última divulgação: setembro 2024)',
-          'Cobertura: 645 municípios de São Paulo'
-        ]
+        description: {
+          'pt-BR': 'Área plantada, área colhida, quantidade produzida, rendimento médio, valor da produção',
+          en: 'Planted area, harvested area, quantity produced, average yield, production value',
+        },
+        details: {
+          'pt-BR': [
+            'Tabela SIDRA 1612: lavouras temporárias e permanentes',
+            'Atualização anual (última divulgação: setembro de 2024)',
+            'Cobertura: 645 municípios de São Paulo',
+          ],
+          en: [
+            'SIDRA table 1612: temporary and permanent crops',
+            'Updated yearly (latest release: September 2024)',
+            'Coverage: the 645 municipalities of São Paulo',
+          ],
+        },
       },
       {
-        name: 'MapBiomas - Coleção 10.0',
-        organization: 'Projeto MapBiomas Brasil',
+        name: 'MapBiomas - Coleção 10.0', // i18n-exempt: dataset name
+        organization: 'Projeto MapBiomas Brasil', // i18n-exempt: organization name
         url: 'https://brasil.mapbiomas.org/colecoes-mapbiomas/',
-        type: 'Cobertura e Uso do Solo',
+        type: { 'pt-BR': 'Cobertura e uso do solo', en: 'Land cover and land use' },
         year: '2024',
-        description: 'Mapeamento anual de cobertura e uso do solo do Brasil',
-        details: [
-          'Resolução espacial: 30m × 30m (Landsat)',
-          'Período temporal: 2000-2024',
-          'Plataforma: Google Earth Engine (GEE)'
-        ]
-      }
+        description: {
+          'pt-BR': 'Mapeamento anual da cobertura e do uso do solo do Brasil',
+          en: 'Annual land cover and land use mapping of Brazil',
+        },
+        details: {
+          'pt-BR': ['Resolução espacial: 30 m × 30 m (Landsat)', 'Período: 2000–2024', 'Plataforma: Google Earth Engine (GEE)'],
+          en: ['Spatial resolution: 30 m × 30 m (Landsat)', 'Time span: 2000–2024', 'Platform: Google Earth Engine (GEE)'],
+        },
+      },
     ],
     subcategories: [
       {
-        title: 'Cana-de-Açúcar',
+        title: { 'pt-BR': 'Cana-de-açúcar', en: 'Sugarcane' },
         sources: [
           {
             name: 'UNICADATA - UNICA',
-            organization: 'União da Indústria de Cana-de-Açúcar',
+            organization: 'União da Indústria de Cana-de-Açúcar', // i18n-exempt: organization name
             url: 'https://unicadata.com.br/',
-            type: 'Acompanhamento da Safra',
+            type: { 'pt-BR': 'Acompanhamento da safra', en: 'Harvest monitoring' },
             year: '2024/2025',
-            description: 'Balanço da Safra 2024/2025 - Produção, moagem, etanol, açúcar por região/usina'
+            description: {
+              'pt-BR': 'Balanço da safra 2024/2025: produção, moagem, etanol e açúcar por região e usina',
+              en: '2024/2025 harvest report: production, crushing, ethanol and sugar by region and mill',
+            },
           },
           {
-            name: 'CONAB - Acompanhamento da Safra Brasileira',
-            organization: 'Companhia Nacional de Abastecimento',
+            name: 'CONAB - Acompanhamento da Safra Brasileira', // i18n-exempt: publication series
+            organization: 'Companhia Nacional de Abastecimento', // i18n-exempt: organization name
             url: 'https://www.gov.br/conab/pt-br/assuntos/noticias',
-            type: 'Safra 2024/25',
+            type: { 'pt-BR': 'Safra 2024/25', en: '2024/25 harvest' },
             year: '2024/2025',
-            details: [
-              'Safra 2024/25: 676,96 milhões de toneladas (Brasil)',
-              'Sudeste: 439,6 milhões de toneladas',
-              'Área colhida SP: 5,48 milhões de hectares'
-            ]
+            details: {
+              'pt-BR': [
+                'Safra 2024/25: 676,96 milhões de toneladas (Brasil)',
+                'Sudeste: 439,6 milhões de toneladas',
+                'Área colhida em SP: 5,48 milhões de hectares',
+              ],
+              en: [
+                '2024/25 harvest: 676.96 million tonnes (Brazil)',
+                'Southeast: 439.6 million tonnes',
+                'Harvested area in SP: 5.48 million hectares',
+              ],
+            },
           },
           {
-            name: 'EMBRAPA - Cenário Agroenergético da Cana',
-            organization: 'EMBRAPA Meio Ambiente',
+            name: 'EMBRAPA - Cenário Agroenergético da Cana', // i18n-exempt: publication title
+            organization: 'EMBRAPA Meio Ambiente', // i18n-exempt: organization name
             url: 'https://www.embrapa.br/busca-de-publicacoes/-/publicacao/1035982/cenario-agroenergetico-da-cana-de-acucar-em-sao-paulo',
-            type: 'Avaliação socioeconômica e ambiental',
-            description: 'Fatores de correção para disponibilidade de resíduos usando SIG'
+            type: { 'pt-BR': 'Avaliação socioeconômica e ambiental', en: 'Socioeconomic and environmental assessment' },
+            description: {
+              'pt-BR': 'Fatores de correção da disponibilidade de resíduos, com SIG',
+              en: 'Correction factors for residue availability, using GIS',
+            },
           },
           {
-            name: 'Novacana - Mapeamento de Usinas',
+            name: { 'pt-BR': 'Novacana - Mapeamento de Usinas', en: 'Novacana: mill mapping' },
             organization: 'Portal Novacana',
             url: 'https://www.novacana.com/usinas_brasil/estados/sao-paulo',
-            type: 'Localização de usinas',
-            description: 'Lista de unidades sucroenergéticas em operação em São Paulo'
+            type: { 'pt-BR': 'Localização de usinas', en: 'Mill locations' },
+            description: {
+              'pt-BR': 'Lista das unidades sucroenergéticas em operação em São Paulo',
+              en: 'List of the sugar-energy units operating in São Paulo',
+            },
           },
           {
-            name: 'UDOPmaps - Bioenergia em Números',
+            name: 'UDOPmaps - Bioenergia em Números', // i18n-exempt: platform name
             organization: 'UDOP',
             url: 'http://udopmaps.com.br/mapa/bioenergia-em-numeros',
-            type: 'Plataforma GIS',
-            description: 'Usinas de biomassa georreferenciadas'
-          }
-        ]
-      }
-    ]
+            type: { 'pt-BR': 'Plataforma SIG', en: 'GIS platform' },
+            description: { 'pt-BR': 'Usinas de biomassa georreferenciadas', en: 'Georeferenced biomass plants' },
+          },
+        ],
+      },
+    ],
   },
   {
-    category: 'Setor Pecuário',
+    category: { 'pt-BR': 'Setor Pecuário', en: 'Livestock Sector' },
     emoji: '🐄',
     color: 'border-amber-500',
     bgColor: 'bg-amber-50 dark:bg-amber-900/20',
     sources: [
       {
-        name: 'GEDAVE - Defesa Agropecuária do Estado de São Paulo',
+        name: 'GEDAVE - Defesa Agropecuária do Estado de São Paulo', // i18n-exempt: system name
         organization: 'CDA-SP',
         url: 'https://www.defesa.agricultura.sp.gov.br/',
-        type: 'Sistema de gestão',
+        type: { 'pt-BR': 'Sistema de gestão', en: 'Management system' },
         year: '2024',
-        description: 'Registros de rebanhos e GTAs georreferenciados por propriedade',
-        details: [
-          'Sistema: https://gedave.defesaagropecuaria.sp.gov.br/',
-          'Bovinocultura, Suinocultura, Avicultura',
-          'Versão 2.0 (2024)'
-        ]
+        description: {
+          'pt-BR': 'Registros de rebanhos e GTAs georreferenciados por propriedade',
+          en: 'Herd records and animal transit permits (GTAs), georeferenced by farm',
+        },
+        details: {
+          'pt-BR': ['Sistema: https://gedave.defesaagropecuaria.sp.gov.br/', 'Bovinocultura, suinocultura, avicultura', 'Versão 2.0 (2024)'],
+          en: ['System: https://gedave.defesaagropecuaria.sp.gov.br/', 'Cattle, swine and poultry farming', 'Version 2.0 (2024)'],
+        },
       },
       {
-        name: 'IBGE - Pesquisa Pecuária Municipal (PPM)',
+        name: 'IBGE - Pesquisa Pecuária Municipal (PPM)', // i18n-exempt: official survey name
         organization: 'SIDRA/IBGE',
-        type: 'Inventários de rebanhos',
-        description: 'Inventários de rebanhos bovinos, suínos, aves por município. Estimativa de geração de dejetos (kg/cabeça/dia).'
+        type: { 'pt-BR': 'Inventários de rebanhos', en: 'Herd inventories' },
+        description: {
+          'pt-BR': 'Rebanhos bovinos, suínos e de aves por município, para estimar a geração de dejetos (kg/cabeça/dia).',
+          en: 'Cattle, swine and poultry herds by municipality, to estimate manure generation (kg/head/day).',
+        },
       },
       {
-        name: 'EMBRAPA - Metodologia para Dejetos Animais',
-        organization: 'EMBRAPA Documentos 196',
-        type: 'Metodologia técnica',
+        name: { 'pt-BR': 'EMBRAPA - Metodologia para Dejetos Animais', en: 'EMBRAPA: methodology for animal manure' },
+        organization: 'EMBRAPA Documentos 196', // i18n-exempt: publication series
+        type: { 'pt-BR': 'Metodologia técnica', en: 'Technical methodology' },
         year: '2018',
-        description: 'Metodologia para suínos e bovinos. Parâmetros: Sólidos Voláteis (SV), Bo, efluentes por categoria animal'
-      }
-    ]
+        description: {
+          'pt-BR': 'Metodologia para suínos e bovinos. Parâmetros: sólidos voláteis (SV), B₀, efluentes por categoria animal',
+          en: 'Methodology for swine and cattle. Parameters: volatile solids (VS), B₀, effluents by animal category',
+        },
+      },
+    ],
   },
   {
-    category: 'Setor Urbano',
+    category: { 'pt-BR': 'Setor Urbano', en: 'Urban Sector' },
     emoji: '🏙️',
     color: 'border-blue-500',
     bgColor: 'bg-blue-50 dark:bg-blue-900/20',
     sources: [
       {
-        name: 'SNIS - Sistema Nacional de Informações sobre Saneamento',
-        organization: 'Ministério das Cidades/SNISA',
+        name: 'SNIS - Sistema Nacional de Informações sobre Saneamento', // i18n-exempt: official system name
+        organization: 'Ministério das Cidades/SNISA', // i18n-exempt: organization name
         url: 'https://app-hmg.cidades.gov.br/indicadores-sinisa/web/',
-        type: 'Dados municipais',
+        type: { 'pt-BR': 'Dados municipais', en: 'Municipal data' },
         year: '2022-2023',
-        description: 'RSU, Águas Pluviais, Esgoto. Indicadores de coleta, destinação, reciclagem, ETEs',
-        details: [
-          'Série Histórica: https://app4.cidades.gov.br/serieHistorica/',
-          'Cobertura: Municípios de São Paulo'
-        ]
+        description: {
+          'pt-BR': 'RSU, águas pluviais, esgoto: indicadores de coleta, destinação, reciclagem e ETEs',
+          en: 'MSW, stormwater, sewage: indicators of collection, disposal, recycling and WWTPs',
+        },
+        details: {
+          'pt-BR': ['Série histórica: https://app4.cidades.gov.br/serieHistorica/', 'Cobertura: municípios de São Paulo'],
+          en: ['Historical series: https://app4.cidades.gov.br/serieHistorica/', 'Coverage: São Paulo municipalities'],
+        },
       },
       {
-        name: 'IBGE - Estimativa Populacional',
+        name: { 'pt-BR': 'IBGE - Estimativa Populacional', en: 'IBGE: population estimates' },
         organization: 'IBGE',
         url: 'https://censo2022.ibge.gov.br/panorama/',
-        type: 'Censo Demográfico 2022',
-        description: 'População por domicílio e município. Cálculo de geração per capita de RSU (kg/habitante/dia).'
-      }
-    ]
+        type: { 'pt-BR': 'Censo Demográfico 2022', en: '2022 Demographic Census' },
+        description: {
+          'pt-BR': 'População por domicílio e município, para a geração per capita de RSU (kg/habitante/dia).',
+          en: 'Population by household and municipality, for per-capita MSW generation (kg/inhabitant/day).',
+        },
+      },
+    ],
   },
   {
-    category: 'Plantas de Biogás Operacionais',
+    category: { 'pt-BR': 'Plantas de Biogás em Operação', en: 'Operating Biogas Plants' },
     emoji: '🏭',
     color: 'border-purple-500',
     bgColor: 'bg-purple-50 dark:bg-purple-900/20',
     sources: [
       {
         name: 'MapBiomas + ANP',
-        organization: 'MapBiomas Brasil + Agência Nacional do Petróleo',
-        type: 'Plantas georreferenciadas',
+        organization: 'MapBiomas Brasil + Agência Nacional do Petróleo', // i18n-exempt: organization names
+        type: { 'pt-BR': 'Plantas georreferenciadas', en: 'Georeferenced plants' },
         year: '2024',
-        description: 'Plantas de biogás operacionais. Dados: Localização, capacidade, tipo de resíduo'
+        description: {
+          'pt-BR': 'Plantas de biogás em operação: localização, capacidade, tipo de resíduo',
+          en: 'Operating biogas plants: location, capacity, feedstock type',
+        },
       },
       {
-        name: 'CIBiogás - Atlas do Biogás Brasil',
-        organization: 'Centro Internacional de Energias Renováveis',
+        name: 'CIBiogás - Atlas do Biogás Brasil', // i18n-exempt: publication title
+        organization: 'Centro Internacional de Energias Renováveis', // i18n-exempt: organization name
         url: 'https://cibiogas.org',
-        type: 'Base nacional',
+        type: { 'pt-BR': 'Base nacional', en: 'National database' },
         year: '2019',
-        description: 'Plantas de biogás operacionais - Capacidade, feedstock, tecnologia'
+        description: {
+          'pt-BR': 'Plantas de biogás em operação: capacidade, substrato, tecnologia',
+          en: 'Operating biogas plants: capacity, feedstock, technology',
+        },
       },
       {
-        name: 'ANP - Painel Dinâmico de Produtores de Etanol',
+        name: 'ANP - Painel Dinâmico de Produtores de Etanol', // i18n-exempt: official dashboard name
         organization: 'ANP',
         url: 'https://app.powerbi.com/view?r=eyJrIjoiMmRhZWU2NDUtZWE2Yi00NzI5LWJjMGQtNjIwNjE0MjM0MjEzIiwidCI6IjQ0OTlmNGZmLTI0YTYtNGI0Mi1iN2VmLTEyNGFmY2FkYzkxMyJ9',
-        type: 'Painel Interativo',
+        type: { 'pt-BR': 'Painel interativo', en: 'Interactive dashboard' },
         year: '2025',
-        description: 'Mapa dinâmico de produtores, capacidades, produção, matéria-prima',
-        details: [
-          'Fonte: Sistema SIMP (Resoluções 729/2018 e 734/2018)',
-          'Sistema: SIRGAS 2000 (EPSG 4674)',
-          'Atualização: 25/11/2025'
-        ]
+        description: {
+          'pt-BR': 'Mapa dinâmico de produtores, capacidades, produção e matéria-prima',
+          en: 'Dynamic map of producers, capacities, output and feedstock',
+        },
+        details: {
+          'pt-BR': ['Fonte: sistema SIMP (Resoluções 729/2018 e 734/2018)', 'Referencial: SIRGAS 2000 (EPSG 4674)', 'Atualização: 25/11/2025'],
+          en: ['Source: SIMP system (Resolutions 729/2018 and 734/2018)', 'Datum: SIRGAS 2000 (EPSG 4674)', 'Updated: November 25, 2025'],
+        },
       },
       {
-        name: 'ABiogás - Potencial Brasileiro de Biogás',
-        organization: 'Associação Brasileira de Biogás',
-        type: 'Estudo de potencial',
+        name: 'ABiogás - Potencial Brasileiro de Biogás', // i18n-exempt: publication title
+        organization: 'Associação Brasileira de Biogás', // i18n-exempt: organization name
+        type: { 'pt-BR': 'Estudo de potencial', en: 'Potential study' },
         year: '2020',
-        description: 'Estimativa nacional de potencial',
-        details: [
-          'Total: 84,99 bilhões Nm³/ano',
-          'Biometano: 43,23 bilhões Nm³/ano',
-          'Setor sucroenergético: 39,76 bilhões Nm³/ano (47%)'
-        ]
-      }
-    ]
-  }
+        description: { 'pt-BR': 'Estimativa nacional do potencial', en: 'National potential estimate' },
+        details: {
+          'pt-BR': ['Total: 84,99 bilhões de Nm³/ano', 'Biometano: 43,23 bilhões de Nm³/ano', 'Setor sucroenergético: 39,76 bilhões de Nm³/ano (47%)'],
+          en: ['Total: 84.99 billion Nm³/year', 'Biomethane: 43.23 billion Nm³/year', 'Sugar-energy sector: 39.76 billion Nm³/year (47%)'],
+        },
+      },
+    ],
+  },
 ];
 
+// Literal class names: Tailwind only generates classes it can see whole in the source.
+const TAB_TONES = {
+  green: {
+    active: 'text-green-700 dark:text-green-400 border-b-2 border-green-600 bg-white dark:bg-slate-800',
+    badge: 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400',
+  },
+  blue: {
+    active: 'text-blue-700 dark:text-blue-400 border-b-2 border-blue-600 bg-white dark:bg-slate-800',
+    badge: 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400',
+  },
+} as const;
+
+const linkClass =
+  'inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-blue-700 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/40 hover:bg-blue-200 dark:hover:bg-blue-900/60 rounded-lg transition-colors';
+
 export default function ReferencesModal({ isOpen, onClose }: ReferencesModalProps) {
-  const t = useTranslations('analysis')
+  const t = useTranslations('analysis.references_modal');
+  const localize = useLocalize();
+  const nameOf = (name: Name) => (typeof name === 'string' ? name : localize(name));
   const [activeTab, setActiveTab] = useState<'scientific' | 'data-sources'>('scientific');
+  const titleId = useId();
+  const closeRef = useRef<HTMLButtonElement>(null);
+  const dialogRef = useDialog<HTMLDivElement>(isOpen, onClose, closeRef);
   if (!isOpen) return null;
 
-  // Count totals
   const totalReferences = REFERENCES.reduce((acc, cat) => acc + cat.references.length, 0);
-  const peerReviewedCount = REFERENCES.reduce((acc, cat) =>
-    acc + cat.references.filter(r => r.doi).length, 0
+
+  // Sources sit under their category (h3), or under a subcategory (h4) when compact.
+  const renderSource = (source: DataSource, compact: boolean) => (
+    <>
+      {compact ? (
+        <h5 className="font-medium text-sm text-gray-900 dark:text-white mb-1">{nameOf(source.name)}</h5>
+      ) : (
+        <h4 className="font-bold text-gray-900 dark:text-white mb-1">{nameOf(source.name)}</h4>
+      )}
+      <p className={`${compact ? 'text-xs mb-1' : 'text-sm mb-2'} text-gray-700 dark:text-gray-300`}>
+        {source.organization}
+        {source.year && <span className="font-semibold text-blue-700 dark:text-blue-400"> ({source.year})</span>}
+      </p>
+      {source.type && <p className="text-xs text-gray-600 dark:text-gray-400 italic mb-1">{localize(source.type)}</p>}
+      {source.description && (
+        <p className={`${compact ? 'text-xs mb-1' : 'text-sm mb-2'} text-gray-600 dark:text-gray-400`}>{localize(source.description)}</p>
+      )}
+      {source.details && (
+        <ul className="text-xs text-gray-600 dark:text-gray-400 list-disc list-inside space-y-1 mb-2">
+          {localize(source.details).map((detail) => (
+            <li key={detail}>{detail}</li>
+          ))}
+        </ul>
+      )}
+      {source.url && (
+        <a href={source.url} target="_blank" rel="noopener noreferrer" className={`${linkClass} mt-1`}>
+          <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+          {compact ? t('source_access_short') : t('source_access')}
+        </a>
+      )}
+    </>
   );
 
   return (
     <>
-      {/* Backdrop */}
+      {/* Clicking the backdrop closes; Escape does the same from the keyboard (useDialog). */}
+      {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events -- keyboard: Escape */}
       <div
-        className="fixed inset-0 bg-black/60 dark:bg-black/80 z-50 backdrop-blur-sm"
-        onClick={onClose}
-        aria-hidden="true"
-      />
-
-      {/* Modal */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 dark:bg-black/80 backdrop-blur-sm"
+        onClick={(e) => e.target === e.currentTarget && onClose()}
+      >
         <div
+          ref={dialogRef}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={titleId}
+          tabIndex={-1}
           className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[85vh] overflow-hidden border border-gray-200 dark:border-slate-700"
-          onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
           <div className="bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 px-6 py-5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className="p-2.5 bg-white/20 rounded-xl backdrop-blur-sm">
-                  <BookOpen className="h-6 w-6 text-white" />
+                  <BookOpen className="h-6 w-6 text-white" aria-hidden="true" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-white">
-                    {t('references_modal.title')}
-                  </h2>
-                  <p className="text-sm text-white/80 mt-0.5">
-                    {t('references_modal.subtitle')}
-                  </p>
+                  <h2 id={titleId} className="text-xl font-bold text-white">{t('title')}</h2>
+                  <p className="text-sm text-white/80 mt-0.5">{t('subtitle')}</p>
                 </div>
               </div>
               <button
+                ref={closeRef}
+                type="button"
                 onClick={onClose}
                 className="p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
-                aria-label={t('references_modal.close_aria')}
+                aria-label={t('close_aria')}
               >
-                <X className="h-6 w-6" />
+                <X className="h-6 w-6" aria-hidden="true" />
               </button>
             </div>
           </div>
 
           {/* Tabs */}
           <div className="flex border-b border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-900">
-            <button
-              onClick={() => setActiveTab('scientific')}
-              className={`flex-1 px-6 py-3 text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
-                activeTab === 'scientific'
-                  ? 'text-green-700 dark:text-green-400 border-b-2 border-green-600 bg-white dark:bg-slate-800'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
-              }`}
-            >
-              <Beaker className="w-4 h-4" />
-              {t('references_modal.tab_scientific')}
-              <span className="ml-1 px-2 py-0.5 bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400 rounded-full text-xs font-semibold">
-                {totalReferences}
-              </span>
-            </button>
-            <button
-              onClick={() => setActiveTab('data-sources')}
-              className={`flex-1 px-6 py-3 text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
-                activeTab === 'data-sources'
-                  ? 'text-blue-700 dark:text-blue-400 border-b-2 border-blue-600 bg-white dark:bg-slate-800'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
-              }`}
-            >
-              <Database className="w-4 h-4" />
-              {t('references_modal.tab_data_sources')}
-              <span className="ml-1 px-2 py-0.5 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400 rounded-full text-xs font-semibold">
-                {DATA_SOURCES.length}
-              </span>
-            </button>
+            {([
+              ['scientific', Beaker, t('tab_scientific'), totalReferences, 'green'],
+              ['data-sources', Database, t('tab_data_sources'), DATA_SOURCES.length, 'blue'],
+            ] as const).map(([id, Icon, label, count, tone]) => (
+              <button
+                key={id}
+                type="button"
+                aria-pressed={activeTab === id}
+                onClick={() => setActiveTab(id)}
+                className={`flex-1 px-6 py-3 text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
+                  activeTab === id
+                    ? TAB_TONES[tone].active
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                }`}
+              >
+                <Icon className="w-4 h-4" aria-hidden="true" />
+                {label}
+                <span className={`ml-1 px-2 py-0.5 rounded-full text-xs font-semibold ${TAB_TONES[tone].badge}`}>
+                  {count}
+                </span>
+              </button>
+            ))}
           </div>
 
           {/* Content */}
           <div className="overflow-y-auto max-h-[calc(85vh-12rem)] p-6">
-            {/* Scientific References Tab */}
             {activeTab === 'scientific' && (
               <div className="space-y-8">
-                {REFERENCES.map((category, idx) => (
-                <div key={idx}>
-                  {/* Category Header */}
-                  <div className="flex items-center gap-3 mb-4">
-                    <span className="text-3xl">{category.emoji}</span>
-                    <div>
-                      <h3 className="text-lg font-bold text-gray-900 dark:text-white">
-                        {category.category}
-                      </h3>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        {category.references.length} referência{category.references.length > 1 ? 's' : ''}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* References Grid */}
-                  <div className="grid gap-3">
-                    {category.references.map((ref, refIdx) => (
-                      <div
-                        key={refIdx}
-                        className={`border-l-4 ${category.color} ${category.bgColor} rounded-r-xl p-4 hover:shadow-md transition-all`}
-                      >
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="flex-1 min-w-0">
-                            {/* Title */}
-                            <h4 className="font-bold text-gray-900 dark:text-white mb-1 flex items-center gap-2">
-                              <Beaker className="h-4 w-4 flex-shrink-0 text-gray-500 dark:text-gray-400" />
-                              {ref.residue}
-                            </h4>
-
-                            {/* Authors and Year */}
-                            <p className="text-sm text-gray-700 dark:text-gray-300">
-                              {ref.authors}{' '}
-                              <span className="font-semibold text-green-700 dark:text-green-400">
-                                ({ref.year})
-                              </span>
-                            </p>
-
-                            {/* Journal */}
-                            {ref.journal && (
-                              <p className="text-xs text-gray-500 dark:text-gray-400 italic mt-1">
-                                {ref.journal}
-                              </p>
-                            )}
-
-                            {/* Description */}
-                            {ref.description && (
-                              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                                {ref.description}
-                              </p>
-                            )}
-                          </div>
-
-                          {/* Peer-reviewed badge */}
-                          {ref.doi && (
-                            <span className="flex-shrink-0 inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold text-green-700 dark:text-green-400 bg-green-100 dark:bg-green-900/40 rounded-lg">
-                              <CheckCircle2 className="h-3 w-3" />
-                              Peer-Reviewed
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Links Section */}
-                        <div className="mt-3 flex flex-wrap gap-2">
-                          {ref.doi && (
-                            <a
-                              href={`https://doi.org/${ref.doi}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-blue-700 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/40 hover:bg-blue-200 dark:hover:bg-blue-900/60 rounded-lg transition-colors"
-                            >
-                              <ExternalLink className="h-3.5 w-3.5" />
-                              DOI: {ref.doi}
-                            </a>
-                          )}
-                          {ref.url && !ref.doi && (
-                            <a
-                              href={ref.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-blue-700 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/40 hover:bg-blue-200 dark:hover:bg-blue-900/60 rounded-lg transition-colors"
-                            >
-                              <ExternalLink className="h-3.5 w-3.5" />
-                              {t('references_modal.source_access')}
-                            </a>
-                          )}
-                        </div>
+                {REFERENCES.map((category) => (
+                  <section key={category.category.en} aria-label={localize(category.category)}>
+                    <div className="flex items-center gap-3 mb-4">
+                      <span className="text-3xl" aria-hidden="true">{category.emoji}</span>
+                      <div>
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-white">{localize(category.category)}</h3>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">{t('reference_count', { count: category.references.length })}</p>
                       </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
+                    </div>
 
-                {/* Footer Note for Scientific Tab */}
+                    <div className="grid gap-3">
+                      {category.references.map((ref) => (
+                        <div
+                          key={ref.kind === 'database' ? ref.residue.en : ref.topic.en}
+                          className={`border-l-4 ${category.color} ${category.bgColor} rounded-r-xl p-4 hover:shadow-md transition-all`}
+                        >
+                          <h4 className="font-bold text-gray-900 dark:text-white mb-1 flex items-center gap-2">
+                            <Beaker className="h-4 w-4 flex-shrink-0 text-gray-500 dark:text-gray-400" aria-hidden="true" />
+                            {localize(ref.kind === 'database' ? ref.residue : ref.topic)}
+                          </h4>
+                          {ref.kind === 'database' ? (
+                            <>
+                              <p className="text-sm text-gray-700 dark:text-gray-300">{t('db_pointer', { count: ref.references })}</p>
+                              <div className="mt-3">
+                                <Link href="/dashboard/scientific-database?view=references" onClick={onClose} className={linkClass}>
+                                  <BookOpen className="h-3.5 w-3.5" aria-hidden="true" />
+                                  {t('open_database')}
+                                </Link>
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              <p className="text-sm text-gray-700 dark:text-gray-300">
+                                {ref.authors} <span className="font-semibold text-green-700 dark:text-green-400">({ref.year})</span>
+                              </p>
+                              {ref.title && <p className="text-sm text-gray-600 dark:text-gray-400 italic mt-2">{ref.title}</p>}
+                              {ref.description && <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">{localize(ref.description)}</p>}
+                              <div className="mt-3">
+                                <a href={ref.url} target="_blank" rel="noopener noreferrer" className={linkClass}>
+                                  <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+                                  {t('source_access')}
+                                </a>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                ))}
+
                 <div className="mt-8 pt-6 border-t border-gray-200 dark:border-slate-700">
                   <div className="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
-                    <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                    <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" aria-hidden="true" />
                     <div className="text-sm text-blue-800 dark:text-blue-300">
-                      <p className="font-semibold mb-1">{t('references_modal.scientific_footer_heading')}</p>
-                      <p className="text-blue-700 dark:text-blue-400">
-                        {t('references_modal.scientific_footer_text')}
-                      </p>
+                      <p className="font-semibold mb-1">{t('scientific_footer_heading')}</p>
+                      <p className="text-blue-700 dark:text-blue-400">{t('scientific_footer_text')}</p>
                     </div>
                   </div>
                 </div>
               </div>
             )}
 
-            {/* Data Sources Tab */}
             {activeTab === 'data-sources' && (
               <div className="space-y-6">
-                {DATA_SOURCES.map((category, idx) => (
-                  <div key={idx}>
-                    {/* Category Header */}
+                {DATA_SOURCES.map((category) => (
+                  <section key={category.category.en} aria-label={localize(category.category)}>
                     <div className="flex items-center gap-3 mb-4">
-                      <span className="text-3xl">{category.emoji}</span>
+                      <span className="text-3xl" aria-hidden="true">{category.emoji}</span>
                       <div>
-                        <h3 className="text-lg font-bold text-gray-900 dark:text-white">
-                          {category.category}
-                        </h3>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
-                          {category.sources.length} fonte{category.sources.length > 1 ? 's' : ''} principal{category.sources.length > 1 ? 'is' : ''}
-                        </p>
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-white">{localize(category.category)}</h3>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">{t('source_count', { count: category.sources.length })}</p>
                       </div>
                     </div>
 
-                    {/* Main Sources */}
                     <div className="space-y-3 mb-4">
-                      {category.sources.map((source, sourceIdx) => (
-                        <div
-                          key={sourceIdx}
-                          className={`border-l-4 ${category.color} ${category.bgColor} rounded-r-xl p-4 hover:shadow-md transition-all`}
-                        >
-                          <h4 className="font-bold text-gray-900 dark:text-white mb-1">
-                            {source.name}
-                          </h4>
-                          <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
-                            {source.organization}
-                            {source.year && <span className="font-semibold text-blue-700 dark:text-blue-400"> ({source.year})</span>}
-                          </p>
-                          {source.type && (
-                            <p className="text-xs text-gray-600 dark:text-gray-400 italic mb-2">
-                              {source.type}
-                            </p>
-                          )}
-                          {source.description && (
-                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                              {source.description}
-                            </p>
-                          )}
-                          {source.details && source.details.length > 0 && (
-                            <ul className="text-xs text-gray-600 dark:text-gray-400 list-disc list-inside space-y-1 mb-2">
-                              {source.details.map((detail, i) => (
-                                <li key={i}>{detail}</li>
-                              ))}
-                            </ul>
-                          )}
-                          {source.url && (
-                            <a
-                              href={source.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-blue-700 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/40 hover:bg-blue-200 dark:hover:bg-blue-900/60 rounded-lg transition-colors mt-2"
-                            >
-                              <ExternalLink className="h-3.5 w-3.5" />
-                              {t('references_modal.source_access')}
-                            </a>
-                          )}
+                      {category.sources.map((source) => (
+                        <div key={nameOf(source.name)} className={`border-l-4 ${category.color} ${category.bgColor} rounded-r-xl p-4 hover:shadow-md transition-all`}>
+                          {renderSource(source, false)}
                         </div>
                       ))}
                     </div>
 
-                    {/* Subcategories */}
-                    {category.subcategories && category.subcategories.map((subcat, subcatIdx) => (
-                      <div key={subcatIdx} className="ml-6 mt-4">
+                    {category.subcategories?.map((subcategory) => (
+                      <div key={subcategory.title.en} className="ml-6 mt-4">
                         <h4 className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-3 flex items-center gap-2">
-                          <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                          {subcat.title}
+                          <span className="w-2 h-2 bg-blue-500 rounded-full" aria-hidden="true"></span>
+                          {localize(subcategory.title)}
                         </h4>
                         <div className="space-y-3">
-                          {subcat.sources.map((source, sourceIdx) => (
-                            <div
-                              key={sourceIdx}
-                              className="border-l-4 border-blue-300 bg-blue-50 dark:bg-blue-900/10 rounded-r-xl p-3 hover:shadow-md transition-all"
-                            >
-                              <h5 className="font-medium text-gray-900 dark:text-white text-sm mb-1">
-                                {source.name}
-                              </h5>
-                              <p className="text-xs text-gray-700 dark:text-gray-300 mb-1">
-                                {source.organization}
-                                {source.year && <span className="font-semibold text-blue-700 dark:text-blue-400"> ({source.year})</span>}
-                              </p>
-                              {source.type && (
-                                <p className="text-xs text-gray-600 dark:text-gray-400 italic mb-1">
-                                  {source.type}
-                                </p>
-                              )}
-                              {source.description && (
-                                <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">
-                                  {source.description}
-                                </p>
-                              )}
-                              {source.details && source.details.length > 0 && (
-                                <ul className="text-xs text-gray-600 dark:text-gray-400 list-disc list-inside space-y-0.5 mb-1">
-                                  {source.details.map((detail, i) => (
-                                    <li key={i}>{detail}</li>
-                                  ))}
-                                </ul>
-                              )}
-                              {source.url && (
-                                <a
-                                  href={source.url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-blue-700 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/40 hover:bg-blue-200 dark:hover:bg-blue-900/60 rounded-lg transition-colors mt-1"
-                                >
-                                  <ExternalLink className="h-3 w-3" />
-                                  {t('references_modal.source_access_short')}
-                                </a>
-                              )}
+                          {subcategory.sources.map((source) => (
+                            <div key={nameOf(source.name)} className="border-l-4 border-blue-300 bg-blue-50 dark:bg-blue-900/10 rounded-r-xl p-3 hover:shadow-md transition-all">
+                              {renderSource(source, true)}
                             </div>
                           ))}
                         </div>
                       </div>
                     ))}
-                  </div>
+                  </section>
                 ))}
 
-                {/* Footer Note for Data Sources Tab */}
                 <div className="mt-8 pt-6 border-t border-gray-200 dark:border-slate-700">
                   <div className="flex items-start gap-3 p-4 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-200 dark:border-green-800">
-                    <Database className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
+                    <Database className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" aria-hidden="true" />
                     <div className="text-sm text-green-800 dark:text-green-300">
-                      <p className="font-semibold mb-1">{t('references_modal.data_sources_footer_heading')}</p>
-                      <p className="text-green-700 dark:text-green-400 mb-2">
-                        {t('references_modal.data_sources_footer_text')}
-                      </p>
+                      <p className="font-semibold mb-1">{t('data_sources_footer_heading')}</p>
+                      <p className="text-green-700 dark:text-green-400 mb-2">{t('data_sources_footer_text')}</p>
                       <ul className="text-green-600 dark:text-green-400 text-xs space-y-1 list-disc list-inside">
-                        <li><strong>{t('references_modal.data_sources_footer_priority')}</strong></li>
-                        <li><strong>{t('references_modal.data_sources_footer_validation')}</strong></li>
-                        <li><strong>{t('references_modal.data_sources_footer_precision')}</strong></li>
+                        <li><strong>{t('data_sources_footer_priority')}</strong></li>
+                        <li><strong>{t('data_sources_footer_validation')}</strong></li>
+                        <li><strong>{t('data_sources_footer_precision')}</strong></li>
                       </ul>
                     </div>
                   </div>

@@ -112,7 +112,8 @@ export default function DashboardPage() {
       title: t('feat_references_title'),
       description: t('feat_references_desc'),
       icon: BookOpen,
-      href: '/dashboard/references',
+      // The references are a tab of the scientific database (there is no /dashboard/references).
+      href: '/dashboard/scientific-database?view=references',
       color: 'gray',
     },
   ]
@@ -129,7 +130,7 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-slate-900 transition-colors">
       {/* pb-24 on mobile leaves room for the sticky CTA bar; desktop reverts. */}
-      <main className="flex-1 py-8 px-4 sm:px-6 lg:px-8 pb-24 md:pb-8">
+      <div className="flex-1 py-8 px-4 sm:px-6 lg:px-8 pb-24 md:pb-8">
         <div className="max-w-7xl mx-auto">
 
           {/* Hero — value statement + a 1-tap path to the map on the first screen */}
@@ -262,7 +263,7 @@ export default function DashboardPage() {
           </div>
 
         </div>
-      </main>
+      </div>
 
       {/* Sticky bottom CTA — mobile only, always one tap from the map */}
       <div
