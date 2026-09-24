@@ -16,6 +16,7 @@ import { GeoJSON } from 'react-leaflet';
 import L from 'leaflet';
 import { useLocale, useTranslations } from 'next-intl';
 import { useFormat } from '@/hooks/useFormat';
+import { escapeHtml } from '@/lib/html';
 
 // ── Color scale (mirrors MunicipalityLayer thresholds scaled for region aggregates) ──────────────
 
@@ -98,8 +99,8 @@ export default function IntermediateRegionsMapLayer({
 
     const tooltipHtml = `
       <div style="min-width:180px;font-family:sans-serif;font-size:12px">
-        <strong>${name}</strong>
-        ${facts ? `<div style="color:#555">${facts}</div>` : ''}
+        <strong>${escapeHtml(name)}</strong>
+        ${facts ? `<div style="color:#555">${escapeHtml(facts)}</div>` : ''}
         ${biogas > 0
           ? `<div>🌿 ${t('biogas')}: <b>${format.compact(biogas)} ${tCommon('units.m3_year')}</b></div>
              <div>📦 ${t('biomass')}: ${format.compact(biomass)} ${tCommon('units.t_year')}</div>`

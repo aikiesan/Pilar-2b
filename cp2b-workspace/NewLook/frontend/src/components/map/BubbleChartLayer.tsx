@@ -17,6 +17,7 @@ import { markerPosition } from '@/lib/mapUtils';
 import { useFormat } from '@/hooks/useFormat';
 import { useMetricText } from '@/hooks/useMetricText';
 import { useSelectionLabel } from '@/hooks/useSelectionLabel';
+import { escapeHtml } from '@/lib/html';
 
 interface BubbleChartLayerProps {
   data: MunicipalityCollection;
@@ -109,16 +110,16 @@ export default function BubbleChartLayer({
       // Add popup
       circle.bindPopup(`
         <div class="p-3">
-          <h4 class="font-bold text-lg mb-2">${feature.properties.name}</h4>
+          <h4 class="font-bold text-lg mb-2">${escapeHtml(feature.properties.name)}</h4>
           <p class="text-sm">
-            <strong>${title}:</strong><br/>
-            ${format.compact(value)} ${unit}
+            <strong>${escapeHtml(title)}:</strong><br/>
+            ${escapeHtml(format.compact(value))} ${escapeHtml(unit)}
           </p>
         </div>
       `);
 
       // Add tooltip
-      circle.bindTooltip(feature.properties.name, {
+      circle.bindTooltip(escapeHtml(feature.properties.name), {
         permanent: false,
         direction: 'top',
         className: 'custom-tooltip',

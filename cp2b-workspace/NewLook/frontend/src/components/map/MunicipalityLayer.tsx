@@ -35,6 +35,7 @@ import { useFormat } from '@/hooks/useFormat';
 import { useMetricText } from '@/hooks/useMetricText';
 import { useSelectionLabel } from '@/hooks/useSelectionLabel';
 import type { MapScenarioKey } from '@/data/scenarioFactors';
+import { escapeHtml } from '@/lib/html';
 
 interface MunicipalityLayerProps {
   data: MunicipalityCollection;
@@ -208,14 +209,14 @@ export default function MunicipalityLayer({
       // A beta municipality still gets its value — hiding it would be its own
       // kind of dishonesty — but the value never appears without the caveat
       // attached to it, in the same tooltip, at the same moment it is read.
-      const valueLine = `<span style="font-size:11px;color:rgba(255,255,255,0.9);">${selectionLabel(biomassType, selectedResidues)}: ${formatTooltipValue(biogasValue)}</span>`;
+      const valueLine = `<span style="font-size:11px;color:rgba(255,255,255,0.9);">${escapeHtml(selectionLabel(biomassType, selectedResidues))}: ${escapeHtml(formatTooltipValue(biogasValue))}</span>`;
       const tooltipBody = isCanonicalPaint
         ? valueLine
         : `${valueLine}<br/><span style="font-size:10px;color:#fbbf24;font-weight:600;">⚠ ${t('beta.badge')}</span>`;
 
       layer.bindTooltip(
         `<div style="text-align:center;padding:4px;">
-          <strong style="font-size:12px;color:white;">${props.name}</strong><br/>
+          <strong style="font-size:12px;color:white;">${escapeHtml(props.name)}</strong><br/>
           ${tooltipBody}
         </div>`,
         { permanent: false, direction: 'top', className: 'custom-tooltip', offset: [0, -10] }

@@ -10,6 +10,7 @@ import { GeoJSON, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import { logger } from '@/lib/logger'
 import { useFormat } from '@/hooks/useFormat'
+import { escapeHtml } from '@/lib/html';
 
 interface IntermediateRegionBoundaryLayerProps {
   visible?: boolean
@@ -101,7 +102,7 @@ export default function IntermediateRegionBoundaryLayer({
             text-shadow: 1px 1px 2px white, -1px -1px 2px white, 1px -1px 2px white, -1px 1px 2px white;
             white-space: nowrap;
             pointer-events: none;
-          ">${nm_rgint}</span>`,
+          ">${escapeHtml(nm_rgint)}</span>`,
           iconSize: [0, 0],
           iconAnchor: [0, 0],
         }),
@@ -136,7 +137,7 @@ export default function IntermediateRegionBoundaryLayer({
       const formattedArea = area_km2 ? `${format.number(area_km2, { decimals: 0 })} km²` : ''
 
       ;(layer as L.Path).bindTooltip(
-        `<strong>${nm_rgint}</strong>${formattedArea ? `<br/>${formattedArea}` : ''}`,
+        `<strong>${escapeHtml(nm_rgint)}</strong>${formattedArea ? `<br/>${escapeHtml(formattedArea)}` : ''}`,
         {
           sticky: true,
           direction: 'top',
