@@ -16,6 +16,7 @@ import ToastContainer from '@/components/ui/ToastContainer'
 import { isLocale, locales } from '@/config/i18n'
 import { HtmlLang } from '@/components/HtmlLang'
 import CookieConsent from '@/components/ui/CookieConsent'
+import AnalyticsTracker from '@/components/analytics/AnalyticsTracker'
 
 // Generate dynamic metadata based on locale
 export async function generateMetadata({
@@ -92,6 +93,7 @@ export default async function LocaleLayout({
                     <ConditionalFooter />
                     <ToastContainer />
                     <CookieConsent />
+                    <AnalyticsTracker />
                   </div>
                 </ErrorBoundary>
               </ComparisonProvider>

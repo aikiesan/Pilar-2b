@@ -20,6 +20,8 @@ test('looksPortuguese: unaccented Portuguese is caught by its words', () => {
   assert.equal(looksPortuguese('Clique para detalhes'), true);
   assert.equal(looksPortuguese('Streams ativos'), true);
   assert.equal(looksPortuguese('Fechar'), true);
+  // The advanced-analysis search box shipped with this placeholder on the English page.
+  assert.equal(looksPortuguese('Nome...'), true);
 });
 
 test('looksPortuguese: Portuguese units are caught, English ones are not', () => {

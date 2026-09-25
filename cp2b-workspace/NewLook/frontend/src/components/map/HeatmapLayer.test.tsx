@@ -7,6 +7,7 @@ import { render } from '@testing-library/react';
 import { MapContainer } from 'react-leaflet';
 import HeatmapLayer from './HeatmapLayer';
 import type { MunicipalityCollection } from '@/types/geospatial';
+import { municipalityProps } from '@/test/fixtures/municipality';
 
 // Tooltips are copy: resolve them against the real (pt-BR) catalog.
 jest.mock('next-intl', () => jest.requireActual('@/test/mocks/next-intl-real'));
@@ -52,7 +53,7 @@ describe('HeatmapLayer', () => {
             [-48.0, -22.0]
           ]]
         },
-        properties: {
+        properties: municipalityProps({
           name: 'Campinas',
           total_biomass_tons_year: 150000000,
           sugarcane_biomass_tons_year: 50000000,
@@ -61,7 +62,7 @@ describe('HeatmapLayer', () => {
           cattle_biomass_tons_year: 25000000,
           swine_biomass_tons_year: 15000000,
           poultry_biomass_tons_year: 10000000
-        }
+        })
       },
       {
         type: 'Feature',
@@ -77,12 +78,12 @@ describe('HeatmapLayer', () => {
             ]]
           ]
         },
-        properties: {
+        properties: municipalityProps({
           name: 'São Paulo',
           total_biomass_tons_year: 600000000,
           sugarcane_biomass_tons_year: 100000000,
           cattle_biomass_tons_year: 200000000
-        }
+        })
       },
       {
         type: 'Feature',
@@ -96,10 +97,10 @@ describe('HeatmapLayer', () => {
             [-46.0, -24.0]
           ]]
         },
-        properties: {
+        properties: municipalityProps({
           name: 'Small City',
           total_biomass_tons_year: 500000
-        }
+        })
       },
       {
         type: 'Feature',
@@ -113,10 +114,10 @@ describe('HeatmapLayer', () => {
             [-45.0, -25.0]
           ]]
         },
-        properties: {
+        properties: municipalityProps({
           name: 'Zero City',
           total_biomass_tons_year: 0
-        }
+        })
       }
     ]
   };
@@ -266,12 +267,12 @@ describe('HeatmapLayer', () => {
             type: 'Polygon',
             coordinates: [[[-48.0, -22.0], [-48.1, -22.0], [-48.1, -22.1], [-48.0, -22.1], [-48.0, -22.0]]]
           },
-          properties: {
+          properties: municipalityProps({
             name: 'Urban City',
             total_biomass_tons_year: 100000000,
             rsu_biomass_tons_year: 50000000,
             rpo_biomass_tons_year: 30000000
-          }
+          })
         }]
       };
 
@@ -294,11 +295,11 @@ describe('HeatmapLayer', () => {
             type: 'Polygon',
             coordinates: [[[-48.0, -22.0], [-48.1, -22.0], [-48.1, -22.1], [-48.0, -22.1], [-48.0, -22.0]]]
           },
-          properties: {
+          properties: municipalityProps({
             name: 'Aquaculture City',
             total_biomass_tons_year: 100000000,
             aquaculture_biomass_tons_year: 10000000
-          }
+          })
         }]
       };
 
@@ -321,12 +322,12 @@ describe('HeatmapLayer', () => {
             type: 'Polygon',
             coordinates: [[[-48.0, -22.0], [-48.1, -22.0], [-48.1, -22.1], [-48.0, -22.1], [-48.0, -22.0]]]
           },
-          properties: {
+          properties: municipalityProps({
             name: 'Coffee City',
             total_biomass_tons_year: 100000000,
             coffee_biomass_tons_year: 30000000,
             citrus_biomass_tons_year: 20000000
-          }
+          })
         }]
       };
 
@@ -351,10 +352,10 @@ describe('HeatmapLayer', () => {
             type: 'Polygon',
             coordinates: [[[-48.0, -22.0], [-48.1, -22.0], [-48.1, -22.1], [-48.0, -22.1], [-48.0, -22.0]]]
           },
-          properties: {
+          properties: municipalityProps({
             name: 'Low City',
             total_biomass_tons_year: 500000
-          }
+          })
         }]
       };
 
@@ -379,10 +380,10 @@ describe('HeatmapLayer', () => {
             type: 'Polygon',
             coordinates: [[[-48.0, -22.0], [-48.1, -22.0], [-48.1, -22.1], [-48.0, -22.1], [-48.0, -22.0]]]
           },
-          properties: {
+          properties: municipalityProps({
             name: 'Medium City',
             total_biomass_tons_year: 25000000
-          }
+          })
         }]
       };
 
@@ -405,10 +406,10 @@ describe('HeatmapLayer', () => {
             type: 'Polygon',
             coordinates: [[[-48.0, -22.0], [-48.1, -22.0], [-48.1, -22.1], [-48.0, -22.1], [-48.0, -22.0]]]
           },
-          properties: {
+          properties: municipalityProps({
             name: 'High City',
             total_biomass_tons_year: 600000000
-          }
+          })
         }]
       };
 
@@ -433,10 +434,10 @@ describe('HeatmapLayer', () => {
             type: 'Polygon',
             coordinates: [[[-48.0, -22.0], [-48.1, -22.0], [-48.1, -22.1], [-48.0, -22.1], [-48.0, -22.0]]]
           },
-          properties: {
+          properties: municipalityProps({
             name: 'Low City',
             total_biomass_tons_year: 500000
-          }
+          })
         }]
       };
 
@@ -460,10 +461,10 @@ describe('HeatmapLayer', () => {
             type: 'Polygon',
             coordinates: [[[-48.0, -22.0], [-48.1, -22.0], [-48.1, -22.1], [-48.0, -22.1], [-48.0, -22.0]]]
           },
-          properties: {
+          properties: municipalityProps({
             name: 'Medium City',
             total_biomass_tons_year: 25000000
-          }
+          })
         }]
       };
 
@@ -486,10 +487,10 @@ describe('HeatmapLayer', () => {
             type: 'Polygon',
             coordinates: [[[-48.0, -22.0], [-48.1, -22.0], [-48.1, -22.1], [-48.0, -22.1], [-48.0, -22.0]]]
           },
-          properties: {
+          properties: municipalityProps({
             name: 'High City',
             total_biomass_tons_year: 600000000
-          }
+          })
         }]
       };
 
@@ -567,7 +568,7 @@ describe('HeatmapLayer', () => {
             type: 'Polygon',
             coordinates: [[[-48.0, -22.0], [-48.1, -22.0], [-48.1, -22.1], [-48.0, -22.1], [-48.0, -22.0]]]
           },
-          properties: { name: 'Test' }
+          properties: municipalityProps({ name: 'Test' })
         }]
       };
 
@@ -590,10 +591,10 @@ describe('HeatmapLayer', () => {
             type: 'Polygon',
             coordinates: [[[-48.0, -22.0], [-48.1, -22.0], [-48.1, -22.1], [-48.0, -22.1], [-48.0, -22.0]]]
           },
-          properties: {
+          properties: municipalityProps({
             name: 'Test',
             total_biomass_tons_year: null as any
-          }
+          })
         }]
       };
 
@@ -615,10 +616,10 @@ describe('HeatmapLayer', () => {
             type: 'Point' as any,
             coordinates: [-48.0, -22.0]
           },
-          properties: {
+          properties: municipalityProps({
             name: 'Test',
             total_biomass_tons_year: 1000000
-          }
+          })
         }]
       };
 
@@ -654,10 +655,10 @@ describe('HeatmapLayer', () => {
             type: 'Polygon',
             coordinates: [[[-48.0, -22.0], [-48.1, -22.0], [-48.1, -22.1], [-48.0, -22.1], [-48.0, -22.0]]]
           },
-          properties: {
+          properties: municipalityProps({
             name: 'Huge City',
             total_biomass_tons_year: 5000000000000 // 5 trillion
-          }
+          })
         }]
       };
 
@@ -680,10 +681,10 @@ describe('HeatmapLayer', () => {
             type: 'Polygon',
             coordinates: [[[-48.0, -22.0]]]
           },
-          properties: {
+          properties: municipalityProps({
             name: 'Degenerate',
             total_biomass_tons_year: 1000000
-          }
+          })
         }]
       };
 
@@ -759,7 +760,7 @@ describe('HeatmapLayer', () => {
             type: 'Polygon',
             coordinates: [[[-48.0, -22.0], [-48.1, -22.0], [-48.1, -22.1], [-48.0, -22.1], [-48.0, -22.0]]]
           },
-          properties: { name: 'Single City', total_biomass_tons_year: 1000000 }
+          properties: municipalityProps({ name: 'Single City', total_biomass_tons_year: 1000000 })
         }]
       };
 

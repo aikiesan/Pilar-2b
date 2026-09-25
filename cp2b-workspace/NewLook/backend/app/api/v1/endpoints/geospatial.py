@@ -15,9 +15,10 @@ from pydantic import BaseModel, Field
 from shapely.geometry import Point
 
 from app.core.database import get_db
+from app.core.log_sanitizer import log_safe
 from app.middleware.auth import optional_auth
 from app.models.auth import UserProfile
-from app.utils.shapefile_loader import get_shapefile_loader
+from app.utils.shapefile_loader import get_shapefile_loader, read_shapefile_wgs84
 
 shapefile_loader = get_shapefile_loader()
 
@@ -35,31 +36,12 @@ SHAPEFILE_PATH_ALT = (
     / "SP_Municipios_2024.shp"
 )
 
-_geo_gdf = None
-
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
 # ============================================================================
 # SECURITY: Input Validation Constants
 # ============================================================================
-
-VALID_REGIONS = {
-    "Central",
-    "Bauru",
-    "Araçatuba",
-    "Ribeirão Preto",
-    "Campinas",
-    "São José dos Campos",
-    "Sorocaba",
-    "Santos",
-    "São Paulo",
-    "Presidente Prudente",
-    "Marília",
-    "Registro",
-    "Franca",
-    "São José do Rio Preto",
-}
 
 ALLOWED_SORT_COLUMNS = {
     "biogas": "total_biogas_m3_year",
@@ -136,36 +118,18 @@ class ProximityQuery(BaseModel):
     radius_km: float = Field(..., gt=0, le=500)
 
 
-class MapBounds(BaseModel):
-    min_lat: float
-    min_lng: float
-    max_lat: float
-    max_lng: float
-
-
 # ============================================================================
 # HELPERS
 # ============================================================================
 
 
-def _load_geo_gdf():
-    """Load and cache the municipalities GeoDataFrame."""
-    global _geo_gdf
-    if _geo_gdf is None:
-        logger.info("🗺️ Loading municipality polygons from shapefile...")
-        shapefile_to_use = None
-        if SHAPEFILE_PATH.exists():
-            shapefile_to_use = SHAPEFILE_PATH
-        elif SHAPEFILE_PATH_ALT.exists():
-            shapefile_to_use = SHAPEFILE_PATH_ALT
-        else:
-            raise HTTPException(
-                status_code=500,
-                detail=f"Shapefile not found at {SHAPEFILE_PATH} or {SHAPEFILE_PATH_ALT}",
-            )
-        _geo_gdf = gpd.read_file(shapefile_to_use)
-        logger.info(f"✅ Loaded {len(_geo_gdf)} municipality polygons from shapefile")
-    return _geo_gdf
+def _load_geo_gdf() -> gpd.GeoDataFrame:
+    """The municipality polygons in WGS84, shared with the proximity analysis."""
+    for path in (SHAPEFILE_PATH, SHAPEFILE_PATH_ALT):
+        if path.exists():
+            return read_shapefile_wgs84(path)
+    logger.error("Shapefile not found at %s or %s", SHAPEFILE_PATH, SHAPEFILE_PATH_ALT)
+    raise HTTPException(status_code=500, detail="Municipality boundaries unavailable")
 
 
 def _ibge_code_from_row(shp_row) -> Optional[str]:
@@ -459,7 +423,7 @@ async def get_municipality_centroids(
         import traceback as _tb
 
         logger.error(f"Error in get_municipality_centroids: {e}\n{_tb.format_exc()}")
-        raise HTTPException(status_code=500, detail=f"Error: {type(e).__name__}: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to fetch municipality centroids")
 
 
 @router.get(
@@ -779,7 +743,7 @@ async def get_municipality(municipality_id: int):
     except Exception as e:
         logger.error(
             "Error in get_municipality %s: %s",
-            str(municipality_id).replace("\n", " ").replace("\r", " ")[:50],
+            log_safe(municipality_id, 50),
             e,
         )
         raise HTTPException(status_code=500, detail="Failed to fetch municipality")
@@ -840,7 +804,7 @@ async def proximity_analysis(query: ProximityQuery):
         raise
     except Exception as e:
         logger.error(f"Error in proximity_analysis: {e}")
-        raise HTTPException(status_code=500, detail=f"Proximity analysis failed: {str(e)}")
+        raise HTTPException(status_code=500, detail="Proximity analysis failed")
 
 
 @router.get(

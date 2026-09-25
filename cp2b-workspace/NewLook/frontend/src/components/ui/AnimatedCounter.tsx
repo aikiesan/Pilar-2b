@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { useFormat } from '@/hooks/useFormat'
 
 interface AnimatedCounterProps {
   end: number
@@ -8,6 +9,8 @@ interface AnimatedCounterProps {
   suffix?: string
   prefix?: string
   decimals?: number
+  /** Short form for large magnitudes: 4.6e9 -> "4.6B" (en) / "4,6 bi" (pt-BR). */
+  compact?: boolean
   className?: string
 }
 
@@ -20,6 +23,7 @@ interface AnimatedCounterProps {
  * @param suffix - Text to append after the number (e.g., "M", "%")
  * @param prefix - Text to prepend before the number (e.g., "$", "R$")
  * @param decimals - Number of decimal places to show (default: 0)
+ * @param compact - Show large magnitudes in short form, in the page's locale
  * @param className - Additional CSS classes
  */
 export default function AnimatedCounter({
@@ -28,8 +32,10 @@ export default function AnimatedCounter({
   suffix = '',
   prefix = '',
   decimals = 0,
+  compact = false,
   className = ''
 }: AnimatedCounterProps) {
+  const format = useFormat()
   const [count, setCount] = useState(0)
   const [isVisible, setIsVisible] = useState(false)
   const counterRef = useRef<HTMLSpanElement>(null)
@@ -77,9 +83,10 @@ export default function AnimatedCounter({
     requestAnimationFrame(animate)
   }, [isVisible, end, duration])
 
-  const formatNumber = (value: number) => {
-    return value.toFixed(decimals)
-  }
+  const formatNumber = (value: number) =>
+    compact
+      ? format.compact(value, { decimals })
+      : format.number(value, { decimals, minDecimals: decimals })
 
   return (
     <span ref={counterRef} className={className} aria-live="polite">

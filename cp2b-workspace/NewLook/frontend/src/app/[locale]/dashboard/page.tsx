@@ -153,7 +153,7 @@ export default function DashboardPage() {
               <Link
                 href="/map"
                 aria-label={t('open_map_aria')}
-                className="inline-flex w-full md:w-auto flex-shrink-0 items-center justify-center gap-2 rounded-xl bg-cp2b-green px-6 py-3 text-base font-semibold text-white shadow-lg shadow-green-600/20 transition-colors hover:bg-cp2b-dark-green focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cp2b-lime dark:bg-emerald-600 dark:hover:bg-emerald-700"
+                className="inline-flex w-full md:w-auto flex-shrink-0 items-center justify-center gap-2 rounded-xl bg-cp2b-green px-6 py-3 text-base font-semibold text-white shadow-lg shadow-green-600/20 transition-colors hover:bg-cp2b-dark-green focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cp2b-lime dark:bg-emerald-700 dark:hover:bg-emerald-700"
               >
                 <Map className="w-5 h-5" aria-hidden="true" />
                 {t('cta_open_map')}
@@ -177,7 +177,7 @@ export default function DashboardPage() {
                     title={step.hint}
                     className="group inline-flex min-h-11 items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:border-green-400 hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-cp2b-lime dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
                   >
-                    <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-green-600 text-[11px] font-bold text-white">
+                    <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-green-700 text-[11px] font-bold text-white">
                       {i + 1}
                     </span>
                     {step.label}
@@ -273,7 +273,7 @@ export default function DashboardPage() {
         <Link
           href="/map"
           aria-label={t('open_map_aria')}
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-cp2b-green px-6 py-3 text-base font-semibold text-white shadow-lg transition-colors hover:bg-cp2b-dark-green focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cp2b-lime dark:bg-emerald-600 dark:hover:bg-emerald-700"
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-cp2b-green px-6 py-3 text-base font-semibold text-white shadow-lg transition-colors hover:bg-cp2b-dark-green focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cp2b-lime dark:bg-emerald-700 dark:hover:bg-emerald-700"
         >
           <Map className="w-5 h-5" aria-hidden="true" />
           {t('cta_open_map')}

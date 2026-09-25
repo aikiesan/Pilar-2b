@@ -16,6 +16,26 @@ logger = logging.getLogger(__name__)
 # Path to shapefile data directory
 SHAPEFILE_DIR = Path(__file__).parent.parent.parent / "data" / "shapefiles"
 
+_shapefiles: Dict[Path, gpd.GeoDataFrame] = {}
+
+
+def read_shapefile_wgs84(path: Path) -> gpd.GeoDataFrame:
+    """A shapefile in WGS84, read and reprojected once per process.
+
+    The proximity analysis and the geospatial endpoints read the same
+    municipality polygons; each used to keep its own copy, and the analysis
+    re-read its layers from disk on every request. The frame is shared between
+    requests: callers read it and never modify it.
+    """
+    key = path.resolve()
+    gdf = _shapefiles.get(key)
+    if gdf is None:
+        gdf = gpd.read_file(path)
+        if gdf.crs != "EPSG:4326":
+            gdf = gdf.to_crs("EPSG:4326")
+        _shapefiles[key] = gdf
+    return gdf
+
 
 class ShapefileLoader:
     """Utility class to load shapefiles and convert to GeoJSON"""

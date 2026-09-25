@@ -16,6 +16,8 @@ from collections import OrderedDict
 from datetime import datetime, timedelta
 from typing import Any, Optional
 
+from app.core.log_sanitizer import log_safe
+
 logger = logging.getLogger(__name__)
 
 
@@ -101,14 +103,14 @@ class LRUCache:
             if entry.is_expired():
                 del self.cache[key]
                 self.misses += 1
-                logger.debug(f"Cache expired: {key}")
+                logger.debug("Cache expired: %s", log_safe(key))
                 return None
 
             # Move to end (mark as recently used)
             self.cache.move_to_end(key)
             self.hits += 1
 
-            logger.debug(f"Cache hit: {key} (age: {entry.get_age_seconds()}s)")
+            logger.debug("Cache hit: %s (age: %ss)", log_safe(key), entry.get_age_seconds())
             return entry.value
 
     def set(self, key: str, value: Any, ttl: Optional[int] = None):
@@ -130,13 +132,13 @@ class LRUCache:
                 oldest_key = next(iter(self.cache))
                 del self.cache[oldest_key]
                 self.evictions += 1
-                logger.debug(f"Cache eviction: {oldest_key}")
+                logger.debug("Cache eviction: %s", log_safe(oldest_key))
 
             # Add new entry
             ttl_seconds = ttl if ttl is not None else self.default_ttl
             self.cache[key] = CacheEntry(value, ttl_seconds)
 
-            logger.debug(f"Cache set: {key} (TTL: {ttl_seconds}s)")
+            logger.debug("Cache set: %s (TTL: %ss)", log_safe(key), ttl_seconds)
 
     def delete(self, key: str):
         """Delete specific cache entry (thread-safe)"""
@@ -215,13 +217,3 @@ def get_all_cache_stats() -> dict:
         "municipality": municipality_cache.get_stats(),
         "economic": economic_cache.get_stats(),
     }
-
-
-def get_cache_service() -> LRUCache:
-    """
-    Get economic cache instance for dependency injection.
-
-    Returns:
-        LRUCache instance for economic simulation caching
-    """
-    return economic_cache

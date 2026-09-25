@@ -14,6 +14,7 @@ import { logger } from '@/lib/logger';
 import { useFormat } from '@/hooks/useFormat';
 import { useInfrastructureLayer } from '@/hooks/useGeospatialData';
 import { PLANT_LAYERS, BIOMETHANE_PLANT, type PlantTypeInfo } from '@/lib/plantLayers';
+import { escapeHtml } from '@/lib/html';
 
 /** What a layer's load came to. The map words it (Map.layerAlert); server notes go to the log. */
 export type InfrastructureLayerStatus = {
@@ -319,16 +320,8 @@ const createETEIcon = () => {
  * one. Every interpolated value therefore has to be escaped: the values come
  * from shapefile and PostGIS attributes, which are not user-editable today, but
  * an unescaped template here is a stored-XSS vector the moment any of those
- * fields becomes writable. (Backlog FE #8.)
+ * fields becomes writable (backlog FE #8). See lib/html.
  */
-function escapeHtml(value: string): string {
-  return value.replace(
-    /[&<>"']/g,
-    (char) =>
-      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char] as string
-  );
-}
-
 /** One `<strong>Label:</strong> value` line, or nothing when there is no value. */
 function popupRow(label: string, value: unknown, fallback: string): string {
   const text =

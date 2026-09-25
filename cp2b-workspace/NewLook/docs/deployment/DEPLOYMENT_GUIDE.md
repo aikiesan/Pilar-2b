@@ -104,20 +104,6 @@ After deployment, you can add/update environment variables:
 
 4. Redeploy to apply the new variables
 
-### Step 4: Update API Endpoint (if needed)
-
-The frontend is currently configured to use mock endpoints. To use real backend data:
-
-1. Open `frontend/src/lib/api/geospatialClient.ts`
-2. Change line 15:
-   ```typescript
-   // From:
-   const API_PREFIX = '/api/v1/mock';
-   
-   // To:
-   const API_PREFIX = '/api/v1/geospatial';
-   ```
-
 ---
 
 ## Post-Deployment Checklist

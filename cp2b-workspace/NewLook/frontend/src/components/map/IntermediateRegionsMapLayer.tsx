@@ -11,11 +11,12 @@
  * Switching to Brazil scope (?scope=brazil) is handled by the parent (MapComponent).
  */
 
-import React, { useMemo } from 'react';
+import React from 'react';
 import { GeoJSON } from 'react-leaflet';
 import L from 'leaflet';
 import { useLocale, useTranslations } from 'next-intl';
 import { useFormat } from '@/hooks/useFormat';
+import { escapeHtml } from '@/lib/html';
 
 // ── Color scale (mirrors MunicipalityLayer thresholds scaled for region aggregates) ──────────────
 
@@ -43,6 +44,19 @@ interface IntermediateRegionsMapLayerProps {
   onRegionClick?: (feature: any) => void;
 }
 
+const objectIds = new WeakMap<object, number>();
+let lastObjectId = 0;
+
+/** A number that stays the same for the same object, and differs between objects. */
+function objectId(value: object): number {
+  let id = objectIds.get(value);
+  if (id === undefined) {
+    id = ++lastObjectId;
+    objectIds.set(value, id);
+  }
+  return id;
+}
+
 export default function IntermediateRegionsMapLayer({
   geoJSON,
   opacity = 0.7,
@@ -52,11 +66,9 @@ export default function IntermediateRegionsMapLayer({
   const tCommon = useTranslations('common');
   const locale = useLocale();
   const format = useFormat();
-  // Tooltips are bound when the layer mounts, so a new language remounts it.
-  const stableKey = useMemo(
-    () => `ir-${locale}-${geoJSON?.features?.length ?? 0}-${Date.now()}`,
-    [geoJSON, locale]
-  );
+  // Tooltips are bound when the layer mounts, and react-leaflet's GeoJSON does
+  // not redraw new data: a new language or a new FeatureCollection remounts it.
+  const stableKey = `ir-${locale}-${geoJSON ? objectId(geoJSON) : 0}`;
 
   if (!geoJSON) return null;
 
@@ -87,8 +99,8 @@ export default function IntermediateRegionsMapLayer({
 
     const tooltipHtml = `
       <div style="min-width:180px;font-family:sans-serif;font-size:12px">
-        <strong>${name}</strong>
-        ${facts ? `<div style="color:#555">${facts}</div>` : ''}
+        <strong>${escapeHtml(name)}</strong>
+        ${facts ? `<div style="color:#555">${escapeHtml(facts)}</div>` : ''}
         ${biogas > 0
           ? `<div>🌿 ${t('biogas')}: <b>${format.compact(biogas)} ${tCommon('units.m3_year')}</b></div>
              <div>📦 ${t('biomass')}: ${format.compact(biomass)} ${tCommon('units.t_year')}</div>`

@@ -9,6 +9,7 @@
 'use client';
 
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import { useIsClient } from '@/hooks/useIsClient';
 import { useTranslations } from 'next-intl';
 import { MapContainer, TileLayer, ScaleControl, ZoomControl, useMap } from 'react-leaflet';
 import dynamic from 'next/dynamic';
@@ -325,7 +326,7 @@ export default function MapComponent({
     enrich: true,
     enabled: intermediateRegionsEnabled,
   });
-  const [isMounted, setIsMounted] = useState(false);
+  const isMounted = useIsClient();
   const [isRendering, setIsRendering] = useState(false);
   const [layersRendered, setLayersRendered] = useState(0);
 
@@ -598,8 +599,6 @@ export default function MapComponent({
   // Mobile: the choropleth legend is collapsed to a chip by default and
   // expands on tap, so it doesn't crowd the small screen.
   const [legendOpenMobile, setLegendOpenMobile] = useState(false);
-
-  useEffect(() => { setIsMounted(true); }, []);
 
   useEffect(() => {
     if (data && !loading && isMounted) {

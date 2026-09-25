@@ -9,7 +9,6 @@ from app.services.map_metrics import (
     AGRI_STREAMS,
     UPGRADING_EFFICIENCY,
     MunicipalityMapMetrics,
-    StreamMetrics,
     _compute_from_biomass,
     _compute_from_stored_biogas,
     compute_stream_metrics,

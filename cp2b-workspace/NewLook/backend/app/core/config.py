@@ -95,6 +95,10 @@ class Settings(BaseSettings):
     # Logging
     LOG_LEVEL: str = "INFO"
 
+    # First-party page-view statistics: rows older than this are deleted (about
+    # 13 months, the lifetime of the statistics cookie).
+    ANALYTICS_RETENTION_DAYS: int = 395
+
     @field_validator("DATABASE_URL", mode="before")
     @classmethod
     def assemble_db_connection(cls, v: Optional[str], info):

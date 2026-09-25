@@ -38,6 +38,15 @@ describe('LanguageSwitcher Accessibility', () => {
     expect(await axe(container)).toHaveNoViolations()
   })
 
+  it('uses light text on the green header', () => {
+    // jsdom computes no contrast, so the variant is checked by its classes: the
+    // light style's brand green is ~1.3:1 on that header.
+    render(<LanguageSwitcher variant="dark" />)
+    expect(screen.getByText('EN').closest('button')).toHaveClass('text-white')
+    expect(screen.getByText('PT').closest('button')).toHaveClass('text-green-100')
+    expect(screen.getByText('EN').closest('button')).not.toHaveClass('text-cp2b-green')
+  })
+
   describe('Structure & ARIA', () => {
     it('renders a labelled group with two language buttons', () => {
       render(<LanguageSwitcher />)

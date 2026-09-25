@@ -6,9 +6,7 @@ configuration, and the rate_limit_middleware ASGI handler.
 """
 
 import threading
-import time
 from datetime import datetime, timedelta
-from unittest.mock import MagicMock, patch
 
 import pytest
 from fastapi import FastAPI
@@ -135,8 +133,10 @@ class TestRateLimiterReset:
 
     def test_reset_nonexistent_key_is_safe(self):
         limiter = make_limiter()
-        # Should not raise
-        limiter.reset("nonexistent_key")
+        limiter.is_allowed("known_key")
+        limiter.reset("nonexistent_key")  # must not raise
+        assert "nonexistent_key" not in limiter.requests
+        assert "known_key" in limiter.requests
 
     def test_reset_only_affects_target_key(self):
         limiter = make_limiter(max_requests=1)

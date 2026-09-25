@@ -4,7 +4,7 @@ Tests cluster discovery, cluster detail lookup, C:N profiles, pairing
 candidates, residue C:N matrix, and cache management endpoints.
 """
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 from fastapi.testclient import TestClient

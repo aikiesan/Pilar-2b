@@ -121,6 +121,13 @@ Shared validators (`src/lib/validation.ts`) for sign-in, registration,
 newsletter and calculator, with localized messages; unit and component tests
 that render the real catalog; e2e locale coverage for every route.
 
+`npm run typecheck` covers the tests and e2e specs too
+(`tsconfig.typecheck.json`). Their 117 type errors are fixed, most of them
+partial fixtures, now built with `municipalityProps()`. That surfaced a real
+bug: the municipality geometry type left out the Polygon the API sends for a
+municipality without an outline, and the bubble layer skipped those
+municipalities.
+
 ## Open items for the team
 
 Content and data questions the work surfaced but did not decide:
@@ -138,10 +145,6 @@ Content and data questions the work surfaced but did not decide:
   and `has_validated_params` is now shown as "Validated data" rather than
   "Peer-reviewed". Per-parameter provenance would need a column for it.
 - The newsletter form still simulates its submission.
-- Test files are not type-checked (`tsconfig.json` excludes them): 117 type
-  errors remain, mostly partial fixtures (`{ name, total_biogas_m3_year }` for a
-  full `MunicipalityProperties`), writable `NODE_ENV`, and missing `jest-axe`
-  types. Fixing them would let CI type-check the tests too.
 
 ## How to verify locally
 

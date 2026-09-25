@@ -18,6 +18,7 @@ import {
   getWebVitals,
 } from './performance';
 import { logger } from './logger';
+import { setNodeEnv } from '@/test/utils/env';
 
 // Mock logger
 jest.mock('./logger', () => ({
@@ -405,21 +406,21 @@ describe('Performance Utilities', () => {
     const originalEnv = process.env.NODE_ENV;
 
     afterEach(() => {
-      process.env.NODE_ENV = originalEnv;
+      setNodeEnv(originalEnv);
     });
 
     it('should return true in production', () => {
-      process.env.NODE_ENV = 'production';
+      setNodeEnv('production');
       expect(isProduction()).toBe(true);
     });
 
     it('should return false in development', () => {
-      process.env.NODE_ENV = 'development';
+      setNodeEnv('development');
       expect(isProduction()).toBe(false);
     });
 
     it('should return false in test', () => {
-      process.env.NODE_ENV = 'test';
+      setNodeEnv('test');
       expect(isProduction()).toBe(false);
     });
   });
@@ -430,11 +431,11 @@ describe('Performance Utilities', () => {
 
     afterEach(() => {
       global.window = originalWindow as any;
-      process.env.NODE_ENV = originalEnv;
+      setNodeEnv(originalEnv);
     });
 
     it('should not log in production', () => {
-      process.env.NODE_ENV = 'production';
+      setNodeEnv('production');
 
       logPerformanceMetrics();
 
@@ -442,7 +443,7 @@ describe('Performance Utilities', () => {
     });
 
     it('should not log when window is undefined (SSR)', () => {
-      process.env.NODE_ENV = 'development';
+      setNodeEnv('development');
       (global as any).window = undefined;
 
       logPerformanceMetrics();
@@ -451,7 +452,7 @@ describe('Performance Utilities', () => {
     });
 
     it('should log metrics in development when Performance API available', () => {
-      process.env.NODE_ENV = 'development';
+      setNodeEnv('development');
 
       const mockPerformance = {
         timing: {

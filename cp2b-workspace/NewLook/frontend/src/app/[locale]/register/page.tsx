@@ -147,7 +147,7 @@ export default function RegisterPage() {
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, full_name: e.target.value }))
                 }
-                className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cp2b-primary focus:border-transparent transition-colors"
+                className="appearance-none block w-full px-4 py-3 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cp2b-primary dark:focus:ring-emerald-500 focus:border-transparent transition-colors"
                 placeholder={t('register.full_name_placeholder')}
                 aria-required="true"
                 aria-invalid={!!error}
@@ -173,7 +173,7 @@ export default function RegisterPage() {
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, email: e.target.value }))
                 }
-                className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cp2b-primary focus:border-transparent transition-colors"
+                className="appearance-none block w-full px-4 py-3 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cp2b-primary dark:focus:ring-emerald-500 focus:border-transparent transition-colors"
                 placeholder={t('register.email_placeholder')}
                 aria-required="true"
                 aria-invalid={!!error}
@@ -197,7 +197,7 @@ export default function RegisterPage() {
                 required
                 value={formData.password}
                 onChange={(e) => handlePasswordChange(e.target.value)}
-                className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cp2b-primary focus:border-transparent transition-colors"
+                className="appearance-none block w-full px-4 py-3 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cp2b-primary dark:focus:ring-emerald-500 focus:border-transparent transition-colors"
                 placeholder="••••••••"
                 aria-required="true"
                 aria-invalid={!!error}
@@ -218,6 +218,8 @@ export default function RegisterPage() {
                       className={`h-2 rounded-full transition-all ${getPasswordStrengthColor()}`}
                       style={{ width: `${passwordStrength}%` }}
                       role="progressbar"
+                      aria-label={t('register.password_strength')}
+                      aria-valuetext={getPasswordStrengthText() || undefined}
                       aria-valuenow={passwordStrength}
                       aria-valuemin={0}
                       aria-valuemax={100}
@@ -245,7 +247,7 @@ export default function RegisterPage() {
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, confirmPassword: e.target.value }))
                 }
-                className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cp2b-primary focus:border-transparent transition-colors"
+                className="appearance-none block w-full px-4 py-3 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cp2b-primary dark:focus:ring-emerald-500 focus:border-transparent transition-colors"
                 placeholder="••••••••"
                 aria-required="true"
                 aria-invalid={!!error}

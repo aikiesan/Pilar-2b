@@ -299,7 +299,3 @@ export const THEMATIC_PRESETS: ThematicPreset[] = [
     config: { ...BASE, displayMetric: 'ch4_per_capita', palette: 'bupu' },
   },
 ];
-
-export function getPresetById(id: string): ThematicPreset | undefined {
-  return THEMATIC_PRESETS.find((p) => p.id === id);
-}

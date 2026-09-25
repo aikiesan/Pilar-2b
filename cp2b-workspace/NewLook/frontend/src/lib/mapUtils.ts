@@ -5,6 +5,32 @@
  * in the message catalogs. What remains here is pure map logic.
  */
 
+import type { MunicipalityGeometry, Position } from '@/types/geospatial';
+
+/**
+ * Where to draw a municipality's marker, in Leaflet order: [lat, lng].
+ *
+ * A Point is its own position; an outline is the mean of the vertices of its
+ * outer ring (the first polygon's, for a MultiPolygon) — close enough to the
+ * centroid for a marker, and cheap. Null when there is nothing to average.
+ */
+export function markerPosition(geometry: MunicipalityGeometry): [number, number] | null {
+  let ring: Position[] | undefined;
+  switch (geometry.type) {
+    case 'Point':
+      return [geometry.coordinates[1], geometry.coordinates[0]];
+    case 'Polygon':
+      ring = geometry.coordinates[0];
+      break;
+    case 'MultiPolygon':
+      ring = geometry.coordinates[0]?.[0];
+      break;
+  }
+  if (!ring?.length) return null;
+  const sum = ring.reduce((acc, [lng, lat]) => ({ lng: acc.lng + lng, lat: acc.lat + lat }), { lng: 0, lat: 0 });
+  return [sum.lat / ring.length, sum.lng / ring.length];
+}
+
 /** Share of `part` in `total`, in percentage points; 0 when the total is 0. */
 export function calculatePercentage(part: number, total: number): number {
   if (total === 0) return 0;

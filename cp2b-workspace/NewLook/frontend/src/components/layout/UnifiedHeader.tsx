@@ -214,7 +214,7 @@ export default function UnifiedHeader({ variant = 'auto' }: UnifiedHeaderProps) 
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-1">
+          <div className="hidden xl:flex items-center space-x-0.5 min-[1760px]:space-x-1">
             {navConfig.map((item) => {
               const isExternal = item.href.startsWith('http')
               const label = t(`nav.${item.labelKey}`)
@@ -244,7 +244,7 @@ export default function UnifiedHeader({ variant = 'auto' }: UnifiedHeaderProps) 
               `
                 : `
                 ${item.tourClass || ''}
-                flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium
+                flex items-center gap-2 px-2 min-[1760px]:px-4 py-2 rounded-lg text-[13px] min-[1760px]:text-sm font-medium whitespace-nowrap
                 transition-all duration-200 focus:outline-none focus:ring-2
                 ${focusRing}
                 ${isActive(item.href)
@@ -263,7 +263,7 @@ export default function UnifiedHeader({ variant = 'auto' }: UnifiedHeaderProps) 
                   className={linkClass}
                   style={linkStyle}
                 >
-                  {item.compact ? null : item.icon}
+                  {item.compact ? null : <span className="hidden min-[1760px]:inline-flex">{item.icon}</span>}
                   <span>{label}</span>
                 </a>
               ) : (
@@ -274,140 +274,144 @@ export default function UnifiedHeader({ variant = 'auto' }: UnifiedHeaderProps) 
                   style={linkStyle}
                   aria-current={isActive(item.href) ? 'page' : undefined}
                 >
-                  {item.compact ? null : item.icon}
+                  {item.compact ? null : <span className="hidden min-[1760px]:inline-flex">{item.icon}</span>}
                   <span>{label}</span>
                 </Link>
               )
             })}
           </div>
 
-          {/* Theme & Language Toggles + User Menu (Desktop) */}
-          <div className="hidden md:flex items-center space-x-3">
-            {/* Global Search */}
-            
-            <GlobalSearch variant={isPublic ? 'light' : 'dark'} />
-            
-
-            {/* Language Toggle */}
-            <LanguageSwitcher />
-
-            {/* Theme Toggle */}
-            <div className={isPublic ? 'text-gray-700' : ''}>
-              <ThemeToggle variant={isPublic ? 'light' : 'dark'} />
+          <div className="flex items-center gap-3">
+            {/* Global Search: in the bar at every width from sm up, so the
+                menu button below xl does not take it away. One instance only,
+                since it listens for "/" on the whole window. */}
+            <div className="hidden sm:block">
+              <GlobalSearch variant={isPublic ? 'light' : 'dark'} />
             </div>
 
-            {/* User Menu / Auth Buttons — hidden in offline/event mode (no real account) */}
-            {(hasRealSession && user ? (
-              <div className="relative">
-                <button
-                  onClick={() => setUserMenuOpen(!userMenuOpen)}
-                  className={`
-                    flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors
-                    focus:outline-none focus:ring-2
-                    ${isPublic
-                      ? 'text-gray-700 hover:bg-gray-100 focus:ring-cp2b-lime'
-                      : 'text-white hover:bg-white/10 focus:ring-white'
-                    }
-                  `}
-                  aria-expanded={userMenuOpen}
-                  aria-haspopup="true"
-                >
-                  <User className="h-5 w-5" aria-hidden="true" />
-                  <span className="max-w-[120px] truncate">
-                    {user.full_name || user.email?.split('@')[0]}
-                  </span>
-                  <ChevronDown
-                    className={`h-4 w-4 transition-transform ${userMenuOpen ? 'rotate-180' : ''}`}
-                    aria-hidden="true"
-                  />
-                </button>
+            {/* Theme & Language Toggles + User Menu (Desktop) */}
+            <div className="hidden xl:flex items-center space-x-3">
+              {/* Language Toggle */}
+              <LanguageSwitcher variant={isPublic ? 'light' : 'dark'} />
 
-                {/* Dropdown Menu */}
-                {userMenuOpen && (
-                  <div
-                    className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 rounded-lg shadow-lg dark:shadow-slate-900/50 py-1 z-50 border border-gray-200 dark:border-slate-700"
-                    role="menu"
-                    aria-orientation="vertical"
+              {/* Theme Toggle */}
+              <div className={isPublic ? 'text-gray-700' : ''}>
+                <ThemeToggle variant={isPublic ? 'light' : 'dark'} />
+              </div>
+
+              {/* User Menu / Auth Buttons — hidden in offline/event mode (no real account) */}
+              {(hasRealSession && user ? (
+                <div className="relative">
+                  <button
+                    onClick={() => setUserMenuOpen(!userMenuOpen)}
+                    className={`
+                      flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors
+                      focus:outline-none focus:ring-2
+                      ${isPublic
+                        ? 'text-gray-700 hover:bg-gray-100 focus:ring-cp2b-lime'
+                        : 'text-white hover:bg-white/10 focus:ring-white'
+                      }
+                    `}
+                    aria-expanded={userMenuOpen}
+                    aria-haspopup="true"
                   >
-                    <div className="px-4 py-2 border-b border-gray-100 dark:border-slate-700">
-                      <p className="text-sm font-medium text-gray-900 dark:text-slate-100 truncate">
-                        {user.full_name || t('auth.user')}
-                      </p>
-                      <p className="text-xs text-gray-500 dark:text-slate-400 truncate">
-                        {user.email}
-                      </p>
-                      <p className="text-xs text-green-600 dark:text-emerald-400 mt-1">
-                        {user.role === 'admin' ? t('auth.admin') : t('auth.authenticated')}
-                      </p>
-                    </div>
-                    <Link
-                      href="/settings"
-                      className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700"
-                      role="menuitem"
-                      onClick={() => setUserMenuOpen(false)}
-                    >
-                      <Settings className="h-4 w-4" aria-hidden="true" />
-                      {t('auth.settings')}
-                    </Link>
-                    <button
-                      onClick={handleLogout}
-                      className="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
-                      role="menuitem"
-                    >
-                      <LogOut className="h-4 w-4" aria-hidden="true" />
-                      {t('auth.logout')}
-                    </button>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="flex items-center gap-2">
-                <Link
-                  href="/login"
-                  className={`
-                    px-4 py-2 text-sm font-medium rounded-lg transition-colors
-                    focus:outline-none focus:ring-2 focus:ring-offset-2
-                    ${isPublic
-                      ? 'text-white bg-cp2b-green hover:bg-cp2b-dark-green focus:ring-cp2b-lime'
-                      : 'text-white bg-white/20 hover:bg-white/30 focus:ring-white'
-                    }
-                  `}
-                >
-                  {t('auth.login')}
-                </Link>
-              </div>
-            ))}
-          </div>
+                    <User className="h-5 w-5" aria-hidden="true" />
+                    <span className="max-w-[120px] truncate">
+                      {user.full_name || user.email?.split('@')[0]}
+                    </span>
+                    <ChevronDown
+                      className={`h-4 w-4 transition-transform ${userMenuOpen ? 'rotate-180' : ''}`}
+                      aria-hidden="true"
+                    />
+                  </button>
 
-          {/* Mobile Menu Button */}
-          <div className="md:hidden">
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className={`
-                inline-flex h-11 w-11 items-center justify-center rounded-lg
-                focus:outline-none focus:ring-2
-                ${isPublic
-                  ? 'text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700 focus:ring-cp2b-lime'
-                  : 'text-white hover:bg-white/10 focus:ring-white'
-                }
-              `}
-              aria-expanded={mobileMenuOpen}
-              aria-controls="mobile-menu"
-              aria-label={mobileMenuOpen ? t('menu.close') : t('menu.open')}
-            >
-              {mobileMenuOpen ? (
-                <X className="h-6 w-6" aria-hidden="true" />
+                  {/* Dropdown Menu */}
+                  {userMenuOpen && (
+                    <div
+                      className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 rounded-lg shadow-lg dark:shadow-slate-900/50 py-1 z-50 border border-gray-200 dark:border-slate-700"
+                      role="menu"
+                      aria-orientation="vertical"
+                    >
+                      <div className="px-4 py-2 border-b border-gray-100 dark:border-slate-700">
+                        <p className="text-sm font-medium text-gray-900 dark:text-slate-100 truncate">
+                          {user.full_name || t('auth.user')}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-slate-400 truncate">
+                          {user.email}
+                        </p>
+                        <p className="text-xs text-green-600 dark:text-emerald-400 mt-1">
+                          {user.role === 'admin' ? t('auth.admin') : t('auth.authenticated')}
+                        </p>
+                      </div>
+                      <Link
+                        href="/settings"
+                        className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700"
+                        role="menuitem"
+                        onClick={() => setUserMenuOpen(false)}
+                      >
+                        <Settings className="h-4 w-4" aria-hidden="true" />
+                        {t('auth.settings')}
+                      </Link>
+                      <button
+                        onClick={handleLogout}
+                        className="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+                        role="menuitem"
+                      >
+                        <LogOut className="h-4 w-4" aria-hidden="true" />
+                        {t('auth.logout')}
+                      </button>
+                    </div>
+                  )}
+                </div>
               ) : (
-                <Menu className="h-6 w-6" aria-hidden="true" />
-              )}
-            </button>
+                <div className="flex items-center gap-2">
+                  <Link
+                    href="/login"
+                    className={`
+                      px-4 py-2 text-sm font-medium rounded-lg transition-colors
+                      focus:outline-none focus:ring-2 focus:ring-offset-2
+                      ${isPublic
+                        ? 'text-white bg-cp2b-green hover:bg-cp2b-dark-green focus:ring-cp2b-lime'
+                        : 'text-white bg-white/20 hover:bg-white/30 focus:ring-white'
+                      }
+                    `}
+                  >
+                    {t('auth.login')}
+                  </Link>
+                </div>
+              ))}
+            </div>
+
+            {/* Mobile Menu Button */}
+            <div className="xl:hidden">
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className={`
+                  inline-flex h-11 w-11 items-center justify-center rounded-lg
+                  focus:outline-none focus:ring-2
+                  ${isPublic
+                    ? 'text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700 focus:ring-cp2b-lime'
+                    : 'text-white hover:bg-white/10 focus:ring-white'
+                  }
+                `}
+                aria-expanded={mobileMenuOpen}
+                aria-controls="mobile-menu"
+                aria-label={mobileMenuOpen ? t('menu.close') : t('menu.open')}
+              >
+                {mobileMenuOpen ? (
+                  <X className="h-6 w-6" aria-hidden="true" />
+                ) : (
+                  <Menu className="h-6 w-6" aria-hidden="true" />
+                )}
+              </button>
+            </div>
           </div>
         </div>
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
           <div
-            className={`md:hidden relative z-50 ${currentStyles.mobileMenu}`}
+            className={`xl:hidden relative z-50 ${currentStyles.mobileMenu}`}
             id="mobile-menu"
           >
             <div className="px-2 pt-2 pb-3 space-y-1">
@@ -467,7 +471,7 @@ export default function UnifiedHeader({ variant = 'auto' }: UnifiedHeaderProps) 
             {/* Mobile Toggles */}
             <div className={`px-4 py-3 border-t ${isPublic ? 'border-gray-200 dark:border-slate-700' : 'border-white/20'}`}>
               <div className="flex items-center justify-between gap-4">
-                <LanguageSwitcher />
+                <LanguageSwitcher variant={isPublic ? 'light' : 'dark'} />
                 <ThemeToggle variant={isPublic ? 'light' : 'dark'} />
               </div>
             </div>

@@ -114,7 +114,7 @@ function ComparePageContent() {
           <p className="text-red-600 mb-4">{error || t('compare.none_found')}</p>
           <button
             onClick={() => router.push('/dashboard')}
-            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+            className="px-4 py-2 bg-green-700 text-white rounded hover:bg-green-800"
           >
             {t('back_to_dashboard')}
           </button>

@@ -11,7 +11,6 @@ import pytest
 
 from app.services.biogas_forward import (
     SCENARIOS,
-    BiogasResult,
     FeedstockParams,
     Range,
     aggregate,

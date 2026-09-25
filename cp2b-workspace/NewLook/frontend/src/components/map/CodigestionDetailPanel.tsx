@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useId, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { X, ChevronDown, ChevronUp, FlaskConical } from 'lucide-react';
 import type { CodigestionCluster, CodigestionPair } from '@/types/geospatial';
@@ -127,19 +127,25 @@ export default function CodigestionDetailPanel({
   const format = useFormat();
   const text = useCodigestionText();
   const [showAllPairs, setShowAllPairs] = useState(false);
+  const titleId = useId();
 
   if (!visible || !cluster) return null;
 
   const top = cluster.top_pair;
 
   return (
-    <div className="absolute top-20 right-4 z-[500] w-80 max-h-[calc(100vh-120px)] flex flex-col bg-white/97 backdrop-blur-sm shadow-xl rounded-xl overflow-hidden border border-violet-200">
+    // A side panel beside the live map, not a modal: a named region, so a
+    // screen reader can find it; the map stays usable while it is open.
+    <section
+      aria-labelledby={titleId}
+      className="absolute top-20 right-4 z-[500] w-80 max-h-[calc(100vh-120px)] flex flex-col bg-white/97 backdrop-blur-sm shadow-xl rounded-xl overflow-hidden border border-violet-200"
+    >
       {/* Header */}
       <div className="bg-gradient-to-r from-violet-700 to-purple-800 px-4 py-3 flex items-center justify-between flex-shrink-0">
         <div>
           <div className="flex items-center gap-2">
             <FlaskConical className="w-4 h-4 text-violet-200" />
-            <h3 className="text-white text-sm font-semibold">{t('title')}</h3>
+            <h3 id={titleId} className="text-white text-sm font-semibold">{t('title')}</h3>
           </div>
           <p className="text-violet-200 text-[11px] mt-0.5">
             {t('cluster', { id: clusterNumber(cluster.cluster_id) })} ·{' '}
@@ -227,6 +233,6 @@ export default function CodigestionDetailPanel({
           ⚗️ {t.rich('disclaimer', { strong: (chunks) => <strong>{chunks}</strong> })}
         </p>
       </div>
-    </div>
+    </section>
   );
 }

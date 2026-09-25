@@ -244,7 +244,7 @@ async def analyze_proximity(request: ProximityAnalysisRequest):
             except Exception as e:
                 logger.warning(f"MapBiomas analysis failed: {e}")
                 land_use_result = {
-                    "error": str(e),
+                    "error": "MapBiomas analysis failed",
                     "total_area_km2": 0,
                     "by_class": {},
                     "dominant_class": "unknown",
@@ -335,7 +335,7 @@ async def analyze_proximity(request: ProximityAnalysisRequest):
 
     except Exception as e:
         logger.error(f"Proximity analysis failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Proximity analysis failed: {str(e)}")
+        raise HTTPException(status_code=500, detail="Proximity analysis failed")
 
 
 @router.get(

@@ -45,7 +45,7 @@ function CiteBlock({ label, text, copyLabel, copiedLabel }: { label: string; tex
         <button
           type="button"
           onClick={onCopy}
-          className="rounded-md bg-emerald-600 px-3 py-1 text-xs font-medium text-white hover:bg-emerald-700"
+          className="rounded-md bg-emerald-700 px-3 py-1 text-xs font-medium text-white hover:bg-emerald-800"
         >
           {copied ? copiedLabel : copyLabel}
         </button>
@@ -62,7 +62,7 @@ export default function CitePage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
       <h1 className="mb-2 text-3xl font-bold text-gray-900">{t('title')}</h1>
-      <p className="mb-8 text-sm text-gray-600">{t('subtitle')}</p>
+      <p className="mb-8 text-sm text-gray-600 dark:text-slate-300">{t('subtitle')}</p>
 
       <div className="space-y-4">
         <CiteBlock label="ABNT" text={CITATIONS.abnt} copyLabel={t('copy')} copiedLabel={t('copied')} />

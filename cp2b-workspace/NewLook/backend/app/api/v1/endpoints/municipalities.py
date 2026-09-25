@@ -12,6 +12,7 @@ from typing import Annotated, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 
 from app.core.database import get_db
+from app.core.log_sanitizer import log_safe
 from app.core.response_cache import cached_json_response
 from app.middleware.auth import optional_auth
 from app.models.auth import UserProfile
@@ -394,7 +395,7 @@ def _build_municipalities_geojson(limit: Optional[int], detail: str, fields: str
             cursor.close()
     except Exception as e:
         logger.error(f"Error fetching municipalities GeoJSON: {e}")
-        raise HTTPException(status_code=500, detail=f"Database error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch municipalities")
 
     if not has_provenance:
         logger.error(
@@ -693,7 +694,7 @@ async def get_municipalities_stats():
         }
     except Exception as e:
         logger.error(f"Error calculating stats: {e}")
-        raise HTTPException(status_code=500, detail=f"Error calculating stats: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error calculating stats")
 
 
 @router.get("/")
@@ -732,7 +733,7 @@ async def get_municipalities(
         }
     except Exception as e:
         logger.error(f"Error fetching municipalities: {e}")
-        raise HTTPException(status_code=500, detail=f"Error fetching municipalities: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error fetching municipalities")
 
 
 @router.get("/names")
@@ -757,7 +758,7 @@ async def get_municipality_names(
         return {"data": data}
     except Exception as e:
         logger.error(f"Error fetching municipality names: {e}")
-        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Database error")
 
 
 @router.get("/{ibge_code}/metrics")
@@ -813,7 +814,7 @@ async def get_municipality_metrics(ibge_code: str):
                 row, ibge_code=ibge_code, derived_tons=derived_tons
             ).to_flat_dict()
         except Exception as exc:
-            logger.error(f"canonical metrics failed for {ibge_code}: {exc}")
+            logger.error("canonical metrics failed for %s: %s", log_safe(ibge_code, 50), exc)
             canonical = {}
 
         return {
@@ -838,7 +839,7 @@ async def get_municipality_metrics(ibge_code: str):
         raise
     except Exception as e:
         logger.error(f"Error fetching municipality metrics: {e}")
-        raise HTTPException(status_code=500, detail=f"Error fetching metrics: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch municipality metrics")
 
 
 @router.get("/{municipality_id}")
@@ -863,7 +864,7 @@ async def get_municipality(municipality_id: str):
         raise
     except Exception as e:
         logger.error(f"Error fetching municipality: {e}")
-        raise HTTPException(status_code=500, detail=f"Error fetching municipality: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error fetching municipality")
 
 
 # ─── Dossier downloads ────────────────────────────────────────────────────────

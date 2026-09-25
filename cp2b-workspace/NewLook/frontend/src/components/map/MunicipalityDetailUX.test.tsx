@@ -3,6 +3,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import EnhancedTooltip from './EnhancedTooltip';
 import MunicipalityProfilePanel from './MunicipalityProfilePanel';
 import type { MunicipalityFeature } from '@/types/geospatial';
+import { municipalityProps } from '@/test/fixtures/municipality';
 
 // This suite asserts on the copy a user actually reads (accessible names, the
 // MG empty state, the t/ano warning), so it needs the real catalog rather than
@@ -24,7 +25,7 @@ const municipality = (uf: 'SP' | 'MG'): MunicipalityFeature => {
   return {
     type: 'Feature',
     geometry: { type: 'Polygon', coordinates: [] },
-    properties: {
+    properties: municipalityProps({
       id: isMg ? 2 : 1,
       name: isMg ? 'Belo Horizonte' : 'Campinas',
       ibge_code: isMg ? '3106200' : '3509502',
@@ -40,8 +41,8 @@ const municipality = (uf: 'SP' | 'MG'): MunicipalityFeature => {
       ch4_real_rsu_m3_year: isMg ? 0 : 1_200,
       ch4_real_rpo_m3_year: isMg ? 0 : 300,
       ch4_real_sewage_m3_year: isMg ? 0 : 500,
-    },
-  } as MunicipalityFeature;
+    }),
+  };
 };
 
 describe('municipality detail UX', () => {

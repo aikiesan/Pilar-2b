@@ -34,11 +34,9 @@ jobs:
       # names because nothing compared the catalogs. It also flags ICU
       # placeholder drift, which next-intl only raises at render time.
       #
-      # typecheck covers what `next build` already type-checks, but fails in
-      # seconds instead of after a full build. Note it does NOT yet cover
-      # e2e/, src/test or __tests__ — those are excluded in tsconfig.json and
-      # currently carry 117 errors, mostly partial test fixtures (tracked in
-      # docs/planning/ROADMAP_2026-09_EN_AND_LEAN.md).
+      # typecheck covers what `next build` type-checks, in seconds instead of
+      # after a full build, plus what the build leaves out: the unit tests,
+      # src/test and the e2e specs (tsconfig.typecheck.json).
       # i18n:check: catalog parity, a scan of every source file for hardcoded
       # Portuguese, no unused catalog key, bilingual patch notes, and the
       # scanner's own tests. The scan exists because the e2e locale test only

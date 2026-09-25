@@ -243,7 +243,7 @@ class MapBiomasService:
         except Exception as e:
             logger.error(f"MapBiomas analysis failed: {e}")
             return {
-                "error": str(e),
+                "error": "MapBiomas analysis failed",
                 "total_area_km2": 0,
                 "by_class": {},
                 "dominant_class": "error",

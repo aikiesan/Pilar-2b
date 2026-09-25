@@ -39,7 +39,7 @@ interface Entry {
 
 // Icon and colour per change kind. The visible label comes from the catalog.
 const KIND_META: Record<Kind, { icon: typeof Plus; className: string }> = {
-  added: { icon: Plus, className: 'bg-cp2b-lime-light/60 text-cp2b-dark-green' },
+  added: { icon: Plus, className: 'bg-cp2b-lime-light text-cp2b-dark-green' },
   changed: { icon: RefreshCw, className: 'bg-sky-100 text-sky-800' },
   fixed: { icon: Wrench, className: 'bg-amber-100 text-amber-800' },
   security: { icon: ShieldCheck, className: 'bg-rose-100 text-rose-800' },
@@ -72,7 +72,7 @@ export default function PatchNotesPage() {
   return (
     <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
       <header className="mb-12 max-w-2xl">
-        <span className="text-cp2b-green font-semibold text-sm tracking-wide uppercase mb-2 block">
+        <span className="text-cp2b-green dark:text-cp2b-lime font-semibold text-sm tracking-wide uppercase mb-2 block">
           {t('eyebrow')}
         </span>
         <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4 tracking-tight">

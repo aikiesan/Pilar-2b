@@ -147,6 +147,10 @@ class AuthService:
 
     # ── login ─────────────────────────────────────────────────────────────────
     async def login_user(self, login: UserLogin) -> AuthResponse:
+        # Uniform error to avoid user enumeration.
+        invalid = _auth_error(
+            status.HTTP_401_UNAUTHORIZED, "invalid_credentials", "Invalid email or password"
+        )
         with get_db_transaction() as conn:
             cur = conn.cursor()
             cur.execute(
@@ -159,10 +163,6 @@ class AuthService:
             )
             row = cur.fetchone()
 
-            # Uniform error to avoid user enumeration.
-            invalid = _auth_error(
-                status.HTTP_401_UNAUTHORIZED, "invalid_credentials", "Invalid email or password"
-            )
             if row is None:
                 raise invalid
             if not row["is_active"]:
@@ -176,7 +176,15 @@ class AuthService:
                     "Account temporarily locked. Try again later.",
                 )
 
-            if not self.verify_password(login.password, row["password_hash"]):
+            password_ok = self.verify_password(login.password, row["password_hash"])
+            if password_ok:
+                # Success → reset counters, stamp last_login.
+                cur.execute(
+                    "UPDATE auth_users SET failed_login_count=0, locked_until=NULL, "
+                    "last_login_at=now(), updated_at=now() WHERE id=%s",
+                    (row["id"],),
+                )
+            else:
                 failed = int(row["failed_login_count"]) + 1
                 locked_until = (
                     _now() + timedelta(minutes=LOCKOUT_MINUTES)
@@ -188,14 +196,11 @@ class AuthService:
                     "updated_at=now() WHERE id=%s",
                     (failed, locked_until, row["id"]),
                 )
-                raise invalid
 
-            # Success → reset counters, stamp last_login.
-            cur.execute(
-                "UPDATE auth_users SET failed_login_count=0, locked_until=NULL, "
-                "last_login_at=now(), updated_at=now() WHERE id=%s",
-                (row["id"],),
-            )
+        # Raised once the transaction has committed: raising inside it would roll
+        # the failed-attempt count back, and the account would never lock.
+        if not password_ok:
+            raise invalid
 
         token = self._issue_token(row)
         return AuthResponse(access_token=token, token_type="bearer", user=_row_to_profile(row))

@@ -53,7 +53,7 @@ export default function GuideIndexPage() {
       {/* Cabeçalho da Página */}
       <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-12">
         <div className="max-w-2xl">
-          <span className="text-cp2b-green font-semibold text-sm tracking-wide uppercase mb-2 block">
+          <span className="text-cp2b-green dark:text-cp2b-lime font-semibold text-sm tracking-wide uppercase mb-2 block">
             {t('eyebrow')}
           </span>
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4 tracking-tight">

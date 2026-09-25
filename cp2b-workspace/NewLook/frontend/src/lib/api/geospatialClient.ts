@@ -6,8 +6,6 @@
 import type {
   MunicipalityCollection,
   SummaryStatistics,
-  MunicipalityFeature,
-  RankingsResponse,
   CodigestionClustersResponse,
   ResidueCNMatrix,
 } from '@/types/geospatial';
@@ -291,36 +289,10 @@ class GeospatialClient {
   }
 
   /**
-   * Get municipality list (non-GeoJSON)
-   */
-  async getMunicipalitiesList() {
-    return this.fetchJSON('/municipalities');
-  }
-
-  /**
-   * Get detailed municipality data by ID
-   */
-  async getMunicipalityDetail(municipalityId: string): Promise<MunicipalityFeature> {
-    return this.fetchJSON<MunicipalityFeature>(`/municipalities/${municipalityId}`);
-  }
-
-  /**
    * Get summary statistics
    */
   async getSummaryStatistics(): Promise<SummaryStatistics> {
     return this.fetchJSON<SummaryStatistics>('/statistics/summary');
-  }
-
-  /**
-   * Get rankings by criteria
-   */
-  async getRankings(
-    criteria: 'total' | 'agricultural' | 'livestock' | 'urban' = 'total',
-    limit: number = 10
-  ): Promise<RankingsResponse> {
-    return this.fetchJSON<RankingsResponse>(
-      `/rankings?criteria=${criteria}&limit=${limit}`
-    );
   }
 
   /**
@@ -352,12 +324,6 @@ class GeospatialClient {
     return response.json();
   }
 
-  /**
-   * Health check
-   */
-  async healthCheck() {
-    return this.fetchJSON('/health');
-  }
 }
 
 // Export singleton instance

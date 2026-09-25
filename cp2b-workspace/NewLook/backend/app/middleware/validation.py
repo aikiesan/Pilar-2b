@@ -10,6 +10,8 @@ from typing import Any, Dict, Optional
 from fastapi import HTTPException, Request, status
 from fastapi.responses import JSONResponse
 
+from app.core.log_sanitizer import log_safe
+
 logger = logging.getLogger(__name__)
 
 # Validation patterns
@@ -130,14 +132,14 @@ def validate_string(
 
     # Check for injection attacks
     if detect_sql_injection(value):
-        logger.warning(f"SQL injection attempt detected: {value[:100]}")
+        logger.warning("SQL injection attempt detected: %s", log_safe(value, 100))
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid input: potential SQL injection detected",
         )
 
     if detect_command_injection(value):
-        logger.warning(f"Command injection attempt detected: {value[:100]}")
+        logger.warning("Command injection attempt detected: %s", log_safe(value, 100))
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid input: potential command injection detected",
@@ -261,7 +263,9 @@ def sanitize_query_params(params: Dict[str, Any]) -> Dict[str, Any]:
         if isinstance(value, str):
             # Check for injection attempts
             if detect_sql_injection(value) or detect_command_injection(value):
-                logger.warning(f"Injection attempt in param '{key}': {value[:100]}")
+                logger.warning(
+                    "Injection attempt in param %s: %s", log_safe(key, 50), log_safe(value, 100)
+                )
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail=f"Invalid value for parameter '{key}'",
@@ -297,7 +301,9 @@ async def validation_middleware(request: Request, call_next):
             sanitize_query_params(dict(request.query_params))
     except HTTPException as e:
         logger.warning(
-            f"Validation failed for {request.method} {request.url.path}",
+            "Validation failed for %s %s",
+            request.method,
+            log_safe(request.url.path),
             extra={"params": dict(request.query_params)},
         )
         return JSONResponse(status_code=e.status_code, content={"detail": e.detail})

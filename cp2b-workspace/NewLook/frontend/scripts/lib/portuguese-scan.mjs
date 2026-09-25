@@ -57,6 +57,7 @@ export const PORTUGUESE_WORDS = new Set([
   'baixar', 'limpar', 'salvar', 'cancelar', 'enviar', 'entrar', 'sair', 'abrir', 'aplicar',
   'copiar', 'compartilhar', 'exportar', 'tentar', 'novamente', 'ver', 'veja', 'resetar', 'redefinir',
   'expandir', 'recolher', 'mostrar', 'ocultar', 'escolha', 'digite', 'adicionar', 'remover',
+  'editar', 'excluir', 'confirmar',
   // UI nouns and adjectives
   'nenhum', 'nenhuma', 'erro', 'todos', 'todas', 'senha', 'resultado', 'resultados', 'detalhes',
   'fonte', 'fontes', 'dados', 'ano', 'anos', 'mapa', 'mapas', 'camada', 'camadas', 'filtro',
@@ -68,6 +69,7 @@ export const PORTUGUESE_WORDS = new Set([
   'indisponivel', 'obrigatorio', 'invalido', 'ferramentas', 'legenda', 'escala', 'cores',
   'rodovias', 'gasodutos', 'subestacoes', 'usinas', 'estado', 'estados', 'cidade', 'ativo',
   'ativos', 'dominante', 'teorico', 'medio', 'prazo', 'otimista', 'conservador', 'fronteira',
+  'nome', 'nomes', 'idioma', 'ajuda',
 ]);
 
 /** True when `text` reads as Portuguese UI copy. */

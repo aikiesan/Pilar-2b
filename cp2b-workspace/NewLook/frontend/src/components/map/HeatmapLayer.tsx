@@ -10,10 +10,11 @@ import React, { useEffect, useRef, useMemo } from 'react';
 import { useMap, CircleMarker, Tooltip } from 'react-leaflet';
 import L from 'leaflet';
 import { useTranslations } from 'next-intl';
-import type { MunicipalityCollection } from '@/types/geospatial';
+import type { MunicipalityCollection, MunicipalityProperties } from '@/types/geospatial';
 import type { ResidueType } from '@/types/map';
 import { useFormat } from '@/hooks/useFormat';
 import { useSelectionLabel } from '@/hooks/useSelectionLabel';
+import { markerPosition } from '@/lib/mapUtils';
 
 interface HeatmapLayerProps {
   data: MunicipalityCollection;
@@ -31,6 +32,26 @@ const HEAT_GRADIENT: Record<number, string> = {
   1.0: '#800026',
 };
 
+/**
+ * A municipality's biomass (t/year) for the selected residues, or its total.
+ *
+ * Reads the served biomass tonnage fields (`{residue}_biomass_tons_year`,
+ * `total_biomass_tons_year`). The legacy `*_biogas_m3_year` columns this used
+ * to read are trimmed from the slim map payload (fields=map), so they came back
+ * undefined and every point was 0 — the heatmap rendered nothing. See
+ * geospatialClient (fields=map) and the served-keys audit.
+ */
+function residueValue(props: MunicipalityProperties, selectedResidues: ResidueType[]): number {
+  const fields = props as unknown as Record<string, unknown>;
+  if (selectedResidues.length === 0) {
+    return Number(fields.total_biomass_tons_year) || 0;
+  }
+  return selectedResidues.reduce(
+    (sum, residue) => sum + (Number(fields[`${residue}_biomass_tons_year`]) || 0),
+    0
+  );
+}
+
 export default function HeatmapLayer({
   data,
   selectedResidues,
@@ -42,51 +63,15 @@ export default function HeatmapLayer({
   const format = useFormat();
   const selectionLabel = useSelectionLabel();
 
-  // Calculate residue value for each municipality.
-  //
-  // Reads the served biomass tonnage fields (`{residue}_biomass_tons_year`,
-  // `total_biomass_tons_year`). The legacy `*_biogas_m3_year` columns this used
-  // to read are trimmed from the slim map payload (fields=map), so they came back
-  // undefined and every point was 0 — the heatmap rendered nothing. See
-  // geospatialClient (fields=map) and the served-keys audit.
-  const getResidueValue = (props: any): number => {
-    if (selectedResidues.length === 0) {
-      return Number(props.total_biomass_tons_year) || 0;
-    }
-    return selectedResidues.reduce(
-      (sum, residue) => sum + (Number(props[`${residue}_biomass_tons_year`]) || 0),
-      0
-    );
-  };
-
-  // Get centroid [lat, lng] from a GeoJSON geometry
-  const getCentroid = (feature: any): [number, number] | null => {
-    const { type, coordinates } = feature.geometry;
-    if (type === 'Point') {
-      return [coordinates[1], coordinates[0]];
-    }
-    if (type === 'Polygon') {
-      const ring = coordinates[0] as [number, number][];
-      const sum = ring.reduce((acc, [lng, lat]) => ({ lng: acc.lng + lng, lat: acc.lat + lat }), { lng: 0, lat: 0 });
-      return [sum.lat / ring.length, sum.lng / ring.length];
-    }
-    if (type === 'MultiPolygon') {
-      const ring = coordinates[0][0] as [number, number][];
-      const sum = ring.reduce((acc, [lng, lat]) => ({ lng: acc.lng + lng, lat: acc.lat + lat }), { lng: 0, lat: 0 });
-      return [sum.lat / ring.length, sum.lng / ring.length];
-    }
-    return null;
-  };
-
   // Build point data (memoised so tooltip markers re-render when data changes)
   const points = useMemo(() => {
     return data.features
       .map(feature => {
-        const value = getResidueValue(feature.properties);
+        const value = residueValue(feature.properties, selectedResidues);
         if (value === 0) return null;
-        const centroid = getCentroid(feature);
-        if (!centroid) return null;
-        return { position: centroid as [number, number], value, name: feature.properties.name };
+        const position = markerPosition(feature.geometry);
+        if (!position) return null;
+        return { position, value, name: feature.properties.name };
       })
       .filter((p): p is { position: [number, number]; value: number; name: string } => p !== null);
   }, [data, selectedResidues]);

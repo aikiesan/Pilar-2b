@@ -19,7 +19,7 @@ from slowapi.errors import RateLimitExceeded
 from app.api.v1.api import api_router
 from app.core.config import settings
 from app.core.database import test_db_connection
-from app.core.log_sanitizer import PiiRedactingFilter
+from app.core.log_sanitizer import install_pii_redaction
 from app.middleware.rate_limit import limiter, rate_limit_exceeded_handler
 from app.middleware.rate_limiter import rate_limit_middleware
 from app.middleware.request_size_limit import request_size_limit_middleware
@@ -28,7 +28,7 @@ from app.middleware.validation import validation_middleware
 from app.services.cache_service import get_all_cache_stats
 
 # Redact PII (e-mails, CPF/CNPJ) from all log records (LGPD data-minimisation).
-logging.getLogger().addFilter(PiiRedactingFilter())
+install_pii_redaction()
 
 log = logging.getLogger(__name__)
 
@@ -184,9 +184,11 @@ async def health_check():
             )
 
     except Exception as e:
+        # The driver's message can name the host, port and database user: it goes
+        # to the log, not to whoever calls /health.
+        log.error("Health check: database unreachable: %s", e)
         health_status["status"] = "unhealthy"
         health_status["database"] = "disconnected"
-        health_status["error"] = str(e)
         return JSONResponse(status_code=503, content=health_status)  # Service unavailable
 
     return health_status

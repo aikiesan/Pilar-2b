@@ -15,13 +15,13 @@ export default function GuideLayout({
       
       {/* Sidebar (Menu Lateral) - Visível apenas em telas médias (md) para cima */}
       <aside className="w-64 fixed h-full border-r border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 overflow-y-auto hidden md:block">
-        <h2 className="text-lg font-bold text-cp2b-green mb-6 flex items-center gap-2">
+        <h2 className="text-lg font-bold text-cp2b-green dark:text-cp2b-lime mb-6 flex items-center gap-2">
           <BookOpen className="w-5 h-5" />
           {t('sidebar_heading')}
         </h2>
         
         <nav className="space-y-1">
-          <span className="block text-[10px] font-bold text-gray-400 tracking-wider uppercase mb-2 px-3">
+          <span className="block text-[10px] font-bold text-gray-500 dark:text-slate-400 tracking-wider uppercase mb-2 px-3">
             {t('main_topics')}
           </span>
           
@@ -41,12 +41,12 @@ export default function GuideLayout({
 
           <Link
             href="/map"
-            className="block px-3 py-2 rounded-lg bg-cp2b-green/10 dark:bg-emerald-500/10 text-cp2b-green dark:text-emerald-300 hover:bg-cp2b-green/20 font-semibold transition-colors"
+            className="block px-3 py-2 rounded-lg bg-cp2b-green/10 dark:bg-emerald-500/10 text-cp2b-dark-green dark:text-emerald-300 hover:bg-cp2b-green/20 font-semibold transition-colors"
           >
             {t('nav_open_map')}
           </Link>
 
-          <span className="block text-[10px] font-bold text-gray-400 tracking-wider uppercase mt-4 mb-2 px-3">
+          <span className="block text-[10px] font-bold text-gray-500 dark:text-slate-400 tracking-wider uppercase mt-4 mb-2 px-3">
             {t('topics_label')}
           </span>
 
