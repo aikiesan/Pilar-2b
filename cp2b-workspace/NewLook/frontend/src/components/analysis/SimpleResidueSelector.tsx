@@ -220,43 +220,21 @@ export default function SimpleResidueSelector({
 
           return (
             <div key={group.id} className="border-b border-gray-100 last:border-0">
-              {/* Group Header */}
+              {/* Group Header: the "select all" checkbox and the expand button are
+                  siblings. The checkbox used to sit inside a role="button" row,
+                  where a screen reader cannot reach it as a control of its own. */}
               <div
-                className={`flex items-center gap-2 p-3 cursor-pointer transition-colors ${
+                className={`flex items-center gap-2 p-3 transition-colors ${
                   isExpanded ? 'bg-gray-50' : 'hover:bg-gray-50'
                 }`}
-                role="button"
-                tabIndex={0}
-                aria-expanded={isExpanded}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    (e.currentTarget as HTMLElement).click();
-                  }
-                }}
-                onClick={() => {
-                  const newExpanded = new Set(expandedGroups);
-                  if (newExpanded.has(group.id)) {
-                    newExpanded.delete(group.id);
-                  } else {
-                    newExpanded.add(group.id);
-                  }
-                  setExpandedGroups(newExpanded);
-                }}
               >
-                {isExpanded ? (
-                  <ChevronDown className="w-3.5 h-3.5 text-gray-600" />
-                ) : (
-                  <ChevronRight className="w-3.5 h-3.5 text-gray-600" />
-                )}
-
                 {selectedCategory === 'agricultural' && (
                   <div
                     role="checkbox"
-                    aria-checked={allSelected}
+                    aria-checked={allSelected ? true : selectedCount > 0 ? 'mixed' : false}
                     aria-label={t('residue_selector.select_all', { group: group.label })}
                     tabIndex={0}
-                    className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-all focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-1 ${
+                    className={`w-4 h-4 shrink-0 cursor-pointer rounded border-2 flex items-center justify-center transition-all focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-1 ${
                       allSelected
                         ? 'bg-green-600 border-green-600'
                         : selectedCount > 0
@@ -266,14 +244,10 @@ export default function SimpleResidueSelector({
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
-                        e.stopPropagation();
-                        (e.currentTarget as HTMLElement).click();
+                        toggleGroupSelection(group.id);
                       }
                     }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleGroupSelection(group.id);
-                    }}
+                    onClick={() => toggleGroupSelection(group.id)}
                   >
                     {allSelected && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
                     {selectedCount > 0 && !allSelected && (
@@ -282,13 +256,34 @@ export default function SimpleResidueSelector({
                   </div>
                 )}
 
-                <span className="flex-1 text-xs font-medium text-gray-800">{group.label}</span>
+                <button
+                  type="button"
+                  aria-expanded={isExpanded}
+                  onClick={() => {
+                    const newExpanded = new Set(expandedGroups);
+                    if (newExpanded.has(group.id)) {
+                      newExpanded.delete(group.id);
+                    } else {
+                      newExpanded.add(group.id);
+                    }
+                    setExpandedGroups(newExpanded);
+                  }}
+                  className="flex flex-1 items-center gap-2 text-left cursor-pointer rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-green-500"
+                >
+                  {isExpanded ? (
+                    <ChevronDown className="w-3.5 h-3.5 text-gray-600" />
+                  ) : (
+                    <ChevronRight className="w-3.5 h-3.5 text-gray-600" />
+                  )}
 
-                {selectedCount > 0 && (
-                  <span className="px-1.5 py-0.5 bg-green-600 text-white text-[10px] font-semibold rounded-full">
-                    {selectedCount}
-                  </span>
-                )}
+                  <span className="flex-1 text-xs font-medium text-gray-800">{group.label}</span>
+
+                  {selectedCount > 0 && (
+                    <span className="px-1.5 py-0.5 bg-green-700 text-white text-[10px] font-semibold rounded-full">
+                      {selectedCount}
+                    </span>
+                  )}
+                </button>
               </div>
 
               {/* Group Residues */}
@@ -350,7 +345,7 @@ export default function SimpleResidueSelector({
           </div>
           <button
             onClick={onApply}
-            className="w-full px-3 py-2 text-xs font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors"
+            className="w-full px-3 py-2 text-xs font-medium text-white bg-green-700 hover:bg-green-800 rounded-lg transition-colors"
           >
             {t('residue_selector.apply_filters')}
           </button>

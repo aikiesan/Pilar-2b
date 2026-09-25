@@ -144,8 +144,8 @@ export default function BiogasCalculator() {
             {[0,1,2,3].map(i => (
               <div key={i} className={`flex items-center ${i < 3 ? 'flex-1' : ''}`}>
                 <div className={`shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold
-                  ${i < numericStep ? 'bg-green-600 text-white'
-                  : i === numericStep ? 'bg-green-600 text-white ring-4 ring-green-100 dark:ring-emerald-900/40'
+                  ${i < numericStep ? 'bg-green-700 text-white'
+                  : i === numericStep ? 'bg-green-700 text-white ring-4 ring-green-100 dark:ring-emerald-900/40'
                   : 'bg-gray-200 text-gray-400 dark:bg-slate-700 dark:text-slate-500'}`}>
                   {i < numericStep ? '✓' : i + 1}
                 </div>

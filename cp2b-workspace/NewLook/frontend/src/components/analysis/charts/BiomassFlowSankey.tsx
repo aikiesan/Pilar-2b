@@ -11,8 +11,8 @@ import {
   CorrectionFactors,
   calculateFDE,
   DEFAULT_FACTORS,
-  CH4_FRACTION
 } from '@/types/analysis'
+import { CH4_FRACTION_OF_BIOGAS } from '@/data/scenarioFactors'
 
 // Exported so page.tsx can use it to assign residue colors
 export const RESIDUE_PALETTE = [
@@ -464,7 +464,7 @@ function MultiResiduesSankey({
 export default function BiomassFlowSankey({
   theoreticalPotential,
   factors = DEFAULT_FACTORS,
-  ch4Fraction = CH4_FRACTION,
+  ch4Fraction = CH4_FRACTION_OF_BIOGAS,
   title,
   loading = false,
   residues,
@@ -569,7 +569,7 @@ export default function BiomassFlowSankey({
           <div className="text-center p-3 bg-blue-50 rounded-lg">
             <div className="text-xs text-gray-500 mb-1">{t('sankey_summary_ch4')}</div>
             <div className="font-mono font-semibold text-blue-700">{formatValue(ch4Equivalent)}</div>
-            <div className="text-xs text-gray-400">{t('sankey_ch4_fraction', { pct: format.number(ch4Fraction * 100) })}</div>
+            <div className="text-xs text-gray-400">{t('sankey_ch4_fraction', { pct: format.number(ch4Fraction * 100, { decimals: 1 }) })}</div>
           </div>
         </div>
       </div>

@@ -7,6 +7,7 @@ import { render } from '@testing-library/react';
 import { MapContainer } from 'react-leaflet';
 import MunicipalityLayer from './MunicipalityLayer';
 import type { MunicipalityCollection } from '@/types/geospatial';
+import { municipalityProps } from '@/test/fixtures/municipality';
 import { MG_DATA_STROKE } from '@/lib/mapScope';
 
 // react-leaflet and leaflet are mocked globally via jest.config moduleNameMapper
@@ -27,7 +28,7 @@ describe('MunicipalityLayer', () => {
           type: 'Polygon',
           coordinates: [[[-48.0, -22.0], [-48.1, -22.0], [-48.1, -22.1], [-48.0, -22.1], [-48.0, -22.0]]]
         },
-        properties: {
+        properties: municipalityProps({
           name: 'Campinas',
           total_biogas_m3_year: 150000000,
           agricultural_biogas_m3_year: 60000000,
@@ -39,7 +40,7 @@ describe('MunicipalityLayer', () => {
           cattle_biogas_m3_year: 20000000,
           swine_biogas_m3_year: 15000000,
           poultry_biogas_m3_year: 5000000
-        }
+        })
       },
       {
         type: 'Feature',
@@ -47,13 +48,13 @@ describe('MunicipalityLayer', () => {
           type: 'Polygon',
           coordinates: [[[-47.0, -23.0], [-47.1, -23.0], [-47.1, -23.1], [-47.0, -23.1], [-47.0, -23.0]]]
         },
-        properties: {
+        properties: municipalityProps({
           name: 'São Paulo',
           total_biogas_m3_year: 600000000,
           agricultural_biogas_m3_year: 100000000,
           livestock_biogas_m3_year: 200000000,
           urban_biogas_m3_year: 300000000
-        }
+        })
       },
       {
         type: 'Feature',
@@ -61,10 +62,10 @@ describe('MunicipalityLayer', () => {
           type: 'Polygon',
           coordinates: [[[-46.0, -24.0], [-46.1, -24.0], [-46.1, -24.1], [-46.0, -24.1], [-46.0, -24.0]]]
         },
-        properties: {
+        properties: municipalityProps({
           name: 'Small City',
           total_biogas_m3_year: 500000
-        }
+        })
       },
       {
         type: 'Feature',
@@ -72,10 +73,10 @@ describe('MunicipalityLayer', () => {
           type: 'Polygon',
           coordinates: [[[-45.0, -25.0], [-45.1, -25.0], [-45.1, -25.1], [-45.0, -25.1], [-45.0, -25.0]]]
         },
-        properties: {
+        properties: municipalityProps({
           name: 'Zero City',
           total_biogas_m3_year: 0
-        }
+        })
       }
     ]
   };
@@ -229,12 +230,12 @@ describe('MunicipalityLayer', () => {
         features: [{
           type: 'Feature',
           geometry: { type: 'Polygon', coordinates: [[[-48.0, -22.0], [-48.1, -22.0], [-48.1, -22.1], [-48.0, -22.0]]] },
-          properties: {
+          properties: municipalityProps({
             ibge_code: ibgeCode,
             name: 'Test',
             total_biomass_tons_year: 1000,
             total_biomass_coverage: 'measured',
-          },
+          }),
         }],
       });
 
@@ -259,7 +260,7 @@ describe('MunicipalityLayer', () => {
         features: [{
           type: 'Feature',
           geometry: { type: 'Polygon', coordinates: [[[-48.0, -22.0], [-48.1, -22.0], [-48.1, -22.1], [-48.0, -22.0]]] },
-          properties: { ibge_code: '3500600', name: 'Águas de São Pedro' },
+          properties: municipalityProps({ ibge_code: '3500600', name: 'Águas de São Pedro' }),
         }],
       };
 
@@ -289,7 +290,7 @@ describe('MunicipalityLayer', () => {
         features: [{
           type: 'Feature',
           geometry: { type: 'Polygon', coordinates: [[[-48.0, -22.0], [-48.1, -22.0], [-48.1, -22.1], [-48.0, -22.0]]] },
-          properties: { name: 'Test', total_biogas_m3_year: 500000 }
+          properties: municipalityProps({ name: 'Test', total_biogas_m3_year: 500000 })
         }]
       };
 
@@ -308,7 +309,7 @@ describe('MunicipalityLayer', () => {
         features: [{
           type: 'Feature',
           geometry: { type: 'Polygon', coordinates: [[[-48.0, -22.0], [-48.1, -22.0], [-48.1, -22.1], [-48.0, -22.0]]] },
-          properties: { name: 'Test', total_biogas_m3_year: 25000000 }
+          properties: municipalityProps({ name: 'Test', total_biogas_m3_year: 25000000 })
         }]
       };
 
@@ -327,7 +328,7 @@ describe('MunicipalityLayer', () => {
         features: [{
           type: 'Feature',
           geometry: { type: 'Polygon', coordinates: [[[-48.0, -22.0], [-48.1, -22.0], [-48.1, -22.1], [-48.0, -22.0]]] },
-          properties: { name: 'Test', total_biogas_m3_year: 600000000 }
+          properties: municipalityProps({ name: 'Test', total_biogas_m3_year: 600000000 })
         }]
       };
 
@@ -423,7 +424,7 @@ describe('MunicipalityLayer', () => {
         features: [{
           type: 'Feature',
           geometry: { type: 'Polygon', coordinates: [[[-48.0, -22.0], [-48.1, -22.0], [-48.1, -22.1], [-48.0, -22.0]]] },
-          properties: { name: 'Test' }
+          properties: municipalityProps({ name: 'Test' })
         }]
       };
 
@@ -442,11 +443,11 @@ describe('MunicipalityLayer', () => {
         features: [{
           type: 'Feature',
           geometry: { type: 'Polygon', coordinates: [[[-48.0, -22.0], [-48.1, -22.0], [-48.1, -22.1], [-48.0, -22.0]]] },
-          properties: {
+          properties: municipalityProps({
             name: 'Test',
             total_biogas_m3_year: null as any,
             agricultural_biogas_m3_year: null as any
-          }
+          })
         }]
       };
 
@@ -478,10 +479,10 @@ describe('MunicipalityLayer', () => {
         features: [{
           type: 'Feature',
           geometry: { type: 'Polygon', coordinates: [[[-48.0, -22.0], [-48.1, -22.0], [-48.1, -22.1], [-48.0, -22.0]]] },
-          properties: {
+          properties: municipalityProps({
             name: 'Test',
             total_biogas_m3_year: 5000000000000 // 5 trillion
-          }
+          })
         }]
       };
 
@@ -500,10 +501,10 @@ describe('MunicipalityLayer', () => {
         features: [{
           type: 'Feature',
           geometry: { type: 'Polygon', coordinates: [[[-48.0, -22.0], [-48.1, -22.0], [-48.1, -22.1], [-48.0, -22.0]]] },
-          properties: {
+          properties: municipalityProps({
             name: 'Test',
             total_biogas_m3_year: -1000000
-          }
+          })
         }]
       };
 
@@ -537,10 +538,10 @@ describe('MunicipalityLayer', () => {
             type: 'Polygon' as const,
             coordinates: [[[-48.0 + i * 0.1, -22.0], [-48.1 + i * 0.1, -22.0], [-48.1 + i * 0.1, -22.1], [-48.0 + i * 0.1, -22.0]]]
           },
-          properties: {
+          properties: municipalityProps({
             name: `City ${i}`,
             total_biogas_m3_year: 1000000 * (i + 1)
-          }
+          })
         }))
       };
 

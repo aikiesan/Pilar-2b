@@ -8,21 +8,15 @@
  * Data comes from the cached useGeospatialData hook (no extra fetch).
  */
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useId, useRef, useCallback } from 'react'
 import { useRouter } from '@/navigation'
 import { useTranslations } from 'next-intl'
 import { useGeospatialData } from '@/hooks/useGeospatialData'
+import { useFormat } from '@/hooks/useFormat'
 import { Search, X, MapPin, TrendingUp } from 'lucide-react'
 import type { MunicipalityFeature } from '@/types/geospatial'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-
-function formatBig(value: number | null | undefined): string {
-  if (value == null || Number.isNaN(value)) return '—'
-  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`
-  if (value >= 1_000) return `${(value / 1_000).toFixed(0)}K`
-  return value.toFixed(0)
-}
 
 function getPotentialColor(value: number): string {
   if (value >= 500_000_000) return 'text-blue-700 dark:text-blue-400'
@@ -41,6 +35,7 @@ interface GlobalSearchProps {
 
 export default function GlobalSearch({ variant = 'light' }: GlobalSearchProps) {
   const t = useTranslations('common.search')
+  const format = useFormat()
   const router = useRouter()
   const { data } = useGeospatialData()
 
@@ -49,7 +44,12 @@ export default function GlobalSearch({ variant = 'light' }: GlobalSearchProps) {
   const [activeIndex, setActiveIndex] = useState(0)
 
   const inputRef = useRef<HTMLInputElement>(null)
+  const triggerRef = useRef<HTMLButtonElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+  // Closing from the keyboard or the close button hands focus back to the trigger.
+  const refocusTrigger = useRef(false)
+  const listboxId = useId()
+  const optionId = (index: number) => `${listboxId}-option-${index}`
 
   // ── Search results ──────────────────────────────────────────────────────────
   const results: MunicipalityFeature[] = (() => {
@@ -64,55 +64,70 @@ export default function GlobalSearch({ variant = 'light' }: GlobalSearchProps) {
       .sort((a, b) => b.properties.total_biogas_m3_year - a.properties.total_biogas_m3_year)
       .slice(0, 8)
   })()
+  // The listbox exists only while there are results; the combobox says so.
+  const expanded = results.length > 0
+
+  const openSearch = () => {
+    refocusTrigger.current = false
+    setOpen(true)
+    setTimeout(() => inputRef.current?.focus(), 50)
+  }
+
+  const close = useCallback((returnFocus: boolean) => {
+    refocusTrigger.current = returnFocus
+    setOpen(false)
+    setQuery('')
+  }, [])
 
   // ── Keyboard shortcut "/" to open ───────────────────────────────────────────
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === '/' && !(e.target instanceof HTMLInputElement) && !(e.target instanceof HTMLTextAreaElement)) {
         e.preventDefault()
+        refocusTrigger.current = false
         setOpen(true)
         setTimeout(() => inputRef.current?.focus(), 50)
       }
       if (e.key === 'Escape') {
-        setOpen(false)
-        setQuery('')
+        close(containerRef.current?.contains(e.target as Node) ?? false)
       }
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [])
+  }, [close])
+
+  useEffect(() => {
+    if (!open && refocusTrigger.current) {
+      refocusTrigger.current = false
+      triggerRef.current?.focus()
+    }
+  }, [open])
 
   // ── Close on outside click ──────────────────────────────────────────────────
   useEffect(() => {
     const onClickOutside = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setOpen(false)
-        setQuery('')
+        close(false)
       }
     }
     if (open) document.addEventListener('mousedown', onClickOutside)
     return () => document.removeEventListener('mousedown', onClickOutside)
-  }, [open])
-
-  // Reset active index when results change
-  useEffect(() => {
-    setActiveIndex(0)
-  }, [results.length])
+  }, [open, close])
 
   // ── Navigation ──────────────────────────────────────────────────────────────
   const navigateTo = useCallback(
     (municipality: MunicipalityFeature) => {
       router.push(`/municipality/${municipality.properties.ibge_code}` as any)
-      setOpen(false)
-      setQuery('')
+      close(false)
     },
-    [router]
+    [router, close]
   )
 
   const onKeyDownList = (e: React.KeyboardEvent) => {
     if (e.key === 'ArrowDown') {
       e.preventDefault()
-      setActiveIndex((i) => Math.min(i + 1, results.length - 1))
+      // Never below 0: with no results yet, the first one to arrive is the active one.
+      setActiveIndex((i) => Math.max(0, Math.min(i + 1, results.length - 1)))
     } else if (e.key === 'ArrowUp') {
       e.preventDefault()
       setActiveIndex((i) => Math.max(i - 1, 0))
@@ -125,28 +140,29 @@ export default function GlobalSearch({ variant = 'light' }: GlobalSearchProps) {
   const triggerClass =
     variant === 'dark'
       ? 'flex items-center gap-2 px-3 py-1.5 rounded-lg text-green-100 bg-white/10 hover:bg-white/20 border border-white/20 text-sm transition-colors cursor-pointer'
-      : 'flex items-center gap-2 px-3 py-1.5 rounded-lg text-gray-500 bg-gray-100 hover:bg-gray-200 border border-gray-200 text-sm transition-colors cursor-pointer'
+      : 'flex items-center gap-2 px-3 py-1.5 rounded-lg text-gray-600 bg-gray-100 hover:bg-gray-200 border border-gray-200 text-sm transition-colors cursor-pointer'
 
   return (
     <div ref={containerRef} className="relative tour-search-bar">
-      {/* Collapsed trigger */}
-      {!open && (
-        <button
-          onClick={() => { setOpen(true); setTimeout(() => inputRef.current?.focus(), 50) }}
-          className={triggerClass}
-          aria-label={t('trigger_aria')}
-        >
-          <Search className="w-4 h-4 shrink-0" />
-          <span className="hidden lg:inline text-xs">{t('trigger')}</span>
-          <kbd className="hidden lg:inline px-1 py-0.5 text-[10px] font-mono rounded bg-black/10 dark:bg-white/10">
-            /
-          </kbd>
-        </button>
-      )}
+      {/* Collapsed trigger. It keeps its place while the search is open (hidden,
+          so it cannot take focus): the open search floats over the bar instead
+          of widening it, which pushed a full header off the screen. */}
+      <button
+        ref={triggerRef}
+        onClick={openSearch}
+        className={`${triggerClass} ${open ? 'invisible' : ''}`}
+        aria-label={t('trigger_aria')}
+      >
+        <Search className="w-4 h-4 shrink-0" />
+        <span className="hidden min-[1760px]:inline text-xs">{t('trigger')}</span>
+        <kbd className="hidden min-[1760px]:inline px-1 py-0.5 text-[10px] font-mono rounded bg-black/10 dark:bg-white/10">
+          /
+        </kbd>
+      </button>
 
       {/* Expanded search input */}
       {open && (
-        <div className="w-72 sm:w-96">
+        <div className="absolute right-0 top-1/2 -translate-y-1/2 z-[600] w-72 sm:w-96">
           <div className={`flex items-center gap-2 px-3 py-2 rounded-xl border shadow-lg ${
             variant === 'dark'
               ? 'bg-[#163d1f] border-white/20'
@@ -157,17 +173,26 @@ export default function GlobalSearch({ variant = 'light' }: GlobalSearchProps) {
               ref={inputRef}
               type="search"
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={(e) => {
+                setQuery(e.target.value)
+                setActiveIndex(0)
+              }}
               onKeyDown={onKeyDownList}
+              role="combobox"
+              aria-expanded={expanded}
+              aria-controls={expanded ? listboxId : undefined}
+              aria-autocomplete="list"
+              aria-activedescendant={expanded && results[activeIndex] ? optionId(activeIndex) : undefined}
               placeholder={t('placeholder')}
               aria-label={t('input_aria')}
-              className={`flex-1 bg-transparent text-sm outline-none ${
+              className={`flex-1 bg-transparent text-sm outline-none [&::-webkit-search-cancel-button]:hidden ${
                 variant === 'dark' ? 'text-white placeholder-green-300/50' : 'text-gray-900 placeholder-gray-400'
               }`}
               autoComplete="off"
             />
             <button
-              onClick={() => { setOpen(false); setQuery('') }}
+              onClick={() => close(true)}
+              aria-label={t('close_aria')}
               className={`shrink-0 ${variant === 'dark' ? 'text-green-300 hover:text-white' : 'text-gray-400 hover:text-gray-600'}`}
             >
               <X className="w-4 h-4" />
@@ -178,16 +203,18 @@ export default function GlobalSearch({ variant = 'light' }: GlobalSearchProps) {
           {query.trim() && (
             <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-xl overflow-hidden z-[600]">
               {results.length === 0 ? (
-                <div className="px-4 py-6 text-center text-sm text-gray-500">
+                <div role="status" className="px-4 py-6 text-center text-sm text-gray-500">
                   {t('no_results', { query })}
                 </div>
               ) : (
-                <ul role="listbox" aria-label={t('results_aria')}>
+                <ul id={listboxId} role="listbox" aria-label={t('results_aria')}>
                   {results.map((muni, idx) => {
                     const total = muni.properties.total_biogas_m3_year
                     return (
+                      // eslint-disable-next-line jsx-a11y/click-events-have-key-events -- keyboard: the combobox input (arrows, Enter)
                       <li
                         key={muni.properties.ibge_code}
+                        id={optionId(idx)}
                         role="option"
                         aria-selected={idx === activeIndex}
                         onClick={() => navigateTo(muni)}
@@ -212,7 +239,7 @@ export default function GlobalSearch({ variant = 'light' }: GlobalSearchProps) {
                         <div className="flex items-center gap-1 shrink-0 ml-3">
                           <TrendingUp className="w-3 h-3 text-gray-400" />
                           <span className={`text-xs font-semibold ${getPotentialColor(total)}`}>
-                            {formatBig(total)} {t('per_year')}
+                            {format.compact(total)} {t('per_year')}
                           </span>
                         </div>
                       </li>

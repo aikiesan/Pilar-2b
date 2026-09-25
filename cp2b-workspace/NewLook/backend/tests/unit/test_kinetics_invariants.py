@@ -35,9 +35,6 @@ Physical constraints that MUST hold for every valid kinetics record:
    a single-stage continuous system.
 """
 
-from contextlib import contextmanager
-from unittest.mock import MagicMock
-
 import pytest
 
 # ── Representative valid kinetics records ─────────────────────────────────────

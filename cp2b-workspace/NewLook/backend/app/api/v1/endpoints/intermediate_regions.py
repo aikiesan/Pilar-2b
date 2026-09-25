@@ -66,7 +66,8 @@ async def get_intermediate_regions_geojson(
     try:
         geojson = _load_geojson()
     except FileNotFoundError as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error("Intermediate regions GeoJSON missing: %s", e)
+        raise HTTPException(status_code=500, detail="Intermediate regions data unavailable")
 
     features = list(geojson.get("features", []))
 
@@ -124,8 +125,9 @@ async def get_rankings(
 
     try:
         rows = _fetch_all_from_db()
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
+    except Exception:
+        logger.exception("Intermediate regions ranking failed")
+        raise HTTPException(status_code=500, detail="Failed to fetch intermediate regions")
 
     rows.sort(key=lambda r: float(r.get(metric) or 0), reverse=True)
 
@@ -156,8 +158,9 @@ async def list_intermediate_regions(
     """List all intermediate regions with summary stats."""
     try:
         rows = _fetch_all_from_db(state_code=state_code)
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
+    except Exception:
+        logger.exception("Intermediate regions list failed")
+        raise HTTPException(status_code=500, detail="Failed to fetch intermediate regions")
 
     rows.sort(key=lambda r: float(r.get(sort_by) or 0), reverse=(order == "desc"))
 
@@ -179,8 +182,9 @@ async def get_region_detail(ibge_code: str):
             )
             row = cursor.fetchone()
             cursor.close()
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
+    except Exception:
+        logger.exception("Intermediate region detail failed")
+        raise HTTPException(status_code=500, detail="Failed to fetch intermediate region")
 
     if not row:
         raise HTTPException(status_code=404, detail=f"Region {ibge_code} not found")
@@ -219,7 +223,7 @@ async def trigger_cluster_analysis(
         )
     except Exception as exc:
         logger.error(f"Cluster analysis failed: {exc}")
-        raise HTTPException(status_code=500, detail=f"Cluster analysis error: {exc}")
+        raise HTTPException(status_code=500, detail="Cluster analysis failed")
 
 
 # ─── Internal helpers ─────────────────────────────────────────────────────────

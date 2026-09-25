@@ -3,11 +3,7 @@ Tests for Proximity Service
 Tests geospatial proximity analysis and municipality name normalization
 """
 
-from unittest.mock import MagicMock, Mock, patch
-
-import pyproj
 import pytest
-from shapely.geometry import Point, Polygon, mapping
 
 from app.services.proximity_service import (
     MAPBIOMAS_RESIDUOS_MAPPING,

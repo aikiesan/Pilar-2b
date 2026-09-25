@@ -1,14 +1,20 @@
 const React = require("react")
 
+// Like lucide's own icons: decorative (aria-hidden) unless the caller gives
+// one a name or a role. This mock used to label every icon ("X icon"), which
+// named every icon-only button in the axe tests, including the ones that have
+// no name in a real browser.
+const hasA11yProp = (props) =>
+  Object.keys(props).some((prop) => prop.startsWith("aria-") || prop === "role" || prop === "title")
+
 const createMockIcon = (name) => {
   return React.forwardRef((props, ref) => {
     return React.createElement("div", {
+      ...(hasA11yProp(props) || props.children ? {} : { "aria-hidden": "true" }),
       ...props,
       ref,
       "data-testid": `lucide-${name.toLowerCase()}`,
       "data-icon": name,
-      role: "img",
-      "aria-label": `${name} icon`,
       className: `lucide-icon ${props.className || ""}`.trim(),
     })
   })

@@ -1,10 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { useTranslations } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import { Mail, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react'
+import { Link } from '@/navigation'
+import { isLocale } from '@/config/i18n'
 import { validateEmail } from '@/lib/validation'
 import { useValidationMessage } from '@/hooks/useValidationMessage'
+import { subscribeToNewsletter } from '@/services/newsletterApi'
 
 interface NewsletterSignupProps {
   title?: string
@@ -15,14 +18,12 @@ interface NewsletterSignupProps {
 type Status = 'idle' | 'loading' | 'success' | 'error'
 
 /**
- * Newsletter sign-up card (About pages).
- *
- * NOTE: there is no newsletter service yet — the submission below is
- * simulated, as it was before this component was translated. Wire it to a
- * real endpoint before relying on it.
+ * Newsletter sign-up card (About pages). The address is stored on the UNICAMP
+ * VM (services/newsletterApi, source "about").
  */
 export default function NewsletterSignup({ title, description, className = '' }: NewsletterSignupProps) {
   const t = useTranslations('newsletter')
+  const locale = useLocale()
   const validationMessage = useValidationMessage()
   const [email, setEmail] = useState('')
   const [status, setStatus] = useState<Status>('idle')
@@ -45,15 +46,14 @@ export default function NewsletterSignup({ title, description, className = '' }:
     }
 
     setStatus('loading')
-    try {
-      // TODO: replace with the newsletter API once one exists.
-      await new Promise((resolve) => setTimeout(resolve, 1500))
+    const result = await subscribeToNewsletter(email.trim(), 'about', isLocale(locale) ? locale : 'pt-BR')
+    if (result === 'subscribed') {
       setStatus('success')
       setMessage(t('success'))
       setEmail('')
-    } catch {
+    } else {
       setStatus('error')
-      setMessage(t('failure'))
+      setMessage(t(`errors.${result}`))
     }
     resetLater()
   }
@@ -136,7 +136,15 @@ export default function NewsletterSignup({ title, description, className = '' }:
         </div>
       )}
 
-      <p className="mt-4 text-xs text-gray-500 dark:text-gray-400">{t('privacy')}</p>
+      <p className="mt-4 text-xs text-gray-500 dark:text-gray-400">
+        {t.rich('privacy', {
+          privacy: (chunks) => (
+            <Link href="/privacy" className="underline underline-offset-2 hover:text-gray-700 dark:hover:text-gray-200">
+              {chunks}
+            </Link>
+          ),
+        })}
+      </p>
     </div>
   )
 }

@@ -4,7 +4,7 @@ Tests PostGIS-based spatial queries, GeoJSON generation, and municipality data
 """
 
 from contextlib import contextmanager
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import pytest
 from fastapi.testclient import TestClient

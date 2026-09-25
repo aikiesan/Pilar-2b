@@ -2,12 +2,15 @@
 Analysis API endpoints for biogas potential calculations
 """
 
+import logging
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, HTTPException, Query
 
 from app.core.database import get_db
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -82,105 +85,6 @@ FRONTEND_CODE_TO_STREAM: Dict[str, Optional[str]] = {
     "IND_VISCERAS_NAO_COMESTIVEIS": None,
     "IND_RESIDUO_PROCESSAMENTO_VEGETAL": None,
 }
-
-# Maps frontend residue codes (from residueFactors.ts) → residue_streams_sp2023.residue_stream
-# None = residue exists in frontend but has no DB stream (not yet in residue_streams_sp2023)
-FRONTEND_CODE_TO_STREAM: Dict[str, Optional[str]] = {
-    # Agricultural — Cana (4 sub-residues all map to the sugarcane stream)
-    "AG_CANA_BAGACO": "sugarcane",
-    "AG_CANA_PALHA": "sugarcane",
-    "AG_CANA_TORTA_FILTRO": "sugarcane",
-    "AG_CANA_VINHACA": "sugarcane",
-    # Agricultural — other crops
-    "AG_MILHO_PALHA": "corn",
-    "AG_SOJA_PALHA": "soybean",
-    "AG_CITROS_BAGACO": "citrus",
-    "AG_CITROS_CASCAS": "citrus",
-    "AG_CITROS_POLPA": "citrus",
-    "AG_CAFE_POLPA": "coffee",
-    "AG_CAFE_CASCA": "coffee",
-    "AG_CAFE_MUCILAGEM": "coffee",
-    # Livestock
-    "PEC_DEJETOS_LIQUIDOS_SUINO": "swine",
-    "PEC_ESTERCO_BOVINO": "cattle",
-    "PEC_CAMA_AVIARIO": "poultry",
-    # Urban
-    "URB_LODO_PRIMARIO": "rsu_organic",
-    "URB_LODO_SECUNDARIO": "rsu_organic",
-    "URB_FORSU_SEPARADA": "rsu_organic",
-    # Industrial — only eucalyptus bark maps to a DB stream
-    "IND_CASCA_EUCALIPTO": "forestry",
-    # Industrial — no DB stream yet
-    "IND_BAGACO_MALTE": None,
-    "IND_TRUB_CERVEJA": None,
-    "IND_SORO_LATICINIOS": None,
-    "IND_RESIDUO_ABATEDOURO": None,
-    "IND_VISCERAS_NAO_COMESTIVEIS": None,
-    "IND_RESIDUO_PROCESSAMENTO_VEGETAL": None,
-}
-
-
-@router.get("/mcda")
-async def get_mcda_analysis(
-    municipality_ids: Optional[List[int]] = None,
-    criteria_weights: Optional[Dict[str, float]] = None,
-):
-    return {
-        "results": [
-            {
-                "municipality_id": 1,
-                "municipality_name": "São Paulo",
-                "mcda_score": 0.85,
-                "ranking": 1,
-                "criteria_scores": {
-                    "biomass_availability": 0.9,
-                    "transportation_cost": 0.7,
-                    "land_availability": 0.8,
-                    "grid_proximity": 0.95,
-                },
-            },
-            {
-                "municipality_id": 2,
-                "municipality_name": "Guarulhos",
-                "mcda_score": 0.72,
-                "ranking": 2,
-                "criteria_scores": {
-                    "biomass_availability": 0.8,
-                    "transportation_cost": 0.6,
-                    "land_availability": 0.7,
-                    "grid_proximity": 0.8,
-                },
-            },
-        ],
-        "criteria_weights": criteria_weights
-        or {
-            "biomass_availability": 0.3,
-            "transportation_cost": 0.25,
-            "land_availability": 0.25,
-            "grid_proximity": 0.2,
-        },
-        "total_analyzed": 2,
-    }
-
-
-@router.get("/proximity")
-async def get_proximity_analysis():
-    return {
-        "analysis": "proximity",
-        "results": [
-            {
-                "location": {"lat": -23.5505, "lng": -46.6333},
-                "proximity_score": 0.88,
-                "nearby_facilities": 12,
-                "transport_cost_index": 0.7,
-            }
-        ],
-    }
-
-
-@router.post("/custom")
-async def run_custom_analysis(analysis_config: Dict[str, Any]):
-    return {"message": "Custom analysis completed", "config": analysis_config, "status": "success"}
 
 
 @router.get("/by-residue")
@@ -265,10 +169,9 @@ async def get_analysis_by_residue(
 
         except HTTPException:
             raise
-        except Exception as e:
-            raise HTTPException(
-                status_code=500, detail=f"Error fetching residue analysis: {str(e)}"
-            )
+        except Exception:
+            logger.exception("Error fetching residue analysis")
+            raise HTTPException(status_code=500, detail="Error fetching residue analysis")
 
     else:
         # Legacy path: query municipalities aggregate columns
@@ -325,10 +228,9 @@ async def get_analysis_by_residue(
 
         except HTTPException:
             raise
-        except Exception as e:
-            raise HTTPException(
-                status_code=500, detail=f"Error fetching residue analysis: {str(e)}"
-            )
+        except Exception:
+            logger.exception("Error fetching residue analysis")
+            raise HTTPException(status_code=500, detail="Error fetching residue analysis")
 
 
 @router.get("/statistics/by-category")
@@ -385,8 +287,9 @@ async def get_statistics_by_category():
 
         return {"categories": categories, "total_municipalities": n_total}
 
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error fetching category statistics: {str(e)}")
+    except Exception:
+        logger.exception("Error fetching category statistics")
+        raise HTTPException(status_code=500, detail="Error fetching category statistics")
 
 
 @router.get("/statistics/by-stream")
@@ -436,8 +339,9 @@ async def get_statistics_by_stream(
             "residue_codes": residue_codes,
         }
 
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error fetching stream statistics: {str(e)}")
+    except Exception:
+        logger.exception("Error fetching stream statistics")
+        raise HTTPException(status_code=500, detail="Error fetching stream statistics")
 
 
 @router.get("/statistics/by-region")
@@ -472,8 +376,9 @@ async def get_statistics_by_region(
             "category": category.value if category else "total",
         }
 
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error fetching regional statistics: {str(e)}")
+    except Exception:
+        logger.exception("Error fetching regional statistics")
+        raise HTTPException(status_code=500, detail="Error fetching regional statistics")
 
 
 @router.get("/distribution")
@@ -529,54 +434,6 @@ async def get_distribution(
             "category": category.value if category else "total",
         }
 
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error calculating distribution: {str(e)}")
-
-
-@router.get("/residue-config")
-async def get_residue_config():
-    return {
-        "categories": {
-            "agricultural": {
-                "label": "Agrícola",
-                "icon": "Wheat",
-                "residues": [
-                    {
-                        "key": "sugarcane",
-                        "label": "Cana-de-açúcar",
-                        "column": "sugarcane_biogas_m3_year",
-                    },
-                    {"key": "soybean", "label": "Soja", "column": "soybean_biogas_m3_year"},
-                    {"key": "corn", "label": "Milho", "column": "corn_biogas_m3_year"},
-                    {"key": "coffee", "label": "Café", "column": "coffee_biogas_m3_year"},
-                    {"key": "citrus", "label": "Citros", "column": "citrus_biogas_m3_year"},
-                ],
-            },
-            "livestock": {
-                "label": "Pecuário",
-                "icon": "Beef",
-                "residues": [
-                    {"key": "cattle", "label": "Bovinos", "column": "cattle_biogas_m3_year"},
-                    {"key": "swine", "label": "Suínos", "column": "swine_biogas_m3_year"},
-                    {"key": "poultry", "label": "Aves", "column": "poultry_biogas_m3_year"},
-                    {
-                        "key": "aquaculture",
-                        "label": "Piscicultura",
-                        "column": "aquaculture_biogas_m3_year",
-                    },
-                ],
-            },
-            "urban": {
-                "label": "Urbano",
-                "icon": "Building2",
-                "residues": [
-                    {
-                        "key": "rsu",
-                        "label": "RSU (Resíduos Sólidos)",
-                        "column": "rsu_biogas_m3_year",
-                    },
-                    {"key": "rpo", "label": "Resíduos Orgânicos", "column": "rpo_biogas_m3_year"},
-                ],
-            },
-        }
-    }
+    except Exception:
+        logger.exception("Error calculating distribution")
+        raise HTTPException(status_code=500, detail="Error calculating distribution")

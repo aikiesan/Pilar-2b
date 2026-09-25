@@ -32,6 +32,7 @@ export default function PerResidueFactorEditor({
   const format = useFormat()
   // FDE in percentage points, always two decimals: "54.51%" / "54,51%".
   const fdePercent = (value: number) => format.percent(value, { decimals: 2, minDecimals: 2 })
+  const wholePercent = (value: number) => format.percent(value, { decimals: 0 })
   const [chosenTab, setActiveTab] = useState<string>(selectedResidueCodes[0] || '');
   // The chosen residue, or the first one once it has been deselected.
   const activeTab = selectedResidueCodes.includes(chosenTab) ? chosenTab : (selectedResidueCodes[0] ?? '');
@@ -97,7 +98,7 @@ export default function PerResidueFactorEditor({
       min: 0,
       max: 1,
       step: 0.01,
-      format: (v) => `${(v * 100).toFixed(0)}%`
+      format: wholePercent
     },
     {
       key: 'fcp',
@@ -106,7 +107,7 @@ export default function PerResidueFactorEditor({
       min: 0,
       max: 1,
       step: 0.01,
-      format: (v) => `${(v * 100).toFixed(0)}%`
+      format: wholePercent
     },
     {
       key: 'fs',
@@ -115,7 +116,7 @@ export default function PerResidueFactorEditor({
       min: 0,
       max: 1,
       step: 0.01,
-      format: (v) => `${(v * 100).toFixed(0)}%`
+      format: wholePercent
     },
     {
       key: 'fl',
@@ -124,7 +125,7 @@ export default function PerResidueFactorEditor({
       min: 0,
       max: 1,
       step: 0.01,
-      format: (v) => `${(v * 100).toFixed(0)}%`
+      format: wholePercent
     }
   ];
 
@@ -284,7 +285,7 @@ export default function PerResidueFactorEditor({
                 FDE = FC × (1 - FCp) × FS × FL
               </div>
               <div className="text-xs text-gray-700 font-mono mt-1 break-all">
-                FDE = {(activeFactors.fc * 100).toFixed(0)}% × {((1 - activeFactors.fcp) * 100).toFixed(0)}% × {(activeFactors.fs * 100).toFixed(0)}% × {(activeFactors.fl * 100).toFixed(0)}% = {fdePercent(activeFDE)}
+                FDE = {wholePercent(activeFactors.fc)} × {wholePercent(1 - activeFactors.fcp)} × {wholePercent(activeFactors.fs)} × {wholePercent(activeFactors.fl)} = {fdePercent(activeFDE)}
               </div>
             </div>
           </>

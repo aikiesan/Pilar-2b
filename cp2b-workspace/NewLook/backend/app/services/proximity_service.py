@@ -15,6 +15,8 @@ import pyproj
 from shapely.geometry import Point
 from shapely.ops import transform
 
+from app.utils.shapefile_loader import read_shapefile_wgs84
+
 logger = logging.getLogger(__name__)
 
 
@@ -190,11 +192,7 @@ class ProximityService:
                 logger.warning(f"Municipalities shapefile not found: {shapefile_path}")
                 return buffer_geojson, municipalities
 
-            gdf = gpd.read_file(shapefile_path)
-
-            # Ensure WGS84
-            if gdf.crs != WGS84:
-                gdf = gdf.to_crs(WGS84)
+            gdf = read_shapefile_wgs84(shapefile_path)
 
             # Get biogas data from Supabase REST with multiple lookup keys
             biogas_data = {}
@@ -711,11 +709,7 @@ class ProximityService:
                 continue
 
             try:
-                gdf = gpd.read_file(shapefile_path)
-
-                # Ensure WGS84
-                if gdf.crs != WGS84:
-                    gdf = gdf.to_crs(WGS84)
+                gdf = read_shapefile_wgs84(shapefile_path)
 
                 # Transform point to UTM for accurate distance
                 point_utm = transform(self.wgs84_to_utm, point)

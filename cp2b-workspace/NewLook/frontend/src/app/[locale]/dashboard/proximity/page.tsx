@@ -301,11 +301,11 @@ function ProximityAnalysisContent() {
                 <div className="space-y-2">
                   <div className="flex items-center text-sm">
                     <span className="text-gray-500 dark:text-slate-400 w-20">{tp('latitude')}</span>
-                    <span className="font-mono text-gray-900 dark:text-slate-100">{selectedPoint.lat.toFixed(6)}</span>
+                    <span className="font-mono text-gray-900 dark:text-slate-100">{format.number(selectedPoint.lat, { decimals: 6, minDecimals: 6 })}</span>
                   </div>
                   <div className="flex items-center text-sm">
                     <span className="text-gray-500 dark:text-slate-400 w-20">{tp('longitude')}</span>
-                    <span className="font-mono text-gray-900 dark:text-slate-100">{selectedPoint.lng.toFixed(6)}</span>
+                    <span className="font-mono text-gray-900 dark:text-slate-100">{format.number(selectedPoint.lng, { decimals: 6, minDecimals: 6 })}</span>
                   </div>
                 </div>
               ) : (
@@ -368,7 +368,7 @@ function ProximityAnalysisContent() {
               disabled={!selectedPoint || loading}
               className={`w-full py-3 px-4 rounded-lg font-medium transition-colors flex items-center justify-center ${
                 selectedPoint && !loading
-                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                  ? 'bg-emerald-700 hover:bg-emerald-800 text-white'
                   : 'bg-gray-200 dark:bg-slate-700 text-gray-500 dark:text-slate-400 cursor-not-allowed'
               }`}
             >
@@ -434,7 +434,7 @@ function ProximityAnalysisContent() {
                 {DATA_EXPORT_ENABLED && (
                   <button
                     onClick={handleExport}
-                    className="inline-flex items-center px-3 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700"
+                    className="inline-flex items-center px-3 py-2 text-sm font-medium text-white bg-emerald-700 rounded-lg hover:bg-emerald-800"
                   >
                     <Download className="h-4 w-4 mr-2" aria-hidden="true" />
                     {tp('export')}

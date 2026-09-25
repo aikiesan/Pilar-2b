@@ -68,3 +68,13 @@ describe('ExportControl CSV', () => {
     expect(downloadCsv).not.toHaveBeenCalled();
   });
 });
+
+describe('ExportControl dialog', () => {
+  it('is a modal dialog named by its title, and Escape closes it', () => {
+    const onClose = jest.fn();
+    render(<ExportControl data={data} visible onClose={onClose} />);
+    expect(screen.getByRole('dialog', { name: 'Exportar dados' })).toHaveAttribute('aria-modal', 'true');
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+});

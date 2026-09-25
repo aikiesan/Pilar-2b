@@ -30,7 +30,7 @@ passed and what failed, and the exit code is non-zero if anything failed.
 
 | Step | What it proves |
 |---|---|
-| Typecheck | the code compiles, and every `t('key')` exists in the catalog |
+| Typecheck | the code, the tests and the e2e specs compile, and every `t('key')` exists in the catalog |
 | Lint | ESLint rules (0 errors expected; warnings are pre-existing) |
 | i18n | catalogs in sync · no hardcoded Portuguese in any source file · every catalog key read by the code · patch notes bilingual · the scanner's own 22 tests |
 | Unit tests | Jest suites (formatters, map metrics, components…) |

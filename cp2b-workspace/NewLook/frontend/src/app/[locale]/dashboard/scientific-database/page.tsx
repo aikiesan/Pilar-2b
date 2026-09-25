@@ -167,7 +167,7 @@ function ScientificDatabase() {
                 aria-pressed={view === id}
                 onClick={() => open(id)}
                 className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                  view === id ? 'bg-green-600 text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  view === id ? 'bg-green-700 text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
                 <Icon className="h-4 w-4" aria-hidden="true" />

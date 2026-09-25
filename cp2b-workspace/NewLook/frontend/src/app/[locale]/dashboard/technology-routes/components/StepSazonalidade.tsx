@@ -84,7 +84,7 @@ export default function StepSazonalidade({ activeMonths, activityType, onChange,
               aria-label={format.month(m, 'long')}
               className={`py-1.5 rounded-lg text-xs font-medium border transition-colors
                 ${active
-                  ? 'bg-green-600 text-white border-green-600'
+                  ? 'bg-green-700 text-white border-green-600'
                   : 'bg-white dark:bg-slate-800 text-gray-500 dark:text-slate-400 border-gray-300 dark:border-slate-600 hover:border-green-400 dark:hover:border-emerald-500'}`}
             >
               {format.month(m)}
@@ -109,7 +109,7 @@ export default function StepSazonalidade({ activeMonths, activityType, onChange,
         </button>
         <button
           onClick={onNext}
-          className="flex-1 py-3 rounded-xl font-semibold text-white bg-green-600 hover:bg-green-700 transition-colors"
+          className="flex-1 py-3 rounded-xl font-semibold text-white bg-green-700 hover:bg-green-800 transition-colors"
         >
           {t('common.next')} →
         </button>

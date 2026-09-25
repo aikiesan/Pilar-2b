@@ -12,6 +12,8 @@ from typing import Dict, Tuple
 from fastapi import Request, status
 from fastapi.responses import JSONResponse
 
+from app.core.log_sanitizer import log_safe
+
 logger = logging.getLogger(__name__)
 
 
@@ -115,7 +117,12 @@ async def rate_limit_middleware(request: Request, call_next):
     is_allowed, remaining, retry_after = rate_limiter.is_allowed(client_id)
 
     if not is_allowed:
-        logger.warning(f"Rate limit exceeded for {client_id} on {endpoint_type} endpoint: {path}")
+        logger.warning(
+            "Rate limit exceeded for %s on %s endpoint: %s",
+            client_id,
+            endpoint_type,
+            log_safe(path),
+        )
         return JSONResponse(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             content={

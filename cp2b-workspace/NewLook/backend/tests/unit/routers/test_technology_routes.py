@@ -9,7 +9,6 @@ All DB access is intercepted by the autouse mock_db_connection fixture in
 conftest.py, so no real Postgres connection is needed.
 """
 
-import json
 from datetime import datetime, timezone
 from unittest.mock import MagicMock
 

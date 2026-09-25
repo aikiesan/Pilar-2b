@@ -4,8 +4,6 @@ Covers number_value, reverse_bmp_tons, get_residue_biomass_tons,
 derive_biomass_fields, and biomass_select_columns.
 """
 
-import math
-
 import pytest
 
 from app.services.biomass_availability import (
@@ -14,7 +12,6 @@ from app.services.biomass_availability import (
     RESIDUE_BIOMASS_CONFIGS,
     RESIDUE_KEYS,
     SECTOR_FIELDS,
-    ResidueBiomassConfig,
     biomass_select_columns,
     derive_biomass_fields,
     get_residue_biomass_tons,

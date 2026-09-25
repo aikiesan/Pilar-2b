@@ -51,10 +51,5 @@ export function cnColor(cn: number | null | undefined): string {
   return color;
 }
 
-/** True inside the 20–30 co-digestion window. */
-export function isCnOptimal(cn: number | null | undefined): boolean {
-  return cn != null && cn >= CN_OPTIMAL_LOW && cn < CN_OPTIMAL_HIGH;
-}
-
 /** Legend rows, high → low, the order a vertical legend reads. */
 export const CN_LEGEND_ROWS = [...CN_BANDS].reverse();

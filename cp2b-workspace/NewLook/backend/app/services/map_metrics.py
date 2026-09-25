@@ -136,10 +136,6 @@ class MunicipalityMapMetrics:
         return out
 
 
-def _zero_scenario_dict() -> dict[str, float]:
-    return {sc: 0.0 for sc in SCENARIOS}
-
-
 def _biomethane_from_ch4(ch4_dict: dict[str, float]) -> dict[str, float]:
     return {sc: ch4_dict[sc] * UPGRADING_EFFICIENCY for sc in SCENARIOS}
 

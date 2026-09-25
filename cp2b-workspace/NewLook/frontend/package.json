@@ -25,7 +25,7 @@
     "start": "next start",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
-    "typecheck": "tsc --noEmit --incremental false",
+    "typecheck": "tsc --noEmit -p tsconfig.typecheck.json",
     "i18n:check": "node scripts/check-i18n-parity.mjs && node scripts/check-hardcoded-strings.mjs && node scripts/i18n-unused-keys.mjs --strict && node scripts/check-patch-notes.mjs && npm run i18n:test --silent",
     "i18n:test": "node --test --test-reporter=spec scripts/__tests__/portuguese-scan.test.mjs",
     "patch-notes:check": "node scripts/check-patch-notes.mjs",

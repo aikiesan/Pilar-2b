@@ -10,6 +10,8 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
 
+from app.core.log_sanitizer import log_safe
+
 logger = logging.getLogger(__name__)
 
 # Create limiter instance
@@ -24,19 +26,17 @@ limiter = Limiter(
 
 def get_client_ip(request: Request) -> str:
     """
-    Get client IP address from request.
-    Handles X-Forwarded-For header for proxied requests.
+    The client's IP address, as the rate limits count it.
 
-    Args:
-        request: FastAPI request object
+    Behind the Apache proxy this is already the real client: uvicorn's proxy
+    headers (on by default, trusting 127.0.0.1) take it from the right end of
+    X-Forwarded-For, the address Apache itself saw. This used to read the
+    header's first entry instead, which the caller writes: a new
+    X-Forwarded-For per attempt walked past the 3/minute login limit.
 
-    Returns:
-        Client IP address as string
+    Behind another proxy (a load balancer, a PaaS edge), set
+    FORWARDED_ALLOW_IPS to its address so uvicorn trusts its headers too.
     """
-    forwarded = request.headers.get("X-Forwarded-For")
-    if forwarded:
-        # Take the first IP in the chain
-        return forwarded.split(",")[0].strip()
     return request.client.host if request.client else "unknown"
 
 
@@ -104,7 +104,9 @@ async def rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded):
     """
     client_ip = get_client_ip(request)
     logger.warning(
-        f"Rate limit exceeded: {client_ip} on {request.url.path}",
+        "Rate limit exceeded: %s on %s",
+        client_ip,
+        log_safe(request.url.path),
         extra={
             "client_ip": client_ip,
             "endpoint": request.url.path,

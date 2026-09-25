@@ -95,6 +95,8 @@ export interface MunicipalityProperties {
    *  paints as no-data. Per-residue shares follow as ch4_cp2b_{n4,n3}_{residue}. */
   ch4_cp2b_n4_m3_year?: number | null;
   ch4_cp2b_n3_m3_year?: number | null;
+  biogas_cp2b_n4_m3_year?: number | null;
+  biogas_cp2b_n3_m3_year?: number | null;
   biogas_medio_m3_yr?: number | null;
   biogas_max_m3_yr?: number | null;
   biogas_ch4_min_m3_yr?: number | null;
@@ -113,6 +115,12 @@ export interface MunicipalityProperties {
 
   // Per-stream coverage flags (cattle_biomass_coverage, sugarcane_biomass_coverage, …).
   [key: `${string}_biomass_coverage`]: BiomassCoverage | undefined;
+
+  // Per-residue and per-sector shares of Real/Ideal = CP2b N4/N3, as CH₄ and as the
+  // method's served raw-biogas equivalent (ch4_cp2b_n4_sugarcane_m3_year,
+  // biogas_cp2b_n3_livestock_m3_year, …; migration 034). The map payload omits zero
+  // shares, so an absent one is zero when the municipality's total is present.
+  [key: `${'ch4' | 'biogas'}_cp2b_${'n3' | 'n4'}_${string}_m3_year`]: number | null | undefined;
 
   // K-means cluster fields (from municipality_summary, null when no match)
   cluster_id?: number | null;
@@ -208,48 +216,23 @@ export interface ResidueCNMatrix {
   optimal_range: { low: number; high: number };
 }
 
-export interface MunicipalityCnProfile {
-  ibge_code: string;
-  municipality_name: string;
-  centroid_lat: number;
-  centroid_lng: number;
-  cn_ratio_weighted: number;
-  cn_label: 'C-RICH' | 'BALANCED' | 'N-RICH';
-  dominant_residue: string | null;
-  total_biogas_m3_year: number;
-  residue_breakdown: Record<string, { biogas_m3: number; cn: number }>;
-}
+/** A GeoJSON position: [longitude, latitude]. */
+export type Position = [number, number];
 
-export interface MunicipalityCnProfilesResponse {
-  profiles: MunicipalityCnProfile[];
-  count: number;
-}
-
-export interface PairingCandidate {
-  ibge_code: string;
-  municipality_name: string;
-  distance_km: number;
-  cn_ratio_weighted: number;
-  cn_label: 'C-RICH' | 'BALANCED' | 'N-RICH';
-  dominant_residue: string | null;
-  total_biogas_m3_year: number;
-  cn_blended: number;
-  improvement_score: number;
-}
-
-export interface PairingCandidatesResponse {
-  ibge_code: string;
-  radius_km: number;
-  candidates: PairingCandidate[];
-}
+/**
+ * A municipality's geometry as the API sends it: its outline (MultiPolygon),
+ * or, for a municipality with no outline, a 5 km circle around its centroid —
+ * which PostGIS returns as a Polygon (ST_Buffer). Point is a bare centroid.
+ */
+export type MunicipalityGeometry =
+  | { type: 'Point'; coordinates: Position }
+  | { type: 'Polygon'; coordinates: Position[][] }
+  | { type: 'MultiPolygon'; coordinates: Position[][][] };
 
 // GeoJSON Feature for municipality
 export interface MunicipalityFeature {
   type: 'Feature';
-  geometry: {
-    type: 'Point' | 'MultiPolygon';
-    coordinates: number[] | number[][][];
-  };
+  geometry: MunicipalityGeometry;
   properties: MunicipalityProperties;
 }
 
@@ -339,56 +322,4 @@ export interface SummaryStatistics {
     urban: number;
   };
   note?: string;
-}
-
-// Municipality list item (simplified)
-export interface MunicipalityListItem {
-  id: string | number;
-  name: string;
-  ibge_code: string | number;
-  population: number;
-  total_biogas_m3_year: number;
-  potential_category: string;
-  immediate_region: string;
-}
-
-// Rankings response
-export interface RankingsResponse {
-  criteria: 'total' | 'agricultural' | 'livestock' | 'urban';
-  total_ranked: number;
-  rankings: Array<{
-    rank: number;
-    id: string | number;
-    name: string;
-    ibge_code: string | number;
-    biogas_m3_year: number;
-    population: number;
-    category: string;
-  }>;
-}
-
-// Map styles
-export interface MapStyle {
-  fillColor: string;
-  weight: number;
-  opacity: number;
-  color: string;
-  fillOpacity: number;
-}
-
-// Color scale thresholds
-export interface ColorScale {
-  veryHigh: number;
-  high: number;
-  medium: number;
-  low: number;
-  veryLow: number;
-}
-
-// Legend item
-export interface LegendItem {
-  color: string;
-  label: string;
-  minValue: number;
-  maxValue?: number;
 }

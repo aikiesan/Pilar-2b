@@ -365,7 +365,7 @@ export default function StepAtividade({ data, onChange, onNext, onBack }: Props)
                 aria-pressed={data.sugarcaneType === opt}
                 className={`flex-1 py-2 text-sm font-medium transition-colors
                   ${data.sugarcaneType === opt
-                    ? 'bg-green-600 dark:bg-emerald-600 text-white'
+                    ? 'bg-green-700 dark:bg-emerald-700 text-white'
                     : 'bg-white dark:bg-slate-800 text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700'}`}
               >
                 {opt === 'tons' ? t('step2.tons') : t('step2.hectares')}

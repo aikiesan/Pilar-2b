@@ -111,7 +111,6 @@ class TestConnectionPooling:
         mock_pool.getconn.return_value = mock_conn
         monkeypatch.setattr("app.core.database.get_connection_pool", lambda: mock_pool)
 
-        # Only psycopg2.Error triggers the rollback branch in get_db()
         with pytest.raises(psycopg2.OperationalError):
             with get_db() as conn:
                 raise psycopg2.OperationalError("Simulated DB error")

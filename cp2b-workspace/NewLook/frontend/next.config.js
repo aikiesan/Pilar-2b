@@ -4,13 +4,14 @@ const createNextIntlPlugin = require('next-intl/plugin');
 const withNextIntl = createNextIntlPlugin('./i18n.ts');
 
 const isProd = process.env.NODE_ENV === 'production';
+// basePath is only needed in production (Apache reverse-proxy at /pilar2b).
+// In local Docker dev (NODE_ENV=development) we serve from root so that
+// localhost:3006/pt-BR works without any extra path prefix.
+const basePath = isProd ? '/pilar2b' : '';
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // basePath is only needed in production (Apache reverse-proxy at /pilar2b).
-  // In local Docker dev (NODE_ENV=development) we serve from root so that
-  // localhost:3006/pt-BR works without any extra path prefix.
-  basePath: isProd ? '/pilar2b' : '',
+  basePath,
   async redirects() {
     if (!isProd) {
       // Strip stale /pilar2b prefix that browsers may have cached from production URLs
@@ -72,6 +73,10 @@ const nextConfig = {
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'https://cp2b.unicamp.br/pilar2b',
     NEXT_PUBLIC_DISABLE_AUTH: process.env.NEXT_PUBLIC_DISABLE_AUTH || 'false',
+    // For URLs built by hand (a fetch of a file in public/, a cookie's path);
+    // see src/lib/basePath.ts. Nothing set it before, so in production those
+    // URLs pointed outside /pilar2b.
+    NEXT_PUBLIC_BASE_PATH: basePath,
   },
 
   // Security headers (LGPD Art. 46 — security of processing). CSP is sent in

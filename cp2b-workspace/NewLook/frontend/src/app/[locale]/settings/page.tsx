@@ -125,7 +125,7 @@ export default function SettingsPage() {
             <button
               onClick={handleSave}
               disabled={saving}
-              className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-emerald-700 hover:bg-emerald-800 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors"
               aria-label={t('save')}
             >
               {saved ? (
@@ -160,22 +160,22 @@ export default function SettingsPage() {
                     <h2 id="profile-heading" className="font-semibold text-gray-900 dark:text-gray-100">
                       {t('profile_heading')}
                     </h2>
-                    <p className="text-sm text-gray-500">{t('profile_subtitle')}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{t('profile_subtitle')}</p>
                   </div>
                 </div>
               </div>
               <div className="p-6">
                 <dl className="space-y-4">
                   <div className="flex justify-between">
-                    <dt className="text-sm text-gray-500">{t('name')}</dt>
+                    <dt className="text-sm text-gray-500 dark:text-gray-400">{t('name')}</dt>
                     <dd className="text-sm font-medium text-gray-900 dark:text-gray-100">{user.full_name || t('not_set')}</dd>
                   </div>
                   <div className="flex justify-between">
-                    <dt className="text-sm text-gray-500">{t('email')}</dt>
+                    <dt className="text-sm text-gray-500 dark:text-gray-400">{t('email')}</dt>
                     <dd className="text-sm font-medium text-gray-900 dark:text-gray-100">{user.email || t('not_set')}</dd>
                   </div>
                   <div className="flex justify-between">
-                    <dt className="text-sm text-gray-500">{t('role')}</dt>
+                    <dt className="text-sm text-gray-500 dark:text-gray-400">{t('role')}</dt>
                     <dd className="text-sm font-medium text-gray-900 dark:text-gray-100">
                       {user.role === 'admin' ? t('role_admin') : t('role_user')}
                     </dd>
@@ -195,7 +195,7 @@ export default function SettingsPage() {
                     <h2 id="notifications-heading" className="font-semibold text-gray-900 dark:text-gray-100">
                       {t('notifications_heading')}
                     </h2>
-                    <p className="text-sm text-gray-500">{t('notifications_subtitle')}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{t('notifications_subtitle')}</p>
                   </div>
                 </div>
               </div>
@@ -207,7 +207,7 @@ export default function SettingsPage() {
                   { key: 'weekly', label: t('notif_weekly'), field: 'weeklyReport' },
                 ] as const).map(({ key, label, field }) => (
                   <div key={key} className="flex items-center justify-between">
-                    <label htmlFor={`notif-${key}`} className="text-sm text-gray-700">
+                    <label htmlFor={`notif-${key}`} className="text-sm text-gray-700 dark:text-slate-300">
                       {label}
                     </label>
                     <button
@@ -245,13 +245,13 @@ export default function SettingsPage() {
                     <h2 id="appearance-heading" className="font-semibold text-gray-900 dark:text-gray-100">
                       {t('appearance_heading')}
                     </h2>
-                    <p className="text-sm text-gray-500">{t('appearance_subtitle')}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{t('appearance_subtitle')}</p>
                   </div>
                 </div>
               </div>
               <div className="p-6 space-y-4">
                 <div>
-                  <label htmlFor="theme-select" className="text-sm text-gray-700 block mb-2">
+                  <label htmlFor="theme-select" className="text-sm text-gray-700 dark:text-slate-300 block mb-2">
                     {t('theme')}
                   </label>
                   <select
@@ -261,7 +261,7 @@ export default function SettingsPage() {
                       ...settings,
                       appearance: { ...settings.appearance, theme: e.target.value as 'light' | 'dark' | 'auto' }
                     })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                   >
                     <option value="light">{t('theme_light')}</option>
                     <option value="dark">{t('theme_dark')}</option>
@@ -270,7 +270,7 @@ export default function SettingsPage() {
                 </div>
 
                 <div>
-                  <label htmlFor="language-select" className="text-sm text-gray-700 block mb-2">
+                  <label htmlFor="language-select" className="text-sm text-gray-700 dark:text-slate-300 block mb-2">
                     {t('language')}
                   </label>
                   <select
@@ -281,7 +281,7 @@ export default function SettingsPage() {
                     onChange={(e) => {
                       if (isLocale(e.target.value)) switchLocale(e.target.value)
                     }}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                   >
                     {/* Each language is named in itself, so it can be found in either UI. */}
                     <option value="pt-BR">Português (Brasil)</option>{/* i18n-exempt: language endonym */}
@@ -290,7 +290,7 @@ export default function SettingsPage() {
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <label htmlFor="compact-mode" className="text-sm text-gray-700">
+                  <label htmlFor="compact-mode" className="text-sm text-gray-700 dark:text-slate-300">
                     {t('compact_mode')}
                   </label>
                   <button
@@ -324,13 +324,13 @@ export default function SettingsPage() {
                     <h2 id="security-heading" className="font-semibold text-gray-900 dark:text-gray-100">
                       {t('security_heading')}
                     </h2>
-                    <p className="text-sm text-gray-500">{t('security_subtitle')}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{t('security_subtitle')}</p>
                   </div>
                 </div>
               </div>
               <div className="p-6 space-y-4">
                 <div className="flex items-center justify-between">
-                  <label htmlFor="two-factor" className="text-sm text-gray-700">
+                  <label htmlFor="two-factor" className="text-sm text-gray-700 dark:text-slate-300">
                     {t('two_factor')}
                   </label>
                   <button
@@ -352,7 +352,7 @@ export default function SettingsPage() {
                 </div>
 
                 <div>
-                  <label htmlFor="session-timeout" className="text-sm text-gray-700 block mb-2">
+                  <label htmlFor="session-timeout" className="text-sm text-gray-700 dark:text-slate-300 block mb-2">
                     {t('session_timeout')}
                   </label>
                   <input
@@ -365,13 +365,13 @@ export default function SettingsPage() {
                       ...settings,
                       security: { ...settings.security, sessionTimeout: parseInt(e.target.value) || 30 }
                     })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                   />
                 </div>
 
                 <div className="pt-2">
                   <button
-                    className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-slate-200 rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
                   >
                     {t('change_password')}
                   </button>

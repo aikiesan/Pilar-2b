@@ -132,8 +132,6 @@ export const SERVED_BIOMETHANE_PER_CH4: Record<ServedScenarioKey, number> = {
   real: 0.99 / 0.96,
   ideal: 0.99 / 0.96,
 };
-/** Methane LHV in kWh/Nm³ — Bueno et al. 2016, matching the backend constant. */
-export const CH4_LHV_KWH_M3 = 9.94;
 
 /** The four band scenarios — the only ones that carry per-residue multipliers. */
 export type BandScenarioKey = 'baseline' | 'conservador' | 'fronteira' | 'otimista';

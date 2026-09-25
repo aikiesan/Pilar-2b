@@ -6,6 +6,7 @@ from fastapi import APIRouter
 
 from app.api.v1.endpoints import (
     analysis,
+    analytics,
     auth,
     codigestion,
     cp2b,
@@ -13,9 +14,8 @@ from app.api.v1.endpoints import (
     infrastructure,
     intermediate_regions,
     mapbiomas,
-    maps,
-    mock_geospatial,
     municipalities,
+    newsletter,
     proximity,
     residuos,
     scientific,
@@ -28,20 +28,19 @@ api_router = APIRouter()
 # Include endpoint routers
 api_router.include_router(auth.router, prefix="/auth", tags=["authentication"])
 
+# Newsletter sign-ups and first-party page-view statistics (LGPD: consent-based)
+api_router.include_router(newsletter.router, prefix="/newsletter", tags=["newsletter"])
+api_router.include_router(analytics.router, prefix="/analytics", tags=["analytics"])
+
 api_router.include_router(municipalities.router, prefix="/municipalities", tags=["municipalities"])
 
 api_router.include_router(analysis.router, prefix="/analysis", tags=["analysis"])
-
-api_router.include_router(maps.router, prefix="/maps", tags=["maps"])
 
 api_router.include_router(geospatial.router, prefix="/geospatial", tags=["geospatial", "postgis"])
 
 api_router.include_router(
     infrastructure.router, prefix="/infrastructure", tags=["infrastructure", "geospatial"]
 )
-
-# Mock data endpoints for development (sample data)
-api_router.include_router(mock_geospatial.router, prefix="/mock", tags=["mock-data", "development"])
 
 # MapBiomas raster tile endpoints
 api_router.include_router(

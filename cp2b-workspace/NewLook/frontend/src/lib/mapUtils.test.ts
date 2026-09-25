@@ -2,10 +2,11 @@
  * Tests for the map utility functions.
  *
  * Number formatting is covered by format.test.ts; the potential-class copy by
- * the catalogs. What is left here is the class-code mapping and the share math.
+ * the catalogs. What is left here is the class-code mapping, the share math and
+ * where a municipality's marker goes.
  */
 
-import { calculatePercentage, getCategoryColor, getPotentialCategoryKey } from './mapUtils';
+import { calculatePercentage, getCategoryColor, getPotentialCategoryKey, markerPosition } from './mapUtils';
 
 describe('calculatePercentage', () => {
   it('should calculate percentage correctly', () => {
@@ -73,5 +74,28 @@ describe('getCategoryColor', () => {
     expect(getCategoryColor('invalid')).toBe('bg-gray-400 text-white');
     expect(getCategoryColor(null)).toBe('bg-gray-400 text-white');
     expect(getCategoryColor(undefined)).toBe('bg-gray-400 text-white');
+  });
+});
+
+describe('markerPosition', () => {
+  // The corners of a 2×2 square centred on (lng -47, lat -23).
+  const square: [number, number][] = [[-48, -24], [-46, -24], [-46, -22], [-48, -22]];
+
+  it('puts a Point where it is, in Leaflet order [lat, lng]', () => {
+    expect(markerPosition({ type: 'Point', coordinates: [-47.06, -22.9] })).toEqual([-22.9, -47.06]);
+  });
+
+  it('averages the outer ring of a Polygon — the circle sent for a municipality without an outline', () => {
+    expect(markerPosition({ type: 'Polygon', coordinates: [square] })).toEqual([-23, -47]);
+  });
+
+  it("averages the first polygon's outer ring of a MultiPolygon", () => {
+    const far: [number, number][] = [[10, 10], [11, 10], [11, 11]];
+    expect(markerPosition({ type: 'MultiPolygon', coordinates: [[square], [far]] })).toEqual([-23, -47]);
+  });
+
+  it('is null when there is no ring to average', () => {
+    expect(markerPosition({ type: 'Polygon', coordinates: [] })).toBeNull();
+    expect(markerPosition({ type: 'MultiPolygon', coordinates: [] })).toBeNull();
   });
 });

@@ -8,7 +8,7 @@ import logging
 
 import pytest
 
-from app.core.log_sanitizer import PiiRedactingFilter, redact
+from app.core.log_sanitizer import PiiRedactingFilter, install_pii_redaction, log_safe, redact
 
 
 class TestRedact:
@@ -37,6 +37,18 @@ class TestRedact:
     def test_passes_through_non_pii(self):
         msg = "computed 645 municipalities in 1.2s"
         assert redact(msg) == msg
+
+
+class TestLogSafe:
+    def test_line_breaks_cannot_start_a_new_log_line(self):
+        assert log_safe("3550308\nFAKE ERROR\r\nx") == "3550308 FAKE ERROR  x"
+
+    def test_caps_the_length(self):
+        assert log_safe("x" * 300) == "x" * 200
+        assert log_safe("3550308", 4) == "3550"
+
+    def test_formats_non_strings(self):
+        assert log_safe(3550308) == "3550308"
 
     def test_mixed_pii(self):
         out = redact("mail x@y.com cpf 111.222.333-44")
@@ -78,6 +90,41 @@ class TestFilter:
         rec = self._record("from %s id %s", "a@b.com", "123.456.789-09")
         PiiRedactingFilter().filter(rec)
         assert rec.getMessage() == "from [EMAIL] id [CPF]"
+
+    def test_redacts_mapping_args(self):
+        rec = self._record("user %(user)s did %(n)d", {"user": "a@b.com", "n": 3})
+        PiiRedactingFilter().filter(rec)
+        assert rec.getMessage() == "user [EMAIL] did 3"
+
+
+@pytest.fixture
+def restore_record_factory():
+    original = logging.getLogRecordFactory()
+    yield
+    logging.setLogRecordFactory(original)
+
+
+class TestInstallPiiRedaction:
+    def test_redacts_the_records_of_module_loggers(self, caplog, restore_record_factory):
+        install_pii_redaction()
+        with caplog.at_level(logging.INFO, logger="app.services.example"):
+            logging.getLogger("app.services.example").info("login %s", "a@b.com")
+        assert caplog.records[-1].getMessage() == "login [EMAIL]"
+
+    def test_installing_twice_wraps_the_factory_once(self, restore_record_factory):
+        install_pii_redaction()
+        installed = logging.getLogRecordFactory()
+        install_pii_redaction()
+        assert logging.getLogRecordFactory() is installed
+
+    def test_the_app_redacts_what_its_modules_log(self, caplog):
+        # A filter on the root logger, as main.py used to add, never saw these.
+        import app.main  # noqa: F401
+
+        with caplog.at_level(logging.WARNING, logger="app.services.example"):
+            logging.getLogger("app.services.example").warning("user %s", "a@b.com")
+        assert "a@b.com" not in caplog.text
+        assert "[EMAIL]" in caplog.text
 
 
 if __name__ == "__main__":

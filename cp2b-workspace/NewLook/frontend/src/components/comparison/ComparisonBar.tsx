@@ -63,7 +63,7 @@ export default function ComparisonBar() {
             <button
               onClick={handleCompare}
               disabled={selectedMunicipalities.length < MIN_COMPARISON}
-              className="flex items-center gap-2 px-6 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white text-sm font-medium rounded transition-colors"
+              className="flex items-center gap-2 px-6 py-2 bg-green-700 hover:bg-green-800 disabled:bg-gray-400 disabled:cursor-not-allowed text-white text-sm font-medium rounded transition-colors"
             >
               {t('compare')}
               <ArrowRight className="h-4 w-4" aria-hidden="true" />

@@ -51,6 +51,8 @@ from typing import Any, Callable
 
 from fastapi import Request, Response
 
+from app.core.log_sanitizer import log_safe
+
 logger = logging.getLogger(__name__)
 
 # Segundos que uma entrada permanece válida. Ver INVALIDAÇÃO acima.
@@ -116,7 +118,7 @@ def cached_json_response(
             _STATS["misses"] += 1
         logger.info(
             "response_cache MISS %s (%.1f KB, gzip %.1f KB)",
-            key,
+            log_safe(key),
             len(body) / 1024,
             len(gz_body) / 1024,
         )

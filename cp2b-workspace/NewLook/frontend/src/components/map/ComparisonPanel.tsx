@@ -5,7 +5,8 @@
 
 'use client';
 
-import React, { useState } from 'react';
+import React, { useId, useState } from 'react';
+import { useDialog } from '@/hooks/useDialog';
 import { useTranslations } from 'next-intl';
 import {
   X,
@@ -49,6 +50,8 @@ export default function ComparisonPanel({
   const format = useFormat();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<MetricCategory>('overview');
+  const titleId = useId();
+  const panelRef = useDialog<HTMLDivElement>(visible, onClose);
 
   if (!visible) return null;
 
@@ -114,12 +117,19 @@ export default function ComparisonPanel({
       />
 
       {/* Comparison Panel */}
-      <div className="fixed inset-4 md:inset-8 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl z-[1101] overflow-hidden flex flex-col">
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        tabIndex={-1}
+        className="fixed inset-4 md:inset-8 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl z-[1101] overflow-hidden flex flex-col"
+      >
         {/* Header */}
         <div className="bg-gradient-to-r from-purple-600 to-purple-700 dark:from-purple-700 dark:to-purple-800 text-white p-6 flex-shrink-0">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-bold mb-1">{t('title')}</h2>
+              <h2 id={titleId} className="text-2xl font-bold mb-1">{t('title')}</h2>
               <p className="text-sm opacity-90">
                 {t('subtitle')}
               </p>
@@ -219,6 +229,7 @@ export default function ComparisonPanel({
                           <span className="text-sm truncate">{mun.properties.name}</span>
                           <button
                             onClick={() => onMunicipalityRemove(Number(mun.properties.ibge_code))}
+                            aria-label={t('remove_aria', { name: mun.properties.name })}
                             className="ml-2 p-1 rounded hover:bg-red-100 dark:hover:bg-red-900/20 text-red-600"
                           >
                             <Minus className="w-4 h-4" />

@@ -160,4 +160,4 @@ async def get_kinetics(sector_codigo: Optional[str] = None, classification: Opti
 
     except Exception as e:
         logger.error(f"Error fetching kinetics: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Failed to fetch kinetics")

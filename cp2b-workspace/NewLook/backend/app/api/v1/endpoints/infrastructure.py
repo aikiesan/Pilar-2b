@@ -9,6 +9,7 @@ from typing import Any, Dict, Optional
 from fastapi import APIRouter, HTTPException, Query, Request
 
 from app.core.database import get_db
+from app.core.log_sanitizer import log_safe
 from app.core.response_cache import cached_json_response
 from app.utils.shapefile_loader import SHAPEFILE_DIR, get_shapefile_loader
 
@@ -425,7 +426,7 @@ async def get_infrastructure_layer_geojson(
         except Exception as e:
             logger.error(
                 "Error loading infrastructure layer %s: %s",
-                layer_id.replace("\n", " ").replace("\r", " ")[:50],
+                log_safe(layer_id, 50),
                 e,
             )
             raise HTTPException(status_code=500, detail="Internal server error")

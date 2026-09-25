@@ -4,6 +4,7 @@
  */
 
 import { logger, log } from './logger';
+import { setNodeEnv } from '@/test/utils/env';
 
 describe('Logger', () => {
   const originalEnv = process.env.NODE_ENV;
@@ -28,12 +29,12 @@ describe('Logger', () => {
     consoleDebugSpy.mockRestore();
 
     // Restore original NODE_ENV
-    process.env.NODE_ENV = originalEnv;
+    setNodeEnv(originalEnv);
   });
 
   describe('Development Environment', () => {
     beforeEach(() => {
-      process.env.NODE_ENV = 'development';
+      setNodeEnv('development');
     });
 
     it('should log errors in development', () => {
@@ -93,7 +94,7 @@ describe('Logger', () => {
 
   describe('Production Environment', () => {
     beforeEach(() => {
-      process.env.NODE_ENV = 'production';
+      setNodeEnv('production');
     });
 
     it('should log errors in production', () => {
@@ -123,7 +124,7 @@ describe('Logger', () => {
 
   describe('Test Environment', () => {
     beforeEach(() => {
-      process.env.NODE_ENV = 'test';
+      setNodeEnv('test');
     });
 
     it('should log errors in test environment', () => {
@@ -153,7 +154,7 @@ describe('Logger', () => {
 
   describe('logWithContext', () => {
     beforeEach(() => {
-      process.env.NODE_ENV = 'development';
+      setNodeEnv('development');
     });
 
     it('should log with context and message', () => {
@@ -203,7 +204,7 @@ describe('Logger', () => {
     });
 
     it('should respect environment settings', () => {
-      process.env.NODE_ENV = 'production';
+      setNodeEnv('production');
 
       logger.logWithContext('info', 'Component', 'Should not log');
 
@@ -230,7 +231,7 @@ describe('Logger', () => {
 
   describe('Convenience log object', () => {
     beforeEach(() => {
-      process.env.NODE_ENV = 'development';
+      setNodeEnv('development');
     });
 
     it('should expose error method', () => {
@@ -271,7 +272,7 @@ describe('Logger', () => {
 
       environments.forEach((env) => {
         consoleErrorSpy.mockClear();
-        process.env.NODE_ENV = env;
+        setNodeEnv(env);
 
         logger.error(`Error in ${env}`);
 
@@ -288,19 +289,19 @@ describe('Logger', () => {
 
       logLevels.forEach(({ method, spy }) => {
         // Development: should log
-        process.env.NODE_ENV = 'development';
+        setNodeEnv('development');
         spy.mockClear();
         (logger as any)[method]('test');
         expect(spy).toHaveBeenCalled();
 
         // Production: should not log
-        process.env.NODE_ENV = 'production';
+        setNodeEnv('production');
         spy.mockClear();
         (logger as any)[method]('test');
         expect(spy).not.toHaveBeenCalled();
 
         // Test: should not log
-        process.env.NODE_ENV = 'test';
+        setNodeEnv('test');
         spy.mockClear();
         (logger as any)[method]('test');
         expect(spy).not.toHaveBeenCalled();
@@ -310,7 +311,7 @@ describe('Logger', () => {
 
   describe('Edge Cases', () => {
     beforeEach(() => {
-      process.env.NODE_ENV = 'development';
+      setNodeEnv('development');
     });
 
     it('should handle empty calls', () => {
@@ -376,7 +377,7 @@ describe('Logger', () => {
 
   describe('Real-world Usage Patterns', () => {
     beforeEach(() => {
-      process.env.NODE_ENV = 'development';
+      setNodeEnv('development');
     });
 
     it('should handle API error logging', () => {

@@ -3,14 +3,13 @@ Unit tests for MapBiomas Service
 Tests land use analysis from raster data within analysis buffers
 """
 
-from collections import Counter
 from pathlib import Path
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pytest
 
-from app.services.mapbiomas_service import MAPBIOMAS_CLASSES, RASTERIO_AVAILABLE, MapBiomasService
+from app.services.mapbiomas_service import MAPBIOMAS_CLASSES, MapBiomasService
 
 
 @pytest.fixture
@@ -279,8 +278,9 @@ class TestAnalyzeBuffer:
         service = MapBiomasService()
         result = service.analyze_buffer(lat=-23.5505, lng=-46.6333, radius_km=5)
 
-        assert "error" in result
-        assert "Unexpected error" in result["error"]
+        # The result reaches API clients: a fixed message, not the exception's text.
+        assert result["error"] == "MapBiomas analysis failed"
+        assert "Unexpected error" not in result["error"]
         assert result["dominant_class"] == "error"
 
     @patch("app.services.mapbiomas_service.rasterio")
