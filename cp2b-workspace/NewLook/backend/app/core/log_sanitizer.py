@@ -7,11 +7,10 @@ processing). Currently redacts e-mail addresses and Brazilian CPF/CNPJ numbers
 (structured, low-false-positive patterns) — defence-in-depth even though the app
 does not collect CPF/CNPJ, since they could still appear in free-text fields.
 
-Attach once at application start (root logger):
+Install once at application start; every log record is redacted from then on:
 
-    import logging
-    from app.core.log_sanitizer import PiiRedactingFilter
-    logging.getLogger().addFilter(PiiRedactingFilter())
+    from app.core.log_sanitizer import install_pii_redaction
+    install_pii_redaction()
 
 Wrap any request-derived value (an ID, a cache key) put into a log message in
 ``log_safe``, so a crafted value cannot forge log lines (CWE-117):
@@ -21,6 +20,7 @@ Wrap any request-derived value (an ID, a cache key) put into a log message in
 
 import logging
 import re
+from collections.abc import Mapping
 
 _EMAIL_RE = re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b")
 # CNPJ: 14 digits, formatted (00.000.000/0000-00) or bare. Matched before CPF.
@@ -42,16 +42,45 @@ def redact(text: str) -> str:
     return text
 
 
+def _redact_arg(value: object) -> object:
+    return redact(value) if isinstance(value, str) else value
+
+
 class PiiRedactingFilter(logging.Filter):
-    """Redacts PII from both the format string and any positional args."""
+    """Redacts PII from both the format string and its args."""
 
     def filter(self, record: logging.LogRecord) -> bool:
         try:
             if isinstance(record.msg, str):
                 record.msg = redact(record.msg)
-            if record.args:
-                record.args = tuple(redact(a) if isinstance(a, str) else a for a in record.args)
+            if isinstance(record.args, Mapping):
+                # logger.info("%(user)s", {"user": ...}): the args are one mapping.
+                record.args = {k: _redact_arg(v) for k, v in record.args.items()}
+            elif record.args:
+                record.args = tuple(_redact_arg(a) for a in record.args)
         except Exception:
             # Never let logging hygiene break logging itself.
             pass
         return True
+
+
+def install_pii_redaction() -> None:
+    """Pass every log record the process creates through ``PiiRedactingFilter``.
+
+    A filter added to the root logger never sees the modules' records
+    (``logging.getLogger(__name__)``): propagation hands them to the root's
+    handlers, not to its filters. A record factory runs for every record,
+    whichever logger creates it and whichever handler writes it.
+    """
+    previous = logging.getLogRecordFactory()
+    if getattr(previous, "redacts_pii", False):
+        return
+    pii_filter = PiiRedactingFilter()
+
+    def factory(*args, **kwargs) -> logging.LogRecord:
+        record = previous(*args, **kwargs)
+        pii_filter.filter(record)
+        return record
+
+    factory.redacts_pii = True  # type: ignore[attr-defined]
+    logging.setLogRecordFactory(factory)

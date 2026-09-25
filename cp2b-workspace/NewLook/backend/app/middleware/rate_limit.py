@@ -10,6 +10,8 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
 
+from app.core.log_sanitizer import log_safe
+
 logger = logging.getLogger(__name__)
 
 # Create limiter instance
@@ -102,7 +104,9 @@ async def rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded):
     """
     client_ip = get_client_ip(request)
     logger.warning(
-        f"Rate limit exceeded: {client_ip} on {request.url.path}",
+        "Rate limit exceeded: %s on %s",
+        client_ip,
+        log_safe(request.url.path),
         extra={
             "client_ip": client_ip,
             "endpoint": request.url.path,
