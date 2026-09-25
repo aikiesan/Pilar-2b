@@ -51,6 +51,13 @@ const PORTUGUESE_UI = [
   'Dados e documentação',
 ];
 
+/**
+ * A number in Portuguese short form ("20 mil", "4,6 bi"): formatted for pt-BR,
+ * or a hand-written suffix instead of `useFormat().compact`. `\s` also takes
+ * the no-break space Intl puts before the suffix.
+ */
+const PORTUGUESE_NUMBER = /\d\s(?:mil|mi|bi|tri)\b/;
+
 /** Every public page. */
 const ROUTES = [
   '/en',
@@ -123,6 +130,10 @@ test.describe('Locale integrity — /en/ renders no Portuguese UI', () => {
         `${route} renders Portuguese UI text: ${found.join(', ')}. ` +
           `Move these strings into messages/en.json and messages/pt-BR.json.`
       ).toEqual([]);
+      expect(
+        text.match(PORTUGUESE_NUMBER)?.[0],
+        `${route} shows a number in Portuguese short form. Format it with useFormat().compact.`
+      ).toBeUndefined();
     });
   }
 
@@ -137,5 +148,12 @@ test.describe('Locale integrity — /en/ renders no Portuguese UI', () => {
     const found = PORTUGUESE_UI.filter((marker) => text.includes(marker));
 
     expect(found.length, 'pt-BR/map should render Portuguese UI chrome').toBeGreaterThan(0);
+  });
+
+  test('pt-BR short-form numbers match the pattern', async ({ page }) => {
+    // The same guard for PORTUGUESE_NUMBER: the About page's counters count up
+    // to "4,6 bi" in pt-BR, so the pattern must find them there.
+    await page.goto('/pt-BR/about', { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('body')).toContainText(PORTUGUESE_NUMBER, { useInnerText: true });
   });
 });

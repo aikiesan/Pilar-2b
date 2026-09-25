@@ -475,7 +475,7 @@ export default function AboutPage() {
 
             <div className="bg-green-800/50 rounded-xl p-6 border border-green-700/50 text-center hover:bg-green-800/70 transition-colors">
               <div className="text-4xl font-bold text-white mb-2">
-                <AnimatedCounter end={6.4} decimals={1} suffix=" M" />
+                <AnimatedCounter end={6.4e6} decimals={1} compact />
               </div>
               <div className="text-green-300 uppercase text-sm tracking-wide">{t('unit_m3_biomethane')}</div>
               <p className="text-green-200 text-sm mt-2">{t('note_natural_gas')}</p>
@@ -483,7 +483,7 @@ export default function AboutPage() {
 
             <div className="bg-green-800/50 rounded-xl p-6 border border-green-700/50 text-center hover:bg-green-800/70 transition-colors">
               <div className="text-4xl font-bold text-white mb-2">
-                <AnimatedCounter end={20} suffix=" mil" />
+                <AnimatedCounter end={20e3} compact />
               </div>
               <div className="text-green-300 uppercase text-sm tracking-wide">{t('unit_jobs')}</div>
               <p className="text-green-200 text-sm mt-2">{t('note_jobs')}</p>
@@ -499,7 +499,7 @@ export default function AboutPage() {
 
             <div className="bg-green-800/50 rounded-xl p-6 border border-green-700/50 text-center hover:bg-green-800/70 transition-colors">
               <div className="text-4xl font-bold text-white mb-2">
-                <AnimatedCounter end={5.5} decimals={1} suffix=" M" />
+                <AnimatedCounter end={5.5e6} decimals={1} compact />
               </div>
               <div className="text-green-300 uppercase text-sm tracking-wide">{t('unit_hectares')}</div>
               <p className="text-green-200 text-sm mt-2">{t('note_hectares')}</p>
