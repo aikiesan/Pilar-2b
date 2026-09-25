@@ -64,10 +64,40 @@ export const SERVED_SOURCE_TIER: Record<ServedScenarioKey, 'cp2b_n4' | 'cp2b_n3'
   ideal: 'cp2b_n3',
 };
 
+/**
+ * The residues CP2b models — the ones a served share can exist for. The map's
+ * filter also offers aquaculture, which the method does not model: selecting
+ * only that paints no data, never a measured zero.
+ */
+export const SERVED_RESIDUES: readonly string[] = [
+  'sugarcane',
+  'soybean',
+  'corn',
+  'coffee',
+  'citrus',
+  'cattle',
+  'swine',
+  'poultry',
+  'rsu',
+  'rpo',
+  'sewage',
+];
+
 /** Municipality property holding the CH₄ total for a served scenario. */
 export const SERVED_SCENARIO_FIELD: Record<ServedScenarioKey, string> = {
   real: 'ch4_cp2b_n4_m3_year',
   ideal: 'ch4_cp2b_n3_m3_year',
+};
+
+/**
+ * Municipality property holding the raw-BIOGAS total for a served scenario:
+ * the method's own equivalent, summed from each substrate's CH₄ fraction
+ * (0.52 RSU … 0.68 sewage). Served, never CH₄ over one state-wide fraction —
+ * that matched the state total but put swine 15% and sewage 21% high.
+ */
+export const SERVED_SCENARIO_BIOGAS_FIELD: Record<ServedScenarioKey, string> = {
+  real: 'biogas_cp2b_n4_m3_year',
+  ideal: 'biogas_cp2b_n3_m3_year',
 };
 
 /**
@@ -84,24 +114,19 @@ export const SERVED_SCENARIO_RESIDUE_FIELD = (
   residue: string
 ): string => `ch4_${SERVED_SOURCE_TIER[tier]}_${residue}_m3_year`;
 
+/** One residue's raw-biogas equivalent under a served scenario (served, see above). */
+export const SERVED_SCENARIO_RESIDUE_BIOGAS_FIELD = (
+  tier: ServedScenarioKey,
+  residue: string
+): string => `biogas_${SERVED_SOURCE_TIER[tier]}_${residue}_m3_year`;
+
 /** CH₄ fraction of raw biogas — FIESP 2025, matching the backend constant. */
 export const CH4_FRACTION_OF_BIOGAS = 0.625;
 
 /**
- * CH₄ fraction of raw biogas per served tier. CP2b uses substrate-specific
- * fractions; the map carries only CH₄, so it applies the state-wide mix of each
- * level (Table T2 of the v5.1 article: 34.05 M Nm³/day of biogas for 19.18 of
- * CH₄ at N3). The state total then matches the article exactly; a single
- * municipality is approximate.
- */
-export const SERVED_CH4_FRACTION_OF_BIOGAS: Record<ServedScenarioKey, number> = {
-  real: 0.5638,
-  ideal: 0.5634,
-};
-
-/**
  * Biomethane per unit of CH₄. CP2b deducts a 1% upgrading loss and delivers a
- * 96% CH₄ product: 0.99 / 0.96.
+ * 96% CH₄ product: 0.99 / 0.96. Unlike the biogas fraction this is the same for
+ * every substrate (1.03125 on all 32,895 rows), so a constant is exact here.
  */
 export const SERVED_BIOMETHANE_PER_CH4: Record<ServedScenarioKey, number> = {
   real: 0.99 / 0.96,

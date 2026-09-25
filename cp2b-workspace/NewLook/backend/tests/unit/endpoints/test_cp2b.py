@@ -41,7 +41,9 @@ def test_map_columns_follow_the_served_scenario_shape():
     # (scenarioFactors.SERVED_SOURCE_TIER).
     assert "ch4_cp2b_n3_m3_year" in _CP2B_MAP_COLUMNS
     assert "ch4_cp2b_n4_sugarcane_m3_year" in _CP2B_MAP_COLUMNS
-    assert all(re.fullmatch(r"ch4_cp2b_n[34](_\w+)?_m3_year", c) for c in _CP2B_MAP_COLUMNS)
+    assert all(
+        re.fullmatch(r"(ch4|biogas)_cp2b_n[34](_\w+)?_m3_year", c) for c in _CP2B_MAP_COLUMNS
+    )
 
 
 def test_geojson_select_without_the_view_serves_nulls_not_a_join():
@@ -222,3 +224,47 @@ def test_municipality_outside_scope_is_404(client, mock_db_connection):
 
 def test_parameters_status_filter_is_constrained(client):
     assert client.get("/api/v1/cp2b/parameters?status=anything").status_code == 422
+
+
+# ── Biogas equivalents and zero-vs-null in the map payload ──────────────────
+
+
+def test_biogas_equivalents_are_served_per_residue_and_sector():
+    # Served, never re-derived from CH4 with one state-wide fraction.
+    for tier in ("cp2b_n3", "cp2b_n4"):
+        assert f"biogas_{tier}_m3_year" in _CP2B_MAP_COLUMNS
+        assert f"biogas_{tier}_swine_m3_year" in _CP2B_MAP_COLUMNS
+        assert f"biogas_{tier}_livestock_m3_year" in _CP2B_DETAIL_COLUMNS
+
+
+def test_no_cp2b_column_is_trimmed_from_the_map_payload():
+    from app.api.v1.endpoints.municipalities import _DETAIL_ONLY_KEYS, _DETAIL_ONLY_RE
+
+    trimmed = [c for c in _CP2B_MAP_COLUMNS if c in _DETAIL_ONLY_KEYS or _DETAIL_ONLY_RE.match(c)]
+    assert trimmed == []
+
+
+def test_a_modelled_zero_total_travels_and_a_null_does_not():
+    from app.api.v1.endpoints.municipalities import _cp2b_properties
+
+    # One of the 26 municipalities with N4 = 0 and N3 > 0.
+    row = {
+        "ch4_cp2b_n3_m3_year": 1_500.0,
+        "ch4_cp2b_n4_m3_year": 0.0,
+        "biogas_cp2b_n4_m3_year": 0.0,
+        "biogas_cp2b_n3_m3_year": None,
+        "ch4_cp2b_n4_cattle_m3_year": 0.0,
+        "ch4_cp2b_n3_cattle_m3_year": 1_500.0,
+    }
+    out = _cp2b_properties(row)
+    assert out["ch4_cp2b_n4_m3_year"] == 0.0
+    assert out["biogas_cp2b_n4_m3_year"] == 0.0
+    assert "biogas_cp2b_n3_m3_year" not in out  # NULL stays absent: no data
+    assert "ch4_cp2b_n4_cattle_m3_year" not in out  # an absent share reads as 0
+    assert out["ch4_cp2b_n3_cattle_m3_year"] == 1_500.0
+
+
+def test_outside_the_view_no_cp2b_property_is_emitted():
+    from app.api.v1.endpoints.municipalities import _cp2b_properties
+
+    assert _cp2b_properties({c: None for c in _CP2B_MAP_COLUMNS}) == {}

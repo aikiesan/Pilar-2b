@@ -19,10 +19,7 @@ import {
   MWH_PER_M3_CH4,
   NO_DATA,
 } from './mapValues';
-import {
-  SERVED_BIOMETHANE_PER_CH4,
-  SERVED_CH4_FRACTION_OF_BIOGAS,
-} from '@/data/scenarioFactors';
+import { SERVED_BIOMETHANE_PER_CH4 } from '@/data/scenarioFactors';
 
 const props = (o: Record<string, unknown>): MunicipalityProperties =>
   o as unknown as MunicipalityProperties;
@@ -39,6 +36,11 @@ const sp = props({
   ch4_cp2b_n3_sugarcane_m3_year: 900,
   ch4_cp2b_n3_cattle_m3_year: 500,
   ch4_cp2b_n3_rsu_m3_year: 200,
+  // The method's served raw-biogas equivalents (substrate-specific CH₄ fraction).
+  biogas_cp2b_n4_m3_year: 1_760,
+  biogas_cp2b_n4_sugarcane_m3_year: 1_067,
+  biogas_cp2b_n4_cattle_m3_year: 526,
+  biogas_cp2b_n4_rsu_m3_year: 192,
   sugarcane_biomass_tons_year: 40_000,
   sugarcane_biomass_coverage: 'measured',
 });
@@ -62,12 +64,19 @@ describe('mapValues — served scenarios with residues selected', () => {
   });
 
   it('treats an absent share as zero, not as no-data', () => {
-    // The payload omits falsy values, so "no coffee key" means no coffee — but a
-    // selection that finds nothing anywhere is no_data, not a painted zero.
+    // The payload omits zero shares, so "no coffee key" means no coffee. With
+    // the municipality covered (total present), that is a measured zero.
     expect(getMethaneScenarioValue(sp, 'real', R('sugarcane', 'coffee')).value).toBe(600);
     const none = getMethaneScenarioValue(sp, 'real', R('coffee'));
-    expect(none.value).toBeNull();
-    expect(none.coverage).toBe(NO_DATA);
+    expect(none.value).toBe(0);
+    expect(none.coverage).toBe('measured');
+  });
+
+  it('keeps no-data for a municipality with no CP2b row, whatever is selected', () => {
+    const outside = props({ ibge_code: '3106200' });
+    const v = getMethaneScenarioValue(outside, 'real', R('sugarcane'));
+    expect(v.value).toBeNull();
+    expect(v.coverage).toBe(NO_DATA);
   });
 
   it('every metric filters, in its own unit', () => {
@@ -76,10 +85,8 @@ describe('mapValues — served scenarios with residues selected', () => {
       900 * SERVED_BIOMETHANE_PER_CH4.real,
       6
     );
-    expect(getBiogasScenarioValue(sp, 'real', sel).value).toBeCloseTo(
-      900 / SERVED_CH4_FRACTION_OF_BIOGAS.real,
-      6
-    );
+    // Biogas is the sum of the SERVED biogas shares, not CH₄ over one fraction.
+    expect(getBiogasScenarioValue(sp, 'real', sel).value).toBe(1_067 + 526);
     expect(getBioenergyScenarioValue(sp, 'real', sel).value).toBeCloseTo(900 * MWH_PER_M3_CH4, 6);
   });
 

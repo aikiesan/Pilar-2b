@@ -140,16 +140,42 @@ _CP2B_RESIDUES = (
     "rpo",
     "sewage",
 )
-# In the map payload: what the choropleth and the residue filter paint.
-_CP2B_MAP_COLUMNS = tuple(f"ch4_{t}_m3_year" for t in _CP2B_TIERS) + tuple(
-    f"ch4_{t}_{r}_m3_year" for t in _CP2B_TIERS for r in _CP2B_RESIDUES
+# In the map payload: what the choropleth and the residue filter paint, as CH4
+# (ch4_*) and as the method's own raw-biogas equivalents (biogas_*). Biogas is
+# served, never re-derived from CH4: its fraction differs by substrate (0.52 RSU
+# ... 0.68 sewage), so one state-wide mix would misstate every residue and
+# municipality even though the state total would still match.
+_CP2B_TOTAL_COLUMNS = tuple(f"{q}_{t}_m3_year" for q in ("ch4", "biogas") for t in _CP2B_TIERS)
+_CP2B_SHARE_COLUMNS = tuple(
+    f"{q}_{t}_{r}_m3_year" for q in ("ch4", "biogas") for t in _CP2B_TIERS for r in _CP2B_RESIDUES
 )
+_CP2B_MAP_COLUMNS = _CP2B_TOTAL_COLUMNS + _CP2B_SHARE_COLUMNS
 # Detail only (/metrics): the sector split the profile panel reads, and the
 # figure without lignocellulosic residues the method also reports.
 _CP2B_DETAIL_COLUMNS = tuple(
-    f"ch4_{t}_{s}_m3_year" for t in _CP2B_TIERS for s in ("agricultural", "livestock", "urban")
+    f"{q}_{t}_{s}_m3_year"
+    for q in ("ch4", "biogas")
+    for t in _CP2B_TIERS
+    for s in ("agricultural", "livestock", "urban")
 ) + tuple(f"ch4_{t}_non_lignocellulosic_m3_year" for t in _CP2B_TIERS)
 _CP2B_VIEW = "municipality_cp2b_map"
+
+
+def _cp2b_properties(row) -> dict[str, float]:
+    """The CP2b feature properties for one GeoJSON row.
+
+    Cenário Real / Ideal = CP2b N4 / N3, reference scenario (migration 034). The
+    generic `if v` omission cannot tell a zero from a gap: 26 municipalities have
+    N4 = 0 with N3 > 0 (no hub reaches viable scale), and that 0 is a result, not
+    a missing reading. So totals travel whenever they are not NULL, 0 included,
+    and NULL (outside SP, or before the load) stays absent, which the map paints
+    as no data. Residue shares still drop zeros: they are read only when the
+    total is present, and an absent share there is exactly 0. None of these names
+    match _DETAIL_ONLY_RE, so they survive fields=map.
+    """
+    out = {c: row[c] for c in _CP2B_TOTAL_COLUMNS if row.get(c) is not None}
+    out.update({c: row[c] for c in _CP2B_SHARE_COLUMNS if row.get(c)})
+    return out
 
 
 def _load_cp2b_detail(cursor, ibge_code: str) -> dict[str, float | None]:
@@ -515,16 +541,12 @@ def _build_municipalities_geojson(limit: Optional[int], detail: str, fields: str
             "aquaculture_biogas_m3_year": _f(row, "aquaculture_biogas_m3_year"),
             "rsu_biogas_m3_year": _f(row, "rsu_biogas_m3_year"),
             "rpo_biogas_m3_year": _f(row, "rpo_biogas_m3_year"),
-            # Cenário Real / Cenário Ideal = CP2b N4 / N3, reference scenario
-            # (migration 034). These deliberately do NOT match _DETAIL_ONLY_RE's
-            # `_biogas_m3_year` suffix: the map paints them, so they must survive
-            # the fields=map trim. Named for what they hold — methane. The map
-            # derives biogás and bioenergia client-side. Omission rule: an absent
-            # share reads as 0 in the filter, an absent total as NO_DATA.
-            **{c: _f(row, c) for c in _CP2B_MAP_COLUMNS},
             **canonical_metrics,
         }
         properties.update({k: v for k, v in metric_fields.items() if v})
+
+        # Real/Ideal (CP2b N4/N3): zeros kept, NULL absent — see _cp2b_properties.
+        properties.update(_cp2b_properties(row))
 
         # ── Trim to what the choropleth actually paints (fields=map, default) ────
         #

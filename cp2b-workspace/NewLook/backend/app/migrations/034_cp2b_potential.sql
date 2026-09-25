@@ -10,7 +10,12 @@
 --   N2 technical    = N1 x FC   (straw left for soil, animals housed, ...)
 --   N3 mobilisable  = max(0, N2 x FCo - U)   <- the CP2b HEADLINE figure
 --   N4 accessible   = N3 x FS x FL          (FL on the OSM road network, variant B)
--- Scenarios min / med / max take every element at the same end of its range.
+-- FS here is the CP2b STORAGE-LOSS factor (method decision D2: ~0.98-1.00 for
+-- continuous streams, 0.85-0.97 for stored seasonal ones). It is NOT the
+-- seasonal-availability FS of docs/data/FDE_METHODOLOGY.md; the two share a
+-- symbol, not a definition, and their values must not be swapped.
+-- Scenarios min / med / max take every element at the same end of its range:
+-- an envelope of scenarios, not a probability interval.
 --
 -- The platform's Cenário Real is N4 and its Cenário Ideal is N3, both in the
 -- reference (med) scenario, read from the municipality_cp2b_map view below.
@@ -111,9 +116,11 @@ CREATE TABLE IF NOT EXISTS cp2b_spatial_fl (
 COMMENT ON TABLE cp2b_spatial_fl IS
   'CP2b spatial logistic factor (road network, OSM 2026) per municipality x substrate x scenario.';
 
--- What the map paints: reference scenario only, pivoted to the same
--- ch4_{tier}_{residue}_m3_year shape as the Real/Ideal columns (029), so the
--- residue filter works unchanged. Absent residues/sectors come out NULL.
+-- What the map paints: reference scenario only, pivoted to
+-- ch4_cp2b_{n3,n4}[_{residue|sector}]_m3_year (and the biogas_cp2b_* equivalents),
+-- so the residue filter works unchanged. A residue or sector the municipality
+-- does not have comes out NULL; a modelled zero (e.g. N4 = 0 where no hub
+-- reaches viable scale) stays 0. Real reads N4, Ideal reads N3.
 CREATE OR REPLACE VIEW municipality_cp2b_map AS
 SELECT
     ibge_code,
@@ -149,13 +156,48 @@ SELECT
     sum(n4_ch4_nm3_year) FILTER (WHERE residue = 'rsu') AS ch4_cp2b_n4_rsu_m3_year,
     sum(n4_ch4_nm3_year) FILTER (WHERE residue = 'rpo') AS ch4_cp2b_n4_rpo_m3_year,
     sum(n4_ch4_nm3_year) FILTER (WHERE residue = 'sewage') AS ch4_cp2b_n4_sewage_m3_year,
-    sum(n4_ch4_nm3_year) FILTER (WHERE NOT lignocellulosic) AS ch4_cp2b_n4_non_lignocellulosic_m3_year
+    sum(n4_ch4_nm3_year) FILTER (WHERE NOT lignocellulosic) AS ch4_cp2b_n4_non_lignocellulosic_m3_year,
+    -- Raw-biogas equivalents as the method computed them, from each substrate's
+    -- own CH4 fraction (0.52 RSU ... 0.68 sewage). Served, never re-derived from
+    -- CH4 with a single fraction: a state-wide mix would put swine 15% and
+    -- sewage 21% high. Appended after the CH4 columns so CREATE OR REPLACE
+    -- VIEW can extend a view already created by an earlier run of this file.
+    sum(n3_biogas_eq_nm3_year) AS biogas_cp2b_n3_m3_year,
+    sum(n3_biogas_eq_nm3_year) FILTER (WHERE sector = 'agricultural') AS biogas_cp2b_n3_agricultural_m3_year,
+    sum(n3_biogas_eq_nm3_year) FILTER (WHERE sector = 'livestock') AS biogas_cp2b_n3_livestock_m3_year,
+    sum(n3_biogas_eq_nm3_year) FILTER (WHERE sector = 'urban') AS biogas_cp2b_n3_urban_m3_year,
+    sum(n3_biogas_eq_nm3_year) FILTER (WHERE residue = 'sugarcane') AS biogas_cp2b_n3_sugarcane_m3_year,
+    sum(n3_biogas_eq_nm3_year) FILTER (WHERE residue = 'soybean') AS biogas_cp2b_n3_soybean_m3_year,
+    sum(n3_biogas_eq_nm3_year) FILTER (WHERE residue = 'corn') AS biogas_cp2b_n3_corn_m3_year,
+    sum(n3_biogas_eq_nm3_year) FILTER (WHERE residue = 'coffee') AS biogas_cp2b_n3_coffee_m3_year,
+    sum(n3_biogas_eq_nm3_year) FILTER (WHERE residue = 'citrus') AS biogas_cp2b_n3_citrus_m3_year,
+    sum(n3_biogas_eq_nm3_year) FILTER (WHERE residue = 'cattle') AS biogas_cp2b_n3_cattle_m3_year,
+    sum(n3_biogas_eq_nm3_year) FILTER (WHERE residue = 'swine') AS biogas_cp2b_n3_swine_m3_year,
+    sum(n3_biogas_eq_nm3_year) FILTER (WHERE residue = 'poultry') AS biogas_cp2b_n3_poultry_m3_year,
+    sum(n3_biogas_eq_nm3_year) FILTER (WHERE residue = 'rsu') AS biogas_cp2b_n3_rsu_m3_year,
+    sum(n3_biogas_eq_nm3_year) FILTER (WHERE residue = 'rpo') AS biogas_cp2b_n3_rpo_m3_year,
+    sum(n3_biogas_eq_nm3_year) FILTER (WHERE residue = 'sewage') AS biogas_cp2b_n3_sewage_m3_year,
+    sum(n4_biogas_eq_nm3_year) AS biogas_cp2b_n4_m3_year,
+    sum(n4_biogas_eq_nm3_year) FILTER (WHERE sector = 'agricultural') AS biogas_cp2b_n4_agricultural_m3_year,
+    sum(n4_biogas_eq_nm3_year) FILTER (WHERE sector = 'livestock') AS biogas_cp2b_n4_livestock_m3_year,
+    sum(n4_biogas_eq_nm3_year) FILTER (WHERE sector = 'urban') AS biogas_cp2b_n4_urban_m3_year,
+    sum(n4_biogas_eq_nm3_year) FILTER (WHERE residue = 'sugarcane') AS biogas_cp2b_n4_sugarcane_m3_year,
+    sum(n4_biogas_eq_nm3_year) FILTER (WHERE residue = 'soybean') AS biogas_cp2b_n4_soybean_m3_year,
+    sum(n4_biogas_eq_nm3_year) FILTER (WHERE residue = 'corn') AS biogas_cp2b_n4_corn_m3_year,
+    sum(n4_biogas_eq_nm3_year) FILTER (WHERE residue = 'coffee') AS biogas_cp2b_n4_coffee_m3_year,
+    sum(n4_biogas_eq_nm3_year) FILTER (WHERE residue = 'citrus') AS biogas_cp2b_n4_citrus_m3_year,
+    sum(n4_biogas_eq_nm3_year) FILTER (WHERE residue = 'cattle') AS biogas_cp2b_n4_cattle_m3_year,
+    sum(n4_biogas_eq_nm3_year) FILTER (WHERE residue = 'swine') AS biogas_cp2b_n4_swine_m3_year,
+    sum(n4_biogas_eq_nm3_year) FILTER (WHERE residue = 'poultry') AS biogas_cp2b_n4_poultry_m3_year,
+    sum(n4_biogas_eq_nm3_year) FILTER (WHERE residue = 'rsu') AS biogas_cp2b_n4_rsu_m3_year,
+    sum(n4_biogas_eq_nm3_year) FILTER (WHERE residue = 'rpo') AS biogas_cp2b_n4_rpo_m3_year,
+    sum(n4_biogas_eq_nm3_year) FILTER (WHERE residue = 'sewage') AS biogas_cp2b_n4_sewage_m3_year
 FROM municipality_cp2b_potential
 WHERE scenario = 'med'
 GROUP BY ibge_code;
 
 COMMENT ON VIEW municipality_cp2b_map IS
-  'CP2b N3/N4 (med) per municipality, by sector and residue, in Nm3 CH4/yr. Read by /municipalities/geojson and /metrics.';
+  'CP2b N3/N4 (med) per municipality, by sector and residue: Nm3 CH4/yr (ch4_*) and raw-biogas equivalents (biogas_*). Real = N4, Ideal = N3. Read by /municipalities/geojson and /metrics.';
 
 -- Verify after loading:
 --   SELECT scenario, sum(n3_ch4_nm3_year)/365e6 AS n3_M_day, sum(n4_ch4_nm3_year)/365e6 AS n4_M_day

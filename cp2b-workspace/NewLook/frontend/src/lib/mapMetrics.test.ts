@@ -24,10 +24,7 @@ import {
   rampFor,
 } from './mapMetrics';
 import { MWH_PER_M3_CH4 } from './mapValues';
-import {
-  SERVED_BIOMETHANE_PER_CH4,
-  SERVED_CH4_FRACTION_OF_BIOGAS,
-} from '@/data/scenarioFactors';
+import { SERVED_BIOMETHANE_PER_CH4 } from '@/data/scenarioFactors';
 import { formatCompact } from './format';
 
 const props = (o: Record<string, unknown>): MunicipalityProperties =>
@@ -149,6 +146,7 @@ describe('mapMetrics — residue selection reaches the paint', () => {
     ch4_cp2b_n4_m3_year: 1_000,
     ch4_cp2b_n4_sugarcane_m3_year: 600,
     ch4_cp2b_n4_cattle_m3_year: 300,
+    biogas_cp2b_n4_cattle_m3_year: 526,
   });
   const withResidues = (metric: DisplayMetric, r: string[]) =>
     METRIC_SPECS[metric].rawValue(p, { ...ctx('real' as 'baseline'), selectedResidues: r as never })
@@ -161,10 +159,7 @@ describe('mapMetrics — residue selection reaches the paint', () => {
     );
     expect(withResidues('methane_m3', ['sugarcane', 'cattle'])).toBe(900);
     expect(withResidues('bioenergy_mwh', ['cattle'])).toBeCloseTo(300 * MWH_PER_M3_CH4, 6);
-    expect(withResidues('biogas_m3', ['cattle'])).toBeCloseTo(
-      300 / SERVED_CH4_FRACTION_OF_BIOGAS.real,
-      6
-    );
+    expect(withResidues('biogas_m3', ['cattle'])).toBe(526);
   });
 
   it('an empty selection still reads the municipality total', () => {

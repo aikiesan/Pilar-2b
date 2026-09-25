@@ -143,6 +143,7 @@ def _sheet_resumo(
         (t["density"], _num(muni.get("population_density")), t["density_unit"]),
         (None, None, None),
         (t["sec_biogas"], None, None),
+        (t["note"], t["legacy_value"], None),
         (t["total_potential"], _num(muni.get("total_biogas_m3_year")), t["unit_m3_year"]),
         (t["daily_potential"], _num(muni.get("total_biogas_m3_day")), t["unit_m3_day"]),
         (t["potential_class"], potential_category(who.get("potential_category"), lang), None),
@@ -158,6 +159,7 @@ def _sheet_resumo(
         (t["sec_methane"], None, None),
         (t["ch4_real"], _num(cp2b.get("ch4_cp2b_n4_m3_year")), t["unit_m3_year"]),
         (t["ch4_ideal"], _num(cp2b.get("ch4_cp2b_n3_m3_year")), t["unit_m3_year"]),
+        (t["note"], t["cp2b_value"], None),
         (None, None, None),
         (t["sec_provenance"], None, None),
         (t["data_confidence"], who.get("data_confidence"), None),
@@ -167,9 +169,7 @@ def _sheet_resumo(
     return pd.DataFrame(rows, columns=[t["col_indicator"], t["col_value"], t["col_unit"]])
 
 
-def _sheet_setores(
-    muni: dict, lang: Lang = DEFAULT_LANG, cp2b: dict | None = None
-) -> pd.DataFrame:
+def _sheet_setores(muni: dict, lang: Lang = DEFAULT_LANG, cp2b: dict | None = None) -> pd.DataFrame:
     """Biogas, biomass and both CH4 scenarios per sector, with each one's share.
 
     The scenarios are CP2b (Real = N4, Ideal = N3); the method has no forestry
@@ -191,15 +191,19 @@ def _sheet_setores(
             }
         )
     frame = pd.DataFrame(rows)
-    total = frame[biogas].sum(skipna=True)
-    frame[share] = frame[biogas] / total if total else None
+    # min_count=1: a column with no value at all totals to empty, not 0. Without
+    # it a municipality with no CP2b row (outside SP, or before migration 034 is
+    # loaded) got a TOTAL of 0 under Real/Ideal while every sector cell was blank.
+    total = frame[biogas].sum(skipna=True, min_count=1)
+    has_total = pd.notna(total) and total != 0
+    frame[share] = frame[biogas] / total if has_total else None
     total_row = {
         t["col_sector"]: t["total"],
-        biomass: frame[biomass].sum(skipna=True),
+        biomass: frame[biomass].sum(skipna=True, min_count=1),
         biogas: total,
-        real: frame[real].sum(skipna=True),
-        ideal: frame[ideal].sum(skipna=True),
-        share: 1.0 if total else None,
+        real: frame[real].sum(skipna=True, min_count=1),
+        ideal: frame[ideal].sum(skipna=True, min_count=1),
+        share: 1.0 if has_total else None,
     }
     return pd.concat([frame, pd.DataFrame([total_row])], ignore_index=True)
 
@@ -323,6 +327,8 @@ def _sheet_fontes(
         (None, None),
         (t["sec_notes"], None),
         (t["nature"], t["nature_value"]),
+        (t["cp2b_label"], t["cp2b_value"]),
+        (t["legacy_label"], t["legacy_value"]),
         (t["data_confidence"], who.get("data_confidence")),
     ]
     return pd.DataFrame(rows, columns=[t["col_item"], t["col_detail"]])
@@ -623,6 +629,7 @@ def build_pdf(
     )
 
     muni = (sections.get("municipality") or [{}])[0]
+    cp2b = (sections.get("cp2b") or [{}])[0]
     story: list[Any] = []
 
     story.append(Paragraph(str(who.get("municipality_name", "—")), style["title"]))
@@ -637,6 +644,8 @@ def build_pdf(
 
     population_year = who.get("population_year")
     headline = [
+        (t["ch4_real"], f"{fmt(cp2b.get('ch4_cp2b_n4_m3_year'))} {t['unit_m3_year']}"),
+        (t["ch4_ideal"], f"{fmt(cp2b.get('ch4_cp2b_n3_m3_year'))} {t['unit_m3_year']}"),
         (t["pdf_total_biogas"], f"{fmt(muni.get('total_biogas_m3_year'))} {t['unit_m3_year']}"),
         (t["pdf_energy"], f"{fmt(muni.get('energy_potential_mwh_year'))} {t['unit_mwh_year']}"),
         (t["pdf_co2"], f"{fmt(muni.get('co2_reduction_tons_year'))} {t['unit_t_year']}"),
@@ -648,6 +657,7 @@ def build_pdf(
         (t["pdf_confidence"], str(who.get("data_confidence") or "—")),
     ]
     story.append(_kv_table(headline))
+    story.append(Paragraph(t["pdf_method_note"], style["note"]))
     story.append(Spacer(1, 12))
 
     story.append(Paragraph(t["pdf_location"], style["h2"]))

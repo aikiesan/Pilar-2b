@@ -171,6 +171,21 @@ TEXT: dict[Lang, dict[str, str]] = {
         "sec_notes": "OBSERVAÇÕES",
         "nature": "Natureza dos números",
         "nature_value": "Potencial modelado, não produção medida.",
+        "cp2b_label": "Cenários Real e Ideal",
+        "cp2b_value": (
+            "Método CP2b v5.1, cenário de referência: Real = N4 (acessível), "
+            "Ideal = N3 (mobilizável), em m³ de CH₄."
+        ),
+        "legacy_label": "Biogás, energia, CO₂, biomassa e setores",
+        "legacy_value": (
+            "Estimativa anterior da plataforma (potencial teórico, sem fatores de "
+            "disponibilidade). Não é o método CP2b."
+        ),
+        "pdf_method_note": (
+            "Real e Ideal seguem o método CP2b v5.1 (N4 e N3, cenário de referência). "
+            "Biogás, energia, CO₂, biomassa e as quebras por setor e por fluxo são a "
+            "estimativa anterior da plataforma (potencial teórico), não o CP2b."
+        ),
         # PDF report
         "pdf_total_biogas": "Potencial total de biogás",
         "pdf_energy": "Energia potencial",
@@ -276,6 +291,21 @@ TEXT: dict[Lang, dict[str, str]] = {
         "sec_notes": "NOTES",
         "nature": "Nature of the figures",
         "nature_value": "Modeled potential, not measured production.",
+        "cp2b_label": "Real and Ideal scenarios",
+        "cp2b_value": (
+            "CP2b method v5.1, reference scenario: Real = N4 (accessible), "
+            "Ideal = N3 (mobilisable), in m³ of CH₄."
+        ),
+        "legacy_label": "Biogas, energy, CO₂, biomass and sectors",
+        "legacy_value": (
+            "The platform's earlier estimate (theoretical potential, no availability "
+            "factors). Not the CP2b method."
+        ),
+        "pdf_method_note": (
+            "Real and Ideal follow the CP2b method v5.1 (N4 and N3, reference scenario). "
+            "Biogas, energy, CO₂, biomass and the sector and stream breakdowns are the "
+            "platform's earlier estimate (theoretical potential), not CP2b."
+        ),
         "pdf_total_biogas": "Total biogas potential",
         "pdf_energy": "Energy potential",
         "pdf_co2": "CO₂ avoided",

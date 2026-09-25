@@ -210,9 +210,25 @@ def test_residue_rows_take_the_cp2b_shares():
 
 
 def test_without_cp2b_the_scenarios_are_empty_not_zero():
-    frame = _sheet_setores(MUNI, "en").set_index("Sector")
+    frame = _sheet_setores(MUNI, "en", {}).set_index("Sector")
 
     assert frame["CH₄ Real (m³/year)"].drop("TOTAL").isna().all()
+    # The TOTAL row too: summing an all-empty column must not fabricate a 0.
+    assert pd.isna(frame.loc["TOTAL", "CH₄ Real (m³/year)"])
+    assert pd.isna(frame.loc["TOTAL", "CH₄ Ideal (m³/year)"])
+
+
+def test_a_partial_cp2b_row_still_totals():
+    frame = _sheet_setores(MUNI, "en", CP2B).set_index("Sector")
+
+    assert frame.loc["TOTAL", "CH₄ Real (m³/year)"] == 900_000.0
+
+
+def test_the_workbook_says_which_figures_are_cp2b():
+    from app.services.municipality_exports import _sheet_fontes
+
+    items = set(_sheet_fontes({}, WHO, "en")["Item"].dropna())
+    assert {"Real and Ideal scenarios", "Biogas, energy, CO₂, biomass and sectors"} <= items
 
 
 def test_the_workbook_reads_the_cp2b_section():

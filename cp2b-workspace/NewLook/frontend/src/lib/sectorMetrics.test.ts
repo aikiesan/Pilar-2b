@@ -14,7 +14,7 @@ import {
   getResidueTonsOrNull,
   MWH_PER_M3_CH4,
 } from './mapValues';
-import { CH4_FRACTION_OF_BIOGAS, SERVED_CH4_FRACTION_OF_BIOGAS } from '@/data/scenarioFactors';
+import { CH4_FRACTION_OF_BIOGAS } from '@/data/scenarioFactors';
 import type { MunicipalityProperties } from '@/types/geospatial';
 
 const props = {
@@ -126,6 +126,7 @@ describe('getSectorMetricValue — served scenarios (Real / Ideal)', () => {
   const served = {
     ch4_cp2b_n4_agricultural_m3_year: 1_000,
     ch4_cp2b_n4_livestock_m3_year: 4_000,
+    biogas_cp2b_n4_livestock_m3_year: 6_500,
     ch4_cp2b_n4_urban_m3_year: 500,
     ch4_cp2b_n3_agricultural_m3_year: 3_000,
     ch4_cp2b_n3_livestock_m3_year: 8_000,
@@ -140,11 +141,9 @@ describe('getSectorMetricValue — served scenarios (Real / Ideal)', () => {
     expect(getSectorMetricValue(served, 'livestock', 'methane_m3', 'ideal')).toBe(8_000);
   });
 
-  it('converts served CH4 to raw biogas the same way the municipality total does', () => {
-    expect(getSectorMetricValue(served, 'livestock', 'biogas_m3', 'real')).toBeCloseTo(
-      4_000 / SERVED_CH4_FRACTION_OF_BIOGAS.real,
-      6
-    );
+  it('reads the served sector biogas, the same way the municipality total does', () => {
+    // Never CH₄ over one state-wide fraction: the sector's own mix decides it.
+    expect(getSectorMetricValue(served, 'livestock', 'biogas_m3', 'real')).toBe(6_500);
   });
 
   it('derives biomethane from methane with the CP2b upgrading loss and purity', () => {

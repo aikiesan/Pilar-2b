@@ -5,8 +5,9 @@
  * The UI keys stay `real`/`ideal`; the payload fields keep the method's names
  * (ch4_cp2b_n4_*, ch4_cp2b_n3_*), and SERVED_SOURCE_TIER is the only join. The
  * Atlas SP 2020 columns (ch4_real_*, ch4_ideal_*) are no longer read, even when
- * a payload still carries them. The conversions are the method's own: the
- * state CH₄ mix of each level for biogas, 0.99 / 0.96 for biomethane.
+ * a payload still carries them. Biogas is the method's served equivalent
+ * (substrate-specific CH₄ fraction), never CH₄ over one state-wide fraction;
+ * biomethane is CH₄ × 0.99 / 0.96, which is exact for every substrate.
  */
 
 import type { MunicipalityProperties } from '@/types/geospatial';
@@ -20,11 +21,10 @@ import {
   NO_DATA,
 } from './mapValues';
 import {
-  CH4_FRACTION_OF_BIOGAS,
   DEFAULT_MAP_SCENARIO,
   MAP_SCENARIOS,
   SERVED_BIOMETHANE_PER_CH4,
-  SERVED_CH4_FRACTION_OF_BIOGAS,
+  SERVED_SCENARIO_BIOGAS_FIELD,
   SERVED_SCENARIO_FIELD,
   SERVED_SCENARIO_RESIDUE_FIELD,
   SERVED_SOURCE_TIER,
@@ -47,6 +47,26 @@ const mun = props({
   ch4_cp2b_n4_sugarcane_m3_year: 109_600_000,
   ch4_cp2b_n4_corn_m3_year: 3_100_000,
   ch4_cp2b_n4_agricultural_m3_year: 117_000_000,
+  biogas_cp2b_n3_m3_year: 240_000_000,
+  biogas_cp2b_n4_m3_year: 209_000_000,
+});
+
+// Swine only: CH₄ fraction 0.65, so 65 of CH₄ is exactly 100 of biogas. The
+// old state-wide mix (0.5638) turned that into 115.29.
+const swineOnly = props({
+  ibge_code: '3500000',
+  ch4_cp2b_n4_m3_year: 65,
+  ch4_cp2b_n4_swine_m3_year: 65,
+  biogas_cp2b_n4_m3_year: 100,
+  biogas_cp2b_n4_swine_m3_year: 100,
+});
+
+// One of the 26 municipalities where N4 = 0 while N3 > 0.
+const zeroN4 = props({
+  ibge_code: '3500001',
+  ch4_cp2b_n3_m3_year: 1_500,
+  ch4_cp2b_n4_m3_year: 0,
+  biogas_cp2b_n4_m3_year: 0,
 });
 
 describe('Real / Ideal — scenario registry', () => {
@@ -66,6 +86,7 @@ describe('Real / Ideal — scenario registry', () => {
     expect(SERVED_SCENARIO_FIELD.ideal).toBe('ch4_cp2b_n3_m3_year');
     expect(SERVED_SCENARIO_RESIDUE_FIELD('real', 'rsu')).toBe('ch4_cp2b_n4_rsu_m3_year');
     expect(SERVED_SCENARIO_RESIDUE_FIELD('ideal', 'rsu')).toBe('ch4_cp2b_n3_rsu_m3_year');
+    expect(SERVED_SCENARIO_BIOGAS_FIELD.real).toBe('biogas_cp2b_n4_m3_year');
   });
 });
 
@@ -89,10 +110,22 @@ describe('Real / Ideal — values', () => {
     expect(v.coverage).toBe(NO_DATA);
   });
 
-  it('biogas uses the CP2b CH4 fraction of each level, not FIESP 0.625', () => {
-    const v = getBiogasScenarioValue(mun, 'ideal').value as number;
-    expect(v).toBeCloseTo(133_500_000 / SERVED_CH4_FRACTION_OF_BIOGAS.ideal, 3);
-    expect(v).toBeGreaterThan(133_500_000 / CH4_FRACTION_OF_BIOGAS);
+  it('biogas is the served equivalent, not CH4 over a single fraction', () => {
+    expect(getBiogasScenarioValue(mun, 'ideal').value).toBe(240_000_000);
+    expect(getBiogasScenarioValue(mun, 'real').value).toBe(209_000_000);
+  });
+
+  it('swine keeps its own CH4 fraction: 65 of CH4 is 100 of biogas, not 115.29', () => {
+    expect(getBiogasScenarioValue(swineOnly, 'real').value).toBe(100);
+    expect(getBiogasScenarioValue(swineOnly, 'real', R('swine')).value).toBe(100);
+  });
+
+  it('a modelled zero is painted as zero, not as no data', () => {
+    const v = getMethaneScenarioValue(zeroN4, 'real');
+    expect(v.value).toBe(0);
+    expect(v.coverage).toBe('measured');
+    expect(getBiogasScenarioValue(zeroN4, 'real').value).toBe(0);
+    expect(getMethaneScenarioValue(zeroN4, 'ideal').value).toBe(1_500);
   });
 
   it('biomethane deducts the upgrading loss and the 96% purity', () => {
@@ -102,10 +135,8 @@ describe('Real / Ideal — values', () => {
     );
   });
 
-  it('the state mix reproduces the article (N3 19.18 -> 34.05 biogas; N4 16.36 -> 29.02)', () => {
-    expect(19.183 / SERVED_CH4_FRACTION_OF_BIOGAS.ideal).toBeCloseTo(34.05, 1);
+  it('the biomethane factor reproduces the article (Table T2: N3 19.18 -> 19.78)', () => {
     expect(19.183 * SERVED_BIOMETHANE_PER_CH4.ideal).toBeCloseTo(19.78, 2);
-    expect(16.361 / SERVED_CH4_FRACTION_OF_BIOGAS.real).toBeCloseTo(29.02, 1);
     expect(16.361 * SERVED_BIOMETHANE_PER_CH4.real).toBeCloseTo(16.87, 2);
   });
 

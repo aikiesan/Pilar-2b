@@ -21,12 +21,14 @@ import type {
 import type { BiomassType, ResidueType } from '@/types/map';
 import {
   isServedScenario,
+  SERVED_RESIDUES,
+  SERVED_SCENARIO_BIOGAS_FIELD,
   SERVED_SCENARIO_FIELD,
+  SERVED_SCENARIO_RESIDUE_BIOGAS_FIELD,
   SERVED_SCENARIO_RESIDUE_FIELD,
   SERVED_SOURCE_TIER,
   CH4_FRACTION_OF_BIOGAS,
   SERVED_BIOMETHANE_PER_CH4,
-  SERVED_CH4_FRACTION_OF_BIOGAS,
   type MapScenarioKey,
   type ServedScenarioKey,
 } from '@/data/scenarioFactors';
@@ -142,28 +144,55 @@ function pickScenario(
  * With residues selected it sums their shares (the view's per-residue columns) instead of reading
  * the municipality total, which is what makes the residue filter change the
  * choropleth rather than only the set of polygons drawn.
+ *
+ * ZERO IS NOT NO DATA. Coverage is decided once, by the CH₄ total: absent/null
+ * means no CP2b row for this municipality (no data); 0 is a modelled result —
+ * 26 municipalities have N4 = 0 with N3 > 0 — and is returned as 0 so the map
+ * paints the zero class. `quantity` picks CH₄ or the method's served raw-biogas
+ * equivalent; biogas is never re-derived from CH₄ with a single fraction.
  */
-function servedCh4(
+type ServedQuantity = 'ch4' | 'biogas';
+const SERVED_TOTAL_FIELD: Record<ServedQuantity, Record<ServedScenarioKey, string>> = {
+  ch4: SERVED_SCENARIO_FIELD,
+  biogas: SERVED_SCENARIO_BIOGAS_FIELD,
+};
+const SERVED_SHARE_FIELD: Record<
+  ServedQuantity,
+  (tier: ServedScenarioKey, residue: string) => string
+> = {
+  ch4: SERVED_SCENARIO_RESIDUE_FIELD,
+  biogas: SERVED_SCENARIO_RESIDUE_BIOGAS_FIELD,
+};
+
+function servedValue(
   props: MunicipalityProperties,
   scenario: MapScenarioKey,
-  selectedResidues: ResidueType[] = []
+  selectedResidues: ResidueType[] = [],
+  quantity: ServedQuantity = 'ch4'
 ): number | null {
   if (!isServedScenario(scenario)) return null;
   const rec = asRecord(props);
+  if (num(rec[SERVED_SCENARIO_FIELD[scenario]]) === null) return null;
   if (selectedResidues.length > 0) {
-    // An ABSENT share is a zero, not "no data". The map payload omits falsy
-    // values (municipalities.py), so a municipality that grows no cane simply
-    // has no ch4_cp2b_n4_sugarcane_m3_year key. Only when nothing sums is there
-    // nothing to paint — the same reading the missing total already gets.
-    const sum = selectedResidues.reduce(
-      (acc, r) => acc + (num(rec[SERVED_SCENARIO_RESIDUE_FIELD(scenario, r)]) ?? 0),
+    // Only residues the method models can have a share. An ABSENT share of one
+    // of those is a zero, not "no data": the payload omits zero shares
+    // (municipalities.py), so a municipality that grows no cane simply has no
+    // cane key. A selection of residues CP2b never models is no data.
+    const modelled = selectedResidues.filter((r) => SERVED_RESIDUES.includes(r));
+    if (modelled.length === 0) return null;
+    return modelled.reduce(
+      (acc, r) => acc + (num(rec[SERVED_SHARE_FIELD[quantity](scenario, r)]) ?? 0),
       0
     );
-    return sum > 0 ? sum : null;
   }
-  const v = num(rec[SERVED_SCENARIO_FIELD[scenario]]);
-  return v !== null && v > 0 ? v : null;
+  return num(rec[SERVED_TOTAL_FIELD[quantity][scenario]]);
 }
+
+const servedCh4 = (
+  props: MunicipalityProperties,
+  scenario: MapScenarioKey,
+  selectedResidues: ResidueType[] = []
+): number | null => servedValue(props, scenario, selectedResidues, 'ch4');
 
 /**
  * True when at least one of the selected residues is present here.
@@ -197,10 +226,10 @@ export function getBiogasScenarioValue(
   selectedResidues: ResidueType[] = []
 ): MapValue {
   if (isServedScenario(scenario)) {
-    const ch4 = servedCh4(props, scenario, selectedResidues);
-    return ch4 === null
+    const biogas = servedValue(props, scenario, selectedResidues, 'biogas');
+    return biogas === null
       ? { value: null, coverage: NO_DATA }
-      : { value: ch4 / SERVED_CH4_FRACTION_OF_BIOGAS[scenario], coverage: 'measured' };
+      : { value: biogas, coverage: 'measured' };
   }
   const medio = num(props.biogas_medio_m3_yr);
   if (medio === null) return { value: null, coverage: NO_DATA };
@@ -320,6 +349,12 @@ export const SERVED_SECTORS: ServedSector[] = [
 export const SERVED_SECTOR_FIELD = (tier: ServedScenarioKey, sector: ServedSector): string =>
   `ch4_${SERVED_SOURCE_TIER[tier]}_${sector}_m3_year`;
 
+/** The same sector's served raw-biogas equivalent (never CH₄ over one fraction). */
+export const SERVED_SECTOR_BIOGAS_FIELD = (
+  tier: ServedScenarioKey,
+  sector: ServedSector
+): string => `biogas_${SERVED_SOURCE_TIER[tier]}_${sector}_m3_year`;
+
 /**
  * One sector's CH₄ under a served scenario, or null when we have none.
  *
@@ -369,14 +404,16 @@ export function getSectorScenarioValue(
   scenario: MapScenarioKey
 ): number | null {
   // Real and Ideal keep their split in the CP2b view (migration 034), served
-  // by the per-municipality detail endpoint. Convert from CH4 exactly the way
-  // the municipality-wide accessors do, so a sector and the total beside it can
-  // never disagree about what "biogás" means: raw biogas is CH4 over the tier's
-  // CH4 fraction, biomethane is CH4 × 0.99 / 0.96.
+  // by the per-municipality detail endpoint. Read exactly the way the
+  // municipality-wide accessors do, so a sector and the total beside it can
+  // never disagree about what "biogás" means: raw biogas is the method's served
+  // equivalent, biomethane is CH4 × 0.99 / 0.96.
   if (isServedScenario(scenario)) {
     const ch4 = servedSectorCh4(props, sector, scenario);
     if (ch4 === null) return null;
-    if (metric === 'biogas') return ch4 / SERVED_CH4_FRACTION_OF_BIOGAS[scenario];
+    if (metric === 'biogas') {
+      return num(asRecord(props)[SERVED_SECTOR_BIOGAS_FIELD(scenario, sector)]);
+    }
     if (metric === 'biomethane') return ch4 * SERVED_BIOMETHANE_PER_CH4[scenario];
     return ch4;
   }
