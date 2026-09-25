@@ -98,6 +98,7 @@ export default function ProximityMap({
   const t = useTranslations('pages.proximity');
   const tCommon = useTranslations('common');
   const format = useFormat();
+  const coordinate = (value: number, decimals: number) => format.number(value, { decimals, minDecimals: decimals });
   const isMounted = useIsClient();
 
   if (!isMounted) {
@@ -191,8 +192,8 @@ export default function ProximityMap({
                 <div className="text-sm">
                   <p className="font-semibold mb-1">{t('selected_point')}</p>
                   <p className="text-gray-600">
-                    Lat: {selectedPoint.lat.toFixed(6)}<br />
-                    Lng: {selectedPoint.lng.toFixed(6)}
+                    Lat: {coordinate(selectedPoint.lat, 6)}<br />
+                    Lng: {coordinate(selectedPoint.lng, 6)}
                   </p>
                   <p className="text-emerald-600 mt-1">
                     {t('map.radius', { radius: format.number(radius) })}
@@ -291,7 +292,7 @@ export default function ProximityMap({
         </p>
         {selectedPoint && (
           <p className="text-xs text-emerald-600 mt-1">
-            {selectedPoint.lat.toFixed(4)}, {selectedPoint.lng.toFixed(4)}
+            {t('map.coordinates', { lat: coordinate(selectedPoint.lat, 4), lng: coordinate(selectedPoint.lng, 4) })}
           </p>
         )}
       </div>

@@ -152,14 +152,15 @@ describe('ProximityMap', () => {
       expect(screen.getByText('Estado de São Paulo')).toBeInTheDocument();
     });
 
-    it('should show selected point coordinates', () => {
+    it('should show selected point coordinates in the page locale', () => {
       render(
         <ProximityMap
           {...defaultProps}
           selectedPoint={{ lat: -23.5505, lng: -46.6333 }}
         />
       );
-      expect(screen.getByText('-23.5505, -46.6333')).toBeInTheDocument();
+      // pt-BR: decimal comma, so the pair is separated by a semicolon.
+      expect(screen.getByText('-23,5505; -46,6333')).toBeInTheDocument();
     });
 
     it('should format coordinates to 4 decimal places', () => {
@@ -169,12 +170,12 @@ describe('ProximityMap', () => {
           selectedPoint={{ lat: -23.55051234, lng: -46.63334567 }}
         />
       );
-      expect(screen.getByText('-23.5505, -46.6333')).toBeInTheDocument();
+      expect(screen.getByText('-23,5505; -46,6333')).toBeInTheDocument();
     });
 
     it('should not show coordinates when no point selected', () => {
       render(<ProximityMap {...defaultProps} />);
-      expect(screen.queryByText(/-23.5505/)).not.toBeInTheDocument();
+      expect(screen.queryByText(/-23,5505/)).not.toBeInTheDocument();
     });
   });
 
@@ -237,8 +238,8 @@ describe('ProximityMap', () => {
         />
       );
       expect(screen.getByText('Ponto Selecionado')).toBeInTheDocument();
-      expect(screen.getByText(/Lat: -23\.5505/)).toBeInTheDocument();
-      expect(screen.getByText(/Lng: -46\.6333/)).toBeInTheDocument();
+      expect(screen.getByText(/Lat: -23,5505/)).toBeInTheDocument();
+      expect(screen.getByText(/Lng: -46,6333/)).toBeInTheDocument();
       expect(screen.getByText('Raio: 10 km')).toBeInTheDocument();
     });
 
@@ -250,8 +251,8 @@ describe('ProximityMap', () => {
           radius={5}
         />
       );
-      expect(screen.getByText(/Lat: -23\.550512/)).toBeInTheDocument();
-      expect(screen.getByText(/Lng: -46\.633346/)).toBeInTheDocument();
+      expect(screen.getByText(/Lat: -23,550512/)).toBeInTheDocument();
+      expect(screen.getByText(/Lng: -46,633346/)).toBeInTheDocument();
     });
   });
 
@@ -577,7 +578,7 @@ describe('ProximityMap', () => {
       render(
         <ProximityMap {...defaultProps} selectedPoint={extremeCoords} />
       );
-      expect(screen.getByText('-90.0000, -180.0000')).toBeInTheDocument();
+      expect(screen.getByText('-90,0000; -180,0000')).toBeInTheDocument();
     });
   });
 });

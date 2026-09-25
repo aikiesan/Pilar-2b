@@ -1255,7 +1255,8 @@
         "distance": "Distance:",
         "population": "Population:",
         "biogas": "Biogas:",
-        "scope": "<strong>São Paulo</strong> State"
+        "scope": "<strong>São Paulo</strong> State",
+        "coordinates": "{lat}, {lng}"
       },
       "processed_in": "Processed in {ms} ms",
       "badge": {

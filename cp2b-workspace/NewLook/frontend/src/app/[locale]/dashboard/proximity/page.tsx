@@ -301,11 +301,11 @@ function ProximityAnalysisContent() {
                 <div className="space-y-2">
                   <div className="flex items-center text-sm">
                     <span className="text-gray-500 dark:text-slate-400 w-20">{tp('latitude')}</span>
-                    <span className="font-mono text-gray-900 dark:text-slate-100">{selectedPoint.lat.toFixed(6)}</span>
+                    <span className="font-mono text-gray-900 dark:text-slate-100">{format.number(selectedPoint.lat, { decimals: 6, minDecimals: 6 })}</span>
                   </div>
                   <div className="flex items-center text-sm">
                     <span className="text-gray-500 dark:text-slate-400 w-20">{tp('longitude')}</span>
-                    <span className="font-mono text-gray-900 dark:text-slate-100">{selectedPoint.lng.toFixed(6)}</span>
+                    <span className="font-mono text-gray-900 dark:text-slate-100">{format.number(selectedPoint.lng, { decimals: 6, minDecimals: 6 })}</span>
                   </div>
                 </div>
               ) : (
