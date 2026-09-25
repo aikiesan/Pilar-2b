@@ -748,7 +748,7 @@ export default function AdvancedAnalysisPage() {
               />
 
               {/* Search Filter */}
-              <div className="bg-white rounded-xl shadow-md p-4 border border-gray-100">
+              <div className="bg-white text-gray-900 rounded-xl shadow-md p-4 border border-gray-100">
                 <h4 className="text-xs font-semibold text-gray-700 mb-2 flex items-center gap-2">
                   <Search className="h-3.5 w-3.5" />
                   {t('advanced_analysis.search_label')}
@@ -757,7 +757,8 @@ export default function AdvancedAnalysisPage() {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Nome..."
+                  placeholder={t('advanced_analysis.search_placeholder')}
+                  aria-label={t('advanced_analysis.search_label')}
                   className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 />
               </div>
@@ -836,7 +837,7 @@ export default function AdvancedAnalysisPage() {
                       onClick={() => setViewMode('cascade')}
                       className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
                         viewMode === 'cascade'
-                          ? 'bg-green-600 text-white shadow-sm'
+                          ? 'bg-green-700 text-white shadow-sm'
                           : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                       }`}
                     >
@@ -847,7 +848,7 @@ export default function AdvancedAnalysisPage() {
                       onClick={() => setViewMode('flow')}
                       className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
                         viewMode === 'flow'
-                          ? 'bg-green-600 text-white shadow-sm'
+                          ? 'bg-green-700 text-white shadow-sm'
                           : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                       }`}
                     >
@@ -858,7 +859,7 @@ export default function AdvancedAnalysisPage() {
                       onClick={() => setViewMode('scenarios')}
                       className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
                         viewMode === 'scenarios'
-                          ? 'bg-green-600 text-white shadow-sm'
+                          ? 'bg-green-700 text-white shadow-sm'
                           : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                       }`}
                     >
@@ -869,7 +870,7 @@ export default function AdvancedAnalysisPage() {
                       onClick={() => setViewMode('table')}
                       className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
                         viewMode === 'table'
-                          ? 'bg-green-600 text-white shadow-sm'
+                          ? 'bg-green-700 text-white shadow-sm'
                           : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                       }`}
                     >

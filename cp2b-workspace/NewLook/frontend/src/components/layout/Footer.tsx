@@ -214,8 +214,8 @@ export default function Footer() {
             </div>
 
             <div className="pt-1 space-y-0.5 border-t border-white/10">
-              <p className="text-xs text-gray-500">{t('footer.institution')}</p>
-              <p className="text-xs text-gray-500">{t('footer.fapesp_project')}</p>
+              <p className="text-xs text-gray-400">{t('footer.institution')}</p>
+              <p className="text-xs text-gray-400">{t('footer.fapesp_project')}</p>
             </div>
           </div>
 
@@ -267,12 +267,12 @@ export default function Footer() {
             </div>
 
             <div className="mt-6 space-y-1">
-              <p className="text-xs text-gray-500">{t('footer.location')}</p>
+              <p className="text-xs text-gray-400">{t('footer.location')}</p>
               <a
                 href="https://nipe.unicamp.br/cp2b/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs text-gray-500 hover:text-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-white/40 rounded"
+                className="text-xs text-gray-400 hover:text-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-white/40 rounded"
               >
                 nipe.unicamp.br/cp2b ↗
               </a>
@@ -284,7 +284,7 @@ export default function Footer() {
       {/* ── Section 3: Bottom bar ─────────────────────────────────── */}
       <div className="border-t border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-500">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-400">
 
             {/* Legal links */}
             <nav aria-label={t('footer.legal_links')}>
@@ -292,7 +292,7 @@ export default function Footer() {
                 <li>
                   <Link
                     href="/privacy"
-                    className="hover:text-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-white/40 rounded px-1"
+                    className="hover:text-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-white/40 rounded px-1"
                   >
                     {t('footer.privacy')}
                   </Link>
@@ -301,7 +301,7 @@ export default function Footer() {
                 <li>
                   <Link
                     href="/terms"
-                    className="hover:text-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-white/40 rounded px-1"
+                    className="hover:text-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-white/40 rounded px-1"
                   >
                     {t('footer.terms')}
                   </Link>

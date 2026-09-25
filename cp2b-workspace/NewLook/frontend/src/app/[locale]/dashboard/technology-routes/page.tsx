@@ -20,9 +20,9 @@ export default function TechnologyRoutesPage() {
           <BiogasCalculator />
         </div>
 
-        <p className="text-center text-xs text-gray-400 dark:text-slate-500 mt-6">
+        <p className="text-center text-xs text-gray-500 dark:text-slate-400 mt-6">
           {t('footer_note')}
-          <a href="mailto:cp2b@unicamp.br" className="underline hover:text-gray-500 dark:hover:text-slate-300">cp2b@unicamp.br</a>
+          <a href="mailto:cp2b@unicamp.br" className="underline hover:text-gray-700 dark:hover:text-slate-200">cp2b@unicamp.br</a>
         </p>
       </div>
     </div>

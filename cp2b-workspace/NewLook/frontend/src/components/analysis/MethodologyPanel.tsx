@@ -293,7 +293,7 @@ export default function MethodologyPanel({
           </Link>
           <button
             onClick={onClose}
-            className="w-full py-2 px-4 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors"
+            className="w-full py-2 px-4 bg-green-700 hover:bg-green-800 text-white font-medium rounded-lg transition-colors"
           >
             {t('methodology_panel.close')}
           </button>

@@ -98,7 +98,7 @@ export default function ReferencesView({ references, residues, residue, onResidu
           </dl>
         </div>
 
-        <div className="bg-white rounded-xl shadow-md p-5 border border-gray-100">
+        <div className="bg-white text-gray-900 rounded-xl shadow-md p-5 border border-gray-100">
           <h2 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
             <Filter className="h-4 w-4" aria-hidden="true" />
             {t('references_view.filters')}
@@ -202,7 +202,7 @@ export default function ReferencesView({ references, residues, residue, onResidu
               <button
                 type="button"
                 onClick={clearFilters}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                className="px-4 py-2 bg-green-700 text-white rounded-lg hover:bg-green-800 transition-colors"
               >
                 {t('references_view.clear')}
               </button>

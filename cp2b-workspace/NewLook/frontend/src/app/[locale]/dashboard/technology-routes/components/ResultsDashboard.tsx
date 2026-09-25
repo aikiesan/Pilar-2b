@@ -311,7 +311,7 @@ export default function ResultsDashboard({ result, municipalityName, onReset }: 
                 aria-pressed={chartMode === mode}
                 className={`px-3 py-1 ${
                   chartMode === mode
-                    ? 'bg-green-600 dark:bg-emerald-600 text-white'
+                    ? 'bg-green-700 dark:bg-emerald-700 text-white'
                     : 'bg-white dark:bg-slate-800 text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700'
                 }`}
               >

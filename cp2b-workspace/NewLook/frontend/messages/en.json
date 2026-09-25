@@ -1037,6 +1037,7 @@
       "category_industrial": "Industrial",
       "visualization_label": "View:",
       "search_label": "Search",
+      "search_placeholder": "Municipality name…",
       "export_csv": "Export CSV",
       "subtitle": "Biogas potential with FDE correction factors (FC, FCp, FS, FL)",
       "methodology": "Methodology",
