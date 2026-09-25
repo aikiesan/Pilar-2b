@@ -4,18 +4,20 @@
  */
 
 import L from 'leaflet';
+import { withBasePath } from '@/lib/basePath';
 
-// Fix for default marker icons in Next.js
-// Next.js doesn't handle Leaflet's default icon paths correctly
-// Using unpkg CDN for reliable icon delivery in production
+// Next.js does not resolve Leaflet's default icon paths, so they are set here.
+// The images are copies of leaflet/dist/images served from public/: they used
+// to come from the unpkg CDN, a third party that then received the IP address
+// of everyone who opened a map.
 export function fixLeafletIcons() {
   // @ts-ignore
   delete L.Icon.Default.prototype._getIconUrl;
 
   L.Icon.Default.mergeOptions({
-    iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-    iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-    shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+    iconRetinaUrl: withBasePath('/images/leaflet/marker-icon-2x.png'),
+    iconUrl: withBasePath('/images/leaflet/marker-icon.png'),
+    shadowUrl: withBasePath('/images/leaflet/marker-shadow.png'),
   });
 }
 
