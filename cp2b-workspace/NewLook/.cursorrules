@@ -29,10 +29,13 @@ national layer.
 
 ## Before pushing
 ```bash
-cd frontend && npm run typecheck && npm run lint && npm run i18n:check && npm test && npm run build
-cd backend && black . --check && isort . --check-only \
-  && flake8 app/ --max-line-length=100 --extend-ignore=E203,W503 && pytest
+(cd frontend && npm run typecheck && npm run lint && npm run i18n:check && npm test \
+  && npm run build && git checkout -- next-env.d.ts)
+(cd backend && black . --check && isort . --check-only \
+  && flake8 app/ --max-line-length=100 --extend-ignore=E203,W503 && pytest)
 ```
+Run from the NewLook directory; each line is a subshell, so the second starts
+there too. `next build` rewrites `next-env.d.ts`, hence the checkout.
 `npm run typecheck` covers the tests and e2e specs too. Backend CI runs
 `tests/unit`, `tests/integration` and `tests/compliance` (pytest.ini), so new
 tests go there.
