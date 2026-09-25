@@ -13,7 +13,7 @@ import pytest
 yaml = pytest.importorskip("yaml", reason="PyYAML required for canonical loader tests")
 
 from app.services import canonical_loader  # noqa: E402
-from app.services.biogas_forward import FeedstockParams, Range  # noqa: E402
+from app.services.biogas_forward import FeedstockParams  # noqa: E402
 from app.services.canonical_loader import (  # noqa: E402
     STREAM_TO_CANONICAL,
     get_params,

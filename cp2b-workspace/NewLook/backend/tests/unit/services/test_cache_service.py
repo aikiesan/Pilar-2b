@@ -5,7 +5,6 @@ Tests LRU cache implementation with TTL and thread safety
 
 import threading
 import time
-from datetime import datetime, timedelta
 
 import pytest
 

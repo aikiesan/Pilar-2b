@@ -3,14 +3,13 @@ Unit tests for MapBiomas Service
 Tests land use analysis from raster data within analysis buffers
 """
 
-from collections import Counter
 from pathlib import Path
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pytest
 
-from app.services.mapbiomas_service import MAPBIOMAS_CLASSES, RASTERIO_AVAILABLE, MapBiomasService
+from app.services.mapbiomas_service import MAPBIOMAS_CLASSES, MapBiomasService
 
 
 @pytest.fixture

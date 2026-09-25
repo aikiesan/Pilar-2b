@@ -8,8 +8,6 @@ mock_db_connection from conftest.py).
 No real database is needed.
 """
 
-from unittest.mock import MagicMock, patch
-
 import pytest
 
 # ─── Helpers ──────────────────────────────────────────────────────────────────

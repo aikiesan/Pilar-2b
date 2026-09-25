@@ -3,7 +3,7 @@ Integration tests for Municipalities API endpoints
 Tests municipality data retrieval, GeoJSON generation, and statistics
 """
 
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import pytest
 from fastapi.testclient import TestClient

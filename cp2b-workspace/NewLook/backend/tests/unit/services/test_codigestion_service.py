@@ -5,7 +5,6 @@ Covers pure helpers, UnionFind, spatial grouping, C:N scoring,
 convex hull, and mocked DB-touching functions.
 """
 
-import math
 from contextlib import contextmanager
 from unittest.mock import MagicMock, patch
 
@@ -590,7 +589,7 @@ class TestFindCodigestionClusters:
         _load_cn_data.cache_clear()
 
     def _make_row(self, name, lat, lng, cattle_biomass=5000.0, sugarcane_biomass=5000.0):
-        from app.services.codigestion_service import BIOGAS_FIELDS, BIOMASS_FIELDS
+        pass
 
         row = {
             "id": abs(hash(name)) & 0xFFFF,
