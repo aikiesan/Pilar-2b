@@ -3,10 +3,13 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import { Link } from '@/navigation'
-import { useTranslations } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import { ArrowUp, Mail, CheckCircle2, AlertCircle } from 'lucide-react'
 import { validateEmail, type ValidationError } from '@/lib/validation'
 import { useValidationMessage } from '@/hooks/useValidationMessage'
+import { isLocale } from '@/config/i18n'
+import { openConsentPreferences } from '@/lib/consent'
+import { subscribeToNewsletter } from '@/services/newsletterApi'
 
 // Social icons removed from lucide-react v1.x — inline SVGs
 function InstagramIcon({ className }: { className?: string }) {
@@ -52,23 +55,32 @@ export default function Footer() {
   const t = useTranslations('landing')
   const tNav = useTranslations('common.nav')
   const tAuth = useTranslations('common.auth')
+  const tNewsletter = useTranslations('newsletter')
+  const locale = useLocale()
   const validationMessage = useValidationMessage()
 
   const [email, setEmail] = useState('')
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [emailError, setEmailError] = useState<ValidationError | null>(null)
+  // What the server answered when it did not subscribe the address.
+  const [serverError, setServerError] = useState<string | null>(null)
 
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault()
     const problem = validateEmail(email)
     setEmailError(problem)
+    setServerError(null)
     if (problem) {
       setStatus('error')
       return
     }
     setStatus('loading')
-    // TODO: wire to actual newsletter API
-    await new Promise((r) => setTimeout(r, 1200))
+    const result = await subscribeToNewsletter(email.trim(), 'footer', isLocale(locale) ? locale : 'pt-BR')
+    if (result !== 'subscribed') {
+      setStatus('error')
+      setServerError(tNewsletter(`errors.${result}`))
+      return
+    }
     setStatus('success')
     setEmail('')
     setTimeout(() => setStatus('idle'), 5000)
@@ -143,7 +155,7 @@ export default function Footer() {
                   id="footer-email"
                   type="email"
                   value={email}
-                  onChange={(e) => { setEmail(e.target.value); setStatus('idle'); setEmailError(null) }}
+                  onChange={(e) => { setEmail(e.target.value); setStatus('idle'); setEmailError(null); setServerError(null) }}
                   placeholder={t('footer.newsletter_email_placeholder')}
                   className="w-full px-4 py-2.5 text-sm bg-white/5 border border-white/15 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cp2b-lime focus:border-transparent transition-colors"
                   disabled={status === 'loading' || status === 'success'}
@@ -169,13 +181,22 @@ export default function Footer() {
                 {t('footer.newsletter_success')}
               </p>
             )}
-            {status === 'error' && emailError && (
+            {status === 'error' && (emailError || serverError) && (
               <p className="flex items-center gap-2 text-xs text-red-400">
                 <AlertCircle className="w-3.5 h-3.5" aria-hidden="true" />
-                {validationMessage(emailError)}
+                {emailError ? validationMessage(emailError) : serverError}
               </p>
             )}
           </div>
+          <p className="mt-1 text-xs text-gray-400">
+            {t.rich('footer.newsletter_consent', {
+              privacy: (chunks) => (
+                <Link href="/privacy" className="underline underline-offset-2 hover:text-gray-200">
+                  {chunks}
+                </Link>
+              ),
+            })}
+          </p>
         </div>
       </div>
 
@@ -305,6 +326,16 @@ export default function Footer() {
                   >
                     {t('footer.terms')}
                   </Link>
+                </li>
+                <li aria-hidden="true" className="text-gray-600">|</li>
+                <li>
+                  <button
+                    type="button"
+                    onClick={openConsentPreferences}
+                    className="hover:text-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-white/40 rounded px-1"
+                  >
+                    {t('footer.cookie_preferences')}
+                  </button>
                 </li>
               </ul>
             </nav>

@@ -286,7 +286,9 @@
       "linkedin_label": "LinkedIn PILAR-2b / CP2b",
       "youtube_label": "YouTube CP2b",
       "location": "São Paulo, Brasil",
-      "legal_links": "Links legais"
+      "legal_links": "Links legais",
+      "newsletter_consent": "Ao se inscrever, você concorda em receber a newsletter; veja a <privacy>Política de Privacidade</privacy>.",
+      "cookie_preferences": "Preferências de cookies"
     },
     "navigation": {
       "previous": "Anterior",
@@ -1877,13 +1879,13 @@
   },
   "cookieConsent": {
     "title": "Usamos cookies e dados",
-    "description": "Usamos cookies para melhorar sua experiência, analisar o tráfego e exibir conteúdo relevante. Você também pode assinar nossa newsletter para receber novidades sobre biogás.",
+    "description": "Usamos cookies essenciais para o funcionamento do site. Com a sua permissão, usamos também um cookie de estatísticas para contar as visitas e saber quais páginas são usadas; esses dados ficam nos servidores da UNICAMP e não são compartilhados com ninguém. Você pode mudar a sua escolha a qualquer momento em Preferências de cookies, no rodapé de todas as páginas.",
     "privacyLink": "Leia nossa Política de Privacidade",
     "emailPlaceholder": "seu@email.com",
     "emailLabel": "Assine nossa newsletter (opcional)",
     "acceptAll": "Aceitar tudo",
     "essentialOnly": "Apenas essenciais",
-    "successMessage": "Obrigado! Entraremos em contato.",
+    "successMessage": "Inscrição feita. Obrigado!",
     "lgpdNote": "Respeitamos a sua privacidade. Consulte a nossa Política de Privacidade."
   },
   "calculator": {
@@ -2366,8 +2368,22 @@
     "processing": "Processando…",
     "subscribed": "Inscrição feita!",
     "success": "Obrigado! Você receberá nossas atualizações em breve.",
-    "failure": "Não foi possível processar sua solicitação. Tente novamente.",
-    "privacy": "Respeitamos sua privacidade. Você pode cancelar a inscrição a qualquer momento."
+    "privacy": "Ao se inscrever, você concorda em receber a newsletter do PILAR-2b. O endereço fica nos servidores da UNICAMP (veja a <privacy>Política de Privacidade</privacy>) e você pode cancelar a inscrição a qualquer momento.",
+    "errors": {
+      "invalid_email": "Esse endereço de e-mail não foi aceito. Confira e tente de novo.",
+      "rate_limited": "Muitas tentativas. Aguarde um minuto e tente de novo.",
+      "failed": "Não foi possível processar sua solicitação. Tente novamente."
+    },
+    "unsubscribe": {
+      "title": "Cancelar a inscrição na newsletter",
+      "question": "Deixar de enviar a newsletter do PILAR-2b para este endereço?",
+      "confirm": "Cancelar inscrição",
+      "working": "Cancelando a inscrição…",
+      "done": "Pronto: este endereço não receberá mais a newsletter.",
+      "invalid": "Este link de cancelamento não é válido. Se a newsletter continuar chegando, escreva para lucasnc@unicamp.br.",
+      "failed": "Não foi possível cancelar a inscrição agora. Tente novamente.",
+      "back": "Voltar à plataforma"
+    }
   },
   "videoModal": {
     "close": "Fechar vídeo"

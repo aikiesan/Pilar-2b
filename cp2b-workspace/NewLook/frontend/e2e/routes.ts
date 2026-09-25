@@ -20,6 +20,7 @@ export const ROUTES = [
   '/en/terms',
   '/en/accessibility',
   '/en/patch-notes',
+  '/en/newsletter/unsubscribe',
 ];
 
 /**

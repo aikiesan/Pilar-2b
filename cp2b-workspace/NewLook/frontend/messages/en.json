@@ -286,7 +286,9 @@
       "linkedin_label": "LinkedIn PILAR-2b / CP2b",
       "youtube_label": "YouTube CP2b",
       "location": "São Paulo, Brazil",
-      "legal_links": "Legal links"
+      "legal_links": "Legal links",
+      "newsletter_consent": "By subscribing you agree to receive the newsletter; see the <privacy>Privacy Policy</privacy>.",
+      "cookie_preferences": "Cookie preferences"
     },
     "navigation": {
       "previous": "Previous",
@@ -1877,13 +1879,13 @@
   },
   "cookieConsent": {
     "title": "We use cookies & data",
-    "description": "We use cookies to improve your experience, analyze site traffic, and serve relevant content. You can also subscribe to our newsletter to stay updated on biogas research.",
+    "description": "We use essential cookies to run the site. With your permission we also use a statistics cookie to count visits and see which pages are used; that data stays on UNICAMP's servers and is not shared with anyone. You can change your choice at any time under Cookie preferences, at the foot of every page.",
     "privacyLink": "Read our Privacy Policy",
     "emailPlaceholder": "your@email.com",
     "emailLabel": "Subscribe to our newsletter (optional)",
     "acceptAll": "Accept All",
     "essentialOnly": "Essential Only",
-    "successMessage": "Thank you! We'll be in touch.",
+    "successMessage": "Subscribed. Thank you!",
     "lgpdNote": "We respect your privacy. See our Privacy Policy."
   },
   "calculator": {
@@ -2366,8 +2368,22 @@
     "processing": "Processing…",
     "subscribed": "Subscribed!",
     "success": "Thank you! You will receive our updates soon.",
-    "failure": "Your request could not be processed. Please try again.",
-    "privacy": "We respect your privacy. You can unsubscribe at any time."
+    "privacy": "By subscribing you agree to receive the PILAR-2b newsletter. The address is kept on UNICAMP's servers (see the <privacy>Privacy Policy</privacy>) and you can unsubscribe at any time.",
+    "errors": {
+      "invalid_email": "That e-mail address was not accepted. Please check it and try again.",
+      "rate_limited": "Too many attempts. Please wait a minute and try again.",
+      "failed": "Your request could not be processed. Please try again."
+    },
+    "unsubscribe": {
+      "title": "Unsubscribe from the newsletter",
+      "question": "Stop sending the PILAR-2b newsletter to this address?",
+      "confirm": "Unsubscribe",
+      "working": "Unsubscribing…",
+      "done": "Done: this address will no longer receive the newsletter.",
+      "invalid": "This unsubscribe link is not valid. If the newsletter keeps arriving, write to lucasnc@unicamp.br.",
+      "failed": "The subscription could not be cancelled right now. Please try again.",
+      "back": "Back to the platform"
+    }
   },
   "videoModal": {
     "close": "Close video"
