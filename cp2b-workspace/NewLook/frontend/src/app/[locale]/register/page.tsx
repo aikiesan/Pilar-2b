@@ -218,6 +218,8 @@ export default function RegisterPage() {
                       className={`h-2 rounded-full transition-all ${getPasswordStrengthColor()}`}
                       style={{ width: `${passwordStrength}%` }}
                       role="progressbar"
+                      aria-label={t('register.password_strength')}
+                      aria-valuetext={getPasswordStrengthText() || undefined}
                       aria-valuenow={passwordStrength}
                       aria-valuemin={0}
                       aria-valuemax={100}

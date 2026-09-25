@@ -229,6 +229,7 @@ export default function ComparisonPanel({
                           <span className="text-sm truncate">{mun.properties.name}</span>
                           <button
                             onClick={() => onMunicipalityRemove(Number(mun.properties.ibge_code))}
+                            aria-label={t('remove_aria', { name: mun.properties.name })}
                             className="ml-2 p-1 rounded hover:bg-red-100 dark:hover:bg-red-900/20 text-red-600"
                           >
                             <Minus className="w-4 h-4" />

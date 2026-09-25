@@ -316,7 +316,8 @@
     },
     "search": {
       "label": "Buscar Município",
-      "placeholder": "Nome ou código IBGE…"
+      "placeholder": "Nome ou código IBGE…",
+      "clear_aria": "Limpar busca"
     },
     "residues": {
       "sugarcane": "Cana-de-açúcar",
@@ -925,6 +926,7 @@
       "empty_hint": "Use a busca acima para adicionar municípios à comparação",
       "highest": "Maior valor",
       "lowest": "Menor valor",
+      "remove_aria": "Remover {name} da comparação",
       "categories": {
         "overview": "Visão geral",
         "biogas": "Biogás total"

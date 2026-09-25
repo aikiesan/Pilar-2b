@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useId, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import {
   Search,
@@ -195,6 +195,7 @@ function FiltersSection({
   scopeUf?: 'SP' | 'MG';
 }) {
   const metricText = useMetricText();
+  const searchId = useId();
   const vizModes: { value: VisualizationMode; label: string; disabled?: boolean }[] = [
     { value: 'choropleth', label: t('vizModes.choropleth') },
     { value: 'heatmap', label: t('vizModes.heatmap') },
@@ -206,12 +207,13 @@ function FiltersSection({
     <div className="space-y-4">
       {/* Search */}
       <div>
-        <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-1">
+        <label htmlFor={searchId} className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-1">
           {t('search.label')}
         </label>
         <div className="relative">
           <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
           <input
+            id={searchId}
             type="text"
             value={searchQuery}
             onChange={e => onSearchChange(e.target.value)}
@@ -219,7 +221,11 @@ function FiltersSection({
             className="w-full pl-7 pr-7 py-1.5 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
           />
           {searchQuery && (
-            <button onClick={() => onSearchChange('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+            <button
+              onClick={() => onSearchChange('')}
+              aria-label={t('search.clear_aria')}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
               <X className="w-3 h-3" />
             </button>
           )}
@@ -442,6 +448,7 @@ function LayersSection({
   onLayerToggle: (id: string, visible: boolean) => void;
   t: MapTranslator;
 }) {
+  const opacityId = useId();
   // Layers arrive named in the page locale (MapComponent reads Map.layerNames).
   const getLayerName = (layer: Layer) => layer.name;
 
@@ -480,12 +487,13 @@ function LayersSection({
       </div>
 
       <div>
-        <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-1">
+        <label htmlFor={opacityId} className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-1">
           {t('opacity.label')}: {Math.round(opacity * 100)}%
         </label>
         <div className="flex items-center gap-2">
           <span className="text-[10px] text-gray-400">30%</span>
-          <input type="range" min="0.3" max="1" step="0.05" value={opacity}
+          <input id={opacityId} type="range" min="0.3" max="1" step="0.05" value={opacity}
+            aria-valuetext={`${Math.round(opacity * 100)}%`}
             onChange={e => onOpacityChange(parseFloat(e.target.value))}
             className="flex-1 h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-green-600"
           />
@@ -509,6 +517,7 @@ function LayersSection({
                       <button
                         role="switch"
                         aria-checked={layer.visible}
+                        aria-label={getLayerName(layer)}
                         onClick={() => onLayerToggle(layer.id, !layer.visible)}
                         className={`relative w-8 h-[18px] rounded-full transition-colors shrink-0 ${
                           layer.visible ? (isBeta ? 'bg-amber-500' : 'bg-[#1E5128]') : 'bg-gray-200'

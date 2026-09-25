@@ -316,7 +316,8 @@
     },
     "search": {
       "label": "Search Municipality",
-      "placeholder": "Name or IBGE code…"
+      "placeholder": "Name or IBGE code…",
+      "clear_aria": "Clear search"
     },
     "residues": {
       "sugarcane": "Sugarcane",
@@ -925,6 +926,7 @@
       "empty_hint": "Use the search above to add municipalities to the comparison",
       "highest": "Highest value",
       "lowest": "Lowest value",
+      "remove_aria": "Remove {name} from the comparison",
       "categories": {
         "overview": "Overview",
         "biogas": "Total biogas"
