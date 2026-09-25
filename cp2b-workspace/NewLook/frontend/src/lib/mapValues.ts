@@ -24,6 +24,8 @@ import {
   SERVED_SCENARIO_FIELD,
   SERVED_SCENARIO_RESIDUE_FIELD,
   CH4_FRACTION_OF_BIOGAS,
+  SERVED_BIOMETHANE_PER_CH4,
+  SERVED_CH4_FRACTION_OF_BIOGAS,
   type MapScenarioKey,
   type ServedScenarioKey,
 } from '@/data/scenarioFactors';
@@ -197,7 +199,7 @@ export function getBiogasScenarioValue(
     const ch4 = servedCh4(props, scenario, selectedResidues);
     return ch4 === null
       ? { value: null, coverage: NO_DATA }
-      : { value: ch4 / CH4_FRACTION_OF_BIOGAS, coverage: 'measured' };
+      : { value: ch4 / SERVED_CH4_FRACTION_OF_BIOGAS[scenario], coverage: 'measured' };
   }
   const medio = num(props.biogas_medio_m3_yr);
   if (medio === null) return { value: null, coverage: NO_DATA };
@@ -259,9 +261,12 @@ export function getBiomethaneScenarioValue(
   // Under the FIESP convention the biomethane volume EQUALS the methane volume —
   // 0.625 is already the CH₄ fraction of biogas, so applying it again would
   // double-count. The backend serves these two identical for the same reason.
+  // CP2b deducts upgrading losses (0.99 / 0.96); Real/Ideal keep the FIESP 1:1.
   if (isServedScenario(scenario)) {
     const ch4 = servedCh4(props, scenario, selectedResidues);
-    return ch4 === null ? { value: null, coverage: NO_DATA } : { value: ch4, coverage: 'measured' };
+    return ch4 === null
+      ? { value: null, coverage: NO_DATA }
+      : { value: ch4 * SERVED_BIOMETHANE_PER_CH4[scenario], coverage: 'measured' };
   }
   const medio = num(props.biomethane_medio_m3_yr);
   if (medio === null) return { value: null, coverage: NO_DATA };
@@ -371,7 +376,9 @@ export function getSectorScenarioValue(
   if (isServedScenario(scenario)) {
     const ch4 = servedSectorCh4(props, sector, scenario);
     if (ch4 === null) return null;
-    return metric === 'biogas' ? ch4 / CH4_FRACTION_OF_BIOGAS : ch4;
+    if (metric === 'biogas') return ch4 / SERVED_CH4_FRACTION_OF_BIOGAS[scenario];
+    if (metric === 'biomethane') return ch4 * SERVED_BIOMETHANE_PER_CH4[scenario];
+    return ch4;
   }
   // Florestal has no band-scenario stream, so it exists only above.
   if (sector === 'forestry') return null;

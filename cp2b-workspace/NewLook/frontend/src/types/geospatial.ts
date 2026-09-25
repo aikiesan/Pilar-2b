@@ -316,7 +316,7 @@ export interface SummaryStatistics {
    * Optional because a backend without migration 026 omits the key — every
    * reader must fall back rather than render `undefined`.
    */
-  scenarios?: Record<'real' | 'ideal', ScenarioTierStats>;
+  scenarios?: Partial<Record<'real' | 'ideal' | 'cp2b_n3' | 'cp2b_n4', ScenarioTierStats>>;
   total_population: number;
   top_municipality: {
     name: string;

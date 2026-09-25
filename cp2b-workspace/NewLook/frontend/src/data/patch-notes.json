@@ -2,6 +2,37 @@
   "_comment": "Patch notes, newest first. Each entry carries its own pt-BR and en text, deliberately OUTSIDE messages/*.json: the catalogs are gated by check-i18n-parity.mjs, and threading one release note through two catalogs per deploy makes writing a note a chore nobody does. scripts/check-patch-notes.mjs enforces that both locales are present here instead. `date` is ISO 8601 WITH offset -- it is rendered in the reader's locale, so a bare date would drift a day across timezones. `kind` must be one of: added, changed, fixed, security, data.",
   "entries": [
     {
+      "version": "3.2.0",
+      "date": "2026-09-24T17:00:00-03:00",
+      "title": {
+        "pt-BR": "Potencial pelo método CP2b no mapa",
+        "en": "CP2b method potential on the map"
+      },
+      "changes": [
+        {
+          "kind": "data",
+          "text": {
+            "pt-BR": "O método CP2b v5.1 entra na plataforma para os 645 municípios paulistas: quatro níveis de potencial (teórico, técnico, mobilizável e acessível) por substrato e cenário, em Nm³ de metano. O número principal é o mobilizável (N3): 19,2 Mm³/dia de CH₄ no estado, com faixa de 7,7 a 45,0. O acessível (N4), que aplica o fator logístico calculado sobre a malha viária, é 16,4 Mm³/dia.",
+            "en": "The CP2b method v5.1 comes to the platform for São Paulo's 645 municipalities: four potential levels (theoretical, technical, mobilisable and accessible) per substrate and scenario, in Nm³ of methane. The headline is the mobilisable level (N3): 19.2 Mm³/day of CH₄ statewide, ranging from 7.7 to 45.0. The accessible level (N4), which applies the logistic factor computed on the road network, is 16.4 Mm³/day."
+          }
+        },
+        {
+          "kind": "added",
+          "text": {
+            "pt-BR": "Dois cenários novos no seletor do mapa, CP2b N3 e CP2b N4, ao lado de Real e Ideal. Eles não os substituem: são outro método, e a cana do CP2b inclui o bagaço excedente que o Atlas exclui. O filtro por resíduo e a quebra por setor funcionam nos dois.",
+            "en": "Two new scenarios in the map selector, CP2b N3 and CP2b N4, alongside Real and Ideal. They do not replace them: they are a different method, and CP2b sugarcane includes the surplus bagasse the Atlas excludes. The residue filter and the sector breakdown work on both."
+          }
+        },
+        {
+          "kind": "added",
+          "text": {
+            "pt-BR": "API: /api/v1/cp2b/summary (totais do estado), /api/v1/cp2b/municipalities/{ibge} (níveis por substrato, com o fator logístico) e /api/v1/cp2b/parameters (elementos de cálculo com fonte e status). Onze dos 17 substratos ainda têm parâmetros provisórios, e a API informa isso junto dos números.",
+            "en": "API: /api/v1/cp2b/summary (state totals), /api/v1/cp2b/municipalities/{ibge} (levels per substrate, with the logistic factor) and /api/v1/cp2b/parameters (calculation elements with source and status). Eleven of the 17 substrates still carry provisional parameters, and the API says so next to the numbers."
+          }
+        }
+      ]
+    },
+    {
       "version": "3.1.0",
       "date": "2026-09-21T11:25:00-03:00",
       "title": {

@@ -157,6 +157,56 @@ _SCENARIO_SECTOR_COLUMNS = tuple(
 ) + ("ch4_real_m3_year", "ch4_ideal_m3_year")
 
 
+# CP2b method, levels N3 (mobilisable) and N4 (accessible), reference scenario
+# (migration 033, view municipality_cp2b_map). Named in the same
+# ch4_{tier}_{residue}_m3_year shape as Real/Ideal so the map's residue filter
+# and sector accessors work unchanged, with tier = cp2b_n3 | cp2b_n4. It is a
+# different METHOD from Real/Ideal, not a third Atlas tier: sugarcane includes
+# the surplus bagasse, and the residue set has no aquaculture or forestry.
+_CP2B_TIERS = ("cp2b_n3", "cp2b_n4")
+_CP2B_RESIDUES = (
+    "sugarcane",
+    "soybean",
+    "corn",
+    "coffee",
+    "citrus",
+    "cattle",
+    "swine",
+    "poultry",
+    "rsu",
+    "rpo",
+    "sewage",
+)
+# In the map payload: what the choropleth and the residue filter paint.
+_CP2B_MAP_COLUMNS = tuple(f"ch4_{t}_m3_year" for t in _CP2B_TIERS) + tuple(
+    f"ch4_{t}_{r}_m3_year" for t in _CP2B_TIERS for r in _CP2B_RESIDUES
+)
+# Detail only (/metrics): the sector split the profile panel reads, and the
+# figure without lignocellulosic residues the method also reports.
+_CP2B_DETAIL_COLUMNS = tuple(
+    f"ch4_{t}_{s}_m3_year" for t in _CP2B_TIERS for s in ("agricultural", "livestock", "urban")
+) + tuple(f"ch4_{t}_non_lignocellulosic_m3_year" for t in _CP2B_TIERS)
+_CP2B_VIEW = "municipality_cp2b_map"
+
+
+def _load_cp2b_detail(cursor, ibge_code: str) -> dict[str, float | None]:
+    """CP2b N3/N4 for one municipality, or {} when the view is absent or has no row.
+
+    Absent — not zero — outside São Paulo and before migration 033 is loaded, so
+    the panel shows "no data" rather than a measured nothing.
+    """
+    if not _table_exists(cursor, _CP2B_VIEW):
+        return {}
+    cols = ", ".join((*_CP2B_MAP_COLUMNS, *_CP2B_DETAIL_COLUMNS, "cp2b_method_version"))
+    try:
+        code = int(ibge_code)
+    except (TypeError, ValueError):
+        return {}
+    cursor.execute(f"SELECT {cols} FROM {_CP2B_VIEW} WHERE ibge_code = %s", (code,))
+    row = cursor.fetchone()
+    return dict(row) if row else {}
+
+
 def _served_scenario_sectors(row) -> dict[str, float | None]:
     """Per-sector CH4 for the Real/Ideal tiers, plus their municipality totals.
 
@@ -285,9 +335,13 @@ _GEOM_LOD = {
 
 
 def _geojson_select_sql(
-    include_municipality_summary: bool, geom_column: str, geom_precision: int, has_limit: bool
+    include_municipality_summary: bool,
+    geom_column: str,
+    geom_precision: int,
+    has_limit: bool,
+    include_cp2b: bool = False,
 ) -> str:
-    """Build SELECT for GeoJSON rows; omit JOIN if municipality_summary is not deployed."""
+    """Build SELECT for GeoJSON rows; omit a JOIN whose table is not deployed."""
     # Parcelas por resíduo dos cenários (migração 029). Geradas a partir da mesma
     # tupla que as emite nas properties, para que acrescentar um resíduo não deixe
     # a coluna fora do SELECT e o filtro do mapa lendo zero silenciosamente.
@@ -307,6 +361,15 @@ def _geojson_select_sql(
         if include_municipality_summary
         else ""
     )
+    # CP2b N3/N4 (migration 033). Without the view the columns are NULL, so the
+    # properties are omitted and the CP2b tiers paint NO_DATA — never zero.
+    cp2b_cols = ",\n                    ".join(
+        f"cp.{c}" if include_cp2b else f"NULL::double precision AS {c}" for c in _CP2B_MAP_COLUMNS
+    )
+    if include_cp2b:
+        join += (
+            f"\n                LEFT JOIN {_CP2B_VIEW} cp ON cp.ibge_code = m.ibge_code::integer"
+        )
     limit_clause = "LIMIT %s" if has_limit else ""
     return f"""
                 SELECT
@@ -342,6 +405,7 @@ def _geojson_select_sql(
                     m.rpo_biomass_tons_year,
                     m.ch4_real_m3_year, m.ch4_ideal_m3_year,
                     {scenario_residue_cols}
+                    {cp2b_cols},
                     {cluster_cols}
                 FROM municipalities m{join}
                 WHERE m.geometry IS NOT NULL
@@ -378,8 +442,13 @@ def _build_municipalities_geojson(limit: Optional[int], detail: str, fields: str
                     "municipality_summary missing — GeoJSON served without cluster columns "
                     "(apply backend/migrations/013_cp2b_municipality_summary.sql)."
                 )
+            has_cp2b = _table_exists(cursor, _CP2B_VIEW)
             sql = _geojson_select_sql(
-                has_summary, geom_column, geom_precision, has_limit=limit is not None
+                has_summary,
+                geom_column,
+                geom_precision,
+                has_limit=limit is not None,
+                include_cp2b=has_cp2b,
             )
             params: tuple = (list(_MAP_ENABLED_UF_PREFIXES),)
             if limit is not None:
@@ -515,6 +584,9 @@ def _build_municipalities_geojson(limit: Optional[int], detail: str, fields: str
             "ch4_real_m3_year": _f(row, "ch4_real_m3_year"),
             "ch4_ideal_m3_year": _f(row, "ch4_ideal_m3_year"),
             **{c: _f(row, c) for c in _SCENARIO_RESIDUE_COLUMNS},
+            # CP2b N3/N4, reference scenario (migration 033). Same omission rule:
+            # an absent share reads as 0 in the filter, an absent total as NO_DATA.
+            **{c: _f(row, c) for c in _CP2B_MAP_COLUMNS},
             **canonical_metrics,
         }
         properties.update({k: v for k, v in metric_fields.items() if v})
@@ -795,6 +867,7 @@ async def get_municipality_metrics(ibge_code: str):
                 if has_timeseries
                 else {}
             )
+            cp2b = _load_cp2b_detail(cursor, ibge_code)
             cursor.close()
 
         derived_tons, derived_prov = _derive_activity_biomass(
@@ -833,6 +906,7 @@ async def get_municipality_metrics(ibge_code: str):
             **biomass_fields,
             **canonical,
             **_served_scenario_sectors(row),
+            **cp2b,
         }
     except HTTPException:
         raise

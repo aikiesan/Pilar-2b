@@ -8,6 +8,7 @@ from app.api.v1.endpoints import (
     analysis,
     auth,
     codigestion,
+    cp2b,
     geospatial,
     infrastructure,
     intermediate_regions,
@@ -80,6 +81,9 @@ api_router.include_router(
     prefix="/codigestion",
     tags=["codigestion", "clustering", "spatial-analysis", "cn-ratio"],
 )
+
+# CP2b method: N1-N4 potential per municipality x substrate x scenario (migration 033)
+api_router.include_router(cp2b.router, prefix="/cp2b", tags=["cp2b", "potential", "methane"])
 
 # National intermediate regions (Phase 1 — 133 IBGE regions)
 api_router.include_router(

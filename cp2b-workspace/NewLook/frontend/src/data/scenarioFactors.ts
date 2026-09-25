@@ -32,6 +32,15 @@
  *
  * Because they are served whole rather than multiplied client-side, they are NOT
  * in SCENARIO_RESIDUE_FACTORS and applyScenarioToProps leaves them untouched.
+ *
+ * `cp2b_n3` and `cp2b_n4` are served the same way but come from ANOTHER METHOD
+ * (migration 033): the CP2b cascade, reference scenario. N3 is the mobilisable
+ * potential — the CP2b headline — and N4 the accessible one, after storage losses
+ * and the spatial logistic factor on the road network. They are not a third and
+ * fourth Atlas tier: sugarcane includes the surplus bagasse the Atlas excludes,
+ * and there is no aquaculture or forestry stream. They share the served
+ * machinery because their columns follow the same ch4_{tier}_{residue}_m3_year
+ * shape, so the residue filter and the sector bars work unchanged.
  */
 export type MapScenarioKey =
   | 'baseline'
@@ -39,20 +48,29 @@ export type MapScenarioKey =
   | 'fronteira'
   | 'otimista'
   | 'real'
-  | 'ideal';
+  | 'ideal'
+  | 'cp2b_n3'
+  | 'cp2b_n4';
 
 /** Scenarios served whole by the backend rather than derived from a band. */
-export const SERVED_SCENARIOS = ['real', 'ideal'] as const;
+export const SERVED_SCENARIOS = ['real', 'ideal', 'cp2b_n3', 'cp2b_n4'] as const;
 export type ServedScenarioKey = (typeof SERVED_SCENARIOS)[number];
 
 export function isServedScenario(s: MapScenarioKey): s is ServedScenarioKey {
-  return s === 'real' || s === 'ideal';
+  return (SERVED_SCENARIOS as readonly string[]).includes(s);
+}
+
+/** The two CP2b tiers — a different method from the Atlas Real/Ideal pair. */
+export function isCp2bScenario(s: MapScenarioKey): s is 'cp2b_n3' | 'cp2b_n4' {
+  return s === 'cp2b_n3' || s === 'cp2b_n4';
 }
 
 /** Municipality property holding the CH₄ total for a served scenario. */
 export const SERVED_SCENARIO_FIELD: Record<ServedScenarioKey, string> = {
   real: 'ch4_real_m3_year',
   ideal: 'ch4_ideal_m3_year',
+  cp2b_n3: 'ch4_cp2b_n3_m3_year',
+  cp2b_n4: 'ch4_cp2b_n4_m3_year',
 };
 
 /**
@@ -72,6 +90,31 @@ export const SERVED_SCENARIO_RESIDUE_FIELD = (
 
 /** CH₄ fraction of raw biogas — FIESP 2025, matching the backend constant. */
 export const CH4_FRACTION_OF_BIOGAS = 0.625;
+
+/**
+ * CH₄ fraction of raw biogas per served tier. Real/Ideal follow the FIESP
+ * convention above. CP2b uses substrate-specific fractions; the map carries only
+ * CH₄, so it applies the state-wide mix of each level (Table T2 of the v5.1
+ * article: 34.05 M Nm³/day of biogas for 19.18 of CH₄). The state total then
+ * matches the article exactly; a single municipality is approximate.
+ */
+export const SERVED_CH4_FRACTION_OF_BIOGAS: Record<ServedScenarioKey, number> = {
+  real: CH4_FRACTION_OF_BIOGAS,
+  ideal: CH4_FRACTION_OF_BIOGAS,
+  cp2b_n3: 0.5634,
+  cp2b_n4: 0.5638,
+};
+
+/**
+ * Biomethane per unit of CH₄. Under the FIESP convention the two are equal.
+ * CP2b deducts a 1% upgrading loss and delivers a 96% CH₄ product: 0.99 / 0.96.
+ */
+export const SERVED_BIOMETHANE_PER_CH4: Record<ServedScenarioKey, number> = {
+  real: 1,
+  ideal: 1,
+  cp2b_n3: 0.99 / 0.96,
+  cp2b_n4: 0.99 / 0.96,
+};
 /** Methane LHV in kWh/Nm³ — Bueno et al. 2016, matching the backend constant. */
 export const CH4_LHV_KWH_M3 = 9.94;
 
@@ -110,6 +153,9 @@ export const SCENARIO_RESIDUE_FACTORS: Record<string, Record<BandScenarioKey, nu
 export const MAP_SCENARIOS: { key: MapScenarioKey; color: string }[] = [
   { key: 'real', color: '#0F766E' },
   { key: 'ideal', color: '#7C3AED' },
+  // CP2b method (migration 033). Offered after the Atlas pair, not instead of it.
+  { key: 'cp2b_n3', color: '#B45309' },
+  { key: 'cp2b_n4', color: '#9F1239' },
 ];
 
 /** Scenario the map opens on. Real is the defensible short-term figure. */

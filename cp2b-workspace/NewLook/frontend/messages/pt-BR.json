@@ -425,7 +425,11 @@
     "scenario_ideal": "Ideal",
     "scenario_real_tip": "Cenário Real (curto prazo): resíduo que efetivamente chega a um digestor hoje — taxas de coleta e usos concorrentes atuais. SP: 21,5 Mm³/dia de biometano. Metodologia: Atlas de Bioenergia SP 2020.",
     "scenario_ideal_tip": "Cenário Ideal (fronteira): 100% do resíduo gerado coletado e tratado. É hipótese de infraestrutura — a química (BMP, TS, VS, teor de CH₄) é idêntica à do Cenário Real. SP: 27,0 Mm³/dia de biometano.",
-    "scenario_served_note": "Cenários Real e Ideal disponíveis apenas para São Paulo.",
+    "scenario_cp2b_n3": "CP2b N3",
+    "scenario_cp2b_n4": "CP2b N4",
+    "scenario_cp2b_n3_tip": "Potencial mobilizável CP2b (N3), cenário de referência: potencial técnico menos os usos que excluem a digestão e o metano que as plantas em operação já recuperam. É o número principal do CP2b — SP: 19,2 Mm³/dia de CH₄ (faixa 7,7–45,0). Método diferente do Real/Ideal, não um terceiro cenário do Atlas; a cana inclui o bagaço excedente. 11 dos 17 substratos ainda têm parâmetros provisórios.",
+    "scenario_cp2b_n4_tip": "Potencial acessível CP2b (N4), cenário de referência: o N3 depois das perdas de armazenamento e do fator logístico espacial calculado sobre a malha viária (hubs que atingem escala viável). SP: 16,4 Mm³/dia de CH₄ (faixa 5,2–42,7). Método: CP2b v5.1.",
+    "scenario_served_note": "Cenários Real, Ideal e CP2b disponíveis apenas para São Paulo.",
     "thematic": {
       "groups": {
         "setorial": "Setor",

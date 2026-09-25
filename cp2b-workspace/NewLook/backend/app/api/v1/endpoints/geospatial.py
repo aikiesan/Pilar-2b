@@ -911,6 +911,89 @@ CH4_LHV_KWH_PER_M3 = 9.94
 DAYS_PER_YEAR = 365
 
 
+# CP2b method (migration 033), reference scenario, served as two more tiers so
+# the map's stat strip can follow the toggle to CP2b N3/N4. Different method
+# from Real/Ideal; the full four-level cascade lives at /api/v1/cp2b/summary.
+_CP2B_TIERS_SQL = """
+    SELECT sector,
+           sum(n3_ch4_nm3_year)           AS n3,
+           sum(n4_ch4_nm3_year)           AS n4,
+           sum(n3_biogas_eq_nm3_year)     AS n3_biogas,
+           sum(n4_biogas_eq_nm3_year)     AS n4_biogas,
+           sum(n3_biomethane_eq_nm3_year) AS n3_biomethane,
+           sum(n4_biomethane_eq_nm3_year) AS n4_biomethane,
+           max(method_version)            AS method_version
+    FROM municipality_cp2b_potential
+    WHERE scenario = 'med'
+    GROUP BY sector
+"""
+
+
+def _fetch_cp2b_tiers(cursor) -> list:
+    """Per-sector CP2b sums, or [] when migration 033 is not applied/loaded."""
+    cursor.execute(
+        "SELECT 1 FROM information_schema.tables "
+        "WHERE table_schema = 'public' AND table_name = 'municipality_cp2b_potential'"
+    )
+    if cursor.fetchone() is None:
+        return []
+    cursor.execute(_CP2B_TIERS_SQL)
+    return cursor.fetchall() or []
+
+
+def _cp2b_tiers(rows: list) -> dict:
+    """Shape CP2b sector sums into the same tier structure as Real/Ideal.
+
+    Biogas and biomethane are the method's own equivalents (substrate-specific
+    CH4 fraction; 1% upgrading loss, 96% CH4), not CH4 / 0.625: the CP2b figures
+    must match the article, and the article does not use the FIESP convention.
+    Forestry is 0 — the method has no forestry stream — and is served so the
+    four-sector shape matches the other tiers.
+    """
+    if not rows:
+        return {}
+    version = next((r.get("method_version") for r in rows if r.get("method_version")), None)
+    out = {}
+    for level, label, description in (
+        (
+            "n3",
+            "CP2b mobilisable (N3)",
+            "CP2b method headline: technical potential minus uses that exclude "
+            "digestion and methane already recovered. Reference scenario.",
+        ),
+        (
+            "n4",
+            "CP2b accessible (N4)",
+            "N3 after storage losses and the spatial logistic factor on the road "
+            "network. Reference scenario.",
+        ),
+    ):
+        sector = {r["sector"]: float(r[level] or 0) for r in rows}
+        total = sum(sector.values())
+        biogas = sum(float(r[f"{level}_biogas"] or 0) for r in rows)
+        biomethane = sum(float(r[f"{level}_biomethane"] or 0) for r in rows)
+        out[f"cp2b_{level}"] = {
+            "ch4_m3_year": round(total, 2),
+            "ch4_m3_day": round(total / DAYS_PER_YEAR, 2),
+            "biomethane_m3_year": round(biomethane, 2),
+            "biomethane_m3_day": round(biomethane / DAYS_PER_YEAR, 2),
+            "raw_biogas_m3_year": round(biogas, 2),
+            "raw_biogas_m3_day": round(biogas / DAYS_PER_YEAR, 2),
+            "energy_mwh_year": round(total * CH4_LHV_KWH_PER_M3 / 1000.0, 2),
+            "sector_breakdown": {
+                "agricultural": round(sector.get("agricultural", 0.0), 2),
+                "livestock": round(sector.get("livestock", 0.0), 2),
+                "urban": round(sector.get("urban", 0.0), 2),
+                "forestry": 0.0,
+            },
+            "label": label,
+            "description": description,
+            "method": "CP2b",
+            "method_version": version,
+        }
+    return out
+
+
 @router.get(
     "/statistics/summary",
     summary="Overall statistics",
@@ -972,6 +1055,7 @@ async def get_summary_statistics():
                     LIMIT 5
                 """)
                 top5 = cursor.fetchall()
+                cp2b_rows = _fetch_cp2b_tiers(cursor)
             finally:
                 cursor.close()
 
@@ -1037,6 +1121,8 @@ async def get_summary_statistics():
                 ),
             },
         }
+
+        scenarios.update(_cp2b_tiers(cp2b_rows))
 
         logger.info(f"✅ Summary statistics: {n} municipalities")
 
