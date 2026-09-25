@@ -15,6 +15,8 @@ import pyproj
 from shapely.geometry import Point
 from shapely.ops import transform
 
+from app.utils.shapefile_loader import read_shapefile_wgs84
+
 logger = logging.getLogger(__name__)
 
 
@@ -120,24 +122,6 @@ _LOCAL_SHAPEFILE_DIR = (
 
 # Use Railway path if it exists, otherwise fall back to local
 SHAPEFILE_DIR = _RAILWAY_SHAPEFILE_DIR if _RAILWAY_SHAPEFILE_DIR.exists() else _LOCAL_SHAPEFILE_DIR
-
-_shapefiles: Dict[Path, gpd.GeoDataFrame] = {}
-
-
-def read_shapefile_wgs84(path: Path) -> gpd.GeoDataFrame:
-    """A shapefile in WGS84, read and reprojected once per process.
-
-    Every proximity analysis used to re-read and re-parse the state's
-    municipality polygons and each infrastructure layer from disk. The frame is
-    shared between requests: callers read it and never modify it.
-    """
-    gdf = _shapefiles.get(path)
-    if gdf is None:
-        gdf = gpd.read_file(path)
-        if gdf.crs != WGS84:
-            gdf = gdf.to_crs(WGS84)
-        _shapefiles[path] = gdf
-    return gdf
 
 
 class ProximityService:

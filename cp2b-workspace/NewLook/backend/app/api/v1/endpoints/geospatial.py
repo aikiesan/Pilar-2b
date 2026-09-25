@@ -18,7 +18,7 @@ from app.core.database import get_db
 from app.core.log_sanitizer import log_safe
 from app.middleware.auth import optional_auth
 from app.models.auth import UserProfile
-from app.utils.shapefile_loader import get_shapefile_loader
+from app.utils.shapefile_loader import get_shapefile_loader, read_shapefile_wgs84
 
 shapefile_loader = get_shapefile_loader()
 
@@ -35,8 +35,6 @@ SHAPEFILE_PATH_ALT = (
     / "shapefile"
     / "SP_Municipios_2024.shp"
 )
-
-_geo_gdf = None
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -125,22 +123,13 @@ class ProximityQuery(BaseModel):
 # ============================================================================
 
 
-def _load_geo_gdf():
-    """Load and cache the municipalities GeoDataFrame."""
-    global _geo_gdf
-    if _geo_gdf is None:
-        logger.info("🗺️ Loading municipality polygons from shapefile...")
-        shapefile_to_use = None
-        if SHAPEFILE_PATH.exists():
-            shapefile_to_use = SHAPEFILE_PATH
-        elif SHAPEFILE_PATH_ALT.exists():
-            shapefile_to_use = SHAPEFILE_PATH_ALT
-        else:
-            logger.error("Shapefile not found at %s or %s", SHAPEFILE_PATH, SHAPEFILE_PATH_ALT)
-            raise HTTPException(status_code=500, detail="Municipality boundaries unavailable")
-        _geo_gdf = gpd.read_file(shapefile_to_use)
-        logger.info(f"✅ Loaded {len(_geo_gdf)} municipality polygons from shapefile")
-    return _geo_gdf
+def _load_geo_gdf() -> gpd.GeoDataFrame:
+    """The municipality polygons in WGS84, shared with the proximity analysis."""
+    for path in (SHAPEFILE_PATH, SHAPEFILE_PATH_ALT):
+        if path.exists():
+            return read_shapefile_wgs84(path)
+    logger.error("Shapefile not found at %s or %s", SHAPEFILE_PATH, SHAPEFILE_PATH_ALT)
+    raise HTTPException(status_code=500, detail="Municipality boundaries unavailable")
 
 
 def _ibge_code_from_row(shp_row) -> Optional[str]:
