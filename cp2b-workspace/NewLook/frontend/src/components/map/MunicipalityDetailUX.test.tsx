@@ -37,10 +37,10 @@ const municipality = (uf: 'SP' | 'MG'): MunicipalityFeature => {
       population: 1_000_000,
       population_density: 1_000,
       potential_category: 'ALTO',
-      ch4_real_m3_year: isMg ? 0 : 2_000,
-      ch4_real_rsu_m3_year: isMg ? 0 : 1_200,
-      ch4_real_rpo_m3_year: isMg ? 0 : 300,
-      ch4_real_sewage_m3_year: isMg ? 0 : 500,
+      ch4_cp2b_n4_m3_year: isMg ? 0 : 2_000,
+      ch4_cp2b_n4_rsu_m3_year: isMg ? 0 : 1_200,
+      ch4_cp2b_n4_rpo_m3_year: isMg ? 0 : 300,
+      ch4_cp2b_n4_sewage_m3_year: isMg ? 0 : 500,
     }),
   };
 };

@@ -121,16 +121,16 @@ describe('getSectorMetricValue', () => {
  * the choropleth beside it painted a value.
  */
 describe('getSectorMetricValue — served scenarios (Real / Ideal)', () => {
-  // As served by /municipalities/{ibge}/metrics (migration 026 columns).
+  // As served by /municipalities/{ibge}/metrics (CP2b view, migration 034):
+  // Real reads N4, Ideal reads N3. The method has no forestry column.
   const served = {
-    ch4_real_agricultural_m3_year: 1_000,
-    ch4_real_livestock_m3_year: 4_000,
-    ch4_real_urban_m3_year: 500,
-    ch4_real_forestry_m3_year: 250,
-    ch4_ideal_agricultural_m3_year: 3_000,
-    ch4_ideal_livestock_m3_year: 8_000,
-    ch4_ideal_urban_m3_year: 900,
-    ch4_ideal_forestry_m3_year: 600,
+    ch4_cp2b_n4_agricultural_m3_year: 1_000,
+    ch4_cp2b_n4_livestock_m3_year: 4_000,
+    biogas_cp2b_n4_livestock_m3_year: 6_500,
+    ch4_cp2b_n4_urban_m3_year: 500,
+    ch4_cp2b_n3_agricultural_m3_year: 3_000,
+    ch4_cp2b_n3_livestock_m3_year: 8_000,
+    ch4_cp2b_n3_urban_m3_year: 900,
   } as unknown as MunicipalityProperties;
 
   it('reads the served per-sector column for Real', () => {
@@ -141,15 +141,16 @@ describe('getSectorMetricValue — served scenarios (Real / Ideal)', () => {
     expect(getSectorMetricValue(served, 'livestock', 'methane_m3', 'ideal')).toBe(8_000);
   });
 
-  it('converts served CH4 to raw biogas the same way the municipality total does', () => {
-    expect(getSectorMetricValue(served, 'livestock', 'biogas_m3', 'real')).toBeCloseTo(
-      4_000 / CH4_FRACTION_OF_BIOGAS,
-      6
-    );
+  it('reads the served sector biogas, the same way the municipality total does', () => {
+    // Never CH₄ over one state-wide fraction: the sector's own mix decides it.
+    expect(getSectorMetricValue(served, 'livestock', 'biogas_m3', 'real')).toBe(6_500);
   });
 
-  it('equates biomethane with methane, per the FIESP convention the backend uses', () => {
-    expect(getSectorMetricValue(served, 'livestock', 'biomethane_m3', 'real')).toBe(4_000);
+  it('derives biomethane from methane with the CP2b upgrading loss and purity', () => {
+    expect(getSectorMetricValue(served, 'livestock', 'biomethane_m3', 'real')).toBeCloseTo(
+      (4_000 * 0.99) / 0.96,
+      6
+    );
   });
 
   it('derives bioenergy from served methane, not from raw biogas', () => {
@@ -159,15 +160,15 @@ describe('getSectorMetricValue — served scenarios (Real / Ideal)', () => {
     );
   });
 
-  it('carries Florestal, which the band scenarios have no stream for', () => {
-    expect(getSectorMetricValue(served, 'forestry', 'methane_m3', 'real')).toBe(250);
+  it('has no Florestal: CP2b has no forestry stream, so the panel skips the row', () => {
+    expect(getSectorMetricValue(served, 'forestry', 'methane_m3', 'real')).toBeNull();
     expect(getSectorMetricValue(served, 'forestry', 'methane_m3', 'baseline')).toBeNull();
     expect(getSectorMetricValue(served, 'forestry', 'biomass_tons', 'real')).toBeNull();
   });
 
-  it('stays null outside São Paulo, where migration 026 loaded nothing', () => {
+  it('stays null outside São Paulo, where migration 034 loaded nothing', () => {
     // A 0 here would claim we measured the municipality and found no potential.
-    const outsideSp = { ch4_real_m3_year: null } as unknown as MunicipalityProperties;
+    const outsideSp = { ch4_cp2b_n4_m3_year: null } as unknown as MunicipalityProperties;
     expect(getSectorMetricValue(outsideSp, 'agricultural', 'biogas_m3', 'real')).toBeNull();
     expect(getSectorMetricValue(outsideSp, 'urban', 'bioenergy_mwh', 'ideal')).toBeNull();
   });

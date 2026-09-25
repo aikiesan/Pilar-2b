@@ -70,8 +70,8 @@ export const RAMP_TIERS = RAMP_DEFAULT.length;
 
 // ── Per-metric ramps ────────────────────────────────────────────────────────
 // Biogás, biometano and bioenergia are the SAME quantity under three units:
-// biometano equals the CH₄ volume (FIESP convention), raw biogás is that over
-// 0.625, bioenergia is that times 9.97 kWh/m³. All three are therefore constant
+// biometano is the CH₄ volume × 0.99 / 0.96 (CP2b), raw biogás is that over the
+// tier's CH₄ fraction, bioenergia is that times 9.97 kWh/m³. All three are constant
 // multiples of one another, and the classifier is adaptive over the visible
 // distribution — so a linear rescale lands every municipality in exactly the
 // same tier. Switching metric repainted the map pixel-for-pixel identically,

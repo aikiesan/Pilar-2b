@@ -30,7 +30,14 @@ SECTIONS: tuple[tuple[str, str, str], ...] = (
     ("infrastructure", "infrastructure_features", "ibge_code"),
     ("validation_plants", "validation_plants", "ibge_code"),
     ("validation_plants_registry", "validation_plants_registry", "ibge_code"),
+    # Cenário Real / Ideal: CP2b N4 / N3 per residue and sector (migration 034).
+    ("cp2b", "municipality_cp2b_map", "ibge_code"),
 )
+
+# Sections whose table may not be deployed yet. The CP2b view exists only once
+# migration 034 is applied; until then the section is empty rather than the whole
+# dossier failing with UndefinedTable.
+OPTIONAL_TABLES = frozenset({"municipality_cp2b_map"})
 
 # Tables that carry no ibge_code and have to be reached through the name.
 #
@@ -101,7 +108,20 @@ def collect(conn, ibge_code: str) -> dict[str, list[dict[str, Any]]]:
     that silently omits the sheet would hide it.
     """
     with _cursor(conn) as cur:
-        return {name: _rows(cur, table, key, ibge_code) for name, table, key in SECTIONS}
+        return {
+            name: (
+                _rows(cur, table, key, ibge_code)
+                if table not in OPTIONAL_TABLES or _exists(cur, table)
+                else []
+            )
+            for name, table, key in SECTIONS
+        }
+
+
+def _exists(cur, table: str) -> bool:
+    """True when `table` (or view) is deployed in the search path."""
+    cur.execute("SELECT to_regclass(%s)", (table,))
+    return cur.fetchone()[0] is not None
 
 
 def identity(conn, ibge_code: str) -> dict[str, Any] | None:

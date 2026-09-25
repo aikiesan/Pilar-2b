@@ -90,10 +90,13 @@ export interface MunicipalityProperties {
   // biomethane/biogas_ch4 ≈ 0.97 (methane recovery); biomethane/biogas ≈ 0.53
   // (volumetric yield, since upgrading strips the CO2).
   biogas_min_m3_yr?: number | null;
-  /** Cenário Real / Cenário Ideal — CH₄ Nm³/ano served whole (migration 026).
-   *  São Paulo only; absent elsewhere, which the map paints as no-data. */
-  ch4_real_m3_year?: number | null;
-  ch4_ideal_m3_year?: number | null;
+  /** Cenário Real (CP2b N4) / Cenário Ideal (CP2b N3) — CH₄ Nm³/ano served
+   *  whole (migration 034). São Paulo only; absent elsewhere, which the map
+   *  paints as no-data. Per-residue shares follow as ch4_cp2b_{n4,n3}_{residue}. */
+  ch4_cp2b_n4_m3_year?: number | null;
+  ch4_cp2b_n3_m3_year?: number | null;
+  biogas_cp2b_n4_m3_year?: number | null;
+  biogas_cp2b_n3_m3_year?: number | null;
   biogas_medio_m3_yr?: number | null;
   biogas_max_m3_yr?: number | null;
   biogas_ch4_min_m3_yr?: number | null;
@@ -113,9 +116,11 @@ export interface MunicipalityProperties {
   // Per-stream coverage flags (cattle_biomass_coverage, sugarcane_biomass_coverage, …).
   [key: `${string}_biomass_coverage`]: BiomassCoverage | undefined;
 
-  // Per-residue CH₄ shares of the served scenarios (ch4_real_sugarcane_m3_year, …;
-  // migration 029). The map payload omits zero shares, so an absent one is zero.
-  [key: `ch4_${'real' | 'ideal'}_${string}_m3_year`]: number | null | undefined;
+  // Per-residue and per-sector shares of Real/Ideal = CP2b N4/N3, as CH₄ and as the
+  // method's served raw-biogas equivalent (ch4_cp2b_n4_sugarcane_m3_year,
+  // biogas_cp2b_n3_livestock_m3_year, …; migration 034). The map payload omits zero
+  // shares, so an absent one is zero when the municipality's total is present.
+  [key: `${'ch4' | 'biogas'}_cp2b_${'n3' | 'n4'}_${string}_m3_year`]: number | null | undefined;
 
   // K-means cluster fields (from municipality_summary, null when no match)
   cluster_id?: number | null;
@@ -245,13 +250,12 @@ export interface MunicipalityCollection {
 
 /**
  * One served scenario's state totals (`/statistics/summary` → `scenarios.*`,
- * built by geospatial.py's `_tier`).
+ * built by geospatial.py's `_cp2b_tiers`).
  *
- * `ch4_m3_year` and `biomethane_m3_year` are deliberately the same number: under
- * the FIESP convention the biomethane volume EQUALS the methane volume, and raw
- * biogas is the one that differs (CH₄ / 0.625). The sector breakdown carries
- * FOUR sectors — forestry is its own, not a slice of agricultural, which is what
- * made the old three-way split sum to 97%.
+ * Biogas and biomethane are the CP2b method's own equivalents (substrate-specific
+ * CH₄ fraction; 1% upgrading loss, 96% CH₄ product), summed from the stored
+ * per-substrate values — not re-derived from CH₄. The sector breakdown keeps
+ * FOUR keys; forestry is always 0, because the method has no forestry stream.
  */
 export interface ScenarioTierStats {
   ch4_m3_year: number;
@@ -291,11 +295,12 @@ export interface SummaryStatistics {
   total_biogas_m3_year: number;
   average_biogas_m3_year: number;
   /**
-   * The publishable totals: Real (7.83 bi) and Ideal (9.84 bi) Nm³ CH₄/ano.
-   * Optional because a backend without migration 026 omits the key — every
-   * reader must fall back rather than render `undefined`.
+   * The publishable totals, CP2b v5.1 reference scenario: Real = N4 (5.97 bi)
+   * and Ideal = N3 (7.00 bi) Nm³ CH₄/ano. Optional because a backend without
+   * migration 034 loaded omits the key — every reader must fall back rather
+   * than render `undefined`.
    */
-  scenarios?: Record<'real' | 'ideal', ScenarioTierStats>;
+  scenarios?: Partial<Record<'real' | 'ideal', ScenarioTierStats>>;
   total_population: number;
   top_municipality: {
     name: string;

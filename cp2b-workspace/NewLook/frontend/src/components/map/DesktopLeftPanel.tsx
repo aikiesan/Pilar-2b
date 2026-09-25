@@ -635,8 +635,8 @@ function StatStrip({ municipalityCount, totalMunicipalities, filterCount, betaMu
   const { data } = useSummaryStatistics();
   // The strip used to show `total_biogas_m3_year` — 19.9 bi, the THEORETICAL
   // volume, with no availability correction and no relation to the scenario the
-  // map is painting. It now follows the toggle: 7.83 bi in Real, 9.84 bi in
-  // Ideal, the pair published in RESULTADOS_SP_PARA_PAPER. The band scenarios
+  // map is painting. It now follows the toggle: 5.97 bi in Real (CP2b N4),
+  // 7.00 bi in Ideal (CP2b N3), the v5.1 reference scenario. The band scenarios
   // have no served total, so they fall back to the legacy number — labelled as
   // the theoretical figure it is, never as the platform's headline.
   const tier = scopeUf === 'SP' && isServedScenario(scenario) ? data?.scenarios?.[scenario] : undefined;
