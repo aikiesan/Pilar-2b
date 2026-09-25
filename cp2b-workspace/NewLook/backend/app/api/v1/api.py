@@ -6,6 +6,7 @@ from fastapi import APIRouter
 
 from app.api.v1.endpoints import (
     analysis,
+    analytics,
     auth,
     codigestion,
     geospatial,
@@ -13,6 +14,7 @@ from app.api.v1.endpoints import (
     intermediate_regions,
     mapbiomas,
     municipalities,
+    newsletter,
     proximity,
     residuos,
     scientific,
@@ -24,6 +26,10 @@ api_router = APIRouter()
 
 # Include endpoint routers
 api_router.include_router(auth.router, prefix="/auth", tags=["authentication"])
+
+# Newsletter sign-ups and first-party page-view statistics (LGPD: consent-based)
+api_router.include_router(newsletter.router, prefix="/newsletter", tags=["newsletter"])
+api_router.include_router(analytics.router, prefix="/analytics", tags=["analytics"])
 
 api_router.include_router(municipalities.router, prefix="/municipalities", tags=["municipalities"])
 
