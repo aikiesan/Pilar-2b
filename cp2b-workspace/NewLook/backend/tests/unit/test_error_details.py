@@ -12,11 +12,13 @@ import pytest
 
 APP = Path(__file__).resolve().parents[2] / "app"
 
-# detail=str(e) | detail=f"...{e}" | {str(e)} | {repr(e)} | {type(e).__name__}
-LEAK = re.compile(
-    r"detail\s*=\s*(?:str\((?:e|exc|err|error|ex)\)"
+# str(e) | f"...{e}" | {str(e)} | {repr(e)} | {type(e).__name__}
+EXCEPTION_TEXT = (
+    r"(?:str\((?:e|exc|err|error|ex)\)"
     r"|f[\"'][^\"']*\{(?:str\(|repr\(|type\()?(?:e|exc|err|error|ex)\b)"
 )
+# ... as an HTTPException detail, or as the detail/error/message of a JSON body.
+LEAK = re.compile(r"(?:detail\s*=|[\"'](?:detail|error|message)[\"']\s*:)\s*" + EXCEPTION_TEXT)
 
 
 @pytest.mark.unit
@@ -38,6 +40,9 @@ def test_no_http_error_detail_carries_exception_text():
         'raise HTTPException(status_code=500, detail=f"Database error: {e}")',
         'raise HTTPException(status_code=500, detail=f"Clustering error: {str(e)}")',
         'raise HTTPException(status_code=500, detail=f"Error: {type(e).__name__}")',
+        'return {"error": str(e), "data": []}',
+        'content={"detail": f"Analysis failed: {exc}"}',
+        '"message": f"Could not read {path}: {err}",',
     ],
 )
 def test_the_scan_catches_each_form(line):
@@ -48,3 +53,4 @@ def test_the_scan_catches_each_form(line):
 def test_the_scan_allows_parameters_in_a_message():
     assert not LEAK.search('detail=f"Value must be at least {min_value}"')
     assert not LEAK.search('detail="Failed to fetch municipalities"')
+    assert not LEAK.search('"error": "MapBiomas analysis failed"')
