@@ -1,6 +1,7 @@
 """Newsletter sign-ups: stored only with consent, one answer for every address,
 unsubscribe by token, and an admin export that is logged and spreadsheet-safe."""
 
+import uuid
 from datetime import datetime, timezone
 from unittest.mock import AsyncMock, patch
 
@@ -13,7 +14,8 @@ from app.middleware.rate_limit import auth_limiter, read_limiter
 from app.models.auth import UserProfile
 
 EMAIL = "ana@example.org"
-TOKEN = "3f2b8c1e-6d4a-4f7e-9b1a-2c5d8e9f0a1b"
+# Not random on purpose: a random-looking "token" reads as a leaked secret.
+TOKEN = str(uuid.UUID(int=1))
 
 
 def _admin():

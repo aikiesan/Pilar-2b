@@ -1,4 +1,4 @@
--- 034_newsletter_subscribers.sql
+-- 035_newsletter_subscribers.sql
 --
 -- Newsletter sign-ups from the site footer, the About page and the cookie
 -- banner, kept in the platform's database on the UNICAMP VM. Until now those

@@ -42,6 +42,6 @@ describe('newsletter API', () => {
     [500, 'failed'],
   ])('unsubscribe answers %i as %s', async (status, result) => {
     global.fetch = reply(status) as unknown as typeof fetch
-    expect(await unsubscribeFromNewsletter('3f2b8c1e-6d4a-4f7e-9b1a-2c5d8e9f0a1b')).toBe(result)
+    expect(await unsubscribeFromNewsletter('00000000-0000-4000-8000-000000000001')).toBe(result)
   })
 })

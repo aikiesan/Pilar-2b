@@ -22,7 +22,7 @@ const unsubscribe = unsubscribeFromNewsletter as jest.MockedFunction<typeof unsu
 
 beforeEach(() => {
   unsubscribe.mockReset()
-  mockToken = '3f2b8c1e-6d4a-4f7e-9b1a-2c5d8e9f0a1b'
+  mockToken = '00000000-0000-4000-8000-000000000001' // not random: see the backend test
 })
 
 describe('Unsubscribe page', () => {

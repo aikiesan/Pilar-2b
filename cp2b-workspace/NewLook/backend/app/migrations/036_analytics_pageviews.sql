@@ -1,4 +1,4 @@
--- 035_analytics_pageviews.sql
+-- 036_analytics_pageviews.sql
 --
 -- Page views for the site's own audience statistics, kept in the platform's
 -- database on the UNICAMP VM: no third-party analytics service. The browser

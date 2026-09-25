@@ -23,7 +23,7 @@ Two things to know:
 
 ## Writing one
 
-1. Take the next free number and say what it does: `034_municipality_xyz.sql`.
+1. Take the next free number and say what it does: `037_municipality_xyz.sql`.
 2. Start with a header comment: why it exists, what it changes, whether it is
    safe to re-run, and a query that checks the result (see 032 and 033).
 3. Make it safe to re-run: `CREATE … IF NOT EXISTS`, `ON CONFLICT DO NOTHING`,
