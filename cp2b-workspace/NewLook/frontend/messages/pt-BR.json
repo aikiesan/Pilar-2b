@@ -41,6 +41,7 @@
       "trigger_aria": "Buscar município (tecla /)",
       "placeholder": "Nome ou código IBGE…",
       "input_aria": "Buscar município",
+      "close_aria": "Fechar busca",
       "results_aria": "Resultados da busca",
       "no_results": "Nenhum município encontrado para \"{query}\"",
       "hints": "↑↓ navegar · Enter selecionar · Esc fechar",

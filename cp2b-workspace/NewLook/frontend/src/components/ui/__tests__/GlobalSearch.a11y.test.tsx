@@ -18,6 +18,7 @@ jest.mock('next-intl', () => ({
       trigger_aria: 'Search municipality (press /)',
       placeholder: 'Name or IBGE code...',
       input_aria: 'Search municipality',
+      close_aria: 'Close search',
       results_aria: 'Search results',
       no_results: 'No municipality found',
       hints: '↑↓ navigate · Enter select · Esc close',
@@ -52,13 +53,20 @@ const mockMunicipalities = [
   },
 ]
 
+// Undefined while the map data is still loading.
+let mockFeatures: typeof mockMunicipalities | undefined = mockMunicipalities
+
 jest.mock('@/hooks/useGeospatialData', () => ({
   useGeospatialData: () => ({
-    data: { type: 'FeatureCollection', features: mockMunicipalities },
-    isLoading: false,
+    data: mockFeatures && { type: 'FeatureCollection', features: mockFeatures },
+    isLoading: !mockFeatures,
     error: null,
   }),
 }))
+
+afterEach(() => {
+  mockFeatures = mockMunicipalities
+})
 
 describe('GlobalSearch Accessibility', () => {
   it('meets WCAG 2.1 Level AA (closed state)', async () => {
@@ -91,7 +99,19 @@ describe('GlobalSearch Accessibility', () => {
       const user = userEvent.setup()
       render(<GlobalSearch />)
       await user.keyboard('/')
+      await waitFor(() => expect(screen.getByRole('combobox')).toHaveFocus())
       await user.keyboard('{Escape}')
+      expect(screen.queryByRole('combobox')).not.toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Search municipality (press /)' })).toHaveFocus()
+    })
+
+    it('has a named close button that returns focus to the trigger', async () => {
+      const user = userEvent.setup()
+      render(<GlobalSearch />)
+      await user.keyboard('/')
+      await user.click(screen.getByRole('button', { name: 'Close search' }))
+      expect(screen.queryByRole('combobox')).not.toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Search municipality (press /)' })).toHaveFocus()
     })
   })
 
@@ -126,6 +146,33 @@ describe('GlobalSearch Accessibility', () => {
       expect(options[1]).toHaveAttribute('aria-selected', 'true')
 
       await user.keyboard('{ArrowUp}')
+      expect(input).toHaveAttribute('aria-activedescendant', options[0].id)
+    })
+
+    it('stays collapsed and announces it when nothing matches', async () => {
+      const user = userEvent.setup()
+      render(<GlobalSearch />)
+      await user.keyboard('/')
+      const input = await screen.findByRole('combobox')
+      await user.type(input, 'zzz')
+      // No listbox is rendered, so the combobox must not claim or point to one.
+      expect(input).toHaveAttribute('aria-expanded', 'false')
+      expect(input).not.toHaveAttribute('aria-controls')
+      expect(screen.getByRole('status')).toHaveTextContent('No municipality found')
+    })
+
+    it('makes the first result active when results arrive after an arrow key', async () => {
+      mockFeatures = undefined
+      const user = userEvent.setup()
+      const { rerender } = render(<GlobalSearch />)
+      await user.keyboard('/')
+      const input = await screen.findByRole('combobox')
+      await user.type(input, '35')
+      await user.keyboard('{ArrowDown}')
+
+      mockFeatures = mockMunicipalities
+      rerender(<GlobalSearch />)
+      const options = screen.getAllByRole('option')
       expect(input).toHaveAttribute('aria-activedescendant', options[0].id)
     })
   })

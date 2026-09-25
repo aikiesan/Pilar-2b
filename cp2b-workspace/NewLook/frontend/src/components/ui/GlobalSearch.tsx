@@ -45,9 +45,10 @@ export default function GlobalSearch({ variant = 'light' }: GlobalSearchProps) {
 
   const inputRef = useRef<HTMLInputElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+  // Closing from the keyboard or the close button hands focus back to the trigger.
+  const refocusTrigger = useRef(false)
   const listboxId = useId()
   const optionId = (index: number) => `${listboxId}-option-${index}`
-  const expanded = query.trim().length > 0
 
   // ── Search results ──────────────────────────────────────────────────────────
   const results: MunicipalityFeature[] = (() => {
@@ -62,50 +63,63 @@ export default function GlobalSearch({ variant = 'light' }: GlobalSearchProps) {
       .sort((a, b) => b.properties.total_biogas_m3_year - a.properties.total_biogas_m3_year)
       .slice(0, 8)
   })()
+  // The listbox exists only while there are results; the combobox says so.
+  const expanded = results.length > 0
+
+  const openSearch = () => {
+    refocusTrigger.current = false
+    setOpen(true)
+    setTimeout(() => inputRef.current?.focus(), 50)
+  }
+
+  const close = useCallback((returnFocus: boolean) => {
+    refocusTrigger.current = returnFocus
+    setOpen(false)
+    setQuery('')
+  }, [])
 
   // ── Keyboard shortcut "/" to open ───────────────────────────────────────────
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === '/' && !(e.target instanceof HTMLInputElement) && !(e.target instanceof HTMLTextAreaElement)) {
         e.preventDefault()
+        refocusTrigger.current = false
         setOpen(true)
         setTimeout(() => inputRef.current?.focus(), 50)
       }
       if (e.key === 'Escape') {
-        setOpen(false)
-        setQuery('')
+        close(containerRef.current?.contains(e.target as Node) ?? false)
       }
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [])
+  }, [close])
 
   // ── Close on outside click ──────────────────────────────────────────────────
   useEffect(() => {
     const onClickOutside = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setOpen(false)
-        setQuery('')
+        close(false)
       }
     }
     if (open) document.addEventListener('mousedown', onClickOutside)
     return () => document.removeEventListener('mousedown', onClickOutside)
-  }, [open])
+  }, [open, close])
 
   // ── Navigation ──────────────────────────────────────────────────────────────
   const navigateTo = useCallback(
     (municipality: MunicipalityFeature) => {
       router.push(`/municipality/${municipality.properties.ibge_code}` as any)
-      setOpen(false)
-      setQuery('')
+      close(false)
     },
-    [router]
+    [router, close]
   )
 
   const onKeyDownList = (e: React.KeyboardEvent) => {
     if (e.key === 'ArrowDown') {
       e.preventDefault()
-      setActiveIndex((i) => Math.min(i + 1, results.length - 1))
+      // Never below 0: with no results yet, the first one to arrive is the active one.
+      setActiveIndex((i) => Math.max(0, Math.min(i + 1, results.length - 1)))
     } else if (e.key === 'ArrowUp') {
       e.preventDefault()
       setActiveIndex((i) => Math.max(i - 1, 0))
@@ -125,7 +139,13 @@ export default function GlobalSearch({ variant = 'light' }: GlobalSearchProps) {
       {/* Collapsed trigger */}
       {!open && (
         <button
-          onClick={() => { setOpen(true); setTimeout(() => inputRef.current?.focus(), 50) }}
+          ref={(el) => {
+            if (el && refocusTrigger.current) {
+              refocusTrigger.current = false
+              el.focus()
+            }
+          }}
+          onClick={openSearch}
           className={triggerClass}
           aria-label={t('trigger_aria')}
         >
@@ -168,7 +188,8 @@ export default function GlobalSearch({ variant = 'light' }: GlobalSearchProps) {
               autoComplete="off"
             />
             <button
-              onClick={() => { setOpen(false); setQuery('') }}
+              onClick={() => close(true)}
+              aria-label={t('close_aria')}
               className={`shrink-0 ${variant === 'dark' ? 'text-green-300 hover:text-white' : 'text-gray-400 hover:text-gray-600'}`}
             >
               <X className="w-4 h-4" />
@@ -176,10 +197,10 @@ export default function GlobalSearch({ variant = 'light' }: GlobalSearchProps) {
           </div>
 
           {/* Results dropdown */}
-          {expanded && (
+          {query.trim() && (
             <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-xl overflow-hidden z-[600]">
               {results.length === 0 ? (
-                <div className="px-4 py-6 text-center text-sm text-gray-500">
+                <div role="status" className="px-4 py-6 text-center text-sm text-gray-500">
                   {t('no_results', { query })}
                 </div>
               ) : (

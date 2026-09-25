@@ -41,6 +41,7 @@
       "trigger_aria": "Search municipality (press /)",
       "placeholder": "Name or IBGE code…",
       "input_aria": "Search municipality",
+      "close_aria": "Close search",
       "results_aria": "Search results",
       "no_results": "No municipality found for \"{query}\"",
       "hints": "↑↓ navigate · Enter select · Esc close",
