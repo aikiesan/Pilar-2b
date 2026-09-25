@@ -5,22 +5,22 @@
       "version": "3.2.0",
       "date": "2026-09-24T17:00:00-03:00",
       "title": {
-        "pt-BR": "Potencial pelo método CP2b no mapa",
-        "en": "CP2b method potential on the map"
+        "pt-BR": "Cenários Real e Ideal pelo método CP2b",
+        "en": "Real and Ideal scenarios on the CP2b method"
       },
       "changes": [
         {
           "kind": "data",
           "text": {
-            "pt-BR": "O método CP2b v5.1 entra na plataforma para os 645 municípios paulistas: quatro níveis de potencial (teórico, técnico, mobilizável e acessível) por substrato e cenário, em Nm³ de metano. O número principal é o mobilizável (N3): 19,2 Mm³/dia de CH₄ no estado, com faixa de 7,7 a 45,0. O acessível (N4), que aplica o fator logístico calculado sobre a malha viária, é 16,4 Mm³/dia.",
-            "en": "The CP2b method v5.1 comes to the platform for São Paulo's 645 municipalities: four potential levels (theoretical, technical, mobilisable and accessible) per substrate and scenario, in Nm³ of methane. The headline is the mobilisable level (N3): 19.2 Mm³/day of CH₄ statewide, ranging from 7.7 to 45.0. The accessible level (N4), which applies the logistic factor computed on the road network, is 16.4 Mm³/day."
+            "pt-BR": "O método CP2b v5.1 entra na plataforma para os 645 municípios paulistas: quatro níveis de potencial (teórico, técnico, mobilizável e acessível) por substrato e cenário, em Nm³ de metano, calculados pela mesma cascata de fatores. No estado, o mobilizável (N3) é 19,2 Mm³/dia de CH₄ (faixa 7,7–45,0) e o acessível (N4), que aplica as perdas de armazenamento e o fator logístico calculado sobre a malha viária, é 16,4 Mm³/dia (faixa 5,2–42,7).",
+            "en": "The CP2b method v5.1 comes to the platform for São Paulo's 645 municipalities: four potential levels (theoretical, technical, mobilisable and accessible) per substrate and scenario, in Nm³ of methane, computed through one factor cascade. Statewide, the mobilisable level (N3) is 19.2 Mm³/day of CH₄ (range 7.7–45.0) and the accessible level (N4), which applies storage losses and the logistic factor computed on the road network, is 16.4 Mm³/day (range 5.2–42.7)."
           }
         },
         {
-          "kind": "added",
+          "kind": "changed",
           "text": {
-            "pt-BR": "Dois cenários novos no seletor do mapa, CP2b N3 e CP2b N4, ao lado de Real e Ideal. Eles não os substituem: são outro método, e a cana do CP2b inclui o bagaço excedente que o Atlas exclui. O filtro por resíduo e a quebra por setor funcionam nos dois.",
-            "en": "Two new scenarios in the map selector, CP2b N3 and CP2b N4, alongside Real and Ideal. They do not replace them: they are a different method, and CP2b sugarcane includes the surplus bagasse the Atlas excludes. The residue filter and the sector breakdown work on both."
+            "pt-BR": "Os cenários Real e Ideal passam a seguir o método CP2b: Real é o potencial acessível (N4, 16,4 Mm³/dia de CH₄) e Ideal é o mobilizável (N3, 19,2). Antes eles vinham do Atlas de Bioenergia SP 2020 (21,5 e 27,0 Mm³/dia). O mapa, a faixa de totais, a página do município e o dossiê XLSX mudam juntos. A cana do CP2b inclui o bagaço excedente, e o método não tem aquicultura nem silvicultura, que passam a aparecer sem dado.",
+            "en": "The Real and Ideal scenarios now follow the CP2b method: Real is the accessible potential (N4, 16.4 Mm³/day of CH₄) and Ideal the mobilisable one (N3, 19.2). They used to come from the Atlas de Bioenergia SP 2020 (21.5 and 27.0 Mm³/day). The map, the totals strip, the municipality page and the XLSX dossier change together. CP2b sugarcane includes the surplus bagasse, and the method has no aquaculture or forestry, which now show as no data."
           }
         },
         {

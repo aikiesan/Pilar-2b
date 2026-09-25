@@ -12,12 +12,15 @@
 --   N4 accessible   = N3 x FS x FL          (FL on the OSM road network, variant B)
 -- Scenarios min / med / max take every element at the same end of its range.
 --
--- WHY NEW TABLES AND NOT MORE ch4_* COLUMNS ON municipalities: the Real/Ideal
--- scenarios (migrations 026/029) are the Atlas de Bioenergia SP 2020 method.
--- CP2b is a different method with different levels, scenarios and substrates
--- (sugarcane here includes the 5-15% SURPLUS bagasse the Atlas excludes).
--- Writing it into the Real/Ideal columns would mix two quantities under one
--- name. The two live side by side; the map offers CP2b N3/N4 as extra tiers.
+-- The platform's Cenário Real is N4 and its Cenário Ideal is N3, both in the
+-- reference (med) scenario, read from the municipality_cp2b_map view below.
+--
+-- WHY NEW TABLES AND NOT THE ch4_real_*/ch4_ideal_* COLUMNS ON municipalities:
+-- those hold the Atlas de Bioenergia SP 2020 method (migrations 026/029), which
+-- Real/Ideal followed before. CP2b has different levels, scenarios and
+-- substrates (sugarcane here includes the 5-15% SURPLUS bagasse the Atlas
+-- excludes). Overwriting those columns would put one quantity under another's
+-- name, so the Atlas columns stay as they are and are simply no longer served.
 --
 -- UNITS: every volume is Nm3 of METHANE per year, never biogas. Biogas and
 -- biomethane equivalents are stored separately, from the substrate-specific

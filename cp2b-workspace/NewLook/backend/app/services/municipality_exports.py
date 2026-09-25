@@ -116,9 +116,17 @@ def potential_category(code: Any, lang: Lang = DEFAULT_LANG) -> Any:
     return POTENTIAL_CATEGORIES.get(lang, POTENTIAL_CATEGORIES[DEFAULT_LANG]).get(str(code), code)
 
 
-def _sheet_resumo(who: dict, muni: dict, lang: Lang = DEFAULT_LANG) -> pd.DataFrame:
-    """Identification and the headline figures, the one page most readers need."""
+def _sheet_resumo(
+    who: dict, muni: dict, lang: Lang = DEFAULT_LANG, cp2b: dict | None = None
+) -> pd.DataFrame:
+    """Identification and the headline figures, the one page most readers need.
+
+    `cp2b` is the municipality's row of the CP2b view: Cenário Real is N4 and
+    Cenário Ideal N3. Absent (outside SP, or before migration 034) it leaves the
+    two cells empty rather than zero.
+    """
     t = text(lang)
+    cp2b = cp2b or {}
     rows = [
         (t["sec_identification"], None, None),
         (t["municipality"], who.get("municipality_name"), None),
@@ -148,8 +156,8 @@ def _sheet_resumo(who: dict, muni: dict, lang: Lang = DEFAULT_LANG) -> pd.DataFr
         (t["total_biomass"], _num(muni.get("total_biomass_tons_year")), t["unit_t_year"]),
         (None, None, None),
         (t["sec_methane"], None, None),
-        (t["ch4_real"], _num(muni.get("ch4_real_m3_year")), t["unit_m3_year"]),
-        (t["ch4_ideal"], _num(muni.get("ch4_ideal_m3_year")), t["unit_m3_year"]),
+        (t["ch4_real"], _num(cp2b.get("ch4_cp2b_n4_m3_year")), t["unit_m3_year"]),
+        (t["ch4_ideal"], _num(cp2b.get("ch4_cp2b_n3_m3_year")), t["unit_m3_year"]),
         (None, None, None),
         (t["sec_provenance"], None, None),
         (t["data_confidence"], who.get("data_confidence"), None),
@@ -159,9 +167,16 @@ def _sheet_resumo(who: dict, muni: dict, lang: Lang = DEFAULT_LANG) -> pd.DataFr
     return pd.DataFrame(rows, columns=[t["col_indicator"], t["col_value"], t["col_unit"]])
 
 
-def _sheet_setores(muni: dict, lang: Lang = DEFAULT_LANG) -> pd.DataFrame:
-    """Biogas, biomass and both CH4 scenarios per sector, with each one's share."""
+def _sheet_setores(
+    muni: dict, lang: Lang = DEFAULT_LANG, cp2b: dict | None = None
+) -> pd.DataFrame:
+    """Biogas, biomass and both CH4 scenarios per sector, with each one's share.
+
+    The scenarios are CP2b (Real = N4, Ideal = N3); the method has no forestry
+    stream, so that row's scenario cells stay empty.
+    """
     t = text(lang)
+    cp2b = cp2b or {}
     biomass, biogas = t["col_biomass"], t["col_biogas"]
     real, ideal, share = t["col_ch4_real"], t["col_ch4_ideal"], t["col_share"]
     rows = []
@@ -171,8 +186,8 @@ def _sheet_setores(muni: dict, lang: Lang = DEFAULT_LANG) -> pd.DataFrame:
                 t["col_sector"]: sector_name(key, lang) or key,
                 biomass: _num(muni.get(f"{key}_biomass_tons_year")),
                 biogas: _num(muni.get(f"{key}_biogas_m3_year")),
-                real: _num(muni.get(f"ch4_real_{key}_m3_year")),
-                ideal: _num(muni.get(f"ch4_ideal_{key}_m3_year")),
+                real: _num(cp2b.get(f"ch4_cp2b_n4_{key}_m3_year")),
+                ideal: _num(cp2b.get(f"ch4_cp2b_n3_{key}_m3_year")),
             }
         )
     frame = pd.DataFrame(rows)
@@ -203,14 +218,17 @@ def _coalesce(*values: Any) -> float | None:
     return None
 
 
-def _sheet_residuos(muni: dict, streams: list[dict], lang: Lang = DEFAULT_LANG) -> pd.DataFrame:
+def _sheet_residuos(
+    muni: dict, streams: list[dict], lang: Lang = DEFAULT_LANG, cp2b: dict | None = None
+) -> pd.DataFrame:
     """One row per residue, joining the municipality columns to the SP stream table.
 
     The stream table carries energy and the conversion factor actually applied;
-    the municipality columns carry the CH4 scenarios. Neither has both, so the
-    sheet is the join — which is the whole reason this export exists.
+    the CP2b view carries the CH4 scenarios (Real = N4, Ideal = N3). Neither has
+    both, so the sheet is the join — which is the whole reason this export exists.
     """
     t = text(lang)
+    cp2b = cp2b or {}
     biogas = t["col_biogas"]
     by_stream = {str(r.get("residue_stream") or "").lower(): r for r in streams}
     rows = []
@@ -224,8 +242,8 @@ def _sheet_residuos(muni: dict, streams: list[dict], lang: Lang = DEFAULT_LANG) 
                     muni.get(f"{key}_biomass_tons_year"), stream.get("residue_tons_yr")
                 ),
                 biogas: _coalesce(muni.get(f"{key}_biogas_m3_year"), stream.get("biogas_m3_yr")),
-                t["col_ch4_real"]: _num(muni.get(f"ch4_real_{key}_m3_year")),
-                t["col_ch4_ideal"]: _num(muni.get(f"ch4_ideal_{key}_m3_year")),
+                t["col_ch4_real"]: _num(cp2b.get(f"ch4_cp2b_n4_{key}_m3_year")),
+                t["col_ch4_ideal"]: _num(cp2b.get(f"ch4_cp2b_n3_{key}_m3_year")),
                 t["col_energy"]: _num(stream.get("energy_mwh_yr")),
                 t["col_factor"]: _num(stream.get("conversion_factor")),
                 t["col_factor_unit"]: stream.get("cf_unit"),
@@ -366,11 +384,12 @@ def build_workbook(sections: dict[str, list[dict]], who: dict, lang: Lang = DEFA
     """
     t = text(lang)
     muni = (sections.get("municipality") or [{}])[0]
+    cp2b = (sections.get("cp2b") or [{}])[0]
     streams = sections.get("residue_streams") or []
     sheets: list[tuple[str, pd.DataFrame, Sequence[int] | None]] = [
-        (t["sheet_summary"], _sheet_resumo(who, muni, lang), (34, 20, 22)),
-        (t["sheet_sectors"], _sheet_setores(muni, lang), (16, 20, 20, 20, 20, 14)),
-        (t["sheet_residues"], _sheet_residuos(muni, streams, lang), None),
+        (t["sheet_summary"], _sheet_resumo(who, muni, lang, cp2b), (34, 20, 22)),
+        (t["sheet_sectors"], _sheet_setores(muni, lang, cp2b), (16, 20, 20, 20, 20, 14)),
+        (t["sheet_residues"], _sheet_residuos(muni, streams, lang, cp2b), None),
         (
             t["sheet_series"],
             _sheet_series(sections.get("timeseries") or [], lang),

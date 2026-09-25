@@ -911,9 +911,11 @@ CH4_LHV_KWH_PER_M3 = 9.94
 DAYS_PER_YEAR = 365
 
 
-# CP2b method (migration 034), reference scenario, served as two more tiers so
-# the map's stat strip can follow the toggle to CP2b N3/N4. Different method
-# from Real/Ideal; the full four-level cascade lives at /api/v1/cp2b/summary.
+# The Real and Ideal tiers ARE the CP2b method (migration 034), reference
+# scenario: Real = N4 (accessible), Ideal = N3 (mobilisable). They used to be
+# the Atlas de Bioenergia SP 2020 pair (migration 026); those columns remain in
+# `municipalities` but are no longer served. The full four-level cascade lives
+# at /api/v1/cp2b/summary.
 _CP2B_TIERS_SQL = """
     SELECT sector,
            sum(n3_ch4_nm3_year)           AS n3,
@@ -942,37 +944,41 @@ def _fetch_cp2b_tiers(cursor) -> list:
 
 
 def _cp2b_tiers(rows: list) -> dict:
-    """Shape CP2b sector sums into the same tier structure as Real/Ideal.
+    """Shape CP2b sector sums into the Real (N4) and Ideal (N3) tiers.
 
     Biogas and biomethane are the method's own equivalents (substrate-specific
-    CH4 fraction; 1% upgrading loss, 96% CH4), not CH4 / 0.625: the CP2b figures
-    must match the article, and the article does not use the FIESP convention.
+    CH4 fraction; 1% upgrading loss, 96% CH4), not CH4 / 0.625: the figures must
+    match the article, and the article does not use the FIESP convention.
     Forestry is 0 — the method has no forestry stream — and is served so the
-    four-sector shape matches the other tiers.
+    four-sector shape the map reads stays the same.
     """
     if not rows:
         return {}
     version = next((r.get("method_version") for r in rows if r.get("method_version")), None)
     out = {}
-    for level, label, description in (
+    for key, level, label, description in (
         (
-            "n3",
-            "CP2b mobilisable (N3)",
-            "CP2b method headline: technical potential minus uses that exclude "
-            "digestion and methane already recovered. Reference scenario.",
+            "real",
+            "n4",
+            "Real Scenario (CP2b N4, accessible)",
+            "The whole CP2b factor cascade: the mobilisable potential after storage "
+            "losses and the spatial logistic factor on the road network. Reference "
+            "scenario.",
         ),
         (
-            "n4",
-            "CP2b accessible (N4)",
-            "N3 after storage losses and the spatial logistic factor on the road "
-            "network. Reference scenario.",
+            "ideal",
+            "n3",
+            "Ideal Scenario (CP2b N3, mobilisable)",
+            "Technical potential minus uses that exclude digestion and methane "
+            "already recovered, before storage and logistics. CP2b headline figure. "
+            "Reference scenario.",
         ),
     ):
         sector = {r["sector"]: float(r[level] or 0) for r in rows}
         total = sum(sector.values())
         biogas = sum(float(r[f"{level}_biogas"] or 0) for r in rows)
         biomethane = sum(float(r[f"{level}_biomethane"] or 0) for r in rows)
-        out[f"cp2b_{level}"] = {
+        out[key] = {
             "ch4_m3_year": round(total, 2),
             "ch4_m3_day": round(total / DAYS_PER_YEAR, 2),
             "biomethane_m3_year": round(biomethane, 2),
@@ -989,6 +995,7 @@ def _cp2b_tiers(rows: list) -> dict:
             "label": label,
             "description": description,
             "method": "CP2b",
+            "method_level": level,
             "method_version": version,
         }
     return out
@@ -1031,17 +1038,7 @@ async def get_summary_statistics():
                         COALESCE(SUM(agricultural_biogas_m3_year), 0) AS total_agri,
                         COALESCE(SUM(livestock_biogas_m3_year), 0) AS total_live,
                         COALESCE(SUM(urban_biogas_m3_year), 0) AS total_urban,
-                        COALESCE(SUM(forestry_biogas_m3_year), 0) AS total_forest,
-                        COALESCE(SUM(ch4_real_m3_year), 0) AS ch4_real,
-                        COALESCE(SUM(ch4_ideal_m3_year), 0) AS ch4_ideal,
-                        COALESCE(SUM(ch4_real_agricultural_m3_year), 0) AS real_agri,
-                        COALESCE(SUM(ch4_real_livestock_m3_year), 0) AS real_live,
-                        COALESCE(SUM(ch4_real_urban_m3_year), 0) AS real_urban,
-                        COALESCE(SUM(ch4_real_forestry_m3_year), 0) AS real_forest,
-                        COALESCE(SUM(ch4_ideal_agricultural_m3_year), 0) AS ideal_agri,
-                        COALESCE(SUM(ch4_ideal_livestock_m3_year), 0) AS ideal_live,
-                        COALESCE(SUM(ch4_ideal_urban_m3_year), 0) AS ideal_urban,
-                        COALESCE(SUM(ch4_ideal_forestry_m3_year), 0) AS ideal_forest
+                        COALESCE(SUM(forestry_biogas_m3_year), 0) AS total_forest
                     FROM municipalities
                     WHERE ibge_code::text LIKE '35%'
                 """)
@@ -1070,59 +1067,10 @@ async def get_summary_statistics():
         total_urban = float(stats["total_urban"] or 0)
         total_forest = float(stats["total_forest"] or 0)
 
-        # Cenário Real / Cenário Ideal — the two tiers the Atlas de Bioenergia SP
-        # 2020 publishes, adopted so PILAR-2b is comparable to the state's own
-        # reference study instead of being read against a figure built on other
-        # rules. Ideal is an INFRASTRUCTURE assumption (100% of what is generated
-        # gets collected), not relaxed chemistry: BMP, TS, VS and CH4 fraction are
-        # identical in both. Parameter provenance lives in scenario_parameters.
-        def _tier(total: float, agri: float, live: float, urban: float, forest: float) -> dict:
-            return {
-                "ch4_m3_year": round(total, 2),
-                "ch4_m3_day": round(total / DAYS_PER_YEAR, 2),
-                "biomethane_m3_year": round(total, 2),
-                "biomethane_m3_day": round(total / DAYS_PER_YEAR, 2),
-                "raw_biogas_m3_year": round(total / CH4_FRACTION_OF_BIOGAS, 2),
-                "raw_biogas_m3_day": round(total / CH4_FRACTION_OF_BIOGAS / DAYS_PER_YEAR, 2),
-                "energy_mwh_year": round(total * CH4_LHV_KWH_PER_M3 / 1000.0, 2),
-                "sector_breakdown": {
-                    "agricultural": round(agri, 2),
-                    "livestock": round(live, 2),
-                    "urban": round(urban, 2),
-                    "forestry": round(forest, 2),
-                },
-            }
-
-        f = lambda k: float(stats[k] or 0)  # noqa: E731
-        scenarios = {
-            "real": {
-                **_tier(
-                    f("ch4_real"), f("real_agri"), f("real_live"), f("real_urban"), f("real_forest")
-                ),
-                "label": "Real Scenario (short term)",
-                "description": (
-                    "Residue that actually reaches a digester today: current "
-                    "collection rates and competing uses."
-                ),
-            },
-            "ideal": {
-                **_tier(
-                    f("ch4_ideal"),
-                    f("ideal_agri"),
-                    f("ideal_live"),
-                    f("ideal_urban"),
-                    f("ideal_forest"),
-                ),
-                "label": "Ideal Scenario (frontier)",
-                "description": (
-                    "100% of the residue generated is collected and treated (Atlas de "
-                    "Bioenergia SP 2020). An infrastructure assumption: the chemistry "
-                    "is the same as in the Real Scenario."
-                ),
-            },
-        }
-
-        scenarios.update(_cp2b_tiers(cp2b_rows))
+        # Cenário Real / Cenário Ideal — the CP2b cascade, N4 and N3 (see
+        # _cp2b_tiers). Empty until migration 034 is loaded; the map then shows
+        # the theoretical total, labelled as such, rather than a zero.
+        scenarios = _cp2b_tiers(cp2b_rows)
 
         logger.info(f"✅ Summary statistics: {n} municipalities")
 

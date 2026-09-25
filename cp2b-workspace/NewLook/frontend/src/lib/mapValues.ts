@@ -23,6 +23,7 @@ import {
   isServedScenario,
   SERVED_SCENARIO_FIELD,
   SERVED_SCENARIO_RESIDUE_FIELD,
+  SERVED_SOURCE_TIER,
   CH4_FRACTION_OF_BIOGAS,
   SERVED_BIOMETHANE_PER_CH4,
   SERVED_CH4_FRACTION_OF_BIOGAS,
@@ -133,12 +134,12 @@ function pickScenario(
 /**
  * CH₄ (m³/year) for a served scenario, or null when this municipality has none.
  *
- * Real and Ideal come whole from the backend rather than from the BMP band, so
- * they bypass pickScenario entirely. Only São Paulo's 645 rows carry them
- * (migration 026 loads SP only), so outside SP this returns null and the caller
- * paints NO_DATA — which is the honest reading, not a zero.
+ * Real and Ideal (CP2b N4 and N3) come whole from the backend rather than from
+ * the BMP band, so they bypass pickScenario entirely. Only São Paulo's 645 rows
+ * carry them (migration 034 loads SP only), so outside SP this returns null and
+ * the caller paints NO_DATA — which is the honest reading, not a zero.
  *
- * With residues selected it sums their shares (migration 029) instead of reading
+ * With residues selected it sums their shares (the view's per-residue columns) instead of reading
  * the municipality total, which is what makes the residue filter change the
  * choropleth rather than only the set of polygons drawn.
  */
@@ -152,7 +153,7 @@ function servedCh4(
   if (selectedResidues.length > 0) {
     // An ABSENT share is a zero, not "no data". The map payload omits falsy
     // values (municipalities.py), so a municipality that grows no cane simply
-    // has no ch4_real_sugarcane_m3_year key. Only when nothing sums is there
+    // has no ch4_cp2b_n4_sugarcane_m3_year key. Only when nothing sums is there
     // nothing to paint — the same reading the missing total already gets.
     const sum = selectedResidues.reduce(
       (acc, r) => acc + (num(rec[SERVED_SCENARIO_RESIDUE_FIELD(scenario, r)]) ?? 0),
@@ -258,10 +259,9 @@ export function getBiomethaneScenarioValue(
   scenario: MapScenarioKey,
   selectedResidues: ResidueType[] = []
 ): MapValue {
-  // Under the FIESP convention the biomethane volume EQUALS the methane volume —
-  // 0.625 is already the CH₄ fraction of biogas, so applying it again would
-  // double-count. The backend serves these two identical for the same reason.
-  // CP2b deducts upgrading losses (0.99 / 0.96); Real/Ideal keep the FIESP 1:1.
+  // Served tiers follow CP2b: 1% upgrading loss and a 96% CH₄ product, so
+  // biomethane = CH₄ × 0.99 / 0.96. Never re-apply the biogas CH₄ fraction here —
+  // biomethane is derived from the methane, not from raw biogas.
   if (isServedScenario(scenario)) {
     const ch4 = servedCh4(props, scenario, selectedResidues);
     return ch4 === null
@@ -304,9 +304,9 @@ export type BiomassSector = 'agricultural' | 'livestock' | 'urban';
 
 /**
  * Sectors the served scenarios carry. Florestal exists only here: the band
- * scenarios are built from SECTOR_STREAMS, which has no forestry stream, while
- * Real/Ideal come from migration 026 and split four ways — the same four
- * /statistics/summary aggregates by, so the two levels can be compared.
+ * scenarios are built from SECTOR_STREAMS, which has no forestry stream. CP2b
+ * has none either, so under Real/Ideal it reads null and the panel skips the
+ * row; it stays in the list so /statistics/summary's four-way split lines up.
  */
 export type ServedSector = BiomassSector | 'forestry';
 export const SERVED_SECTORS: ServedSector[] = [
@@ -318,7 +318,7 @@ export const SERVED_SECTORS: ServedSector[] = [
 
 /** Municipality property holding one sector's CH₄ for a served scenario. */
 export const SERVED_SECTOR_FIELD = (tier: ServedScenarioKey, sector: ServedSector): string =>
-  `ch4_${tier}_${sector}_m3_year`;
+  `ch4_${SERVED_SOURCE_TIER[tier]}_${sector}_m3_year`;
 
 /**
  * One sector's CH₄ under a served scenario, or null when we have none.
@@ -368,11 +368,11 @@ export function getSectorScenarioValue(
   metric: keyof typeof SECTOR_BAND_STEM,
   scenario: MapScenarioKey
 ): number | null {
-  // Real and Ideal keep their split in their own columns (migration 026), served
+  // Real and Ideal keep their split in the CP2b view (migration 034), served
   // by the per-municipality detail endpoint. Convert from CH4 exactly the way
   // the municipality-wide accessors do, so a sector and the total beside it can
-  // never disagree about what "biogás" means: raw biogas is CH4 over the CH4
-  // fraction, biomethane equals CH4 under the FIESP convention.
+  // never disagree about what "biogás" means: raw biogas is CH4 over the tier's
+  // CH4 fraction, biomethane is CH4 × 0.99 / 0.96.
   if (isServedScenario(scenario)) {
     const ch4 = servedSectorCh4(props, sector, scenario);
     if (ch4 === null) return null;

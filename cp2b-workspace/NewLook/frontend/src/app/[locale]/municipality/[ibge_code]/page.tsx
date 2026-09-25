@@ -22,6 +22,11 @@ import { MISSING_VALUE } from '@/lib/format'
 import { SkeletonMunicipalityPage } from '@/components/ui/Skeleton'
 import { useGeospatialData, useMunicipalityMetrics } from '@/hooks/useGeospatialData'
 import { MWH_PER_M3_CH4 } from '@/lib/mapValues'
+import {
+  SERVED_SCENARIO_FIELD,
+  SERVED_SCENARIO_RESIDUE_FIELD,
+  type ServedScenarioKey,
+} from '@/data/scenarioFactors'
 import Breadcrumb from '@/components/ui/Breadcrumb'
 import { useBreadcrumbs } from '@/hooks/useBreadcrumbs'
 import {
@@ -83,16 +88,16 @@ const SECTOR_COLORS = {
 
 /**
  * The residues this page reports, by sector, keyed as the backend names them in
- * the Cenário Real/Ideal share columns (migration 029). Display names:
- * Map.residues.<key>, the same names the map uses.
+ * the CP2b share columns behind Cenário Real/Ideal (migration 034). Display
+ * names: Map.residues.<key>, the same names the map uses.
  *
- * Thirteen, not the eleven the map filter offers: `sewage` and `forestry` are
- * computed and stored but not selectable on the map. A municipality profile has
- * no reason to hide them — here the sector subtotals must add up to the total.
+ * The eleven CP2b residues. The method has no aquaculture or forestry stream,
+ * and every one of its 17 substrates falls under one of these, so the sector
+ * subtotals add up to the total.
  */
 const SECTOR_RESIDUES = {
-  agricultural: ['sugarcane', 'soybean', 'corn', 'coffee', 'citrus', 'forestry'],
-  livestock: ['cattle', 'swine', 'poultry', 'aquaculture'],
+  agricultural: ['sugarcane', 'soybean', 'corn', 'coffee', 'citrus'],
+  livestock: ['cattle', 'swine', 'poultry'],
   urban: ['rsu', 'rpo', 'sewage'],
 } as const
 
@@ -207,15 +212,15 @@ export default function MunicipalityPage() {
 
   // ── Derived values ────────────────────────────────────────────────────────
   //
-  // Every number here comes from the Cenário Real shares (migration 029). This
+  // Every number here comes from the Cenário Real shares (CP2b N4). This
   // page used to read the legacy `*_biogas_m3_year` columns, which the map
   // payload strips as detail-only — so the whole profile rendered as zeros, and
   // would have kept doing so silently. The shares are also the right source on
   // the merits: they carry the availability correction, and they sum exactly to
-  // ch4_real_m3_year, so the subtotals below reconcile with the headline.
+  // the Real total, so the subtotals below reconcile with the headline.
   const rec = p as unknown as Record<string, unknown>
-  const share = (residue: string, tier: 'real' | 'ideal' = 'real'): number =>
-    Number(rec[`ch4_${tier}_${residue}_m3_year`]) || 0
+  const share = (residue: string, tier: ServedScenarioKey = 'real'): number =>
+    Number(rec[SERVED_SCENARIO_RESIDUE_FIELD(tier, residue)]) || 0
   const sectorTotal = (sector: Sector): number =>
     SECTOR_RESIDUES[sector].reduce((sum, key) => sum + share(key), 0)
 
@@ -224,8 +229,8 @@ export default function MunicipalityPage() {
   const ch4 = (value: number) => `${format.compact(value)} ${ch4Unit}`
   const residueName = (key: ResidueKey) => tMap(`residues.${key}`)
 
-  const total = Number(rec.ch4_real_m3_year) || 0
-  const totalIdeal = Number(rec.ch4_ideal_m3_year) || 0
+  const total = Number(rec[SERVED_SCENARIO_FIELD.real]) || 0
+  const totalIdeal = Number(rec[SERVED_SCENARIO_FIELD.ideal]) || 0
   const agri = sectorTotal('agricultural')
   const live = sectorTotal('livestock')
   const urb = sectorTotal('urban')
@@ -359,9 +364,9 @@ export default function MunicipalityPage() {
           />
           {/* Was "Redução CO₂", computed as volume × 2.0 kg/m³ — a factor with no
               source anywhere in the project, applied to a volume that is methane
-              rather than the biogas it assumed. The Ideal tier is served, audited
-              (scenario_parameters) and answers a question the reader actually has:
-              how much of this is infrastructure rather than resource. */}
+              rather than the biogas it assumed. The Ideal tier (CP2b N3) is served,
+              audited (cp2b_parameters) and answers a question the reader actually
+              has: how much is lost to storage and logistics between N3 and N4. */}
           <KPICard
             icon={<Cloud className="w-4 h-4" aria-hidden="true" />}
             label={t('municipality.kpi_ideal')}

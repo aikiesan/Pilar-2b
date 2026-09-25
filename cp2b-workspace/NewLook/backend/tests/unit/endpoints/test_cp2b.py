@@ -37,7 +37,8 @@ def test_every_served_column_exists_in_the_view():
 
 
 def test_map_columns_follow_the_served_scenario_shape():
-    # The frontend reads ch4_${tier}_${residue}_m3_year with tier cp2b_n3/cp2b_n4.
+    # The frontend's Real reads ch4_cp2b_n4_*, its Ideal ch4_cp2b_n3_*
+    # (scenarioFactors.SERVED_SOURCE_TIER).
     assert "ch4_cp2b_n3_m3_year" in _CP2B_MAP_COLUMNS
     assert "ch4_cp2b_n4_sugarcane_m3_year" in _CP2B_MAP_COLUMNS
     assert all(re.fullmatch(r"ch4_cp2b_n[34](_\w+)?_m3_year", c) for c in _CP2B_MAP_COLUMNS)
@@ -177,12 +178,16 @@ def test_cp2b_tiers_use_the_method_equivalents():
         for s, v in (("agricultural", 600.0), ("livestock", 50.0), ("urban", 25.0))
     ]
     tiers = _cp2b_tiers(rows)
-    assert set(tiers) == {"cp2b_n3", "cp2b_n4"}
-    n3 = tiers["cp2b_n3"]
-    assert n3["ch4_m3_year"] == 675.0
-    assert n3["raw_biogas_m3_year"] == round(675.0 * 1.8, 2)  # not 675 / 0.625
-    assert n3["sector_breakdown"]["forestry"] == 0.0
-    assert n3["method"] == "CP2b"
+    # Real = N4, Ideal = N3: the Atlas pair is no longer served.
+    assert set(tiers) == {"real", "ideal"}
+    ideal, real = tiers["ideal"], tiers["real"]
+    assert ideal["method_level"] == "n3" and real["method_level"] == "n4"
+    assert ideal["ch4_m3_year"] == 675.0
+    assert real["ch4_m3_year"] == round(675.0 * 0.8, 2)
+    assert ideal["raw_biogas_m3_year"] == round(675.0 * 1.8, 2)  # not 675 / 0.625
+    assert real["biomethane_m3_year"] == round(675.0 * 0.82, 2)
+    assert ideal["sector_breakdown"]["forestry"] == 0.0
+    assert real["method"] == "CP2b"
 
 
 # ── Routes ───────────────────────────────────────────────────────────────────

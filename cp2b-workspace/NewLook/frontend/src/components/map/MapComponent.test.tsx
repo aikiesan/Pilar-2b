@@ -702,7 +702,7 @@ describe('MapComponent', () => {
 
       // No scenario switch needed: the map now opens on "Real", and
       // applyScenarioToProps leaves props untouched for the served scenarios
-      // (they carry their own ch4_real_* columns rather than scaling the legacy
+      // (they carry their own ch4_cp2b_n4_* columns rather than scaling the legacy
       // ones). So the fixture's raw total_biogas_m3_year is what the minBiogas
       // filter compares against — which is what the removed "Médio Prazo" click
       // used to arrange.
@@ -745,15 +745,15 @@ describe('MapComponent', () => {
     const spWithCane = createMunicipalityFeature({
       ibge_code: '3505500',
       name: 'Barretos',
-      ch4_real_m3_year: 1_000,
-      ch4_real_sugarcane_m3_year: 600,
-      ch4_real_cattle_m3_year: 400,
+      ch4_cp2b_n4_m3_year: 1_000,
+      ch4_cp2b_n4_sugarcane_m3_year: 600,
+      ch4_cp2b_n4_cattle_m3_year: 400,
     });
     const spWithoutCane = createMunicipalityFeature({
       ibge_code: '3548500',
       name: 'Santos',
-      ch4_real_m3_year: 500,
-      ch4_real_rsu_m3_year: 500,
+      ch4_cp2b_n4_m3_year: 500,
+      ch4_cp2b_n4_rsu_m3_year: 500,
     });
     const betaMunicipality = createMunicipalityFeature({
       ibge_code: '3106200', // Belo Horizonte — MG, outside the canonical pipeline

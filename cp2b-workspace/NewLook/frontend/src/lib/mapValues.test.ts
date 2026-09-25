@@ -4,7 +4,7 @@
  * The failure this locks down was silent and total: the map's feature filter
  * tested the legacy `{residue}_biogas_m3_year` columns, which `fields=map` trims
  * out of the payload, so selecting a residue removed every municipality instead
- * of narrowing the choropleth. The shares (migration 029) are what both the
+ * of narrowing the choropleth. The shares (CP2b view, migration 034) are what both the
  * filter and the paint must read, and they must read the SAME ones.
  */
 
@@ -19,7 +19,10 @@ import {
   MWH_PER_M3_CH4,
   NO_DATA,
 } from './mapValues';
-import { CH4_FRACTION_OF_BIOGAS } from '@/data/scenarioFactors';
+import {
+  SERVED_BIOMETHANE_PER_CH4,
+  SERVED_CH4_FRACTION_OF_BIOGAS,
+} from '@/data/scenarioFactors';
 
 const props = (o: Record<string, unknown>): MunicipalityProperties =>
   o as unknown as MunicipalityProperties;
@@ -28,14 +31,14 @@ const props = (o: Record<string, unknown>): MunicipalityProperties =>
 // shares, and — crucially — NO key at all for the residues that came out zero.
 const sp = props({
   ibge_code: '3505500',
-  ch4_real_m3_year: 1_000,
-  ch4_ideal_m3_year: 1_600,
-  ch4_real_sugarcane_m3_year: 600,
-  ch4_real_cattle_m3_year: 300,
-  ch4_real_rsu_m3_year: 100,
-  ch4_ideal_sugarcane_m3_year: 900,
-  ch4_ideal_cattle_m3_year: 500,
-  ch4_ideal_rsu_m3_year: 200,
+  ch4_cp2b_n4_m3_year: 1_000,
+  ch4_cp2b_n3_m3_year: 1_600,
+  ch4_cp2b_n4_sugarcane_m3_year: 600,
+  ch4_cp2b_n4_cattle_m3_year: 300,
+  ch4_cp2b_n4_rsu_m3_year: 100,
+  ch4_cp2b_n3_sugarcane_m3_year: 900,
+  ch4_cp2b_n3_cattle_m3_year: 500,
+  ch4_cp2b_n3_rsu_m3_year: 200,
   sugarcane_biomass_tons_year: 40_000,
   sugarcane_biomass_coverage: 'measured',
 });
@@ -69,9 +72,12 @@ describe('mapValues — served scenarios with residues selected', () => {
 
   it('every metric filters, in its own unit', () => {
     const sel = R('sugarcane', 'cattle');
-    expect(getBiomethaneScenarioValue(sp, 'real', sel).value).toBe(900);
+    expect(getBiomethaneScenarioValue(sp, 'real', sel).value).toBeCloseTo(
+      900 * SERVED_BIOMETHANE_PER_CH4.real,
+      6
+    );
     expect(getBiogasScenarioValue(sp, 'real', sel).value).toBeCloseTo(
-      900 / CH4_FRACTION_OF_BIOGAS,
+      900 / SERVED_CH4_FRACTION_OF_BIOGAS.real,
       6
     );
     expect(getBioenergyScenarioValue(sp, 'real', sel).value).toBeCloseTo(900 * MWH_PER_M3_CH4, 6);

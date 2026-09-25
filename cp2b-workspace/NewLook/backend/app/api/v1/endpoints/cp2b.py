@@ -2,9 +2,9 @@
 CP2b method endpoints — resource potential at four levels (migration 034).
 
 The CP2b cascade (N1 theoretical → N2 technical → N3 mobilisable → N4
-accessible) is a different method from the Atlas SP 2020 Real/Ideal scenarios
-served by /municipalities and /geospatial/statistics/summary. They live side by
-side and are never summed or compared as one quantity.
+accessible). The platform's Cenário Real is N4 and its Cenário Ideal is N3, in
+the reference (med) scenario: /municipalities and /geospatial/statistics/summary
+serve those two levels; this router serves the whole cascade.
 
 * N3 (mobilisable) is the CP2b headline figure, comparable with DBFZ
   mobilisable potentials. N4 adds storage losses and the spatial logistic
@@ -169,8 +169,10 @@ def build_summary(scenario_rows: list, residue_rows: list, provisional: Optional
         "notes": [
             "N3 (mobilisable) is the headline figure; N4 applies storage losses and the "
             "spatial logistic factor on the road network.",
-            "Not comparable one-to-one with the Atlas Real/Ideal scenarios: different "
-            "method, and sugarcane includes the surplus bagasse the Atlas excludes.",
+            "The platform's Real scenario is N4 and its Ideal scenario is N3, both med.",
+            "Not comparable one-to-one with the Atlas SP 2020 figures Real/Ideal used "
+            "before: different method, and sugarcane includes the surplus bagasse the "
+            "Atlas excludes.",
             "Scenarios min/max take every element at the same end of its range: an "
             "envelope, not a probability interval.",
         ],

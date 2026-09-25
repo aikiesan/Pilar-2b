@@ -93,12 +93,11 @@ def test_seventeen_substrates_and_the_four_lignocellulosic_ones():
     assert ligno == {"PALHA", "BAGACO", "PALHA_MILHO", "PALHA_SOJA"}
 
 
-def test_residues_are_in_the_map_filter_vocabulary():
-    from app.api.v1.endpoints.municipalities import _CP2B_RESIDUES, _SCENARIO_RESIDUES
+def test_residues_are_the_ones_the_map_serves():
+    from app.api.v1.endpoints.municipalities import _CP2B_RESIDUES
 
     residues = {r for r, _, _ in L.SUBSTRATES.values()}
     assert residues == set(_CP2B_RESIDUES)
-    assert residues <= set(_SCENARIO_RESIDUES)
 
 
 def test_expected_totals_are_the_article_headline():

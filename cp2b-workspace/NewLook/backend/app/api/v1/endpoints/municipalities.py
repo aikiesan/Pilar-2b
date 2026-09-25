@@ -118,51 +118,14 @@ _DETAIL_ONLY_RE = re.compile(
     r"^(agricultural|livestock|urban)_(biogas|biomethane)_|^\w+_biogas_m3_year$"
 )
 
-# Cenários Real/Ideal por resíduo (migração 029). São servidos no payload do mapa
-# porque o filtro por resíduo precisa deles: sem a parcela, selecionar "Cana" não
-# tem como filtrar um total já somado. `forestry` aparece uma vez só — é setor E
-# resíduo, e a coluna é a mesma.
-_SCENARIO_RESIDUES = (
-    "sugarcane",
-    "soybean",
-    "corn",
-    "coffee",
-    "citrus",
-    "cattle",
-    "swine",
-    "poultry",
-    "aquaculture",
-    "rsu",
-    "rpo",
-    "sewage",
-    "forestry",
-)
-_SCENARIO_RESIDUE_COLUMNS = tuple(
-    f"ch4_{tier}_{r}_m3_year" for tier in ("real", "ideal") for r in _SCENARIO_RESIDUES
-)
-
-# Quebra setorial dos cenários Real/Ideal (migração 026). NÃO entra no payload do
-# mapa: são oito campos a mais em 5.571 features para algo que só um município
-# aberto lê. Entra aqui, no detalhe de um município — que é exatamente o que este
-# endpoint existe para servir.
-#
-# Sem isso o painel do perfil municipal não tinha nada para mostrar no cenário
-# padrão (Real): a quebra por setor vinha só das bandas min/medio/max, e as
-# barras Agrícola/Pecuária/Urbano zeravam, levando junto o total. Os quatro
-# setores são os mesmos do /statistics/summary — florestal incluído — para que os
-# dois níveis de agregação não contem setores diferentes.
-_SCENARIO_SECTORS = ("agricultural", "livestock", "urban", "forestry")
-_SCENARIO_SECTOR_COLUMNS = tuple(
-    f"ch4_{tier}_{s}_m3_year" for tier in ("real", "ideal") for s in _SCENARIO_SECTORS
-) + ("ch4_real_m3_year", "ch4_ideal_m3_year")
-
-
-# CP2b method, levels N3 (mobilisable) and N4 (accessible), reference scenario
-# (migration 034, view municipality_cp2b_map). Named in the same
-# ch4_{tier}_{residue}_m3_year shape as Real/Ideal so the map's residue filter
-# and sector accessors work unchanged, with tier = cp2b_n3 | cp2b_n4. It is a
-# different METHOD from Real/Ideal, not a third Atlas tier: sugarcane includes
-# the surplus bagasse, and the residue set has no aquaculture or forestry.
+# Cenário Real / Cenário Ideal: the CP2b method, reference scenario (migration
+# 034, view municipality_cp2b_map). Real = N4 (accessible), Ideal = N3
+# (mobilisable); the frontend joins the two in scenarioFactors.SERVED_SOURCE_TIER.
+# The columns keep the method's names, ch4_cp2b_{n3,n4}[_{residue|sector}]_m3_year,
+# so no column holds one quantity under another's name. They replaced the Atlas
+# de Bioenergia SP 2020 pair (ch4_real_*/ch4_ideal_*, migrations 026/029), which
+# stays in `municipalities` but is no longer served. The residue set has no
+# aquaculture or forestry, and sugarcane includes the surplus bagasse.
 _CP2B_TIERS = ("cp2b_n3", "cp2b_n4")
 _CP2B_RESIDUES = (
     "sugarcane",
@@ -205,24 +168,6 @@ def _load_cp2b_detail(cursor, ibge_code: str) -> dict[str, float | None]:
     cursor.execute(f"SELECT {cols} FROM {_CP2B_VIEW} WHERE ibge_code = %s", (code,))
     row = cursor.fetchone()
     return dict(row) if row else {}
-
-
-def _served_scenario_sectors(row) -> dict[str, float | None]:
-    """Per-sector CH4 for the Real/Ideal tiers, plus their municipality totals.
-
-    The totals are also in the map payload, so the panel could read them off the
-    feature. Serving them here too makes this endpoint answer the whole question
-    on its own, rather than only the part the collection happens to omit — the
-    municipality profile page uses it without any feature to fall back on.
-
-    Values are served (never re-derived).
-
-    NULL is passed through as None rather than coerced to 0: outside São Paulo
-    migration 026 loaded nothing, and a 0 there would state "we measured this
-    municipality and it has no agricultural potential" instead of "we never
-    loaded it". The panel renders the two differently, and must be able to.
-    """
-    return {c: row.get(c) for c in _SCENARIO_SECTOR_COLUMNS}
 
 
 # Livestock streams derived from PPM head counts (per-head generation).
@@ -342,10 +287,6 @@ def _geojson_select_sql(
     include_cp2b: bool = False,
 ) -> str:
     """Build SELECT for GeoJSON rows; omit a JOIN whose table is not deployed."""
-    # Parcelas por resíduo dos cenários (migração 029). Geradas a partir da mesma
-    # tupla que as emite nas properties, para que acrescentar um resíduo não deixe
-    # a coluna fora do SELECT e o filtro do mapa lendo zero silenciosamente.
-    scenario_residue_cols = "".join(f"m.{c}, " for c in _SCENARIO_RESIDUE_COLUMNS)
     cluster_cols = (
         "ms.cluster_id, ms.cluster_label,\n"
         "                    ms.mun_total_gwh, ms.mun_n_streams, ms.mun_dominant_stream"
@@ -361,8 +302,8 @@ def _geojson_select_sql(
         if include_municipality_summary
         else ""
     )
-    # CP2b N3/N4 (migration 034). Without the view the columns are NULL, so the
-    # properties are omitted and the CP2b tiers paint NO_DATA — never zero.
+    # Real/Ideal = CP2b N4/N3 (migration 034). Without the view the columns are
+    # NULL, so the properties are omitted and the map paints NO_DATA — never zero.
     cp2b_cols = ",\n                    ".join(
         f"cp.{c}" if include_cp2b else f"NULL::double precision AS {c}" for c in _CP2B_MAP_COLUMNS
     )
@@ -403,8 +344,6 @@ def _geojson_select_sql(
                     m.poultry_biomass_tons_year,
                     m.aquaculture_biomass_tons_year, m.rsu_biomass_tons_year,
                     m.rpo_biomass_tons_year,
-                    m.ch4_real_m3_year, m.ch4_ideal_m3_year,
-                    {scenario_residue_cols}
                     {cp2b_cols},
                     {cluster_cols}
                 FROM municipalities m{join}
@@ -576,16 +515,12 @@ def _build_municipalities_geojson(limit: Optional[int], detail: str, fields: str
             "aquaculture_biogas_m3_year": _f(row, "aquaculture_biogas_m3_year"),
             "rsu_biogas_m3_year": _f(row, "rsu_biogas_m3_year"),
             "rpo_biogas_m3_year": _f(row, "rpo_biogas_m3_year"),
-            # Cenário Real / Cenário Ideal (migration 026). These deliberately do
-            # NOT match _DETAIL_ONLY_RE's `_biogas_m3_year` suffix: the map paints
-            # them, so they must survive the fields=map trim. Named for what they
-            # hold — methane — unlike the legacy columns above. The map derives
-            # biogás and bioenergia from them client-side, so only these two travel.
-            "ch4_real_m3_year": _f(row, "ch4_real_m3_year"),
-            "ch4_ideal_m3_year": _f(row, "ch4_ideal_m3_year"),
-            **{c: _f(row, c) for c in _SCENARIO_RESIDUE_COLUMNS},
-            # CP2b N3/N4, reference scenario (migration 034). Same omission rule:
-            # an absent share reads as 0 in the filter, an absent total as NO_DATA.
+            # Cenário Real / Cenário Ideal = CP2b N4 / N3, reference scenario
+            # (migration 034). These deliberately do NOT match _DETAIL_ONLY_RE's
+            # `_biogas_m3_year` suffix: the map paints them, so they must survive
+            # the fields=map trim. Named for what they hold — methane. The map
+            # derives biogás and bioenergia client-side. Omission rule: an absent
+            # share reads as 0 in the filter, an absent total as NO_DATA.
             **{c: _f(row, c) for c in _CP2B_MAP_COLUMNS},
             **canonical_metrics,
         }
@@ -905,7 +840,6 @@ async def get_municipality_metrics(ibge_code: str):
             "intermediate_region": row.get("intermediate_region"),
             **biomass_fields,
             **canonical,
-            **_served_scenario_sectors(row),
             **cp2b,
         }
     except HTTPException:

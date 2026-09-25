@@ -1,11 +1,12 @@
 /**
- * The CP2b tiers (migration 034) ride the served-scenario machinery.
+ * Real and Ideal are the CP2b cascade (migration 034): Real = N4 (accessible),
+ * Ideal = N3 (mobilisable), reference scenario.
  *
- * Their columns follow the ch4_{tier}_{residue}_m3_year shape, so the residue
- * filter, the sector bars and the stat strip work without a CP2b branch. What
- * must differ is the unit conversion: CP2b's biogas uses the method's CH₄
- * fraction and its biomethane deducts upgrading losses, where Real/Ideal keep
- * the FIESP convention. These tests pin both halves.
+ * The UI keys stay `real`/`ideal`; the payload fields keep the method's names
+ * (ch4_cp2b_n4_*, ch4_cp2b_n3_*), and SERVED_SOURCE_TIER is the only join. The
+ * Atlas SP 2020 columns (ch4_real_*, ch4_ideal_*) are no longer read, even when
+ * a payload still carries them. The conversions are the method's own: the
+ * state CH₄ mix of each level for biogas, 0.99 / 0.96 for biomethane.
  */
 
 import type { MunicipalityProperties } from '@/types/geospatial';
@@ -20,12 +21,13 @@ import {
 } from './mapValues';
 import {
   CH4_FRACTION_OF_BIOGAS,
+  DEFAULT_MAP_SCENARIO,
   MAP_SCENARIOS,
   SERVED_BIOMETHANE_PER_CH4,
   SERVED_CH4_FRACTION_OF_BIOGAS,
   SERVED_SCENARIO_FIELD,
   SERVED_SCENARIO_RESIDUE_FIELD,
-  isCp2bScenario,
+  SERVED_SOURCE_TIER,
   isServedScenario,
 } from '@/data/scenarioFactors';
 
@@ -33,7 +35,8 @@ const props = (o: Record<string, unknown>): MunicipalityProperties =>
   o as unknown as MunicipalityProperties;
 const R = (...r: string[]) => r as ResidueType[];
 
-// Guaíra-like: CP2b N3/N4 plus the Real total, as the map payload carries them.
+// Guaíra-like, as the map payload carries it — plus a stale Atlas total that
+// must be ignored.
 const mun = props({
   ibge_code: '3517406',
   ch4_real_m3_year: 90_000_000,
@@ -42,68 +45,78 @@ const mun = props({
   ch4_cp2b_n3_sugarcane_m3_year: 123_600_000,
   ch4_cp2b_n3_corn_m3_year: 3_800_000,
   ch4_cp2b_n4_sugarcane_m3_year: 109_600_000,
-  ch4_cp2b_n3_agricultural_m3_year: 133_000_000,
+  ch4_cp2b_n4_corn_m3_year: 3_100_000,
+  ch4_cp2b_n4_agricultural_m3_year: 117_000_000,
 });
 
-describe('CP2b tiers — scenario registry', () => {
-  it('are served scenarios and offered in the selector after Real/Ideal', () => {
-    expect(isServedScenario('cp2b_n3')).toBe(true);
-    expect(isServedScenario('cp2b_n4')).toBe(true);
-    expect(MAP_SCENARIOS.map((s) => s.key)).toEqual(['real', 'ideal', 'cp2b_n3', 'cp2b_n4']);
+describe('Real / Ideal — scenario registry', () => {
+  it('offers exactly Real and Ideal, opening on Real', () => {
+    expect(MAP_SCENARIOS.map((s) => s.key)).toEqual(['real', 'ideal']);
+    expect(DEFAULT_MAP_SCENARIO).toBe('real');
+    expect(isServedScenario('real')).toBe(true);
+    expect(isServedScenario('ideal')).toBe(true);
   });
 
-  it('are told apart from the Atlas tiers', () => {
-    expect(isCp2bScenario('cp2b_n3')).toBe(true);
-    expect(isCp2bScenario('real')).toBe(false);
+  it('maps Real to N4 and Ideal to N3', () => {
+    expect(SERVED_SOURCE_TIER).toEqual({ real: 'cp2b_n4', ideal: 'cp2b_n3' });
   });
 
-  it('read the columns the backend serves (municipalities.py _CP2B_MAP_COLUMNS)', () => {
-    expect(SERVED_SCENARIO_FIELD.cp2b_n3).toBe('ch4_cp2b_n3_m3_year');
-    expect(SERVED_SCENARIO_RESIDUE_FIELD('cp2b_n4', 'rsu')).toBe('ch4_cp2b_n4_rsu_m3_year');
+  it('reads the columns the backend serves (municipalities.py _CP2B_MAP_COLUMNS)', () => {
+    expect(SERVED_SCENARIO_FIELD.real).toBe('ch4_cp2b_n4_m3_year');
+    expect(SERVED_SCENARIO_FIELD.ideal).toBe('ch4_cp2b_n3_m3_year');
+    expect(SERVED_SCENARIO_RESIDUE_FIELD('real', 'rsu')).toBe('ch4_cp2b_n4_rsu_m3_year');
+    expect(SERVED_SCENARIO_RESIDUE_FIELD('ideal', 'rsu')).toBe('ch4_cp2b_n3_rsu_m3_year');
   });
 });
 
-describe('CP2b tiers — values', () => {
-  it('methane is served whole, never scaled', () => {
-    expect(getMethaneScenarioValue(mun, 'cp2b_n3').value).toBe(133_500_000);
-    expect(getMethaneScenarioValue(mun, 'cp2b_n4').value).toBe(117_700_000);
+describe('Real / Ideal — values', () => {
+  it('methane is served whole from the CP2b columns, never the Atlas ones', () => {
+    expect(getMethaneScenarioValue(mun, 'real').value).toBe(117_700_000);
+    expect(getMethaneScenarioValue(mun, 'ideal').value).toBe(133_500_000);
   });
 
-  it('the residue filter sums the CP2b shares', () => {
-    expect(getMethaneScenarioValue(mun, 'cp2b_n3', R('sugarcane', 'corn')).value).toBe(
+  it('the residue filter sums the CP2b shares of the active level', () => {
+    expect(getMethaneScenarioValue(mun, 'real', R('sugarcane', 'corn')).value).toBe(112_700_000);
+    expect(getMethaneScenarioValue(mun, 'ideal', R('sugarcane', 'corn')).value).toBe(
       127_400_000
     );
-    expect(hasAnySelectedResidue(mun, R('corn'), 'cp2b_n3')).toBe(true);
+    expect(hasAnySelectedResidue(mun, R('corn'), 'real')).toBe(true);
   });
 
-  it('biogas uses the CP2b CH4 fraction, not FIESP 0.625', () => {
-    const v = getBiogasScenarioValue(mun, 'cp2b_n3').value as number;
-    expect(v).toBeCloseTo(133_500_000 / SERVED_CH4_FRACTION_OF_BIOGAS.cp2b_n3, 3);
+  it('aquaculture, which CP2b does not model, paints no data', () => {
+    const v = getMethaneScenarioValue(mun, 'real', R('aquaculture'));
+    expect(v.value).toBeNull();
+    expect(v.coverage).toBe(NO_DATA);
+  });
+
+  it('biogas uses the CP2b CH4 fraction of each level, not FIESP 0.625', () => {
+    const v = getBiogasScenarioValue(mun, 'ideal').value as number;
+    expect(v).toBeCloseTo(133_500_000 / SERVED_CH4_FRACTION_OF_BIOGAS.ideal, 3);
     expect(v).toBeGreaterThan(133_500_000 / CH4_FRACTION_OF_BIOGAS);
   });
 
-  it('biomethane deducts upgrading losses for CP2b and not for Real', () => {
-    expect(getBiomethaneScenarioValue(mun, 'cp2b_n3').value).toBeCloseTo(
-      133_500_000 * (0.99 / 0.96),
+  it('biomethane deducts the upgrading loss and the 96% purity', () => {
+    expect(getBiomethaneScenarioValue(mun, 'real').value).toBeCloseTo(
+      117_700_000 * (0.99 / 0.96),
       3
     );
-    expect(SERVED_BIOMETHANE_PER_CH4.real).toBe(1);
-    expect(getBiomethaneScenarioValue(mun, 'real').value).toBe(90_000_000);
   });
 
-  it('the state mix reproduces the article (Table T2: 19.18 CH4 -> 34.05 biogas)', () => {
-    expect(19.183 / SERVED_CH4_FRACTION_OF_BIOGAS.cp2b_n3).toBeCloseTo(34.05, 1);
-    expect(19.183 * SERVED_BIOMETHANE_PER_CH4.cp2b_n3).toBeCloseTo(19.78, 2);
+  it('the state mix reproduces the article (N3 19.18 -> 34.05 biogas; N4 16.36 -> 29.02)', () => {
+    expect(19.183 / SERVED_CH4_FRACTION_OF_BIOGAS.ideal).toBeCloseTo(34.05, 1);
+    expect(19.183 * SERVED_BIOMETHANE_PER_CH4.ideal).toBeCloseTo(19.78, 2);
+    expect(16.361 / SERVED_CH4_FRACTION_OF_BIOGAS.real).toBeCloseTo(29.02, 1);
+    expect(16.361 * SERVED_BIOMETHANE_PER_CH4.real).toBeCloseTo(16.87, 2);
   });
 
   it('sector bars read the CP2b sector columns; forestry has none', () => {
-    expect(getSectorScenarioValue(mun, 'agricultural', 'methane', 'cp2b_n3')).toBe(133_000_000);
-    expect(getSectorScenarioValue(mun, 'forestry', 'methane', 'cp2b_n3')).toBeNull();
+    expect(getSectorScenarioValue(mun, 'agricultural', 'methane', 'real')).toBe(117_000_000);
+    expect(getSectorScenarioValue(mun, 'forestry', 'methane', 'real')).toBeNull();
   });
 
-  it('a municipality without CP2b data is no_data, not zero', () => {
+  it('a municipality without CP2b data is no_data, even with an Atlas total', () => {
     const outside = props({ ibge_code: '3106200', ch4_real_m3_year: 5 });
-    const v = getMethaneScenarioValue(outside, 'cp2b_n3');
+    const v = getMethaneScenarioValue(outside, 'real');
     expect(v.value).toBeNull();
     expect(v.coverage).toBe(NO_DATA);
   });

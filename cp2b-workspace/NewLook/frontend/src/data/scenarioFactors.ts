@@ -23,24 +23,24 @@
  * The original four are parameter bands: they pick min/medio/max off the served
  * BMP uncertainty, so they answer "how good could the chemistry be?".
  *
- * Real and Ideal come from the backend (migration 026, columns ch4_real_m3_year
- * and ch4_ideal_m3_year) and answer "how much of the resource actually reaches a
- * digester?". They follow the Atlas de Bioenergia SP 2020 definitions: Real uses
- * today's collection rates and competing uses; Ideal assumes 100% of what is
- * GENERATED is collected — an infrastructure frontier, with identical chemistry.
- * Every coefficient behind them is auditable in the scenario_parameters table.
+ * Real and Ideal answer "how much of the resource actually reaches a digester?"
+ * and follow the CP2b method (migration 034, view municipality_cp2b_map), its
+ * reference scenario, through the same factor cascade:
+ *   N1 theoretical -> x FC -> N2 technical -> x FCo - existing use -> N3
+ *   mobilisable -> x FS x FL (spatial, road network) -> N4 accessible.
+ * Real is N4, the whole cascade; Ideal is N3, before storage losses and the
+ * spatial logistic factor. They used to be the Atlas de Bioenergia SP 2020
+ * pair (migration 026); those columns stay in the database but are no longer
+ * served. The CP2b residue set has no aquaculture or forestry stream, and its
+ * sugarcane includes the surplus bagasse the Atlas excluded.
+ *
+ * The UI keys stay `real`/`ideal` so bookmarked ?scenario= URLs and presets keep
+ * resolving; the payload fields keep the method's own names
+ * (ch4_cp2b_n4_*, ch4_cp2b_n3_*) so a column never holds one quantity under
+ * another's name. SERVED_SOURCE_TIER is the one place the two are joined.
  *
  * Because they are served whole rather than multiplied client-side, they are NOT
  * in SCENARIO_RESIDUE_FACTORS and applyScenarioToProps leaves them untouched.
- *
- * `cp2b_n3` and `cp2b_n4` are served the same way but come from ANOTHER METHOD
- * (migration 034): the CP2b cascade, reference scenario. N3 is the mobilisable
- * potential — the CP2b headline — and N4 the accessible one, after storage losses
- * and the spatial logistic factor on the road network. They are not a third and
- * fourth Atlas tier: sugarcane includes the surplus bagasse the Atlas excludes,
- * and there is no aquaculture or forestry stream. They share the served
- * machinery because their columns follow the same ch4_{tier}_{residue}_m3_year
- * shape, so the residue filter and the sector bars work unchanged.
  */
 export type MapScenarioKey =
   | 'baseline'
@@ -48,72 +48,64 @@ export type MapScenarioKey =
   | 'fronteira'
   | 'otimista'
   | 'real'
-  | 'ideal'
-  | 'cp2b_n3'
-  | 'cp2b_n4';
+  | 'ideal';
 
 /** Scenarios served whole by the backend rather than derived from a band. */
-export const SERVED_SCENARIOS = ['real', 'ideal', 'cp2b_n3', 'cp2b_n4'] as const;
+export const SERVED_SCENARIOS = ['real', 'ideal'] as const;
 export type ServedScenarioKey = (typeof SERVED_SCENARIOS)[number];
 
 export function isServedScenario(s: MapScenarioKey): s is ServedScenarioKey {
   return (SERVED_SCENARIOS as readonly string[]).includes(s);
 }
 
-/** The two CP2b tiers — a different method from the Atlas Real/Ideal pair. */
-export function isCp2bScenario(s: MapScenarioKey): s is 'cp2b_n3' | 'cp2b_n4' {
-  return s === 'cp2b_n3' || s === 'cp2b_n4';
-}
+/** CP2b level whose columns back each served scenario: Real = N4, Ideal = N3. */
+export const SERVED_SOURCE_TIER: Record<ServedScenarioKey, 'cp2b_n4' | 'cp2b_n3'> = {
+  real: 'cp2b_n4',
+  ideal: 'cp2b_n3',
+};
 
 /** Municipality property holding the CH₄ total for a served scenario. */
 export const SERVED_SCENARIO_FIELD: Record<ServedScenarioKey, string> = {
-  real: 'ch4_real_m3_year',
-  ideal: 'ch4_ideal_m3_year',
-  cp2b_n3: 'ch4_cp2b_n3_m3_year',
-  cp2b_n4: 'ch4_cp2b_n4_m3_year',
+  real: 'ch4_cp2b_n4_m3_year',
+  ideal: 'ch4_cp2b_n3_m3_year',
 };
 
 /**
  * Municipality property holding ONE residue's share of a served scenario
- * (migration 029; emitted by municipalities.py's _SCENARIO_RESIDUE_COLUMNS).
+ * (the view's ch4_cp2b_{n3,n4}_{residue}_m3_year columns).
  *
- * The backend carries thirteen residues, the map's filter offers twelve —
- * `forestry` is computed and stored but not selectable. So the sum
- * over the selected residues does NOT reconcile to `SERVED_SCENARIO_FIELD` even
- * when every checkbox is ticked, and it should not: the filter is a slice of the
- * total, not a decomposition of it.
+ * The method carries eleven residues. The map's filter also offers aquaculture,
+ * which CP2b does not model, so selecting it alone paints no data. The residue
+ * shares sum to the municipality total: CP2b groups every one of its 17
+ * substrates under one of these eleven.
  */
 export const SERVED_SCENARIO_RESIDUE_FIELD = (
   tier: ServedScenarioKey,
   residue: string
-): string => `ch4_${tier}_${residue}_m3_year`;
+): string => `ch4_${SERVED_SOURCE_TIER[tier]}_${residue}_m3_year`;
 
 /** CH₄ fraction of raw biogas — FIESP 2025, matching the backend constant. */
 export const CH4_FRACTION_OF_BIOGAS = 0.625;
 
 /**
- * CH₄ fraction of raw biogas per served tier. Real/Ideal follow the FIESP
- * convention above. CP2b uses substrate-specific fractions; the map carries only
- * CH₄, so it applies the state-wide mix of each level (Table T2 of the v5.1
- * article: 34.05 M Nm³/day of biogas for 19.18 of CH₄). The state total then
- * matches the article exactly; a single municipality is approximate.
+ * CH₄ fraction of raw biogas per served tier. CP2b uses substrate-specific
+ * fractions; the map carries only CH₄, so it applies the state-wide mix of each
+ * level (Table T2 of the v5.1 article: 34.05 M Nm³/day of biogas for 19.18 of
+ * CH₄ at N3). The state total then matches the article exactly; a single
+ * municipality is approximate.
  */
 export const SERVED_CH4_FRACTION_OF_BIOGAS: Record<ServedScenarioKey, number> = {
-  real: CH4_FRACTION_OF_BIOGAS,
-  ideal: CH4_FRACTION_OF_BIOGAS,
-  cp2b_n3: 0.5634,
-  cp2b_n4: 0.5638,
+  real: 0.5638,
+  ideal: 0.5634,
 };
 
 /**
- * Biomethane per unit of CH₄. Under the FIESP convention the two are equal.
- * CP2b deducts a 1% upgrading loss and delivers a 96% CH₄ product: 0.99 / 0.96.
+ * Biomethane per unit of CH₄. CP2b deducts a 1% upgrading loss and delivers a
+ * 96% CH₄ product: 0.99 / 0.96.
  */
 export const SERVED_BIOMETHANE_PER_CH4: Record<ServedScenarioKey, number> = {
-  real: 1,
-  ideal: 1,
-  cp2b_n3: 0.99 / 0.96,
-  cp2b_n4: 0.99 / 0.96,
+  real: 0.99 / 0.96,
+  ideal: 0.99 / 0.96,
 };
 /** Methane LHV in kWh/Nm³ — Bueno et al. 2016, matching the backend constant. */
 export const CH4_LHV_KWH_M3 = 9.94;
@@ -142,9 +134,8 @@ export const SCENARIO_RESIDUE_FACTORS: Record<string, Record<BandScenarioKey, nu
  * fronteira, otimista) were removed from the UI: they interpolate the BMP
  * uncertainty band, which answers "how good could the chemistry be?" — a
  * question the platform should settle on the reader's behalf, not delegate to a
- * toggle. Real and Ideal answer the question a reader actually has, follow the
- * Atlas de Bioenergia SP 2020 definitions, and are the pair published in the
- * comparative literature.
+ * toggle. Real and Ideal answer the question a reader actually has, and both
+ * come from the CP2b cascade (N4 and N3).
  *
  * The four keys remain in MapScenarioKey and in SCENARIO_RESIDUE_FACTORS so that
  * bookmarked ?scenario= URLs still resolve rather than crashing, and so the band
@@ -153,12 +144,9 @@ export const SCENARIO_RESIDUE_FACTORS: Record<string, Record<BandScenarioKey, nu
 export const MAP_SCENARIOS: { key: MapScenarioKey; color: string }[] = [
   { key: 'real', color: '#0F766E' },
   { key: 'ideal', color: '#7C3AED' },
-  // CP2b method (migration 034). Offered after the Atlas pair, not instead of it.
-  { key: 'cp2b_n3', color: '#B45309' },
-  { key: 'cp2b_n4', color: '#9F1239' },
 ];
 
-/** Scenario the map opens on. Real is the defensible short-term figure. */
+/** Scenario the map opens on. Real (CP2b N4) is the defensible short-term figure. */
 export const DEFAULT_MAP_SCENARIO: MapScenarioKey = 'real';
 
 /** Scenario key → swatch colour. Derived from MAP_SCENARIOS so the selector,
@@ -182,7 +170,7 @@ export function applyScenarioToProps<T extends Record<string, unknown>>(
   props: T,
   scenario: MapScenarioKey
 ): T {
-  // Real and Ideal are served whole by the backend; scaling the legacy per-residue
+  // Served scenarios come whole from the backend; scaling the legacy per-residue
   // fields by a factor they have no entry for would silently zero them.
   if (scenario === 'baseline' || isServedScenario(scenario)) return props;
   const out: Record<string, unknown> = { ...props };

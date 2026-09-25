@@ -11,9 +11,10 @@ Produced by Metodo_CP2b/cp2b_pacote_plataforma.py (outputs_v5/plataforma/).
 The snapshot is immutable: a new method version needs a new dated directory and
 new checksums below, never an in-place overwrite.
 
-All volumes are Nm3 of METHANE per year. The headline CP2b figure is N3
-(mobilisable), not the Atlas "Cenário Real": the two are different methods and
-live in different tables.
+All volumes are Nm3 of METHANE per year. The platform's Cenário Real is N4
+(accessible) and its Cenário Ideal is N3 (mobilisable), reference scenario. The
+Atlas SP 2020 columns those names used to read stay in `municipalities`,
+untouched.
 
 Writes municipality_cp2b_potential, cp2b_parameters and cp2b_spatial_fl in one
 transaction, replacing whatever they held. Idempotent. Refuses to write if any
