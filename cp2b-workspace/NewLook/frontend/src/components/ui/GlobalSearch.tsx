@@ -44,6 +44,7 @@ export default function GlobalSearch({ variant = 'light' }: GlobalSearchProps) {
   const [activeIndex, setActiveIndex] = useState(0)
 
   const inputRef = useRef<HTMLInputElement>(null)
+  const triggerRef = useRef<HTMLButtonElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   // Closing from the keyboard or the close button hands focus back to the trigger.
   const refocusTrigger = useRef(false)
@@ -95,6 +96,13 @@ export default function GlobalSearch({ variant = 'light' }: GlobalSearchProps) {
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [close])
 
+  useEffect(() => {
+    if (!open && refocusTrigger.current) {
+      refocusTrigger.current = false
+      triggerRef.current?.focus()
+    }
+  }, [open])
+
   // ── Close on outside click ──────────────────────────────────────────────────
   useEffect(() => {
     const onClickOutside = (e: MouseEvent) => {
@@ -132,34 +140,29 @@ export default function GlobalSearch({ variant = 'light' }: GlobalSearchProps) {
   const triggerClass =
     variant === 'dark'
       ? 'flex items-center gap-2 px-3 py-1.5 rounded-lg text-green-100 bg-white/10 hover:bg-white/20 border border-white/20 text-sm transition-colors cursor-pointer'
-      : 'flex items-center gap-2 px-3 py-1.5 rounded-lg text-gray-500 bg-gray-100 hover:bg-gray-200 border border-gray-200 text-sm transition-colors cursor-pointer'
+      : 'flex items-center gap-2 px-3 py-1.5 rounded-lg text-gray-600 bg-gray-100 hover:bg-gray-200 border border-gray-200 text-sm transition-colors cursor-pointer'
 
   return (
     <div ref={containerRef} className="relative tour-search-bar">
-      {/* Collapsed trigger */}
-      {!open && (
-        <button
-          ref={(el) => {
-            if (el && refocusTrigger.current) {
-              refocusTrigger.current = false
-              el.focus()
-            }
-          }}
-          onClick={openSearch}
-          className={triggerClass}
-          aria-label={t('trigger_aria')}
-        >
-          <Search className="w-4 h-4 shrink-0" />
-          <span className="hidden lg:inline text-xs">{t('trigger')}</span>
-          <kbd className="hidden lg:inline px-1 py-0.5 text-[10px] font-mono rounded bg-black/10 dark:bg-white/10">
-            /
-          </kbd>
-        </button>
-      )}
+      {/* Collapsed trigger. It keeps its place while the search is open (hidden,
+          so it cannot take focus): the open search floats over the bar instead
+          of widening it, which pushed a full header off the screen. */}
+      <button
+        ref={triggerRef}
+        onClick={openSearch}
+        className={`${triggerClass} ${open ? 'invisible' : ''}`}
+        aria-label={t('trigger_aria')}
+      >
+        <Search className="w-4 h-4 shrink-0" />
+        <span className="hidden min-[1760px]:inline text-xs">{t('trigger')}</span>
+        <kbd className="hidden min-[1760px]:inline px-1 py-0.5 text-[10px] font-mono rounded bg-black/10 dark:bg-white/10">
+          /
+        </kbd>
+      </button>
 
       {/* Expanded search input */}
       {open && (
-        <div className="w-72 sm:w-96">
+        <div className="absolute right-0 top-1/2 -translate-y-1/2 z-[600] w-72 sm:w-96">
           <div className={`flex items-center gap-2 px-3 py-2 rounded-xl border shadow-lg ${
             variant === 'dark'
               ? 'bg-[#163d1f] border-white/20'
@@ -182,7 +185,7 @@ export default function GlobalSearch({ variant = 'light' }: GlobalSearchProps) {
               aria-activedescendant={expanded && results[activeIndex] ? optionId(activeIndex) : undefined}
               placeholder={t('placeholder')}
               aria-label={t('input_aria')}
-              className={`flex-1 bg-transparent text-sm outline-none ${
+              className={`flex-1 bg-transparent text-sm outline-none [&::-webkit-search-cancel-button]:hidden ${
                 variant === 'dark' ? 'text-white placeholder-green-300/50' : 'text-gray-900 placeholder-gray-400'
               }`}
               autoComplete="off"

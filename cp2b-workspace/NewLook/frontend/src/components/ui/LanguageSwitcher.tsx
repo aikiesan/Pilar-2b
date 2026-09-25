@@ -23,13 +23,33 @@ export function useLocaleSwitch(): (newLocale: Locale) => void {
   }
 }
 
-export default function LanguageSwitcher() {
+interface LanguageSwitcherProps {
+  /** light: on a light bar (the public header); dark: on the green one. */
+  variant?: 'light' | 'dark'
+}
+
+const STYLES = {
+  light: {
+    active: 'text-cp2b-green dark:text-emerald-400',
+    inactive: 'text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700',
+    separator: 'text-gray-300 dark:text-gray-600',
+  },
+  // The brand green of the light style is ~1.3:1 on the green header.
+  dark: {
+    active: 'text-white bg-white/20',
+    inactive: 'text-green-100 hover:text-white hover:bg-white/10',
+    separator: 'text-white/40',
+  },
+}
+
+export default function LanguageSwitcher({ variant = 'light' }: LanguageSwitcherProps) {
   const locale = useLocale()
   const t = useTranslations('common')
   const handleLanguageChange = useLocaleSwitch()
+  const styles = STYLES[variant]
 
-  const activeClass = 'px-2 py-1 text-xs font-bold rounded transition-colors text-cp2b-green dark:text-emerald-400'
-  const inactiveClass = 'px-2 py-1 text-xs font-medium rounded transition-colors text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700'
+  const activeClass = `px-2 py-1 text-xs font-bold rounded transition-colors ${styles.active}`
+  const inactiveClass = `px-2 py-1 text-xs font-medium rounded transition-colors ${styles.inactive}`
 
   return (
     <div
@@ -45,7 +65,7 @@ export default function LanguageSwitcher() {
       >
         EN
       </button>
-      <span aria-hidden="true" className="text-gray-300 dark:text-gray-600 text-xs select-none">|</span>
+      <span aria-hidden="true" className={`${styles.separator} text-xs select-none`}>|</span>
       <button
         onClick={() => handleLanguageChange('pt-BR')}
         aria-pressed={locale === 'pt-BR'}
