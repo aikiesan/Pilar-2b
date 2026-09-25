@@ -82,10 +82,10 @@ export default function CodigestionClusterLayer({
 
     layer.bindTooltip(
       `<div style="text-align:center;padding:4px;">
-        <strong style="font-size:11px;color:#4c1d95;">${t('cluster', { id: clusterNumber(p.cluster_id) })}</strong><br/>
+        <strong style="font-size:11px;color:#4c1d95;">${escapeHtml(t('cluster', { id: clusterNumber(p.cluster_id) }))}</strong><br/>
         <span style="font-size:10px;color:#555;">${escapeHtml(p.top_residue_a)} + ${escapeHtml(p.top_residue_b)}</span><br/>
-        <span style="font-size:10px;color:#555;">${t('combined_cn')}: <b>${format.number(p.cn_combined, { decimals: 1 })}</b></span><br/>
-        <span style="font-size:10px;color:#555;">${t('municipality_count', { count: p.municipality_count })} · ${escapeHtml(p.amount)}</span>
+        <span style="font-size:10px;color:#555;">${escapeHtml(t('combined_cn'))}: <b>${escapeHtml(format.number(p.cn_combined, { decimals: 1 }))}</b></span><br/>
+        <span style="font-size:10px;color:#555;">${escapeHtml(t('municipality_count', { count: p.municipality_count }))} · ${escapeHtml(p.amount)}</span>
       </div>`,
       { permanent: false, direction: 'top', className: 'custom-tooltip', offset: [0, -6] }
     );
