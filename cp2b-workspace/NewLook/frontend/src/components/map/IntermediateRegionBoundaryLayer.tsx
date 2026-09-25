@@ -11,6 +11,7 @@ import L from 'leaflet'
 import { logger } from '@/lib/logger'
 import { useFormat } from '@/hooks/useFormat'
 import { escapeHtml } from '@/lib/html';
+import { withBasePath } from '@/lib/basePath';
 
 interface IntermediateRegionBoundaryLayerProps {
   visible?: boolean
@@ -58,8 +59,7 @@ export default function IntermediateRegionBoundaryLayer({
   useEffect(() => {
     const fetchRegions = async () => {
       try {
-        const basePath = process.env.NEXT_PUBLIC_BASE_PATH || ''
-        const response = await fetch(`${basePath}/data/br_intermediary_regions.geojson`)
+        const response = await fetch(withBasePath('/data/br_intermediary_regions.geojson'))
         if (!response.ok) throw new Error(`HTTP ${response.status}`)
         const data = await response.json()
 
