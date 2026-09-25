@@ -1,4 +1,4 @@
-"""CP2b endpoints (migration 033): payload shape, column names, and degradation.
+"""CP2b endpoints (migration 034): payload shape, column names, and degradation.
 
 The column names are the contract between three places — the view in the
 migration, the SELECT in municipalities.py and the frontend's
@@ -21,7 +21,7 @@ from app.api.v1.endpoints.municipalities import (
 )
 from app.main import app
 
-MIGRATION = Path(__file__).resolve().parents[3] / "app" / "migrations" / "033_cp2b_potential.sql"
+MIGRATION = Path(__file__).resolve().parents[3] / "app" / "migrations" / "034_cp2b_potential.sql"
 
 
 def _view_columns() -> set[str]:

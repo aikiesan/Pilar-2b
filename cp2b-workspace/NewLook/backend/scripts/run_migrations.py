@@ -33,7 +33,7 @@ logger = logging.getLogger("run_migrations")
 # INSERTs all 1498 rows, and load_dossier_sp_indices then UPDATEs São Paulo's 645
 # with the N-additive C:N that migration 031 added. Running the second alone
 # matches no rows and reports 0 loaded. load_cp2b_potential fills the tables
-# migration 033 creates; it only needs the municipalities seeded.
+# migration 034 creates; it only needs the municipalities seeded.
 SEEDERS = (
     "load_biomass_from_master",
     "sync_db_canonical",

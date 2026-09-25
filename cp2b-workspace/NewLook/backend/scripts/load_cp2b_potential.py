@@ -1,5 +1,5 @@
 """
-Load the CP2b method v5.1 potential for São Paulo (migration 033).
+Load the CP2b method v5.1 potential for São Paulo (migration 034).
 
 Source snapshot: data/raw/cp2b_potential/2026/
     cp2b_municipio_substrato_niveis.csv   645 x 17 substrates x 3 scenarios, N1-N4

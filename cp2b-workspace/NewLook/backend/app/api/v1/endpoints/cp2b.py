@@ -1,5 +1,5 @@
 """
-CP2b method endpoints — resource potential at four levels (migration 033).
+CP2b method endpoints — resource potential at four levels (migration 034).
 
 The CP2b cascade (N1 theoretical → N2 technical → N3 mobilisable → N4
 accessible) is a different method from the Atlas SP 2020 Real/Ideal scenarios
@@ -37,7 +37,7 @@ PARAMETERS_TABLE = "cp2b_parameters"
 FL_TABLE = "cp2b_spatial_fl"
 
 NOT_LOADED = (
-    "CP2b data not loaded. Apply migration 033_cp2b_potential.sql and run "
+    "CP2b data not loaded. Apply migration 034_cp2b_potential.sql and run "
     "`python -m scripts.load_cp2b_potential`."
 )
 

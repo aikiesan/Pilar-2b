@@ -1,4 +1,4 @@
--- 033_cp2b_potential.sql
+-- 034_cp2b_potential.sql
 --
 -- CP2b method v5.1: resource potential for São Paulo's 645 municipalities at
 -- four levels, per substrate and scenario. Loaded by

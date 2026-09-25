@@ -1,4 +1,4 @@
-"""Gates of the CP2b v5.1 loader (migration 033).
+"""Gates of the CP2b v5.1 loader (migration 034).
 
 The snapshot lives under data/raw/ (gitignored), so these tests build small
 frames that mimic it and check that each gate refuses what it should. The one

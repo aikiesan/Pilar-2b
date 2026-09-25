@@ -69,7 +69,7 @@ backend/data/raw/pam/TABELA_1613_*.xlsx
 - Use `--uf MG` for the MG pilot and `--all-crops` to retain other PAM products
   as production-only records.
 
-## CP2b method potential (migration 033)
+## CP2b method potential (migration 034)
 
 ```
 backend/data/raw/cp2b_potential/2026/cp2b_municipio_substrato_niveis.csv

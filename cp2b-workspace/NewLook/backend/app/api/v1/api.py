@@ -82,7 +82,7 @@ api_router.include_router(
     tags=["codigestion", "clustering", "spatial-analysis", "cn-ratio"],
 )
 
-# CP2b method: N1-N4 potential per municipality x substrate x scenario (migration 033)
+# CP2b method: N1-N4 potential per municipality x substrate x scenario (migration 034)
 api_router.include_router(cp2b.router, prefix="/cp2b", tags=["cp2b", "potential", "methane"])
 
 # National intermediate regions (Phase 1 — 133 IBGE regions)

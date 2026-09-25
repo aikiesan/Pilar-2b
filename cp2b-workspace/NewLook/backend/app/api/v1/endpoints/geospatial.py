@@ -911,7 +911,7 @@ CH4_LHV_KWH_PER_M3 = 9.94
 DAYS_PER_YEAR = 365
 
 
-# CP2b method (migration 033), reference scenario, served as two more tiers so
+# CP2b method (migration 034), reference scenario, served as two more tiers so
 # the map's stat strip can follow the toggle to CP2b N3/N4. Different method
 # from Real/Ideal; the full four-level cascade lives at /api/v1/cp2b/summary.
 _CP2B_TIERS_SQL = """
@@ -930,7 +930,7 @@ _CP2B_TIERS_SQL = """
 
 
 def _fetch_cp2b_tiers(cursor) -> list:
-    """Per-sector CP2b sums, or [] when migration 033 is not applied/loaded."""
+    """Per-sector CP2b sums, or [] when migration 034 is not applied/loaded."""
     cursor.execute(
         "SELECT 1 FROM information_schema.tables "
         "WHERE table_schema = 'public' AND table_name = 'municipality_cp2b_potential'"

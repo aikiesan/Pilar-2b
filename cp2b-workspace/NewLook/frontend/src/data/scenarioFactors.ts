@@ -34,7 +34,7 @@
  * in SCENARIO_RESIDUE_FACTORS and applyScenarioToProps leaves them untouched.
  *
  * `cp2b_n3` and `cp2b_n4` are served the same way but come from ANOTHER METHOD
- * (migration 033): the CP2b cascade, reference scenario. N3 is the mobilisable
+ * (migration 034): the CP2b cascade, reference scenario. N3 is the mobilisable
  * potential — the CP2b headline — and N4 the accessible one, after storage losses
  * and the spatial logistic factor on the road network. They are not a third and
  * fourth Atlas tier: sugarcane includes the surplus bagasse the Atlas excludes,
@@ -153,7 +153,7 @@ export const SCENARIO_RESIDUE_FACTORS: Record<string, Record<BandScenarioKey, nu
 export const MAP_SCENARIOS: { key: MapScenarioKey; color: string }[] = [
   { key: 'real', color: '#0F766E' },
   { key: 'ideal', color: '#7C3AED' },
-  // CP2b method (migration 033). Offered after the Atlas pair, not instead of it.
+  // CP2b method (migration 034). Offered after the Atlas pair, not instead of it.
   { key: 'cp2b_n3', color: '#B45309' },
   { key: 'cp2b_n4', color: '#9F1239' },
 ];

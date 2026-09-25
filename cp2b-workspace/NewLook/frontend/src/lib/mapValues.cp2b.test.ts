@@ -1,5 +1,5 @@
 /**
- * The CP2b tiers (migration 033) ride the served-scenario machinery.
+ * The CP2b tiers (migration 034) ride the served-scenario machinery.
  *
  * Their columns follow the ch4_{tier}_{residue}_m3_year shape, so the residue
  * filter, the sector bars and the stat strip work without a CP2b branch. What

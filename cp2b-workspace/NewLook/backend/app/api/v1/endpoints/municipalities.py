@@ -158,7 +158,7 @@ _SCENARIO_SECTOR_COLUMNS = tuple(
 
 
 # CP2b method, levels N3 (mobilisable) and N4 (accessible), reference scenario
-# (migration 033, view municipality_cp2b_map). Named in the same
+# (migration 034, view municipality_cp2b_map). Named in the same
 # ch4_{tier}_{residue}_m3_year shape as Real/Ideal so the map's residue filter
 # and sector accessors work unchanged, with tier = cp2b_n3 | cp2b_n4. It is a
 # different METHOD from Real/Ideal, not a third Atlas tier: sugarcane includes
@@ -192,7 +192,7 @@ _CP2B_VIEW = "municipality_cp2b_map"
 def _load_cp2b_detail(cursor, ibge_code: str) -> dict[str, float | None]:
     """CP2b N3/N4 for one municipality, or {} when the view is absent or has no row.
 
-    Absent — not zero — outside São Paulo and before migration 033 is loaded, so
+    Absent — not zero — outside São Paulo and before migration 034 is loaded, so
     the panel shows "no data" rather than a measured nothing.
     """
     if not _table_exists(cursor, _CP2B_VIEW):
@@ -361,7 +361,7 @@ def _geojson_select_sql(
         if include_municipality_summary
         else ""
     )
-    # CP2b N3/N4 (migration 033). Without the view the columns are NULL, so the
+    # CP2b N3/N4 (migration 034). Without the view the columns are NULL, so the
     # properties are omitted and the CP2b tiers paint NO_DATA — never zero.
     cp2b_cols = ",\n                    ".join(
         f"cp.{c}" if include_cp2b else f"NULL::double precision AS {c}" for c in _CP2B_MAP_COLUMNS
@@ -584,7 +584,7 @@ def _build_municipalities_geojson(limit: Optional[int], detail: str, fields: str
             "ch4_real_m3_year": _f(row, "ch4_real_m3_year"),
             "ch4_ideal_m3_year": _f(row, "ch4_ideal_m3_year"),
             **{c: _f(row, c) for c in _SCENARIO_RESIDUE_COLUMNS},
-            # CP2b N3/N4, reference scenario (migration 033). Same omission rule:
+            # CP2b N3/N4, reference scenario (migration 034). Same omission rule:
             # an absent share reads as 0 in the filter, an absent total as NO_DATA.
             **{c: _f(row, c) for c in _CP2B_MAP_COLUMNS},
             **canonical_metrics,
