@@ -131,26 +131,16 @@ class TestRequestSizeLimitMiddlewareClass:
 
     def test_max_size_stored_on_instance(self):
         """max_size attribute must reflect the value passed to the constructor."""
-        app = FastAPI()
-        app.add_middleware(RequestSizeLimitMiddleware, max_size=500_000)
 
-        @app.get("/")
-        async def root():
-            return {}
+        async def trivial_app(scope, receive, send):  # pragma: no cover
+            pass
 
-        with TestClient(app, raise_server_exceptions=False):
-            pass  # Just instantiating exercises __init__
+        assert RequestSizeLimitMiddleware(trivial_app, max_size=500_000).max_size == 500_000
 
     def test_default_max_size_comes_from_settings(self):
         """When max_size is not passed, __init__ must read from settings."""
         with patch("app.middleware.request_size_limit.settings") as mock_cfg:
             mock_cfg.MAX_REQUEST_SIZE = 5_000_000
-
-            app = FastAPI()
-            # Cannot add middleware again to an existing app easily; test directly
-            import asyncio
-
-            from starlette.testclient import TestClient as StarletteTestClient
 
             # Instantiate the middleware around a trivial ASGI app
             async def trivial_app(scope, receive, send):  # pragma: no cover

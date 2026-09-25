@@ -1,5 +1,5 @@
 import React from 'react'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { axe } from 'jest-axe'
 import GlobalSearch from '../GlobalSearch'
@@ -120,15 +120,12 @@ describe('GlobalSearch Accessibility', () => {
       const user = userEvent.setup()
       render(<GlobalSearch />)
       await user.keyboard('/')
-      const input = screen.queryByRole('combobox') || screen.queryByRole('searchbox')
-      if (input) {
-        await user.type(input, 'São')
-        const listbox = screen.queryByRole('listbox')
-        if (listbox) {
-          const options = screen.queryAllByRole('option')
-          expect(options.length).toBeGreaterThan(0)
-        }
-      }
+      const input = await screen.findByRole('combobox')
+      await user.type(input, 'São')
+      const listbox = screen.getByRole('listbox', { name: 'Search results' })
+      expect(within(listbox).getAllByRole('option')).toHaveLength(1) // São Paulo
+      expect(input).toHaveAttribute('aria-expanded', 'true')
+      expect(input).toHaveAttribute('aria-controls', listbox.id)
     })
 
     it('moves the active option with the arrow keys and announces it', async () => {
@@ -181,8 +178,8 @@ describe('GlobalSearch Accessibility', () => {
     const user = userEvent.setup()
     const { container } = render(<GlobalSearch />)
     await user.keyboard('/')
-    const input = document.querySelector('input[type="search"], input[type="text"]')
-    if (input) await user.type(input as HTMLElement, 'Camp')
+    await user.type(await screen.findByRole('combobox'), 'Camp')
+    expect(screen.getByRole('listbox')).toBeInTheDocument()
     const results = await axe(container)
     expect(results).toHaveNoViolations()
   })

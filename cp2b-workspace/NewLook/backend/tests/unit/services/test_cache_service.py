@@ -141,7 +141,9 @@ class TestLRUCache:
 
     def test_delete_nonexistent_key(self, cache):
         """Test deleting nonexistent key doesn't raise error"""
-        cache.delete("nonexistent")  # Should not raise
+        cache.set("key1", "value1")
+        cache.delete("nonexistent")  # must not raise
+        assert cache.get("key1") == "value1"
 
     def test_clear(self, cache):
         """Test clearing all cache entries"""
