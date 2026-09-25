@@ -86,16 +86,37 @@ function createTranslator(namespace) {
   }
 
   t.raw = (key) => lookup(resolve(key))
-  t.rich = (key, tags) => {
+  // Like next-intl: each <tag>…</tag> becomes what its function returns, so a
+  // test can find the link or the <strong> a message renders. (This used to
+  // flatten the tags to text, which hid a missing link from every test.)
+  t.rich = (key, values = {}) => {
     const value = lookup(resolve(key))
     if (typeof value !== 'string') return resolve(key)
-    // Render <strong>…</strong> style tags as plain text so assertions on the
-    // sentence still match; the tag functions are invoked for their children.
-    return value.replace(/<(\w+)>(.*?)<\/\1>/g, (match, tag, inner) =>
-      tags && typeof tags[tag] === 'function' ? inner : match
+    const text = format(value, values)
+    const parts = []
+    const tag = /<(\w+)>(.*?)<\/\1>/g
+    let last = 0
+    let match
+    while ((match = tag.exec(text))) {
+      if (match.index > last) parts.push(text.slice(last, match.index))
+      const render = values[match[1]]
+      parts.push(
+        typeof render === 'function'
+          ? React.createElement(React.Fragment, { key: parts.length }, render(match[2]))
+          : match[0]
+      )
+      last = match.index + match[0].length
+    }
+    if (last < text.length) parts.push(text.slice(last))
+    return parts.length === 1 ? parts[0] : parts
+  }
+  t.markup = (key, values = {}) => {
+    const value = lookup(resolve(key))
+    if (typeof value !== 'string') return resolve(key)
+    return format(value, values).replace(/<(\w+)>(.*?)<\/\1>/g, (match, name, inner) =>
+      typeof values[name] === 'function' ? values[name](inner) : match
     )
   }
-  t.markup = t.rich
   t.has = (key) => lookup(resolve(key)) !== undefined
 
   return t

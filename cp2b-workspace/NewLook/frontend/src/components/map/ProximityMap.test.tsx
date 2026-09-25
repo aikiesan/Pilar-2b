@@ -149,7 +149,9 @@ describe('ProximityMap', () => {
   describe('Coordinates Display', () => {
     it('should show São Paulo state label', () => {
       render(<ProximityMap {...defaultProps} />);
-      expect(screen.getByText('Estado de São Paulo')).toBeInTheDocument();
+      // "Estado de <strong>São Paulo</strong>": the state name is the bold part.
+      const state = screen.getByText('São Paulo', { selector: 'span.font-semibold' });
+      expect(state.parentElement).toHaveTextContent('Estado de São Paulo');
     });
 
     it('should show selected point coordinates in the page locale', () => {
