@@ -7,20 +7,23 @@
       "dashboard": "Dashboard",
       "about": "Sobre",
       "references": "Referências",
-      "hub": "Hub",
       "proximity": "Proximidade",
       "technology_routes": "Calculadora de Biogás",
       "scientific_database": "Base Científica",
       "advanced": "Análises",
       "cite": "Como Citar",
-      "patch_notes": "Novidades"
+      "patch_notes": "Novidades",
+      "compare": "Comparar"
     },
     "nav_descriptions": {
-      "hub": "Central de Recursos",
-      "map": "Mapa Interativo SP",
+      "guide": "Tutoriais e primeiros passos",
+      "map": "Potencial por município, camadas e temas",
       "advanced": "MCDA e estatísticas",
+      "compare": "Até 4 municípios lado a lado",
       "scientific_database": "Base de dados científica",
-      "proximity": "Análise de proximidade",
+      "technology_routes": "Simule biogás, biometano e energia",
+      "proximity": "Resíduos e infraestrutura num raio",
+      "about": "Projeto, equipe, parceiros e FAQ",
       "cite": "Como citar o PILAR-2b"
     },
     "auth": {
@@ -2337,7 +2340,20 @@
     "remove": "Remover {name}",
     "compare": "Comparar",
     "min_hint": "Selecione pelo menos {min} municípios para comparar",
-    "limit": "Você pode comparar no máximo {max} municípios por vez."
+    "limit": "Você pode comparar no máximo {max} municípios por vez.",
+    "picker": {
+      "title": "Comparar municípios",
+      "intro": "Escolha de {min} a {max} municípios para ver lado a lado população, área e potencial de biogás por setor.",
+      "search_label": "Buscar município",
+      "search_placeholder": "Nome ou código IBGE",
+      "no_results": "Nenhum município encontrado para “{query}”.",
+      "loading": "Carregando municípios…",
+      "error": "Não foi possível carregar a lista de municípios. Tente novamente mais tarde.",
+      "add": "Adicionar",
+      "added": "Adicionado",
+      "map_hint": "Também é possível escolher municípios no mapa, pela ferramenta Comparar.",
+      "open_map": "Abrir mapa"
+    }
   },
   "legal": {
     "updated": "Última atualização: {date}"

@@ -19,8 +19,9 @@ import {
   LogOut,
   User,
   ChevronDown,
-  Home,
   Info,
+  Columns3,
+  FlaskConical,
   BarChart3,
   BookOpen,
   Target,
@@ -70,43 +71,31 @@ interface UnifiedHeaderProps {
   variant?: 'auto' | 'public' | 'authenticated'
 }
 
-// Navigation item configurations (label keys map to i18n)
-const publicNavConfig: NavItemConfig[] = [
-  // The map is now the landing page ("/"), reached via the logo. The former
-  // marketing home became the guide hub, so it takes the first nav slot.
-  { href: '/guide', labelKey: 'guide', icon: <BookOpen className="h-4 w-4" /> },
-  { href: '/map', labelKey: 'map', icon: <Map className="h-4 w-4" />, tourClass: 'tour-map' },
-  { href: '/dashboard/advanced-analysis', labelKey: 'advanced', icon: <BarChart3 className="h-4 w-4" />, tourClass: 'tour-analysis' },
-  { href: '/dashboard/scientific-database', labelKey: 'scientific_database', icon: <BookOpen className="h-4 w-4" />, tourClass: 'tour-science' },
-  { href: '/dashboard/technology-routes', labelKey: 'technology_routes', icon: <Workflow className="h-4 w-4" />, tourClass: 'tour-calculator' },
-  { href: '/dashboard/proximity', labelKey: 'proximity', icon: <Target className="h-4 w-4" />, tourClass: 'tour-proximity' },
-  { href: '/about', labelKey: 'about', icon: <Info className="h-4 w-4" /> },
-  { href: '/cite', labelKey: 'cite', icon: <Quote className="h-4 w-4" /> },
-  { href: '/patch-notes', labelKey: 'patch_notes', icon: <Sparkles className="h-4 w-4" />, compact: true },
-]
-
-const authenticatedNavConfig: NavItemConfig[] = [
-  { href: '/dashboard', labelKey: 'hub', icon: <Home className="h-4 w-4" />, descriptionKey: 'hub' },
-  // The guide was reachable only from the public config, and open mode
-  // (NEXT_PUBLIC_DISABLE_AUTH=true) makes every visitor read as authenticated --
-  // so on the live site nothing linked it at all. The page built and routed
-  // fine; it just had no entry point.
-  { href: '/guide', labelKey: 'guide', icon: <BookOpen className="h-4 w-4" /> },
+// One navigation for every visitor. It used to come in two variants picked by
+// `isAuthenticated` -- but open mode (NEXT_PUBLIC_DISABLE_AUTH=true, what the
+// public site runs) signs every visitor in as the synthetic TEST_USER, so the
+// public list, the only one with "Sobre", never rendered on the live site.
+// Signing in changes the account menu, not what the platform offers.
+// The Hub (/dashboard) left the bar: it only repeats these links, and stays
+// reachable from the footer.
+const navConfig: NavItemConfig[] = [
+  { href: '/guide', labelKey: 'guide', icon: <BookOpen className="h-4 w-4" />, descriptionKey: 'guide' },
   { href: '/map', labelKey: 'map', icon: <Map className="h-4 w-4" />, descriptionKey: 'map', tourClass: 'tour-map' },
-  { href: '/dashboard/advanced-analysis', labelKey: 'advanced', icon: <BarChart3 className="h-4 w-4" />, tourClass: 'tour-analysis' },
-  { href: '/dashboard/scientific-database', labelKey: 'scientific_database', icon: <BookOpen className="h-4 w-4" />, tourClass: 'tour-science' },
-  { href: '/dashboard/technology-routes', labelKey: 'technology_routes', icon: <Workflow className="h-4 w-4" />, tourClass: 'tour-calculator' },
-  { href: '/dashboard/proximity', labelKey: 'proximity', icon: <Target className="h-4 w-4" />, tourClass: 'tour-proximity' },
+  { href: '/dashboard/advanced-analysis', labelKey: 'advanced', icon: <BarChart3 className="h-4 w-4" />, descriptionKey: 'advanced', tourClass: 'tour-analysis' },
+  { href: '/dashboard/compare', labelKey: 'compare', icon: <Columns3 className="h-4 w-4" />, descriptionKey: 'compare' },
+  { href: '/dashboard/scientific-database', labelKey: 'scientific_database', icon: <FlaskConical className="h-4 w-4" />, descriptionKey: 'scientific_database', tourClass: 'tour-science' },
+  { href: '/dashboard/technology-routes', labelKey: 'technology_routes', icon: <Workflow className="h-4 w-4" />, descriptionKey: 'technology_routes', tourClass: 'tour-calculator' },
+  { href: '/dashboard/proximity', labelKey: 'proximity', icon: <Target className="h-4 w-4" />, descriptionKey: 'proximity', tourClass: 'tour-proximity' },
+  { href: '/about', labelKey: 'about', icon: <Info className="h-4 w-4" />, descriptionKey: 'about' },
   { href: '/cite', labelKey: 'cite', icon: <Quote className="h-4 w-4" />, descriptionKey: 'cite' },
   { href: '/patch-notes', labelKey: 'patch_notes', icon: <Sparkles className="h-4 w-4" />, compact: true },
 ]
 
 export default function UnifiedHeader({ variant = 'auto' }: UnifiedHeaderProps) {
   const pathname = usePathname()
-  // `isAuthenticated` still picks the header's visual variant — in open mode the
-  // whole platform reads as signed-in, and that is the look the public site has
-  // today. Only the account UI below needs the stricter signal.
-  const { user, logout, isAuthenticated } = useAuth()
+  // The account UI needs a real session (see the note at the top); nothing in
+  // the header reads `isAuthenticated` any more.
+  const { user, logout } = useAuth()
   const hasRealSession = useRealSession()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
@@ -114,13 +103,10 @@ export default function UnifiedHeader({ variant = 'auto' }: UnifiedHeaderProps) 
   // i18n translations
   const t = useTranslations('common')
 
-  // Determine variant based on auth state if auto
-  const effectiveVariant = variant === 'auto'
-    ? (isAuthenticated ? 'authenticated' : 'public')
-    : variant
-
+  // `variant` is styling only. 'auto' is the green bar the live site has always
+  // shown; 'public' keeps the light bar for pages that ask for it.
+  const effectiveVariant = variant === 'public' ? 'public' : 'authenticated'
   const isPublic = effectiveVariant === 'public'
-  const navConfig = isPublic ? publicNavConfig : authenticatedNavConfig
 
   const handleLogout = async () => {
     try {
@@ -213,7 +199,7 @@ export default function UnifiedHeader({ variant = 'auto' }: UnifiedHeaderProps) 
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden xl:flex items-center space-x-0.5 min-[1760px]:space-x-1">
+          <div className="hidden min-[1360px]:flex items-center space-x-0.5 min-[1760px]:space-x-1">
             {navConfig.map((item) => {
               const isExternal = item.href.startsWith('http')
               const label = t(`nav.${item.labelKey}`)
@@ -243,7 +229,7 @@ export default function UnifiedHeader({ variant = 'auto' }: UnifiedHeaderProps) 
               `
                 : `
                 ${item.tourClass || ''}
-                flex items-center gap-2 px-2 min-[1760px]:px-4 py-2 rounded-lg text-[13px] min-[1760px]:text-sm font-medium whitespace-nowrap
+                flex items-center gap-2 px-1.5 min-[1440px]:px-2 min-[1760px]:px-4 py-2 rounded-lg text-[13px] min-[1760px]:text-sm font-medium whitespace-nowrap
                 transition-all duration-200 focus:outline-none focus:ring-2
                 ${focusRing}
                 ${isActive(item.href)
@@ -281,15 +267,15 @@ export default function UnifiedHeader({ variant = 'auto' }: UnifiedHeaderProps) 
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Global Search: in the bar at every width from sm up, so the
-                menu button below xl does not take it away. One instance only,
-                since it listens for "/" on the whole window. */}
-            <div className="hidden sm:block">
+            {/* Global Search: in the bar at every width, phones included, so
+                the menu button below 1360px does not take it away. One instance
+                only, since it listens for "/" on the whole window. */}
+            <div>
               <GlobalSearch variant={isPublic ? 'light' : 'dark'} />
             </div>
 
             {/* Theme & Language Toggles + User Menu (Desktop) */}
-            <div className="hidden xl:flex items-center space-x-3">
+            <div className="hidden min-[1360px]:flex items-center space-x-3">
               {/* Language Toggle */}
               <LanguageSwitcher variant={isPublic ? 'light' : 'dark'} />
 
@@ -382,7 +368,7 @@ export default function UnifiedHeader({ variant = 'auto' }: UnifiedHeaderProps) 
             </div>
 
             {/* Mobile Menu Button */}
-            <div className="xl:hidden">
+            <div className="min-[1360px]:hidden">
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 className={`
@@ -410,7 +396,7 @@ export default function UnifiedHeader({ variant = 'auto' }: UnifiedHeaderProps) 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
           <div
-            className={`xl:hidden relative z-50 ${currentStyles.mobileMenu}`}
+            className={`min-[1360px]:hidden relative z-50 ${currentStyles.mobileMenu}`}
             id="mobile-menu"
           >
             <div className="px-2 pt-2 pb-3 space-y-1">

@@ -9,18 +9,21 @@
       "references": "References",
       "cite": "How to Cite",
       "patch_notes": "What’s New",
-      "hub": "Hub",
       "proximity": "Proximity",
       "technology_routes": "Biogas Calculator",
       "scientific_database": "Scientific Database",
-      "advanced": "Advanced"
+      "advanced": "Analysis",
+      "compare": "Compare"
     },
     "nav_descriptions": {
-      "hub": "Resource Center",
-      "map": "Interactive SP Map",
+      "guide": "Tutorials and first steps",
+      "map": "Potential by municipality, layers and themes",
       "advanced": "MCDA and statistics",
+      "compare": "Up to 4 municipalities side by side",
       "scientific_database": "Scientific database",
-      "proximity": "Proximity analysis",
+      "technology_routes": "Simulate biogas, biomethane and energy",
+      "proximity": "Residues and infrastructure within a radius",
+      "about": "Project, team, partners and FAQ",
       "cite": "How to cite PILAR-2b"
     },
     "auth": {
@@ -2337,7 +2340,20 @@
     "remove": "Remove {name}",
     "compare": "Compare",
     "min_hint": "Select at least {min} municipalities to compare",
-    "limit": "You can compare at most {max} municipalities at a time."
+    "limit": "You can compare at most {max} municipalities at a time.",
+    "picker": {
+      "title": "Compare municipalities",
+      "intro": "Choose {min} to {max} municipalities to see population, area and biogas potential by sector side by side.",
+      "search_label": "Search for a municipality",
+      "search_placeholder": "Name or IBGE code",
+      "no_results": "No municipality found for “{query}”.",
+      "loading": "Loading municipalities…",
+      "error": "The list of municipalities could not be loaded. Please try again later.",
+      "add": "Add",
+      "added": "Added",
+      "map_hint": "You can also pick municipalities on the map, with the Compare tool.",
+      "open_map": "Open map"
+    }
   },
   "legal": {
     "updated": "Last updated: {date}"

@@ -9,6 +9,7 @@ import Breadcrumb from '@/components/ui/Breadcrumb';
 import { useBreadcrumbs } from '@/hooks/useBreadcrumbs';
 import { useFormat } from '@/hooks/useFormat';
 import { logger } from '@/lib/logger';
+import ComparisonPicker from '@/components/comparison/ComparisonPicker';
 
 interface MunicipalityData {
   id: number;
@@ -35,13 +36,16 @@ function ComparePageContent() {
   const [municipalities, setMunicipalities] = useState<MunicipalityData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // Opened without a usable selection (from the header, or with one id): show
+  // the picker instead of bouncing to the Hub. `notice` says why, if anything.
+  const [picking, setPicking] = useState<{ notice?: string } | null>(null);
 
   useEffect(() => {
     const fetchMunicipalities = async () => {
       try {
         const idsParam = searchParams.get('ids');
         if (!idsParam) {
-          router.push('/dashboard');
+          setPicking({});
           return;
         }
 
@@ -49,10 +53,12 @@ function ComparePageContent() {
         const ids = idsParam.split(',').map((id) => Number(id.trim())).filter(Number.isInteger);
 
         if (ids.length < 2) {
-          setError(t('compare.min_municipalities_error'));
+          setPicking({ notice: t('compare.min_municipalities_error') });
           return;
         }
 
+        setPicking(null);
+        setError(null);
         setLoading(true);
 
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
@@ -95,6 +101,10 @@ function ComparePageContent() {
     }
     return <Minus className="h-4 w-4 text-gray-400" />;
   };
+
+  if (picking) {
+    return <ComparisonPicker notice={picking.notice} />;
+  }
 
   if (loading) {
     return (
