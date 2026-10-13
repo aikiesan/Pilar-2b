@@ -57,8 +57,10 @@ module.exports = {
         },
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
-        mono: ['JetBrains Mono', 'monospace'],
+        // "… Variable" is the family name @fontsource-variable registers
+        // (loaded in src/app/layout.tsx); the plain names cover a local install.
+        sans: ['"Inter Variable"', 'Inter', 'system-ui', 'sans-serif'],
+        mono: ['"JetBrains Mono Variable"', '"JetBrains Mono"', 'monospace'],
       },
       animation: {
         'fade-in': 'fadeIn 0.5s ease-in-out',

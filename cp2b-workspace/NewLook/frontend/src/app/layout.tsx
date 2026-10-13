@@ -1,4 +1,10 @@
 import type { ReactNode } from 'react';
+// Self-hosted variable fonts: tailwind.config.js named Inter and JetBrains Mono,
+// but nothing loaded them, so visitors without them installed got system-ui.
+// Bundled from npm, so the build needs no Google Fonts call and the CSP's
+// font-src 'self' still holds.
+import '@fontsource-variable/inter';
+import '@fontsource-variable/jetbrains-mono';
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
