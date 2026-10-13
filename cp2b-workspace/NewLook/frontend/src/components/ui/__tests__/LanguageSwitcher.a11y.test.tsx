@@ -72,10 +72,13 @@ describe('LanguageSwitcher Accessibility', () => {
       expect(screen.getByText('EN').closest('button')).toHaveAttribute('aria-pressed', 'false')
     })
 
-    it('gives each button an accessible label', () => {
+    it('names each button starting with its visible code (WCAG 2.5.3 Label in Name)', () => {
       render(<LanguageSwitcher />)
-      expect(screen.getByText('EN').closest('button')).toHaveAttribute('aria-label')
-      expect(screen.getByText('PT').closest('button')).toHaveAttribute('aria-label')
+      // The visible "EN"/"PT" must be part of the accessible name: an aria-label
+      // that replaces it ("Switch to English") fails axe's label-content-name-mismatch.
+      expect(screen.getByRole('button', { name: 'EN – lang.switch_to_en' })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'PT – lang.switch_to_pt' })).toBeInTheDocument()
+      expect(screen.getByText('EN').closest('button')).not.toHaveAttribute('aria-label')
     })
   })
 
