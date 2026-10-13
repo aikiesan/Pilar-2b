@@ -18,7 +18,7 @@ import { locales, localePrefix, type Locale } from './config/i18n';
  * Navigation utilities created by next-intl
  * These automatically handle locale prefixing
  */
-export const { Link, redirect, usePathname, useRouter, getPathname } = createNavigation({
+export const { Link, redirect, permanentRedirect, usePathname, useRouter, getPathname } = createNavigation({
   locales,
   localePrefix,
 });

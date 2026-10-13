@@ -8,6 +8,8 @@ const publicRoutes = [
   { path: '/',          changeFrequency: 'weekly'  as const, priority: 1.0, lastModified: '2025-01-01' },
   { path: '/map',       changeFrequency: 'daily'   as const, priority: 0.9, lastModified: '2025-01-01' },
   { path: '/about',     changeFrequency: 'monthly' as const, priority: 0.7, lastModified: '2025-01-01' },
+  { path: '/guide',     changeFrequency: 'monthly' as const, priority: 0.7, lastModified: '2025-01-01' },
+  { path: '/cite',      changeFrequency: 'monthly' as const, priority: 0.6, lastModified: '2025-01-01' },
   { path: '/privacy',   changeFrequency: 'yearly'  as const, priority: 0.5, lastModified: '2025-01-01' },
   { path: '/terms',     changeFrequency: 'yearly'  as const, priority: 0.5, lastModified: '2025-01-01' },
   { path: '/login',     changeFrequency: 'yearly'  as const, priority: 0.3, lastModified: '2025-01-01' },
@@ -29,7 +31,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
           languages: {
             en:          `${BASE_URL}/en${suffix}`,
             'pt-BR':     `${BASE_URL}/pt-BR${suffix}`,
-            'x-default': `${BASE_URL}/en${suffix}`,
+            // Portuguese is the platform's primary locale.
+            'x-default': `${BASE_URL}/pt-BR${suffix}`,
           },
         },
       })

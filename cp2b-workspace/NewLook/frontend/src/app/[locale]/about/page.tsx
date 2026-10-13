@@ -1,48 +1,88 @@
 'use client'
 
 /**
- * About Page - PILAR-2b
- * Comprehensive information about the Plataforma Inteligente de Localização e Aproveitamento de Resíduos para Biogas e Bioprodutos
- * Public version matching the dashboard Sobre page content
+ * About — PILAR-2b
+ *
+ * The single "who we are" page. It replaces three: this /about, /sobre (the old
+ * marketing home) and /dashboard/about (a bounce to nipe.unicamp.br); the other
+ * two now 301 here (next.config.js). One page with anchors, as MapBiomas does:
+ * O projeto · Equipe · Parceiros e CP2b · FAQ · Contato.
+ *
+ * Coverage is stated per scope (SP canonical, MG beta, national expansion) and
+ * no municipality count is typed into the copy: counts belong to the data.
  */
-import { useState } from 'react'
+import Image from 'next/image'
 import { useTranslations } from 'next-intl'
 import { Link } from '@/navigation'
-import Image from 'next/image'
 import AnimatedCounter from '@/components/ui/AnimatedCounter'
 import Timeline, { TimelineEvent } from '@/components/ui/Timeline'
-import NewsletterSignup from '@/components/ui/NewsletterSignup'
+import { withBasePath } from '@/lib/basePath'
+import { SOCIAL_LINKS, type SocialChannel } from '@/config/contact'
 import {
-  ArrowLeft,
-  Target,
-  Eye,
-  Heart,
-  Award,
-  ChevronRight,
-  MapPin,
-  Database,
-  Mail,
-  Building2,
-  GraduationCap,
-  BarChart3,
-  Layers,
-  CheckCircle2,
   ArrowRight,
-  FlaskConical,
-  Settings,
-  Megaphone,
-  Scale,
+  Award,
+  BarChart3,
+  BookOpen,
+  Building2,
+  CheckCircle2,
+  Database,
+  Download,
+  Eye,
   Factory,
+  FileJson,
+  FlaskConical,
+  Globe,
+  GraduationCap,
+  Heart,
+  Layers,
   Lightbulb,
-  TrendingUp,
-  Calendar,
+  Map,
+  Megaphone,
+  MessageCircle,
   Rocket,
-  Users
+  Scale,
+  Settings,
+  Sheet,
+  Target,
+  TrendingUp,
 } from 'lucide-react'
+
+// Anchor ids are part of the public URL (/about#parceiros), so they stay
+// Portuguese and stable across locales; only their labels are translated.
+const SECTIONS = [
+  { id: 'projeto', labelKey: 'project' },
+  { id: 'equipe', labelKey: 'team' },
+  { id: 'parceiros', labelKey: 'partners' },
+  { id: 'faq', labelKey: 'faq' },
+  { id: 'contato', labelKey: 'contact' },
+] as const
+
+// Clears the sticky header (h-16) plus the section bar when jumping to an anchor.
+const SECTION_OFFSET = 'scroll-mt-32'
+
+const SCREENSHOTS = [
+  { key: 'interactive_map', src: '/screenshots/interactive-map.png' },
+  { key: 'data_analysis', src: '/screenshots/data-analysis.png' },
+  { key: 'proximity_analysis', src: '/screenshots/proximity-analysis.png' },
+  { key: 'scientific_basis', src: '/screenshots/scientific-basis.png' },
+] as const
+
+// Authors as registered (CITATION.cff and the INPI record); names are proper nouns.
+const AUTHORS = [
+  { name: 'Lucas Nakamura Cerejo', affiliationKey: 'nipe' }, // i18n-exempt: person's name
+  { name: 'Rubens Augusto Camargo Lamparelli', affiliationKey: 'nipe' }, // i18n-exempt: person's name
+  { name: 'Bruna de Souza Moraes', affiliationKey: 'unicamp' }, // i18n-exempt: person's name
+  { name: 'Ana Beatriz Soares Aguiar', affiliationKey: 'unicamp' }, // i18n-exempt: person's name
+] as const
+
+const CHANNELS: SocialChannel[] = ['instagram', 'linkedin', 'youtube', 'whatsapp']
+
+// Order of the FAQ; each id is a key under pages.about.faq.
+const FAQ = ['what', 'coverage', 'potential', 'reuse', 'accessibility', 'report'] as const
 
 export default function AboutPage() {
   const t = useTranslations('pages.about')
-  const [activeTab, setActiveTab] = useState('mission')
+  const tLanding = useTranslations('landing')
 
   // Timeline copy lives in the catalog; only the icon and status — which are
   // presentation, not text — stay here, matched to the catalog by index.
@@ -62,25 +102,20 @@ export default function AboutPage() {
   // Axis titles and descriptions come from the catalog; the icon and colour are
   // presentation and stay here, matched by index.
   const axisMeta = [
-    { icon: Database, color: 'emerald' },
-    { icon: FlaskConical, color: 'blue' },
-    { icon: Settings, color: 'amber' },
-    { icon: BarChart3, color: 'teal' },
-    { icon: Lightbulb, color: 'rose' },
-    { icon: GraduationCap, color: 'indigo' },
-    { icon: Megaphone, color: 'orange' },
-    { icon: Scale, color: 'cyan' },
+    { icon: Database, color: 'bg-emerald-100 text-emerald-700' },
+    { icon: FlaskConical, color: 'bg-blue-100 text-blue-700' },
+    { icon: Settings, color: 'bg-amber-100 text-amber-700' },
+    { icon: BarChart3, color: 'bg-teal-100 text-teal-700' },
+    { icon: Lightbulb, color: 'bg-rose-100 text-rose-700' },
+    { icon: GraduationCap, color: 'bg-indigo-100 text-indigo-700' },
+    { icon: Megaphone, color: 'bg-orange-100 text-orange-700' },
+    { icon: Scale, color: 'bg-cyan-100 text-cyan-700' },
   ]
   const axesCopy = t.raw('axes_items') as Array<{ title: string; description: string }>
-  const thematicAxes = axesCopy.map((axis, index) => ({
-    number: index + 1,
-    ...axis,
-    ...axisMeta[index],
-  }))
+  const thematicAxes = axesCopy.map((axis, index) => ({ number: index + 1, ...axis, ...axisMeta[index] }))
 
   // Institution names are proper nouns and stay in code. `typeKey` is the stable
-  // identifier the badge colour switches on — previously the Portuguese label did
-  // that job, so translating it would silently have changed the colours.
+  // identifier the badge colour switches on.
   const partnerships = [
     { name: 'Aalborg University', key: 'aalborg', typeKey: 'international' },
     { name: 'CIBiogás', key: 'cibiogas', typeKey: 'national' }, // i18n-exempt: organization name
@@ -90,559 +125,486 @@ export default function AboutPage() {
     { name: 'UNICA', key: 'unica', typeKey: 'industry' },
     { name: 'Abiogás', key: 'abiogas', typeKey: 'association' }, // i18n-exempt: organization name
     { name: 'ABREMA', key: 'abrema', typeKey: 'association' },
-  ]
+  ] as const
+  const partnerBadge: Record<string, string> = {
+    international: 'bg-blue-100 text-blue-800',
+    national: 'bg-green-100 text-green-800',
+    institutional: 'bg-amber-100 text-amber-800',
+    association: 'bg-teal-100 text-teal-800',
+  }
+
+  const coverage = [
+    { key: 'sp', tone: 'border-cp2b-green bg-green-50 text-green-900', status: 'status_canonical' },
+    { key: 'mg', tone: 'border-amber-400 bg-amber-50 text-amber-900', status: 'status_beta' },
+    { key: 'br', tone: 'border-slate-300 bg-slate-50 text-slate-800', status: 'status_planned' },
+  ] as const
+
+  const richLinks = {
+    cite: (chunks: React.ReactNode) => (
+      <Link href="/cite" className="font-medium text-cp2b-green dark:text-emerald-400 underline underline-offset-2">{chunks}</Link>
+    ),
+    guide: (chunks: React.ReactNode) => (
+      <Link href="/guide" className="font-medium text-cp2b-green dark:text-emerald-400 underline underline-offset-2">{chunks}</Link>
+    ),
+    science: (chunks: React.ReactNode) => (
+      <Link href="/dashboard/scientific-database" className="font-medium text-cp2b-green dark:text-emerald-400 underline underline-offset-2">{chunks}</Link>
+    ),
+    a11y: (chunks: React.ReactNode) => (
+      <Link href="/accessibility" className="font-medium text-cp2b-green dark:text-emerald-400 underline underline-offset-2">{chunks}</Link>
+    ),
+    contact: (chunks: React.ReactNode) => (
+      <a href="#contato" className="font-medium text-cp2b-green dark:text-emerald-400 underline underline-offset-2">{chunks}</a>
+    ),
+  }
 
   return (
     <div className="min-h-screen bg-white dark:bg-slate-900">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-green-900 via-green-800 to-emerald-900">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute inset-0" style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-          }} />
-        </div>
-
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
-          <Link
-            href="/"
-            className="inline-flex items-center text-green-200 hover:text-white mb-8 transition-colors group"
-            aria-label={t('back_aria')}
-          >
-            <ArrowLeft className="h-5 w-5 mr-2 group-hover:-translate-x-1 transition-transform" aria-hidden="true" />
-            {t('back')}
-          </Link>
-
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+      {/* ── Hero ─────────────────────────────────────────────────────────── */}
+      <section className="bg-gradient-to-br from-green-900 via-green-800 to-emerald-900 text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
+          <div className="grid lg:grid-cols-[3fr_2fr] gap-10 lg:gap-12 items-center">
             <div>
-              <div className="inline-flex items-center px-4 py-2 bg-green-700/50 rounded-full text-green-100 text-sm mb-6">
-                <Award className="h-4 w-4 mr-2" aria-hidden="true" />
-                {t('fapesp_badge')}
-              </div>
-
-              <h1 className="text-4xl lg:text-5xl font-bold text-white mb-6 leading-tight">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight">
                 PILAR-2b
-                <span className="block text-green-300">{t('full_name')}</span>
+                <span className="mt-2 block text-lg sm:text-xl lg:text-2xl font-semibold text-green-200">
+                  {t('full_name')}
+                </span>
               </h1>
-
-              <p className="text-lg text-green-100 mb-8 leading-relaxed">
+              <p className="mt-6 text-base sm:text-lg text-green-50 leading-relaxed max-w-2xl">
                 {t('subtitle')}
               </p>
+              <div className="mt-8 flex flex-col sm:flex-row gap-3">
+                <Link
+                  href="/map"
+                  className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-lg bg-white px-6 py-3 font-semibold text-green-900 hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-green-900"
+                >
+                  <Map className="h-5 w-5" aria-hidden="true" />
+                  {t('hero_cta_map')}
+                </Link>
+                <Link
+                  href="/guide"
+                  className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-lg border-2 border-green-300 px-6 py-3 font-semibold text-green-50 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white"
+                >
+                  <BookOpen className="h-5 w-5" aria-hidden="true" />
+                  {t('hero_cta_guide')}
+                </Link>
+              </div>
+            </div>
 
-            </div>
-
-            {/* Hero Stats */}
-            <div className="hidden lg:block">
-              <div className="relative">
-                <div className="absolute -inset-4 bg-green-500/20 rounded-2xl blur-2xl"></div>
-                <div className="relative bg-green-800/50 backdrop-blur rounded-2xl p-8 border border-green-700/50">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-green-900/50 rounded-lg p-4 text-center">
-                      <Factory className="h-8 w-8 text-green-300 mx-auto mb-2" aria-hidden="true" />
-                      <div className="text-2xl font-bold text-white">
-                        <AnimatedCounter end={4.6e9} decimals={1} compact />
-                      </div>
-                      <div className="text-xs text-green-300 uppercase tracking-wide">{t('stat_biogas')}</div>
+            {/* Coverage: each scope says what it is, instead of one "645". */}
+            <div className="rounded-2xl bg-white/95 p-5 sm:p-6 text-gray-900 shadow-xl">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-600">{t('coverage_heading')}</h2>
+              <ul className="mt-4 space-y-3">
+                {coverage.map(({ key, tone, status }) => (
+                  <li key={key} className={`rounded-lg border-l-4 px-4 py-3 ${tone}`}>
+                    <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+                      <span className="font-semibold">{t(`coverage.${key}.name`)}</span>
+                      <span className="text-xs font-medium uppercase tracking-wide">{t(status)}</span>
                     </div>
-                    <div className="bg-green-900/50 rounded-lg p-4 text-center">
-                      <TrendingUp className="h-8 w-8 text-green-300 mx-auto mb-2" aria-hidden="true" />
-                      <div className="text-2xl font-bold text-white">
-                        R$ <AnimatedCounter end={20e6} compact />
-                      </div>
-                      <div className="text-xs text-green-300 uppercase tracking-wide">{t('stat_investment')}</div>
-                    </div>
-                    <div className="bg-green-900/50 rounded-lg p-4 text-center">
-                      <MapPin className="h-8 w-8 text-green-300 mx-auto mb-2" aria-hidden="true" />
-                      <div className="text-2xl font-bold text-white">
-                        <AnimatedCounter end={645} />
-                      </div>
-                      <div className="text-xs text-green-300 uppercase tracking-wide">{t('stat_municipalities')}</div>
-                    </div>
-                    <div className="bg-green-900/50 rounded-lg p-4 text-center">
-                      <Layers className="h-8 w-8 text-green-300 mx-auto mb-2" aria-hidden="true" />
-                      <div className="text-2xl font-bold text-white">
-                        <AnimatedCounter end={8} />
-                      </div>
-                      <div className="text-xs text-green-300 uppercase tracking-wide">{t('stat_axes')}</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Wave Divider */}
-        <div className="absolute bottom-0 left-0 right-0 -mb-px">
-          <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" className="block w-full">
-            <path d="M0 120L60 105C120 90 240 60 360 45C480 30 600 30 720 37.5C840 45 960 60 1080 67.5C1200 75 1320 75 1380 75L1440 75V120H1380C1320 120 1200 120 1080 120C960 120 840 120 720 120C600 120 480 120 360 120C240 120 120 120 60 120H0Z" className="fill-white dark:fill-slate-900"/>
-          </svg>
-        </div>
-      </section>
-
-      {/* Mobile Stats */}
-      <section className="lg:hidden bg-white dark:bg-slate-900 py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-green-50 rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold text-green-700">
-                <AnimatedCounter end={4.6e9} decimals={1} compact />
-              </div>
-              <div className="text-xs text-gray-600 dark:text-slate-400 uppercase tracking-wide">{t('stat_biogas_short')}</div>
-            </div>
-            <div className="bg-green-50 rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold text-green-700">
-                R$ <AnimatedCounter end={20e6} compact />
-              </div>
-              <div className="text-xs text-gray-600 dark:text-slate-400 uppercase tracking-wide">{t('stat_investment')}</div>
-            </div>
-            <div className="bg-green-50 rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold text-green-700">
-                <AnimatedCounter end={645} />
-              </div>
-              <div className="text-xs text-gray-600 dark:text-slate-400 uppercase tracking-wide">{t('stat_municipalities')}</div>
-            </div>
-            <div className="bg-green-50 rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold text-green-700">
-                <AnimatedCounter end={8} />
-              </div>
-              <div className="text-xs text-gray-600 dark:text-slate-400 uppercase tracking-wide">{t('stat_axes_short')}</div>
+                    <p className="mt-1 text-sm opacity-90">{t(`coverage.${key}.desc`)}</p>
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Coordinator Section */}
-      <section className="py-16 lg:py-24 bg-white dark:bg-slate-900">
+      {/* ── In-page navigation: sticky under the header; on phones it scrolls
+             sideways instead of wrapping into a second row. ─────────────────── */}
+      <nav
+        aria-label={t('section_nav_label')}
+        className="sticky top-16 z-30 border-b border-gray-200 dark:border-slate-700 bg-white/95 dark:bg-slate-900/95 backdrop-blur"
+      >
+        <ul className="max-w-7xl mx-auto flex gap-1 overflow-x-auto px-4 sm:px-6 lg:px-8 py-2 [scrollbar-width:none]">
+          {SECTIONS.map(({ id, labelKey }) => (
+            <li key={id} className="shrink-0">
+              <a
+                href={`#${id}`}
+                className="inline-flex min-h-[44px] items-center rounded-full px-4 text-sm font-medium text-gray-700 dark:text-slate-300 hover:bg-green-50 hover:text-cp2b-green dark:hover:text-emerald-400 dark:hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-cp2b-lime"
+              >
+                {t(`sections.${labelKey}`)}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+
+      {/* ── O projeto ────────────────────────────────────────────────────── */}
+      <section id="projeto" aria-labelledby="projeto-heading" className={`${SECTION_OFFSET} py-14 lg:py-20`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-slate-100 mb-4">
-              {t('coordinator_heading')}
-            </h2>
-            <p className="text-lg text-gray-600 dark:text-slate-400 max-w-3xl mx-auto">
-              {t('coordinator_subtitle')}
-            </p>
+          <h2 id="projeto-heading" className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-slate-100">
+            {t('sections.project')}
+          </h2>
+          <p className="mt-3 text-base sm:text-lg text-gray-600 dark:text-slate-400 max-w-3xl">
+            {t('about_project_subtitle')}
+          </p>
+
+          {/* Mission, vision, values: side by side, all visible — they were
+              tabs, which hid two thirds of the text from search and print. */}
+          <div className="mt-10 grid gap-6 md:grid-cols-3">
+            <article className="rounded-2xl border border-green-100 dark:border-slate-700 bg-green-50 dark:bg-slate-800 p-6">
+              <div className="flex items-center gap-3">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-700 text-white"><Target className="h-5 w-5" aria-hidden="true" /></span>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-slate-100">{t('mission_heading')}</h3>
+              </div>
+              <p className="mt-4 text-gray-700 dark:text-slate-300 leading-relaxed">{t('mission_body')}</p>
+              <p className="mt-4 text-sm text-gray-600 dark:text-slate-400">
+                <strong>{t('mission_model_label')}</strong> {t('mission_model_value')}
+              </p>
+            </article>
+            <article className="rounded-2xl border border-blue-100 dark:border-slate-700 bg-blue-50 dark:bg-slate-800 p-6">
+              <div className="flex items-center gap-3">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-700 text-white"><Eye className="h-5 w-5" aria-hidden="true" /></span>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-slate-100">{t('vision_heading')}</h3>
+              </div>
+              <p className="mt-4 text-gray-700 dark:text-slate-300 leading-relaxed">{t('vision_body')}</p>
+              <p className="mt-4 text-sm text-gray-600 dark:text-slate-400">
+                <strong>{t('vision_validity_label')}</strong> {t('vision_validity_value')}
+              </p>
+            </article>
+            <article className="rounded-2xl border border-amber-100 dark:border-slate-700 bg-amber-50 dark:bg-slate-800 p-6">
+              <div className="flex items-center gap-3">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-700 text-white"><Heart className="h-5 w-5" aria-hidden="true" /></span>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-slate-100">{t('values_heading')}</h3>
+              </div>
+              <ul className="mt-4 space-y-3">
+                {(t.raw('values_items') as string[]).map((value) => (
+                  <li key={value} className="flex items-start gap-2 text-gray-700 dark:text-slate-300">
+                    <CheckCircle2 className="h-5 w-5 shrink-0 text-amber-700 mt-0.5" aria-hidden="true" />
+                    <span>{value}</span>
+                  </li>
+                ))}
+              </ul>
+            </article>
           </div>
 
-          <div className="max-w-4xl mx-auto">
-            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg overflow-hidden">
-              <div className="md:flex">
-                <div className="md:w-1/3 bg-gradient-to-br from-green-600 to-emerald-700 p-8 flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="w-32 h-32 rounded-full overflow-hidden mx-auto mb-4 border-4 border-white/30">
-                      <Image
-                        src="/images/team/bruna-moraes.jpg"
-                        alt={t('coordinator_photo_alt')}
-                        width={128}
-                        height={128}
-                        className="w-full h-full object-cover"
-                        style={{ height: 'auto' }}
-                        sizes="128px"
-                      />
-                    </div>
-                    <h3 className="text-xl font-bold text-white">{t('coordinator_degree')}</h3>
-                    {/* i18n-exempt: person's name */}
-                    <p className="text-green-100">Bruna de Souza Moraes</p>
+          {/* The platform: what it does, with screenshots. */}
+          <div className="mt-16">
+            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-slate-100">{tLanding('features.heading')}</h3>
+            <p className="mt-2 text-gray-600 dark:text-slate-400 max-w-3xl">{tLanding('features.subheading')}</p>
+
+            {/* Phones: a swipeable strip (scroll-snap). From sm up: a 2×2 grid.
+                Focusable so keyboard users can scroll it too. */}
+            <div
+              role="region"
+              aria-label={t('screenshots_label')}
+              tabIndex={0}
+              className="mt-6 -mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-cp2b-lime sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0"
+            >
+              {SCREENSHOTS.map(({ key, src }) => (
+                <figure key={key} className="w-[85%] shrink-0 snap-start overflow-hidden rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 sm:w-auto">
+                  <div className="relative aspect-video bg-gray-900">
+                    <Image
+                      src={withBasePath(src)}
+                      alt={tLanding(`screenshots.${key}.alt`)}
+                      fill
+                      sizes="(max-width: 640px) 85vw, (max-width: 1280px) 50vw, 640px"
+                      className="object-cover"
+                    />
                   </div>
-                </div>
-                <div className="md:w-2/3 p-8">
-                  <h3 className="text-2xl font-bold text-gray-900 dark:text-slate-100 mb-4">
-                    {t('coordinator_title')}
-                  </h3>
-                  <div className="space-y-3 text-gray-600 dark:text-slate-400 mb-6">
-                    {(t.raw('coordinator_credentials') as string[]).map((credential) => (
-                      <p key={credential} className="flex items-start">
-                        <CheckCircle2 className="h-5 w-5 text-green-600 mr-2 flex-shrink-0 mt-0.5" aria-hidden="true" />
-                        {credential}
-                      </p>
-                    ))}
-                  </div>
-                  <div className="bg-gray-50 dark:bg-slate-900 rounded-lg p-4">
-                    <h4 className="font-semibold text-gray-900 dark:text-slate-100 mb-2">{t('formation_heading')}</h4>
-                    <ul className="text-sm text-gray-600 dark:text-slate-400 space-y-1">
-                      {(t.raw('formation_items') as string[]).map((item) => (
-                        <li key={item}>{item}</li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    {(t.raw('expertise_tags') as string[]).map((tag, index) => (
-                      <span
-                        key={tag}
-                        className={`px-3 py-1 rounded-full text-sm ${
-                          ['bg-green-100 text-green-700', 'bg-blue-100 text-blue-700', 'bg-amber-100 text-amber-700'][index]
-                        }`}
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
+                  <figcaption className="p-4">
+                    <span className="block font-semibold text-gray-900 dark:text-slate-100">{tLanding(`screenshots.${key}.caption`)}</span>
+                    <span className="mt-1 block text-sm text-gray-600 dark:text-slate-400">{tLanding(`screenshots.${key}.description`)}</span>
+                  </figcaption>
+                </figure>
+              ))}
             </div>
+
+            <div className="mt-8 grid gap-6 md:grid-cols-2">
+              {([
+                { key: 'geospatial', Icon: Map, href: '/map', links: ['/map', null, null, null] },
+                { key: 'mcda', Icon: BarChart3, href: '/dashboard/advanced-analysis', links: [null, '/dashboard/advanced-analysis', '/dashboard/advanced-analysis', null] },
+              ] as const).map(({ key, Icon, href, links }) => (
+                <article key={key} className="rounded-2xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6">
+                  <Icon className="h-8 w-8 text-cp2b-green dark:text-emerald-400" aria-hidden="true" />
+                  <h4 className="mt-4 text-lg font-bold text-gray-900 dark:text-slate-100">{tLanding(`features.${key}.title`)}</h4>
+                  <p className="mt-2 text-gray-600 dark:text-slate-400">{tLanding(`features.${key}.description`)}</p>
+                  <ul className="mt-4 space-y-2">
+                    {(tLanding.raw(`features.${key}.features`) as string[]).map((text, index) => {
+                      const link = links[index]
+                      return (
+                        <li key={text} className="flex items-start gap-2 text-sm text-gray-700 dark:text-slate-300">
+                          <CheckCircle2 className="h-4 w-4 shrink-0 text-cp2b-green dark:text-emerald-400 mt-0.5" aria-hidden="true" />
+                          {link ? <Link href={link} className="underline-offset-2 hover:underline hover:text-cp2b-green dark:hover:text-emerald-400">{text}</Link> : <span>{text}</span>}
+                        </li>
+                      )
+                    })}
+                  </ul>
+                  <Link href={href} className="mt-5 inline-flex min-h-[44px] items-center gap-2 text-sm font-semibold text-cp2b-green dark:text-emerald-400 hover:text-cp2b-dark-green dark:hover:text-emerald-300">
+                    {tLanding(`features.${key}.cta`)}
+                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                  </Link>
+                </article>
+              ))}
+            </div>
+          </div>
+
+          {/* Eight thematic axes */}
+          <div className="mt-16">
+            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-slate-100">{t('axes_heading')}</h3>
+            <p className="mt-2 text-gray-600 dark:text-slate-400 max-w-3xl">{t('axes_subtitle')}</p>
+            <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {thematicAxes.map(({ number, title, description, icon: AxisIcon, color }) => (
+                <article key={number} className="rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5">
+                  <div className="flex items-center gap-3">
+                    <span className={`flex h-9 w-9 items-center justify-center rounded-lg ${color}`}><AxisIcon className="h-5 w-5" aria-hidden="true" /></span>
+                    <span className="text-sm font-bold text-gray-600 dark:text-slate-400">{t('axis_label', { number })}</span>
+                  </div>
+                  <h4 className="mt-3 font-bold text-gray-900 dark:text-slate-100">{title}</h4>
+                  <p className="mt-1 text-sm text-gray-600 dark:text-slate-400">{description}</p>
+                </article>
+              ))}
+            </div>
+          </div>
+
+          {/* São Paulo potential — labelled as the state's, since it is. */}
+          <div className="mt-16 rounded-2xl bg-green-900 p-6 sm:p-10 text-white">
+            <h3 className="text-xl sm:text-2xl font-bold">{t('sp_potential_heading')}</h3>
+            <p className="mt-2 text-green-100 max-w-3xl">{t('sp_potential_subtitle')}</p>
+            <ul className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-3">
+              {([
+                { value: <AnimatedCounter end={4.6e9} decimals={1} compact />, unit: 'unit_m3_biogas', note: 'note_total_potential', Icon: Factory },
+                { value: <AnimatedCounter end={6.4e6} decimals={1} compact />, unit: 'unit_m3_biomethane', note: 'note_natural_gas', Icon: Layers },
+                { value: <AnimatedCounter end={20e3} compact />, unit: 'unit_jobs', note: 'note_jobs', Icon: TrendingUp },
+                { value: <AnimatedCounter end={181} />, unit: 'unit_plants', note: 'note_plants', Icon: Building2 },
+                { value: <AnimatedCounter end={5.5e6} decimals={1} compact />, unit: 'unit_hectares', note: 'note_hectares', Icon: Globe },
+                { value: <AnimatedCounter end={16} suffix="%" />, unit: 'unit_ghg', note: 'note_ghg', Icon: Target },
+              ] as const).map(({ value, unit, note, Icon }) => (
+                <li key={unit} className="rounded-xl border border-green-700/60 bg-green-800/50 p-4 sm:p-5">
+                  <Icon className="h-5 w-5 text-green-300" aria-hidden="true" />
+                  <span className="mt-2 block text-2xl sm:text-3xl font-bold tabular-nums">{value}</span>
+                  <span className="mt-1 block text-xs sm:text-sm uppercase tracking-wide text-green-200">{t(unit)}</span>
+                  <span className="mt-1 block text-xs sm:text-sm text-green-100">{t(note)}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="mt-16">
+            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-slate-100">{t('timeline_heading')}</h3>
+            <p className="mt-2 mb-8 text-gray-600 dark:text-slate-400 max-w-3xl">{t('timeline_subtitle')}</p>
+            <Timeline events={projectTimeline} />
           </div>
         </div>
       </section>
 
-      {/* Mission/Vision/Values */}
-      <section className="py-16 lg:py-24 bg-white dark:bg-slate-900">
+      {/* ── Equipe ───────────────────────────────────────────────────────── */}
+      <section id="equipe" aria-labelledby="equipe-heading" className={`${SECTION_OFFSET} bg-gray-50 dark:bg-slate-950 py-14 lg:py-20`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-slate-100 mb-4">
-              {t('about_project_heading')}
-            </h2>
-            <p className="text-lg text-gray-600 dark:text-slate-400 max-w-3xl mx-auto">
-              {t('about_project_subtitle')}
-            </p>
-          </div>
+          <h2 id="equipe-heading" className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-slate-100">
+            {t('sections.team')}
+          </h2>
+          <p className="mt-3 text-gray-600 dark:text-slate-400 max-w-3xl">{t('coordinator_subtitle')}</p>
 
-          {/* Tab Navigation */}
-          <div className="flex justify-center mb-8">
-            <div className="inline-flex bg-gray-100 dark:bg-slate-800 rounded-lg p-1" role="tablist">
-              <button
-                onClick={() => setActiveTab('mission')}
-                className={`px-6 py-3 rounded-lg text-sm font-medium transition-all ${
-                  activeTab === 'mission'
-                    ? 'bg-white dark:bg-slate-700 text-green-700 dark:text-green-400 shadow-sm'
-                    : 'text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-100'
-                }`}
-                role="tab"
-                aria-selected={activeTab === 'mission'}
-                aria-controls="mission-panel"
-              >
-                <Target className="h-4 w-4 inline mr-2" aria-hidden="true" />
-                {t('tab_mission')}
-              </button>
-              <button
-                onClick={() => setActiveTab('vision')}
-                className={`px-6 py-3 rounded-lg text-sm font-medium transition-all ${
-                  activeTab === 'vision'
-                    ? 'bg-white dark:bg-slate-700 text-green-700 dark:text-green-400 shadow-sm'
-                    : 'text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-100'
-                }`}
-                role="tab"
-                aria-selected={activeTab === 'vision'}
-                aria-controls="vision-panel"
-              >
-                <Eye className="h-4 w-4 inline mr-2" aria-hidden="true" />
-                {t('tab_vision')}
-              </button>
-              <button
-                onClick={() => setActiveTab('values')}
-                className={`px-6 py-3 rounded-lg text-sm font-medium transition-all ${
-                  activeTab === 'values'
-                    ? 'bg-white dark:bg-slate-700 text-green-700 dark:text-green-400 shadow-sm'
-                    : 'text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-100'
-                }`}
-                role="tab"
-                aria-selected={activeTab === 'values'}
-                aria-controls="values-panel"
-              >
-                <Heart className="h-4 w-4 inline mr-2" aria-hidden="true" />
-                {t('tab_values')}
-              </button>
-            </div>
-          </div>
-
-          {/* Tab Content */}
-          <div className="max-w-4xl mx-auto">
-            {activeTab === 'mission' && (
-              <div id="mission-panel" role="tabpanel" className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-slate-800 dark:to-slate-800 rounded-2xl p-8 lg:p-12 border border-green-100 dark:border-slate-700">
-                <div className="flex items-center mb-6">
-                  <div className="h-12 w-12 bg-green-600 rounded-xl flex items-center justify-center mr-4">
-                    <Target className="h-6 w-6 text-white" aria-hidden="true" />
+          <div className="mt-8 grid gap-6 lg:grid-cols-[2fr_1fr]">
+            <article className="overflow-hidden rounded-2xl bg-white dark:bg-slate-800 shadow-sm md:flex">
+              <div className="flex items-center justify-center bg-gradient-to-br from-green-700 to-emerald-800 p-6 md:w-1/3">
+                <div className="text-center">
+                  <div className="mx-auto h-28 w-28 overflow-hidden rounded-full border-4 border-white/30">
+                    <Image
+                      src={withBasePath('/images/team/bruna-moraes.jpg')}
+                      alt={t('coordinator_photo_alt')}
+                      width={112}
+                      height={112}
+                      className="h-full w-full object-cover"
+                      sizes="112px"
+                    />
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-900 dark:text-slate-100">{t('mission_heading')}</h3>
-                </div>
-                <p className="text-lg text-gray-700 dark:text-slate-300 leading-relaxed">
-                  {t('mission_body')}
-                </p>
-                <div className="mt-6 p-4 bg-white/50 dark:bg-slate-700/50 rounded-lg">
-                  <p className="text-sm text-gray-600 dark:text-slate-400">
-                    <strong>{t('mission_model_label')}</strong> {t('mission_model_value')}
-                  </p>
+                  <p className="mt-3 font-bold text-white">{t('coordinator_degree')}</p>
+                  {/* i18n-exempt: person's name */}
+                  <p className="text-green-100">Bruna de Souza Moraes</p>
                 </div>
               </div>
-            )}
-
-            {activeTab === 'vision' && (
-              <div id="vision-panel" role="tabpanel" className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-8 lg:p-12 border border-blue-100">
-                <div className="flex items-center mb-6">
-                  <div className="h-12 w-12 bg-blue-600 rounded-xl flex items-center justify-center mr-4">
-                    <Eye className="h-6 w-6 text-white" aria-hidden="true" />
-                  </div>
-                  <h3 className="text-2xl font-bold text-gray-900">{t('vision_heading')}</h3>
-                </div>
-                <p className="text-lg text-gray-700 leading-relaxed">
-                  {t('vision_body')}
-                </p>
-                <div className="mt-6 p-4 bg-white/50 rounded-lg">
-                  <p className="text-sm text-gray-600">
-                    <strong>{t('vision_validity_label')}</strong> {t('vision_validity_value')}
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'values' && (
-              <div id="values-panel" role="tabpanel" className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-8 lg:p-12 border border-amber-100">
-                <div className="flex items-center mb-6">
-                  <div className="h-12 w-12 bg-amber-600 rounded-xl flex items-center justify-center mr-4">
-                    <Heart className="h-6 w-6 text-white" aria-hidden="true" />
-                  </div>
-                  <h3 className="text-2xl font-bold text-gray-900">{t('values_heading')}</h3>
-                </div>
-                <ul className="space-y-4">
-                  {(t.raw('values_items') as string[]).map((value) => (
-                    <li key={value} className="flex items-start">
-                      <CheckCircle2 className="h-6 w-6 text-amber-600 mr-3 flex-shrink-0 mt-0.5" aria-hidden="true" />
-                      <span className="text-lg text-gray-700">{value}</span>
+              <div className="p-6 md:w-2/3">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-slate-100">{t('coordinator_title')}</h3>
+                <ul className="mt-4 space-y-2 text-gray-700 dark:text-slate-300">
+                  {(t.raw('coordinator_credentials') as string[]).map((credential) => (
+                    <li key={credential} className="flex items-start gap-2">
+                      <CheckCircle2 className="h-5 w-5 shrink-0 text-green-700 mt-0.5" aria-hidden="true" />
+                      {credential}
                     </li>
                   ))}
                 </ul>
+                <h4 className="mt-5 font-semibold text-gray-900 dark:text-slate-100">{t('formation_heading')}</h4>
+                <ul className="mt-2 space-y-1 text-sm text-gray-600 dark:text-slate-400">
+                  {(t.raw('formation_items') as string[]).map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+                <ul className="mt-4 flex flex-wrap gap-2" aria-label={t('expertise_label')}>
+                  {(t.raw('expertise_tags') as string[]).map((tag) => (
+                    <li key={tag} className="rounded-full bg-green-100 px-3 py-1 text-sm text-green-800">{tag}</li>
+                  ))}
+                </ul>
               </div>
-            )}
+            </article>
+
+            <article className="rounded-2xl bg-white dark:bg-slate-800 p-6 shadow-sm">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-slate-100">{t('authors_heading')}</h3>
+              <ul className="mt-4 space-y-3">
+                {AUTHORS.map(({ name, affiliationKey }) => (
+                  <li key={name}>
+                    <span className="block font-medium text-gray-900 dark:text-slate-100">{name}</span>
+                    <span className="block text-sm text-gray-600 dark:text-slate-400">{t(`affiliations.${affiliationKey}`)}</span>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-5 text-sm text-gray-600 dark:text-slate-400">{t.rich('authors_note', richLinks)}</p>
+            </article>
           </div>
         </div>
       </section>
 
-      {/* 8 Thematic Axes */}
-      <section id="eixos" className="py-16 lg:py-24 bg-gray-50">
+      {/* ── Parceiros e CP2b ─────────────────────────────────────────────── */}
+      <section id="parceiros" aria-labelledby="parceiros-heading" className={`${SECTION_OFFSET} py-14 lg:py-20`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
-              {t('axes_heading')}
-            </h2>
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-              {t('axes_subtitle')}
-            </p>
+          <h2 id="parceiros-heading" className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-slate-100">
+            {t('sections.partners')}
+          </h2>
+
+          <div className="mt-8 grid gap-6 lg:grid-cols-2">
+            <article className="rounded-2xl border border-gray-200 dark:border-slate-700 p-6">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-slate-100">{t('cp2b_heading')}</h3>
+              <p className="mt-3 text-gray-700 dark:text-slate-300">{t('cp2b_body')}</p>
+              <p className="mt-3 text-gray-700 dark:text-slate-300">{t('nipe_body')}</p>
+              <ul className="mt-4 space-y-2">
+                {(t.raw('nipe_items') as string[]).map((item) => (
+                  <li key={item} className="flex items-start gap-2 text-gray-700 dark:text-slate-300">
+                    <CheckCircle2 className="h-5 w-5 shrink-0 text-green-700 mt-0.5" aria-hidden="true" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+              <address className="mt-5 not-italic text-sm text-gray-600 dark:text-slate-400">
+                <span className="font-semibold text-gray-900 dark:text-slate-100">{t('location_heading')}</span><br />
+                {t('location_line1')}<br />
+                {t('location_line2')}<br />
+                {t('location_line3')}
+              </address>
+            </article>
+
+            <article className="rounded-2xl border border-gray-200 dark:border-slate-700 p-6">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-slate-100">{t('funding_heading')}</h3>
+              <ul className="mt-4 space-y-4">
+                {(['cp2bsd', 'expansion'] as const).map((grant) => (
+                  <li key={grant} className="rounded-lg bg-gray-50 dark:bg-slate-800 p-4">
+                    <span className="block font-mono text-sm font-semibold text-gray-900 dark:text-slate-100">{t(`grants.${grant}.number`)}</span>
+                    <span className="mt-1 block text-sm text-gray-700 dark:text-slate-300">{t(`grants.${grant}.role`)}</span>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-5 text-sm text-gray-700 dark:text-slate-300">{t('inpi_line')}</p>
+            </article>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {thematicAxes.map((axis) => {
-              const IconComponent = axis.icon
-              const colorClasses: Record<string, string> = {
-                emerald: 'bg-emerald-100 text-emerald-600 border-emerald-200',
-                blue: 'bg-blue-100 text-blue-600 border-blue-200',
-                amber: 'bg-amber-100 text-amber-600 border-amber-200',
-                teal: 'bg-teal-100 text-teal-600 border-teal-200',
-                rose: 'bg-rose-100 text-rose-600 border-rose-200',
-                indigo: 'bg-indigo-100 text-indigo-600 border-indigo-200',
-                orange: 'bg-orange-100 text-orange-600 border-orange-200',
-                cyan: 'bg-cyan-100 text-cyan-600 border-cyan-200'
-              }
-
-              return (
-                <div
-                  key={axis.number}
-                  className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
-                >
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${colorClasses[axis.color]}`}>
-                      <IconComponent className="h-5 w-5" aria-hidden="true" />
-                    </div>
-                    <span className="text-sm font-bold text-gray-500">{t('axis_label', { number: axis.number })}</span>
-                  </div>
-                  <h3 className="text-lg font-bold text-gray-900 mb-2">{axis.title}</h3>
-                  <p className="text-sm text-gray-600">{axis.description}</p>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* São Paulo Potential */}
-      <section className="py-16 lg:py-24 bg-green-900 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-bold mb-4">
-              {t('sp_potential_heading')}
-            </h2>
-            <p className="text-lg text-green-200 max-w-3xl mx-auto">
-              {t('sp_potential_subtitle')}
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="bg-green-800/50 rounded-xl p-6 border border-green-700/50 text-center hover:bg-green-800/70 transition-colors">
-              <div className="text-4xl font-bold text-white mb-2">
-                <AnimatedCounter end={4.6e9} decimals={1} compact />
-              </div>
-              <div className="text-green-300 uppercase text-sm tracking-wide">{t('unit_m3_biogas')}</div>
-              <p className="text-green-200 text-sm mt-2">{t('note_total_potential')}</p>
-            </div>
-
-            <div className="bg-green-800/50 rounded-xl p-6 border border-green-700/50 text-center hover:bg-green-800/70 transition-colors">
-              <div className="text-4xl font-bold text-white mb-2">
-                <AnimatedCounter end={6.4e6} decimals={1} compact />
-              </div>
-              <div className="text-green-300 uppercase text-sm tracking-wide">{t('unit_m3_biomethane')}</div>
-              <p className="text-green-200 text-sm mt-2">{t('note_natural_gas')}</p>
-            </div>
-
-            <div className="bg-green-800/50 rounded-xl p-6 border border-green-700/50 text-center hover:bg-green-800/70 transition-colors">
-              <div className="text-4xl font-bold text-white mb-2">
-                <AnimatedCounter end={20e3} compact />
-              </div>
-              <div className="text-green-300 uppercase text-sm tracking-wide">{t('unit_jobs')}</div>
-              <p className="text-green-200 text-sm mt-2">{t('note_jobs')}</p>
-            </div>
-
-            <div className="bg-green-800/50 rounded-xl p-6 border border-green-700/50 text-center hover:bg-green-800/70 transition-colors">
-              <div className="text-4xl font-bold text-white mb-2">
-                <AnimatedCounter end={181} />
-              </div>
-              <div className="text-green-300 uppercase text-sm tracking-wide">{t('unit_plants')}</div>
-              <p className="text-green-200 text-sm mt-2">{t('note_plants')}</p>
-            </div>
-
-            <div className="bg-green-800/50 rounded-xl p-6 border border-green-700/50 text-center hover:bg-green-800/70 transition-colors">
-              <div className="text-4xl font-bold text-white mb-2">
-                <AnimatedCounter end={5.5e6} decimals={1} compact />
-              </div>
-              <div className="text-green-300 uppercase text-sm tracking-wide">{t('unit_hectares')}</div>
-              <p className="text-green-200 text-sm mt-2">{t('note_hectares')}</p>
-            </div>
-
-            <div className="bg-green-800/50 rounded-xl p-6 border border-green-700/50 text-center hover:bg-green-800/70 transition-colors">
-              <div className="text-4xl font-bold text-white mb-2">
-                <AnimatedCounter end={16} suffix="%" />
-              </div>
-              <div className="text-green-300 uppercase text-sm tracking-wide">{t('unit_ghg')}</div>
-              <p className="text-green-200 text-sm mt-2">{t('note_ghg')}</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Strategic Partnerships */}
-      <section className="py-16 lg:py-24 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
-              {t('partnerships_heading')}
-            </h2>
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-              {t('partnerships_subtitle')}
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <h3 className="mt-12 text-xl sm:text-2xl font-bold text-gray-900 dark:text-slate-100">{t('partnerships_heading')}</h3>
+          <p className="mt-2 text-gray-600 dark:text-slate-400">{t('partnerships_subtitle')}</p>
+          <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {partnerships.map((partner) => (
-              <div key={partner.key} className="bg-white rounded-lg p-4 border border-gray-200 hover:shadow-md transition-all duration-300 hover:-translate-y-1">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-semibold text-gray-900 text-sm">{partner.name}</h3>
-                  <span className={`px-2 py-0.5 rounded text-xs ${
-                    partner.typeKey === 'international' ? 'bg-blue-100 text-blue-700' :
-                    partner.typeKey === 'national' ? 'bg-green-100 text-green-700' :
-                    partner.typeKey === 'institutional' ? 'bg-amber-100 text-amber-700' :
-                    partner.typeKey === 'association' ? 'bg-teal-100 text-teal-700' :
-                    'bg-gray-100 text-gray-700'
-                  }`}>
+              <li key={partner.key} className="rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-semibold text-gray-900 dark:text-slate-100">{partner.name}</span>
+                  <span className={`rounded px-2 py-0.5 text-xs ${partnerBadge[partner.typeKey] ?? 'bg-gray-100 text-gray-800'}`}>
                     {t(`partnership_types.${partner.typeKey}`)}
                   </span>
                 </div>
-                <p className="text-xs text-gray-500">{t(`partnership_contacts.${partner.key}`)}</p>
-              </div>
+                <p className="mt-1 text-sm text-gray-600 dark:text-slate-400">{t(`partnership_contacts.${partner.key}`)}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      {/* ── FAQ ──────────────────────────────────────────────────────────── */}
+      <section id="faq" aria-labelledby="faq-heading" className={`${SECTION_OFFSET} bg-gray-50 dark:bg-slate-950 py-14 lg:py-20`}>
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 id="faq-heading" className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-slate-100">
+            {t('sections.faq')}
+          </h2>
+          {/* Native <details>: keyboard and screen-reader support for free,
+              and the answers stay in the HTML for search and no-script. */}
+          <div className="mt-8 divide-y divide-gray-200 dark:divide-slate-700 rounded-2xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800">
+            {FAQ.map((id) => (
+              <details key={id} className="group px-5 py-1">
+                <summary className="flex min-h-[48px] cursor-pointer list-none items-center justify-between gap-4 py-3 font-semibold text-gray-900 dark:text-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-cp2b-lime [&::-webkit-details-marker]:hidden">
+                  {t(`faq.${id}.q`)}
+                  <ArrowRight className="h-4 w-4 shrink-0 transition-transform group-open:rotate-90" aria-hidden="true" />
+                </summary>
+                <p className="pb-4 text-gray-700 dark:text-slate-300 leading-relaxed">
+                  {t.rich(`faq.${id}.a`, richLinks)}
+                </p>
+              </details>
             ))}
           </div>
         </div>
       </section>
 
-      {/* NIPE History */}
-      <section className="py-16 lg:py-24 bg-white">
+      {/* ── Contato ──────────────────────────────────────────────────────── */}
+      <section id="contato" aria-labelledby="contato-heading" className={`${SECTION_OFFSET} py-14 lg:py-20`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div>
-              <div className="inline-flex items-center px-4 py-2 bg-green-100 rounded-full text-green-700 text-sm mb-6">
-                <Calendar className="h-4 w-4 mr-2" aria-hidden="true" />
-                {t('since_1992')}
+          <h2 id="contato-heading" className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-slate-100">
+            {t('sections.contact')}
+          </h2>
+          <p className="mt-3 text-gray-600 dark:text-slate-400 max-w-3xl">{t('contact_body')}</p>
+
+          <ul className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {CHANNELS.map((channel) => (
+              <li key={channel}>
+                <a
+                  href={SOCIAL_LINKS[channel]}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex min-h-[48px] items-center gap-3 rounded-lg border border-gray-200 dark:border-slate-700 px-4 py-3 font-medium text-gray-800 dark:text-slate-200 hover:border-cp2b-green hover:text-cp2b-green dark:hover:text-emerald-400 focus:outline-none focus:ring-2 focus:ring-cp2b-lime"
+                >
+                  <MessageCircle className="h-5 w-5 shrink-0" aria-hidden="true" />
+                  {t(`channels.${channel}`)}
+                </a>
+              </li>
+            ))}
+          </ul>
+
+          {/* Open data: where the downloads are, until /downloads exists. */}
+          <div className="mt-12 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 p-6 sm:p-8 text-white">
+            <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+              <div className="flex items-start gap-4">
+                <span className="shrink-0 rounded-xl bg-white/10 p-3"><Download className="h-6 w-6 text-cp2b-lime" aria-hidden="true" /></span>
+                <div>
+                  <h3 className="text-xl font-bold">{tLanding('open_data.heading')}</h3>
+                  <p className="mt-2 max-w-lg text-sm text-gray-300">{tLanding('open_data.description')}</p>
+                </div>
               </div>
-              <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-6">
-                NIPE/UNICAMP
-              </h2>
-              <p className="text-lg text-gray-600 mb-6">
-                {t('nipe_body')}
-              </p>
-              <ul className="space-y-3">
-                {(t.raw('nipe_items') as string[]).map((item) => (
-                  <li key={item} className="flex items-start">
-                    <CheckCircle2 className="h-5 w-5 text-green-600 mr-2 flex-shrink-0 mt-0.5" aria-hidden="true" />
-                    <span className="text-gray-600">{item}</span>
+              <ul className="grid shrink-0 grid-cols-3 gap-3">
+                {([
+                  { label: 'CSV', Icon: Sheet }, // i18n-exempt: format name
+                  { label: 'GeoJSON', Icon: Globe }, // i18n-exempt: format name
+                  { label: 'JSON', Icon: FileJson }, // i18n-exempt: format name
+                ] as const).map(({ label, Icon }) => (
+                  <li key={label}>
+                    <a
+                      href="https://github.com/aikiesan/Pilar-2b"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex min-h-[48px] flex-col items-center justify-center gap-1.5 rounded-xl bg-white/10 px-4 py-3 text-xs font-medium hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-cp2b-lime"
+                    >
+                      <Icon className="h-5 w-5" aria-hidden="true" />
+                      {label}
+                    </a>
                   </li>
                 ))}
               </ul>
             </div>
-            <div className="bg-gray-100 rounded-2xl p-8 text-center">
-              <div className="inline-flex items-center justify-center w-24 h-24 bg-green-600 rounded-full mb-6">
-                <Building2 className="h-12 w-12 text-white" aria-hidden="true" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">{t('location_heading')}</h3>
-              <p className="text-gray-600">
-                {t('location_line1')}<br />
-                {t('location_line2')}<br />
-                {t('location_line3')}
-              </p>
-            </div>
+            <dl className="mt-6 grid grid-cols-2 gap-4 border-t border-white/10 pt-6 text-sm md:grid-cols-4">
+              {(['municipalities', 'residues', 'layers', 'license'] as const).map((key) => (
+                <div key={key}>
+                  <dt className="font-bold text-cp2b-lime">{tLanding(`open_data.${key}.label`)}</dt>
+                  <dd className="mt-0.5 text-xs text-gray-300">{tLanding(`open_data.${key}.desc`)}</dd>
+                </div>
+              ))}
+            </dl>
           </div>
         </div>
       </section>
-
-      {/* Project Timeline */}
-      <section className="py-16 lg:py-24 bg-gray-50">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
-              {t('timeline_heading')}
-            </h2>
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-              {t('timeline_subtitle')}
-            </p>
-          </div>
-
-          <Timeline events={projectTimeline} />
-        </div>
-      </section>
-
-      {/* Newsletter Section */}
-      <section className="py-16 lg:py-24 bg-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <NewsletterSignup
-            title={t('newsletter_heading')}
-            description={t('newsletter_description')}
-          />
-        </div>
-      </section>
-
-      {/* CTA / Contact Section */}
-      <section className="py-16 lg:py-24 bg-gradient-to-br from-green-800 to-emerald-900 text-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <Mail className="h-12 w-12 mx-auto mb-6 text-green-300" aria-hidden="true" />
-          <h2 className="text-3xl lg:text-4xl font-bold mb-4">
-            {t('cta_heading')}
-          </h2>
-          <p className="text-lg text-green-200 mb-8 max-w-2xl mx-auto">
-            {t('cta_subtitle')}
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              href="/dashboard"
-              className="inline-flex items-center justify-center px-8 py-4 bg-white text-green-900 rounded-lg font-semibold hover:bg-green-50 transition-all duration-300 hover:scale-105"
-            >
-              {t('cta_button_dashboard')}
-              <ArrowRight className="h-5 w-5 ml-2" aria-hidden="true" />
-            </Link>
-            <Link
-              href="/login"
-              className="inline-flex items-center justify-center px-8 py-4 border-2 border-green-300 text-green-100 rounded-lg font-semibold hover:bg-green-800/50 transition-all duration-300 hover:scale-105"
-            >
-              {t('cta_button_register')}
-            </Link>
-          </div>
-        </div>
-      </section>
-
     </div>
   )
 }

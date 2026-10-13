@@ -9,7 +9,7 @@ export const ROUTES = [
   '/en/map',
   '/en/dashboard',
   '/en/dashboard/technology-routes',
-  '/en/sobre',
+  '/en/dashboard/compare',
   '/en/about',
   '/en/guide',
   '/en/guide/calculadora',

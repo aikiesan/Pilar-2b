@@ -9,18 +9,36 @@ const isProd = process.env.NODE_ENV === 'production';
 // localhost:3006/pt-BR works without any extra path prefix.
 const basePath = isProd ? '/pilar2b' : '';
 
+// Retired paths and where their content lives now. Real 301s: Next's
+// `permanent: true` sends 308, so the status is set explicitly. The locale
+// segment is matched so a visitor keeps their language; basePath is added by
+// Next itself.
+const LOCALE = ':locale(en|pt-BR)';
+const movedPages = [
+  // /sobre (the old marketing home) and /dashboard/about (a client-side bounce
+  // to nipe.unicamp.br) were merged into the single /about page.
+  { from: '/sobre', to: '/about' },
+  { from: '/dashboard/about', to: '/about#parceiros' },
+].map(({ from, to }) => ({
+  source: `/${LOCALE}${from}`,
+  destination: `/:locale${to}`,
+  statusCode: 301,
+}));
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   basePath,
   async redirects() {
     if (!isProd) {
-      // Strip stale /pilar2b prefix that browsers may have cached from production URLs
       return [
+        // Strip stale /pilar2b prefix that browsers may have cached from production URLs
         { source: '/pilar2b/:path*', destination: '/:path*', permanent: false },
+        ...movedPages,
       ];
     }
     return [
       { source: '/', destination: '/pilar2b/pt-BR', permanent: false, basePath: false },
+      ...movedPages,
     ];
   },
   // IMPORTANT: Removed static export for Vercel deployment

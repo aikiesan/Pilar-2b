@@ -33,7 +33,7 @@ export default function GuideLayout({
           </Link>
 
           <Link
-            href="/sobre"
+            href="/about"
             className="block px-3 py-2 rounded-lg hover:bg-cp2b-lime-light dark:hover:bg-slate-800 text-gray-700 dark:text-slate-300 hover:text-cp2b-green font-medium transition-colors"
           >
             {t('nav_about')}

@@ -10,6 +10,7 @@ import { useValidationMessage } from '@/hooks/useValidationMessage'
 import { isLocale } from '@/config/i18n'
 import { openConsentPreferences } from '@/lib/consent'
 import { subscribeToNewsletter } from '@/services/newsletterApi'
+import { SOCIAL_LINKS } from '@/config/contact'
 
 // Social icons removed from lucide-react v1.x — inline SVGs
 function InstagramIcon({ className }: { className?: string }) {
@@ -88,25 +89,25 @@ export default function Footer() {
 
   const socials = [
     {
-      href: 'https://www.instagram.com/centro_biogas_cp2b/',
+      href: SOCIAL_LINKS.instagram,
       label: t('footer.instagram_label'),
       Icon: InstagramIcon,
       hover: 'hover:text-pink-400 hover:border-pink-400/40',
     },
     {
-      href: 'https://br.linkedin.com/company/centro-paulista-de-estudos-em-biog%C3%A1s-e-bioprodutos-cp2b',
+      href: SOCIAL_LINKS.linkedin,
       label: t('footer.linkedin_label'),
       Icon: LinkedinIcon,
       hover: 'hover:text-blue-400 hover:border-blue-400/40',
     },
     {
-      href: 'https://www.youtube.com/channel/UChp2J3n-9napYyHUEHf3Fhg',
+      href: SOCIAL_LINKS.youtube,
       label: t('footer.youtube_label'),
       Icon: YoutubeIcon,
       hover: 'hover:text-red-400 hover:border-red-400/40',
     },
     {
-      href: 'https://wa.me/message/KVJUNJN7SIAZP1',
+      href: SOCIAL_LINKS.whatsapp,
       label: t('footer.whatsapp_label'),
       Icon: WhatsAppIcon,
       hover: 'hover:text-emerald-400 hover:border-emerald-400/40',

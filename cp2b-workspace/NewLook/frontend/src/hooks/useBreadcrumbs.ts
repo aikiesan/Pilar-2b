@@ -40,9 +40,6 @@ export function useBreadcrumbs(overrides?: BreadcrumbOverrides): BreadcrumbItem[
   if (pathname === '/dashboard/technology-routes')
     return [home, dashboard, { label: t('technology_routes.title') }]
 
-  if (pathname === '/dashboard/about')
-    return [home, dashboard, { label: t('dashboard_about.title') }]
-
   if (pathname === '/settings')
     return [home, { label: t('settings.title') }]
 

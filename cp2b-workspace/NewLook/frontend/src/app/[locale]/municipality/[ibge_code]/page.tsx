@@ -2,7 +2,8 @@
 
 /**
  * Municipality Deep-Dive Page
- * Shareable, printable profile page for each of the 645 São Paulo municipalities.
+ * Shareable, printable profile page for each municipality the map serves
+ * (São Paulo canonical, Minas Gerais beta).
  * Route: /[locale]/municipality/[ibge_code]
  *
  * Shows:
@@ -13,6 +14,7 @@
  *  - Print-friendly layout
  */
 
+import { getState, ufOf } from '@/data/brazilStates'
 import { useMemo } from 'react'
 import { useParams } from 'next/navigation'
 import { useLocale, useTranslations } from 'next-intl'
@@ -329,7 +331,7 @@ export default function MunicipalityPage() {
             <div>
               <div className="flex items-center gap-2 mb-2 text-green-200 text-sm">
                 <MapPin className="w-4 h-4" aria-hidden="true" />
-                <span>{t('municipality.location_label')}</span>
+                <span>{t('municipality.location_label', { state: getState(ufOf(p.ibge_code))?.nome ?? '' })}</span>
               </div>
               <h1 className="text-3xl font-bold mb-1">{p.name}</h1>
               <div className="flex items-center gap-3 text-green-100 text-sm">
