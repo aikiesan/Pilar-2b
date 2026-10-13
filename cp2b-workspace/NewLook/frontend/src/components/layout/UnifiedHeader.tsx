@@ -192,7 +192,6 @@ export default function UnifiedHeader({ variant = 'auto' }: UnifiedHeaderProps) 
             <Link
               href="/"
               className="flex items-center gap-3 group"
-              aria-label="PILAR-2b V3 - Home"
             >
               <Image
                 src={currentStyles.logo}
