@@ -22,6 +22,35 @@ python -m ingest.runner run aneel_siga --year 2025 --step load
 A validate run always writes `docs/data/ingest_reports/<source>_<year>.md`.
 Exit code is non-zero when any gate fails — promotion is blocked.
 
+## PAM and PPM from the bbp schema (Biomass Brasil Pipeline)
+
+PAM (1612, 1613) and PPM (3939, 74, 3940) can be read from the schema `bbp` of
+this database instead of the workbooks under `data/raw/`. The Biomass Brasil
+Pipeline (github.com/aikiesan/Biomass_Brasil_Pipeline) parses every SIDRA export
+once and loads it as a versioned release; `bbp.v_sidra` is the current one.
+`ingest/bbp.py` turns it into the same `{ibge_code: {product: value}}` reading
+the workbook readers return, so the frame and the gates are identical.
+
+```bash
+# 1. in the bbp repository: load a release into this database (schema bbp only)
+docker compose --profile pilar2b run --rm bbp-pilar2b load --target pilar2b --label "..."
+# 2. here (docker compose run --rm --no-deps backend ...):
+python scripts/promote_ibge_ppm.py --source bbp --year 2025
+python scripts/promote_pam.py --source bbp --year 2025 --timeseries-only
+```
+
+* **Preliminary year.** IBGE publishes the newest year of every table as
+  preliminary. Those rows are written with `quality = 'preliminary'`
+  (migration 037). The map's latest-year reader skips them, and
+  `promote_pam.py` refuses to move the biomass columns onto such a year. Once
+  the year is re-exported as final and promoted again, the rows turn
+  `measured` and the headline follows.
+* **Gates.** `PUBLISHED_NATIONAL` now covers 2008–2025 for the three sources
+  (SIDRA API, Brasil level), so the aggregation gate tests every year.
+* **Parity (2026-10-13, local DB).** bbp reproduces every PPM cell of
+  2008–2024 and every PAM 2023 cell already loaded from the workbooks, with 0
+  differences.
+
 ## Adding a new source (the 15-minute version)
 
 Full step-by-step with checklists: `docs/data/INGESTION_GUIDE.md`.

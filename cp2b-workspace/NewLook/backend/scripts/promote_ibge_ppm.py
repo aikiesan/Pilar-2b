@@ -5,6 +5,14 @@ Promote IBGE PPM (herds / animal products / aquaculture) into municipality_times
     docker exec -w /app cp2b-backend-dev python /tmp/promote_ibge_ppm.py --year 2024 --dry-run
     docker exec -w /app cp2b-backend-dev python /tmp/promote_ibge_ppm.py --years 2008-2024
 
+    # from the bbp schema (Biomass Brasil Pipeline; see ingest/bbp.py)
+    python scripts/promote_ibge_ppm.py --source bbp --year 2025
+
+With --source bbp the frame comes from the current bbp release instead of
+data/raw/ibge_ppm; same frame, same gates. Rows of a year IBGE still marks
+preliminary are written with quality 'preliminary', which the map's
+latest-year readers skip (migration 037) until the year is re-exported as final.
+
 Melts the wide per-year frame from ingest.sources.ibge_ppm into the long shape
 municipality_timeseries stores, and upserts it. Idempotent by construction: the
 table's UNIQUE (ibge_code, year, source_id, variable) turns a re-run into an
@@ -41,6 +49,7 @@ from psycopg2.extras import execute_batch
 
 sys.path.insert(0, "/app")
 
+from ingest import bbp as bbp_source  # noqa: E402
 from ingest.contract import IngestContext  # noqa: E402
 from ingest.sources.ibge_ppm import source as ppm  # noqa: E402
 
@@ -71,7 +80,7 @@ def dsn() -> str:
     )
 
 
-def melt(df: pd.DataFrame, year: int) -> list[dict]:
+def melt(df: pd.DataFrame, year: int, quality: str = "measured") -> list[dict]:
     """Wide -> long. NULL values are dropped, not written as 0.
 
     A '..' in SIDRA means IBGE did not survey it; writing it as 0 would state
@@ -93,7 +102,7 @@ def melt(df: pd.DataFrame, year: int) -> list[dict]:
                     "variable": variable,
                     "value": float(value),
                     "unit": unit,
-                    "quality": "measured",
+                    "quality": quality,
                 }
             )
     return rows
@@ -117,6 +126,13 @@ def main() -> int:
         help="promote years whose only failing gate is aggregation for want of "
         "recorded published totals (see module docstring)",
     )
+    ap.add_argument(
+        "--source",
+        choices=("raw", "bbp"),
+        default="raw",
+        help="raw = SIDRA workbooks under data/raw/ibge_ppm; bbp = the current release in "
+        "the bbp schema of this database (Biomass Brasil Pipeline, ingest/bbp.py)",
+    )
     args = ap.parse_args()
 
     if not args.year and not args.years:
@@ -124,13 +140,23 @@ def main() -> int:
     years = parse_years(args.years) if args.years else [args.year]
 
     conn = None if args.dry_run else psycopg2.connect(dsn())
+    read_conn = psycopg2.connect(dsn()) if args.source == "bbp" else None
+    if read_conn is not None:
+        print(f"source: bbp release {bbp_source.current_release(read_conn)}")
     total_rows = 0
     unfed: list[int] = []
     try:
         for year in years:
-            df = ppm.load(year, RAW_DIR)
+            quality = "measured"
+            if read_conn is not None:
+                df, preliminary, aquaculture = ppm.load_bbp(year, read_conn)
+                quality = "preliminary" if preliminary else "measured"
+                gate_inputs = {"aquaculture_reading": aquaculture}
+            else:
+                df = ppm.load(year, RAW_DIR)
+                gate_inputs = {"raw_dir": RAW_DIR}
             ctx = IngestContext(spec=ppm.SPEC, year=year)
-            results, ctx = ppm.validate(df, ctx, raw_dir=RAW_DIR)
+            results, ctx = ppm.validate(df, ctx, **gate_inputs)
 
             failed = [r for r in results if not r.passed]
             unfed_only = failed and all(
@@ -150,9 +176,11 @@ def main() -> int:
                     )
                 unfed.append(year)
 
-            rows = melt(df, year)
+            rows = melt(df, year, quality)
             total_rows += len(rows)
             flag = " [aggregation unfed]" if year in unfed else " [fully gated]"
+            if quality == "preliminary":
+                flag += " [IBGE preliminary]"
             print(f"{year}: {len(df):5d} municipalities -> {len(rows):7d} series rows{flag}")
 
             if not args.dry_run:
@@ -176,8 +204,9 @@ def main() -> int:
         if unfed:
             print(f"NOTE: aggregation gate was unfed for {unfed} — promoted on the 2024 validation")
     finally:
-        if conn is not None:
-            conn.close()
+        for c in (conn, read_conn):
+            if c is not None:
+                c.close()
     return 0
 
 

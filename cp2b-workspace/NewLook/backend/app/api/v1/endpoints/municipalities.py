@@ -196,6 +196,8 @@ def _load_activity_counts(cursor, ibge_codes: list[str]) -> dict[str, dict[str, 
     # Variable names are unique across the two sources, so filtering on variable
     # alone is unambiguous and avoids a fragile composite-tuple ANY().
     by_variable = {var: key for (_src, var), key in _ACTIVITY_VARIABLES.items()}
+    # Latest FINAL year: IBGE's preliminary year (quality 'preliminary', migration
+    # 037) is in the series but must not move the map's headline until it is final.
     cursor.execute(
         """
         SELECT DISTINCT ON (ibge_code, variable)
@@ -203,6 +205,7 @@ def _load_activity_counts(cursor, ibge_codes: list[str]) -> dict[str, dict[str, 
         FROM municipality_timeseries
         WHERE variable = ANY(%s)
           AND ibge_code = ANY(%s)
+          AND quality <> 'preliminary'
         ORDER BY ibge_code, variable, year DESC
         """,
         (list(by_variable), ibge_codes),

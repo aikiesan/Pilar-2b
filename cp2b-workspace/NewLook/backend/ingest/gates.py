@@ -84,13 +84,20 @@ def schema_gate(df: pd.DataFrame, spec: SourceSpec) -> GateResult:
 
 def coverage_gate(df: pd.DataFrame, spec: SourceSpec) -> GateResult:
     """Row count per UF must equal the official municipality count, minus the
-    documented allowlist. Only meaningful for municipal-keyed sources."""
+    documented allowlist. Only meaningful for municipal-keyed sources.
+
+    The allowlist says a municipality MAY be absent, not that it must be: one
+    that appears (Boa Esperança do Norte, MT, installed 2025, enters PAM and PPM
+    with 2025) simply counts, instead of failing the gate as one row too many."""
     if spec.key_column != "ibge_code":
         return GateResult("coverage", True, f"not municipal-keyed ({spec.key_column}); skipped")
 
     scope = spec.scope_ufs or tuple(sorted(ibge.MUNICIPALITY_COUNT_BY_UF))
+    present = set(df["ibge_code"].astype(str))
     allow_by_uf: dict[str, int] = {}
     for code in spec.missing_allowlist:
+        if code in present:
+            continue
         uf = ibge.uf_of(code)
         if uf:
             allow_by_uf[uf] = allow_by_uf.get(uf, 0) + 1

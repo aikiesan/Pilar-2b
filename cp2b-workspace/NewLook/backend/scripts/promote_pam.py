@@ -5,6 +5,13 @@ Promote IBGE PAM crop production into the national biomass columns.
     docker exec cp2b-backend-dev sh -c "cd /app && python /tmp/promote_pam.py --year 2023 --dry-run"
     docker exec cp2b-backend-dev sh -c "cd /app && python /tmp/promote_pam.py --year 2023"
 
+FROM THE BBP SCHEMA (Biomass Brasil Pipeline; see ingest/bbp.py)
+    python scripts/promote_pam.py --source bbp --year 2025 --timeseries-only
+--source bbp reads the current bbp release instead of data/raw/pam; same frame,
+same gates. Rows of a year IBGE still marks preliminary get quality
+'preliminary', and such a year is refused for the biomass columns (it may only
+go to the time series, with --timeseries-only).
+
 Closes the last national data gap: before this, all five crop streams were São
 Paulo only (645 of 5,571 municipalities) while agriculture is ~77% of the
 modelled potential, so Mato Grosso, Paraná and Goiás rendered as no_data.
@@ -81,6 +88,7 @@ from app.services.canonical_loader import (  # noqa: E402
     mill_delivery_fraction,
     residue_tons_from_production,
 )
+from ingest import bbp as bbp_source  # noqa: E402
 from ingest.contract import IngestContext  # noqa: E402
 from ingest.ibge import CODE_PREFIX_BY_UF  # noqa: E402
 from ingest.sources.pam import _sidra  # noqa: E402
@@ -107,7 +115,8 @@ PAM_PRODUCTION_UNITS: dict[str, str] = {
 TIMESERIES_SQL = """
 INSERT INTO municipality_timeseries
     (ibge_code, year, source_id, variable, value, unit, quality)
-VALUES (%(ibge_code)s, %(year)s, %(source_id)s, %(variable)s, %(value)s, %(unit)s, 'measured')
+VALUES (%(ibge_code)s, %(year)s, %(source_id)s, %(variable)s, %(value)s, %(unit)s,
+        %(quality)s)
 ON CONFLICT (ibge_code, year, source_id, variable) DO UPDATE
 SET value = EXCLUDED.value, unit = EXCLUDED.unit, quality = EXCLUDED.quality
 """
@@ -147,11 +156,22 @@ def dsn() -> str:
     )
 
 
+def load_frame(module, year: int, conn=None) -> tuple[pd.DataFrame, bool]:
+    """(frame, preliminary) from the raw workbooks, or from the bbp schema when `conn` is given.
+
+    Raw workbooks carry no preliminary flag, so they are always 'measured' (the
+    behaviour before bbp existed).
+    """
+    if conn is not None:
+        return module.load_bbp(year, conn)
+    return module.load(year, RAW_DIR), False
+
+
 def build_rows(
-    year: int, crops: tuple[str, ...], uf: str | None = None
+    year: int, crops: tuple[str, ...], uf: str | None = None, conn=None
 ) -> tuple[list[dict], list[dict], dict]:
     """Load each PAM table once, then derive timeseries/column/provenance rows."""
-    frames: dict[object, pd.DataFrame] = {}
+    frames: dict[object, tuple[pd.DataFrame, bool]] = {}
     timeseries: list[dict] = []
     columns: list[dict] = []
     summary: dict[str, dict[str, float]] = {}
@@ -159,8 +179,9 @@ def build_rows(
     for stream in crops:
         module, production_column, source_id = CROPS[stream]
         if module not in frames:
-            frames[module] = module.load(year, RAW_DIR)
-        frame = frames[module]
+            frames[module] = load_frame(module, year, conn)
+        frame, preliminary = frames[module]
+        quality = "preliminary" if preliminary else "measured"
 
         mill_fraction = mill_delivery_fraction(stream)
         produced = residue = 0.0
@@ -187,6 +208,7 @@ def build_rows(
                     "variable": f"{stream}_producao",
                     "value": production,
                     "unit": "t",
+                    "quality": quality,
                 }
             )
             columns.append(
@@ -210,11 +232,47 @@ def build_rows(
     return timeseries, columns, summary
 
 
-def promote(year: int, crops: tuple[str, ...], dry_run: bool, uf: str | None = None) -> int:
-    timeseries, columns, summary = build_rows(year, crops, uf)
+def write_biomass_columns(
+    cursor, crops: tuple[str, ...], columns: list[dict], uf: str | None
+) -> None:
+    """The map's headline: residue columns, provenance and roll-ups."""
+    # One UPDATE per crop, not per row: psycopg2 cannot parameterise a
+    # column name, so the crop is interpolated from the CROPS keys above
+    # (never from user input) and the values are bound normally.
+    for stream in crops:
+        rows = [c for c in columns if c["stream"] == stream]
+        cursor.executemany(
+            f"UPDATE municipalities SET {stream}_biomass_tons_year = %(residue)s "
+            "WHERE ibge_code = %(ibge_code)s",
+            rows,
+        )
+    cursor.executemany(PROVENANCE_SQL, columns)
+    if uf:
+        cursor.execute(ROLLUP_SQL + " WHERE uf = %s", (uf,))
+    else:
+        cursor.execute(ROLLUP_SQL)
+
+
+def promote(
+    year: int,
+    crops: tuple[str, ...],
+    dry_run: bool,
+    uf: str | None = None,
+    conn=None,
+    timeseries_only: bool = False,
+) -> int:
+    timeseries, columns, summary = build_rows(year, crops, uf, conn)
+    if any(row["quality"] == "preliminary" for row in timeseries) and not timeseries_only:
+        print(
+            f"\n{year} is PRELIMINARY in IBGE's release — refusing to move the map's biomass "
+            "columns onto it. Use --timeseries-only, or wait for the final figures.",
+            file=sys.stderr,
+        )
+        return 1
 
     scope = uf or "BR"
-    print(f"\nPAM {year} / {scope} — {'DRY RUN' if dry_run else 'PROMOTING'}")
+    mode = "TIMESERIES ONLY" if timeseries_only else "PROMOTING"
+    print(f"\nPAM {year} / {scope} — {'DRY RUN' if dry_run else mode}")
     print(f"{'crop':10s} {'municipalities':>15s} {'production Mt':>15s} {'residue Mt':>13s}")
     for stream, s in summary.items():
         print(
@@ -231,22 +289,12 @@ def promote(year: int, crops: tuple[str, ...], dry_run: bool, uf: str | None = N
     try:
         with connection, connection.cursor() as cursor:
             cursor.executemany(TIMESERIES_SQL, timeseries)
-            # One UPDATE per crop, not per row: psycopg2 cannot parameterise a
-            # column name, so the crop is interpolated from the CROPS keys above
-            # (never from user input) and the values are bound normally.
-            for stream in crops:
-                rows = [c for c in columns if c["stream"] == stream]
-                cursor.executemany(
-                    f"UPDATE municipalities SET {stream}_biomass_tons_year = %(residue)s "
-                    "WHERE ibge_code = %(ibge_code)s",
-                    rows,
-                )
-            cursor.executemany(PROVENANCE_SQL, columns)
-            if uf:
-                cursor.execute(ROLLUP_SQL + " WHERE uf = %s", (uf,))
-            else:
-                cursor.execute(ROLLUP_SQL)
-        print("\ncommitted (single transaction)")
+            if not timeseries_only:
+                write_biomass_columns(cursor, crops, columns, uf)
+        if timeseries_only:
+            print("\ncommitted timeseries only — biomass columns and provenance unchanged")
+        else:
+            print("\ncommitted (single transaction)")
     finally:
         connection.close()
     return 0
@@ -284,6 +332,7 @@ def build_all_crop_rows(year: int, uf: str | None = None) -> tuple[list[dict], d
                         "variable": f"pam_{_slug(product)}",
                         "value": float(value),
                         "unit": PAM_PRODUCTION_UNITS.get(product, "t"),
+                        "quality": "measured",
                     }
                 )
                 totals[product] = totals.get(product, 0.0) + float(value)
@@ -320,17 +369,37 @@ def main() -> int:
         action="store_true",
         help=argparse.SUPPRESS,
     )
+    parser.add_argument(
+        "--source",
+        choices=("raw", "bbp"),
+        default="raw",
+        help="raw = SIDRA workbooks under data/raw/pam; bbp = the current release in the "
+        "bbp schema of this database (Biomass Brasil Pipeline, ingest/bbp.py)",
+    )
+    parser.add_argument(
+        "--timeseries-only",
+        action="store_true",
+        help="write the five crop streams' production to municipality_timeseries only; "
+        "the map's biomass columns, provenance and roll-ups are not touched",
+    )
     args = parser.parse_args()
 
     if args.production_only and not args.all_crops:
         parser.error("--production-only requires --all-crops")
+    if args.source == "bbp" and args.all_crops:
+        parser.error("--all-crops reads every PAM product from the workbooks; use --source raw")
     crops = DEFAULT_CROPS
+
+    read_conn = None
+    if args.source == "bbp":
+        read_conn = psycopg2.connect(dsn())
+        print(f"source: bbp release {bbp_source.current_release(read_conn)}")
 
     # Gates must pass before anything is written — the promote step never
     # revalidates on its own (ingest/README.md).
     for module in {CROPS[c][0] for c in crops}:
         ctx = IngestContext(spec=module.SPEC, year=args.year)
-        frame = module.load(args.year, RAW_DIR)
+        frame, _ = load_frame(module, args.year, read_conn)
         results, _ = module.validate(frame, ctx)
         failed = [r for r in results if not r.passed]
         if failed:
@@ -342,7 +411,11 @@ def main() -> int:
 
     rc = 0
     if not args.production_only:
-        rc = promote(args.year, crops, args.dry_run, args.uf)
+        try:
+            rc = promote(args.year, crops, args.dry_run, args.uf, read_conn, args.timeseries_only)
+        finally:
+            if read_conn is not None:
+                read_conn.close()
         if rc:
             return rc
     else:

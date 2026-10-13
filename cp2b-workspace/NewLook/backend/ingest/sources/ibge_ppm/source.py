@@ -66,6 +66,7 @@ from pathlib import Path
 import openpyxl
 import pandas as pd
 
+from ingest import bbp
 from ingest.contract import IngestContext, SourceSpec
 from ingest.gates import GateResult, run_standard_battery
 
@@ -156,6 +157,77 @@ MISSING_ALLOWLIST = (
 # a number printed as "238,2 milhões" carries 4 significant digits and supports a
 # tight test; one printed as "1,6 bilhão" carries 2 and cannot support one.
 PUBLISHED_NATIONAL: dict[int, dict[str, tuple[float, float]]] = {
+    # 2008-2022 and 2024-2025: IBGE SIDRA API, Brasil level (apisidra.ibge.gov.br, table 3939),
+    # retrieved 2026-10-13, rounded to 4 significant digits. 2025 is IBGE's preliminary
+    # figure; 2024 is the revised one (our 2024 snapshot predates the revision by < 0.5%).
+    2008: {
+        "bovino": (202_300_000, 0.5),
+        "galinaceos_galinhas": (207_700_000, 0.5),
+    },
+    2009: {
+        "bovino": (205_300_000, 0.5),
+        "galinaceos_galinhas": (208_900_000, 0.5),
+    },
+    2010: {
+        "bovino": (209_500_000, 0.5),
+        "galinaceos_galinhas": (210_800_000, 0.5),
+    },
+    2011: {
+        "bovino": (212_800_000, 0.5),
+        "galinaceos_galinhas": (216_200_000, 0.5),
+    },
+    2012: {
+        "bovino": (211_300_000, 0.5),
+        "galinaceos_galinhas": (213_200_000, 0.5),
+    },
+    2013: {
+        "bovino": (211_800_000, 0.5),
+        "galinaceos_galinhas": (219_700_000, 0.5),
+    },
+    2014: {
+        "bovino": (212_400_000, 0.5),
+        "galinaceos_galinhas": (223_900_000, 0.5),
+    },
+    2015: {
+        "bovino": (215_200_000, 0.5),
+        "galinaceos_galinhas": (222_000_000, 0.5),
+    },
+    2016: {
+        "bovino": (218_200_000, 0.5),
+        "galinaceos_galinhas": (220_100_000, 0.5),
+    },
+    2017: {
+        "bovino": (215_000_000, 0.5),
+        "galinaceos_galinhas": (240_900_000, 0.5),
+    },
+    2018: {
+        "bovino": (213_800_000, 0.5),
+        "galinaceos_galinhas": (244_900_000, 0.5),
+    },
+    2019: {
+        "bovino": (214_700_000, 0.5),
+        "galinaceos_galinhas": (247_600_000, 0.5),
+    },
+    2020: {
+        "bovino": (217_800_000, 0.5),
+        "galinaceos_galinhas": (252_800_000, 0.5),
+    },
+    2021: {
+        "bovino": (224_600_000, 0.5),
+        "galinaceos_galinhas": (253_400_000, 0.5),
+    },
+    2022: {
+        "bovino": (234_900_000, 0.5),
+        "galinaceos_galinhas": (257_200_000, 0.5),
+    },
+    2023: {
+        "bovino": (238_600_000, 0.5),
+        "galinaceos_galinhas": (259_800_000, 0.5),
+    },
+    2025: {
+        "bovino": (234_300_000, 0.5),
+        "galinaceos_galinhas": (293_300_000, 0.5),
+    },
     2024: {
         # "o efetivo bovino atingiu 238,2 milhões de cabeças"
         "bovino": (238_200_000, 0.5),
@@ -329,7 +401,29 @@ def load(year: int, raw_dir: Path) -> pd.DataFrame:
 
     if not herds:
         raise ValueError(f"table 3939 has no data for {year} — check the snapshot's year range")
+    return frame_from_readings(herds, products, aquaculture)
 
+
+def load_bbp(year: int, conn) -> tuple[pd.DataFrame, bool, dict]:
+    """Same frame as load(), read from the bbp schema.
+
+    Returns (frame, preliminary, aquaculture reading). The aquaculture reading
+    feeds fish_method_gate, which needs the raw 'Peixes (Quilogramas)' column.
+    """
+    herds, prelim = bbp.read_year(conn, 3939, year, bbp.PPM_HERDS)
+    if not herds:
+        raise bbp.BbpUnavailable(f"bbp has no table 3939 data for {year}")
+    products, _ = bbp.read_year(conn, 74, year, bbp.PPM_ANIMAL_PRODUCTS)
+    aquaculture, _ = bbp.read_year(conn, 3940, year, bbp.PPM_AQUACULTURE)
+    return frame_from_readings(herds, products, aquaculture), prelim, aquaculture
+
+
+def frame_from_readings(
+    herds: dict[str, dict[str, float | None]],
+    products: dict[str, dict[str, float | None]],
+    aquaculture: dict[str, dict[str, float | None]],
+) -> pd.DataFrame:
+    """Readings of tables 3939, 74 and 3940 ({ibge_code: {label: value}}) -> the WIDE frame."""
     # The row set is 3939's municipalities; the other two left-join onto it.
     # Anchoring on one table keeps the coverage gate deterministic instead of
     # drifting with each table's own reporting universe (74 has 5,569 rows,
@@ -416,6 +510,13 @@ def _fish_method_gate(year: int, raw_dir: Path, df: pd.DataFrame) -> GateResult:
     """
     base = Path(raw_dir) / RAW_SUBDIR
     raw = _read_sidra_year(base / AQUACULTURE_FILE, AQUACULTURE_SHEET, year)
+    return fish_method_gate(year, raw, df)
+
+
+def fish_method_gate(
+    year: int, raw: dict[str, dict[str, float | None]], df: pd.DataFrame
+) -> GateResult:
+    """_fish_method_gate on an aquaculture reading already in hand (workbook or bbp)."""
     if not raw:
         return GateResult("fish-total-method", True, f"{year}: table 3940 has no data (pre-2013)")
 
@@ -472,8 +573,13 @@ def validate(
     df: pd.DataFrame,
     ctx: IngestContext | None = None,
     raw_dir: Path | None = None,
+    aquaculture_reading: dict | None = None,
 ) -> tuple[list[GateResult], IngestContext]:
-    """Standard battery plus the source-specific containment guards."""
+    """Standard battery plus the source-specific containment guards.
+
+    The fish-method gate needs table 3940 as read: from the workbook (`raw_dir`)
+    or, when the frame came from bbp, the `aquaculture_reading` load_bbp returned.
+    """
     if ctx is None:
         ctx = IngestContext(spec=SPEC, year=0)
 
@@ -488,7 +594,9 @@ def validate(
     results.append(_published_totals_gate(df, ctx.year))
     results.append(_subset_gate(df, "suino_matrizes", "suino_total", ctx.year))
     results.append(_subset_gate(df, "galinaceos_galinhas", "galinaceos_total", ctx.year))
-    if raw_dir is not None:
+    if aquaculture_reading is not None:
+        results.append(fish_method_gate(ctx.year, aquaculture_reading, df))
+    elif raw_dir is not None:
         results.append(_fish_method_gate(ctx.year, raw_dir, df))
     return results, ctx
 

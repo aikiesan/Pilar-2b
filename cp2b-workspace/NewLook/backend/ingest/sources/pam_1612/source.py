@@ -40,6 +40,7 @@ from pathlib import Path
 
 import pandas as pd
 
+from ingest import bbp
 from ingest.contract import IngestContext
 from ingest.gates import GateResult
 from ingest.sources.pam import _common, _sidra
@@ -99,6 +100,94 @@ SPEC = _common.build_spec(
 # convention as promote_ibge_ppm.py). Add further years from
 # https://sidra.ibge.gov.br/tabela/1612.
 PUBLISHED_NATIONAL: dict[int, dict[str, tuple[float, float]]] = {
+    # 2008-2022 and 2024-2025: IBGE SIDRA API, Brasil level (apisidra.ibge.gov.br, table 1612),
+    # retrieved 2026-10-13, rounded to 4 significant digits. 2025 is IBGE's preliminary
+    # figure; 2024 is the revised one (our 2024 snapshot predates the revision by < 0.5%).
+    2008: {
+        "sugarcane_production_t": (645_300_000.0, 0.5),
+        "soybean_production_t": (59_830_000.0, 0.5),
+        "corn_production_t": (58_930_000.0, 0.5),
+    },
+    2009: {
+        "sugarcane_production_t": (691_600_000.0, 0.5),
+        "soybean_production_t": (57_350_000.0, 0.5),
+        "corn_production_t": (50_720_000.0, 0.5),
+    },
+    2010: {
+        "sugarcane_production_t": (717_500_000.0, 0.5),
+        "soybean_production_t": (68_760_000.0, 0.5),
+        "corn_production_t": (55_360_000.0, 0.5),
+    },
+    2011: {
+        "sugarcane_production_t": (734_000_000.0, 0.5),
+        "soybean_production_t": (74_820_000.0, 0.5),
+        "corn_production_t": (55_660_000.0, 0.5),
+    },
+    2012: {
+        "sugarcane_production_t": (722_900_000.0, 0.5),
+        "soybean_production_t": (65_850_000.0, 0.5),
+        "corn_production_t": (71_070_000.0, 0.5),
+    },
+    2013: {
+        "sugarcane_production_t": (768_100_000.0, 0.5),
+        "soybean_production_t": (81_720_000.0, 0.5),
+        "corn_production_t": (80_270_000.0, 0.5),
+    },
+    2014: {
+        "sugarcane_production_t": (736_100_000.0, 0.5),
+        "soybean_production_t": (86_760_000.0, 0.5),
+        "corn_production_t": (79_880_000.0, 0.5),
+    },
+    2015: {
+        "sugarcane_production_t": (750_300_000.0, 0.5),
+        "soybean_production_t": (97_460_000.0, 0.5),
+        "corn_production_t": (85_280_000.0, 0.5),
+    },
+    2016: {
+        "sugarcane_production_t": (768_600_000.0, 0.5),
+        "soybean_production_t": (96_390_000.0, 0.5),
+        "corn_production_t": (64_190_000.0, 0.5),
+    },
+    2017: {
+        "sugarcane_production_t": (758_600_000.0, 0.5),
+        "soybean_production_t": (114_700_000.0, 0.5),
+        "corn_production_t": (97_910_000.0, 0.5),
+    },
+    2018: {
+        "sugarcane_production_t": (747_600_000.0, 0.5),
+        "soybean_production_t": (117_900_000.0, 0.5),
+        "corn_production_t": (82_370_000.0, 0.5),
+    },
+    2019: {
+        "sugarcane_production_t": (753_500_000.0, 0.5),
+        "soybean_production_t": (114_300_000.0, 0.5),
+        "corn_production_t": (101_100_000.0, 0.5),
+    },
+    2020: {
+        "sugarcane_production_t": (756_100_000.0, 0.5),
+        "soybean_production_t": (121_800_000.0, 0.5),
+        "corn_production_t": (104_000_000.0, 0.5),
+    },
+    2021: {
+        "sugarcane_production_t": (715_700_000.0, 0.5),
+        "soybean_production_t": (134_500_000.0, 0.5),
+        "corn_production_t": (88_270_000.0, 0.5),
+    },
+    2022: {
+        "sugarcane_production_t": (726_100_000.0, 0.5),
+        "soybean_production_t": (121_300_000.0, 0.5),
+        "corn_production_t": (109_700_000.0, 0.5),
+    },
+    2024: {
+        "sugarcane_production_t": (760_700_000.0, 0.5),
+        "soybean_production_t": (144_500_000.0, 0.5),
+        "corn_production_t": (114_700_000.0, 0.5),
+    },
+    2025: {
+        "sugarcane_production_t": (766_100_000.0, 0.5),
+        "soybean_production_t": (165_300_000.0, 0.5),
+        "corn_production_t": (141_200_000.0, 0.5),
+    },
     2023: {
         "sugarcane_production_t": (782_000_000.0, 0.5),
         "soybean_production_t": (152_100_000.0, 0.5),
@@ -123,6 +212,14 @@ def load(year: int, raw_dir: Path) -> pd.DataFrame:
     if not reading:
         raise ValueError(f"table {TABLE} has no data for {year} in {workbook.name}")
     return _common.frame_from_reading(reading, PRODUCTS)
+
+
+def load_bbp(year: int, conn) -> tuple[pd.DataFrame, bool]:
+    """Same frame as load(), read from the bbp schema; plus whether IBGE marks the year preliminary."""
+    reading, preliminary = bbp.read_year(conn, TABLE, year, bbp.PAM_PRODUCTION)
+    if not reading:
+        raise bbp.BbpUnavailable(f"bbp has no table {TABLE} data for {year}")
+    return _common.frame_from_reading(reading, PRODUCTS), preliminary
 
 
 def validate(
