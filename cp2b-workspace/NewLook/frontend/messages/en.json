@@ -1879,14 +1879,10 @@
   },
   "cookieConsent": {
     "title": "We use cookies & data",
-    "description": "We use essential cookies to run the site. With your permission we also use a statistics cookie to count visits and see which pages are used; that data stays on UNICAMP's servers and is not shared with anyone. You can change your choice at any time under Cookie preferences, at the foot of every page.",
-    "privacyLink": "Read our Privacy Policy",
-    "emailPlaceholder": "your@email.com",
-    "emailLabel": "Subscribe to our newsletter (optional)",
+    "description": "We use essential cookies and, if you allow it, a statistics cookie to count visits. The data stays on UNICAMP's servers. Change your choice any time under Cookie preferences, in the footer.",
+    "privacyLink": "Privacy Policy",
     "acceptAll": "Accept All",
-    "essentialOnly": "Essential Only",
-    "successMessage": "Subscribed. Thank you!",
-    "lgpdNote": "We respect your privacy. See our Privacy Policy."
+    "essentialOnly": "Essential Only"
   },
   "calculator": {
     "title": "Biogas Viability Calculator",

@@ -1,14 +1,13 @@
 /**
- * The cookie banner: asks until the visitor chooses, stores the choice, can be
- * reopened, and subscribes a typed address as its own consent.
+ * The cookie banner: asks until the visitor chooses, stores the choice, and can
+ * be reopened. It stays compact: no newsletter field (that lives in the footer).
  */
 import React from 'react'
-import { act, render, screen, waitFor } from '@testing-library/react'
+import { act, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { axe } from 'jest-axe'
 import CookieConsent from '../CookieConsent'
 import { openConsentPreferences, readConsent, saveConsent } from '@/lib/consent'
-import { subscribeToNewsletter } from '@/services/newsletterApi'
 
 jest.mock('next-intl', () => jest.requireActual('@/test/mocks/next-intl-real'))
 jest.mock('@/navigation', () => ({
@@ -18,15 +17,11 @@ jest.mock('@/navigation', () => ({
     </a>
   ),
 }))
-jest.mock('@/services/newsletterApi', () => ({ subscribeToNewsletter: jest.fn() }))
-const subscribe = subscribeToNewsletter as jest.MockedFunction<typeof subscribeToNewsletter>
 
 const banner = () => screen.queryByRole('dialog', { name: 'Usamos cookies e dados' })
 
 beforeEach(() => {
   localStorage.clear()
-  subscribe.mockReset()
-  jest.useRealTimers()
 })
 
 describe('CookieConsent', () => {
@@ -44,13 +39,12 @@ describe('CookieConsent', () => {
     expect(banner()).not.toBeInTheDocument()
   })
 
-  it('"Accept all" allows the statistics and subscribes nobody when the field is empty', async () => {
+  it('"Accept all" allows the statistics', async () => {
     const user = userEvent.setup()
     render(<CookieConsent />)
     await user.click(screen.getByRole('button', { name: 'Aceitar tudo' }))
 
     expect(readConsent()).toBe('all')
-    expect(subscribe).not.toHaveBeenCalled()
     expect(banner()).not.toBeInTheDocument()
   })
 
@@ -62,38 +56,11 @@ describe('CookieConsent', () => {
     expect(readConsent()).toBe('essential')
   })
 
-  it('subscribes a typed address whichever button is pressed', async () => {
-    subscribe.mockResolvedValue('subscribed')
-    const user = userEvent.setup()
+  it('has no form fields, only the two choices and the privacy link', () => {
     render(<CookieConsent />)
-    await user.type(screen.getByLabelText('Assine nossa newsletter (opcional)'), 'ana@example.org')
-    await user.click(screen.getByRole('button', { name: 'Apenas essenciais' }))
-
-    expect(subscribe).toHaveBeenCalledWith('ana@example.org', 'cookie_banner', 'pt-BR')
-    expect(await screen.findByText('Inscrição feita. Obrigado!')).toBeInTheDocument()
-    await waitFor(() => expect(readConsent()).toBe('essential'), { timeout: 3000 })
-  })
-
-  it('keeps the banner open and says why when the sign-up fails', async () => {
-    subscribe.mockResolvedValue('rate_limited')
-    const user = userEvent.setup()
-    render(<CookieConsent />)
-    await user.type(screen.getByLabelText('Assine nossa newsletter (opcional)'), 'ana@example.org')
-    await user.click(screen.getByRole('button', { name: 'Aceitar tudo' }))
-
-    expect(await screen.findByText('Muitas tentativas. Aguarde um minuto e tente de novo.')).toBeInTheDocument()
-    expect(readConsent()).toBeNull()
-    expect(banner()).toBeInTheDocument()
-  })
-
-  it('checks the address before sending it', async () => {
-    const user = userEvent.setup()
-    render(<CookieConsent />)
-    await user.type(screen.getByLabelText('Assine nossa newsletter (opcional)'), 'ana@')
-    await user.click(screen.getByRole('button', { name: 'Aceitar tudo' }))
-
-    expect(subscribe).not.toHaveBeenCalled()
-    expect(screen.getByLabelText('Assine nossa newsletter (opcional)')).toHaveAttribute('aria-invalid', 'true')
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument()
+    expect(screen.getAllByRole('button')).toHaveLength(2)
+    expect(screen.getByRole('link', { name: 'Política de Privacidade' })).toHaveAttribute('href', '/privacy')
   })
 
   it('reopens from "Cookie preferences" so the choice can be changed', async () => {

@@ -1879,14 +1879,10 @@
   },
   "cookieConsent": {
     "title": "Usamos cookies e dados",
-    "description": "Usamos cookies essenciais para o funcionamento do site. Com a sua permissão, usamos também um cookie de estatísticas para contar as visitas e saber quais páginas são usadas; esses dados ficam nos servidores da UNICAMP e não são compartilhados com ninguém. Você pode mudar a sua escolha a qualquer momento em Preferências de cookies, no rodapé de todas as páginas.",
-    "privacyLink": "Leia nossa Política de Privacidade",
-    "emailPlaceholder": "seu@email.com",
-    "emailLabel": "Assine nossa newsletter (opcional)",
+    "description": "Usamos cookies essenciais e, se você permitir, um cookie de estatísticas para contar visitas. Os dados ficam nos servidores da UNICAMP. Mude quando quiser em Preferências de cookies, no rodapé.",
+    "privacyLink": "Política de Privacidade",
     "acceptAll": "Aceitar tudo",
-    "essentialOnly": "Apenas essenciais",
-    "successMessage": "Inscrição feita. Obrigado!",
-    "lgpdNote": "Respeitamos a sua privacidade. Consulte a nossa Política de Privacidade."
+    "essentialOnly": "Apenas essenciais"
   },
   "calculator": {
     "title": "Calculadora de Viabilidade de Biogás",
