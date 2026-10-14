@@ -150,6 +150,14 @@ export default function MunicipalityProfilePanel({
   const residueUnit = view === 'methane' ? t('ch4_unit') : tCommon('units.t_year');
   const isMgMunicipality = String(props.ibge_code).startsWith('31');
   const ibgeUf = isMgMunicipality ? 'mg' : 'sp';
+  // IBGE Cidades uses deburred, hyphenated slugs ("Ribeirão Preto" →
+  // "ribeirao-preto"); a bare toLowerCase() keeps accents and spaces and 404s.
+  const ibgeSlug = props.name
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
 
   // ── Context ──────────────────────────────────────────────────────────────
   // A GDP of zero is a missing figure, not a municipality with no economy.
@@ -424,7 +432,7 @@ export default function MunicipalityProfilePanel({
               <FileText className="h-4 w-4" aria-hidden="true" />
             </Link>
             <a
-              href={`https://cidades.ibge.gov.br/brasil/${ibgeUf}/${encodeURIComponent(props.name.toLowerCase())}/panorama`}
+              href={`https://cidades.ibge.gov.br/brasil/${ibgeUf}/${ibgeSlug}/panorama`}
               target="_blank"
               rel="noopener noreferrer"
               className="group flex items-center justify-between border border-line px-3 py-2.5 transition-colors hover:bg-paper-sunken"
