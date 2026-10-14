@@ -19,8 +19,9 @@ const percent = (locale: string, value: number) =>
 
 /**
  * The page's markup without its scripts, spaces normalised. Stripped until
- * nothing changes, and closing tags may carry spaces (`</script >`), so no
- * script survives the pass (CodeQL: incomplete multi-character sanitisation).
+ * nothing changes, and a closing tag may carry anything up to its `>`
+ * (`</script\t\n bar>`), so no script survives the pass (CodeQL: incomplete
+ * multi-character sanitisation, bad HTML filtering regexp).
  */
 async function markup(request: APIRequestContext, path: string): Promise<string> {
   const response = await request.get(path)
@@ -29,7 +30,7 @@ async function markup(request: APIRequestContext, path: string): Promise<string>
   let previous: string
   do {
     previous = html
-    html = html.replace(/<script\b[^>]*>[\s\S]*?<\/script\s*>/gi, '')
+    html = html.replace(/<script\b[^>]*>[\s\S]*?<\/script\b[^>]*>/gi, '')
   } while (html !== previous)
   return html.replace(/\s+/g, ' ')
 }
