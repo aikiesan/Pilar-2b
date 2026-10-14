@@ -507,14 +507,14 @@ export default function MunicipalityPage() {
             {t('municipality.view_ibge')}
           </a>
           <Link
-            href={`/dashboard/advanced-analysis?q=${encodeURIComponent(p.name)}`}
+            href={`/analysis?q=${encodeURIComponent(p.name)}`}
             className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl hover:bg-gray-50 transition-colors"
           >
             <BarChart3 className="w-4 h-4 text-terra-600" aria-hidden="true" />
             {t('municipality.go_advanced')}
           </Link>
           <Link
-            href="/dashboard/proximity"
+            href="/proximity"
             className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl hover:bg-gray-50 transition-colors"
           >
             <MapPin className="w-4 h-4 text-purple-600" aria-hidden="true" />

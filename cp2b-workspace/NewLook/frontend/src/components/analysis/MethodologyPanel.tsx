@@ -285,7 +285,7 @@ export default function MethodologyPanel({
         {/* Footer */}
         <div className="p-4 border-t border-gray-200 bg-gray-50 space-y-2">
           <Link
-            href="/dashboard/scientific-database?view=references"
+            href="/method/science-base?view=references"
             className="w-full py-2 px-4 bg-dusk-600 hover:bg-dusk-700 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
           >
             <BookOpen className="h-4 w-4" />

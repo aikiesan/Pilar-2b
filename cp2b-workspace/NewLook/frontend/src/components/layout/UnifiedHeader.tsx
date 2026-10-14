@@ -81,15 +81,15 @@ const PLATFORM: NavGroup = {
   tourClass: 'tour-analysis tour-calculator tour-proximity',
   items: [
     { href: '/map', labelKey: 'map', descriptionKey: 'map', icon: icon(Map) },
-    { href: '/dashboard/advanced-analysis', labelKey: 'advanced', descriptionKey: 'advanced', icon: icon(BarChart3) },
-    { href: '/dashboard/compare', labelKey: 'compare', descriptionKey: 'compare', icon: icon(Columns3) },
-    { href: '/dashboard/proximity', labelKey: 'proximity', descriptionKey: 'proximity', icon: icon(Target) },
-    { href: '/dashboard/technology-routes', labelKey: 'technology_routes', descriptionKey: 'technology_routes', icon: icon(Workflow) },
+    { href: '/analysis', labelKey: 'advanced', descriptionKey: 'advanced', icon: icon(BarChart3) },
+    { href: '/compare', labelKey: 'compare', descriptionKey: 'compare', icon: icon(Columns3) },
+    { href: '/proximity', labelKey: 'proximity', descriptionKey: 'proximity', icon: icon(Target) },
+    { href: '/calculator', labelKey: 'technology_routes', descriptionKey: 'technology_routes', icon: icon(Workflow) },
   ],
 }
 
 const SCIENCE: NavLeaf & { tourClass: string } = {
-  href: '/dashboard/scientific-database',
+  href: '/method/science-base',
   labelKey: 'scientific_database',
   descriptionKey: 'scientific_database',
   icon: icon(FlaskConical),

@@ -148,7 +148,7 @@ export default function AboutPage() {
       <Link href="/guide" className="font-medium text-terra-600 dark:text-terra-400 underline underline-offset-2">{chunks}</Link>
     ),
     science: (chunks: React.ReactNode) => (
-      <Link href="/dashboard/scientific-database" className="font-medium text-terra-600 dark:text-terra-400 underline underline-offset-2">{chunks}</Link>
+      <Link href="/method/science-base" className="font-medium text-terra-600 dark:text-terra-400 underline underline-offset-2">{chunks}</Link>
     ),
     a11y: (chunks: React.ReactNode) => (
       <Link href="/accessibility" className="font-medium text-terra-600 dark:text-terra-400 underline underline-offset-2">{chunks}</Link>
@@ -314,7 +314,7 @@ export default function AboutPage() {
             <div className="mt-8 grid gap-6 md:grid-cols-2">
               {([
                 { key: 'geospatial', Icon: Map, href: '/map', links: ['/map', null, null, null] },
-                { key: 'mcda', Icon: BarChart3, href: '/dashboard/advanced-analysis', links: [null, '/dashboard/advanced-analysis', '/dashboard/advanced-analysis', null] },
+                { key: 'mcda', Icon: BarChart3, href: '/analysis', links: [null, '/analysis', '/analysis', null] },
               ] as const).map(({ key, Icon, href, links }) => (
                 <article key={key} className="rounded-2xl border border-line bg-paper-raised p-6">
                   <Icon className="h-8 w-8 text-terra-600 dark:text-terra-400" aria-hidden="true" />

@@ -76,7 +76,7 @@ export default function DashboardPage() {
       title: t('feat_proximity_title'),
       description: t('feat_proximity_desc'),
       icon: Gauge,
-      href: '/dashboard/proximity',
+      href: '/proximity',
       color: 'blue',
       badge: t('badge_new'),
     },
@@ -84,28 +84,28 @@ export default function DashboardPage() {
       title: t('feat_routes_title'),
       description: t('feat_routes_desc'),
       icon: TrendingUp,
-      href: '/dashboard/technology-routes',
+      href: '/calculator',
       color: 'orange',
     },
     {
       title: t('feat_scientific_title'),
       description: t('feat_scientific_desc'),
       icon: Database,
-      href: '/dashboard/scientific-database',
+      href: '/method/science-base',
       color: 'indigo',
     },
     {
       title: t('feat_compare_title'),
       description: t('feat_compare_desc'),
       icon: FileText,
-      href: '/dashboard/compare',
+      href: '/compare',
       color: 'teal',
     },
     {
       title: t('feat_advanced_title'),
       description: t('feat_advanced_desc'),
       icon: Zap,
-      href: '/dashboard/advanced-analysis',
+      href: '/analysis',
       color: 'red',
     },
     {
@@ -113,7 +113,7 @@ export default function DashboardPage() {
       description: t('feat_references_desc'),
       icon: BookOpen,
       // The references are a tab of the scientific database (there is no /dashboard/references).
-      href: '/dashboard/scientific-database?view=references',
+      href: '/method/science-base?view=references',
       color: 'gray',
     },
   ]
@@ -123,8 +123,8 @@ export default function DashboardPage() {
   // explains why, so the next move is always inferable.
   const usagePath = [
     { label: t('path_map'), hint: t('feat_map_desc'), href: '/map' },
-    { label: t('path_proximity'), hint: t('feat_proximity_desc'), href: '/dashboard/proximity' },
-    { label: t('path_science'), hint: t('feat_scientific_desc'), href: '/dashboard/scientific-database' },
+    { label: t('path_proximity'), hint: t('feat_proximity_desc'), href: '/proximity' },
+    { label: t('path_science'), hint: t('feat_scientific_desc'), href: '/method/science-base' },
   ]
 
   return (

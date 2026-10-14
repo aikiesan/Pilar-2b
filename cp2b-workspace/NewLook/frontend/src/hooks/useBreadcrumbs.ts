@@ -14,31 +14,25 @@ type BreadcrumbOverrides = {
  * Uses a static route map — fully translatable, no segment-parsing magic.
  */
 export function useBreadcrumbs(overrides?: BreadcrumbOverrides): BreadcrumbItem[] {
-  const pathname = usePathname() // locale-stripped, e.g. '/dashboard/compare'
+  const pathname = usePathname() // locale-stripped, e.g. '/compare'
   const t = useTranslations('pages')
   const tNav = useTranslations('common.nav')
 
   const home: BreadcrumbItem = { label: tNav('home'), href: '/' }
-  const dashboard: BreadcrumbItem = { label: tNav('dashboard'), href: '/dashboard' }
   const map: BreadcrumbItem = { label: tNav('map'), href: '/map' }
+
+  // The tools sit at the top level since /dashboard was dropped from their URLs.
+  const tools: Record<string, string> = {
+    '/analysis': t('advanced_analysis.title'),
+    '/compare': t('compare.title'),
+    '/proximity': t('proximity.title'),
+    '/calculator': t('technology_routes.title'),
+    '/method/science-base': t('scientific_database.title'),
+  }
+  if (pathname in tools) return [home, { label: tools[pathname] }]
 
   if (pathname === '/dashboard')
     return [home, { label: tNav('dashboard') }]
-
-  if (pathname === '/dashboard/advanced-analysis')
-    return [home, dashboard, { label: t('advanced_analysis.title') }]
-
-  if (pathname === '/dashboard/compare')
-    return [home, dashboard, { label: t('compare.title') }]
-
-  if (pathname === '/dashboard/proximity')
-    return [home, dashboard, { label: t('proximity.title') }]
-
-  if (pathname === '/dashboard/scientific-database')
-    return [home, dashboard, { label: t('scientific_database.title') }]
-
-  if (pathname === '/dashboard/technology-routes')
-    return [home, dashboard, { label: t('technology_routes.title') }]
 
   if (pathname === '/settings')
     return [home, { label: t('settings.title') }]

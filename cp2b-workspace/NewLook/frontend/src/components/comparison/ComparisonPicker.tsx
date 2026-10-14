@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * Picks the municipalities to compare, for /dashboard/compare opened without a
+ * Picks the municipalities to compare, for /compare opened without a
  * selection (now that "Comparar" is in the header, that is the common case).
  *
  * The selection goes into ComparisonContext, so the global ComparisonBar shows

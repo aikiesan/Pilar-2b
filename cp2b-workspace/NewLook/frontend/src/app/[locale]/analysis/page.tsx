@@ -643,7 +643,7 @@ export default function AdvancedAnalysisPage() {
                   references live in the scientific database. */}
               {t.rich('advanced_analysis.references_available_body', {
                 link: (chunks) => (
-                  <Link href="/dashboard/scientific-database?view=references" className="font-semibold underline hover:text-dusk-900">
+                  <Link href="/method/science-base?view=references" className="font-semibold underline hover:text-dusk-900">
                     {chunks}
                   </Link>
                 ),
@@ -823,7 +823,7 @@ export default function AdvancedAnalysisPage() {
                   )}
                   <button
                     type="button"
-                    onClick={() => router.push('/dashboard/scientific-database')}
+                    onClick={() => router.push('/method/science-base')}
                     className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-terra-700 hover:text-terra-900 hover:underline"
                   >
                     <BookOpen className="h-3.5 w-3.5" aria-hidden="true" /> {t('advanced_analysis.literature_base_link')}

@@ -66,7 +66,7 @@ describe('UnifiedHeader navigation', () => {
 
     expect(trigger('Plataforma')).toHaveAttribute('aria-expanded', 'false')
     expect(trigger('Sobre')).toHaveAttribute('aria-expanded', 'false')
-    expect(within(nav).getByRole('link', { name: 'Base Científica' })).toHaveAttribute('href', '/dashboard/scientific-database')
+    expect(within(nav).getByRole('link', { name: 'Base Científica' })).toHaveAttribute('href', '/method/science-base')
     expect(within(nav).getByRole('link', { name: 'Guia' })).toHaveAttribute('href', '/guide')
     expect(within(nav).getByRole('link', { name: 'Abrir mapa' })).toHaveAttribute('href', '/map')
     expect(within(nav).queryByRole('link', { name: 'Hub' })).not.toBeInTheDocument()
@@ -79,7 +79,7 @@ describe('UnifiedHeader navigation', () => {
     await user.click(trigger('Plataforma'))
     expect(trigger('Plataforma')).toHaveAttribute('aria-expanded', 'true')
     const compare = within(mainNav()).getByRole('link', { name: /Comparar/ })
-    expect(compare).toHaveAttribute('href', '/dashboard/compare')
+    expect(compare).toHaveAttribute('href', '/compare')
     expect(compare).toHaveTextContent('Até 4 municípios lado a lado')
 
     await user.click(trigger('Sobre'))

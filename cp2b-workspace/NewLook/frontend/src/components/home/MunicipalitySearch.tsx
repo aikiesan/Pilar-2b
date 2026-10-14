@@ -15,7 +15,7 @@ import { useRouter } from '@/navigation';
 import {
   fetchSpMunicipalities,
   type MunicipalityOption,
-} from '@/app/[locale]/dashboard/technology-routes/calculatorApi';
+} from '@/app/[locale]/calculator/calculatorApi';
 
 const MAX_RESULTS = 8;
 

@@ -19,6 +19,13 @@ const movedPages = [
   // to nipe.unicamp.br) were merged into the single /about page.
   { from: '/sobre', to: '/about' },
   { from: '/dashboard/about', to: '/about#parceiros' },
+  // The tools lost the /dashboard prefix (Phase 1 of the redesign). Query
+  // strings (e.g. ?view=references, shared proximity links) are kept by Next.
+  { from: '/dashboard/advanced-analysis', to: '/analysis' },
+  { from: '/dashboard/compare', to: '/compare' },
+  { from: '/dashboard/proximity', to: '/proximity' },
+  { from: '/dashboard/technology-routes', to: '/calculator' },
+  { from: '/dashboard/scientific-database', to: '/method/science-base' },
 ].map(({ from, to }) => ({
   source: `/${LOCALE}${from}`,
   destination: `/:locale${to}`,

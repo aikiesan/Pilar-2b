@@ -19,7 +19,7 @@ export default function ComparisonBar() {
 
   const handleCompare = () => {
     const ids = selectedMunicipalities.map((m) => m.id).join(',');
-    router.push(`/dashboard/compare?ids=${ids}`);
+    router.push(`/compare?ids=${ids}`);
   };
 
   return (

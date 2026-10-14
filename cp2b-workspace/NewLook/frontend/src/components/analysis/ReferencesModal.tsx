@@ -553,7 +553,7 @@ export default function ReferencesModal({ isOpen, onClose }: ReferencesModalProp
                             <>
                               <p className="text-sm text-gray-700 dark:text-gray-300">{t('db_pointer', { count: ref.references })}</p>
                               <div className="mt-3">
-                                <Link href="/dashboard/scientific-database?view=references" onClick={onClose} className={linkClass}>
+                                <Link href="/method/science-base?view=references" onClick={onClose} className={linkClass}>
                                   <BookOpen className="h-3.5 w-3.5" aria-hidden="true" />
                                   {t('open_database')}
                                 </Link>

@@ -25,6 +25,11 @@ test.describe('Retired paths', () => {
     ['/en/sobre', '/en/about'],
     ['/pt-BR/dashboard/about', '/pt-BR/about#parceiros'],
     ['/en/dashboard/about', '/en/about#parceiros'],
+    ['/pt-BR/dashboard/advanced-analysis', '/pt-BR/analysis'],
+    ['/en/dashboard/compare', '/en/compare'],
+    ['/pt-BR/dashboard/proximity?lat=-22.9&lng=-47.06&radius=20', '/pt-BR/proximity?lat=-22.9&lng=-47.06&radius=20'],
+    ['/en/dashboard/technology-routes', '/en/calculator'],
+    ['/pt-BR/dashboard/scientific-database?view=references', '/pt-BR/method/science-base?view=references'],
   ] as const) {
     test(`${from} is a 301 to ${to}`, async ({ request }) => {
       const response = await request.get(from, { maxRedirects: 0 })
@@ -57,7 +62,7 @@ test.describe('Header on a desktop', () => {
 
     await nav.getByRole('button', { name: 'Plataforma' }).click()
     await nav.getByRole('link', { name: /Comparar/ }).click()
-    await expect(page).toHaveURL(/\/dashboard\/compare$/)
+    await expect(page).toHaveURL(/\/pt-BR\/compare$/)
   })
 
   test('the bar fits at 1280 px', async ({ page }) => {
@@ -96,9 +101,9 @@ test.describe('On a phone', () => {
   })
 
   test('Comparar opens a picker instead of bouncing to the Hub', async ({ page }) => {
-    await page.goto('/pt-BR/dashboard/compare')
+    await page.goto('/pt-BR/compare')
     await expect(page.getByRole('heading', { name: 'Comparar municípios', level: 1 })).toBeVisible()
     await expect(page.getByLabel('Buscar município', { exact: true })).toBeVisible()
-    await expect(page).toHaveURL(/\/dashboard\/compare$/)
+    await expect(page).toHaveURL(/\/pt-BR\/compare$/)
   })
 })

@@ -93,7 +93,7 @@ describe('dominantLandUseClass', () => {
 describe('generateShareURL', () => {
   it('keeps the sharer’s language in the link', () => {
     expect(generateShareURL(-22.9, -47.06, 20, 'en')).toBe(
-      `${window.location.origin}/en/dashboard/proximity?lat=-22.900000&lng=-47.060000&radius=20`
+      `${window.location.origin}/en/proximity?lat=-22.900000&lng=-47.060000&radius=20`
     )
   })
 })

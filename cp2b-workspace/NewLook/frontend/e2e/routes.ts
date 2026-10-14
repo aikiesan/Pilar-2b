@@ -8,8 +8,8 @@ export const ROUTES = [
   '/en',
   '/en/map',
   '/en/dashboard',
-  '/en/dashboard/technology-routes',
-  '/en/dashboard/compare',
+  '/en/calculator',
+  '/en/compare',
   '/en/about',
   '/en/guide',
   '/en/guide/calculadora',
@@ -34,10 +34,10 @@ export const ROUTES = [
  * With no backend running they render their error states — which count too.
  */
 export const SIGNED_IN_ROUTES = [
-  '/en/dashboard/proximity',
-  '/en/dashboard/advanced-analysis',
-  '/en/dashboard/scientific-database',
-  '/en/dashboard/scientific-database?view=references',
+  '/en/proximity',
+  '/en/analysis',
+  '/en/method/science-base',
+  '/en/method/science-base?view=references',
   '/en/settings',
 ];
 
