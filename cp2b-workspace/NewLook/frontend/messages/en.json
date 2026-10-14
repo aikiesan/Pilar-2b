@@ -2454,7 +2454,7 @@
       },
       "residue_count": "{count, plural, one {# residue} other {# residues}}",
       "more": "and {count} more",
-      "cta": "See on the map"
+      "cta": "Open the data catalogue"
     },
     "how": {
       "eyebrow": "Method",
@@ -2496,6 +2496,157 @@
       "grant_cp2bsd": "FAPESP 2024/01112-1 · CP2Bsd",
       "grant_national": "FAPESP 2025/08745-2 · national expansion",
       "cta": "Partners"
+    }
+  },
+  "data_catalog": {
+    "sectors": {
+      "agricultural": "Agricultural",
+      "livestock": "Livestock",
+      "urban": "Urban",
+      "industrial": "Industrial"
+    },
+    "confidence": {
+      "HIGH": "High",
+      "MEDIUM": "Medium",
+      "LOW": "Low"
+    },
+    "confidence_meaning": {
+      "HIGH": "±5% uncertainty: operational data from existing plants, academic or regulatory validation (EMBRAPA, CETESB, SNIS).",
+      "MEDIUM": "±10% uncertainty: industry estimates, limited operational validation or extrapolation from similar substrates; needs field checks.",
+      "LOW": "±20% uncertainty: theoretical calculation, no operational validation; availability still uncertain."
+    },
+    "catalog": {
+      "eyebrow": "Data",
+      "title": "Data catalogue",
+      "lede": "Each residue is a data product: its availability factors, its methane potential, the sources behind them and how far they can be trusted.",
+      "sectors_nav": "Sectors",
+      "legend_cta": "Legend and codes",
+      "residue_count": "{count, plural, one {# residue} other {# residues}}",
+      "see_sector": "See the sector"
+    },
+    "table": {
+      "caption": "{sector} residues: code, BMP, FDE and confidence",
+      "residue": "Residue",
+      "code": "Code",
+      "bmp": "BMP (m³ CH₄/kg VS)",
+      "fde": "FDE",
+      "confidence": "Confidence"
+    },
+    "sector_page": {
+      "lede": "The {sector} residues with availability factors on the platform."
+    },
+    "product": {
+      "breadcrumb": "Breadcrumb",
+      "tabs_label": "Data product sections",
+      "tabs": {
+        "overview": "Overview",
+        "method": "Method",
+        "legend": "Legend and codes",
+        "access": "Data access",
+        "statistics": "Statistics",
+        "validation": "Validation and limitations"
+      },
+      "card_label": "About this data",
+      "card_scope": "availability factors (FDE) and methane potential (BMP)",
+      "card_place": "São Paulo state (canonical base)",
+      "card_source": "sheet FDE_Disponibilidade_Residuos_CP2B",
+      "facts_heading": "At a glance",
+      "fact_sector": "Sector",
+      "fact_code": "Code",
+      "fact_bmp": "Methane potential (BMP)",
+      "fact_bmp_value": "{value} m³ CH₄/kg VS",
+      "fact_fde": "Availability (FDE)",
+      "fact_fde_note": "of what is generated reaches a biogas plant",
+      "fact_confidence": "Confidence",
+      "open_map": "See on the map",
+      "open_analysis": "Adjust the factors in the analysis",
+      "method_heading": "How this residue's FDE is calculated",
+      "method_formula": "FDE = FC × (1 − FCp) × FS × FL",
+      "method_lede": "Four factors take the amount generated down to the amount available. The FDE is never stored: it is always computed from the four.",
+      "method_factor": "Factor",
+      "method_value": "Value",
+      "method_why": "Rationale",
+      "method_result": "Resulting FDE",
+      "method_potential": "The available potential is the municipality's generation times the FDE times the residue's BMP, in the real and ideal scenarios.",
+      "method_more": "Read the science base",
+      "access_heading": "Where this data lives",
+      "access_platform": "On the platform",
+      "access_map": "Interactive map, by municipality",
+      "access_analysis": "Multi-criteria analysis, with adjustable factors",
+      "access_science": "Science base, with the chemical characterization and the references",
+      "access_api": "Through the API",
+      "access_api_lede": "The API is open and answers in JSON. The residue appears under the code {code}.",
+      "access_api_residues": "Every residue with its chemical characterization",
+      "access_api_references": "Every reference, with its residue code",
+      "access_licence": "Code GPL-3.0 · Data CC BY 4.0. Cite the source when you use it.",
+      "access_paused": "Files with municipal figures are paused during the beta while the database is validated. The map, panels and API keep serving everything.",
+      "statistics_heading": "Chemical characterization",
+      "statistics_lede": "Means and ranges from the science base, by published study.",
+      "validation_heading": "Confidence",
+      "validation_source": "Level definitions: docs/data/FDE_METHODOLOGY.md.",
+      "references_heading": "References",
+      "limitations_heading": "Limitations",
+      "limitations": {
+        "scope": "The factors were surveyed for São Paulo state. They may not hold in other states; Minas Gerais is under validation (beta).",
+        "factors": "The four factors are typical values for the residue, not measurements for each municipality.",
+        "report": "Found an error? Write to the team from the About page."
+      },
+      "contact_cta": "Contact the team"
+    },
+    "legend": {
+      "eyebrow": "Data",
+      "title": "Legend and codes",
+      "lede": "What each code means and which colours the map paints each metric with, so the legend can be reproduced in a GIS.",
+      "codes_heading": "Residue codes",
+      "codes_caption": "Code, Portuguese and English name, sector and sector colour",
+      "col_code": "Code",
+      "col_name_pt": "Name (PT)",
+      "col_name_en": "Name (EN)",
+      "col_sector": "Sector",
+      "col_colour": "Colour",
+      "ramps_heading": "Map colour ramps",
+      "ramps_lede": "Eight classes per metric, lowest to highest. The map computes the limits for each view, on a log scale between the 2nd and 98th percentiles of what is on screen; the limits below are the reference scale, used when they cannot be computed.",
+      "ramps_caption": "{metric}: class, colour and reference limits ({unit})",
+      "col_tier": "Class",
+      "col_range": "Reference limits",
+      "range_up_to": "up to {upper}",
+      "range_between": "{lower} to {upper}",
+      "range_above": "above {lower}",
+      "files_heading": "Files",
+      "file_codes": "Residue codes (CSV)",
+      "file_legend": "Map legend: colours and reference limits (CSV)",
+      "file_qgis": "Colour ramps for QGIS (Style Manager XML)",
+      "files_note": "Metadata only: codes, names and colours. Files with municipal figures are paused during the beta.",
+      "this_residue": "This residue"
+    },
+    "live": {
+      "loading": "Loading from the science base…",
+      "unavailable": "The science base did not answer just now. The factors above come from the platform's files and still hold; try again in a moment.",
+      "not_in_database": "This residue has no chemical characterization in the science base yet.",
+      "chemistry_caption": "Chemical characterization of the residue",
+      "chemistry_source": "Source: PILAR-2b science base (GET /api/v1/residuos/).",
+      "mean_range": "{mean} ({min} to {max})",
+      "not_reported": "not reported",
+      "units": {
+        "bmp": "L CH₄/kg VS",
+        "ts": "% of fresh mass",
+        "vs": "% of TS",
+        "ch4": "% of biogas"
+      },
+      "rows": {
+        "bmp": "BMP",
+        "ts": "Total solids (TS)",
+        "vs": "Volatile solids (VS)",
+        "cn": "C:N ratio",
+        "ch4": "Methane in biogas",
+        "ph": "pH",
+        "studies": "BMP studies"
+      },
+      "no_references": "No reference is registered for this residue yet.",
+      "reference_count": "{count, plural, one {# registered reference} other {# registered references}}",
+      "validated": "parameters checked",
+      "open_source": "Open the source",
+      "new_tab": "(opens in a new tab)"
     }
   }
 }

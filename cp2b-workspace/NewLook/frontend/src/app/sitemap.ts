@@ -1,4 +1,5 @@
 import type { MetadataRoute } from 'next'
+import { CATALOG_SECTORS, allResidueParams } from '@/data/residueCatalog'
 
 const BASE_URL = 'https://cp2b.unicamp.br/pilar2b'
 
@@ -9,6 +10,14 @@ const publicRoutes = [
   { path: '/map',       changeFrequency: 'daily'   as const, priority: 0.9, lastModified: '2025-01-01' },
   { path: '/compare',   changeFrequency: 'monthly' as const, priority: 0.6, lastModified: '2026-10-14' },
   { path: '/calculator', changeFrequency: 'monthly' as const, priority: 0.6, lastModified: '2026-10-14' },
+  { path: '/data',      changeFrequency: 'monthly' as const, priority: 0.8, lastModified: '2026-10-14' },
+  { path: '/data/legend', changeFrequency: 'monthly' as const, priority: 0.5, lastModified: '2026-10-14' },
+  ...CATALOG_SECTORS.map((sector) => (
+    { path: `/data/${sector}`, changeFrequency: 'monthly' as const, priority: 0.6, lastModified: '2026-10-14' }
+  )),
+  ...allResidueParams().map(({ sector, residue }) => (
+    { path: `/data/${sector}/${residue}`, changeFrequency: 'monthly' as const, priority: 0.6, lastModified: '2026-10-14' }
+  )),
   { path: '/about',     changeFrequency: 'monthly' as const, priority: 0.7, lastModified: '2025-01-01' },
   { path: '/guide',     changeFrequency: 'monthly' as const, priority: 0.7, lastModified: '2025-01-01' },
   { path: '/cite',      changeFrequency: 'monthly' as const, priority: 0.6, lastModified: '2025-01-01' },

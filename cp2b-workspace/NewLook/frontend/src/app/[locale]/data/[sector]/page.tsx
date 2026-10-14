@@ -1,0 +1,55 @@
+/**
+ * /data/<sector> — one sector's residues. The four sectors are generated at
+ * build time; any other segment is a 404.
+ */
+import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
+import { getTranslations } from 'next-intl/server';
+import { Link } from '@/navigation';
+import ResidueTable from '@/components/data/ResidueTable';
+import { CATALOG_SECTORS, SECTOR_SWATCH, isCatalogSector, residuesInSector } from '@/data/residueCatalog';
+
+export function generateStaticParams() {
+  return CATALOG_SECTORS.filter((s) => residuesInSector(s).length > 0).map((sector) => ({ sector }));
+}
+
+export const dynamicParams = false;
+
+type Params = { params: Promise<{ sector: string }> };
+
+export async function generateMetadata({ params }: Params): Promise<Metadata> {
+  const { sector } = await params;
+  if (!isCatalogSector(sector)) return {};
+  const t = await getTranslations('data_catalog');
+  const name = t(`sectors.${sector}`);
+  return { title: `${name} · ${t('catalog.title')} · PILAR-2b`, description: t('sector_page.lede', { sector: name }) };
+}
+
+export default async function DataSectorPage({ params }: Params) {
+  const { sector } = await params;
+  if (!isCatalogSector(sector)) notFound();
+  const t = await getTranslations('data_catalog');
+  const name = t(`sectors.${sector}`);
+
+  return (
+    <div className="bg-paper">
+      <header className="border-b border-line">
+        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+          <nav aria-label={t('product.breadcrumb')} className="text-sm text-ink-muted">
+            <Link href="/data" className="underline-offset-2 hover:text-ink hover:underline">{t('catalog.title')}</Link>
+            <span aria-hidden="true" className="mx-2">/</span>
+            <span aria-current="page">{name}</span>
+          </nav>
+          <h1 className="mt-4 flex items-center gap-4 text-4xl text-ink sm:text-5xl">
+            <span aria-hidden="true" className="h-4 w-4 shrink-0" style={{ background: SECTOR_SWATCH[sector] }} />
+            {name}
+          </h1>
+          <p className="mt-4 max-w-2xl text-ink-muted">{t('sector_page.lede', { sector: name.toLowerCase() })}</p>
+        </div>
+      </header>
+      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        <ResidueTable sector={sector} />
+      </div>
+    </div>
+  );
+}

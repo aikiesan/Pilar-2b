@@ -79,6 +79,13 @@ export const queryKeys = {
     typology: () => [...queryKeys.codigestion.all, 'typology'] as const,
   },
 
+  // The residue knowledge base (data product pages)
+  residues: {
+    all: ['residues'] as const,
+    list: () => [...queryKeys.residues.all, 'list'] as const,
+    references: (code: string) => [...queryKeys.residues.all, 'references', code] as const,
+  },
+
   // National intermediate regions (Phase 1)
   intermediateRegions: {
     all: ['intermediate-regions'] as const,

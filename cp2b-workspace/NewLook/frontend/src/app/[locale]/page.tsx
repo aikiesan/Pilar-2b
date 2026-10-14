@@ -15,17 +15,13 @@ import { ArrowRight, Map as MapIcon } from 'lucide-react';
 import { Link } from '@/navigation';
 import ArcOrnament from '@/components/ui/ArcOrnament';
 import MunicipalitySearch from '@/components/home/MunicipalitySearch';
-import { DETAILED_RESIDUES, type DetailedResidue } from '@/data/residueFactors';
-import { SECTOR_COLORS } from '@/data/sectorColors';
+import { DETAILED_RESIDUES } from '@/data/residueFactors';
+import { CATALOG_SECTORS, SECTOR_SWATCH, residuePath, residuesInSector } from '@/data/residueCatalog';
 import patchNotes from '@/data/patch-notes.json';
 import { countFrom, serverGetJson } from '@/lib/serverApi';
 
-type Sector = DetailedResidue['category'];
 type Locale = 'pt-BR' | 'en';
 
-// Display order; industrial residues have no sector colour of their own yet.
-const SECTORS: Sector[] = ['agricultural', 'livestock', 'urban', 'industrial'];
-const SECTOR_SWATCH: Record<Sector, string> = { ...SECTOR_COLORS, industrial: '#8F8478' };
 const NAMES_SHOWN = 4;
 
 async function liveCounts() {
@@ -45,9 +41,9 @@ export default async function LandingPage() {
   const locale = ((await getLocale()) === 'en' ? 'en' : 'pt-BR') as Locale;
   const { municipalities, references } = await liveCounts();
 
-  const sectors = SECTORS.map((sector) => ({
+  const sectors = CATALOG_SECTORS.map((sector) => ({
     sector,
-    residues: DETAILED_RESIDUES.filter((r) => r.category === sector),
+    residues: residuesInSector(sector),
   })).filter((s) => s.residues.length > 0);
 
   const counts = [
@@ -136,11 +132,19 @@ export default async function LandingPage() {
               <li key={sector} className="flex flex-col bg-paper-raised">
                 <span aria-hidden="true" className="block h-1" style={{ background: SECTOR_SWATCH[sector] }} />
                 <div className="flex flex-1 flex-col p-5 sm:p-6">
-                  <h3 className="font-display text-2xl text-ink">{t(`sectors.names.${sector}`)}</h3>
+                  <h3 className="font-display text-2xl text-ink">
+                    <Link href={`/data/${sector}`} className="underline-offset-4 hover:text-terra-700 hover:underline dark:hover:text-terra-300">
+                      {t(`sectors.names.${sector}`)}
+                    </Link>
+                  </h3>
                   <p className="mt-1 text-sm text-ink-muted">{t('sectors.residue_count', { count: residues.length })}</p>
                   <ul className="mt-4 flex-1 space-y-1.5 border-t border-line pt-4 text-sm text-ink">
                     {residues.slice(0, NAMES_SHOWN).map((r) => (
-                      <li key={r.code}>{r.name[locale]}</li>
+                      <li key={r.code}>
+                        <Link href={residuePath(r)} className="underline-offset-2 hover:text-terra-700 hover:underline dark:hover:text-terra-300">
+                          {r.name[locale]}
+                        </Link>
+                      </li>
                     ))}
                     {rest > 0 && <li className="text-ink-muted">{t('sectors.more', { count: rest })}</li>}
                   </ul>
@@ -149,7 +153,7 @@ export default async function LandingPage() {
             );
           })}
         </ul>
-        <Link href="/map" className="mt-6 inline-flex min-h-[44px] items-center gap-2 font-medium text-terra-600 underline-offset-4 hover:underline dark:text-terra-400">
+        <Link href="/data" className="mt-6 inline-flex min-h-[44px] items-center gap-2 font-medium text-terra-600 underline-offset-4 hover:underline dark:text-terra-400">
           {t('sectors.cta')}
           <ArrowRight className="h-4 w-4" aria-hidden="true" />
         </Link>

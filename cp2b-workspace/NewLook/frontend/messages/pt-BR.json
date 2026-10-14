@@ -2454,7 +2454,7 @@
       },
       "residue_count": "{count, plural, one {# resíduo} other {# resíduos}}",
       "more": "e mais {count}",
-      "cta": "Ver no mapa"
+      "cta": "Abrir o catálogo de dados"
     },
     "how": {
       "eyebrow": "Método",
@@ -2496,6 +2496,157 @@
       "grant_cp2bsd": "FAPESP 2024/01112-1 · CP2Bsd",
       "grant_national": "FAPESP 2025/08745-2 · expansão nacional",
       "cta": "Parceiros"
+    }
+  },
+  "data_catalog": {
+    "sectors": {
+      "agricultural": "Agrícola",
+      "livestock": "Pecuária",
+      "urban": "Urbano",
+      "industrial": "Industrial"
+    },
+    "confidence": {
+      "HIGH": "Alta",
+      "MEDIUM": "Média",
+      "LOW": "Baixa"
+    },
+    "confidence_meaning": {
+      "HIGH": "Incerteza de ±5%: dados operacionais de plantas existentes, validação acadêmica ou regulatória (EMBRAPA, CETESB, SNIS).",
+      "MEDIUM": "Incerteza de ±10%: estimativas do setor, validação operacional limitada ou extrapolação de substratos semelhantes; pede verificação em campo.",
+      "LOW": "Incerteza de ±20%: cálculo teórico, sem validação operacional; disponibilidade ainda incerta."
+    },
+    "catalog": {
+      "eyebrow": "Dados",
+      "title": "Catálogo de dados",
+      "lede": "Cada resíduo é um produto de dados: seus fatores de disponibilidade, seu potencial metanogênico, as fontes que os sustentam e o quanto se pode confiar neles.",
+      "sectors_nav": "Setores",
+      "legend_cta": "Legenda e códigos",
+      "residue_count": "{count, plural, one {# resíduo} other {# resíduos}}",
+      "see_sector": "Ver o setor"
+    },
+    "table": {
+      "caption": "Resíduos do setor {sector}: código, BMP, FDE e confiança",
+      "residue": "Resíduo",
+      "code": "Código",
+      "bmp": "BMP (m³ CH₄/kg SV)",
+      "fde": "FDE",
+      "confidence": "Confiança"
+    },
+    "sector_page": {
+      "lede": "Os resíduos do setor {sector} com fatores de disponibilidade na plataforma."
+    },
+    "product": {
+      "breadcrumb": "Navegação estrutural",
+      "tabs_label": "Seções do produto de dados",
+      "tabs": {
+        "overview": "Visão geral",
+        "method": "Método",
+        "legend": "Legenda e códigos",
+        "access": "Acesso aos dados",
+        "statistics": "Estatísticas",
+        "validation": "Validação e limitações"
+      },
+      "card_label": "Sobre estes dados",
+      "card_scope": "fatores de disponibilidade (FDE) e potencial metanogênico (BMP)",
+      "card_place": "estado de São Paulo (base canônica)",
+      "card_source": "planilha FDE_Disponibilidade_Residuos_CP2B",
+      "facts_heading": "Em resumo",
+      "fact_sector": "Setor",
+      "fact_code": "Código",
+      "fact_bmp": "Potencial metanogênico (BMP)",
+      "fact_bmp_value": "{value} m³ CH₄/kg SV",
+      "fact_fde": "Disponibilidade (FDE)",
+      "fact_fde_note": "da geração chega a uma planta de biogás",
+      "fact_confidence": "Confiança",
+      "open_map": "Ver no mapa",
+      "open_analysis": "Ajustar os fatores na análise",
+      "method_heading": "Como o FDE deste resíduo é calculado",
+      "method_formula": "FDE = FC × (1 − FCp) × FS × FL",
+      "method_lede": "Quatro fatores levam a quantidade gerada à quantidade disponível. O FDE nunca é armazenado: é sempre calculado a partir dos quatro.",
+      "method_factor": "Fator",
+      "method_value": "Valor",
+      "method_why": "Justificativa",
+      "method_result": "FDE resultante",
+      "method_potential": "O potencial disponível é a geração do município vezes o FDE vezes o BMP do resíduo, nos cenários real e ideal.",
+      "method_more": "Ler a base científica",
+      "access_heading": "Onde estes dados estão",
+      "access_platform": "Na plataforma",
+      "access_map": "Mapa interativo, por município",
+      "access_analysis": "Análise multicritério, com os fatores ajustáveis",
+      "access_science": "Base científica, com a caracterização química e as referências",
+      "access_api": "Pela API",
+      "access_api_lede": "A API é aberta e responde em JSON. O resíduo aparece com o código {code}.",
+      "access_api_residues": "Todos os resíduos com sua caracterização química",
+      "access_api_references": "Todas as referências, com o código do resíduo",
+      "access_licence": "Código GPL-3.0 · Dados CC BY 4.0. Cite a fonte ao usar.",
+      "access_paused": "Os arquivos com os números municipais estão pausados durante o beta, enquanto a base é validada. Mapa, painéis e API continuam servindo tudo.",
+      "statistics_heading": "Caracterização química",
+      "statistics_lede": "Médias e faixas da base científica, por estudo publicado.",
+      "validation_heading": "Confiança",
+      "validation_source": "Definição dos níveis: docs/data/FDE_METHODOLOGY.md.",
+      "references_heading": "Referências",
+      "limitations_heading": "Limitações",
+      "limitations": {
+        "scope": "Os fatores foram levantados para o estado de São Paulo. Em outros estados podem não valer; Minas Gerais está em validação (beta).",
+        "factors": "Os quatro fatores são valores típicos do resíduo, não medições de cada município.",
+        "report": "Encontrou um erro? Escreva para a equipe pela página Sobre."
+      },
+      "contact_cta": "Falar com a equipe"
+    },
+    "legend": {
+      "eyebrow": "Dados",
+      "title": "Legenda e códigos",
+      "lede": "O que cada código quer dizer e com que cores o mapa pinta cada métrica, para reproduzir a legenda num SIG.",
+      "codes_heading": "Códigos dos resíduos",
+      "codes_caption": "Código, nome em português e em inglês, setor e cor do setor",
+      "col_code": "Código",
+      "col_name_pt": "Nome (PT)",
+      "col_name_en": "Nome (EN)",
+      "col_sector": "Setor",
+      "col_colour": "Cor",
+      "ramps_heading": "Rampas de cor do mapa",
+      "ramps_lede": "Oito classes por métrica, da menor para a maior. O mapa calcula os limites a cada vista, em escala logarítmica entre os percentis 2 e 98 do que está na tela; os limites abaixo são a escala de referência, usada quando não há como calcular.",
+      "ramps_caption": "{metric}: classe, cor e limites de referência ({unit})",
+      "col_tier": "Classe",
+      "col_range": "Limites de referência",
+      "range_up_to": "até {upper}",
+      "range_between": "{lower} a {upper}",
+      "range_above": "acima de {lower}",
+      "files_heading": "Arquivos",
+      "file_codes": "Códigos dos resíduos (CSV)",
+      "file_legend": "Legenda do mapa: cores e limites de referência (CSV)",
+      "file_qgis": "Rampas de cor para o QGIS (XML do Gerenciador de Estilos)",
+      "files_note": "Só metadados: códigos, nomes e cores. Os arquivos com números municipais estão pausados durante o beta.",
+      "this_residue": "Este resíduo"
+    },
+    "live": {
+      "loading": "Carregando da base científica…",
+      "unavailable": "A base científica não respondeu agora. Os fatores acima vêm dos arquivos da plataforma e continuam valendo; tente de novo em instantes.",
+      "not_in_database": "Este resíduo ainda não tem caracterização química na base científica.",
+      "chemistry_caption": "Caracterização química do resíduo",
+      "chemistry_source": "Fonte: base científica do PILAR-2b (GET /api/v1/residuos/).",
+      "mean_range": "{mean} (de {min} a {max})",
+      "not_reported": "não informado",
+      "units": {
+        "bmp": "L CH₄/kg SV",
+        "ts": "% da massa fresca",
+        "vs": "% dos ST",
+        "ch4": "% do biogás"
+      },
+      "rows": {
+        "bmp": "BMP",
+        "ts": "Sólidos totais (ST)",
+        "vs": "Sólidos voláteis (SV)",
+        "cn": "Relação C:N",
+        "ch4": "Metano no biogás",
+        "ph": "pH",
+        "studies": "Estudos de BMP"
+      },
+      "no_references": "Nenhuma referência está registrada para este resíduo ainda.",
+      "reference_count": "{count, plural, one {# referência registrada} other {# referências registradas}}",
+      "validated": "parâmetros conferidos",
+      "open_source": "Abrir a fonte",
+      "new_tab": "(abre em nova aba)"
     }
   }
 }
