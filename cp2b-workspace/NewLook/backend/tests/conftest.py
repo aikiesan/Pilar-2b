@@ -51,6 +51,7 @@ def mock_db_connection(monkeypatch):
     # get_db reference and attempt live DB connections during unit tests.
     _call_sites = [
         "app.api.v1.endpoints.analysis",
+        "app.api.v1.endpoints.cp2b",
         "app.api.v1.endpoints.analytics",
         "app.api.v1.endpoints.geospatial",
         "app.api.v1.endpoints.intermediate_regions",

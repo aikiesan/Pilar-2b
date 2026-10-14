@@ -112,9 +112,9 @@ export default function MunicipalityProfilePanel({
     agricultural: getSectorMetricValue(props, 'agricultural', metric, scenario),
     livestock: getSectorMetricValue(props, 'livestock', metric, scenario),
     urban: getSectorMetricValue(props, 'urban', metric, scenario),
-    // Florestal exists only under the served scenarios (migration 026); the
-    // band scenarios have no forestry stream, so this stays null there and the
-    // row is not rendered.
+    // Neither the band scenarios nor CP2b (Real/Ideal) have a forestry stream,
+    // so this stays null and the row is not rendered. Kept so a future source
+    // with forestry shows up without touching the panel.
     forestry: getSectorMetricValue(props, 'forestry', metric, scenario),
   };
 
