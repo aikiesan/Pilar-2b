@@ -44,6 +44,7 @@ from pathlib import Path
 
 import pandas as pd
 
+from ingest import bbp
 from ingest.contract import IngestContext
 from ingest.gates import GateResult
 from ingest.sources.pam import _common, _sidra
@@ -118,6 +119,77 @@ SPEC = _common.build_spec(
 # Recorded at published precision; see pam_1612.source and
 # _common.published_totals_gate. Each entry is (tonnes, tolerance_pct).
 PUBLISHED_NATIONAL: dict[int, dict[str, tuple[float, float]]] = {
+    # 2008-2022 and 2024-2025: IBGE SIDRA API, Brasil level (apisidra.ibge.gov.br, table 1613),
+    # retrieved 2026-10-13, rounded to 4 significant digits. 2025 is IBGE's preliminary
+    # figure; 2024 is the revised one (our 2024 snapshot predates the revision by < 0.5%).
+    2008: {
+        "coffee_production_t": (2_797_000.0, 0.5),
+        "citrus_production_t": (18_540_000.0, 0.5),
+    },
+    2009: {
+        "coffee_production_t": (2_440_000.0, 0.5),
+        "citrus_production_t": (17_620_000.0, 0.5),
+    },
+    2010: {
+        "coffee_production_t": (2_907_000.0, 0.5),
+        "citrus_production_t": (18_500_000.0, 0.5),
+    },
+    2011: {
+        "coffee_production_t": (2_701_000.0, 0.5),
+        "citrus_production_t": (19_810_000.0, 0.5),
+    },
+    2012: {
+        "coffee_production_t": (3_038_000.0, 0.5),
+        "citrus_production_t": (18_010_000.0, 0.5),
+    },
+    2013: {
+        "coffee_production_t": (2_965_000.0, 0.5),
+        "citrus_production_t": (17_550_000.0, 0.5),
+    },
+    2014: {
+        "coffee_production_t": (2_804_000.0, 0.5),
+        "citrus_production_t": (16_930_000.0, 0.5),
+    },
+    2015: {
+        "coffee_production_t": (2_648_000.0, 0.5),
+        "citrus_production_t": (16_950_000.0, 0.5),
+    },
+    2016: {
+        "coffee_production_t": (3_024_000.0, 0.5),
+        "citrus_production_t": (16_980_000.0, 0.5),
+    },
+    2017: {
+        "coffee_production_t": (2_684_000.0, 0.5),
+        "citrus_production_t": (17_490_000.0, 0.5),
+    },
+    2018: {
+        "coffee_production_t": (3_552_000.0, 0.5),
+        "citrus_production_t": (16_840_000.0, 0.5),
+    },
+    2019: {
+        "coffee_production_t": (3_012_000.0, 0.5),
+        "citrus_production_t": (17_090_000.0, 0.5),
+    },
+    2020: {
+        "coffee_production_t": (3_706_000.0, 0.5),
+        "citrus_production_t": (16_720_000.0, 0.5),
+    },
+    2021: {
+        "coffee_production_t": (2_986_000.0, 0.5),
+        "citrus_production_t": (16_220_000.0, 0.5),
+    },
+    2022: {
+        "coffee_production_t": (3_179_000.0, 0.5),
+        "citrus_production_t": (16_930_000.0, 0.5),
+    },
+    2024: {
+        "coffee_production_t": (3_382_000.0, 0.5),
+        "citrus_production_t": (15_740_000.0, 0.5),
+    },
+    2025: {
+        "coffee_production_t": (3_484_000.0, 0.5),
+        "citrus_production_t": (16_560_000.0, 0.5),
+    },
     2023: {
         "coffee_production_t": (3_350_000.0, 0.5),
         "citrus_production_t": (17_650_000.0, 0.5),
@@ -139,6 +211,14 @@ def load(year: int, raw_dir: Path) -> pd.DataFrame:
     if not reading:
         raise ValueError(f"table {TABLE} has no data for {year} in {workbook.name}")
     return _common.frame_from_reading(reading, {**PRODUCTS, **VARIETAL_PRODUCTS})
+
+
+def load_bbp(year: int, conn) -> tuple[pd.DataFrame, bool]:
+    """Same frame as load(), read from the bbp schema; plus whether IBGE marks the year preliminary."""
+    reading, preliminary = bbp.read_year(conn, TABLE, year, bbp.PAM_PRODUCTION)
+    if not reading:
+        raise bbp.BbpUnavailable(f"bbp has no table {TABLE} data for {year}")
+    return _common.frame_from_reading(reading, {**PRODUCTS, **VARIETAL_PRODUCTS}), preliminary
 
 
 def validate(

@@ -86,6 +86,12 @@ class TestCoverageGate:
         result = gates.coverage_gate(df, spec)
         assert result.passed, result.details
 
+    def test_allowlisted_municipality_that_appears_still_passes(self):
+        # e.g. a municipality installed mid-series: absent in early years, present later
+        spec = SourceSpec(**{**SPEC.__dict__, "missing_allowlist": ("3500001",)})
+        assert gates.coverage_gate(sp_frame(645), spec).passed
+        assert not gates.coverage_gate(sp_frame(646), spec).passed  # a real extra row still fails
+
     def test_non_municipal_source_skips(self):
         spec = SourceSpec(**{**SPEC.__dict__, "key_column": "ceg_code"})
         result = gates.coverage_gate(pd.DataFrame({"ceg_code": ["a"]}), spec)
