@@ -22,6 +22,11 @@ import { MISSING_VALUE } from '@/lib/format'
 import { SkeletonMunicipalityPage } from '@/components/ui/Skeleton'
 import { useGeospatialData, useMunicipalityMetrics } from '@/hooks/useGeospatialData'
 import { MWH_PER_M3_CH4 } from '@/lib/mapValues'
+import {
+  SERVED_SCENARIO_FIELD,
+  SERVED_SCENARIO_RESIDUE_FIELD,
+  type ServedScenarioKey,
+} from '@/data/scenarioFactors'
 import Breadcrumb from '@/components/ui/Breadcrumb'
 import { useBreadcrumbs } from '@/hooks/useBreadcrumbs'
 import {
@@ -83,16 +88,16 @@ const SECTOR_COLORS = {
 
 /**
  * The residues this page reports, by sector, keyed as the backend names them in
- * the Cenário Real/Ideal share columns (migration 029). Display names:
- * Map.residues.<key>, the same names the map uses.
+ * the CP2b share columns behind Cenário Real/Ideal (migration 034). Display
+ * names: Map.residues.<key>, the same names the map uses.
  *
- * Thirteen, not the eleven the map filter offers: `sewage` and `forestry` are
- * computed and stored but not selectable on the map. A municipality profile has
- * no reason to hide them — here the sector subtotals must add up to the total.
+ * The eleven CP2b residues. The method has no aquaculture or forestry stream,
+ * and every one of its 17 substrates falls under one of these, so the sector
+ * subtotals add up to the total.
  */
 const SECTOR_RESIDUES = {
-  agricultural: ['sugarcane', 'soybean', 'corn', 'coffee', 'citrus', 'forestry'],
-  livestock: ['cattle', 'swine', 'poultry', 'aquaculture'],
+  agricultural: ['sugarcane', 'soybean', 'corn', 'coffee', 'citrus'],
+  livestock: ['cattle', 'swine', 'poultry'],
   urban: ['rsu', 'rpo', 'sewage'],
 } as const
 
@@ -207,25 +212,39 @@ export default function MunicipalityPage() {
 
   // ── Derived values ────────────────────────────────────────────────────────
   //
-  // Every number here comes from the Cenário Real shares (migration 029). This
+  // Every number here comes from the Cenário Real shares (CP2b N4). This
   // page used to read the legacy `*_biogas_m3_year` columns, which the map
   // payload strips as detail-only — so the whole profile rendered as zeros, and
   // would have kept doing so silently. The shares are also the right source on
   // the merits: they carry the availability correction, and they sum exactly to
-  // ch4_real_m3_year, so the subtotals below reconcile with the headline.
+  // the Real total, so the subtotals below reconcile with the headline.
   const rec = p as unknown as Record<string, unknown>
-  const share = (residue: string, tier: 'real' | 'ideal' = 'real'): number =>
-    Number(rec[`ch4_${tier}_${residue}_m3_year`]) || 0
-  const sectorTotal = (sector: Sector): number =>
-    SECTOR_RESIDUES[sector].reduce((sum, key) => sum + share(key), 0)
+  const share = (residue: string, tier: ServedScenarioKey = 'real'): number =>
+    Number(rec[SERVED_SCENARIO_RESIDUE_FIELD(tier, residue)]) || 0
+  // ABSENT IS NOT ZERO. Outside the CP2b view (before migration 034 is loaded,
+  // or a municipality it does not cover) the totals are missing, and the page
+  // must say "no data" — for the potential AND everything derived from it —
+  // rather than print a potential of 0. A served 0 is a modelled result and
+  // stays 0.
+  const served = (v: unknown): number | null => {
+    if (v === null || v === undefined || v === '') return null
+    const n = Number(v)
+    return Number.isFinite(n) ? n : null
+  }
+  const total = served(rec[SERVED_SCENARIO_FIELD.real])
+  const totalIdeal = served(rec[SERVED_SCENARIO_FIELD.ideal])
+  const sectorTotal = (sector: Sector): number | null =>
+    total === null ? null : SECTOR_RESIDUES[sector].reduce((sum, key) => sum + share(key), 0)
 
   // Methane volumes, compact, with their unit: "1.2M Nm³ CH₄/year".
   const ch4Unit = tCommon('units.nm3_ch4_year')
-  const ch4 = (value: number) => `${format.compact(value)} ${ch4Unit}`
+  const noData = tCommon('states.no_data')
+  const ch4 = (value: number | null) =>
+    value === null ? noData : `${format.compact(value)} ${ch4Unit}`
+  const compactOrNoData = (value: number | null) =>
+    value === null ? noData : format.compact(value)
   const residueName = (key: ResidueKey) => tMap(`residues.${key}`)
 
-  const total = Number(rec.ch4_real_m3_year) || 0
-  const totalIdeal = Number(rec.ch4_ideal_m3_year) || 0
   const agri = sectorTotal('agricultural')
   const live = sectorTotal('livestock')
   const urb = sectorTotal('urban')
@@ -233,13 +252,13 @@ export default function MunicipalityPage() {
   // 9.97 kWh per m³ of METHANE — the platform constant (lib/mapValues), not the
   // ~2.5 kWh/m³ this page used to apply, which is a raw-biogas figure and was
   // being multiplied by a methane volume.
-  const energyMWh = total * MWH_PER_M3_CH4
+  const energyMWh = total === null ? null : total * MWH_PER_M3_CH4
 
   const sectorPieData = [
     { name: tCommon('sectors.agricultural'), value: agri, color: SECTOR_COLORS.agricultural },
     { name: tCommon('sectors.livestock'), value: live, color: SECTOR_COLORS.livestock },
     { name: tCommon('sectors.urban'), value: urb, color: SECTOR_COLORS.urban },
-  ].filter((d) => d.value > 0)
+  ].filter((d): d is { name: string; value: number; color: string } => (d.value ?? 0) > 0)
 
   const residuesBarData = (Object.values(SECTOR_RESIDUES).flat() as ResidueKey[])
     .map((key) => ({ name: residueName(key), value: share(key) }))
@@ -342,7 +361,7 @@ export default function MunicipalityPage() {
               <div className="text-xs text-green-300 font-medium mb-1">
                 {t('municipality.hero_potential')}
               </div>
-              <div className="text-4xl font-bold">{format.compact(total)}</div>
+              <div className="text-4xl font-bold">{compactOrNoData(total)}</div>
               <div className="text-sm text-green-200">{ch4Unit}</div>
             </div>
           </div>
@@ -353,19 +372,19 @@ export default function MunicipalityPage() {
           <KPICard
             icon={<Zap className="w-4 h-4" aria-hidden="true" />}
             label={t('municipality.kpi_energy')}
-            value={format.compact(energyMWh)}
+            value={compactOrNoData(energyMWh)}
             unit={tCommon('units.mwh_year')}
             color="bg-yellow-50 border-yellow-200 text-yellow-900 dark:bg-yellow-900/10 dark:border-yellow-800 dark:text-yellow-100"
           />
           {/* Was "Redução CO₂", computed as volume × 2.0 kg/m³ — a factor with no
               source anywhere in the project, applied to a volume that is methane
-              rather than the biogas it assumed. The Ideal tier is served, audited
-              (scenario_parameters) and answers a question the reader actually has:
-              how much of this is infrastructure rather than resource. */}
+              rather than the biogas it assumed. The Ideal tier (CP2b N3) is served,
+              audited (cp2b_parameters) and answers a question the reader actually
+              has: how much is lost to storage and logistics between N3 and N4. */}
           <KPICard
             icon={<Cloud className="w-4 h-4" aria-hidden="true" />}
             label={t('municipality.kpi_ideal')}
-            value={format.compact(totalIdeal)}
+            value={compactOrNoData(totalIdeal)}
             unit={ch4Unit}
             color="bg-blue-50 border-blue-200 text-blue-900 dark:bg-blue-900/10 dark:border-blue-800 dark:text-blue-100"
           />

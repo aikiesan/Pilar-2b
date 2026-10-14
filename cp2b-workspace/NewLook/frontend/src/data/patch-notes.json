@@ -2,6 +2,37 @@
   "_comment": "Patch notes, newest first. Each entry carries its own pt-BR and en text, deliberately OUTSIDE messages/*.json: the catalogs are gated by check-i18n-parity.mjs, and threading one release note through two catalogs per deploy makes writing a note a chore nobody does. scripts/check-patch-notes.mjs enforces that both locales are present here instead. `date` is ISO 8601 WITH offset -- it is rendered in the reader's locale, so a bare date would drift a day across timezones. `kind` must be one of: added, changed, fixed, security, data.",
   "entries": [
     {
+      "version": "3.2.0",
+      "date": "2026-09-24T17:00:00-03:00",
+      "title": {
+        "pt-BR": "Cenários Real e Ideal pelo método CP2b",
+        "en": "Real and Ideal scenarios on the CP2b method"
+      },
+      "changes": [
+        {
+          "kind": "data",
+          "text": {
+            "pt-BR": "O método CP2b v5.1 entra na plataforma para os 645 municípios paulistas: quatro níveis de potencial (teórico, técnico, mobilizável e acessível) por substrato e cenário, em Nm³ de metano, calculados pela mesma cascata de fatores. No estado, o mobilizável (N3) é 19,2 Mm³/dia de CH₄ e o acessível (N4), que aplica as perdas de armazenamento e o fator logístico calculado sobre a malha viária, é 16,4 Mm³/dia. Os cenários mínimo e máximo (7,7–45,0 e 5,2–42,7) são um envelope, não um intervalo de probabilidade.",
+            "en": "The CP2b method v5.1 comes to the platform for São Paulo's 645 municipalities: four potential levels (theoretical, technical, mobilisable and accessible) per substrate and scenario, in Nm³ of methane, computed through one factor cascade. Statewide, the mobilisable level (N3) is 19.2 Mm³/day of CH₄ and the accessible level (N4), which applies storage losses and the logistic factor computed on the road network, is 16.4 Mm³/day. The minimum and maximum scenarios (7.7–45.0 and 5.2–42.7) are an envelope, not a probability interval."
+          }
+        },
+        {
+          "kind": "changed",
+          "text": {
+            "pt-BR": "Os cenários Real e Ideal passam a seguir o método CP2b: Real é o potencial acessível (N4, 16,4 Mm³/dia de CH₄) e Ideal é o mobilizável (N3, 19,2). Antes eles vinham do Atlas de Bioenergia SP 2020 (21,5 e 27,0 Mm³/dia). A diferença é uma mudança de metodologia e de cobertura de resíduos, não uma revisão dos mesmos números. O mapa, a faixa de totais, a página do município e o dossiê XLSX mudam juntos. A cana do CP2b inclui o bagaço excedente, e o método não tem aquicultura nem silvicultura, que passam a aparecer sem dado.",
+            "en": "The Real and Ideal scenarios now follow the CP2b method: Real is the accessible potential (N4, 16.4 Mm³/day of CH₄) and Ideal the mobilisable one (N3, 19.2). They used to come from the Atlas de Bioenergia SP 2020 (21.5 and 27.0 Mm³/day). The difference is a change of method and of residue coverage, not a revision of the same figures. The map, the totals strip, the municipality page and the XLSX dossier change together. CP2b sugarcane includes the surplus bagasse, and the method has no aquaculture or forestry, which now show as no data."
+          }
+        },
+        {
+          "kind": "added",
+          "text": {
+            "pt-BR": "API: /api/v1/cp2b/summary (totais do estado), /api/v1/cp2b/municipalities/{ibge} (níveis por substrato, com o fator logístico) e /api/v1/cp2b/parameters (elementos de cálculo com fonte e status). Onze dos 17 substratos ainda têm parâmetros provisórios, e a API informa isso junto dos números.",
+            "en": "API: /api/v1/cp2b/summary (state totals), /api/v1/cp2b/municipalities/{ibge} (levels per substrate, with the logistic factor) and /api/v1/cp2b/parameters (calculation elements with source and status). Eleven of the 17 substrates still carry provisional parameters, and the API says so next to the numbers."
+          }
+        }
+      ]
+    },
+    {
       "version": "3.1.0",
       "date": "2026-09-21T11:25:00-03:00",
       "title": {

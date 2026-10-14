@@ -57,22 +57,24 @@ export default function LanguageSwitcher({ variant = 'light' }: LanguageSwitcher
       aria-label={t('lang.group_aria')}
       className="flex items-center gap-0.5"
     >
+      {/* The visible code stays the start of the accessible name ("EN – Switch to
+          English"): an aria-label without it fails WCAG 2.5.3 Label in Name. */}
       <button
         onClick={() => handleLanguageChange('en')}
         aria-pressed={locale === 'en'}
-        aria-label={t('lang.switch_to_en')}
         className={locale === 'en' ? activeClass : inactiveClass}
       >
-        EN
+        <span>EN</span>
+        <span className="sr-only"> – {t('lang.switch_to_en')}</span>
       </button>
       <span aria-hidden="true" className={`${styles.separator} text-xs select-none`}>|</span>
       <button
         onClick={() => handleLanguageChange('pt-BR')}
         aria-pressed={locale === 'pt-BR'}
-        aria-label={t('lang.switch_to_pt')}
         className={locale === 'pt-BR' ? activeClass : inactiveClass}
       >
-        PT
+        <span>PT</span>
+        <span className="sr-only"> – {t('lang.switch_to_pt')}</span>
       </button>
     </div>
   )

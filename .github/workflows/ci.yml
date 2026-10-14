@@ -222,7 +222,10 @@ jobs:
           python -m pip install --upgrade "setuptools>=83.0.0"
           python -m pip install -r requirements.txt safety bandit
       - name: Safety check
-        run: safety check
+        # Scan the backend's declared dependencies, not the whole runner environment:
+        # the latter also flags the scanner's own dependencies (safety pulls in nltk)
+        # and the runner's pip/setuptools, none of which ship with the backend.
+        run: safety check -r requirements.txt
       - name: Bandit SAST scan
         run: bandit -r app/ -f json -o bandit-report.json -c pyproject.toml
         continue-on-error: true

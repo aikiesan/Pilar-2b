@@ -69,6 +69,20 @@ backend/data/raw/pam/TABELA_1613_*.xlsx
 - Use `--uf MG` for the MG pilot and `--all-crops` to retain other PAM products
   as production-only records.
 
+## CP2b method potential (migration 034)
+
+```
+backend/data/raw/cp2b_potential/2026/cp2b_municipio_substrato_niveis.csv
+backend/data/raw/cp2b_potential/2026/cp2b_municipio_resumo.csv
+backend/data/raw/cp2b_potential/2026/cp2b_parametros.csv
+backend/data/raw/cp2b_potential/2026/cp2b_fl_municipio_substrato.csv
+```
+
+- Source: `Metodo_CP2b/outputs_v5/plataforma/` (CP2b v5.1, 24/09/2026), written by
+  `cp2b_pacote_plataforma.py`. Immutable: a new method run gets a new dated folder.
+- Consumed by: `scripts/load_cp2b_potential.py` (checks each file's sha256, then the
+  state totals of the v5.1 article). Also runs as a `--seed` step.
+
 ## Optional — infrastructure point layers (biogas/ethanol plants, substations…)
 
 MapBiomas 10.1 **INFRAESTRUTURA** vectors. These live **outside** `backend/`, so

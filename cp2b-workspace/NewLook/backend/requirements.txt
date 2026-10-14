@@ -1,7 +1,7 @@
 # FastAPI and ASGI
 # Updated for security patches (Sprint 4 Production Hardening)
-fastapi==0.141.1  # Updated from 0.115.7 — pulls starlette>=0.49.1 (fixes CVE-2025-54121, CVE-2025-62727)
-uvicorn[standard]==0.53.0  # Updated from 0.24.0 - stability improvements
+fastapi==0.143.0  # Updated from 0.115.7 — pulls starlette>=0.49.1 (fixes CVE-2025-54121, CVE-2025-62727)
+uvicorn[standard]==0.54.0  # Updated from 0.24.0 - stability improvements
 slowapi==0.1.10
 
 # Database
@@ -17,11 +17,11 @@ passlib[bcrypt]==1.7.4
 # passlib 1.7.4 is incompatible with bcrypt >= 4.1 (removed __about__ +
 # changed 72-byte handling break passlib's backend detection) — pin explicitly.
 bcrypt==4.0.1
-PyJWT==2.14.0  # >=2.13.0 fixes CVE-2026-48525 (DoS via unbounded Base64URL decoding)
+PyJWT==2.15.1  # >=2.13.0 fixes CVE-2026-48525 (DoS via unbounded Base64URL decoding)
 python-multipart==0.0.32  # >=0.0.31 fixes CVE-2026-53537/53539/53540 (DoS / request smuggling)
 
 # Environment and Configuration
-python-dotenv==1.2.3
+python-dotenv==1.2.4
 pydantic>=2.13.4
 # 2.14.2 is the fix for SFTY-20260619-43815 (path traversal via symlink
 # handling); the advisory covers >=2.12.0,<2.14.2.
@@ -57,7 +57,7 @@ requests==2.34.2  # Updated from 2.31.0 — fixes CVE-2024-35195, CVE-2024-47081
 pytest==9.1.1
 pytest-asyncio==1.4.0
 pytest-cov==7.1.0
-pytest-mock==3.15.1
+pytest-mock==3.16.0
 httpx==0.28.1
 black>=26.5.1  # Updated from 23.12.1 — fixes arbitrary file write via unsanitised cache file name
-isort==8.0.1
+isort==9.0.1
