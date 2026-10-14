@@ -285,6 +285,7 @@
       "connect": "Connect",
       "privacy": "Privacy Policy",
       "terms": "Terms of Use",
+      "accessibility": "Accessibility",
       "back_to_top": "Back to top",
       "platform_acronym": "Intelligent Platform for Locating and Using Residues",
       "platform_2b": "Biogas and Bioproducts",
@@ -1029,7 +1030,6 @@
     "keywords": "biogas, biomethane, bioproducts, renewable energy, residues, São Paulo, Minas Gerais, Brazil, geospatial analysis, biomass, MCDA, FAPESP, open-source, PILAR-2b, reproducible research"
   },
   "pages": {
-    "back_to_dashboard": "Back to Dashboard",
     "advanced_analysis": {
       "title": "Advanced Analysis",
       "literature_base_link": "Scientific base — 399 references (literature review)",
@@ -1356,9 +1356,7 @@
       "row_energy": "Energy Potential (MWh/year)",
       "row_co2": "CO₂ Reduction (ton/year)"
     },
-    "technology_routes": {
-      "title": "Technology Routes"
-    },
+    "technology_routes": {},
     "cite": {
       "title": "How to Cite PILAR-2b",
       "subtitle": "Platform developed by CP2b / NIPE-UNICAMP. When using the platform’s data, maps or results in academic, technical or commercial work, please cite it using one of the formats below.",
@@ -2189,8 +2187,7 @@
     "sidebar": {
       "back_button": "All Topics",
       "on_this_page": "ON THIS PAGE",
-      "other_topics": "OTHER TOPICS",
-      "breadcrumb_aria": "Breadcrumb"
+      "other_topics": "OTHER TOPICS"
     },
     "mapa": {
       "title": "Interactive Map",
@@ -2383,8 +2380,8 @@
     "updated": "Last updated: {date}"
   },
   "errorBoundary": {
-    "title": "Something went wrong",
-    "message": "Sorry, something unexpected went wrong. Try again, or go back to the home page.",
+    "title": "Something didn't work as expected",
+    "message": "Part of the page stopped working. Try again; if it keeps happening, go back home.",
     "details": "Error details (development only)",
     "home": "Go to the home page"
   },
@@ -2556,7 +2553,6 @@
       "lede": "The {sector} residues with availability factors on the platform."
     },
     "product": {
-      "breadcrumb": "Breadcrumb",
       "tabs_label": "Data product sections",
       "tabs": {
         "overview": "Overview",
@@ -2689,8 +2685,6 @@
     "empty": "The API returned no municipalities."
   },
   "municipality_profile": {
-    "breadcrumb": "Breadcrumb",
-    "home": "Home",
     "index": "Municipalities",
     "eyebrow": "Municipality in {state}",
     "ibge_code": "IBGE code",
@@ -2798,7 +2792,6 @@
   "method": {
     "eyebrow": "Method",
     "nav_label": "Method sections",
-    "breadcrumb": "Breadcrumb",
     "overview": {
       "title": "How PILAR-2b calculates potential",
       "lede": "Every figure on the platform starts from official data, goes through four availability factors and ends as biogas potential. These pages show each step, with its sources and its confidence.",
@@ -2857,6 +2850,25 @@
       "report_heading": "Found an error?",
       "report_body": "Write to the team: name the residue, the municipality or the page, and what looks wrong.",
       "patch_notes_cta": "See the patch notes"
+    }
+  },
+  "wayfinding": {
+    "breadcrumb": "You are here",
+    "main_nav": "Main navigation",
+    "loading": "Loading…",
+    "not_found": {
+      "meta_title": "Page not found",
+      "eyebrow": "Page not found",
+      "title": "We couldn't find this page",
+      "body": "The address may have changed or contain a typo. Search for a municipality below or take one of the most used paths.",
+      "paths": "Most used paths",
+      "back_home": "Back to home"
+    },
+    "error": {
+      "eyebrow": "Something went wrong",
+      "title": "This page didn't load properly",
+      "body": "It may have been a brief connection or server hiccup. Try again; if it keeps happening, go back home or open the map.",
+      "retry": "Try again"
     }
   }
 }

@@ -6,10 +6,12 @@
  * Fully functional implementation using backend API
  */
 import { useEffect, useState, useCallback, useRef, Suspense } from 'react'
-import { useRouter } from '@/navigation'
+import { usePathname, useRouter } from '@/navigation'
+import { loginHref } from '@/lib/authRedirect'
 import { useSearchParams } from 'next/navigation'
 import { useLocale, useTranslations } from 'next-intl'
-import Breadcrumb from '@/components/ui/Breadcrumb'
+import { BreadcrumbBar } from '@/components/ui/Breadcrumb'
+import { useBreadcrumbs } from '@/hooks/useBreadcrumbs'
 import dynamic from 'next/dynamic'
 import {
   MapPin,
@@ -74,11 +76,13 @@ const suitability = (agriculturalPercent: number): 'high' | 'medium' | 'low' =>
 // Inner component that uses useSearchParams
 function ProximityAnalysisContent() {
   const router = useRouter()
+  const pathname = usePathname()
   const searchParams = useSearchParams()
   const t = useTranslations('pages')
   const tp = useTranslations('pages.proximity')
   const tClasses = useTranslations('Map.mapbiomasLegend.classes')
   const tCommon = useTranslations('common')
+  const breadcrumbs = useBreadcrumbs()
   const format = useFormat()
   const current = useLocale()
   const locale = isLocale(current) ? current : defaultLocale
@@ -106,9 +110,9 @@ function ProximityAnalysisContent() {
   // Redirect if not authenticated
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
-      router.push('/login')
+      router.push(loginHref(pathname))
     }
-  }, [authLoading, isAuthenticated, router])
+  }, [authLoading, isAuthenticated, router, pathname])
 
   // Monotonically increasing id so an in-flight analysis abandoned by a new
   // map click can't display the old point's results under the new selection
@@ -252,10 +256,7 @@ function ProximityAnalysisContent() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-slate-900">
-      <Breadcrumb items={[
-        { label: t('back_to_dashboard'), href: '/dashboard' },
-        { label: t('proximity.title') },
-      ]} />
+      <BreadcrumbBar items={breadcrumbs} />
       {/* Page Title */}
       {/* Page title: a light band with a hairline rule (earth identity). */}
       <div className="border-b border-line bg-paper-raised text-ink">

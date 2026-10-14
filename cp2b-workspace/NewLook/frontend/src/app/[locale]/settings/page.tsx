@@ -8,13 +8,14 @@
 
 import { useEffect, useState } from 'react'
 import { useLocale, useTranslations } from 'next-intl'
-import { useRouter } from '@/navigation'
+import { usePathname, useRouter } from '@/navigation'
+import { loginHref } from '@/lib/authRedirect'
 import { isLocale } from '@/config/i18n'
 import { useLocaleSwitch } from '@/components/ui/LanguageSwitcher'
 import { Settings, User, Bell, Palette, Shield, HelpCircle, Save, Check } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { logger } from '@/lib/logger'
-import Breadcrumb from '@/components/ui/Breadcrumb'
+import { BreadcrumbBar } from '@/components/ui/Breadcrumb'
 import { useBreadcrumbs } from '@/hooks/useBreadcrumbs'
 
 interface UserSettings {
@@ -36,6 +37,7 @@ interface UserSettings {
 
 export default function SettingsPage() {
   const router = useRouter()
+  const pathname = usePathname()
   const { user, loading, isAuthenticated } = useAuth()
   const t = useTranslations('settings_page')
   const locale = useLocale()
@@ -74,9 +76,9 @@ export default function SettingsPage() {
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
-      router.push('/login')
+      router.push(loginHref(pathname))
     }
-  }, [loading, isAuthenticated, router])
+  }, [loading, isAuthenticated, router, pathname])
 
   const handleSave = async () => {
     setSaving(true)
@@ -104,10 +106,7 @@ export default function SettingsPage() {
 
   return (
     <>
-      {/* Breadcrumb */}
-      <div className="bg-white border-b dark:bg-slate-800 dark:border-slate-700">
-        <Breadcrumb items={breadcrumbs} />
-      </div>
+      <BreadcrumbBar items={breadcrumbs} />
 
       <div className="h-[calc(100vh-64px)] overflow-y-auto bg-gray-50 dark:bg-slate-900 transition-colors">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

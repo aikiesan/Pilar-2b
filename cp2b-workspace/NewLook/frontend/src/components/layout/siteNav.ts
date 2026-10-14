@@ -151,6 +151,21 @@ export const allNavHrefs = (): string[] => [
 ]
 
 /**
+ * Where a page sits in the menus: its group and its own entry, for the
+ * breadcrumb ("Início / Plataforma / Proximidade"). A path under an entry
+ * (/municipalities/campinas-sp) finds that entry; a path no menu lists finds
+ * nothing.
+ */
+export function navTrail(pathname: string): { group: NavGroup; leaf: NavLeaf } | undefined {
+  for (const group of NAV_GROUPS) {
+    const href = currentNavHref(pathname, group.items.map((item) => item.href))
+    const leaf = group.items.find((item) => item.href === href)
+    if (leaf) return { group, leaf }
+  }
+  return undefined
+}
+
+/**
  * The href that names the current page: the longest one the path is, or sits
  * under. An anchor (/about#equipe) is a section, never the current page, and a
  * parent gives way to its child: on /data/legend, "Legenda e códigos" is

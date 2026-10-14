@@ -2,6 +2,10 @@ import { Link } from '@/navigation'
 import { useTranslations } from 'next-intl'
 import { BookOpen } from 'lucide-react'
 import GuideTourController from '@/components/ui/GuideTourController'
+import { navMetadata } from '@/lib/pageMetadata'
+
+// Article pages set their own title; this one names the guide's index.
+export const generateMetadata = () => navMetadata('guide_usage', 'guide')
 
 export default function GuideLayout({
   children,
@@ -19,12 +23,12 @@ export default function GuideLayout({
       {/* Sidebar — md and up. Sticky inside the flow (it was position: fixed,
           which slid it over the footer at the end of every guide page). */}
       <aside className="hidden md:block w-64 shrink-0 sticky top-16 self-start h-[calc(100dvh-4rem)] overflow-y-auto border-r border-line bg-paper-raised p-6">
-        <h2 className="text-xl text-ink mb-6 flex items-center gap-2">
+        <h2 id="guide-nav-heading" className="text-xl text-ink mb-6 flex items-center gap-2">
           <BookOpen className="w-5 h-5 text-terra-600 dark:text-terra-400" aria-hidden="true" />
           {t('sidebar_heading')}
         </h2>
 
-        <nav className="space-y-0.5">
+        <nav aria-labelledby="guide-nav-heading" className="space-y-0.5">
           <span className="eyebrow block mb-2 px-3">{t('main_topics')}</span>
 
           <Link href="/guide" className={link}>{t('nav_intro')}</Link>

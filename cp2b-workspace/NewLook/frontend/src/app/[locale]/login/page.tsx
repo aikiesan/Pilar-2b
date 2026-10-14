@@ -12,8 +12,12 @@ import { useAuth } from '@/contexts/AuthContext'
 import { AuthError } from '@/lib/authErrors'
 import { useTranslations } from 'next-intl'
 import { logger } from '@/lib/logger'
+import { safeNext } from '@/lib/authRedirect'
 import { firstError, validateEmail, validateRequired } from '@/lib/validation'
 import { useValidationMessage } from '@/hooks/useValidationMessage'
+
+/** Read at redirect time, so the page needs no Suspense boundary for useSearchParams. */
+const afterLogin = () => safeNext(new URLSearchParams(window.location.search).get('next'))
 
 export default function LoginPage() {
   const router = useRouter()
@@ -26,11 +30,12 @@ export default function LoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [shouldNavigate, setShouldNavigate] = useState(false)
 
-  // Navigate to dashboard once user is loaded after login
+  // Once signed in, return to the page that sent the visitor here (?next=),
+  // or to the map.
   useEffect(() => {
     if (shouldNavigate && user && !loading) {
-      logger.info('[Login] User loaded, navigating to dashboard')
-      router.push('/dashboard')
+      logger.info('[Login] User loaded, returning to the previous page')
+      router.push(afterLogin())
       setShouldNavigate(false)
     }
   }, [shouldNavigate, user, loading, router])
@@ -40,7 +45,7 @@ export default function LoginPage() {
     if (shouldNavigate && !user) {
       const timeoutId = setTimeout(() => {
         logger.warn('[Login] User profile timeout after 8s, forcing navigation')
-        router.push('/dashboard')
+        router.push(afterLogin())
         setShouldNavigate(false)
       }, 8000)
 

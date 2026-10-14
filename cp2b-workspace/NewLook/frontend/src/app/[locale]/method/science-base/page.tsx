@@ -12,9 +12,11 @@ import { Suspense, useEffect, useState, type ComponentType } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import LegacyBadge from '@/components/ui/LegacyBadge'
+import { loginHref } from '@/lib/authRedirect'
 import { AlertCircle, Beaker, BookOpen, FlaskConical, GitCompare, RefreshCw, TestTube2 } from 'lucide-react'
-import { useRouter } from '@/navigation'
-import Breadcrumb from '@/components/ui/Breadcrumb'
+import { usePathname, useRouter } from '@/navigation'
+import { BreadcrumbBar } from '@/components/ui/Breadcrumb'
+import { useBreadcrumbs } from '@/hooks/useBreadcrumbs'
 import { useAuth } from '@/contexts/AuthContext'
 import { useFormat } from '@/hooks/useFormat'
 import { useScientificDatabase } from '@/hooks/useScientificDatabase'
@@ -47,10 +49,12 @@ function Spinner({ label }: { label: string }) {
 
 function ScientificDatabase() {
   const router = useRouter()
+  const pathname = usePathname()
   const searchParams = useSearchParams()
   const t = useTranslations('pages')
   const ts = useTranslations('pages.scientific_database')
   const tCommon = useTranslations('common')
+  const breadcrumbs = useBreadcrumbs()
   const format = useFormat()
   const { user, loading: authLoading, isAuthenticated } = useAuth()
   const db = useScientificDatabase(isAuthenticated)
@@ -62,8 +66,8 @@ function ScientificDatabase() {
   const [referenceResidue, setReferenceResidue] = useState('')
 
   useEffect(() => {
-    if (!authLoading && !isAuthenticated) router.push('/login')
-  }, [authLoading, isAuthenticated, router])
+    if (!authLoading && !isAuthenticated) router.push(loginHref(pathname))
+  }, [authLoading, isAuthenticated, router, pathname])
 
   const open = (next: ScientificViewMode) => {
     setView(next)
@@ -103,7 +107,7 @@ function ScientificDatabase() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      <Breadcrumb items={[{ label: t('back_to_dashboard'), href: '/dashboard' }, { label: ts('title') }]} />
+      <BreadcrumbBar items={breadcrumbs} />
 
       {/* Page title: a light band with a hairline rule (earth identity). */}
       <div className="border-b border-line bg-paper-raised text-ink">

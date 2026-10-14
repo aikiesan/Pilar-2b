@@ -47,7 +47,7 @@ function signIn(user: typeof TEST_USER | null, realSession: boolean) {
   mockedRealSession.mockReturnValue(realSession)
 }
 
-const mainNav = () => screen.getByRole('navigation', { name: 'Main navigation' })
+const mainNav = () => screen.getByRole('navigation', { name: 'Navegação principal' })
 const trigger = (name: string) => within(mainNav()).getByRole('button', { name })
 
 beforeEach(() => {
@@ -163,7 +163,8 @@ describe('UnifiedHeader navigation', () => {
 
   it('offers "Entrar" in open mode instead of the test user\'s account menu', () => {
     render(<UnifiedHeader />)
-    expect(screen.getAllByRole('link', { name: 'Entrar' })[0]).toHaveAttribute('href', '/login')
+    // The link remembers the page, so signing in returns the visitor to it.
+    expect(screen.getAllByRole('link', { name: 'Entrar' })[0]).toHaveAttribute('href', `/login?next=${encodeURIComponent(mockPathname)}`)
     expect(screen.queryByText('Test User')).not.toBeInTheDocument()
   })
 })

@@ -88,7 +88,7 @@ test.describe('Header on a desktop', () => {
     await answerCookieBanner(page)
     await page.setViewportSize({ width: 1280, height: 900 })
     await page.goto('/pt-BR/about')
-    const nav = page.getByRole('navigation', { name: 'Main navigation' })
+    const nav = page.getByRole('navigation', { name: 'Navegação principal' })
 
     const about = nav.getByRole('button', { name: 'Sobre' })
     await about.click()
@@ -106,7 +106,7 @@ test.describe('Header on a desktop', () => {
     await answerCookieBanner(page)
     await page.setViewportSize({ width: 1440, height: 900 })
     await page.goto('/pt-BR/guide')
-    const nav = page.getByRole('navigation', { name: 'Main navigation' })
+    const nav = page.getByRole('navigation', { name: 'Navegação principal' })
     const data = nav.getByRole('button', { name: 'Dados' })
     const method = nav.getByRole('button', { name: 'Método' })
 
@@ -140,7 +140,7 @@ test.describe('Header on a desktop', () => {
     expect(overflow).toBeLessThanOrEqual(0)
     await expect(page.getByRole('link', { name: 'Abrir mapa' })).toBeVisible()
     for (const group of ['Plataforma', 'Dados', 'Método', 'Sobre']) {
-      await expect(page.getByRole('navigation', { name: 'Main navigation' }).getByRole('button', { name: group })).toBeVisible()
+      await expect(page.getByRole('navigation', { name: 'Navegação principal' }).getByRole('button', { name: group })).toBeVisible()
     }
   })
 })

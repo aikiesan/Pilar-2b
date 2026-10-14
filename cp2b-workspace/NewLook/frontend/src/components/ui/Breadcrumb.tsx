@@ -1,7 +1,5 @@
-'use client'
-
+import { useTranslations } from 'next-intl'
 import { Link } from '@/navigation'
-import { ChevronRight, Home } from 'lucide-react'
 
 export interface BreadcrumbItem {
   /** Visible label */
@@ -16,35 +14,31 @@ interface BreadcrumbProps {
 }
 
 /**
- * Accessible breadcrumb navigation.
- * WCAG: <nav aria-label="Breadcrumb"> wrapping an <ol>; current page has aria-current="page".
+ * The site's one breadcrumb: "Início / Plataforma / Proximidade".
+ *
+ * A <nav> named "Você está em" around an <ol>; the slashes are decoration and
+ * hidden from screen readers, and the last crumb is the current page. It holds
+ * no state, so server pages and client pages render the same component.
  */
 export default function Breadcrumb({ items, className = '' }: BreadcrumbProps) {
+  const t = useTranslations('wayfinding')
+
   return (
-    <nav aria-label="Breadcrumb" className={`flex items-center py-3 px-4 sm:px-6 lg:px-8 ${className}`}>
-      <ol className="flex items-center flex-wrap gap-1 text-sm text-gray-500 dark:text-gray-400">
+    <nav aria-label={t('breadcrumb')} className={`text-sm text-ink-muted ${className}`}>
+      <ol className="flex flex-wrap items-center gap-x-2 gap-y-1">
         {items.map((item, index) => {
           const isLast = index === items.length - 1
-
           return (
-            <li key={index} className="flex items-center gap-1">
-              {index > 0 && (
-                <ChevronRight className="h-3.5 w-3.5 text-gray-300 dark:text-gray-600 flex-shrink-0" aria-hidden="true" />
-              )}
+            <li key={`${index}-${item.label}`} className="flex items-center gap-x-2">
+              {index > 0 && <span aria-hidden="true">/</span>}
               {isLast || !item.href ? (
-                <span
-                  aria-current={isLast ? 'page' : undefined}
-                  className={isLast
-                    ? 'text-gray-900 dark:text-white font-medium'
-                    : 'text-gray-500 dark:text-gray-400'
-                  }
-                >
+                <span aria-current={isLast ? 'page' : undefined} className={isLast ? 'text-ink' : undefined}>
                   {item.label}
                 </span>
               ) : (
                 <Link
                   href={item.href}
-                  className="hover:text-terra-600 dark:hover:text-terra-400 transition-colors focus:outline-none focus:ring-2 focus:ring-terra-600 rounded"
+                  className="inline-flex min-h-[24px] items-center underline-offset-2 hover:text-ink hover:underline"
                 >
                   {item.label}
                 </Link>
@@ -54,5 +48,16 @@ export default function Breadcrumb({ items, className = '' }: BreadcrumbProps) {
         })}
       </ol>
     </nav>
+  )
+}
+
+/** The breadcrumb as a band under the header, for the tool pages. */
+export function BreadcrumbBar({ items }: { items: BreadcrumbItem[] }) {
+  return (
+    <div className="border-b border-line bg-paper-raised">
+      <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
+        <Breadcrumb items={items} />
+      </div>
+    </div>
   )
 }

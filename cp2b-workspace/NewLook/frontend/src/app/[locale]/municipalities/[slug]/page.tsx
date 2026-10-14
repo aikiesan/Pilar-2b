@@ -19,6 +19,8 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { getFormatter, getTranslations } from 'next-intl/server'
 import { Link } from '@/navigation'
+import Breadcrumb from '@/components/ui/Breadcrumb'
+import { navCrumbs } from '@/lib/breadcrumbTrail'
 import MunicipalitySearch from '@/components/home/MunicipalitySearch'
 import ShareLinks from '@/components/municipality/ShareLinks'
 import { getState, ufOf } from '@/data/brazilStates'
@@ -142,6 +144,7 @@ export default async function MunicipalityProfilePage({ params }: Params) {
   const profile = await load(slug)
   const t = await getTranslations({ locale, namespace: 'municipality_profile' })
   const tSectors = await getTranslations({ locale, namespace: 'common.sectors' })
+  const tNav = await getTranslations({ locale, namespace: 'common.nav' })
   const tResidues = await getTranslations({ locale, namespace: 'Map.residues' })
   const format = await getFormatter({ locale })
 
@@ -187,15 +190,7 @@ export default async function MunicipalityProfilePage({ params }: Params) {
       {/* 1. Header */}
       <header className="border-b border-line">
         <div className="mx-auto max-w-5xl px-4 pt-8 sm:px-6 sm:pt-12 lg:px-8">
-          <nav aria-label={t('breadcrumb')} className="text-sm text-ink-muted">
-            <ol className="flex flex-wrap items-center gap-x-2 gap-y-1">
-              <li><Link href="/" className="underline-offset-2 hover:text-ink hover:underline">{t('home')}</Link></li>
-              <li aria-hidden="true">/</li>
-              <li><Link href="/municipalities" className="underline-offset-2 hover:text-ink hover:underline">{t('index')}</Link></li>
-              <li aria-hidden="true">/</li>
-              <li aria-current="page" className="text-ink">{p.name}</li>
-            </ol>
-          </nav>
+          <Breadcrumb items={navCrumbs('/municipalities/' + slug, (key) => tNav(key), [{ label: p.name }])} />
           <p className="eyebrow mt-6">{t('eyebrow', { state: state?.nome ?? uf })}</p>
           <h1 className="mt-2 text-4xl text-ink sm:text-5xl">
             {p.name} <span className="text-ink-muted">({uf})</span>

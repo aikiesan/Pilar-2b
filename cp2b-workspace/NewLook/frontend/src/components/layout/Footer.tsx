@@ -308,7 +308,7 @@ export default function Footer() {
 
             {/* Legal links */}
             <nav aria-label={t('footer.legal_links')}>
-              <ul className="flex items-center gap-1 list-none">
+              <ul className="flex flex-wrap items-center justify-center gap-1 list-none">
                 <li>
                   <Link
                     href="/privacy"
@@ -324,6 +324,15 @@ export default function Footer() {
                     className="hover:text-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-white/40 rounded px-1"
                   >
                     {t('footer.terms')}
+                  </Link>
+                </li>
+                <li aria-hidden="true" className="text-gray-600">|</li>
+                <li>
+                  <Link
+                    href="/accessibility"
+                    className="hover:text-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-white/40 rounded px-1"
+                  >
+                    {t('footer.accessibility')}
                   </Link>
                 </li>
                 <li aria-hidden="true" className="text-gray-600">|</li>

@@ -6,10 +6,12 @@
  * Based on FDE (Fator de Disponibilidade Efetiva) methodology
  */
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
-import { Link, useRouter } from '@/navigation'
+import { Link, usePathname, useRouter } from '@/navigation'
+import { loginHref } from '@/lib/authRedirect'
 import { useTranslations } from 'next-intl'
 import LegacyBadge from '@/components/ui/LegacyBadge'
-import Breadcrumb from '@/components/ui/Breadcrumb'
+import { BreadcrumbBar } from '@/components/ui/Breadcrumb'
+import { useBreadcrumbs } from '@/hooks/useBreadcrumbs'
 import {
   TrendingUp,
   TrendingDown,
@@ -154,9 +156,11 @@ function computeRPRAdjustedBiogas(
 
 export default function AdvancedAnalysisPage() {
   const router = useRouter()
+  const pathname = usePathname()
   const t = useTranslations('pages')
   const tAnalysis = useTranslations('analysis')
   const tCommon = useTranslations('common')
+  const breadcrumbs = useBreadcrumbs()
   const localize = useLocalize()
   const format = useFormat()
   // "12.3B m³/year" — the theoretical totals quoted beside the charts.
@@ -530,9 +534,9 @@ export default function AdvancedAnalysisPage() {
   // Redirect if not authenticated
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
-      router.push('/login')
+      router.push(loginHref(pathname))
     }
-  }, [authLoading, isAuthenticated, router])
+  }, [authLoading, isAuthenticated, router, pathname])
 
   if (authLoading) {
     return (
@@ -559,10 +563,7 @@ export default function AdvancedAnalysisPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      <Breadcrumb items={[
-        { label: t('back_to_dashboard'), href: '/dashboard' },
-        { label: t('advanced_analysis.title') },
-      ]} />
+      <BreadcrumbBar items={breadcrumbs} />
       {/* Page Title */}
       {/* Page title: a light band with a hairline rule (earth identity). */}
       <div className="border-b border-line bg-paper-raised text-ink">
@@ -836,12 +837,13 @@ export default function AdvancedAnalysisPage() {
                 </div>
 
                 {/* View Mode Toggles */}
-                <div className="flex items-center gap-2">
+                {/* Wraps on a phone: four tabs side by side are wider than 390 px. */}
+                <div className="flex flex-wrap items-center gap-2">
                   <span className="text-xs font-medium text-ink-muted mr-2">{t('advanced_analysis.visualization_label')}</span>
-                  <div className="flex gap-1">
+                  <div className="flex flex-wrap gap-1">
                     <button
                       onClick={() => setViewMode('cascade')}
-                      className={`flex items-center justify-center gap-1.5 border px-3 py-2 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-terra-600 ${
+                      className={`flex min-h-[44px] items-center justify-center gap-1.5 border px-3 py-2 text-xs font-medium transition-colors sm:min-h-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-terra-600 ${
                         viewMode === 'cascade'
                           ? 'border-ink bg-paper-sunken text-ink'
                           : 'border-line text-ink-muted hover:border-line-strong hover:text-ink'
@@ -852,7 +854,7 @@ export default function AdvancedAnalysisPage() {
                     </button>
                     <button
                       onClick={() => setViewMode('flow')}
-                      className={`flex items-center justify-center gap-1.5 border px-3 py-2 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-terra-600 ${
+                      className={`flex min-h-[44px] items-center justify-center gap-1.5 border px-3 py-2 text-xs font-medium transition-colors sm:min-h-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-terra-600 ${
                         viewMode === 'flow'
                           ? 'border-ink bg-paper-sunken text-ink'
                           : 'border-line text-ink-muted hover:border-line-strong hover:text-ink'
@@ -863,7 +865,7 @@ export default function AdvancedAnalysisPage() {
                     </button>
                     <button
                       onClick={() => setViewMode('scenarios')}
-                      className={`flex items-center justify-center gap-1.5 border px-3 py-2 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-terra-600 ${
+                      className={`flex min-h-[44px] items-center justify-center gap-1.5 border px-3 py-2 text-xs font-medium transition-colors sm:min-h-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-terra-600 ${
                         viewMode === 'scenarios'
                           ? 'border-ink bg-paper-sunken text-ink'
                           : 'border-line text-ink-muted hover:border-line-strong hover:text-ink'
@@ -874,7 +876,7 @@ export default function AdvancedAnalysisPage() {
                     </button>
                     <button
                       onClick={() => setViewMode('table')}
-                      className={`flex items-center justify-center gap-1.5 border px-3 py-2 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-terra-600 ${
+                      className={`flex min-h-[44px] items-center justify-center gap-1.5 border px-3 py-2 text-xs font-medium transition-colors sm:min-h-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-terra-600 ${
                         viewMode === 'table'
                           ? 'border-ink bg-paper-sunken text-ink'
                           : 'border-line text-ink-muted hover:border-line-strong hover:text-ink'

@@ -16,6 +16,8 @@ import { notFound } from 'next/navigation';
 import { getFormatter, getLocale, getTranslations } from 'next-intl/server';
 import { ArrowRight } from 'lucide-react';
 import { Link } from '@/navigation';
+import Breadcrumb from '@/components/ui/Breadcrumb';
+import { navCrumbs } from '@/lib/breadcrumbTrail';
 import DataCard from '@/components/data/DataCard';
 import ProductTabs from '@/components/data/ProductTabs';
 import LegendTables from '@/components/data/LegendTables';
@@ -58,6 +60,7 @@ export default async function ResidueProductPage({ params }: Params) {
   const locale = (await getLocale()) === 'en' ? 'en' : 'pt-BR';
   const name = residue.name[locale];
   const sectorName = t(`sectors.${residue.category}`);
+  const tNav = await getTranslations('common.nav');
   const fde = residueFDE(residue);
   const pct = (v: number) => format.number(v, { style: 'percent', maximumFractionDigits: 1 });
   const link = 'font-medium text-terra-700 underline-offset-2 hover:underline dark:text-terra-300';
@@ -245,15 +248,7 @@ export default async function ResidueProductPage({ params }: Params) {
     <div className="bg-paper">
       <header className="border-b border-line">
         <div className="mx-auto max-w-7xl px-4 pt-10 sm:px-6 sm:pt-14 lg:px-8">
-          <nav aria-label={t('product.breadcrumb')} className="text-sm text-ink-muted">
-            <ol className="flex flex-wrap items-center gap-x-2 gap-y-1">
-              <li><Link href="/data" className="underline-offset-2 hover:text-ink hover:underline">{t('catalog.title')}</Link></li>
-              <li aria-hidden="true">/</li>
-              <li><Link href={`/data/${residue.category}`} className="underline-offset-2 hover:text-ink hover:underline">{sectorName}</Link></li>
-              <li aria-hidden="true">/</li>
-              <li aria-current="page" className="text-ink">{name}</li>
-            </ol>
-          </nav>
+          <Breadcrumb items={navCrumbs(`/data/${residue.category}`, (key) => tNav(key), [{ label: sectorName, href: `/data/${residue.category}` }, { label: name }])} />
           <h1 className="mt-4 text-4xl text-ink sm:text-5xl">{name}</h1>
           <DataCard
             className="mt-6"

@@ -285,6 +285,7 @@
       "connect": "Conecte-se",
       "privacy": "Política de Privacidade",
       "terms": "Termos de Uso",
+      "accessibility": "Acessibilidade",
       "back_to_top": "Voltar ao topo",
       "platform_acronym": "Plataforma Inteligente de Localização e Aproveitamento de Resíduos",
       "platform_2b": "Biogás e Bioprodutos",
@@ -1029,7 +1030,6 @@
     "keywords": "biogás, biometano, bioprodutos, energia renovável, resíduos, São Paulo, Minas Gerais, Brasil, análise geoespacial, biomassa, MCDA, FAPESP, open-source, PILAR-2b, pesquisa reproduzível"
   },
   "pages": {
-    "back_to_dashboard": "Voltar ao Dashboard",
     "advanced_analysis": {
       "title": "Análises Avançadas",
       "literature_base_link": "Base científica — 399 referências (revisão de literatura)",
@@ -1356,9 +1356,7 @@
       "row_energy": "Potencial Energético (MWh/ano)",
       "row_co2": "Redução de CO₂ (ton/ano)"
     },
-    "technology_routes": {
-      "title": "Rotas Tecnológicas"
-    },
+    "technology_routes": {},
     "cite": {
       "title": "Como Citar o PILAR-2b",
       "subtitle": "Plataforma desenvolvida pelo CP2b / NIPE-UNICAMP. Ao usar dados, mapas ou resultados da plataforma em trabalhos acadêmicos, técnicos ou comerciais, cite-a usando um dos formatos abaixo.",
@@ -2189,8 +2187,7 @@
     "sidebar": {
       "back_button": "Todos os tópicos",
       "on_this_page": "NESTA PÁGINA",
-      "other_topics": "OUTROS TÓPICOS",
-      "breadcrumb_aria": "Trilha de navegação"
+      "other_topics": "OUTROS TÓPICOS"
     },
     "mapa": {
       "title": "Mapa Interativo",
@@ -2383,8 +2380,8 @@
     "updated": "Última atualização: {date}"
   },
   "errorBoundary": {
-    "title": "Algo deu errado",
-    "message": "Desculpe, ocorreu um erro inesperado. Tente novamente ou volte para a página inicial.",
+    "title": "Algo não saiu como esperado",
+    "message": "Uma parte da página parou de funcionar. Tente de novo; se continuar, volte ao início.",
     "details": "Detalhes do erro (apenas em desenvolvimento)",
     "home": "Ir para o início"
   },
@@ -2556,7 +2553,6 @@
       "lede": "Os resíduos do setor {sector} com fatores de disponibilidade na plataforma."
     },
     "product": {
-      "breadcrumb": "Navegação estrutural",
       "tabs_label": "Seções do produto de dados",
       "tabs": {
         "overview": "Visão geral",
@@ -2689,8 +2685,6 @@
     "empty": "A API não devolveu nenhum município."
   },
   "municipality_profile": {
-    "breadcrumb": "Trilha de navegação",
-    "home": "Início",
     "index": "Municípios",
     "eyebrow": "Município de {state}",
     "ibge_code": "Código IBGE",
@@ -2798,7 +2792,6 @@
   "method": {
     "eyebrow": "Método",
     "nav_label": "Seções do método",
-    "breadcrumb": "Trilha de navegação",
     "overview": {
       "title": "Como o PILAR-2b calcula o potencial",
       "lede": "Cada número da plataforma parte de um dado oficial, passa por quatro fatores de disponibilidade e chega ao potencial de biogás. Estas páginas mostram cada passo, com as fontes e o grau de confiança.",
@@ -2857,6 +2850,25 @@
       "report_heading": "Encontrou um erro?",
       "report_body": "Escreva para a equipe: diga o resíduo, o município ou a página, e o que parece errado.",
       "patch_notes_cta": "Ver as Novidades"
+    }
+  },
+  "wayfinding": {
+    "breadcrumb": "Você está em",
+    "main_nav": "Navegação principal",
+    "loading": "Carregando…",
+    "not_found": {
+      "meta_title": "Página não encontrada",
+      "eyebrow": "Página não encontrada",
+      "title": "Não encontramos esta página",
+      "body": "O endereço pode ter mudado ou ter um erro de digitação. Procure um município abaixo ou siga por um dos caminhos mais usados.",
+      "paths": "Caminhos mais usados",
+      "back_home": "Voltar ao início"
+    },
+    "error": {
+      "eyebrow": "Algo deu errado",
+      "title": "Esta página não carregou direito",
+      "body": "Pode ter sido uma falha passageira na conexão ou no servidor. Tente de novo; se continuar, volte ao início ou abra o mapa.",
+      "retry": "Tentar de novo"
     }
   }
 }

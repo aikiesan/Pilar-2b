@@ -11,6 +11,7 @@ import { UserPlus, AlertCircle, CheckCircle } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { AuthError } from '@/lib/authErrors'
 import { useTranslations } from 'next-intl'
+import { AFTER_LOGIN_FALLBACK } from '@/lib/authRedirect'
 import {
   firstError,
   passwordStrength as scorePassword,
@@ -62,8 +63,8 @@ export default function RegisterPage() {
         password: formData.password,
         full_name: formData.full_name
       })
-      // Use locale-aware router for navigation
-      router.push('/dashboard')
+      // A new account starts on the map (the dashboard is retired).
+      router.push(AFTER_LOGIN_FALLBACK)
     } catch (err: unknown) {
       setError(t(`errors.${err instanceof AuthError ? err.code : 'registration_failed'}`))
     }

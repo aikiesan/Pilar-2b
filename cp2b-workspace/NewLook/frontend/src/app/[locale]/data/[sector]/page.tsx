@@ -6,6 +6,8 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { Link } from '@/navigation';
+import Breadcrumb from '@/components/ui/Breadcrumb';
+import { navCrumbs } from '@/lib/breadcrumbTrail';
 import ResidueTable from '@/components/data/ResidueTable';
 import { CATALOG_SECTORS, SECTOR_SWATCH, isCatalogSector, residuesInSector } from '@/data/residueCatalog';
 import { METHOD_PAGES_ENABLED } from '@/lib/featureFlags';
@@ -32,16 +34,13 @@ export default async function DataSectorPage({ params }: Params) {
   if (!isCatalogSector(sector)) notFound();
   const t = await getTranslations('data_catalog');
   const name = t(`sectors.${sector}`);
+  const tNav = await getTranslations('common.nav');
 
   return (
     <div className="bg-paper">
       <header className="border-b border-line">
         <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
-          <nav aria-label={t('product.breadcrumb')} className="text-sm text-ink-muted">
-            <Link href="/data" className="underline-offset-2 hover:text-ink hover:underline">{t('catalog.title')}</Link>
-            <span aria-hidden="true" className="mx-2">/</span>
-            <span aria-current="page">{name}</span>
-          </nav>
+          <Breadcrumb items={navCrumbs(`/data/${sector}`, (key) => tNav(key), [{ label: name }])} />
           <h1 className="mt-4 flex items-center gap-4 text-4xl text-ink sm:text-5xl">
             <span aria-hidden="true" className="h-4 w-4 shrink-0" style={{ background: SECTOR_SWATCH[sector] }} />
             {name}

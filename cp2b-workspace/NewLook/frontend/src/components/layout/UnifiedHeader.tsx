@@ -31,6 +31,7 @@ import MobileTabBar from '@/components/layout/MobileTabBar'
 import { GUIDE_LINK, NAV_GROUPS, currentNavHref, type NavGroup, type NavGroupId, type NavLeaf } from '@/components/layout/siteNav'
 import { isFullViewport } from '@/components/layout/fullViewport'
 import { logger } from '@/lib/logger'
+import { loginHref } from '@/lib/authRedirect'
 
 // The account UI keys off a REAL session, not `isAuthenticated`: in open mode
 // (NEXT_PUBLIC_DISABLE_AUTH=true) every visitor is the synthetic TEST_USER, so
@@ -49,6 +50,7 @@ export default function UnifiedHeader() {
   // (a link chosen, back/forward) closes it without an effect.
   const [openMenu, setOpenMenu] = useState<{ id: NavGroupId; on: string } | null>(null)
   const t = useTranslations('common')
+  const tWay = useTranslations('wayfinding')
   const hasTabBar = !isFullViewport(pathname)
 
   const setGroupOpen = useCallback(
@@ -124,11 +126,11 @@ export default function UnifiedHeader() {
       )}
 
       <header className="sticky top-0 z-50 border-b border-line bg-paper-raised/95 backdrop-blur-sm">
-        <nav className="max-w-full mx-auto px-4 sm:px-6 lg:px-8" aria-label="Main navigation">
-          <div className="flex items-center justify-between h-16 gap-4">
+        <nav className="max-w-full mx-auto px-4 sm:px-6 lg:px-8" aria-label={tWay('main_nav')}>
+          <div className="flex items-center justify-between h-16 gap-2 sm:gap-4">
             {/* Logo */}
             <div className="flex-shrink-0">
-              <Link href="/" className="flex items-center gap-3 group">
+              <Link href="/" className="flex items-center gap-2 sm:gap-3 group">
                 <Image
                   src="/images/logotipo-full-black.png"
                   alt={t('logo_alt')}
@@ -227,7 +229,7 @@ export default function UnifiedHeader() {
                   </div>
                 ) : (
                   <Link
-                    href="/login"
+                    href={loginHref(pathname)}
                     className="px-4 py-2 text-sm font-medium rounded border border-ink/70 text-ink hover:bg-ink hover:text-paper transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-terra-600 focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
                   >
                     {t('auth.login')}
@@ -295,9 +297,17 @@ export default function UnifiedHeader() {
                 <div className="border-t border-line px-4 py-4">
                   <p className="text-sm font-medium text-ink">{user.full_name || t('auth.user')}</p>
                   <p className="text-xs text-ink-muted mb-3">{user.email}</p>
+                  <Link
+                    href="/settings"
+                    className="mb-2 flex min-h-[44px] items-center gap-2 rounded px-3 text-sm text-ink hover:bg-paper-sunken"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <Settings className="h-4 w-4" aria-hidden="true" />
+                    {t('auth.settings')}
+                  </Link>
                   <button
                     onClick={handleLogout}
-                    className="flex items-center gap-2 w-full px-3 py-2 text-sm text-white bg-red-700 hover:bg-red-800 rounded"
+                    className="flex items-center gap-2 w-full min-h-[44px] px-3 py-2 text-sm text-white bg-red-700 hover:bg-red-800 rounded"
                   >
                     <LogOut className="h-4 w-4" aria-hidden="true" />
                     {t('auth.logout_account')}
@@ -306,7 +316,7 @@ export default function UnifiedHeader() {
               ) : (
                 <div className="border-t border-line px-4 py-4">
                   <Link
-                    href="/login"
+                    href={loginHref(pathname)}
                     className="block w-full min-h-[44px] px-4 py-2.5 text-center text-sm font-medium rounded border border-ink/70 text-ink hover:bg-ink hover:text-paper"
                     onClick={() => setMobileMenuOpen(false)}
                   >

@@ -7,8 +7,8 @@ jest.mock('next-intl', () => jest.requireActual('@/test/mocks/next-intl-real'))
 jest.mock('@/contexts/AuthContext', () => ({
   useAuth: () => ({ user: { id: 1 }, loading: false, isAuthenticated: true }),
 }))
-jest.mock('@/navigation', () => ({ useRouter: () => ({ push: jest.fn() }) }))
-jest.mock('@/components/ui/Breadcrumb', () => ({ __esModule: true, default: () => null }))
+jest.mock('@/navigation', () => ({ useRouter: () => ({ push: jest.fn() }), usePathname: () => '/method/science-base' }))
+jest.mock('@/components/ui/Breadcrumb', () => ({ __esModule: true, default: () => null, BreadcrumbBar: () => null }))
 let search = ''
 jest.mock('next/navigation', () => ({ useSearchParams: () => new URLSearchParams(search) }))
 jest.mock('@/services/scientificApi')

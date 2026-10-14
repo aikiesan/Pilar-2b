@@ -11,6 +11,8 @@ import type { ReactNode } from 'react';
 import { getTranslations } from 'next-intl/server';
 import { Link } from '@/navigation';
 import { NAV_GROUPS } from '@/components/layout/siteNav';
+import Breadcrumb from '@/components/ui/Breadcrumb';
+import { navCrumbs } from '@/lib/breadcrumbTrail';
 
 const METHOD = NAV_GROUPS.find((group) => group.id === 'method')!;
 
@@ -36,11 +38,7 @@ export default async function MethodShell({
           {current === '/method' ? (
             <p className="eyebrow">{t('eyebrow')}</p>
           ) : (
-            <nav aria-label={t('breadcrumb')} className="text-sm text-ink-muted">
-              <Link href="/method" className="underline-offset-2 hover:text-ink hover:underline">{t('eyebrow')}</Link>
-              <span aria-hidden="true" className="mx-2">/</span>
-              <span aria-current="page">{title}</span>
-            </nav>
+            <Breadcrumb items={navCrumbs(current, (key) => tNav(key))} />
           )}
           <h1 className="mt-3 max-w-4xl text-4xl text-ink sm:text-5xl">{title}</h1>
           <p className="mt-4 max-w-2xl text-ink-muted">{lede}</p>

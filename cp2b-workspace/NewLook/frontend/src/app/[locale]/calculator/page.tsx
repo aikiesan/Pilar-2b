@@ -2,14 +2,18 @@
 
 import { useTranslations } from 'next-intl'
 import dynamic from 'next/dynamic'
+import { BreadcrumbBar } from '@/components/ui/Breadcrumb'
+import { useBreadcrumbs } from '@/hooks/useBreadcrumbs'
 
 const BiogasCalculator = dynamic(() => import('./components/BiogasCalculator'), { ssr: false })
 
 export default function TechnologyRoutesPage() {
   const t = useTranslations('calculator')
+  const breadcrumbs = useBreadcrumbs()
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-slate-900">
+      <BreadcrumbBar items={breadcrumbs} />
       <div className="max-w-2xl mx-auto px-4 py-6">
         <div className="mb-8 text-center">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100">{t('title')}</h1>

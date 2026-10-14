@@ -26,10 +26,29 @@ const movedPages = [
   { from: '/dashboard/proximity', to: '/proximity' },
   { from: '/dashboard/technology-routes', to: '/calculator' },
   { from: '/dashboard/scientific-database', to: '/method/science-base' },
-].map(({ from, to }) => ({
+  // Portuguese addresses a visitor might type or say aloud ("pilar2b/mapa").
+  // The routes themselves keep their English names.
+  { from: '/mapa', to: '/map' },
+  { from: '/municipios', to: '/municipalities' },
+  { from: '/municipios/:slug', to: '/municipalities/:slug' },
+  { from: '/dados', to: '/data' },
+  { from: '/guia', to: '/guide' },
+  { from: '/comparar', to: '/compare' },
+  { from: '/calculadora', to: '/calculator' },
+  { from: '/proximidade', to: '/proximity' },
+  { from: '/analise', to: '/analysis' },
+  { from: '/citar', to: '/cite' },
+  { from: '/acessibilidade', to: '/accessibility' },
+  { from: '/privacidade', to: '/privacy' },
+  { from: '/termos', to: '/terms' },
+  // Temporary: the Método pages are held back (METHOD_PAGES_ENABLED), so
+  // /metodo opens the science base until /method is public. A 301 would stay
+  // in browser caches after that.
+  { from: '/metodo', to: '/method/science-base', statusCode: 307 },
+].map(({ from, to, statusCode = 301 }) => ({
   source: `/${LOCALE}${from}`,
   destination: `/:locale${to}`,
-  statusCode: 301,
+  statusCode,
 }));
 
 /** @type {import('next').NextConfig} */

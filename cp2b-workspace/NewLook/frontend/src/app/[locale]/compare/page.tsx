@@ -1,11 +1,11 @@
 'use client';
 
 import { useEffect, useState, Suspense } from 'react';
-import { useRouter } from '@/navigation';
+import { Link, useRouter } from '@/navigation';
 import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
-import Breadcrumb from '@/components/ui/Breadcrumb';
+import { BreadcrumbBar } from '@/components/ui/Breadcrumb';
 import { useBreadcrumbs } from '@/hooks/useBreadcrumbs';
 import { useFormat } from '@/hooks/useFormat';
 import { logger } from '@/lib/logger';
@@ -31,6 +31,7 @@ function ComparePageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const t = useTranslations('pages');
+  const tNav = useTranslations('common.nav');
   const breadcrumbs = useBreadcrumbs();
   const format = useFormat();
   const [municipalities, setMunicipalities] = useState<MunicipalityData[]>([]);
@@ -102,43 +103,50 @@ function ComparePageContent() {
     return <Minus className="h-4 w-4 text-gray-400" />;
   };
 
+  // Every state keeps the breadcrumb, so the way back is always on screen.
   if (picking) {
-    return <ComparisonPicker notice={picking.notice} />;
+    return (
+      <>
+        <BreadcrumbBar items={breadcrumbs} />
+        <ComparisonPicker notice={picking.notice} />
+      </>
+    );
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-slate-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-terra-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-slate-400">{t('compare.loading_comparison')}</p>
+      <>
+        <BreadcrumbBar items={breadcrumbs} />
+        <div className="min-h-[60vh] bg-gray-50 dark:bg-slate-900 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-terra-600 mx-auto mb-4"></div>
+            <p className="text-gray-600 dark:text-slate-400">{t('compare.loading_comparison')}</p>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
   if (error || municipalities.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-600 mb-4">{error || t('compare.none_found')}</p>
-          <button
-            onClick={() => router.push('/dashboard')}
-            className="px-4 py-2 bg-terra-700 text-white rounded hover:bg-terra-800"
-          >
-            {t('back_to_dashboard')}
-          </button>
+      <>
+        <BreadcrumbBar items={breadcrumbs} />
+        <div className="flex min-h-[60vh] items-center justify-center bg-paper px-4">
+          <div className="max-w-md text-center">
+            <p role="alert" className="mb-6 text-ink">{error || t('compare.none_found')}</p>
+            <div className="flex flex-wrap justify-center gap-3">
+              <Link href="/municipalities" className="btn-primary min-h-[44px]">{tNav('municipalities')}</Link>
+              <Link href="/map" className="btn-secondary min-h-[44px]">{tNav('open_map')}</Link>
+            </div>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-slate-900 pb-20">
-      {/* Breadcrumb */}
-      <div className="bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700">
-        <Breadcrumb items={breadcrumbs} />
-      </div>
+      <BreadcrumbBar items={breadcrumbs} />
 
       {/* Page Title */}
       <div className="bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 shadow-sm">
