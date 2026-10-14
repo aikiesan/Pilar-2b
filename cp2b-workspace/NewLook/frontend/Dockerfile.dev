@@ -4,7 +4,7 @@
 # bind-mounted by docker-compose (anonymous /app/node_modules volume
 # shadows the bind-mount so the container's modules are used).
 
-FROM node:20-bookworm-slim
+FROM node:22-bookworm-slim
 
 # Antigravity remote IDE server needs wget to bootstrap
 RUN apt-get update && apt-get install -y --no-install-recommends \

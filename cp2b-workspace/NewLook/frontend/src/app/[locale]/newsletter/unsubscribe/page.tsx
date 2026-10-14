@@ -29,7 +29,7 @@ function Unsubscribe() {
 
   return (
     <div className="max-w-xl mx-auto px-4 py-16 text-center">
-      <MailX className="w-10 h-10 mx-auto mb-4 text-cp2b-green dark:text-cp2b-lime" aria-hidden="true" />
+      <MailX className="w-10 h-10 mx-auto mb-4 text-terra-600 dark:text-terra-300" aria-hidden="true" />
       <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">{t('title')}</h1>
 
       <div role="status" aria-live="polite" className="text-gray-700 dark:text-slate-300 mb-8">
@@ -50,7 +50,7 @@ function Unsubscribe() {
           <button
             type="button"
             onClick={confirm}
-            className="px-5 py-2.5 text-sm font-semibold text-white bg-cp2b-green hover:bg-cp2b-dark-green rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cp2b-lime"
+            className="px-5 py-2.5 text-sm font-semibold text-white bg-terra-600 hover:bg-terra-700 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-terra-600"
           >
             {t('confirm')}
           </button>

@@ -133,7 +133,7 @@ const DATA_SOURCES: {
 }[] = [
   {
     categoryKey: 'dataSources.agricultural',
-    color: 'text-green-700',
+    color: 'text-terra-700',
     icon: '🌾',
     sources: [
       { name: 'IBGE - PAM', detailKey: 'pam', year: '2024', url: 'https://sidra.ibge.gov.br/pesquisa/pam/tabelas' },
@@ -153,7 +153,7 @@ const DATA_SOURCES: {
   },
   {
     categoryKey: 'dataSources.urban',
-    color: 'text-blue-700',
+    color: 'text-dusk-700',
     icon: '🏙️',
     sources: [
       { name: 'SNIS', detailKey: 'snis', year: '2023', url: 'https://www.gov.br/cidades/pt-br/assuntos/saneamento/snis' },
@@ -200,31 +200,31 @@ function FiltersSection({
     { value: 'choropleth', label: t('vizModes.choropleth') },
     { value: 'heatmap', label: t('vizModes.heatmap') },
     { value: 'bubble', label: t('vizModes.bubble') },
-    { value: 'clusters', label: `⚗️ ${t('vizModes.clusters')}`, disabled: true },
+    { value: 'clusters', label: t('vizModes.clusters'), disabled: true },
   ];
 
   return (
     <div className="space-y-4">
       {/* Search */}
       <div>
-        <label htmlFor={searchId} className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-1">
+        <label htmlFor={searchId} className="block text-[10px] font-semibold text-ink-muted uppercase tracking-wide mb-1">
           {t('search.label')}
         </label>
         <div className="relative">
-          <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+          <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink-muted" />
           <input
             id={searchId}
             type="text"
             value={searchQuery}
             onChange={e => onSearchChange(e.target.value)}
             placeholder={t('search.placeholder')}
-            className="w-full pl-7 pr-7 py-1.5 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
+            className="w-full pl-7 pr-7 py-1.5 text-xs border border-line-strong rounded-lg focus:ring-2 focus:ring-terra-500 focus:border-terra-500 transition-all"
           />
           {searchQuery && (
             <button
               onClick={() => onSearchChange('')}
               aria-label={t('search.clear_aria')}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink-muted"
             >
               <X className="w-3 h-3" />
             </button>
@@ -244,13 +244,15 @@ function FiltersSection({
                 onClick={() => onDisplayMetricChange(m)}
                 aria-pressed={active}
                 title={metricText(m).legend}
-                className={`py-2 text-[11px] font-bold uppercase tracking-wide rounded-lg transition-colors ${
-                  active
-                    ? `${spec.activeClass} text-white`
-                    : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-200'
-                }`}
+                className={`pt-2 pb-1.5 text-[11px] font-semibold uppercase tracking-wide border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-terra-600 ${
+                    active
+                      ? 'border-ink bg-paper-sunken text-ink'
+                      : 'border-line bg-paper-raised text-ink-muted hover:border-line-strong hover:text-ink'
+                  }`}
               >
-                {spec.icon} {metricText(m).label}
+                {metricText(m).label}
+                {/* The metric's own map ramp: the control and the map agree on hue. */}
+                <span aria-hidden="true" className="mx-3 mt-1.5 block h-1" style={{ background: `linear-gradient(to right, ${spec.ramp.join(',')})` }} />
               </button>
             );
           })}
@@ -259,7 +261,7 @@ function FiltersSection({
 
       {/* Visualization mode */}
       <div>
-        <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-1">
+        <label className="block text-[10px] font-semibold text-ink-muted uppercase tracking-wide mb-1">
           {t('vizModes.label')}
         </label>
         <div className="grid grid-cols-2 gap-1">
@@ -268,14 +270,12 @@ function FiltersSection({
               key={opt.value}
               onClick={() => !opt.disabled && onVisualizationModeChange(opt.value)}
               disabled={opt.disabled}
-              className={`py-1.5 px-2 rounded-lg border text-[11px] font-medium transition-all ${
+              className={`py-1.5 px-2 border text-[11px] font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-terra-600 ${
                 opt.disabled
-                  ? 'bg-gray-50 border-gray-150 text-gray-300 cursor-not-allowed'
+                  ? 'bg-paper-sunken border-line text-line-strong cursor-not-allowed'
                   : visualizationMode === opt.value
-                    ? opt.value === 'clusters'
-                      ? 'border-violet-600 bg-violet-50 text-violet-800'
-                      : 'border-[#1E5128] bg-green-50 text-green-800'
-                    : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'
+                    ? 'border-ink bg-paper-sunken text-ink'
+                    : 'border-line bg-paper-raised text-ink-muted hover:bg-paper-sunken'
               }`}
               title={opt.disabled ? 'Em desenvolvimento' : undefined}
             >
@@ -288,7 +288,7 @@ function FiltersSection({
       {/* Color mode selector (for choropleth mode) */}
       {visualizationMode === 'choropleth' && (
         <div>
-          <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-1">
+          <label className="block text-[10px] font-semibold text-ink-muted uppercase tracking-wide mb-1">
             {t('colorModes.label')}
           </label>
           <ColorModeSelector
@@ -328,7 +328,7 @@ function ThemesSection({
 
   return (
     <div className="space-y-4">
-      <p className="rounded-md bg-green-50 px-2.5 py-2 text-[10px] leading-snug text-green-800 ring-1 ring-green-100">
+      <p className="rounded-md bg-terra-50 px-2.5 py-2 text-[10px] leading-snug text-terra-800 ring-1 ring-terra-100">
         🗺️ {tMap('thematic.panel_intro')}
       </p>
 
@@ -343,7 +343,7 @@ function ThemesSection({
         if (items.length === 0) return null;
         return (
           <div key={g}>
-            <p className="mb-1.5 text-[9px] font-bold uppercase tracking-wider text-gray-400">
+            <p className="mb-1.5 text-[9px] font-bold uppercase tracking-wider text-ink-muted">
               {tMap(`thematic.group_titles.${g}`)}
             </p>
             <div className="grid grid-cols-2 gap-1.5">
@@ -370,13 +370,13 @@ function ThemesSection({
                     aria-pressed={active}
                     className={`flex flex-col gap-1 rounded-lg border p-2 text-left transition-all ${
                       !enabled
-                        ? 'cursor-not-allowed border-gray-100 bg-gray-50 opacity-40'
+                        ? 'cursor-not-allowed border-line bg-paper-sunken opacity-40'
                         : active
-                        ? 'border-green-600 bg-green-50 shadow-sm ring-1 ring-green-600'
-                        : 'border-gray-200 bg-white hover:border-green-300 hover:bg-gray-50'
+                        ? 'border-terra-600 bg-terra-50 shadow-sm ring-1 ring-terra-600'
+                        : 'border-line bg-paper-raised hover:border-terra-300 hover:bg-paper-sunken'
                     }`}
                   >
-                    <span className="flex items-center gap-1 text-[11px] font-semibold text-gray-800">
+                    <span className="flex items-center gap-1 text-[11px] font-semibold text-ink">
                       <span aria-hidden="true">{preset.icon}</span>
                       <span className="truncate">{tMap(`thematic.presets.${preset.id}.label`)}</span>
                     </span>
@@ -396,8 +396,8 @@ function ThemesSection({
       })}
 
       {/* Colour scale — the general palette, applies to any choropleth. */}
-      <div className="border-t border-gray-100 pt-3">
-        <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-gray-500">
+      <div className="border-t border-line pt-3">
+        <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-ink-muted">
           {tMap('palettes.heading')}
         </span>
         <div className="grid grid-cols-2 gap-1" role="radiogroup" aria-label={tMap('palettes.group_aria')}>
@@ -413,7 +413,7 @@ function ThemesSection({
                 onClick={() => setPalette(p.id)}
                 title={`${name} — ${tMap(`palettes.${p.id}.note`)}`}
                 className={`rounded-md border p-1 transition-all ${
-                  active ? 'border-gray-800 ring-1 ring-gray-800' : 'border-gray-200 hover:border-gray-400'
+                  active ? 'border-ink ring-1 ring-ink' : 'border-line hover:border-line-strong'
                 }`}
               >
                 <span className="flex h-3 w-full overflow-hidden rounded-sm" aria-hidden="true">
@@ -421,7 +421,7 @@ function ThemesSection({
                     <span key={i} className="flex-1" style={{ backgroundColor: c }} />
                   ))}
                 </span>
-                <span className="mt-0.5 flex items-center justify-center gap-0.5 text-[8px] font-semibold text-gray-600">
+                <span className="mt-0.5 flex items-center justify-center gap-0.5 text-[8px] font-semibold text-ink-muted">
                   {name}
                   {p.cvdSafe && <span title={tMap('palettes.cvd_safe')} aria-hidden="true">·♿</span>}
                 </span>
@@ -429,7 +429,7 @@ function ThemesSection({
             );
           })}
         </div>
-        <p className="mt-1.5 text-[9px] leading-snug text-gray-400">
+        <p className="mt-1.5 text-[9px] leading-snug text-ink-muted">
           {tMap('palettes.scope_note')}
         </p>
       </div>
@@ -470,48 +470,48 @@ function LayersSection({
 
   return (
     <div className="space-y-3">
-      <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-2.5">
+      <div className="bg-gradient-to-r from-terra-50 to-terra-50 border border-terra-200 rounded-lg p-2.5">
         <div className="flex items-center justify-between mb-1.5">
-          <span className="text-[10px] text-gray-600 font-medium">{t('municipalities.visible')}</span>
+          <span className="text-[10px] text-ink-muted font-medium">{t('municipalities.visible')}</span>
           <div className="flex items-baseline gap-0.5">
-            <span className="text-base font-bold text-green-700">{municipalityCount}</span>
-            <span className="text-[10px] text-gray-500">/ {totalMunicipalities}</span>
+            <span className="text-base font-bold text-terra-700">{municipalityCount}</span>
+            <span className="text-[10px] text-ink-muted">/ {totalMunicipalities}</span>
           </div>
         </div>
-        <div className="w-full bg-gray-200 rounded-full h-1.5">
+        <div className="w-full bg-line rounded-full h-1.5">
           <div
-            className="bg-green-600 h-1.5 rounded-full transition-all duration-300"
+            className="bg-terra-600 h-1.5 rounded-full transition-all duration-300"
             style={{ width: `${(municipalityCount / totalMunicipalities) * 100}%` }}
           />
         </div>
       </div>
 
       <div>
-        <label htmlFor={opacityId} className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-1">
+        <label htmlFor={opacityId} className="block text-[10px] font-semibold text-ink-muted uppercase tracking-wide mb-1">
           {t('opacity.label')}: {Math.round(opacity * 100)}%
         </label>
         <div className="flex items-center gap-2">
-          <span className="text-[10px] text-gray-400">30%</span>
+          <span className="text-[10px] text-ink-muted">30%</span>
           <input id={opacityId} type="range" min="0.3" max="1" step="0.05" value={opacity}
             aria-valuetext={`${Math.round(opacity * 100)}%`}
             onChange={e => onOpacityChange(parseFloat(e.target.value))}
-            className="flex-1 h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-green-600"
+            className="flex-1 h-1.5 bg-line rounded-lg appearance-none cursor-pointer accent-terra-600"
           />
-          <span className="text-[10px] text-gray-400">100%</span>
+          <span className="text-[10px] text-ink-muted">100%</span>
         </div>
       </div>
 
       <div className="space-y-2">
         {getGroupedLayers().map(group => (
           <div key={group.labelKey}>
-            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-1">{t(group.labelKey)}</p>
+            <p className="text-[9px] font-bold text-ink-muted uppercase tracking-wider mb-1">{t(group.labelKey)}</p>
             <div className="space-y-0.5">
               {group.items.map(layer => {
                 const isBeta = layer.id === MG_BETA_LAYER_ID;
                 return (
                   <div key={layer.id} className="py-1">
                     <div className="flex items-center justify-between">
-                      <span className={`text-[11px] font-medium truncate mr-2 ${isBeta ? 'text-gray-500' : 'text-gray-700'}`}>
+                      <span className={`text-[11px] font-medium truncate mr-2 ${isBeta ? 'text-ink-muted' : 'text-ink'}`}>
                         {layer.icon} {getLayerName(layer)}
                       </span>
                       <button
@@ -520,7 +520,7 @@ function LayersSection({
                         aria-label={getLayerName(layer)}
                         onClick={() => onLayerToggle(layer.id, !layer.visible)}
                         className={`relative w-8 h-[18px] rounded-full transition-colors shrink-0 ${
-                          layer.visible ? (isBeta ? 'bg-amber-500' : 'bg-[#1E5128]') : 'bg-gray-200'
+                          layer.visible ? (isBeta ? 'bg-amber-500' : 'bg-terra-800') : 'bg-line'
                         }`}
                       >
                         <span className={`absolute top-[2px] left-[2px] w-[14px] h-[14px] bg-white rounded-full shadow transition-transform ${layer.visible ? 'translate-x-[14px]' : ''}`} />
@@ -555,14 +555,14 @@ function DataSourcesSection({ t }: { t: MapTranslator }) {
           </p>
           <div className="space-y-1">
             {cat.sources.map(src => (
-              <div key={src.name} className="flex items-start justify-between gap-1.5 text-[10px] bg-white border border-gray-200 rounded-lg px-2.5 py-2 hover:border-green-200 transition-colors">
+              <div key={src.name} className="flex items-start justify-between gap-1.5 text-[10px] bg-paper-raised border border-line rounded-lg px-2.5 py-2 hover:border-terra-200 transition-colors">
                 <div className="min-w-0">
-                  <p className="font-semibold text-gray-800 truncate">{src.name}</p>
-                  <p className="text-gray-500 text-[9px] truncate">{t(`dataSourceDetails.${src.detailKey}`)} · {src.year}</p>
+                  <p className="font-semibold text-ink truncate">{src.name}</p>
+                  <p className="text-ink-muted text-[9px] truncate">{t(`dataSourceDetails.${src.detailKey}`)} · {src.year}</p>
                 </div>
                 {src.url && (
                   <a href={src.url} target="_blank" rel="noopener noreferrer"
-                    className="text-gray-400 hover:text-blue-600 transition-colors shrink-0 mt-0.5">
+                    className="text-ink-muted hover:text-dusk-600 transition-colors shrink-0 mt-0.5">
                     <ExternalLink className="w-3 h-3" />
                   </a>
                 )}
@@ -605,13 +605,13 @@ function ToolsSection({
     <div className="space-y-2">
       {tools.map(tool => (
         <button key={tool.titleKey} onClick={tool.onClick}
-          className="w-full bg-white border border-gray-100 rounded-xl p-3 hover:border-[#1E5128] hover:shadow-sm transition-all cursor-pointer flex items-center gap-3 text-left">
-          <span className="text-gray-500 shrink-0">{tool.icon}</span>
+          className="w-full bg-paper-raised border border-line rounded-xl p-3 hover:border-terra-800 hover:shadow-sm transition-all cursor-pointer flex items-center gap-3 text-left">
+          <span className="text-ink-muted shrink-0">{tool.icon}</span>
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-bold text-gray-800">{t(tool.titleKey)}</p>
-            <p className="text-[10px] text-gray-500 truncate">{t(tool.descKey)}</p>
+            <p className="text-xs font-bold text-ink">{t(tool.titleKey)}</p>
+            <p className="text-[10px] text-ink-muted truncate">{t(tool.descKey)}</p>
           </div>
-          <span className="text-[10px] font-semibold text-[#1E5128] shrink-0">{t(tool.ctaKey)}</span>
+          <span className="text-[10px] font-semibold text-terra-800 shrink-0">{t(tool.ctaKey)}</span>
         </button>
       ))}
     </div>
@@ -645,17 +645,17 @@ function StatStrip({ municipalityCount, totalMunicipalities, filterCount, betaMu
     tier ? tMap(`scenario_${scenario}`) : tMap('stat_strip.theoretical')
   }`;
   return (
-    <div className="px-3 py-2 border-b border-gray-100 bg-gradient-to-r from-green-50 to-white flex-shrink-0">
+    <div className="px-3 py-2 border-b border-line bg-gradient-to-r from-terra-50 to-paper-raised flex-shrink-0">
       <div className="flex items-center gap-2">
-        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse flex-shrink-0" />
-        <span className="text-xs text-gray-600 truncate">
-          <span className="font-bold text-green-700">{municipalityCount}</span>
-          <span className="text-gray-400">/{totalMunicipalities}</span>
-          {' '}{tMap('stat_strip.municipalities')} <span className="font-semibold text-green-700">{scopeUf}</span>
+        <div className="w-2 h-2 bg-terra-500 rounded-full animate-pulse flex-shrink-0" />
+        <span className="text-xs text-ink-muted truncate">
+          <span className="font-bold text-terra-700">{municipalityCount}</span>
+          <span className="text-ink-muted">/{totalMunicipalities}</span>
+          {' '}{tMap('stat_strip.municipalities')} <span className="font-semibold text-terra-700">{scopeUf}</span>
         </span>
         {headline !== undefined && (
           <span
-            className="ml-auto text-[10px] text-green-700 font-semibold shrink-0"
+            className="ml-auto text-[10px] text-terra-700 font-semibold shrink-0"
             // The catalog's tip, not the summary's `description`: that one is Portuguese only.
             title={tier && isServedScenario(scenario) ? tMap(`scenario_${scenario}_tip`) : undefined}
           >
@@ -663,13 +663,13 @@ function StatStrip({ municipalityCount, totalMunicipalities, filterCount, betaMu
           </span>
         )}
         {filterCount > 0 && !data && (
-          <span className="ml-auto text-[10px] bg-green-100 text-green-700 font-semibold px-1.5 py-0.5 rounded-full shrink-0">
+          <span className="ml-auto text-[10px] bg-terra-100 text-terra-700 font-semibold px-1.5 py-0.5 rounded-full shrink-0">
             {tMap('stat_strip.filters', { count: filterCount })}
           </span>
         )}
       </div>
       {betaMunicipalityCount > 0 && (
-        <p className="mt-1 text-[9px] text-gray-400 leading-snug">
+        <p className="mt-1 text-[9px] text-ink-muted leading-snug">
           🧪 {tMap('stat_strip.mg_beta', { count: format.number(betaMunicipalityCount) })}
         </p>
       )}
@@ -709,11 +709,11 @@ export default function DesktopLeftPanel({
   ];
 
   return (
-    <aside className={`hidden md:flex flex-col flex-shrink-0 h-full bg-white border-r border-gray-200 shadow-sm overflow-hidden transition-all duration-200 ${collapsed ? 'w-14' : 'w-72'}`}>
+    <aside className={`surface-light hidden md:flex flex-col flex-shrink-0 h-full bg-paper-raised border-r border-line shadow-sm overflow-hidden transition-all duration-200 ${collapsed ? 'w-14' : 'w-72'}`}>
       {/* Top bar */}
-      <div className="flex items-center border-b border-gray-100 flex-shrink-0 h-12 px-2">
+      <div className="flex items-center border-b border-line flex-shrink-0 h-12 px-2">
         {!collapsed && (
-          <span className="text-sm font-semibold text-gray-700 truncate flex-1 px-1">
+          <span className="text-sm font-semibold text-ink truncate flex-1 px-1">
             {/* The platform's scope is São Paulo + the Minas Gerais pilot, not
                 the country — the title said "Brasil" while the map showed one
                 state, which read as a loading failure. */}
@@ -724,7 +724,7 @@ export default function DesktopLeftPanel({
         )}
         <button
           onClick={() => setCollapsed(c => !c)}
-          className={`p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 transition-colors flex-shrink-0 ${collapsed ? 'mx-auto' : 'ml-auto'}`}
+          className={`p-1.5 rounded-lg hover:bg-paper-sunken text-ink-muted transition-colors flex-shrink-0 ${collapsed ? 'mx-auto' : 'ml-auto'}`}
           title={collapsed ? t('panel.expand') : t('panel.collapse')}
         >
           {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
@@ -739,25 +739,25 @@ export default function DesktopLeftPanel({
               key={tab.id}
               onClick={() => { setCollapsed(false); setActiveTab(tab.id); }}
               className={`relative flex items-center justify-center w-14 h-11 transition-colors ${
-                activeTab === tab.id ? 'text-green-700 bg-green-50' : 'text-gray-400 hover:bg-gray-50 hover:text-gray-700'
+                activeTab === tab.id ? 'text-terra-700 bg-terra-50' : 'text-ink-muted hover:bg-paper-sunken hover:text-ink'
               }`}
               title={tab.label}
             >
               {tab.icon}
               {tab.badge && (
-                <span className="absolute top-1.5 right-1.5 w-3.5 h-3.5 flex items-center justify-center text-[7px] font-bold rounded-full bg-green-500 text-white">
+                <span className="absolute top-1.5 right-1.5 w-3.5 h-3.5 flex items-center justify-center text-[7px] font-bold rounded-full bg-terra-500 text-white">
                   {tab.badge}
                 </span>
               )}
             </button>
           ))}
-          <div className="mt-auto border-t border-gray-100 py-1">
+          <div className="mt-auto border-t border-line py-1">
             <button onClick={onOpenComparison} title={t('tools.compare')}
-              className="flex items-center justify-center w-14 h-11 text-gray-400 hover:bg-purple-50 hover:text-purple-600 transition-colors">
+              className="flex items-center justify-center w-14 h-11 text-ink-muted hover:bg-purple-50 hover:text-purple-600 transition-colors">
               <BarChart3 className="w-4 h-4" />
             </button>
             <button onClick={onOpenExport} title={t('tools.export')}
-              className="flex items-center justify-center w-14 h-11 text-gray-400 hover:bg-green-50 hover:text-green-600 transition-colors">
+              className="flex items-center justify-center w-14 h-11 text-ink-muted hover:bg-terra-50 hover:text-terra-600 transition-colors">
               <Download className="w-4 h-4" />
             </button>
           </div>
@@ -777,22 +777,22 @@ export default function DesktopLeftPanel({
           />
 
           {/* Tab nav */}
-          <div className="flex border-b border-gray-100 flex-shrink-0">
+          <div className="flex border-b border-line flex-shrink-0">
             {tabs.map(tab => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`relative flex-1 flex flex-col items-center justify-center py-2 gap-0.5 text-[9px] font-semibold uppercase tracking-wide transition-colors ${
                   activeTab === tab.id
-                    ? 'border-b-2 border-green-600 text-green-700 bg-green-50/50'
-                    : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'
+                    ? 'border-b-2 border-terra-600 text-terra-700 bg-terra-50/50'
+                    : 'text-ink-muted hover:text-ink-muted hover:bg-paper-sunken'
                 }`}
                 title={tab.label}
               >
                 {tab.icon}
                 <span>{tab.label}</span>
                 {tab.badge && (
-                  <span className="absolute top-1 right-1 w-3.5 h-3.5 flex items-center justify-center text-[7px] font-bold rounded-full bg-green-500 text-white">
+                  <span className="absolute top-1 right-1 w-3.5 h-3.5 flex items-center justify-center text-[7px] font-bold rounded-full bg-terra-500 text-white">
                     {tab.badge}
                   </span>
                 )}

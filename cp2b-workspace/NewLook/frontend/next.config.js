@@ -9,18 +9,64 @@ const isProd = process.env.NODE_ENV === 'production';
 // localhost:3006/pt-BR works without any extra path prefix.
 const basePath = isProd ? '/pilar2b' : '';
 
+// Retired paths and where their content lives now. Real 301s: Next's
+// `permanent: true` sends 308, so the status is set explicitly. The locale
+// segment is matched so a visitor keeps their language; basePath is added by
+// Next itself.
+const LOCALE = ':locale(en|pt-BR)';
+const movedPages = [
+  // /sobre (the old marketing home) and /dashboard/about (a client-side bounce
+  // to nipe.unicamp.br) were merged into the single /about page.
+  { from: '/sobre', to: '/about' },
+  { from: '/dashboard/about', to: '/about#parceiros' },
+  // The tools lost the /dashboard prefix (Phase 1 of the redesign). Query
+  // strings (e.g. ?view=references, shared proximity links) are kept by Next.
+  // Temporary while /analysis is held back with the Método pages
+  // (METHOD_PAGES_ENABLED): the old address opens the map instead of a 404.
+  // When the flag turns on, point this back at /analysis with a 301.
+  { from: '/dashboard/advanced-analysis', to: '/map', statusCode: 307 },
+  { from: '/dashboard/compare', to: '/compare' },
+  { from: '/dashboard/proximity', to: '/proximity' },
+  { from: '/dashboard/technology-routes', to: '/calculator' },
+  { from: '/dashboard/scientific-database', to: '/method/science-base' },
+  // Portuguese addresses a visitor might type or say aloud ("pilar2b/mapa").
+  // The routes themselves keep their English names.
+  { from: '/mapa', to: '/map' },
+  { from: '/municipios', to: '/municipalities' },
+  { from: '/municipios/:slug', to: '/municipalities/:slug' },
+  { from: '/dados', to: '/data' },
+  { from: '/guia', to: '/guide' },
+  { from: '/comparar', to: '/compare' },
+  { from: '/calculadora', to: '/calculator' },
+  { from: '/proximidade', to: '/proximity' },
+  { from: '/citar', to: '/cite' },
+  { from: '/acessibilidade', to: '/accessibility' },
+  { from: '/privacidade', to: '/privacy' },
+  { from: '/termos', to: '/terms' },
+  // Temporary: the Método pages are held back (METHOD_PAGES_ENABLED), so
+  // /metodo opens the science base until /method is public. A 301 would stay
+  // in browser caches after that.
+  { from: '/metodo', to: '/method/science-base', statusCode: 307 },
+].map(({ from, to, statusCode = 301 }) => ({
+  source: `/${LOCALE}${from}`,
+  destination: `/:locale${to}`,
+  statusCode,
+}));
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   basePath,
   async redirects() {
     if (!isProd) {
-      // Strip stale /pilar2b prefix that browsers may have cached from production URLs
       return [
+        // Strip stale /pilar2b prefix that browsers may have cached from production URLs
         { source: '/pilar2b/:path*', destination: '/:path*', permanent: false },
+        ...movedPages,
       ];
     }
     return [
       { source: '/', destination: '/pilar2b/pt-BR', permanent: false, basePath: false },
+      ...movedPages,
     ];
   },
   // IMPORTANT: Removed static export for Vercel deployment

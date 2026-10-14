@@ -12,8 +12,12 @@ import { useAuth } from '@/contexts/AuthContext'
 import { AuthError } from '@/lib/authErrors'
 import { useTranslations } from 'next-intl'
 import { logger } from '@/lib/logger'
+import { safeNext } from '@/lib/authRedirect'
 import { firstError, validateEmail, validateRequired } from '@/lib/validation'
 import { useValidationMessage } from '@/hooks/useValidationMessage'
+
+/** Read at redirect time, so the page needs no Suspense boundary for useSearchParams. */
+const afterLogin = () => safeNext(new URLSearchParams(window.location.search).get('next'))
 
 export default function LoginPage() {
   const router = useRouter()
@@ -26,11 +30,12 @@ export default function LoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [shouldNavigate, setShouldNavigate] = useState(false)
 
-  // Navigate to dashboard once user is loaded after login
+  // Once signed in, return to the page that sent the visitor here (?next=),
+  // or to the map.
   useEffect(() => {
     if (shouldNavigate && user && !loading) {
-      logger.info('[Login] User loaded, navigating to dashboard')
-      router.push('/dashboard')
+      logger.info('[Login] User loaded, returning to the previous page')
+      router.push(afterLogin())
       setShouldNavigate(false)
     }
   }, [shouldNavigate, user, loading, router])
@@ -40,7 +45,7 @@ export default function LoginPage() {
     if (shouldNavigate && !user) {
       const timeoutId = setTimeout(() => {
         logger.warn('[Login] User profile timeout after 8s, forcing navigation')
-        router.push('/dashboard')
+        router.push(afterLogin())
         setShouldNavigate(false)
       }, 8000)
 
@@ -72,13 +77,13 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-cp2b-primary via-cp2b-secondary to-green-600 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-paper py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full">
         {/* Header */}
         <div className="text-center mb-8">
           <Link
             href="/"
-            className="inline-flex items-center justify-center text-white hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-cp2b-primary rounded-lg"
+            className="inline-flex items-center justify-center text-ink hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-terra-600 focus:ring-offset-2 focus:ring-offset-paper rounded-lg"
             aria-label={t('login.back_to_home')}
           >
             <Image
@@ -87,18 +92,18 @@ export default function LoginPage() {
               width={180}
               height={50}
               style={{ height: 'auto' }}
-              className="brightness-0 invert mb-6"
+              className="dark:brightness-0 dark:invert mb-6"
               priority
             />
           </Link>
-          <h1 className="mt-6 text-3xl font-extrabold text-white">
+          <h1 className="mt-6 text-4xl text-ink">
             {t('login.title')}
           </h1>
-          <p className="mt-2 text-sm text-gray-200">
+          <p className="mt-2 text-sm text-ink-muted">
             {t('login.or')}{' '}
             <Link
               href="/register"
-              className="font-medium text-cp2b-accent hover:text-yellow-300 underline focus:outline-none focus:ring-2 focus:ring-cp2b-accent rounded"
+              className="font-medium text-terra-600 dark:text-terra-400 hover:text-terra-700 underline focus:outline-none focus:ring-2 focus:ring-terra-600 rounded"
             >
               {t('login.create_account')}
             </Link>
@@ -141,7 +146,7 @@ export default function LoginPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="appearance-none block w-full px-4 py-3 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cp2b-primary dark:focus:ring-emerald-500 focus:border-transparent transition-colors"
+                className="appearance-none block w-full px-4 py-3 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-terra-800 dark:focus:ring-terra-500 focus:border-transparent transition-colors"
                 placeholder={t('login.email_placeholder')}
                 aria-required="true"
                 aria-invalid={!!error}
@@ -166,7 +171,7 @@ export default function LoginPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="appearance-none block w-full px-4 py-3 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cp2b-primary dark:focus:ring-emerald-500 focus:border-transparent transition-colors"
+                className="appearance-none block w-full px-4 py-3 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-terra-800 dark:focus:ring-terra-500 focus:border-transparent transition-colors"
                 placeholder="••••••••"
                 aria-required="true"
                 aria-invalid={!!error}
@@ -181,7 +186,7 @@ export default function LoginPage() {
                   id="remember-me"
                   name="remember-me"
                   type="checkbox"
-                  className="h-4 w-4 text-cp2b-primary dark:text-emerald-500 focus:ring-cp2b-primary dark:focus:ring-emerald-500 border-gray-300 dark:border-slate-600 rounded bg-white dark:bg-slate-900"
+                  className="h-4 w-4 text-terra-800 dark:text-terra-500 focus:ring-terra-800 dark:focus:ring-terra-500 border-gray-300 dark:border-slate-600 rounded bg-white dark:bg-slate-900"
                 />
                 <label
                   htmlFor="remember-me"
@@ -194,7 +199,7 @@ export default function LoginPage() {
               <div className="text-sm">
                 <a
                   href="#"
-                  className="font-medium text-cp2b-primary dark:text-emerald-400 hover:text-cp2b-secondary dark:hover:text-emerald-300 underline focus:outline-none focus:ring-2 focus:ring-cp2b-primary dark:focus:ring-emerald-500 rounded"
+                  className="font-medium text-terra-800 dark:text-terra-400 hover:text-ochre-600 dark:hover:text-terra-300 underline focus:outline-none focus:ring-2 focus:ring-terra-800 dark:focus:ring-terra-500 rounded"
                 >
                   {t('login.forgot_password')}
                 </a>
@@ -205,7 +210,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isSubmitting || loading}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-cp2b-primary hover:bg-cp2b-secondary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cp2b-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-terra-600 hover:bg-terra-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-terra-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
               aria-label={isSubmitting ? t('login.submitting') : t('login.submit')}
             >
               {isSubmitting ? (
@@ -241,7 +246,7 @@ export default function LoginPage() {
             <div className="mt-6">
               <Link
                 href="/register"
-                className="w-full flex justify-center py-3 px-4 border border-cp2b-primary text-base font-medium rounded-lg text-cp2b-primary bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cp2b-primary transition-colors"
+                className="w-full flex justify-center py-3 px-4 border border-terra-800 text-base font-medium rounded-lg text-terra-800 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-terra-800 transition-colors"
               >
                 {t('login.create_new_account')}
               </Link>
@@ -250,7 +255,7 @@ export default function LoginPage() {
         </div>
 
         {/* Footer */}
-        <p className="mt-8 text-center text-sm text-gray-200">
+        <p className="mt-8 text-center text-sm text-ink-muted">
           {t('common.copyright', { year: new Date().getFullYear() })}
         </p>
       </div>

@@ -13,6 +13,7 @@ import { retryOperation, measurePerformance } from '@/lib/performance';
 import { logger } from '@/lib/logger';
 import { getFromCache, setInCache, generateCacheKey, CACHE_DURATION } from '@/lib/apiCache';
 import type { Locale } from '@/config/i18n';
+import { withBasePath } from '@/lib/basePath';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
 const REQUEST_TIMEOUT = 120000; // 120 seconds
@@ -319,7 +320,8 @@ export function generateShareURL(
     radius: radiusKm.toString(),
   });
 
-  return `${window.location.origin}/${locale}/dashboard/proximity?${params.toString()}`;
+  // Built by hand, so the base path (/pilar2b in production) is added here.
+  return `${window.location.origin}${withBasePath(`/${locale}/proximity`)}?${params.toString()}`;
 }
 
 /**

@@ -78,15 +78,15 @@ export default async function LocaleLayout({
             <ToastProvider>
               <ComparisonProvider>
                 <ErrorBoundary>
-                  <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-slate-900 transition-colors">
+                  <div className="flex flex-col min-h-screen bg-paper transition-colors">
                     <a
                       href="#main-content"
-                      className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 z-[200] px-4 py-2 bg-cp2b-green text-white rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-cp2b-lime"
+                      className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 z-[200] px-4 py-2 bg-terra-600 text-white rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-terra-600"
                     >
                       {tLayout('skip_to_content')}
                     </a>
-                    <UnifiedHeader variant="auto" />
-                    <main id="main-content" className="flex-1">
+                    <UnifiedHeader />
+                    <main id="main-content" tabIndex={-1} className="flex-1 focus:outline-none">
                       {children}
                     </main>
                     <ComparisonBar />

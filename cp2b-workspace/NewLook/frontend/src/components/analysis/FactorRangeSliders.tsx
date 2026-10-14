@@ -7,6 +7,7 @@
 
 import React from 'react'
 import { useTranslations } from 'next-intl'
+import LegacyBadge from '@/components/ui/LegacyBadge'
 import { SlidersHorizontal, RotateCcw, Info } from 'lucide-react'
 import {
   CorrectionFactors,
@@ -33,12 +34,12 @@ function factorColor(key: keyof CorrectionFactors, value: number): string {
   if (key === 'fcp') {
     if (normalized > 0.7) return 'text-red-600'
     if (normalized > 0.4) return 'text-yellow-600'
-    return 'text-green-600'
+    return 'text-terra-600'
   }
 
   if (normalized < 0.3) return 'text-red-600'
   if (normalized < 0.6) return 'text-yellow-600'
-  return 'text-green-600'
+  return 'text-terra-600'
 }
 
 function FactorSlider({
@@ -80,7 +81,7 @@ function FactorSlider({
         value={value}
         onChange={(e) => onChange(parseFloat(e.target.value))}
         className={`w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer ${
-          factor === 'fcp' ? 'accent-orange-500' : 'accent-green-600'
+          factor === 'fcp' ? 'accent-orange-500' : 'accent-terra-600'
         }`}
       />
       <div className="flex justify-between text-xs text-gray-400 mt-0.5">
@@ -106,8 +107,9 @@ export default function FactorRangeSliders({
     <div className="bg-white rounded-xl shadow-md p-3 border border-gray-100">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <SlidersHorizontal className="h-5 w-5 text-green-600" />
+          <SlidersHorizontal className="h-5 w-5 text-terra-600" />
           <h4 className="text-sm font-semibold text-gray-700">{t('factor_sliders.heading')}</h4>
+          <LegacyBadge />
         </div>
         <button
           onClick={() => onChange(DEFAULT_FACTORS)}
@@ -120,12 +122,12 @@ export default function FactorRangeSliders({
       </div>
 
       {showFDEPreview && (
-        <div className="mb-4 p-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-100">
+        <div className="mb-4 p-3 bg-gradient-to-r from-terra-50 to-terra-50 rounded-lg border border-terra-100">
           <div className="flex items-center justify-between">
             <span className="text-sm text-gray-600">{t('factor_sliders.resulting_fde')}</span>
             <span
               className={`text-lg font-mono font-bold ${
-                fdeValue >= 0.5 ? 'text-green-600' : fdeValue >= 0.3 ? 'text-yellow-600' : 'text-red-600'
+                fdeValue >= 0.5 ? 'text-terra-600' : fdeValue >= 0.3 ? 'text-yellow-600' : 'text-red-600'
               }`}
             >
               {format.percent(fdeValue * 100, { decimals: 1, minDecimals: 1 })}
@@ -134,7 +136,7 @@ export default function FactorRangeSliders({
           <div className="mt-2 h-2 bg-gray-200 rounded-full overflow-hidden">
             <div
               className={`h-full rounded-full transition-all duration-300 ${
-                fdeValue >= 0.5 ? 'bg-green-500' : fdeValue >= 0.3 ? 'bg-yellow-500' : 'bg-red-500'
+                fdeValue >= 0.5 ? 'bg-terra-500' : fdeValue >= 0.3 ? 'bg-yellow-500' : 'bg-red-500'
               }`}
               style={{ width: `${fdeValue * 100}%` }}
             />

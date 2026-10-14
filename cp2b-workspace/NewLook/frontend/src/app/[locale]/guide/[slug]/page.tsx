@@ -1,6 +1,9 @@
 import { getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { Link } from '@/navigation';
+import Breadcrumb from '@/components/ui/Breadcrumb';
+import { navCrumbs } from '@/lib/breadcrumbTrail';
+import { titledMetadata } from '@/lib/pageMetadata';
 import { ArrowLeft } from 'lucide-react';
 import type { Messages } from '@/types/i18n';
 
@@ -28,6 +31,15 @@ export function generateStaticParams() {
 // Only the slugs above exist; anything else is a 404, not an empty article.
 export const dynamicParams = false;
 
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  if (!isGuideSlug(slug)) return {};
+  const t = await getTranslations('guide_articles');
+  const tNav = await getTranslations('common.nav');
+  // "Calculadora de biogás · Guia": the article, not the tool it describes.
+  return titledMetadata(`${t(`${slug}.title`)} · ${tNav('guide')}`);
+}
+
 export default async function GuideArticlePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   if (!isGuideSlug(slug)) notFound();
@@ -39,24 +51,16 @@ export default async function GuideArticlePage({ params }: { params: Promise<{ s
 
   return (
     <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-      {/* Breadcrumb */}
-      <nav className="text-sm text-gray-500 dark:text-gray-400 mb-8" aria-label={t('sidebar.breadcrumb_aria')}>
-        <Link href="/" className="hover:text-cp2b-green">
-          {tNav('home')}
-        </Link>
-        <span className="mx-2">/</span>
-        <Link href="/guide" className="hover:text-cp2b-green">
-          {tNav('guide')}
-        </Link>
-        <span className="mx-2">/</span>
-        <span className="text-gray-900 dark:text-white font-medium">{t(`${slug}.title`)}</span>
-      </nav>
+      <Breadcrumb
+        className="mb-8"
+        items={navCrumbs(`/guide/${slug}`, (key) => tNav(key), [{ label: t(`${slug}.title`) }])}
+      />
 
       <div className="flex flex-col md:flex-row gap-12">
         <aside className="w-full md:w-64 shrink-0">
           <Link
             href="/guide"
-            className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-cp2b-green font-medium mb-8 transition-colors"
+            className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-terra-600 font-medium mb-8 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             {t('sidebar.back_button')}
@@ -74,8 +78,8 @@ export default async function GuideArticlePage({ params }: { params: Promise<{ s
                     href={`#${section.id}`}
                     className={`block pl-4 text-sm transition-colors ${
                       index === 0
-                        ? 'text-cp2b-green dark:text-cp2b-lime font-semibold border-l-2 -ml-[2px] border-cp2b-green'
-                        : 'text-gray-600 dark:text-gray-400 hover:text-cp2b-green'
+                        ? 'text-terra-600 dark:text-terra-300 font-semibold border-l-2 -ml-[2px] border-terra-600'
+                        : 'text-gray-600 dark:text-gray-400 hover:text-terra-600'
                     }`}
                   >
                     {section.title}
@@ -92,7 +96,7 @@ export default async function GuideArticlePage({ params }: { params: Promise<{ s
                 <li key={other}>
                   <Link
                     href={`/guide/${other}`}
-                    className="text-sm text-gray-600 dark:text-gray-400 hover:text-cp2b-green transition-colors"
+                    className="text-sm text-gray-600 dark:text-gray-400 hover:text-terra-600 transition-colors"
                   >
                     {t(`${other}.title`)}
                   </Link>
@@ -103,7 +107,7 @@ export default async function GuideArticlePage({ params }: { params: Promise<{ s
         </aside>
 
         <article className="flex-1 max-w-3xl">
-          <span className="text-cp2b-green dark:text-cp2b-lime font-semibold text-sm tracking-wide uppercase">{tNav('guide')}</span>
+          <span className="text-terra-600 dark:text-terra-300 font-semibold text-sm tracking-wide uppercase">{tNav('guide')}</span>
           <h1 className="text-4xl font-bold text-gray-900 dark:text-white mt-2 mb-4">{t(`${slug}.title`)}</h1>
           <p className="text-xl text-gray-600 dark:text-gray-300 mb-12 leading-relaxed">{t(`${slug}.subtitle`)}</p>
 

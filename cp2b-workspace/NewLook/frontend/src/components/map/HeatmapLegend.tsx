@@ -42,15 +42,15 @@ export default function HeatmapLegend() {
 
   return (
     <div>
-      <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-gray-100 overflow-hidden w-40 md:w-48">
+      <div className="surface-light bg-paper-raised/95 backdrop-blur-sm rounded-xl shadow-lg border border-line overflow-hidden w-40 md:w-48">
         {/* Header */}
-        <div className="flex items-center justify-between px-3 py-2.5 bg-gradient-to-r from-orange-50 to-white border-b border-orange-100">
-          <span className="text-[10px] font-semibold text-gray-700 uppercase tracking-wide">
+        <div className="flex items-center justify-between px-3 py-2.5 bg-gradient-to-r from-orange-50 to-paper-raised border-b border-orange-100">
+          <span className="text-[10px] font-semibold text-ink uppercase tracking-wide">
             🔥 {t('heatmap_legend.title')}
           </span>
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="text-gray-400 hover:text-gray-600 focus:outline-none transition-colors rounded-full hover:bg-gray-100 p-0.5"
+            className="text-ink-muted hover:text-ink-muted focus:outline-none transition-colors rounded-full hover:bg-paper-sunken p-0.5"
             aria-label={isCollapsed ? t('legend.expand') : t('legend.collapse')}
             aria-expanded={!isCollapsed}
           >
@@ -68,18 +68,18 @@ export default function HeatmapLegend() {
             {legendItems.map((item, index) => (
               <div
                 key={index}
-                className="flex items-center gap-2.5 hover:bg-gray-50 px-1.5 py-1 rounded-md transition-colors"
+                className="flex items-center gap-2.5 hover:bg-paper-sunken px-1.5 py-1 rounded-md transition-colors"
                 role="listitem"
               >
                 {/* Color circle */}
                 <div
-                  className="w-4 h-4 rounded-full border border-gray-300 shadow-sm flex-shrink-0"
+                  className="w-4 h-4 rounded-full border border-line-strong shadow-sm flex-shrink-0"
                   style={{ backgroundColor: item.color }}
                   aria-hidden="true"
                 />
 
                 {/* Label */}
-                <span className="text-[10px] text-gray-700 font-medium flex-1">
+                <span className="text-[10px] text-ink font-medium flex-1">
                   {item.label}
                 </span>
               </div>

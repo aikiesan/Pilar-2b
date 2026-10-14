@@ -37,8 +37,8 @@ function ResidueCard({ residue, focused, onShowReferences }: { residue: ResidueR
     <article
       id={`residue-${residue.id}`}
       aria-labelledby={`residue-${residue.id}-name`}
-      className={`bg-white rounded-xl shadow-sm border overflow-hidden hover:shadow-xl hover:border-green-300 transition-all duration-200 scroll-mt-24 ${
-        focused ? 'border-green-500 ring-2 ring-green-500' : 'border-gray-200'
+      className={`bg-white rounded-xl shadow-sm border overflow-hidden hover:shadow-xl hover:border-terra-300 transition-all duration-200 scroll-mt-24 ${
+        focused ? 'border-terra-500 ring-2 ring-terra-500' : 'border-gray-200'
       }`}
     >
       <div className="px-5 pt-5 pb-3 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
@@ -62,27 +62,27 @@ function ResidueCard({ residue, focused, onShowReferences }: { residue: ResidueR
         </div>
 
         <div className="grid grid-cols-3 gap-2 text-xs">
-          <div className="text-center p-2.5 bg-blue-50 rounded-lg border border-blue-100">
-            <div className="font-bold text-blue-900 text-sm">
+          <div className="text-center p-2.5 bg-dusk-50 rounded-lg border border-dusk-100">
+            <div className="font-bold text-dusk-900 text-sm">
               {residue.ts_medio != null ? format.percent(residue.ts_medio) : MISSING_VALUE}
             </div>
             {residue.ts_min != null && residue.ts_max != null && (
-              <div className="text-blue-500 text-[10px]">
+              <div className="text-dusk-500 text-[10px]">
                 ({format.number(residue.ts_min, { decimals: 0 })}–{format.number(residue.ts_max, { decimals: 0 })})
               </div>
             )}
-            <div className="text-blue-600 font-medium mt-0.5">{t('units.ts')}</div>
+            <div className="text-dusk-600 font-medium mt-0.5">{t('units.ts')}</div>
           </div>
-          <div className="text-center p-2.5 bg-green-50 rounded-lg border border-green-100">
-            <div className="font-bold text-green-900 text-sm">
+          <div className="text-center p-2.5 bg-terra-50 rounded-lg border border-terra-100">
+            <div className="font-bold text-terra-900 text-sm">
               {residue.vs_medio != null ? format.percent(residue.vs_medio) : MISSING_VALUE}
             </div>
             {residue.vs_min != null && residue.vs_max != null && (
-              <div className="text-green-500 text-[10px]">
+              <div className="text-terra-500 text-[10px]">
                 ({format.number(residue.vs_min, { decimals: 0 })}–{format.number(residue.vs_max, { decimals: 0 })})
               </div>
             )}
-            <div className="text-green-600 font-medium mt-0.5">{t('units.vs')}</div>
+            <div className="text-terra-600 font-medium mt-0.5">{t('units.vs')}</div>
           </div>
           <div className="text-center p-2.5 bg-amber-50 rounded-lg border border-amber-100" title={level ? t(`cn.${level}`) : undefined}>
             <div className="font-bold text-sm" style={{ color: level ? CN_LEVEL_COLORS[level] : undefined }}>
@@ -112,13 +112,13 @@ function ResidueCard({ residue, focused, onShowReferences }: { residue: ResidueR
         )}
       </div>
 
-      <div className="px-5 py-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-t border-blue-100">
+      <div className="px-5 py-4 bg-gradient-to-r from-dusk-50 to-dusk-50 border-t border-dusk-100">
         {residue.primary_doi && (
           <a
             href={`https://doi.org/${residue.primary_doi}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 mb-3 text-sm text-blue-700 hover:text-blue-900 font-medium group"
+            className="flex items-center gap-2 mb-3 text-sm text-dusk-700 hover:text-dusk-900 font-medium group"
           >
             <ExternalLink className="h-4 w-4 flex-shrink-0 group-hover:scale-110 transition-transform" aria-hidden="true" />
             <span className="truncate">DOI: {residue.primary_doi}</span>
@@ -128,15 +128,15 @@ function ResidueCard({ residue, focused, onShowReferences }: { residue: ResidueR
         <button
           type="button"
           onClick={onShowReferences}
-          className="w-full flex items-center justify-between gap-3 px-4 py-2.5 bg-white hover:bg-blue-50 rounded-lg transition-all text-left border border-blue-200 hover:border-blue-300 shadow-sm hover:shadow group"
+          className="w-full flex items-center justify-between gap-3 px-4 py-2.5 bg-white hover:bg-dusk-50 rounded-lg transition-all text-left border border-dusk-200 hover:border-dusk-300 shadow-sm hover:shadow group"
         >
           <span className="flex items-center gap-2.5">
-            <BookOpen className="w-4 h-4 text-blue-600 group-hover:text-blue-700" aria-hidden="true" />
-            <span className="text-sm font-semibold text-gray-800 group-hover:text-blue-900">
+            <BookOpen className="w-4 h-4 text-dusk-600 group-hover:text-dusk-700" aria-hidden="true" />
+            <span className="text-sm font-semibold text-gray-800 group-hover:text-dusk-900">
               {references > 0 ? t('chemical_view.references', { count: references }) : t('chemical_view.see_references')}
             </span>
           </span>
-          <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-blue-600 transition-colors" aria-hidden="true" />
+          <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-dusk-600 transition-colors" aria-hidden="true" />
         </button>
 
         {residue.main_reference && (

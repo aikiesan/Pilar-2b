@@ -77,7 +77,7 @@ export default function ComparisonView({ residues }: { residues: ResidueRecord[]
                 type="button"
                 aria-pressed={index >= 0}
                 onClick={() => toggle(residue.id)}
-                className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+                className={`px-3 py-1.5 rounded-sm text-sm font-medium transition-all ${
                   index >= 0 ? 'text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
                 style={index >= 0 ? { backgroundColor: SERIES_COLORS[index % SERIES_COLORS.length] } : undefined}
@@ -143,7 +143,7 @@ export default function ComparisonView({ residues }: { residues: ResidueRecord[]
                       <tr key={p.id}>
                         <th scope="row" className="py-3 px-4 text-left font-medium text-gray-900">{label(p.id)}</th>
                         {values.map((value, i) => (
-                          <td key={selected[i].id} className={`py-3 px-4 text-center ${i === best ? 'bg-green-50 font-semibold' : ''}`}>
+                          <td key={selected[i].id} className={`py-3 px-4 text-center ${i === best ? 'bg-terra-50 font-semibold' : ''}`}>
                             {value === null ? (
                               <span className="text-xs text-gray-400 italic">{t('comparison_view.no_data')}</span>
                             ) : (
@@ -158,7 +158,7 @@ export default function ComparisonView({ residues }: { residues: ResidueRecord[]
                           {best === null ? (
                             <span className="text-xs text-gray-400 italic">{t('comparison_view.no_data')}</span>
                           ) : (
-                            <span className="px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs font-medium">{nameOf(selected[best])}</span>
+                            <span className="px-2 py-0.5 bg-terra-100 text-terra-700 rounded text-xs font-medium">{nameOf(selected[best])}</span>
                           )}
                         </td>
                       </tr>

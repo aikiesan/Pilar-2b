@@ -175,9 +175,9 @@ export default function DistributionHistogram({
               {format.compact(statistics.mean, { decimals: 2 })}
             </span>
           </div>
-          <div className="bg-gradient-to-br from-teal-50 to-white rounded-lg p-3 border border-teal-100">
+          <div className="bg-gradient-to-br from-dusk-50 to-white rounded-lg p-3 border border-dusk-100">
             <span className="text-gray-600 block mb-1">{t('histogram_median')}</span>
-            <span className="font-bold text-teal-900 text-base">
+            <span className="font-bold text-dusk-900 text-base">
               {format.compact(statistics.median, { decimals: 2 })}
             </span>
           </div>

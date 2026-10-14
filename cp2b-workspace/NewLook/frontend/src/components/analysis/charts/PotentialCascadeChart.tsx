@@ -19,6 +19,7 @@ import {
 } from 'recharts'
 import { TrendingDown, Info } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import LegacyBadge from '@/components/ui/LegacyBadge'
 import { useFormat } from '@/hooks/useFormat'
 import {
   CorrectionFactors,
@@ -176,12 +177,12 @@ export default function PotentialCascadeChart({
     return (
       <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
         <div className="flex items-center gap-2 mb-4">
-          <TrendingDown className="h-5 w-5 text-green-600" />
+          <TrendingDown className="h-5 w-5 text-terra-600" />
           <h3 className="text-lg font-semibold text-gray-800">{title ?? t('cascade_title')}</h3>
         </div>
         <div className="h-[400px] flex items-center justify-center">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cp2b-primary mx-auto mb-3"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-terra-800 mx-auto mb-3"></div>
             <p className="text-sm text-gray-500">{t('loading')}</p>
           </div>
         </div>
@@ -193,7 +194,7 @@ export default function PotentialCascadeChart({
     return (
       <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
         <div className="flex items-center gap-2 mb-4">
-          <TrendingDown className="h-5 w-5 text-green-600" />
+          <TrendingDown className="h-5 w-5 text-terra-600" />
           <h3 className="text-lg font-semibold text-gray-800">{title ?? t('cascade_title')}</h3>
         </div>
         <div className="h-[400px] flex items-center justify-center">
@@ -214,13 +215,14 @@ export default function PotentialCascadeChart({
     <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
         <div className="flex items-center gap-2">
-          <TrendingDown className="h-5 w-5 text-green-600" />
+          <TrendingDown className="h-5 w-5 text-terra-600" />
           <h3 className="text-lg font-semibold text-gray-800">{title ?? t('cascade_title')}</h3>
+          <LegacyBadge />
         </div>
         <div className="flex items-center gap-4 text-sm">
           <div className="flex items-center gap-2">
             <span className="text-gray-500">{t('cascade_fde_label')}</span>
-            <span className="font-mono font-bold text-green-600">{format.percent(fdeValue * 100)}</span>
+            <span className="font-mono font-bold text-terra-600">{format.percent(fdeValue * 100)}</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-gray-500">{t('cascade_final_label')}</span>

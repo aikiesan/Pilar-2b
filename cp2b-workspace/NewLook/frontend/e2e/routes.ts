@@ -1,3 +1,8 @@
+import { METHOD_PAGES_ENABLED } from '../src/lib/featureFlags';
+
+/** The Método pages behind METHOD_PAGES_ENABLED. */
+export const METHOD_PAGES = ['/method', '/method/fde', '/method/scenarios', '/method/validation'];
+
 /**
  * The pages the browser suites visit. A new page goes on these lists with its
  * first commit.
@@ -8,8 +13,15 @@ export const ROUTES = [
   '/en',
   '/en/map',
   '/en/dashboard',
-  '/en/dashboard/technology-routes',
-  '/en/sobre',
+  '/en/calculator',
+  '/en/compare',
+  '/en/municipalities',
+  '/en/data',
+  '/en/data/legend',
+  '/en/data/agricultural',
+  '/en/data/agricultural/cana-bagaco',
+  // Held back until the methodology paper is submitted; 404 meanwhile.
+  ...(METHOD_PAGES_ENABLED ? METHOD_PAGES.map((page) => `/en${page}`) : []),
   '/en/about',
   '/en/guide',
   '/en/guide/calculadora',
@@ -34,10 +46,11 @@ export const ROUTES = [
  * With no backend running they render their error states — which count too.
  */
 export const SIGNED_IN_ROUTES = [
-  '/en/dashboard/proximity',
-  '/en/dashboard/advanced-analysis',
-  '/en/dashboard/scientific-database',
-  '/en/dashboard/scientific-database?view=references',
+  '/en/proximity',
+  // Shows the availability factors, so it is held back with the Método pages.
+  ...(METHOD_PAGES_ENABLED ? ['/en/analysis'] : []),
+  '/en/method/science-base',
+  '/en/method/science-base?view=references',
   '/en/settings',
 ];
 

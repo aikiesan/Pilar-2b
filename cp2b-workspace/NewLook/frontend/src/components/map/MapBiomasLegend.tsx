@@ -46,7 +46,7 @@ export default function MapBiomasLegend({ visible = true }: MapBiomasLegendProps
       {/* Header */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full px-3 py-2 flex items-center justify-between bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800 transition-colors"
+        className="w-full px-3 py-2 flex items-center justify-between bg-gradient-to-r from-terra-600 to-terra-700 text-white hover:from-terra-700 hover:to-terra-800 transition-colors"
         aria-expanded={isExpanded}
         aria-controls="mapbiomas-legend-content"
       >

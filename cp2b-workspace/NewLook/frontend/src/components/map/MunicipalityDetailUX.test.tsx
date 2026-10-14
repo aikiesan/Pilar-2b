@@ -76,12 +76,34 @@ describe('municipality detail UX', () => {
     );
 
     expect(screen.getByRole('complementary', { name: /Detalhes do município de Campinas/ })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: /Resíduos Urbanos/ }));
 
-    expect(screen.getByText('FORSU')).toBeInTheDocument();
-    expect(screen.getByText('Poda urbana')).toBeInTheDocument();
-    expect(screen.getByText('Lodo de ETE')).toBeInTheDocument();
+    // No accordion: the urban streams are on screen as soon as the panel opens.
+    const urban = screen.getByRole('region', { name: 'Urbano' });
+    expect(urban).toHaveTextContent('FORSU');
+    expect(urban).toHaveTextContent('Poda urbana');
+    expect(urban).toHaveTextContent('Lodo de ETE');
     expect(screen.getByText(/Não representa massa coletada em t\/ano/)).toBeInTheDocument();
+  });
+
+  it('starts the residue list in the map metric and switches to tonnes', () => {
+    render(
+      <MunicipalityProfilePanel
+        municipality={municipality('SP')}
+        visible
+        onClose={jest.fn()}
+        metric="methane_m3"
+        scenario="real"
+      />,
+    );
+
+    const methane = screen.getByRole('button', { name: 'CH₄ N4' });
+    expect(methane).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByText(/nível N4 do método CP2b/)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Toneladas' }));
+    expect(screen.getByRole('button', { name: 'Toneladas' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByText(/Biomassa gerada por resíduo/)).toBeInTheDocument();
+    expect(screen.queryByText(/Não representa massa coletada/)).not.toBeInTheDocument();
   });
 
   it('shows the explicit MG validation gap instead of population-derived values', () => {
@@ -95,7 +117,6 @@ describe('municipality detail UX', () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole('button', { name: /Resíduos Urbanos/ }));
     expect(screen.getByText('Sem inventário urbano validado para MG')).toBeInTheDocument();
     expect(screen.getByText(/não foram inferidos a partir da população/i)).toBeInTheDocument();
   });

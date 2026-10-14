@@ -24,6 +24,7 @@ import {
 import type { MunicipalityFeature } from '@/types/geospatial';
 import { MISSING_VALUE } from '@/lib/format';
 import { useFormat } from '@/hooks/useFormat';
+import { searchMunicipalities } from '@/lib/municipalitySearch';
 
 interface ComparisonPanelProps {
   municipalities: MunicipalityFeature[];
@@ -51,12 +52,17 @@ export default function ComparisonPanel({
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<MetricCategory>('overview');
   const titleId = useId();
+  const searchId = useId();
   const panelRef = useDialog<HTMLDivElement>(visible, onClose);
 
   if (!visible) return null;
 
-  const filteredMunicipalities = municipalities.filter((mun) =>
-    mun.properties.name.toLowerCase().includes(searchQuery.toLowerCase())
+  // By name or IBGE code, as everywhere (lib/municipalitySearch).
+  const filteredMunicipalities = searchMunicipalities(
+    municipalities,
+    searchQuery,
+    (mun) => ({ name: mun.properties.name, code: mun.properties.ibge_code }),
+    10,
   );
 
   const categories: Array<{ id: MetricCategory; label: string; icon: React.ReactNode }> = [
@@ -149,10 +155,11 @@ export default function ComparisonPanel({
           {/* Municipality Selection */}
           {selectedMunicipalities.length < 4 && (
             <div className="p-6 border-b border-gray-200 dark:border-slate-700">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label htmlFor={searchId} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 {t('add_label')}
               </label>
               <input
+                id={searchId}
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -161,7 +168,7 @@ export default function ComparisonPanel({
               />
               {searchQuery && filteredMunicipalities.length > 0 && (
                 <div className="mt-2 max-h-48 overflow-y-auto border border-gray-200 dark:border-slate-700 rounded-lg">
-                  {filteredMunicipalities.slice(0, 10).map((mun) => {
+                  {filteredMunicipalities.map((mun) => {
                     const isSelected = selectedMunicipalities.some(
                       (selected) => selected.properties.ibge_code === mun.properties.ibge_code
                     );
@@ -274,7 +281,7 @@ export default function ComparisonPanel({
                                 <span
                                   className={`font-semibold ${
                                     isMax
-                                      ? 'text-green-700 dark:text-green-400'
+                                      ? 'text-terra-700 dark:text-terra-400'
                                       : isMin
                                       ? 'text-red-700 dark:text-red-400'
                                       : 'text-gray-900 dark:text-white'
@@ -291,7 +298,7 @@ export default function ComparisonPanel({
                                 <div className="mt-2 h-1.5 bg-gray-200 dark:bg-slate-700 rounded-full overflow-hidden">
                                   <div
                                     className={`h-full ${
-                                      isMax ? 'bg-green-500' : isMin ? 'bg-red-500' : 'bg-blue-500'
+                                      isMax ? 'bg-terra-500' : isMin ? 'bg-red-500' : 'bg-dusk-500'
                                     }`}
                                     style={{ width: `${(value / maxValue) * 100}%` }}
                                   />

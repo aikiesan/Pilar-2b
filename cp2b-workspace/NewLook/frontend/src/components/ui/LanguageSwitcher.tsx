@@ -24,20 +24,20 @@ export function useLocaleSwitch(): (newLocale: Locale) => void {
 }
 
 interface LanguageSwitcherProps {
-  /** light: on a light bar (the public header); dark: on the green one. */
+  /** light: on a light bar (the header); dark: on a dark one. */
   variant?: 'light' | 'dark'
 }
 
 const STYLES = {
   light: {
-    active: 'text-cp2b-green dark:text-emerald-400',
+    active: 'text-terra-600 dark:text-terra-400',
     inactive: 'text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700',
     separator: 'text-gray-300 dark:text-gray-600',
   },
-  // The brand green of the light style is ~1.3:1 on the green header.
+  // The light style's terracotta is too dark on a dark bar.
   dark: {
     active: 'text-white bg-white/20',
-    inactive: 'text-green-100 hover:text-white hover:bg-white/10',
+    inactive: 'text-terra-100 hover:text-white hover:bg-white/10',
     separator: 'text-white/40',
   },
 }

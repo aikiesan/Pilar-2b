@@ -10,6 +10,8 @@ import { useValidationMessage } from '@/hooks/useValidationMessage'
 import { isLocale } from '@/config/i18n'
 import { openConsentPreferences } from '@/lib/consent'
 import { subscribeToNewsletter } from '@/services/newsletterApi'
+import { SOCIAL_LINKS } from '@/config/contact'
+import { FOOTER_LINKS } from './siteNav'
 
 // Social icons removed from lucide-react v1.x — inline SVGs
 function InstagramIcon({ className }: { className?: string }) {
@@ -88,42 +90,39 @@ export default function Footer() {
 
   const socials = [
     {
-      href: 'https://www.instagram.com/centro_biogas_cp2b/',
+      href: SOCIAL_LINKS.instagram,
       label: t('footer.instagram_label'),
       Icon: InstagramIcon,
       hover: 'hover:text-pink-400 hover:border-pink-400/40',
     },
     {
-      href: 'https://br.linkedin.com/company/centro-paulista-de-estudos-em-biog%C3%A1s-e-bioprodutos-cp2b',
+      href: SOCIAL_LINKS.linkedin,
       label: t('footer.linkedin_label'),
       Icon: LinkedinIcon,
-      hover: 'hover:text-blue-400 hover:border-blue-400/40',
+      hover: 'hover:text-dusk-400 hover:border-dusk-400/40',
     },
     {
-      href: 'https://www.youtube.com/channel/UChp2J3n-9napYyHUEHf3Fhg',
+      href: SOCIAL_LINKS.youtube,
       label: t('footer.youtube_label'),
       Icon: YoutubeIcon,
       hover: 'hover:text-red-400 hover:border-red-400/40',
     },
     {
-      href: 'https://wa.me/message/KVJUNJN7SIAZP1',
+      href: SOCIAL_LINKS.whatsapp,
       label: t('footer.whatsapp_label'),
       Icon: WhatsAppIcon,
-      hover: 'hover:text-emerald-400 hover:border-emerald-400/40',
+      hover: 'hover:text-ochre-300 hover:border-ochre-300/40',
     },
   ] as const
 
   const quickLinks = [
-    { href: '/', label: tNav('home') },
-    { href: '/map', label: tNav('map') },
-    { href: '/dashboard', label: tNav('dashboard') },
-    { href: '/about', label: tNav('about') },
-    { href: '/cite', label: tNav('cite') },
+    ...FOOTER_LINKS.map(({ href, labelKey }) => ({ href, label: tNav(labelKey) })),
     { href: '/login', label: tAuth('login') },
   ]
 
   return (
-    <footer className="bg-[#0f1a0f] text-white" role="contentinfo">
+    <footer className="bg-terra-950 text-white" role="contentinfo">
+      {/* Deep oxblood band (#340B00): terra-900 glared on large screens; ochre accents. */}
 
       {/* ── Section 1: Newsletter ─────────────────────────────────── */}
       <div className="border-b border-white/10">
@@ -131,8 +130,8 @@ export default function Footer() {
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
             <div className="lg:max-w-sm">
               <div className="flex items-center gap-2 mb-1">
-                <Mail className="w-4 h-4 text-cp2b-lime" aria-hidden="true" />
-                <p className="text-xs font-bold uppercase tracking-widest text-cp2b-lime">
+                <Mail className="w-4 h-4 text-ochre-300" aria-hidden="true" />
+                <p className="text-xs font-bold uppercase tracking-widest text-ochre-300">
                   {t('footer.newsletter_heading')}
                 </p>
               </div>
@@ -157,7 +156,7 @@ export default function Footer() {
                   value={email}
                   onChange={(e) => { setEmail(e.target.value); setStatus('idle'); setEmailError(null); setServerError(null) }}
                   placeholder={t('footer.newsletter_email_placeholder')}
-                  className="w-full px-4 py-2.5 text-sm bg-white/5 border border-white/15 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cp2b-lime focus:border-transparent transition-colors"
+                  className="w-full px-4 py-2.5 text-sm bg-white/5 border border-white/15 rounded text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-ochre-300 focus:border-transparent transition-colors"
                   disabled={status === 'loading' || status === 'success'}
                   aria-describedby="footer-newsletter-status"
                   aria-invalid={emailError !== null}
@@ -166,7 +165,7 @@ export default function Footer() {
               <button
                 type="submit"
                 disabled={status === 'loading' || status === 'success'}
-                className="px-5 py-2.5 text-sm font-semibold bg-cp2b-green hover:bg-cp2b-dark-green disabled:opacity-60 text-white rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-cp2b-lime whitespace-nowrap"
+                className="px-5 py-2.5 text-sm font-semibold bg-ochre-300 hover:bg-ochre-200 disabled:opacity-60 text-terra-900 rounded transition-colors focus:outline-none focus:ring-2 focus:ring-ochre-300 focus:ring-offset-2 focus:ring-offset-terra-950 whitespace-nowrap"
               >
                 {status === 'loading' ? '...' : t('footer.newsletter_submit')}
               </button>
@@ -176,7 +175,7 @@ export default function Footer() {
           {/* Status feedback */}
           <div id="footer-newsletter-status" aria-live="polite" className="mt-3 min-h-[1.25rem]">
             {status === 'success' && (
-              <p className="flex items-center gap-2 text-xs text-emerald-400">
+              <p className="flex items-center gap-2 text-xs text-ochre-300">
                 <CheckCircle2 className="w-3.5 h-3.5" aria-hidden="true" />
                 {t('footer.newsletter_success')}
               </p>
@@ -207,17 +206,17 @@ export default function Footer() {
           {/* Col A — Branding */}
           <div className="space-y-4">
             <Image
-              src="/images/logotipo-full-black.png"
+              src="/images/cp2b-logo-negativo.svg"
               alt="PILAR-2b"
               width={130}
-              height={44}
-              className="brightness-200"
+              height={50}
+              unoptimized
               style={{ height: 'auto' }}
             />
 
             <div className="space-y-2.5">
               <div>
-                <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-cp2b-lime">
+                <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-ochre-300">
                   PILAR
                 </p>
                 <p className="text-xs text-gray-400 leading-snug">
@@ -225,7 +224,7 @@ export default function Footer() {
                 </p>
               </div>
               <div>
-                <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-cp2b-lime">
+                <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-ochre-300">
                   2b
                 </p>
                 <p className="text-xs text-gray-400 leading-snug">
@@ -309,7 +308,7 @@ export default function Footer() {
 
             {/* Legal links */}
             <nav aria-label={t('footer.legal_links')}>
-              <ul className="flex items-center gap-1 list-none">
+              <ul className="flex flex-wrap items-center justify-center gap-1 list-none">
                 <li>
                   <Link
                     href="/privacy"
@@ -325,6 +324,15 @@ export default function Footer() {
                     className="hover:text-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-white/40 rounded px-1"
                   >
                     {t('footer.terms')}
+                  </Link>
+                </li>
+                <li aria-hidden="true" className="text-gray-600">|</li>
+                <li>
+                  <Link
+                    href="/accessibility"
+                    className="hover:text-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-white/40 rounded px-1"
+                  >
+                    {t('footer.accessibility')}
                   </Link>
                 </li>
                 <li aria-hidden="true" className="text-gray-600">|</li>

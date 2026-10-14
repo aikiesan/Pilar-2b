@@ -32,9 +32,19 @@ describe('ErrorBoundary', () => {
       </ErrorBoundary>
     )
     expect(screen.getByRole('alert')).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Algo deu errado' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Algo não saiu como esperado' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Tentar novamente' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Ir para o início' })).toBeInTheDocument()
+  })
+
+  it('"Ir para o início" is a full-load link to the locale home', () => {
+    render(
+      <ErrorBoundary>
+        <Boom />
+      </ErrorBoundary>
+    )
+    // Under the app's base path (empty in tests), never a bare "/pt-BR" that
+    // would leave /pilar2b in production.
+    expect(screen.getByRole('link', { name: 'Ir para o início' })).toHaveAttribute('href', '/pt-BR')
   })
 
   it('prefers a custom fallback', () => {

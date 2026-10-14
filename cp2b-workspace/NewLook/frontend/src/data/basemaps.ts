@@ -4,11 +4,13 @@
  * Four options, deliberately no dark canvas (product decision). Each is a free,
  * attribution-only raster source that needs no API key, so nothing here touches
  * the build or requires a token:
- *   - mapa      OpenStreetMap standard        (streets, the current default)
+ *   - mapa      OpenStreetMap standard        (streets)
  *   - satelite  Esri World Imagery            (aerial/satellite, + place labels)
  *   - terreno   OpenTopoMap                   (shaded relief + contours)
  *   - light     CARTO Positron                (muted light canvas, best for
- *                                              reading the choropleth on top)
+ *                                              reading the choropleth on top;
+ *                                              the default, to sit with the
+ *                                              light earth identity)
  *
  * `refUrl` is an optional label/boundary overlay drawn ON TOP of the base — only
  * satellite needs it, because imagery alone carries no municipality names.
@@ -66,4 +68,4 @@ export const BASEMAPS: Record<BasemapId, Basemap> = {
 
 export const BASEMAP_ORDER: BasemapId[] = ['mapa', 'satelite', 'terreno', 'light'];
 
-export const DEFAULT_BASEMAP: BasemapId = 'mapa';
+export const DEFAULT_BASEMAP: BasemapId = 'light';

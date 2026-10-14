@@ -33,6 +33,7 @@ interface ApiReference {
   url?: string | null
   is_primary?: boolean
   sector_codigo?: string | null
+  residuo_codigo?: string | null
   residuo_nome?: string | null
   residuo_nome_en?: string | null
 }
@@ -95,4 +96,10 @@ export function toLiteratureReference(ref: ApiReference): LiteratureReference {
 export async function getReferences(): Promise<LiteratureReference[]> {
   const body = await getJson<{ references?: ApiReference[] }>('/residuos/references/all?limit=5000')
   return (body.references ?? []).map(toLiteratureReference)
+}
+
+/** The references filed under one residue code (e.g. AG_CANA_BAGACO), newest first. */
+export async function getReferencesForResidue(code: string): Promise<LiteratureReference[]> {
+  const body = await getJson<{ references?: ApiReference[] }>('/residuos/references/all?limit=5000')
+  return (body.references ?? []).filter((ref) => ref.residuo_codigo === code).map(toLiteratureReference)
 }

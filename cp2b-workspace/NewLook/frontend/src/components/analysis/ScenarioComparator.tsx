@@ -18,6 +18,7 @@ import {
 } from 'recharts'
 import { Layers, Check, Info } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import LegacyBadge from '@/components/ui/LegacyBadge'
 import { useFormat } from '@/hooks/useFormat'
 import { MISSING_VALUE } from '@/lib/format'
 import {
@@ -113,12 +114,13 @@ export default function ScenarioComparator({
     return (
       <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
         <div className="flex items-center gap-2 mb-4">
-          <Layers className="h-5 w-5 text-green-600" />
+          <Layers className="h-5 w-5 text-terra-600" />
           <h3 className="text-lg font-semibold text-gray-800">{title ?? t('scenario_comparator.title')}</h3>
+        <LegacyBadge />
         </div>
         <div className="h-[400px] flex items-center justify-center">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cp2b-primary mx-auto mb-3"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-terra-800 mx-auto mb-3"></div>
             <p className="text-sm text-gray-500">{t('scenario_comparator.loading')}</p>
           </div>
         </div>
@@ -129,8 +131,9 @@ export default function ScenarioComparator({
   return (
     <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
       <div className="flex items-center gap-2 mb-6">
-        <Layers className="h-5 w-5 text-green-600" />
+        <Layers className="h-5 w-5 text-terra-600" />
         <h3 className="text-lg font-semibold text-gray-800">{title ?? t('scenario_comparator.title')}</h3>
+        <LegacyBadge />
       </div>
 
       {/* Scenario Cards */}
@@ -141,7 +144,7 @@ export default function ScenarioComparator({
             onClick={() => handleSelectScenario(scenario)}
             className={`p-4 rounded-lg border-2 text-left transition-all ${
               selectedScenarioId === scenario.id
-                ? 'border-green-500 bg-green-50'
+                ? 'border-terra-500 bg-terra-50'
                 : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
             }`}
           >
@@ -151,7 +154,7 @@ export default function ScenarioComparator({
                 style={{ backgroundColor: scenario.color }}
               />
               {selectedScenarioId === scenario.id && (
-                <Check className="h-4 w-4 text-green-600" />
+                <Check className="h-4 w-4 text-terra-600" />
               )}
             </div>
             <h4 className="font-semibold text-gray-900 text-sm mb-1">
@@ -247,7 +250,7 @@ export default function ScenarioComparator({
               <tr
                 key={scenario.id}
                 className={`hover:bg-gray-50 cursor-pointer ${
-                  selectedScenarioId === scenario.id ? 'bg-green-50' : ''
+                  selectedScenarioId === scenario.id ? 'bg-terra-50' : ''
                 }`}
                 onClick={() => handleSelectScenario(scenario)}
               >
@@ -288,10 +291,10 @@ export default function ScenarioComparator({
             {currentResult && !scenarioResults.some(s =>
               Math.abs(s.fde - currentResult.fde) < 0.001
             ) && (
-              <tr className="bg-emerald-50">
+              <tr className="bg-terra-50">
                 <td className="py-3 px-4">
                   <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                    <div className="w-2 h-2 rounded-full bg-terra-500" />
                     <span className="font-medium text-gray-900">{t('scenario_comparator.col_custom')}</span>
                   </div>
                 </td>
@@ -308,7 +311,7 @@ export default function ScenarioComparator({
                   {currentFactors ? format.percent(currentFactors.fl * 100, { decimals: 0 }) : MISSING_VALUE}
                 </td>
                 <td className="text-center py-3 px-4">
-                  <span className="font-mono font-bold text-emerald-600">
+                  <span className="font-mono font-bold text-terra-600">
                     {format.percent(currentResult.percentage)}
                   </span>
                 </td>
@@ -322,9 +325,9 @@ export default function ScenarioComparator({
       </div>
 
       {/* Info note */}
-      <div className="mt-4 p-3 bg-blue-50 rounded-lg flex items-start gap-2">
-        <Info className="h-4 w-4 text-blue-500 flex-shrink-0 mt-0.5" />
-        <p className="text-xs text-blue-700">{t('scenario_comparator.info_note')}</p>
+      <div className="mt-4 p-3 bg-dusk-50 rounded-lg flex items-start gap-2">
+        <Info className="h-4 w-4 text-dusk-500 flex-shrink-0 mt-0.5" />
+        <p className="text-xs text-dusk-700">{t('scenario_comparator.info_note')}</p>
       </div>
     </div>
   )

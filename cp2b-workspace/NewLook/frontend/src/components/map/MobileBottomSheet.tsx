@@ -112,10 +112,10 @@ export default function MobileBottomSheet({
   const getLayerName = (layer: Layer) => layer.name;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-[1200] flex flex-col md:hidden">
+    <div className="surface-light fixed bottom-0 left-0 right-0 z-[1200] flex flex-col md:hidden">
       {/* Content sheet — slides up when a tab is active */}
       <div
-        className={`bg-white border-t border-gray-200 shadow-2xl transition-all duration-300 ease-out overflow-y-auto ${
+        className={`bg-paper-raised border-t border-line shadow-2xl transition-all duration-300 ease-out overflow-y-auto ${
           activeSheet ? 'h-[min(60vh,32rem)] rounded-t-2xl' : 'h-0 overflow-hidden'
         }`}
       >
@@ -123,14 +123,14 @@ export default function MobileBottomSheet({
           <div className="px-4 py-3 space-y-4">
             {/* Sheet header */}
             <div className="flex items-center justify-between">
-              <span className="text-sm font-semibold text-gray-800">
+              <span className="text-sm font-semibold text-ink">
                 {activeSheet === 'filters' ? t('panels.filters') : t('panels.layers')}
               </span>
               <button
                 type="button"
                 onClick={() => setActiveSheet(null)}
                 aria-label={activeSheet === 'filters' ? t('mobile.close_filters') : t('mobile.close_layers')}
-                className="flex h-11 w-11 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100"
+                className="flex h-11 w-11 items-center justify-center rounded-lg text-ink-muted hover:bg-paper-sunken"
               >
                 <X className="w-5 h-5" aria-hidden="true" />
               </button>
@@ -141,24 +141,24 @@ export default function MobileBottomSheet({
               <>
                 {/* Search */}
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">
+                  <label className="block text-xs font-semibold text-ink-muted uppercase tracking-wide mb-1.5">
                     {t('search.label')}
                   </label>
                   <div className="relative">
-                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-muted" />
                     <input
                       type="text"
                       value={searchQuery}
                       onChange={e => onSearchChange(e.target.value)}
                       placeholder={t('search.placeholder')}
-                      className="w-full pl-9 pr-9 py-2.5 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                      className="w-full pl-9 pr-9 py-2.5 text-sm border border-line-strong rounded-xl focus:ring-2 focus:ring-terra-500 focus:border-terra-500"
                     />
                     {searchQuery && (
                       <button
                         type="button"
                         onClick={() => onSearchChange('')}
                         aria-label={t('mobile.clear_search')}
-                        className="absolute right-0 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center text-gray-400 hover:text-gray-600"
+                        className="absolute right-0 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center text-ink-muted hover:text-ink-muted"
                       >
                         <X className="w-4 h-4" />
                       </button>
@@ -177,13 +177,15 @@ export default function MobileBottomSheet({
                           key={m}
                           onClick={() => onDisplayMetricChange(m)}
                           aria-pressed={active}
-                          className={`py-3 text-xs font-bold uppercase tracking-wide rounded-lg transition-colors ${
-                            active
-                              ? `${spec.activeClass} text-white`
-                              : 'bg-white text-gray-500 border border-gray-200'
-                          }`}
+                          className={`pt-3 pb-2 text-xs font-semibold uppercase tracking-wide border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-terra-600 ${
+                    active
+                      ? 'border-ink bg-paper-sunken text-ink'
+                      : 'border-line bg-paper-raised text-ink-muted hover:border-line-strong hover:text-ink'
+                  }`}
                         >
-                          {spec.icon} {metricText(m).label}
+                          {metricText(m).label}
+                {/* The metric's own map ramp: the control and the map agree on hue. */}
+                <span aria-hidden="true" className="mx-3 mt-1.5 block h-1" style={{ background: `linear-gradient(to right, ${spec.ramp.join(',')})` }} />
                         </button>
                       );
                     })}
@@ -192,26 +194,26 @@ export default function MobileBottomSheet({
 
                 {/* Visualization mode */}
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">
+                  <label className="block text-xs font-semibold text-ink-muted uppercase tracking-wide mb-1.5">
                     {t('vizModes.label')}
                   </label>
                   <div className="grid grid-cols-2 gap-2">
                     {([
-                      { value: 'choropleth' as const, label: t('vizModes.choropleth'), color: 'bg-blue-600', disabled: false },
-                      { value: 'heatmap' as const, label: t('vizModes.heatmap'), color: 'bg-orange-500', disabled: false },
-                      { value: 'bubble' as const, label: t('vizModes.bubble'), color: 'bg-green-600', disabled: false },
-                      { value: 'clusters' as const, label: `⚗️ ${t('vizModes.clusters')}`, color: 'bg-violet-600', disabled: true },
+                      { value: 'choropleth' as const, label: t('vizModes.choropleth'), disabled: false },
+                      { value: 'heatmap' as const, label: t('vizModes.heatmap'), disabled: false },
+                      { value: 'bubble' as const, label: t('vizModes.bubble'), disabled: false },
+                      { value: 'clusters' as const, label: t('vizModes.clusters'), disabled: true },
                     ] as const).map(opt => (
                       <button
                         key={opt.value}
                         onClick={() => !opt.disabled && onVisualizationModeChange(opt.value)}
                         disabled={opt.disabled}
-                        className={`min-h-11 py-2.5 rounded-xl text-xs font-medium border transition-colors ${
+                        className={`min-h-11 py-2.5 text-xs font-medium border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-terra-600 ${
                           opt.disabled
-                            ? 'bg-gray-50 border-gray-200 text-gray-300 cursor-not-allowed'
+                            ? 'bg-paper-sunken border-line text-line-strong cursor-not-allowed'
                             : visualizationMode === opt.value
-                              ? `${opt.color} text-white border-transparent`
-                              : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                              ? 'border-ink bg-paper-sunken text-ink'
+                              : 'bg-paper-raised text-ink-muted border-line hover:bg-paper-sunken'
                         }`}
                         title={opt.disabled ? 'Em desenvolvimento' : undefined}
                       >
@@ -224,7 +226,7 @@ export default function MobileBottomSheet({
                 {/* Color mode selector (for choropleth mode) */}
                 {visualizationMode === 'choropleth' && (
                   <div>
-                    <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">
+                    <label className="block text-xs font-semibold text-ink-muted uppercase tracking-wide mb-1.5">
                       {t('colorModes.label')}
                     </label>
                     <ColorModeSelector
@@ -245,7 +247,7 @@ export default function MobileBottomSheet({
                 <div>
                   <button
                     onClick={() => setShowBiomassTypes(!showBiomassTypes)}
-                    className="mb-1.5 flex min-h-11 w-full items-center justify-between text-xs font-semibold uppercase tracking-wide text-gray-600"
+                    className="mb-1.5 flex min-h-11 w-full items-center justify-between text-xs font-semibold uppercase tracking-wide text-ink-muted"
                   >
                     <span>{t('biomassTypes.label')}</span>
                     {showBiomassTypes ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
@@ -260,10 +262,10 @@ export default function MobileBottomSheet({
                           onClick={() => onBiomassTypeChange(opt.value)}
                           className={`flex min-h-11 items-center gap-2 rounded-xl border px-3 py-2.5 text-xs font-medium transition-colors ${
                             !enabled
-                              ? 'cursor-not-allowed border-gray-100 bg-gray-50 text-gray-300'
+                              ? 'cursor-not-allowed border-line bg-paper-sunken text-line-strong'
                               : biomassType === opt.value
-                                ? 'bg-green-100 border-green-400 text-green-800'
-                                : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
+                                ? 'bg-terra-100 border-terra-400 text-terra-800'
+                                : 'bg-paper-raised border-line text-ink hover:bg-paper-sunken'
                           }`}
                         >
                           <span className="text-base">{opt.icon}</span>
@@ -278,11 +280,11 @@ export default function MobileBottomSheet({
                 <div>
                   <button
                     onClick={() => setShowResidues(!showResidues)}
-                    className="mb-1.5 flex min-h-11 w-full items-center justify-between text-xs font-semibold uppercase tracking-wide text-gray-600"
+                    className="mb-1.5 flex min-h-11 w-full items-center justify-between text-xs font-semibold uppercase tracking-wide text-ink-muted"
                   >
                     <span>
                       {t('residueFilter.label')}
-                      {filterCount > 0 && <span className="ml-1.5 text-green-700">({filterCount})</span>}
+                      {filterCount > 0 && <span className="ml-1.5 text-terra-700">({filterCount})</span>}
                     </span>
                     {showResidues ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                   </button>
@@ -305,13 +307,13 @@ export default function MobileBottomSheet({
                         const categoryAvailable = enabledCategories.includes(cat);
                         const catIcon = cat === 'agricultural' ? '🌾' : cat === 'livestock' ? '🐄' : '🏙️';
                         const activeColor = cat === 'agricultural'
-                          ? 'bg-green-200 border-green-500'
+                          ? 'bg-terra-200 border-terra-500'
                           : cat === 'livestock'
                           ? 'bg-yellow-200 border-yellow-500'
-                          : 'bg-blue-200 border-blue-500';
+                          : 'bg-dusk-200 border-dusk-500';
                         return (
                           <div key={cat} className={!categoryAvailable ? 'opacity-40' : ''}>
-                            <div className="text-[10px] text-gray-500 font-bold uppercase mb-1.5 flex items-center gap-1">
+                            <div className="text-[10px] text-ink-muted font-bold uppercase mb-1.5 flex items-center gap-1">
                               {catIcon} {t(`categories.${cat}`)}
                             </div>
                             <div className="flex flex-wrap gap-2">
@@ -323,7 +325,7 @@ export default function MobileBottomSheet({
                                     disabled={!categoryAvailable}
                                     onClick={() => handleResidueToggle(residue.value)}
                                     className={`flex min-h-11 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
-                                      isSelected ? activeColor : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
+                                      isSelected ? activeColor : 'bg-paper-raised border-line text-ink-muted hover:bg-paper-sunken'
                                     }`}
                                   >
                                     <span>{residue.icon}</span>
@@ -342,7 +344,7 @@ export default function MobileBottomSheet({
                 {/* Scenario selector — analytical control, lives in the sheet
                     on mobile (not floating over the map). */}
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">
+                  <label className="block text-xs font-semibold text-ink-muted uppercase tracking-wide mb-1.5">
                     {t('scenario_label')}
                   </label>
                   <div className="grid grid-cols-2 gap-2">
@@ -351,8 +353,8 @@ export default function MobileBottomSheet({
                         key={key}
                         onClick={() => onScenarioChange(key)}
                         aria-pressed={scenario === key}
-                        className={`min-h-11 py-2.5 rounded-xl text-xs font-medium border transition-colors ${
-                          scenario === key ? 'text-white border-transparent' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                        className={`min-h-11 py-2.5 text-xs font-medium border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-terra-600 ${
+                          scenario === key ? 'text-white border-transparent' : 'bg-paper-raised text-ink-muted border-line hover:bg-paper-sunken'
                         }`}
                         style={scenario === key ? { backgroundColor: color } : undefined}
                       >
@@ -364,14 +366,14 @@ export default function MobileBottomSheet({
 
                 {/* Accessibility — daltonic (CVD-safe) palette toggle. */}
                 <div>
-                  <p className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">
+                  <p className="block text-xs font-semibold text-ink-muted uppercase tracking-wide mb-1.5">
                     Acessibilidade
                   </p>
                   <button
                     onClick={onToggleDaltonic}
                     aria-pressed={daltonic}
                     className={`min-h-11 w-full py-2.5 rounded-xl text-xs font-medium border transition-colors ${
-                      daltonic ? 'bg-slate-700 text-white border-transparent' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                      daltonic ? 'bg-ink text-white border-transparent' : 'bg-paper-raised text-ink-muted border-line hover:bg-paper-sunken'
                     }`}
                   >
                     👁 {t('mobile.daltonic')} {daltonic ? `· ${t('mobile.active')}` : ''}
@@ -384,17 +386,17 @@ export default function MobileBottomSheet({
             {activeSheet === 'layers' && (
               <>
                 {/* Municipality count bar */}
-                <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-3">
+                <div className="bg-gradient-to-r from-terra-50 to-terra-50 border border-terra-200 rounded-xl p-3">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs text-gray-600 font-medium">{t('municipalities.visible')}</span>
+                    <span className="text-xs text-ink-muted font-medium">{t('municipalities.visible')}</span>
                     <div className="flex items-baseline gap-1">
-                      <span className="text-lg font-bold text-green-700">{municipalityCount}</span>
-                      <span className="text-xs text-gray-500">/ {totalMunicipalities}</span>
+                      <span className="text-lg font-bold text-terra-700">{municipalityCount}</span>
+                      <span className="text-xs text-ink-muted">/ {totalMunicipalities}</span>
                     </div>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className="w-full bg-line rounded-full h-2">
                     <div
-                      className="bg-green-600 h-2 rounded-full transition-all duration-300"
+                      className="bg-terra-600 h-2 rounded-full transition-all duration-300"
                       style={{ width: `${(municipalityCount / totalMunicipalities) * 100}%` }}
                     />
                   </div>
@@ -402,23 +404,23 @@ export default function MobileBottomSheet({
 
                 {/* Opacity */}
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">
+                  <label className="block text-xs font-semibold text-ink-muted uppercase tracking-wide mb-2">
                     {t('opacity.label')}: {Math.round(opacity * 100)}%
                   </label>
                   <div className="flex items-center gap-3">
-                    <span className="text-xs text-gray-400">30%</span>
+                    <span className="text-xs text-ink-muted">30%</span>
                     <input
                       type="range" min="0.3" max="1" step="0.05" value={opacity}
                       onChange={e => onOpacityChange(parseFloat(e.target.value))}
-                      className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-green-600"
+                      className="flex-1 h-2 bg-line rounded-lg appearance-none cursor-pointer accent-terra-600"
                     />
-                    <span className="text-xs text-gray-400">100%</span>
+                    <span className="text-xs text-ink-muted">100%</span>
                   </div>
                 </div>
 
                 {/* Layer toggles */}
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">
+                  <label className="block text-xs font-semibold text-ink-muted uppercase tracking-wide mb-2">
                     {t('layers.mapLayers')}
                   </label>
                   <div className="space-y-1.5">
@@ -426,15 +428,15 @@ export default function MobileBottomSheet({
                       <label
                         key={layer.id}
                         className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-colors border ${
-                          layer.visible ? 'bg-blue-50 border-blue-200' : 'bg-white border-gray-200 hover:bg-gray-50'
+                          layer.visible ? 'bg-dusk-50 border-dusk-200' : 'bg-paper-raised border-line hover:bg-paper-sunken'
                         }`}
                       >
                         <input
                           type="checkbox" checked={layer.visible}
                           onChange={e => onLayerToggle(layer.id, e.target.checked)}
-                          className="w-4 h-4 text-green-600 rounded"
+                          className="w-4 h-4 text-terra-600 rounded"
                         />
-                        <span className="text-sm text-gray-700 font-medium leading-tight">
+                        <span className="text-sm text-ink font-medium leading-tight">
                           {layer.icon} {getLayerName(layer)}
                         </span>
                       </label>
@@ -448,32 +450,32 @@ export default function MobileBottomSheet({
       </div>
 
       {/* Persistent tab bar — always visible */}
-      <div className="min-h-14 flex flex-shrink-0 items-stretch border-t border-gray-200 bg-white pb-[env(safe-area-inset-bottom)] shadow-lg">
+      <div className="min-h-14 flex flex-shrink-0 items-stretch border-t border-line bg-paper-raised pb-[env(safe-area-inset-bottom)] shadow-lg">
         {/* Filtros */}
         <button
           onClick={() => toggleSheet('filters')}
           className={`flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors ${
-            activeSheet === 'filters' ? 'text-green-700 bg-green-50' : 'text-gray-500 hover:bg-gray-50'
+            activeSheet === 'filters' ? 'text-terra-700 bg-terra-50' : 'text-ink-muted hover:bg-paper-sunken'
           }`}
         >
           <Search className="w-5 h-5" />
           <span className="text-[10px] font-semibold">
             {t('panels.filters')}
-            {filterCount > 0 && <span className="ml-1 text-green-600">({filterCount})</span>}
+            {filterCount > 0 && <span className="ml-1 text-terra-600">({filterCount})</span>}
           </span>
         </button>
 
         {/* Camadas */}
         <button
           onClick={() => toggleSheet('layers')}
-          className={`flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors border-l border-gray-200 ${
-            activeSheet === 'layers' ? 'text-green-700 bg-green-50' : 'text-gray-500 hover:bg-gray-50'
+          className={`flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors border-l border-line ${
+            activeSheet === 'layers' ? 'text-terra-700 bg-terra-50' : 'text-ink-muted hover:bg-paper-sunken'
           }`}
         >
           <Layers className="w-5 h-5" />
           <span className="text-[10px] font-semibold">
             {t('panels.layers')}
-            {activeLayerCount > 1 && <span className="ml-1 text-blue-600">({activeLayerCount})</span>}
+            {activeLayerCount > 1 && <span className="ml-1 text-dusk-600">({activeLayerCount})</span>}
           </span>
         </button>
 

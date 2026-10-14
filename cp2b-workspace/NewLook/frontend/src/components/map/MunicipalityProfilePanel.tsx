@@ -1,42 +1,51 @@
 /**
- * Municipality Profile Panel
- * Detailed municipality information panel with rich data context
+ * Municipality Profile Panel — the map's click-open sidebar.
+ *
+ * A condensed version of /municipalities/[slug], built from the same
+ * ProfileVisuals pieces, in reading order:
+ *   1. header: name, region, IBGE code;
+ *   2. four tiles: the active map metric's total (with its sector split as one
+ *      bar), accessible methane (N4), mobilisable methane (N3) and the residue
+ *      that carries most of N4;
+ *   3. one line of context: population, area, density, GDP per capita;
+ *   4. composition by sector in the active metric;
+ *   5. every residue under its sector's heading, as labelled bars, in methane
+ *      (the CP2b level behind the scenario) or in tonnes — a two-way switch
+ *      that starts on whichever the map is showing;
+ *   6. links to the full profile and to IBGE.
+ * No accordions: everything fits a scroll or two, and nothing is hidden behind
+ * a click.
  */
 
 'use client';
 
 import React, { useState } from 'react';
-import {
-  X,
-  MapPin,
-  Users,
-  Maximize,
-  TrendingUp,
-  BarChart3,
-  Leaf,
-  Factory,
-  Droplets,
-  Trees,
-  ChevronDown,
-  ChevronUp,
-  ExternalLink,
-  FileText,
-} from 'lucide-react';
+import { X, MapPin, ExternalLink, FileText } from 'lucide-react';
 import { Link } from '@/navigation';
 import type { DisplayMetric, MunicipalityFeature } from '@/types/geospatial';
 import {
   isServedScenario,
-  SERVED_SCENARIO_RESIDUE_FIELD,
+  SERVED_SOURCE_TIER,
   type MapScenarioKey,
 } from '@/data/scenarioFactors';
+import { SECTOR_COLORS, type SectorKey } from '@/data/sectorColors';
 import { getSectorMetricValue, getResidueTonsOrNull } from '@/lib/mapValues';
 import { useTranslations } from 'next-intl';
 import { useMunicipalityMetrics } from '@/hooks/useGeospatialData';
 import { getMetricSpec } from '@/lib/mapMetrics';
-import { MISSING_VALUE, type Formatters } from '@/lib/format';
+import { MISSING_VALUE } from '@/lib/format';
 import { useFormat } from '@/hooks/useFormat';
 import { useMetricText } from '@/hooks/useMetricText';
 import type { ResidueType } from '@/types/map';
+import { municipalityPath } from '@/lib/municipalitySlug';
+import {
+  BarList,
+  Card,
+  LegendItem,
+  StackedBar,
+  StatTile,
+  type BarRow,
+} from '@/components/municipality/ProfileVisuals';
 
 interface MunicipalityProfilePanelProps {
   municipality: MunicipalityFeature | null;
@@ -46,6 +55,16 @@ interface MunicipalityProfilePanelProps {
   metric?: DisplayMetric;
   scenario?: MapScenarioKey;
 }
+
+const SECTORS: SectorKey[] = ['agricultural', 'livestock', 'urban'];
+
+const RESIDUES_BY_SECTOR: Record<SectorKey, ResidueType[]> = {
+  agricultural: ['sugarcane', 'soybean', 'corn', 'coffee', 'citrus'],
+  livestock: ['cattle', 'swine', 'poultry', 'aquaculture'],
+  urban: ['rsu', 'rpo', 'sewage'],
+};
+
+type ResidueView = 'methane' | 'biomass';
 
 export default function MunicipalityProfilePanel({
   municipality,
@@ -60,9 +79,8 @@ export default function MunicipalityProfilePanel({
   const tCommon = useTranslations('common');
   const format = useFormat();
   const metricText = useMetricText();
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(
-    new Set(['biomass'])
-  );
+  // The residue list starts in the unit the map is painting; null = follow it.
+  const [chosenView, setChosenView] = useState<ResidueView | null>(null);
 
   // Demographics and the sector breakdown are not in the slim collection payload
   // — fetch them for the municipality being shown. Hook runs before the early
@@ -73,576 +91,358 @@ export default function MunicipalityProfilePanel({
   if (!visible || !municipality) return null;
 
   const props = { ...municipality.properties, ...(detail ?? {}) } as typeof municipality.properties;
-
-  const toggleSection = (section: string) => {
-    setExpandedSections((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(section)) {
-        newSet.delete(section);
-      } else {
-        newSet.add(section);
-      }
-      return newSet;
-    });
+  const field = (key: string): number | null => {
+    const value = (props as unknown as Record<string, unknown>)[key];
+    return typeof value === 'number' && Number.isFinite(value) ? value : null;
   };
+  const short = (v: number) => format.compact(v, { decimals: v >= 1000 ? 1 : 0 });
 
-  // A GDP of zero is a missing figure, not a municipality with no economy.
-  const formatCurrency = (value: number | undefined | null) =>
-    value != null && value > 0 ? format.currency(value) : MISSING_VALUE;
-
-  // Per-residue rows must separate "we measured none" from "we have no data".
-  // Sugarcane outside São Paulo has never been promoted, so its column is NULL,
-  // and the old formatTons(getResidueBiomassTons(...)) rendered that as
-  // "0 t/year" — stating the municipality grows no cane. Same distinction the
-  // choropleth already makes with its no_data grey.
-  const formatResidue = (p: typeof props, residue: ResidueType) => {
-    const tons = getResidueTonsOrNull(p, residue);
-    return tons === null
-      ? tCommon('states.no_data')
-      : `${format.compact(tons, { decimals: 2 })} ${tCommon('units.t_year')}`;
-  };
-
-  // The headline figure and the sector split follow the ACTIVE MAP METRIC, so the
-  // panel always answers the question the choropleth is currently asking. Every
-  // value is read from the served payload through the metric registry — the panel
-  // derives nothing itself (see mapValues.getSectorMetricValue).
+  // ── Active metric: total and sector split ────────────────────────────────
+  // The headline is the MUNICIPALITY TOTAL as the choropleth reads it, through
+  // the same registry accessor that paints the polygon — never the sum of the
+  // sector rows, which under the default scenario are not in the map payload
+  // and would print "No data" over a municipality the map paints green.
   const spec = getMetricSpec(metric);
   const text = metricText(metric);
-  const sectorRaw = {
-    agricultural: getSectorMetricValue(props, 'agricultural', metric, scenario),
-    livestock: getSectorMetricValue(props, 'livestock', metric, scenario),
-    urban: getSectorMetricValue(props, 'urban', metric, scenario),
-    // Neither the band scenarios nor CP2b (Real/Ideal) have a forestry stream,
-    // so this stays null and the row is not rendered. Kept so a future source
-    // with forestry shows up without touching the panel.
-    forestry: getSectorMetricValue(props, 'forestry', metric, scenario),
-  };
-
-  // Display units (t/year, Nm³/day, MWh/year) come from the same catalog entries
-  // as the legend's, so the two can never disagree about what a number means.
   const toDisplay = (v: number | null) => (v === null ? null : spec.toDisplay(v));
-  const agriculturalValue = toDisplay(sectorRaw.agricultural);
-  const livestockValue = toDisplay(sectorRaw.livestock);
-  const urbanValue = toDisplay(sectorRaw.urban);
-  const forestryValue = toDisplay(sectorRaw.forestry);
-
-  // The headline is the MUNICIPALITY TOTAL as the choropleth reads it, through
-  // the same registry accessor that paints the polygon. It used to be the sum of
-  // the sector rows, which made the panel depend on a breakdown it does not
-  // always have: under the default scenario (Real) the per-sector columns are
-  // not in the map payload, so every sector was null, the sum was 0, and the
-  // panel printed "No data" over a municipality the map was painting green.
   const totalValue = toDisplay(
     spec.rawValue(props, { biomassType: 'total', selectedResidues: [], scenario }).value
   );
   const metricTotal = totalValue ?? 0;
+  const sectorValue = Object.fromEntries(
+    SECTORS.map((s) => [s, toDisplay(getSectorMetricValue(props, s, metric, scenario))])
+  ) as Record<SectorKey, number | null>;
+  // Shares are of that same total. They need not reach 100%: a total can carry
+  // streams no sector row reports, so a visible remainder is the honest
+  // reading rather than a rounding artefact.
+  const share = (v: number | null) => (metricTotal > 0 && v !== null ? (v / metricTotal) * 100 : 0);
+  const hasSectorSplit = SECTORS.some((s) => sectorValue[s] !== null);
+  const sectorSegments = SECTORS.map((s) => ({ key: s, value: sectorValue[s] ?? 0, color: SECTOR_COLORS[s] }));
 
-  // Percentages are shares of that same total. They need not reach 100%: the
-  // served scenarios also carry sewage, which has no row here, so a visible
-  // remainder is the honest reading rather than a rounding artefact.
-  const share = (v: number | null) =>
-    metricTotal > 0 && v !== null ? (v / metricTotal) * 100 : 0;
-  const agriculturePercent = share(agriculturalValue);
-  const livestockPercent = share(livestockValue);
-  const urbanPercent = share(urbanValue);
-  const forestryPercent = share(forestryValue);
+  // ── CP2b method: N4 and N3 ───────────────────────────────────────────────
+  // The served scenarios read one CP2b level (Real = N4, Ideal = N3); the
+  // residue view follows it, and every other scenario shows N4.
+  const tier = isServedScenario(scenario) ? SERVED_SOURCE_TIER[scenario] : 'cp2b_n4';
+  const tierLabel = tier === 'cp2b_n3' ? 'N3' : 'N4';
+  const n4 = field('ch4_cp2b_n4_m3_year');
+  const n3 = field('ch4_cp2b_n3_m3_year');
+  const residueMethane = (r: ResidueType) => field(`ch4_${tier}_${r}_m3_year`);
+  const n4ByResidue = Object.values(RESIDUES_BY_SECTOR)
+    .flat()
+    .map((r) => ({ r, v: field(`ch4_cp2b_n4_${r}_m3_year`) ?? 0 }))
+    .sort((a, b) => b.v - a.v);
+  const mainResidue = n4 && n4 > 0 && n4ByResidue[0].v > 0 ? n4ByResidue[0] : null;
 
-  // A total with no breakdown at all is worth saying out loud, so the empty
-  // "Composition by Source" is not read as three genuine zeroes.
-  const hasSectorSplit =
-    agriculturalValue !== null || livestockValue !== null || urbanValue !== null;
-
-  const propertyValue = (key: string): number | null => {
-    const value = (props as unknown as Record<string, unknown>)[key];
-    return typeof value === 'number' && Number.isFinite(value) ? value : null;
-  };
-  const servedUrbanStreams = isServedScenario(scenario)
-    ? [
-        { id: 'rsu', label: tMap('urbanTotals.streams.rsu'), value: propertyValue(SERVED_SCENARIO_RESIDUE_FIELD(scenario, 'rsu')) },
-        { id: 'rpo', label: tMap('urbanTotals.streams.rpo'), value: propertyValue(SERVED_SCENARIO_RESIDUE_FIELD(scenario, 'rpo')) },
-        { id: 'sewage', label: tMap('urbanTotals.streams.sewage'), value: propertyValue(SERVED_SCENARIO_RESIDUE_FIELD(scenario, 'sewage')) },
-      ]
-    : [];
-  const urbanScenarioTotal = servedUrbanStreams.reduce((sum, stream) => sum + (stream.value ?? 0), 0);
-  const hasUrbanScenarioData = servedUrbanStreams.some((stream) => (stream.value ?? 0) > 0);
+  // ── Residues ─────────────────────────────────────────────────────────────
+  const view: ResidueView = chosenView ?? (metric === 'biomass_tons' ? 'biomass' : 'methane');
+  // Per-residue rows separate "we measured none" from "we have no data":
+  // sugarcane outside São Paulo has never been promoted, so its column is NULL,
+  // and rendering that as "0 t/ano" states the municipality grows no cane.
+  const residueValue = (r: ResidueType) => (view === 'methane' ? residueMethane(r) : getResidueTonsOrNull(props, r));
+  const residueRows = Object.fromEntries(
+    SECTORS.map((s) => [s, RESIDUES_BY_SECTOR[s].map((r) => ({ r, v: residueValue(r) }))])
+  ) as Record<SectorKey, { r: ResidueType; v: number | null }[]>;
+  const residueMax = Math.max(0, ...Object.values(residueRows).flat().map((x) => x.v ?? 0));
+  // Urban streams by their short names ("FORSU", not "FORSU (orgânicos)"):
+  // the panel's label column is narrow.
+  const residueName = (r: ResidueType) =>
+    r === 'rsu' || r === 'rpo' || r === 'sewage' ? tMap(`urbanTotals.streams.${r}`) : tResidues(r);
+  const residueUnit = view === 'methane' ? t('ch4_unit') : tCommon('units.t_year');
   const isMgMunicipality = String(props.ibge_code).startsWith('31');
   const ibgeUf = isMgMunicipality ? 'mg' : 'sp';
+  // IBGE Cidades uses deburred, hyphenated slugs ("Ribeirão Preto" →
+  // "ribeirao-preto"); a bare toLowerCase() keeps accents and spaces and 404s.
+  const ibgeSlug = props.name
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+
+  // ── Context ──────────────────────────────────────────────────────────────
+  // A GDP of zero is a missing figure, not a municipality with no economy.
+  const density =
+    props.population_density ??
+    (props.population && props.area_km2 ? props.population / props.area_km2 : null);
+  const context: { key: string; label: string; value: string; unit: string }[] = [
+    {
+      key: 'population',
+      label: t('population'),
+      value: props.population ? format.compact(props.population, { decimals: 1 }) : MISSING_VALUE,
+      unit: `${t('inhabitants')}${props.population_year ? ` · ${props.population_year}` : ''}`,
+    },
+    {
+      key: 'area',
+      label: t('area'),
+      value: props.area_km2 ? format.number(props.area_km2) : MISSING_VALUE,
+      unit: tCommon('units.km2'),
+    },
+    {
+      key: 'density',
+      label: t('density'),
+      value: density ? format.number(density) : MISSING_VALUE,
+      unit: t('density_unit'),
+    },
+    {
+      key: 'gdp',
+      label: t('gdp_per_capita'),
+      value:
+        props.gdp_per_capita != null && props.gdp_per_capita > 0
+          ? format.currency(props.gdp_per_capita, { compact: true })
+          : MISSING_VALUE,
+      unit: props.gdp_year ? String(props.gdp_year) : t('per_capita'),
+    },
+  ];
 
   return (
     <>
-      {/* Profile Panel.
-          Portrait  → bottom sheet: fixed to the bottom, ~62vh tall, rounded top.
+      {/* Portrait  → bottom sheet: fixed to the bottom, ~68% tall, rounded top.
           Landscape → right-side drawer, full height (matches desktop). */}
       <aside
         aria-label={t('detail_aria', { name: props.name })}
-        className="absolute z-[1101] overflow-y-auto bg-white shadow-2xl dark:bg-slate-900
+        className="absolute z-[1101] overflow-y-auto bg-paper shadow-2xl
                    inset-x-0 bottom-0 max-h-[68%] rounded-t-2xl
-                   landscape:inset-x-auto landscape:right-0 landscape:top-0 landscape:bottom-0 landscape:max-h-none landscape:w-[min(88vw,380px)] landscape:rounded-none"
+                   landscape:inset-x-auto landscape:right-0 landscape:top-0 landscape:bottom-0 landscape:max-h-none landscape:w-[min(88vw,360px)] landscape:rounded-none"
       >
         {/* Drag-handle affordance (bottom-sheet only) */}
-        <div className="landscape:hidden flex justify-center pt-2 pb-1">
-          <span className="h-1.5 w-10 rounded-full bg-gray-300 dark:bg-slate-600" aria-hidden="true" />
+        <div className="landscape:hidden flex justify-center bg-terra-700 pt-2 pb-1 rounded-t-2xl">
+          <span className="h-1.5 w-10 rounded-full bg-white/40" aria-hidden="true" />
         </div>
+
         {/* Header */}
-        <div className="sticky top-0 z-10 rounded-t-2xl bg-gradient-to-r from-[#1B5E20] to-[#2F7D32] p-3 text-white shadow-lg landscape:rounded-none">
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <div className="flex items-center space-x-2 mb-1">
-                <MapPin className="w-4 h-4" />
-                <span className="text-xs font-medium opacity-80">
-                  {props.intermediate_region
-                    ? t('municipality_with_region', { region: props.intermediate_region })
-                    : t('municipality')}
-                </span>
+        <div className="sticky top-0 z-10 bg-terra-700 px-3 pb-2.5 pt-1.5 text-white shadow-md landscape:pt-2.5 dark:bg-terra-900">
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-1.5 text-xs font-medium text-white/80">
+                <MapPin className="h-3.5 w-3.5" aria-hidden="true" />
+                {props.intermediate_region
+                  ? t('municipality_with_region', { region: props.intermediate_region })
+                  : t('municipality')}
               </div>
-              <h2 className="mb-1 text-lg font-bold leading-tight">{props.name}</h2>
-              <div className="flex flex-wrap items-center gap-x-2 text-xs opacity-90">
-                <span>IBGE: {props.ibge_code}</span>
-                {props.intermediate_region && <><span>•</span><span>{props.intermediate_region}</span></>}
-              </div>
+              <h2 className="font-display text-xl leading-tight">{props.name}</h2>
+              <p className="mt-1 flex flex-wrap gap-1.5 text-[11px]">
+                <span className="rounded-sm bg-white/15 px-1.5 py-0.5">IBGE {props.ibge_code}</span>
+                {props.immediate_region && props.immediate_region !== props.intermediate_region && (
+                  <span className="rounded-sm bg-white/15 px-1.5 py-0.5">
+                    {t('immediate_region', { region: props.immediate_region })}
+                  </span>
+                )}
+                {props.cluster_label != null && (
+                  <span className="rounded-sm bg-white/15 px-1.5 py-0.5">
+                    {t('residue_profile')}: {props.cluster_label}
+                  </span>
+                )}
+              </p>
             </div>
             <button
               onClick={onClose}
-              className="-mr-1 flex h-11 w-11 items-center justify-center rounded-lg hover:bg-white/20 transition-colors"
+              className="-mr-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg transition-colors hover:bg-white/20"
               title={tCommon('actions.close')}
               aria-label={t('close_aria')}
             >
-              <X className="w-6 h-6" />
+              <X className="h-6 w-6" />
             </button>
           </div>
         </div>
 
-        {/* Content */}
-        <div className="space-y-3 p-3">
-          {/* Cluster Profile — shown when cluster data is available */}
-          {props.cluster_label != null && (
-            <div className="rounded-xl border border-gray-200 dark:border-slate-700 overflow-hidden">
-              <div className="flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-slate-800">
-                <h3 className="font-semibold text-gray-900 dark:text-white text-sm">{t('residue_profile')}</h3>
-                <span
-                  className="text-xs font-medium px-2 py-0.5 rounded-full text-white"
-                  style={{
-                    backgroundColor:
-                      props.cluster_id === 0 ? '#4daf4a' :
-                      props.cluster_id === 1 ? '#ff7f00' :
-                      props.cluster_id === 2 ? '#e41a1c' :
-                      props.cluster_id === 3 ? '#377eb8' : '#aaaaaa',
-                  }}
-                >
-                  {props.cluster_label}
-                </span>
-              </div>
-              <div className="px-4 py-3 space-y-1.5 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-500 dark:text-gray-400">{t('biogas_potential')}</span>
-                  <span className="font-semibold text-gray-900 dark:text-white">
-                    {props.mun_total_GWh != null
-                      ? `${format.number(props.mun_total_GWh, { decimals: 1, minDecimals: 1 })} ${tCommon('units.gwh_year')}`
-                      : MISSING_VALUE}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500 dark:text-gray-400">{t('active_streams')}</span>
-                  <span className="font-semibold text-gray-900 dark:text-white">
-                    {props.mun_n_streams ?? MISSING_VALUE}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500 dark:text-gray-400">{t('dominant_stream')}</span>
-                  <span className="font-semibold text-gray-900 dark:text-white capitalize">
-                    {props.mun_dominant_stream?.replace('_', ' ') ?? MISSING_VALUE}
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Overview Section */}
-          <Section
-            title={t('overview')}
-            icon={<BarChart3 className="w-5 h-5" />}
-            expanded={expandedSections.has('overview')}
-            onToggle={() => toggleSection('overview')}
-          >
-            <div className="grid grid-cols-2 gap-3">
-              <StatCard
-                icon={<Users className="w-4 h-4 text-blue-600" />}
-                label={t('population')}
-                value={format.number(props.population)}
-                subtitle={`${t('inhabitants')}${props.population_year ? ` (${props.population_year})` : ''}`}
+        <div className="space-y-2 p-2">
+          {/* Headline tiles */}
+          <dl className="grid grid-cols-2 gap-1.5">
+            <StatTile
+              compact
+              emphasis
+              label={t('metric_total', { metric: text.label })}
+              value={metricTotal > 0 ? short(metricTotal) : tCommon('states.no_data')}
+              unit={text.unit}
+            >
+              {hasSectorSplit && metricTotal > 0 && <StackedBar segments={sectorSegments} height="h-2" />}
+            </StatTile>
+            {n4 !== null && (
+              <StatTile
+                compact
+                label={t('n4_label')}
+                value={short(n4)}
+                unit={t('ch4_unit')}
+                note={n4 > 0 ? t('per_day', { value: short(n4 / 365) }) : undefined}
               />
-              <StatCard
-                icon={<Maximize className="w-4 h-4 text-green-600" />}
-                label={t('area')}
-                value={format.number(props.area_km2)}
-                subtitle={`${tCommon('units.km2')}${props.area_year ? ` (${props.area_year})` : ''}`}
-              />
-              <StatCard
-                icon={<Users className="w-4 h-4 text-purple-600" />}
-                label={t('density')}
-                value={
-                  props.population_density
-                    ? format.number(props.population_density)
-                    : props.population && props.area_km2
-                    ? format.number(props.population / props.area_km2)
-                    : MISSING_VALUE
-                }
-                subtitle={t('density_unit')}
-              />
-              <StatCard
-                icon={<TrendingUp className="w-4 h-4 text-orange-600" />}
-                label={t('gdp_per_capita')}
-                value={formatCurrency(props.gdp_per_capita)}
-                subtitle={`${t('per_capita')}${props.gdp_year ? ` (${props.gdp_year})` : ''}`}
-              />
-            </div>
-          </Section>
-
-          {/* Potential section — follows whichever metric the map is showing */}
-          <Section
-            title={t('metric_potential', { metric: text.label })}
-            icon={<Factory className="w-5 h-5" />}
-            expanded={expandedSections.has('biomass')}
-            onToggle={() => toggleSection('biomass')}
-          >
-            <div className="space-y-4">
-              {/* Headline figure in the active metric */}
-              <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-lg p-4 border border-green-200 dark:border-green-800">
-                <div className="text-xs text-green-700 dark:text-green-300 font-medium mb-1">
-                  {spec.icon} {t('metric_total', { metric: text.label })}
-                </div>
-                <div className="text-2xl font-bold text-green-900 dark:text-green-100 mb-0.5">
-                  {metricTotal > 0 ? format.compact(metricTotal) : tCommon('states.no_data')}
-                </div>
-                <div className="text-xs text-green-600 dark:text-green-400">
-                  {text.unit}
-                </div>
-              </div>
-
-              {/* Breakdown by source */}
-              <div className="space-y-3">
-                <h4 className="font-semibold text-gray-900 dark:text-white text-sm">
-                  {t('composition_by_source')}
-                </h4>
-
-                {hasSectorSplit ? (
-                  <>
-                    {/* Agricultural */}
-                    <ProgressBar
-                      label={t('sector_agricultural')}
-                      value={agriculturalValue ?? 0}
-                      percentage={agriculturePercent}
-                      color="green"
-                      icon={<Leaf className="w-4 h-4" />}
-                      unit={text.unit}
-                      format={format}
-                    />
-
-                    {/* Livestock */}
-                    <ProgressBar
-                      label={t('sector_livestock')}
-                      value={livestockValue ?? 0}
-                      percentage={livestockPercent}
-                      color="yellow"
-                      icon={<Factory className="w-4 h-4" />}
-                      unit={text.unit}
-                      format={format}
-                    />
-
-                    {/* Urban */}
-                    <ProgressBar
-                      label={t('sector_urban')}
-                      value={urbanValue ?? 0}
-                      percentage={urbanPercent}
-                      color="blue"
-                      icon={<Droplets className="w-4 h-4" />}
-                      unit={text.unit}
-                      format={format}
-                    />
-
-                    {/* Forestry — served scenarios only */}
-                    {forestryValue !== null && (
-                      <ProgressBar
-                        label={t('sector_forestry')}
-                        value={forestryValue}
-                        percentage={forestryPercent}
-                        color="emerald"
-                        icon={<Trees className="w-4 h-4" />}
-                        unit={text.unit}
-                        format={format}
-                      />
-                    )}
-                  </>
-                ) : (
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    {t('no_sector_breakdown')}
-                  </p>
-                )}
-              </div>
-            </div>
-          </Section>
-
-          {/* Agricultural Details */}
-          <Section
-            title={t('agri_residues')}
-            icon={<Leaf className="w-5 h-5" />}
-            expanded={expandedSections.has('agriculture')}
-            onToggle={() => toggleSection('agriculture')}
-          >
-            <div className="space-y-2">
-              <DetailRow label={tResidues('sugarcane')} value={formatResidue(props, 'sugarcane')} />
-              <DetailRow label={tResidues('soybean')} value={formatResidue(props, 'soybean')} />
-              <DetailRow label={tResidues('corn')} value={formatResidue(props, 'corn')} />
-              <DetailRow label={tResidues('coffee')} value={formatResidue(props, 'coffee')} />
-              <DetailRow label={tResidues('citrus')} value={formatResidue(props, 'citrus')} />
-            </div>
-          </Section>
-
-          {/* Livestock Details */}
-          <Section
-            title={t('livestock_residues')}
-            icon={<Factory className="w-5 h-5" />}
-            expanded={expandedSections.has('livestock')}
-            onToggle={() => toggleSection('livestock')}
-          >
-            <div className="space-y-2">
-              <DetailRow label={tResidues('cattle')} value={formatResidue(props, 'cattle')} />
-              <DetailRow label={tResidues('swine')} value={formatResidue(props, 'swine')} />
-              <DetailRow label={tResidues('poultry')} value={formatResidue(props, 'poultry')} />
-              <DetailRow label={tResidues('aquaculture')} value={formatResidue(props, 'aquaculture')} />
-            </div>
-          </Section>
-
-          {/* Urban Waste Details */}
-          <Section
-            title={
-              isServedScenario(scenario)
-                ? t('urban_residues_scenario', { scenario: tMap(`scenario_${scenario}`) })
-                : t('urban_residues')
-            }
-            icon={<Droplets className="w-5 h-5" />}
-            expanded={expandedSections.has('urban')}
-            onToggle={() => toggleSection('urban')}
-          >
-            {isServedScenario(scenario) ? (
-              hasUrbanScenarioData ? (
-                <div className="space-y-3">
-                  <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 dark:border-blue-900 dark:bg-blue-950/30">
-                    <p className="text-[11px] font-medium text-blue-700 dark:text-blue-300">{t('urban_total')}</p>
-                    <p className="text-xl font-bold text-blue-950 dark:text-blue-100">
-                      {format.compact(urbanScenarioTotal)}
-                      <span className="ml-1 text-xs font-medium">{t('ch4_unit')}</span>
-                    </p>
-                  </div>
-                  {servedUrbanStreams.map((stream) => (
-                    <UrbanStreamRow
-                      key={stream.id}
-                      label={stream.label}
-                      value={stream.value}
-                      total={urbanScenarioTotal}
-                    />
-                  ))}
-                  <p className="rounded-md bg-amber-50 px-2.5 py-2 text-[11px] leading-snug text-amber-900 dark:bg-amber-950/30 dark:text-amber-200">
-                    {t('scenario_note')}
-                  </p>
-                </div>
-              ) : (
-                <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-3 text-sm text-gray-600 dark:border-slate-700 dark:bg-slate-800 dark:text-gray-300">
-                  <p className="font-semibold">
-                    {isMgMunicipality ? t('no_urban_inventory_mg') : t('no_urban_inventory')}
-                  </p>
-                  <p className="mt-1 text-xs leading-snug">{t('urban_note')}</p>
-                </div>
-              )
-            ) : (
-              <div className="space-y-2">
-                <DetailRow label={tResidues('rsu')} value={formatResidue(props, 'rsu')} />
-                <DetailRow label={tResidues('rpo')} value={formatResidue(props, 'rpo')} />
-                <DetailRow label={tResidues('sewage')} value={formatResidue(props, 'sewage')} />
-              </div>
             )}
-          </Section>
+            {n3 !== null && (
+              <StatTile
+                compact
+                label={t('n3_label')}
+                value={short(n3)}
+                unit={t('ch4_unit')}
+                note={n4 !== null && n3 > 0 ? t('n4_kept', { percent: format.percent((n4 / n3) * 100, { decimals: 0 }) }) : undefined}
+              />
+            )}
+            {mainResidue && n4 && (
+              <StatTile
+                compact
+                label={t('main_residue')}
+                value={<span className="text-lg">{tResidues(mainResidue.r)}</span>}
+                note={t('main_residue_share', { percent: format.percent((mainResidue.v / n4) * 100, { decimals: 0 }) })}
+              >
+                <span className="block h-2 rounded-r bg-paper-sunken" aria-hidden="true">
+                  <span
+                    className="block h-full rounded-r bg-terra-600 dark:bg-terra-400"
+                    style={{ width: `${Math.min(100, (mainResidue.v / n4) * 100)}%` }}
+                  />
+                </span>
+              </StatTile>
+            )}
+          </dl>
 
-          {/* External Links */}
-          <div className="pt-4 border-t border-gray-200 dark:border-slate-700 space-y-2">
-            {/* next-intl's Link, not a bare <a>. A raw href="/municipality/…"
+          {/* Context: one row of small figures */}
+          <dl className="grid grid-cols-4 divide-x divide-line border border-line bg-paper-raised">
+            {context.map((c) => (
+              <div key={c.key} className="flex min-w-0 flex-col justify-between px-1.5 py-1.5">
+                <dt className="text-[10px] font-medium uppercase leading-tight tracking-wide text-ink-muted">{c.label}</dt>
+                <dd className="mt-0.5">
+                  <span className="block truncate text-sm font-semibold tabular-nums text-ink">{c.value}</span>
+                  <span className="block truncate text-[10px] text-ink-muted">{c.unit}</span>
+                </dd>
+              </div>
+            ))}
+          </dl>
+
+          {/* Composition by sector, in the active metric */}
+          <Card
+            compact
+            id="panel-composicao"
+            title={t('composition_by_source')}
+            caption={text.unit}
+          >
+            {hasSectorSplit ? (
+              <>
+                <StackedBar segments={sectorSegments} />
+                <ul className="mt-2 space-y-1">
+                  {SECTORS.filter((s) => sectorValue[s] !== null).map((s) => (
+                    <li key={s} className="flex items-baseline justify-between gap-3">
+                      <LegendItem color={SECTOR_COLORS[s]} label={t(`sector_${s}`)} />
+                      <span className="text-sm tabular-nums text-ink">
+                        {short(sectorValue[s] ?? 0)}
+                        <span className="ml-2 inline-block w-12 text-right text-ink-muted">
+                          {format.percent(share(sectorValue[s]), { decimals: 0 })}
+                        </span>
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            ) : (
+              <p className="text-xs text-ink-muted">{t('no_sector_breakdown')}</p>
+            )}
+          </Card>
+
+          {/* Residues, grouped by sector */}
+          <Card
+            compact
+            id="panel-residuos"
+            title={t('residues_heading')}
+            aside={
+              <span role="group" aria-label={t('view_aria')} className="inline-flex border border-line text-xs">
+                {(['methane', 'biomass'] as const).map((v) => (
+                  <button
+                    key={v}
+                    type="button"
+                    aria-pressed={view === v}
+                    onClick={() => setChosenView(v)}
+                    className={`min-h-[32px] px-2.5 transition-colors ${
+                      view === v ? 'bg-ink text-paper' : 'text-ink-muted hover:bg-paper-sunken'
+                    }`}
+                  >
+                    {v === 'methane' ? t('view_methane', { tier: tierLabel }) : t('view_biomass')}
+                  </button>
+                ))}
+              </span>
+            }
+            caption={
+              view === 'methane'
+                ? t('residues_caption_methane', { tier: tierLabel, unit: residueUnit })
+                : t('residues_caption_biomass', { unit: residueUnit })
+            }
+          >
+            <div className="space-y-3">
+              {SECTORS.map((s) => {
+                const rows = residueRows[s];
+                const drawn = rows.filter((x) => (x.v ?? 0) > 0).sort((a, b) => (b.v ?? 0) - (a.v ?? 0));
+                const zero = rows.filter((x) => x.v === 0).map((x) => residueName(x.r));
+                const missing = rows.filter((x) => x.v === null).map((x) => residueName(x.r));
+                const sectorTotal = drawn.reduce((sum, x) => sum + (x.v ?? 0), 0);
+                const bars: BarRow[] = drawn.map((x) => ({
+                  key: x.r,
+                  label: residueName(x.r),
+                  value: x.v ?? 0,
+                  valueLabel: short(x.v ?? 0),
+                  color: SECTOR_COLORS[s],
+                }));
+                // Urban streams with nothing at all are a validation gap, not a
+                // zero: they are never inferred from population.
+                const urbanGap = s === 'urban' && drawn.length === 0;
+                return (
+                  <section key={s} aria-labelledby={`panel-res-${s}`}>
+                    <div className="mb-1.5 flex items-baseline justify-between gap-3 border-b border-line pb-1">
+                      <h4 id={`panel-res-${s}`} className="text-sm font-medium">
+                        <LegendItem color={SECTOR_COLORS[s]} label={t(`sector_${s}`)} />
+                      </h4>
+                      {sectorTotal > 0 && <span className="text-xs tabular-nums text-ink-muted">{short(sectorTotal)}</span>}
+                    </div>
+                    {urbanGap ? (
+                      <div className="border border-dashed border-line-strong bg-paper-sunken p-2.5 text-xs text-ink">
+                        <p className="font-semibold">
+                          {isMgMunicipality ? t('no_urban_inventory_mg') : t('no_urban_inventory')}
+                        </p>
+                        <p className="mt-1 leading-snug text-ink-muted">{t('urban_note')}</p>
+                      </div>
+                    ) : (
+                      <>
+                        {bars.length > 0 && <BarList rows={bars} scale={residueMax} labelWidth="7.75rem" />}
+                        {(zero.length > 0 || missing.length > 0) && (
+                          <p className="mt-1.5 text-[11px] leading-snug text-ink-muted">
+                            {zero.length > 0 && t('zero_list', { list: zero.join(', ') })}
+                            {zero.length > 0 && missing.length > 0 && ' · '}
+                            {missing.length > 0 && t('no_data_list', { list: missing.join(', ') })}
+                          </p>
+                        )}
+                      </>
+                    )}
+                  </section>
+                );
+              })}
+            </div>
+            {view === 'methane' && (
+              <p className="mt-2 border-l-2 border-terra-600 pl-2 text-[11px] leading-snug text-ink-muted">
+                {t('scenario_note')}
+              </p>
+            )}
+          </Card>
+
+          {/* Links */}
+          <div className="grid gap-1.5">
+            {/* next-intl's Link, not a bare <a>. A raw href="/municipalities/…"
                 skips BOTH the basePath (/pilar2b) and the locale segment, so in
                 production this button left the platform entirely and landed on
                 the CP2b institutional site, which serves the same host at the
                 root. Locally, where basePath is empty, it appeared to work. */}
             <Link
-              href={`/municipality/${props.ibge_code}` as never}
-              className="flex items-center justify-between p-4 rounded-lg bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors group border border-green-200 dark:border-green-800"
+              href={municipalityPath(props.name, props.ibge_code) as never}
+              className="group flex items-center justify-between bg-terra-700 px-3 py-2.5 text-white transition-colors hover:bg-terra-800 dark:bg-terra-600 dark:hover:bg-terra-500"
             >
-              <span className="text-sm font-semibold text-green-800 dark:text-green-300">
-                {t('full_profile')}
-              </span>
-              <FileText className="w-4 h-4 text-green-600 group-hover:text-green-800 dark:text-green-400" />
+              <span className="text-sm font-semibold">{t('full_profile')}</span>
+              <FileText className="h-4 w-4" aria-hidden="true" />
             </Link>
             <a
-              href={`https://cidades.ibge.gov.br/brasil/${ibgeUf}/${encodeURIComponent(props.name.toLowerCase())}/panorama`}
+              href={`https://cidades.ibge.gov.br/brasil/${ibgeUf}/${ibgeSlug}/panorama`}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-between p-4 rounded-lg bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors group"
+              className="group flex items-center justify-between border border-line px-3 py-2.5 transition-colors hover:bg-paper-sunken"
             >
-              <span className="text-sm font-medium text-gray-900 dark:text-white">
-                {t('ibge_more')}
-              </span>
-              <ExternalLink className="w-4 h-4 text-gray-500 group-hover:text-blue-600 dark:group-hover:text-blue-400" />
+              <span className="text-sm text-ink">{t('ibge_more')}</span>
+              <ExternalLink className="h-4 w-4 text-ink-muted" aria-hidden="true" />
             </a>
           </div>
         </div>
       </aside>
     </>
-  );
-}
-
-// Helper Components
-
-interface SectionProps {
-  title: string;
-  icon: React.ReactNode;
-  expanded: boolean;
-  onToggle: () => void;
-  children: React.ReactNode;
-}
-
-function Section({ title, icon, expanded, onToggle, children }: SectionProps) {
-  return (
-    <div className="border border-gray-200 dark:border-slate-700 rounded-xl overflow-hidden">
-      <button
-        onClick={onToggle}
-        className="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
-      >
-        <div className="flex items-center space-x-3">
-          <div className="text-blue-600 dark:text-blue-400">{icon}</div>
-          <h3 className="font-semibold text-gray-900 dark:text-white">{title}</h3>
-        </div>
-        {expanded ? (
-          <ChevronUp className="w-5 h-5 text-gray-500" />
-        ) : (
-          <ChevronDown className="w-5 h-5 text-gray-500" />
-        )}
-      </button>
-      {expanded && <div className="p-3">{children}</div>}
-    </div>
-  );
-}
-
-interface StatCardProps {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-  subtitle: string;
-}
-
-function StatCard({ icon, label, value, subtitle }: StatCardProps) {
-  return (
-    <div className="bg-gray-50 dark:bg-slate-800 rounded-lg p-3">
-      <div className="flex items-center space-x-1.5 mb-1">
-        {icon}
-        <span className="text-xs font-medium text-gray-600 dark:text-gray-400">{label}</span>
-      </div>
-      <div className="text-lg font-bold text-gray-900 dark:text-white mb-0.5">{value}</div>
-      <div className="text-xs text-gray-500 dark:text-gray-400">{subtitle}</div>
-    </div>
-  );
-}
-
-interface ProgressBarProps {
-  label: string;
-  value: number;
-  percentage: number;
-  color: 'green' | 'yellow' | 'blue' | 'emerald';
-  icon: React.ReactNode;
-  unit: string;
-  format: Formatters;
-}
-
-function ProgressBar({ label, value, percentage, color, icon, unit, format }: ProgressBarProps) {
-  const t = useTranslations('Map.profilePanel');
-  const colorClasses = {
-    green: {
-      bg: 'bg-green-500',
-      text: 'text-green-700 dark:text-green-300',
-      lightBg: 'bg-green-100 dark:bg-green-900/20',
-    },
-    yellow: {
-      bg: 'bg-yellow-500',
-      text: 'text-yellow-700 dark:text-yellow-300',
-      lightBg: 'bg-yellow-100 dark:bg-yellow-900/20',
-    },
-    blue: {
-      bg: 'bg-blue-500',
-      text: 'text-blue-700 dark:text-blue-300',
-      lightBg: 'bg-blue-100 dark:bg-blue-900/20',
-    },
-    emerald: {
-      bg: 'bg-emerald-700',
-      text: 'text-emerald-800 dark:text-emerald-300',
-      lightBg: 'bg-emerald-100 dark:bg-emerald-900/20',
-    },
-  };
-
-  const colors = colorClasses[color];
-
-  return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <div className={colors.text}>{icon}</div>
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{label}</span>
-        </div>
-        <div className="text-sm font-semibold text-gray-900 dark:text-white">
-          {format.number(value)} {unit}
-        </div>
-      </div>
-      <div className="relative h-2 bg-gray-200 dark:bg-slate-700 rounded-full overflow-hidden">
-        <div
-          className={`h-full ${colors.bg} transition-all duration-300`}
-          style={{ width: `${Math.min(percentage, 100)}%` }}
-        />
-      </div>
-      <div className="text-xs text-gray-500 dark:text-gray-400 text-right">
-        {t('share_of_total', { share: format.percent(percentage) })}
-      </div>
-    </div>
-  );
-}
-
-interface DetailRowProps {
-  label: string;
-  value: string;
-}
-
-function UrbanStreamRow({ label, value, total }: { label: string; value: number | null; total: number }) {
-  const t = useTranslations('Map.profilePanel');
-  const tCommon = useTranslations('common');
-  const format = useFormat();
-  const percentage = value !== null && total > 0 ? (value / total) * 100 : 0;
-  return (
-    <div className="space-y-1.5">
-      <div className="flex items-center justify-between gap-3 text-sm">
-        <span className="font-medium text-gray-700 dark:text-gray-300">{label}</span>
-        <span className="text-right font-semibold text-gray-950 dark:text-white">
-          {value === null ? tCommon('states.no_data') : `${format.compact(value)} ${tCommon('units.nm3_ch4_year')}`}
-        </span>
-      </div>
-      <div className="h-1.5 overflow-hidden rounded-full bg-gray-200 dark:bg-slate-700">
-        <div className="h-full rounded-full bg-blue-600" style={{ width: `${Math.min(percentage, 100)}%` }} />
-      </div>
-      <p className="text-right text-[10px] text-gray-500 dark:text-gray-400">
-        {t('share_of_urban', { share: format.percent(percentage) })}
-      </p>
-    </div>
-  );
-}
-
-function DetailRow({ label, value }: DetailRowProps) {
-  return (
-    <div className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-slate-700 last:border-0">
-      <span className="text-sm text-gray-600 dark:text-gray-400">{label}</span>
-      <span className="text-sm font-semibold text-gray-900 dark:text-white">{value}</span>
-    </div>
   );
 }

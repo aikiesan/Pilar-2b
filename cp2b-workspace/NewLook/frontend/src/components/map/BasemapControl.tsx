@@ -25,18 +25,18 @@ export default function BasemapControl({ value, onChange }: BasemapControlProps)
   const active = BASEMAPS[value];
 
   return (
-    <div className="flex flex-col items-end gap-1">
+    <div className="surface-light flex flex-col items-end gap-1">
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
         aria-label={t('switch')}
         title={t('heading')}
-        className="flex min-h-11 min-w-11 items-center justify-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-xs font-semibold text-gray-700 shadow-lg ring-1 ring-black/5 backdrop-blur transition-colors hover:bg-white md:min-h-0 md:min-w-0"
+        className="flex min-h-11 min-w-11 items-center justify-center gap-1.5 px-3 py-1.5 border border-line bg-paper-raised/95 text-xs font-semibold text-ink shadow-md backdrop-blur transition-colors hover:bg-paper-raised md:min-h-0 md:min-w-0"
       >
         <span aria-hidden="true">{active.icon}</span>
         <span className="hidden sm:inline">{t(active.id)}</span>
-        <span aria-hidden="true" className={`text-[9px] text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`}>
+        <span aria-hidden="true" className={`text-[9px] text-ink-muted transition-transform ${open ? 'rotate-180' : ''}`}>
           ▾
         </span>
       </button>
@@ -45,7 +45,7 @@ export default function BasemapControl({ value, onChange }: BasemapControlProps)
         <div
           role="radiogroup"
           aria-label={t('heading')}
-          className="flex flex-col gap-0.5 rounded-xl bg-white/95 p-1.5 shadow-xl ring-1 ring-black/5 backdrop-blur"
+          className="flex flex-col gap-0.5 rounded-xl bg-paper-raised/95 p-1.5 shadow-xl ring-1 ring-black/5 backdrop-blur"
         >
           {BASEMAP_ORDER.map((id) => {
             const b = BASEMAPS[id];
@@ -62,8 +62,8 @@ export default function BasemapControl({ value, onChange }: BasemapControlProps)
                 }}
                 className={`flex min-h-11 items-center gap-2 rounded-lg px-3 py-1.5 text-left text-xs font-medium transition-colors md:min-h-0 ${
                   isActive
-                    ? 'bg-green-700 text-white shadow-sm'
-                    : 'text-gray-700 hover:bg-gray-100'
+                    ? 'bg-terra-700 text-white shadow-sm'
+                    : 'text-ink hover:bg-paper-sunken'
                 }`}
               >
                 <span aria-hidden="true" className="text-sm">{b.icon}</span>

@@ -16,7 +16,7 @@ function MapLoadingSkeleton() {
   return (
     <div className="w-full h-full bg-gray-100 dark:bg-slate-800 flex items-center justify-center">
       <div className="text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1E5128] dark:border-emerald-500 mx-auto"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-terra-800 dark:border-terra-500 mx-auto"></div>
         <p className="mt-4 text-gray-600 dark:text-gray-400">{t('loading_map')}</p>
       </div>
     </div>

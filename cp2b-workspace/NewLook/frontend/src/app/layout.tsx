@@ -1,4 +1,12 @@
 import type { ReactNode } from 'react';
+// Self-hosted variable fonts: tailwind.config.js named Inter and JetBrains Mono,
+// but nothing loaded them, so visitors without them installed got system-ui.
+// Bundled from npm, so the build needs no Google Fonts call and the CSP's
+// font-src 'self' still holds.
+import '@fontsource-variable/inter';
+import '@fontsource-variable/jetbrains-mono';
+// Display serif for headings (weight + optical-size axes).
+import '@fontsource-variable/fraunces/opsz.css';
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
@@ -6,7 +14,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `try{var t=localStorage.getItem('pilar2b-theme')||'system';var r=t==='system'?(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):t;document.documentElement.classList.add(r);}catch(e){}`,
+            __html: `try{document.documentElement.classList.add(localStorage.getItem('pilar2b-theme')==='dark'?'dark':'light');}catch(e){}`,
           }}
         />
         <script
