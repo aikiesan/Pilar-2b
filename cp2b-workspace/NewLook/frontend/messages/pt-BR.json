@@ -2695,54 +2695,37 @@
     "region_intermediate": "Região intermediária",
     "switch": "Não é seu município? Troque",
     "lede_label": "Potencial de metano acessível",
-    "lede_unit": "Nm³ de metano (CH₄) por ano",
-    "lede_sentence": "É o metano que os resíduos agrícolas, pecuários e urbanos de {name} podem render por ano, depois de descontados os usos que já existem, as perdas de armazenamento e a logística até uma usina viável. Estimativa do método CP2b, nível N4.",
-    "rank": "{position}º de {of} municípios de {state}",
     "top_share": "entre os {share}% de maior potencial do estado",
     "per_capita": "{value} Nm³ CH₄ por habitante por ano",
-    "per_capita_year": "{value} Nm³ CH₄ por habitante por ano, com a população de {year}",
     "no_cp2b_title": "Sem dado CP2b",
     "no_cp2b_body": "O método CP2b cobre os municípios de São Paulo. Para {name}, ainda não há estimativa de potencial de metano.",
     "unavailable_title": "Dados indisponíveis agora",
     "unavailable_body": "A API da plataforma não respondeu, então os números deste município não aparecem. Tente de novo em alguns minutos.",
     "retry": "Tentar de novo",
-    "on_this_page": "Nesta página",
     "sectors": {
-      "heading": "Por setor",
-      "lede": "Quanto do potencial acessível vem de cada setor.",
-      "item": "{value} Nm³ CH₄/ano · {percent}",
       "empty": "Nenhum setor tem potencial acessível neste município."
-    },
-    "residues": {
-      "heading": "Por resíduo",
-      "caption": "Potencial de metano acessível por resíduo, do maior para o menor.",
-      "col_residue": "Resíduo",
-      "col_sector": "Setor",
-      "col_value": "Potencial N4",
-      "col_unit": "Unidade",
-      "col_source": "Fonte",
-      "unit": "Nm³ CH₄/ano",
-      "source": "Método CP2b",
-      "source_version": "Método CP2b, {version}"
     },
     "scenarios": {
       "heading": "Níveis do método",
-      "lede": "O método CP2b chega ao potencial em níveis. Esta página destaca o nível acessível (N4); o mobilizável (N3) vem antes das perdas de armazenamento e da logística.",
       "n4_label": "Acessível · N4",
-      "n4_body": "Depois das perdas de armazenamento e da logística até uma usina viável.",
+      "n4_body": "Depois do armazenamento e da logística até uma usina viável.",
       "n3_label": "Mobilizável · N3",
-      "n3_body": "Descontados os usos que já existem, antes do armazenamento e da logística.",
-      "range": "Faixa do método: {min} a {max} Nm³ CH₄/ano",
-      "unit": "Nm³ CH₄/ano"
+      "n3_body": "Descontados os usos que já existem.",
+      "caption": "Barra: valor central. Linha: faixa do método, do mínimo ao máximo.",
+      "n1_label": "Teórico · N1",
+      "n1_body": "Todo o resíduo gerado no município.",
+      "n2_label": "Disponível · N2",
+      "n2_body": "Depois dos fatores de disponibilidade.",
+      "range_short": "faixa {min} a {max}",
+      "held": "Os níveis anteriores (teórico e disponível) aparecem depois da publicação do artigo do método."
     },
     "infrastructure": {
       "heading": "Infraestrutura próxima",
-      "body": "A ferramenta Proximidade e logística mede, a partir do centro de {name}, as distâncias até gasodutos, linhas de transmissão, subestações e usinas existentes.",
       "cta": "Abrir em Proximidade e logística",
-      "cta_plain": "Abrir Proximidade e logística"
+      "cta_plain": "Abrir Proximidade e logística",
+      "short": "Distâncias até gasodutos, linhas de transmissão, subestações e usinas."
     },
     "data": {
-      "heading": "Dados e citação",
       "downloads_paused": "Os downloads estão pausados durante o beta, enquanto a base é validada. A planilha e o relatório deste município voltam junto com os demais arquivos.",
       "cite_label": "Como citar esta página",
       "citation": "CP2b/NIPE-UNICAMP. PILAR-2b: perfil do município de {name} ({uf}). Disponível em: {url}. Acesso em: {date}.",
@@ -2762,10 +2745,11 @@
     },
     "neighbours": {
       "heading": "Municípios vizinhos",
-      "lede": "Os municípios que fazem divisa com {name}, com o potencial de metano acessível de cada um.",
       "none": "Nenhum município faz divisa com {name} na base.",
       "unavailable": "A lista de vizinhos não pôde ser carregada agora.",
-      "no_data": "sem dado CP2b"
+      "no_data": "sem dado CP2b",
+      "caption": "Metano acessível (N4) dos municípios que fazem divisa com {name}, em Nm³ CH₄ por ano.",
+      "this": "este município"
     },
     "notes": {
       "heading": "Notas e limitações",
@@ -2775,9 +2759,9 @@
         "O nível acessível (N4) considera a logística até uma usina de escala viável. Um município pode ter potencial mobilizável (N3) e acessível zero quando nenhuma usina chega a essa escala.",
         "O método cobre os municípios de São Paulo. Os de outros estados aparecem como sem dado CP2b."
       ],
-      "report_heading": "Viu algo errado?",
       "report_body": "Se um número deste município não confere com o que você conhece, conte para a equipe.",
-      "report": "Reportar erro"
+      "report": "Reportar erro",
+      "open": "Abrir"
     },
     "meta": {
       "title": "{name} ({uf}) · Municípios · PILAR-2b",
@@ -2790,6 +2774,23 @@
       "unit": "Nm³ de metano (CH₄) por ano · método CP2b, nível N4",
       "no_data": "Sem dado CP2b",
       "no_data_body": "O método CP2b cobre os municípios de São Paulo."
+    },
+    "kpi": {
+      "n4_label": "Metano acessível · N4",
+      "unit_year": "Nm³ CH₄ por ano",
+      "per_day": "≈ {value} Nm³ CH₄ por dia",
+      "rank_label": "Posição no estado",
+      "rank_value": "{position}º",
+      "rank_of": "de {of} municípios de {state}",
+      "n3_label": "Mobilizável · N3",
+      "n3_kept": "{percent} chega ao nível acessível",
+      "sector_label": "Setor principal",
+      "sector_share": "{percent} do metano acessível"
+    },
+    "composition": {
+      "heading": "De onde vem o metano",
+      "caption": "Metano acessível (N4) por setor e resíduo, em Nm³ CH₄ por ano.",
+      "zero": "Sem metano acessível: {list}."
     }
   },
   "method": {
