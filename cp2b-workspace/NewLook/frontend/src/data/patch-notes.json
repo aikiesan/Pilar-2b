@@ -19,8 +19,8 @@
         {
           "kind": "added",
           "text": {
-            "pt-BR": "Catálogo de dados: uma página por setor e por resíduo, com os fatores de disponibilidade, o grau de confiança, as fontes e como citar, mais a legenda e os códigos das camadas para baixar em CSV.",
-            "en": "Data catalogue: one page per sector and per residue, with the availability factors, the confidence level, the sources and how to cite, plus the layer legend and codes to download as CSV."
+            "pt-BR": "Catálogo de dados: uma página por setor e por resíduo, com o potencial metanogênico (BMP), a caracterização química, as fontes e como citar, mais a legenda e os códigos das camadas para baixar em CSV.",
+            "en": "Data catalogue: one page per sector and per residue, with the methane potential (BMP), the chemical characterization, the sources and how to cite, plus the layer legend and codes to download as CSV."
           }
         },
         {
@@ -35,6 +35,13 @@
           "text": {
             "pt-BR": "Lista de todos os municípios em ordem alfabética, com busca, em /municipalities.",
             "en": "An alphabetical list of every municipality, with search, at /municipalities."
+          }
+        },
+        {
+          "kind": "changed",
+          "text": {
+            "pt-BR": "A análise multicritério, a calculadora e a base científica marcam como \"estimativa anterior (legado)\" os números calculados com os fatores de disponibilidade anteriores, que continuam valendo até a nova estimativa ser publicada.",
+            "en": "The multi-criteria analysis, the calculator and the science base mark the figures computed with the previous availability factors as \"previous estimate (legacy)\"; they stay in use until the new estimate is published."
           }
         },
         {

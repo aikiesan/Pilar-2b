@@ -19,6 +19,7 @@ import {
 } from 'recharts'
 import { TrendingDown, Info } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import LegacyBadge from '@/components/ui/LegacyBadge'
 import { useFormat } from '@/hooks/useFormat'
 import {
   CorrectionFactors,
@@ -216,6 +217,7 @@ export default function PotentialCascadeChart({
         <div className="flex items-center gap-2">
           <TrendingDown className="h-5 w-5 text-terra-600" />
           <h3 className="text-lg font-semibold text-gray-800">{title ?? t('cascade_title')}</h3>
+          <LegacyBadge />
         </div>
         <div className="flex items-center gap-4 text-sm">
           <div className="flex items-center gap-2">

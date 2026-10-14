@@ -8,7 +8,8 @@
  * Server-rendered. No number is typed into the copy: residue and sector counts
  * come from src/data/residueFactors.ts, municipality and reference counts from
  * the API (cached for an hour). When the API does not answer, the count says
- * so instead of showing a figure.
+ * so instead of showing a figure. Until the paper is submitted
+ * (METHOD_PAGES_ENABLED off) the copy does not name the factors one by one.
  */
 import { getFormatter, getLocale, getTranslations } from 'next-intl/server';
 import { ArrowRight, Map as MapIcon } from 'lucide-react';
@@ -18,6 +19,7 @@ import MunicipalitySearch from '@/components/home/MunicipalitySearch';
 import { DETAILED_RESIDUES } from '@/data/residueFactors';
 import { CATALOG_SECTORS, SECTOR_SWATCH, residuePath, residuesInSector } from '@/data/residueCatalog';
 import patchNotes from '@/data/patch-notes.json';
+import { METHOD_PAGES_ENABLED } from '@/lib/featureFlags';
 import { countFrom, serverGetJson } from '@/lib/serverApi';
 
 type Locale = 'pt-BR' | 'en';
@@ -99,7 +101,9 @@ export default async function LandingPage() {
                   index > 0 ? 'lg:border-l lg:border-line lg:pl-6' : ''
                 } ${index < 2 ? 'border-b border-line lg:border-b-0' : ''}`}
               >
-                <dt className="text-sm text-ink-muted">{t(`counts.${key}`)}</dt>
+                <dt className="text-sm text-ink-muted">
+                  {key === 'residues' && !METHOD_PAGES_ENABLED ? t('held.counts_residues') : t(`counts.${key}`)}
+                </dt>
                 <dd className="font-display text-4xl text-ink tabular-nums sm:text-5xl">
                   {value === null ? (
                     <>
@@ -123,7 +127,7 @@ export default async function LandingPage() {
       <section aria-labelledby="home-sectors" className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-20 lg:px-8">
         <p className="eyebrow">{t('sectors.eyebrow')}</p>
         <h2 id="home-sectors" className="mt-3 text-3xl text-ink sm:text-4xl">{t('sectors.heading')}</h2>
-        <p className="mt-4 max-w-2xl text-ink-muted">{t('sectors.lede')}</p>
+        <p className="mt-4 max-w-2xl text-ink-muted">{METHOD_PAGES_ENABLED ? t('sectors.lede') : t('held.sectors_lede')}</p>
 
         <ul className="mt-10 grid gap-px border border-line bg-line sm:grid-cols-2 lg:grid-cols-4">
           {sectors.map(({ sector, residues }) => {
@@ -170,8 +174,12 @@ export default async function LandingPage() {
                 <span className="font-display text-3xl text-terra-700 dark:text-terra-300 tabular-nums" aria-hidden="true">
                   {String(index + 1).padStart(2, '0')}
                 </span>
-                <h3 className="mt-3 text-lg font-semibold text-ink">{t(`how.steps.${step}.title`)}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-ink-muted">{t(`how.steps.${step}.body`)}</p>
+                <h3 className="mt-3 text-lg font-semibold text-ink">
+                  {step === 'factors' && !METHOD_PAGES_ENABLED ? t('held.factors_title') : t(`how.steps.${step}.title`)}
+                </h3>
+                <p className="mt-2 text-sm leading-relaxed text-ink-muted">
+                  {step === 'factors' && !METHOD_PAGES_ENABLED ? t('held.factors_body') : t(`how.steps.${step}.body`)}
+                </p>
               </li>
             ))}
           </ol>

@@ -18,6 +18,7 @@ import {
 } from 'recharts'
 import { Layers, Check, Info } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import LegacyBadge from '@/components/ui/LegacyBadge'
 import { useFormat } from '@/hooks/useFormat'
 import { MISSING_VALUE } from '@/lib/format'
 import {
@@ -115,6 +116,7 @@ export default function ScenarioComparator({
         <div className="flex items-center gap-2 mb-4">
           <Layers className="h-5 w-5 text-terra-600" />
           <h3 className="text-lg font-semibold text-gray-800">{title ?? t('scenario_comparator.title')}</h3>
+        <LegacyBadge />
         </div>
         <div className="h-[400px] flex items-center justify-center">
           <div className="text-center">
@@ -131,6 +133,7 @@ export default function ScenarioComparator({
       <div className="flex items-center gap-2 mb-6">
         <Layers className="h-5 w-5 text-terra-600" />
         <h3 className="text-lg font-semibold text-gray-800">{title ?? t('scenario_comparator.title')}</h3>
+        <LegacyBadge />
       </div>
 
       {/* Scenario Cards */}

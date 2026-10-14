@@ -144,6 +144,9 @@
       "inhabitants": "hab.",
       "gj_year": "GJ/ano",
       "tco2eq_year": "tCO₂eq/ano"
+    },
+    "legacy": {
+      "label": "estimativa anterior (legado)"
     }
   },
   "auth": {
@@ -2540,6 +2543,12 @@
       "grant_cp2bsd": "FAPESP 2024/01112-1 · CP2Bsd",
       "grant_national": "FAPESP 2025/08745-2 · expansão nacional",
       "cta": "Parceiros"
+    },
+    "held": {
+      "counts_residues": "resíduos no catálogo",
+      "factors_title": "Fatores de disponibilidade",
+      "factors_body": "Do que é gerado, desconta-se o que não pode chegar a uma planta de biogás.",
+      "sectors_lede": "Cada resíduo traz seu potencial metanogênico, sua caracterização química e as fontes que os sustentam."
     }
   },
   "data_catalog": {
@@ -2665,7 +2674,7 @@
     },
     "live": {
       "loading": "Carregando da base científica…",
-      "unavailable": "A base científica não respondeu agora. Os fatores acima vêm dos arquivos da plataforma e continuam valendo; tente de novo em instantes.",
+      "unavailable": "A base científica não respondeu agora. Tente de novo em instantes.",
       "not_in_database": "Este resíduo ainda não tem caracterização química na base científica.",
       "chemistry_caption": "Caracterização química do resíduo",
       "chemistry_source": "Fonte: base científica do PILAR-2b (GET /api/v1/residuos/).",
@@ -2691,6 +2700,15 @@
       "validated": "parâmetros conferidos",
       "open_source": "Abrir a fonte",
       "new_tab": "(abre em nova aba)"
+    },
+    "held": {
+      "catalog_lede": "Cada resíduo é um produto de dados: seu potencial metanogênico, sua caracterização química e as fontes que os sustentam.",
+      "sector_lede": "Os resíduos do setor {sector} na plataforma.",
+      "table_caption": "Resíduos do setor {sector}: código e BMP",
+      "card_scope": "potencial metanogênico (BMP) e caracterização química",
+      "card_source": "base científica do PILAR-2b",
+      "notice": "Os fatores de disponibilidade deste resíduo estão em revisão e voltam a esta página quando forem publicados.",
+      "limitations_scope": "Os dados foram levantados para o estado de São Paulo. Em outros estados podem não valer; Minas Gerais está em validação (beta)."
     }
   },
   "municipalities_index": {

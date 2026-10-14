@@ -8,6 +8,7 @@
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import { Link, useRouter } from '@/navigation'
 import { useTranslations } from 'next-intl'
+import LegacyBadge from '@/components/ui/LegacyBadge'
 import Breadcrumb from '@/components/ui/Breadcrumb'
 import {
   TrendingUp,
@@ -570,6 +571,7 @@ export default function AdvancedAnalysisPage() {
             <div className="flex-1">
               <h1 className="text-4xl sm:text-5xl mb-2 text-ink">{t('advanced_analysis.title')}</h1>
               <p className="text-lg text-ink-muted max-w-2xl">{t('advanced_analysis.subtitle')}</p>
+              <LegacyBadge className="mt-3" />
             </div>
             <div className="flex flex-wrap gap-2">
               <button
@@ -719,7 +721,10 @@ export default function AdvancedAnalysisPage() {
 
             <div className="bg-gradient-to-br from-terra-50 to-white rounded-xl shadow-md hover:shadow-lg transition-shadow p-5 sm:p-6 border-l-4 border-terra-600">
               <div className="flex items-center justify-between mb-3">
-                <div className="text-xs sm:text-sm font-medium text-gray-600">{t('advanced_analysis.kpi_fde')}</div>
+                <div className="text-xs sm:text-sm font-medium text-gray-600">
+                  {t('advanced_analysis.kpi_fde')}
+                  <LegacyBadge className="ml-1.5 align-middle" />
+                </div>
                 <div className="w-9 h-9 sm:w-10 sm:h-10 bg-terra-100 rounded-lg flex items-center justify-center">
                   <TrendingDown className="h-4 w-4 sm:h-5 sm:w-5 text-terra-600" />
                 </div>

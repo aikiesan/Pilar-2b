@@ -12,6 +12,7 @@ import {
   X
 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import LegacyBadge from '@/components/ui/LegacyBadge'
 import { useDialog } from '@/hooks/useDialog'
 import { useFormat } from '@/hooks/useFormat'
 import {
@@ -79,6 +80,7 @@ export default function MethodologyPanel({
             <h2 id={titleId} className="text-lg font-semibold text-gray-900 dark:text-slate-100">
               {t('methodology_panel.title')}
             </h2>
+            <LegacyBadge />
           </div>
           <button
             onClick={onClose}

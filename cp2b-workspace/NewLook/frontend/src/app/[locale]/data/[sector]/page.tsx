@@ -8,6 +8,7 @@ import { getTranslations } from 'next-intl/server';
 import { Link } from '@/navigation';
 import ResidueTable from '@/components/data/ResidueTable';
 import { CATALOG_SECTORS, SECTOR_SWATCH, isCatalogSector, residuesInSector } from '@/data/residueCatalog';
+import { METHOD_PAGES_ENABLED } from '@/lib/featureFlags';
 
 export function generateStaticParams() {
   return CATALOG_SECTORS.filter((s) => residuesInSector(s).length > 0).map((sector) => ({ sector }));
@@ -22,7 +23,8 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   if (!isCatalogSector(sector)) return {};
   const t = await getTranslations('data_catalog');
   const name = t(`sectors.${sector}`);
-  return { title: `${name} · ${t('catalog.title')} · PILAR-2b`, description: t('sector_page.lede', { sector: name }) };
+  const description = METHOD_PAGES_ENABLED ? t('sector_page.lede', { sector: name }) : t('held.sector_lede', { sector: name });
+  return { title: `${name} · ${t('catalog.title')} · PILAR-2b`, description };
 }
 
 export default async function DataSectorPage({ params }: Params) {
@@ -44,7 +46,9 @@ export default async function DataSectorPage({ params }: Params) {
             <span aria-hidden="true" className="h-4 w-4 shrink-0" style={{ background: SECTOR_SWATCH[sector] }} />
             {name}
           </h1>
-          <p className="mt-4 max-w-2xl text-ink-muted">{t('sector_page.lede', { sector: name.toLowerCase() })}</p>
+          <p className="mt-4 max-w-2xl text-ink-muted">{METHOD_PAGES_ENABLED
+              ? t('sector_page.lede', { sector: name.toLowerCase() })
+              : t('held.sector_lede', { sector: name.toLowerCase() })}</p>
         </div>
       </header>
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">

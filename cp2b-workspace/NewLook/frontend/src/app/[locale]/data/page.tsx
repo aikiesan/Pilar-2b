@@ -8,10 +8,14 @@ import { ArrowRight } from 'lucide-react';
 import { Link } from '@/navigation';
 import ResidueTable from '@/components/data/ResidueTable';
 import { CATALOG_SECTORS, SECTOR_SWATCH, residuesInSector } from '@/data/residueCatalog';
+import { METHOD_PAGES_ENABLED } from '@/lib/featureFlags';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations('data_catalog.catalog');
-  return { title: `${t('title')} · PILAR-2b`, description: t('lede') };
+  const t = await getTranslations('data_catalog');
+  return {
+    title: `${t('catalog.title')} · PILAR-2b`,
+    description: METHOD_PAGES_ENABLED ? t('catalog.lede') : t('held.catalog_lede'),
+  };
 }
 
 export default async function DataCatalogPage() {
@@ -24,7 +28,7 @@ export default async function DataCatalogPage() {
         <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
           <p className="eyebrow">{t('catalog.eyebrow')}</p>
           <h1 className="mt-3 text-4xl text-ink sm:text-5xl">{t('catalog.title')}</h1>
-          <p className="mt-4 max-w-2xl text-ink-muted">{t('catalog.lede')}</p>
+          <p className="mt-4 max-w-2xl text-ink-muted">{METHOD_PAGES_ENABLED ? t('catalog.lede') : t('held.catalog_lede')}</p>
           <nav aria-label={t('catalog.sectors_nav')} className="mt-8 flex flex-wrap gap-2">
             {sectors.map((s) => (
               <a

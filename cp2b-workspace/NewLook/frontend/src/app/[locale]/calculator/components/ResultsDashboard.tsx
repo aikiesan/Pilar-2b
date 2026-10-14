@@ -3,6 +3,7 @@
 import { SINGLE_SERIES_COLOR, SINGLE_SERIES_COLOR_DARK } from '@/data/sectorColors'
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
+import LegacyBadge from '@/components/ui/LegacyBadge'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts'
@@ -186,6 +187,7 @@ export default function ResultsDashboard({ result, municipalityName, onReset }: 
         <p className="text-3xl font-bold">{t('results.biogasTotal', { value: format.number(outputs.totalBiogasM3Year) })}</p>
         <p className="text-sm opacity-80">{t('results.biogasPerYear')}</p>
         <p className="text-xs mt-1 opacity-60">{text.activity(inputSummary.activityType, inputSummary.quantity)}</p>
+        <LegacyBadge variant="inverse" className="mt-2" />
       </div>
 
       {/* Scenario cards — vertical stacked, expand on click */}

@@ -144,6 +144,9 @@
       "inhabitants": "inhab.",
       "gj_year": "GJ/year",
       "tco2eq_year": "tCO₂eq/year"
+    },
+    "legacy": {
+      "label": "previous estimate (legacy)"
     }
   },
   "auth": {
@@ -2540,6 +2543,12 @@
       "grant_cp2bsd": "FAPESP 2024/01112-1 · CP2Bsd",
       "grant_national": "FAPESP 2025/08745-2 · national expansion",
       "cta": "Partners"
+    },
+    "held": {
+      "counts_residues": "residues in the catalogue",
+      "factors_title": "Availability factors",
+      "factors_body": "What cannot reach a biogas plant is taken out of what is generated.",
+      "sectors_lede": "Each residue comes with its methane potential, its chemical characterization and the sources behind them."
     }
   },
   "data_catalog": {
@@ -2665,7 +2674,7 @@
     },
     "live": {
       "loading": "Loading from the science base…",
-      "unavailable": "The science base did not answer just now. The factors above come from the platform's files and still hold; try again in a moment.",
+      "unavailable": "The science base did not answer just now. Try again in a moment.",
       "not_in_database": "This residue has no chemical characterization in the science base yet.",
       "chemistry_caption": "Chemical characterization of the residue",
       "chemistry_source": "Source: PILAR-2b science base (GET /api/v1/residuos/).",
@@ -2691,6 +2700,15 @@
       "validated": "parameters checked",
       "open_source": "Open the source",
       "new_tab": "(opens in a new tab)"
+    },
+    "held": {
+      "catalog_lede": "Each residue is a data product: its methane potential, its chemical characterization and the sources behind them.",
+      "sector_lede": "The {sector} residues on the platform.",
+      "table_caption": "{sector} residues: code and BMP",
+      "card_scope": "methane potential (BMP) and chemical characterization",
+      "card_source": "PILAR-2b science base",
+      "notice": "This residue's availability factors are under review and return to this page once they are published.",
+      "limitations_scope": "The data were surveyed for São Paulo state. They may not hold in other states; Minas Gerais is under validation (beta)."
     }
   },
   "municipalities_index": {

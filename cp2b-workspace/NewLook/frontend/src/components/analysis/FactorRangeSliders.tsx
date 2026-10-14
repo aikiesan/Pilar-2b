@@ -7,6 +7,7 @@
 
 import React from 'react'
 import { useTranslations } from 'next-intl'
+import LegacyBadge from '@/components/ui/LegacyBadge'
 import { SlidersHorizontal, RotateCcw, Info } from 'lucide-react'
 import {
   CorrectionFactors,
@@ -108,6 +109,7 @@ export default function FactorRangeSliders({
         <div className="flex items-center gap-2">
           <SlidersHorizontal className="h-5 w-5 text-terra-600" />
           <h4 className="text-sm font-semibold text-gray-700">{t('factor_sliders.heading')}</h4>
+          <LegacyBadge />
         </div>
         <button
           onClick={() => onChange(DEFAULT_FACTORS)}

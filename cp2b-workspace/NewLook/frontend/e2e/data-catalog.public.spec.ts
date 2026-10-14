@@ -1,10 +1,15 @@
 /**
  * The data catalogue: /data lists every residue and links to its product page;
- * a product page's six tabs follow the ARIA tabs pattern and keep the active
- * tab in the URL hash; the legend files download as metadata.
+ * a product page's tabs (six, or five while METHOD_PAGES_ENABLED holds the
+ * Método tab back) follow the ARIA tabs pattern and keep the active tab in the
+ * URL hash; the legend files download as metadata.
  */
 import { test, expect } from '@playwright/test'
 import { CONSENT_VERSION } from '../src/lib/consent'
+import { METHOD_PAGES_ENABLED } from '../src/lib/featureFlags'
+
+/** The tab after Visão geral, and its hash. */
+const SECOND_TAB = METHOD_PAGES_ENABLED ? { name: 'Method', hash: 'metodo' } : { name: 'Legend and codes', hash: 'legenda' }
 
 const PRODUCT = '/en/data/agricultural/cana-bagaco'
 
@@ -34,18 +39,18 @@ for (const width of [1280, 390]) {
       await page.goto(PRODUCT)
       const tablist = page.getByRole('tablist', { name: 'Data product sections' })
       const tabs = tablist.getByRole('tab')
-      await expect(tabs).toHaveCount(6)
+      await expect(tabs).toHaveCount(METHOD_PAGES_ENABLED ? 6 : 5)
       const overview = tablist.getByRole('tab', { name: 'Overview' })
       await expect(overview).toHaveAttribute('aria-selected', 'true')
       await expect(page.getByRole('tabpanel', { name: 'Overview' })).toBeVisible()
 
       await overview.focus()
       await page.keyboard.press('ArrowRight')
-      const method = tablist.getByRole('tab', { name: 'Method' })
-      await expect(method).toBeFocused()
-      await expect(method).toHaveAttribute('aria-selected', 'true')
-      await expect(page).toHaveURL(/#metodo$/)
-      await expect(page.getByRole('tabpanel', { name: 'Method' })).toBeVisible()
+      const second = tablist.getByRole('tab', { name: SECOND_TAB.name })
+      await expect(second).toBeFocused()
+      await expect(second).toHaveAttribute('aria-selected', 'true')
+      await expect(page).toHaveURL(new RegExp(`#${SECOND_TAB.hash}$`))
+      await expect(page.getByRole('tabpanel', { name: SECOND_TAB.name })).toBeVisible()
       await expect(page.getByRole('tabpanel', { name: 'Overview' })).toBeHidden()
 
       await page.keyboard.press('End')

@@ -5,7 +5,9 @@
  * limitações).
  *
  * Factors, BMP and confidence come from src/data/residueFactors.ts and are
- * rendered on the server; the chemical characterization and the references
+ * rendered on the server. Until the paper is submitted (METHOD_PAGES_ENABLED
+ * off) the factors, the Método tab and the confidence are held back, and the
+ * page shows the BMP and the chemistry only; the chemical characterization and the references
  * come from the API in the browser (ResidueLiveFacts), and say so when it
  * does not answer. Every residue is generated at build time.
  */
@@ -20,7 +22,7 @@ import LegendTables from '@/components/data/LegendTables';
 import { ResidueChemistry, ResidueReferences } from '@/components/data/ResidueLiveFacts';
 import { allResidueParams, findResidue, residueFDE, SECTOR_SWATCH } from '@/data/residueCatalog';
 import type { FactorKey } from '@/data/residueFactors';
-import { DATA_EXPORT_ENABLED } from '@/lib/featureFlags';
+import { DATA_EXPORT_ENABLED, METHOD_PAGES_ENABLED } from '@/lib/featureFlags';
 
 export function generateStaticParams() {
   return allResidueParams();
@@ -41,7 +43,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const t = await getTranslations('data_catalog');
   return {
     title: `${residue.name[locale]} · ${t('catalog.title')} · PILAR-2b`,
-    description: `${residue.name[locale]} — ${t('product.card_scope')}.`,
+    description: `${residue.name[locale]} — ${METHOD_PAGES_ENABLED ? t('product.card_scope') : t('held.card_scope')}.`,
   };
 }
 
@@ -74,13 +76,17 @@ export default async function ResidueProductPage({ params }: Params) {
             )],
             [t('product.fact_code'), <span key="c" className="font-mono text-xs">{residue.code}</span>],
             [t('product.fact_bmp'), t('product.fact_bmp_value', { value: format.number(residue.bmp, { maximumFractionDigits: 2 }) })],
-            [t('product.fact_fde'), (
-              <span key="f">
-                <span className="font-display text-2xl tabular-nums">{pct(fde)}</span>{' '}
-                <span className="text-ink-muted">{t('product.fact_fde_note')}</span>
-              </span>
-            )],
-            [t('product.fact_confidence'), t(`confidence.${residue.confidence}`)],
+            ...(METHOD_PAGES_ENABLED
+              ? [
+                  [t('product.fact_fde'), (
+                    <span key="f">
+                      <span className="font-display text-2xl tabular-nums">{pct(fde)}</span>{' '}
+                      <span className="text-ink-muted">{t('product.fact_fde_note')}</span>
+                    </span>
+                  )],
+                  [t('product.fact_confidence'), t(`confidence.${residue.confidence}`)],
+                ]
+              : []),
           ].map(([label, value], i) => (
             <div key={i} className="grid gap-1 py-3 sm:grid-cols-[14rem_1fr] sm:gap-4">
               <dt className="text-ink-muted">{label}</dt>
@@ -88,6 +94,7 @@ export default async function ResidueProductPage({ params }: Params) {
             </div>
           ))}
         </dl>
+        {!METHOD_PAGES_ENABLED && <p className="mt-4 text-sm text-ink-muted">{t('held.notice')}</p>}
       </section>
       <div className="flex flex-col gap-3 self-start">
         <Link href="/map" className="btn-primary min-h-[44px]">
@@ -198,17 +205,25 @@ export default async function ResidueProductPage({ params }: Params) {
   const validation = (
     <div className="grid max-w-5xl gap-12 lg:grid-cols-[1fr_1fr]">
       <div className="space-y-10">
-        <section aria-labelledby="confidence">
-          <h2 id="confidence" className="text-2xl text-ink">{t('product.validation_heading')}</h2>
-          <p className="mt-4 font-display text-3xl text-ink">{t(`confidence.${residue.confidence}`)}</p>
-          <p className="mt-2 text-sm leading-relaxed text-ink">{t(`confidence_meaning.${residue.confidence}`)}</p>
-          <p className="mt-2 text-xs text-ink-muted">{t('product.validation_source')}</p>
-        </section>
+        {METHOD_PAGES_ENABLED && (
+          <section aria-labelledby="confidence">
+            <h2 id="confidence" className="text-2xl text-ink">{t('product.validation_heading')}</h2>
+            <p className="mt-4 font-display text-3xl text-ink">{t(`confidence.${residue.confidence}`)}</p>
+            <p className="mt-2 text-sm leading-relaxed text-ink">{t(`confidence_meaning.${residue.confidence}`)}</p>
+            <p className="mt-2 text-xs text-ink-muted">{t('product.validation_source')}</p>
+          </section>
+        )}
         <section aria-labelledby="limitations">
           <h2 id="limitations" className="text-2xl text-ink">{t('product.limitations_heading')}</h2>
           <ul className="mt-4 list-disc space-y-2 pl-5 text-sm leading-relaxed text-ink marker:text-terra-600">
-            <li>{t('product.limitations.scope')}</li>
-            <li>{t('product.limitations.factors')}</li>
+            {METHOD_PAGES_ENABLED ? (
+              <>
+                <li>{t('product.limitations.scope')}</li>
+                <li>{t('product.limitations.factors')}</li>
+              </>
+            ) : (
+              <li>{t('held.limitations_scope')}</li>
+            )}
             <li>{t('product.limitations.report')}</li>
           </ul>
           <Link href="/about#contato" className={`mt-4 inline-flex min-h-[44px] items-center gap-2 ${link}`}>
@@ -243,14 +258,18 @@ export default async function ResidueProductPage({ params }: Params) {
           <DataCard
             className="mt-6"
             label={t('product.card_label')}
-            parts={[name, t('product.card_scope'), t('product.card_place'), t('product.card_source')]}
+            parts={
+              METHOD_PAGES_ENABLED
+                ? [name, t('product.card_scope'), t('product.card_place'), t('product.card_source')]
+                : [name, t('held.card_scope'), t('product.card_place'), t('held.card_source')]
+            }
           />
           <div className="mt-8">
             <ProductTabs
               label={t('product.tabs_label')}
               tabs={[
                 { id: 'visao-geral', label: t('product.tabs.overview'), panel: overview },
-                { id: 'metodo', label: t('product.tabs.method'), panel: method },
+                ...(METHOD_PAGES_ENABLED ? [{ id: 'metodo', label: t('product.tabs.method'), panel: method }] : []),
                 { id: 'legenda', label: t('product.tabs.legend'), panel: <LegendTables highlight={residue.code} /> },
                 { id: 'acesso', label: t('product.tabs.access'), panel: access },
                 { id: 'estatisticas', label: t('product.tabs.statistics'), panel: statistics },

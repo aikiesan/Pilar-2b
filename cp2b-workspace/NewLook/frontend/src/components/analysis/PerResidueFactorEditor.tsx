@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react';
 import { RotateCcw, Info, TrendingUp } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import LegacyBadge from '@/components/ui/LegacyBadge';
 import { useLocalize } from '@/hooks/useLocalize';
 import { useFormat } from '@/hooks/useFormat';
 import { getResidueByCode, type DetailedResidue } from '@/data/residueFactors';
@@ -155,6 +156,7 @@ export default function PerResidueFactorEditor({
         <h3 className="text-sm font-semibold text-gray-800 flex items-center gap-2">
           <span className="w-2 h-2 bg-purple-600 rounded-full"></span>
           {t('per_residue_editor.title')}
+          <LegacyBadge />
         </h3>
         <p className="text-xs text-gray-600 mt-1">
           {t('per_residue_editor.subtitle')}
