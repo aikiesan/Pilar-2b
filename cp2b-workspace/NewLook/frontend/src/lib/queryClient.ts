@@ -56,6 +56,7 @@ export const queryKeys = {
   municipalities: {
     all: ['municipalities'] as const,
     geojson: () => [...queryKeys.municipalities.all, 'geojson'] as const,
+    names: () => [...queryKeys.municipalities.all, 'names'] as const,
   },
 
   // Infrastructure layers
@@ -77,6 +78,13 @@ export const queryKeys = {
       [...queryKeys.codigestion.all, 'clusters', radiusKm, minBiomass] as const,
     cnMatrix: () => [...queryKeys.codigestion.all, 'cn-matrix'] as const,
     typology: () => [...queryKeys.codigestion.all, 'typology'] as const,
+  },
+
+  // The residue knowledge base (data product pages)
+  residues: {
+    all: ['residues'] as const,
+    list: () => [...queryKeys.residues.all, 'list'] as const,
+    references: (code: string) => [...queryKeys.residues.all, 'references', code] as const,
   },
 
   // National intermediate regions (Phase 1)

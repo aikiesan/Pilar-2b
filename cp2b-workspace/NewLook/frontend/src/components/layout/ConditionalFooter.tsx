@@ -1,20 +1,18 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
 import Footer from './Footer';
+import { useHasTabBar } from './fullViewport';
 
 export default function ConditionalFooter() {
-  const pathname = usePathname();
-  // The interactive map is the landing page (src/app/[locale]/page.tsx re-exports
-  // map/page), so it lives at the locale root ("/pt-BR", "/en") as well as at
-  // "/map". The footer is hidden on both: the map is full-viewport, and a footer
-  // below it only lets the page scroll down and strand the user on the footer.
-  const isLocaleRoot = /^\/[a-z]{2}(-[a-z]{2})?\/?$/i.test(pathname);
-  if (
-    isLocaleRoot ||
-    pathname.includes('/map') ||
-    pathname.includes('/technology-routes') ||
-    pathname.includes('/advanced-analysis')
-  ) return null;
-  return <Footer />;
+  // Full-viewport tools have no footer: below them it only lets the page scroll
+  // down and strand the visitor on the footer. The landing at "/" is an
+  // ordinary page and keeps it.
+  if (!useHasTabBar()) return null;
+  return (
+    <>
+      <Footer />
+      {/* Room for the phone bottom bar, so it never covers the footer's end. */}
+      <div aria-hidden="true" className="h-[calc(3.5rem+env(safe-area-inset-bottom))] bg-terra-900 md:hidden" />
+    </>
+  );
 }

@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react';
 import { RotateCcw, Info, TrendingUp } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import LegacyBadge from '@/components/ui/LegacyBadge';
 import { useLocalize } from '@/hooks/useLocalize';
 import { useFormat } from '@/hooks/useFormat';
 import { getResidueByCode, type DetailedResidue } from '@/data/residueFactors';
@@ -155,6 +156,7 @@ export default function PerResidueFactorEditor({
         <h3 className="text-sm font-semibold text-gray-800 flex items-center gap-2">
           <span className="w-2 h-2 bg-purple-600 rounded-full"></span>
           {t('per_residue_editor.title')}
+          <LegacyBadge />
         </h3>
         <p className="text-xs text-gray-600 mt-1">
           {t('per_residue_editor.subtitle')}
@@ -216,7 +218,7 @@ export default function PerResidueFactorEditor({
               {/* Confidence Badge */}
               <div className="mt-2">
                 <span className={`inline-block text-[10px] px-2 py-1 border rounded ${
-                  activeResidue.confidence === 'HIGH' ? 'bg-green-100 text-green-700 border-green-300' :
+                  activeResidue.confidence === 'HIGH' ? 'bg-terra-100 text-terra-700 border-terra-300' :
                   activeResidue.confidence === 'MEDIUM' ? 'bg-yellow-100 text-yellow-700 border-yellow-300' :
                   'bg-gray-100 text-gray-700 border-gray-300'
                 }`}>
@@ -294,7 +296,7 @@ export default function PerResidueFactorEditor({
 
       {/* Average FDE summary (if multiple residues) */}
       {showAggregatedFDE && selectedResidueCodes.length > 1 && averageFDE !== null && (
-        <div className="p-4 bg-gradient-to-r from-purple-50 to-blue-50 border-t border-gray-200">
+        <div className="p-4 bg-gradient-to-r from-purple-50 to-dusk-50 border-t border-gray-200">
           <div className="flex flex-wrap items-center justify-between">
             <span className="text-sm font-medium text-gray-700">{t('per_residue_editor.average_fde')}</span>
             <span className="text-lg font-bold text-purple-700">{fdePercent(averageFDE)}</span>

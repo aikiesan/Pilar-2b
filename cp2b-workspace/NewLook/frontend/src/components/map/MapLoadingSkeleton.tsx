@@ -46,10 +46,10 @@ export default function MapLoadingSkeleton() {
           <div className="mb-6 flex justify-center">
             <div className="relative">
               {/* Pulsing outer circle */}
-              <div className="absolute inset-0 rounded-full bg-[#1E5128]/20 dark:bg-emerald-500/20 animate-ping" />
+              <div className="absolute inset-0 rounded-full bg-terra-800/20 dark:bg-terra-500/20 animate-ping" />
 
               {/* Main circle with icon */}
-              <div className="relative w-20 h-20 bg-gradient-to-br from-[#1E5128] to-[#27AE60] dark:from-emerald-600 dark:to-emerald-400 rounded-full flex items-center justify-center shadow-lg">
+              <div className="relative w-20 h-20 bg-gradient-to-br from-terra-800 to-[#27AE60] dark:from-terra-600 dark:to-terra-400 rounded-full flex items-center justify-center shadow-lg">
                 <svg
                   className="w-10 h-10 text-white animate-pulse"
                   fill="none"
@@ -75,9 +75,9 @@ export default function MapLoadingSkeleton() {
 
             <div className="space-y-2">
               <div className="flex items-center justify-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                <div className="w-2 h-2 bg-[#1E5128] dark:bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                <div className="w-2 h-2 bg-[#1E5128] dark:bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                <div className="w-2 h-2 bg-[#1E5128] dark:bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                <div className="w-2 h-2 bg-terra-800 dark:bg-terra-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                <div className="w-2 h-2 bg-terra-800 dark:bg-terra-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                <div className="w-2 h-2 bg-terra-800 dark:bg-terra-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
               </div>
 
               <p className="text-sm text-gray-500 dark:text-gray-500">
@@ -95,7 +95,7 @@ export default function MapLoadingSkeleton() {
 
           {/* Progress bar */}
           <div className="mt-6 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-            <div className="h-full bg-gradient-to-r from-[#1E5128] to-[#27AE60] dark:from-emerald-600 dark:to-emerald-400 animate-loading-bar origin-left" />
+            <div className="h-full bg-gradient-to-r from-terra-800 to-[#27AE60] dark:from-terra-600 dark:to-terra-400 animate-loading-bar origin-left" />
           </div>
         </div>
       </div>
@@ -114,7 +114,7 @@ function LoadingStep({ text, delay }: { text: string; delay: string }) {
       className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 opacity-0 animate-fade-in"
       style={{ animationDelay: delay }}
     >
-      <div className="w-1 h-1 bg-[#1E5128] dark:bg-emerald-500 rounded-full" />
+      <div className="w-1 h-1 bg-terra-800 dark:bg-terra-500 rounded-full" />
       <span>{text}</span>
     </div>
   );

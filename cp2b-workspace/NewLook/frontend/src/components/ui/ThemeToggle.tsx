@@ -16,7 +16,7 @@ export function ThemeToggle({ variant = 'dark' }: ThemeToggleProps) {
   const isDark = resolvedTheme === 'dark';
 
   const buttonClass = variant === 'light'
-    ? 'p-2 rounded-lg transition-all duration-150 text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-cp2b-lime'
+    ? 'p-2 rounded-lg transition-all duration-150 text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-terra-600'
     : 'p-2 rounded-lg transition-all duration-150 text-white/80 hover:text-white hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white';
 
   const label = isDark ? t('theme.switch_to_light') : t('theme.switch_to_dark');

@@ -1,43 +1,14 @@
-'use client';
-
 /**
- * Dashboard About Page - Redirects to NIPE Unicamp
- * Auto-redirects users to the official PILAR-2b website
+ * /dashboard/about used to bounce visitors to nipe.unicamp.br/cp2b from the
+ * browser. CP2b and NIPE are presented on /about#parceiros now.
+ *
+ * next.config.js answers this path with a 301; this stub is the fallback for
+ * any server that skips those redirects.
  */
-import { useEffect } from 'react';
-import { useTranslations } from 'next-intl';
-import Breadcrumb from '@/components/ui/Breadcrumb';
-import { useBreadcrumbs } from '@/hooks/useBreadcrumbs';
+import { permanentRedirect } from '@/navigation'
+import { defaultLocale, isLocale } from '@/config/i18n'
 
-export default function AboutPage() {
-  const t = useTranslations('pages');
-  const breadcrumbs = useBreadcrumbs();
-
-  useEffect(() => {
-    window.location.href = 'https://nipe.unicamp.br/cp2b/';
-  }, []);
-
-  return (
-    <div className="min-h-screen bg-gray-50 dark:bg-slate-900">
-      <div className="bg-white border-b">
-        <Breadcrumb items={breadcrumbs} />
-      </div>
-      <div className="flex items-center justify-center" style={{ minHeight: 'calc(100vh - 120px)' }}>
-        <div className="text-center max-w-md px-4">
-          <div className="mb-6">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 dark:border-emerald-400 mx-auto"></div>
-          </div>
-          <p className="text-lg text-gray-900 dark:text-gray-100 mb-4">
-            {t('dashboard_about.redirecting')}
-          </p>
-          <a
-            href="https://nipe.unicamp.br/cp2b/"
-            className="text-green-600 dark:text-emerald-400 hover:underline text-sm"
-          >
-            {t('dashboard_about.click_here')}
-          </a>
-        </div>
-      </div>
-    </div>
-  );
+export default async function DashboardAboutPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params
+  permanentRedirect({ href: '/about#parceiros', locale: isLocale(locale) ? locale : defaultLocale })
 }

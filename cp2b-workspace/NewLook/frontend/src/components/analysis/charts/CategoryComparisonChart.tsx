@@ -48,7 +48,7 @@ export default function CategoryComparisonChart({
     return (
       <div className="bg-white rounded-xl shadow-md p-6 h-[400px] flex items-center justify-center border border-gray-100">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 border-4 border-green-600 border-t-transparent rounded-full animate-spin" />
+          <div className="w-10 h-10 border-4 border-terra-600 border-t-transparent rounded-full animate-spin" />
           <span className="text-sm text-gray-600 font-medium">{t('loading')}</span>
         </div>
       </div>
@@ -169,13 +169,13 @@ export default function CategoryComparisonChart({
       {/* Comparison Stats */}
       <div className="mt-5 pt-5 border-t border-gray-200">
         <h4 className="text-xs font-semibold text-gray-600 mb-3 uppercase flex items-center gap-2">
-          <span className="w-1.5 h-1.5 bg-green-600 rounded-full"></span>
+          <span className="w-1.5 h-1.5 bg-terra-600 rounded-full"></span>
           {t('category_comparison_heading')}
         </h4>
         <div className="grid grid-cols-3 gap-3">
-          <div className="bg-gradient-to-br from-green-50 to-white rounded-lg p-3 border border-green-100">
+          <div className="bg-gradient-to-br from-terra-50 to-white rounded-lg p-3 border border-terra-100">
             <div className="text-xs text-gray-600 mb-1">{tMap('categories.agricultural')}</div>
-            <div className="font-bold text-green-900 text-sm">
+            <div className="font-bold text-terra-900 text-sm">
               {t('category_comparison_count', { count: data.categories.agricultural?.count ?? 0 })}
             </div>
             <div className="text-xs text-gray-500 mt-1">

@@ -50,9 +50,9 @@ export default function ResidueListView({ residues, sectors, onSelect }: Residue
                     key={residue.id}
                     type="button"
                     onClick={() => onSelect(residue)}
-                    className="text-left p-3 bg-gray-50 hover:bg-green-50 rounded-lg border border-gray-200 hover:border-green-300 transition-all group"
+                    className="text-left p-3 bg-gray-50 hover:bg-terra-50 rounded-lg border border-gray-200 hover:border-terra-300 transition-all group"
                   >
-                    <div className="font-medium text-gray-900 group-hover:text-green-700 text-sm leading-tight">
+                    <div className="font-medium text-gray-900 group-hover:text-terra-700 text-sm leading-tight">
                       {residue.icon && <span className="mr-1.5" aria-hidden="true">{residue.icon}</span>}
                       {nameOf(residue)}
                     </div>

@@ -29,24 +29,24 @@ interface MunicipalityPopupProps {
 }
 
 const residuePillClass: Record<ResidueType, string> = {
-  sugarcane: 'bg-green-50 border-green-200',
-  soybean: 'bg-green-50 border-green-200',
-  corn: 'bg-green-50 border-green-200',
-  coffee: 'bg-green-50 border-green-200',
-  citrus: 'bg-green-50 border-green-200',
+  sugarcane: 'bg-terra-50 border-terra-200',
+  soybean: 'bg-terra-50 border-terra-200',
+  corn: 'bg-terra-50 border-terra-200',
+  coffee: 'bg-terra-50 border-terra-200',
+  citrus: 'bg-terra-50 border-terra-200',
   cattle: 'bg-yellow-50 border-yellow-200',
   swine: 'bg-yellow-50 border-yellow-200',
   poultry: 'bg-yellow-50 border-yellow-200',
   aquaculture: 'bg-yellow-50 border-yellow-200',
-  rsu: 'bg-blue-50 border-blue-200',
-  rpo: 'bg-blue-50 border-blue-200',
-  sewage: 'bg-blue-50 border-blue-200',
+  rsu: 'bg-dusk-50 border-dusk-200',
+  rpo: 'bg-dusk-50 border-dusk-200',
+  sewage: 'bg-dusk-50 border-dusk-200',
 };
 
 const SECTOR_ROWS = [
-  { sector: 'agricultural', icon: '🌾', barClass: 'bg-green-600' },
+  { sector: 'agricultural', icon: '🌾', barClass: 'bg-terra-600' },
   { sector: 'livestock', icon: '🐄', barClass: 'bg-yellow-600' },
-  { sector: 'urban', icon: '🏙️', barClass: 'bg-blue-600' },
+  { sector: 'urban', icon: '🏙️', barClass: 'bg-dusk-600' },
 ] as const;
 
 function MunicipalityPopup({
@@ -108,16 +108,16 @@ function MunicipalityPopup({
         {/* Left Column - Total Biomass & Demographics */}
         <div className="space-y-2">
           {/* Total for the active metric */}
-          <div className="p-2 bg-green-50 rounded">
+          <div className="p-2 bg-terra-50 rounded">
             <div className="flex items-center gap-1.5 mb-1">
-              <svg className="w-3.5 h-3.5 text-green-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-3.5 h-3.5 text-terra-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
-              <span className="text-[10px] font-medium text-green-900">
-                {spec.icon} {text.label}
+              <span className="text-[10px] font-medium text-terra-900">
+                {text.label}
               </span>
             </div>
-            <p className="text-sm font-bold text-green-900">
+            <p className="text-sm font-bold text-terra-900">
               {total > 0 ? `${format.compact(total)} ${text.unit}` : tCommon('states.no_data')}
             </p>
           </div>
@@ -199,9 +199,9 @@ function MunicipalityPopup({
 
       {/* Footer - Note about References */}
       <div className="mt-3 pt-2 border-t border-gray-200">
-        <div className="flex items-center justify-center gap-1.5 w-full px-2 py-1.5 bg-indigo-50 border border-indigo-200 rounded">
-          <BookOpen className="h-3 w-3 text-indigo-600" />
-          <span className="text-[10px] font-medium text-indigo-700">
+        <div className="flex items-center justify-center gap-1.5 w-full px-2 py-1.5 bg-dusk-50 border border-dusk-200 rounded">
+          <BookOpen className="h-3 w-3 text-dusk-600" />
+          <span className="text-[10px] font-medium text-dusk-700">
             {t('popup.references_note')}
           </span>
         </div>

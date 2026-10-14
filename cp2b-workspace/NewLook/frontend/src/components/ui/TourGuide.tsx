@@ -4,6 +4,7 @@ import { useEffect, useMemo } from 'react';
 import { useIsClient } from '@/hooks/useIsClient';
 import { useJoyride, Step, EventData, STATUS, ACTIONS } from 'react-joyride';
 import { useTranslations } from 'next-intl';
+import { METHOD_PAGES_ENABLED } from '@/lib/featureFlags';
 
 interface TourGuideProps {
   run: boolean;
@@ -29,13 +30,16 @@ export default function TourGuide({ run, onFinish }: TourGuideProps) {
       content: t('steps.map.content'),
       skipBeacon: true,
     },
-    {
-      target: '.tour-analysis',
-      placement: 'bottom',
-      title: t('steps.analysis.title'),
-      content: t('steps.analysis.content'),
-      skipBeacon: true,
-    },
+    // /analysis is held back with the Método pages (METHOD_PAGES_ENABLED).
+    ...(METHOD_PAGES_ENABLED
+      ? [{
+          target: '.tour-analysis',
+          placement: 'bottom',
+          title: t('steps.analysis.title'),
+          content: t('steps.analysis.content'),
+          skipBeacon: true,
+        } satisfies Step]
+      : []),
     {
       target: '.tour-science',
       placement: 'bottom',
@@ -96,9 +100,9 @@ export default function TourGuide({ run, onFinish }: TourGuideProps) {
     },
     // AQUI ESTÁ A OPTIONS CONSOLIDADA
     options: {
-      primaryColor: '#1E5128',
-      textColor: '#4b5563',
-      backgroundColor: '#ffffff',
+      primaryColor: '#8E3B22', // terra-600
+      textColor: '#58534E', // warm gray-600
+      backgroundColor: '#FBF8F2', // paper-raised
       overlayColor: 'rgba(0, 0, 0, 0.5)',
       zIndex: 10000,
       beaconTrigger: 'hover',

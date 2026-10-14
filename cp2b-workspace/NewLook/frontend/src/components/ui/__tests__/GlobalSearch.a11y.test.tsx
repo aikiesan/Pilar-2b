@@ -21,51 +21,33 @@ jest.mock('next-intl', () => ({
       close_aria: 'Close search',
       results_aria: 'Search results',
       no_results: 'No municipality found',
+      scope_hint: 'The platform covers São Paulo and the Minas Gerais pilot.',
+      loading: 'Loading the list of municipalities…',
+      unavailable: 'The list of municipalities is not available right now.',
       hints: '↑↓ navigate · Enter select · Esc close',
-      per_year: 'm³/year',
     }
     return map[key] ?? key
   },
 }))
 
 const mockMunicipalities = [
-  {
-    type: 'Feature',
-    properties: {
-      id: 1,
-      ibge_code: '3550308',
-      name: 'São Paulo',
-      state: 'SP',
-      total_biogas_potential: 1_200_000_000,
-    },
-    geometry: { type: 'Point', coordinates: [-46.6333, -23.5505] },
-  },
-  {
-    type: 'Feature',
-    properties: {
-      id: 2,
-      ibge_code: '3509502',
-      name: 'Campinas',
-      state: 'SP',
-      total_biogas_potential: 350_000_000,
-    },
-    geometry: { type: 'Point', coordinates: [-47.0608, -22.9056] },
-  },
+  { municipality_name: 'São Paulo', ibge_code: '3550308' },
+  { municipality_name: 'Campinas', ibge_code: '3509502' },
 ]
 
-// Undefined while the map data is still loading.
-let mockFeatures: typeof mockMunicipalities | undefined = mockMunicipalities
+// The name list the search reads; 'loading' until the test lets it arrive.
+let mockState: 'loading' | 'ready' | 'failed' = 'ready'
 
-jest.mock('@/hooks/useGeospatialData', () => ({
-  useGeospatialData: () => ({
-    data: mockFeatures && { type: 'FeatureCollection', features: mockFeatures },
-    isLoading: !mockFeatures,
-    error: null,
+jest.mock('@/hooks/useMunicipalityNames', () => ({
+  useMunicipalityNames: () => ({
+    names: mockState === 'ready' ? mockMunicipalities : [],
+    state: mockState,
+    retry: jest.fn(),
   }),
 }))
 
 afterEach(() => {
-  mockFeatures = mockMunicipalities
+  mockState = 'ready'
 })
 
 describe('GlobalSearch Accessibility', () => {
@@ -156,10 +138,40 @@ describe('GlobalSearch Accessibility', () => {
       expect(input).toHaveAttribute('aria-expanded', 'false')
       expect(input).not.toHaveAttribute('aria-controls')
       expect(screen.getByRole('status')).toHaveTextContent('No municipality found')
+      expect(screen.getByRole('status')).toHaveTextContent('São Paulo and the Minas Gerais pilot')
+    })
+
+    it('says it is loading, not that nothing matches, while the list arrives', async () => {
+      mockState = 'loading'
+      const user = userEvent.setup()
+      render(<GlobalSearch />)
+      await user.keyboard('/')
+      await user.type(await screen.findByRole('combobox'), 'Camp')
+      expect(screen.getByRole('status')).toHaveTextContent('Loading the list of municipalities…')
+    })
+
+    it('says the list is unavailable when it cannot be read', async () => {
+      mockState = 'failed'
+      const user = userEvent.setup()
+      render(<GlobalSearch />)
+      await user.keyboard('/')
+      await user.type(await screen.findByRole('combobox'), 'Camp')
+      expect(screen.getByRole('status')).toHaveTextContent('not available right now')
+      expect(screen.getByRole('status')).not.toHaveTextContent('No municipality found')
+    })
+
+    it('finds a municipality without its accents, and shows its state and code', async () => {
+      const user = userEvent.setup()
+      render(<GlobalSearch />)
+      await user.keyboard('/')
+      await user.type(await screen.findByRole('combobox'), 'sao paulo')
+      const option = screen.getByRole('option')
+      expect(option).toHaveTextContent('São Paulo')
+      expect(option).toHaveTextContent('SP · 3550308')
     })
 
     it('makes the first result active when results arrive after an arrow key', async () => {
-      mockFeatures = undefined
+      mockState = 'loading'
       const user = userEvent.setup()
       const { rerender } = render(<GlobalSearch />)
       await user.keyboard('/')
@@ -167,7 +179,7 @@ describe('GlobalSearch Accessibility', () => {
       await user.type(input, '35')
       await user.keyboard('{ArrowDown}')
 
-      mockFeatures = mockMunicipalities
+      mockState = 'ready'
       rerender(<GlobalSearch />)
       const options = screen.getAllByRole('option')
       expect(input).toHaveAttribute('aria-activedescendant', options[0].id)

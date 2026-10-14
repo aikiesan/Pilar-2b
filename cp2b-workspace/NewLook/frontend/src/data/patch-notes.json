@@ -2,6 +2,89 @@
   "_comment": "Patch notes, newest first. Each entry carries its own pt-BR and en text, deliberately OUTSIDE messages/*.json: the catalogs are gated by check-i18n-parity.mjs, and threading one release note through two catalogs per deploy makes writing a note a chore nobody does. scripts/check-patch-notes.mjs enforces that both locales are present here instead. `date` is ISO 8601 WITH offset -- it is rendered in the reader's locale, so a bare date would drift a day across timezones. `kind` must be one of: added, changed, fixed, security, data.",
   "entries": [
     {
+      "version": "3.4.0",
+      "date": "2026-10-14T18:00:00-03:00",
+      "title": {
+        "pt-BR": "Página de cada município, com endereço legível",
+        "en": "A page for each municipality, at a readable address"
+      },
+      "changes": [
+        {
+          "kind": "added",
+          "text": {
+            "pt-BR": "Cada município tem sua página em /municipalities/nome-uf (por exemplo, /municipalities/campinas-sp): o potencial de metano acessível (nível N4), a posição no estado, a divisão por setor e por resíduo, os níveis do método, os municípios vizinhos, como citar e as notas e limitações.",
+            "en": "Each municipality has its own page at /municipalities/name-state (for example, /municipalities/campinas-sp): the accessible methane potential (level N4), its rank in the state, the split by sector and by residue, the method's levels, the neighbouring municipalities, how to cite it and the notes and limitations."
+          }
+        },
+        {
+          "kind": "added",
+          "text": {
+            "pt-BR": "Ao compartilhar a página no WhatsApp, no LinkedIn ou em outras redes, o link mostra uma imagem com o nome do município e o seu potencial de metano.",
+            "en": "When the page is shared on WhatsApp, LinkedIn or other networks, the link shows an image with the municipality's name and its methane potential."
+          }
+        },
+        {
+          "kind": "changed",
+          "text": {
+            "pt-BR": "Os endereços antigos (/municipality/código IBGE) levam automaticamente à nova página. A busca e a lista de municípios trazem todos os municípios cobertos.",
+            "en": "The old addresses (/municipality/IBGE code) lead automatically to the new page. The municipality search and list include every municipality covered."
+          }
+        }
+      ]
+    },
+    {
+      "version": "3.3.0",
+      "date": "2026-10-14T10:00:00-03:00",
+      "title": {
+        "pt-BR": "Nova página inicial, catálogo de dados e menus reorganizados",
+        "en": "New home page, data catalogue and regrouped menus"
+      },
+      "changes": [
+        {
+          "kind": "added",
+          "text": {
+            "pt-BR": "A página inicial apresenta a plataforma e leva direto ao mapa e ao catálogo de dados. O mapa continua em /map.",
+            "en": "The home page introduces the platform and leads straight to the map and the data catalogue. The map stays at /map."
+          }
+        },
+        {
+          "kind": "added",
+          "text": {
+            "pt-BR": "Catálogo de dados: uma página por setor e por resíduo, com o potencial metanogênico (BMP), a caracterização química, as fontes e como citar, mais a legenda e os códigos das camadas para baixar em CSV.",
+            "en": "Data catalogue: one page per sector and per residue, with the methane potential (BMP), the chemical characterization, the sources and how to cite, plus the layer legend and codes to download as CSV."
+          }
+        },
+        {
+          "kind": "changed",
+          "text": {
+            "pt-BR": "Menus reorganizados em Plataforma, Dados, Método e Sobre, cada um com uma breve apresentação. No celular, uma barra inferior leva ao Mapa, aos Municípios, aos Dados e ao menu completo.",
+            "en": "Menus regrouped into Platform, Data, Method and About, each with a short introduction. On phones, a bottom bar leads to the Map, the Municipalities, the Data and the full menu."
+          }
+        },
+        {
+          "kind": "added",
+          "text": {
+            "pt-BR": "Lista de todos os municípios em ordem alfabética, com busca, em /municipalities.",
+            "en": "An alphabetical list of every municipality, with search, at /municipalities."
+          }
+        },
+        {
+          "kind": "changed",
+          "text": {
+            "pt-BR": "A análise multicritério, a calculadora e a base científica marcam como \"estimativa anterior (legado)\" os números calculados com os fatores de disponibilidade anteriores, que continuam valendo até a nova estimativa ser publicada.",
+            "en": "The multi-criteria analysis, the calculator and the science base mark the figures computed with the previous availability factors as \"previous estimate (legacy)\"; they stay in use until the new estimate is published."
+          }
+        },
+        {
+          "kind": "changed",
+          "text": {
+            "pt-BR": "Endereços antigos que mudaram de lugar redirecionam para o novo endereço em vez de mostrar uma página não encontrada.",
+            "en": "Old addresses that moved now redirect to their new place instead of showing a page-not-found."
+          }
+        }
+      ]
+    },
+    {
       "version": "3.2.0",
       "date": "2026-09-24T17:00:00-03:00",
       "title": {

@@ -117,7 +117,14 @@ test.describe('Locale integrity — /en/ renders no Portuguese UI', () => {
   test('pt-BR short-form numbers match the pattern', async ({ page }) => {
     // The same guard for PORTUGUESE_NUMBER: the About page's counters count up
     // to "4,6 bi" in pt-BR, so the pattern must find them there.
+    // They count up once scrolled into view, and sit below the fold.
     await page.goto('/pt-BR/about', { waitUntil: 'domcontentloaded' });
+    await page.evaluate(async () => {
+      for (let y = 0; y < document.documentElement.scrollHeight; y += window.innerHeight / 2) {
+        window.scrollTo(0, y);
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      }
+    });
     await expect(page.locator('body')).toContainText(PORTUGUESE_NUMBER, { useInnerText: true });
   });
 });

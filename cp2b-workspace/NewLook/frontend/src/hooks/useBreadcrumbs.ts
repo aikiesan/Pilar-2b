@@ -3,53 +3,19 @@
 import { useTranslations } from 'next-intl'
 import { usePathname } from '@/navigation'
 import type { BreadcrumbItem } from '@/components/ui/Breadcrumb'
-
-type BreadcrumbOverrides = {
-  /** Pass the resolved municipality name for /municipality/[ibge_code] */
-  municipalityName?: string
-}
+import { navCrumbs } from '@/lib/breadcrumbTrail'
 
 /**
- * Returns a localised breadcrumb trail for the current route.
- * Uses a static route map — fully translatable, no segment-parsing magic.
+ * The breadcrumb for the current route, read from the menus: Início / <menu
+ * group> / <page>. There is no "Voltar ao Dashboard" crumb any more.
  */
-export function useBreadcrumbs(overrides?: BreadcrumbOverrides): BreadcrumbItem[] {
-  const pathname = usePathname() // locale-stripped, e.g. '/dashboard/compare'
+export function useBreadcrumbs(tail: BreadcrumbItem[] = []): BreadcrumbItem[] {
+  const pathname = usePathname() // locale-stripped, e.g. '/compare'
   const t = useTranslations('pages')
   const tNav = useTranslations('common.nav')
 
-  const home: BreadcrumbItem = { label: tNav('home'), href: '/' }
-  const dashboard: BreadcrumbItem = { label: tNav('dashboard'), href: '/dashboard' }
-  const map: BreadcrumbItem = { label: tNav('map'), href: '/map' }
+  // Settings lives in the account menu, not in a group.
+  if (pathname === '/settings') return [{ label: tNav('home'), href: '/' }, { label: t('settings.title') }]
 
-  if (pathname === '/dashboard')
-    return [home, { label: tNav('dashboard') }]
-
-  if (pathname === '/dashboard/advanced-analysis')
-    return [home, dashboard, { label: t('advanced_analysis.title') }]
-
-  if (pathname === '/dashboard/compare')
-    return [home, dashboard, { label: t('compare.title') }]
-
-  if (pathname === '/dashboard/proximity')
-    return [home, dashboard, { label: t('proximity.title') }]
-
-  if (pathname === '/dashboard/scientific-database')
-    return [home, dashboard, { label: t('scientific_database.title') }]
-
-  if (pathname === '/dashboard/technology-routes')
-    return [home, dashboard, { label: t('technology_routes.title') }]
-
-  if (pathname === '/dashboard/about')
-    return [home, dashboard, { label: t('dashboard_about.title') }]
-
-  if (pathname === '/settings')
-    return [home, { label: t('settings.title') }]
-
-  if (pathname.startsWith('/municipality/')) {
-    const name = overrides?.municipalityName ?? '...'
-    return [home, map, { label: name }]
-  }
-
-  return [home]
+  return navCrumbs(pathname, (key) => tNav(key), tail)
 }

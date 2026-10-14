@@ -1,47 +1,36 @@
 'use client'
 
 /**
- * GlobalSearch — header search across all 645 municipalities.
- * Keyboard shortcut: press "/" to open.
- * On select: navigates to /municipality/[ibge_code] deep-dive page.
+ * GlobalSearch — the header's municipality search, by name or IBGE code only
+ * (lib/municipalitySearch). Press "/" to open it from anywhere.
+ * On select: opens the municipality's page (/municipalities/campinas-sp).
  *
- * Data comes from the cached useGeospatialData hook (no extra fetch).
+ * It reads the light name list (useMunicipalityNames), fetched the first time
+ * the search opens, not the map's GeoJSON. On a phone the open search covers
+ * the top of the screen, with a 16 px input so the browser does not zoom.
  */
 
-import { useState, useEffect, useId, useRef, useCallback } from 'react'
+import { useState, useEffect, useId, useRef, useCallback, useMemo } from 'react'
 import { useRouter } from '@/navigation'
+import { municipalityPath } from '@/lib/municipalitySlug'
 import { useTranslations } from 'next-intl'
-import { useGeospatialData } from '@/hooks/useGeospatialData'
-import { useFormat } from '@/hooks/useFormat'
-import { Search, X, MapPin, TrendingUp } from 'lucide-react'
-import type { MunicipalityFeature } from '@/types/geospatial'
+import { useMunicipalityNames } from '@/hooks/useMunicipalityNames'
+import { searchMunicipalities, ufAbbreviation } from '@/lib/municipalitySearch'
+import type { MunicipalityName } from '@/lib/municipalityNames'
+import { Search, X, MapPin } from 'lucide-react'
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+const MAX_RESULTS = 8
 
-function getPotentialColor(value: number): string {
-  if (value >= 500_000_000) return 'text-blue-700 dark:text-blue-400'
-  if (value >= 100_000_000) return 'text-cyan-700 dark:text-cyan-400'
-  if (value >= 50_000_000) return 'text-teal-700 dark:text-teal-400'
-  if (value >= 10_000_000) return 'text-green-700 dark:text-green-400'
-  return 'text-lime-700 dark:text-lime-400'
-}
-
-// ── Component ─────────────────────────────────────────────────────────────────
-
-interface GlobalSearchProps {
-  /** visual variant: matches the header (public=light, authenticated=dark) */
-  variant?: 'light' | 'dark'
-}
-
-export default function GlobalSearch({ variant = 'light' }: GlobalSearchProps) {
+export default function GlobalSearch() {
   const t = useTranslations('common.search')
-  const format = useFormat()
   const router = useRouter()
-  const { data } = useGeospatialData()
 
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
   const [activeIndex, setActiveIndex] = useState(0)
+  // The list is fetched the first time the search opens, then kept.
+  const [wanted, setWanted] = useState(false)
+  const { names, state, retry } = useMunicipalityNames(wanted)
 
   const inputRef = useRef<HTMLInputElement>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
@@ -49,29 +38,29 @@ export default function GlobalSearch({ variant = 'light' }: GlobalSearchProps) {
   // Closing from the keyboard or the close button hands focus back to the trigger.
   const refocusTrigger = useRef(false)
   const listboxId = useId()
+  const statusId = useId()
   const optionId = (index: number) => `${listboxId}-option-${index}`
 
-  // ── Search results ──────────────────────────────────────────────────────────
-  const results: MunicipalityFeature[] = (() => {
-    if (!query.trim() || !data) return []
-    const q = query.toLowerCase().trim()
-    return data.features
-      .filter(
-        (f) =>
-          f.properties.name.toLowerCase().includes(q) ||
-          String(f.properties.ibge_code).startsWith(q)
-      )
-      .sort((a, b) => b.properties.total_biogas_m3_year - a.properties.total_biogas_m3_year)
-      .slice(0, 8)
-  })()
+  const results = useMemo(
+    () =>
+      searchMunicipalities(
+        names,
+        query,
+        (m: MunicipalityName) => ({ name: m.municipality_name, code: m.ibge_code }),
+        MAX_RESULTS,
+      ),
+    [names, query],
+  )
   // The listbox exists only while there are results; the combobox says so.
   const expanded = results.length > 0
 
-  const openSearch = () => {
+  const openSearch = useCallback(() => {
     refocusTrigger.current = false
+    setWanted(true)
+    retry()
     setOpen(true)
     setTimeout(() => inputRef.current?.focus(), 50)
-  }
+  }, [retry])
 
   const close = useCallback((returnFocus: boolean) => {
     refocusTrigger.current = returnFocus
@@ -84,9 +73,7 @@ export default function GlobalSearch({ variant = 'light' }: GlobalSearchProps) {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === '/' && !(e.target instanceof HTMLInputElement) && !(e.target instanceof HTMLTextAreaElement)) {
         e.preventDefault()
-        refocusTrigger.current = false
-        setOpen(true)
-        setTimeout(() => inputRef.current?.focus(), 50)
+        openSearch()
       }
       if (e.key === 'Escape') {
         close(containerRef.current?.contains(e.target as Node) ?? false)
@@ -94,7 +81,7 @@ export default function GlobalSearch({ variant = 'light' }: GlobalSearchProps) {
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [close])
+  }, [close, openSearch])
 
   useEffect(() => {
     if (!open && refocusTrigger.current) {
@@ -116,8 +103,8 @@ export default function GlobalSearch({ variant = 'light' }: GlobalSearchProps) {
 
   // ── Navigation ──────────────────────────────────────────────────────────────
   const navigateTo = useCallback(
-    (municipality: MunicipalityFeature) => {
-      router.push(`/municipality/${municipality.properties.ibge_code}` as any)
+    (municipality: MunicipalityName) => {
+      router.push(municipalityPath(municipality.municipality_name, municipality.ibge_code) as never)
       close(false)
     },
     [router, close]
@@ -132,15 +119,20 @@ export default function GlobalSearch({ variant = 'light' }: GlobalSearchProps) {
       e.preventDefault()
       setActiveIndex((i) => Math.max(i - 1, 0))
     } else if (e.key === 'Enter' && results[activeIndex]) {
+      e.preventDefault()
       navigateTo(results[activeIndex])
     }
   }
 
-  // ── Styles based on variant ─────────────────────────────────────────────────
-  const triggerClass =
-    variant === 'dark'
-      ? 'flex items-center gap-2 px-3 py-1.5 rounded-lg text-green-100 bg-white/10 hover:bg-white/20 border border-white/20 text-sm transition-colors cursor-pointer'
-      : 'flex items-center gap-2 px-3 py-1.5 rounded-lg text-gray-600 bg-gray-100 hover:bg-gray-200 border border-gray-200 text-sm transition-colors cursor-pointer'
+  // One live message: loading, the list being unavailable, or no match.
+  const typed = query.trim() !== ''
+  const status = !typed || expanded
+    ? ''
+    : state === 'failed'
+      ? t('unavailable')
+      : state === 'ready'
+        ? `${t('no_results', { query: query.trim() })}. ${t('scope_hint')}`
+        : t('loading')
 
   return (
     <div ref={containerRef} className="relative tour-search-bar">
@@ -149,26 +141,23 @@ export default function GlobalSearch({ variant = 'light' }: GlobalSearchProps) {
           of widening it, which pushed a full header off the screen. */}
       <button
         ref={triggerRef}
+        type="button"
         onClick={openSearch}
-        className={`${triggerClass} ${open ? 'invisible' : ''}`}
+        className={`flex min-h-[44px] min-w-[44px] items-center justify-center gap-2 rounded border border-line bg-paper-sunken px-3 text-sm text-ink-muted transition-colors hover:border-line-strong hover:text-ink sm:min-h-[36px] ${open ? 'invisible' : ''}`}
         aria-label={t('trigger_aria')}
       >
-        <Search className="w-4 h-4 shrink-0" />
+        <Search className="h-4 w-4 shrink-0" aria-hidden="true" />
         <span className="hidden min-[1760px]:inline text-xs">{t('trigger')}</span>
-        <kbd className="hidden min-[1760px]:inline px-1 py-0.5 text-[10px] font-mono rounded bg-black/10 dark:bg-white/10">
+        <kbd className="hidden min-[1760px]:inline px-1 py-0.5 font-mono text-xs rounded bg-black/10 dark:bg-white/10" aria-hidden="true">
           /
         </kbd>
       </button>
 
-      {/* Expanded search input */}
       {open && (
-        <div className="absolute right-0 top-1/2 -translate-y-1/2 z-[600] w-72 sm:w-96">
-          <div className={`flex items-center gap-2 px-3 py-2 rounded-xl border shadow-lg ${
-            variant === 'dark'
-              ? 'bg-[#163d1f] border-white/20'
-              : 'bg-white border-gray-300'
-          }`}>
-            <Search className={`w-4 h-4 shrink-0 ${variant === 'dark' ? 'text-green-300' : 'text-gray-400'}`} />
+        // A phone gets the whole top of the screen; wider screens a box over the bar.
+        <div className="fixed inset-x-0 top-0 z-[600] border-b border-line bg-paper p-2 shadow-lg sm:absolute sm:inset-x-auto sm:right-0 sm:top-1/2 sm:w-96 sm:-translate-y-1/2 sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none">
+          <div className="flex items-center gap-2 rounded border border-line-strong bg-paper-raised pl-3 shadow-lg focus-within:border-terra-600 focus-within:ring-1 focus-within:ring-terra-600">
+            <Search className="h-4 w-4 shrink-0 text-ink-muted" aria-hidden="true" />
             <input
               ref={inputRef}
               type="search"
@@ -183,77 +172,59 @@ export default function GlobalSearch({ variant = 'light' }: GlobalSearchProps) {
               aria-controls={expanded ? listboxId : undefined}
               aria-autocomplete="list"
               aria-activedescendant={expanded && results[activeIndex] ? optionId(activeIndex) : undefined}
+              aria-describedby={statusId}
               placeholder={t('placeholder')}
               aria-label={t('input_aria')}
-              className={`flex-1 bg-transparent text-sm outline-none [&::-webkit-search-cancel-button]:hidden ${
-                variant === 'dark' ? 'text-white placeholder-green-300/50' : 'text-gray-900 placeholder-gray-400'
-              }`}
+              enterKeyHint="search"
+              className="min-h-[44px] min-w-0 flex-1 border-0 bg-transparent p-0 text-base text-ink outline-none placeholder:text-ink-muted focus:ring-0 sm:text-sm [&::-webkit-search-cancel-button]:hidden"
               autoComplete="off"
             />
             <button
+              type="button"
               onClick={() => close(true)}
               aria-label={t('close_aria')}
-              className={`shrink-0 ${variant === 'dark' ? 'text-green-300 hover:text-white' : 'text-gray-400 hover:text-gray-600'}`}
+              className="flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center text-ink-muted hover:text-ink"
             >
-              <X className="w-4 h-4" />
+              <X className="h-4 w-4" aria-hidden="true" />
             </button>
           </div>
 
-          {/* Results dropdown */}
-          {query.trim() && (
-            <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-xl overflow-hidden z-[600]">
-              {results.length === 0 ? (
-                <div role="status" className="px-4 py-6 text-center text-sm text-gray-500">
-                  {t('no_results', { query })}
-                </div>
-              ) : (
-                <ul id={listboxId} role="listbox" aria-label={t('results_aria')}>
-                  {results.map((muni, idx) => {
-                    const total = muni.properties.total_biogas_m3_year
-                    return (
-                      // eslint-disable-next-line jsx-a11y/click-events-have-key-events -- keyboard: the combobox input (arrows, Enter)
-                      <li
-                        key={muni.properties.ibge_code}
-                        id={optionId(idx)}
-                        role="option"
-                        aria-selected={idx === activeIndex}
-                        onClick={() => navigateTo(muni)}
-                        onMouseEnter={() => setActiveIndex(idx)}
-                        className={`flex items-center justify-between px-4 py-3 cursor-pointer transition-colors ${
-                          idx === activeIndex
-                            ? 'bg-green-50 dark:bg-green-900/20'
-                            : 'hover:bg-gray-50 dark:hover:bg-slate-700'
-                        }`}
-                      >
-                        <div className="flex items-center gap-3 min-w-0">
-                          <MapPin className="w-4 h-4 text-gray-400 shrink-0" />
-                          <div className="min-w-0">
-                            <div className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                              {muni.properties.name}
-                            </div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                              {muni.properties.intermediate_region} · IBGE {muni.properties.ibge_code}
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-1 shrink-0 ml-3">
-                          <TrendingUp className="w-3 h-3 text-gray-400" />
-                          <span className={`text-xs font-semibold ${getPotentialColor(total)}`}>
-                            {format.compact(total)} {t('per_year')}
-                          </span>
-                        </div>
-                      </li>
-                    )
-                  })}
-                  <li role="presentation" className="px-4 py-2 bg-gray-50 dark:bg-slate-900/40 border-t border-gray-100 dark:border-slate-700">
-                    <p className="text-[10px] text-gray-400 text-center">
-                      {t('hints')}
-                    </p>
+          {/* Results, or what is happening instead */}
+          <div className={`mt-1 overflow-hidden rounded border border-line bg-paper-raised shadow-xl sm:absolute sm:left-0 sm:right-0 sm:top-full ${typed ? '' : 'hidden'}`}>
+            <p id={statusId} role="status" className={status ? 'px-4 py-4 text-sm text-ink-muted' : 'sr-only'}>
+              {status}
+            </p>
+            {expanded && (
+              <ul id={listboxId} role="listbox" aria-label={t('results_aria')}>
+                {results.map((muni, idx) => (
+                  // eslint-disable-next-line jsx-a11y/click-events-have-key-events -- keyboard: the combobox input (arrows, Enter)
+                  <li
+                    key={muni.ibge_code}
+                    id={optionId(idx)}
+                    role="option"
+                    aria-selected={idx === activeIndex}
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => navigateTo(muni)}
+                    onMouseEnter={() => setActiveIndex(idx)}
+                    className={`flex min-h-[44px] cursor-pointer items-center gap-3 border-l-2 px-4 py-2 ${
+                      idx === activeIndex ? 'border-terra-600 bg-paper-sunken' : 'border-transparent'
+                    }`}
+                  >
+                    <MapPin className="h-4 w-4 shrink-0 text-ink-muted" aria-hidden="true" />
+                    <span className="min-w-0 flex-1 truncate text-sm font-medium text-ink">{muni.municipality_name}</span>
+                    <span className="shrink-0 font-mono text-xs tabular-nums text-ink-muted">
+                      {ufAbbreviation(muni.ibge_code)} · {muni.ibge_code}
+                    </span>
                   </li>
-                </ul>
-              )}
-            </div>
-          )}
+                ))}
+              </ul>
+            )}
+            {expanded && (
+              <p className="hidden border-t border-line bg-paper-sunken px-4 py-2 text-center text-xs text-ink-muted sm:block" aria-hidden="true">
+                {t('hints')}
+              </p>
+            )}
+          </div>
         </div>
       )}
     </div>

@@ -1,5 +1,7 @@
 import LegalDocument, { type LegalText } from '@/components/layout/LegalDocument'
 import type { Localized } from '@/lib/localized'
+import { isLocale } from '@/config/i18n'
+import { titledMetadata } from '@/lib/pageMetadata'
 
 /**
  * Privacy Policy / Política de Privacidade.
@@ -174,6 +176,11 @@ const TEXT: Localized<LegalText> = {
       },
     ],
   },
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params
+  return titledMetadata(TEXT[isLocale(locale) ? locale : 'pt-BR'].title)
 }
 
 export default function PrivacyPage() {

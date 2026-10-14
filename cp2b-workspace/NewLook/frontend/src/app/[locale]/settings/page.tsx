@@ -8,13 +8,14 @@
 
 import { useEffect, useState } from 'react'
 import { useLocale, useTranslations } from 'next-intl'
-import { useRouter } from '@/navigation'
+import { usePathname, useRouter } from '@/navigation'
+import { loginHref } from '@/lib/authRedirect'
 import { isLocale } from '@/config/i18n'
 import { useLocaleSwitch } from '@/components/ui/LanguageSwitcher'
 import { Settings, User, Bell, Palette, Shield, HelpCircle, Save, Check } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { logger } from '@/lib/logger'
-import Breadcrumb from '@/components/ui/Breadcrumb'
+import { BreadcrumbBar } from '@/components/ui/Breadcrumb'
 import { useBreadcrumbs } from '@/hooks/useBreadcrumbs'
 
 interface UserSettings {
@@ -36,6 +37,7 @@ interface UserSettings {
 
 export default function SettingsPage() {
   const router = useRouter()
+  const pathname = usePathname()
   const { user, loading, isAuthenticated } = useAuth()
   const t = useTranslations('settings_page')
   const locale = useLocale()
@@ -74,9 +76,9 @@ export default function SettingsPage() {
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
-      router.push('/login')
+      router.push(loginHref(pathname))
     }
-  }, [loading, isAuthenticated, router])
+  }, [loading, isAuthenticated, router, pathname])
 
   const handleSave = async () => {
     setSaving(true)
@@ -95,7 +97,7 @@ export default function SettingsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-64px)]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600" role="status" aria-label={t('loading')}></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-terra-600" role="status" aria-label={t('loading')}></div>
       </div>
     )
   }
@@ -104,10 +106,7 @@ export default function SettingsPage() {
 
   return (
     <>
-      {/* Breadcrumb */}
-      <div className="bg-white border-b dark:bg-slate-800 dark:border-slate-700">
-        <Breadcrumb items={breadcrumbs} />
-      </div>
+      <BreadcrumbBar items={breadcrumbs} />
 
       <div className="h-[calc(100vh-64px)] overflow-y-auto bg-gray-50 dark:bg-slate-900 transition-colors">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -115,7 +114,7 @@ export default function SettingsPage() {
           <div className="mb-8 flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-3">
-                <Settings className="h-8 w-8 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
+                <Settings className="h-8 w-8 text-terra-600 dark:text-terra-400" aria-hidden="true" />
                 {t('title')}
               </h1>
               <p className="mt-2 text-gray-600 dark:text-gray-400">
@@ -125,7 +124,7 @@ export default function SettingsPage() {
             <button
               onClick={handleSave}
               disabled={saving}
-              className="flex items-center gap-2 px-4 py-2 bg-emerald-700 hover:bg-emerald-800 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-terra-700 hover:bg-terra-800 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors"
               aria-label={t('save')}
             >
               {saved ? (
@@ -153,7 +152,7 @@ export default function SettingsPage() {
             <section className="bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700 overflow-hidden" aria-labelledby="profile-heading">
               <div className="px-6 py-4 border-b border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-900">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-emerald-100 rounded-lg text-emerald-600">
+                  <div className="p-2 bg-terra-100 rounded-lg text-terra-600">
                     <User className="h-5 w-5" aria-hidden="true" />
                   </div>
                   <div>
@@ -188,7 +187,7 @@ export default function SettingsPage() {
             <section className="bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700 overflow-hidden" aria-labelledby="notifications-heading">
               <div className="px-6 py-4 border-b border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-900">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-blue-100 rounded-lg text-blue-600">
+                  <div className="p-2 bg-dusk-100 rounded-lg text-dusk-600">
                     <Bell className="h-5 w-5" aria-hidden="true" />
                   </div>
                   <div>
@@ -222,7 +221,7 @@ export default function SettingsPage() {
                         },
                       })}
                       className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                        settings.notifications[field as keyof typeof settings.notifications] ? 'bg-emerald-600' : 'bg-gray-200'
+                        settings.notifications[field as keyof typeof settings.notifications] ? 'bg-terra-600' : 'bg-gray-200'
                       }`}
                     >
                       <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
@@ -261,7 +260,7 @@ export default function SettingsPage() {
                       ...settings,
                       appearance: { ...settings.appearance, theme: e.target.value as 'light' | 'dark' | 'auto' }
                     })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-terra-500 focus:border-terra-500"
                   >
                     <option value="light">{t('theme_light')}</option>
                     <option value="dark">{t('theme_dark')}</option>
@@ -281,7 +280,7 @@ export default function SettingsPage() {
                     onChange={(e) => {
                       if (isLocale(e.target.value)) switchLocale(e.target.value)
                     }}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-terra-500 focus:border-terra-500"
                   >
                     {/* Each language is named in itself, so it can be found in either UI. */}
                     <option value="pt-BR">Português (Brasil)</option>{/* i18n-exempt: language endonym */}
@@ -302,7 +301,7 @@ export default function SettingsPage() {
                       appearance: { ...settings.appearance, compactMode: !settings.appearance.compactMode }
                     })}
                     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                      settings.appearance.compactMode ? 'bg-emerald-600' : 'bg-gray-200'
+                      settings.appearance.compactMode ? 'bg-terra-600' : 'bg-gray-200'
                     }`}
                   >
                     <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
@@ -342,7 +341,7 @@ export default function SettingsPage() {
                       security: { ...settings.security, twoFactor: !settings.security.twoFactor }
                     })}
                     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                      settings.security.twoFactor ? 'bg-emerald-600' : 'bg-gray-200'
+                      settings.security.twoFactor ? 'bg-terra-600' : 'bg-gray-200'
                     }`}
                   >
                     <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
@@ -365,7 +364,7 @@ export default function SettingsPage() {
                       ...settings,
                       security: { ...settings.security, sessionTimeout: parseInt(e.target.value) || 30 }
                     })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-terra-500 focus:border-terra-500"
                   />
                 </div>
 
@@ -381,12 +380,12 @@ export default function SettingsPage() {
           </div>
 
           {/* Help Section */}
-          <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="mt-8 p-4 bg-dusk-50 border border-dusk-200 rounded-lg">
             <div className="flex items-start gap-3">
-              <HelpCircle className="h-5 w-5 text-blue-600 mt-0.5" aria-hidden="true" />
+              <HelpCircle className="h-5 w-5 text-dusk-600 mt-0.5" aria-hidden="true" />
               <div>
-                <h3 className="font-medium text-blue-900">{t('help_title')}</h3>
-                <p className="text-sm text-blue-700 mt-1">{t('help_body')}</p>
+                <h3 className="font-medium text-dusk-900">{t('help_title')}</h3>
+                <p className="text-sm text-dusk-700 mt-1">{t('help_body')}</p>
               </div>
             </div>
           </div>

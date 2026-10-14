@@ -29,7 +29,7 @@ describe('ReferencesModal', () => {
     render(<ReferencesModal isOpen onClose={jest.fn()} />)
     const links = screen.getAllByRole('link', { name: 'Abrir a base científica' })
     // The links used to be hardcoded to /pt-BR/… in a new tab, whatever the site language.
-    expect(links[0]).toHaveAttribute('href', '/pt-BR/dashboard/scientific-database?view=references')
+    expect(links[0]).toHaveAttribute('href', '/pt-BR/method/science-base?view=references')
     expect(links[0]).not.toHaveAttribute('target')
     expect(screen.getByText('Referências científicas validadas na base: 39')).toBeInTheDocument()
   })
