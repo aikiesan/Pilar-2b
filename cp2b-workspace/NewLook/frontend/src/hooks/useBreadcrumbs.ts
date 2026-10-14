@@ -6,7 +6,7 @@ import type { BreadcrumbItem } from '@/components/ui/Breadcrumb'
 import { METHOD_PAGES_ENABLED } from '@/lib/featureFlags'
 
 type BreadcrumbOverrides = {
-  /** Pass the resolved municipality name for /municipality/[ibge_code] */
+  /** The municipality's name on a /municipalities/[slug] page */
   municipalityName?: string
 }
 
@@ -42,7 +42,7 @@ export function useBreadcrumbs(overrides?: BreadcrumbOverrides): BreadcrumbItem[
   if (pathname === '/settings')
     return [home, { label: t('settings.title') }]
 
-  if (pathname.startsWith('/municipality/')) {
+  if (pathname.startsWith('/municipalities/')) {
     const name = overrides?.municipalityName ?? '...'
     return [home, { label: tNav('municipalities'), href: '/municipalities' }, { label: name }]
   }

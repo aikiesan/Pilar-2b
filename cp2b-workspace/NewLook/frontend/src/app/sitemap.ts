@@ -1,6 +1,7 @@
 import type { MetadataRoute } from 'next'
 import { CATALOG_SECTORS, allResidueParams } from '@/data/residueCatalog'
 import { METHOD_PAGES_ENABLED } from '@/lib/featureFlags'
+import { municipalityDirectory } from '@/lib/municipalityDirectory'
 
 const BASE_URL = 'https://cp2b.unicamp.br/pilar2b'
 
@@ -33,10 +34,21 @@ const publicRoutes = [
   { path: '/register',  changeFrequency: 'yearly'  as const, priority: 0.3, lastModified: '2025-01-01' },
 ]
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  const entries: MetadataRoute.Sitemap = []
+// The municipality pages come from the API, so the sitemap is rebuilt hourly
+// rather than frozen at build time, when the API may not be reachable.
+export const revalidate = 3600
 
-  for (const route of publicRoutes) {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const entries: MetadataRoute.Sitemap = []
+  const municipalities = (await municipalityDirectory()) ?? []
+  const routes = [
+    ...publicRoutes,
+    ...municipalities.map(({ slug }) => (
+      { path: `/municipalities/${slug}`, changeFrequency: 'monthly' as const, priority: 0.6, lastModified: '2026-10-14' }
+    )),
+  ]
+
+  for (const route of routes) {
     const suffix = route.path === '/' ? '' : route.path
     for (const locale of locales) {
       entries.push({

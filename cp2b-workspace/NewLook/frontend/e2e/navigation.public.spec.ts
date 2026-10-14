@@ -42,6 +42,29 @@ test.describe('Retired paths', () => {
   }
 })
 
+test.describe('Municipality addresses', () => {
+  const path = (response: { headers(): Record<string, string> }) =>
+    response.headers()['location'].replace(/^https?:\/\/[^/]+/, '')
+
+  test('/pt-BR/municipality is a 301 to the list', async ({ request }) => {
+    const response = await request.get('/pt-BR/municipality', { maxRedirects: 0 })
+    expect(response.status()).toBe(301)
+    expect(path(response)).toBe('/pt-BR/municipalities')
+  })
+
+  // To the slug when the API answers with the list, to the code (which the page
+  // also renders) when it does not. Either way a 301, never a 404.
+  test('an old /municipality/{ibge} link is a 301 to the new address', async ({ request }) => {
+    const response = await request.get('/pt-BR/municipality/3509502', { maxRedirects: 0 })
+    expect(response.status()).toBe(301)
+    expect(path(response)).toMatch(/^\/pt-BR\/municipalities\/(campinas-sp|3509502)$/)
+  })
+
+  test('a municipality outside the public scope is not found', async ({ request }) => {
+    expect((await request.get('/pt-BR/municipalities/2927408')).status()).toBe(404)
+  })
+})
+
 test('/geoserver-demo is not public without its flag', async ({ request }) => {
   test.skip(process.env.NEXT_PUBLIC_ENABLE_GEOSERVER_DEMO === 'true', 'demo enabled for this run')
   const response = await request.get('/pt-BR/geoserver-demo')

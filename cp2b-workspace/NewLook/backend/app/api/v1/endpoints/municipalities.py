@@ -44,6 +44,10 @@ _MAP_ENABLED_UF_PREFIXES = tuple(
 ) or ("35", "31")
 
 
+# Brazil has 5,571 municipalities; a whole-list read must fit under this cap.
+_ALL_MUNICIPALITIES = 6000
+
+
 def _is_enabled_map_ibge_code(ibge_code: object) -> bool:
     code = str(ibge_code).strip()
     return len(code) == 7 and code[:2] in _MAP_ENABLED_UF_PREFIXES
@@ -767,9 +771,14 @@ async def get_municipalities(
 
 @router.get("/names")
 async def get_municipality_names(
-    limit: int = Query(default=1000, le=1000),
+    limit: int = Query(default=1000, le=_ALL_MUNICIPALITIES),
 ):
-    """Lightweight list for typeahead — returns only id, name, ibge_code, no geometry."""
+    """Lightweight list for typeahead — returns only id, name, ibge_code, no geometry.
+
+    The frontend's /municipalities index and its readable addresses
+    (/municipalities/campinas-sp) read the whole list, so the cap lets every
+    municipality through; the default stays at 1000 for the typeahead.
+    """
     try:
         with get_db() as conn:
             cursor = conn.cursor()
@@ -870,6 +879,131 @@ async def get_municipality_metrics(ibge_code: str):
     except Exception as e:
         logger.error(f"Error fetching municipality metrics: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch municipality metrics")
+
+
+# ─── Profile context ──────────────────────────────────────────────────────────
+#
+# What the municipality page shows around its own figures: where it stands in
+# its state on CP2b N4 (Cenário Real), the municipalities that border it, and its
+# centroid for the Proximidade link. Read from the same view the map paints, so
+# the rank can never disagree with the choropleth.
+
+# Borders in the simplified polygons can leave slivers: two municipalities that
+# share a boundary may sit a few metres apart. ~50 m in degrees (SRID 4326).
+_NEIGHBOUR_TOLERANCE_DEG = 0.0005
+
+_CONTEXT_BASE_SQL = """
+    SELECT ibge_code, municipality_name, centroid_lat, centroid_lng
+    FROM municipalities WHERE ibge_code = %s
+"""
+
+_NEIGHBOURS_SQL = """
+    SELECT n.ibge_code, n.municipality_name
+    FROM municipalities m
+    JOIN municipalities n
+      ON n.ibge_code <> m.ibge_code
+     AND n.geometry IS NOT NULL
+     AND ST_DWithin(n.geometry, m.geometry, %s)
+    WHERE m.ibge_code = %s AND m.geometry IS NOT NULL
+    ORDER BY n.municipality_name
+"""
+
+# Ranked within the state (first two IBGE digits) among municipalities with a
+# served N4, 0 included: a modelled zero is a result and ranks last; NULL is no
+# data and does not rank.
+_RANK_SQL = f"""
+    SELECT position, of_total FROM (
+        SELECT ibge_code,
+               rank() OVER (ORDER BY ch4_cp2b_n4_m3_year DESC) AS position,
+               count(*) OVER () AS of_total
+        FROM {_CP2B_VIEW}
+        WHERE ch4_cp2b_n4_m3_year IS NOT NULL AND ibge_code / 100000 = %s
+    ) ranked
+    WHERE ibge_code = %s
+"""
+
+_N4_BY_CODE_SQL = f"""
+    SELECT ibge_code, ch4_cp2b_n4_m3_year FROM {_CP2B_VIEW} WHERE ibge_code = ANY(%s)
+"""
+
+
+def _float_or_none(value) -> float | None:
+    return None if value is None else float(value)
+
+
+def build_context(
+    ibge_code: str,
+    base: dict,
+    rank: dict | None,
+    neighbours: list,
+    n4_by_code: dict[str, float | None],
+) -> dict:
+    """Pure: the queried rows → the /context payload.
+
+    A neighbour outside the CP2b view (another state, or before the load) has
+    `ch4_cp2b_n4_m3_year: None`: no data, never 0.
+    """
+    lat, lng = base.get("centroid_lat"), base.get("centroid_lng")
+    return {
+        "ibge_code": ibge_code,
+        "centroid": (
+            {"lat": float(lat), "lng": float(lng)} if lat is not None and lng is not None else None
+        ),
+        "rank_in_state": (
+            {"position": int(rank["position"]), "of": int(rank["of_total"]), "level": "n4"}
+            if rank
+            else None
+        ),
+        "neighbours": [
+            {
+                "ibge_code": str(n["ibge_code"]),
+                "name": n["municipality_name"],
+                "ch4_cp2b_n4_m3_year": n4_by_code.get(str(n["ibge_code"])),
+            }
+            for n in neighbours
+        ],
+    }
+
+
+@router.get("/{ibge_code}/context")
+async def get_municipality_context(ibge_code: str):
+    """State rank on CP2b N4, bordering municipalities and centroid for one municipality."""
+    if not (ibge_code.isdigit() and len(ibge_code) == 7):
+        raise HTTPException(status_code=422, detail="ibge_code must be 7 digits")
+    try:
+        with get_db() as conn:
+            cursor = conn.cursor()
+            try:
+                cursor.execute(_CONTEXT_BASE_SQL, (ibge_code,))
+                base = cursor.fetchone()
+                if not base:
+                    raise HTTPException(
+                        status_code=404, detail=f"Municipality {ibge_code} not found"
+                    )
+                cursor.execute(_NEIGHBOURS_SQL, (_NEIGHBOUR_TOLERANCE_DEG, ibge_code))
+                neighbours = cursor.fetchall()
+                rank = None
+                n4_by_code: dict[str, float | None] = {}
+                if _table_exists(cursor, _CP2B_VIEW):
+                    code = int(ibge_code)
+                    cursor.execute(_RANK_SQL, (code // 100000, code))
+                    rank = cursor.fetchone()
+                    if neighbours:
+                        cursor.execute(
+                            _N4_BY_CODE_SQL, ([int(n["ibge_code"]) for n in neighbours],)
+                        )
+                        n4_by_code = {
+                            str(r["ibge_code"]): _float_or_none(r["ch4_cp2b_n4_m3_year"])
+                            for r in cursor.fetchall()
+                        }
+            finally:
+                cursor.close()
+        return build_context(ibge_code, dict(base), rank, neighbours, n4_by_code)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Error fetching municipality context %s: %s", log_safe(ibge_code, 50), e)
+        raise HTTPException(status_code=500, detail="Failed to fetch municipality context")
 
 
 @router.get("/{municipality_id}")

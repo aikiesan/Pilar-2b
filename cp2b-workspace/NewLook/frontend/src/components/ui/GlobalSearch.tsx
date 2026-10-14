@@ -3,13 +3,14 @@
 /**
  * GlobalSearch — header search across all 645 municipalities.
  * Keyboard shortcut: press "/" to open.
- * On select: navigates to /municipality/[ibge_code] deep-dive page.
+ * On select: opens the municipality's page (/municipalities/campinas-sp).
  *
  * Data comes from the cached useGeospatialData hook (no extra fetch).
  */
 
 import { useState, useEffect, useId, useRef, useCallback } from 'react'
 import { useRouter } from '@/navigation'
+import { municipalityPath } from '@/lib/municipalitySlug'
 import { useTranslations } from 'next-intl'
 import { useGeospatialData } from '@/hooks/useGeospatialData'
 import { useFormat } from '@/hooks/useFormat'
@@ -117,7 +118,9 @@ export default function GlobalSearch({ variant = 'light' }: GlobalSearchProps) {
   // ── Navigation ──────────────────────────────────────────────────────────────
   const navigateTo = useCallback(
     (municipality: MunicipalityFeature) => {
-      router.push(`/municipality/${municipality.properties.ibge_code}` as any)
+      router.push(
+        municipalityPath(municipality.properties.name, municipality.properties.ibge_code) as never
+      )
       close(false)
     },
     [router, close]

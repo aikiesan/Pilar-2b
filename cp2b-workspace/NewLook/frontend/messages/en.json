@@ -2714,12 +2714,119 @@
   "municipalities_index": {
     "eyebrow": "Platform",
     "title": "Municipalities",
-    "lede": "Find a municipality to open its profile: biogas potential, residues and report.",
+    "lede": "Search for a municipality to open its profile: methane potential by the CP2b method, by sector and by residue.",
     "all_heading": "Every municipality, A to Z",
     "count": "{count, plural, one {# municipality in the database} other {# municipalities in the database}}",
     "letters_nav": "Jump to letter",
     "unavailable": "The list of municipalities could not be loaded just now: the API did not answer. The search above tries again when you use it.",
     "empty": "The API returned no municipalities."
+  },
+  "municipality_profile": {
+    "breadcrumb": "Breadcrumb",
+    "home": "Home",
+    "index": "Municipalities",
+    "eyebrow": "Municipality in {state}",
+    "ibge_code": "IBGE code",
+    "region_immediate": "Immediate region",
+    "region_intermediate": "Intermediate region",
+    "switch": "Not your municipality? Change it",
+    "lede_label": "Accessible methane potential",
+    "lede_unit": "Nm³ of methane (CH₄) per year",
+    "lede_sentence": "The methane that agricultural, livestock and urban residues in {name} can yield each year, after existing uses, storage losses and logistics to a viable plant are taken out. Estimated by the CP2b method, level N4.",
+    "rank": "{position, selectordinal, one {#st} two {#nd} few {#rd} other {#th}} of {of} municipalities in {state}",
+    "top_share": "in the state's top {share}% by potential",
+    "per_capita": "{value} Nm³ CH₄ per inhabitant per year",
+    "per_capita_year": "{value} Nm³ CH₄ per inhabitant per year, with the {year} population",
+    "no_cp2b_title": "No CP2b data",
+    "no_cp2b_body": "The CP2b method covers the municipalities of São Paulo. There is no methane potential estimate for {name} yet.",
+    "unavailable_title": "Data unavailable right now",
+    "unavailable_body": "The platform's API did not answer, so this municipality's figures cannot be shown. Try again in a few minutes.",
+    "retry": "Try again",
+    "on_this_page": "On this page",
+    "sectors": {
+      "heading": "By sector",
+      "lede": "How much of the accessible potential comes from each sector.",
+      "item": "{value} Nm³ CH₄/yr · {percent}",
+      "empty": "No sector has accessible potential in this municipality."
+    },
+    "residues": {
+      "heading": "By residue",
+      "caption": "Accessible methane potential by residue, largest first.",
+      "col_residue": "Residue",
+      "col_sector": "Sector",
+      "col_value": "N4 potential",
+      "col_unit": "Unit",
+      "col_source": "Source",
+      "unit": "Nm³ CH₄/yr",
+      "source": "CP2b method",
+      "source_version": "CP2b method, {version}"
+    },
+    "scenarios": {
+      "heading": "Method levels",
+      "lede": "The CP2b method reaches the potential in levels. This page leads with the accessible level (N4); the mobilisable level (N3) comes before storage losses and logistics.",
+      "n4_label": "Accessible · N4",
+      "n4_body": "After storage losses and logistics to a viable plant.",
+      "n3_label": "Mobilisable · N3",
+      "n3_body": "Existing uses taken out, before storage and logistics.",
+      "range": "Method range: {min} to {max} Nm³ CH₄/yr",
+      "unit": "Nm³ CH₄/yr"
+    },
+    "infrastructure": {
+      "heading": "Nearby infrastructure",
+      "body": "The Proximity and logistics tool measures, from the centre of {name}, the distances to gas pipelines, transmission lines, substations and existing plants.",
+      "cta": "Open in Proximity and logistics",
+      "cta_plain": "Open Proximity and logistics"
+    },
+    "data": {
+      "heading": "Data and citation",
+      "downloads_paused": "Downloads are paused during the beta while the database is validated. This municipality's workbook and report return with the other files.",
+      "cite_label": "How to cite this page",
+      "citation": "CP2b/NIPE-UNICAMP. PILAR-2b: profile of the municipality of {name} ({uf}). Available at: {url}. Accessed: {date}.",
+      "cite_more": "Other citation formats",
+      "stamp": "Data: CP2b method, {version}",
+      "stamp_no_version": "Data: CP2b method"
+    },
+    "share": {
+      "heading": "Share",
+      "whatsapp": "Share on WhatsApp",
+      "linkedin": "Share on LinkedIn",
+      "copy": "Copy link",
+      "copied": "Link copied.",
+      "copy_failed": "Could not copy. The address is {url}",
+      "text": "Methane potential of {name} ({uf}) on PILAR-2b",
+      "new_window": "(opens in a new window)"
+    },
+    "neighbours": {
+      "heading": "Neighbouring municipalities",
+      "lede": "The municipalities that border {name}, each with its accessible methane potential.",
+      "none": "No municipality borders {name} in the database.",
+      "unavailable": "The list of neighbours could not be loaded right now.",
+      "no_data": "no CP2b data"
+    },
+    "notes": {
+      "heading": "Notes and limitations",
+      "items": [
+        "The potential is a model estimate, built from official data on crop production, herds, population and sanitation. It is not a field measurement.",
+        "The values are methane (CH₄). Raw biogas also contains other gases, so the same potential as biogas is a larger volume.",
+        "The accessible level (N4) accounts for logistics to a plant of viable scale. A municipality can have mobilisable potential (N3) and zero accessible potential when no plant reaches that scale.",
+        "The method covers the municipalities of São Paulo. Those in other states show as no CP2b data."
+      ],
+      "report_heading": "Spotted something wrong?",
+      "report_body": "If a figure for this municipality does not match what you know, tell the team.",
+      "report": "Report an error"
+    },
+    "meta": {
+      "title": "{name} ({uf}) · Municipalities · PILAR-2b",
+      "description": "Accessible methane potential of {name} ({uf}) by the CP2b method: {value} Nm³ CH₄ per year, by sector and residue.",
+      "description_no_data": "Profile of {name} ({uf}) on PILAR-2b. The CP2b method does not cover this municipality yet."
+    },
+    "og": {
+      "alt": "{name} ({uf}): accessible methane potential by the CP2b method, on PILAR-2b.",
+      "label": "Accessible methane potential",
+      "unit": "Nm³ of methane (CH₄) per year · CP2b method, level N4",
+      "no_data": "No CP2b data",
+      "no_data_body": "The CP2b method covers the municipalities of São Paulo."
+    }
   },
   "method": {
     "eyebrow": "Method",

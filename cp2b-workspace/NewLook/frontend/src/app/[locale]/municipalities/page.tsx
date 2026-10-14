@@ -1,8 +1,9 @@
 /**
  * /municipalities — find a municipality: the search box, then every
- * municipality the API serves, A to Z, each linking to its profile.
+ * municipality the platform covers (São Paulo and the Minas Gerais pilot), A to
+ * Z, each linking to its profile at its readable address.
  *
- * The list and its count come from the API (/municipalities/names). Without
+ * The list and its count come from the API (lib/municipalityDirectory). Without
  * it the page says so and keeps the search; it never lists a name or a number
  * it did not receive.
  */
@@ -10,13 +11,7 @@ import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { Link } from '@/navigation';
 import MunicipalitySearch from '@/components/home/MunicipalitySearch';
-import { serverGetJson } from '@/lib/serverApi';
-
-interface MunicipalityName {
-  id?: number;
-  municipality_name?: unknown;
-  ibge_code?: unknown;
-}
+import { municipalityDirectory, type DirectoryEntry } from '@/lib/municipalityDirectory';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('municipalities_index');
@@ -26,22 +21,11 @@ export async function generateMetadata(): Promise<Metadata> {
 // "Ábaco" files under A, as people look for it.
 const initial = (name: string) => name.normalize('NFD').replace(/[̀-ͯ]/g, '').charAt(0).toUpperCase();
 
-async function municipalityNames() {
-  const body = await serverGetJson<{ data?: MunicipalityName[] } | MunicipalityName[]>('/municipalities/names?limit=1000');
-  const rows = Array.isArray(body) ? body : body?.data;
-  if (!Array.isArray(rows)) return null;
-  return rows
-    .filter((r): r is { municipality_name: string; ibge_code: string | number } =>
-      typeof r.municipality_name === 'string' && (typeof r.ibge_code === 'string' || typeof r.ibge_code === 'number'))
-    .map((r) => ({ name: r.municipality_name, ibge: String(r.ibge_code) }))
-    .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
-}
-
 export default async function MunicipalitiesPage() {
   const t = await getTranslations('municipalities_index');
-  const names = await municipalityNames();
+  const names = await municipalityDirectory();
 
-  const groups = new Map<string, { name: string; ibge: string }[]>();
+  const groups = new Map<string, DirectoryEntry[]>();
   for (const m of names ?? []) {
     const letter = initial(m.name);
     groups.set(letter, [...(groups.get(letter) ?? []), m]);
@@ -93,7 +77,7 @@ export default async function MunicipalitiesPage() {
                     {list.map((m) => (
                       <li key={m.ibge} className="break-inside-avoid">
                         <Link
-                          href={`/municipality/${m.ibge}`}
+                          href={`/municipalities/${m.slug}`}
                           className="inline-flex min-h-[32px] items-center text-ink underline-offset-2 hover:text-terra-700 hover:underline dark:hover:text-terra-300"
                         >
                           {m.name}

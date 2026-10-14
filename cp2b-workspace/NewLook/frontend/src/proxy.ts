@@ -1,6 +1,8 @@
 import createIntlMiddleware from 'next-intl/middleware';
 import { NextResponse, type NextRequest } from 'next/server';
 import { locales, defaultLocale, localePrefix } from './config/i18n';
+import { findMunicipality } from './lib/municipalityDirectory';
+import { municipalityRedirectTarget } from './lib/municipalityRedirect';
 
 const intlMiddleware = createIntlMiddleware({
   locales,
@@ -9,7 +11,7 @@ const intlMiddleware = createIntlMiddleware({
   localeDetection: false,
 });
 
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // In dev (basePath=''), strip stale /pilar2b prefix that may arrive from
@@ -19,6 +21,17 @@ export function proxy(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = pathname.slice('/pilar2b'.length) || '/';
     return NextResponse.redirect(url);
+  }
+
+  // Municipality pages moved to readable addresses (/municipalities/campinas-sp).
+  // The lookup needs the API, so these 301s live here, not in next.config.
+  if (pathname.includes('/municipalit')) {
+    const target = await municipalityRedirectTarget(pathname, findMunicipality);
+    if (target) {
+      const url = request.nextUrl.clone();
+      url.pathname = target;
+      return NextResponse.redirect(url, 301);
+    }
   }
 
   return intlMiddleware(request);

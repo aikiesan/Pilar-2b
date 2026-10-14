@@ -37,6 +37,7 @@ import { MISSING_VALUE, type Formatters } from '@/lib/format';
 import { useFormat } from '@/hooks/useFormat';
 import { useMetricText } from '@/hooks/useMetricText';
 import type { ResidueType } from '@/types/map';
+import { municipalityPath } from '@/lib/municipalitySlug';
 
 interface MunicipalityProfilePanelProps {
   municipality: MunicipalityFeature | null;
@@ -465,13 +466,13 @@ export default function MunicipalityProfilePanel({
 
           {/* External Links */}
           <div className="pt-4 border-t border-gray-200 dark:border-slate-700 space-y-2">
-            {/* next-intl's Link, not a bare <a>. A raw href="/municipality/…"
+            {/* next-intl's Link, not a bare <a>. A raw href="/municipalities/…"
                 skips BOTH the basePath (/pilar2b) and the locale segment, so in
                 production this button left the platform entirely and landed on
                 the CP2b institutional site, which serves the same host at the
                 root. Locally, where basePath is empty, it appeared to work. */}
             <Link
-              href={`/municipality/${props.ibge_code}` as never}
+              href={municipalityPath(props.name, props.ibge_code) as never}
               className="flex items-center justify-between p-4 rounded-lg bg-terra-50 dark:bg-terra-900/20 hover:bg-terra-100 dark:hover:bg-terra-900/30 transition-colors group border border-terra-200 dark:border-terra-800"
             >
               <span className="text-sm font-semibold text-terra-800 dark:text-terra-300">

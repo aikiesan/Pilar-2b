@@ -6,16 +6,17 @@
  * options, Enter opens one, Escape clears.
  *
  * It loads the light name list (/municipalities/names, no geometry) on first
- * focus rather than the map's GeoJSON, so the landing stays quick.
+ * focus rather than the map's GeoJSON, so the landing stays quick. An option
+ * opens the municipality's readable address (/municipalities/campinas-sp).
  */
 import { useId, useMemo, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Search } from 'lucide-react';
 import { useRouter } from '@/navigation';
-import {
-  fetchSpMunicipalities,
-  type MunicipalityOption,
-} from '@/app/[locale]/calculator/calculatorApi';
+import { fetchMunicipalityNames, type MunicipalityName } from '@/lib/municipalityNames';
+import { municipalityPath } from '@/lib/municipalitySlug';
+
+type MunicipalityOption = MunicipalityName;
 
 const MAX_RESULTS = 8;
 
@@ -41,7 +42,7 @@ export default function MunicipalitySearch() {
     // A failed load is tried again on the next focus.
     if (load === 'loading' || load === 'ready') return;
     setLoad('loading');
-    fetchSpMunicipalities().then((list) => {
+    fetchMunicipalityNames().then((list) => {
       setOptions(list);
       setLoad(list.length > 0 ? 'ready' : 'failed');
     });
@@ -56,7 +57,8 @@ export default function MunicipalitySearch() {
   }, [query, options]);
   const expanded = results.length > 0;
 
-  const go = (option: MunicipalityOption) => router.push(`/municipality/${option.ibge_code}`);
+  const go = (option: MunicipalityOption) =>
+    router.push(municipalityPath(option.municipality_name, option.ibge_code));
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'ArrowDown' && expanded) {

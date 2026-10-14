@@ -2714,12 +2714,119 @@
   "municipalities_index": {
     "eyebrow": "Plataforma",
     "title": "Municípios",
-    "lede": "Busque um município para abrir o perfil dele: potencial de biogás, resíduos e relatório.",
+    "lede": "Busque um município para abrir o perfil dele: potencial de metano pelo método CP2b, por setor e por resíduo.",
     "all_heading": "Todos os municípios, de A a Z",
     "count": "{count, plural, one {# município na base} other {# municípios na base}}",
     "letters_nav": "Ir para a letra",
     "unavailable": "A lista de municípios não pôde ser carregada agora: a API não respondeu. A busca acima tenta de novo quando você a usa.",
     "empty": "A API não devolveu nenhum município."
+  },
+  "municipality_profile": {
+    "breadcrumb": "Trilha de navegação",
+    "home": "Início",
+    "index": "Municípios",
+    "eyebrow": "Município de {state}",
+    "ibge_code": "Código IBGE",
+    "region_immediate": "Região imediata",
+    "region_intermediate": "Região intermediária",
+    "switch": "Não é seu município? Troque",
+    "lede_label": "Potencial de metano acessível",
+    "lede_unit": "Nm³ de metano (CH₄) por ano",
+    "lede_sentence": "É o metano que os resíduos agrícolas, pecuários e urbanos de {name} podem render por ano, depois de descontados os usos que já existem, as perdas de armazenamento e a logística até uma usina viável. Estimativa do método CP2b, nível N4.",
+    "rank": "{position}º de {of} municípios de {state}",
+    "top_share": "entre os {share}% de maior potencial do estado",
+    "per_capita": "{value} Nm³ CH₄ por habitante por ano",
+    "per_capita_year": "{value} Nm³ CH₄ por habitante por ano, com a população de {year}",
+    "no_cp2b_title": "Sem dado CP2b",
+    "no_cp2b_body": "O método CP2b cobre os municípios de São Paulo. Para {name}, ainda não há estimativa de potencial de metano.",
+    "unavailable_title": "Dados indisponíveis agora",
+    "unavailable_body": "A API da plataforma não respondeu, então os números deste município não aparecem. Tente de novo em alguns minutos.",
+    "retry": "Tentar de novo",
+    "on_this_page": "Nesta página",
+    "sectors": {
+      "heading": "Por setor",
+      "lede": "Quanto do potencial acessível vem de cada setor.",
+      "item": "{value} Nm³ CH₄/ano · {percent}",
+      "empty": "Nenhum setor tem potencial acessível neste município."
+    },
+    "residues": {
+      "heading": "Por resíduo",
+      "caption": "Potencial de metano acessível por resíduo, do maior para o menor.",
+      "col_residue": "Resíduo",
+      "col_sector": "Setor",
+      "col_value": "Potencial N4",
+      "col_unit": "Unidade",
+      "col_source": "Fonte",
+      "unit": "Nm³ CH₄/ano",
+      "source": "Método CP2b",
+      "source_version": "Método CP2b, {version}"
+    },
+    "scenarios": {
+      "heading": "Níveis do método",
+      "lede": "O método CP2b chega ao potencial em níveis. Esta página destaca o nível acessível (N4); o mobilizável (N3) vem antes das perdas de armazenamento e da logística.",
+      "n4_label": "Acessível · N4",
+      "n4_body": "Depois das perdas de armazenamento e da logística até uma usina viável.",
+      "n3_label": "Mobilizável · N3",
+      "n3_body": "Descontados os usos que já existem, antes do armazenamento e da logística.",
+      "range": "Faixa do método: {min} a {max} Nm³ CH₄/ano",
+      "unit": "Nm³ CH₄/ano"
+    },
+    "infrastructure": {
+      "heading": "Infraestrutura próxima",
+      "body": "A ferramenta Proximidade e logística mede, a partir do centro de {name}, as distâncias até gasodutos, linhas de transmissão, subestações e usinas existentes.",
+      "cta": "Abrir em Proximidade e logística",
+      "cta_plain": "Abrir Proximidade e logística"
+    },
+    "data": {
+      "heading": "Dados e citação",
+      "downloads_paused": "Os downloads estão pausados durante o beta, enquanto a base é validada. A planilha e o relatório deste município voltam junto com os demais arquivos.",
+      "cite_label": "Como citar esta página",
+      "citation": "CP2b/NIPE-UNICAMP. PILAR-2b: perfil do município de {name} ({uf}). Disponível em: {url}. Acesso em: {date}.",
+      "cite_more": "Outros formatos de citação",
+      "stamp": "Dados: método CP2b, {version}",
+      "stamp_no_version": "Dados: método CP2b"
+    },
+    "share": {
+      "heading": "Compartilhar",
+      "whatsapp": "Compartilhar no WhatsApp",
+      "linkedin": "Compartilhar no LinkedIn",
+      "copy": "Copiar link",
+      "copied": "Link copiado.",
+      "copy_failed": "Não foi possível copiar. O endereço é {url}",
+      "text": "Potencial de metano de {name} ({uf}) no PILAR-2b",
+      "new_window": "(abre em nova janela)"
+    },
+    "neighbours": {
+      "heading": "Municípios vizinhos",
+      "lede": "Os municípios que fazem divisa com {name}, com o potencial de metano acessível de cada um.",
+      "none": "Nenhum município faz divisa com {name} na base.",
+      "unavailable": "A lista de vizinhos não pôde ser carregada agora.",
+      "no_data": "sem dado CP2b"
+    },
+    "notes": {
+      "heading": "Notas e limitações",
+      "items": [
+        "O potencial é uma estimativa de modelo, feita a partir de dados oficiais de produção agrícola, rebanhos, população e saneamento. Não é uma medição em campo.",
+        "Os valores são de metano (CH₄). O biogás bruto também contém outros gases, então o mesmo potencial em biogás é um volume maior.",
+        "O nível acessível (N4) considera a logística até uma usina de escala viável. Um município pode ter potencial mobilizável (N3) e acessível zero quando nenhuma usina chega a essa escala.",
+        "O método cobre os municípios de São Paulo. Os de outros estados aparecem como sem dado CP2b."
+      ],
+      "report_heading": "Viu algo errado?",
+      "report_body": "Se um número deste município não confere com o que você conhece, conte para a equipe.",
+      "report": "Reportar erro"
+    },
+    "meta": {
+      "title": "{name} ({uf}) · Municípios · PILAR-2b",
+      "description": "Potencial de metano acessível de {name} ({uf}) pelo método CP2b: {value} Nm³ CH₄ por ano, por setor e por resíduo.",
+      "description_no_data": "Perfil de {name} ({uf}) no PILAR-2b. O método CP2b ainda não cobre este município."
+    },
+    "og": {
+      "alt": "{name} ({uf}): potencial de metano acessível pelo método CP2b, no PILAR-2b.",
+      "label": "Potencial de metano acessível",
+      "unit": "Nm³ de metano (CH₄) por ano · método CP2b, nível N4",
+      "no_data": "Sem dado CP2b",
+      "no_data_body": "O método CP2b cobre os municípios de São Paulo."
+    }
   },
   "method": {
     "eyebrow": "Método",
