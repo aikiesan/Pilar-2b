@@ -2,6 +2,51 @@
   "_comment": "Patch notes, newest first. Each entry carries its own pt-BR and en text, deliberately OUTSIDE messages/*.json: the catalogs are gated by check-i18n-parity.mjs, and threading one release note through two catalogs per deploy makes writing a note a chore nobody does. scripts/check-patch-notes.mjs enforces that both locales are present here instead. `date` is ISO 8601 WITH offset -- it is rendered in the reader's locale, so a bare date would drift a day across timezones. `kind` must be one of: added, changed, fixed, security, data.",
   "entries": [
     {
+      "version": "3.5.0",
+      "date": "2026-10-14T21:00:00-03:00",
+      "title": {
+        "pt-BR": "Visual novo e painel do município mais enxuto",
+        "en": "A new look and a leaner municipality dashboard"
+      },
+      "changes": [
+        {
+          "kind": "changed",
+          "text": {
+            "pt-BR": "Visual novo: cores terracota, títulos com serifa e tema claro como padrão. O rodapé também foi renovado.",
+            "en": "A new look: terracotta colours, serif headings and a light theme by default. The footer was refreshed too."
+          }
+        },
+        {
+          "kind": "changed",
+          "text": {
+            "pt-BR": "A página de cada município virou um painel: destaques no topo, a composição por setor e por resíduo em barras e a posição entre os vizinhos, tudo bem mais curto.",
+            "en": "Each municipality's page is now a dashboard: highlights at the top, the split by sector and by residue as bars and its place among its neighbours, all much shorter."
+          }
+        },
+        {
+          "kind": "changed",
+          "text": {
+            "pt-BR": "No mapa, clicar num município abre um painel lateral com o total, os níveis N4 e N3, o resíduo principal e a lista de resíduos por setor, em metano ou em toneladas.",
+            "en": "On the map, clicking a municipality opens a side panel with the total, levels N4 and N3, the main residue and the residues by sector, in methane or in tonnes."
+          }
+        },
+        {
+          "kind": "fixed",
+          "text": {
+            "pt-BR": "O link do IBGE no painel do mapa funciona também com nomes acentuados.",
+            "en": "The IBGE link in the map panel now works for names with accents too."
+          }
+        },
+        {
+          "kind": "security",
+          "text": {
+            "pt-BR": "Next.js atualizado para 16.4.0, fechando falhas críticas, entre elas uma no gerador de imagens de compartilhamento.",
+            "en": "Next.js updated to 16.4.0, closing critical flaws, among them one in the share-image generator."
+          }
+        }
+      ]
+    },
+    {
       "version": "3.4.0",
       "date": "2026-10-14T18:00:00-03:00",
       "title": {
