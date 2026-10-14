@@ -1,3 +1,8 @@
+import { METHOD_PAGES_ENABLED } from '../src/lib/featureFlags';
+
+/** The Método pages behind METHOD_PAGES_ENABLED. */
+export const METHOD_PAGES = ['/method', '/method/fde', '/method/scenarios', '/method/validation'];
+
 /**
  * The pages the browser suites visit. A new page goes on these lists with its
  * first commit.
@@ -15,10 +20,8 @@ export const ROUTES = [
   '/en/data/legend',
   '/en/data/agricultural',
   '/en/data/agricultural/cana-bagaco',
-  '/en/method',
-  '/en/method/fde',
-  '/en/method/scenarios',
-  '/en/method/validation',
+  // Held back until the methodology paper is submitted; 404 meanwhile.
+  ...(METHOD_PAGES_ENABLED ? METHOD_PAGES.map((page) => `/en${page}`) : []),
   '/en/about',
   '/en/guide',
   '/en/guide/calculadora',

@@ -95,13 +95,26 @@ describe('UnifiedHeader navigation', () => {
     const user = userEvent.setup()
     render(<UnifiedHeader />)
 
+    await user.click(trigger('Dados'))
+    const panel = document.getElementById(trigger('Dados').getAttribute('aria-controls') as string) as HTMLElement
+    expect(panel).toBeVisible()
+    expect(within(panel).getByRole('link', { name: /Legenda e códigos/ })).toHaveAttribute('href', '/data/legend')
+    // The intro's call to action and the catalogue item both lead to /data.
+    expect(within(panel).getAllByRole('link').filter((a) => a.getAttribute('href') === '/data')).toHaveLength(2)
+  })
+
+  it('holds the Método pages back until METHOD_PAGES_ENABLED, keeping the public ones', async () => {
+    const user = userEvent.setup()
+    render(<UnifiedHeader />)
+
     await user.click(trigger('Método'))
     const panel = document.getElementById(trigger('Método').getAttribute('aria-controls') as string) as HTMLElement
-    expect(panel).toBeVisible()
-    expect(within(panel).getByRole('link', { name: /Base científica/i })).toHaveAttribute('href', '/method/science-base')
-    expect(within(panel).getByRole('link', { name: /Fatores de disponibilidade/ })).toHaveAttribute('href', '/method/fde')
-    // The intro's call to action and the overview item both lead to /method.
-    expect(within(panel).getAllByRole('link').filter((a) => a.getAttribute('href') === '/method')).toHaveLength(2)
+    const hrefs = within(panel).getAllByRole('link').map((a) => a.getAttribute('href'))
+    expect(hrefs).toContain('/method/science-base')
+    expect(hrefs).toContain('/guide')
+    for (const held of ['/method', '/method/fde', '/method/scenarios', '/method/validation']) {
+      expect(hrefs).not.toContain(held)
+    }
   })
 
   it('opens with ArrowDown on the first link and closes with Escape, back on the button', async () => {

@@ -5,15 +5,15 @@
       "version": "3.2.0",
       "date": "2026-10-14T10:00:00-03:00",
       "title": {
-        "pt-BR": "Nova página inicial, catálogo de dados e seção Método",
-        "en": "New home page, data catalogue and a Method section"
+        "pt-BR": "Nova página inicial, catálogo de dados e menus reorganizados",
+        "en": "New home page, data catalogue and regrouped menus"
       },
       "changes": [
         {
           "kind": "added",
           "text": {
-            "pt-BR": "A página inicial apresenta a plataforma e leva direto ao mapa, ao catálogo de dados e ao método. O mapa continua em /map.",
-            "en": "The home page introduces the platform and leads straight to the map, the data catalogue and the method. The map stays at /map."
+            "pt-BR": "A página inicial apresenta a plataforma e leva direto ao mapa e ao catálogo de dados. O mapa continua em /map.",
+            "en": "The home page introduces the platform and leads straight to the map and the data catalogue. The map stays at /map."
           }
         },
         {
@@ -21,13 +21,6 @@
           "text": {
             "pt-BR": "Catálogo de dados: uma página por setor e por resíduo, com os fatores de disponibilidade, o grau de confiança, as fontes e como citar, mais a legenda e os códigos das camadas para baixar em CSV.",
             "en": "Data catalogue: one page per sector and per residue, with the availability factors, the confidence level, the sources and how to cite, plus the layer legend and codes to download as CSV."
-          }
-        },
-        {
-          "kind": "added",
-          "text": {
-            "pt-BR": "Nova seção Método: visão geral, fatores de disponibilidade (FDE) de todos os resíduos, os cenários Real e Ideal, e validação e limitações. A Base científica passa a fazer parte dela.",
-            "en": "New Method section: an overview, the availability factors (FDE) for every residue, the Real and Ideal scenarios, and validation and limitations. The Science base is now part of it."
           }
         },
         {

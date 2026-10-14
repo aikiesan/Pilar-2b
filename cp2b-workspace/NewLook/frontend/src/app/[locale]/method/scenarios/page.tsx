@@ -8,14 +8,17 @@ import { getFormatter, getTranslations } from 'next-intl/server';
 import { ArrowRight } from 'lucide-react';
 import { Link } from '@/navigation';
 import MethodShell from '@/components/method/MethodShell';
+import { requireMethodPages } from '@/components/method/requireMethodPages';
 import { CH4_FRACTION_OF_BIOGAS, MAP_SCENARIOS } from '@/data/scenarioFactors';
 
 export async function generateMetadata(): Promise<Metadata> {
+  requireMethodPages();
   const t = await getTranslations('method.scenarios');
   return { title: `${t('title')} · PILAR-2b`, description: t('lede') };
 }
 
 export default async function MethodScenariosPage() {
+  requireMethodPages();
   const t = await getTranslations('method.scenarios');
   const tMap = await getTranslations('Map');
   const format = await getFormatter();

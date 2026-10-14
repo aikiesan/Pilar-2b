@@ -7,6 +7,7 @@ import path from 'path'
 import en from '../../../../messages/en.json'
 import pt from '../../../../messages/pt-BR.json'
 import { allNavHrefs, currentNavHref, FOOTER_LINKS, NAV_GROUPS, TAB_BAR } from '../siteNav'
+import { METHOD_PAGES_ENABLED } from '@/lib/featureFlags'
 
 const APP = path.join(__dirname, '../../../app/[locale]')
 
@@ -44,6 +45,12 @@ describe('siteNav', () => {
     for (const item of [...TAB_BAR, ...FOOTER_LINKS]) expect(nav).toHaveProperty(item.labelKey)
   })
 
+  it('links to no held-back Método page while METHOD_PAGES_ENABLED is off', () => {
+    if (METHOD_PAGES_ENABLED) return
+    const held = ['/method', '/method/fde', '/method/scenarios', '/method/validation']
+    expect(allNavHrefs().filter((href) => held.includes(href.split('#')[0]))).toEqual([])
+  })
+
   it('lists each page once per group', () => {
     for (const group of NAV_GROUPS) {
       const hrefs = group.items.map((item) => item.href)
@@ -59,7 +66,7 @@ describe('siteNav', () => {
       ['/data/legend', '/data/legend'],
       // Pages under a menu entry belong to it.
       ['/data/agricultural/cana-bagaco', '/data'],
-      ['/method/fde', '/method/fde'],
+      ['/method/science-base', '/method/science-base'],
       ['/guide/primeiros-passos', '/guide'],
       // An anchor is a section, never the current page; "/" is never a section.
       ['/about', '/about'],

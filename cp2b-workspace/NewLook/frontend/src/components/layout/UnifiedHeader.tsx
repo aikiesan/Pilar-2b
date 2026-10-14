@@ -152,7 +152,7 @@ export default function UnifiedHeader() {
                   label={t(`nav.${group.labelKey}`)}
                   intro={{
                     lede: t(`nav_intro.${group.id}.lede`),
-                    cta: t(`nav_intro.${group.id}.cta`),
+                    cta: group.introCtaKey ? t(`nav.${group.introCtaKey}`) : t(`nav_intro.${group.id}.cta`),
                     href: group.introHref,
                   }}
                   items={toItems(group)}

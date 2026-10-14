@@ -8,10 +8,12 @@ import { getLocale, getTranslations } from 'next-intl/server';
 import { ArrowRight } from 'lucide-react';
 import { Link } from '@/navigation';
 import MethodShell from '@/components/method/MethodShell';
+import { requireMethodPages } from '@/components/method/requireMethodPages';
 import { residuePath } from '@/data/residueCatalog';
 import { DETAILED_RESIDUES } from '@/data/residueFactors';
 
 export async function generateMetadata(): Promise<Metadata> {
+  requireMethodPages();
   const t = await getTranslations('method.validation');
   return { title: `${t('title')} · PILAR-2b`, description: t('lede') };
 }
@@ -21,6 +23,7 @@ const PROCESS = ['data', 'competition', 'collection', 'conservative'] as const;
 const LIMITATIONS = ['scope', 'factors'] as const;
 
 export default async function MethodValidationPage() {
+  requireMethodPages();
   const t = await getTranslations('method.validation');
   const tData = await getTranslations('data_catalog');
   const locale = (await getLocale()) === 'en' ? 'en' : 'pt-BR';

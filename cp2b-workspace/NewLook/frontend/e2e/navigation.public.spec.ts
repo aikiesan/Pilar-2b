@@ -5,6 +5,8 @@
  */
 import { test, expect, type Page } from '@playwright/test'
 import { CONSENT_VERSION } from '../src/lib/consent'
+import { METHOD_PAGES_ENABLED } from '../src/lib/featureFlags'
+import { METHOD_PAGES } from './routes'
 
 /**
  * A first visit opens the cookie banner over the lower half of a phone screen,
@@ -46,6 +48,18 @@ test('/geoserver-demo is not public without its flag', async ({ request }) => {
   expect(response.status()).toBe(404)
 })
 
+test.describe('Método pages held back (METHOD_PAGES_ENABLED off)', () => {
+  test.skip(METHOD_PAGES_ENABLED, 'the Método pages are public in this build')
+  for (const page of METHOD_PAGES) {
+    test(`${page} is not public yet`, async ({ request }) => {
+      expect((await request.get(`/pt-BR${page}`)).status()).toBe(404)
+    })
+  }
+  test('the science base stays public', async ({ request }) => {
+    expect((await request.get('/pt-BR/method/science-base')).status()).toBe(200)
+  })
+})
+
 test.describe('Header on a desktop', () => {
   test('groups the pages in dropdowns that every visitor can open', async ({ page }) => {
     await answerCookieBanner(page)
@@ -85,7 +99,10 @@ test.describe('Header on a desktop', () => {
     await method.click()
     await expect(data).toHaveAttribute('aria-expanded', 'false')
     await expect(method).toHaveAttribute('aria-expanded', 'true')
-    await expect(nav.getByRole('link', { name: /Base científica/i })).toBeVisible()
+    await expect(nav.getByRole('link', { name: /Caracterização química/ })).toBeVisible()
+    if (!METHOD_PAGES_ENABLED) {
+      await expect(nav.locator('a[href$="/method"], a[href*="/method/fde"], a[href*="/method/scenarios"], a[href*="/method/validation"]')).toHaveCount(0)
+    }
 
     await data.click()
     await nav.getByRole('link', { name: /Catálogo de produtos/ }).click()

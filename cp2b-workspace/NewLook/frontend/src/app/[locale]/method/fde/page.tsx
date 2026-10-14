@@ -6,10 +6,12 @@ import type { Metadata } from 'next';
 import { getFormatter, getLocale, getTranslations } from 'next-intl/server';
 import { Link } from '@/navigation';
 import MethodShell from '@/components/method/MethodShell';
+import { requireMethodPages } from '@/components/method/requireMethodPages';
 import { CATALOG_SECTORS, SECTOR_SWATCH, residueFDE, residuePath } from '@/data/residueCatalog';
 import { DETAILED_RESIDUES } from '@/data/residueFactors';
 
 export async function generateMetadata(): Promise<Metadata> {
+  requireMethodPages();
   const t = await getTranslations('method.fde');
   return { title: `${t('title')} · PILAR-2b`, description: t('lede') };
 }
@@ -19,6 +21,7 @@ const LEVELS = ['HIGH', 'MEDIUM', 'LOW'] as const;
 const th = 'py-2.5 pr-4 text-xs font-medium uppercase tracking-[0.1em] text-ink-muted';
 
 export default async function MethodFdePage() {
+  requireMethodPages();
   const t = await getTranslations('method.fde');
   const tFactor = await getTranslations('analysis.factor_docs');
   const tData = await getTranslations('data_catalog');

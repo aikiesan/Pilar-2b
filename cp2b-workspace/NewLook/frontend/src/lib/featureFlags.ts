@@ -28,3 +28,18 @@ export const DATA_EXPORT_ENABLED = false;
 /** Developer-facing reason, logged where an export used to be offered. */
 export const DATA_EXPORT_DISABLED_REASON =
   'Data export is temporarily disabled during the beta, while the national database is validated.';
+
+/**
+ * Whether the Método pages are public: /method (overview), /method/fde,
+ * /method/scenarios and /method/validation.
+ *
+ * OFF until the methodology paper is through journal submission: the pages
+ * set out the method in the paper's own terms, and publishing them first could
+ * count as prior publication. While off, the four pages answer 404, and the
+ * menus, footer, breadcrumbs and sitemap leave them out; the Método menu keeps
+ * the pages that were already public (Base científica, Guia de uso).
+ *
+ * To publish, set this to `true` — the pages and every link to them return
+ * together.
+ */
+export const METHOD_PAGES_ENABLED = false;

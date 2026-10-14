@@ -7,9 +7,11 @@ import { getTranslations } from 'next-intl/server';
 import { ArrowRight } from 'lucide-react';
 import { Link } from '@/navigation';
 import MethodShell from '@/components/method/MethodShell';
+import { requireMethodPages } from '@/components/method/requireMethodPages';
 import { NAV_GROUPS } from '@/components/layout/siteNav';
 
 export async function generateMetadata(): Promise<Metadata> {
+  requireMethodPages();
   const t = await getTranslations('method.overview');
   return { title: `${t('title')} · PILAR-2b`, description: t('lede') };
 }
@@ -18,6 +20,7 @@ const STEPS = ['data', 'factors', 'potential'] as const;
 const METHOD = NAV_GROUPS.find((group) => group.id === 'method')!;
 
 export default async function MethodOverviewPage() {
+  requireMethodPages();
   const t = await getTranslations('method.overview');
   const tHow = await getTranslations('home.how');
   const tNav = await getTranslations('common');

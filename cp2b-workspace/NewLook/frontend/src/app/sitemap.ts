@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next'
 import { CATALOG_SECTORS, allResidueParams } from '@/data/residueCatalog'
+import { METHOD_PAGES_ENABLED } from '@/lib/featureFlags'
 
 const BASE_URL = 'https://cp2b.unicamp.br/pilar2b'
 
@@ -19,9 +20,9 @@ const publicRoutes = [
   ...allResidueParams().map(({ sector, residue }) => (
     { path: `/data/${sector}/${residue}`, changeFrequency: 'monthly' as const, priority: 0.6, lastModified: '2026-10-14' }
   )),
-  { path: '/method',    changeFrequency: 'monthly' as const, priority: 0.7, lastModified: '2026-10-14' },
-  ...['fde', 'scenarios', 'validation'].map((page) => (
-    { path: `/method/${page}`, changeFrequency: 'monthly' as const, priority: 0.6, lastModified: '2026-10-14' }
+  // Held back until the methodology paper is submitted (METHOD_PAGES_ENABLED).
+  ...(METHOD_PAGES_ENABLED ? ['', '/fde', '/scenarios', '/validation'] : []).map((page) => (
+    { path: `/method${page}`, changeFrequency: 'monthly' as const, priority: page ? 0.6 : 0.7, lastModified: '2026-10-14' }
   )),
   { path: '/about',     changeFrequency: 'monthly' as const, priority: 0.7, lastModified: '2025-01-01' },
   { path: '/guide',     changeFrequency: 'monthly' as const, priority: 0.7, lastModified: '2025-01-01' },

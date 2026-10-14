@@ -32,6 +32,7 @@ import {
   Workflow,
 } from 'lucide-react'
 import type { Messages } from '@/types/i18n'
+import { METHOD_PAGES_ENABLED } from '@/lib/featureFlags'
 
 export type NavKey = keyof Messages['common']['nav']
 export type NavDescriptionKey = keyof Messages['common']['nav_descriptions']
@@ -49,6 +50,8 @@ export interface NavGroup {
   labelKey: NavKey
   /** Where the panel's call to action leads. */
   introHref: string
+  /** A nav label for the call to action, in place of nav_intro.<id>.cta. */
+  introCtaKey?: NavKey
   /** Classes the guided tour (TourGuide) points at for steps inside the group. */
   tourClass?: string
   items: NavLeaf[]
@@ -81,14 +84,24 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     id: 'method',
     labelKey: 'group_method',
-    introHref: '/method',
+    // While the Método pages are held back (METHOD_PAGES_ENABLED), the menu
+    // keeps only the pages that were already public.
+    ...(METHOD_PAGES_ENABLED
+      ? { introHref: '/method' }
+      : { introHref: '/method/science-base', introCtaKey: 'scientific_database' as const }),
     tourClass: 'tour-science',
     items: [
-      { href: '/method', labelKey: 'method_overview', descriptionKey: 'method_overview', icon: Compass },
-      { href: '/method/fde', labelKey: 'method_fde', descriptionKey: 'method_fde', icon: Gauge },
-      { href: '/method/scenarios', labelKey: 'method_scenarios', descriptionKey: 'method_scenarios', icon: Layers },
+      ...(METHOD_PAGES_ENABLED
+        ? [
+            { href: '/method', labelKey: 'method_overview', descriptionKey: 'method_overview', icon: Compass },
+            { href: '/method/fde', labelKey: 'method_fde', descriptionKey: 'method_fde', icon: Gauge },
+            { href: '/method/scenarios', labelKey: 'method_scenarios', descriptionKey: 'method_scenarios', icon: Layers },
+          ] satisfies NavLeaf[]
+        : []),
       { href: '/method/science-base', labelKey: 'scientific_database', descriptionKey: 'scientific_database', icon: FlaskConical },
-      { href: '/method/validation', labelKey: 'method_validation', descriptionKey: 'method_validation', icon: ShieldCheck },
+      ...(METHOD_PAGES_ENABLED
+        ? [{ href: '/method/validation', labelKey: 'method_validation', descriptionKey: 'method_validation', icon: ShieldCheck }] satisfies NavLeaf[]
+        : []),
       { href: '/guide', labelKey: 'guide_usage', descriptionKey: 'guide', icon: BookOpen },
     ],
   },
@@ -122,7 +135,9 @@ export const FOOTER_LINKS: Pick<NavLeaf, 'href' | 'labelKey'>[] = [
   { href: '/', labelKey: 'home' },
   { href: '/map', labelKey: 'map' },
   { href: '/data', labelKey: 'data_catalog' },
-  { href: '/method', labelKey: 'group_method' },
+  METHOD_PAGES_ENABLED
+    ? { href: '/method', labelKey: 'group_method' }
+    : { href: '/method/science-base', labelKey: 'scientific_database' },
   { href: '/about', labelKey: 'about' },
   { href: '/cite', labelKey: 'cite' },
 ]

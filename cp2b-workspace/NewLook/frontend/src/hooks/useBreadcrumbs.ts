@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl'
 import { usePathname } from '@/navigation'
 import type { BreadcrumbItem } from '@/components/ui/Breadcrumb'
+import { METHOD_PAGES_ENABLED } from '@/lib/featureFlags'
 
 type BreadcrumbOverrides = {
   /** Pass the resolved municipality name for /municipality/[ibge_code] */
@@ -29,9 +30,11 @@ export function useBreadcrumbs(overrides?: BreadcrumbOverrides): BreadcrumbItem[
   }
   if (pathname in tools) return [home, { label: tools[pathname] }]
 
-  // The science base is one of the Método pages.
+  // The science base is one of the Método pages, under /method once that is public.
   if (pathname === '/method/science-base')
-    return [home, { label: tNav('group_method'), href: '/method' }, { label: t('scientific_database.title') }]
+    return METHOD_PAGES_ENABLED
+      ? [home, { label: tNav('group_method'), href: '/method' }, { label: t('scientific_database.title') }]
+      : [home, { label: t('scientific_database.title') }]
 
   if (pathname === '/dashboard')
     return [home, { label: tNav('dashboard') }]
