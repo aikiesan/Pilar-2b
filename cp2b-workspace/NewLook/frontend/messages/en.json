@@ -2416,5 +2416,86 @@
       "in-progress": "In progress",
       "upcoming": "Planned"
     }
+  },
+  "home": {
+    "hero": {
+      "eyebrow": "Open platform · NIPE-UNICAMP",
+      "title": "Biogas and bioproduct potential, municipality by municipality",
+      "lede": "Estimates of what agricultural, livestock and urban residues can yield as biogas and biomethane, with the method and the sources in plain view. Canonical base: São Paulo state; Minas Gerais under validation.",
+      "cta_map": "Open map",
+      "cta_method": "How it works"
+    },
+    "search": {
+      "label": "Find a municipality",
+      "placeholder": "Name or IBGE code, e.g. Campinas",
+      "results_label": "Municipalities found",
+      "loading": "Loading the list of municipalities…",
+      "unavailable": "The list of municipalities is not available right now. Try again in a moment, or open the map.",
+      "no_results": "No municipality found for \"{query}\""
+    },
+    "counts": {
+      "heading": "The platform in numbers",
+      "municipalities": "municipalities in the base",
+      "residues": "residues with FDE factors",
+      "sectors": "sectors",
+      "references": "scientific references",
+      "unavailable": "unavailable right now",
+      "unavailable_note": "A dash marks a number that comes from the API and could not be read just now."
+    },
+    "sectors": {
+      "eyebrow": "Data by sector",
+      "heading": "What the platform measures",
+      "lede": "Each residue carries its availability factors, its methane potential and the sources behind them.",
+      "names": {
+        "agricultural": "Agricultural",
+        "livestock": "Livestock",
+        "urban": "Urban",
+        "industrial": "Industrial"
+      },
+      "residue_count": "{count, plural, one {# residue} other {# residues}}",
+      "more": "and {count} more",
+      "cta": "See on the map"
+    },
+    "how": {
+      "eyebrow": "Method",
+      "heading": "How a number is made",
+      "steps": {
+        "data": {
+          "title": "Municipal production",
+          "body": "It starts from what each municipality grows, raises and discards: harvests, herds, urban waste and sewage sludge, from official sources."
+        },
+        "factors": {
+          "title": "Availability factors (FDE)",
+          "body": "Four factors bring the theoretical down to the available: collection (FC), competing uses (FCp), seasonality (FS) and logistics (FL)."
+        },
+        "potential": {
+          "title": "Available potential",
+          "body": "The available amount times each residue's methane potential (BMP) gives biogas and biomethane per year, in the real and ideal scenarios."
+        }
+      },
+      "cta": "Read the science base"
+    },
+    "news": {
+      "eyebrow": "News",
+      "heading": "What changed",
+      "version": "version {version}",
+      "cta": "All release notes"
+    },
+    "cite": {
+      "eyebrow": "Open data",
+      "heading": "Use it, cite it",
+      "body": "The data may be used freely, commercial use included, as long as the source is cited.",
+      "licence": "Code GPL-3.0 · Data CC BY 4.0",
+      "cta": "How to cite"
+    },
+    "partners": {
+      "heading": "Made by and funded by",
+      "made_by": "Made by",
+      "made_by_names": "NIPE-UNICAMP · CP2B",
+      "funding": "Funding",
+      "grant_cp2bsd": "FAPESP 2024/01112-1 · CP2Bsd",
+      "grant_national": "FAPESP 2025/08745-2 · national expansion",
+      "cta": "Partners"
+    }
   }
 }

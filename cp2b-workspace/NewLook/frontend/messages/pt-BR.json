@@ -2416,5 +2416,86 @@
       "in-progress": "Em andamento",
       "upcoming": "Planejado"
     }
+  },
+  "home": {
+    "hero": {
+      "eyebrow": "Plataforma aberta · NIPE-UNICAMP",
+      "title": "Potencial de biogás e bioprodutos, município a município",
+      "lede": "Estimativas do que os resíduos agrícolas, pecuários e urbanos podem gerar em biogás e biometano, com o método e as fontes à vista. Base canônica: estado de São Paulo; Minas Gerais em validação.",
+      "cta_map": "Abrir mapa",
+      "cta_method": "Como funciona"
+    },
+    "search": {
+      "label": "Buscar município",
+      "placeholder": "Nome ou código IBGE, ex.: Campinas",
+      "results_label": "Municípios encontrados",
+      "loading": "Carregando a lista de municípios…",
+      "unavailable": "A lista de municípios não está disponível agora. Tente de novo em instantes ou abra o mapa.",
+      "no_results": "Nenhum município encontrado para \"{query}\""
+    },
+    "counts": {
+      "heading": "A plataforma em números",
+      "municipalities": "municípios na base",
+      "residues": "resíduos com fatores FDE",
+      "sectors": "setores",
+      "references": "referências científicas",
+      "unavailable": "indisponível no momento",
+      "unavailable_note": "Um travessão indica um número que vem da API e que não pôde ser lido agora."
+    },
+    "sectors": {
+      "eyebrow": "Dados por setor",
+      "heading": "O que a plataforma mede",
+      "lede": "Cada resíduo traz seus fatores de disponibilidade, seu potencial metanogênico e as fontes que os sustentam.",
+      "names": {
+        "agricultural": "Agrícola",
+        "livestock": "Pecuária",
+        "urban": "Urbano",
+        "industrial": "Industrial"
+      },
+      "residue_count": "{count, plural, one {# resíduo} other {# resíduos}}",
+      "more": "e mais {count}",
+      "cta": "Ver no mapa"
+    },
+    "how": {
+      "eyebrow": "Método",
+      "heading": "Como se chega a um número",
+      "steps": {
+        "data": {
+          "title": "Produção municipal",
+          "body": "Parte-se do que cada município produz, cria e descarta: safras, rebanhos, resíduos urbanos e lodo de esgoto, de fontes oficiais."
+        },
+        "factors": {
+          "title": "Fatores de disponibilidade (FDE)",
+          "body": "Quatro fatores reduzem o teórico ao disponível: coleta (FC), competição com outros usos (FCp), sazonalidade (FS) e logística (FL)."
+        },
+        "potential": {
+          "title": "Potencial disponível",
+          "body": "O disponível vezes o potencial metanogênico (BMP) de cada resíduo dá o biogás e o biometano por ano, nos cenários real e ideal."
+        }
+      },
+      "cta": "Ler a base científica"
+    },
+    "news": {
+      "eyebrow": "Novidades",
+      "heading": "O que mudou",
+      "version": "versão {version}",
+      "cta": "Todas as notas de versão"
+    },
+    "cite": {
+      "eyebrow": "Dados abertos",
+      "heading": "Use e cite",
+      "body": "Os dados podem ser usados livremente, inclusive para fins comerciais, desde que a fonte seja citada.",
+      "licence": "Código GPL-3.0 · Dados CC BY 4.0",
+      "cta": "Como citar"
+    },
+    "partners": {
+      "heading": "Realização e apoio",
+      "made_by": "Realização",
+      "made_by_names": "NIPE-UNICAMP · CP2B",
+      "funding": "Apoio",
+      "grant_cp2bsd": "FAPESP 2024/01112-1 · CP2Bsd",
+      "grant_national": "FAPESP 2025/08745-2 · expansão nacional",
+      "cta": "Parceiros"
+    }
   }
 }
