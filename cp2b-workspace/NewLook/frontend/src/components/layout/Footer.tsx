@@ -121,8 +121,8 @@ export default function Footer() {
   ]
 
   return (
-    <footer className="bg-terra-900 text-white" role="contentinfo">
-      {/* Oxblood band (#600A00), after the Itaú Cultural references; ochre accents. */}
+    <footer className="bg-terra-950 text-white" role="contentinfo">
+      {/* Deep oxblood band (#340B00): terra-900 glared on large screens; ochre accents. */}
 
       {/* ── Section 1: Newsletter ─────────────────────────────────── */}
       <div className="border-b border-white/10">
@@ -165,7 +165,7 @@ export default function Footer() {
               <button
                 type="submit"
                 disabled={status === 'loading' || status === 'success'}
-                className="px-5 py-2.5 text-sm font-semibold bg-ochre-300 hover:bg-ochre-200 disabled:opacity-60 text-terra-900 rounded transition-colors focus:outline-none focus:ring-2 focus:ring-ochre-300 focus:ring-offset-2 focus:ring-offset-terra-900 whitespace-nowrap"
+                className="px-5 py-2.5 text-sm font-semibold bg-ochre-300 hover:bg-ochre-200 disabled:opacity-60 text-terra-900 rounded transition-colors focus:outline-none focus:ring-2 focus:ring-ochre-300 focus:ring-offset-2 focus:ring-offset-terra-950 whitespace-nowrap"
               >
                 {status === 'loading' ? '...' : t('footer.newsletter_submit')}
               </button>
@@ -206,11 +206,11 @@ export default function Footer() {
           {/* Col A — Branding */}
           <div className="space-y-4">
             <Image
-              src="/images/logotipo-full-black.png"
+              src="/images/cp2b-logo-negativo.svg"
               alt="PILAR-2b"
               width={130}
-              height={44}
-              className="brightness-200"
+              height={50}
+              unoptimized
               style={{ height: 'auto' }}
             />
 
