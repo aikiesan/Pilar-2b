@@ -60,4 +60,4 @@ pytest-cov==7.1.0
 pytest-mock==3.16.0
 httpx==0.28.1
 black>=26.5.1  # Updated from 23.12.1 — fixes arbitrary file write via unsanitised cache file name
-isort==8.0.1
+isort==9.0.1
