@@ -807,7 +807,7 @@ export default function AdvancedAnalysisPage() {
           {/* Center - Main Visualization Area (9/12 width = 75%) */}
           <div className="lg:col-span-9 space-y-4">
             {/* Scenario Selector - Integrated with View Controls */}
-            <div className="bg-white rounded-xl shadow-md border border-gray-100 p-4">
+            <div className="surface-light bg-paper-raised rounded-xl shadow-md border border-line p-4">
               <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                 {/* Scenario Selector */}
                 <div className="flex-1">
@@ -826,20 +826,20 @@ export default function AdvancedAnalysisPage() {
                     onClick={() => router.push('/dashboard/scientific-database')}
                     className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-terra-700 hover:text-terra-900 hover:underline"
                   >
-                    📚 {t('advanced_analysis.literature_base_link')}
+                    <BookOpen className="h-3.5 w-3.5" aria-hidden="true" /> {t('advanced_analysis.literature_base_link')}
                   </button>
                 </div>
 
                 {/* View Mode Toggles */}
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-medium text-gray-600 mr-2">{t('advanced_analysis.visualization_label')}</span>
+                  <span className="text-xs font-medium text-ink-muted mr-2">{t('advanced_analysis.visualization_label')}</span>
                   <div className="flex gap-1">
                     <button
                       onClick={() => setViewMode('cascade')}
-                      className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                      className={`flex items-center justify-center gap-1.5 border px-3 py-2 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-terra-600 ${
                         viewMode === 'cascade'
-                          ? 'bg-terra-700 text-white shadow-sm'
-                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                          ? 'border-ink bg-paper-sunken text-ink'
+                          : 'border-line text-ink-muted hover:border-line-strong hover:text-ink'
                       }`}
                     >
                       <TrendingDown className="h-3.5 w-3.5" />
@@ -847,10 +847,10 @@ export default function AdvancedAnalysisPage() {
                     </button>
                     <button
                       onClick={() => setViewMode('flow')}
-                      className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                      className={`flex items-center justify-center gap-1.5 border px-3 py-2 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-terra-600 ${
                         viewMode === 'flow'
-                          ? 'bg-terra-700 text-white shadow-sm'
-                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                          ? 'border-ink bg-paper-sunken text-ink'
+                          : 'border-line text-ink-muted hover:border-line-strong hover:text-ink'
                       }`}
                     >
                       <GitBranch className="h-3.5 w-3.5" />
@@ -858,10 +858,10 @@ export default function AdvancedAnalysisPage() {
                     </button>
                     <button
                       onClick={() => setViewMode('scenarios')}
-                      className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                      className={`flex items-center justify-center gap-1.5 border px-3 py-2 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-terra-600 ${
                         viewMode === 'scenarios'
-                          ? 'bg-terra-700 text-white shadow-sm'
-                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                          ? 'border-ink bg-paper-sunken text-ink'
+                          : 'border-line text-ink-muted hover:border-line-strong hover:text-ink'
                       }`}
                     >
                       <Layers className="h-3.5 w-3.5" />
@@ -869,10 +869,10 @@ export default function AdvancedAnalysisPage() {
                     </button>
                     <button
                       onClick={() => setViewMode('table')}
-                      className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                      className={`flex items-center justify-center gap-1.5 border px-3 py-2 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-terra-600 ${
                         viewMode === 'table'
-                          ? 'bg-terra-700 text-white shadow-sm'
-                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                          ? 'border-ink bg-paper-sunken text-ink'
+                          : 'border-line text-ink-muted hover:border-line-strong hover:text-ink'
                       }`}
                     >
                       <Table2 className="h-3.5 w-3.5" />

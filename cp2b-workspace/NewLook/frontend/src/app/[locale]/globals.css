@@ -55,6 +55,21 @@
   --text-disabled: 120 114 108;
 }
 
+/* Map panels float over a light basemap and stay on cream paper in either
+   theme: the tokens inside are pinned to their light values. */
+.surface-light {
+  --paper: 247 242 231;
+  --paper-raised: 251 248 242;
+  --paper-sunken: 239 232 219;
+  --ink: 43 38 32;
+  --ink-muted: 107 98 88;
+  --line: 228 221 211;
+  --line-strong: 143 132 120;
+  --terra: 142 59 34;
+  color: rgb(var(--ink));
+  color-scheme: light;
+}
+
 /* Base styles */
 @layer base {
   body {

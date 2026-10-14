@@ -1,7 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { useLocale, useTranslations } from 'next-intl';
+import { useTranslations } from 'next-intl';
+import { BookOpen } from 'lucide-react';
+import { Link } from '@/navigation';
 
 // Citations are rendered as published in every locale: ABNT is a Brazilian norm
 // written in Portuguese, and the registered title is the Portuguese name.
@@ -56,7 +58,6 @@ function CiteBlock({ label, text, copyLabel, copiedLabel }: { label: string; tex
 }
 
 export default function CitePage() {
-  const locale = useLocale();
   const t = useTranslations('pages.cite');
 
   return (
@@ -106,12 +107,13 @@ export default function CitePage() {
         <p className="text-sm text-gray-700">{t('why')}</p>
       </section>
 
-      <section className="mt-4 rounded-xl border border-terra-200 bg-terra-50 p-4">
-        <h2 className="mb-1 text-base font-semibold text-terra-900">{t('refs_title')}</h2>
-        <p className="mb-2 text-sm text-terra-900">{t('refs')}</p>
-        <a className="text-sm font-medium text-terra-700 underline" href={`/${locale}/dashboard/scientific-database`}>
-          📚 {t('refs_link')}
-        </a>
+      <section className="mt-4 border border-line border-l-2 border-l-terra-600 bg-paper-sunken p-4 dark:border-l-terra-400">
+        <h2 className="mb-1 text-base font-semibold text-ink">{t('refs_title')}</h2>
+        <p className="mb-2 text-sm text-ink">{t('refs')}</p>
+        {/* The app's Link keeps the /pilar2b base path; a raw href dropped it. */}
+        <Link className="inline-flex items-center gap-1.5 text-sm font-medium text-terra-700 underline dark:text-terra-300" href="/dashboard/scientific-database">
+          <BookOpen className="h-4 w-4" aria-hidden="true" /> {t('refs_link')}
+        </Link>
       </section>
     </div>
   );

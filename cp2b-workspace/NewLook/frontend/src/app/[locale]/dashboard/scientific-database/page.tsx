@@ -159,16 +159,18 @@ function ScientificDatabase() {
           </div>
         )}
 
-        <nav aria-label={ts('tabs.label')} className="bg-white rounded-xl shadow-md p-4 border border-gray-100">
-          <div className="flex flex-wrap gap-2">
+        <nav aria-label={ts('tabs.label')} className="border-b border-line">
+          <div className="-mb-px flex gap-1 overflow-x-auto">
             {TABS.map(({ id, icon: Icon }) => (
               <button
                 key={id}
                 type="button"
                 aria-pressed={view === id}
                 onClick={() => open(id)}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                  view === id ? 'bg-terra-700 text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                className={`flex shrink-0 items-center gap-2 border-b-2 px-3 py-3 text-sm font-medium whitespace-nowrap transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-terra-600 dark:focus-visible:ring-terra-400 ${
+                  view === id
+                    ? 'border-terra-600 text-ink dark:border-terra-400'
+                    : 'border-transparent text-ink-muted hover:border-line-strong hover:text-ink'
                 }`}
               >
                 <Icon className="h-4 w-4" aria-hidden="true" />

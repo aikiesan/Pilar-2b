@@ -974,7 +974,8 @@
       "biogas": "Biogas",
       "biomass": "Biomass",
       "loading": "National data is still loading…"
-    }
+    },
+    "clusters_loading": "Calculating co-digestion clusters…"
   },
   "metadata": {
     "title": "PILAR-2b — Intelligent Platform for Locating and Using Residues for Biogas and Bioproducts",

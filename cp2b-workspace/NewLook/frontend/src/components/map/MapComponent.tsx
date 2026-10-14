@@ -13,6 +13,7 @@ import { useIsClient } from '@/hooks/useIsClient';
 import { useTranslations } from 'next-intl';
 import { MapContainer, TileLayer, ScaleControl, ZoomControl, useMap } from 'react-leaflet';
 import dynamic from 'next/dynamic';
+import { CircleAlert, Loader2 } from 'lucide-react';
 import { useGeospatialData, useCodigestionClusters, useResidueCNMatrix, useIntermediateRegionsGeoJSON } from '@/hooks/useGeospatialData';
 import type { FilterCriteria, BiomassType, ResidueType, VisualizationMode } from '@/types/map';
 import type { MunicipalityCollection, MunicipalityFeature, DisplayMetric, CodigestionCluster } from '@/types/geospatial';
@@ -894,23 +895,23 @@ export default function MapComponent({
         {(error || noData) && (
           <div
             role="alert"
-            className="absolute top-16 left-1/2 z-[1100] w-[min(92%,560px)] -translate-x-1/2 rounded-lg bg-white/95 p-4 shadow-xl ring-1 ring-black/10 backdrop-blur md:top-16 dark:bg-slate-800/95"
+            className="surface-light absolute top-16 left-1/2 z-[1001] w-[min(92%,560px)] -translate-x-1/2 border border-line border-l-2 border-l-terra-900 bg-paper-raised/95 p-4 shadow-xl backdrop-blur md:top-16"
           >
             <div className="flex items-start gap-3">
-              <span aria-hidden="true" className="text-2xl leading-none">{error ? '❌' : '📭'}</span>
+              <CircleAlert aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-terra-900" />
               <div className="min-w-0 flex-1">
-                <p className="font-semibold text-red-600 dark:text-red-400">
+                <p className="font-semibold text-terra-900">
                   {error ? t('errors.loadingError') : t('errors.noData')}
                 </p>
                 {error && (
-                  <p className="mt-1 break-words font-mono text-xs text-red-800 dark:text-red-300">
+                  <p className="mt-1 break-words font-mono text-xs text-ink-muted">
                     {error.message}
                   </p>
                 )}
               </div>
               <button
                 onClick={() => window.location.reload()}
-                className="shrink-0 rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-700"
+                className="btn-secondary shrink-0 px-4 py-2 text-sm"
               >
                 {error ? t('errors.reloadPage') : t('errors.tryAgain')}
               </button>
@@ -954,7 +955,7 @@ export default function MapComponent({
         {/* Scenario toggle — per-municipality biogas potential by scenario.
             Desktop only: on mobile it moves into the bottom sheet (it's a
             specific analytical control, not something you switch constantly). */}
-        <div className="absolute top-16 left-1/2 -translate-x-1/2 z-[1000] hidden md:flex items-center gap-1 rounded-full bg-white/95 px-1.5 py-1 shadow-lg ring-1 ring-black/5 backdrop-blur">
+        <div className="surface-light absolute top-16 left-1/2 -translate-x-1/2 z-[1000] hidden md:flex items-center gap-1 px-1.5 py-1 border border-line bg-paper-raised/95 shadow-md backdrop-blur">
           <span className="px-2 text-[11px] font-semibold text-gray-500">{t('scenario_label')}</span>
           {MAP_SCENARIOS.map(({ key, color }) => (
             <button
@@ -1323,7 +1324,7 @@ export default function MapComponent({
                     <button
                       type="button"
                       onClick={() => setLegendOpenMobile(true)}
-                      className="flex min-h-11 items-center gap-1.5 rounded-full bg-white/95 px-3.5 py-2.5 text-xs font-semibold text-gray-700 shadow-lg ring-1 ring-black/5 backdrop-blur"
+                      className="surface-light flex min-h-11 items-center gap-1.5 px-3.5 py-2.5 border border-line bg-paper-raised/95 text-xs font-semibold text-gray-700 shadow-md backdrop-blur"
                     >
                       <span className="h-2.5 w-8 rounded-full bg-gradient-to-r from-[#eff3ff] via-[#6baed6] to-[#08519c]" aria-hidden="true" />
                       {t('legend.title')}
@@ -1336,8 +1337,8 @@ export default function MapComponent({
         )}
 
         {visualizationMode === 'clusters' && clusterLoading && isMounted && (
-          <div className="bg-white/90 backdrop-blur-sm rounded-lg px-3 py-2 shadow text-xs text-violet-700 flex items-center gap-2">
-            <span className="animate-spin">⚗️</span> Calculando clusters...
+          <div role="status" className="surface-light flex items-center gap-2 border border-line bg-paper-raised/95 px-3 py-2 text-xs text-ink shadow-md backdrop-blur-sm">
+            <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" /> {t('clusters_loading')}
           </div>
         )}
 

@@ -46,25 +46,25 @@ export default function ScopeSwitcher({ scope, onScopeChange, count, className =
   };
 
   return (
-    <div ref={rootRef} className={`relative ${className}`}>
+    <div ref={rootRef} className={`surface-light relative ${className}`}>
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
         aria-haspopup="listbox"
         aria-expanded={open}
         title={t('toggle_title')}
-        className="flex min-h-[44px] items-center gap-1.5 rounded-full bg-white/95 px-3 py-2.5 text-sm font-semibold text-gray-800 shadow-lg ring-1 ring-black/5 backdrop-blur transition-colors hover:bg-white md:min-h-0 md:py-1.5 dark:bg-slate-800/95 dark:text-gray-100"
+        className="flex min-h-[44px] items-center gap-1.5 px-3 py-2.5 border border-line bg-paper-raised/95 text-sm font-semibold text-ink shadow-md backdrop-blur transition-colors hover:bg-paper-raised md:min-h-0 md:py-1.5"
       >
-        <MapPin className="h-4 w-4 text-terra-800 dark:text-terra-400" />
+        <MapPin className="h-4 w-4 text-terra-800" />
         <span className="max-w-[9rem] truncate">{state?.nome ?? 'São Paulo' /* i18n-exempt: proper noun */}</span>
-        <span className="rounded bg-terra-800/10 px-1.5 py-0.5 text-[10px] font-bold text-terra-800 dark:bg-terra-400/15 dark:text-terra-300">
+        <span className="rounded bg-terra-800/10 px-1.5 py-0.5 text-[10px] font-bold text-terra-800">
           {state?.sigla ?? 'SP'}{scope === '31' ? ' · BETA' : ''}
         </span>
-        <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`h-4 w-4 text-ink-muted transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
 
       {open && (
-        <div role="listbox" className="absolute left-0 top-full z-[1200] mt-2 w-64 rounded-xl bg-white p-1.5 shadow-2xl ring-1 ring-black/10 dark:bg-slate-800">
+        <div role="listbox" className="absolute left-0 top-full z-[1200] mt-2 w-64 rounded-xl bg-paper-raised p-1.5 shadow-2xl ring-1 ring-black/10">
           {PUBLIC_SCOPES.map((code) => {
             const active = scope === code;
             return (
@@ -76,7 +76,7 @@ export default function ScopeSwitcher({ scope, onScopeChange, count, className =
                 className={`flex min-h-11 w-full items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors ${
                   active
                     ? 'bg-terra-800 text-white'
-                    : 'text-gray-800 hover:bg-gray-100 dark:text-gray-100 dark:hover:bg-slate-700'
+                    : 'text-ink hover:bg-paper-sunken'
                 }`}
               >
                 <span>{code === '35' ? `⭐ ${t('sp_option')}` : `🧪 ${t('mg_option')}`}</span>
@@ -85,7 +85,7 @@ export default function ScopeSwitcher({ scope, onScopeChange, count, className =
             );
           })}
           {typeof count === 'number' && (
-            <p className="mt-1 border-t border-gray-100 px-3 py-2 text-xs text-gray-500 dark:border-slate-700 dark:text-gray-400">
+            <p className="mt-1 border-t border-line px-3 py-2 text-xs text-ink-muted">
               {t('shown', { count: format.number(count) })}
             </p>
           )}

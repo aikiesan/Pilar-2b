@@ -114,7 +114,7 @@ function MunicipalityPopup({
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
               <span className="text-[10px] font-medium text-terra-900">
-                {spec.icon} {text.label}
+                {text.label}
               </span>
             </div>
             <p className="text-sm font-bold text-terra-900">

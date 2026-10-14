@@ -57,7 +57,7 @@ export default function BiomassLayerLegend({ layerIds = [] }: BiomassLayerLegend
     return (
       <button
         onClick={() => setIsHidden(false)}
-        className="bg-white/95 backdrop-blur-sm shadow-lg rounded-lg px-3 py-2 text-xs text-gray-600 hover:bg-white transition-colors flex items-center gap-1"
+        className="bg-paper-raised/95 backdrop-blur-sm shadow-lg rounded-lg px-3 py-2 text-xs text-ink-muted hover:bg-paper-raised transition-colors flex items-center gap-1"
       >
         <Info size={14} />
         {t('plantsLegend.show')}
@@ -66,8 +66,8 @@ export default function BiomassLayerLegend({ layerIds = [] }: BiomassLayerLegend
   }
 
   return (
-    <div className="w-72" data-testid="biomass-layer-legend">
-      <div className="bg-white/95 backdrop-blur-sm shadow-lg rounded-lg overflow-hidden">
+    <div className="surface-light w-72" data-testid="biomass-layer-legend">
+      <div className="bg-paper-raised/95 backdrop-blur-sm shadow-lg rounded-lg overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between bg-gradient-to-r from-terra-600 to-terra-700 px-3 py-2">
           <div className="flex items-center gap-2">
@@ -113,10 +113,10 @@ export default function BiomassLayerLegend({ layerIds = [] }: BiomassLayerLegend
 
                 {/* Info */}
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-gray-900">{t(`plants.${type.key}.name`)}</div>
-                  <div className="text-xs text-gray-600">{t(`plants.${type.key}.description`)}</div>
+                  <div className="text-sm font-medium text-ink">{t(`plants.${type.key}.name`)}</div>
+                  <div className="text-xs text-ink-muted">{t(`plants.${type.key}.description`)}</div>
                   {isExpanded && (
-                    <div className="mt-1 text-xs text-gray-500">
+                    <div className="mt-1 text-xs text-ink-muted">
                       <div className="flex items-center gap-1">
                         <span className="font-medium">{t('plantsLegend.source')}</span>
                         <span>{type.dataSource}</span>
@@ -133,11 +133,11 @@ export default function BiomassLayerLegend({ layerIds = [] }: BiomassLayerLegend
 
           {/* Footer info when expanded */}
           {isExpanded && (
-            <div className="mt-3 pt-3 border-t border-gray-200">
-              <p className="text-xs text-gray-500">
+            <div className="mt-3 pt-3 border-t border-line">
+              <p className="text-xs text-ink-muted">
                 <strong>MapBiomas:</strong> {t('plantsLegend.mapbiomas_note')}
               </p>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-ink-muted mt-1">
                 <strong>ANP:</strong> {t('plantsLegend.anp_note')}
               </p>
             </div>

@@ -25,50 +25,38 @@ export default function ScenarioSelector({
     type: ScenarioType;
     icon: typeof BarChart3;
     color: string;
-    bgColor: string;
-    borderColor: string;
   }> = [
     {
       type: 'baseline',
       icon: BarChart3,
-      color: 'text-dusk-600',
-      bgColor: 'bg-dusk-50',
-      borderColor: 'border-dusk-600'
+      color: 'text-dusk-600'
     },
     {
       type: 'conservative',
       icon: TrendingDown,
-      color: 'text-orange-600',
-      bgColor: 'bg-orange-50',
-      borderColor: 'border-orange-600'
+      color: 'text-orange-600'
     },
     {
       type: 'optimistic',
       icon: TrendingUp,
-      color: 'text-terra-600',
-      bgColor: 'bg-terra-50',
-      borderColor: 'border-terra-600'
+      color: 'text-terra-600'
     },
     {
       type: 'frontier',
       icon: TrendingUp,
-      color: 'text-terra-700',
-      bgColor: 'bg-terra-50',
-      borderColor: 'border-terra-700'
+      color: 'text-terra-700'
     },
     {
       type: 'custom',
       icon: Sliders,
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-50',
-      borderColor: 'border-purple-600'
+      color: 'text-purple-600'
     }
   ];
 
   return (
     <div>
       {/* Title */}
-      <h3 className="text-xs font-semibold text-gray-700 mb-2">
+      <h3 className="text-xs font-semibold text-ink mb-2">
         {t('scenario_selector.title')}
       </h3>
 
@@ -86,29 +74,29 @@ export default function ScenarioSelector({
               onClick={() => onScenarioChange(scenario.type)}
               title={`${t(config.nameKey)}: ${t(config.descKey)}`} // Tooltip on hover
               aria-pressed={isActive}
-              className={`relative flex flex-col items-center gap-1.5 p-2 rounded-lg border-2 transition-all group ${
+              className={`relative flex flex-col items-center gap-1.5 p-2 border transition-colors group focus:outline-none focus-visible:ring-2 focus-visible:ring-terra-600 ${
                 isActive
-                  ? `${scenario.bgColor} ${scenario.borderColor} shadow-sm`
-                  : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50'
+                  ? 'border-ink bg-paper-sunken'
+                  : 'border-line bg-paper-raised hover:border-line-strong hover:bg-paper-sunken'
               }`}
             >
               {/* Icon */}
               <div className={`flex items-center justify-center ${
-                isActive ? scenario.color : 'text-gray-400 group-hover:text-gray-600'
+                isActive ? scenario.color : 'text-ink-muted group-hover:text-ink-muted'
               }`}>
                 <Icon className="w-4 h-4" />
               </div>
 
               {/* Label */}
               <span className={`text-[10px] font-medium text-center leading-tight ${
-                isActive ? 'text-gray-900' : 'text-gray-600'
+                isActive ? 'text-ink' : 'text-ink-muted'
               }`}>
                 {t(config.nameKey)}
               </span>
 
               {/* Custom Factors Badge */}
               {isCustomWithFactors && (
-                <div className="absolute -top-1 -right-1 w-2 h-2 bg-purple-600 rounded-full border-2 border-white"></div>
+                <div className="absolute -top-1 -right-1 w-2 h-2 bg-terra-600 rounded-full ring-2 ring-paper-raised"></div>
               )}
             </button>
           );
@@ -117,7 +105,7 @@ export default function ScenarioSelector({
 
       {/* Active Scenario Description */}
       {currentScenario && (
-        <div className="mt-2 p-2 bg-gray-50 rounded text-[10px] text-gray-600">
+        <div className="mt-2 p-2 bg-paper-sunken rounded text-[10px] text-ink-muted">
           <span className="font-medium">{t(RESIDUE_SCENARIOS[currentScenario].nameKey)}:</span>{' '}
           {t(RESIDUE_SCENARIOS[currentScenario].descKey)}
         </div>

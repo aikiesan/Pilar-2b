@@ -974,7 +974,8 @@
       "biogas": "Biogás",
       "biomass": "Biomassa",
       "loading": "Dados nacionais em carregamento…"
-    }
+    },
+    "clusters_loading": "Calculando agrupamentos de co-digestão…"
   },
   "metadata": {
     "title": "PILAR-2b — Plataforma Inteligente de Localização e Aproveitamento de Resíduos para Biogás e Bioprodutos",

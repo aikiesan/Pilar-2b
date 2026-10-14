@@ -75,7 +75,7 @@ export default function EnhancedTooltip({
       <div className="mt-2 flex items-end justify-between gap-2 border-t border-gray-200 pt-2 dark:border-slate-700">
         <div className="min-w-0">
           <div className="flex items-center gap-1 text-[11px] font-semibold text-gray-700 dark:text-gray-300">
-            <span>{spec.icon} {text.label}</span>
+            <span>{text.label}</span>
             {metric !== 'biomass_tons' && (
               <span
                 className="rounded-full px-1.5 py-0.5 text-[10px] font-bold text-white"

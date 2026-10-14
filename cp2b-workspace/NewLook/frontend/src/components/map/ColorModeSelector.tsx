@@ -99,8 +99,8 @@ export default function ColorModeSelector({
       <div
         className={
           variant === 'mobile'
-            ? 'flex flex-col gap-1 bg-gray-50 p-2 rounded-xl border border-gray-200'
-            : 'flex flex-col gap-1 bg-gray-50 p-1.5 rounded-lg border border-gray-200'
+            ? 'flex flex-col gap-1 bg-paper-sunken p-2 rounded-xl border border-line'
+            : 'flex flex-col gap-1 bg-paper-sunken p-1.5 rounded-lg border border-line'
         }
       >
         {options.map((opt) => {
@@ -118,8 +118,8 @@ export default function ColorModeSelector({
                 active
                   ? 'bg-terra-700 text-white shadow-sm'
                   : locked
-                    ? 'text-gray-400 cursor-not-allowed'
-                    : 'text-gray-700 hover:bg-gray-200'
+                    ? 'text-ink-muted cursor-not-allowed'
+                    : 'text-ink hover:bg-line'
               }`}
             >
               <span className="flex items-center gap-1.5">
@@ -127,7 +127,7 @@ export default function ColorModeSelector({
                 {opt.beta && (
                   <span
                     className={`rounded px-1 py-0.5 text-[9px] font-bold uppercase tracking-wide ${
-                      active ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-800'
+                      active ? 'bg-paper-raised/20 text-white' : 'bg-amber-100 text-amber-800'
                     }`}
                   >
                     Beta
@@ -140,7 +140,7 @@ export default function ColorModeSelector({
         })}
       </div>
       {anyLocked && (
-        <p className="mt-1.5 text-[10px] leading-snug text-gray-500">{lockedHint}</p>
+        <p className="mt-1.5 text-[10px] leading-snug text-ink-muted">{lockedHint}</p>
       )}
     </>
   );

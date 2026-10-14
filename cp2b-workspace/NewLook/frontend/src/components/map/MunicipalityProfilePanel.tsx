@@ -309,7 +309,7 @@ export default function MunicipalityProfilePanel({
               {/* Headline figure in the active metric */}
               <div className="bg-gradient-to-br from-terra-50 to-terra-100 dark:from-terra-900/20 dark:to-terra-800/20 rounded-lg p-4 border border-terra-200 dark:border-terra-800">
                 <div className="text-xs text-terra-700 dark:text-terra-300 font-medium mb-1">
-                  {spec.icon} {t('metric_total', { metric: text.label })}
+                  {t('metric_total', { metric: text.label })}
                 </div>
                 <div className="text-2xl font-bold text-terra-900 dark:text-terra-100 mb-0.5">
                   {metricTotal > 0 ? format.compact(metricTotal) : tCommon('states.no_data')}

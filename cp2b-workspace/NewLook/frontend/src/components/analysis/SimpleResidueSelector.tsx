@@ -9,6 +9,7 @@ import { useState } from 'react';
 import { Wheat, Beef, Building2, Factory, Check, ChevronDown, ChevronRight } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { getResiduesByCategory, getParentCrop, type ParentCrop } from '@/data/residueFactors';
+import { SECTOR_COLORS } from '@/data/sectorColors';
 import { useLocalize } from '@/hooks/useLocalize';
 
 export type ResidueCategory = 'agricultural' | 'livestock' | 'urban' | 'industrial';
@@ -132,18 +133,18 @@ export default function SimpleResidueSelector({
 
   // Category tabs
   const categories = [
-    { id: 'agricultural' as const, label: t('residue_selector.category_label_agricultural'), icon: Wheat, color: 'green' },
-    { id: 'livestock' as const, label: t('residue_selector.category_label_livestock'), icon: Beef, color: 'orange' },
-    { id: 'urban' as const, label: t('residue_selector.category_label_urban'), icon: Building2, color: 'blue' },
-    { id: 'industrial' as const, label: t('residue_selector.industrial'), icon: Factory, color: 'purple' }
+    { id: 'agricultural' as const, label: t('residue_selector.category_label_agricultural'), icon: Wheat },
+    { id: 'livestock' as const, label: t('residue_selector.category_label_livestock'), icon: Beef },
+    { id: 'urban' as const, label: t('residue_selector.category_label_urban'), icon: Building2 },
+    { id: 'industrial' as const, label: t('residue_selector.industrial'), icon: Factory }
   ];
 
   const selectedCategoryInfo = categories.find(c => c.id === selectedCategory)!;
 
   return (
-    <div className="bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden">
+    <div className="surface-light bg-paper-raised rounded-xl shadow-md border border-line overflow-hidden">
       {/* Category Tabs */}
-      <div className="grid grid-cols-4 border-b border-gray-200">
+      <div className="grid grid-cols-4 border-b border-line">
         {categories.map((cat) => {
           const Icon = cat.icon;
           const isActive = selectedCategory === cat.id;
@@ -152,14 +153,20 @@ export default function SimpleResidueSelector({
             <button
               key={cat.id}
               onClick={() => handleCategoryClick(cat.id)}
-              className={`flex flex-col items-center gap-1 py-3 transition-all ${
+              aria-pressed={isActive}
+              className={`-mb-px flex flex-col items-center gap-1 border-b-2 py-3 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-terra-600 ${
                 isActive
-                  ? `bg-${cat.color}-50 border-b-2 border-${cat.color}-600`
-                  : 'hover:bg-gray-50'
+                  ? 'border-terra-600 text-ink'
+                  : 'border-transparent text-ink-muted hover:bg-paper-sunken hover:text-ink'
               }`}
             >
-              <Icon className={`h-4 w-4 ${isActive ? `text-${cat.color}-600` : 'text-gray-400'}`} />
-              <span className={`text-[10px] font-medium ${isActive ? `text-${cat.color}-700` : 'text-gray-600'}`}>
+              {/* The sector's own colour marks its icon; industrial has none. */}
+              <Icon
+                className="h-4 w-4"
+                aria-hidden="true"
+                style={isActive && cat.id !== 'industrial' ? { color: SECTOR_COLORS[cat.id] } : undefined}
+              />
+              <span className="text-[10px] font-medium">
                 {cat.label}
               </span>
             </button>
@@ -187,7 +194,7 @@ export default function SimpleResidueSelector({
                       <label
                         key={residue.code}
                         className={`flex items-center gap-2 p-2 rounded cursor-pointer transition-all ${
-                          isSelected ? 'bg-terra-100 border border-terra-300' : 'hover:bg-gray-50'
+                          isSelected ? 'bg-paper-sunken border border-terra-600' : 'hover:bg-paper-sunken'
                         }`}
                       >
                         <input
@@ -201,7 +208,7 @@ export default function SimpleResidueSelector({
                           className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-all peer-focus-visible:ring-2 peer-focus-visible:ring-terra-500 peer-focus-visible:ring-offset-1 ${
                             isSelected
                               ? 'bg-terra-600 border-terra-600'
-                              : 'border-gray-300'
+                              : 'border-line-strong'
                           }`}
                         >
                           {isSelected && (
@@ -209,7 +216,7 @@ export default function SimpleResidueSelector({
                           )}
                         </div>
 
-                        <span className="text-xs text-gray-700">{residue.name}</span>
+                        <span className="text-xs text-ink">{residue.name}</span>
                       </label>
                     );
                   })}
@@ -219,13 +226,13 @@ export default function SimpleResidueSelector({
           }
 
           return (
-            <div key={group.id} className="border-b border-gray-100 last:border-0">
+            <div key={group.id} className="border-b border-line last:border-0">
               {/* Group Header: the "select all" checkbox and the expand button are
                   siblings. The checkbox used to sit inside a role="button" row,
                   where a screen reader cannot reach it as a control of its own. */}
               <div
                 className={`flex items-center gap-2 p-3 transition-colors ${
-                  isExpanded ? 'bg-gray-50' : 'hover:bg-gray-50'
+                  isExpanded ? 'bg-paper-sunken' : 'hover:bg-paper-sunken'
                 }`}
               >
                 {selectedCategory === 'agricultural' && (
@@ -239,7 +246,7 @@ export default function SimpleResidueSelector({
                         ? 'bg-terra-600 border-terra-600'
                         : selectedCount > 0
                         ? 'bg-terra-200 border-terra-600'
-                        : 'border-gray-300'
+                        : 'border-line-strong'
                     }`}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' || e.key === ' ') {
@@ -271,15 +278,15 @@ export default function SimpleResidueSelector({
                   className="flex flex-1 items-center gap-2 text-left cursor-pointer rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-terra-500"
                 >
                   {isExpanded ? (
-                    <ChevronDown className="w-3.5 h-3.5 text-gray-600" />
+                    <ChevronDown className="w-3.5 h-3.5 text-ink-muted" />
                   ) : (
-                    <ChevronRight className="w-3.5 h-3.5 text-gray-600" />
+                    <ChevronRight className="w-3.5 h-3.5 text-ink-muted" />
                   )}
 
-                  <span className="flex-1 text-xs font-medium text-gray-800">{group.label}</span>
+                  <span className="flex-1 text-xs font-medium text-ink">{group.label}</span>
 
                   {selectedCount > 0 && (
-                    <span className="px-1.5 py-0.5 bg-terra-700 text-white text-[10px] font-semibold rounded-full">
+                    <span className="px-1.5 py-0.5 bg-terra-700 text-white text-[10px] font-semibold tabular-nums">
                       {selectedCount}
                     </span>
                   )}
@@ -288,7 +295,7 @@ export default function SimpleResidueSelector({
 
               {/* Group Residues */}
               {isExpanded && (
-                <div className="p-2 space-y-0.5 bg-gray-50">
+                <div className="p-2 space-y-0.5 bg-paper-sunken">
                   {group.residues.map(residue => {
                     const isSelected = selectedResidueCodes.includes(residue.code);
 
@@ -296,7 +303,7 @@ export default function SimpleResidueSelector({
                       <label
                         key={residue.code}
                         className={`flex items-center gap-2 p-2 rounded cursor-pointer transition-all ${
-                          isSelected ? 'bg-terra-100 border border-terra-300' : 'hover:bg-white'
+                          isSelected ? 'bg-paper-sunken border border-terra-600' : 'hover:bg-paper-raised'
                         }`}
                       >
                         <input
@@ -310,7 +317,7 @@ export default function SimpleResidueSelector({
                           className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-all peer-focus-visible:ring-2 peer-focus-visible:ring-terra-500 peer-focus-visible:ring-offset-1 ${
                             isSelected
                               ? 'bg-terra-600 border-terra-600'
-                              : 'border-gray-300'
+                              : 'border-line-strong'
                           }`}
                         >
                           {isSelected && (
@@ -318,7 +325,7 @@ export default function SimpleResidueSelector({
                           )}
                         </div>
 
-                        <span className="text-xs text-gray-700">{residue.name}</span>
+                        <span className="text-xs text-ink">{residue.name}</span>
                       </label>
                     );
                   })}
@@ -331,14 +338,14 @@ export default function SimpleResidueSelector({
 
       {/* Selection Summary & Apply */}
       {selectedResidueCodes.length > 0 && (
-        <div className="p-3 bg-gray-50 border-t border-gray-200">
+        <div className="p-3 bg-paper-sunken border-t border-line">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs text-gray-600">
+            <span className="text-xs text-ink-muted">
               {t('residue_selector.selected_count', { count: selectedResidueCodes.length })}
             </span>
             <button
               onClick={() => onResidueCodesChange([])}
-              className="text-xs text-gray-500 hover:text-gray-700"
+              className="text-xs text-ink-muted hover:text-ink"
             >
               {t('residue_selector.clear')}
             </button>

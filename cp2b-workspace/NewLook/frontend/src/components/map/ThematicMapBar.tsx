@@ -23,6 +23,17 @@ import {
   type ThematicPresetGroup,
 } from '@/data/thematicPresets';
 import { MAP_PALETTES } from '@/lib/mapMetrics';
+import { Check, ChevronDown, ChevronRight, FlaskConical, Layers, Map as MapIcon, Sprout, Truck, Zap, type LucideIcon } from 'lucide-react';
+
+// Line icons for the category chips (the presets' emoji stay in the data for
+// other uses; the bar follows the one-icon-set rule).
+const GROUP_ICONS: Record<ThematicPresetGroup, LucideIcon> = {
+  setorial: Layers,
+  residuo: Sprout,
+  energia: Zap,
+  logistica: Truck,
+  analise: FlaskConical,
+};
 
 function rampGradient(presetPalette?: ThematicPreset['config']['palette']): string {
   const ramp = presetPalette ? MAP_PALETTES[presetPalette].ramp : MAP_PALETTES.ylgnbu.ramp;
@@ -63,7 +74,7 @@ export default function ThematicMapBar({
   };
 
   return (
-    <div className={`pointer-events-auto max-w-full rounded-br-xl border-b border-r border-gray-200 bg-white/92 shadow-sm backdrop-blur md:w-full md:rounded-none md:border-r-0 ${collapsed ? 'w-fit' : 'w-full'}`}>
+    <div className={`surface-light pointer-events-auto max-w-full border-b border-r border-line bg-paper-raised/95 backdrop-blur md:w-full md:border-r-0 ${collapsed ? 'w-fit' : 'w-full'}`}>
       {/* Click-away backdrop: any click outside an open dropdown closes it. */}
       {openGroup && (
         <div className="fixed inset-0 z-0" aria-hidden="true" onClick={() => setOpenGroup(null)} />
@@ -74,19 +85,22 @@ export default function ThematicMapBar({
         <button
           type="button"
           onClick={onToggleCollapsed}
-          className="flex min-h-11 min-w-11 shrink-0 items-center justify-center gap-0.5 rounded-md px-1 py-1 text-[10px] font-bold uppercase tracking-tight text-gray-600 hover:bg-gray-100 md:min-h-0 md:min-w-0 md:gap-1 md:px-1.5 md:text-[11px] md:tracking-wide"
+          className="flex min-h-11 min-w-11 shrink-0 items-center justify-center gap-1 px-1 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-muted hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-terra-600 md:min-h-0 md:min-w-0 md:gap-1.5 md:px-2 md:text-[11px]"
           title={collapsed ? t('show') : t('hide')}
           aria-expanded={!collapsed}
         >
-          <span aria-hidden="true">🗺️</span>
+          <MapIcon className="h-3.5 w-3.5" aria-hidden="true" />
           <span className="sm:hidden">{t('short_title')}</span>
           <span className="hidden sm:inline">{t('title')}</span>
-          <span aria-hidden="true" className="text-gray-400">{collapsed ? '▸' : '▾'}</span>
+          {collapsed
+            ? <ChevronRight className="h-3 w-3" aria-hidden="true" />
+            : <ChevronDown className="h-3 w-3" aria-hidden="true" />}
         </button>
 
         {!collapsed && (
           <div className="flex min-w-0 flex-1 flex-nowrap items-center gap-0.5 md:flex-none md:flex-wrap md:gap-1.5">
-            {PRESET_GROUP_META.map(({ group, icon }, index) => {
+            {PRESET_GROUP_META.map(({ group }, index) => {
+              const Icon = GROUP_ICONS[group];
               const label = t(`group_labels.${group}`);
               const items = THEMATIC_PRESETS.filter((p) => p.group === group);
               if (items.length === 0) return null;
@@ -99,27 +113,27 @@ export default function ThematicMapBar({
                     onClick={() => setOpenGroup(isOpen ? null : group)}
                     aria-expanded={isOpen}
                     aria-haspopup="listbox"
-                    className={`flex min-h-11 w-full min-w-0 flex-col items-center justify-center gap-0 rounded-lg px-0.5 py-1 text-[9px] font-semibold leading-none transition-colors md:min-h-0 md:w-auto md:flex-row md:gap-1 md:rounded-full md:px-3 md:py-1.5 md:text-xs ${
+                    className={`flex min-h-11 w-full min-w-0 flex-col items-center justify-center gap-0.5 border px-0.5 py-1 text-[9px] font-medium leading-none transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-terra-600 md:min-h-0 md:w-auto md:flex-row md:gap-1.5 md:px-3 md:py-1.5 md:text-xs ${
                       isActive
-                        ? 'bg-terra-700 text-white shadow-sm'
+                        ? 'border-terra-600 bg-terra-600 text-white'
                         : isOpen
-                          ? 'bg-gray-100 text-gray-800 ring-1 ring-gray-300'
-                          : 'text-gray-700 hover:bg-gray-100'
+                          ? 'border-line-strong bg-paper-sunken text-ink'
+                          : 'border-transparent text-ink-muted hover:border-line hover:text-ink'
                     }`}
                   >
-                    <span aria-hidden="true" className="text-sm leading-none md:text-xs">{icon}</span>
+                    <Icon className="h-4 w-4 shrink-0 md:h-3.5 md:w-3.5" aria-hidden="true" />
                     <span className="mt-0.5 truncate md:mt-0">
                       <span className="md:hidden">{tGroups[group]}</span>
                       <span className="hidden md:inline">{label}</span>
                     </span>
-                    <span aria-hidden="true" className={`hidden text-[9px] transition-transform md:inline ${isOpen ? 'rotate-180' : ''}`}>▾</span>
+                    <ChevronDown aria-hidden="true" className={`hidden h-3 w-3 transition-transform md:inline ${isOpen ? 'rotate-180' : ''}`} />
                   </button>
 
                   {isOpen && (
                     <div
                       role="listbox"
                       aria-label={label}
-                      className={`absolute top-full z-20 mt-1 max-h-[60vh] w-60 overflow-y-auto rounded-xl bg-white p-1.5 shadow-xl ring-1 ring-black/10 ${
+                      className={`absolute top-full z-20 mt-1 max-h-[60vh] w-64 overflow-y-auto border border-line bg-paper-raised py-1 shadow-xl ${
                         index < 2
                           ? 'left-0'
                           : index > 2
@@ -149,27 +163,26 @@ export default function ThematicMapBar({
                                 ? t('validating_tooltip', { description: t(`presets.${preset.id}.description`) })
                                 : t(`presets.${preset.id}.description`)
                             }
-                            className={`flex min-h-11 w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left transition-colors md:min-h-0 ${
+                            className={`flex min-h-11 w-full items-center gap-2 border-l-2 px-3 py-2 text-left transition-colors focus:outline-none focus-visible:bg-paper-sunken md:min-h-0 ${
                               disabled
-                                ? 'cursor-not-allowed bg-gray-50 opacity-45'
+                                ? 'cursor-not-allowed border-transparent opacity-45'
                                 : active
-                                  ? 'bg-terra-50 ring-1 ring-terra-600'
-                                  : 'hover:bg-gray-50'
+                                  ? 'border-terra-600 bg-paper-sunken'
+                                  : 'border-transparent hover:bg-paper-sunken'
                             }`}
                           >
-                            <span aria-hidden="true" className="text-base leading-none">{preset.icon}</span>
                             <span className="min-w-0 flex-1">
-                              <span className="block truncate text-[11px] font-semibold text-gray-800">
+                              <span className="block truncate text-xs font-medium text-ink">
                                 {t(`presets.${preset.id}.label`)}
                               </span>
                               <span
                                 aria-hidden="true"
-                                className="mt-1 block h-1 w-full rounded-full"
+                                className="mt-1.5 block h-1 w-full"
                                 style={{ background: rampGradient(preset.config.palette) }}
                               />
                             </span>
-                            {disabled && <span className="text-[9px] font-semibold text-gray-500">{t('validating_badge')}</span>}
-                            {active && <span aria-hidden="true" className="text-[10px] text-terra-700">✓</span>}
+                            {disabled && <span className="text-[9px] font-semibold uppercase tracking-wider text-ink-muted">{t('validating_badge')}</span>}
+                            {active && <Check className="h-3.5 w-3.5 shrink-0 text-terra-600" aria-hidden="true" />}
                           </button>
                         );
                       })}

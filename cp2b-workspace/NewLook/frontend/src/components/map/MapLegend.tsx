@@ -76,13 +76,13 @@ export default function MapLegend({
 
   return (
     <div>
-      <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-gray-100 overflow-hidden w-40 md:w-48">
+      <div className="surface-light bg-paper-raised/95 backdrop-blur-sm rounded-xl shadow-lg border border-line overflow-hidden w-40 md:w-48">
         {/* Header */}
-        <div className="flex items-center justify-between px-3 py-2.5 bg-gradient-to-r from-gray-50 to-white border-b border-gray-100">
+        <div className="flex items-center justify-between px-3 py-2.5 bg-gradient-to-r from-paper-sunken to-paper-raised border-b border-line">
           {/* The ramp is the São Paulo ramp. Saying so in the legend header is
               the cheapest place to prevent the whole misreading — the reader is
               already looking here to decode the colours. */}
-          <span className="text-[10px] font-semibold text-gray-700 uppercase tracking-wide leading-tight">
+          <span className="text-[10px] font-semibold text-ink uppercase tracking-wide leading-tight">
             {title}
             <span className="block text-[9px] font-bold text-terra-700 normal-case tracking-normal">
               {scopeLabel}{betaScope ? ' · BETA' : ''}
@@ -98,7 +98,7 @@ export default function MapLegend({
           </span>
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="text-gray-400 hover:text-gray-600 focus:outline-none transition-colors rounded-full hover:bg-gray-100 p-0.5"
+            className="text-ink-muted hover:text-ink-muted focus:outline-none transition-colors rounded-full hover:bg-paper-sunken p-0.5"
             aria-label={isCollapsed ? t('legend.expand') : t('legend.collapse')}
             aria-expanded={!isCollapsed}
           >
@@ -114,7 +114,7 @@ export default function MapLegend({
             CVD-safe palette instead of being locked to one blue ramp. */}
         {!isCollapsed && daltonic && (
           <div className="px-3 pt-2.5">
-            <span className="mb-1 block text-[9px] font-bold uppercase tracking-wide text-gray-400">
+            <span className="mb-1 block text-[9px] font-bold uppercase tracking-wide text-ink-muted">
               {t('legend.cvd_palette')}
             </span>
             <div className="flex gap-1" role="radiogroup" aria-label={t('legend.cvd_palette_aria')}>
@@ -131,7 +131,7 @@ export default function MapLegend({
                     onClick={() => setCvdPalette(id)}
                     title={`${name} — ${t(`palettes.${id}.note`)}`}
                     className={`flex-1 rounded-md border p-1 transition-all ${
-                      active ? 'border-gray-800 ring-1 ring-gray-800' : 'border-gray-200 hover:border-gray-400'
+                      active ? 'border-ink ring-1 ring-ink' : 'border-line hover:border-line-strong'
                     }`}
                   >
                     <span className="flex h-3 w-full overflow-hidden rounded-sm" aria-hidden="true">
@@ -139,7 +139,7 @@ export default function MapLegend({
                         <span key={c} className="flex-1" style={{ backgroundColor: c }} />
                       ))}
                     </span>
-                    <span className="mt-0.5 block text-[8px] font-semibold text-gray-600">{name}</span>
+                    <span className="mt-0.5 block text-[8px] font-semibold text-ink-muted">{name}</span>
                   </button>
                 );
               })}
@@ -153,18 +153,18 @@ export default function MapLegend({
             {legendItems.map((item, index) => (
               <div
                 key={index}
-                className="flex items-center gap-2.5 hover:bg-gray-50 px-1.5 py-1 rounded-md transition-colors"
+                className="flex items-center gap-2.5 hover:bg-paper-sunken px-1.5 py-1 rounded-md transition-colors"
                 role="listitem"
               >
                 {/* Color box */}
                 <div
-                  className="w-5 h-3.5 rounded border border-gray-200 shadow-sm flex-shrink-0"
+                  className="w-5 h-3.5 rounded border border-line shadow-sm flex-shrink-0"
                   style={{ backgroundColor: item.color }}
                   aria-hidden="true"
                 />
 
                 {/* Label */}
-                <span className="text-[10px] text-gray-700 font-medium flex-1">
+                <span className="text-[10px] text-ink font-medium flex-1">
                   {item.label}
                 </span>
               </div>
@@ -173,14 +173,14 @@ export default function MapLegend({
             {/* Beta swatch, separated by a rule: it is not another step of the
                 ramp, it is a different scope with a different confidence. */}
             {showNationalBeta && !betaScope && (
-              <div className="pt-1.5 mt-1 border-t border-gray-100">
+              <div className="pt-1.5 mt-1 border-t border-line">
                 <div className="flex items-center gap-2.5 px-1.5 py-1" role="listitem">
                   <div
-                    className="w-5 h-3.5 rounded border border-gray-200 shadow-sm flex-shrink-0 opacity-40"
+                    className="w-5 h-3.5 rounded border border-line shadow-sm flex-shrink-0 opacity-40"
                     style={{ backgroundColor: BETA_FILL }}
                     aria-hidden="true"
                   />
-                  <span className="text-[10px] text-gray-500 font-medium flex-1 leading-tight">
+                  <span className="text-[10px] text-ink-muted font-medium flex-1 leading-tight">
                     {t('legend.mg_beta')}
                   </span>
                 </div>
@@ -191,8 +191,8 @@ export default function MapLegend({
                 outside SP every municipality reads no-data under them. Saying so
                 here stops that being mistaken for "measured, and it is zero". */}
             {scenarioApplies && served && (
-              <div className="pt-1.5 mt-1 border-t border-gray-100">
-                <p className="px-1.5 text-[9px] leading-snug text-gray-500">
+              <div className="pt-1.5 mt-1 border-t border-line">
+                <p className="px-1.5 text-[9px] leading-snug text-ink-muted">
                   {t('scenario_served_note')}
                 </p>
               </div>

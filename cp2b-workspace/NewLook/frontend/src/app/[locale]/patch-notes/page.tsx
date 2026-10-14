@@ -39,11 +39,11 @@ interface Entry {
 
 // Icon and colour per change kind. The visible label comes from the catalog.
 const KIND_META: Record<Kind, { icon: typeof Plus; className: string }> = {
-  added: { icon: Plus, className: 'bg-terra-100 text-terra-700' },
-  changed: { icon: RefreshCw, className: 'bg-dusk-100 text-dusk-800' },
-  fixed: { icon: Wrench, className: 'bg-amber-100 text-amber-800' },
-  security: { icon: ShieldCheck, className: 'bg-rose-100 text-rose-800' },
-  data: { icon: Database, className: 'bg-violet-100 text-violet-800' },
+  added: { icon: Plus, className: 'text-terra-700 dark:text-terra-300' },
+  changed: { icon: RefreshCw, className: 'text-dusk-700 dark:text-dusk-300' },
+  fixed: { icon: Wrench, className: 'text-ochre-700 dark:text-ochre-300' },
+  security: { icon: ShieldCheck, className: 'text-terra-900 dark:text-terra-200' },
+  data: { icon: Database, className: 'text-ink' },
 };
 
 /**
@@ -84,11 +84,11 @@ export default function PatchNotesPage() {
       {entries.length === 0 ? (
         <p className="text-gray-500 dark:text-gray-400">{t('empty')}</p>
       ) : (
-        <ol className="relative border-l border-gray-200 dark:border-gray-700 ml-3">
+        <ol className="relative border-l border-line ml-3">
           {entries.map((entry) => (
             <li key={entry.version} className="mb-12 ml-8">
               <span
-                className="absolute -left-2.5 flex h-5 w-5 items-center justify-center rounded-full bg-terra-600 ring-4 ring-white dark:ring-gray-900"
+                className="absolute -left-2.5 flex h-5 w-5 items-center justify-center rounded-full bg-terra-600 ring-4 ring-paper"
                 aria-hidden="true"
               />
 
@@ -114,7 +114,7 @@ export default function PatchNotesPage() {
                   return (
                     <li key={index} className="flex items-start gap-3">
                       <span
-                        className={`mt-0.5 inline-flex w-24 shrink-0 items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold ${meta.className}`}
+                        className={`mt-0.5 inline-flex w-24 shrink-0 items-center gap-1.5 border border-current px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wider ${meta.className}`}
                       >
                         <Icon className="h-3 w-3" aria-hidden="true" />
                         {t(`kind.${change.kind}`)}

@@ -28,12 +28,12 @@ function CNRatioBar({ cn, label, role }: { cn: number; label: string; role: stri
   return (
     <div className="mb-3">
       <div className="flex items-center justify-between mb-1">
-        <span className="text-xs text-gray-700 font-medium truncate max-w-[60%]">{label}</span>
+        <span className="text-xs text-ink font-medium truncate max-w-[60%]">{label}</span>
         <span className="text-xs font-mono font-bold" style={{ color: roleColor }}>
           C:N {format.number(cn, { decimals: 1 })}
         </span>
       </div>
-      <div className="relative h-3 bg-gray-100 rounded-full overflow-hidden">
+      <div className="relative h-3 bg-paper-sunken rounded-full overflow-hidden">
         {/* Optimal zone highlight */}
         <div
           className="absolute top-0 bottom-0 bg-terra-200 opacity-60"
@@ -45,7 +45,7 @@ function CNRatioBar({ cn, label, role }: { cn: number; label: string; role: stri
           style={{ left: `calc(${pct}% - 2px)`, backgroundColor: roleColor }}
         />
       </div>
-      <div className="flex justify-between text-[9px] text-gray-400 mt-0.5">
+      <div className="flex justify-between text-[9px] text-ink-muted mt-0.5">
         <span>0</span>
         <span className="text-terra-600 font-medium">
           {t('optimal_band', { low: CN_OPTIMAL_LOW, high: CN_OPTIMAL_HIGH })}
@@ -64,15 +64,15 @@ function PairCard({ pair, rank }: { pair: CodigestionPair; rank: number }) {
   const inRange = pair.cn_combined_in_range;
 
   return (
-    <div className="border border-gray-200 rounded-lg overflow-hidden mb-2">
+    <div className="border border-line rounded-lg overflow-hidden mb-2">
       <button
         onClick={() => setOpen(o => !o)}
         aria-expanded={open}
-        className="w-full flex items-center justify-between px-3 py-2 hover:bg-gray-50 transition-colors"
+        className="w-full flex items-center justify-between px-3 py-2 hover:bg-paper-sunken transition-colors"
       >
         <div className="flex items-center gap-2 text-left">
-          <span className="text-[10px] text-gray-400 font-mono">#{rank}</span>
-          <span className="text-xs font-medium text-gray-700 truncate">
+          <span className="text-[10px] text-ink-muted font-mono">#{rank}</span>
+          <span className="text-xs font-medium text-ink truncate">
             {text.substrate(pair.residue_a)} + {text.substrate(pair.residue_b)}
           </span>
         </div>
@@ -82,16 +82,16 @@ function PairCard({ pair, rank }: { pair: CodigestionPair; rank: number }) {
           }`}>
             C:N {format.number(pair.cn_combined, { decimals: 1 })}
           </span>
-          {open ? <ChevronUp className="w-3 h-3 text-gray-400" /> : <ChevronDown className="w-3 h-3 text-gray-400" />}
+          {open ? <ChevronUp className="w-3 h-3 text-ink-muted" /> : <ChevronDown className="w-3 h-3 text-ink-muted" />}
         </div>
       </button>
 
       {open && (
-        <div className="px-3 pb-3 bg-gray-50 border-t border-gray-100 space-y-3">
+        <div className="px-3 pb-3 bg-paper-sunken border-t border-line space-y-3">
           <CNRatioBar cn={pair.residue_a.cn_ratio} label={text.substrate(pair.residue_a)} role={pair.residue_a.cn_role} />
           <CNRatioBar cn={pair.residue_b.cn_ratio} label={text.substrate(pair.residue_b)} role={pair.residue_b.cn_role} />
 
-          <div className="bg-white rounded border border-gray-200 p-2 space-y-1 text-xs text-gray-600">
+          <div className="bg-paper-raised rounded border border-line p-2 space-y-1 text-xs text-ink-muted">
             <div className="flex justify-between">
               <span>{t('blend', { ratio: pair.blend_ratio_A_to_B })}</span>
               <span className={`font-mono font-bold ${inRange ? 'text-terra-600' : 'text-amber-600'}`}>
@@ -138,7 +138,7 @@ export default function CodigestionDetailPanel({
     // screen reader can find it; the map stays usable while it is open.
     <section
       aria-labelledby={titleId}
-      className="absolute top-20 right-4 z-[500] w-80 max-h-[calc(100vh-120px)] flex flex-col bg-white/97 backdrop-blur-sm shadow-xl rounded-xl overflow-hidden border border-violet-200"
+      className="surface-light absolute top-20 right-4 z-[500] w-80 max-h-[calc(100vh-120px)] flex flex-col bg-paper-raised/97 backdrop-blur-sm shadow-xl rounded-xl overflow-hidden border border-violet-200"
     >
       {/* Header */}
       <div className="bg-gradient-to-r from-violet-700 to-purple-800 px-4 py-3 flex items-center justify-between flex-shrink-0">
@@ -160,7 +160,7 @@ export default function CodigestionDetailPanel({
       <div className="overflow-y-auto flex-1 p-3 space-y-4">
         {/* Top pair summary */}
         <div>
-          <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-2">
+          <div className="text-[10px] font-bold text-ink-muted uppercase tracking-wide mb-2">
             {t('best_opportunity')}
           </div>
           <div className="bg-violet-50 border border-violet-200 rounded-lg p-3 space-y-2">
@@ -169,17 +169,17 @@ export default function CodigestionDetailPanel({
 
             <div className="border-t border-violet-200 pt-2 space-y-1 text-xs">
               <div className="flex justify-between">
-                <span className="text-gray-600">{t('recommended_blend')}</span>
-                <span className="font-mono text-gray-800">{top.blend_ratio_A_to_B}</span>
+                <span className="text-ink-muted">{t('recommended_blend')}</span>
+                <span className="font-mono text-ink">{top.blend_ratio_A_to_B}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">{t('combined_cn')}</span>
+                <span className="text-ink-muted">{t('combined_cn')}</span>
                 <span className={`font-mono font-bold ${top.cn_combined_in_range ? 'text-terra-600' : 'text-amber-600'}`}>
                   {format.number(top.cn_combined, { decimals: 1 })} {top.cn_combined_in_range ? '✓' : '~'}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">{t('available_feedstock')}</span>
+                <span className="text-ink-muted">{t('available_feedstock')}</span>
                 <span className="font-mono">
                   {text.amount(top.combined_biomass_tons_year, top.combined_biogas_m3_year)}
                 </span>
@@ -190,14 +190,14 @@ export default function CodigestionDetailPanel({
 
         {/* Municipalities */}
         <div>
-          <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-2">
+          <div className="text-[10px] font-bold text-ink-muted uppercase tracking-wide mb-2">
             {t('municipalities', { count: cluster.municipality_count })}
           </div>
           <div className="space-y-1 max-h-36 overflow-y-auto">
             {cluster.municipalities.map(m => (
-              <div key={m.ibge_code} className="flex justify-between text-xs px-2 py-1 rounded hover:bg-gray-50">
-                <span className="text-gray-700 truncate">{m.name}</span>
-                <span className="text-gray-400 flex-shrink-0 ml-2">
+              <div key={m.ibge_code} className="flex justify-between text-xs px-2 py-1 rounded hover:bg-paper-sunken">
+                <span className="text-ink truncate">{m.name}</span>
+                <span className="text-ink-muted flex-shrink-0 ml-2">
                   {format.number(m.distance_from_centroid_km, { decimals: 1 })} {tCommon('units.km')}
                 </span>
               </div>
@@ -211,7 +211,7 @@ export default function CodigestionDetailPanel({
             <button
               onClick={() => setShowAllPairs(o => !o)}
               aria-expanded={showAllPairs}
-              className="flex items-center justify-between w-full text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-2 hover:text-gray-700 transition-colors"
+              className="flex items-center justify-between w-full text-[10px] font-bold text-ink-muted uppercase tracking-wide mb-2 hover:text-ink transition-colors"
             >
               <span>{t('all_pairs', { count: cluster.all_qualifying_pairs.length })}</span>
               {showAllPairs ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
@@ -230,7 +230,7 @@ export default function CodigestionDetailPanel({
       {/* Disclaimer footer */}
       <div className="flex-shrink-0 px-3 py-2 bg-amber-50 border-t border-amber-200">
         <p className="text-[10px] text-amber-700 leading-relaxed">
-          ⚗️ {t.rich('disclaimer', { strong: (chunks) => <strong>{chunks}</strong> })}
+          {t.rich('disclaimer', { strong: (chunks) => <strong>{chunks}</strong> })}
         </p>
       </div>
     </section>
