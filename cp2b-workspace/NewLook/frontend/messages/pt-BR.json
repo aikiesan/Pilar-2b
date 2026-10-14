@@ -427,9 +427,9 @@
     "scenario_fronteira_tip": "Fronteira do Biogás: mobilização realista-alta dos 31 resíduos — supera o benchmark FIESP (~6,4 Mm³/d de biometano).",
     "scenario_real": "Real",
     "scenario_ideal": "Ideal",
-    "scenario_real_tip": "Cenário Real (curto prazo): resíduo que efetivamente chega a um digestor hoje — taxas de coleta e usos concorrentes atuais. SP: 21,5 Mm³/dia de biometano. Metodologia: Atlas de Bioenergia SP 2020.",
-    "scenario_ideal_tip": "Cenário Ideal (fronteira): 100% do resíduo gerado coletado e tratado. É hipótese de infraestrutura — a química (BMP, TS, VS, teor de CH₄) é idêntica à do Cenário Real. SP: 27,0 Mm³/dia de biometano.",
-    "scenario_served_note": "Cenários Real e Ideal disponíveis apenas para São Paulo.",
+    "scenario_real_tip": "Cenário Real (CP2b N4, potencial acessível): o potencial mobilizável (N3) depois das perdas de armazenamento e do fator logístico espacial calculado sobre a malha viária (hubs que atingem escala viável). É a cascata completa de fatores do método CP2b v5.1, cenário de referência. SP: 16,4 Mm³/dia de CH₄ (envelope de cenários mín.–máx. 5,2–42,7, não um intervalo de probabilidade). 11 dos 17 substratos ainda têm parâmetros provisórios.",
+    "scenario_ideal_tip": "Cenário Ideal (CP2b N3, potencial mobilizável): potencial técnico menos os usos que excluem a digestão e o metano que as plantas em operação já recuperam, antes das perdas de armazenamento e da logística. É o número principal do método CP2b v5.1, cenário de referência. SP: 19,2 Mm³/dia de CH₄ (envelope de cenários mín.–máx. 7,7–45,0); a cana inclui o bagaço excedente. 11 dos 17 substratos ainda têm parâmetros provisórios.",
+    "scenario_served_note": "Cenários Real e Ideal (método CP2b) disponíveis apenas para São Paulo.",
     "thematic": {
       "groups": {
         "setorial": "Setor",

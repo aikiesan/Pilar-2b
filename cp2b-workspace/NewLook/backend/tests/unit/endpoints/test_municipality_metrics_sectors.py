@@ -1,73 +1,83 @@
 """Per-sector Real/Ideal columns must reach the municipality detail endpoint.
 
-The map payload deliberately omits them — eight fields across 5,571 features for
-something only an opened municipality reads. But `/municipalities/{id}/metrics`
-omitted them too, so they existed nowhere the client could see. With
-DEFAULT_MAP_SCENARIO = 'real', that left the profile panel with no breakdown to
-show for biogás/biometano/bioenergia on first load: it printed "Sem dados" over a
+The map payload deliberately omits them — six fields across 5,571 features for
+something only an opened municipality reads. `/municipalities/{id}/metrics`
+serves them instead. With DEFAULT_MAP_SCENARIO = 'real', the profile panel reads
+this split on first load; without it the panel printed "Sem dados" over a
 municipality the choropleth was painting green.
+
+Real and Ideal are the CP2b cascade (migration 034): Real = N4, Ideal = N3,
+served under the method's own names from the municipality_cp2b_map view.
 """
 
 from app.api.v1.endpoints.municipalities import (
-    _SCENARIO_SECTOR_COLUMNS,
-    _SCENARIO_SECTORS,
-    _served_scenario_sectors,
+    _CP2B_DETAIL_COLUMNS,
+    _CP2B_MAP_COLUMNS,
+    _load_cp2b_detail,
 )
 
 
-def test_covers_both_tiers_and_all_four_sectors():
-    assert set(_SCENARIO_SECTORS) == {"agricultural", "livestock", "urban", "forestry"}
-    # 4 sectors x 2 tiers, plus the 2 municipality totals.
-    assert len(_SCENARIO_SECTOR_COLUMNS) == 10
-    for tier in ("real", "ideal"):
-        for sector in _SCENARIO_SECTORS:
-            assert f"ch4_{tier}_{sector}_m3_year" in _SCENARIO_SECTOR_COLUMNS
+class FakeCursor:
+    """Answers _table_exists and the one detail SELECT."""
+
+    def __init__(self, has_view: bool, row: dict | None):
+        self.has_view = has_view
+        self.row = row
+        self.statements: list[str] = []
+        self._last = None
+
+    def execute(self, sql, params=None):
+        self.statements.append(sql)
+        self._last = sql
+
+    def fetchone(self):
+        if "information_schema" in self._last or "to_regclass" in self._last:
+            return {"exists": True, "to_regclass": "x"} if self.has_view else None
+        return self.row
+
+
+def test_covers_both_levels_and_the_three_cp2b_sectors():
+    for tier in ("cp2b_n3", "cp2b_n4"):
+        for sector in ("agricultural", "livestock", "urban"):
+            assert f"ch4_{tier}_{sector}_m3_year" in _CP2B_DETAIL_COLUMNS
+    # The method has no forestry stream, so there is no column to serve.
+    assert not any("forestry" in c for c in (*_CP2B_DETAIL_COLUMNS, *_CP2B_MAP_COLUMNS))
 
 
 def test_serves_the_municipality_totals_too():
-    # So the endpoint answers the whole question without the caller needing the
-    # collection payload alongside it.
-    assert "ch4_real_m3_year" in _SCENARIO_SECTOR_COLUMNS
-    assert "ch4_ideal_m3_year" in _SCENARIO_SECTOR_COLUMNS
+    # So the endpoint answers the whole question without the collection payload.
+    assert "ch4_cp2b_n3_m3_year" in _CP2B_MAP_COLUMNS
+    assert "ch4_cp2b_n4_m3_year" in _CP2B_MAP_COLUMNS
 
 
-def test_column_names_match_migration_026():
-    # The migration is the authority on these names; a typo here would silently
-    # serve None for every municipality rather than fail.
-    assert "ch4_real_agricultural_m3_year" in _SCENARIO_SECTOR_COLUMNS
-    assert "ch4_ideal_forestry_m3_year" in _SCENARIO_SECTOR_COLUMNS
-
-
-def test_passes_served_values_through_unchanged():
-    row = {c: 100.0 for c in _SCENARIO_SECTOR_COLUMNS}
-    row["ch4_real_livestock_m3_year"] = 4_000.0
-    out = _served_scenario_sectors(row)
-    assert out["ch4_real_livestock_m3_year"] == 4_000.0
-    # Served, never re-derived: no scaling, no rounding, no unit change.
-    assert out["ch4_real_urban_m3_year"] == 100.0
-
-
-def test_null_stays_null_and_is_not_coerced_to_zero():
-    # Outside São Paulo migration 026 loaded nothing. A 0 would state "measured,
-    # and there is no potential"; the panel must be able to say "no data".
-    out = _served_scenario_sectors({})
-    assert set(out) == set(_SCENARIO_SECTOR_COLUMNS)
-    assert all(v is None for v in out.values())
-
-    partial = _served_scenario_sectors({"ch4_real_agricultural_m3_year": None})
-    assert partial["ch4_real_agricultural_m3_year"] is None
-
-
-def test_a_measured_zero_survives_as_zero():
-    out = _served_scenario_sectors({"ch4_real_urban_m3_year": 0.0})
-    assert out["ch4_real_urban_m3_year"] == 0.0
-    assert out["ch4_real_urban_m3_year"] is not None
+def test_the_atlas_columns_are_no_longer_served():
+    served = (*_CP2B_DETAIL_COLUMNS, *_CP2B_MAP_COLUMNS)
+    assert not any(c.startswith(("ch4_real_", "ch4_ideal_")) for c in served)
 
 
 def test_sector_columns_do_not_collide_with_the_per_residue_ones():
-    # `forestry` is both a sector and a residue (migration 029 comment), so the
-    # two column families would overlap if either used the other's naming.
-    from app.api.v1.endpoints.municipalities import _SCENARIO_RESIDUE_COLUMNS
+    assert not set(_CP2B_DETAIL_COLUMNS) & set(_CP2B_MAP_COLUMNS)
 
-    overlap = set(_SCENARIO_SECTOR_COLUMNS) & set(_SCENARIO_RESIDUE_COLUMNS)
-    assert overlap == {"ch4_real_forestry_m3_year", "ch4_ideal_forestry_m3_year"}
+
+def test_no_view_means_no_keys_not_zeros():
+    # Before migration 034 is loaded the panel must say "no data", not "0".
+    assert _load_cp2b_detail(FakeCursor(has_view=False, row=None), "3550308") == {}
+
+
+def test_outside_the_view_means_no_keys():
+    assert _load_cp2b_detail(FakeCursor(has_view=True, row=None), "3106200") == {}
+
+
+def test_passes_served_values_through_unchanged():
+    row = {"ch4_cp2b_n4_livestock_m3_year": 4_000.0, "ch4_cp2b_n4_urban_m3_year": 0.0}
+    out = _load_cp2b_detail(FakeCursor(has_view=True, row=row), "3517406")
+    # Served, never re-derived; a measured zero stays a zero.
+    assert out["ch4_cp2b_n4_livestock_m3_year"] == 4_000.0
+    assert out["ch4_cp2b_n4_urban_m3_year"] == 0.0
+    assert out["ch4_cp2b_n4_urban_m3_year"] is not None
+
+
+def test_a_malformed_code_is_not_queried():
+    cur = FakeCursor(has_view=True, row={"x": 1})
+    assert _load_cp2b_detail(cur, "not-a-code") == {}
+    assert not any("municipality_cp2b_map WHERE" in s for s in cur.statements)

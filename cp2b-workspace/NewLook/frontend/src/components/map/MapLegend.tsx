@@ -187,7 +187,7 @@ export default function MapLegend({
               </div>
             )}
 
-            {/* Real and Ideal are loaded for São Paulo only (migration 026), so
+            {/* Real and Ideal (CP2b) are loaded for São Paulo only (migration 034), so
                 outside SP every municipality reads no-data under them. Saying so
                 here stops that being mistaken for "measured, and it is zero". */}
             {scenarioApplies && served && (

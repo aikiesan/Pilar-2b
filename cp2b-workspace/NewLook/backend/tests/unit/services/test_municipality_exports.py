@@ -36,8 +36,15 @@ MUNI = {
     # A measured zero, not a gap: this municipality farms no fish.
     "aquaculture_biogas_m3_year": 0.0,
     "aquaculture_biomass_tons_year": 0.0,
-    # Sewage has CH4 but no biogas total column at all — genuinely absent.
-    "ch4_real_sewage_m3_year": 99797.97,
+}
+
+# The municipality's row of the CP2b view: Cenário Real = N4, Ideal = N3.
+CP2B = {
+    "ch4_cp2b_n4_m3_year": 1_000_000.0,
+    "ch4_cp2b_n3_m3_year": 1_200_000.0,
+    "ch4_cp2b_n4_agricultural_m3_year": 900_000.0,
+    # Sewage has CH4 but no biogas total column at all — genuinely absent there.
+    "ch4_cp2b_n4_sewage_m3_year": 99797.97,
 }
 
 
@@ -180,3 +187,55 @@ def test_the_report_renders_in_both_languages():
     for lang in ("pt-BR", "en"):
         pdf = build_pdf(SECTIONS, WHO, None, None, lang)
         assert pdf.startswith(b"%PDF"), lang
+
+
+# ── Cenário Real / Ideal = CP2b N4 / N3 ──────────────────────────────────────
+
+
+def test_the_scenario_columns_read_cp2b_not_the_atlas():
+    # A stale Atlas value on the municipalities row must not leak into the sheet.
+    muni = {**MUNI, "ch4_real_agricultural_m3_year": 5.0}
+    frame = _sheet_setores(muni, "en", CP2B).set_index("Sector")
+
+    assert frame.loc["Agricultural", "CH₄ Real (m³/year)"] == 900_000.0
+    # CP2b has no forestry stream: empty, not zero.
+    assert pd.isna(frame.loc["Forestry", "CH₄ Real (m³/year)"])
+
+
+def test_residue_rows_take_the_cp2b_shares():
+    frame = _sheet_residuos(MUNI, [], "en", CP2B).set_index("Residue")
+
+    assert frame.loc["Sewage", "CH₄ Real (m³/year)"] == 99797.97
+    assert pd.isna(frame.loc["Sewage", "Biogas (m³/year)"])
+
+
+def test_without_cp2b_the_scenarios_are_empty_not_zero():
+    frame = _sheet_setores(MUNI, "en", {}).set_index("Sector")
+
+    assert frame["CH₄ Real (m³/year)"].drop("TOTAL").isna().all()
+    # The TOTAL row too: summing an all-empty column must not fabricate a 0.
+    assert pd.isna(frame.loc["TOTAL", "CH₄ Real (m³/year)"])
+    assert pd.isna(frame.loc["TOTAL", "CH₄ Ideal (m³/year)"])
+
+
+def test_a_partial_cp2b_row_still_totals():
+    frame = _sheet_setores(MUNI, "en", CP2B).set_index("Sector")
+
+    assert frame.loc["TOTAL", "CH₄ Real (m³/year)"] == 900_000.0
+
+
+def test_the_workbook_says_which_figures_are_cp2b():
+    from app.services.municipality_exports import _sheet_fontes
+
+    items = set(_sheet_fontes({}, WHO, "en")["Item"].dropna())
+    assert {"Real and Ideal scenarios", "Biogas, energy, CO₂, biomass and sectors"} <= items
+
+
+def test_the_workbook_reads_the_cp2b_section():
+    from io import BytesIO
+
+    book = pd.ExcelFile(BytesIO(build_workbook({**SECTIONS, "cp2b": [CP2B]}, WHO, "en")))
+    summary = pd.read_excel(book, "Summary", header=None)
+    row = summary[summary[0] == "CH₄, Real scenario (CP2b N4)"]
+
+    assert float(str(row.iloc[0, 1]).replace(" ", "")) == 1_000_000.0

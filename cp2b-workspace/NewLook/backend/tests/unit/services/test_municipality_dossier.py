@@ -93,3 +93,27 @@ def test_validation_plants_is_reached_through_the_name():
 def test_every_section_is_keyed_somehow(name, table, key):
     """A section is either keyed on its own column or declared name-keyed."""
     assert key == "ibge_code" or table in dossier.NAME_KEYED, f"{table} has no usable key"
+
+
+class RegclassCursor(FakeCursor):
+    """Answers to_regclass with NULL: the CP2b view is not deployed."""
+
+    def fetchone(self):
+        if self.statements and "to_regclass" in self.statements[-1][0]:
+            return (None,)
+        return super().fetchone()
+
+
+def test_a_missing_optional_view_empties_its_section_instead_of_failing():
+    # Before migration 034 the CP2b view does not exist; querying it would raise
+    # UndefinedTable and take the whole dossier down with it.
+    cur = RegclassCursor([], [])
+    sections = dossier.collect(FakeConnection(cur), "3550308")
+
+    assert sections["cp2b"] == []
+    assert not any("FROM municipality_cp2b_map" in sql for sql, _ in cur.statements)
+
+
+def test_the_cp2b_view_is_an_optional_section():
+    assert ("cp2b", "municipality_cp2b_map", "ibge_code") in dossier.SECTIONS
+    assert "municipality_cp2b_map" in dossier.OPTIONAL_TABLES
