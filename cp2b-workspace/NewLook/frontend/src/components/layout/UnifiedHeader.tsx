@@ -177,7 +177,7 @@ export default function UnifiedHeader() {
               {/* Global Search: in the bar at every width, phones included. One
                   instance only, since it listens for "/" on the whole window. */}
               <div>
-                <GlobalSearch variant="light" />
+                <GlobalSearch />
               </div>
 
               <div className="hidden xl:flex items-center gap-3">

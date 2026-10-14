@@ -3,9 +3,10 @@
 /**
  * The landing page's search: type a municipality's name or IBGE code, pick it,
  * land on its page. A combobox (ARIA 1.2 pattern): arrows move through the
- * options, Enter opens one, Escape clears.
+ * options, Enter opens one, Escape clears. Matching is lib/municipalitySearch,
+ * the same as the header's.
  *
- * It loads the light name list (/municipalities/names, no geometry) on first
+ * It loads the light name list (useMunicipalityNames, no geometry) on first
  * focus rather than the map's GeoJSON, so the landing stays quick. An option
  * opens the municipality's readable address (/municipalities/campinas-sp).
  */
@@ -13,24 +14,20 @@ import { useId, useMemo, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Search } from 'lucide-react';
 import { useRouter } from '@/navigation';
-import { fetchMunicipalityNames, type MunicipalityName } from '@/lib/municipalityNames';
+import type { MunicipalityName } from '@/lib/municipalityNames';
 import { municipalityPath } from '@/lib/municipalitySlug';
+import { searchMunicipalities, ufAbbreviation } from '@/lib/municipalitySearch';
+import { useMunicipalityNames } from '@/hooks/useMunicipalityNames';
 
 type MunicipalityOption = MunicipalityName;
 
 const MAX_RESULTS = 8;
 
-/** Accent- and case-insensitive, so "sao jose" finds "São José". */
-const fold = (text: string) =>
-  text.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
-
-type LoadState = 'idle' | 'loading' | 'ready' | 'failed';
-
 export default function MunicipalitySearch() {
   const t = useTranslations('home.search');
   const router = useRouter();
-  const [options, setOptions] = useState<MunicipalityOption[]>([]);
-  const [load, setLoad] = useState<LoadState>('idle');
+  const [wanted, setWanted] = useState(false);
+  const { names: options, state: load, retry } = useMunicipalityNames(wanted);
   const [query, setQuery] = useState('');
   const [active, setActive] = useState(0);
   const inputId = useId();
@@ -39,22 +36,21 @@ export default function MunicipalitySearch() {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const ensureLoaded = () => {
+    setWanted(true);
     // A failed load is tried again on the next focus.
-    if (load === 'loading' || load === 'ready') return;
-    setLoad('loading');
-    fetchMunicipalityNames().then((list) => {
-      setOptions(list);
-      setLoad(list.length > 0 ? 'ready' : 'failed');
-    });
+    retry();
   };
 
-  const results = useMemo(() => {
-    const q = fold(query);
-    if (!q) return [];
-    return options
-      .filter((o) => fold(o.municipality_name).includes(q) || String(o.ibge_code).startsWith(q))
-      .slice(0, MAX_RESULTS);
-  }, [query, options]);
+  const results = useMemo(
+    () =>
+      searchMunicipalities(
+        options,
+        query,
+        (o) => ({ name: o.municipality_name, code: o.ibge_code }),
+        MAX_RESULTS,
+      ),
+    [query, options],
+  );
   const expanded = results.length > 0;
 
   const go = (option: MunicipalityOption) =>
@@ -81,8 +77,8 @@ export default function MunicipalitySearch() {
       ? t('unavailable')
       : load === 'loading' && query
         ? t('loading')
-        : query && !expanded && load === 'ready'
-          ? t('no_results', { query })
+        : query.trim() && !expanded && load === 'ready'
+          ? `${t('no_results', { query: query.trim() })}. ${t('no_results_hint')}`
           : '';
 
   return (
@@ -138,7 +134,9 @@ export default function MunicipalitySearch() {
             }`}
           >
             <span className="font-medium">{option.municipality_name}</span>
-            <span className="font-mono text-xs text-ink-muted tabular-nums">{option.ibge_code}</span>
+            <span className="font-mono text-xs text-ink-muted tabular-nums">
+              {ufAbbreviation(option.ibge_code)} · {option.ibge_code}
+            </span>
           </li>
         ))}
       </ul>

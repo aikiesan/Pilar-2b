@@ -55,6 +55,7 @@ import ScopeSwitcher from './ScopeSwitcher';
 import MapLegend from './MapLegend';
 import MapLoadingSkeleton from './MapLoadingSkeleton';
 import { isPlantLayer } from '@/lib/plantLayers';
+import { matchesMunicipality } from '@/lib/municipalitySearch';
 import 'leaflet/dist/leaflet.css';
 import '@/lib/leafletConfig';
 
@@ -734,10 +735,8 @@ export default function MapComponent({
 
       // Search query filter
       const query = activeFilters?.searchQuery || searchQuery;
-      if (query) {
-        const q = query.toLowerCase();
-        if (!props.name.toLowerCase().includes(q) && !String(props.ibge_code).includes(q)) return false;
-      }
+      // By name or IBGE code, as everywhere (lib/municipalitySearch).
+      if (query && !matchesMunicipality(query, props.name, props.ibge_code)) return false;
 
       // Every filter below this line reads a number that only São Paulo has. A
       // beta polygon carries none of them and is not painted by the ramp

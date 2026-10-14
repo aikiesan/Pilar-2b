@@ -56,6 +56,7 @@ export const queryKeys = {
   municipalities: {
     all: ['municipalities'] as const,
     geojson: () => [...queryKeys.municipalities.all, 'geojson'] as const,
+    names: () => [...queryKeys.municipalities.all, 'names'] as const,
   },
 
   // Infrastructure layers

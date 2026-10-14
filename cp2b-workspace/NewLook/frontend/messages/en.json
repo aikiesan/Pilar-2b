@@ -94,13 +94,15 @@
     "search": {
       "trigger": "Search municipality",
       "trigger_aria": "Search municipality (press /)",
-      "placeholder": "Name or IBGE code…",
+      "placeholder": "Name or IBGE code, e.g. Campinas",
       "input_aria": "Search municipality",
       "close_aria": "Close search",
       "results_aria": "Search results",
       "no_results": "No municipality found for \"{query}\"",
       "hints": "↑↓ navigate · Enter select · Esc close",
-      "per_year": "m³/year"
+      "loading": "Loading the list of municipalities…",
+      "unavailable": "The list of municipalities is not available right now. Try again in a moment.",
+      "scope_hint": "The platform covers São Paulo and the Minas Gerais pilot."
     },
     "logo_alt": "PILAR-2b — Intelligent Platform for Locating and Using Residues for Biogas and Bioproducts",
     "badge": {
@@ -318,7 +320,7 @@
       "themes": "Themes"
     },
     "search": {
-      "label": "Search Municipality",
+      "label": "Search municipality",
       "placeholder": "Name or IBGE code…",
       "clear_aria": "Clear search"
     },
@@ -923,7 +925,7 @@
       "title": "Municipality Comparison",
       "subtitle": "Compare up to 4 municipalities side by side",
       "add_label": "Add a municipality to compare",
-      "add_placeholder": "Type a municipality name…",
+      "add_placeholder": "Name or IBGE code…",
       "metric_column": "Metric",
       "empty_title": "No municipality selected",
       "empty_hint": "Use the search above to add municipalities to the comparison",
@@ -2323,7 +2325,7 @@
       },
       "search": {
         "title": "Municipality Search",
-        "content": "Type the name of any São Paulo municipality to center the map and view local organic waste generation indicators."
+        "content": "Type the name or IBGE code of a municipality in São Paulo or the Minas Gerais pilot to open its profile."
       },
       "help": {
         "title": "Help Anytime",
@@ -2442,7 +2444,8 @@
       "results_label": "Municipalities found",
       "loading": "Loading the list of municipalities…",
       "unavailable": "The list of municipalities is not available right now. Try again in a moment, or open the map.",
-      "no_results": "No municipality found for \"{query}\""
+      "no_results": "No municipality found for \"{query}\"",
+      "no_results_hint": "The platform covers São Paulo and the Minas Gerais pilot."
     },
     "counts": {
       "heading": "The platform in numbers",

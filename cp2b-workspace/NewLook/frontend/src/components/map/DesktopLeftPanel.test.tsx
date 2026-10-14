@@ -38,7 +38,7 @@ describe('DesktopLeftPanel', () => {
     const { container } = render(
       <DesktopLeftPanel {...baseProps} searchQuery="Camp" onSearchChange={onSearchChange} />
     );
-    expect(screen.getByLabelText('Buscar Município')).toHaveValue('Camp');
+    expect(screen.getByLabelText('Buscar município')).toHaveValue('Camp');
     fireEvent.click(screen.getByRole('button', { name: 'Limpar busca' }));
     expect(onSearchChange).toHaveBeenCalledWith('');
     expect(await axe(container)).toHaveNoViolations();

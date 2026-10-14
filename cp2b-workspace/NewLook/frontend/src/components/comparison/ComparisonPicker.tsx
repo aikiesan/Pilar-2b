@@ -14,12 +14,9 @@ import { Check, Map, Plus, Search } from 'lucide-react';
 import { Link } from '@/navigation';
 import { useGeospatialData } from '@/hooks/useGeospatialData';
 import { MAX_COMPARISON, MIN_COMPARISON, useComparison } from '@/contexts/ComparisonContext';
+import { searchMunicipalities } from '@/lib/municipalitySearch';
 
 const MAX_RESULTS = 8;
-
-/** Accent- and case-insensitive, so "sao jose" finds "São José". */
-const fold = (text: string) =>
-  text.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
 
 export default function ComparisonPicker({ notice }: { notice?: string }) {
   const t = useTranslations('comparison.picker');
@@ -29,16 +26,19 @@ export default function ComparisonPicker({ notice }: { notice?: string }) {
   const inputId = useId();
   const full = selectedMunicipalities.length >= MAX_COMPARISON;
 
-  const results = useMemo(() => {
-    const q = fold(query);
-    if (!q || !data) return [];
-    return data.features
-      .filter(
-        (f) =>
-          fold(f.properties.name).includes(q) || String(f.properties.ibge_code).startsWith(q)
-      )
-      .slice(0, MAX_RESULTS);
-  }, [query, data]);
+  // By name or IBGE code, as everywhere (lib/municipalitySearch).
+  const results = useMemo(
+    () =>
+      data
+        ? searchMunicipalities(
+            data.features,
+            query,
+            (f) => ({ name: f.properties.name, code: f.properties.ibge_code }),
+            MAX_RESULTS,
+          )
+        : [],
+    [query, data],
+  );
 
   return (
     // Bottom padding keeps the last result clear of the fixed ComparisonBar.
