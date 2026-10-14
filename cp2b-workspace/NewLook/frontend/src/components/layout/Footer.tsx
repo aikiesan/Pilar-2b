@@ -98,7 +98,7 @@ export default function Footer() {
       href: SOCIAL_LINKS.linkedin,
       label: t('footer.linkedin_label'),
       Icon: LinkedinIcon,
-      hover: 'hover:text-blue-400 hover:border-blue-400/40',
+      hover: 'hover:text-dusk-400 hover:border-dusk-400/40',
     },
     {
       href: SOCIAL_LINKS.youtube,
@@ -110,7 +110,7 @@ export default function Footer() {
       href: SOCIAL_LINKS.whatsapp,
       label: t('footer.whatsapp_label'),
       Icon: WhatsAppIcon,
-      hover: 'hover:text-emerald-400 hover:border-emerald-400/40',
+      hover: 'hover:text-ochre-300 hover:border-ochre-300/40',
     },
   ] as const
 
@@ -124,7 +124,8 @@ export default function Footer() {
   ]
 
   return (
-    <footer className="bg-[#0f1a0f] text-white" role="contentinfo">
+    <footer className="bg-terra-900 text-white" role="contentinfo">
+      {/* Oxblood band (#600A00), after the Itaú Cultural references; ochre accents. */}
 
       {/* ── Section 1: Newsletter ─────────────────────────────────── */}
       <div className="border-b border-white/10">
@@ -132,8 +133,8 @@ export default function Footer() {
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
             <div className="lg:max-w-sm">
               <div className="flex items-center gap-2 mb-1">
-                <Mail className="w-4 h-4 text-cp2b-lime" aria-hidden="true" />
-                <p className="text-xs font-bold uppercase tracking-widest text-cp2b-lime">
+                <Mail className="w-4 h-4 text-ochre-300" aria-hidden="true" />
+                <p className="text-xs font-bold uppercase tracking-widest text-ochre-300">
                   {t('footer.newsletter_heading')}
                 </p>
               </div>
@@ -158,7 +159,7 @@ export default function Footer() {
                   value={email}
                   onChange={(e) => { setEmail(e.target.value); setStatus('idle'); setEmailError(null); setServerError(null) }}
                   placeholder={t('footer.newsletter_email_placeholder')}
-                  className="w-full px-4 py-2.5 text-sm bg-white/5 border border-white/15 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cp2b-lime focus:border-transparent transition-colors"
+                  className="w-full px-4 py-2.5 text-sm bg-white/5 border border-white/15 rounded text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-ochre-300 focus:border-transparent transition-colors"
                   disabled={status === 'loading' || status === 'success'}
                   aria-describedby="footer-newsletter-status"
                   aria-invalid={emailError !== null}
@@ -167,7 +168,7 @@ export default function Footer() {
               <button
                 type="submit"
                 disabled={status === 'loading' || status === 'success'}
-                className="px-5 py-2.5 text-sm font-semibold bg-cp2b-green hover:bg-cp2b-dark-green disabled:opacity-60 text-white rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-cp2b-lime whitespace-nowrap"
+                className="px-5 py-2.5 text-sm font-semibold bg-ochre-300 hover:bg-ochre-200 disabled:opacity-60 text-terra-900 rounded transition-colors focus:outline-none focus:ring-2 focus:ring-ochre-300 focus:ring-offset-2 focus:ring-offset-terra-900 whitespace-nowrap"
               >
                 {status === 'loading' ? '...' : t('footer.newsletter_submit')}
               </button>
@@ -177,7 +178,7 @@ export default function Footer() {
           {/* Status feedback */}
           <div id="footer-newsletter-status" aria-live="polite" className="mt-3 min-h-[1.25rem]">
             {status === 'success' && (
-              <p className="flex items-center gap-2 text-xs text-emerald-400">
+              <p className="flex items-center gap-2 text-xs text-ochre-300">
                 <CheckCircle2 className="w-3.5 h-3.5" aria-hidden="true" />
                 {t('footer.newsletter_success')}
               </p>
@@ -218,7 +219,7 @@ export default function Footer() {
 
             <div className="space-y-2.5">
               <div>
-                <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-cp2b-lime">
+                <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-ochre-300">
                   PILAR
                 </p>
                 <p className="text-xs text-gray-400 leading-snug">
@@ -226,7 +227,7 @@ export default function Footer() {
                 </p>
               </div>
               <div>
-                <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-cp2b-lime">
+                <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-ochre-300">
                   2b
                 </p>
                 <p className="text-xs text-gray-400 leading-snug">

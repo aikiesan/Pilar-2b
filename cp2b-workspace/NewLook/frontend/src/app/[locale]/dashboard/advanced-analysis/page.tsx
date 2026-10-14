@@ -537,7 +537,7 @@ export default function AdvancedAnalysisPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cp2b-primary mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-terra-800 mx-auto"></div>
           <p className="mt-4 text-gray-600">{tCommon('states.loading')}</p>
         </div>
       </div>
@@ -563,24 +563,25 @@ export default function AdvancedAnalysisPage() {
         { label: t('advanced_analysis.title') },
       ]} />
       {/* Page Title */}
-      <div className="bg-gradient-to-r from-cp2b-primary via-cp2b-secondary to-green-600 text-white shadow-xl">
+      {/* Page title: a light band with a hairline rule (earth identity). */}
+      <div className="border-b border-line bg-paper-raised text-ink">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div className="flex-1">
-              <h1 className="text-4xl font-bold mb-2 tracking-tight">{t('advanced_analysis.title')}</h1>
-              <p className="text-lg text-white/90 max-w-2xl">{t('advanced_analysis.subtitle')}</p>
+              <h1 className="text-4xl sm:text-5xl mb-2 text-ink">{t('advanced_analysis.title')}</h1>
+              <p className="text-lg text-ink-muted max-w-2xl">{t('advanced_analysis.subtitle')}</p>
             </div>
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => setShowMethodology(true)}
-                className="flex items-center gap-2 px-4 py-2.5 bg-white/20 hover:bg-white/30 rounded-lg text-sm font-medium transition-all backdrop-blur-sm border border-white/20"
+                className="flex items-center gap-2 px-4 py-2.5 border border-line-strong text-ink hover:bg-ink hover:text-paper rounded text-sm font-medium transition-colors"
               >
                 <BookOpen className="h-4 w-4" />
                 {t('advanced_analysis.methodology')}
               </button>
               <button
                 onClick={() => setShowReferences(true)}
-                className="flex items-center gap-2 px-4 py-2.5 bg-white/20 hover:bg-white/30 rounded-lg text-sm font-medium transition-all backdrop-blur-sm border border-white/20"
+                className="flex items-center gap-2 px-4 py-2.5 border border-line-strong text-ink hover:bg-ink hover:text-paper rounded text-sm font-medium transition-colors"
               >
                 <FileText className="h-4 w-4" />
                 {t('advanced_analysis.references')}
@@ -588,7 +589,7 @@ export default function AdvancedAnalysisPage() {
               <button
                 onClick={fetchAllData}
                 disabled={loadingMunicipalities || loadingStats}
-                className="flex items-center gap-2 px-4 py-2.5 bg-white/20 hover:bg-white/30 disabled:bg-white/10 disabled:cursor-not-allowed rounded-lg text-sm font-medium transition-all backdrop-blur-sm border border-white/20"
+                className="flex items-center gap-2 px-4 py-2.5 border border-line-strong text-ink hover:bg-ink hover:text-paper disabled:opacity-50 disabled:cursor-not-allowed rounded text-sm font-medium transition-colors"
               >
                 <RefreshCw className={`h-4 w-4 ${(loadingMunicipalities || loadingStats) ? 'animate-spin' : ''}`} />
                 {t('scientific_database.refresh')}
@@ -597,7 +598,7 @@ export default function AdvancedAnalysisPage() {
                 <button
                   onClick={handleExportCSV}
                   disabled={filteredMunicipalities.length === 0}
-                  className="flex items-center gap-2 px-4 py-2.5 bg-white/20 hover:bg-white/30 disabled:bg-white/10 disabled:cursor-not-allowed rounded-lg text-sm font-medium transition-all backdrop-blur-sm border border-white/20"
+                  className="flex items-center gap-2 px-4 py-2.5 border border-line-strong text-ink hover:bg-ink hover:text-paper disabled:opacity-50 disabled:cursor-not-allowed rounded text-sm font-medium transition-colors"
                 >
                   <Download className="h-4 w-4" aria-hidden="true" />
                   {t('advanced_analysis.download')}
@@ -623,26 +624,26 @@ export default function AdvancedAnalysisPage() {
 
         {/* Info Banner - Industrial Category - Select Specific Residues */}
         {selectedCategory === 'industrial' && selectedResidueCodes.length === 0 && (
-          <div className="bg-blue-50 border-l-4 border-blue-500 text-blue-800 px-6 py-4 rounded-lg mb-6 shadow-sm flex items-start gap-3">
-            <Info className="h-5 w-5 flex-shrink-0 mt-0.5 text-blue-600" />
+          <div className="bg-dusk-50 border-l-4 border-dusk-500 text-dusk-800 px-6 py-4 rounded-lg mb-6 shadow-sm flex items-start gap-3">
+            <Info className="h-5 w-5 flex-shrink-0 mt-0.5 text-dusk-600" />
             <div className="flex-1">
-              <h3 className="font-semibold mb-1 text-blue-900">{t('advanced_analysis.industrial_selection_title')}</h3>
-              <p className="text-sm text-blue-800">{t('advanced_analysis.industrial_selection_body')}</p>
+              <h3 className="font-semibold mb-1 text-dusk-900">{t('advanced_analysis.industrial_selection_title')}</h3>
+              <p className="text-sm text-dusk-800">{t('advanced_analysis.industrial_selection_body')}</p>
             </div>
           </div>
         )}
 
         {/* Info Banner - Scientific References */}
-        <div className="bg-indigo-50 border-l-4 border-indigo-500 text-indigo-700 px-6 py-4 rounded-lg mb-6 shadow-sm flex items-start gap-3">
-          <BookOpen className="h-5 w-5 flex-shrink-0 mt-0.5 text-indigo-600" />
+        <div className="bg-dusk-50 border-l-4 border-dusk-500 text-dusk-700 px-6 py-4 rounded-lg mb-6 shadow-sm flex items-start gap-3">
+          <BookOpen className="h-5 w-5 flex-shrink-0 mt-0.5 text-dusk-600" />
           <div className="flex-1">
-            <h3 className="font-semibold mb-1 text-indigo-900">{t('advanced_analysis.references_available_title')}</h3>
-            <p className="text-sm text-indigo-800">
+            <h3 className="font-semibold mb-1 text-dusk-900">{t('advanced_analysis.references_available_title')}</h3>
+            <p className="text-sm text-dusk-800">
               {/* There is no /dashboard/references page (the link always 404'd): the
                   references live in the scientific database. */}
               {t.rich('advanced_analysis.references_available_body', {
                 link: (chunks) => (
-                  <Link href="/dashboard/scientific-database?view=references" className="font-semibold underline hover:text-indigo-900">
+                  <Link href="/dashboard/scientific-database?view=references" className="font-semibold underline hover:text-dusk-900">
                     {chunks}
                   </Link>
                 ),
@@ -669,29 +670,29 @@ export default function AdvancedAnalysisPage() {
             </div>
 
             <div className={`bg-gradient-to-br rounded-xl shadow-md hover:shadow-lg transition-shadow p-5 sm:p-6 border-l-4 ${
-              selectedCategory === 'agricultural' ? 'from-green-50 to-white border-green-500' :
+              selectedCategory === 'agricultural' ? 'from-terra-50 to-white border-terra-500' :
               selectedCategory === 'livestock' ? 'from-orange-50 to-white border-orange-500' :
-              selectedCategory === 'urban' ? 'from-blue-50 to-white border-blue-500' :
+              selectedCategory === 'urban' ? 'from-dusk-50 to-white border-dusk-500' :
               'from-purple-50 to-white border-purple-500'
             }`}>
               <div className="flex items-center justify-between mb-3">
                 <div className="text-xs sm:text-sm font-medium text-gray-600">{t('advanced_analysis.kpi_category')}</div>
                 <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center ${
-                  selectedCategory === 'agricultural' ? 'bg-green-100' :
+                  selectedCategory === 'agricultural' ? 'bg-terra-100' :
                   selectedCategory === 'livestock' ? 'bg-orange-100' :
-                  selectedCategory === 'urban' ? 'bg-blue-100' :
+                  selectedCategory === 'urban' ? 'bg-dusk-100' :
                   'bg-purple-100'
                 }`}>
-                  {selectedCategory === 'agricultural' && <Wheat className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />}
+                  {selectedCategory === 'agricultural' && <Wheat className="h-4 w-4 sm:h-5 sm:w-5 text-terra-600" />}
                   {selectedCategory === 'livestock' && <Beef className="h-4 w-4 sm:h-5 sm:w-5 text-orange-600" />}
-                  {selectedCategory === 'urban' && <Building2 className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />}
+                  {selectedCategory === 'urban' && <Building2 className="h-4 w-4 sm:h-5 sm:w-5 text-dusk-600" />}
                   {selectedCategory === 'industrial' && <Factory className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600" />}
                 </div>
               </div>
               <div className={`text-xl sm:text-2xl font-bold ${
-                selectedCategory === 'agricultural' ? 'text-green-700' :
+                selectedCategory === 'agricultural' ? 'text-terra-700' :
                 selectedCategory === 'livestock' ? 'text-orange-700' :
-                selectedCategory === 'urban' ? 'text-blue-700' :
+                selectedCategory === 'urban' ? 'text-dusk-700' :
                 'text-purple-700'
               }`}>
                 {categoryLabels[selectedCategory]}
@@ -703,10 +704,10 @@ export default function AdvancedAnalysisPage() {
               </div>
             </div>
 
-            <div className="bg-gradient-to-br from-green-50 to-white rounded-xl shadow-md hover:shadow-lg transition-shadow p-5 sm:p-6 border-l-4 border-green-500">
+            <div className="bg-gradient-to-br from-terra-50 to-white rounded-xl shadow-md hover:shadow-lg transition-shadow p-5 sm:p-6 border-l-4 border-terra-500">
               <div className="flex items-center justify-between mb-3">
                 <div className="text-xs sm:text-sm font-medium text-gray-600">{t('advanced_analysis.kpi_theoretical')}</div>
-                <div className="w-9 h-9 sm:w-10 sm:h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 bg-terra-100 rounded-lg flex items-center justify-center">
                   <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
                 </div>
               </div>
@@ -716,14 +717,14 @@ export default function AdvancedAnalysisPage() {
               <div className="text-xs text-gray-500 mt-1">{t('advanced_analysis.unit_m3_year')}</div>
             </div>
 
-            <div className="bg-gradient-to-br from-emerald-50 to-white rounded-xl shadow-md hover:shadow-lg transition-shadow p-5 sm:p-6 border-l-4 border-emerald-600">
+            <div className="bg-gradient-to-br from-terra-50 to-white rounded-xl shadow-md hover:shadow-lg transition-shadow p-5 sm:p-6 border-l-4 border-terra-600">
               <div className="flex items-center justify-between mb-3">
                 <div className="text-xs sm:text-sm font-medium text-gray-600">{t('advanced_analysis.kpi_fde')}</div>
-                <div className="w-9 h-9 sm:w-10 sm:h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
-                  <TrendingDown className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-600" />
+                <div className="w-9 h-9 sm:w-10 sm:h-10 bg-terra-100 rounded-lg flex items-center justify-center">
+                  <TrendingDown className="h-4 w-4 sm:h-5 sm:w-5 text-terra-600" />
                 </div>
               </div>
-              <div className="text-xl sm:text-2xl font-bold text-emerald-700">
+              <div className="text-xl sm:text-2xl font-bold text-terra-700">
                 {format.compact(fdeAdjustedPotential, { decimals: 2 })}
               </div>
               <div className="text-xs text-gray-500 mt-1">
@@ -759,27 +760,27 @@ export default function AdvancedAnalysisPage() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder={t('advanced_analysis.search_placeholder')}
                   aria-label={t('advanced_analysis.search_label')}
-                  className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-terra-500 focus:border-transparent"
                 />
               </div>
 
               {/* Factor Adjustment Panel (in sidebar) - Tied to Cascade Visualization */}
               {(selectedResidueCodes.length > 0 || currentScenario === 'custom') && (
-                <div className="bg-gradient-to-br from-blue-50 to-white rounded-xl shadow-md border-l-4 border-blue-500 p-4 relative">
+                <div className="bg-gradient-to-br from-dusk-50 to-white rounded-xl shadow-md border-l-4 border-dusk-500 p-4 relative">
                   {/* Connection Indicator */}
                   <div className="absolute -right-3 top-1/2 -translate-y-1/2 z-10">
-                    <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center shadow-lg animate-pulse">
+                    <div className="w-6 h-6 bg-dusk-500 rounded-full flex items-center justify-center shadow-lg animate-pulse">
                       <GitBranch className="w-3 h-3 text-white rotate-90" />
                     </div>
                   </div>
 
                   {/* Header with connection note */}
-                  <div className="mb-3 pb-3 border-b border-blue-200">
+                  <div className="mb-3 pb-3 border-b border-dusk-200">
                     <div className="flex items-center gap-2 mb-1">
-                      <GitBranch className="h-4 w-4 text-blue-600" />
-                      <h4 className="text-xs font-semibold text-blue-900">{t('advanced_analysis.integrated_adjustment')}</h4>
+                      <GitBranch className="h-4 w-4 text-dusk-600" />
+                      <h4 className="text-xs font-semibold text-dusk-900">{t('advanced_analysis.integrated_adjustment')}</h4>
                     </div>
-                    <p className="text-[10px] text-blue-700">
+                    <p className="text-[10px] text-dusk-700">
                       {t('advanced_analysis.integrated_adjustment_hint')}
                     </p>
                   </div>
@@ -816,14 +817,14 @@ export default function AdvancedAnalysisPage() {
                     hasCustomFactors={hasCustomFactors}
                   />
                   {currentScenario === 'frontier' && (
-                    <p className="mt-2 text-xs text-emerald-700">
+                    <p className="mt-2 text-xs text-terra-700">
                       {t('advanced_analysis.frontier_note')}
                     </p>
                   )}
                   <button
                     type="button"
                     onClick={() => router.push('/dashboard/scientific-database')}
-                    className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-emerald-700 hover:text-emerald-900 hover:underline"
+                    className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-terra-700 hover:text-terra-900 hover:underline"
                   >
                     📚 {t('advanced_analysis.literature_base_link')}
                   </button>
@@ -837,7 +838,7 @@ export default function AdvancedAnalysisPage() {
                       onClick={() => setViewMode('cascade')}
                       className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
                         viewMode === 'cascade'
-                          ? 'bg-green-700 text-white shadow-sm'
+                          ? 'bg-terra-700 text-white shadow-sm'
                           : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                       }`}
                     >
@@ -848,7 +849,7 @@ export default function AdvancedAnalysisPage() {
                       onClick={() => setViewMode('flow')}
                       className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
                         viewMode === 'flow'
-                          ? 'bg-green-700 text-white shadow-sm'
+                          ? 'bg-terra-700 text-white shadow-sm'
                           : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                       }`}
                     >
@@ -859,7 +860,7 @@ export default function AdvancedAnalysisPage() {
                       onClick={() => setViewMode('scenarios')}
                       className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
                         viewMode === 'scenarios'
-                          ? 'bg-green-700 text-white shadow-sm'
+                          ? 'bg-terra-700 text-white shadow-sm'
                           : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                       }`}
                     >
@@ -870,7 +871,7 @@ export default function AdvancedAnalysisPage() {
                       onClick={() => setViewMode('table')}
                       className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
                         viewMode === 'table'
-                          ? 'bg-green-700 text-white shadow-sm'
+                          ? 'bg-terra-700 text-white shadow-sm'
                           : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                       }`}
                     >
@@ -889,15 +890,15 @@ export default function AdvancedAnalysisPage() {
                 <div className="bg-white rounded-xl shadow-md p-4 border border-gray-100">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
-                      <Info className="h-5 w-5 text-blue-600" />
+                      <Info className="h-5 w-5 text-dusk-600" />
                       <h3 className="text-sm font-semibold text-gray-700">
                         {t('advanced_analysis.current_analysis')}
                       </h3>
                     </div>
-                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                      currentScenario === 'baseline' ? 'bg-blue-100 text-blue-700' :
+                    <span className={`px-3 py-1 rounded-sm text-xs font-semibold ${
+                      currentScenario === 'baseline' ? 'bg-dusk-100 text-dusk-700' :
                       currentScenario === 'conservative' ? 'bg-orange-100 text-orange-700' :
-                      currentScenario === 'optimistic' ? 'bg-green-100 text-green-700' :
+                      currentScenario === 'optimistic' ? 'bg-terra-100 text-terra-700' :
                       'bg-purple-100 text-purple-700'
                     }`}>
                       {scenarioName}
@@ -933,14 +934,14 @@ export default function AdvancedAnalysisPage() {
                   {/* Connection Indicator */}
                   {(selectedResidueCodes.length > 0 || currentScenario === 'custom') && (
                     <div className="absolute -left-3 top-8 z-10">
-                      <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center shadow-lg animate-pulse">
+                      <div className="w-6 h-6 bg-dusk-500 rounded-full flex items-center justify-center shadow-lg animate-pulse">
                         <GitBranch className="w-3 h-3 text-white rotate-90" />
                       </div>
                     </div>
                   )}
 
                   {/* Cascade Chart with Visual Connection Styling */}
-                  <div className={`${(selectedResidueCodes.length > 0 || currentScenario === 'custom') ? 'ring-2 ring-blue-200 ring-offset-2' : ''} rounded-xl`}>
+                  <div className={`${(selectedResidueCodes.length > 0 || currentScenario === 'custom') ? 'ring-2 ring-dusk-200 ring-offset-2' : ''} rounded-xl`}>
                     <PotentialCascadeChart
                       theoreticalPotential={theoreticalPotential}
                       factors={effectiveFactors}
@@ -959,15 +960,15 @@ export default function AdvancedAnalysisPage() {
                 <div className="bg-white rounded-xl shadow-md p-4 border border-gray-100">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
-                      <Info className="h-5 w-5 text-blue-600" />
+                      <Info className="h-5 w-5 text-dusk-600" />
                       <h3 className="text-sm font-semibold text-gray-700">
                         {t('advanced_analysis.flow_analysis')}
                       </h3>
                     </div>
-                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                      currentScenario === 'baseline' ? 'bg-blue-100 text-blue-700' :
+                    <span className={`px-3 py-1 rounded-sm text-xs font-semibold ${
+                      currentScenario === 'baseline' ? 'bg-dusk-100 text-dusk-700' :
                       currentScenario === 'conservative' ? 'bg-orange-100 text-orange-700' :
-                      currentScenario === 'optimistic' ? 'bg-green-100 text-green-700' :
+                      currentScenario === 'optimistic' ? 'bg-terra-100 text-terra-700' :
                       'bg-purple-100 text-purple-700'
                     }`}>
                       {scenarioName}
@@ -1050,7 +1051,7 @@ export default function AdvancedAnalysisPage() {
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 mb-5">
                   <div>
                     <h3 className="text-base sm:text-lg font-semibold text-gray-800 flex items-center gap-2">
-                      <Table2 className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
+                      <Table2 className="h-4 w-4 sm:h-5 sm:w-5 text-terra-600" />
                       {t('advanced_analysis.table_ranking')}
                     </h3>
                     <p className="text-xs sm:text-sm text-gray-500 mt-1">
@@ -1091,16 +1092,16 @@ export default function AdvancedAnalysisPage() {
                       {filteredMunicipalities.slice(0, 50).map((municipality, index) => (
                         <tr
                           key={municipality.id}
-                          className="hover:bg-green-50/50 transition-colors"
+                          className="hover:bg-terra-50/50 transition-colors"
                         >
                           <td className="py-4 px-4 text-gray-500 font-medium">{index + 1}</td>
                           <td className="py-4 px-4">
-                            <div className="font-semibold text-gray-900 hover:text-green-600 transition-colors">
+                            <div className="font-semibold text-gray-900 hover:text-terra-600 transition-colors">
                               {municipality.municipality_name}
                             </div>
                           </td>
                           <td className="py-4 px-4 text-gray-600">
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-sm text-xs font-medium bg-dusk-100 text-dusk-800">
                               {municipality.administrative_region || MISSING_VALUE}
                             </span>
                           </td>

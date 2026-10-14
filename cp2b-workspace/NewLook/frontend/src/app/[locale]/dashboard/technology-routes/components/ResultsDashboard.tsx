@@ -1,5 +1,6 @@
 'use client'
 
+import { SINGLE_SERIES_COLOR, SINGLE_SERIES_COLOR_DARK } from '@/data/sectorColors'
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import {
@@ -54,7 +55,7 @@ function MetricCard({ emoji, label, value, sub, highlight, muted }: MetricCardPr
       muted
         ? 'border-gray-100 dark:border-slate-700 bg-gray-50 dark:bg-slate-900/50 opacity-60'
         : highlight
-        ? 'border-green-300 dark:border-emerald-700 bg-green-50 dark:bg-emerald-900/20'
+        ? 'border-terra-300 dark:border-terra-700 bg-terra-50 dark:bg-terra-900/20'
         : 'border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800'
     }`}>
       <div className="flex items-center gap-2 mb-1">
@@ -62,7 +63,7 @@ function MetricCard({ emoji, label, value, sub, highlight, muted }: MetricCardPr
         <span className="text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wide">{label}</span>
       </div>
       <p className={`text-xl font-bold ${
-        highlight ? 'text-green-700 dark:text-emerald-400'
+        highlight ? 'text-terra-700 dark:text-terra-400'
         : muted    ? 'text-gray-400 dark:text-slate-500'
         :            'text-gray-800 dark:text-slate-200'
       }`}>{value}</p>
@@ -168,7 +169,7 @@ export default function ResultsDashboard({ result, municipalityName, onReset }: 
   // Dark-mode-aware chart colors
   const chartGrid   = isDark ? '#334155' : '#f0f0f0'
   const chartTick   = isDark ? '#94a3b8' : '#6b7280'
-  const chartBarFill = isDark ? '#10b981' : '#16a34a'
+  const chartBarFill = isDark ? SINGLE_SERIES_COLOR_DARK : SINGLE_SERIES_COLOR
 
   function updatePrice(key: keyof PriceConfig, val: number) {
     setPrices(p => ({ ...p, [key]: val }))
@@ -180,7 +181,7 @@ export default function ResultsDashboard({ result, municipalityName, onReset }: 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="text-center p-4 bg-gradient-to-br from-green-600 to-green-700 dark:from-emerald-700 dark:to-emerald-800 rounded-2xl text-white">
+      <div className="text-center p-4 bg-gradient-to-br from-terra-600 to-terra-700 dark:from-terra-700 dark:to-terra-800 rounded-2xl text-white">
         <p className="text-sm opacity-80 mb-1">{t('results.potentialHeader', { municipality: municipalityName })}</p>
         <p className="text-3xl font-bold">{t('results.biogasTotal', { value: format.number(outputs.totalBiogasM3Year) })}</p>
         <p className="text-sm opacity-80">{t('results.biogasPerYear')}</p>
@@ -202,7 +203,7 @@ export default function ResultsDashboard({ result, municipalityName, onReset }: 
                 aria-pressed={active}
                 className={`w-full text-left p-3 rounded-xl border-2 transition-all ${
                   active
-                    ? 'border-green-500 dark:border-emerald-500 bg-green-50 dark:bg-emerald-900/20'
+                    ? 'border-terra-500 dark:border-terra-500 bg-terra-50 dark:bg-terra-900/20'
                     : 'border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-gray-300 dark:hover:border-slate-600'
                 }`}
               >
@@ -210,21 +211,21 @@ export default function ResultsDashboard({ result, municipalityName, onReset }: 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 min-w-0">
                     <span className="shrink-0">{SCENARIO_EMOJIS[tier]}</span>
-                    <span className={`font-bold text-sm ${active ? 'text-green-800 dark:text-emerald-300' : 'text-gray-700 dark:text-slate-300'}`}>
+                    <span className={`font-bold text-sm ${active ? 'text-terra-800 dark:text-terra-300' : 'text-gray-700 dark:text-slate-300'}`}>
                       {t(`scenarios.${tier}.label`)}
                     </span>
                     <span className="text-xs text-gray-400 dark:text-slate-500 truncate hidden sm:block">
                       — {t(`scenarios.${tier}.technology`)}
                     </span>
                   </div>
-                  <span className={`text-xs font-semibold shrink-0 ml-2 ${active ? 'text-green-600 dark:text-emerald-400' : 'text-gray-400 dark:text-slate-500'}`}>
+                  <span className={`text-xs font-semibold shrink-0 ml-2 ${active ? 'text-terra-600 dark:text-terra-400' : 'text-gray-400 dark:text-slate-500'}`}>
                     {active ? t('results.selected') : t('results.select')}
                   </span>
                 </div>
 
                 {/* Detail rows — only visible when active */}
                 {active && (
-                  <div className="mt-3 pt-3 border-t border-green-200 dark:border-emerald-800 grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
+                  <div className="mt-3 pt-3 border-t border-terra-200 dark:border-terra-800 grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
                     <div>
                       <p className="text-gray-500 dark:text-slate-400">{t('results.technology')}</p>
                       <p className="font-medium text-gray-800 dark:text-slate-200 leading-tight">{t(`scenarios.${tier}.technology`)}</p>
@@ -276,7 +277,7 @@ export default function ResultsDashboard({ result, municipalityName, onReset }: 
             <div key={key}>
               <div className="flex justify-between text-xs text-gray-600 dark:text-slate-400 mb-1">
                 <span>{label}</span>
-                <span className="font-semibold text-green-700 dark:text-emerald-400">{sliderValue(prices[key], unit)}</span>
+                <span className="font-semibold text-terra-700 dark:text-terra-400">{sliderValue(prices[key], unit)}</span>
               </div>
               <input
                 type="range" min={min} max={max} step={step}
@@ -311,7 +312,7 @@ export default function ResultsDashboard({ result, municipalityName, onReset }: 
                 aria-pressed={chartMode === mode}
                 className={`px-3 py-1 ${
                   chartMode === mode
-                    ? 'bg-green-700 dark:bg-emerald-700 text-white'
+                    ? 'bg-terra-700 dark:bg-terra-700 text-white'
                     : 'bg-white dark:bg-slate-800 text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700'
                 }`}
               >
@@ -410,7 +411,7 @@ export default function ResultsDashboard({ result, municipalityName, onReset }: 
         <div className="flex justify-between items-center text-sm">
           <span className="text-gray-500 dark:text-slate-400">{t('results.annualRevenue')}</span>
           <div className="text-right">
-            <span className="font-bold text-green-700 dark:text-emerald-400">
+            <span className="font-bold text-terra-700 dark:text-terra-400">
               {t('results.perYear', { amount: brl(financials.annualRevenueMaxBRL) })}
             </span>
             <p className="text-xs text-gray-400 dark:text-slate-500">
@@ -432,14 +433,14 @@ export default function ResultsDashboard({ result, municipalityName, onReset }: 
                   aria-pressed={active}
                   className={`p-2 rounded-lg border transition-colors ${
                     active
-                      ? 'border-green-400 dark:border-emerald-600 bg-green-50 dark:bg-emerald-900/30'
+                      ? 'border-terra-400 dark:border-terra-600 bg-terra-50 dark:bg-terra-900/30'
                       : 'border-gray-100 dark:border-slate-700 bg-gray-50 dark:bg-slate-900/50 hover:border-gray-200 dark:hover:border-slate-600'
                   }`}
                 >
-                  <p className={`font-bold text-xs ${active ? 'text-green-700 dark:text-emerald-400' : 'text-gray-600 dark:text-slate-400'}`}>
+                  <p className={`font-bold text-xs ${active ? 'text-terra-700 dark:text-terra-400' : 'text-gray-600 dark:text-slate-400'}`}>
                     {t(`scenarios.${tier}.label`)}
                   </p>
-                  <p className={`font-semibold text-xs mt-1 ${active ? 'text-green-800 dark:text-emerald-300' : 'text-gray-700 dark:text-slate-300'}`}>
+                  <p className={`font-semibold text-xs mt-1 ${active ? 'text-terra-800 dark:text-terra-300' : 'text-gray-700 dark:text-slate-300'}`}>
                     {isPaybackKnown(payback.min) ? `≥ ${format.number(payback.min, { decimals: 1 })}` : '—'}
                   </p>
                   <p className="text-gray-400 dark:text-slate-500 text-xs">
@@ -480,12 +481,12 @@ export default function ResultsDashboard({ result, municipalityName, onReset }: 
       )}
 
       {/* "Entenda os cenários" accordion */}
-      <details className="group border border-blue-100 dark:border-blue-900 rounded-xl overflow-hidden">
+      <details className="group border border-dusk-100 dark:border-dusk-900 rounded-xl overflow-hidden">
         <summary className="flex items-center justify-between px-4 py-3 cursor-pointer select-none
-                            bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30
-                            transition-colors text-xs font-medium text-blue-700 dark:text-blue-400">
+                            bg-dusk-50 dark:bg-dusk-900/20 hover:bg-dusk-100 dark:hover:bg-dusk-900/30
+                            transition-colors text-xs font-medium text-dusk-700 dark:text-dusk-400">
           <span>{t('results.scenariosHelpTitle')}</span>
-          <span className="text-blue-400 dark:text-blue-500 group-open:rotate-180 transition-transform">▼</span>
+          <span className="text-dusk-400 dark:text-dusk-500 group-open:rotate-180 transition-transform">▼</span>
         </summary>
         <div className="px-4 py-4 space-y-3 bg-white dark:bg-slate-900 text-xs text-gray-600 dark:text-slate-400">
           {SCENARIO_ORDER.map(tier => (
@@ -558,7 +559,7 @@ export default function ResultsDashboard({ result, municipalityName, onReset }: 
         </a>
         <button
           onClick={onReset}
-          className="w-full py-2 rounded-xl text-sm text-center text-green-600 dark:text-emerald-400 border border-green-300 dark:border-emerald-700 hover:bg-green-50 dark:hover:bg-emerald-900/20 transition-colors"
+          className="w-full py-2 rounded-xl text-sm text-center text-terra-600 dark:text-terra-400 border border-terra-300 dark:border-terra-700 hover:bg-terra-50 dark:hover:bg-terra-900/20 transition-colors"
         >
           🔄 {t('results.newCalculation')}
         </button>

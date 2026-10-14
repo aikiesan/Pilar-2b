@@ -156,7 +156,7 @@ export default function StepIdentificacao({ data, onChange, onNext, onSkip }: Pr
           </>
         )}
         {data.municipality_id && (
-          <p className="text-xs text-green-600 mt-1">✓ {data.municipality_name}</p>
+          <p className="text-xs text-terra-600 mt-1">✓ {data.municipality_name}</p>
         )}
       </div>
 
@@ -166,7 +166,7 @@ export default function StepIdentificacao({ data, onChange, onNext, onSkip }: Pr
           type="checkbox"
           checked={data.consent_lgpd}
           onChange={e => set({ consent_lgpd: e.target.checked })}
-          className="mt-0.5 h-4 w-4 accent-green-600"
+          className="mt-0.5 h-4 w-4 accent-terra-600"
         />
         <label htmlFor="lgpd" className="text-xs text-gray-600 dark:text-slate-400 leading-relaxed">
           {t('step1.lgpdConsent')}
@@ -177,7 +177,7 @@ export default function StepIdentificacao({ data, onChange, onNext, onSkip }: Pr
         onClick={onNext}
         disabled={!canAdvance}
         className="w-full py-3 rounded-xl font-semibold text-white transition-colors
-          bg-green-600 hover:bg-green-700 disabled:bg-gray-300 dark:disabled:bg-slate-600 disabled:cursor-not-allowed"
+          bg-terra-600 hover:bg-terra-700 disabled:bg-gray-300 dark:disabled:bg-slate-600 disabled:cursor-not-allowed"
       >
         {t('common.next')} →
       </button>

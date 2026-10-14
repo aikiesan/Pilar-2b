@@ -484,12 +484,12 @@ export default function BiomassFlowSankey({
     return (
       <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
         <div className="flex items-center gap-2 mb-4">
-          <GitBranch className="h-5 w-5 text-green-600" />
+          <GitBranch className="h-5 w-5 text-terra-600" />
           <h3 className="text-lg font-semibold text-gray-800">{title ?? t('sankey_title')}</h3>
         </div>
         <div className="h-[500px] flex items-center justify-center">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cp2b-primary mx-auto mb-3" />
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-terra-800 mx-auto mb-3" />
             <p className="text-sm text-gray-500">{t('sankey_loading')}</p>
           </div>
         </div>
@@ -501,7 +501,7 @@ export default function BiomassFlowSankey({
     return (
       <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
         <div className="flex items-center gap-2 mb-4">
-          <GitBranch className="h-5 w-5 text-green-600" />
+          <GitBranch className="h-5 w-5 text-terra-600" />
           <h3 className="text-lg font-semibold text-gray-800">{title ?? t('sankey_title')}</h3>
         </div>
         <div className="h-[500px] flex items-center justify-center">
@@ -525,13 +525,13 @@ export default function BiomassFlowSankey({
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
         <div className="flex items-center gap-2">
-          <GitBranch className="h-5 w-5 text-green-600" />
+          <GitBranch className="h-5 w-5 text-terra-600" />
           <h3 className="text-lg font-semibold text-gray-800">{title ?? t('sankey_title')}</h3>
         </div>
         <div className="flex items-center gap-4 text-sm flex-wrap">
           <div className="flex items-center gap-1.5">
             <span className="text-gray-500">{t('sankey_node_biogas')}:</span>
-            <span className="font-mono font-bold text-green-600">{formatValue(availableBiogas)} {t('unit_m3_yr')}</span>
+            <span className="font-mono font-bold text-terra-600">{formatValue(availableBiogas)} {t('unit_m3_yr')}</span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="text-gray-500">{t('sankey_ch4_label')}:</span>
@@ -561,9 +561,9 @@ export default function BiomassFlowSankey({
             <div className="font-mono font-semibold text-red-600">{formatValue(totalLosses)}</div>
             <div className="text-xs text-gray-400">{format.percent((totalLosses / theoreticalPotential) * 100)}</div>
           </div>
-          <div className="text-center p-3 bg-green-50 rounded-lg">
+          <div className="text-center p-3 bg-terra-50 rounded-lg">
             <div className="text-xs text-gray-500 mb-1">{t('sankey_summary_to_biogas')}</div>
-            <div className="font-mono font-semibold text-green-700">{formatValue(availableBiogas)}</div>
+            <div className="font-mono font-semibold text-terra-700">{formatValue(availableBiogas)}</div>
             <div className="text-xs text-gray-400">{format.percent(fdeValue * 100)} FDE</div>
           </div>
           <div className="text-center p-3 bg-blue-50 rounded-lg">

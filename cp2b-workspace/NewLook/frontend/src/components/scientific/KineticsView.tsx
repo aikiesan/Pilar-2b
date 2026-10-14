@@ -77,7 +77,7 @@ export default function KineticsView({ kinetics }: { kinetics: KineticData[] }) 
     <>
       <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
         <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-          <Filter className="h-5 w-5 text-green-600" aria-hidden="true" />
+          <Filter className="h-5 w-5 text-terra-600" aria-hidden="true" />
           {t('kinetics_view.select_heading')}
         </h2>
         <div className="flex flex-wrap gap-2">
@@ -89,7 +89,7 @@ export default function KineticsView({ kinetics }: { kinetics: KineticData[] }) 
                 type="button"
                 aria-pressed={selected}
                 onClick={() => toggle(k.residue_id)}
-                className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+                className={`px-3 py-1.5 rounded-sm text-sm font-medium transition-all ${
                   selected ? 'text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
                 style={selected ? { backgroundColor: colorOf(k.residue_id) } : undefined}
@@ -193,7 +193,7 @@ export default function KineticsView({ kinetics }: { kinetics: KineticData[] }) 
                       <th scope="row" className="py-3 px-4 text-left font-medium text-gray-900">{nameOf(k)}</th>
                       <td className="py-3 px-4 text-center">
                         <span
-                          className="px-2 py-1 rounded-full text-xs font-medium text-white"
+                          className="px-2 py-1 rounded-sm text-xs font-medium text-white"
                           style={{ backgroundColor: isKnownClass(k.classification) ? KINETIC_COLORS[k.classification] : '#6B7280' }}
                         >
                           {classLabel(k.classification)}
@@ -202,11 +202,11 @@ export default function KineticsView({ kinetics }: { kinetics: KineticData[] }) 
                       <td className="py-3 px-4 text-center font-mono text-gray-600">{fraction(k.f_slow)}</td>
                       <td className="py-3 px-4 text-center font-mono text-gray-600">{fraction(k.f_med)}</td>
                       <td className="py-3 px-4 text-center font-mono text-gray-600">{fraction(k.f_fast)}</td>
-                      <td className="py-3 px-4 text-center font-mono font-semibold text-green-600">{fraction(k.fq)}</td>
+                      <td className="py-3 px-4 text-center font-mono font-semibold text-terra-600">{fraction(k.fq)}</td>
                       <td className="py-3 px-4 text-right font-mono text-gray-900">{format.number(k.bmp_experimental, { decimals: 1 })}</td>
                       <td className="py-3 px-4 text-right font-mono text-gray-900">{format.number(k.bmp_simulated, { decimals: 1 })}</td>
                       <td className="py-3 px-4 text-center">
-                        <span className={`text-xs font-medium ${error !== null && Math.abs(error) < 5 ? 'text-green-600' : 'text-amber-600'}`}>
+                        <span className={`text-xs font-medium ${error !== null && Math.abs(error) < 5 ? 'text-terra-600' : 'text-amber-600'}`}>
                           {error === null ? MISSING_VALUE : `${error > 0 ? '+' : ''}${format.percent(error, { decimals: 1, minDecimals: 1 })}`}
                         </span>
                       </td>
@@ -217,12 +217,12 @@ export default function KineticsView({ kinetics }: { kinetics: KineticData[] }) 
             </table>
           </div>
 
-          <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-            <h3 className="font-semibold text-blue-800 mb-2 flex items-center gap-2">
+          <div className="mt-4 p-4 bg-dusk-50 rounded-lg border border-dusk-200">
+            <h3 className="font-semibold text-dusk-800 mb-2 flex items-center gap-2">
               <Info className="h-4 w-4" aria-hidden="true" />
               {t('kinetics_view.model_heading')}
             </h3>
-            <ul className="text-sm text-blue-700 space-y-1">
+            <ul className="text-sm text-dusk-700 space-y-1">
               {(['slow', 'med', 'fast'] as const).map((part) => (
                 <li key={part}>
                   <strong>k_{part}</strong> = {format.number(KINETIC_CONSTANTS[`k_${part}`], { decimals: 2 })} d⁻¹ (
@@ -230,7 +230,7 @@ export default function KineticsView({ kinetics }: { kinetics: KineticData[] }) 
                 </li>
               ))}
             </ul>
-            <p className="text-sm text-blue-700 mt-2">
+            <p className="text-sm text-dusk-700 mt-2">
               {t.rich('kinetics_view.fq_note', { strong: (chunks) => <strong>{chunks}</strong> })}
             </p>
           </div>

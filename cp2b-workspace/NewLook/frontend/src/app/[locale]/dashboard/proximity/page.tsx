@@ -47,7 +47,7 @@ function MapLoading() {
   return (
     <div className="w-full h-[500px] bg-gray-100 dark:bg-slate-800 rounded-lg flex items-center justify-center">
       <div className="text-center">
-        <Loader2 className="h-8 w-8 text-emerald-600 dark:text-emerald-400 animate-spin mx-auto mb-2" aria-hidden="true" />
+        <Loader2 className="h-8 w-8 text-terra-600 dark:text-terra-400 animate-spin mx-auto mb-2" aria-hidden="true" />
         <p className="text-gray-600 dark:text-gray-400">{t('map.loading')}</p>
       </div>
     </div>
@@ -215,7 +215,7 @@ function ProximityAnalysisContent() {
 
   // Get radius color based on recommendation
   const getRadiusColor = (km: number) => {
-    if (km <= 20) return 'text-green-600'
+    if (km <= 20) return 'text-terra-600'
     if (km <= 30) return 'text-yellow-600'
     if (km <= 50) return 'text-orange-600'
     return 'text-red-600'
@@ -229,7 +229,7 @@ function ProximityAnalysisContent() {
   }
 
   const getRadiusBadge = (km: number) => {
-    if (km <= 20) return { color: 'bg-green-100 text-green-700', icon: '✓', text: tp('badge.optimal') }
+    if (km <= 20) return { color: 'bg-terra-100 text-terra-700', icon: '✓', text: tp('badge.optimal') }
     if (km <= 30) return { color: 'bg-yellow-100 text-yellow-700', icon: '⚠', text: tp('badge.moderate') }
     if (km <= 50) return { color: 'bg-orange-100 text-orange-700', icon: '⚠', text: tp('badge.high') }
     return { color: 'bg-red-100 text-red-700', icon: '✗', text: tp('badge.unviable') }
@@ -239,7 +239,7 @@ function ProximityAnalysisContent() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-slate-900">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cp2b-primary mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-terra-800 mx-auto"></div>
           <p className="mt-4 text-gray-600 dark:text-slate-400">{tCommon('states.loading')}</p>
         </div>
       </div>
@@ -257,10 +257,11 @@ function ProximityAnalysisContent() {
         { label: t('proximity.title') },
       ]} />
       {/* Page Title */}
-      <div className="bg-gradient-to-r from-emerald-600 to-emerald-800 text-white">
+      {/* Page title: a light band with a hairline rule (earth identity). */}
+      <div className="border-b border-line bg-paper-raised text-ink">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <h1 className="text-3xl font-bold mb-1">🎯 {t('proximity.title')}</h1>
-          <p className="text-emerald-100">{t('proximity.subtitle')}</p>
+          <h1 className="text-4xl sm:text-5xl mb-1 text-ink">{t('proximity.title')}</h1>
+          <p className="text-ink-muted">{t('proximity.subtitle')}</p>
         </div>
       </div>
 
@@ -272,20 +273,20 @@ function ProximityAnalysisContent() {
             {/* Instructions */}
             <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md p-4">
               <h3 className="font-semibold text-gray-900 dark:text-slate-100 mb-3 flex items-center">
-                <Info className="h-5 w-5 mr-2 text-emerald-600" aria-hidden="true" />
+                <Info className="h-5 w-5 mr-2 text-terra-600" aria-hidden="true" />
                 {tp('how_to_use')}
               </h3>
               <ol className="text-sm text-gray-600 dark:text-slate-400 space-y-2">
                 <li className="flex items-start">
-                  <span className="flex-shrink-0 w-5 h-5 bg-emerald-100 text-emerald-600 rounded-full text-xs flex items-center justify-center mr-2 mt-0.5">1</span>
+                  <span className="flex-shrink-0 w-5 h-5 bg-terra-100 text-terra-600 rounded-full text-xs flex items-center justify-center mr-2 mt-0.5">1</span>
                   {tp('step1')}
                 </li>
                 <li className="flex items-start">
-                  <span className="flex-shrink-0 w-5 h-5 bg-emerald-100 text-emerald-600 rounded-full text-xs flex items-center justify-center mr-2 mt-0.5">2</span>
+                  <span className="flex-shrink-0 w-5 h-5 bg-terra-100 text-terra-600 rounded-full text-xs flex items-center justify-center mr-2 mt-0.5">2</span>
                   {tp('step2')}
                 </li>
                 <li className="flex items-start">
-                  <span className="flex-shrink-0 w-5 h-5 bg-emerald-100 text-emerald-600 rounded-full text-xs flex items-center justify-center mr-2 mt-0.5">3</span>
+                  <span className="flex-shrink-0 w-5 h-5 bg-terra-100 text-terra-600 rounded-full text-xs flex items-center justify-center mr-2 mt-0.5">3</span>
                   {tp('step3')}
                 </li>
               </ol>
@@ -294,7 +295,7 @@ function ProximityAnalysisContent() {
             {/* Point Selection */}
             <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md p-4">
               <h3 className="font-semibold text-gray-900 dark:text-slate-100 mb-3 flex items-center">
-                <MapPin className="h-5 w-5 mr-2 text-emerald-600" aria-hidden="true" />
+                <MapPin className="h-5 w-5 mr-2 text-terra-600" aria-hidden="true" />
                 {tp('selected_point')}
               </h3>
               {selectedPoint ? (
@@ -318,7 +319,7 @@ function ProximityAnalysisContent() {
             {/* Radius Control */}
             <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md p-4">
               <h3 className="font-semibold text-gray-900 dark:text-slate-100 mb-3 flex items-center">
-                <Circle className="h-5 w-5 mr-2 text-emerald-600" aria-hidden="true" />
+                <Circle className="h-5 w-5 mr-2 text-terra-600" aria-hidden="true" />
                 <label htmlFor="proximity-radius">{tp('capture_radius')}</label>
               </h3>
               <div className="space-y-3">
@@ -337,7 +338,7 @@ function ProximityAnalysisContent() {
                   value={radius}
                   aria-valuetext={`${radius} km — ${getRadiusLabel(radius)}`}
                   onChange={(e) => setRadius(parseInt(e.target.value))}
-                  className="w-full h-2 bg-gradient-to-r from-green-400 via-yellow-400 to-red-400 rounded-lg appearance-none cursor-pointer"
+                  className="w-full h-2 bg-gradient-to-r from-terra-400 via-yellow-400 to-red-400 rounded-lg appearance-none cursor-pointer"
                   style={{
                     background: `linear-gradient(to right,
                       #22c55e 0%, #22c55e 10%,
@@ -348,13 +349,13 @@ function ProximityAnalysisContent() {
                 />
                 <div className="flex justify-between text-xs text-gray-500 dark:text-slate-400">
                   <span>10 km</span>
-                  <span className="text-green-600 font-medium">20 km</span>
+                  <span className="text-terra-600 font-medium">20 km</span>
                   <span>50 km</span>
                   <span>100 km</span>
                 </div>
                 {/* Recommendation Badge */}
                 <div className="mt-2">
-                  <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${getRadiusBadge(radius).color}`}>
+                  <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-sm text-xs font-medium ${getRadiusBadge(radius).color}`}>
                     <span aria-hidden="true">{getRadiusBadge(radius).icon}</span>
                     {getRadiusBadge(radius).text}
                   </span>
@@ -368,7 +369,7 @@ function ProximityAnalysisContent() {
               disabled={!selectedPoint || loading}
               className={`w-full py-3 px-4 rounded-lg font-medium transition-colors flex items-center justify-center ${
                 selectedPoint && !loading
-                  ? 'bg-emerald-700 hover:bg-emerald-800 text-white'
+                  ? 'bg-terra-700 hover:bg-terra-800 text-white'
                   : 'bg-gray-200 dark:bg-slate-700 text-gray-500 dark:text-slate-400 cursor-not-allowed'
               }`}
             >
@@ -434,7 +435,7 @@ function ProximityAnalysisContent() {
                 {DATA_EXPORT_ENABLED && (
                   <button
                     onClick={handleExport}
-                    className="inline-flex items-center px-3 py-2 text-sm font-medium text-white bg-emerald-700 rounded-lg hover:bg-emerald-800"
+                    className="inline-flex items-center px-3 py-2 text-sm font-medium text-white bg-terra-700 rounded-lg hover:bg-terra-800"
                   >
                     <Download className="h-4 w-4 mr-2" aria-hidden="true" />
                     {tp('export')}
@@ -451,10 +452,10 @@ function ProximityAnalysisContent() {
                 <div className="space-y-6">
                   {/* Hero Stats Cards */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-xl p-6 text-white">
+                    <div className="bg-gradient-to-br from-dusk-500 to-dusk-600 rounded-2xl shadow-xl p-6 text-white">
                       <div className="flex items-center justify-between mb-3">
                         <Layers className="h-8 w-8 opacity-80" />
-                        <div className="px-3 py-1 bg-white/20 rounded-full text-xs font-medium">
+                        <div className="px-3 py-1 bg-white/20 rounded-sm text-xs font-medium">
                           {tp('mapbiomas_badge')}
                         </div>
                       </div>
@@ -465,10 +466,10 @@ function ProximityAnalysisContent() {
                       <p className="text-sm opacity-80">{tp('km2')}</p>
                     </div>
 
-                    <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl shadow-xl p-6 text-white">
+                    <div className="bg-gradient-to-br from-terra-500 to-terra-600 rounded-2xl shadow-xl p-6 text-white">
                       <div className="flex items-center justify-between mb-3">
                         <Leaf className="h-8 w-8 opacity-80" />
-                        <div className="px-3 py-1 bg-white/20 rounded-full text-xs font-medium">
+                        <div className="px-3 py-1 bg-white/20 rounded-sm text-xs font-medium">
                           {tp('agricultural_use')}
                         </div>
                       </div>
@@ -484,7 +485,7 @@ function ProximityAnalysisContent() {
                     <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl shadow-xl p-6 text-white">
                       <div className="flex items-center justify-between mb-3">
                         <Circle className="h-8 w-8 opacity-80" />
-                        <div className="px-3 py-1 bg-white/20 rounded-full text-xs font-medium">
+                        <div className="px-3 py-1 bg-white/20 rounded-sm text-xs font-medium">
                           {tp('dominant_badge')}
                         </div>
                       </div>
@@ -500,7 +501,7 @@ function ProximityAnalysisContent() {
                   {analysisResult.results.land_use.by_class && Object.keys(analysisResult.results.land_use.by_class).length > 0 && (
                     <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-8">
                       <h3 className="text-2xl font-bold text-gray-900 dark:text-slate-100 mb-6 flex items-center">
-                        <Layers className="h-6 w-6 mr-3 text-blue-600" aria-hidden="true" />
+                        <Layers className="h-6 w-6 mr-3 text-dusk-600" aria-hidden="true" />
                         {tp('detailed_distribution')}
                       </h3>
 
@@ -584,34 +585,34 @@ function ProximityAnalysisContent() {
                   {analysisResult.results.land_use.agricultural_percent > 0 && (
                     <div className={`rounded-2xl shadow-xl p-8 ${
                       analysisResult.results.land_use.agricultural_percent >= 50
-                        ? 'bg-gradient-to-br from-green-50 to-green-100 border-2 border-green-300'
+                        ? 'bg-gradient-to-br from-terra-50 to-terra-100 border-2 border-terra-300'
                         : analysisResult.results.land_use.agricultural_percent >= 20
-                        ? 'bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-300'
+                        ? 'bg-gradient-to-br from-dusk-50 to-dusk-100 border-2 border-dusk-300'
                         : 'bg-gradient-to-br from-yellow-50 to-yellow-100 border-2 border-yellow-300'
                     }`}>
                       <div className="flex items-start gap-4">
                         {analysisResult.results.land_use.agricultural_percent >= 50 ? (
                           <CheckCircle2 className="h-12 w-12 text-green-600 flex-shrink-0" />
                         ) : analysisResult.results.land_use.agricultural_percent >= 20 ? (
-                          <Info className="h-12 w-12 text-blue-600 flex-shrink-0" />
+                          <Info className="h-12 w-12 text-dusk-600 flex-shrink-0" />
                         ) : (
                           <AlertCircle className="h-12 w-12 text-yellow-600 flex-shrink-0" />
                         )}
                         <div className="flex-1">
                           <h4 className={`text-xl font-bold mb-2 ${
                             analysisResult.results.land_use.agricultural_percent >= 50
-                              ? 'text-green-900'
+                              ? 'text-terra-900'
                               : analysisResult.results.land_use.agricultural_percent >= 20
-                              ? 'text-blue-900'
+                              ? 'text-dusk-900'
                               : 'text-yellow-900'
                           }`}>
                             {tp(`suitability.${suitability(analysisResult.results.land_use.agricultural_percent)}.title`)}
                           </h4>
                           <p className={`text-base leading-relaxed ${
                             analysisResult.results.land_use.agricultural_percent >= 50
-                              ? 'text-green-800'
+                              ? 'text-terra-800'
                               : analysisResult.results.land_use.agricultural_percent >= 20
-                              ? 'text-blue-800'
+                              ? 'text-dusk-800'
                               : 'text-yellow-800'
                           }`}>
                             {tp(`suitability.${suitability(analysisResult.results.land_use.agricultural_percent)}.body`, {
@@ -645,7 +646,7 @@ function PageLoading() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-slate-900">
       <div className="text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-terra-600 mx-auto"></div>
         <p className="mt-4 text-gray-600 dark:text-slate-400">{tCommon('states.loading')}</p>
       </div>
     </div>

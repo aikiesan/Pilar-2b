@@ -69,7 +69,7 @@ export default function BiomassLayerLegend({ layerIds = [] }: BiomassLayerLegend
     <div className="w-72" data-testid="biomass-layer-legend">
       <div className="bg-white/95 backdrop-blur-sm shadow-lg rounded-lg overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between bg-gradient-to-r from-green-600 to-green-700 px-3 py-2">
+        <div className="flex items-center justify-between bg-gradient-to-r from-terra-600 to-terra-700 px-3 py-2">
           <div className="flex items-center gap-2">
             <Info size={14} className="text-white" />
             <h3 className="text-sm font-semibold text-white">{t('plantsLegend.title')}</h3>

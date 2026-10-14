@@ -187,7 +187,7 @@ export default function SimpleResidueSelector({
                       <label
                         key={residue.code}
                         className={`flex items-center gap-2 p-2 rounded cursor-pointer transition-all ${
-                          isSelected ? 'bg-green-100 border border-green-300' : 'hover:bg-gray-50'
+                          isSelected ? 'bg-terra-100 border border-terra-300' : 'hover:bg-gray-50'
                         }`}
                       >
                         <input
@@ -198,9 +198,9 @@ export default function SimpleResidueSelector({
                         />
                         <div
                           aria-hidden="true"
-                          className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-all peer-focus-visible:ring-2 peer-focus-visible:ring-green-500 peer-focus-visible:ring-offset-1 ${
+                          className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-all peer-focus-visible:ring-2 peer-focus-visible:ring-terra-500 peer-focus-visible:ring-offset-1 ${
                             isSelected
-                              ? 'bg-green-600 border-green-600'
+                              ? 'bg-terra-600 border-terra-600'
                               : 'border-gray-300'
                           }`}
                         >
@@ -234,11 +234,11 @@ export default function SimpleResidueSelector({
                     aria-checked={allSelected ? true : selectedCount > 0 ? 'mixed' : false}
                     aria-label={t('residue_selector.select_all', { group: group.label })}
                     tabIndex={0}
-                    className={`w-4 h-4 shrink-0 cursor-pointer rounded border-2 flex items-center justify-center transition-all focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-1 ${
+                    className={`w-4 h-4 shrink-0 cursor-pointer rounded border-2 flex items-center justify-center transition-all focus-visible:ring-2 focus-visible:ring-terra-500 focus-visible:ring-offset-1 ${
                       allSelected
-                        ? 'bg-green-600 border-green-600'
+                        ? 'bg-terra-600 border-terra-600'
                         : selectedCount > 0
-                        ? 'bg-green-200 border-green-600'
+                        ? 'bg-terra-200 border-terra-600'
                         : 'border-gray-300'
                     }`}
                     onKeyDown={(e) => {
@@ -251,7 +251,7 @@ export default function SimpleResidueSelector({
                   >
                     {allSelected && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
                     {selectedCount > 0 && !allSelected && (
-                      <div className="w-1.5 h-1.5 bg-green-600 rounded-sm" />
+                      <div className="w-1.5 h-1.5 bg-terra-600 rounded-sm" />
                     )}
                   </div>
                 )}
@@ -268,7 +268,7 @@ export default function SimpleResidueSelector({
                     }
                     setExpandedGroups(newExpanded);
                   }}
-                  className="flex flex-1 items-center gap-2 text-left cursor-pointer rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-green-500"
+                  className="flex flex-1 items-center gap-2 text-left cursor-pointer rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-terra-500"
                 >
                   {isExpanded ? (
                     <ChevronDown className="w-3.5 h-3.5 text-gray-600" />
@@ -279,7 +279,7 @@ export default function SimpleResidueSelector({
                   <span className="flex-1 text-xs font-medium text-gray-800">{group.label}</span>
 
                   {selectedCount > 0 && (
-                    <span className="px-1.5 py-0.5 bg-green-700 text-white text-[10px] font-semibold rounded-full">
+                    <span className="px-1.5 py-0.5 bg-terra-700 text-white text-[10px] font-semibold rounded-full">
                       {selectedCount}
                     </span>
                   )}
@@ -296,7 +296,7 @@ export default function SimpleResidueSelector({
                       <label
                         key={residue.code}
                         className={`flex items-center gap-2 p-2 rounded cursor-pointer transition-all ${
-                          isSelected ? 'bg-green-100 border border-green-300' : 'hover:bg-white'
+                          isSelected ? 'bg-terra-100 border border-terra-300' : 'hover:bg-white'
                         }`}
                       >
                         <input
@@ -307,9 +307,9 @@ export default function SimpleResidueSelector({
                         />
                         <div
                           aria-hidden="true"
-                          className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-all peer-focus-visible:ring-2 peer-focus-visible:ring-green-500 peer-focus-visible:ring-offset-1 ${
+                          className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-all peer-focus-visible:ring-2 peer-focus-visible:ring-terra-500 peer-focus-visible:ring-offset-1 ${
                             isSelected
-                              ? 'bg-green-600 border-green-600'
+                              ? 'bg-terra-600 border-terra-600'
                               : 'border-gray-300'
                           }`}
                         >
@@ -345,7 +345,7 @@ export default function SimpleResidueSelector({
           </div>
           <button
             onClick={onApply}
-            className="w-full px-3 py-2 text-xs font-medium text-white bg-green-700 hover:bg-green-800 rounded-lg transition-colors"
+            className="w-full px-3 py-2 text-xs font-medium text-white bg-terra-700 hover:bg-terra-800 rounded-lg transition-colors"
           >
             {t('residue_selector.apply_filters')}
           </button>

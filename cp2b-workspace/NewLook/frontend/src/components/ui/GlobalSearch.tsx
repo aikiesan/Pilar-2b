@@ -19,11 +19,11 @@ import type { MunicipalityFeature } from '@/types/geospatial'
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function getPotentialColor(value: number): string {
-  if (value >= 500_000_000) return 'text-blue-700 dark:text-blue-400'
+  if (value >= 500_000_000) return 'text-dusk-700 dark:text-dusk-400'
   if (value >= 100_000_000) return 'text-cyan-700 dark:text-cyan-400'
-  if (value >= 50_000_000) return 'text-teal-700 dark:text-teal-400'
-  if (value >= 10_000_000) return 'text-green-700 dark:text-green-400'
-  return 'text-lime-700 dark:text-lime-400'
+  if (value >= 50_000_000) return 'text-dusk-700 dark:text-dusk-400'
+  if (value >= 10_000_000) return 'text-terra-700 dark:text-terra-400'
+  return 'text-ochre-700 dark:text-ochre-400'
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -139,8 +139,8 @@ export default function GlobalSearch({ variant = 'light' }: GlobalSearchProps) {
   // ── Styles based on variant ─────────────────────────────────────────────────
   const triggerClass =
     variant === 'dark'
-      ? 'flex items-center gap-2 px-3 py-1.5 rounded-lg text-green-100 bg-white/10 hover:bg-white/20 border border-white/20 text-sm transition-colors cursor-pointer'
-      : 'flex items-center gap-2 px-3 py-1.5 rounded-lg text-gray-600 bg-gray-100 hover:bg-gray-200 border border-gray-200 text-sm transition-colors cursor-pointer'
+      ? 'flex items-center gap-2 px-3 py-1.5 rounded-lg text-terra-100 bg-white/10 hover:bg-white/20 border border-white/20 text-sm transition-colors cursor-pointer'
+      : 'flex items-center gap-2 px-3 py-1.5 rounded text-ink-muted bg-paper-sunken hover:text-ink hover:border-line-strong border border-line text-sm transition-colors cursor-pointer'
 
   return (
     <div ref={containerRef} className="relative tour-search-bar">
@@ -165,10 +165,10 @@ export default function GlobalSearch({ variant = 'light' }: GlobalSearchProps) {
         <div className="absolute right-0 top-1/2 -translate-y-1/2 z-[600] w-72 sm:w-96">
           <div className={`flex items-center gap-2 px-3 py-2 rounded-xl border shadow-lg ${
             variant === 'dark'
-              ? 'bg-[#163d1f] border-white/20'
-              : 'bg-white border-gray-300'
+              ? 'bg-terra-900 border-white/20'
+              : 'bg-paper-raised border-line-strong'
           }`}>
-            <Search className={`w-4 h-4 shrink-0 ${variant === 'dark' ? 'text-green-300' : 'text-gray-400'}`} />
+            <Search className={`w-4 h-4 shrink-0 ${variant === 'dark' ? 'text-terra-300' : 'text-gray-400'}`} />
             <input
               ref={inputRef}
               type="search"
@@ -186,14 +186,14 @@ export default function GlobalSearch({ variant = 'light' }: GlobalSearchProps) {
               placeholder={t('placeholder')}
               aria-label={t('input_aria')}
               className={`flex-1 bg-transparent text-sm outline-none [&::-webkit-search-cancel-button]:hidden ${
-                variant === 'dark' ? 'text-white placeholder-green-300/50' : 'text-gray-900 placeholder-gray-400'
+                variant === 'dark' ? 'text-white placeholder-terra-300/50' : 'text-gray-900 placeholder-gray-400'
               }`}
               autoComplete="off"
             />
             <button
               onClick={() => close(true)}
               aria-label={t('close_aria')}
-              className={`shrink-0 ${variant === 'dark' ? 'text-green-300 hover:text-white' : 'text-gray-400 hover:text-gray-600'}`}
+              className={`shrink-0 ${variant === 'dark' ? 'text-terra-300 hover:text-white' : 'text-gray-400 hover:text-gray-600'}`}
             >
               <X className="w-4 h-4" />
             </button>
@@ -201,7 +201,7 @@ export default function GlobalSearch({ variant = 'light' }: GlobalSearchProps) {
 
           {/* Results dropdown */}
           {query.trim() && (
-            <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-xl overflow-hidden z-[600]">
+            <div className="absolute top-full left-0 right-0 mt-1 bg-paper-raised rounded border border-line shadow-xl overflow-hidden z-[600]">
               {results.length === 0 ? (
                 <div role="status" className="px-4 py-6 text-center text-sm text-gray-500">
                   {t('no_results', { query })}
@@ -221,7 +221,7 @@ export default function GlobalSearch({ variant = 'light' }: GlobalSearchProps) {
                         onMouseEnter={() => setActiveIndex(idx)}
                         className={`flex items-center justify-between px-4 py-3 cursor-pointer transition-colors ${
                           idx === activeIndex
-                            ? 'bg-green-50 dark:bg-green-900/20'
+                            ? 'bg-terra-50 dark:bg-terra-900/20'
                             : 'hover:bg-gray-50 dark:hover:bg-slate-700'
                         }`}
                       >

@@ -73,9 +73,9 @@ export default function MethodologyPanel({
         className="absolute right-0 top-0 bottom-0 w-full max-w-lg bg-white dark:bg-slate-800 shadow-2xl overflow-hidden flex flex-col"
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-slate-700 bg-gradient-to-r from-green-50 to-white">
+        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-slate-700 bg-gradient-to-r from-terra-50 to-white">
           <div className="flex items-center gap-2">
-            <BookOpen className="h-5 w-5 text-green-600" />
+            <BookOpen className="h-5 w-5 text-terra-600" />
             <h2 id={titleId} className="text-lg font-semibold text-gray-900 dark:text-slate-100">
               {t('methodology_panel.title')}
             </h2>
@@ -104,7 +104,7 @@ export default function MethodologyPanel({
               <div className="text-sm font-mono text-gray-600 dark:text-slate-400">
                 {twoDecimals(factors.fc)} &times; {twoDecimals(1 - factors.fcp)} &times; {twoDecimals(factors.fs)} &times; {twoDecimals(factors.fl)} = {format.number(fdeValue, { decimals: 3, minDecimals: 3 })}
               </div>
-              <div className="mt-3 text-2xl font-bold text-green-600">
+              <div className="mt-3 text-2xl font-bold text-terra-600">
                 {format.percent(fdeValue * 100, { decimals: 1, minDecimals: 1 })}
               </div>
               <div className="text-xs text-gray-500 dark:text-slate-400">
@@ -150,8 +150,8 @@ export default function MethodologyPanel({
                     </div>
                     <span className={`font-mono font-bold text-sm ${
                       doc.factor === 'fcp'
-                        ? currentValue > 0.5 ? 'text-red-600' : 'text-green-600'
-                        : currentValue > 0.7 ? 'text-green-600' : 'text-yellow-600'
+                        ? currentValue > 0.5 ? 'text-red-600' : 'text-terra-600'
+                        : currentValue > 0.7 ? 'text-terra-600' : 'text-yellow-600'
                     }`}>
                       {format.percent(currentValue * 100, { decimals: 0 })}
                     </span>
@@ -185,7 +185,7 @@ export default function MethodologyPanel({
                         <div className="flex items-center gap-2">
                           <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
                             <div
-                              className="h-full bg-green-500"
+                              className="h-full bg-terra-500"
                               style={{
                                 marginLeft: `${doc.typicalRange.min * 100}%`,
                                 width: `${(doc.typicalRange.max - doc.typicalRange.min) * 100}%`
@@ -222,12 +222,12 @@ export default function MethodologyPanel({
           </div>
 
           {/* Additional Info */}
-          <div className="bg-blue-50 rounded-lg p-4">
-            <h3 className="text-sm font-semibold text-blue-800 mb-2 flex items-center gap-2">
+          <div className="bg-dusk-50 rounded-lg p-4">
+            <h3 className="text-sm font-semibold text-dusk-800 mb-2 flex items-center gap-2">
               <FileText className="h-4 w-4" />
               {t('methodology_panel.about_heading')}
             </h3>
-            <p className="text-xs text-blue-700 mb-3">
+            <p className="text-xs text-dusk-700 mb-3">
               {t('methodology_panel.about_text')}
             </p>
             <div className="bg-amber-100 rounded-md p-2 mb-3">
@@ -239,21 +239,21 @@ export default function MethodologyPanel({
               </p>
             </div>
             <div className="flex items-center gap-2 text-xs">
-              <ExternalLink className="h-3 w-3 text-blue-600" />
+              <ExternalLink className="h-3 w-3 text-dusk-600" />
               <a
                 href="https://www.nipe.unicamp.br"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-blue-600 hover:underline"
+                className="text-dusk-600 hover:underline"
               >
                 NIPE-UNICAMP
               </a>
-              <span className="text-blue-400">|</span>
+              <span className="text-dusk-400">|</span>
               <a
                 href="https://fapesp.br"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-blue-600 hover:underline"
+                className="text-dusk-600 hover:underline"
               >
                 FAPESP 2025/08745-2
               </a>
@@ -267,7 +267,7 @@ export default function MethodologyPanel({
             </h3>
             <ul className="space-y-2 text-xs text-amber-700">
               <li className="flex items-start gap-2">
-                <span className="font-bold text-green-600 mt-0.5">{t('methodology_panel.color_green')}</span>
+                <span className="font-bold text-terra-600 mt-0.5">{t('methodology_panel.color_green')}</span>
                 <span>{t('methodology_panel.interp_high_detail')}</span>
               </li>
               <li className="flex items-start gap-2">
@@ -286,14 +286,14 @@ export default function MethodologyPanel({
         <div className="p-4 border-t border-gray-200 bg-gray-50 space-y-2">
           <Link
             href="/dashboard/scientific-database?view=references"
-            className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+            className="w-full py-2 px-4 bg-dusk-600 hover:bg-dusk-700 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
           >
             <BookOpen className="h-4 w-4" />
             {t('methodology_panel.view_references')}
           </Link>
           <button
             onClick={onClose}
-            className="w-full py-2 px-4 bg-green-700 hover:bg-green-800 text-white font-medium rounded-lg transition-colors"
+            className="w-full py-2 px-4 bg-terra-700 hover:bg-terra-800 text-white font-medium rounded-lg transition-colors"
           >
             {t('methodology_panel.close')}
           </button>

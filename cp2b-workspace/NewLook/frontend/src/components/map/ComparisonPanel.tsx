@@ -274,7 +274,7 @@ export default function ComparisonPanel({
                                 <span
                                   className={`font-semibold ${
                                     isMax
-                                      ? 'text-green-700 dark:text-green-400'
+                                      ? 'text-terra-700 dark:text-terra-400'
                                       : isMin
                                       ? 'text-red-700 dark:text-red-400'
                                       : 'text-gray-900 dark:text-white'
@@ -291,7 +291,7 @@ export default function ComparisonPanel({
                                 <div className="mt-2 h-1.5 bg-gray-200 dark:bg-slate-700 rounded-full overflow-hidden">
                                   <div
                                     className={`h-full ${
-                                      isMax ? 'bg-green-500' : isMin ? 'bg-red-500' : 'bg-blue-500'
+                                      isMax ? 'bg-terra-500' : isMin ? 'bg-red-500' : 'bg-dusk-500'
                                     }`}
                                     style={{ width: `${(value / maxValue) * 100}%` }}
                                   />

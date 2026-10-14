@@ -1263,7 +1263,7 @@ export default function MapComponent({
                 <button
                   type="button"
                   onClick={() => setHighlightClass(null)}
-                  className="mt-1 w-full border-t border-gray-100 pt-1 text-[10px] font-semibold text-green-800 hover:underline"
+                  className="mt-1 w-full border-t border-gray-100 pt-1 text-[10px] font-semibold text-terra-800 hover:underline"
                 >
                   {t('colorModes.clear_filter')}
                 </button>

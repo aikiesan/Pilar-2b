@@ -116,7 +116,7 @@ export default function ColorModeSelector({
               onClick={() => !locked && onColorModeChange(opt.value)}
               className={`${sizing} transition-all ${
                 active
-                  ? 'bg-green-700 text-white shadow-sm'
+                  ? 'bg-terra-700 text-white shadow-sm'
                   : locked
                     ? 'text-gray-400 cursor-not-allowed'
                     : 'text-gray-700 hover:bg-gray-200'

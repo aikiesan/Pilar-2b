@@ -146,7 +146,7 @@ function SugarcaneBreakdown({ tonsRaw, t, format }: { tonsRaw: number; t: Calcul
               </div>
               <div className="flex justify-between text-gray-500 dark:text-slate-400">
                 <span className="italic">{t(`streams.${key}.note`, { percent: pct(format, s.fde) })}</span>
-                <span className="text-green-700 dark:text-emerald-400 font-medium">
+                <span className="text-terra-700 dark:text-terra-400 font-medium">
                   {t('breakdown.toBiogas', { value: format.number(available) })}
                 </span>
               </div>
@@ -197,7 +197,7 @@ function LivestockBreakdown({ heads, t, format }: {
               </div>
               <div className="flex justify-between text-gray-500 dark:text-slate-400">
                 <span className="italic">{t('breakdown.potential')}</span>
-                <span className="text-green-700 dark:text-emerald-400 font-medium">
+                <span className="text-terra-700 dark:text-terra-400 font-medium">
                   {t('breakdown.biogasYear', { value: format.number(biogasYear) })}
                 </span>
               </div>
@@ -250,7 +250,7 @@ type ActivityOption = (typeof ACTIVITY_OPTIONS)[number]
 function ActivityBanner({ option, onChange, t }: { option: ActivityOption | undefined; onChange: () => void; t: CalculatorT }) {
   if (!option) return null
   return (
-    <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-emerald-900/20 border border-green-200 dark:border-emerald-800 rounded-xl">
+    <div className="flex items-center justify-between p-3 bg-terra-50 dark:bg-terra-900/20 border border-terra-200 dark:border-terra-800 rounded-xl">
       <div className="flex items-center gap-2">
         <span className="text-2xl" aria-hidden="true">{option.emoji}</span>
         <div>
@@ -333,8 +333,8 @@ export default function StepAtividade({ data, onChange, onNext, onBack }: Props)
               className="flex flex-col items-center justify-center gap-2 p-3 sm:p-4 rounded-2xl
                 border-2 border-gray-200 dark:border-slate-700
                 bg-white dark:bg-slate-800
-                hover:border-green-400 dark:hover:border-emerald-500
-                hover:bg-green-50 dark:hover:bg-emerald-900/20
+                hover:border-terra-400 dark:hover:border-terra-500
+                hover:bg-terra-50 dark:hover:bg-terra-900/20
                 transition-all text-center"
             >
               <span className="text-2xl sm:text-3xl">{emoji}</span>
@@ -365,7 +365,7 @@ export default function StepAtividade({ data, onChange, onNext, onBack }: Props)
                 aria-pressed={data.sugarcaneType === opt}
                 className={`flex-1 py-2 text-sm font-medium transition-colors
                   ${data.sugarcaneType === opt
-                    ? 'bg-green-700 dark:bg-emerald-700 text-white'
+                    ? 'bg-terra-700 dark:bg-terra-700 text-white'
                     : 'bg-white dark:bg-slate-800 text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700'}`}
               >
                 {opt === 'tons' ? t('step2.tons') : t('step2.hectares')}
@@ -397,9 +397,9 @@ export default function StepAtividade({ data, onChange, onNext, onBack }: Props)
             <p className="text-xs text-gray-400 dark:text-slate-500 mt-1 italic">
               {data.sugarcaneType === 'tons' ? t('step2.reference.caneTons') : t('step2.reference.caneHectares')}
             </p>
-            {caneHint && <p className="text-xs text-green-600 dark:text-emerald-400 mt-1">📊 {caneHint}</p>}
+            {caneHint && <p className="text-xs text-terra-600 dark:text-terra-400 mt-1">📊 {caneHint}</p>}
             {biogasPreview !== null && biogasPreview > 0 && (
-              <p className="text-xs text-green-700 dark:text-emerald-400 font-medium mt-1">
+              <p className="text-xs text-terra-700 dark:text-terra-400 font-medium mt-1">
                 🔬 {t('step2.preview', { value: format.number(biogasPreview) })}
               </p>
             )}
@@ -448,7 +448,7 @@ export default function StepAtividade({ data, onChange, onNext, onBack }: Props)
             <p className="text-xs text-gray-400 dark:text-slate-500 mt-1 italic">{t('step2.reference.crop')}</p>
             <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">{t('step2.cropTonnesHint')}</p>
             {biogasPreview !== null && biogasPreview > 0 && (
-              <p className="text-xs text-green-700 dark:text-emerald-400 font-medium mt-1">
+              <p className="text-xs text-terra-700 dark:text-terra-400 font-medium mt-1">
                 🔬 {t('step2.preview', { value: format.number(biogasPreview) })}
               </p>
             )}
@@ -488,7 +488,7 @@ export default function StepAtividade({ data, onChange, onNext, onBack }: Props)
                     value={data.livestockHeads[key] || ''}
                     onChange={e => set({ livestockHeads: { ...data.livestockHeads, [key]: parseInt(e.target.value) || 0 } })}
                     placeholder="0"
-                    className="w-24 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 rounded-lg px-2 py-1.5 text-sm text-right focus:outline-none focus:ring-2 focus:ring-green-500 dark:focus:ring-emerald-500"
+                    className="w-24 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 rounded-lg px-2 py-1.5 text-sm text-right focus:outline-none focus:ring-2 focus:ring-terra-500 dark:focus:ring-terra-500"
                   />
                   <span className="text-xs text-gray-400 dark:text-slate-500 w-10">{t('step2.heads')}</span>
                 </div>
@@ -506,7 +506,7 @@ export default function StepAtividade({ data, onChange, onNext, onBack }: Props)
           </div>
 
           {biogasPreview !== null && biogasPreview > 0 && (
-            <p className="text-xs text-green-700 dark:text-emerald-400 font-medium">
+            <p className="text-xs text-terra-700 dark:text-terra-400 font-medium">
               🔬 {t('step2.preview', { value: format.number(biogasPreview) })}
             </p>
           )}
@@ -537,7 +537,7 @@ export default function StepAtividade({ data, onChange, onNext, onBack }: Props)
             onClick={onNext}
             disabled={!canAdvance}
             className="flex-1 py-3 rounded-xl font-semibold text-white transition-colors
-              bg-green-600 dark:bg-emerald-600 hover:bg-green-700 dark:hover:bg-emerald-700
+              bg-terra-600 dark:bg-terra-600 hover:bg-terra-700 dark:hover:bg-terra-700
               disabled:bg-gray-300 dark:disabled:bg-slate-600 disabled:cursor-not-allowed"
           >
             {t('common.next')} →

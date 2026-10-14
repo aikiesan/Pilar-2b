@@ -36,7 +36,7 @@ function CNRatioBar({ cn, label, role }: { cn: number; label: string; role: stri
       <div className="relative h-3 bg-gray-100 rounded-full overflow-hidden">
         {/* Optimal zone highlight */}
         <div
-          className="absolute top-0 bottom-0 bg-green-200 opacity-60"
+          className="absolute top-0 bottom-0 bg-terra-200 opacity-60"
           style={{ left: `${optLow}%`, width: `${optHigh - optLow}%` }}
         />
         {/* Value marker */}
@@ -47,7 +47,7 @@ function CNRatioBar({ cn, label, role }: { cn: number; label: string; role: stri
       </div>
       <div className="flex justify-between text-[9px] text-gray-400 mt-0.5">
         <span>0</span>
-        <span className="text-green-600 font-medium">
+        <span className="text-terra-600 font-medium">
           {t('optimal_band', { low: CN_OPTIMAL_LOW, high: CN_OPTIMAL_HIGH })}
         </span>
         <span>{CN_BAR_MAX}+</span>
@@ -78,7 +78,7 @@ function PairCard({ pair, rank }: { pair: CodigestionPair; rank: number }) {
         </div>
         <div className="flex items-center gap-2 flex-shrink-0 ml-2">
           <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded ${
-            inRange ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
+            inRange ? 'bg-terra-100 text-terra-700' : 'bg-amber-100 text-amber-700'
           }`}>
             C:N {format.number(pair.cn_combined, { decimals: 1 })}
           </span>
@@ -94,7 +94,7 @@ function PairCard({ pair, rank }: { pair: CodigestionPair; rank: number }) {
           <div className="bg-white rounded border border-gray-200 p-2 space-y-1 text-xs text-gray-600">
             <div className="flex justify-between">
               <span>{t('blend', { ratio: pair.blend_ratio_A_to_B })}</span>
-              <span className={`font-mono font-bold ${inRange ? 'text-green-600' : 'text-amber-600'}`}>
+              <span className={`font-mono font-bold ${inRange ? 'text-terra-600' : 'text-amber-600'}`}>
                 C:N {format.number(pair.cn_combined, { decimals: 1 })}
               </span>
             </div>
@@ -174,7 +174,7 @@ export default function CodigestionDetailPanel({
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">{t('combined_cn')}</span>
-                <span className={`font-mono font-bold ${top.cn_combined_in_range ? 'text-green-600' : 'text-amber-600'}`}>
+                <span className={`font-mono font-bold ${top.cn_combined_in_range ? 'text-terra-600' : 'text-amber-600'}`}>
                   {format.number(top.cn_combined, { decimals: 1 })} {top.cn_combined_in_range ? '✓' : '~'}
                 </span>
               </div>

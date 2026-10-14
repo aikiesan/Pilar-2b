@@ -110,7 +110,7 @@ function ComparePageContent() {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-slate-900 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-terra-600 mx-auto mb-4"></div>
           <p className="text-gray-600 dark:text-slate-400">{t('compare.loading_comparison')}</p>
         </div>
       </div>
@@ -124,7 +124,7 @@ function ComparePageContent() {
           <p className="text-red-600 mb-4">{error || t('compare.none_found')}</p>
           <button
             onClick={() => router.push('/dashboard')}
-            className="px-4 py-2 bg-green-700 text-white rounded hover:bg-green-800"
+            className="px-4 py-2 bg-terra-700 text-white rounded hover:bg-terra-800"
           >
             {t('back_to_dashboard')}
           </button>
@@ -201,8 +201,8 @@ function ComparePageContent() {
               />
 
               {/* Biogas Potential section header */}
-              <tr className="bg-green-50 dark:bg-emerald-900/30">
-                <td colSpan={municipalities.length + 1} className="px-6 py-2 text-sm font-bold text-green-900 dark:text-emerald-300">
+              <tr className="bg-terra-50 dark:bg-terra-900/30">
+                <td colSpan={municipalities.length + 1} className="px-6 py-2 text-sm font-bold text-terra-900 dark:text-terra-300">
                   {t('compare.biogas_section')}
                 </td>
               </tr>
@@ -272,7 +272,7 @@ export default function ComparePage() {
       fallback={
         <div className="min-h-screen bg-gray-50 flex items-center justify-center">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-terra-600 mx-auto mb-4"></div>
             <p className="text-gray-600">{t('compare.loading_comparison')}</p>
           </div>
         </div>
@@ -302,15 +302,15 @@ function ComparisonRow({
   highlight = false,
 }: ComparisonRowProps) {
   return (
-    <tr className={highlight ? 'bg-green-50 dark:bg-emerald-900/20' : 'hover:bg-gray-50 dark:hover:bg-slate-700/50'}>
-      <td className={`sticky left-0 ${highlight ? 'bg-green-50 dark:bg-emerald-900/20' : 'bg-white dark:bg-slate-800'} px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-slate-100 z-10`}>
+    <tr className={highlight ? 'bg-terra-50 dark:bg-terra-900/20' : 'hover:bg-gray-50 dark:hover:bg-slate-700/50'}>
+      <td className={`sticky left-0 ${highlight ? 'bg-terra-50 dark:bg-terra-900/20' : 'bg-white dark:bg-slate-800'} px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-slate-100 z-10`}>
         {label}
       </td>
       {values.map((value, index) => (
         <td key={index} className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-slate-300">
           <div className="flex items-center gap-2">
             {numericValues && getComparisonIcon && getComparisonIcon(numericValues, index)}
-            <span className={highlight ? 'font-bold text-green-900 dark:text-emerald-300' : ''}>{value}</span>
+            <span className={highlight ? 'font-bold text-terra-900 dark:text-terra-300' : ''}>{value}</span>
           </div>
         </td>
       ))}

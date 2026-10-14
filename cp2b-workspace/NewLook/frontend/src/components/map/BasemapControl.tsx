@@ -62,7 +62,7 @@ export default function BasemapControl({ value, onChange }: BasemapControlProps)
                 }}
                 className={`flex min-h-11 items-center gap-2 rounded-lg px-3 py-1.5 text-left text-xs font-medium transition-colors md:min-h-0 ${
                   isActive
-                    ? 'bg-green-700 text-white shadow-sm'
+                    ? 'bg-terra-700 text-white shadow-sm'
                     : 'text-gray-700 hover:bg-gray-100'
                 }`}
               >

@@ -184,7 +184,7 @@ export default function MunicipalityProfilePanel({
           <span className="h-1.5 w-10 rounded-full bg-gray-300 dark:bg-slate-600" aria-hidden="true" />
         </div>
         {/* Header */}
-        <div className="sticky top-0 z-10 rounded-t-2xl bg-gradient-to-r from-[#1B5E20] to-[#2F7D32] p-3 text-white shadow-lg landscape:rounded-none">
+        <div className="sticky top-0 z-10 rounded-t-2xl bg-gradient-to-r from-terra-700 to-terra-600 p-3 text-white shadow-lg landscape:rounded-none">
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <div className="flex items-center space-x-2 mb-1">
@@ -220,7 +220,7 @@ export default function MunicipalityProfilePanel({
               <div className="flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-slate-800">
                 <h3 className="font-semibold text-gray-900 dark:text-white text-sm">{t('residue_profile')}</h3>
                 <span
-                  className="text-xs font-medium px-2 py-0.5 rounded-full text-white"
+                  className="text-xs font-medium px-2 py-0.5 rounded-sm text-white"
                   style={{
                     backgroundColor:
                       props.cluster_id === 0 ? '#4daf4a' :
@@ -266,13 +266,13 @@ export default function MunicipalityProfilePanel({
           >
             <div className="grid grid-cols-2 gap-3">
               <StatCard
-                icon={<Users className="w-4 h-4 text-blue-600" />}
+                icon={<Users className="w-4 h-4 text-dusk-600" />}
                 label={t('population')}
                 value={format.number(props.population)}
                 subtitle={`${t('inhabitants')}${props.population_year ? ` (${props.population_year})` : ''}`}
               />
               <StatCard
-                icon={<Maximize className="w-4 h-4 text-green-600" />}
+                icon={<Maximize className="w-4 h-4 text-terra-600" />}
                 label={t('area')}
                 value={format.number(props.area_km2)}
                 subtitle={`${tCommon('units.km2')}${props.area_year ? ` (${props.area_year})` : ''}`}
@@ -307,14 +307,14 @@ export default function MunicipalityProfilePanel({
           >
             <div className="space-y-4">
               {/* Headline figure in the active metric */}
-              <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-lg p-4 border border-green-200 dark:border-green-800">
-                <div className="text-xs text-green-700 dark:text-green-300 font-medium mb-1">
+              <div className="bg-gradient-to-br from-terra-50 to-terra-100 dark:from-terra-900/20 dark:to-terra-800/20 rounded-lg p-4 border border-terra-200 dark:border-terra-800">
+                <div className="text-xs text-terra-700 dark:text-terra-300 font-medium mb-1">
                   {spec.icon} {t('metric_total', { metric: text.label })}
                 </div>
-                <div className="text-2xl font-bold text-green-900 dark:text-green-100 mb-0.5">
+                <div className="text-2xl font-bold text-terra-900 dark:text-terra-100 mb-0.5">
                   {metricTotal > 0 ? format.compact(metricTotal) : tCommon('states.no_data')}
                 </div>
-                <div className="text-xs text-green-600 dark:text-green-400">
+                <div className="text-xs text-terra-600 dark:text-terra-400">
                   {text.unit}
                 </div>
               </div>
@@ -427,9 +427,9 @@ export default function MunicipalityProfilePanel({
             {isServedScenario(scenario) ? (
               hasUrbanScenarioData ? (
                 <div className="space-y-3">
-                  <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 dark:border-blue-900 dark:bg-blue-950/30">
-                    <p className="text-[11px] font-medium text-blue-700 dark:text-blue-300">{t('urban_total')}</p>
-                    <p className="text-xl font-bold text-blue-950 dark:text-blue-100">
+                  <div className="rounded-lg border border-dusk-200 bg-dusk-50 p-3 dark:border-dusk-900 dark:bg-dusk-950/30">
+                    <p className="text-[11px] font-medium text-dusk-700 dark:text-dusk-300">{t('urban_total')}</p>
+                    <p className="text-xl font-bold text-dusk-950 dark:text-dusk-100">
                       {format.compact(urbanScenarioTotal)}
                       <span className="ml-1 text-xs font-medium">{t('ch4_unit')}</span>
                     </p>
@@ -472,12 +472,12 @@ export default function MunicipalityProfilePanel({
                 root. Locally, where basePath is empty, it appeared to work. */}
             <Link
               href={`/municipality/${props.ibge_code}` as never}
-              className="flex items-center justify-between p-4 rounded-lg bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors group border border-green-200 dark:border-green-800"
+              className="flex items-center justify-between p-4 rounded-lg bg-terra-50 dark:bg-terra-900/20 hover:bg-terra-100 dark:hover:bg-terra-900/30 transition-colors group border border-terra-200 dark:border-terra-800"
             >
-              <span className="text-sm font-semibold text-green-800 dark:text-green-300">
+              <span className="text-sm font-semibold text-terra-800 dark:text-terra-300">
                 {t('full_profile')}
               </span>
-              <FileText className="w-4 h-4 text-green-600 group-hover:text-green-800 dark:text-green-400" />
+              <FileText className="w-4 h-4 text-terra-600 group-hover:text-terra-800 dark:text-terra-400" />
             </Link>
             <a
               href={`https://cidades.ibge.gov.br/brasil/${ibgeUf}/${encodeURIComponent(props.name.toLowerCase())}/panorama`}
@@ -488,7 +488,7 @@ export default function MunicipalityProfilePanel({
               <span className="text-sm font-medium text-gray-900 dark:text-white">
                 {t('ibge_more')}
               </span>
-              <ExternalLink className="w-4 h-4 text-gray-500 group-hover:text-blue-600 dark:group-hover:text-blue-400" />
+              <ExternalLink className="w-4 h-4 text-gray-500 group-hover:text-dusk-600 dark:group-hover:text-dusk-400" />
             </a>
           </div>
         </div>
@@ -515,7 +515,7 @@ function Section({ title, icon, expanded, onToggle, children }: SectionProps) {
         className="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
       >
         <div className="flex items-center space-x-3">
-          <div className="text-blue-600 dark:text-blue-400">{icon}</div>
+          <div className="text-dusk-600 dark:text-dusk-400">{icon}</div>
           <h3 className="font-semibold text-gray-900 dark:text-white">{title}</h3>
         </div>
         {expanded ? (
@@ -563,9 +563,9 @@ function ProgressBar({ label, value, percentage, color, icon, unit, format }: Pr
   const t = useTranslations('Map.profilePanel');
   const colorClasses = {
     green: {
-      bg: 'bg-green-500',
-      text: 'text-green-700 dark:text-green-300',
-      lightBg: 'bg-green-100 dark:bg-green-900/20',
+      bg: 'bg-terra-500',
+      text: 'text-terra-700 dark:text-terra-300',
+      lightBg: 'bg-terra-100 dark:bg-terra-900/20',
     },
     yellow: {
       bg: 'bg-yellow-500',
@@ -573,14 +573,14 @@ function ProgressBar({ label, value, percentage, color, icon, unit, format }: Pr
       lightBg: 'bg-yellow-100 dark:bg-yellow-900/20',
     },
     blue: {
-      bg: 'bg-blue-500',
-      text: 'text-blue-700 dark:text-blue-300',
-      lightBg: 'bg-blue-100 dark:bg-blue-900/20',
+      bg: 'bg-dusk-500',
+      text: 'text-dusk-700 dark:text-dusk-300',
+      lightBg: 'bg-dusk-100 dark:bg-dusk-900/20',
     },
     emerald: {
-      bg: 'bg-emerald-700',
-      text: 'text-emerald-800 dark:text-emerald-300',
-      lightBg: 'bg-emerald-100 dark:bg-emerald-900/20',
+      bg: 'bg-terra-700',
+      text: 'text-terra-800 dark:text-terra-300',
+      lightBg: 'bg-terra-100 dark:bg-terra-900/20',
     },
   };
 
@@ -629,7 +629,7 @@ function UrbanStreamRow({ label, value, total }: { label: string; value: number 
         </span>
       </div>
       <div className="h-1.5 overflow-hidden rounded-full bg-gray-200 dark:bg-slate-700">
-        <div className="h-full rounded-full bg-blue-600" style={{ width: `${Math.min(percentage, 100)}%` }} />
+        <div className="h-full rounded-full bg-dusk-600" style={{ width: `${Math.min(percentage, 100)}%` }} />
       </div>
       <p className="text-right text-[10px] text-gray-500 dark:text-gray-400">
         {t('share_of_urban', { share: format.percent(percentage) })}

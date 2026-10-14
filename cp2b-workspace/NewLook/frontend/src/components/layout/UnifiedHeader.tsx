@@ -52,7 +52,7 @@ interface NavItemConfig {
   tourClass?: string
   /**
    * Renders as a small, near-square outlined chip on desktop instead of a full
-   * nav link: no icon, 11px Calibri, 2px radius. For secondary entries that
+   * nav link: no icon, 11px, 2px radius. For secondary entries that
    * should be reachable without competing with the primary navigation.
    *
    * Desktop only -- the mobile menu keeps the full-size row, because an 11px
@@ -60,12 +60,6 @@ interface NavItemConfig {
    */
   compact?: boolean
 }
-
-/**
- * Calibri is a Windows/Office font. Carlito is the metric-compatible open
- * clone, which is what Linux and most Android devices actually resolve.
- */
-const COMPACT_NAV_FONT = "Calibri, Carlito, 'Segoe UI', sans-serif"
 
 interface UnifiedHeaderProps {
   variant?: 'auto' | 'public' | 'authenticated'
@@ -103,9 +97,9 @@ export default function UnifiedHeader({ variant = 'auto' }: UnifiedHeaderProps) 
   // i18n translations
   const t = useTranslations('common')
 
-  // `variant` is styling only. 'auto' is the green bar the live site has always
-  // shown; 'public' keeps the light bar for pages that ask for it.
-  const effectiveVariant = variant === 'public' ? 'public' : 'authenticated'
+  // `variant` is styling only. 'auto' is the light paper bar of the earth
+  // identity; 'authenticated' keeps a dark terracotta bar for pages that ask.
+  const effectiveVariant = variant === 'authenticated' ? 'authenticated' : 'public'
   const isPublic = effectiveVariant === 'public'
 
   const handleLogout = async () => {
@@ -130,22 +124,24 @@ export default function UnifiedHeader({ variant = 'auto' }: UnifiedHeaderProps) 
   // Style configurations based on variant
   const styles = {
     public: {
-      header: 'bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm border-b border-gray-200 dark:border-slate-700',
+      // Paper bar with a hairline rule; the active link is terracotta with a
+      // 1px underline, after the editorial references.
+      header: 'bg-paper-raised/95 backdrop-blur-sm border-b border-line',
       logo: '/images/logotipo-full-black.png',
       logoClass: 'dark:brightness-0 dark:invert',
-      navLink: 'text-cp2b-gray-600 dark:text-slate-300 hover:text-cp2b-green dark:hover:text-emerald-400',
-      navLinkActive: 'text-cp2b-green dark:text-emerald-400 font-semibold relative after:absolute after:bottom-0 after:left-2 after:right-2 after:h-0.5 after:bg-cp2b-green dark:after:bg-emerald-400 after:rounded-full',
-      mobileMenu: 'bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-700',
+      navLink: 'text-ink-muted hover:text-ink',
+      navLinkActive: 'text-terra-600 dark:text-terra-400 relative after:absolute after:bottom-1 after:left-2 after:right-2 after:h-px after:bg-current',
+      mobileMenu: 'bg-paper-raised border-t border-line',
       toggleBg: 'bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700',
       toggleText: 'text-gray-700 dark:text-slate-300',
     },
     authenticated: {
-      header: 'bg-gradient-to-r from-[#1E5128] to-[#2C6B3A] shadow-lg',
+      header: 'bg-gradient-to-r from-terra-800 to-terra-700 shadow-lg',
       logo: '/images/logotipo-full-black.png',
       logoClass: 'brightness-0 invert',
-      navLink: 'text-green-100 hover:bg-white/10 hover:text-white',
+      navLink: 'text-terra-100 hover:bg-white/10 hover:text-white',
       navLinkActive: 'bg-white/20 text-white shadow-inner',
-      mobileMenu: 'bg-[#1E5128] border-t border-white/20',
+      mobileMenu: 'bg-terra-800 border-t border-white/20',
       toggleBg: 'bg-white/10 hover:bg-white/20',
       toggleText: 'text-white',
     }
@@ -188,10 +184,10 @@ export default function UnifiedHeader({ variant = 'auto' }: UnifiedHeaderProps) 
                 style={{ height: 'auto' }}
                 priority
               />
-              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+              <span className={`inline-flex items-center px-1.5 py-0.5 rounded-sm border text-[10px] font-medium uppercase tracking-[0.12em] ${
                 isPublic
-                  ? 'bg-cp2b-lime-light text-cp2b-dark-green'
-                  : 'bg-white/20 text-white'
+                  ? 'border-ochre-700/50 text-ochre-700 dark:border-ochre-400/50 dark:text-ochre-300'
+                  : 'border-white/40 text-white'
               }`}>
                 {t('badge.beta')}
               </span>
@@ -204,19 +200,19 @@ export default function UnifiedHeader({ variant = 'auto' }: UnifiedHeaderProps) 
               const isExternal = item.href.startsWith('http')
               const label = t(`nav.${item.labelKey}`)
               const focusRing = isPublic
-                ? 'focus:ring-cp2b-lime'
-                : 'focus:ring-white focus:ring-offset-2 focus:ring-offset-[#1E5128]'
+                ? 'focus:ring-terra-600'
+                : 'focus:ring-white focus:ring-offset-2 focus:ring-offset-terra-800'
 
               // Compact entries carry their own colours rather than reusing
               // currentStyles.navLink: that token has no border, and the active
               // public underline (an ::after bar) reads as noise at this size.
               const compactClass = isPublic
                 ? (isActive(item.href)
-                    ? 'border-cp2b-green text-cp2b-green dark:border-emerald-400 dark:text-emerald-400'
-                    : 'border-gray-300 text-cp2b-gray-600 hover:border-cp2b-green hover:text-cp2b-green dark:border-slate-600 dark:text-slate-300 dark:hover:border-emerald-400 dark:hover:text-emerald-400')
+                    ? 'border-terra-600 text-terra-600 dark:border-terra-400 dark:text-terra-400'
+                    : 'border-gray-300 text-gray-600 hover:border-terra-600 hover:text-terra-600 dark:border-slate-600 dark:text-slate-300 dark:hover:border-terra-400 dark:hover:text-terra-400')
                 : (isActive(item.href)
                     ? 'border-white/60 bg-white/15 text-white'
-                    : 'border-white/30 text-green-100 hover:border-white/60 hover:text-white')
+                    : 'border-white/30 text-terra-100 hover:border-white/60 hover:text-white')
 
               const linkClass = item.compact
                 ? `
@@ -237,7 +233,6 @@ export default function UnifiedHeader({ variant = 'auto' }: UnifiedHeaderProps) 
                   : currentStyles.navLink
                 }
               `
-              const linkStyle = item.compact ? { fontFamily: COMPACT_NAV_FONT } : undefined
 
               return isExternal ? (
                 <a
@@ -246,7 +241,6 @@ export default function UnifiedHeader({ variant = 'auto' }: UnifiedHeaderProps) 
                   target="_blank"
                   rel="noopener noreferrer"
                   className={linkClass}
-                  style={linkStyle}
                 >
                   {item.compact ? null : <span className="hidden min-[1760px]:inline-flex">{item.icon}</span>}
                   <span>{label}</span>
@@ -256,7 +250,6 @@ export default function UnifiedHeader({ variant = 'auto' }: UnifiedHeaderProps) 
                   key={item.href}
                   href={item.href}
                   className={linkClass}
-                  style={linkStyle}
                   aria-current={isActive(item.href) ? 'page' : undefined}
                 >
                   {item.compact ? null : <span className="hidden min-[1760px]:inline-flex">{item.icon}</span>}
@@ -293,7 +286,7 @@ export default function UnifiedHeader({ variant = 'auto' }: UnifiedHeaderProps) 
                       flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors
                       focus:outline-none focus:ring-2
                       ${isPublic
-                        ? 'text-gray-700 hover:bg-gray-100 focus:ring-cp2b-lime'
+                        ? 'text-gray-700 hover:bg-gray-100 focus:ring-terra-600'
                         : 'text-white hover:bg-white/10 focus:ring-white'
                       }
                     `}
@@ -313,7 +306,7 @@ export default function UnifiedHeader({ variant = 'auto' }: UnifiedHeaderProps) 
                   {/* Dropdown Menu */}
                   {userMenuOpen && (
                     <div
-                      className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 rounded-lg shadow-lg dark:shadow-slate-900/50 py-1 z-50 border border-gray-200 dark:border-slate-700"
+                      className="absolute right-0 mt-2 w-48 bg-paper-raised rounded shadow-xl py-1 z-50 border border-line"
                       role="menu"
                       aria-orientation="vertical"
                     >
@@ -324,7 +317,7 @@ export default function UnifiedHeader({ variant = 'auto' }: UnifiedHeaderProps) 
                         <p className="text-xs text-gray-500 dark:text-slate-400 truncate">
                           {user.email}
                         </p>
-                        <p className="text-xs text-green-600 dark:text-emerald-400 mt-1">
+                        <p className="text-xs text-terra-600 dark:text-terra-400 mt-1">
                           {user.role === 'admin' ? t('auth.admin') : t('auth.authenticated')}
                         </p>
                       </div>
@@ -356,7 +349,7 @@ export default function UnifiedHeader({ variant = 'auto' }: UnifiedHeaderProps) 
                       px-4 py-2 text-sm font-medium rounded-lg transition-colors
                       focus:outline-none focus:ring-2 focus:ring-offset-2
                       ${isPublic
-                        ? 'text-white bg-cp2b-green hover:bg-cp2b-dark-green focus:ring-cp2b-lime'
+                        ? 'text-ink border border-ink/70 hover:bg-ink hover:text-paper focus:ring-terra-600 focus:ring-offset-paper'
                         : 'text-white bg-white/20 hover:bg-white/30 focus:ring-white'
                       }
                     `}
@@ -375,7 +368,7 @@ export default function UnifiedHeader({ variant = 'auto' }: UnifiedHeaderProps) 
                   inline-flex h-11 w-11 items-center justify-center rounded-lg
                   focus:outline-none focus:ring-2
                   ${isPublic
-                    ? 'text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700 focus:ring-cp2b-lime'
+                    ? 'text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700 focus:ring-terra-600'
                     : 'text-white hover:bg-white/10 focus:ring-white'
                   }
                 `}
@@ -399,18 +392,21 @@ export default function UnifiedHeader({ variant = 'auto' }: UnifiedHeaderProps) 
             className={`min-[1360px]:hidden relative z-50 ${currentStyles.mobileMenu}`}
             id="mobile-menu"
           >
-            <div className="px-2 pt-2 pb-3 space-y-1">
+            {/* A plain list with hairline rules, full width on phones. */}
+            <div className={`py-1 ${isPublic ? 'divide-y divide-line' : 'space-y-1 px-2'}`}>
               {navConfig.map((item) => {
                 const isExternal = item.href.startsWith('http')
                 const label = t(`nav.${item.labelKey}`)
                 const description = item.descriptionKey ? t(`nav_descriptions.${item.descriptionKey}`) : undefined
-                const linkClass = `
-                  flex items-center gap-3 px-3 py-3 rounded-lg text-base font-medium
-                  ${isActive(item.href)
-                    ? currentStyles.navLinkActive
-                    : currentStyles.navLink
-                  }
-                `
+                const linkClass = isPublic
+                  ? `flex items-center gap-3 px-4 py-3 text-base font-medium border-l-2 ${
+                      isActive(item.href)
+                        ? 'border-terra-600 dark:border-terra-400 bg-paper-sunken text-terra-600 dark:text-terra-400'
+                        : 'border-transparent text-ink hover:bg-paper-sunken'
+                    }`
+                  : `flex items-center gap-3 px-3 py-3 rounded text-base font-medium ${
+                      isActive(item.href) ? currentStyles.navLinkActive : currentStyles.navLink
+                    }`
 
                 return isExternal ? (
                   <a
@@ -425,7 +421,7 @@ export default function UnifiedHeader({ variant = 'auto' }: UnifiedHeaderProps) 
                     <div>
                       <span className="block">{label}</span>
                       {description && (
-                        <span className={`text-xs ${isPublic ? 'text-gray-500' : 'text-green-200'}`}>
+                        <span className={`text-xs ${isPublic ? 'text-ink-muted' : 'text-terra-200'}`}>
                           {description}
                         </span>
                       )}
@@ -443,7 +439,7 @@ export default function UnifiedHeader({ variant = 'auto' }: UnifiedHeaderProps) 
                     <div>
                       <span className="block">{label}</span>
                       {description && (
-                        <span className={`text-xs ${isPublic ? 'text-gray-500' : 'text-green-200'}`}>
+                        <span className={`text-xs ${isPublic ? 'text-ink-muted' : 'text-terra-200'}`}>
                           {description}
                         </span>
                       )}
@@ -454,7 +450,7 @@ export default function UnifiedHeader({ variant = 'auto' }: UnifiedHeaderProps) 
             </div>
 
             {/* Mobile Toggles */}
-            <div className={`px-4 py-3 border-t ${isPublic ? 'border-gray-200 dark:border-slate-700' : 'border-white/20'}`}>
+            <div className={`px-4 py-3 border-t ${isPublic ? 'border-line' : 'border-white/20'}`}>
               <div className="flex items-center justify-between gap-4">
                 <LanguageSwitcher variant={isPublic ? 'light' : 'dark'} />
                 <ThemeToggle variant={isPublic ? 'light' : 'dark'} />
@@ -463,7 +459,7 @@ export default function UnifiedHeader({ variant = 'auto' }: UnifiedHeaderProps) 
 
             {/* Mobile User Section — hidden in offline/event mode (no real account) */}
             {(hasRealSession && user ? (
-              <div className={`border-t ${isPublic ? 'border-gray-200 dark:border-slate-700' : 'border-white/20'} px-4 py-4`}>
+              <div className={`border-t ${isPublic ? 'border-line' : 'border-white/20'} px-4 py-4`}>
                 <div className="flex items-center gap-3 mb-3">
                   <User className={`h-8 w-8 p-1 rounded-full ${
                     isPublic ? 'text-gray-700 dark:text-slate-300 bg-gray-100 dark:bg-slate-700' : 'text-white bg-white/20'
@@ -472,7 +468,7 @@ export default function UnifiedHeader({ variant = 'auto' }: UnifiedHeaderProps) 
                     <p className={`text-sm font-medium ${isPublic ? 'text-gray-900 dark:text-slate-100' : 'text-white'}`}>
                       {user.full_name || t('auth.user')}
                     </p>
-                    <p className={`text-xs ${isPublic ? 'text-gray-500 dark:text-slate-400' : 'text-green-200'}`}>
+                    <p className={`text-xs ${isPublic ? 'text-gray-500 dark:text-slate-400' : 'text-terra-200'}`}>
                       {user.email}
                     </p>
                   </div>
@@ -486,13 +482,13 @@ export default function UnifiedHeader({ variant = 'auto' }: UnifiedHeaderProps) 
                 </button>
               </div>
             ) : (
-              <div className={`border-t ${isPublic ? 'border-gray-200 dark:border-slate-700' : 'border-white/20'} px-4 py-4`}>
+              <div className={`border-t ${isPublic ? 'border-line' : 'border-white/20'} px-4 py-4`}>
                 <Link
                   href="/login"
                   className={`
                     block w-full px-4 py-2 text-center text-sm font-medium rounded-lg
                     ${isPublic
-                      ? 'text-white bg-cp2b-green hover:bg-cp2b-dark-green'
+                      ? 'text-ink border border-ink/70 hover:bg-ink hover:text-paper'
                       : 'text-white bg-white/20 hover:bg-white/30'
                     }
                   `}

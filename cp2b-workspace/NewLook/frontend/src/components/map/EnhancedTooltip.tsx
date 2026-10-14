@@ -63,7 +63,7 @@ export default function EnhancedTooltip({
       style={{ left, top }}
     >
       <div className="flex min-w-0 items-start gap-2">
-        <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-green-700" />
+        <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-terra-700" />
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-bold text-gray-900 dark:text-white">{props.name}</p>
           <p className="truncate text-[11px] text-gray-700 dark:text-gray-300">
@@ -90,7 +90,7 @@ export default function EnhancedTooltip({
             <span className="ml-1 text-[11px] font-medium text-gray-700 dark:text-gray-300">{text.unit}</span>
           </p>
         </div>
-        <span className="flex shrink-0 items-center gap-1 text-[11px] font-semibold text-green-800 dark:text-emerald-300">
+        <span className="flex shrink-0 items-center gap-1 text-[11px] font-semibold text-terra-800 dark:text-terra-300">
           <MousePointerClick className="h-3.5 w-3.5" />
           {t('hover.click_for_details')}
         </span>

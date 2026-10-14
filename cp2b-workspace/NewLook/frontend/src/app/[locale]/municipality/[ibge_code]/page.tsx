@@ -15,6 +15,7 @@
  */
 
 import { getState, ufOf } from '@/data/brazilStates'
+import { SECTOR_COLORS, SINGLE_SERIES_COLOR } from '@/data/sectorColors'
 import { useMemo } from 'react'
 import { useParams } from 'next/navigation'
 import { useLocale, useTranslations } from 'next-intl'
@@ -77,11 +78,6 @@ function ibgeCidadesSlug(name: string): string {
     .replace(/^-+|-+$/g, '')
 }
 
-const SECTOR_COLORS = {
-  agricultural: '#4CAF50',
-  livestock: '#FF9800',
-  urban: '#2196F3',
-}
 
 /**
  * The residues this page reports, by sector, keyed as the backend names them in
@@ -194,7 +190,7 @@ export default function MunicipalityPage() {
             </p>
             <Link
               href="/map"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-[#1E5128] text-white rounded-xl hover:bg-[#163d1f] transition-colors"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-terra-800 text-white rounded-xl hover:bg-terra-900 transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
               {t('municipality.back_to_map')}
@@ -317,7 +313,7 @@ export default function MunicipalityPage() {
             </a>
             <a
               href={dossierUrl('pdf')}
-              className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-white bg-[#1E5128] rounded-lg hover:bg-[#163d1f] transition-colors"
+              className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-white bg-terra-800 rounded-lg hover:bg-terra-900 transition-colors"
             >
               <FileText className="w-3.5 h-3.5" aria-hidden="true" />
               {t('municipality.download_report')}
@@ -326,26 +322,26 @@ export default function MunicipalityPage() {
         </div>
 
         {/* ── Hero header ── */}
-        <div className="bg-gradient-to-r from-[#1E5128] to-[#2C6B3A] text-white rounded-2xl p-6 mb-6 print:rounded-none print:mb-4">
+        <div className="bg-gradient-to-r from-terra-800 to-terra-700 text-white rounded-2xl p-6 mb-6 print:rounded-none print:mb-4">
           <div className="flex items-start justify-between">
             <div>
-              <div className="flex items-center gap-2 mb-2 text-green-200 text-sm">
+              <div className="flex items-center gap-2 mb-2 text-terra-200 text-sm">
                 <MapPin className="w-4 h-4" aria-hidden="true" />
                 <span>{t('municipality.location_label', { state: getState(ufOf(p.ibge_code))?.nome ?? '' })}</span>
               </div>
               <h1 className="text-3xl font-bold mb-1">{p.name}</h1>
-              <div className="flex items-center gap-3 text-green-100 text-sm">
+              <div className="flex items-center gap-3 text-terra-100 text-sm">
                 <span>IBGE: {p.ibge_code}</span>
                 <span>·</span>
                 <span>{p.intermediate_region}</span>
               </div>
             </div>
             <div className="text-right">
-              <div className="text-xs text-green-300 font-medium mb-1">
+              <div className="text-xs text-terra-300 font-medium mb-1">
                 {t('municipality.hero_potential')}
               </div>
               <div className="text-4xl font-bold">{format.compact(total)}</div>
-              <div className="text-sm text-green-200">{ch4Unit}</div>
+              <div className="text-sm text-terra-200">{ch4Unit}</div>
             </div>
           </div>
         </div>
@@ -369,7 +365,7 @@ export default function MunicipalityPage() {
             label={t('municipality.kpi_ideal')}
             value={format.compact(totalIdeal)}
             unit={ch4Unit}
-            color="bg-blue-50 border-blue-200 text-blue-900 dark:bg-blue-900/10 dark:border-blue-800 dark:text-blue-100"
+            color="bg-dusk-50 border-dusk-200 text-dusk-900 dark:bg-dusk-900/10 dark:border-dusk-800 dark:text-dusk-100"
           />
           <KPICard
             icon={<Users className="w-4 h-4" aria-hidden="true" />}
@@ -383,7 +379,7 @@ export default function MunicipalityPage() {
             label={t('municipality.kpi_area')}
             value={format.number(areaKm2)}
             unit={`${tCommon('units.km2')} · ${density ? `${format.number(density)} ${tCommon('units.inhab_km2')}` : MISSING_VALUE}`}
-            color="bg-green-50 border-green-200 text-green-900 dark:bg-green-900/10 dark:border-green-800 dark:text-green-100"
+            color="bg-terra-50 border-terra-200 text-terra-900 dark:bg-terra-900/10 dark:border-terra-800 dark:text-terra-100"
           />
         </div>
 
@@ -392,7 +388,7 @@ export default function MunicipalityPage() {
           {/* Sector breakdown pie */}
           <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-5">
             <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4 flex items-center gap-2">
-              <BarChart3 className="w-4 h-4 text-green-600" aria-hidden="true" />
+              <BarChart3 className="w-4 h-4 text-terra-600" aria-hidden="true" />
               {t('municipality.sector_distribution')}
             </h2>
             {sectorPieData.length > 0 ? (
@@ -436,7 +432,7 @@ export default function MunicipalityPage() {
                       instead of a second, abbreviated vocabulary. */}
                   <YAxis type="category" dataKey="name" tick={{ fontSize: 10 }} width={110} />
                   <Tooltip formatter={(v) => [ch4(typeof v === 'number' ? v : 0), t('municipality.potential')]} />
-                  <Bar dataKey="value" fill="#4CAF50" radius={[0, 4, 4, 0]} />
+                  <Bar dataKey="value" fill={SINGLE_SERIES_COLOR} />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
@@ -449,7 +445,7 @@ export default function MunicipalityPage() {
         <div className="grid md:grid-cols-3 gap-6 mb-6 print:gap-4">
           {/* Agricultural */}
           <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-5">
-            <h2 className="text-sm font-semibold text-green-700 dark:text-green-400 mb-3 flex items-center gap-2">
+            <h2 className="text-sm font-semibold text-terra-700 dark:text-terra-400 mb-3 flex items-center gap-2">
               <Leaf className="w-4 h-4" aria-hidden="true" />
               {t('municipality.residue_agricultural')}
             </h2>
@@ -457,7 +453,7 @@ export default function MunicipalityPage() {
               <ResidueRow key={key} label={residueName(key)} value={share(key) > 0 ? ch4(share(key)) : null} />
             ))}
             <div className="mt-3 pt-2 border-t border-gray-100 dark:border-slate-700">
-              <div className="flex justify-between text-xs font-bold text-green-700 dark:text-green-400">
+              <div className="flex justify-between text-xs font-bold text-terra-700 dark:text-terra-400">
                 <span>{t('municipality.subtotal_agricultural')}</span>
                 <span>{ch4(agri)}</span>
               </div>
@@ -483,7 +479,7 @@ export default function MunicipalityPage() {
 
           {/* Urban */}
           <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-5">
-            <h2 className="text-sm font-semibold text-blue-700 dark:text-blue-400 mb-3 flex items-center gap-2">
+            <h2 className="text-sm font-semibold text-dusk-700 dark:text-dusk-400 mb-3 flex items-center gap-2">
               <Droplets className="w-4 h-4" aria-hidden="true" />
               {t('municipality.residue_urban')}
             </h2>
@@ -491,7 +487,7 @@ export default function MunicipalityPage() {
               <ResidueRow key={key} label={residueName(key)} value={share(key) > 0 ? ch4(share(key)) : null} />
             ))}
             <div className="mt-3 pt-2 border-t border-gray-100 dark:border-slate-700">
-              <div className="flex justify-between text-xs font-bold text-blue-700 dark:text-blue-400">
+              <div className="flex justify-between text-xs font-bold text-dusk-700 dark:text-dusk-400">
                 <span>{t('municipality.subtotal_urban')}</span>
                 <span>{ch4(urb)}</span>
               </div>
@@ -507,14 +503,14 @@ export default function MunicipalityPage() {
             rel="noopener noreferrer"
             className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl hover:bg-gray-50 transition-colors"
           >
-            <ExternalLink className="w-4 h-4 text-blue-600" aria-hidden="true" />
+            <ExternalLink className="w-4 h-4 text-dusk-600" aria-hidden="true" />
             {t('municipality.view_ibge')}
           </a>
           <Link
             href={`/dashboard/advanced-analysis?q=${encodeURIComponent(p.name)}`}
             className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl hover:bg-gray-50 transition-colors"
           >
-            <BarChart3 className="w-4 h-4 text-green-600" aria-hidden="true" />
+            <BarChart3 className="w-4 h-4 text-terra-600" aria-hidden="true" />
             {t('municipality.go_advanced')}
           </Link>
           <Link

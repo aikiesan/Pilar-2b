@@ -55,9 +55,9 @@ export default function ScopeSwitcher({ scope, onScopeChange, count, className =
         title={t('toggle_title')}
         className="flex min-h-[44px] items-center gap-1.5 rounded-full bg-white/95 px-3 py-2.5 text-sm font-semibold text-gray-800 shadow-lg ring-1 ring-black/5 backdrop-blur transition-colors hover:bg-white md:min-h-0 md:py-1.5 dark:bg-slate-800/95 dark:text-gray-100"
       >
-        <MapPin className="h-4 w-4 text-[#1E5128] dark:text-emerald-400" />
+        <MapPin className="h-4 w-4 text-terra-800 dark:text-terra-400" />
         <span className="max-w-[9rem] truncate">{state?.nome ?? 'São Paulo' /* i18n-exempt: proper noun */}</span>
-        <span className="rounded bg-[#1E5128]/10 px-1.5 py-0.5 text-[10px] font-bold text-[#1E5128] dark:bg-emerald-400/15 dark:text-emerald-300">
+        <span className="rounded bg-terra-800/10 px-1.5 py-0.5 text-[10px] font-bold text-terra-800 dark:bg-terra-400/15 dark:text-terra-300">
           {state?.sigla ?? 'SP'}{scope === '31' ? ' · BETA' : ''}
         </span>
         <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`} />
@@ -75,7 +75,7 @@ export default function ScopeSwitcher({ scope, onScopeChange, count, className =
                 onClick={() => pick(code)}
                 className={`flex min-h-11 w-full items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors ${
                   active
-                    ? 'bg-[#1E5128] text-white'
+                    ? 'bg-terra-800 text-white'
                     : 'text-gray-800 hover:bg-gray-100 dark:text-gray-100 dark:hover:bg-slate-700'
                 }`}
               >

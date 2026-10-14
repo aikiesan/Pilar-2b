@@ -101,7 +101,7 @@ export default function ThematicMapBar({
                     aria-haspopup="listbox"
                     className={`flex min-h-11 w-full min-w-0 flex-col items-center justify-center gap-0 rounded-lg px-0.5 py-1 text-[9px] font-semibold leading-none transition-colors md:min-h-0 md:w-auto md:flex-row md:gap-1 md:rounded-full md:px-3 md:py-1.5 md:text-xs ${
                       isActive
-                        ? 'bg-green-700 text-white shadow-sm'
+                        ? 'bg-terra-700 text-white shadow-sm'
                         : isOpen
                           ? 'bg-gray-100 text-gray-800 ring-1 ring-gray-300'
                           : 'text-gray-700 hover:bg-gray-100'
@@ -153,7 +153,7 @@ export default function ThematicMapBar({
                               disabled
                                 ? 'cursor-not-allowed bg-gray-50 opacity-45'
                                 : active
-                                  ? 'bg-green-50 ring-1 ring-green-600'
+                                  ? 'bg-terra-50 ring-1 ring-terra-600'
                                   : 'hover:bg-gray-50'
                             }`}
                           >
@@ -169,7 +169,7 @@ export default function ThematicMapBar({
                               />
                             </span>
                             {disabled && <span className="text-[9px] font-semibold text-gray-500">{t('validating_badge')}</span>}
-                            {active && <span aria-hidden="true" className="text-[10px] text-green-700">✓</span>}
+                            {active && <span aria-hidden="true" className="text-[10px] text-terra-700">✓</span>}
                           </button>
                         );
                       })}

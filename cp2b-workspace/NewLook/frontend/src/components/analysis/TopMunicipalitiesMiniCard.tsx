@@ -48,7 +48,7 @@ export default function TopMunicipalitiesMiniCard({
     if (index === 0) return 'bg-yellow-400 text-yellow-900'
     if (index === 1) return 'bg-gray-300 text-gray-800'
     if (index === 2) return 'bg-orange-400 text-orange-900'
-    return 'bg-green-100 text-green-700'
+    return 'bg-terra-100 text-terra-700'
   }
 
   if (loading) {
@@ -98,7 +98,7 @@ export default function TopMunicipalitiesMiniCard({
           {onViewAll && (
             <button
               onClick={onViewAll}
-              className="text-xs text-green-600 hover:text-green-700 font-medium flex items-center gap-1 transition-colors"
+              className="text-xs text-terra-600 hover:text-terra-700 font-medium flex items-center gap-1 transition-colors"
             >
               {t('view_all')}
               <ArrowRight className="h-3 w-3" aria-hidden="true" />
@@ -125,7 +125,7 @@ export default function TopMunicipalitiesMiniCard({
                 {/* Municipality Info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-baseline justify-between gap-2 mb-1">
-                    <h4 className="text-sm font-semibold text-gray-900 truncate group-hover:text-green-600 transition-colors">
+                    <h4 className="text-sm font-semibold text-gray-900 truncate group-hover:text-terra-600 transition-colors">
                       {municipality.municipality_name}
                     </h4>
                     <span className="text-sm font-bold text-gray-900 whitespace-nowrap">
@@ -136,7 +136,7 @@ export default function TopMunicipalitiesMiniCard({
                   {/* Progress Bar */}
                   <div className="w-full bg-gray-100 rounded-full h-2 mb-1 overflow-hidden">
                     <div
-                      className="h-full bg-gradient-to-r from-green-500 to-green-600 rounded-full transition-all duration-500 ease-out"
+                      className="h-full bg-gradient-to-r from-terra-500 to-terra-600 rounded-full transition-all duration-500 ease-out"
                       style={{ width: `${percentage}%` }}
                     />
                   </div>

@@ -5,6 +5,8 @@ import type { ReactNode } from 'react';
 // font-src 'self' still holds.
 import '@fontsource-variable/inter';
 import '@fontsource-variable/jetbrains-mono';
+// Display serif for headings (weight + optical-size axes).
+import '@fontsource-variable/fraunces/opsz.css';
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (

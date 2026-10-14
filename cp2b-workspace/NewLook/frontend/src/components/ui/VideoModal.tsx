@@ -74,7 +74,7 @@ export default function VideoModal({ isOpen, onClose, videoUrl, title }: VideoMo
           <button
             ref={closeButtonRef}
             onClick={onClose}
-            className="absolute -top-12 right-0 p-2 text-white hover:text-cp2b-lime transition-colors focus:outline-none focus:ring-2 focus:ring-cp2b-lime rounded-lg"
+            className="absolute -top-12 right-0 p-2 text-white hover:text-terra-300 transition-colors focus:outline-none focus:ring-2 focus:ring-terra-600 rounded-lg"
             aria-label={t('close')}
           >
             <X className="w-8 h-8" aria-hidden="true" />

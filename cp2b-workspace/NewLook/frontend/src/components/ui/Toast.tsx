@@ -6,8 +6,8 @@ import { type Toast as ToastItem, type ToastType, useToast } from '@/contexts/To
 
 const CONFIG: Record<ToastType, { bg: string; border: string; icon: React.ReactNode }> = {
   success: {
-    bg: 'bg-gradient-to-r from-cp2b-green to-cp2b-lime',
-    border: 'border-cp2b-green',
+    bg: 'bg-gradient-to-r from-terra-600 to-terra-400',
+    border: 'border-terra-600',
     icon: <CheckCircle2 className="h-5 w-5 text-white flex-shrink-0" aria-hidden="true" />,
   },
   error: {
@@ -21,8 +21,8 @@ const CONFIG: Record<ToastType, { bg: string; border: string; icon: React.ReactN
     icon: <AlertTriangle className="h-5 w-5 text-white flex-shrink-0" aria-hidden="true" />,
   },
   info: {
-    bg: 'bg-gradient-to-r from-blue-500 to-blue-600',
-    border: 'border-blue-500',
+    bg: 'bg-gradient-to-r from-dusk-500 to-dusk-600',
+    border: 'border-dusk-500',
     icon: <Info className="h-5 w-5 text-white flex-shrink-0" aria-hidden="true" />,
   },
 };

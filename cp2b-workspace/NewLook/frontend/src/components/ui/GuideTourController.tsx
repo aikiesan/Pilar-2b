@@ -25,7 +25,7 @@ export default function GuideTourController() {
       {/* O Botão Flutuante (FAB - Floating Action Button) */}
       <button
         onClick={() => setRunTour(true)}
-        className="tour-help-button fixed bottom-8 right-8 z-[999] flex items-center justify-center w-14 h-14 bg-[#1E5128] text-white rounded-full shadow-lg hover:bg-cp2b-green hover:scale-110 hover:shadow-xl transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-cp2b-lime/50"
+        className="tour-help-button fixed bottom-8 right-8 z-[999] flex items-center justify-center w-14 h-14 bg-terra-800 text-white rounded-full shadow-lg hover:bg-terra-600 hover:scale-110 hover:shadow-xl transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-terra-600/50"
         aria-label={t('fab.aria_label')}
         title={t('fab.title')}
       >

@@ -216,7 +216,7 @@ export default function PerResidueFactorEditor({
               {/* Confidence Badge */}
               <div className="mt-2">
                 <span className={`inline-block text-[10px] px-2 py-1 border rounded ${
-                  activeResidue.confidence === 'HIGH' ? 'bg-green-100 text-green-700 border-green-300' :
+                  activeResidue.confidence === 'HIGH' ? 'bg-terra-100 text-terra-700 border-terra-300' :
                   activeResidue.confidence === 'MEDIUM' ? 'bg-yellow-100 text-yellow-700 border-yellow-300' :
                   'bg-gray-100 text-gray-700 border-gray-300'
                 }`}>
@@ -294,7 +294,7 @@ export default function PerResidueFactorEditor({
 
       {/* Average FDE summary (if multiple residues) */}
       {showAggregatedFDE && selectedResidueCodes.length > 1 && averageFDE !== null && (
-        <div className="p-4 bg-gradient-to-r from-purple-50 to-blue-50 border-t border-gray-200">
+        <div className="p-4 bg-gradient-to-r from-purple-50 to-dusk-50 border-t border-gray-200">
           <div className="flex flex-wrap items-center justify-between">
             <span className="text-sm font-medium text-gray-700">{t('per_residue_editor.average_fde')}</span>
             <span className="text-lg font-bold text-purple-700">{fdePercent(averageFDE)}</span>

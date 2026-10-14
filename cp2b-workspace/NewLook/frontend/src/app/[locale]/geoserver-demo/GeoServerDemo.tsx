@@ -33,7 +33,7 @@ export default function GeoServerDemo() {
   return (
     <div className="max-w-5xl mx-auto p-6 space-y-4">
       <header className="space-y-1">
-        <h1 className="text-2xl font-bold text-[#1E5128]">GeoServer WMS demo</h1>
+        <h1 className="text-2xl font-bold text-terra-800">GeoServer WMS demo</h1>
         <p className="text-gray-600">
           Isolated example: a PostGIS layer published through GeoServer 3.0 and
           consumed as an OGC WMS layer in Leaflet. Not part of the production map.

@@ -6,102 +6,77 @@
 @config "../../../tailwind.config.js";
 
 /* ============================================
-   PILAR-2b DARK MODE - CSS VARIABLES
+   PILAR-2b THEME — earth, warm, light
+   Palette and ramps: src/styles/palette.js. Values here are the ones a
+   stylesheet needs at runtime: surfaces and text that the dark theme swaps.
    ============================================ */
 
-/* Custom PILAR-2b theme variables - Extended palette */
 :root {
-  /* Legacy colors */
-  --cp2b-primary: #1E5128;
-  --cp2b-secondary: #4E9F3D;
-  --cp2b-accent: #D8E9A8;
-  --cp2b-dark: #191A19;
+  /* Surfaces: cream paper, a lighter sheet for cards, a sand band. */
+  --paper: 247 242 231;         /* #F7F2E7 */
+  --paper-raised: 251 248 242;  /* #FBF8F2 */
+  --paper-sunken: 239 232 219;  /* #EFE8DB */
+  /* Text */
+  --ink: 43 38 32;              /* #2B2620 — 13.4:1 on paper */
+  --ink-muted: 107 98 88;       /* #6B6258 — 5.4:1 on paper */
+  /* Rules */
+  --line: 228 221 211;          /* #E4DDD3 — hairlines, card frames */
+  --line-strong: 143 132 120;   /* #8F8478 — inputs and controls, ≥3:1 */
+  /* Brand */
+  --terra: 142 59 34;           /* #8E3B22 */
+  --oxblood: 96 10 0;           /* #600A00 */
 
-  /* PILAR-2b Primary Colors */
-  --cp2b-dark-green: #1B5E20;
-  --cp2b-green: #2F7D32;
-  --cp2b-green-light: #4CAF50;
-  --cp2b-lime: #9CCC65;
-  --cp2b-lime-light: #C5E1A5;
+  /* Older names, still read by a few components */
+  --background: var(--paper);
+  --surface: var(--paper-raised);
+  --foreground: var(--ink);
+  --border: var(--line);
+  --divider: var(--line);
+  --text-primary: var(--ink);
+  --text-secondary: var(--ink-muted);
+  --text-disabled: 167 162 155;
 
-  /* Accent Colors */
-  --cp2b-orange: #FF9800;
-  --cp2b-orange-light: #FFB74D;
+  --biomass-agricola: #6B7F3A;
+  --biomass-pecuaria: #C0782E;
+  --biomass-urbano: #4F6F86;
 
-  /* Biomass Category Colors */
-  --biomass-agricola: #4CAF50;
-  --biomass-pecuaria: #FF9800;
-  --biomass-urbano: #2196F3;
-
-  /* Neutral Palette */
-  --cp2b-gray-50: #F8F9FA;
-  --cp2b-gray-100: #F1F3F4;
-  --cp2b-gray-200: #E8EAED;
-  --cp2b-gray-600: #5F6368;
-  --cp2b-gray-900: #202124;
-
-  /* Semantic Colors */
-  --cp2b-success: #34A853;
-  --cp2b-warning: #FBBC04;
-  --cp2b-error: #EA4335;
-
-  /* Accessibility */
-  --focus-ring: 0 0 0 3px rgba(159, 204, 101, 0.4);
-
-  /* Dark Mode Variables - Light Theme Defaults */
-  --background: 248 249 250; /* #F8F9FA */
-  --surface: 255 255 255;    /* #FFFFFF */
-  --foreground: 32 33 36;    /* #202124 */
-  --border: 226 232 240;     /* #E2E8F0 */
-  --divider: 238 238 238;    /* #EEEEEE */
-
-  /* Text Colors */
-  --text-primary: 32 33 36;
-  --text-secondary: 97 97 97;
-  --text-disabled: 158 158 158;
+  --focus-ring: 0 0 0 2px rgb(var(--paper)), 0 0 0 4px rgb(var(--terra));
 }
 
-/* Dark Theme Overrides */
 .dark {
-  /* Background Colors */
-  --background: 15 23 42;    /* #0F172A - Slate 900 */
-  --surface: 30 41 59;       /* #1E293B - Slate 800 */
-  --foreground: 248 250 252; /* #F8FAFC - Slate 50 */
-
-  /* PILAR-2b Primary (Lighter for dark mode) */
-  --cp2b-primary: #2A7A3E;
-  --cp2b-secondary: #6BC454;
-  --cp2b-green: #3D9948;
-  --cp2b-green-light: #5DBF68;
-
-  /* Border & Divider */
-  --border: 51 65 85;        /* #334155 - Slate 700 */
-  --divider: 71 85 105;      /* #475569 - Slate 600 */
-
-  /* Text Colors */
-  --text-primary: 248 250 252;
-  --text-secondary: 203 213 225;
-  --text-disabled: 148 163 184;
-
-  /* Neutral Palette for dark mode */
-  --cp2b-gray-50: #1E293B;
-  --cp2b-gray-100: #334155;
-  --cp2b-gray-200: #475569;
-  --cp2b-gray-600: #CBD5E1;
-  --cp2b-gray-900: #F8FAFC;
+  --paper: 28 25 22;            /* #1C1916 */
+  --paper-raised: 38 34 30;     /* #26221E */
+  --paper-sunken: 20 17 15;     /* #14110F */
+  --ink: 237 230 220;           /* #EDE6DC — 14.1:1 */
+  --ink-muted: 168 159 148;     /* #A89F94 — 6.7:1 */
+  --line: 58 52 45;             /* #3A342D */
+  --line-strong: 122 112 100;   /* #7A7064 */
+  --terra: 227 154 120;         /* #E39A78 — 7.6:1 on paper */
+  --text-disabled: 120 114 108;
 }
 
 /* Base styles */
 @layer base {
-  /* Remove html scroll-behavior to prevent Next.js 15 warning */
-  /* Next.js now handles scroll behavior through its routing system */
-
   body {
-    @apply bg-[rgb(var(--background))] text-[rgb(var(--text-primary))];
+    @apply bg-paper text-ink;
     @apply transition-colors duration-200;
     font-feature-settings: "rlig" 1, "calt" 1;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Page and section titles set in the display serif, light, whatever weight
+     utility the markup carries (the selector outranks font-bold & co.).
+     Add `font-sans` to a heading that sits in dense UI and should stay Inter. */
+  :is(h1, h2):not(.font-sans) {
+    font-family: theme('fontFamily.display');
+    font-weight: 400;
+    font-optical-sizing: auto;
+    letter-spacing: -0.01em;
+  }
+
+  ::selection {
+    background: rgb(var(--terra) / 0.18);
   }
 
   /* Smooth transitions for dark mode toggle - applied only to interactive elements */
@@ -112,92 +87,108 @@
 
 /* Component styles */
 @layer components {
+  /* Buttons: solid terracotta, hairline outline, text. 2px corners. */
   .btn-primary {
-    @apply bg-cp2b-green hover:bg-cp2b-dark-green dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cp2b-lime dark:focus:ring-emerald-500;
+    @apply inline-flex items-center justify-center gap-2 bg-terra-600 hover:bg-terra-700 dark:bg-terra-400 dark:hover:bg-terra-300 text-white dark:text-gray-900 px-5 py-2.5 rounded font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-terra-600 dark:focus-visible:ring-terra-400 focus-visible:ring-offset-paper;
   }
 
   .btn-secondary {
-    @apply bg-white dark:bg-slate-800 text-cp2b-green dark:text-emerald-400 border-2 border-cp2b-green dark:border-emerald-500 hover:bg-cp2b-gray-50 dark:hover:bg-slate-700 px-6 py-3 rounded-lg font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cp2b-lime dark:focus:ring-emerald-500;
+    @apply inline-flex items-center justify-center gap-2 bg-transparent text-ink border border-ink/80 hover:bg-ink hover:text-paper px-5 py-2.5 rounded font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-terra-600 dark:focus-visible:ring-terra-400 focus-visible:ring-offset-paper;
   }
 
   .btn-ghost {
-    @apply bg-transparent text-cp2b-gray-600 dark:text-slate-300 hover:text-cp2b-green dark:hover:text-emerald-400 hover:bg-cp2b-gray-100 dark:hover:bg-slate-800 px-4 py-2 rounded-lg font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-cp2b-lime dark:focus:ring-emerald-500;
+    @apply inline-flex items-center gap-2 bg-transparent text-ink-muted hover:text-terra-600 dark:hover:text-terra-400 px-3 py-2 rounded font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-terra-600 dark:focus-visible:ring-terra-400;
   }
 
+  /* Cards: a lighter sheet on the paper, framed by a hairline. No lift. */
   .card {
-    @apply bg-white dark:bg-slate-800 rounded-xl shadow-sm dark:shadow-dark-sm border border-cp2b-gray-200 dark:border-slate-700 p-6 transition-all duration-300 hover:shadow-lg dark:hover:shadow-dark-lg hover:border-cp2b-lime dark:hover:border-emerald-500;
+    @apply bg-paper-raised rounded-sm border border-line p-6 transition-colors duration-200 hover:border-line-strong;
   }
 
   .card-elevated {
-    @apply bg-white dark:bg-slate-800 rounded-2xl shadow-lg dark:shadow-dark-lg border border-cp2b-gray-200 dark:border-slate-700 p-8;
+    @apply bg-paper-raised rounded border border-line shadow-lg p-8;
   }
 
   .navbar-gradient {
-    background: linear-gradient(90deg, var(--cp2b-primary) 0%, var(--cp2b-secondary) 100%);
+    background: rgb(var(--paper-raised));
   }
 
   .section-container {
     @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
   }
 
+  /* Small spaced caps above a title, after the PDF's section labels. */
+  .eyebrow {
+    @apply text-[11px] sm:text-xs font-medium uppercase tracking-[0.14em] text-ink-muted;
+  }
+
+  /* A title's underline: a short terracotta rule on a full hairline. */
+  .section-rule {
+    @apply relative border-b border-line pb-3;
+  }
+  .section-rule::after {
+    content: '';
+    @apply absolute -bottom-px left-0 h-px w-12 bg-terra-600 dark:bg-terra-400;
+  }
+
   /* Focus ring for accessibility */
   .focus-ring {
-    @apply focus:outline-none focus:ring-2 focus:ring-cp2b-lime focus:ring-offset-2;
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-terra-600 dark:focus-visible:ring-terra-400 focus-visible:ring-offset-2 focus-visible:ring-offset-paper;
   }
 
   /* Text gradient */
   .text-gradient {
-    @apply bg-gradient-to-r from-cp2b-green to-cp2b-lime bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-terra-600 to-ochre-600 bg-clip-text text-transparent;
   }
 
-  /* Badge styles */
+  /* Badges: outlined rectangles, not pills. */
   .badge {
-    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium;
+    @apply inline-flex items-center px-2 py-0.5 rounded-sm border text-xs font-medium;
   }
 
   .badge-primary {
-    @apply badge bg-cp2b-lime-light dark:bg-emerald-900 text-cp2b-dark-green dark:text-emerald-300;
+    @apply badge border-terra-600/40 bg-terra-50 text-terra-700 dark:border-terra-400/40 dark:bg-transparent dark:text-terra-300;
   }
 
   .badge-secondary {
-    @apply badge bg-cp2b-gray-100 dark:bg-slate-700 text-cp2b-gray-600 dark:text-slate-300;
+    @apply badge border-line bg-paper-sunken text-ink-muted;
   }
 
   /* ── Semantic surface tokens — use instead of raw bg-white / bg-gray-50 ── */
-  .surface        { @apply bg-white dark:bg-slate-800; }
-  .surface-muted  { @apply bg-gray-50 dark:bg-slate-900; }
-  .surface-raised { @apply bg-white dark:bg-slate-700; }
+  .surface        { @apply bg-paper-raised; }
+  .surface-muted  { @apply bg-paper; }
+  .surface-raised { @apply bg-paper-raised; }
 
   /* ── Border token ── */
-  .border-subtle  { @apply border border-gray-200 dark:border-slate-700; }
+  .border-subtle  { @apply border border-line; }
 
   /* ── Text tokens ── */
   /* Note: .text-base conflicts with Tailwind's .text-base font-size utility.
      Use .text-primary instead for primary foreground color. */
-  .text-primary-fg   { @apply text-gray-900 dark:text-slate-100; }
-  .text-secondary-fg { @apply text-gray-600 dark:text-slate-400; }
+  .text-primary-fg   { @apply text-ink; }
+  .text-secondary-fg { @apply text-ink-muted; }
   .text-muted-fg     { @apply text-gray-400 dark:text-slate-500; }
 
   /* ── Input field — fixes white-on-white in dark mode ── */
   .input-field {
-    @apply w-full border border-gray-300 dark:border-slate-600
-           bg-white dark:bg-slate-800
-           text-gray-900 dark:text-slate-100
-           placeholder-gray-400 dark:placeholder-slate-500
-           rounded-lg px-3 py-2 text-sm
-           focus:outline-none focus:ring-2 focus:ring-green-500 dark:focus:ring-emerald-500
+    @apply w-full border border-line-strong
+           bg-paper-raised
+           text-ink
+           placeholder-gray-500 dark:placeholder-slate-500
+           rounded px-3 py-2 text-sm
+           focus:outline-none focus:ring-2 focus:ring-terra-600 dark:focus:ring-terra-400
            transition-colors;
   }
 
   /* ── Info panel variants ── */
   .panel-amber  { @apply bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800; }
   .panel-yellow { @apply bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700; }
-  .panel-blue   { @apply bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800; }
-  .panel-green  { @apply bg-green-50 dark:bg-emerald-900/20 border border-green-200 dark:border-emerald-800; }
+  .panel-blue   { @apply bg-dusk-50 dark:bg-dusk-900/20 border border-dusk-200 dark:border-dusk-800; }
+  .panel-green  { @apply bg-terra-50 dark:bg-terra-900/20 border border-terra-200 dark:border-terra-800; }
 }
 
 /* ── Styled range slider — visible in both light and dark modes ──────────── */
-/* Fills left of thumb with green, right with gray track.
+/* Fills left of thumb with terracotta, right with a warm grey track.
    JavaScript must set --range-pct on the element via onInput. */
 input[type="range"] {
   appearance: none;
@@ -208,10 +199,10 @@ input[type="range"] {
   cursor: pointer;
   background: linear-gradient(
     to right,
-    #16a34a 0%,
-    #16a34a var(--range-pct, 0%),
-    #e5e7eb var(--range-pct, 0%),
-    #e5e7eb 100%
+    #8E3B22 0%,
+    #8E3B22 var(--range-pct, 0%),
+    #E4DDD3 var(--range-pct, 0%),
+    #E4DDD3 100%
   );
   transition: background 0.1s;
 }
@@ -219,10 +210,10 @@ input[type="range"] {
 .dark input[type="range"] {
   background: linear-gradient(
     to right,
-    #10b981 0%,
-    #10b981 var(--range-pct, 0%),
-    #334155 var(--range-pct, 0%),
-    #334155 100%
+    #E39A78 0%,
+    #E39A78 var(--range-pct, 0%),
+    #3A342D var(--range-pct, 0%),
+    #3A342D 100%
   );
 }
 
@@ -232,7 +223,7 @@ input[type="range"]::-webkit-slider-thumb {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: #16a34a;
+  background: #8E3B22;
   border: 2px solid #ffffff;
   box-shadow: 0 1px 3px rgba(0,0,0,0.2);
   cursor: pointer;
@@ -241,12 +232,12 @@ input[type="range"]::-webkit-slider-thumb {
 
 input[type="range"]::-webkit-slider-thumb:hover {
   transform: scale(1.15);
-  box-shadow: 0 2px 6px rgba(22,163,74,0.4);
+  box-shadow: 0 2px 6px rgba(142,59,34,0.35);
 }
 
 .dark input[type="range"]::-webkit-slider-thumb {
-  background: #10b981;
-  border-color: #1e293b;
+  background: #E39A78;
+  border-color: #26221E;
   box-shadow: 0 1px 3px rgba(0,0,0,0.5);
 }
 
@@ -254,14 +245,14 @@ input[type="range"]::-moz-range-thumb {
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: #16a34a;
+  background: #8E3B22;
   border: 2px solid #ffffff;
   cursor: pointer;
 }
 
 .dark input[type="range"]::-moz-range-thumb {
-  background: #10b981;
-  border-color: #1e293b;
+  background: #E39A78;
+  border-color: #26221E;
 }
 
 /* Screen reader only utility (accessibility) */
@@ -321,11 +312,11 @@ input[type="range"]::-moz-range-thumb {
 
   /* Gradient backgrounds */
   .bg-gradient-hero {
-    background: linear-gradient(135deg, var(--cp2b-green) 0%, var(--cp2b-lime) 100%);
+    background: linear-gradient(135deg, rgb(var(--terra)) 0%, rgb(var(--oxblood)) 100%);
   }
 
   .bg-gradient-subtle {
-    background: linear-gradient(180deg, white 0%, var(--cp2b-gray-50) 100%);
+    background: linear-gradient(180deg, rgb(var(--paper-raised)) 0%, rgb(var(--paper)) 100%);
   }
 }
 
@@ -528,24 +519,20 @@ input[type="range"]::-moz-range-thumb {
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 4px;
+  background: rgb(var(--paper-sunken));
+  border-radius: 0;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--cp2b-secondary);
-  border-radius: 4px;
+  background: rgb(var(--line-strong));
+  border-radius: 0;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--cp2b-primary);
+  background: rgb(var(--terra));
 }
 
-/* Selection color */
-::selection {
-  background-color: var(--cp2b-lime-light);
-  color: var(--cp2b-dark-green);
-}
+/* Selection colour: see ::selection in @layer base. */
 
 /* Technology Routes Animations */
 @keyframes progress {
@@ -707,7 +694,7 @@ input[type="range"] {
 input[type="range"]::-webkit-slider-track {
   height: 8px;
   border-radius: 4px;
-  background: linear-gradient(to right, #10b981, #34d399);
+  background: linear-gradient(to right, #F2B8A1, #C26B49);
   border: none;
 }
 
@@ -717,7 +704,7 @@ input[type="range"]::-webkit-slider-thumb {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: #059669;
+  background: #8E3B22;
   cursor: pointer;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   transition: all 0.2s ease;
@@ -726,7 +713,7 @@ input[type="range"]::-webkit-slider-thumb {
 
 input[type="range"]::-webkit-slider-thumb:hover {
   transform: scale(1.2);
-  background: #047857;
+  background: #7A3119;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
@@ -738,7 +725,7 @@ input[type="range"]::-webkit-slider-thumb:active {
 input[type="range"]::-moz-range-track {
   height: 8px;
   border-radius: 4px;
-  background: linear-gradient(to right, #10b981, #34d399);
+  background: linear-gradient(to right, #F2B8A1, #C26B49);
   border: none;
 }
 
@@ -746,7 +733,7 @@ input[type="range"]::-moz-range-thumb {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: #059669;
+  background: #8E3B22;
   cursor: pointer;
   border: none;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
@@ -755,7 +742,7 @@ input[type="range"]::-moz-range-thumb {
 
 input[type="range"]::-moz-range-thumb:hover {
   transform: scale(1.2);
-  background: #047857;
+  background: #7A3119;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
@@ -765,11 +752,11 @@ input[type="range"]::-moz-range-thumb:active {
 
 /* Dark mode adjustments */
 .dark input[type="range"]::-webkit-slider-track {
-  background: linear-gradient(to right, #047857, #10b981);
+  background: linear-gradient(to right, #7A3119, #E39A78);
 }
 
 .dark input[type="range"]::-moz-range-track {
-  background: linear-gradient(to right, #047857, #10b981);
+  background: linear-gradient(to right, #7A3119, #E39A78);
 }
 
 /* Smooth color transitions for choropleth */

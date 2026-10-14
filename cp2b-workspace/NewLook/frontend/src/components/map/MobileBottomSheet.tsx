@@ -151,7 +151,7 @@ export default function MobileBottomSheet({
                       value={searchQuery}
                       onChange={e => onSearchChange(e.target.value)}
                       placeholder={t('search.placeholder')}
-                      className="w-full pl-9 pr-9 py-2.5 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                      className="w-full pl-9 pr-9 py-2.5 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-terra-500 focus:border-terra-500"
                     />
                     {searchQuery && (
                       <button
@@ -197,9 +197,9 @@ export default function MobileBottomSheet({
                   </label>
                   <div className="grid grid-cols-2 gap-2">
                     {([
-                      { value: 'choropleth' as const, label: t('vizModes.choropleth'), color: 'bg-blue-600', disabled: false },
+                      { value: 'choropleth' as const, label: t('vizModes.choropleth'), color: 'bg-dusk-600', disabled: false },
                       { value: 'heatmap' as const, label: t('vizModes.heatmap'), color: 'bg-orange-500', disabled: false },
-                      { value: 'bubble' as const, label: t('vizModes.bubble'), color: 'bg-green-600', disabled: false },
+                      { value: 'bubble' as const, label: t('vizModes.bubble'), color: 'bg-terra-600', disabled: false },
                       { value: 'clusters' as const, label: `⚗️ ${t('vizModes.clusters')}`, color: 'bg-violet-600', disabled: true },
                     ] as const).map(opt => (
                       <button
@@ -262,7 +262,7 @@ export default function MobileBottomSheet({
                             !enabled
                               ? 'cursor-not-allowed border-gray-100 bg-gray-50 text-gray-300'
                               : biomassType === opt.value
-                                ? 'bg-green-100 border-green-400 text-green-800'
+                                ? 'bg-terra-100 border-terra-400 text-terra-800'
                                 : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
                           }`}
                         >
@@ -282,7 +282,7 @@ export default function MobileBottomSheet({
                   >
                     <span>
                       {t('residueFilter.label')}
-                      {filterCount > 0 && <span className="ml-1.5 text-green-700">({filterCount})</span>}
+                      {filterCount > 0 && <span className="ml-1.5 text-terra-700">({filterCount})</span>}
                     </span>
                     {showResidues ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                   </button>
@@ -305,10 +305,10 @@ export default function MobileBottomSheet({
                         const categoryAvailable = enabledCategories.includes(cat);
                         const catIcon = cat === 'agricultural' ? '🌾' : cat === 'livestock' ? '🐄' : '🏙️';
                         const activeColor = cat === 'agricultural'
-                          ? 'bg-green-200 border-green-500'
+                          ? 'bg-terra-200 border-terra-500'
                           : cat === 'livestock'
                           ? 'bg-yellow-200 border-yellow-500'
-                          : 'bg-blue-200 border-blue-500';
+                          : 'bg-dusk-200 border-dusk-500';
                         return (
                           <div key={cat} className={!categoryAvailable ? 'opacity-40' : ''}>
                             <div className="text-[10px] text-gray-500 font-bold uppercase mb-1.5 flex items-center gap-1">
@@ -384,17 +384,17 @@ export default function MobileBottomSheet({
             {activeSheet === 'layers' && (
               <>
                 {/* Municipality count bar */}
-                <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-3">
+                <div className="bg-gradient-to-r from-terra-50 to-terra-50 border border-terra-200 rounded-xl p-3">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs text-gray-600 font-medium">{t('municipalities.visible')}</span>
                     <div className="flex items-baseline gap-1">
-                      <span className="text-lg font-bold text-green-700">{municipalityCount}</span>
+                      <span className="text-lg font-bold text-terra-700">{municipalityCount}</span>
                       <span className="text-xs text-gray-500">/ {totalMunicipalities}</span>
                     </div>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
                     <div
-                      className="bg-green-600 h-2 rounded-full transition-all duration-300"
+                      className="bg-terra-600 h-2 rounded-full transition-all duration-300"
                       style={{ width: `${(municipalityCount / totalMunicipalities) * 100}%` }}
                     />
                   </div>
@@ -410,7 +410,7 @@ export default function MobileBottomSheet({
                     <input
                       type="range" min="0.3" max="1" step="0.05" value={opacity}
                       onChange={e => onOpacityChange(parseFloat(e.target.value))}
-                      className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-green-600"
+                      className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-terra-600"
                     />
                     <span className="text-xs text-gray-400">100%</span>
                   </div>
@@ -426,13 +426,13 @@ export default function MobileBottomSheet({
                       <label
                         key={layer.id}
                         className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-colors border ${
-                          layer.visible ? 'bg-blue-50 border-blue-200' : 'bg-white border-gray-200 hover:bg-gray-50'
+                          layer.visible ? 'bg-dusk-50 border-dusk-200' : 'bg-white border-gray-200 hover:bg-gray-50'
                         }`}
                       >
                         <input
                           type="checkbox" checked={layer.visible}
                           onChange={e => onLayerToggle(layer.id, e.target.checked)}
-                          className="w-4 h-4 text-green-600 rounded"
+                          className="w-4 h-4 text-terra-600 rounded"
                         />
                         <span className="text-sm text-gray-700 font-medium leading-tight">
                           {layer.icon} {getLayerName(layer)}
@@ -453,13 +453,13 @@ export default function MobileBottomSheet({
         <button
           onClick={() => toggleSheet('filters')}
           className={`flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors ${
-            activeSheet === 'filters' ? 'text-green-700 bg-green-50' : 'text-gray-500 hover:bg-gray-50'
+            activeSheet === 'filters' ? 'text-terra-700 bg-terra-50' : 'text-gray-500 hover:bg-gray-50'
           }`}
         >
           <Search className="w-5 h-5" />
           <span className="text-[10px] font-semibold">
             {t('panels.filters')}
-            {filterCount > 0 && <span className="ml-1 text-green-600">({filterCount})</span>}
+            {filterCount > 0 && <span className="ml-1 text-terra-600">({filterCount})</span>}
           </span>
         </button>
 
@@ -467,13 +467,13 @@ export default function MobileBottomSheet({
         <button
           onClick={() => toggleSheet('layers')}
           className={`flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors border-l border-gray-200 ${
-            activeSheet === 'layers' ? 'text-green-700 bg-green-50' : 'text-gray-500 hover:bg-gray-50'
+            activeSheet === 'layers' ? 'text-terra-700 bg-terra-50' : 'text-gray-500 hover:bg-gray-50'
           }`}
         >
           <Layers className="w-5 h-5" />
           <span className="text-[10px] font-semibold">
             {t('panels.layers')}
-            {activeLayerCount > 1 && <span className="ml-1 text-blue-600">({activeLayerCount})</span>}
+            {activeLayerCount > 1 && <span className="ml-1 text-dusk-600">({activeLayerCount})</span>}
           </span>
         </button>
 

@@ -84,7 +84,7 @@ export default function MapLegend({
               already looking here to decode the colours. */}
           <span className="text-[10px] font-semibold text-gray-700 uppercase tracking-wide leading-tight">
             {title}
-            <span className="block text-[9px] font-bold text-green-700 normal-case tracking-normal">
+            <span className="block text-[9px] font-bold text-terra-700 normal-case tracking-normal">
               {scopeLabel}{betaScope ? ' · BETA' : ''}
             </span>
             {scenarioApplies && (

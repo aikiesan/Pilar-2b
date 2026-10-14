@@ -72,7 +72,7 @@ export default function RegisterPage() {
   const getPasswordStrengthColor = () => {
     if (passwordStrength < 40) return 'bg-red-500'
     if (passwordStrength < 70) return 'bg-yellow-500'
-    return 'bg-green-500'
+    return 'bg-terra-500'
   }
 
   const getPasswordStrengthText = () => {
@@ -83,26 +83,26 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-cp2b-primary via-cp2b-secondary to-green-600 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-paper py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full">
         {/* Header */}
         <div className="text-center mb-8">
           <Link
             href="/"
-            className="inline-flex items-center space-x-2 text-white hover:text-cp2b-accent transition-colors focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-cp2b-primary rounded-lg"
+            className="inline-flex items-center space-x-2 text-ink hover:text-terra-600 transition-colors focus:outline-none focus:ring-2 focus:ring-terra-600 focus:ring-offset-2 focus:ring-offset-paper rounded-lg"
             aria-label={t('register.back_to_home')}
           >
-            <Image src="/images/logotipo-full-black.png" alt="PILAR-2b Logo" width={200} height={55} style={{ height: 'auto' }} className="brightness-0 invert" priority />
+            <Image src="/images/logotipo-full-black.png" alt="PILAR-2b Logo" width={200} height={55} style={{ height: 'auto' }} className="dark:brightness-0 dark:invert" priority />
 
           </Link>
-          <h1 className="mt-6 text-3xl font-extrabold text-white">
+          <h1 className="mt-6 text-4xl text-ink">
             {t('register.title')}
           </h1>
-          <p className="mt-2 text-sm text-gray-200">
+          <p className="mt-2 text-sm text-ink-muted">
             {t('register.or')}{' '}
             <Link
               href="/login"
-              className="font-medium text-cp2b-accent hover:text-yellow-300 underline focus:outline-none focus:ring-2 focus:ring-cp2b-accent rounded"
+              className="font-medium text-terra-600 dark:text-terra-400 hover:text-terra-700 underline focus:outline-none focus:ring-2 focus:ring-terra-600 rounded"
             >
               {t('register.login_existing')}
             </Link>
@@ -147,7 +147,7 @@ export default function RegisterPage() {
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, full_name: e.target.value }))
                 }
-                className="appearance-none block w-full px-4 py-3 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cp2b-primary dark:focus:ring-emerald-500 focus:border-transparent transition-colors"
+                className="appearance-none block w-full px-4 py-3 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-terra-800 dark:focus:ring-terra-500 focus:border-transparent transition-colors"
                 placeholder={t('register.full_name_placeholder')}
                 aria-required="true"
                 aria-invalid={!!error}
@@ -173,7 +173,7 @@ export default function RegisterPage() {
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, email: e.target.value }))
                 }
-                className="appearance-none block w-full px-4 py-3 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cp2b-primary dark:focus:ring-emerald-500 focus:border-transparent transition-colors"
+                className="appearance-none block w-full px-4 py-3 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-terra-800 dark:focus:ring-terra-500 focus:border-transparent transition-colors"
                 placeholder={t('register.email_placeholder')}
                 aria-required="true"
                 aria-invalid={!!error}
@@ -197,7 +197,7 @@ export default function RegisterPage() {
                 required
                 value={formData.password}
                 onChange={(e) => handlePasswordChange(e.target.value)}
-                className="appearance-none block w-full px-4 py-3 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cp2b-primary dark:focus:ring-emerald-500 focus:border-transparent transition-colors"
+                className="appearance-none block w-full px-4 py-3 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-terra-800 dark:focus:ring-terra-500 focus:border-transparent transition-colors"
                 placeholder="••••••••"
                 aria-required="true"
                 aria-invalid={!!error}
@@ -247,7 +247,7 @@ export default function RegisterPage() {
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, confirmPassword: e.target.value }))
                 }
-                className="appearance-none block w-full px-4 py-3 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cp2b-primary dark:focus:ring-emerald-500 focus:border-transparent transition-colors"
+                className="appearance-none block w-full px-4 py-3 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-terra-800 dark:focus:ring-terra-500 focus:border-transparent transition-colors"
                 placeholder="••••••••"
                 aria-required="true"
                 aria-invalid={!!error}
@@ -262,21 +262,21 @@ export default function RegisterPage() {
                 name="terms"
                 type="checkbox"
                 required
-                className="h-4 w-4 mt-1 text-cp2b-primary focus:ring-cp2b-primary border-gray-300 rounded"
+                className="h-4 w-4 mt-1 text-terra-800 focus:ring-terra-800 border-gray-300 rounded"
                 aria-required="true"
               />
               <label htmlFor="terms" className="ml-2 block text-sm text-gray-700">
                 {t('register.agree_to')}{' '}
                 <a
                   href="#"
-                  className="font-medium text-cp2b-primary hover:text-cp2b-secondary underline"
+                  className="font-medium text-terra-800 hover:text-ochre-600 underline"
                 >
                   {t('register.terms_of_service')}
                 </a>{' '}
                 {t('register.and')}{' '}
                 <a
                   href="#"
-                  className="font-medium text-cp2b-primary hover:text-cp2b-secondary underline"
+                  className="font-medium text-terra-800 hover:text-ochre-600 underline"
                 >
                   {t('register.privacy_policy')}
                 </a>
@@ -287,7 +287,7 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-cp2b-primary hover:bg-cp2b-secondary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cp2b-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-terra-600 hover:bg-terra-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-terra-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
               aria-label={loading ? t('register.submitting') : t('register.submit')}
             >
               {loading ? (
@@ -323,7 +323,7 @@ export default function RegisterPage() {
             <div className="mt-6">
               <Link
                 href="/login"
-                className="w-full flex justify-center py-3 px-4 border border-cp2b-primary text-base font-medium rounded-lg text-cp2b-primary bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cp2b-primary transition-colors"
+                className="w-full flex justify-center py-3 px-4 border border-terra-800 text-base font-medium rounded-lg text-terra-800 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-terra-800 transition-colors"
               >
                 {t('register.login')}
               </Link>
@@ -332,7 +332,7 @@ export default function RegisterPage() {
         </div>
 
         {/* Footer */}
-        <p className="mt-8 text-center text-sm text-gray-200">
+        <p className="mt-8 text-center text-sm text-ink-muted">
           {t('common.copyright', { year: new Date().getFullYear() })}
         </p>
       </div>

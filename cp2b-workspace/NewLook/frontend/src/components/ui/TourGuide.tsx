@@ -96,9 +96,9 @@ export default function TourGuide({ run, onFinish }: TourGuideProps) {
     },
     // AQUI ESTÁ A OPTIONS CONSOLIDADA
     options: {
-      primaryColor: '#1E5128',
-      textColor: '#4b5563',
-      backgroundColor: '#ffffff',
+      primaryColor: '#8E3B22', // terra-600
+      textColor: '#58534E', // warm gray-600
+      backgroundColor: '#FBF8F2', // paper-raised
       overlayColor: 'rgba(0, 0, 0, 0.5)',
       zIndex: 10000,
       beaconTrigger: 'hover',

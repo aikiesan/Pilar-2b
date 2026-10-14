@@ -10,91 +10,49 @@ export default function GuideLayout({
 }) {
   const t = useTranslations('guide')
 
+  // One rule for every sidebar link; the map entry stands out as the action.
+  const link =
+    'block border-l-2 border-transparent px-3 py-2 text-ink hover:border-line-strong hover:bg-paper-sunken transition-colors'
+
   return (
-    <div className="flex min-h-screen bg-gray-50 dark:bg-slate-900 pt-16">
-      
-      {/* Sidebar (Menu Lateral) - Visível apenas em telas médias (md) para cima */}
-      <aside className="w-64 fixed h-full border-r border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 overflow-y-auto hidden md:block">
-        <h2 className="text-lg font-bold text-cp2b-green dark:text-cp2b-lime mb-6 flex items-center gap-2">
-          <BookOpen className="w-5 h-5" />
+    <div className="flex min-h-screen bg-paper">
+      {/* Sidebar — md and up. Sticky inside the flow (it was position: fixed,
+          which slid it over the footer at the end of every guide page). */}
+      <aside className="hidden md:block w-64 shrink-0 sticky top-16 self-start h-[calc(100dvh-4rem)] overflow-y-auto border-r border-line bg-paper-raised p-6">
+        <h2 className="text-xl text-ink mb-6 flex items-center gap-2">
+          <BookOpen className="w-5 h-5 text-terra-600 dark:text-terra-400" aria-hidden="true" />
           {t('sidebar_heading')}
         </h2>
-        
-        <nav className="space-y-1">
-          <span className="block text-[10px] font-bold text-gray-500 dark:text-slate-400 tracking-wider uppercase mb-2 px-3">
-            {t('main_topics')}
-          </span>
-          
-          <Link
-            href="/guide"
-            className="block px-3 py-2 rounded-lg hover:bg-cp2b-lime-light dark:hover:bg-slate-800 text-gray-700 dark:text-slate-300 hover:text-cp2b-green font-medium transition-colors"
-          >
-            {t('nav_intro')}
-          </Link>
 
-          <Link
-            href="/about"
-            className="block px-3 py-2 rounded-lg hover:bg-cp2b-lime-light dark:hover:bg-slate-800 text-gray-700 dark:text-slate-300 hover:text-cp2b-green font-medium transition-colors"
-          >
-            {t('nav_about')}
-          </Link>
+        <nav className="space-y-0.5">
+          <span className="eyebrow block mb-2 px-3">{t('main_topics')}</span>
 
+          <Link href="/guide" className={link}>{t('nav_intro')}</Link>
+          <Link href="/about" className={link}>{t('nav_about')}</Link>
           <Link
             href="/map"
-            className="block px-3 py-2 rounded-lg bg-cp2b-green/10 dark:bg-emerald-500/10 text-cp2b-dark-green dark:text-emerald-300 hover:bg-cp2b-green/20 font-semibold transition-colors"
+            className="block border-l-2 border-terra-600 dark:border-terra-400 bg-paper-sunken px-3 py-2 font-medium text-terra-700 dark:text-terra-300 hover:bg-terra-50 dark:hover:bg-paper transition-colors"
           >
             {t('nav_open_map')}
           </Link>
 
-          <span className="block text-[10px] font-bold text-gray-500 dark:text-slate-400 tracking-wider uppercase mt-4 mb-2 px-3">
-            {t('topics_label')}
-          </span>
+          <span className="eyebrow block mt-6 mb-2 px-3">{t('topics_label')}</span>
 
-          <Link
-            href="/guide/mapa"
-            className="block px-3 py-2 rounded-lg hover:bg-cp2b-lime-light dark:hover:bg-slate-800 text-gray-700 dark:text-slate-300 hover:text-cp2b-green font-medium transition-colors"
-          >
-            {t('nav_map')}
-          </Link>
-          
-          <Link 
-            href="/guide/analises" 
-            className="block px-3 py-2 rounded-lg hover:bg-cp2b-lime-light dark:hover:bg-slate-800 text-gray-700 dark:text-slate-300 hover:text-cp2b-green font-medium transition-colors"
-          >
-            {t('nav_analyses')}
-          </Link>
-          
-          <Link 
-            href="/guide/base-cientifica" 
-            className="block px-3 py-2 rounded-lg hover:bg-cp2b-lime-light dark:hover:bg-slate-800 text-gray-700 dark:text-slate-300 hover:text-cp2b-green font-medium transition-colors"
-          >
-            {t('nav_science')}
-          </Link>
-          
-          <Link 
-            href="/guide/calculadora" 
-            className="block px-3 py-2 rounded-lg hover:bg-cp2b-lime-light dark:hover:bg-slate-800 text-gray-700 dark:text-slate-300 hover:text-cp2b-green font-medium transition-colors"
-          >
-            {t('nav_calculator')}
-          </Link>
-          
-          <Link 
-            href="/guide/proximidade" 
-            className="block px-3 py-2 rounded-lg hover:bg-cp2b-lime-light dark:hover:bg-slate-800 text-gray-700 dark:text-slate-300 hover:text-cp2b-green font-medium transition-colors"
-          >
-            {t('nav_proximity')}
-          </Link>
+          <Link href="/guide/mapa" className={link}>{t('nav_map')}</Link>
+          <Link href="/guide/analises" className={link}>{t('nav_analyses')}</Link>
+          <Link href="/guide/base-cientifica" className={link}>{t('nav_science')}</Link>
+          <Link href="/guide/calculadora" className={link}>{t('nav_calculator')}</Link>
+          <Link href="/guide/proximidade" className={link}>{t('nav_proximity')}</Link>
         </nav>
       </aside>
 
       {/* Área de Conteúdo Dinâmico (Direita) */}
-      <div className="flex-1 md:ml-64 p-8 max-w-5xl relative">
+      <div className="flex-1 min-w-0 p-4 sm:p-8 max-w-5xl relative">
         {children}
       </div>
 
       {/* Controlador de Onboarding e Botão Flutuante de Ajuda */}
       <GuideTourController />
-      
     </div>
   )
 }

@@ -58,13 +58,13 @@ export default function Timeline({ events, className = '' }: TimelineProps) {
   const getStatusColor = (status?: string) => {
     switch (status) {
       case 'completed':
-        return 'bg-green-500 border-green-300'
+        return 'bg-terra-500 border-terra-300'
       case 'in-progress':
         return 'bg-amber-500 border-amber-300 animate-pulse'
       case 'upcoming':
         return 'bg-gray-300 border-gray-200'
       default:
-        return 'bg-cp2b-green border-cp2b-lime'
+        return 'bg-terra-600 border-terra-300'
     }
   }
 
@@ -77,7 +77,7 @@ export default function Timeline({ events, className = '' }: TimelineProps) {
   return (
     <div className={`relative ${className}`}>
       {/* Vertical Line */}
-      <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-gradient-to-b from-cp2b-lime via-cp2b-green to-cp2b-dark-green" />
+      <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-gradient-to-b from-terra-400 via-terra-600 to-terra-700" />
 
       {/* Timeline Events */}
       <div className="space-y-8">
@@ -104,15 +104,15 @@ export default function Timeline({ events, className = '' }: TimelineProps) {
             </div>
 
             {/* Event Card */}
-            <div className="group bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-slate-700 hover:shadow-lg hover:border-cp2b-lime dark:hover:border-emerald-500 transition-all duration-300">
+            <div className="group bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-slate-700 hover:shadow-lg hover:border-terra-300 dark:hover:border-terra-500 transition-all duration-300">
               {/* Date Badge */}
-              <div className="inline-flex items-center gap-2 px-3 py-1 bg-cp2b-lime-light rounded-full text-cp2b-dark-green text-xs font-semibold mb-3">
+              <div className="inline-flex items-center gap-2 px-3 py-1 bg-terra-100 rounded-sm text-terra-700 text-xs font-semibold mb-3">
                 <Calendar className="w-3 h-3" />
                 {event.date}
               </div>
 
               {/* Title */}
-              <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-2 group-hover:text-cp2b-green transition-colors">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-2 group-hover:text-terra-600 transition-colors">
                 {event.title}
               </h3>
 
@@ -129,7 +129,7 @@ export default function Timeline({ events, className = '' }: TimelineProps) {
                       key={detailIndex}
                       className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300"
                     >
-                      <CheckCircle2 className="w-4 h-4 text-cp2b-green flex-shrink-0 mt-0.5" />
+                      <CheckCircle2 className="w-4 h-4 text-terra-600 flex-shrink-0 mt-0.5" />
                       <span>{detail}</span>
                     </li>
                   ))}
@@ -140,9 +140,9 @@ export default function Timeline({ events, className = '' }: TimelineProps) {
               {event.status && (
                 <div className="mt-4">
                   <span
-                    className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+                    className={`inline-flex items-center px-3 py-1 rounded-sm text-xs font-medium ${
                       event.status === 'completed'
-                        ? 'bg-green-100 text-green-800'
+                        ? 'bg-terra-100 text-terra-800'
                         : event.status === 'in-progress'
                         ? 'bg-amber-100 text-amber-800'
                         : 'bg-gray-100 text-gray-800'

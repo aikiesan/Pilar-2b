@@ -31,12 +31,12 @@ import {
 
 // Gradient per feature colour. Full literal class strings so Tailwind keeps them.
 const colorClasses = {
-  green: 'from-green-500 to-emerald-600',
-  blue: 'from-blue-500 to-cyan-600',
+  green: 'from-terra-500 to-terra-600',
+  blue: 'from-dusk-500 to-cyan-600',
   purple: 'from-purple-500 to-pink-600',
   orange: 'from-orange-500 to-amber-600',
-  indigo: 'from-indigo-500 to-purple-600',
-  teal: 'from-teal-500 to-cyan-600',
+  indigo: 'from-dusk-500 to-purple-600',
+  teal: 'from-dusk-500 to-cyan-600',
   red: 'from-red-500 to-rose-600',
   gray: 'from-gray-500 to-slate-600',
 } as const
@@ -137,7 +137,7 @@ export default function DashboardPage() {
           <div className="mb-6">
             <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
               <div>
-                <div className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-green-100 dark:bg-green-900/30 px-3 py-1 text-xs font-semibold text-cp2b-dark-green dark:text-emerald-300">
+                <div className="mb-3 inline-flex items-center gap-1.5 rounded-sm bg-terra-100 dark:bg-terra-900/30 px-3 py-1 text-xs font-semibold text-terra-700 dark:text-terra-300">
                   <Leaf className="w-3.5 h-3.5" aria-hidden="true" />
                   {t('hero_institution')}
                 </div>
@@ -153,7 +153,7 @@ export default function DashboardPage() {
               <Link
                 href="/map"
                 aria-label={t('open_map_aria')}
-                className="inline-flex w-full md:w-auto flex-shrink-0 items-center justify-center gap-2 rounded-xl bg-cp2b-green px-6 py-3 text-base font-semibold text-white shadow-lg shadow-green-600/20 transition-colors hover:bg-cp2b-dark-green focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cp2b-lime dark:bg-emerald-700 dark:hover:bg-emerald-700"
+                className="inline-flex w-full md:w-auto flex-shrink-0 items-center justify-center gap-2 rounded-xl bg-terra-600 px-6 py-3 text-base font-semibold text-white shadow-lg shadow-terra-600/20 transition-colors hover:bg-terra-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-terra-600 dark:bg-terra-700 dark:hover:bg-terra-700"
               >
                 <Map className="w-5 h-5" aria-hidden="true" />
                 {t('cta_open_map')}
@@ -175,9 +175,9 @@ export default function DashboardPage() {
                   <Link
                     href={step.href}
                     title={step.hint}
-                    className="group inline-flex min-h-11 items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:border-green-400 hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-cp2b-lime dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+                    className="group inline-flex min-h-11 items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:border-terra-400 hover:bg-terra-50 focus:outline-none focus:ring-2 focus:ring-terra-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
                   >
-                    <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-green-700 text-[11px] font-bold text-white">
+                    <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-terra-700 text-[11px] font-bold text-white">
                       {i + 1}
                     </span>
                     {step.label}
@@ -217,7 +217,7 @@ export default function DashboardPage() {
                       <div className={`p-3 rounded-lg bg-gradient-to-r ${colorClasses[feature.color as keyof typeof colorClasses]}`}>
                         <feature.icon className="w-6 h-6 text-white" />
                       </div>
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white group-hover:text-terra-600 dark:group-hover:text-terra-400 transition-colors">
                         {feature.title}
                       </h3>
                     </div>
@@ -273,7 +273,7 @@ export default function DashboardPage() {
         <Link
           href="/map"
           aria-label={t('open_map_aria')}
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-cp2b-green px-6 py-3 text-base font-semibold text-white shadow-lg transition-colors hover:bg-cp2b-dark-green focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cp2b-lime dark:bg-emerald-700 dark:hover:bg-emerald-700"
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-terra-600 px-6 py-3 text-base font-semibold text-white shadow-lg transition-colors hover:bg-terra-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-terra-600 dark:bg-terra-700 dark:hover:bg-terra-700"
         >
           <Map className="w-5 h-5" aria-hidden="true" />
           {t('cta_open_map')}

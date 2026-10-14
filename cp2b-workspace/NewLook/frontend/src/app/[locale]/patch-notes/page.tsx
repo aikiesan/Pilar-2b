@@ -39,8 +39,8 @@ interface Entry {
 
 // Icon and colour per change kind. The visible label comes from the catalog.
 const KIND_META: Record<Kind, { icon: typeof Plus; className: string }> = {
-  added: { icon: Plus, className: 'bg-cp2b-lime-light text-cp2b-dark-green' },
-  changed: { icon: RefreshCw, className: 'bg-sky-100 text-sky-800' },
+  added: { icon: Plus, className: 'bg-terra-100 text-terra-700' },
+  changed: { icon: RefreshCw, className: 'bg-dusk-100 text-dusk-800' },
   fixed: { icon: Wrench, className: 'bg-amber-100 text-amber-800' },
   security: { icon: ShieldCheck, className: 'bg-rose-100 text-rose-800' },
   data: { icon: Database, className: 'bg-violet-100 text-violet-800' },
@@ -72,7 +72,7 @@ export default function PatchNotesPage() {
   return (
     <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
       <header className="mb-12 max-w-2xl">
-        <span className="text-cp2b-green dark:text-cp2b-lime font-semibold text-sm tracking-wide uppercase mb-2 block">
+        <span className="text-terra-600 dark:text-terra-300 font-semibold text-sm tracking-wide uppercase mb-2 block">
           {t('eyebrow')}
         </span>
         <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4 tracking-tight">
@@ -88,7 +88,7 @@ export default function PatchNotesPage() {
           {entries.map((entry) => (
             <li key={entry.version} className="mb-12 ml-8">
               <span
-                className="absolute -left-2.5 flex h-5 w-5 items-center justify-center rounded-full bg-cp2b-green ring-4 ring-white dark:ring-gray-900"
+                className="absolute -left-2.5 flex h-5 w-5 items-center justify-center rounded-full bg-terra-600 ring-4 ring-white dark:ring-gray-900"
                 aria-hidden="true"
               />
 

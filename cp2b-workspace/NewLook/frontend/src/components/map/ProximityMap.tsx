@@ -195,7 +195,7 @@ export default function ProximityMap({
                     Lat: {coordinate(selectedPoint.lat, 6)}<br />
                     Lng: {coordinate(selectedPoint.lng, 6)}
                   </p>
-                  <p className="text-emerald-600 mt-1">
+                  <p className="text-terra-600 mt-1">
                     {t('map.radius', { radius: format.number(radius) })}
                   </p>
                 </div>
@@ -266,7 +266,7 @@ export default function ProximityMap({
                       <span className="font-medium">{format.number(mun.population ?? 0)}</span>
                     </p>
                   </div>
-                  <p className="mt-1 text-emerald-600 font-medium">
+                  <p className="mt-1 text-terra-600 font-medium">
                     {t('map.biogas')} {format.compact(biogas)} {tCommon('units.m3_year')}
                   </p>
                 </div>
@@ -291,7 +291,7 @@ export default function ProximityMap({
           {t.rich('map.scope', { strong: (chunks) => <span className="font-semibold">{chunks}</span> })}
         </p>
         {selectedPoint && (
-          <p className="text-xs text-emerald-600 mt-1">
+          <p className="text-xs text-terra-600 mt-1">
             {t('map.coordinates', { lat: coordinate(selectedPoint.lat, 4), lng: coordinate(selectedPoint.lng, 4) })}
           </p>
         )}

@@ -45,7 +45,7 @@ function CiteBlock({ label, text, copyLabel, copiedLabel }: { label: string; tex
         <button
           type="button"
           onClick={onCopy}
-          className="rounded-md bg-emerald-700 px-3 py-1 text-xs font-medium text-white hover:bg-emerald-800"
+          className="rounded-md bg-terra-700 px-3 py-1 text-xs font-medium text-white hover:bg-terra-800"
         >
           {copied ? copiedLabel : copyLabel}
         </button>
@@ -77,9 +77,9 @@ export default function CitePage() {
         </p>
       </section>
 
-      <section className="mt-4 rounded-xl border border-blue-200 bg-blue-50 p-4">
-        <h2 className="mb-2 text-base font-semibold text-blue-900">{t('license_title')}</h2>
-        <ul className="list-disc space-y-1 pl-5 text-sm text-blue-900">
+      <section className="mt-4 rounded-xl border border-dusk-200 bg-dusk-50 p-4">
+        <h2 className="mb-2 text-base font-semibold text-dusk-900">{t('license_title')}</h2>
+        <ul className="list-disc space-y-1 pl-5 text-sm text-dusk-900">
           <li>
             {t('license_source_label')} <strong>GNU GPL-3.0</strong> —{' '}
             <a className="underline" href="https://www.gnu.org/licenses/gpl-3.0.html" target="_blank" rel="noopener noreferrer">
@@ -106,10 +106,10 @@ export default function CitePage() {
         <p className="text-sm text-gray-700">{t('why')}</p>
       </section>
 
-      <section className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
-        <h2 className="mb-1 text-base font-semibold text-emerald-900">{t('refs_title')}</h2>
-        <p className="mb-2 text-sm text-emerald-900">{t('refs')}</p>
-        <a className="text-sm font-medium text-emerald-700 underline" href={`/${locale}/dashboard/scientific-database`}>
+      <section className="mt-4 rounded-xl border border-terra-200 bg-terra-50 p-4">
+        <h2 className="mb-1 text-base font-semibold text-terra-900">{t('refs_title')}</h2>
+        <p className="mb-2 text-sm text-terra-900">{t('refs')}</p>
+        <a className="text-sm font-medium text-terra-700 underline" href={`/${locale}/dashboard/scientific-database`}>
           📚 {t('refs_link')}
         </a>
       </section>

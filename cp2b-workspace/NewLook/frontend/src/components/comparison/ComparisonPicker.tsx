@@ -60,7 +60,7 @@ export default function ComparisonPicker({ notice }: { notice?: string }) {
         <label htmlFor={inputId} className="mt-6 block text-sm font-medium text-gray-700 dark:text-slate-300">
           {t('search_label')}
         </label>
-        <div className="mt-1 flex items-center gap-2 rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 focus-within:ring-2 focus-within:ring-cp2b-lime">
+        <div className="mt-1 flex items-center gap-2 rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 focus-within:ring-2 focus-within:ring-terra-600">
           <Search className="h-4 w-4 shrink-0 text-gray-400" aria-hidden="true" />
           <input
             id={inputId}
@@ -110,7 +110,7 @@ export default function ComparisonPicker({ notice }: { notice?: string }) {
                       })
                     }
                     disabled={selected || full}
-                    className="inline-flex min-h-[44px] shrink-0 items-center gap-1.5 rounded-lg border border-cp2b-green dark:border-emerald-400 px-3 text-sm font-medium text-cp2b-green dark:text-emerald-400 hover:bg-cp2b-green hover:text-white disabled:border-gray-300 disabled:text-gray-400 disabled:hover:bg-transparent focus:outline-none focus:ring-2 focus:ring-cp2b-lime"
+                    className="inline-flex min-h-[44px] shrink-0 items-center gap-1.5 rounded-lg border border-terra-600 dark:border-terra-400 px-3 text-sm font-medium text-terra-600 dark:text-terra-400 hover:bg-terra-600 hover:text-white disabled:border-gray-300 disabled:text-gray-400 disabled:hover:bg-transparent focus:outline-none focus:ring-2 focus:ring-terra-600"
                   >
                     {selected ? <Check className="h-4 w-4" aria-hidden="true" /> : <Plus className="h-4 w-4" aria-hidden="true" />}
                     {/* The name is part of the accessible name, so ten "Adicionar"
@@ -126,7 +126,7 @@ export default function ComparisonPicker({ notice }: { notice?: string }) {
 
         <p className="mt-8 text-sm text-gray-600 dark:text-slate-400">
           {t('map_hint')}{' '}
-          <Link href="/map" className="inline-flex items-center gap-1 font-medium text-cp2b-green dark:text-emerald-400 underline underline-offset-2 hover:text-cp2b-dark-green dark:hover:text-emerald-300">
+          <Link href="/map" className="inline-flex items-center gap-1 font-medium text-terra-600 dark:text-terra-400 underline underline-offset-2 hover:text-terra-700 dark:hover:text-terra-300">
             <Map className="h-4 w-4" aria-hidden="true" />
             {t('open_map')}
           </Link>

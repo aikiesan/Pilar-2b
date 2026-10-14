@@ -61,9 +61,9 @@ export default function NewsletterSignup({ title, description, className = '' }:
   const busy = status === 'loading' || status === 'success'
 
   return (
-    <div className={`bg-gradient-to-br from-cp2b-lime-light to-green-50 dark:from-slate-800 dark:to-slate-900 rounded-2xl p-8 border border-cp2b-lime/30 dark:border-slate-700 ${className}`}>
-      <div className="inline-flex p-3 rounded-xl bg-cp2b-green/10 mb-4">
-        <Mail className="w-8 h-8 text-cp2b-green" aria-hidden="true" />
+    <div className={`bg-gradient-to-br from-terra-100 to-terra-50 dark:from-slate-800 dark:to-slate-900 rounded-2xl p-8 border border-terra-300/30 dark:border-slate-700 ${className}`}>
+      <div className="inline-flex p-3 rounded-xl bg-terra-600/10 mb-4">
+        <Mail className="w-8 h-8 text-terra-600" aria-hidden="true" />
       </div>
 
       <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
@@ -88,7 +88,7 @@ export default function NewsletterSignup({ title, description, className = '' }:
             placeholder={t('email_placeholder')}
             disabled={busy}
             aria-invalid={status === 'error'}
-            className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-cp2b-lime bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 disabled:opacity-50"
+            className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-terra-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 disabled:opacity-50"
             aria-describedby={message ? 'newsletter-message' : undefined}
           />
         </div>
@@ -96,7 +96,7 @@ export default function NewsletterSignup({ title, description, className = '' }:
         <button
           type="submit"
           disabled={busy}
-          className="w-full px-6 py-3 font-semibold text-white bg-cp2b-green hover:bg-cp2b-dark-green disabled:bg-gray-400 rounded-lg transition-all hover:scale-[1.02] flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cp2b-lime"
+          className="w-full px-6 py-3 font-semibold text-white bg-terra-600 hover:bg-terra-700 disabled:bg-gray-400 rounded-lg transition-all hover:scale-[1.02] flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-terra-600"
         >
           {status === 'loading' ? (
             <>
@@ -122,7 +122,7 @@ export default function NewsletterSignup({ title, description, className = '' }:
           id="newsletter-message"
           className={`mt-4 p-4 rounded-lg flex items-start gap-3 ${
             status === 'success'
-              ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300'
+              ? 'bg-terra-100 dark:bg-terra-900/30 text-terra-800 dark:text-terra-300'
               : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300'
           }`}
           role="alert"

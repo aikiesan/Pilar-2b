@@ -31,9 +31,9 @@ export default function ScenarioSelector({
     {
       type: 'baseline',
       icon: BarChart3,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-50',
-      borderColor: 'border-blue-600'
+      color: 'text-dusk-600',
+      bgColor: 'bg-dusk-50',
+      borderColor: 'border-dusk-600'
     },
     {
       type: 'conservative',
@@ -45,16 +45,16 @@ export default function ScenarioSelector({
     {
       type: 'optimistic',
       icon: TrendingUp,
-      color: 'text-green-600',
-      bgColor: 'bg-green-50',
-      borderColor: 'border-green-600'
+      color: 'text-terra-600',
+      bgColor: 'bg-terra-50',
+      borderColor: 'border-terra-600'
     },
     {
       type: 'frontier',
       icon: TrendingUp,
-      color: 'text-emerald-700',
-      bgColor: 'bg-emerald-50',
-      borderColor: 'border-emerald-700'
+      color: 'text-terra-700',
+      bgColor: 'bg-terra-50',
+      borderColor: 'border-terra-700'
     },
     {
       type: 'custom',

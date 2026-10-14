@@ -1,3 +1,5 @@
+const palette = require('./src/styles/palette.js')
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   darkMode: 'class', // Enable class-based dark mode
@@ -9,58 +11,74 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Primary Tailwind colors (blue-based defaults)
-        primary: {
-          50: '#f0f9ff',
-          100: '#e0f2fe',
-          200: '#bae6fd',
-          300: '#7dd3fc',
-          400: '#38bdf8',
-          500: '#0ea5e9',
-          600: '#0284c7',
-          700: '#0369a1',
-          800: '#075985',
-          900: '#0c4a6e',
+        // Warm neutrals replace Tailwind's cool gray and slate in place, with
+        // the same lightness per step (see src/styles/palette.js).
+        gray: palette.warmGray,
+        slate: palette.warmSlate,
+        terra: palette.terra,
+        ochre: palette.ochre,
+        dusk: palette.dusk,
+        // Semantic surfaces and text, from CSS variables that the dark theme
+        // swaps (src/app/[locale]/globals.css).
+        paper: {
+          DEFAULT: 'rgb(var(--paper) / <alpha-value>)',
+          raised: 'rgb(var(--paper-raised) / <alpha-value>)',
+          sunken: 'rgb(var(--paper-sunken) / <alpha-value>)',
         },
-        // PILAR-2b Brand Colors - New Extended Palette
+        ink: {
+          DEFAULT: 'rgb(var(--ink) / <alpha-value>)',
+          muted: 'rgb(var(--ink-muted) / <alpha-value>)',
+        },
+        line: {
+          DEFAULT: 'rgb(var(--line) / <alpha-value>)',
+          // Inputs and other controls: 3:1 against the page (WCAG 1.4.11).
+          strong: 'rgb(var(--line-strong) / <alpha-value>)',
+        },
+        // Deprecated green-era names, kept pointing at the earth palette so
+        // anything not yet migrated still matches. Prefer terra/ochre/paper.
         cp2b: {
-          // Legacy colors (kept for backward compatibility)
-          primary: '#1E5128',
-          secondary: '#4E9F3D',
-          accent: '#D8E9A8',
-          dark: '#191A19',
+          primary: palette.terra[800],
+          secondary: palette.ochre[600],
+          accent: palette.terra[100],
+          dark: palette.warmGray[900],
           light: '#FFFFFF',
-          // New specification colors
-          'dark-green': '#1B5E20',
-          green: '#2F7D32',
-          'green-light': '#4CAF50',
-          lime: '#9CCC65',
-          'lime-light': '#C5E1A5',
-          orange: '#FF9800',
-          'orange-light': '#FFB74D',
-          // Neutral palette
-          'gray-50': '#F8F9FA',
-          'gray-100': '#F1F3F4',
-          'gray-200': '#E8EAED',
-          'gray-600': '#5F6368',
-          'gray-900': '#202124',
-          // Semantic colors
-          success: '#34A853',
-          warning: '#FBBC04',
-          error: '#EA4335',
+          'dark-green': palette.terra[700],
+          green: palette.terra[600],
+          'green-light': palette.terra[500],
+          lime: palette.terra[500],
+          'lime-light': palette.terra[100],
+          orange: palette.ochre[600],
+          'orange-light': palette.ochre[300],
+          'gray-50': palette.warmGray[50],
+          'gray-100': palette.warmGray[100],
+          'gray-200': palette.warmGray[200],
+          'gray-600': palette.warmGray[600],
+          'gray-900': palette.warmGray[900],
         },
-        // Biomass category colors
-        biomass: {
-          agricola: '#4CAF50',
-          pecuaria: '#FF9800',
-          urbano: '#2196F3',
-        },
+        // Sector colours (agrícola, pecuária, urbano) for map, charts and PDFs.
+        biomass: palette.sector,
+        sector: palette.sector,
       },
       fontFamily: {
         // "… Variable" is the family name @fontsource-variable registers
         // (loaded in src/app/layout.tsx); the plain names cover a local install.
         sans: ['"Inter Variable"', 'Inter', 'system-ui', 'sans-serif'],
         mono: ['"JetBrains Mono Variable"', '"JetBrains Mono"', 'monospace'],
+        // Headings (h1, h2 by default; see globals.css). Light serif, after the
+        // editorial references; loaded in src/app/layout.tsx.
+        display: ['"Fraunces Variable"', 'Fraunces', 'Georgia', 'serif'],
+      },
+      // Sharp corners: every rounded-* utility tops out at 4px. `full` stays
+      // for true circles (dots, avatars, round icon buttons, toggles).
+      borderRadius: {
+        none: '0',
+        sm: '1px',
+        DEFAULT: '2px',
+        md: '2px',
+        lg: '2px',
+        xl: '3px',
+        '2xl': '4px',
+        '3xl': '4px',
       },
       animation: {
         'fade-in': 'fadeIn 0.5s ease-in-out',
@@ -78,13 +96,19 @@ module.exports = {
           '100%': { transform: 'translateY(0)', opacity: '1' },
         },
       },
+      // Structure comes from hairlines; shadows stay low and warm. Only xl/2xl
+      // lift a surface (popovers, dialogs, the map's floating panels).
       boxShadow: {
-        'xl': '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)',
-        '2xl': '0 25px 50px -12px rgb(0 0 0 / 0.25)',
+        sm: '0 1px 0 rgb(43 38 32 / 0.04)',
+        DEFAULT: '0 1px 2px rgb(43 38 32 / 0.06)',
+        md: '0 2px 6px -2px rgb(43 38 32 / 0.10)',
+        lg: '0 6px 16px -8px rgb(43 38 32 / 0.14)',
+        xl: '0 12px 28px -12px rgb(43 38 32 / 0.20)',
+        '2xl': '0 20px 40px -16px rgb(43 38 32 / 0.24)',
         // Dark mode shadows
-        'dark-sm': '0 1px 2px 0 rgba(0, 0, 0, 0.3)',
-        'dark-md': '0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3)',
-        'dark-lg': '0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.4)',
+        'dark-sm': '0 1px 0 rgb(0 0 0 / 0.3)',
+        'dark-md': '0 2px 6px -2px rgb(0 0 0 / 0.45)',
+        'dark-lg': '0 6px 16px -8px rgb(0 0 0 / 0.55)',
       },
       backdropBlur: {
         sm: '4px',

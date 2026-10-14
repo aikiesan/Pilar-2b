@@ -1,5 +1,6 @@
 'use client'
 
+import { SINGLE_SERIES_COLOR } from '@/data/sectorColors'
 import { useTranslations } from 'next-intl'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Cell
@@ -62,7 +63,7 @@ export default function StepSazonalidade({ activeMonths, activityType, onChange,
               {chartData.map(d => (
                 <Cell
                   key={d.month}
-                  fill={d.value === 1 ? '#16a34a' : '#e5e7eb'}
+                  fill={d.value === 1 ? SINGLE_SERIES_COLOR : '#E4DDD3'}
                   cursor="pointer"
                   onClick={() => toggle(d.month)}
                 />
@@ -84,8 +85,8 @@ export default function StepSazonalidade({ activeMonths, activityType, onChange,
               aria-label={format.month(m, 'long')}
               className={`py-1.5 rounded-lg text-xs font-medium border transition-colors
                 ${active
-                  ? 'bg-green-700 text-white border-green-600'
-                  : 'bg-white dark:bg-slate-800 text-gray-500 dark:text-slate-400 border-gray-300 dark:border-slate-600 hover:border-green-400 dark:hover:border-emerald-500'}`}
+                  ? 'bg-terra-700 text-white border-terra-600'
+                  : 'bg-white dark:bg-slate-800 text-gray-500 dark:text-slate-400 border-gray-300 dark:border-slate-600 hover:border-terra-400 dark:hover:border-terra-500'}`}
             >
               {format.month(m)}
             </button>
@@ -109,7 +110,7 @@ export default function StepSazonalidade({ activeMonths, activityType, onChange,
         </button>
         <button
           onClick={onNext}
-          className="flex-1 py-3 rounded-xl font-semibold text-white bg-green-700 hover:bg-green-800 transition-colors"
+          className="flex-1 py-3 rounded-xl font-semibold text-white bg-terra-700 hover:bg-terra-800 transition-colors"
         >
           {t('common.next')} →
         </button>

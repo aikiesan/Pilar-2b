@@ -41,7 +41,7 @@ export default function CookieConsent() {
   }
 
   const button =
-    'min-h-[40px] flex-1 sm:flex-none rounded-lg px-4 text-sm font-semibold whitespace-nowrap transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cp2b-lime'
+    'min-h-[40px] flex-1 sm:flex-none rounded-lg px-4 text-sm font-semibold whitespace-nowrap transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-terra-600'
 
   return (
     <div
@@ -52,12 +52,12 @@ export default function CookieConsent() {
       // nothing may cover the choice while it is asked.
       className="fixed inset-x-0 bottom-0 z-[1300] p-2 sm:p-4 pointer-events-none"
     >
-      <div className="pointer-events-auto mx-auto flex max-w-4xl flex-col gap-2 rounded-xl border border-gray-200 bg-white/95 px-4 py-3 shadow-lg backdrop-blur dark:border-slate-700 dark:bg-slate-800/95 sm:flex-row sm:items-center sm:gap-4">
-        <p className="flex-1 text-xs leading-snug text-gray-700 dark:text-gray-300">
+      <div className="pointer-events-auto mx-auto flex max-w-4xl flex-col gap-2 border border-line bg-paper-raised/95 px-4 py-3 shadow-xl backdrop-blur sm:flex-row sm:items-center sm:gap-4">
+        <p className="flex-1 text-xs leading-snug text-ink">
           {t('description')}{' '}
           <Link
             href="/privacy"
-            className="font-medium text-cp2b-green underline underline-offset-2 hover:no-underline focus:outline-none focus:ring-2 focus:ring-cp2b-lime rounded dark:text-cp2b-lime"
+            className="font-medium text-terra-600 underline underline-offset-2 hover:no-underline focus:outline-none focus:ring-2 focus:ring-terra-600 rounded dark:text-terra-300"
           >
             {t('privacyLink')}
           </Link>
@@ -66,14 +66,14 @@ export default function CookieConsent() {
           <button
             type="button"
             onClick={() => choose('essential')}
-            className={`${button} border border-gray-300 bg-white text-gray-800 hover:bg-gray-100 dark:border-slate-600 dark:bg-slate-700 dark:text-gray-100 dark:hover:bg-slate-600`}
+            className={`${button} border border-ink/70 bg-transparent text-ink hover:bg-ink hover:text-paper`}
           >
             {t('essentialOnly')}
           </button>
           <button
             type="button"
             onClick={() => choose('all')}
-            className={`${button} bg-cp2b-green text-white hover:bg-cp2b-dark-green`}
+            className={`${button} bg-terra-600 text-white hover:bg-terra-700`}
           >
             {t('acceptAll')}
           </button>

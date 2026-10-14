@@ -58,8 +58,8 @@ const REFERENCES: ReferenceCategory[] = [
   {
     category: { 'pt-BR': 'Cana-de-açúcar', en: 'Sugarcane' },
     emoji: '🌱',
-    color: 'border-green-500',
-    bgColor: 'bg-green-50 dark:bg-green-900/20',
+    color: 'border-terra-500',
+    bgColor: 'bg-terra-50 dark:bg-terra-900/20',
     references: [
       db({ 'pt-BR': 'Bagaço', en: 'Bagasse' }, '39'),
       db({ 'pt-BR': 'Vinhaça', en: 'Vinasse' }, '27'),
@@ -88,8 +88,8 @@ const REFERENCES: ReferenceCategory[] = [
   {
     category: { 'pt-BR': 'Urbano', en: 'Urban' },
     emoji: '🏙️',
-    color: 'border-blue-500',
-    bgColor: 'bg-blue-50 dark:bg-blue-900/20',
+    color: 'border-dusk-500',
+    bgColor: 'bg-dusk-50 dark:bg-dusk-900/20',
     references: [
       {
         kind: 'external',
@@ -161,8 +161,8 @@ const DATA_SOURCES: DataSourceCategory[] = [
   {
     category: { 'pt-BR': 'Setor Agrícola', en: 'Agricultural Sector' },
     emoji: '🌾',
-    color: 'border-green-500',
-    bgColor: 'bg-green-50 dark:bg-green-900/20',
+    color: 'border-terra-500',
+    bgColor: 'bg-terra-50 dark:bg-terra-900/20',
     sources: [
       {
         name: 'IBGE - Produção Agrícola Municipal (PAM)', // i18n-exempt: official survey name
@@ -313,8 +313,8 @@ const DATA_SOURCES: DataSourceCategory[] = [
   {
     category: { 'pt-BR': 'Setor Urbano', en: 'Urban Sector' },
     emoji: '🏙️',
-    color: 'border-blue-500',
-    bgColor: 'bg-blue-50 dark:bg-blue-900/20',
+    color: 'border-dusk-500',
+    bgColor: 'bg-dusk-50 dark:bg-dusk-900/20',
     sources: [
       {
         name: 'SNIS - Sistema Nacional de Informações sobre Saneamento', // i18n-exempt: official system name
@@ -403,17 +403,17 @@ const DATA_SOURCES: DataSourceCategory[] = [
 // Literal class names: Tailwind only generates classes it can see whole in the source.
 const TAB_TONES = {
   green: {
-    active: 'text-green-700 dark:text-green-400 border-b-2 border-green-600 bg-white dark:bg-slate-800',
-    badge: 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400',
+    active: 'text-terra-700 dark:text-terra-400 border-b-2 border-terra-600 bg-white dark:bg-slate-800',
+    badge: 'bg-terra-100 dark:bg-terra-900/40 text-terra-700 dark:text-terra-400',
   },
   blue: {
-    active: 'text-blue-700 dark:text-blue-400 border-b-2 border-blue-600 bg-white dark:bg-slate-800',
-    badge: 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400',
+    active: 'text-dusk-700 dark:text-dusk-400 border-b-2 border-dusk-600 bg-white dark:bg-slate-800',
+    badge: 'bg-dusk-100 dark:bg-dusk-900/40 text-dusk-700 dark:text-dusk-400',
   },
 } as const;
 
 const linkClass =
-  'inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-blue-700 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/40 hover:bg-blue-200 dark:hover:bg-blue-900/60 rounded-lg transition-colors';
+  'inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-dusk-700 dark:text-dusk-400 bg-dusk-100 dark:bg-dusk-900/40 hover:bg-dusk-200 dark:hover:bg-dusk-900/60 rounded-lg transition-colors';
 
 export default function ReferencesModal({ isOpen, onClose }: ReferencesModalProps) {
   const t = useTranslations('analysis.references_modal');
@@ -437,7 +437,7 @@ export default function ReferencesModal({ isOpen, onClose }: ReferencesModalProp
       )}
       <p className={`${compact ? 'text-xs mb-1' : 'text-sm mb-2'} text-gray-700 dark:text-gray-300`}>
         {source.organization}
-        {source.year && <span className="font-semibold text-blue-700 dark:text-blue-400"> ({source.year})</span>}
+        {source.year && <span className="font-semibold text-dusk-700 dark:text-dusk-400"> ({source.year})</span>}
       </p>
       {source.type && <p className="text-xs text-gray-600 dark:text-gray-400 italic mb-1">{localize(source.type)}</p>}
       {source.description && (
@@ -476,7 +476,7 @@ export default function ReferencesModal({ isOpen, onClose }: ReferencesModalProp
           className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[85vh] overflow-hidden border border-gray-200 dark:border-slate-700"
         >
           {/* Header */}
-          <div className="bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 px-6 py-5">
+          <div className="bg-gradient-to-r from-terra-600 via-terra-600 to-dusk-600 px-6 py-5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className="p-2.5 bg-white/20 rounded-xl backdrop-blur-sm">
@@ -518,7 +518,7 @@ export default function ReferencesModal({ isOpen, onClose }: ReferencesModalProp
               >
                 <Icon className="w-4 h-4" aria-hidden="true" />
                 {label}
-                <span className={`ml-1 px-2 py-0.5 rounded-full text-xs font-semibold ${TAB_TONES[tone].badge}`}>
+                <span className={`ml-1 px-2 py-0.5 rounded-sm text-xs font-semibold ${TAB_TONES[tone].badge}`}>
                   {count}
                 </span>
               </button>
@@ -562,7 +562,7 @@ export default function ReferencesModal({ isOpen, onClose }: ReferencesModalProp
                           ) : (
                             <>
                               <p className="text-sm text-gray-700 dark:text-gray-300">
-                                {ref.authors} <span className="font-semibold text-green-700 dark:text-green-400">({ref.year})</span>
+                                {ref.authors} <span className="font-semibold text-terra-700 dark:text-terra-400">({ref.year})</span>
                               </p>
                               {ref.title && <p className="text-sm text-gray-600 dark:text-gray-400 italic mt-2">{ref.title}</p>}
                               {ref.description && <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">{localize(ref.description)}</p>}
@@ -581,11 +581,11 @@ export default function ReferencesModal({ isOpen, onClose }: ReferencesModalProp
                 ))}
 
                 <div className="mt-8 pt-6 border-t border-gray-200 dark:border-slate-700">
-                  <div className="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
-                    <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" aria-hidden="true" />
-                    <div className="text-sm text-blue-800 dark:text-blue-300">
+                  <div className="flex items-start gap-3 p-4 bg-dusk-50 dark:bg-dusk-900/20 rounded-xl border border-dusk-200 dark:border-dusk-800">
+                    <FileText className="h-5 w-5 text-dusk-600 dark:text-dusk-400 flex-shrink-0 mt-0.5" aria-hidden="true" />
+                    <div className="text-sm text-dusk-800 dark:text-dusk-300">
                       <p className="font-semibold mb-1">{t('scientific_footer_heading')}</p>
-                      <p className="text-blue-700 dark:text-blue-400">{t('scientific_footer_text')}</p>
+                      <p className="text-dusk-700 dark:text-dusk-400">{t('scientific_footer_text')}</p>
                     </div>
                   </div>
                 </div>
@@ -615,12 +615,12 @@ export default function ReferencesModal({ isOpen, onClose }: ReferencesModalProp
                     {category.subcategories?.map((subcategory) => (
                       <div key={subcategory.title.en} className="ml-6 mt-4">
                         <h4 className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-3 flex items-center gap-2">
-                          <span className="w-2 h-2 bg-blue-500 rounded-full" aria-hidden="true"></span>
+                          <span className="w-2 h-2 bg-dusk-500 rounded-full" aria-hidden="true"></span>
                           {localize(subcategory.title)}
                         </h4>
                         <div className="space-y-3">
                           {subcategory.sources.map((source) => (
-                            <div key={nameOf(source.name)} className="border-l-4 border-blue-300 bg-blue-50 dark:bg-blue-900/10 rounded-r-xl p-3 hover:shadow-md transition-all">
+                            <div key={nameOf(source.name)} className="border-l-4 border-dusk-300 bg-dusk-50 dark:bg-dusk-900/10 rounded-r-xl p-3 hover:shadow-md transition-all">
                               {renderSource(source, true)}
                             </div>
                           ))}
@@ -631,12 +631,12 @@ export default function ReferencesModal({ isOpen, onClose }: ReferencesModalProp
                 ))}
 
                 <div className="mt-8 pt-6 border-t border-gray-200 dark:border-slate-700">
-                  <div className="flex items-start gap-3 p-4 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-200 dark:border-green-800">
-                    <Database className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" aria-hidden="true" />
-                    <div className="text-sm text-green-800 dark:text-green-300">
+                  <div className="flex items-start gap-3 p-4 bg-terra-50 dark:bg-terra-900/20 rounded-xl border border-terra-200 dark:border-terra-800">
+                    <Database className="h-5 w-5 text-terra-600 dark:text-terra-400 flex-shrink-0 mt-0.5" aria-hidden="true" />
+                    <div className="text-sm text-terra-800 dark:text-terra-300">
                       <p className="font-semibold mb-1">{t('data_sources_footer_heading')}</p>
-                      <p className="text-green-700 dark:text-green-400 mb-2">{t('data_sources_footer_text')}</p>
-                      <ul className="text-green-600 dark:text-green-400 text-xs space-y-1 list-disc list-inside">
+                      <p className="text-terra-700 dark:text-terra-400 mb-2">{t('data_sources_footer_text')}</p>
+                      <ul className="text-terra-600 dark:text-terra-400 text-xs space-y-1 list-disc list-inside">
                         <li><strong>{t('data_sources_footer_priority')}</strong></li>
                         <li><strong>{t('data_sources_footer_validation')}</strong></li>
                         <li><strong>{t('data_sources_footer_precision')}</strong></li>
