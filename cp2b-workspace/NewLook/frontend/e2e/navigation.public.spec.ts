@@ -42,19 +42,37 @@ test('/geoserver-demo is not public without its flag', async ({ request }) => {
 })
 
 test.describe('Header on a desktop', () => {
-  test('every visitor reaches Sobre and Comparar', async ({ page }) => {
-    await page.setViewportSize({ width: 1440, height: 900 })
+  test('groups the pages in dropdowns that every visitor can open', async ({ page }) => {
+    await answerCookieBanner(page)
+    await page.setViewportSize({ width: 1280, height: 900 })
     await page.goto('/pt-BR/about')
     const nav = page.getByRole('navigation', { name: 'Main navigation' })
-    await expect(nav.getByRole('link', { name: 'Sobre', exact: true })).toHaveAttribute('aria-current', 'page')
-    await expect(nav.getByRole('link', { name: 'Comparar', exact: true })).toBeVisible()
+
+    const about = nav.getByRole('button', { name: 'Sobre' })
+    await about.click()
+    await expect(about).toHaveAttribute('aria-expanded', 'true')
+    await expect(nav.getByRole('link', { name: /O projeto/ })).toHaveAttribute('aria-current', 'page')
+    await page.keyboard.press('Escape')
+    await expect(about).toHaveAttribute('aria-expanded', 'false')
+
+    await nav.getByRole('button', { name: 'Plataforma' }).click()
+    await nav.getByRole('link', { name: /Comparar/ }).click()
+    await expect(page).toHaveURL(/\/dashboard\/compare$/)
+  })
+
+  test('the bar fits at 1280 px', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 })
+    await page.goto('/pt-BR/guide')
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)
+    expect(overflow).toBeLessThanOrEqual(0)
+    await expect(page.getByRole('link', { name: 'Abrir mapa' })).toBeVisible()
   })
 })
 
 test.describe('On a phone', () => {
   test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true })
 
-  test('the header keeps search and opens a menu with Sobre and Comparar', async ({ page }) => {
+  test('the header keeps search and opens a menu with the same groups', async ({ page }) => {
     await page.goto('/pt-BR/about')
     await expect(page.getByRole('button', { name: /buscar/i }).first()).toBeVisible()
 
@@ -62,7 +80,7 @@ test.describe('On a phone', () => {
     await toggle.click()
     await expect(page.getByRole('button', { name: 'Fechar menu' })).toHaveAttribute('aria-expanded', 'true')
     const menu = page.locator('#mobile-menu')
-    await expect(menu.getByRole('link', { name: /Sobre/ })).toBeVisible()
+    await expect(menu.getByRole('link', { name: /O projeto/ })).toBeVisible()
     await expect(menu.getByRole('link', { name: /Comparar/ })).toBeVisible()
   })
 

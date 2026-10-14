@@ -13,7 +13,14 @@
       "advanced": "Análises",
       "cite": "Como Citar",
       "patch_notes": "Novidades",
-      "compare": "Comparar"
+      "compare": "Comparar",
+      "group_platform": "Plataforma",
+      "group_method": "Método e guia",
+      "about_project": "O projeto",
+      "about_team": "Equipe",
+      "about_partners": "Parceiros e CP2b",
+      "about_faq": "FAQ e contato",
+      "open_map": "Abrir mapa"
     },
     "nav_descriptions": {
       "guide": "Tutoriais e primeiros passos",
@@ -24,7 +31,8 @@
       "technology_routes": "Simule biogás, biometano e energia",
       "proximity": "Resíduos e infraestrutura num raio",
       "about": "Projeto, equipe, parceiros e FAQ",
-      "cite": "Como citar o PILAR-2b"
+      "cite": "Como citar o PILAR-2b",
+      "patch_notes": "Mudanças da plataforma, versão a versão"
     },
     "auth": {
       "login": "Entrar",

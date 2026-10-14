@@ -13,7 +13,14 @@
       "technology_routes": "Biogas Calculator",
       "scientific_database": "Scientific Database",
       "advanced": "Analysis",
-      "compare": "Compare"
+      "compare": "Compare",
+      "group_platform": "Platform",
+      "group_method": "Method and guide",
+      "about_project": "The project",
+      "about_team": "Team",
+      "about_partners": "Partners and CP2b",
+      "about_faq": "FAQ and contact",
+      "open_map": "Open map"
     },
     "nav_descriptions": {
       "guide": "Tutorials and first steps",
@@ -24,7 +31,8 @@
       "technology_routes": "Simulate biogas, biomethane and energy",
       "proximity": "Residues and infrastructure within a radius",
       "about": "Project, team, partners and FAQ",
-      "cite": "How to cite PILAR-2b"
+      "cite": "How to cite PILAR-2b",
+      "patch_notes": "Platform changes, version by version"
     },
     "auth": {
       "login": "Sign in",
