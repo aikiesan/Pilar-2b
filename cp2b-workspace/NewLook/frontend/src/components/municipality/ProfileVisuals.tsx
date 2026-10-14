@@ -26,6 +26,7 @@ export function Card({
   aside,
   children,
   className = '',
+  compact = false,
 }: {
   id: string
   title: string
@@ -34,15 +35,24 @@ export function Card({
   aside?: ReactNode
   children: ReactNode
   className?: string
+  /** The map sidebar: tighter padding, an h3 under the panel's own h2. */
+  compact?: boolean
 }) {
+  const Heading = compact ? 'h3' : 'h2'
   return (
-    <section id={id} aria-labelledby={`${id}-h`} className={`scroll-mt-24 border border-line bg-paper-raised p-4 sm:p-5 ${className}`}>
+    <section
+      id={id}
+      aria-labelledby={`${id}-h`}
+      className={`scroll-mt-24 border border-line bg-paper-raised ${compact ? 'p-2.5' : 'p-4 sm:p-5'} ${className}`}
+    >
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-        <h2 id={`${id}-h`} className="text-lg text-ink">{title}</h2>
+        <Heading id={`${id}-h`} className={compact ? 'text-base font-semibold text-ink' : 'text-lg text-ink'}>
+          {title}
+        </Heading>
         {aside && <div className="text-sm text-ink-muted">{aside}</div>}
       </div>
-      {caption && <p className="mt-1 text-sm text-ink-muted">{caption}</p>}
-      <div className="mt-4">{children}</div>
+      {caption && <p className={`mt-1 text-ink-muted ${compact ? 'text-xs' : 'text-sm'}`}>{caption}</p>}
+      <div className={compact ? 'mt-2' : 'mt-4'}>{children}</div>
     </section>
   )
 }
@@ -55,6 +65,7 @@ export function StatTile({
   note,
   children,
   emphasis = false,
+  compact = false,
 }: {
   label: string
   value: ReactNode
@@ -64,19 +75,21 @@ export function StatTile({
   children?: ReactNode
   /** The page's headline figure. */
   emphasis?: boolean
+  /** The map sidebar: tighter padding, one figure size at every width. */
+  compact?: boolean
 }) {
   return (
     <div
-      className={`flex flex-col border p-4 ${
+      className={`flex flex-col border ${compact ? 'p-2.5' : 'p-4'} ${
         emphasis ? 'border-terra-700 bg-terra-50 dark:border-terra-400 dark:bg-terra-950/40' : 'border-line bg-paper-raised'
       }`}
     >
       <dt className="eyebrow">{label}</dt>
       <dd className="mt-2 flex flex-1 flex-col">
-        <span className="font-display text-2xl leading-none text-ink sm:text-3xl">{value}</span>
-        {unit && <span className="mt-1 text-sm text-ink">{unit}</span>}
-        {children && <span className="mt-3 block">{children}</span>}
-        {note && <span className="mt-auto pt-2 text-sm text-ink-muted">{note}</span>}
+        <span className={`font-display leading-none text-ink ${compact ? 'text-xl' : 'text-2xl sm:text-3xl'}`}>{value}</span>
+        {unit && <span className={`mt-1 text-ink ${compact ? 'text-xs' : 'text-sm'}`}>{unit}</span>}
+        {children && <span className={`${compact ? 'mt-1.5' : 'mt-3'} block`}>{children}</span>}
+        {note && <span className={`mt-auto ${compact ? 'pt-1' : 'pt-2'} text-ink-muted ${compact ? 'text-xs' : 'text-sm'}`}>{note}</span>}
       </dd>
     </div>
   )
