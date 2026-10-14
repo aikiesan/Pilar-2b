@@ -17,13 +17,21 @@ test.skip(METHOD_PAGES_ENABLED, 'the factors are public in this build')
 const percent = (locale: string, value: number) =>
   new Intl.NumberFormat(locale, { style: 'percent', maximumFractionDigits: 1 }).format(value)
 
-/** The page's markup without its scripts, spaces normalised. */
+/**
+ * The page's markup without its scripts, spaces normalised. Stripped until
+ * nothing changes, and closing tags may carry spaces (`</script >`), so no
+ * script survives the pass (CodeQL: incomplete multi-character sanitisation).
+ */
 async function markup(request: APIRequestContext, path: string): Promise<string> {
   const response = await request.get(path)
   expect(response.status(), `${path} did not render`).toBe(200)
-  return (await response.text())
-    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '')
-    .replace(/\s+/g, ' ')
+  let html = await response.text()
+  let previous: string
+  do {
+    previous = html
+    html = html.replace(/<script\b[^>]*>[\s\S]*?<\/script\s*>/gi, '')
+  } while (html !== previous)
+  return html.replace(/\s+/g, ' ')
 }
 
 /** The content of a <meta> tag picked by its name or property. */
