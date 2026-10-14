@@ -558,22 +558,27 @@ The docs add two more definitions: D1 (Availability × Efficiency) and D4 (FC ×
 
 ---
 
-## 9. Open questions for Lucas
+## 9. Open questions for Lucas: answers (Checkpoint 2)
 
-1. **Provisional share.** *Answered:* both the N3 figure (migration 034 L34) and the N4 figure are correct. The UI shows the share for the level being viewed, N4 by default. `/cp2b/summary` returns both as `provisional_share: {n3, n4}`. Q9 checks them against the database.
-2. **BOV_PASTO_MISTO.** *Answered:* it stays as the 17th substrate, with its factors from `cp2b_parameters` (Q8). Lucas checks Table 3.
-3. **Municipal FC** (broiler, layer, sewage sludge). Should the slider show a state reference or only "municipal"?
-4. **Element names** in `cp2b_parameters`. The unit-test fixture has only `BMP`. Confirm the names for FC, FCo, FS, U, g, TS and VS. Is U served per municipality × substrate?
-5. **Energy convention.** The platform uses thermal LHV: 9.94 kWh/m³ in the backend, 9.97 in the frontend. That gives 59,359 GWh/yr for N4. The canonical figure is 22,624 GWh/yr electrical (× 0.38). Which one goes on the map metric "bioenergia", the dossier and the summary strip?
-6. **CH4 fraction.** The platform uses 0.625 (FIESP) everywhere. The CP2b equivalents imply about 0.564. Should `CH4_FRACTION_OF_BIOGAS` and the `/method/scenarios` text follow CP2b?
-7. **Citrus.** Should AG_CITROS_BAGACO, AG_CITROS_CASCAS and AG_CITROS_POLPA all map to BAGACO_CITROS? POLPA is the closest match.
-8. **Sewage sludge.** Is LODO_ETE primary sludge only? If so, what happens to URB_LODO_SECUNDARIO?
-9. **Non-CP2b residues** (2 coffee, 7 industrial, eucalyptus, and the yaml-only feedstocks). Keep them as legacy catalogue pages, hide them, or remove them?
-10. **Band scenarios.** Remove `?scenario=` support for the bands entirely (F1, F3, F5, B10)?
-11. **Headline level.** The backend describes Ideal (N3) as "CP2b headline figure" (`geospatial.py` `_cp2b_tiers`). The platform default is N4. Which one is the headline in text?
-12. **Outside SP.** MG and other states have no CP2b. Show "no CP2b data" or labelled legacy values?
-13. **Dossier headline.** Should "Potencial total" (legacy, labelled) be replaced by N4, or kept as a second, labelled row?
-14. **`/api/v1/statistics/summary`** (B18) has no frontend consumer. Can it be removed, or does an external client use it?
+All answered by Lucas at Checkpoint 2. Paper values (per-substrate factors, the N4 provisional share) are not written here; they are read from the database.
+
+1. **Provisional share.** Both figures are correct: the N3 share (migration 034 L34) and the N4 share. The UI shows the share for the level being viewed, N4 by default. `/cp2b/summary` returns both as `provisional_share: {n3, n4}`. Q9 checks them against the database.
+2. **BOV_PASTO_MISTO** stays as the 17th substrate (pasture + mixed beef cattle). Its values come from `cp2b_parameters` (Q8). Lucas checks Table 3.
+3. **Municipal FC** (broilers, layers, sewage sludge): a disabled slider marked "municipal". With a municipality selected, it shows that municipality's own value, read-only.
+4. **Element names and U:** answered by Lucas with Q10/Q11 and `SELECT DISTINCT element FROM cp2b_parameters` when he runs section 10.
+5. **Energy:** electricity is the default everywhere (N4 = 22,624 GWh/yr), computed with the method's conversion, never a hardcoded × 0.38. Thermal energy appears only where it is labelled thermal.
+6. **CH4 fraction:** CP2b's own fraction for each level. The 0.625 stays only next to values labelled legacy. The `/method/scenarios` text stays behind the switch.
+   - *Code check:* on `feat/cp2b-v5.1-potential`, `scenarioFactors.ts` has only `CH4_FRACTION_OF_BIOGAS = 0.625` (L124). The per-level fractions are not constants there: #229 serves biogas per residue (`biogas_cp2b_*`), and 0.5638 appears only in a comment in `mapValues.cp2b.test.ts` L55. Prompt 3 derives the fraction from the served CH4 and biogas totals for each level rather than typing it in.
+7. **Citrus:** AG_CITROS_BAGACO, AG_CITROS_CASCAS and AG_CITROS_POLPA all map to BAGACO_CITROS (peel + pulp + seeds together). Factor values come only from CP2b.
+8. **Sludge:** LODO_ETE is primary sludge only, as in the method. URB_LODO_SECUNDARIO stays as a catalogue page outside CP2b.
+9. **Non-CP2b residues** (coffee pulp and mucilage, the 7 industrial residues, eucalyptus): keep their catalogue pages for BMP and chemical characterisation, with the note "fora do potencial CP2b" / "not in the CP2b potential". Industrial residues are a stated limitation of the method. Not removed.
+10. **Band scenarios:** removed. Old `?scenario=` values redirect to `real` (N4), so existing links keep working. Same PR as N4 becoming the default.
+11. **Headline:** N4. Fix the `_cp2b_tiers` description in `geospatial.py`.
+12. **Outside SP:** the CP2b levels show "sem dado CP2b" / "no CP2b data". Legacy values appear outside SP only in a layer the user turns on explicitly, labelled legacy.
+13. **Dossier:** "Potencial total" is replaced by N4, with N3 beside it. No legacy row.
+14. **`/statistics/summary`:** deprecated with a `Deprecation` header and a log line, not removed yet. Lucas checks the VM access logs first.
+
+**Prompt 3 order.** (a) units and serving, and (c) frontend and text, come first. Layer (b) (factor sliders, the calculator on `cp2b_parameters`, the public `/cp2b/parameters`) is built but not merged or deployed before the paper is submitted. Until then `/cp2b/parameters` answers only with an internal flag on.
 
 ---
 
