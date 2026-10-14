@@ -4,6 +4,7 @@ import { useEffect, useMemo } from 'react';
 import { useIsClient } from '@/hooks/useIsClient';
 import { useJoyride, Step, EventData, STATUS, ACTIONS } from 'react-joyride';
 import { useTranslations } from 'next-intl';
+import { METHOD_PAGES_ENABLED } from '@/lib/featureFlags';
 
 interface TourGuideProps {
   run: boolean;
@@ -29,13 +30,16 @@ export default function TourGuide({ run, onFinish }: TourGuideProps) {
       content: t('steps.map.content'),
       skipBeacon: true,
     },
-    {
-      target: '.tour-analysis',
-      placement: 'bottom',
-      title: t('steps.analysis.title'),
-      content: t('steps.analysis.content'),
-      skipBeacon: true,
-    },
+    // /analysis is held back with the Método pages (METHOD_PAGES_ENABLED).
+    ...(METHOD_PAGES_ENABLED
+      ? [{
+          target: '.tour-analysis',
+          placement: 'bottom',
+          title: t('steps.analysis.title'),
+          content: t('steps.analysis.content'),
+          skipBeacon: true,
+        } satisfies Step]
+      : []),
     {
       target: '.tour-science',
       placement: 'bottom',

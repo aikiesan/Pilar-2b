@@ -18,6 +18,7 @@ import AnimatedCounter from '@/components/ui/AnimatedCounter'
 import Timeline, { TimelineEvent } from '@/components/ui/Timeline'
 import ArcOrnament from '@/components/ui/ArcOrnament'
 import { withBasePath } from '@/lib/basePath'
+import { METHOD_PAGES_ENABLED } from '@/lib/featureFlags'
 import { SOCIAL_LINKS, type SocialChannel } from '@/config/contact'
 import {
   ArrowRight,
@@ -311,10 +312,13 @@ export default function AboutPage() {
               ))}
             </div>
 
-            <div className="mt-8 grid gap-6 md:grid-cols-2">
+            <div className={`mt-8 grid gap-6 ${METHOD_PAGES_ENABLED ? 'md:grid-cols-2' : 'max-w-3xl'}`}>
               {([
                 { key: 'geospatial', Icon: Map, href: '/map', links: ['/map', null, null, null] },
-                { key: 'mcda', Icon: BarChart3, href: '/analysis', links: [null, '/analysis', '/analysis', null] },
+                // /analysis is held back with the Método pages (METHOD_PAGES_ENABLED).
+                ...(METHOD_PAGES_ENABLED
+                  ? [{ key: 'mcda', Icon: BarChart3, href: '/analysis', links: [null, '/analysis', '/analysis', null] } as const]
+                  : []),
               ] as const).map(({ key, Icon, href, links }) => (
                 <article key={key} className="rounded-2xl border border-line bg-paper-raised p-6">
                   <Icon className="h-8 w-8 text-terra-600 dark:text-terra-400" aria-hidden="true" />

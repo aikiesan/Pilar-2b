@@ -27,7 +27,6 @@ test.describe('Retired paths', () => {
     ['/en/sobre', '/en/about'],
     ['/pt-BR/dashboard/about', '/pt-BR/about#parceiros'],
     ['/en/dashboard/about', '/en/about#parceiros'],
-    ['/pt-BR/dashboard/advanced-analysis', '/pt-BR/analysis'],
     ['/en/dashboard/compare', '/en/compare'],
     ['/pt-BR/dashboard/proximity?lat=-22.9&lng=-47.06&radius=20', '/pt-BR/proximity?lat=-22.9&lng=-47.06&radius=20'],
     ['/en/dashboard/technology-routes', '/en/calculator'],
@@ -80,6 +79,17 @@ test.describe('Método pages held back (METHOD_PAGES_ENABLED off)', () => {
   }
   test('the science base stays public', async ({ request }) => {
     expect((await request.get('/pt-BR/method/science-base')).status()).toBe(200)
+  })
+  // /analysis shows the availability factors one by one.
+  test('/analysis is not public yet, in either language', async ({ request }) => {
+    for (const locale of ['pt-BR', 'en']) {
+      expect((await request.get(`/${locale}/analysis`)).status()).toBe(404)
+    }
+  })
+  test('its old address opens the map meanwhile, for now only', async ({ request }) => {
+    const response = await request.get('/pt-BR/dashboard/advanced-analysis', { maxRedirects: 0 })
+    expect(response.status()).toBe(307)
+    expect(response.headers()['location'].replace(/^https?:\/\/[^/]+/, '')).toBe('/pt-BR/map')
   })
 })
 

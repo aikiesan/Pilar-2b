@@ -21,7 +21,10 @@ const movedPages = [
   { from: '/dashboard/about', to: '/about#parceiros' },
   // The tools lost the /dashboard prefix (Phase 1 of the redesign). Query
   // strings (e.g. ?view=references, shared proximity links) are kept by Next.
-  { from: '/dashboard/advanced-analysis', to: '/analysis' },
+  // Temporary while /analysis is held back with the Método pages
+  // (METHOD_PAGES_ENABLED): the old address opens the map instead of a 404.
+  // When the flag turns on, point this back at /analysis with a 301.
+  { from: '/dashboard/advanced-analysis', to: '/map', statusCode: 307 },
   { from: '/dashboard/compare', to: '/compare' },
   { from: '/dashboard/proximity', to: '/proximity' },
   { from: '/dashboard/technology-routes', to: '/calculator' },
@@ -36,7 +39,6 @@ const movedPages = [
   { from: '/comparar', to: '/compare' },
   { from: '/calculadora', to: '/calculator' },
   { from: '/proximidade', to: '/proximity' },
-  { from: '/analise', to: '/analysis' },
   { from: '/citar', to: '/cite' },
   { from: '/acessibilidade', to: '/accessibility' },
   { from: '/privacidade', to: '/privacy' },

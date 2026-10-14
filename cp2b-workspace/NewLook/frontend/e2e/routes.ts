@@ -47,7 +47,8 @@ export const ROUTES = [
  */
 export const SIGNED_IN_ROUTES = [
   '/en/proximity',
-  '/en/analysis',
+  // Shows the availability factors, so it is held back with the Método pages.
+  ...(METHOD_PAGES_ENABLED ? ['/en/analysis'] : []),
   '/en/method/science-base',
   '/en/method/science-base?view=references',
   '/en/settings',

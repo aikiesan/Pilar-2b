@@ -104,9 +104,11 @@ export default async function ResidueProductPage({ params }: Params) {
           {t('product.open_map')}
           <ArrowRight className="h-4 w-4" aria-hidden="true" />
         </Link>
-        <Link href="/analysis" className="btn-secondary min-h-[44px]">
-          {t('product.open_analysis')}
-        </Link>
+        {METHOD_PAGES_ENABLED && (
+          <Link href="/analysis" className="btn-secondary min-h-[44px]">
+            {t('product.open_analysis')}
+          </Link>
+        )}
       </div>
     </div>
   );
@@ -163,7 +165,8 @@ export default async function ResidueProductPage({ params }: Params) {
         <ul className="mt-4 divide-y divide-line border-y border-line text-sm">
           {([
             ['/map', 'access_map'],
-            ['/analysis', 'access_analysis'],
+            // /analysis is held back with the Método pages.
+            ...(METHOD_PAGES_ENABLED ? [['/analysis', 'access_analysis'] as const] : []),
             ['/method/science-base', 'access_science'],
           ] as const).map(([href, key]) => (
             <li key={href}>

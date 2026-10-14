@@ -16,6 +16,7 @@ import { useEffect } from 'react'
 import { useRouter, Link } from '@/navigation'
 import { useTranslations } from 'next-intl'
 import { useAuth } from '@/contexts/AuthContext'
+import { METHOD_PAGES_ENABLED } from '@/lib/featureFlags'
 import { SkeletonDashboard } from '@/components/ui/Skeleton'
 import {
   Map,
@@ -101,13 +102,16 @@ export default function DashboardPage() {
       href: '/compare',
       color: 'teal',
     },
-    {
-      title: t('feat_advanced_title'),
-      description: t('feat_advanced_desc'),
-      icon: Zap,
-      href: '/analysis',
-      color: 'red',
-    },
+    // /analysis is held back with the Método pages (METHOD_PAGES_ENABLED).
+    ...(METHOD_PAGES_ENABLED
+      ? [{
+          title: t('feat_advanced_title'),
+          description: t('feat_advanced_desc'),
+          icon: Zap,
+          href: '/analysis',
+          color: 'red',
+        }]
+      : []),
     {
       title: t('feat_references_title'),
       description: t('feat_references_desc'),

@@ -62,14 +62,17 @@ export const NAV_GROUPS: NavGroup[] = [
     id: 'platform',
     labelKey: 'group_platform',
     introHref: '/map',
-    tourClass: 'tour-analysis tour-calculator tour-proximity',
+    tourClass: `${METHOD_PAGES_ENABLED ? 'tour-analysis ' : ''}tour-calculator tour-proximity`,
     items: [
       { href: '/map', labelKey: 'map_interactive', descriptionKey: 'map', icon: Map },
       { href: '/municipalities', labelKey: 'municipalities', descriptionKey: 'municipalities', icon: Building2 },
       { href: '/compare', labelKey: 'compare_municipalities', descriptionKey: 'compare', icon: Columns3 },
       { href: '/proximity', labelKey: 'proximity_logistics', descriptionKey: 'proximity', icon: Target },
       { href: '/calculator', labelKey: 'technology_routes', descriptionKey: 'technology_routes', icon: Workflow },
-      { href: '/analysis', labelKey: 'multicriteria', descriptionKey: 'advanced', icon: BarChart3 },
+      // Held back with the Método pages: it shows the availability factors.
+      ...(METHOD_PAGES_ENABLED
+        ? [{ href: '/analysis', labelKey: 'multicriteria', descriptionKey: 'advanced', icon: BarChart3 }] satisfies NavLeaf[]
+        : []),
     ],
   },
   {
