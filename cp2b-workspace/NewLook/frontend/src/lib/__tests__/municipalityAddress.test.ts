@@ -89,6 +89,19 @@ describe('municipalityDirectory', () => {
     getJson.mockResolvedValue(null)
     expect(await findMunicipality('campinas-sp')).toBeUndefined()
   })
+
+  it('reads an API from before the raised cap when its answer is provably whole', async () => {
+    // limit=6000 refused (422 → null); the 1000-name page comes back short of 1000.
+    getJson.mockResolvedValueOnce(null).mockResolvedValueOnce({ data: [{ municipality_name: 'Guaíra', ibge_code: '3517406' }] })
+    expect((await findMunicipality('guaira-sp'))?.ibge).toBe('3517406')
+    expect(getJson.mock.calls.map((c) => c[0])).toEqual(['/municipalities/names?limit=6000', '/municipalities/names?limit=1000'])
+  })
+
+  it('treats a full 1000-name page as unavailable, since it may have been cut', async () => {
+    const page = Array.from({ length: 1000 }, (_, i) => ({ municipality_name: `M${i}`, ibge_code: String(3500000 + i) }))
+    getJson.mockResolvedValueOnce(null).mockResolvedValueOnce({ data: page })
+    expect(await municipalityDirectory()).toBeNull()
+  })
 })
 
 describe('municipalityRedirectTarget', () => {

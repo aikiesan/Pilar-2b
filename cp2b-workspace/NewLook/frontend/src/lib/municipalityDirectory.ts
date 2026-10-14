@@ -20,6 +20,8 @@ export interface DirectoryEntry {
 
 // Brazil has 5,571 municipalities; the API's cap for a whole-list read.
 const ALL = 6000
+// What an API from before that cap allows (it refuses ALL with a 422).
+const OLD_CAP = 1000
 const TTL_MS = 60 * 60 * 1000
 // A failed read is tried again after a minute, not on every request.
 const RETRY_MS = 60 * 1000
@@ -31,10 +33,15 @@ interface NameRow {
 
 let cache: { at: number; ttl: number; entries: DirectoryEntry[] | null } | null = null
 
+function rowsOf(body: unknown): unknown[] | null {
+  const rows = Array.isArray(body) ? body : (body as { data?: unknown } | null)?.data
+  return Array.isArray(rows) ? rows : null
+}
+
 /** Shapes the API body: public-scope rows with a name and a 7-digit code, A to Z. */
 export function directoryFrom(body: unknown): DirectoryEntry[] | null {
-  const rows = Array.isArray(body) ? body : (body as { data?: unknown } | null)?.data
-  if (!Array.isArray(rows)) return null
+  const rows = rowsOf(body)
+  if (!rows) return null
   return (rows as NameRow[])
     .filter(
       (r): r is { municipality_name: string; ibge_code: string | number } =>
@@ -53,9 +60,24 @@ export function directoryFrom(body: unknown): DirectoryEntry[] | null {
 export async function municipalityDirectory(): Promise<DirectoryEntry[] | null> {
   const now = Date.now()
   if (cache && now - cache.at < cache.ttl) return cache.entries
-  const entries = directoryFrom(await serverGetJson(`/municipalities/names?limit=${ALL}`))
+  const entries = directoryFrom(await readWholeList())
   cache = { at: now, ttl: entries ? TTL_MS : RETRY_MS, entries }
   return entries
+}
+
+/**
+ * The whole list, or null. An API deployed before the cap was raised answers
+ * ALL with a 422; it is then asked for OLD_CAP names, A to Z across Brazil, and
+ * the answer is used only when it comes back short of the cap, which proves it
+ * is the whole list (a database with São Paulo alone). A full page may have
+ * been cut, and a cut list would answer 404 for real municipalities.
+ */
+async function readWholeList(): Promise<unknown> {
+  const body = await serverGetJson(`/municipalities/names?limit=${ALL}`)
+  if (body) return body
+  const page = await serverGetJson(`/municipalities/names?limit=${OLD_CAP}`)
+  const rows = rowsOf(page)
+  return rows && rows.length < OLD_CAP ? page : null
 }
 
 /**
