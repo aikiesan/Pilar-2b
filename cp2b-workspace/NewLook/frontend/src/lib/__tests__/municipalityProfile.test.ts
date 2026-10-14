@@ -71,7 +71,24 @@ describe('profileFrom', () => {
     }
     const p = profileFrom('3509502', METRICS, null, cp2b)!
     expect(p.envelope).toEqual({ n3: { min: 400, max: 700 }, n4: { min: 200, max: 450 } })
+    expect(p.upstream).toBeNull()
     expect(JSON.stringify(p)).not.toContain('fs_x_fl')
+  })
+
+  it('reads N1 and N2 as a central value with its range', () => {
+    const cp2b = {
+      totals: {
+        min: { n1: { m3_year: 900 }, n2: { m3_year: 600 } },
+        med: { n1: { m3_year: 1000 }, n2: { m3_year: 700 } },
+        max: { n1: { m3_year: 1200 } },
+      },
+    }
+    const p = profileFrom('3509502', METRICS, null, cp2b)!
+    expect(p.upstream).toEqual({
+      n1: { value: 1000, range: { min: 900, max: 1200 } },
+      n2: { value: 700, range: null },
+    })
+    expect(profileFrom('3509502', { ...METRICS, ch4_cp2b_n4_m3_year: null }, null, cp2b)!.upstream).toBeNull()
   })
 
   it('reads rank, neighbours and centroid from the context answer', () => {

@@ -53,9 +53,21 @@ export interface MunicipalityProfile {
   sectors: Record<ProfileSector, number | null>
   residues: { key: string; sector: ProfileSector; n4: number | null }[]
   envelope: { n3: Range | null; n4: Range | null } | null
+  /**
+   * The method's levels before N3: theoretical (N1) and available (N2), central
+   * value and range. Pages show them only while METHOD_PAGES_ENABLED is on: with
+   * N3 beside them they let a reader back out the availability factors that are
+   * held until the paper is submitted.
+   */
+  upstream: { n1: Level | null; n2: Level | null } | null
   rank: { position: number; of: number } | null
   neighbours: Neighbour[] | null
   centroid: { lat: number; lng: number } | null
+}
+
+export interface Level {
+  value: number
+  range: Range | null
 }
 
 type Body = Record<string, unknown>
@@ -80,6 +92,20 @@ function envelopeFrom(body: Body | null): MunicipalityProfile['envelope'] {
   }
   const out = { n3: range('n3'), n4: range('n4') }
   return out.n3 || out.n4 ? out : null
+}
+
+function upstreamFrom(body: Body | null): MunicipalityProfile['upstream'] {
+  const totals = body?.totals as Record<string, Record<string, { m3_year?: unknown }>> | undefined
+  if (!totals) return null
+  const level = (key: 'n1' | 'n2'): Level | null => {
+    const value = servedNumber(totals.med?.[key]?.m3_year)
+    if (value === null) return null
+    const min = servedNumber(totals.min?.[key]?.m3_year)
+    const max = servedNumber(totals.max?.[key]?.m3_year)
+    return { value, range: min === null || max === null ? null : { min, max } }
+  }
+  const out = { n1: level('n1'), n2: level('n2') }
+  return out.n1 || out.n2 ? out : null
 }
 
 function contextFrom(body: Body | null) {
@@ -131,6 +157,7 @@ export function profileFrom(
     sectors: { agricultural: sector('agricultural'), livestock: sector('livestock'), urban: sector('urban') },
     residues: PROFILE_SECTORS.flatMap((s) => PROFILE_RESIDUES[s].map((key) => ({ key, sector: s, n4: share(key) }))),
     envelope: n4 === null ? null : envelopeFrom(cp2b),
+    upstream: n4 === null ? null : upstreamFrom(cp2b),
     ...contextFrom(context),
   }
 }
