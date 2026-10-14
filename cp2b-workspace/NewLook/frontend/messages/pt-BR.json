@@ -223,9 +223,9 @@
         "description": "Simulação logística com raios de coleta e análise de proximidade a infraestrutura existente"
       },
       "scientific_basis": {
-        "alt": "Base científica com referências e metodologia FDE",
+        "alt": "Base científica com referências e caracterização dos resíduos",
         "caption": "Base Científica",
-        "description": "Acesse a metodologia FDE e referências científicas que fundamentam as análises da plataforma"
+        "description": "Acesse as referências científicas e a caracterização dos resíduos que fundamentam as análises da plataforma"
       }
     },
     "features": {
@@ -246,7 +246,7 @@
         "title": "Análise MCDA",
         "description": "Análise multicritério para priorização de municípios e identificação de locais ótimos para plantas",
         "features": [
-          "8 critérios integrados: FDE, logística, infraestrutura",
+          "8 critérios integrados: disponibilidade, logística, infraestrutura",
           "Pesos configuráveis por stakeholder",
           "Ranking automatizado dos municípios paulistas",
           "Índice de Adequação Territorial (IAT) validado"
@@ -1026,7 +1026,7 @@
   },
   "metadata": {
     "title": "PILAR-2b — Plataforma Inteligente de Localização e Aproveitamento de Resíduos para Biogás e Bioprodutos",
-    "description": "Plataforma aberta que estima, município a município, o potencial de biogás e bioprodutos de resíduos agrícolas, pecuários e urbanos. Base canônica: estado de São Paulo; Minas Gerais em validação (beta); expansão nacional em andamento. Mapa interativo, análise multicritério e fatores de correção dependentes do resíduo (FDE).",
+    "description": "Plataforma aberta que estima, município a município, o potencial de biogás e bioprodutos de resíduos agrícolas, pecuários e urbanos. Base canônica: estado de São Paulo; Minas Gerais em validação (beta); expansão nacional em andamento. Mapa interativo, análise multicritério e potencial de metano por resíduo e município; fatores de disponibilidade em revisão.",
     "keywords": "biogás, biometano, bioprodutos, energia renovável, resíduos, São Paulo, Minas Gerais, Brasil, análise geoespacial, biomassa, MCDA, FAPESP, open-source, PILAR-2b, pesquisa reproduzível"
   },
   "pages": {
@@ -1638,7 +1638,7 @@
         },
         "potential": {
           "q": "O que é potencial teórico e potencial disponível?",
-          "a": "O potencial teórico parte da quantidade de resíduo gerada. O potencial disponível aplica fatores de correção dependentes do resíduo (FDE), que estimam a parte efetivamente mobilizável. Fatores, referências e equações estão na <science>Base Científica</science>."
+          "a": "O potencial teórico parte da quantidade de resíduo gerada. O potencial disponível aplica fatores de disponibilidade por resíduo, que estimam a parte efetivamente mobilizável e estão em revisão. Referências e caracterização química estão na <science>Base Científica</science>."
         },
         "reuse": {
           "q": "Posso reutilizar os dados e o código?",

@@ -1,12 +1,11 @@
 /**
- * Until the paper is submitted (METHOD_PAGES_ENABLED off), the catalogue and
- * the landing show no availability factor: no FDE value, no FCp, no FDE column.
+ * Until the paper is submitted (METHOD_PAGES_ENABLED off), the landing, the
+ * catalogue and /about show no availability factor: no FDE value, no FCp, no
+ * FDE column, and neither the meta nor the Open Graph description names them.
  *
  * The check reads the server-rendered markup with the <script> blocks taken
  * out, and the visible text. The scripts carry the RSC payload with the whole
  * message catalogue, which the older tools (analysis, calculator) still need.
- * The site-wide meta description names the FDE (a name, not a value), so the
- * check for the word looks at the body.
  */
 import { test, expect, type APIRequestContext } from '@playwright/test'
 import { METHOD_PAGES_ENABLED } from '../src/lib/featureFlags'
@@ -26,17 +25,22 @@ async function markup(request: APIRequestContext, path: string): Promise<string>
     .replace(/\s+/g, ' ')
 }
 
+/** The content of a <meta> tag picked by its name or property. */
+function metaContent(html: string, key: string): string | undefined {
+  const tag = html.match(new RegExp(`<meta[^>]*(?:name|property)="${key}"[^>]*>`, 'i'))?.[0]
+  return tag?.match(/content="([^"]*)"/i)?.[1]
+}
+
 function expectNoFactors(html: string, path: string) {
   expect(html, `${path} names FCp`).not.toContain('FCp')
-  const body = html.slice(html.search(/<body\b/i))
-  expect(body.match(/\bFDE\b/)?.[0], `${path} shows FDE`).toBeUndefined()
+  expect(html.match(/\bFDE\b/)?.[0], `${path} shows FDE`).toBeUndefined()
 }
 
 const SECTORS = Array.from(new Set(allResidueParams().map((p) => p.sector)))
 
 for (const locale of ['pt-BR', 'en']) {
   test(`${locale}: the landing, the catalogue and the sector pages show no factor`, async ({ request }) => {
-    for (const path of [`/${locale}`, `/${locale}/data`, ...SECTORS.map((s) => `/${locale}/data/${s}`)]) {
+    for (const path of [`/${locale}`, `/${locale}/about`, `/${locale}/data`, ...SECTORS.map((s) => `/${locale}/data/${s}`)]) {
       expectNoFactors(await markup(request, path), path)
     }
   })
@@ -51,6 +55,18 @@ for (const locale of ['pt-BR', 'en']) {
     }
   })
 }
+
+test('the meta and Open Graph descriptions name no factor', async ({ request }) => {
+  for (const path of ['/pt-BR', '/en', '/pt-BR/about', '/en/about']) {
+    const html = await markup(request, path)
+    for (const key of ['description', 'og:description']) {
+      const content = metaContent(html, key)
+      expect(content, `${path} has no ${key}`).toBeTruthy()
+      expect(content, `${path} ${key} names FCp`).not.toContain('FCp')
+      expect(content!.match(/\bFDE\b/)?.[0], `${path} ${key} names FDE`).toBeUndefined()
+    }
+  }
+})
 
 test('the visible text of a product page names no factor', async ({ page }) => {
   await page.goto('/pt-BR/data/agricultural/cana-bagaco')

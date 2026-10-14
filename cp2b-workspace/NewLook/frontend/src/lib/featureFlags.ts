@@ -41,5 +41,12 @@ export const DATA_EXPORT_DISABLED_REASON =
  *
  * To publish, set this to `true` — the pages and every link to them return
  * together.
+ *
+ * The same switch holds back the availability factors in the data catalogue
+ * and on the landing (e2e/held-factors.public.spec.ts).
+ *
+ * After submission, besides flipping this:
+ *  - send each page only its own message strings: the layout hands every page
+ *    the whole catalogue, old method text included, in its RSC payload.
  */
 export const METHOD_PAGES_ENABLED = false;

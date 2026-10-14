@@ -223,9 +223,9 @@
         "description": "Logistics simulation with collection radius and proximity analysis to existing infrastructure"
       },
       "scientific_basis": {
-        "alt": "Scientific basis with references and FDE methodology",
+        "alt": "Science base with references and residue characterization",
         "caption": "Scientific Basis",
-        "description": "Access the FDE methodology and scientific references that support the platform's analyses"
+        "description": "Access the scientific references and residue characterization that support the platform's analyses"
       }
     },
     "features": {
@@ -246,7 +246,7 @@
         "title": "MCDA Analysis",
         "description": "Multi-criteria analysis for municipality prioritization and optimal plant location identification",
         "features": [
-          "8 integrated criteria: FDE, logistics, infrastructure",
+          "8 integrated criteria: availability, logistics, infrastructure",
           "Configurable weights by stakeholder",
           "Automated ranking of São Paulo municipalities",
           "Validated Territorial Suitability Index (TSI)"
@@ -1026,7 +1026,7 @@
   },
   "metadata": {
     "title": "PILAR-2b — Intelligent Platform for Locating and Using Residues for Biogas and Bioproducts",
-    "description": "Open platform that estimates, municipality by municipality, the biogas and bioproduct potential of agricultural, livestock and urban residues. Canonical base: São Paulo state; Minas Gerais in validation (beta); national expansion under way. Interactive map, multi-criteria analysis and feedstock-dependent correction factors (FDE).",
+    "description": "Open platform that estimates, municipality by municipality, the biogas and bioproduct potential of agricultural, livestock and urban residues. Canonical base: São Paulo state; Minas Gerais in validation (beta); national expansion under way. Interactive map, multi-criteria analysis and methane potential by residue and municipality; availability factors under review.",
     "keywords": "biogas, biomethane, bioproducts, renewable energy, residues, São Paulo, Minas Gerais, Brazil, geospatial analysis, biomass, MCDA, FAPESP, open-source, PILAR-2b, reproducible research"
   },
   "pages": {
@@ -1638,7 +1638,7 @@
         },
         "potential": {
           "q": "What are theoretical and available potential?",
-          "a": "Theoretical potential starts from the amount of residue generated. Available potential applies feedstock-dependent correction factors (FDE), which estimate the share that can actually be mobilised. Factors, references and equations are in the <science>Scientific Database</science>."
+          "a": "Theoretical potential starts from the amount of residue generated. Available potential applies availability factors per residue, which estimate the share that can actually be mobilised and are under review. References and chemical characterization are in the <science>Scientific Database</science>."
         },
         "reuse": {
           "q": "Can I reuse the data and the code?",
