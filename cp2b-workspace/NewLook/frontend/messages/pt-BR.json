@@ -2517,7 +2517,7 @@
         },
         "potential": {
           "title": "Potencial disponível",
-          "body": "O disponível vezes o potencial metanogênico (BMP) de cada resíduo dá o biogás e o biometano por ano, nos cenários real e ideal."
+          "body": "Potencial de metano por resíduo e município, pelo método CP2b."
         }
       },
       "cta": "Ler a base científica"

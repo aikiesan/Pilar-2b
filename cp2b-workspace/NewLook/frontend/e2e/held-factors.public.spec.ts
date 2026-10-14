@@ -2,6 +2,7 @@
  * Until the paper is submitted (METHOD_PAGES_ENABLED off), the landing, the
  * catalogue and /about show no availability factor: no FDE value, no FCp, no
  * FDE column, and neither the meta nor the Open Graph description names them.
+ * The landing's three steps give no formula.
  *
  * The check reads the server-rendered markup with the <script> blocks taken
  * out, and the visible text. The scripts carry the RSC payload with the whole
@@ -65,6 +66,20 @@ test('the meta and Open Graph descriptions name no factor', async ({ request }) 
       expect(content, `${path} ${key} names FCp`).not.toContain('FCp')
       expect(content!.match(/\bFDE\b/)?.[0], `${path} ${key} names FDE`).toBeUndefined()
     }
+  }
+})
+
+test('the landing\'s "how a number is made" gives no formula', async ({ page }) => {
+  for (const [locale, word] of [['pt-BR', 'vezes'], ['en', 'times']] as const) {
+    await page.goto(`/${locale}`)
+    const steps = page.locator('#como-funciona ol')
+    await expect(steps.locator('li')).toHaveCount(3)
+    const text = await steps.innerText()
+    expect(text).not.toContain('×')
+    expect(text).not.toContain(word)
+    expect(text).not.toContain('FCp')
+    expect(text.match(/\bFDE\b/)?.[0]).toBeUndefined()
+    await expect(steps.locator('li').nth(2)).toContainText('CP2b')
   }
 })
 

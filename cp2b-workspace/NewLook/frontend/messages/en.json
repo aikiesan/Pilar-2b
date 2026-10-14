@@ -2517,7 +2517,7 @@
         },
         "potential": {
           "title": "Available potential",
-          "body": "The available amount times each residue's methane potential (BMP) gives biogas and biomethane per year, in the real and ideal scenarios."
+          "body": "Methane potential by residue and municipality, by the CP2b method."
         }
       },
       "cta": "Read the science base"
