@@ -10,6 +10,7 @@ const publicRoutes = [
   { path: '/map',       changeFrequency: 'daily'   as const, priority: 0.9, lastModified: '2025-01-01' },
   { path: '/compare',   changeFrequency: 'monthly' as const, priority: 0.6, lastModified: '2026-10-14' },
   { path: '/calculator', changeFrequency: 'monthly' as const, priority: 0.6, lastModified: '2026-10-14' },
+  { path: '/municipalities', changeFrequency: 'monthly' as const, priority: 0.7, lastModified: '2026-10-14' },
   { path: '/data',      changeFrequency: 'monthly' as const, priority: 0.8, lastModified: '2026-10-14' },
   { path: '/data/legend', changeFrequency: 'monthly' as const, priority: 0.5, lastModified: '2026-10-14' },
   ...CATALOG_SECTORS.map((sector) => (
@@ -17,6 +18,10 @@ const publicRoutes = [
   )),
   ...allResidueParams().map(({ sector, residue }) => (
     { path: `/data/${sector}/${residue}`, changeFrequency: 'monthly' as const, priority: 0.6, lastModified: '2026-10-14' }
+  )),
+  { path: '/method',    changeFrequency: 'monthly' as const, priority: 0.7, lastModified: '2026-10-14' },
+  ...['fde', 'scenarios', 'validation'].map((page) => (
+    { path: `/method/${page}`, changeFrequency: 'monthly' as const, priority: 0.6, lastModified: '2026-10-14' }
   )),
   { path: '/about',     changeFrequency: 'monthly' as const, priority: 0.7, lastModified: '2025-01-01' },
   { path: '/guide',     changeFrequency: 'monthly' as const, priority: 0.7, lastModified: '2025-01-01' },

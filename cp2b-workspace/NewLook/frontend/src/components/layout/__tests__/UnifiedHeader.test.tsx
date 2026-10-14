@@ -1,6 +1,7 @@
 /**
- * The header: one grouped navigation for every visitor, dropdowns that follow
- * the disclosure pattern, and a phone menu with the same groups.
+ * The header: one grouped navigation for every visitor (Plataforma · Dados ·
+ * Método · Sobre), mega-menus that follow the disclosure pattern, a phone menu
+ * with the same groups, and the phone bottom bar that opens it.
  *
  * Open mode (NEXT_PUBLIC_DISABLE_AUTH=true, what the public site runs) hands
  * every anonymous visitor the synthetic TEST_USER, so `isAuthenticated` is true
@@ -64,9 +65,11 @@ describe('UnifiedHeader navigation', () => {
     render(<UnifiedHeader />)
     const nav = mainNav()
 
-    expect(trigger('Plataforma')).toHaveAttribute('aria-expanded', 'false')
-    expect(trigger('Sobre')).toHaveAttribute('aria-expanded', 'false')
-    expect(within(nav).getByRole('link', { name: 'Base Científica' })).toHaveAttribute('href', '/method/science-base')
+    for (const group of ['Plataforma', 'Dados', 'Método', 'Sobre']) {
+      expect(trigger(group)).toHaveAttribute('aria-expanded', 'false')
+    }
+    // Base científica lives in the Método menu now, not in the bar.
+    expect(within(nav).queryByRole('link', { name: /Base científica/i })).not.toBeInTheDocument()
     expect(within(nav).getByRole('link', { name: 'Guia' })).toHaveAttribute('href', '/guide')
     expect(within(nav).getByRole('link', { name: 'Abrir mapa' })).toHaveAttribute('href', '/map')
     expect(within(nav).queryByRole('link', { name: 'Hub' })).not.toBeInTheDocument()
@@ -86,6 +89,19 @@ describe('UnifiedHeader navigation', () => {
     expect(trigger('Plataforma')).toHaveAttribute('aria-expanded', 'false')
     expect(within(mainNav()).getByRole('link', { name: /O projeto/ })).toHaveAttribute('href', '/about')
     expect(within(mainNav()).getByRole('link', { name: /FAQ e contato/ })).toHaveAttribute('href', '/about#faq')
+  })
+
+  it('introduces each group beside its pages, with one call to action', async () => {
+    const user = userEvent.setup()
+    render(<UnifiedHeader />)
+
+    await user.click(trigger('Método'))
+    const panel = document.getElementById(trigger('Método').getAttribute('aria-controls') as string) as HTMLElement
+    expect(panel).toBeVisible()
+    expect(within(panel).getByRole('link', { name: /Base científica/i })).toHaveAttribute('href', '/method/science-base')
+    expect(within(panel).getByRole('link', { name: /Fatores de disponibilidade/ })).toHaveAttribute('href', '/method/fde')
+    // The intro's call to action and the overview item both lead to /method.
+    expect(within(panel).getAllByRole('link').filter((a) => a.getAttribute('href') === '/method')).toHaveLength(2)
   })
 
   it('opens with ArrowDown on the first link and closes with Escape, back on the button', async () => {
@@ -120,7 +136,16 @@ describe('UnifiedHeader navigation', () => {
     // An anchor on the same page is a section, not the current page.
     expect(within(mainNav()).getByRole('link', { name: /FAQ e contato/ })).not.toHaveAttribute('aria-current')
     expect(trigger('Sobre').className).toContain('text-terra-600')
-    expect(within(mainNav()).getByRole('link', { name: 'Base Científica' })).not.toHaveAttribute('aria-current')
+    expect(trigger('Método').className).not.toContain('text-terra-600')
+  })
+
+  it('marks a child page, not its parent, as current', async () => {
+    mockPathname = '/data/legend'
+    const user = userEvent.setup()
+    render(<UnifiedHeader />)
+    await user.click(trigger('Dados'))
+    expect(within(mainNav()).getByRole('link', { name: /Legenda e códigos/ })).toHaveAttribute('aria-current', 'page')
+    expect(within(mainNav()).getByRole('link', { name: /Catálogo de produtos/ })).not.toHaveAttribute('aria-current')
   })
 
   it('offers "Entrar" in open mode instead of the test user\'s account menu', () => {
@@ -131,25 +156,42 @@ describe('UnifiedHeader navigation', () => {
 })
 
 describe('UnifiedHeader phone menu', () => {
-  it('toggles with aria-expanded and lists the same groups', async () => {
+  const drawer = () => document.getElementById('mobile-menu') as HTMLElement
+
+  it('opens from the bottom bar\'s "Mais", with the same groups', async () => {
     const user = userEvent.setup()
     render(<UnifiedHeader />)
 
+    const bar = screen.getByRole('navigation', { name: 'Atalhos' })
+    const more = within(bar).getByRole('button', { name: /Mais/ })
+    expect(more).toHaveAttribute('aria-expanded', 'false')
+    expect(more).toHaveAttribute('aria-controls', 'mobile-menu')
+
+    await user.click(more)
+
+    expect(more).toHaveAttribute('aria-expanded', 'true')
+    for (const heading of ['Plataforma', 'Dados', 'Método', 'Sobre']) {
+      expect(within(drawer()).getByRole('heading', { name: heading })).toBeInTheDocument()
+    }
+    expect(within(drawer()).getByRole('link', { name: /Abrir mapa/ })).toHaveAttribute('href', '/map')
+    const about = within(drawer()).getByRole('link', { name: /O projeto/ })
+    expect(about).toHaveAttribute('href', '/about')
+    expect(about).toHaveTextContent('Projeto, equipe, parceiros e FAQ')
+    expect(within(drawer()).getByRole('link', { name: /Comparar/ })).toHaveTextContent('Até 4 municípios lado a lado')
+  })
+
+  it('keeps the header menu button on the full-viewport tools, where the bar is absent', async () => {
+    mockPathname = '/map'
+    const user = userEvent.setup()
+    render(<UnifiedHeader />)
+
+    expect(screen.queryByRole('navigation', { name: 'Atalhos' })).not.toBeInTheDocument()
     const toggle = screen.getByRole('button', { name: 'Abrir menu' })
     expect(toggle).toHaveAttribute('aria-expanded', 'false')
     expect(toggle).toHaveAttribute('aria-controls', 'mobile-menu')
 
     await user.click(toggle)
-
     expect(screen.getByRole('button', { name: 'Fechar menu' })).toHaveAttribute('aria-expanded', 'true')
-    const menu = document.getElementById('mobile-menu') as HTMLElement
-    for (const heading of ['Plataforma', 'Método e guia', 'Sobre']) {
-      expect(within(menu).getByRole('heading', { name: heading })).toBeInTheDocument()
-    }
-    expect(within(menu).getByRole('link', { name: /Abrir mapa/ })).toHaveAttribute('href', '/map')
-    const about = within(menu).getByRole('link', { name: /O projeto/ })
-    expect(about).toHaveAttribute('href', '/about')
-    expect(about).toHaveTextContent('Projeto, equipe, parceiros e FAQ')
-    expect(within(menu).getByRole('link', { name: /Comparar/ })).toHaveTextContent('Até 4 municípios lado a lado')
+    expect(within(drawer()).getByRole('heading', { name: 'Método' })).toBeInTheDocument()
   })
 })

@@ -11,6 +11,7 @@ import { isLocale } from '@/config/i18n'
 import { openConsentPreferences } from '@/lib/consent'
 import { subscribeToNewsletter } from '@/services/newsletterApi'
 import { SOCIAL_LINKS } from '@/config/contact'
+import { FOOTER_LINKS } from './siteNav'
 
 // Social icons removed from lucide-react v1.x — inline SVGs
 function InstagramIcon({ className }: { className?: string }) {
@@ -115,11 +116,7 @@ export default function Footer() {
   ] as const
 
   const quickLinks = [
-    { href: '/', label: tNav('home') },
-    { href: '/map', label: tNav('map') },
-    { href: '/dashboard', label: tNav('dashboard') },
-    { href: '/about', label: tNav('about') },
-    { href: '/cite', label: tNav('cite') },
+    ...FOOTER_LINKS.map(({ href, labelKey }) => ({ href, label: tNav(labelKey) })),
     { href: '/login', label: tAuth('login') },
   ]
 

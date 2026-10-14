@@ -1,7 +1,7 @@
 /**
- * Phase 0 of the navigation redesign: retired paths answer 301 to their new
- * home, the developer-only GeoServer demo is not public, and the header and
- * About page work on a phone as well as on a desktop.
+ * The navigation: retired paths answer 301 to their new home, the developer-
+ * only GeoServer demo is not public, the mega-menus work from the keyboard,
+ * and on a phone the bottom bar and its menu work as well as on a desktop.
  */
 import { test, expect, type Page } from '@playwright/test'
 import { CONSENT_VERSION } from '../src/lib/consent'
@@ -65,28 +65,86 @@ test.describe('Header on a desktop', () => {
     await expect(page).toHaveURL(/\/pt-BR\/compare$/)
   })
 
+  test('a mega-menu opens from the keyboard, one group at a time', async ({ page }) => {
+    await answerCookieBanner(page)
+    await page.setViewportSize({ width: 1440, height: 900 })
+    await page.goto('/pt-BR/guide')
+    const nav = page.getByRole('navigation', { name: 'Main navigation' })
+    const data = nav.getByRole('button', { name: 'Dados' })
+    const method = nav.getByRole('button', { name: 'Método' })
+
+    await data.focus()
+    await page.keyboard.press('ArrowDown')
+    await expect(data).toHaveAttribute('aria-expanded', 'true')
+    await expect(nav.getByRole('link', { name: /Catálogo de produtos/ })).toBeFocused()
+    await page.keyboard.press('Escape')
+    await expect(data).toHaveAttribute('aria-expanded', 'false')
+    await expect(data).toBeFocused()
+
+    await data.click()
+    await method.click()
+    await expect(data).toHaveAttribute('aria-expanded', 'false')
+    await expect(method).toHaveAttribute('aria-expanded', 'true')
+    await expect(nav.getByRole('link', { name: /Base científica/i })).toBeVisible()
+
+    await data.click()
+    await nav.getByRole('link', { name: /Catálogo de produtos/ }).click()
+    await expect(page).toHaveURL(/\/pt-BR\/data$/)
+    await expect(data).toHaveAttribute('aria-expanded', 'false')
+  })
+
   test('the bar fits at 1280 px', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 })
     await page.goto('/pt-BR/guide')
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)
     expect(overflow).toBeLessThanOrEqual(0)
     await expect(page.getByRole('link', { name: 'Abrir mapa' })).toBeVisible()
+    for (const group of ['Plataforma', 'Dados', 'Método', 'Sobre']) {
+      await expect(page.getByRole('navigation', { name: 'Main navigation' }).getByRole('button', { name: group })).toBeVisible()
+    }
   })
 })
 
 test.describe('On a phone', () => {
   test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true })
 
-  test('the header keeps search and opens a menu with the same groups', async ({ page }) => {
+  test('the header keeps search; the bottom bar\'s "Mais" opens the menu with the same groups', async ({ page }) => {
+    await answerCookieBanner(page)
     await page.goto('/pt-BR/about')
     await expect(page.getByRole('button', { name: /buscar/i }).first()).toBeVisible()
+    // One way into the menu on a phone: the bar's "Mais", not a second header button.
+    await expect(page.getByRole('button', { name: 'Abrir menu' })).toBeHidden()
 
-    const toggle = page.getByRole('button', { name: 'Abrir menu' })
-    await toggle.click()
-    await expect(page.getByRole('button', { name: 'Fechar menu' })).toHaveAttribute('aria-expanded', 'true')
+    const bar = page.getByRole('navigation', { name: 'Atalhos' })
+    await expect(bar.getByRole('link')).toHaveCount(3)
+    const more = bar.getByRole('button', { name: /Mais/ })
+    await expect(more).toBeVisible()
+    await more.click()
+    await expect(more).toHaveAttribute('aria-expanded', 'true')
     const menu = page.locator('#mobile-menu')
+    await expect(menu.getByRole('heading', { name: 'Método' })).toBeVisible()
     await expect(menu.getByRole('link', { name: /O projeto/ })).toBeVisible()
     await expect(menu.getByRole('link', { name: /Comparar/ })).toBeVisible()
+  })
+
+  test('the bottom bar marks its section and never covers the footer', async ({ page }) => {
+    await answerCookieBanner(page)
+    await page.goto('/pt-BR/data/legend')
+    const bar = page.getByRole('navigation', { name: 'Atalhos' })
+    await expect(bar.getByRole('link', { name: 'Dados' })).toHaveAttribute('aria-current', 'page')
+
+    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight))
+    const footer = await page.locator('footer').boundingBox()
+    const barBox = await bar.boundingBox()
+    expect(footer && barBox && footer.y + footer.height).toBeLessThanOrEqual(barBox!.y + 1)
+  })
+
+  test('the map keeps its own controls: no bottom bar, the header menu instead', async ({ page }) => {
+    await answerCookieBanner(page)
+    await page.goto('/pt-BR/map')
+    await expect(page.getByRole('navigation', { name: 'Atalhos' })).toHaveCount(0)
+    await page.getByRole('button', { name: 'Abrir menu' }).click()
+    await expect(page.locator('#mobile-menu').getByRole('heading', { name: 'Plataforma' })).toBeVisible()
   })
 
   test('About fits the screen and its section links jump to anchors', async ({ page }) => {

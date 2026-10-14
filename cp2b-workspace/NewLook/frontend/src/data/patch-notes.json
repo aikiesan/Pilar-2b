@@ -2,6 +2,58 @@
   "_comment": "Patch notes, newest first. Each entry carries its own pt-BR and en text, deliberately OUTSIDE messages/*.json: the catalogs are gated by check-i18n-parity.mjs, and threading one release note through two catalogs per deploy makes writing a note a chore nobody does. scripts/check-patch-notes.mjs enforces that both locales are present here instead. `date` is ISO 8601 WITH offset -- it is rendered in the reader's locale, so a bare date would drift a day across timezones. `kind` must be one of: added, changed, fixed, security, data.",
   "entries": [
     {
+      "version": "3.2.0",
+      "date": "2026-10-14T10:00:00-03:00",
+      "title": {
+        "pt-BR": "Nova página inicial, catálogo de dados e seção Método",
+        "en": "New home page, data catalogue and a Method section"
+      },
+      "changes": [
+        {
+          "kind": "added",
+          "text": {
+            "pt-BR": "A página inicial apresenta a plataforma e leva direto ao mapa, ao catálogo de dados e ao método. O mapa continua em /map.",
+            "en": "The home page introduces the platform and leads straight to the map, the data catalogue and the method. The map stays at /map."
+          }
+        },
+        {
+          "kind": "added",
+          "text": {
+            "pt-BR": "Catálogo de dados: uma página por setor e por resíduo, com os fatores de disponibilidade, o grau de confiança, as fontes e como citar, mais a legenda e os códigos das camadas para baixar em CSV.",
+            "en": "Data catalogue: one page per sector and per residue, with the availability factors, the confidence level, the sources and how to cite, plus the layer legend and codes to download as CSV."
+          }
+        },
+        {
+          "kind": "added",
+          "text": {
+            "pt-BR": "Nova seção Método: visão geral, fatores de disponibilidade (FDE) de todos os resíduos, os cenários Real e Ideal, e validação e limitações. A Base científica passa a fazer parte dela.",
+            "en": "New Method section: an overview, the availability factors (FDE) for every residue, the Real and Ideal scenarios, and validation and limitations. The Science base is now part of it."
+          }
+        },
+        {
+          "kind": "changed",
+          "text": {
+            "pt-BR": "Menus reorganizados em Plataforma, Dados, Método e Sobre, cada um com uma breve apresentação. No celular, uma barra inferior leva ao Mapa, aos Municípios, aos Dados e ao menu completo.",
+            "en": "Menus regrouped into Platform, Data, Method and About, each with a short introduction. On phones, a bottom bar leads to the Map, the Municipalities, the Data and the full menu."
+          }
+        },
+        {
+          "kind": "added",
+          "text": {
+            "pt-BR": "Lista de todos os municípios em ordem alfabética, com busca, em /municipalities.",
+            "en": "An alphabetical list of every municipality, with search, at /municipalities."
+          }
+        },
+        {
+          "kind": "changed",
+          "text": {
+            "pt-BR": "Endereços antigos que mudaram de lugar redirecionam para o novo endereço em vez de mostrar uma página não encontrada.",
+            "en": "Old addresses that moved now redirect to their new place instead of showing a page-not-found."
+          }
+        }
+      ]
+    },
+    {
       "version": "3.1.0",
       "date": "2026-09-21T11:25:00-03:00",
       "title": {

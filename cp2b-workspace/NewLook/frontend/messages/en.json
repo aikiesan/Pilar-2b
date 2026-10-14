@@ -11,28 +11,70 @@
       "patch_notes": "What’s New",
       "proximity": "Proximity",
       "technology_routes": "Biogas Calculator",
-      "scientific_database": "Scientific Database",
+      "scientific_database": "Science base",
       "advanced": "Analysis",
       "compare": "Compare",
       "group_platform": "Platform",
-      "group_method": "Method and guide",
+      "group_method": "Method",
       "about_project": "The project",
       "about_team": "Team",
       "about_partners": "Partners and CP2b",
       "about_faq": "FAQ and contact",
-      "open_map": "Open map"
+      "open_map": "Open map",
+      "group_data": "Data",
+      "map_interactive": "Interactive map",
+      "municipalities": "Municipalities",
+      "compare_municipalities": "Compare municipalities",
+      "proximity_logistics": "Proximity and logistics",
+      "multicriteria": "Multi-criteria analysis",
+      "data_catalog": "Product catalogue",
+      "data_legend": "Legend and codes",
+      "method_overview": "Overview",
+      "method_fde": "Availability factors (FDE)",
+      "method_scenarios": "Scenarios",
+      "method_validation": "Validation and limitations",
+      "guide_usage": "User guide",
+      "more": "More"
     },
     "nav_descriptions": {
       "guide": "Tutorials and first steps",
       "map": "Potential by municipality, layers and themes",
       "advanced": "MCDA and statistics",
       "compare": "Up to 4 municipalities side by side",
-      "scientific_database": "Scientific database",
+      "scientific_database": "Chemical characterization, kinetics and references",
       "technology_routes": "Simulate biogas, biomethane and energy",
       "proximity": "Residues and infrastructure within a radius",
       "about": "Project, team, partners and FAQ",
       "cite": "How to cite PILAR-2b",
-      "patch_notes": "Platform changes, version by version"
+      "patch_notes": "Platform changes, version by version",
+      "municipalities": "Find a municipality and open its profile",
+      "data_catalog": "Each residue as a data product, with method and sources",
+      "data_legend": "Residue codes, map colours and files for GIS",
+      "method_overview": "From official data to potential, in three steps",
+      "method_fde": "The four factors, residue by residue",
+      "method_scenarios": "Parameter bands and the real and ideal scenarios",
+      "method_validation": "Confidence levels and what the data does not say",
+      "about_team": "Who makes PILAR-2b",
+      "about_partners": "Institutions and funding",
+      "about_faq": "Frequently asked questions and how to reach us"
+    },
+    "nav_intro": {
+      "platform": {
+        "lede": "The tools to explore biogas potential, municipality by municipality.",
+        "cta": "Open the map"
+      },
+      "data": {
+        "lede": "Each residue is a data product: method, legend, access and validation.",
+        "cta": "Open the catalogue"
+      },
+      "method": {
+        "lede": "How each number is calculated, from which sources and with what confidence.",
+        "cta": "Method overview"
+      },
+      "about": {
+        "lede": "A project of NIPE-UNICAMP and CP2B, supported by FAPESP.",
+        "cta": "About the project"
+      }
     },
     "auth": {
       "login": "Sign in",
@@ -45,7 +87,9 @@
     },
     "menu": {
       "open": "Open menu",
-      "close": "Close menu"
+      "close": "Close menu",
+      "tab_bar": "Shortcuts",
+      "more_label": "More: every section"
     },
     "search": {
       "trigger": "Search municipality",
@@ -2647,6 +2691,80 @@
       "validated": "parameters checked",
       "open_source": "Open the source",
       "new_tab": "(opens in a new tab)"
+    }
+  },
+  "municipalities_index": {
+    "eyebrow": "Platform",
+    "title": "Municipalities",
+    "lede": "Find a municipality to open its profile: biogas potential, residues and report.",
+    "all_heading": "Every municipality, A to Z",
+    "count": "{count, plural, one {# municipality in the database} other {# municipalities in the database}}",
+    "letters_nav": "Jump to letter",
+    "unavailable": "The list of municipalities could not be loaded just now: the API did not answer. The search above tries again when you use it.",
+    "empty": "The API returned no municipalities."
+  },
+  "method": {
+    "eyebrow": "Method",
+    "nav_label": "Method sections",
+    "breadcrumb": "Breadcrumb",
+    "overview": {
+      "title": "How PILAR-2b calculates potential",
+      "lede": "Every figure on the platform starts from official data, goes through four availability factors and ends as biogas potential. These pages show each step, with its sources and its confidence.",
+      "steps_heading": "Three steps",
+      "formulas_heading": "The two equations",
+      "fde_formula": "FDE = FC × (1 − FCp) × FS × FL",
+      "fde_formula_note": "The FDE is the share of the residue generated that reaches a biogas plant. It is never stored: it is always computed from the four factors.",
+      "potential_formula": "Potential = Generation × FDE × BMP",
+      "potential_formula_note": "Generation comes from official sources per municipality; the BMP (methane potential) comes from the science base, per residue.",
+      "sections_heading": "In this section",
+      "licence": "Code GPL-3.0 · Data and documentation CC BY 4.0.",
+      "cite_cta": "How to cite PILAR-2b"
+    },
+    "fde": {
+      "title": "Availability factors (FDE)",
+      "lede": "Not every residue generated becomes biogas. Four factors take the amount generated down to the amount available, and each residue has its own.",
+      "factors_heading": "The four factors",
+      "context_label": "What it depends on",
+      "competition_note": "FCp enters as (1 − FCp): it is the share that goes to other uses, so what is left for biogas is the complement.",
+      "table_heading": "Each residue's factors",
+      "table_caption": "Each residue's collection, competition, seasonality and logistics factors, the resulting FDE and the confidence level",
+      "col_residue": "Residue",
+      "col_sector": "Sector",
+      "col_confidence": "Confidence",
+      "bands_heading": "Confidence levels",
+      "bands_lede": "Each residue carries a confidence level, which says where its factors come from and how far the figure can vary."
+    },
+    "scenarios": {
+      "title": "Scenarios",
+      "lede": "The map shows two scenarios. The chemistry is the same in both; what changes is how much of the residue reaches a digester.",
+      "real_title": "Real (short term)",
+      "real_body": "The residue that actually reaches a digester today, with current collection rates and competing uses. It is the scenario the map opens on.",
+      "ideal_title": "Ideal (frontier)",
+      "ideal_body": "All the residue generated is collected and treated. It is an infrastructure hypothesis: it shows the ceiling, not a forecast.",
+      "definitions": "The definitions follow the Atlas de Bioenergia SP 2020. Both scenarios are computed on the server, and every coefficient is recorded and auditable.",
+      "ch4_heading": "From biogas to methane",
+      "ch4_body": "Methane is taken as {share} of raw biogas (FIESP 2025), the same value on the server and in the browser.",
+      "retired_heading": "Band scenarios, off the map",
+      "retired_body": "Earlier versions offered four band scenarios (conservative, medium term, frontier and optimistic), which moved the BMP within its uncertainty range. They left the map because they answer how much the chemistry could yield, not how much residue reaches a digester. Old links with those scenarios still open.",
+      "map_cta": "See the scenarios on the map"
+    },
+    "validation": {
+      "title": "Validation and limitations",
+      "lede": "What backs each factor, how far it can vary and what the data does not say yet.",
+      "levels_heading": "Confidence levels",
+      "residue_count": "{count, plural, one {# residue} other {# residues}}",
+      "process_heading": "Where the factors come from",
+      "process": {
+        "data": "Production: official data (IBGE, EMBRAPA, UNICA) where it exists; sector reports where it does not, with lower confidence.",
+        "competition": "Competing uses: each alternative destination (cogeneration, fertilizer, feed, industrial use) and the legal requirements, such as fertigation regulated by CETESB.",
+        "collection": "Collection, seasonality and logistics: how concentrated or dispersed the source is, transport and storage infrastructure, and the production calendar.",
+        "conservative": "Where the evidence is uncertain, the factor takes the conservative estimate and the residue gets low confidence."
+      },
+      "beta": "The database is in beta: the factors are still being validated, and each correction is published in the patch notes.",
+      "limitations_heading": "Limitations",
+      "report_heading": "Found an error?",
+      "report_body": "Write to the team: name the residue, the municipality or the page, and what looks wrong.",
+      "patch_notes_cta": "See the patch notes"
     }
   }
 }

@@ -3,51 +3,33 @@
 /**
  * PILAR-2b — header, the same on every page.
  *
- * Paper bar with a hairline rule (earth identity). Navigation is grouped:
- *   Plataforma ▾ · Base Científica · Sobre ▾      Guia · search · PT/EN · theme · Entrar · [Abrir mapa]
- * each dropdown entry with a one-line description — the first step towards the
- * redesign's mega-menus (Plataforma, Dados, Método, Aplicações, Sobre), using
- * only the pages that exist today. From 1280 px the full bar shows; below it
- * the menu button opens the same groups as hairline lists.
+ * Paper bar with a hairline rule (earth identity). Four mega-menus, from the
+ * redesign's navigation (siteNav.ts):
+ *   Plataforma ▾ · Dados ▾ · Método ▾ · Sobre ▾      Guia · search · PT/EN · theme · Entrar · [Abrir mapa]
+ * each opening a full-width panel with a short introduction and its pages,
+ * one line of description each. From 1280 px the full bar shows; below it the
+ * menu button opens the same groups as hairline lists, and phones get a
+ * bottom bar (Mapa · Municípios · Dados · Mais) whose "Mais" opens that menu.
  *
- * WCAG 2.1 AA: dropdowns follow the disclosure pattern (NavDropdown), the
- * phone menu toggles with aria-expanded / aria-controls, every target is at
- * least 44 px tall on phones.
+ * WCAG 2.1 AA: menus follow the disclosure pattern (NavDropdown), the phone
+ * menu toggles with aria-expanded / aria-controls, every target is at least
+ * 44 px tall on phones.
  */
 
-import React, { useState } from 'react'
+import React, { useCallback, useState } from 'react'
 import { Link, usePathname } from '@/navigation'
 import Image from 'next/image'
 import { useTranslations } from 'next-intl'
-import type { Messages } from '@/types/i18n'
-import {
-  ArrowRight,
-  BarChart3,
-  BookOpen,
-  ChevronDown,
-  Columns3,
-  FlaskConical,
-  HelpCircle,
-  Info,
-  LogOut,
-  Map,
-  Menu,
-  Quote,
-  Settings,
-  Sparkles,
-  Target,
-  User,
-  Users,
-  Handshake,
-  Workflow,
-  X,
-} from 'lucide-react'
+import { ArrowRight, ChevronDown, LogOut, Menu, Settings, User, X } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useRealSession } from '@/lib/betaAccess'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import LanguageSwitcher from '@/components/ui/LanguageSwitcher'
 import GlobalSearch from '@/components/ui/GlobalSearch'
 import NavDropdown from '@/components/layout/NavDropdown'
+import MobileTabBar from '@/components/layout/MobileTabBar'
+import { GUIDE_LINK, NAV_GROUPS, currentNavHref, type NavGroup, type NavGroupId, type NavLeaf } from '@/components/layout/siteNav'
+import { isFullViewport } from '@/components/layout/fullViewport'
 import { logger } from '@/lib/logger'
 
 // The account UI keys off a REAL session, not `isAuthenticated`: in open mode
@@ -57,66 +39,23 @@ import { logger } from '@/lib/logger'
 // sees a plain "sign in" button, and only a genuinely signed-in account gets
 // the menu. Navigation is the same for everyone.
 
-type NavKey = keyof Messages['common']['nav']
-type NavDescriptionKey = keyof Messages['common']['nav_descriptions']
-
-interface NavLeaf {
-  href: string
-  labelKey: NavKey
-  descriptionKey?: NavDescriptionKey
-  icon: React.ReactNode
-}
-
-interface NavGroup {
-  labelKey: NavKey
-  /** Classes the guided tour (TourGuide) points at for steps inside the group. */
-  tourClass?: string
-  items: NavLeaf[]
-}
-
-const icon = (Icon: React.ComponentType<{ className?: string }>) => <Icon className="h-4 w-4" />
-
-const PLATFORM: NavGroup = {
-  labelKey: 'group_platform',
-  tourClass: 'tour-analysis tour-calculator tour-proximity',
-  items: [
-    { href: '/map', labelKey: 'map', descriptionKey: 'map', icon: icon(Map) },
-    { href: '/analysis', labelKey: 'advanced', descriptionKey: 'advanced', icon: icon(BarChart3) },
-    { href: '/compare', labelKey: 'compare', descriptionKey: 'compare', icon: icon(Columns3) },
-    { href: '/proximity', labelKey: 'proximity', descriptionKey: 'proximity', icon: icon(Target) },
-    { href: '/calculator', labelKey: 'technology_routes', descriptionKey: 'technology_routes', icon: icon(Workflow) },
-  ],
-}
-
-const SCIENCE: NavLeaf & { tourClass: string } = {
-  href: '/method/science-base',
-  labelKey: 'scientific_database',
-  descriptionKey: 'scientific_database',
-  icon: icon(FlaskConical),
-  tourClass: 'tour-science',
-}
-
-const ABOUT: NavGroup = {
-  labelKey: 'about',
-  items: [
-    { href: '/about', labelKey: 'about_project', descriptionKey: 'about', icon: icon(Info) },
-    { href: '/about#equipe', labelKey: 'about_team', icon: icon(Users) },
-    { href: '/about#parceiros', labelKey: 'about_partners', icon: icon(Handshake) },
-    { href: '/about#faq', labelKey: 'about_faq', icon: icon(HelpCircle) },
-    { href: '/cite', labelKey: 'cite', descriptionKey: 'cite', icon: icon(Quote) },
-    { href: '/patch-notes', labelKey: 'patch_notes', descriptionKey: 'patch_notes', icon: icon(Sparkles) },
-  ],
-}
-
-const GUIDE: NavLeaf = { href: '/guide', labelKey: 'guide', descriptionKey: 'guide', icon: icon(BookOpen) }
-
 export default function UnifiedHeader() {
   const pathname = usePathname()
   const { user, logout } = useAuth()
   const hasRealSession = useRealSession()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
+  // The open mega-menu, "on" the route it was opened on: navigating anywhere
+  // (a link chosen, back/forward) closes it without an effect.
+  const [openMenu, setOpenMenu] = useState<{ id: NavGroupId; on: string } | null>(null)
   const t = useTranslations('common')
+  const hasTabBar = !isFullViewport(pathname)
+
+  const setGroupOpen = useCallback(
+    (id: NavGroupId, open: boolean) =>
+      setOpenMenu((current) => (open ? { id, on: pathname } : current?.id === id ? null : current)),
+    [pathname]
+  )
 
   const handleLogout = async () => {
     try {
@@ -127,16 +66,16 @@ export default function UnifiedHeader() {
     }
   }
 
-  // An anchor entry (/about#equipe) is never "the current page": only its page is.
-  const isActive = (href: string) => !href.includes('#') && (pathname === href || pathname.startsWith(`${href}/`))
+  const current = currentNavHref(pathname)
+  const isActive = (href: string) => href === current
 
   const toItems = (group: NavGroup) =>
-    group.items.map((item) => ({
-      href: item.href,
-      label: t(`nav.${item.labelKey}`),
-      description: item.descriptionKey ? t(`nav_descriptions.${item.descriptionKey}`) : undefined,
-      icon: item.icon,
-      active: isActive(item.href),
+    group.items.map(({ href, labelKey, descriptionKey, icon: Icon }) => ({
+      href,
+      label: t(`nav.${labelKey}`),
+      description: descriptionKey ? t(`nav_descriptions.${descriptionKey}`) : undefined,
+      icon: <Icon className="h-4 w-4" />,
+      active: isActive(href),
     }))
 
   const plainLink = (active: boolean) =>
@@ -160,7 +99,7 @@ export default function UnifiedHeader() {
       aria-current={isActive(item.href) ? 'page' : undefined}
       onClick={() => setMobileMenuOpen(false)}
     >
-      <span className="shrink-0 text-ink-muted" aria-hidden="true">{item.icon}</span>
+      <span className="shrink-0 text-ink-muted" aria-hidden="true"><item.icon className="h-4 w-4" /></span>
       <span className="min-w-0">
         <span className="block font-medium">{t(`nav.${item.labelKey}`)}</span>
         {item.descriptionKey && (
@@ -207,24 +146,30 @@ export default function UnifiedHeader() {
 
             {/* Desktop navigation (xl and up) */}
             <div className="hidden xl:flex flex-1 items-center gap-1">
-              <NavDropdown label={t(`nav.${PLATFORM.labelKey}`)} items={toItems(PLATFORM)} triggerClassName={PLATFORM.tourClass} />
-              <Link
-                href={SCIENCE.href}
-                className={`${SCIENCE.tourClass} ${plainLink(isActive(SCIENCE.href))}`}
-                aria-current={isActive(SCIENCE.href) ? 'page' : undefined}
-              >
-                {t(`nav.${SCIENCE.labelKey}`)}
-              </Link>
-              <NavDropdown label={t(`nav.${ABOUT.labelKey}`)} items={toItems(ABOUT)} />
+              {NAV_GROUPS.map((group) => (
+                <NavDropdown
+                  key={group.id}
+                  label={t(`nav.${group.labelKey}`)}
+                  intro={{
+                    lede: t(`nav_intro.${group.id}.lede`),
+                    cta: t(`nav_intro.${group.id}.cta`),
+                    href: group.introHref,
+                  }}
+                  items={toItems(group)}
+                  open={openMenu?.id === group.id && openMenu.on === pathname}
+                  onOpenChange={(open) => setGroupOpen(group.id, open)}
+                  triggerClassName={group.tourClass}
+                />
+              ))}
             </div>
 
             <div className="flex items-center gap-2 xl:gap-3">
               <Link
-                href={GUIDE.href}
-                className={`hidden xl:flex ${plainLink(isActive(GUIDE.href))}`}
-                aria-current={isActive(GUIDE.href) ? 'page' : undefined}
+                href={GUIDE_LINK.href}
+                className={`hidden xl:flex ${plainLink(isActive(GUIDE_LINK.href))}`}
+                aria-current={isActive(GUIDE_LINK.href) ? 'page' : undefined}
               >
-                {t(`nav.${GUIDE.labelKey}`)}
+                {t(`nav.${GUIDE_LINK.labelKey}`)}
               </Link>
 
               {/* Global Search: in the bar at every width, phones included. One
@@ -295,8 +240,9 @@ export default function UnifiedHeader() {
                 </Link>
               </div>
 
-              {/* Menu button (below xl) */}
-              <div className="xl:hidden">
+              {/* Menu button (below xl). Phones reach the menu through the
+                  bottom bar's "Mais" instead, except on the full-viewport tools. */}
+              <div className={hasTabBar ? 'hidden md:block xl:hidden' : 'xl:hidden'}>
                 <button
                   onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                   className="inline-flex h-11 w-11 items-center justify-center rounded text-ink hover:bg-paper-sunken focus:outline-none focus-visible:ring-2 focus-visible:ring-terra-600"
@@ -314,7 +260,9 @@ export default function UnifiedHeader() {
           {mobileMenuOpen && (
             <div
               id="mobile-menu"
-              className="xl:hidden relative z-50 -mx-4 sm:-mx-6 lg:-mx-8 max-h-[calc(100dvh-4rem)] overflow-y-auto border-t border-line bg-paper-raised"
+              className={`xl:hidden relative z-50 -mx-4 sm:-mx-6 lg:-mx-8 overflow-y-auto border-t border-line bg-paper-raised ${
+                hasTabBar ? 'max-h-[calc(100dvh-7.5rem)] md:max-h-[calc(100dvh-4rem)]' : 'max-h-[calc(100dvh-4rem)]'
+              }`}
             >
               <div className="px-4 py-3">
                 <Link href="/map" className="btn-primary w-full min-h-[44px]" onClick={() => setMobileMenuOpen(false)}>
@@ -323,7 +271,7 @@ export default function UnifiedHeader() {
                 </Link>
               </div>
 
-              {[PLATFORM, { labelKey: 'group_method' as NavKey, items: [SCIENCE, GUIDE] }, ABOUT].map((group) => (
+              {NAV_GROUPS.map((group) => (
                 <section key={group.labelKey} aria-labelledby={`mobile-nav-${group.labelKey}`}>
                   <h2 id={`mobile-nav-${group.labelKey}`} className="font-sans eyebrow px-4 pt-4 pb-2">
                     {t(`nav.${group.labelKey}`)}
@@ -370,6 +318,18 @@ export default function UnifiedHeader() {
           )}
         </nav>
       </header>
+
+      {/* Outside the header: its backdrop blur would trap a fixed child. */}
+      {hasTabBar && (
+        <MobileTabBar
+          current={current}
+          menuOpen={mobileMenuOpen}
+          onToggleMenu={() => {
+            setUserMenuOpen(false)
+            setMobileMenuOpen((open) => !open)
+          }}
+        />
+      )}
     </>
   )
 }

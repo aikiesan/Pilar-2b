@@ -4,10 +4,13 @@ import { useState, useEffect } from 'react';
 import { HelpCircle } from 'lucide-react'; // Ícone de interrogação
 import TourGuide from './TourGuide'; // Importa o componente do Joyride que você já criou
 import { useTranslations } from 'next-intl';
+import { useHasTabBar } from '@/components/layout/fullViewport';
 
 export default function GuideTourController() {
   const [runTour, setRunTour] = useState(false);
   const t = useTranslations('tour');
+  // Above the phone bottom bar where there is one.
+  const lift = useHasTabBar() ? 'bottom-20 md:bottom-8' : 'bottom-8';
 
   // Esse useEffect permite que outros botões do site (como aquele "Iniciar tour guiado" 
   // lá da página inicial) também consigam disparar o tour através de um evento customizado.
@@ -25,7 +28,7 @@ export default function GuideTourController() {
       {/* O Botão Flutuante (FAB - Floating Action Button) */}
       <button
         onClick={() => setRunTour(true)}
-        className="tour-help-button fixed bottom-8 right-8 z-[999] flex items-center justify-center w-14 h-14 bg-terra-800 text-white rounded-full shadow-lg hover:bg-terra-600 hover:scale-110 hover:shadow-xl transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-terra-600/50"
+        className={`tour-help-button fixed ${lift} right-8 z-[999] flex items-center justify-center w-14 h-14 bg-terra-800 text-white rounded-full shadow-lg hover:bg-terra-600 hover:scale-110 hover:shadow-xl transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-terra-600/50`}
         aria-label={t('fab.aria_label')}
         title={t('fab.title')}
       >
@@ -33,4 +36,4 @@ export default function GuideTourController() {
       </button>
     </>
   );
-}
+}

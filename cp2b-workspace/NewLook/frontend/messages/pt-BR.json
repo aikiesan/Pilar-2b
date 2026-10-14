@@ -9,30 +9,72 @@
       "references": "Referências",
       "proximity": "Proximidade",
       "technology_routes": "Calculadora de Biogás",
-      "scientific_database": "Base Científica",
+      "scientific_database": "Base científica",
       "advanced": "Análises",
       "cite": "Como Citar",
       "patch_notes": "Novidades",
       "compare": "Comparar",
       "group_platform": "Plataforma",
-      "group_method": "Método e guia",
+      "group_method": "Método",
       "about_project": "O projeto",
       "about_team": "Equipe",
       "about_partners": "Parceiros e CP2b",
       "about_faq": "FAQ e contato",
-      "open_map": "Abrir mapa"
+      "open_map": "Abrir mapa",
+      "group_data": "Dados",
+      "map_interactive": "Mapa interativo",
+      "municipalities": "Municípios",
+      "compare_municipalities": "Comparar municípios",
+      "proximity_logistics": "Proximidade e logística",
+      "multicriteria": "Análise multicritério",
+      "data_catalog": "Catálogo de produtos",
+      "data_legend": "Legenda e códigos",
+      "method_overview": "Visão geral",
+      "method_fde": "Fatores de disponibilidade (FDE)",
+      "method_scenarios": "Cenários",
+      "method_validation": "Validação e limitações",
+      "guide_usage": "Guia de uso",
+      "more": "Mais"
     },
     "nav_descriptions": {
       "guide": "Tutoriais e primeiros passos",
       "map": "Potencial por município, camadas e temas",
       "advanced": "MCDA e estatísticas",
       "compare": "Até 4 municípios lado a lado",
-      "scientific_database": "Base de dados científica",
+      "scientific_database": "Caracterização química, cinética e referências",
       "technology_routes": "Simule biogás, biometano e energia",
       "proximity": "Resíduos e infraestrutura num raio",
       "about": "Projeto, equipe, parceiros e FAQ",
       "cite": "Como citar o PILAR-2b",
-      "patch_notes": "Mudanças da plataforma, versão a versão"
+      "patch_notes": "Mudanças da plataforma, versão a versão",
+      "municipalities": "Busque um município e abra o perfil dele",
+      "data_catalog": "Cada resíduo como produto de dados, com método e fontes",
+      "data_legend": "Códigos dos resíduos, cores do mapa e arquivos para SIG",
+      "method_overview": "Do dado oficial ao potencial, em três passos",
+      "method_fde": "Os quatro fatores, resíduo a resíduo",
+      "method_scenarios": "Faixas de parâmetros e os cenários real e ideal",
+      "method_validation": "Graus de confiança e o que os dados não dizem",
+      "about_team": "Quem faz o PILAR-2b",
+      "about_partners": "Instituições e financiamento",
+      "about_faq": "Perguntas frequentes e como falar conosco"
+    },
+    "nav_intro": {
+      "platform": {
+        "lede": "As ferramentas para explorar o potencial de biogás, município a município.",
+        "cta": "Abrir o mapa"
+      },
+      "data": {
+        "lede": "Cada resíduo é um produto de dados: método, legenda, acesso e validação.",
+        "cta": "Abrir o catálogo"
+      },
+      "method": {
+        "lede": "Como cada número é calculado, com que fontes e com que confiança.",
+        "cta": "Visão geral do método"
+      },
+      "about": {
+        "lede": "Um projeto do NIPE-UNICAMP e do CP2B, com apoio da FAPESP.",
+        "cta": "Conhecer o projeto"
+      }
     },
     "auth": {
       "login": "Entrar",
@@ -45,7 +87,9 @@
     },
     "menu": {
       "open": "Abrir menu",
-      "close": "Fechar menu"
+      "close": "Fechar menu",
+      "tab_bar": "Atalhos",
+      "more_label": "Mais: todas as seções"
     },
     "search": {
       "trigger": "Buscar município",
@@ -2647,6 +2691,80 @@
       "validated": "parâmetros conferidos",
       "open_source": "Abrir a fonte",
       "new_tab": "(abre em nova aba)"
+    }
+  },
+  "municipalities_index": {
+    "eyebrow": "Plataforma",
+    "title": "Municípios",
+    "lede": "Busque um município para abrir o perfil dele: potencial de biogás, resíduos e relatório.",
+    "all_heading": "Todos os municípios, de A a Z",
+    "count": "{count, plural, one {# município na base} other {# municípios na base}}",
+    "letters_nav": "Ir para a letra",
+    "unavailable": "A lista de municípios não pôde ser carregada agora: a API não respondeu. A busca acima tenta de novo quando você a usa.",
+    "empty": "A API não devolveu nenhum município."
+  },
+  "method": {
+    "eyebrow": "Método",
+    "nav_label": "Seções do método",
+    "breadcrumb": "Trilha de navegação",
+    "overview": {
+      "title": "Como o PILAR-2b calcula o potencial",
+      "lede": "Cada número da plataforma parte de um dado oficial, passa por quatro fatores de disponibilidade e chega ao potencial de biogás. Estas páginas mostram cada passo, com as fontes e o grau de confiança.",
+      "steps_heading": "Três passos",
+      "formulas_heading": "As duas equações",
+      "fde_formula": "FDE = FC × (1 − FCp) × FS × FL",
+      "fde_formula_note": "O FDE é a fração do resíduo gerado que chega a uma planta de biogás. Nunca é armazenado: é sempre calculado a partir dos quatro fatores.",
+      "potential_formula": "Potencial = Geração × FDE × BMP",
+      "potential_formula_note": "A geração vem de fontes oficiais por município; o BMP (potencial metanogênico) vem da base científica, por resíduo.",
+      "sections_heading": "Nesta seção",
+      "licence": "Código GPL-3.0 · Dados e documentação CC BY 4.0.",
+      "cite_cta": "Como citar o PILAR-2b"
+    },
+    "fde": {
+      "title": "Fatores de disponibilidade (FDE)",
+      "lede": "Nem todo resíduo gerado vira biogás. Quatro fatores levam a quantidade gerada à quantidade disponível, e cada resíduo tem os seus.",
+      "factors_heading": "Os quatro fatores",
+      "context_label": "Do que depende",
+      "competition_note": "O FCp entra como (1 − FCp): é a parte que vai para outros usos, então o que sobra para o biogás é o complemento.",
+      "table_heading": "Os fatores de cada resíduo",
+      "table_caption": "Fatores de coleta, competição, sazonalidade e logística de cada resíduo, o FDE resultante e o grau de confiança",
+      "col_residue": "Resíduo",
+      "col_sector": "Setor",
+      "col_confidence": "Confiança",
+      "bands_heading": "Graus de confiança",
+      "bands_lede": "Cada resíduo traz um grau de confiança, que diz de onde vêm os fatores e quanto o número pode variar."
+    },
+    "scenarios": {
+      "title": "Cenários",
+      "lede": "O mapa mostra dois cenários. A química é a mesma nos dois; o que muda é quanto do resíduo chega a um digestor.",
+      "real_title": "Real (curto prazo)",
+      "real_body": "O resíduo que efetivamente chega a um digestor hoje, com as taxas de coleta e os usos concorrentes atuais. É o cenário com que o mapa abre.",
+      "ideal_title": "Ideal (fronteira)",
+      "ideal_body": "Todo o resíduo gerado é coletado e tratado. É uma hipótese de infraestrutura: mostra o teto, não uma previsão.",
+      "definitions": "As definições seguem o Atlas de Bioenergia SP 2020. Os dois cenários são calculados no servidor, e cada coeficiente fica registrado e auditável.",
+      "ch4_heading": "Do biogás ao metano",
+      "ch4_body": "O metano é tomado como {share} do biogás bruto (FIESP 2025), o mesmo valor no servidor e no navegador.",
+      "retired_heading": "Cenários de faixa, fora do mapa",
+      "retired_body": "Versões anteriores ofereciam quatro cenários de faixa (conservador, médio prazo, fronteira e otimista), que variavam o BMP dentro da faixa de incerteza. Saíram do mapa porque respondem a quanto a química poderia render, e não a quanto resíduo chega a um digestor. Links antigos com esses cenários continuam abrindo.",
+      "map_cta": "Ver os cenários no mapa"
+    },
+    "validation": {
+      "title": "Validação e limitações",
+      "lede": "O que sustenta cada fator, quanto ele pode variar e o que os dados ainda não dizem.",
+      "levels_heading": "Graus de confiança",
+      "residue_count": "{count, plural, one {# resíduo} other {# resíduos}}",
+      "process_heading": "De onde vêm os fatores",
+      "process": {
+        "data": "Produção: dados oficiais (IBGE, EMBRAPA, UNICA) quando existem; relatórios do setor quando não, com confiança menor.",
+        "competition": "Usos concorrentes: cada destino alternativo (cogeração, fertilização, ração, uso industrial) e as exigências legais, como a fertirrigação regulada pela CETESB.",
+        "collection": "Coleta, sazonalidade e logística: concentração ou dispersão da fonte, infraestrutura de transporte e armazenamento, e o calendário de produção.",
+        "conservative": "Quando a evidência é incerta, o fator adota a estimativa conservadora e o resíduo recebe confiança baixa."
+      },
+      "beta": "A base está em beta: os fatores seguem em validação, e cada correção é publicada nas Novidades.",
+      "limitations_heading": "Limitações",
+      "report_heading": "Encontrou um erro?",
+      "report_body": "Escreva para a equipe: diga o resíduo, o município ou a página, e o que parece errado.",
+      "patch_notes_cta": "Ver as Novidades"
     }
   }
 }

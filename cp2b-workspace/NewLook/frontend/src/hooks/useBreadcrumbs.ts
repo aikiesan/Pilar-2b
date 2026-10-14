@@ -19,7 +19,6 @@ export function useBreadcrumbs(overrides?: BreadcrumbOverrides): BreadcrumbItem[
   const tNav = useTranslations('common.nav')
 
   const home: BreadcrumbItem = { label: tNav('home'), href: '/' }
-  const map: BreadcrumbItem = { label: tNav('map'), href: '/map' }
 
   // The tools sit at the top level since /dashboard was dropped from their URLs.
   const tools: Record<string, string> = {
@@ -27,9 +26,12 @@ export function useBreadcrumbs(overrides?: BreadcrumbOverrides): BreadcrumbItem[
     '/compare': t('compare.title'),
     '/proximity': t('proximity.title'),
     '/calculator': t('technology_routes.title'),
-    '/method/science-base': t('scientific_database.title'),
   }
   if (pathname in tools) return [home, { label: tools[pathname] }]
+
+  // The science base is one of the Método pages.
+  if (pathname === '/method/science-base')
+    return [home, { label: tNav('group_method'), href: '/method' }, { label: t('scientific_database.title') }]
 
   if (pathname === '/dashboard')
     return [home, { label: tNav('dashboard') }]
@@ -39,7 +41,7 @@ export function useBreadcrumbs(overrides?: BreadcrumbOverrides): BreadcrumbItem[
 
   if (pathname.startsWith('/municipality/')) {
     const name = overrides?.municipalityName ?? '...'
-    return [home, map, { label: name }]
+    return [home, { label: tNav('municipalities'), href: '/municipalities' }, { label: name }]
   }
 
   return [home]

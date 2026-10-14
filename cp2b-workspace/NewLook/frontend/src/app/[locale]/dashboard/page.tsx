@@ -129,8 +129,8 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-slate-900 transition-colors">
-      {/* pb-24 on mobile leaves room for the sticky CTA bar; desktop reverts. */}
-      <div className="flex-1 py-8 px-4 sm:px-6 lg:px-8 pb-24 md:pb-8">
+      {/* On phones the bottom bar keeps the map one tap away. */}
+      <div className="flex-1 py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
 
           {/* Hero — value statement + a 1-tap path to the map on the first screen */}
@@ -265,20 +265,6 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Sticky bottom CTA — mobile only, always one tap from the map */}
-      <div
-        className="md:hidden fixed inset-x-0 bottom-0 z-40 border-t border-gray-200 dark:border-slate-700 bg-white/95 dark:bg-slate-900/95 backdrop-blur px-4 py-3"
-        style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom))' }}
-      >
-        <Link
-          href="/map"
-          aria-label={t('open_map_aria')}
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-terra-600 px-6 py-3 text-base font-semibold text-white shadow-lg transition-colors hover:bg-terra-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-terra-600 dark:bg-terra-700 dark:hover:bg-terra-700"
-        >
-          <Map className="w-5 h-5" aria-hidden="true" />
-          {t('cta_open_map')}
-        </Link>
-      </div>
     </div>
   )
 }
