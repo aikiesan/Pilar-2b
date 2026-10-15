@@ -158,7 +158,7 @@ The frontend was already restarted by `deploy.sh`.
 
 ```bash
 # Everything at once, read-only: deployed commit vs origin/main, PM2, the API
-# endpoints the frontend reads, migrations 034-037, pages, redirects, and the
+# endpoints the frontend reads, migrations 034-038, pages, redirects, and the
 # CSS/JS/fonts as Apache serves them. Exit status 1 when something fails.
 /var/www/pilar2b/repo/cp2b-workspace/NewLook/scripts/vm_verify.sh
 
