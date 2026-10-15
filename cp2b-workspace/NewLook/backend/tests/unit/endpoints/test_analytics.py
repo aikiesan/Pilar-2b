@@ -102,7 +102,6 @@ def test_a_database_error_answers_a_fixed_message(api, cursor):
     assert response.json() == {"detail": "Could not record the page view"}
 
 
-
 # ── anonymous totals (every visitor, no identifier) ──────────────────────────
 def _hit(**fields):
     hit = {
@@ -201,6 +200,7 @@ def test_an_anonymous_count_error_answers_a_fixed_message(api, cursor):
 
     assert response.status_code == 500
     assert response.json() == {"detail": "Could not count the page view"}
+
 
 # ── admin summary ─────────────────────────────────────────────────────────────
 def _admin():
