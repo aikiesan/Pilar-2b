@@ -91,7 +91,7 @@ wait_for() { # url seconds
 # them from (Alias /pilar2b/_next → .next/standalone/.next).
 check_bundle() {
   local origin="$1" standalone="$2" failed=0 page code html assets asset css ref resolved
-  for page in /pt-BR /en /pt-BR/map /pt-BR/data /pt-BR/municipalities /pt-BR/about /pt-BR/guide; do
+  for page in /pt-BR /en /pt-BR/map /pt-BR/data /pt-BR/municipalities /pt-BR/guide /pt-BR/cite; do
     code="$(http_code "$origin$BASE_PATH$page")"
     if [[ "$code" == 200 ]]; then ok "$code $BASE_PATH$page"; else warn "$code $BASE_PATH$page"; failed=1; fi
   done
