@@ -2439,6 +2439,13 @@
       "cta_map": "Open map",
       "cta_method": "How it works"
     },
+    "preview": {
+      "cta": "Explore the map",
+      "caption": "Preview: residual biomass by municipality in São Paulo State",
+      "alt": "Map preview: São Paulo State's municipalities shaded from pale yellow to dark blue by residual biomass.",
+      "legend_low": "less",
+      "legend_high": "more"
+    },
     "search": {
       "label": "Find a municipality",
       "placeholder": "Name or IBGE code, e.g. Campinas",

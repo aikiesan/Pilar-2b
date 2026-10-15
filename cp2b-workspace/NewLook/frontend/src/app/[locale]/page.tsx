@@ -3,7 +3,8 @@
  *
  * Reading order, after MapBiomas and WaPOR: what this is and a search box,
  * four counts, the data by sector, how a number is made, what is new, who
- * stands behind it. The interactive map lives at /map, one click away.
+ * stands behind it. The interactive map lives at /map, one click away; the
+ * hero shows a static picture of it (MapPreviewCard) that is that click.
  *
  * Server-rendered. No number is typed into the copy: residue and sector counts
  * come from src/data/residueFactors.ts, municipality and reference counts from
@@ -15,6 +16,7 @@ import { getFormatter, getLocale, getTranslations } from 'next-intl/server';
 import { ArrowRight, Map as MapIcon } from 'lucide-react';
 import { Link } from '@/navigation';
 import ArcOrnament from '@/components/ui/ArcOrnament';
+import MapPreviewCard from '@/components/home/MapPreviewCard';
 import MunicipalitySearch from '@/components/home/MunicipalitySearch';
 import { DETAILED_RESIDUES } from '@/data/residueFactors';
 import { CATALOG_SECTORS, SECTOR_SWATCH, residuePath, residuesInSector } from '@/data/residueCatalog';
@@ -64,28 +66,32 @@ export default async function LandingPage() {
       {/* ── Hero ────────────────────────────────────────────────────────── */}
       <section className="relative overflow-hidden border-b border-line">
         <ArcOrnament className="absolute -right-40 -top-20 hidden h-[130%] w-auto text-terra-900 dark:text-ochre-300 md:block" />
-        <div className="relative mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
-          <p className="eyebrow">{t('hero.eyebrow')}</p>
-          <h1 className="mt-4 max-w-3xl text-4xl leading-[1.05] text-ink sm:text-5xl lg:text-6xl">
-            {t('hero.title')}
-          </h1>
-          <p className="mt-6 max-w-2xl text-base leading-relaxed text-ink-muted sm:text-lg">
-            {t('hero.lede')}
-          </p>
+        <div className="relative mx-auto grid max-w-7xl gap-12 px-4 py-14 sm:px-6 sm:py-20 lg:grid-cols-[minmax(0,1fr)_minmax(0,26rem)] lg:items-center lg:gap-10 lg:px-8 lg:py-24 xl:grid-cols-[minmax(0,1fr)_minmax(0,32rem)] xl:gap-16">
+          <div>
+            <p className="eyebrow">{t('hero.eyebrow')}</p>
+            <h1 className="mt-4 max-w-3xl text-4xl leading-[1.05] text-ink sm:text-5xl xl:text-6xl">
+              {t('hero.title')}
+            </h1>
+            <p className="mt-6 max-w-2xl text-base leading-relaxed text-ink-muted sm:text-lg">
+              {t('hero.lede')}
+            </p>
 
-          <div className="mt-10 grid gap-8 lg:grid-cols-[minmax(0,36rem)_auto] lg:items-start">
-            <MunicipalitySearch />
-            <div className="flex flex-col gap-3 sm:flex-row lg:mt-7">
-              <Link href="/map" className="btn-primary min-h-[48px]">
-                <MapIcon className="h-4 w-4" aria-hidden="true" />
-                {t('hero.cta_map')}
-                <ArrowRight className="h-4 w-4" aria-hidden="true" />
-              </Link>
-              <a href="#como-funciona" className="btn-secondary min-h-[48px]">
-                {t('hero.cta_method')}
-              </a>
+            <div className="mt-10 grid max-w-xl gap-6">
+              <MunicipalitySearch />
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <Link href="/map" className="btn-primary min-h-[48px]">
+                  <MapIcon className="h-4 w-4" aria-hidden="true" />
+                  {t('hero.cta_map')}
+                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                </Link>
+                <a href="#como-funciona" className="btn-secondary min-h-[48px]">
+                  {t('hero.cta_method')}
+                </a>
+              </div>
             </div>
           </div>
+
+          <MapPreviewCard className="w-full max-w-xl lg:max-w-none" />
         </div>
       </section>
 

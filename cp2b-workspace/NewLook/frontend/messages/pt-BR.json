@@ -2439,6 +2439,13 @@
       "cta_map": "Abrir mapa",
       "cta_method": "Como funciona"
     },
+    "preview": {
+      "cta": "Explorar o mapa",
+      "caption": "Prévia: biomassa residual por município no estado de São Paulo",
+      "alt": "Prévia do mapa: os municípios do estado de São Paulo coloridos do amarelo-claro ao azul-escuro conforme a biomassa residual.",
+      "legend_low": "menos",
+      "legend_high": "mais"
+    },
     "search": {
       "label": "Buscar município",
       "placeholder": "Nome ou código IBGE, ex.: Campinas",
