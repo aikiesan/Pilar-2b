@@ -115,16 +115,21 @@ test.describe('Locale integrity — /en/ renders no Portuguese UI', () => {
   });
 
   test('pt-BR short-form numbers match the pattern', async ({ page }) => {
-    // The same guard for PORTUGUESE_NUMBER: the About page's counters count up
-    // to "4,6 bi" in pt-BR, so the pattern must find them there.
-    // They count up once scrolled into view, and sit below the fold.
-    await page.goto('/pt-BR/about', { waitUntil: 'domcontentloaded' });
-    await page.evaluate(async () => {
-      for (let y = 0; y < document.documentElement.scrollHeight; y += window.innerHeight / 2) {
-        window.scrollTo(0, y);
-        await new Promise((resolve) => setTimeout(resolve, 50));
-      }
-    });
-    await expect(page.locator('body')).toContainText(PORTUGUESE_NUMBER, { useInnerText: true });
+    // The same guard for PORTUGUESE_NUMBER. Since the About page and its
+    // counters moved to the CP2b site, every short-form number on a public page
+    // comes from the API, which this run does not have. So ask the browser for
+    // what useFormat().compact renders (Intl, compact notation) and check the
+    // pattern finds it, and does not find the English form.
+    await page.goto('/pt-BR', { waitUntil: 'domcontentloaded' });
+    const shortForm = (locale: string) =>
+      page.evaluate(
+        (loc) =>
+          [4.6e9, 6.4e6, 20e3].map((value) =>
+            new Intl.NumberFormat(loc, { notation: 'compact', maximumFractionDigits: 1 }).format(value)
+          ),
+        locale
+      );
+    for (const text of await shortForm('pt-BR')) expect(text).toMatch(PORTUGUESE_NUMBER);
+    for (const text of await shortForm('en')) expect(text).not.toMatch(PORTUGUESE_NUMBER);
   });
 });

@@ -161,7 +161,7 @@ fi
 # ── 5. Frontend (Node, direct) ───────────────────────────────────────────────
 section "5. Páginas ($FRONT_URL)"
 for page in /pt-BR /en /pt-BR/map /pt-BR/data /pt-BR/municipalities /pt-BR/compare /pt-BR/calculator \
-  /pt-BR/proximity /pt-BR/about /pt-BR/guide /pt-BR/cite /pt-BR/patch-notes /pt-BR/method/science-base; do
+  /pt-BR/proximity /pt-BR/guide /pt-BR/cite /pt-BR/patch-notes /pt-BR/method/science-base; do
   expect 200 "$B$page" "$FRONT_URL$B$page"
 done
 # Readable municipality address: the Node server resolves it through the API.
@@ -169,6 +169,8 @@ expect 200 "$B/pt-BR/municipalities/campinas-sp (página do município)" "$FRONT
 expect_redirect "$B/pt-BR/municipality/3509502 (endereço antigo)" "$FRONT_URL$B/pt-BR/municipality/3509502" "/pt-BR/municipalities/campinas-sp"
 expect_redirect "$B/pt-BR/mapa" "$FRONT_URL$B/pt-BR/mapa" "/pt-BR/map"
 expect_redirect "$B/pt-BR/dashboard/compare" "$FRONT_URL$B/pt-BR/dashboard/compare" "/pt-BR/compare"
+# "Sobre" lives on the CP2b site now; the old address sends visitors there.
+expect_redirect "$B/pt-BR/about (agora no site do CP2b)" "$FRONT_URL$B/pt-BR/about" "https://cp2b.unicamp.br/sobre"
 expect 200 "$B/sitemap.xml" "$FRONT_URL$B/sitemap.xml"
 
 # ── 6. Through Apache ────────────────────────────────────────────────────────

@@ -1,6 +1,6 @@
 /**
  * Until the paper is submitted (METHOD_PAGES_ENABLED off), the landing, the
- * catalogue and /about show no availability factor: no FDE value, no FCp, no
+ * catalogue and the guide show no availability factor: no FDE value, no FCp, no
  * FDE column, and neither the meta nor the Open Graph description names them.
  * The landing's three steps give no formula.
  *
@@ -50,7 +50,7 @@ const SECTORS = Array.from(new Set(allResidueParams().map((p) => p.sector)))
 
 for (const locale of ['pt-BR', 'en']) {
   test(`${locale}: the landing, the catalogue and the sector pages show no factor`, async ({ request }) => {
-    for (const path of [`/${locale}`, `/${locale}/about`, `/${locale}/data`, ...SECTORS.map((s) => `/${locale}/data/${s}`)]) {
+    for (const path of [`/${locale}`, `/${locale}/guide`, `/${locale}/data`, ...SECTORS.map((s) => `/${locale}/data/${s}`)]) {
       expectNoFactors(await markup(request, path), path)
     }
   })
@@ -67,7 +67,7 @@ for (const locale of ['pt-BR', 'en']) {
 }
 
 test('the meta and Open Graph descriptions name no factor', async ({ request }) => {
-  for (const path of ['/pt-BR', '/en', '/pt-BR/about', '/en/about']) {
+  for (const path of ['/pt-BR', '/en', '/pt-BR/guide', '/en/guide']) {
     const html = await markup(request, path)
     for (const key of ['description', 'og:description']) {
       const content = metaContent(html, key)

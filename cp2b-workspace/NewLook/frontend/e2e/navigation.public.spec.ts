@@ -23,10 +23,6 @@ async function answerCookieBanner(page: Page) {
 
 test.describe('Retired paths', () => {
   for (const [from, to] of [
-    ['/pt-BR/sobre', '/pt-BR/about'],
-    ['/en/sobre', '/en/about'],
-    ['/pt-BR/dashboard/about', '/pt-BR/about#parceiros'],
-    ['/en/dashboard/about', '/en/about#parceiros'],
     ['/en/dashboard/compare', '/en/compare'],
     ['/pt-BR/dashboard/proximity?lat=-22.9&lng=-47.06&radius=20', '/pt-BR/proximity?lat=-22.9&lng=-47.06&radius=20'],
     ['/en/dashboard/technology-routes', '/en/calculator'],
@@ -37,6 +33,22 @@ test.describe('Retired paths', () => {
       expect(response.status()).toBe(301)
       // Next may send the Location absolute or relative; only the path matters.
       expect(response.headers()['location'].replace(/^https?:\/\/[^/]+/, '')).toBe(to)
+    })
+  }
+})
+
+test.describe('Pages moved to the CP2b site', () => {
+  for (const [from, to] of [
+    ['/pt-BR/about', 'https://cp2b.unicamp.br/sobre'],
+    ['/en/about', 'https://cp2b.unicamp.br/sobre'],
+    ['/pt-BR/sobre', 'https://cp2b.unicamp.br/sobre'],
+    ['/en/sobre', 'https://cp2b.unicamp.br/sobre'],
+    ['/pt-BR/dashboard/about', 'https://cp2b.unicamp.br/sobre/parceiros'],
+  ] as const) {
+    test(`${from} is a 301 to ${to}`, async ({ request }) => {
+      const response = await request.get(from, { maxRedirects: 0 })
+      expect(response.status()).toBe(301)
+      expect(response.headers()['location']).toBe(to)
     })
   }
 })
@@ -97,13 +109,14 @@ test.describe('Header on a desktop', () => {
   test('groups the pages in dropdowns that every visitor can open', async ({ page }) => {
     await answerCookieBanner(page)
     await page.setViewportSize({ width: 1280, height: 900 })
-    await page.goto('/pt-BR/about')
+    await page.goto('/pt-BR/patch-notes')
     const nav = page.getByRole('navigation', { name: 'Navegação principal' })
 
     const about = nav.getByRole('button', { name: 'Sobre' })
     await about.click()
     await expect(about).toHaveAttribute('aria-expanded', 'true')
-    await expect(nav.getByRole('link', { name: /O projeto/ })).toHaveAttribute('aria-current', 'page')
+    await expect(nav.getByRole('link', { name: /Novidades/ })).toHaveAttribute('aria-current', 'page')
+    await expect(nav.getByRole('link', { name: /^O CP2b/ })).toHaveAttribute('href', 'https://cp2b.unicamp.br/sobre')
     await page.keyboard.press('Escape')
     await expect(about).toHaveAttribute('aria-expanded', 'false')
 
@@ -160,7 +173,7 @@ test.describe('On a phone', () => {
 
   test('the header keeps search; the bottom bar\'s "Mais" opens the menu with the same groups', async ({ page }) => {
     await answerCookieBanner(page)
-    await page.goto('/pt-BR/about')
+    await page.goto('/pt-BR/guide')
     await expect(page.getByRole('button', { name: /buscar/i }).first()).toBeVisible()
     // One way into the menu on a phone: the bar's "Mais", not a second header button.
     await expect(page.getByRole('button', { name: 'Abrir menu' })).toBeHidden()
@@ -173,7 +186,7 @@ test.describe('On a phone', () => {
     await expect(more).toHaveAttribute('aria-expanded', 'true')
     const menu = page.locator('#mobile-menu')
     await expect(menu.getByRole('heading', { name: 'Método' })).toBeVisible()
-    await expect(menu.getByRole('link', { name: /O projeto/ })).toBeVisible()
+    await expect(menu.getByRole('link', { name: /^O CP2b/ })).toBeVisible()
     await expect(menu.getByRole('link', { name: /Comparar/ })).toBeVisible()
   })
 
@@ -197,15 +210,12 @@ test.describe('On a phone', () => {
     await expect(page.locator('#mobile-menu').getByRole('heading', { name: 'Plataforma' })).toBeVisible()
   })
 
-  test('About fits the screen and its section links jump to anchors', async ({ page }) => {
+  test('the guide fits the screen and /guide#faq opens on its FAQ', async ({ page }) => {
     await answerCookieBanner(page)
-    await page.goto('/pt-BR/about')
+    await page.goto('/pt-BR/guide#faq')
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)
     expect(overflow).toBeLessThanOrEqual(0)
-
-    await page.getByRole('navigation', { name: 'Nesta página' }).getByRole('link', { name: 'FAQ' }).click()
-    await expect(page).toHaveURL(/#faq$/)
-    await expect(page.getByRole('heading', { name: 'FAQ', level: 2 })).toBeInViewport()
+    await expect(page.getByRole('heading', { name: 'Perguntas frequentes', level: 2 })).toBeInViewport()
   })
 
   test('Comparar opens a picker instead of bouncing to the Hub', async ({ page }) => {

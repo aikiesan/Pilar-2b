@@ -16,6 +16,8 @@ import { notFound } from 'next/navigation';
 import { getFormatter, getLocale, getTranslations } from 'next-intl/server';
 import { ArrowRight } from 'lucide-react';
 import { Link } from '@/navigation';
+import NavLink from '@/components/layout/NavLink';
+import { CP2B_PAGES } from '@/config/contact';
 import Breadcrumb from '@/components/ui/Breadcrumb';
 import { navCrumbs } from '@/lib/breadcrumbTrail';
 import DataCard from '@/components/data/DataCard';
@@ -232,10 +234,10 @@ export default async function ResidueProductPage({ params }: Params) {
             )}
             <li>{t('product.limitations.report')}</li>
           </ul>
-          <Link href="/about#contato" className={`mt-4 inline-flex min-h-[44px] items-center gap-2 ${link}`}>
+          <NavLink href={CP2B_PAGES.contact} externalIcon={false} className={`mt-4 inline-flex min-h-[44px] items-center gap-2 ${link}`}>
             {t('product.contact_cta')}
             <ArrowRight className="h-4 w-4" aria-hidden="true" />
-          </Link>
+          </NavLink>
         </section>
       </div>
       <section aria-labelledby="references">

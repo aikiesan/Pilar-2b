@@ -10,8 +10,9 @@ import { useValidationMessage } from '@/hooks/useValidationMessage'
 import { isLocale } from '@/config/i18n'
 import { openConsentPreferences } from '@/lib/consent'
 import { subscribeToNewsletter } from '@/services/newsletterApi'
-import { SOCIAL_LINKS } from '@/config/contact'
+import { CP2B_SITE, SOCIAL_LINKS } from '@/config/contact'
 import { FOOTER_LINKS } from './siteNav'
+import NavLink from './NavLink'
 
 // Social icons removed from lucide-react v1.x — inline SVGs
 function InstagramIcon({ className }: { className?: string }) {
@@ -248,12 +249,12 @@ export default function Footer() {
               <ul className="space-y-2.5 list-none">
                 {quickLinks.map((link) => (
                   <li key={link.href}>
-                    <Link
+                    <NavLink
                       href={link.href}
                       className="text-sm text-gray-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-white/40 rounded"
                     >
                       {link.label}
-                    </Link>
+                    </NavLink>
                   </li>
                 ))}
               </ul>
@@ -289,12 +290,10 @@ export default function Footer() {
             <div className="mt-6 space-y-1">
               <p className="text-xs text-gray-400">{t('footer.location')}</p>
               <a
-                href="https://nipe.unicamp.br/cp2b/"
-                target="_blank"
-                rel="noopener noreferrer"
+                href={CP2B_SITE}
                 className="text-xs text-gray-400 hover:text-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-white/40 rounded"
               >
-                nipe.unicamp.br/cp2b ↗
+                cp2b.unicamp.br ↗
               </a>
             </div>
           </div>

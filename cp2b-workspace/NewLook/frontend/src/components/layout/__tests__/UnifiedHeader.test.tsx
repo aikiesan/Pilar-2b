@@ -87,8 +87,11 @@ describe('UnifiedHeader navigation', () => {
 
     await user.click(trigger('Sobre'))
     expect(trigger('Plataforma')).toHaveAttribute('aria-expanded', 'false')
-    expect(within(mainNav()).getByRole('link', { name: /O projeto/ })).toHaveAttribute('href', '/about')
-    expect(within(mainNav()).getByRole('link', { name: /FAQ e contato/ })).toHaveAttribute('href', '/about#faq')
+    // Who CP2b is lives on the CP2b site; the link says so to screen readers.
+    const cp2b = within(mainNav()).getByRole('link', { name: 'O CP2b O centro que mantém o PILAR-2b (site do CP2b)' })
+    expect(cp2b).toHaveAttribute('href', 'https://cp2b.unicamp.br/sobre')
+    expect(within(mainNav()).getByRole('link', { name: /^Contato/ })).toHaveAttribute('href', 'https://cp2b.unicamp.br/contato')
+    expect(within(mainNav()).getByRole('link', { name: /Novidades/ })).toHaveAttribute('href', '/patch-notes')
   })
 
   it('introduces each group beside its pages, with one call to action', async () => {
@@ -125,7 +128,7 @@ describe('UnifiedHeader navigation', () => {
     await user.keyboard('{ArrowDown}')
     expect(trigger('Sobre')).toHaveAttribute('aria-expanded', 'true')
     await new Promise((resolve) => requestAnimationFrame(resolve))
-    expect(within(mainNav()).getByRole('link', { name: /O projeto/ })).toHaveFocus()
+    expect(within(mainNav()).getByRole('link', { name: /^O CP2b/ })).toHaveFocus()
 
     await user.keyboard('{Escape}')
     expect(trigger('Sobre')).toHaveAttribute('aria-expanded', 'false')
@@ -141,13 +144,13 @@ describe('UnifiedHeader navigation', () => {
   })
 
   it('marks the current page, and the group that holds it', async () => {
-    mockPathname = '/about'
+    mockPathname = '/patch-notes'
     const user = userEvent.setup()
     render(<UnifiedHeader />)
     await user.click(trigger('Sobre'))
-    expect(within(mainNav()).getByRole('link', { name: /O projeto/ })).toHaveAttribute('aria-current', 'page')
-    // An anchor on the same page is a section, not the current page.
-    expect(within(mainNav()).getByRole('link', { name: /FAQ e contato/ })).not.toHaveAttribute('aria-current')
+    expect(within(mainNav()).getByRole('link', { name: /Novidades/ })).toHaveAttribute('aria-current', 'page')
+    // A page of the CP2b site is never the current page here.
+    expect(within(mainNav()).getByRole('link', { name: /^O CP2b/ })).not.toHaveAttribute('aria-current')
     expect(trigger('Sobre').className).toContain('text-terra-600')
     expect(trigger('Método').className).not.toContain('text-terra-600')
   })
@@ -188,9 +191,9 @@ describe('UnifiedHeader phone menu', () => {
       expect(within(drawer()).getByRole('heading', { name: heading })).toBeInTheDocument()
     }
     expect(within(drawer()).getByRole('link', { name: /Abrir mapa/ })).toHaveAttribute('href', '/map')
-    const about = within(drawer()).getByRole('link', { name: /O projeto/ })
-    expect(about).toHaveAttribute('href', '/about')
-    expect(about).toHaveTextContent('Projeto, equipe, parceiros e FAQ')
+    const about = within(drawer()).getByRole('link', { name: /^O CP2b/ })
+    expect(about).toHaveAttribute('href', 'https://cp2b.unicamp.br/sobre')
+    expect(about).toHaveTextContent('O centro que mantém o PILAR-2b')
     expect(within(drawer()).getByRole('link', { name: /Comparar/ })).toHaveTextContent('Até 4 municípios lado a lado')
   })
 

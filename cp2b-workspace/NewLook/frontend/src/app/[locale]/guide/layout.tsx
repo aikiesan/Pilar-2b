@@ -32,7 +32,6 @@ export default function GuideLayout({
           <span className="eyebrow block mb-2 px-3">{t('main_topics')}</span>
 
           <Link href="/guide" className={link}>{t('nav_intro')}</Link>
-          <Link href="/about" className={link}>{t('nav_about')}</Link>
           <Link
             href="/map"
             className="block border-l-2 border-terra-600 dark:border-terra-400 bg-paper-sunken px-3 py-2 font-medium text-terra-700 dark:text-terra-300 hover:bg-terra-50 dark:hover:bg-paper transition-colors"
@@ -47,6 +46,7 @@ export default function GuideLayout({
           <Link href="/guide/base-cientifica" className={link}>{t('nav_science')}</Link>
           <Link href="/guide/calculadora" className={link}>{t('nav_calculator')}</Link>
           <Link href="/guide/proximidade" className={link}>{t('nav_proximity')}</Link>
+          <Link href="/guide#faq" className={link}>{t('nav_faq')}</Link>
         </nav>
       </aside>
 

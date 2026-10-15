@@ -17,7 +17,7 @@
  */
 import { useEffect, useId, useRef } from 'react'
 import { ArrowRight, ChevronDown } from 'lucide-react'
-import { Link } from '@/navigation'
+import NavLink from './NavLink'
 
 export interface NavDropdownItem {
   href: string
@@ -101,20 +101,21 @@ export default function NavDropdown({ label, intro, items, open, onOpenChange, t
           <div className="border-r border-line pr-10">
             <p className="eyebrow">{label}</p>
             <p className="mt-3 font-display text-xl leading-snug text-ink">{intro.lede}</p>
-            <Link
+            <NavLink
               href={intro.href}
+              externalIcon={false}
               onClick={() => onOpenChange(false)}
               className="mt-5 inline-flex min-h-[40px] items-center gap-2 text-sm font-medium text-terra-700 underline-offset-4 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-terra-600 dark:text-terra-300"
             >
               {intro.cta}
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
-            </Link>
+            </NavLink>
           </div>
 
           <ul className="grid grid-cols-2 content-start gap-x-6">
             {items.map((item) => (
               <li key={item.href} className="border-b border-line">
-                <Link
+                <NavLink
                   href={item.href}
                   data-nav-item
                   aria-current={item.active ? 'page' : undefined}
@@ -138,7 +139,7 @@ export default function NavDropdown({ label, intro, items, open, onOpenChange, t
                       <span className="mt-0.5 block text-xs text-ink-muted">{item.description}</span>
                     )}
                   </span>
-                </Link>
+                </NavLink>
               </li>
             ))}
           </ul>

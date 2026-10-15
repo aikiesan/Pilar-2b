@@ -1,14 +1,14 @@
 /**
  * /dashboard/about used to bounce visitors to nipe.unicamp.br/cp2b from the
- * browser. CP2b and NIPE are presented on /about#parceiros now.
+ * browser, and later to /about#parceiros. CP2b's partners are on the CP2b
+ * site now.
  *
  * next.config.js answers this path with a 301; this stub is the fallback for
  * any server that skips those redirects.
  */
-import { permanentRedirect } from '@/navigation'
-import { defaultLocale, isLocale } from '@/config/i18n'
+import { permanentRedirect } from 'next/navigation'
+import { CP2B_PAGES } from '@/config/contact'
 
-export default async function DashboardAboutPage({ params }: { params: Promise<{ locale: string }> }) {
-  const { locale } = await params
-  permanentRedirect({ href: '/about#parceiros', locale: isLocale(locale) ? locale : defaultLocale })
+export default function DashboardAboutPage() {
+  permanentRedirect(CP2B_PAGES.partners)
 }

@@ -15,6 +15,8 @@
 import { getFormatter, getLocale, getTranslations } from 'next-intl/server';
 import { ArrowRight, Map as MapIcon } from 'lucide-react';
 import { Link } from '@/navigation';
+import NavLink from '@/components/layout/NavLink';
+import { CP2B_PAGES } from '@/config/contact';
 import ArcOrnament from '@/components/ui/ArcOrnament';
 import MapPreviewCard from '@/components/home/MapPreviewCard';
 import MunicipalitySearch from '@/components/home/MunicipalitySearch';
@@ -247,10 +249,10 @@ export default async function LandingPage() {
               </dd>
             </div>
           </dl>
-          <Link href="/about#parceiros" className="inline-flex min-h-[44px] items-center gap-2 text-sm font-medium text-terra-600 underline-offset-4 hover:underline dark:text-terra-400">
+          <NavLink href={CP2B_PAGES.partners} externalIcon={false} className="inline-flex min-h-[44px] items-center gap-2 text-sm font-medium text-terra-600 underline-offset-4 hover:underline dark:text-terra-400">
             {t('partners.cta')}
             <ArrowRight className="h-4 w-4" aria-hidden="true" />
-          </Link>
+          </NavLink>
         </div>
       </section>
     </div>

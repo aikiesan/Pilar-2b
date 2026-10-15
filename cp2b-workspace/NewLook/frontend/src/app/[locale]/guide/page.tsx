@@ -11,6 +11,7 @@ import {
   ArrowRight,
 } from 'lucide-react'
 import { useTranslations } from 'next-intl';
+import GuideFaq from '@/components/guide/GuideFaq';
 
 // Card copy lives in the catalog under `guide.topics_items`; the icon, target
 // and styling are presentation and stay here, matched by index.
@@ -97,6 +98,8 @@ export default function GuideIndexPage() {
           </Link>
         ))}
       </div>
+
+      <GuideFaq />
     </div>
   );
 }
