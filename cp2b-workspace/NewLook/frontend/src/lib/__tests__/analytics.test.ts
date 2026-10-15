@@ -1,4 +1,4 @@
-import { deviceClass, forgetVisitor, trackPageview, VISITOR_COOKIE } from '../analytics'
+import { countPageview, deviceClass, forgetVisitor, sendVisibleTime, trackPageview, VISITOR_COOKIE } from '../analytics'
 import { saveConsent } from '../consent'
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
@@ -90,5 +90,50 @@ describe('page-view statistics', () => {
     expect(deviceClass(390)).toBe('mobile')
     expect(deviceClass(1024)).toBe('tablet')
     expect(deviceClass(1280)).toBe('desktop')
+  })
+})
+
+describe('anonymous totals', () => {
+  it('count every visitor, with no cookie, no identifier and nothing stored', () => {
+    saveConsent('essential')
+    countPageview('/map?email=ana@example.org', 'en')
+
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    const { url, init, body } = sent()
+    expect(url).toMatch(/\/api\/v1\/analytics\/hit$/)
+    expect(init).toMatchObject({ method: 'POST', keepalive: true })
+    expect(body).toEqual({
+      path: '/map',
+      locale: 'en',
+      device: expect.any(String),
+      entry: expect.any(Boolean),
+      referrer_host: null,
+    })
+    expect(visitorCookie()).toBeUndefined()
+    expect(sessionStorage.length).toBe(0)
+  })
+
+  it('mark the first page of the page load as the entry, with its referring site', () => {
+    Object.defineProperty(document, 'referrer', { value: 'https://www.google.com/search?q=biogas', configurable: true })
+    jest.isolateModules(() => {
+      const fresh = jest.requireActual<typeof import('../analytics')>('../analytics')
+      fresh.countPageview('/map', 'pt-BR')
+      fresh.countPageview('/guide', 'pt-BR')
+    })
+
+    expect(sent(0).body).toMatchObject({ entry: true, referrer_host: 'www.google.com' })
+    expect(sent(1).body).toMatchObject({ entry: false, referrer_host: null })
+    Object.defineProperty(document, 'referrer', { value: '', configurable: true })
+  })
+
+  it('send whole seconds of visible time, at most half an hour', () => {
+    sendVisibleTime('/map', 12.4)
+    sendVisibleTime('/map', 3 * 60 * 60)
+    sendVisibleTime('/map', 0.4)
+
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+    expect(sent(0).url).toMatch(/\/api\/v1\/analytics\/time$/)
+    expect(sent(0).body).toEqual({ path: '/map', seconds: 12 })
+    expect(sent(1).body).toEqual({ path: '/map', seconds: 1800 })
   })
 })

@@ -196,6 +196,20 @@ sudo systemctl status apache2
 /var/www/pilar2b/repo/cp2b-workspace/NewLook/scripts/vm_verify.sh
 ```
 
+### "How many people visit the site?"
+
+Read-only report of the last 30 days: visits, pages, average visible time,
+where visits come from, devices, the share of visitors who accept statistics
+and the estimated number of visitors. The anonymous counts start on the day
+migration 038 is applied.
+
+```bash
+cd /var/www/pilar2b/repo/cp2b-workspace/NewLook/backend
+DB=$(grep '^DATABASE_URL' .env | cut -d= -f2-)
+PGOPTIONS='-c default_transaction_read_only=on' psql "$DB" -X -P pager=off \
+    -v days=30 -f scripts/analytics_report.sql
+```
+
 ### "I added a new Python endpoint"
 
 ```bash

@@ -9,7 +9,8 @@ import { titledMetadata } from '@/lib/pageMetadata'
  * Draft for review by the UNICAMP Data Protection Officer (Encarregado de
  * Dados / Comissão Central LGPD) before it is treated as the institution's
  * official notice. It describes the platform as it is on the version date:
- * invite-only accounts, the newsletter, the statistics cookie (with consent),
+ * invite-only accounts, the newsletter, the anonymous visit counts (no cookie),
+ * the statistics cookie (with consent),
  * the calculator's contact form, and the third-party map services the browser
  * loads. Personal data is processed on UNICAMP-managed infrastructure.
  *
@@ -18,7 +19,7 @@ import { titledMetadata } from '@/lib/pageMetadata'
  * and with CONSENT_VERSION in src/lib/consent.ts when the cookie section changes.
  */
 
-const VERSION = '2026-09-25'
+const VERSION = '2026-10-15'
 
 const TEXT: Localized<LegalText> = {
   'pt-BR': {
@@ -41,6 +42,7 @@ const TEXT: Localized<LegalText> = {
           'Navegação: a plataforma é de acesso aberto. O servidor registra, como qualquer site, o endereço IP, o navegador, a página pedida e a data e hora de cada acesso, para o funcionamento e a segurança do serviço.',
           'Contas de acesso: as contas são criadas por um administrador, por convite, para pesquisadores e colaboradores. Tratamos nome, e-mail, a senha (guardada apenas como hash bcrypt, nunca em texto), o perfil e o nível de acesso, as datas de criação e do último acesso e o número de tentativas de senha erradas. Ao entrar, um token de sessão fica no seu navegador; ele expira em pouco tempo e é revogado quando você sai. O acesso a recursos confidenciais é registrado (quem, qual recurso, quando e de qual endereço IP).',
           'Newsletter: ao se inscrever (no rodapé, na página Sobre ou no aviso de cookies), guardamos o seu e-mail, o idioma, o formulário usado, a versão desta Política e a data e hora da inscrição. Não guardamos endereço IP nem dados do navegador.',
+          'Contagem anônima de visitas, para todos os visitantes: a página visitada (sem parâmetros de endereço), o idioma, o tipo de dispositivo (celular, tablet ou computador), o site de onde você veio (só na primeira página que você abre) e por quanto tempo a página ficou visível na tela. Não usamos cookie nem guardamos nada no seu navegador, não enviamos nenhum identificador e não guardamos endereço IP nem a identificação do navegador: o servidor guarda apenas totais por dia (por exemplo, “página Mapa, 15/10, celular: 12 visitas”), que não permitem identificar ninguém.',
           'Estatísticas de uso, apenas se você escolher “Aceitar tudo” no aviso de cookies: um identificador aleatório guardado no cookie pilar2b_vid, um identificador aleatório da sessão (por aba do navegador), a página visitada (sem parâmetros de endereço), o idioma, o tipo de dispositivo (celular, tablet ou computador) e, na primeira página da visita, o site de onde você veio. Não guardamos endereço IP nem a identificação do navegador. Os dados servem apenas para contar visitas e saber quais páginas são usadas.',
           'Calculadora de Viabilidade (opcional): se você enviar o formulário de contato da calculadora, guardamos nome, e-mail, município, os dados do cálculo e metadados técnicos da requisição (endereço IP, navegador e página de origem), apenas com o seu consentimento explícito. Não coletamos CPF nem CNPJ.',
         ],
@@ -48,6 +50,7 @@ const TEXT: Localized<LegalText> = {
       {
         h: '3. Base legal e finalidade',
         p: [
+          'Contagem anônima de visitas: os totais por dia são dados anonimizados, que não permitem identificar ninguém e por isso não são dados pessoais (LGPD, art. 12). Finalidade: saber quais páginas são usadas e por quanto tempo, para melhorar a plataforma.',
           'Newsletter, estatísticas de uso e calculadora: consentimento (LGPD, art. 7º, I), livre, informado e inequívoco, que você pode revogar a qualquer momento. O consentimento da newsletter é registrado com a versão desta Política e a data e hora. Finalidades: enviar novidades do PILAR-2b; medir o uso da plataforma para melhorá-la; responder ao seu interesse e produzir estatísticas agregadas de pesquisa.',
           'Contas de acesso: legítimo interesse e execução das atividades de pesquisa (LGPD, art. 7º, V e IX), para autenticar e autorizar pesquisadores e colaboradores. Registros do servidor e armazenamento essencial no navegador: legítimo interesse (art. 7º, IX), para o funcionamento e a segurança do serviço.',
           'Não usamos os dados para decisões automatizadas com efeitos jurídicos nem para publicidade.',
@@ -58,7 +61,7 @@ const TEXT: Localized<LegalText> = {
         p: [
           'Essenciais, sem necessidade de consentimento: a sua escolha sobre cookies, o idioma, o tema claro ou escuro, as preferências do mapa e, quando você entra na sua conta, o token de sessão. Ficam no armazenamento local do navegador e não são usados para identificar visitantes.',
           'Estatísticas, apenas com “Aceitar tudo”: o cookie pilar2b_vid, válido por 13 meses contados da primeira visita e sem renovação automática, e um identificador da sessão que é apagado quando a aba é fechada.',
-          'Você pode mudar a sua escolha a qualquer momento em “Preferências de cookies”, no rodapé de todas as páginas. Ao escolher “Apenas essenciais”, o cookie de estatísticas é apagado e nenhuma estatística é enviada.',
+          'Você pode mudar a sua escolha a qualquer momento em “Preferências de cookies”, no rodapé de todas as páginas. Ao escolher “Apenas essenciais”, o cookie de estatísticas é apagado e nenhuma estatística com identificador é enviada; continua apenas a contagem anônima descrita na seção 2, que não usa cookie nem o armazenamento do navegador.',
         ],
       },
       {
@@ -74,6 +77,7 @@ const TEXT: Localized<LegalText> = {
           'Contas de acesso: enquanto a conta estiver ativa. Ao fim da colaboração a conta é desativada e depois eliminada; os registros de acesso a recursos confidenciais são mantidos para prestação de contas.',
           'Newsletter: até você cancelar a inscrição. O registro da inscrição e do cancelamento é mantido como prova do consentimento e eliminado a seu pedido.',
           'Estatísticas de uso: cada registro é eliminado automaticamente após 13 meses.',
+          'Contagem anônima de visitas: os totais por dia são mantidos como série histórica, pois não contêm dados pessoais.',
           'Calculadora e registros do servidor: apenas pelo período necessário às finalidades acima, com eliminação a seu pedido ou ao término do tratamento (LGPD, art. 15).',
         ],
       },
@@ -119,6 +123,7 @@ const TEXT: Localized<LegalText> = {
           'Browsing: the platform is openly accessible. Like any website, the server records the IP address, browser, requested page and date and time of each request, to run and secure the service.',
           'User accounts: accounts are created by an administrator, by invitation, for researchers and collaborators. We process name, e-mail, the password (kept only as a bcrypt hash, never as text), the role and access level, the creation and last sign-in dates, and the number of failed password attempts. When you sign in, a session token is kept in your browser; it expires after a short time and is revoked when you sign out. Access to confidential resources is recorded (who, which resource, when and from which IP address).',
           'Newsletter: when you subscribe (in the footer, on the About page or in the cookie notice), we keep your e-mail, language, the form you used, the version of this Policy and the date and time you subscribed. We keep no IP address and no browser details.',
+          'Anonymous visit counts, for every visitor: the page visited (without URL parameters), the language, the device type (phone, tablet or computer), the site you came from (only on the first page you open) and how long the page stayed visible on screen. We use no cookie and store nothing in your browser, send no identifier and keep no IP address or browser identification: the server keeps only daily totals (for example, “Map page, 15 Oct, phone: 12 views”), which cannot identify anyone.',
           'Usage statistics, only if you choose “Accept all” in the cookie notice: a random identifier kept in the pilar2b_vid cookie, a random session identifier (per browser tab), the page visited (without URL parameters), the language, the device type (phone, tablet or computer) and, on the first page of a visit, the site you came from. We keep no IP address and no browser identification. The data is used only to count visits and see which pages are used.',
           'Viability Calculator (optional): if you send the calculator’s contact form, we keep your name, e-mail, municipality, the calculation data and technical request metadata (IP address, browser and referring page), only with your explicit consent. We do not collect tax IDs (CPF/CNPJ).',
         ],
@@ -126,6 +131,7 @@ const TEXT: Localized<LegalText> = {
       {
         h: '3. Legal basis and purpose',
         p: [
+          'Anonymous visit counts: the daily totals are anonymised data, which cannot identify anyone and are therefore not personal data (LGPD art. 12). Purpose: knowing which pages are used and for how long, in order to improve the platform.',
           'Newsletter, usage statistics and calculator: consent (LGPD art. 7, I), given freely, informed and unambiguously, which you can withdraw at any time. Newsletter consent is recorded with the version of this Policy and the date and time. Purposes: sending PILAR-2b news; measuring how the platform is used in order to improve it; responding to your interest and producing aggregate research statistics.',
           'User accounts: legitimate interest and the conduct of research activities (LGPD art. 7, V and IX), to authenticate and authorise researchers and collaborators. Server records and essential browser storage: legitimate interest (art. 7, IX), to run and secure the service.',
           'We do not use the data for automated decisions with legal effects or for advertising.',
@@ -136,7 +142,7 @@ const TEXT: Localized<LegalText> = {
         p: [
           'Essential, needing no consent: your cookie choice, the language, the light or dark theme, the map preferences and, when you sign in, the session token. They are kept in the browser’s local storage and are not used to identify visitors.',
           'Statistics, only with “Accept all”: the pilar2b_vid cookie, valid for 13 months from your first visit and not renewed automatically, and a session identifier that is deleted when the tab is closed.',
-          'You can change your choice at any time under “Cookie preferences”, at the foot of every page. Choosing “Essential only” deletes the statistics cookie and stops all statistics.',
+          'You can change your choice at any time under “Cookie preferences”, at the foot of every page. Choosing “Essential only” deletes the statistics cookie and stops every statistic that carries an identifier; only the anonymous count described in section 2 continues, which uses no cookie and no browser storage.',
         ],
       },
       {
@@ -152,6 +158,7 @@ const TEXT: Localized<LegalText> = {
           'User accounts: while the account is active. When a collaboration ends the account is deactivated and later deleted; the records of access to confidential resources are kept for accountability.',
           'Newsletter: until you unsubscribe. The record of the subscription and of the unsubscription is kept as proof of consent and erased at your request.',
           'Usage statistics: each record is deleted automatically after 13 months.',
+          'Anonymous visit counts: the daily totals are kept as a time series, since they hold no personal data.',
           'Calculator and server records: only for as long as the purposes above require, erased at your request or at the end of processing (LGPD art. 15).',
         ],
       },

@@ -1,9 +1,17 @@
 /**
  * First-party page-view statistics, stored on the UNICAMP VM
- * (backend: /api/v1/analytics). No third-party service.
+ * (backend: /api/v1/analytics). No third-party service. Two layers:
  *
- * Nothing is sent, and no cookie is written, unless the visitor chose "Accept
- * all" in the cookie banner. A page view then carries:
+ * Anonymous totals, for every visitor (countPageview, sendVisibleTime): the
+ * page path, the language, a device class, whether it is the first page of a
+ * page load (with the referring site's host), and how long the page stayed
+ * visible. No cookie,
+ * no identifier, nothing written to the browser; the server keeps only daily
+ * sums, so nothing can be tied to a person.
+ *
+ * Consented page views (trackPageview): nothing is sent, and no cookie is
+ * written, unless the visitor chose "Accept all" in the cookie banner. A page
+ * view then carries:
  * - a random visitor id, kept in the `pilar2b_vid` cookie of this site's path
  *   for about 13 months from the first visit (not renewed on later visits);
  * - a random id for the browser tab's session (sessionStorage);
@@ -16,7 +24,12 @@ import type { Locale } from '@/config/i18n'
 import { BASE_PATH } from '@/lib/basePath'
 import { readConsent } from '@/lib/consent'
 
-const API = `${process.env.NEXT_PUBLIC_API_URL || ''}/api/v1/analytics/pageview`
+const BASE = `${process.env.NEXT_PUBLIC_API_URL || ''}/api/v1/analytics`
+const API = `${BASE}/pageview`
+const HIT_API = `${BASE}/hit`
+const TIME_API = `${BASE}/time`
+/** One measurement of visible time counts at most half an hour (as the server). */
+const MAX_VISIBLE_SECONDS = 30 * 60
 
 export const VISITOR_COOKIE = 'pilar2b_vid'
 /** About 13 months, the same period the server keeps page views for. */
@@ -85,6 +98,59 @@ function referrerHost(): string | null {
   }
 }
 
+/** The path without query string or fragment: those can carry personal data. */
+function barePath(path: string): string {
+  return encodeURI(path.split(/[?#]/)[0] || '/')
+}
+
+/** Fire and forget: a lost count never affects the page. */
+function post(url: string, body: object): void {
+  void fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+    keepalive: true,
+  }).catch(() => {})
+}
+
+// In memory only: whether this page load already counted its first page.
+let pageLoadCounted = false
+
+/** A reload or a back/forward step is not a new arrival from the other site. */
+function arrivedByLink(): boolean {
+  try {
+    const entry = performance.getEntriesByType?.('navigation')[0] as PerformanceNavigationTiming | undefined
+    return !entry || entry.type === 'navigate'
+  } catch {
+    return true
+  }
+}
+
+/**
+ * Count a view of `path` in the anonymous daily totals, for every visitor:
+ * no consent needed because nothing identifies the visitor and nothing is
+ * stored in the browser. The first page of a page load is the visit's entry,
+ * and only it carries the referring site.
+ */
+export function countPageview(path: string, locale: Locale): void {
+  const first = !pageLoadCounted
+  pageLoadCounted = true
+  post(HIT_API, {
+    path: barePath(path),
+    locale,
+    device: deviceClass(window.innerWidth),
+    entry: first,
+    referrer_host: first && arrivedByLink() ? referrerHost() : null,
+  })
+}
+
+/** Add how long a view of `path` stayed visible to the anonymous totals. */
+export function sendVisibleTime(path: string, seconds: number): void {
+  const rounded = Math.min(Math.round(seconds), MAX_VISIBLE_SECONDS)
+  if (rounded < 1) return
+  post(TIME_API, { path: barePath(path), seconds: rounded })
+}
+
 /**
  * Record a view of `path` (a pathname without the language prefix), if the
  * visitor accepted statistics. Fire and forget: a lost page view never
@@ -93,20 +159,14 @@ function referrerHost(): string | null {
 export function trackPageview(path: string, locale: Locale): void {
   if (readConsent() !== 'all') return
   const { id: sessionId, isNew } = session()
-  const view = {
+  post(API, {
     visitor_id: visitorId(),
     session_id: sessionId,
-    path: encodeURI(path.split(/[?#]/)[0] || '/'),
+    path: barePath(path),
     locale,
     device: deviceClass(window.innerWidth),
     referrer_host: isNew ? referrerHost() : null,
-  }
-  void fetch(API, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(view),
-    keepalive: true,
-  }).catch(() => {})
+  })
 }
 
 /** Delete the statistics cookie and the session id ("Essential only"). */

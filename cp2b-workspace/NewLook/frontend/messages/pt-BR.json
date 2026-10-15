@@ -1906,7 +1906,7 @@
   },
   "cookieConsent": {
     "title": "Usamos cookies e dados",
-    "description": "Usamos cookies essenciais e, se você permitir, um cookie de estatísticas para contar visitas. Os dados ficam nos servidores da UNICAMP. Mude quando quiser em Preferências de cookies, no rodapé.",
+    "description": "Usamos cookies essenciais e contamos visitas de forma anônima, sem cookies. Se você permitir, um cookie de estatísticas também mostra quantas pessoas visitam e voltam. Os dados ficam nos servidores da UNICAMP. Mude quando quiser em Preferências de cookies, no rodapé.",
     "privacyLink": "Política de Privacidade",
     "acceptAll": "Aceitar tudo",
     "essentialOnly": "Apenas essenciais"
