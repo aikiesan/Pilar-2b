@@ -1607,7 +1607,7 @@
   },
   "cookieConsent": {
     "title": "We use cookies & data",
-    "description": "We use essential cookies and, if you allow it, a statistics cookie to count visits. The data stays on UNICAMP's servers. Change your choice any time under Cookie preferences, in the footer.",
+    "description": "We use essential cookies and count visits anonymously, without cookies. If you allow it, a statistics cookie also shows how many people visit and come back. The data stays on UNICAMP's servers. Change your choice any time under Cookie preferences, in the footer.",
     "privacyLink": "Privacy Policy",
     "acceptAll": "Accept All",
     "essentialOnly": "Essential Only"

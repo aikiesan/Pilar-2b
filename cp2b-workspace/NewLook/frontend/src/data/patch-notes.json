@@ -2,6 +2,30 @@
   "_comment": "Patch notes, newest first. Each entry carries its own pt-BR and en text, deliberately OUTSIDE messages/*.json: the catalogs are gated by check-i18n-parity.mjs, and threading one release note through two catalogs per deploy makes writing a note a chore nobody does. scripts/check-patch-notes.mjs enforces that both locales are present here instead. `date` is ISO 8601 WITH offset -- it is rendered in the reader's locale, so a bare date would drift a day across timezones. `kind` must be one of: added, changed, fixed, security, data.",
   "entries": [
     {
+      "version": "3.6.0",
+      "date": "2026-10-15T15:00:00-03:00",
+      "title": {
+        "pt-BR": "Contagem anônima de visitas",
+        "en": "Anonymous visit counts"
+      },
+      "changes": [
+        {
+          "kind": "added",
+          "text": {
+            "pt-BR": "Para saber quais páginas são usadas e por quanto tempo, a plataforma conta as visitas de forma anônima: sem cookie, sem identificador e sem endereço IP. Ficam guardados só totais por dia.",
+            "en": "To learn which pages are used and for how long, the platform counts visits anonymously: no cookie, no identifier and no IP address. Only daily totals are kept."
+          }
+        },
+        {
+          "kind": "changed",
+          "text": {
+            "pt-BR": "A Política de Privacidade descreve a contagem anônima, e o aviso de cookies aparece mais uma vez para você confirmar a sua escolha com o texto atualizado.",
+            "en": "The Privacy Policy describes the anonymous count, and the cookie notice appears once more so you can confirm your choice under the updated text."
+          }
+        }
+      ]
+    },
+    {
       "version": "3.5.2",
       "date": "2026-10-15T12:00:00-03:00",
       "title": {
@@ -27,7 +51,7 @@
     },
     {
       "version": "3.5.1",
-      "date": "2026-10-15T11:00:00-03:00",
+      "date": "2026-10-15T10:22:00-03:00",
       "title": {
         "pt-BR": "Mapa base sem marca d'água e aba Fontes",
         "en": "A basemap without the watermark, and a Sources tab"
