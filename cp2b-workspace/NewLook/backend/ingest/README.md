@@ -51,6 +51,33 @@ python scripts/promote_pam.py --source bbp --year 2025 --timeseries-only
   2008–2024 and every PAM 2023 cell already loaded from the workbooks, with 0
   differences.
 
+## Sanitation (SNIS → SINISA) from the bbp schema
+
+SNIS stopped at reference year 2022; SINISA replaces it from 2023 with new
+field codes (GTR/GTE instead of CO/CS/ES). bbp reads both, checks every year
+against the survey's own published totals and maps both onto one set of
+harmonised variables (bbp `config/sanitation.yaml`: SNIS CO119 and SINISA
+GTR1028 are both `msw_collected_t`, with the glossary evidence for each pair,
+`equivalent` or `similar`). The current release is `bbp.v_sanitation`.
+
+```bash
+# 1. in the bbp repository
+docker compose run --rm --no-deps bbp run sanitation
+docker compose --profile pilar2b run --rm bbp-pilar2b load --target pilar2b --label "..."
+# 2. here (docker compose run --rm --no-deps backend ...)
+python scripts/promote_sanitation.py --survey SNIS --years 2008-2022 --parity     # read-only
+python scripts/promote_sanitation.py --survey SINISA --years 2023-2024 --impact   # read-only
+python scripts/promote_sanitation.py --survey SINISA --years 2023-2024            # writes
+```
+
+* Rows keep the names `promote_snis.py` always wrote (`rdo_rpu_coletado`,
+  `esgoto_tratado`, ...); `source_id` is `snis` or `sinisa`.
+* **Parity (2026-10-15, local DB).** bbp reproduces all 420,699 SNIS rows of
+  2008–2022 already promoted from the CSVs, 0 differences.
+* **SINISA moves the map.** The latest-year reader picks a variable from any
+  source, so SINISA 2024 becomes the latest `rdo_coletado` and
+  `populacao_total`. Run `--impact` first and decide before writing.
+
 ## Adding a new source (the 15-minute version)
 
 Full step-by-step with checklists: `docs/data/INGESTION_GUIDE.md`.
