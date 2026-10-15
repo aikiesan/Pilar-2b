@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { NextIntlClientProvider } from 'next-intl';
-import { getMessages, getTranslations } from 'next-intl/server';
+import { getMessages, getTranslations, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import './globals.css'
 import { AuthProvider } from '@/contexts/AuthContext'
@@ -47,8 +47,10 @@ export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
 }
 
-// Prevent unknown locales from being generated
-export const dynamicParams = false;
+// No `dynamicParams = false` here: Next applies it to every route below this
+// layout (a route renders on demand only if no segment sets it false), and
+// municipalities/[slug] builds no page ahead, so each of them answered 404 in a
+// production build. Unknown locales still 404, from the isLocale check below.
 
 export default async function LocaleLayout({
   children,
@@ -61,6 +63,9 @@ export default async function LocaleLayout({
   // error it is — the previous try/catch turned any runtime error into a 404.
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
+  // Without it next-intl reads the locale from the request headers, which a
+  // statically rendered page below (municipalities/[slug]) may not touch.
+  setRequestLocale(locale);
 
   const messages = await getMessages({ locale });
   const tLayout = await getTranslations({ locale, namespace: 'landing' });
