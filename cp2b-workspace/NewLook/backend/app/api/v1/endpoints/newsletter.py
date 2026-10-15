@@ -34,7 +34,7 @@ router = APIRouter()
 
 # The privacy notice version a sign-up agrees to. Bump it with the notice
 # (frontend/src/app/[locale]/privacy/page.tsx) so each consent names its text.
-CONSENT_TEXT_VERSION = "2026-09-25"
+CONSENT_TEXT_VERSION = "2026-10-15"
 
 Locale = Literal["pt-BR", "en"]
 Source = Literal["footer", "about", "cookie_banner"]

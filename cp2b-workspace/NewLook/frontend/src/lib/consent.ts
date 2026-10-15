@@ -13,7 +13,7 @@
 export type ConsentChoice = 'all' | 'essential'
 
 /** Bump when the banner's description of the cookies changes. */
-export const CONSENT_VERSION = '2026-09-25'
+export const CONSENT_VERSION = '2026-10-15'
 
 const STORAGE_KEY = 'pilar2b-cookie-consent'
 const CHANGED_EVENT = 'pilar2b-consent-changed'
