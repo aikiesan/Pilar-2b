@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * BasemapControl — floating basemap switcher (map / satellite / terrain / light).
+ * BasemapControl — floating basemap switcher (map / satellite / terrain).
  *
  * A pure overlay: it only reports the chosen BasemapId upward. The actual
  * TileLayer swap happens inside MapComponent's MapContainer, since tile layers

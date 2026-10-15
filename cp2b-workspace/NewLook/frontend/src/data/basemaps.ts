@@ -1,22 +1,23 @@
 /**
  * Basemap tile sources for the map page.
  *
- * Four options, deliberately no dark canvas (product decision). Each is a free,
+ * Three options, deliberately no dark canvas (product decision). Each is a free,
  * attribution-only raster source that needs no API key, so nothing here touches
  * the build or requires a token:
- *   - mapa      OpenStreetMap standard        (streets)
+ *   - mapa      OpenStreetMap standard        (streets; the default)
  *   - satelite  Esri World Imagery            (aerial/satellite, + place labels)
  *   - terreno   OpenTopoMap                   (shaded relief + contours)
- *   - light     CARTO Positron                (muted light canvas, best for
- *                                              reading the choropleth on top;
- *                                              the default, to sit with the
- *                                              light earth identity)
+ *
+ * No CARTO: its basemaps.cartocdn.com tiles now answer every request without
+ * a key with an "API KEY REQUIRED" image, so the "light canvas" option and its
+ * default covered the map with that watermark. basemaps.test.ts refuses any
+ * provider that needs a key.
  *
  * `refUrl` is an optional label/boundary overlay drawn ON TOP of the base — only
  * satellite needs it, because imagery alone carries no municipality names.
  */
 
-export type BasemapId = 'mapa' | 'satelite' | 'terreno' | 'light';
+export type BasemapId = 'mapa' | 'satelite' | 'terreno';
 
 /** A basemap's name is copy: it lives in messages under Map.basemaps.<id>. */
 export interface Basemap {
@@ -56,16 +57,8 @@ export const BASEMAPS: Record<BasemapId, Basemap> = {
       'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, SRTM | Style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (CC-BY-SA)',
     maxZoom: 17,
   },
-  light: {
-    id: 'light',
-    icon: '🔆',
-    url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-    attribution:
-      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
-    maxZoom: 20,
-  },
 };
 
-export const BASEMAP_ORDER: BasemapId[] = ['mapa', 'satelite', 'terreno', 'light'];
+export const BASEMAP_ORDER: BasemapId[] = ['mapa', 'satelite', 'terreno'];
 
-export const DEFAULT_BASEMAP: BasemapId = 'light';
+export const DEFAULT_BASEMAP: BasemapId = 'mapa';
