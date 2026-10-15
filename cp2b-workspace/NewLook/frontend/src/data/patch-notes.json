@@ -2,8 +2,32 @@
   "_comment": "Patch notes, newest first. Each entry carries its own pt-BR and en text, deliberately OUTSIDE messages/*.json: the catalogs are gated by check-i18n-parity.mjs, and threading one release note through two catalogs per deploy makes writing a note a chore nobody does. scripts/check-patch-notes.mjs enforces that both locales are present here instead. `date` is ISO 8601 WITH offset -- it is rendered in the reader's locale, so a bare date would drift a day across timezones. `kind` must be one of: added, changed, fixed, security, data.",
   "entries": [
     {
+      "version": "3.5.1",
+      "date": "2026-10-15T11:00:00-03:00",
+      "title": {
+        "pt-BR": "Mapa base sem marca d'água e aba Fontes",
+        "en": "A basemap without the watermark, and a Sources tab"
+      },
+      "changes": [
+        {
+          "kind": "fixed",
+          "text": {
+            "pt-BR": "O mapa volta a abrir no mapa base Mapa (OpenStreetMap). A opção Tela clara saiu: o provedor passou a exigir chave e cobria o mapa com o aviso API KEY REQUIRED.",
+            "en": "The map opens on the Map basemap (OpenStreetMap) again. The Light canvas option is gone: its provider started requiring a key and covered the map with an API KEY REQUIRED notice."
+          }
+        },
+        {
+          "kind": "changed",
+          "text": {
+            "pt-BR": "No painel do mapa, a aba Fontes de Dados agora se chama Fontes.",
+            "en": "In the map panel, the Data Sources tab is now called Sources."
+          }
+        }
+      ]
+    },
+    {
       "version": "3.5.0",
-      "date": "2026-10-14T21:00:00-03:00",
+      "date": "2026-10-15T09:33:00-03:00",
       "title": {
         "pt-BR": "Visual novo e painel do município mais enxuto",
         "en": "A new look and a leaner municipality dashboard"

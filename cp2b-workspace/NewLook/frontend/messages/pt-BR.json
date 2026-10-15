@@ -314,7 +314,7 @@
     "panels": {
       "filters": "Filtros",
       "layers": "Camadas",
-      "dataSources": "Fontes de Dados",
+      "dataSources": "Fontes",
       "tools": "Ferramentas",
       "themes": "Temas"
     },
@@ -804,7 +804,6 @@
       "mapa": "Mapa",
       "satelite": "Satélite",
       "terreno": "Terreno",
-      "light": "Tela clara",
       "switch": "Trocar mapa base",
       "heading": "Mapa base"
     },

@@ -314,7 +314,7 @@
     "panels": {
       "filters": "Filters",
       "layers": "Layers",
-      "dataSources": "Data Sources",
+      "dataSources": "Sources",
       "tools": "Tools",
       "themes": "Themes"
     },
@@ -804,7 +804,6 @@
       "mapa": "Map",
       "satelite": "Satellite",
       "terreno": "Terrain",
-      "light": "Light canvas",
       "switch": "Change basemap",
       "heading": "Basemap"
     },
