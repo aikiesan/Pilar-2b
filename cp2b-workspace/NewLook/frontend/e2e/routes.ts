@@ -22,7 +22,6 @@ export const ROUTES = [
   '/en/data/agricultural/cana-bagaco',
   // Held back until the methodology paper is submitted; 404 meanwhile.
   ...(METHOD_PAGES_ENABLED ? METHOD_PAGES.map((page) => `/en${page}`) : []),
-  '/en/about',
   '/en/guide',
   '/en/guide/calculadora',
   '/en/cite',

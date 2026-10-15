@@ -39,7 +39,7 @@ async function openHeaderSearch(page: Page) {
 test.describe('Header search', () => {
   test('finds a name without its accents and opens its page', async ({ page }) => {
     await setUp(page, 'list')
-    await page.goto('/pt-BR/about')
+    await page.goto('/pt-BR/guide')
     const input = await openHeaderSearch(page)
     await input.fill('sao jose')
     const option = page.getByRole('option')
@@ -52,7 +52,7 @@ test.describe('Header search', () => {
 
   test('finds an IBGE code, and a name followed by its state', async ({ page }) => {
     await setUp(page, 'list')
-    await page.goto('/pt-BR/about')
+    await page.goto('/pt-BR/guide')
     const input = await openHeaderSearch(page)
     await input.fill('3509')
     await expect(page.getByRole('option')).toHaveText(/Campinas/)
@@ -67,7 +67,7 @@ test.describe('Header search', () => {
 
   test('looks up municipalities only, not pages', async ({ page }) => {
     await setUp(page, 'list')
-    await page.goto('/pt-BR/about')
+    await page.goto('/pt-BR/guide')
     const input = await openHeaderSearch(page)
     await input.fill('calculadora')
     await expect(page.getByRole('option')).toHaveCount(0)
@@ -76,7 +76,7 @@ test.describe('Header search', () => {
 
   test('says the list is unavailable rather than that nothing matches', async ({ page }) => {
     await setUp(page, 'down')
-    await page.goto('/pt-BR/about')
+    await page.goto('/pt-BR/guide')
     const input = await openHeaderSearch(page)
     await input.fill('campinas')
     await expect(page.getByRole('status').filter({ hasText: 'não está disponível' })).toBeVisible()
@@ -86,7 +86,7 @@ test.describe('Header search', () => {
   test('on a phone it spans the screen, does not zoom, and passes axe', async ({ page }) => {
     await setUp(page, 'list')
     await page.setViewportSize({ width: 390, height: 844 })
-    await page.goto('/pt-BR/about')
+    await page.goto('/pt-BR/guide')
     const input = await openHeaderSearch(page)
     await expect(input).toBeFocused()
     // 16 px or more, or iOS zooms the page when the field takes focus.

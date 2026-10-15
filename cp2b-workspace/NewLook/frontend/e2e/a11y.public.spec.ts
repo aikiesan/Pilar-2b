@@ -46,7 +46,7 @@ test.describe('No page is wider than the window', () => {
   for (const width of [1280, 1366, 1440]) {
     test(`at ${width} px`, async ({ page }) => {
       await page.setViewportSize({ width, height: 800 });
-      for (const route of ['/en', '/pt-BR', '/en/about', '/pt-BR/guide']) {
+      for (const route of ['/en', '/pt-BR', '/en/guide', '/pt-BR/guide']) {
         await open(page, route);
         const overflow = await page.evaluate(
           () => document.documentElement.scrollWidth - document.documentElement.clientWidth
