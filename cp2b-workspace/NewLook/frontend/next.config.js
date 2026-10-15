@@ -15,10 +15,6 @@ const basePath = isProd ? '/pilar2b' : '';
 // Next itself.
 const LOCALE = ':locale(en|pt-BR)';
 const movedPages = [
-  // /sobre (the old marketing home) and /dashboard/about (a client-side bounce
-  // to nipe.unicamp.br) were merged into the single /about page.
-  { from: '/sobre', to: '/about' },
-  { from: '/dashboard/about', to: '/about#parceiros' },
   // The tools lost the /dashboard prefix (Phase 1 of the redesign). Query
   // strings (e.g. ?view=references, shared proximity links) are kept by Next.
   // Temporary while /analysis is held back with the Método pages
@@ -53,6 +49,21 @@ const movedPages = [
   statusCode,
 }));
 
+// Who CP2b is lives on the centre's own site: these pages send readers there
+// (301) instead of keeping a second copy here. /sobre was the old marketing
+// home, /dashboard/about a client-side bounce to nipe.unicamp.br. Kept in
+// step with CP2B_PAGES in src/config/contact.ts.
+const CP2B_SITE = 'https://cp2b.unicamp.br';
+const cp2bPages = [
+  { from: '/about', to: '/sobre' },
+  { from: '/sobre', to: '/sobre' },
+  { from: '/dashboard/about', to: '/sobre/parceiros' },
+].map(({ from, to }) => ({
+  source: `/${LOCALE}${from}`,
+  destination: `${CP2B_SITE}${to}`,
+  statusCode: 301,
+}));
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   basePath,
@@ -62,11 +73,13 @@ const nextConfig = {
         // Strip stale /pilar2b prefix that browsers may have cached from production URLs
         { source: '/pilar2b/:path*', destination: '/:path*', permanent: false },
         ...movedPages,
+        ...cp2bPages,
       ];
     }
     return [
       { source: '/', destination: '/pilar2b/pt-BR', permanent: false, basePath: false },
       ...movedPages,
+      ...cp2bPages,
     ];
   },
   // IMPORTANT: Removed static export for Vercel deployment

@@ -2,6 +2,30 @@
   "_comment": "Patch notes, newest first. Each entry carries its own pt-BR and en text, deliberately OUTSIDE messages/*.json: the catalogs are gated by check-i18n-parity.mjs, and threading one release note through two catalogs per deploy makes writing a note a chore nobody does. scripts/check-patch-notes.mjs enforces that both locales are present here instead. `date` is ISO 8601 WITH offset -- it is rendered in the reader's locale, so a bare date would drift a day across timezones. `kind` must be one of: added, changed, fixed, security, data.",
   "entries": [
     {
+      "version": "3.5.2",
+      "date": "2026-10-15T12:00:00-03:00",
+      "title": {
+        "pt-BR": "Quem é o CP2b, no site do CP2b",
+        "en": "Who CP2b is, on the CP2b website"
+      },
+      "changes": [
+        {
+          "kind": "changed",
+          "text": {
+            "pt-BR": "O menu Sobre leva às páginas do CP2b, mantidas pelo próprio centro: o CP2b, governança, parceiros, eixos de pesquisa, soluções, equipe, publicações, notícias, eventos e contato. A antiga página Sobre do PILAR-2b redireciona para lá.",
+            "en": "The About menu leads to the CP2b pages, kept by the centre itself: about CP2b, governance, partners, research axes, solutions, team, publications, news, events and contact. The old PILAR-2b About page redirects there."
+          }
+        },
+        {
+          "kind": "changed",
+          "text": {
+            "pt-BR": "As perguntas frequentes da plataforma ficam agora no fim do Guia, e os avisos de erro nos dados vão pelo formulário de contato do CP2b.",
+            "en": "The platform's frequently asked questions are now at the end of the Guide, and data error reports go through the CP2b contact form."
+          }
+        }
+      ]
+    },
+    {
       "version": "3.5.1",
       "date": "2026-10-15T11:00:00-03:00",
       "title": {

@@ -6,23 +6,33 @@
  * with its first page (Estatísticas, Downloads, API and Coleções under Dados;
  * the Aplicações menu; the brand manual under Sobre). siteNav.test.ts holds
  * every href to a page file, so a menu cannot link to a 404.
+ *
+ * The Sobre menu points at the CP2b site (config/contact: CP2B_PAGES): who
+ * the centre is lives there, kept by the people who run it, and this platform
+ * does not keep a second copy. An absolute href is rendered by NavLink as a
+ * plain link to that site; only Novidades and Como citar are pages of ours.
  */
 import type { LucideIcon } from 'lucide-react'
 import {
   BarChart3,
   BookOpen,
   Building2,
+  CalendarDays,
   Columns3,
   Compass,
   Database,
   FlaskConical,
   Gauge,
   Handshake,
-  HelpCircle,
   Info,
+  Landmark,
   Layers,
+  Library,
+  Lightbulb,
   ListTree,
+  Mail,
   Map,
+  Newspaper,
   Palette,
   Quote,
   ShieldCheck,
@@ -32,6 +42,7 @@ import {
   Workflow,
 } from 'lucide-react'
 import type { Messages } from '@/types/i18n'
+import { CP2B_PAGES } from '@/config/contact'
 import { METHOD_PAGES_ENABLED } from '@/lib/featureFlags'
 
 export type NavKey = keyof Messages['common']['nav']
@@ -111,14 +122,20 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     id: 'about',
     labelKey: 'about',
-    introHref: '/about',
+    introHref: CP2B_PAGES.about,
     items: [
-      { href: '/about', labelKey: 'about_project', descriptionKey: 'about', icon: Info },
-      { href: '/about#equipe', labelKey: 'about_team', descriptionKey: 'about_team', icon: Users },
-      { href: '/about#parceiros', labelKey: 'about_partners', descriptionKey: 'about_partners', icon: Handshake },
+      { href: CP2B_PAGES.about, labelKey: 'cp2b_about', descriptionKey: 'cp2b_about', icon: Info },
+      { href: CP2B_PAGES.governance, labelKey: 'cp2b_governance', descriptionKey: 'cp2b_governance', icon: Landmark },
+      { href: CP2B_PAGES.partners, labelKey: 'cp2b_partners', descriptionKey: 'cp2b_partners', icon: Handshake },
+      { href: CP2B_PAGES.axes, labelKey: 'cp2b_axes', descriptionKey: 'cp2b_axes', icon: Target },
+      { href: CP2B_PAGES.solutions, labelKey: 'cp2b_solutions', descriptionKey: 'cp2b_solutions', icon: Lightbulb },
+      { href: CP2B_PAGES.team, labelKey: 'cp2b_team', descriptionKey: 'cp2b_team', icon: Users },
+      { href: CP2B_PAGES.publications, labelKey: 'cp2b_publications', descriptionKey: 'cp2b_publications', icon: Library },
+      { href: CP2B_PAGES.news, labelKey: 'cp2b_news', descriptionKey: 'cp2b_news', icon: Newspaper },
+      { href: CP2B_PAGES.events, labelKey: 'cp2b_events', descriptionKey: 'cp2b_events', icon: CalendarDays },
+      { href: CP2B_PAGES.contact, labelKey: 'cp2b_contact', descriptionKey: 'cp2b_contact', icon: Mail },
       { href: '/patch-notes', labelKey: 'patch_notes', descriptionKey: 'patch_notes', icon: Sparkles },
       { href: '/cite', labelKey: 'cite', descriptionKey: 'cite', icon: Quote },
-      { href: '/about#faq', labelKey: 'about_faq', descriptionKey: 'about_faq', icon: HelpCircle },
     ],
   },
 ]
@@ -141,7 +158,7 @@ export const FOOTER_LINKS: Pick<NavLeaf, 'href' | 'labelKey'>[] = [
   METHOD_PAGES_ENABLED
     ? { href: '/method', labelKey: 'group_method' }
     : { href: '/method/science-base', labelKey: 'scientific_database' },
-  { href: '/about', labelKey: 'about' },
+  { href: CP2B_PAGES.about, labelKey: 'cp2b_about' },
   { href: '/cite', labelKey: 'cite' },
 ]
 
@@ -170,7 +187,7 @@ export function navTrail(pathname: string): { group: NavGroup; leaf: NavLeaf } |
 
 /**
  * The href that names the current page: the longest one the path is, or sits
- * under. An anchor (/about#equipe) is a section, never the current page, and a
+ * under. An anchor (/guide#faq) is a section, never the current page, and a
  * parent gives way to its child: on /data/legend, "Legenda e códigos" is
  * current, not the catalogue.
  */

@@ -28,6 +28,7 @@ import LanguageSwitcher from '@/components/ui/LanguageSwitcher'
 import GlobalSearch from '@/components/ui/GlobalSearch'
 import NavDropdown from '@/components/layout/NavDropdown'
 import MobileTabBar from '@/components/layout/MobileTabBar'
+import NavLink from '@/components/layout/NavLink'
 import { GUIDE_LINK, NAV_GROUPS, currentNavHref, type NavGroup, type NavGroupId, type NavLeaf } from '@/components/layout/siteNav'
 import { isFullViewport } from '@/components/layout/fullViewport'
 import { logger } from '@/lib/logger'
@@ -95,7 +96,7 @@ export default function UnifiedHeader() {
     }`
 
   const mobileLeaf = (item: NavLeaf) => (
-    <Link
+    <NavLink
       href={item.href}
       className={mobileRow(isActive(item.href))}
       aria-current={isActive(item.href) ? 'page' : undefined}
@@ -108,7 +109,7 @@ export default function UnifiedHeader() {
           <span className="block text-xs text-ink-muted">{t(`nav_descriptions.${item.descriptionKey}`)}</span>
         )}
       </span>
-    </Link>
+    </NavLink>
   )
 
   return (

@@ -7,6 +7,7 @@ import path from 'path'
 import en from '../../../../messages/en.json'
 import pt from '../../../../messages/pt-BR.json'
 import { allNavHrefs, currentNavHref, FOOTER_LINKS, NAV_GROUPS, TAB_BAR } from '../siteNav'
+import { CP2B_PAGES, isExternalHref } from '@/config/contact'
 import { METHOD_PAGES_ENABLED } from '@/lib/featureFlags'
 
 const APP = path.join(__dirname, '../../../app/[locale]')
@@ -18,14 +19,29 @@ function pageFile(href: string): string | undefined {
   return fs.existsSync(file) ? file : undefined
 }
 
+const ownHrefs = () => allNavHrefs().filter((href) => !isExternalHref(href))
+
 describe('siteNav', () => {
-  it.each(Array.from(new Set(allNavHrefs())))('%s is a page', (href) => {
+  it.each(Array.from(new Set(ownHrefs())))('%s is a page', (href) => {
     expect(pageFile(href)).toBeDefined()
   })
 
-  it.each(allNavHrefs().filter((href) => href.includes('#')))('%s anchors a section on its page', (href) => {
-    const [route, anchor] = href.split('#')
-    expect(fs.readFileSync(pageFile(route) as string, 'utf8')).toContain(`id="${anchor}"`)
+  it('links outside the platform only to pages of the CP2b site', () => {
+    const cp2b: string[] = Object.values(CP2B_PAGES)
+    const external = allNavHrefs().filter(isExternalHref)
+    expect(external.length).toBeGreaterThan(0)
+    expect(external.filter((href) => !cp2b.includes(href))).toEqual([])
+  })
+
+  it('keeps no page of its own about CP2b', () => {
+    expect(ownHrefs().filter((href) => href.startsWith('/about'))).toEqual([])
+  })
+
+  it('anchors each #section link to a section on its page', () => {
+    for (const href of ownHrefs().filter((h) => h.includes('#'))) {
+      const [route, anchor] = href.split('#')
+      expect(fs.readFileSync(pageFile(route) as string, 'utf8')).toContain(`id="${anchor}"`)
+    }
   })
 
   it.each([
@@ -68,8 +84,9 @@ describe('siteNav', () => {
       ['/data/agricultural/cana-bagaco', '/data'],
       ['/method/science-base', '/method/science-base'],
       ['/guide/primeiros-passos', '/guide'],
-      // An anchor is a section, never the current page; "/" is never a section.
-      ['/about', '/about'],
+      // "/" is never a section; /about is the CP2b site's now, not a menu page.
+      ['/patch-notes', '/patch-notes'],
+      ['/about', undefined],
       ['/', undefined],
       ['/login', undefined],
       // A shared prefix is not a parent.

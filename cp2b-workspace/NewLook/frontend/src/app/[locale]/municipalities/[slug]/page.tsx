@@ -23,6 +23,8 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { getFormatter, getTranslations, setRequestLocale } from 'next-intl/server'
 import { Link } from '@/navigation'
+import NavLink from '@/components/layout/NavLink'
+import { CP2B_PAGES } from '@/config/contact'
 import Breadcrumb from '@/components/ui/Breadcrumb'
 import { navCrumbs } from '@/lib/breadcrumbTrail'
 import MunicipalitySearch from '@/components/home/MunicipalitySearch'
@@ -436,7 +438,7 @@ export default async function MunicipalityProfilePage({ params }: Params) {
             </ul>
             <p className="mt-4 text-sm text-ink">
               {t('notes.report_body')}{' '}
-              <Link href="/about#contato" className={linkClass}>{t('notes.report')}</Link>
+              <NavLink href={CP2B_PAGES.contact} className={linkClass}>{t('notes.report')}</NavLink>
             </p>
           </div>
         </details>

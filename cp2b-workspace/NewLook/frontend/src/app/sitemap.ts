@@ -25,7 +25,6 @@ const publicRoutes = [
   ...(METHOD_PAGES_ENABLED ? ['', '/fde', '/scenarios', '/validation'] : []).map((page) => (
     { path: `/method${page}`, changeFrequency: 'monthly' as const, priority: page ? 0.6 : 0.7, lastModified: '2026-10-14' }
   )),
-  { path: '/about',     changeFrequency: 'monthly' as const, priority: 0.7, lastModified: '2025-01-01' },
   { path: '/guide',     changeFrequency: 'monthly' as const, priority: 0.7, lastModified: '2025-01-01' },
   { path: '/cite',      changeFrequency: 'monthly' as const, priority: 0.6, lastModified: '2025-01-01' },
   { path: '/privacy',   changeFrequency: 'yearly'  as const, priority: 0.5, lastModified: '2025-01-01' },

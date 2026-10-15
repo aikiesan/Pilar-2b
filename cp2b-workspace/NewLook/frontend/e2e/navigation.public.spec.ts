@@ -23,10 +23,6 @@ async function answerCookieBanner(page: Page) {
 
 test.describe('Retired paths', () => {
   for (const [from, to] of [
-    ['/pt-BR/sobre', '/pt-BR/about'],
-    ['/en/sobre', '/en/about'],
-    ['/pt-BR/dashboard/about', '/pt-BR/about#parceiros'],
-    ['/en/dashboard/about', '/en/about#parceiros'],
     ['/en/dashboard/compare', '/en/compare'],
     ['/pt-BR/dashboard/proximity?lat=-22.9&lng=-47.06&radius=20', '/pt-BR/proximity?lat=-22.9&lng=-47.06&radius=20'],
     ['/en/dashboard/technology-routes', '/en/calculator'],
@@ -37,6 +33,22 @@ test.describe('Retired paths', () => {
       expect(response.status()).toBe(301)
       // Next may send the Location absolute or relative; only the path matters.
       expect(response.headers()['location'].replace(/^https?:\/\/[^/]+/, '')).toBe(to)
+    })
+  }
+})
+
+test.describe('Pages moved to the CP2b site', () => {
+  for (const [from, to] of [
+    ['/pt-BR/about', 'https://cp2b.unicamp.br/sobre'],
+    ['/en/about', 'https://cp2b.unicamp.br/sobre'],
+    ['/pt-BR/sobre', 'https://cp2b.unicamp.br/sobre'],
+    ['/en/sobre', 'https://cp2b.unicamp.br/sobre'],
+    ['/pt-BR/dashboard/about', 'https://cp2b.unicamp.br/sobre/parceiros'],
+  ] as const) {
+    test(`${from} is a 301 to ${to}`, async ({ request }) => {
+      const response = await request.get(from, { maxRedirects: 0 })
+      expect(response.status()).toBe(301)
+      expect(response.headers()['location']).toBe(to)
     })
   }
 })

@@ -16,10 +16,6 @@
       "compare": "Compare",
       "group_platform": "Platform",
       "group_method": "Method",
-      "about_project": "The project",
-      "about_team": "Team",
-      "about_partners": "Partners and CP2b",
-      "about_faq": "FAQ and contact",
       "open_map": "Open map",
       "group_data": "Data",
       "map_interactive": "Interactive map",
@@ -34,7 +30,18 @@
       "method_scenarios": "Scenarios",
       "method_validation": "Validation and limitations",
       "guide_usage": "User guide",
-      "more": "More"
+      "more": "More",
+      "cp2b_about": "About CP2b",
+      "cp2b_governance": "Governance",
+      "cp2b_partners": "Partners",
+      "cp2b_axes": "Research axes",
+      "cp2b_solutions": "Solutions",
+      "cp2b_team": "Team",
+      "cp2b_publications": "Publications",
+      "cp2b_news": "News",
+      "cp2b_events": "Events",
+      "cp2b_contact": "Contact",
+      "external_cp2b": "CP2b website"
     },
     "nav_descriptions": {
       "guide": "Tutorials and first steps",
@@ -44,7 +51,6 @@
       "scientific_database": "Chemical characterization, kinetics and references",
       "technology_routes": "Simulate biogas, biomethane and energy",
       "proximity": "Residues and infrastructure within a radius",
-      "about": "Project, team, partners and FAQ",
       "cite": "How to cite PILAR-2b",
       "patch_notes": "Platform changes, version by version",
       "municipalities": "Find a municipality and open its profile",
@@ -54,9 +60,16 @@
       "method_fde": "The four factors, residue by residue",
       "method_scenarios": "Parameter bands and the real and ideal scenarios",
       "method_validation": "Confidence levels and what the data does not say",
-      "about_team": "Who makes PILAR-2b",
-      "about_partners": "Institutions and funding",
-      "about_faq": "Frequently asked questions and how to reach us"
+      "cp2b_about": "The centre behind PILAR-2b",
+      "cp2b_governance": "How CP2b is organised and run",
+      "cp2b_partners": "Partner institutions and funding",
+      "cp2b_axes": "The centre's research lines",
+      "cp2b_solutions": "CP2b's technologies and services",
+      "cp2b_team": "CP2b's researchers",
+      "cp2b_publications": "Papers, reports and books",
+      "cp2b_news": "What is happening at CP2b",
+      "cp2b_events": "Seminars, courses and meetings",
+      "cp2b_contact": "Write to CP2b, about the platform too"
     },
     "nav_intro": {
       "platform": {
@@ -72,8 +85,8 @@
         "cta": "Method overview"
       },
       "about": {
-        "lede": "A project of NIPE-UNICAMP and CP2B, supported by FAPESP.",
-        "cta": "About the project"
+        "lede": "PILAR-2b is a platform of CP2B, a NIPE-UNICAMP centre supported by FAPESP. Who we are is on the CP2b website.",
+        "cta": "About CP2b"
       }
     },
     "auth": {
@@ -206,74 +219,6 @@
   },
   "landing": {
     "skip_to_content": "Skip to main content",
-    "screenshots": {
-      "interactive_map": {
-        "alt": "Interactive map of São Paulo with infrastructure layers and biogas potential",
-        "caption": "Interactive Map",
-        "description": "Geospatial visualization with infrastructure layers, biogas plants, and São Paulo municipalities"
-      },
-      "data_analysis": {
-        "alt": "Data analysis dashboard with charts and municipal statistics",
-        "caption": "Data Analysis",
-        "description": "Explore detailed biomass data, agricultural production, and energy potential by municipality"
-      },
-      "proximity_analysis": {
-        "alt": "Proximity analysis with collection radius and infrastructure",
-        "caption": "Proximity Analysis",
-        "description": "Logistics simulation with collection radius and proximity analysis to existing infrastructure"
-      },
-      "scientific_basis": {
-        "alt": "Science base with references and residue characterization",
-        "caption": "Scientific Basis",
-        "description": "Access the scientific references and residue characterization that support the platform's analyses"
-      }
-    },
-    "features": {
-      "heading": "What you can do with PILAR-2b",
-      "subheading": "Advanced tools for mapping, analysis, and visualization of biogas potential based on validated scientific methodology.",
-      "geospatial": {
-        "title": "Geospatial Mapping",
-        "description": "Interactive visualization of biomass data with municipal precision and thematic sublayers",
-        "features": [
-          "Choropleth maps with biogas potential scale",
-          "MapBiomas integration with 10m×10m resolution",
-          "Optimized collection radius analysis (10-50km)",
-          "GeoJSON and Shapefile export for GIS"
-        ],
-        "cta": "Explore Maps"
-      },
-      "mcda": {
-        "title": "MCDA Analysis",
-        "description": "Multi-criteria analysis for municipality prioritization and optimal plant location identification",
-        "features": [
-          "8 integrated criteria: availability, logistics, infrastructure",
-          "Configurable weights by stakeholder",
-          "Automated ranking of São Paulo municipalities",
-          "Validated Territorial Suitability Index (TSI)"
-        ],
-        "cta": "View Analyses"
-      }
-    },
-    "open_data": {
-      "heading": "Open Data for Research",
-      "description": "All platform data is available for free download. Use it in your own models, publications, and public policies.",
-      "municipalities": {
-        "label": "Municipalities",
-        "desc": "biogas potential by sector and residue; SP canonical, MG beta"
-      },
-      "residues": {
-        "label": "Residues",
-        "desc": "BMP, TS, VS, C/N parameters with references"
-      },
-      "layers": {
-        "label": "Infrastructure",
-        "desc": "pipelines, substations, WWTPs and other layers"
-      },
-      "license": {
-        "label": "CC BY 4.0",
-        "desc": "free use, commercial included, with attribution"
-      }
-    },
     "footer": {
       "fapesp_project": "FAPESP 2024/01112-1 · CP2Bsd",
       "copyright": "© {year} NIPE-UNICAMP",
@@ -1377,250 +1322,6 @@
       "refs": "Analyses are grounded in a literature review of 399 scientific references (372 peer-reviewed), available in the platform’s Scientific Database.",
       "refs_link": "Open the Scientific Database (399 references)"
     },
-    "about": {
-      "title": "PILAR-2b",
-      "full_name": "Intelligent Platform for Locating and Using Residues for Biogas and Bioproducts",
-      "subtitle": "Open platform that estimates, municipality by municipality, the biogas and bioproduct potential of agricultural, livestock and urban residues. Developed at CP2b — the São Paulo Center for Studies in Biogas and Bioproducts — at NIPE/UNICAMP.",
-      "hero_eyebrow": "About the platform",
-      "coordinator_subtitle": "Scientific leadership of the Center of Excellence in Biogas",
-      "coordinator_title": "General Coordinator of PILAR-2b",
-      "coordinator_degree": "Prof. Dr.",
-      "coordinator_photo_alt": "Prof. Dr. Bruna de Souza Moraes",
-      "coordinator_credentials": [
-        "Permanent Researcher at NIPE/UNICAMP",
-        "Collaborating Professor, PSE/FEM/UNICAMP",
-        "15+ years of experience in bioenergy"
-      ],
-      "formation_heading": "Academic Background",
-      "formation_items": [
-        "• PhD in Engineering - USP (2012)",
-        "• MSc in Engineering - USP (2009)",
-        "• Food Engineering - USP (2007)",
-        "• Post-doc: LNBR + University of Southern Denmark"
-      ],
-      "expertise_tags": [
-        "Anaerobic Digestion",
-        "Biorefineries",
-        "Biohydrogen"
-      ],
-      "about_project_subtitle": "The mission, vision and values guiding the São Paulo Center for Studies in Biogas and Bioproducts.",
-      "mission_heading": "Our Mission",
-      "mission_body": "To develop research, technologies and innovative biogas solutions with industrial, environmental and social motivation, promoting the intelligent use of residues for the sustainable development of the State of São Paulo and contributing to Brazil's energy transition.",
-      "mission_model_label": "Model:",
-      "mission_model_value": "A living laboratory integrating academia, industry, government and society",
-      "vision_heading": "Our Vision",
-      "vision_body": "To be a national and international reference in the efficient, sustainable management of urban and agricultural residues, making the State of São Paulo a showcase for intelligent biogas solutions and contributing to the consolidation of the circular bioeconomy in Brazil.",
-      "vision_validity_label": "Term:",
-      "vision_validity_value": "February 2025 - February 2030 (5 years)",
-      "values_heading": "Our Values",
-      "values_items": [
-        "A transdisciplinary approach to innovative solutions",
-        "Circular bioeconomy and the valorization of residues",
-        "Commitment to the decarbonization agenda through 2050",
-        "Education as an instrument of social transformation",
-        "Projects developed with a local approach and designed to be replicated"
-      ],
-      "axes_heading": "8 Integrated Thematic Axes",
-      "axes_subtitle": "A multidisciplinary structure spanning the entire biogas and bioproducts value chain.",
-      "axis_label": "Axis {number}",
-      "axes_items": [
-        {
-          "title": "Residue Inventory and Technology Mapping",
-          "description": "Systematic survey of residue sources and mapping of the technologies available for biogas production in the State of São Paulo."
-        },
-        {
-          "title": "Core Science and Technology",
-          "description": "Fundamental research into anaerobic digestion, microbiology and biochemical processes. Coordinated by Prof. Lucas Tadeu Fuess."
-        },
-        {
-          "title": "Process and Bioprocess Engineering",
-          "description": "Development and optimization of biodigesters, process scale-up and the integration of production systems."
-        },
-        {
-          "title": "Integrated Socioeconomic, Environmental and Energy Assessment",
-          "description": "Life-cycle analysis, economic viability, social impacts and the energy balance of biogas projects."
-        },
-        {
-          "title": "Innovation in Bioproducts",
-          "description": "Development of biohydrogen, biofertilisers, bio-CO₂ and other high-value bioproducts."
-        },
-        {
-          "title": "Education and Training",
-          "description": "Training of qualified human resources through courses, workshops and postgraduate programs."
-        },
-        {
-          "title": "Scientific Outreach and Communication",
-          "description": "Dissemination of scientific knowledge to society, the media and decision-makers."
-        },
-        {
-          "title": "Public Policy and Regulatory Innovation",
-          "description": "Support for the formulation of public policy and regulatory frameworks for the biogas sector."
-        }
-      ],
-      "sp_potential_heading": "São Paulo's Potential",
-      "sp_potential_subtitle": "The State of São Paulo holds more than 50% of Brazil's biogas potential.",
-      "unit_m3_biogas": "m³ biogas/year",
-      "unit_m3_biomethane": "m³ biomethane/day",
-      "unit_jobs": "Jobs",
-      "unit_plants": "Biogas plants",
-      "unit_hectares": "Hectares of sugarcane",
-      "unit_ghg": "GHG reduction",
-      "note_total_potential": "Estimated total potential",
-      "note_natural_gas": "32% of natural gas consumption",
-      "note_jobs": "Direct and indirect",
-      "note_plants": "84% sugar-energy sector",
-      "note_hectares": "50% of national production",
-      "note_ghg": "State climate target",
-      "partnerships_heading": "Strategic Partnerships",
-      "partnerships_subtitle": "A national and international collaboration network for research and innovation.",
-      "partnership_types": {
-        "international": "International",
-        "national": "National",
-        "institutional": "Institutional",
-        "research": "Research",
-        "academic": "Academic",
-        "industry": "Industry",
-        "association": "Association"
-      },
-      "partnership_contacts": {
-        "aalborg": "Prof. Jens Bo Holm-Nielsen",
-        "cibiogas": "10+ years of partnership",
-        "labioen": "Bioenergy Laboratory",
-        "usp_rcgi": "Research Centre for Greenhouse Gas Innovation",
-        "unesp": "PhD in Bioenergy",
-        "unica": "Brazilian Sugarcane Industry Association",
-        "abiogas": "Brazilian Biogas Association",
-        "abrema": "Brazilian Waste Association"
-      },
-      "nipe_body": "The Interdisciplinary Center for Energy Planning is a UNICAMP research center dedicated to the integrated study of energy, environmental and sustainable-development questions.",
-      "nipe_items": [
-        "30+ years of excellence in energy research",
-        "A multidisciplinary team of researchers",
-        "Projects with national and international impact"
-      ],
-      "location_heading": "Location",
-      "location_line1": "Universidade Estadual de Campinas",
-      "location_line2": "Zeferino Vaz University City",
-      "location_line3": "Campinas, SP - Brazil",
-      "timeline_heading": "Project Timeline",
-      "timeline_subtitle": "Follow the main milestones of PILAR-2b's development, from its start through to the planned conclusion.",
-      "timeline_events": [
-        {
-          "date": "February 2025",
-          "title": "PILAR-2b Project Launch",
-          "description": "Official launch of the São Paulo Center for Studies in Biogas and Bioproducts with FAPESP funding.",
-          "details": [
-            "FAPESP project 2025/08745-2 approved",
-            "Multidisciplinary team assembled",
-            "The 8 thematic axes structured"
-          ]
-        },
-        {
-          "date": "March 2025",
-          "title": "Development of the PILAR-2b V3 Platform",
-          "description": "Start of development of the modern web platform for biogas potential analysis.",
-          "details": [
-            "Next.js 15 + FastAPI architecture",
-            "MapBiomas integration",
-            "MCDA system implemented",
-            "Interactive dashboard with São Paulo municipalities"
-          ]
-        },
-        {
-          "date": "February 2030",
-          "title": "Project Conclusion",
-          "description": "Close of PILAR-2b's first phase, leaving a legacy of research and innovation.",
-          "details": [
-            "Final impact report",
-            "Scientific publications",
-            "Technology transfer"
-          ]
-        }
-      ],
-      "hero_cta_map": "Open map",
-      "hero_cta_guide": "Read the guide",
-      "coverage_heading": "Coverage",
-      "coverage": {
-        "sp": {
-          "name": "São Paulo",
-          "desc": "The state's municipalities, with complete layers, scenarios and analyses."
-        },
-        "mg": {
-          "name": "Minas Gerais",
-          "desc": "Pilot with Minas Gerais municipalities; figures may still change."
-        },
-        "br": {
-          "name": "Brazil",
-          "desc": "Expansion to the other states."
-        }
-      },
-      "status_canonical": "canonical base",
-      "status_beta": "beta — in validation",
-      "status_planned": "under way",
-      "section_nav_label": "On this page",
-      "sections": {
-        "project": "The project",
-        "team": "Team",
-        "partners": "Partners and CP2b",
-        "faq": "FAQ",
-        "contact": "Contact"
-      },
-      "screenshots_label": "Platform screens",
-      "expertise_label": "Areas of expertise",
-      "authors_heading": "Platform authors",
-      "affiliations": {
-        "nipe": "NIPE — UNICAMP",
-        "unicamp": "UNICAMP"
-      },
-      "authors_note": "Authorship as in the software registration. To cite the platform, see <cite>How to cite</cite>.",
-      "cp2b_heading": "CP2b and NIPE/UNICAMP",
-      "cp2b_body": "PILAR-2b is developed at CP2b — the São Paulo Center for Studies in Biogas and Bioproducts — hosted at NIPE/UNICAMP.",
-      "funding_heading": "Funding and registration",
-      "grants": {
-        "cp2bsd": {
-          "number": "FAPESP 2024/01112-1",
-          "role": "CP2Bsd — research funding for the center and the platform"
-        },
-        "expansion": {
-          "number": "FAPESP 2025/08745-2",
-          "role": "National expansion of the platform"
-        }
-      },
-      "inpi_line": "Software registered with INPI under no. BR512026003115-0.",
-      "contact_body": "Questions, partnerships or corrections: reach the CP2b team through its official channels.",
-      "channels": {
-        "instagram": "CP2b on Instagram",
-        "linkedin": "CP2b on LinkedIn",
-        "youtube": "CP2b on YouTube",
-        "whatsapp": "CP2b on WhatsApp"
-      },
-      "faq": {
-        "what": {
-          "q": "What is PILAR-2b?",
-          "a": "An open platform, developed at NIPE/UNICAMP, that estimates, municipality by municipality, the biogas and bioproduct potential of agricultural, livestock and urban residues. The <guide>guide</guide> shows the first steps."
-        },
-        "coverage": {
-          "q": "Which regions does the platform cover?",
-          "a": "São Paulo state is the canonical base, with every layer and analysis. Minas Gerais is a pilot, marked “beta — in validation”: its figures may still change. Expansion to the rest of Brazil is under way."
-        },
-        "potential": {
-          "q": "What are theoretical and available potential?",
-          "a": "Theoretical potential starts from the amount of residue generated. Available potential applies availability factors per residue, which estimate the share that can actually be mobilised and are under review. References and chemical characterization are in the <science>Scientific Database</science>."
-        },
-        "reuse": {
-          "q": "Can I reuse the data and the code?",
-          "a": "Yes. The code is licensed under GPL-3.0 and the data under CC BY 4.0, which allows any use, commercial included, as long as the source is credited. See <cite>How to cite</cite>."
-        },
-        "accessibility": {
-          "q": "Is the platform accessible?",
-          "a": "The goal is WCAG 2.1 level AA: keyboard navigation, text alternatives and sufficient contrast. The <a11y>accessibility statement</a11y> describes the current state and how to report barriers."
-        },
-        "report": {
-          "q": "I found an error in the data. How do I report it?",
-          "a": "Write to the team through the <contact>contact channels</contact> on this page, naming the municipality, the indicator and the screen where you saw it."
-        }
-      }
-    },
     "settings": {
       "title": "Settings"
     }
@@ -2148,7 +1849,6 @@
     "sidebar_heading": "Platform Guide",
     "main_topics": "Main topics",
     "nav_intro": "Introduction",
-    "nav_about": "About the platform",
     "nav_open_map": "→ Open the Map",
     "topics_label": "Topics",
     "nav_map": "Using the Map",
@@ -2183,7 +1883,37 @@
         "title": "Proximity Analysis",
         "description": "Identify neighbouring municipalities with complementary potential."
       }
-    ]
+    ],
+    "nav_faq": "Frequently asked questions",
+    "faq": {
+      "heading": "Frequently asked questions",
+      "items": {
+        "what": {
+          "q": "What is PILAR-2b?",
+          "a": "An open platform, developed at NIPE/UNICAMP, that estimates, municipality by municipality, the biogas and bioproduct potential of agricultural, livestock and urban residues. The topics above show the first steps."
+        },
+        "coverage": {
+          "q": "Which regions does the platform cover?",
+          "a": "São Paulo state is the canonical base, with every layer and analysis. Minas Gerais is a pilot, marked “beta — in validation”: its figures may still change. Expansion to the rest of Brazil is under way."
+        },
+        "potential": {
+          "q": "What are theoretical and available potential?",
+          "a": "Theoretical potential starts from the amount of residue generated. Available potential applies availability factors per residue, which estimate the share that can actually be mobilised and are under review. References and chemical characterization are in the <science>Scientific Database</science>."
+        },
+        "reuse": {
+          "q": "Can I reuse the data and the code?",
+          "a": "Yes. The code is licensed under GPL-3.0 and the data under CC BY 4.0, which allows any use, commercial included, as long as the source is credited. See <cite>How to cite</cite>."
+        },
+        "accessibility": {
+          "q": "Is the platform accessible?",
+          "a": "The goal is WCAG 2.1 level AA: keyboard navigation, text alternatives and sufficient contrast. The <a11y>accessibility statement</a11y> describes the current state and how to report barriers."
+        },
+        "report": {
+          "q": "I found an error in the data. How do I report it?",
+          "a": "Write to CP2b through the <contact>contact form</contact>, naming the municipality, the indicator and the screen where you saw it."
+        }
+      }
+    }
   },
   "guide_articles": {
     "sidebar": {
@@ -2397,13 +2127,9 @@
   "newsletter": {
     "title": "Stay Up to Date",
     "description": "Get updates on new features, analyses and biogas insights.",
-    "email_label": "Email address",
-    "email_placeholder": "you@example.com",
     "submit": "Subscribe for free",
-    "processing": "Processing…",
     "subscribed": "Subscribed!",
     "success": "Thank you! You will receive our updates soon.",
-    "privacy": "By subscribing you agree to receive the PILAR-2b newsletter. The address is kept on UNICAMP's servers (see the <privacy>Privacy Policy</privacy>) and you can unsubscribe at any time.",
     "errors": {
       "invalid_email": "That e-mail address was not accepted. Please check it and try again.",
       "rate_limited": "Too many attempts. Please wait a minute and try again.",
@@ -2422,13 +2148,6 @@
   },
   "videoModal": {
     "close": "Close video"
-  },
-  "timeline": {
-    "status": {
-      "completed": "Completed",
-      "in-progress": "In progress",
-      "upcoming": "Planned"
-    }
   },
   "home": {
     "hero": {

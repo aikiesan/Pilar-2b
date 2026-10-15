@@ -18,7 +18,7 @@ import { titledMetadata } from '@/lib/pageMetadata'
  * and with CONSENT_VERSION in src/lib/consent.ts when the cookie section changes.
  */
 
-const VERSION = '2026-09-25'
+const VERSION = '2026-10-15'
 
 const TEXT: Localized<LegalText> = {
   'pt-BR': {
@@ -40,7 +40,7 @@ const TEXT: Localized<LegalText> = {
         p: [
           'Navegação: a plataforma é de acesso aberto. O servidor registra, como qualquer site, o endereço IP, o navegador, a página pedida e a data e hora de cada acesso, para o funcionamento e a segurança do serviço.',
           'Contas de acesso: as contas são criadas por um administrador, por convite, para pesquisadores e colaboradores. Tratamos nome, e-mail, a senha (guardada apenas como hash bcrypt, nunca em texto), o perfil e o nível de acesso, as datas de criação e do último acesso e o número de tentativas de senha erradas. Ao entrar, um token de sessão fica no seu navegador; ele expira em pouco tempo e é revogado quando você sai. O acesso a recursos confidenciais é registrado (quem, qual recurso, quando e de qual endereço IP).',
-          'Newsletter: ao se inscrever (no rodapé, na página Sobre ou no aviso de cookies), guardamos o seu e-mail, o idioma, o formulário usado, a versão desta Política e a data e hora da inscrição. Não guardamos endereço IP nem dados do navegador.',
+          'Newsletter: ao se inscrever (no rodapé ou no aviso de cookies), guardamos o seu e-mail, o idioma, o formulário usado, a versão desta Política e a data e hora da inscrição. Não guardamos endereço IP nem dados do navegador.',
           'Estatísticas de uso, apenas se você escolher “Aceitar tudo” no aviso de cookies: um identificador aleatório guardado no cookie pilar2b_vid, um identificador aleatório da sessão (por aba do navegador), a página visitada (sem parâmetros de endereço), o idioma, o tipo de dispositivo (celular, tablet ou computador) e, na primeira página da visita, o site de onde você veio. Não guardamos endereço IP nem a identificação do navegador. Os dados servem apenas para contar visitas e saber quais páginas são usadas.',
           'Calculadora de Viabilidade (opcional): se você enviar o formulário de contato da calculadora, guardamos nome, e-mail, município, os dados do cálculo e metadados técnicos da requisição (endereço IP, navegador e página de origem), apenas com o seu consentimento explícito. Não coletamos CPF nem CNPJ.',
         ],
@@ -118,7 +118,7 @@ const TEXT: Localized<LegalText> = {
         p: [
           'Browsing: the platform is openly accessible. Like any website, the server records the IP address, browser, requested page and date and time of each request, to run and secure the service.',
           'User accounts: accounts are created by an administrator, by invitation, for researchers and collaborators. We process name, e-mail, the password (kept only as a bcrypt hash, never as text), the role and access level, the creation and last sign-in dates, and the number of failed password attempts. When you sign in, a session token is kept in your browser; it expires after a short time and is revoked when you sign out. Access to confidential resources is recorded (who, which resource, when and from which IP address).',
-          'Newsletter: when you subscribe (in the footer, on the About page or in the cookie notice), we keep your e-mail, language, the form you used, the version of this Policy and the date and time you subscribed. We keep no IP address and no browser details.',
+          'Newsletter: when you subscribe (in the footer or in the cookie notice), we keep your e-mail, language, the form you used, the version of this Policy and the date and time you subscribed. We keep no IP address and no browser details.',
           'Usage statistics, only if you choose “Accept all” in the cookie notice: a random identifier kept in the pilar2b_vid cookie, a random session identifier (per browser tab), the page visited (without URL parameters), the language, the device type (phone, tablet or computer) and, on the first page of a visit, the site you came from. We keep no IP address and no browser identification. The data is used only to count visits and see which pages are used.',
           'Viability Calculator (optional): if you send the calculator’s contact form, we keep your name, e-mail, municipality, the calculation data and technical request metadata (IP address, browser and referring page), only with your explicit consent. We do not collect tax IDs (CPF/CNPJ).',
         ],

@@ -7,6 +7,8 @@ import type { Metadata } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { ArrowRight } from 'lucide-react';
 import { Link } from '@/navigation';
+import NavLink from '@/components/layout/NavLink';
+import { CP2B_PAGES } from '@/config/contact';
 import MethodShell from '@/components/method/MethodShell';
 import { requireMethodPages } from '@/components/method/requireMethodPages';
 import { residuePath } from '@/data/residueCatalog';
@@ -88,10 +90,10 @@ export default async function MethodValidationPage() {
       <section aria-labelledby="validation-report" className="mt-14 border-t border-line pt-8">
         <h2 id="validation-report" className="text-2xl text-ink sm:text-3xl">{t('report_heading')}</h2>
         <p className="mt-3 max-w-2xl text-ink-muted">{t('report_body')}</p>
-        <Link href="/about#contato" className="btn-secondary mt-5 min-h-[44px]">
+        <NavLink href={CP2B_PAGES.contact} externalIcon={false} className="btn-secondary mt-5 min-h-[44px]">
           {tData('product.contact_cta')}
           <ArrowRight className="h-4 w-4" aria-hidden="true" />
-        </Link>
+        </NavLink>
       </section>
     </MethodShell>
   );
