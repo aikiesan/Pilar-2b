@@ -325,8 +325,8 @@ scikit-learn>=1.6.0
 ```bash
 # Apache2 + PM2 deployment at cp2b.unicamp.br/pilar2b
 # See: docs/VM_UPDATE_GUIDE.md
-cd frontend && npm run build
-pm2 restart pilar2b-frontend
+frontend/deploy.sh      # pull, build aside, check, swap in, restart
+scripts/vm_verify.sh   # read-only check of the whole stack
 ```
 
 ### Unicamp VM (Primary — Apache2 + PM2)

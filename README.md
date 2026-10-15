@@ -416,8 +416,8 @@ scikit-learn>=1.6.0
 ```bash
 # Apache2 + PM2 deployment at cp2b.unicamp.br/pilar2b
 # See: cp2b-workspace/NewLook/docs/VM_UPDATE_GUIDE.md
-cd cp2b-workspace/NewLook/frontend && npm run build
-pm2 restart pilar2b-frontend
+cp2b-workspace/NewLook/frontend/deploy.sh      # pull, build aside, check, swap in, restart
+cp2b-workspace/NewLook/scripts/vm_verify.sh   # read-only check of the whole stack
 ```
 
 ### Railway (Backend Auto-deploy)

@@ -21,7 +21,7 @@
  */
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { getFormatter, getTranslations } from 'next-intl/server'
+import { getFormatter, getTranslations, setRequestLocale } from 'next-intl/server'
 import { Link } from '@/navigation'
 import Breadcrumb from '@/components/ui/Breadcrumb'
 import { navCrumbs } from '@/lib/breadcrumbTrail'
@@ -137,6 +137,8 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 export default async function MunicipalityProfilePage({ params }: Params) {
   const { locale, slug } = await params
   if (!isLocale(locale)) notFound()
+  // Rendered statically (revalidate): next-intl must not read request headers.
+  setRequestLocale(locale)
   const profile = await load(slug)
   const t = await getTranslations({ locale, namespace: 'municipality_profile' })
   const tSectors = await getTranslations({ locale, namespace: 'common.sectors' })

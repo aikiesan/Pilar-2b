@@ -7,7 +7,7 @@ export default getRequestConfig(async ({ requestLocale }) => {
   // Without middleware the awaited value is undefined — fall back to default.
   const locale = (await requestLocale) ?? defaultLocale;
 
-  // Reject genuinely unknown locales (dynamicParams=false already blocks them,
+  // Reject genuinely unknown locales (the [locale] layout already 404s them,
   // but guard here too for safety).
   if (!isLocale(locale)) notFound();
 

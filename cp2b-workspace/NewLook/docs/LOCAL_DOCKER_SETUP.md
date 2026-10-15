@@ -145,8 +145,10 @@ The environments are intentionally kept separate but the key vars are aligned:
 | Deploy path        | `docker compose up`           | `frontend/deploy.sh`                   |
 
 **The only supported deploy path on the VM is `frontend/deploy.sh`.**
-It builds, copies static assets, and restarts PM2 with the correct PORT.
-Do not use `pm2 restart` directly — it reuses a stale in-memory config.
+It builds in a separate directory, checks the new build, swaps it in, and
+restarts PM2 with the right environment (see docs/VM_UPDATE_GUIDE.md, step 5).
+Do not run `npm run build` in `frontend/` on the VM: `next build` deletes the
+`.next/standalone` the live site is served from.
 
 ## Viewing logs in Docker Desktop
 
