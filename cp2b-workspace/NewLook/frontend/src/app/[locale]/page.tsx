@@ -67,11 +67,11 @@ export default async function LandingPage() {
     <div className="bg-paper">
       {/* ── Hero ────────────────────────────────────────────────────────── */}
       <section className="relative overflow-hidden border-b border-line">
-        <ArcOrnament className="absolute -right-40 -top-20 hidden h-[130%] w-auto text-terra-900 dark:text-ochre-300 md:block" />
+        <ArcOrnament className="absolute -right-24 top-0 hidden h-full w-auto text-cp2b-petroleo dark:text-dusk-200 md:block" />
         <div className="relative mx-auto grid max-w-7xl gap-12 px-4 py-14 sm:px-6 sm:py-20 lg:grid-cols-[minmax(0,1fr)_minmax(0,26rem)] lg:items-center lg:gap-10 lg:px-8 lg:py-24 xl:grid-cols-[minmax(0,1fr)_minmax(0,32rem)] xl:gap-16">
           <div>
             <p className="eyebrow">{t('hero.eyebrow')}</p>
-            <h1 className="mt-4 max-w-3xl text-4xl leading-[1.05] text-ink sm:text-5xl xl:text-6xl">
+            <h1 className="mt-4 max-w-3xl text-4xl leading-[1.12] text-ink sm:text-5xl xl:text-6xl">
               {t('hero.title')}
             </h1>
             <p className="mt-6 max-w-2xl text-base leading-relaxed text-ink-muted sm:text-lg">

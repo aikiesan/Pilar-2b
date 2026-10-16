@@ -33,6 +33,7 @@ import { GUIDE_LINK, NAV_GROUPS, currentNavHref, type NavGroup, type NavGroupId,
 import { isFullViewport } from '@/components/layout/fullViewport'
 import { logger } from '@/lib/logger'
 import { loginHref } from '@/lib/authRedirect'
+import { withBasePath } from '@/lib/basePath'
 
 // The account UI keys off a REAL session, not `isAuthenticated`: in open mode
 // (NEXT_PUBLIC_DISABLE_AUTH=true) every visitor is the synthetic TEST_USER, so
@@ -132,16 +133,31 @@ export default function UnifiedHeader() {
             {/* Logo */}
             <div className="flex-shrink-0">
               <Link href="/" className="flex items-center gap-2 sm:gap-3 group">
+                {/* Official CP2b logo: positive on the light header, negative on
+                    the dark one (manual 1.7), never recoloured. */}
                 <Image
-                  src="/images/logotipo-full-black.png"
+                  src={withBasePath('/images/cp2b-logo.svg')}
                   alt={t('logo_alt')}
-                  width={140}
-                  height={48}
-                  className="transition-transform group-hover:scale-105 dark:brightness-0 dark:invert"
+                  width={110}
+                  height={42}
+                  unoptimized
+                  className="block dark:hidden"
                   style={{ height: 'auto' }}
                   priority
                 />
-                <span className="inline-flex items-center px-1.5 py-0.5 rounded-sm border border-ochre-700/50 text-ochre-700 dark:border-ochre-400/50 dark:text-ochre-300 text-[10px] font-medium uppercase tracking-[0.12em]">
+                <Image
+                  src={withBasePath('/images/cp2b-logo-negativo.svg')}
+                  alt={t('logo_alt')}
+                  width={110}
+                  height={42}
+                  unoptimized
+                  className="hidden dark:block"
+                  style={{ height: 'auto' }}
+                  priority
+                />
+                <span aria-hidden="true" className="hidden sm:block h-7 w-px bg-line" />
+                <span className="hidden sm:block text-base font-bold tracking-tight text-ink">PILAR-2b</span>
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded-full border border-ochre-700/50 text-ochre-700 dark:border-ochre-400/50 dark:text-ochre-300 text-[10px] font-medium uppercase tracking-[0.12em]">
                   {t('badge.beta')}
                 </span>
               </Link>

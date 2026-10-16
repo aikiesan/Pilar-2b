@@ -34,51 +34,39 @@ module.exports = {
           // Inputs and other controls: 3:1 against the page (WCAG 1.4.11).
           strong: 'rgb(var(--line-strong) / <alpha-value>)',
         },
-        // Deprecated green-era names, kept pointing at the earth palette so
-        // anything not yet migrated still matches. Prefer terra/ochre/paper.
-        cp2b: {
-          primary: palette.terra[800],
-          secondary: palette.ochre[600],
-          accent: palette.terra[100],
-          dark: palette.warmGray[900],
-          light: '#FFFFFF',
-          'dark-green': palette.terra[700],
-          green: palette.terra[600],
-          'green-light': palette.terra[500],
-          lime: palette.terra[500],
-          'lime-light': palette.terra[100],
-          orange: palette.ochre[600],
-          'orange-light': palette.ochre[300],
-          'gray-50': palette.warmGray[50],
-          'gray-100': palette.warmGray[100],
-          'gray-200': palette.warmGray[200],
-          'gray-600': palette.warmGray[600],
-          'gray-900': palette.warmGray[900],
-        },
+        // The manual's swatches by name: bg-cp2b-lima, text-cp2b-petroleo …
+        cp2b: palette.brand,
         // Sector colours (agrícola, pecuária, urbano) for map, charts and PDFs.
         biomass: palette.sector,
         sector: palette.sector,
       },
       fontFamily: {
-        // "… Variable" is the family name @fontsource-variable registers
-        // (loaded in src/app/layout.tsx); the plain names cover a local install.
-        sans: ['"Inter Variable"', 'Inter', 'system-ui', 'sans-serif'],
+        // Neulis Sans is the CP2b typeface (manual 1.13). Its licence (Adobe
+        // Fonts) does not allow self-hosting, so the site falls back to Verdana,
+        // the system font the manual names (1.14); a visitor who has Neulis Sans
+        // installed sees it. Headings use the same family, in heavier weights.
+        sans: ['"Neulis Sans"', 'Verdana', 'Geneva', '"DejaVu Sans"', 'sans-serif'],
         mono: ['"JetBrains Mono Variable"', '"JetBrains Mono"', 'monospace'],
-        // Headings (h1, h2 by default; see globals.css). Light serif, after the
-        // editorial references; loaded in src/app/layout.tsx.
-        display: ['"Fraunces Variable"', 'Fraunces', 'Georgia', 'serif'],
+        display: ['"Neulis Sans"', 'Verdana', 'Geneva', '"DejaVu Sans"', 'sans-serif'],
       },
-      // Sharp corners: every rounded-* utility tops out at 4px. `full` stays
-      // for true circles (dots, avatars, round icon buttons, toggles).
+      // Verdana/Neulis Sans in bold run wider and heavier than the light serif
+      // the large sizes were tuned for: one step smaller, a little more leading.
+      fontSize: {
+        '4xl': ['2rem', { lineHeight: '1.2' }],
+        '5xl': ['2.5rem', { lineHeight: '1.15' }],
+        '6xl': ['3rem', { lineHeight: '1.12' }],
+      },
+      // Soft, rounded corners after the manual's curves and leaves. `full`
+      // stays for pills, dots and round icon buttons.
       borderRadius: {
         none: '0',
-        sm: '1px',
-        DEFAULT: '2px',
-        md: '2px',
-        lg: '2px',
-        xl: '3px',
-        '2xl': '4px',
-        '3xl': '4px',
+        sm: '4px',
+        DEFAULT: '6px',
+        md: '8px',
+        lg: '10px',
+        xl: '12px',
+        '2xl': '16px',
+        '3xl': '20px',
       },
       animation: {
         'fade-in': 'fadeIn 0.5s ease-in-out',
@@ -96,15 +84,15 @@ module.exports = {
           '100%': { transform: 'translateY(0)', opacity: '1' },
         },
       },
-      // Structure comes from hairlines; shadows stay low and warm. Only xl/2xl
+      // Structure comes from hairlines; shadows stay low, tinted Azul Petróleo. Only xl/2xl
       // lift a surface (popovers, dialogs, the map's floating panels).
       boxShadow: {
-        sm: '0 1px 0 rgb(43 38 32 / 0.04)',
-        DEFAULT: '0 1px 2px rgb(43 38 32 / 0.06)',
-        md: '0 2px 6px -2px rgb(43 38 32 / 0.10)',
-        lg: '0 6px 16px -8px rgb(43 38 32 / 0.14)',
-        xl: '0 12px 28px -12px rgb(43 38 32 / 0.20)',
-        '2xl': '0 20px 40px -16px rgb(43 38 32 / 0.24)',
+        sm: '0 1px 0 rgb(30 62 76 / 0.04)',
+        DEFAULT: '0 1px 2px rgb(30 62 76 / 0.06)',
+        md: '0 2px 6px -2px rgb(30 62 76 / 0.10)',
+        lg: '0 6px 16px -8px rgb(30 62 76 / 0.14)',
+        xl: '0 12px 28px -12px rgb(30 62 76 / 0.20)',
+        '2xl': '0 20px 40px -16px rgb(30 62 76 / 0.24)',
         // Dark mode shadows
         'dark-sm': '0 1px 0 rgb(0 0 0 / 0.3)',
         'dark-md': '0 2px 6px -2px rgb(0 0 0 / 0.45)',

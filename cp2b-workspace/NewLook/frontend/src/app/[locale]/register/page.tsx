@@ -21,6 +21,7 @@ import {
   validateRequired,
 } from '@/lib/validation'
 import { useValidationMessage } from '@/hooks/useValidationMessage'
+import { withBasePath } from '@/lib/basePath'
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -93,7 +94,7 @@ export default function RegisterPage() {
             className="inline-flex items-center space-x-2 text-ink hover:text-terra-600 transition-colors focus:outline-none focus:ring-2 focus:ring-terra-600 focus:ring-offset-2 focus:ring-offset-paper rounded-lg"
             aria-label={t('register.back_to_home')}
           >
-            <Image src="/images/logotipo-full-black.png" alt="PILAR-2b Logo" width={200} height={55} style={{ height: 'auto' }} className="dark:brightness-0 dark:invert" priority />
+            <Image src={withBasePath('/images/cp2b-logo.svg')} unoptimized alt="PILAR-2b Logo" width={200} height={55} style={{ height: 'auto' }} priority />
 
           </Link>
           <h1 className="mt-6 text-4xl text-ink">
