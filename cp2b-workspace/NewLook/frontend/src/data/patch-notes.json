@@ -2,6 +2,37 @@
   "_comment": "Patch notes, newest first. Each entry carries its own pt-BR and en text, deliberately OUTSIDE messages/*.json: the catalogs are gated by check-i18n-parity.mjs, and threading one release note through two catalogs per deploy makes writing a note a chore nobody does. scripts/check-patch-notes.mjs enforces that both locales are present here instead. `date` is ISO 8601 WITH offset -- it is rendered in the reader's locale, so a bare date would drift a day across timezones. `kind` must be one of: added, changed, fixed, security, data.",
   "entries": [
     {
+      "version": "3.7.0",
+      "date": "2026-10-16T15:25:00-03:00",
+      "title": {
+        "pt-BR": "A identidade visual do CP2b, e o Metaninho",
+        "en": "The CP2b visual identity, and Metaninho"
+      },
+      "changes": [
+        {
+          "kind": "changed",
+          "text": {
+            "pt-BR": "A plataforma passa a seguir o Manual de Identidade Visual do CP2b: fundo branco, textos em Azul Petróleo, botões em Verde Escuro, detalhes em Verde Limão e Âmbar, cantos arredondados e as folhas do logo. O logo oficial do CP2b, no canto, leva ao site do CP2b.",
+            "en": "The platform now follows the CP2b Visual Identity Manual: white background, text in Petrol Blue, buttons in Dark Green, Lime Green and Amber accents, rounded corners and the leaves from the logo. The official CP2b logo, in the corner, leads to the CP2b website."
+          }
+        },
+        {
+          "kind": "added",
+          "text": {
+            "pt-BR": "O Metaninho, mascote do CP2b, ajuda quem chega: na primeira visita ao mapa ele diz o que fazer primeiro, avisa quando a busca não encontra nada e, no rodapé, dá uma dica a cada clique.",
+            "en": "Metaninho, the CP2b mascot, helps newcomers: on the first map visit he says what to do first, he tells you when a search finds nothing, and in the footer he gives a tip on each click."
+          }
+        },
+        {
+          "kind": "changed",
+          "text": {
+            "pt-BR": "As cores dos setores agrícola, pecuário e urbano no mapa e nos gráficos seguem a marca e continuam distinguíveis para quem tem daltonismo.",
+            "en": "The agricultural, livestock and urban sector colours on the map and in charts follow the brand and stay distinguishable with colour blindness."
+          }
+        }
+      ]
+    },
+    {
       "version": "3.6.0",
       "date": "2026-10-15T11:09:00-03:00",
       "title": {
