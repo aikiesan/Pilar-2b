@@ -32,3 +32,15 @@ export default function ArcOrnament({ className = '' }: { className?: string }) 
     </svg>
   )
 }
+
+/**
+ * The same leaves behind a page header (the band with the eyebrow, title and
+ * lede): smaller and fainter than on the home page, at the right edge, and
+ * only from md up so it never crowds a phone. The header needs `relative
+ * overflow-hidden`, and its content `relative`, to sit above it.
+ */
+export function HeaderLeaves() {
+  return (
+    <ArcOrnament className="absolute -right-10 -top-6 hidden h-[calc(100%+3rem)] max-h-[26rem] w-auto text-cp2b-petroleo opacity-80 dark:text-dusk-200 md:block" />
+  )
+}

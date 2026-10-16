@@ -27,6 +27,7 @@ import { ResidueChemistry, ResidueReferences } from '@/components/data/ResidueLi
 import { allResidueParams, findResidue, residueFDE, SECTOR_SWATCH } from '@/data/residueCatalog';
 import type { FactorKey } from '@/data/residueFactors';
 import { DATA_EXPORT_ENABLED, METHOD_PAGES_ENABLED } from '@/lib/featureFlags';
+import { HeaderLeaves } from '@/components/ui/ArcOrnament'
 
 export function generateStaticParams() {
   return allResidueParams();
@@ -251,8 +252,9 @@ export default async function ResidueProductPage({ params }: Params) {
 
   return (
     <div className="bg-paper">
-      <header className="border-b border-line">
-        <div className="mx-auto max-w-7xl px-4 pt-10 sm:px-6 sm:pt-14 lg:px-8">
+      <header className="relative overflow-hidden border-b border-line">
+        <HeaderLeaves />
+        <div className="relative mx-auto max-w-7xl px-4 pt-10 sm:px-6 sm:pt-14 lg:px-8">
           <Breadcrumb items={navCrumbs(`/data/${residue.category}`, (key) => tNav(key), [{ label: sectorName, href: `/data/${residue.category}` }, { label: name }])} />
           <h1 className="mt-4 text-4xl text-ink sm:text-5xl">{name}</h1>
           <DataCard

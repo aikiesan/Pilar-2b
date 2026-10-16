@@ -12,6 +12,7 @@ import { getTranslations } from 'next-intl/server';
 import { Link } from '@/navigation';
 import MunicipalitySearch from '@/components/home/MunicipalitySearch';
 import { municipalityDirectory, type DirectoryEntry } from '@/lib/municipalityDirectory';
+import { HeaderLeaves } from '@/components/ui/ArcOrnament'
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('municipalities_index');
@@ -33,8 +34,9 @@ export default async function MunicipalitiesPage() {
 
   return (
     <div className="bg-paper">
-      <header className="border-b border-line">
-        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+      <header className="relative overflow-hidden border-b border-line">
+        <HeaderLeaves />
+        <div className="relative mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
           <p className="eyebrow">{t('eyebrow')}</p>
           <h1 className="mt-3 text-4xl text-ink sm:text-5xl">{t('title')}</h1>
           <p className="mt-4 max-w-2xl text-ink-muted">{t('lede')}</p>

@@ -13,6 +13,7 @@ import { Link } from '@/navigation';
 import { NAV_GROUPS } from '@/components/layout/siteNav';
 import Breadcrumb from '@/components/ui/Breadcrumb';
 import { navCrumbs } from '@/lib/breadcrumbTrail';
+import { HeaderLeaves } from '@/components/ui/ArcOrnament'
 
 const METHOD = NAV_GROUPS.find((group) => group.id === 'method')!;
 
@@ -33,8 +34,9 @@ export default async function MethodShell({
 
   return (
     <div className="bg-paper">
-      <header className="border-b border-line">
-        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+      <header className="relative overflow-hidden border-b border-line">
+        <HeaderLeaves />
+        <div className="relative mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
           {current === '/method' ? (
             <p className="eyebrow">{t('eyebrow')}</p>
           ) : (

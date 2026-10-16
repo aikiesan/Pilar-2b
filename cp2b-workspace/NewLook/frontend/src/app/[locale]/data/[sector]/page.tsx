@@ -11,6 +11,7 @@ import { navCrumbs } from '@/lib/breadcrumbTrail';
 import ResidueTable from '@/components/data/ResidueTable';
 import { CATALOG_SECTORS, SECTOR_SWATCH, isCatalogSector, residuesInSector } from '@/data/residueCatalog';
 import { METHOD_PAGES_ENABLED } from '@/lib/featureFlags';
+import { HeaderLeaves } from '@/components/ui/ArcOrnament'
 
 export function generateStaticParams() {
   return CATALOG_SECTORS.filter((s) => residuesInSector(s).length > 0).map((sector) => ({ sector }));
@@ -38,8 +39,9 @@ export default async function DataSectorPage({ params }: Params) {
 
   return (
     <div className="bg-paper">
-      <header className="border-b border-line">
-        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+      <header className="relative overflow-hidden border-b border-line">
+        <HeaderLeaves />
+        <div className="relative mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
           <Breadcrumb items={navCrumbs(`/data/${sector}`, (key) => tNav(key), [{ label: name }])} />
           <h1 className="mt-4 flex items-center gap-4 text-4xl text-ink sm:text-5xl">
             <span aria-hidden="true" className="h-4 w-4 shrink-0" style={{ background: SECTOR_SWATCH[sector] }} />

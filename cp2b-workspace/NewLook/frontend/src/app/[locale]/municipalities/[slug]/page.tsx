@@ -54,6 +54,7 @@ import {
 } from '@/lib/municipalityProfile'
 import { isIbgeCode, municipalityPath } from '@/lib/municipalitySlug'
 import { publicUrl } from '@/lib/siteUrl'
+import { HeaderLeaves } from '@/components/ui/ArcOrnament'
 
 export const revalidate = 3600
 // Rendered on first visit, then kept: 5,571 pages are not built ahead.
@@ -228,8 +229,9 @@ export default async function MunicipalityProfilePage({ params }: Params) {
   return (
     <div className="bg-paper">
       {/* 1. Header */}
-      <header className="border-b border-line">
-        <div className="mx-auto max-w-6xl px-4 py-5 sm:px-6 lg:px-8">
+      <header className="relative overflow-hidden border-b border-line">
+        <HeaderLeaves />
+        <div className="relative mx-auto max-w-6xl px-4 py-5 sm:px-6 lg:px-8">
           <Breadcrumb items={navCrumbs('/municipalities/' + slug, (key) => tNav(key), [{ label: p.name }])} />
           <div className="mt-4 flex flex-wrap items-end justify-between gap-x-8 gap-y-3">
             <div>

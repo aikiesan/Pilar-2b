@@ -9,6 +9,7 @@ import { Link } from '@/navigation';
 import ResidueTable from '@/components/data/ResidueTable';
 import { CATALOG_SECTORS, SECTOR_SWATCH, residuesInSector } from '@/data/residueCatalog';
 import { METHOD_PAGES_ENABLED } from '@/lib/featureFlags';
+import { HeaderLeaves } from '@/components/ui/ArcOrnament'
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('data_catalog');
@@ -24,8 +25,9 @@ export default async function DataCatalogPage() {
 
   return (
     <div className="bg-paper">
-      <header className="border-b border-line">
-        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+      <header className="relative overflow-hidden border-b border-line">
+        <HeaderLeaves />
+        <div className="relative mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
           <p className="eyebrow">{t('catalog.eyebrow')}</p>
           <h1 className="mt-3 text-4xl text-ink sm:text-5xl">{t('catalog.title')}</h1>
           <p className="mt-4 max-w-2xl text-ink-muted">{METHOD_PAGES_ENABLED ? t('catalog.lede') : t('held.catalog_lede')}</p>
