@@ -34,7 +34,7 @@ export default async function DataCatalogPage() {
               <a
                 key={s}
                 href={`#${s}`}
-                className="inline-flex min-h-[40px] items-center gap-2 border border-line bg-paper-raised px-3 text-sm text-ink hover:border-line-strong"
+                className="inline-flex min-h-[40px] items-center gap-2 rounded-full border border-line bg-paper-raised px-3 text-sm text-ink hover:border-line-strong"
               >
                 <span aria-hidden="true" className="h-2.5 w-2.5" style={{ background: SECTOR_SWATCH[s] }} />
                 {t(`sectors.${s}`)}

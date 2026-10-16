@@ -25,7 +25,7 @@ export default function MunicipalityError({ reset }: { error: Error; reset: () =
           </button>
           <Link
             href="/municipalities"
-            className="inline-flex min-h-[44px] items-center border border-line bg-paper-raised px-5 text-sm font-medium text-ink hover:border-line-strong"
+            className="inline-flex min-h-[44px] items-center rounded-lg border border-line bg-paper-raised px-5 text-sm font-medium text-ink hover:border-line-strong"
           >
             {t('index')}
           </Link>

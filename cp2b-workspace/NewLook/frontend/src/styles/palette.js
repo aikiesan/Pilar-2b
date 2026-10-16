@@ -37,14 +37,15 @@ const brand = {
 }
 
 /**
- * Sector colours for map, charts, cards and PDFs: earthy but distinct, and
- * each a ≥3:1 swatch on white. Mirrored in src/data/sectorColors.ts (a test
- * keeps the two equal).
+ * Sector colours for map, charts, cards and PDFs, after the brand: Verde,
+ * a deep Âmbar and a petrol blue. Each is a ≥3:1 swatch on white (3.2, 5.5,
+ * 5.7) and the three stay apart for red-green and blue-yellow colour
+ * blindness. Mirrored in src/data/sectorColors.ts (a test keeps the two equal).
  */
 const sector = {
-  agricola: '#6B7F3A',
-  pecuaria: '#C0782E',
-  urbano: '#4F6F86',
+  agricola: '#5CA032',
+  pecuaria: '#A15500',
+  urbano: '#166E97',
 }
 
 module.exports = { warmGray, warmSlate, terra, ochre, dusk, brand, sector }

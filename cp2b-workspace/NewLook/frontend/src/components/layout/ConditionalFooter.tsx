@@ -12,7 +12,7 @@ export default function ConditionalFooter() {
     <>
       <Footer />
       {/* Room for the phone bottom bar, so it never covers the footer's end. */}
-      <div aria-hidden="true" className="h-[calc(3.5rem+env(safe-area-inset-bottom))] bg-terra-900 md:hidden" />
+      <div aria-hidden="true" className="h-[calc(3.5rem+env(safe-area-inset-bottom))] bg-cp2b-petroleo md:hidden" />
     </>
   );
 }

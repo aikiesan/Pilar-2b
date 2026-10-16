@@ -44,9 +44,9 @@ const residuePillClass: Record<ResidueType, string> = {
 };
 
 const SECTOR_ROWS = [
-  { sector: 'agricultural', icon: '🌾', barClass: 'bg-terra-600' },
-  { sector: 'livestock', icon: '🐄', barClass: 'bg-yellow-600' },
-  { sector: 'urban', icon: '🏙️', barClass: 'bg-dusk-600' },
+  { sector: 'agricultural', icon: '🌾', barClass: 'bg-sector-agricola' },
+  { sector: 'livestock', icon: '🐄', barClass: 'bg-sector-pecuaria' },
+  { sector: 'urban', icon: '🏙️', barClass: 'bg-sector-urbano' },
 ] as const;
 
 function MunicipalityPopup({

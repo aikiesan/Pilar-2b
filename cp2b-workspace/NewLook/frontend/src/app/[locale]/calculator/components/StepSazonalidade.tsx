@@ -63,7 +63,7 @@ export default function StepSazonalidade({ activeMonths, activityType, onChange,
               {chartData.map(d => (
                 <Cell
                   key={d.month}
-                  fill={d.value === 1 ? SINGLE_SERIES_COLOR : '#E4DDD3'}
+                  fill={d.value === 1 ? SINGLE_SERIES_COLOR : '#E2E8EB'}
                   cursor="pointer"
                   onClick={() => toggle(d.month)}
                 />

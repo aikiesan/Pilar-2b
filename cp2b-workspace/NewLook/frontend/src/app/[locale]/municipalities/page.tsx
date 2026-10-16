@@ -63,7 +63,7 @@ export default async function MunicipalitiesPage() {
                 <a
                   key={letter}
                   href={`#letra-${letter}`}
-                  className="inline-flex h-10 w-10 items-center justify-center border border-line bg-paper-raised text-sm font-medium text-ink hover:border-line-strong"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-line bg-paper-raised text-sm font-medium text-ink hover:border-line-strong"
                 >
                   {letter}
                 </a>

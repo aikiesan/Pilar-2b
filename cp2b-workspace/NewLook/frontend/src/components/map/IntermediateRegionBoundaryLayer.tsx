@@ -45,7 +45,7 @@ const SP_UF_CODE = '35'
 
 export default function IntermediateRegionBoundaryLayer({
   visible = true,
-  color = '#1B5E20',
+  color = '#1E3E4C',
   weight = 2,
   dashArray = '8, 6',
   showLabels = true,

@@ -49,7 +49,7 @@ export default function MapLoadingSkeleton() {
               <div className="absolute inset-0 rounded-full bg-terra-800/20 dark:bg-terra-500/20 animate-ping" />
 
               {/* Main circle with icon */}
-              <div className="relative w-20 h-20 bg-gradient-to-br from-terra-800 to-[#27AE60] dark:from-terra-600 dark:to-terra-400 rounded-full flex items-center justify-center shadow-lg">
+              <div className="relative w-20 h-20 bg-gradient-to-br from-terra-600 to-cp2b-verde dark:from-terra-500 dark:to-cp2b-lima rounded-full flex items-center justify-center shadow-lg">
                 <svg
                   className="w-10 h-10 text-white animate-pulse"
                   fill="none"
@@ -95,7 +95,7 @@ export default function MapLoadingSkeleton() {
 
           {/* Progress bar */}
           <div className="mt-6 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-            <div className="h-full bg-gradient-to-r from-terra-800 to-[#27AE60] dark:from-terra-600 dark:to-terra-400 animate-loading-bar origin-left" />
+            <div className="h-full bg-gradient-to-r from-terra-600 to-cp2b-verde dark:from-terra-500 dark:to-cp2b-lima animate-loading-bar origin-left" />
           </div>
         </div>
       </div>

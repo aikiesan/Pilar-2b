@@ -37,7 +37,7 @@ export default function NotFound() {
             <li key={href}>
               <Link
                 href={href}
-                className="group flex h-full min-h-[44px] items-start gap-3 border border-line bg-paper-raised p-4 transition-colors hover:border-line-strong"
+                className="group flex h-full min-h-[44px] items-start gap-3 rounded-xl border border-line bg-paper-raised p-4 transition-colors hover:border-line-strong"
               >
                 <Icon className="mt-0.5 h-5 w-5 shrink-0 text-terra-700 dark:text-terra-300" aria-hidden="true" />
                 <span>

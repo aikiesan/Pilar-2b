@@ -23,12 +23,13 @@ export function generateStaticParams() {
 }
 
 const SIZE = { width: 1200, height: 630 }
-// The site's paper, ink and terracotta (src/styles/palette.js, globals.css).
-const PAPER = '#F7F2E7'
-const INK = '#2B2620'
-const MUTED = '#5E554B'
-const TERRA = '#8E3B22'
-const TERRA_DARK = '#662609'
+// The site's paper, ink and brand greens (src/styles/palette.js, globals.css):
+// white, Azul Petróleo, Verde Escuro.
+const PAPER = '#FFFFFF'
+const INK = '#1E3E4C'
+const MUTED = '#54666E'
+const TERRA = '#00573A'
+const TERRA_DARK = '#1E3E4C'
 
 export async function GET(_request: Request, { params }: { params: Promise<{ locale: string; slug: string }> }) {
   const { locale, slug } = await params

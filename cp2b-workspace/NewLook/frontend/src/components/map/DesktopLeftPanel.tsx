@@ -745,7 +745,7 @@ export default function DesktopLeftPanel({
             >
               {tab.icon}
               {tab.badge && (
-                <span className="absolute top-1.5 right-1.5 w-3.5 h-3.5 flex items-center justify-center text-[7px] font-bold rounded-full bg-terra-500 text-white">
+                <span className="absolute top-1.5 right-1.5 w-3.5 h-3.5 flex items-center justify-center text-[7px] font-bold rounded-full bg-terra-600 text-white">
                   {tab.badge}
                 </span>
               )}
@@ -792,7 +792,7 @@ export default function DesktopLeftPanel({
                 {tab.icon}
                 <span>{tab.label}</span>
                 {tab.badge && (
-                  <span className="absolute top-1 right-1 w-3.5 h-3.5 flex items-center justify-center text-[7px] font-bold rounded-full bg-terra-500 text-white">
+                  <span className="absolute top-1 right-1 w-3.5 h-3.5 flex items-center justify-center text-[7px] font-bold rounded-full bg-terra-600 text-white">
                     {tab.badge}
                   </span>
                 )}

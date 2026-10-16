@@ -86,7 +86,7 @@ export default function MunicipalitySearch() {
       <label htmlFor={inputId} className="eyebrow block">
         {t('label')}
       </label>
-      <div className="mt-2 flex items-center border border-line-strong bg-paper-raised focus-within:border-terra-600 focus-within:ring-1 focus-within:ring-terra-600">
+      <div className="mt-2 flex items-center rounded-lg border border-line-strong bg-paper-raised focus-within:border-terra-600 focus-within:ring-1 focus-within:ring-terra-600">
         <Search className="ml-3 h-4 w-4 shrink-0 text-ink-muted" aria-hidden="true" />
         <input
           ref={inputRef}

@@ -36,9 +36,9 @@
   --text-secondary: var(--ink-muted);
   --text-disabled: 147 163 171;
 
-  --biomass-agricola: #6B7F3A;
-  --biomass-pecuaria: #C0782E;
-  --biomass-urbano: #4F6F86;
+  --biomass-agricola: #5CA032;
+  --biomass-pecuaria: #A15500;
+  --biomass-urbano: #166E97;
 
   --focus-ring: 0 0 0 2px rgb(var(--paper)), 0 0 0 4px rgb(var(--terra));
 }

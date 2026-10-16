@@ -34,6 +34,7 @@ import { isFullViewport } from '@/components/layout/fullViewport'
 import { logger } from '@/lib/logger'
 import { loginHref } from '@/lib/authRedirect'
 import { withBasePath } from '@/lib/basePath'
+import { CP2B_SITE } from '@/config/contact'
 
 // The account UI keys off a REAL session, not `isAuthenticated`: in open mode
 // (NEXT_PUBLIC_DISABLE_AUTH=true) every visitor is the synthetic TEST_USER, so
@@ -130,14 +131,19 @@ export default function UnifiedHeader() {
       <header className="sticky top-0 z-50 border-b border-line bg-paper-raised/95 backdrop-blur-sm">
         <nav className="max-w-full mx-auto px-4 sm:px-6 lg:px-8" aria-label={tWay('main_nav')}>
           <div className="flex items-center justify-between h-16 gap-2 sm:gap-4">
-            {/* Logo */}
-            <div className="flex-shrink-0">
-              <Link href="/" className="flex items-center gap-2 sm:gap-3 group">
-                {/* Official CP2b logo: positive on the light header, negative on
-                    the dark one (manual 1.7), never recoloured. */}
+            {/* Logo: the CP2b mark leads to the CP2b site; the PILAR-2b name to
+                this platform's home. */}
+            <div className="flex flex-shrink-0 items-center gap-2 sm:gap-3">
+              {/* Official CP2b logo: positive on the light header, negative on
+                  the dark one (manual 1.7), never recoloured. */}
+              <a
+                href={CP2B_SITE}
+                aria-label={t('logo_cp2b_link')}
+                className="rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-terra-600 focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
+              >
                 <Image
                   src={withBasePath('/images/cp2b-logo.svg')}
-                  alt={t('logo_alt')}
+                  alt=""
                   width={110}
                   height={42}
                   unoptimized
@@ -147,7 +153,7 @@ export default function UnifiedHeader() {
                 />
                 <Image
                   src={withBasePath('/images/cp2b-logo-negativo.svg')}
-                  alt={t('logo_alt')}
+                  alt=""
                   width={110}
                   height={42}
                   unoptimized
@@ -155,8 +161,14 @@ export default function UnifiedHeader() {
                   style={{ height: 'auto' }}
                   priority
                 />
-                <span aria-hidden="true" className="hidden sm:block h-7 w-px bg-line" />
-                <span className="hidden sm:block text-base font-bold tracking-tight text-ink">PILAR-2b</span>
+              </a>
+              <span aria-hidden="true" className="h-7 w-px bg-line" />
+              <Link
+                href="/"
+                aria-label={t('logo_alt')}
+                className="flex items-center gap-2 rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-terra-600 focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
+              >
+                <span className="text-base font-bold tracking-tight text-ink">PILAR-2b</span>
                 <span className="inline-flex items-center px-1.5 py-0.5 rounded-full border border-ochre-700/50 text-ochre-700 dark:border-ochre-400/50 dark:text-ochre-300 text-[10px] font-medium uppercase tracking-[0.12em]">
                   {t('badge.beta')}
                 </span>

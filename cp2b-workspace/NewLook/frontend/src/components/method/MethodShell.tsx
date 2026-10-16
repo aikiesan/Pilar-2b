@@ -55,7 +55,7 @@ export default async function MethodShell({
                   <Link
                     href={href}
                     aria-current={active ? 'page' : undefined}
-                    className={`flex min-h-[40px] items-center whitespace-nowrap border px-3 text-sm transition-colors lg:-ml-px lg:min-h-[36px] lg:whitespace-normal lg:border-0 lg:border-l-2 lg:py-1.5 ${
+                    className={`flex min-h-[40px] items-center whitespace-nowrap rounded-lg border px-3 text-sm transition-colors lg:-ml-px lg:min-h-[36px] lg:whitespace-normal lg:border-0 lg:border-l-2 lg:py-1.5 ${
                       active
                         ? 'border-terra-600 bg-paper-raised font-medium text-terra-700 dark:border-terra-400 dark:text-terra-300 lg:bg-transparent'
                         : 'border-line bg-paper-raised text-ink-muted hover:text-ink lg:border-transparent lg:bg-transparent'
