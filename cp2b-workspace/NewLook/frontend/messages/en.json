@@ -267,7 +267,8 @@
     "search": {
       "label": "Search municipality",
       "placeholder": "Name or IBGE code…",
-      "clear_aria": "Clear search"
+      "clear_aria": "Clear search",
+      "no_match": "No municipality with that name on the map. Check the spelling or clear the search."
     },
     "residues": {
       "sugarcane": "Sugarcane",
@@ -970,7 +971,13 @@
       "biomass": "Biomass",
       "loading": "National data is still loading…"
     },
-    "clusters_loading": "Calculating co-digestion clusters…"
+    "clusters_loading": "Calculating co-digestion clusters…",
+    "first_visit": {
+      "title": "First time here?",
+      "body": "Click a municipality on the map to see how much biogas its waste could produce. To find your city, use the search in the Filters tab.",
+      "dismiss": "Got it",
+      "close": "Close tip"
+    }
   },
   "metadata": {
     "title": "PILAR-2b — Intelligent Platform for Locating and Using Residues for Biogas and Bioproducts",
@@ -2600,6 +2607,21 @@
       "title": "This page didn't load properly",
       "body": "It may have been a brief connection or server hiccup. Try again; if it keeps happening, go back home or open the map.",
       "retry": "Try again"
+    }
+  },
+  "mascot": {
+    "label": "Metaninho, CP2b's mascot: ask for a tip",
+    "lines": {
+      "tips": [
+        "Hi! I'm Metaninho: one carbon and four hydrogens. In biogas, I'm the part that becomes energy.",
+        "Start with the map: click a municipality to see how much biogas its waste could produce.",
+        "Looking for your city? Type its name or IBGE code in the search at the top of the page.",
+        "Not sure about something? The Guide explains each screen, step by step."
+      ],
+      "not_found": [
+        "Oops! This page doesn't exist. How about searching for a municipality up here?",
+        "I get lost sometimes too. The paths below lead to the main parts of the platform."
+      ]
     }
   }
 }

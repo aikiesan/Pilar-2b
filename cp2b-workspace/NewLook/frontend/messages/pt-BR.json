@@ -267,7 +267,8 @@
     "search": {
       "label": "Buscar município",
       "placeholder": "Nome ou código IBGE…",
-      "clear_aria": "Limpar busca"
+      "clear_aria": "Limpar busca",
+      "no_match": "Nenhum município com esse nome no mapa. Confira a grafia ou limpe a busca."
     },
     "residues": {
       "sugarcane": "Cana-de-açúcar",
@@ -970,7 +971,13 @@
       "biomass": "Biomassa",
       "loading": "Dados nacionais em carregamento…"
     },
-    "clusters_loading": "Calculando agrupamentos de co-digestão…"
+    "clusters_loading": "Calculando agrupamentos de co-digestão…",
+    "first_visit": {
+      "title": "Primeira vez por aqui?",
+      "body": "Clique num município do mapa para ver quanto biogás os resíduos dele podem gerar. Para achar sua cidade, use a busca na aba Filtros.",
+      "dismiss": "Entendi",
+      "close": "Fechar dica"
+    }
   },
   "metadata": {
     "title": "PILAR-2b — Plataforma Inteligente de Localização e Aproveitamento de Resíduos para Biogás e Bioprodutos",
@@ -2600,6 +2607,21 @@
       "title": "Esta página não carregou direito",
       "body": "Pode ter sido uma falha passageira na conexão ou no servidor. Tente de novo; se continuar, volte ao início ou abra o mapa.",
       "retry": "Tentar de novo"
+    }
+  },
+  "mascot": {
+    "label": "Metaninho, o mascote do CP2b: pedir uma dica",
+    "lines": {
+      "tips": [
+        "Oi! Eu sou o Metaninho: um carbono e quatro hidrogênios. No biogás, eu sou a parte que vira energia.",
+        "Comece pelo mapa: clique num município para ver quanto biogás os resíduos dele podem gerar.",
+        "Procurando sua cidade? Digite o nome ou o código IBGE na busca, no topo da página.",
+        "Ficou com dúvida? O Guia explica cada tela, passo a passo."
+      ],
+      "not_found": [
+        "Ops! Essa página não existe. Que tal buscar um município aqui em cima?",
+        "Eu também me perco às vezes. Os caminhos abaixo levam às partes principais da plataforma."
+      ]
     }
   }
 }

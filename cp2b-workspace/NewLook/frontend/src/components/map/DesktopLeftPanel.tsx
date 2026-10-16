@@ -32,6 +32,7 @@ import {
 import { DATA_EXPORT_ENABLED } from '@/lib/featureFlags';
 import { MG_BETA_LAYER_ID } from '@/lib/mapScope';
 import type { Messages } from '@/types/i18n';
+import Metaninho from '@/components/mascot/Metaninho';
 
 /** The `Map` translator, handed to the section components below. */
 type MapTranslator = ReturnType<typeof useTranslations<'Map'>>;
@@ -181,8 +182,9 @@ const DATA_SOURCES: {
 function FiltersSection({
   searchQuery, onSearchChange, visualizationMode, onVisualizationModeChange,
   displayMetric = 'biomass_tons', onDisplayMetricChange, t,
-  colorMode, onColorModeChange, scopeUf = 'SP',
+  colorMode, onColorModeChange, scopeUf = 'SP', noMatch = false,
 }: {
+  noMatch?: boolean;
   searchQuery: string;
   onSearchChange: (v: string) => void;
   visualizationMode: VisualizationMode;
@@ -230,6 +232,15 @@ function FiltersSection({
             </button>
           )}
         </div>
+        {/* A search with no match empties the map: say so, and what to try. */}
+        <p role="status" className="mt-1.5 flex items-start gap-2 text-xs leading-snug text-ink-muted empty:hidden">
+          {noMatch && (
+            <>
+              <Metaninho pose="curioso" size={32} className="shrink-0" />
+              <span>{t('search.no_match')}</span>
+            </>
+          )}
+        </p>
       </div>
 
       {/* Metric toggle — Biomassa / Biogás / Biometano / Bioenergia */}
@@ -810,6 +821,7 @@ export default function DesktopLeftPanel({
                 t={t}
                 colorMode={colorMode} onColorModeChange={onColorModeChange}
                 scopeUf={scopeUf}
+                noMatch={!!searchQuery.trim() && municipalityCount === 0}
               />
             )}
             {activeTab === 'temas' && (

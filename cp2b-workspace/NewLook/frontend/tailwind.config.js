@@ -69,12 +69,21 @@ module.exports = {
         '3xl': '20px',
       },
       animation: {
+        // Metaninho arrives with a small hop, and hops again when clicked.
+        'metaninho-in': 'metaninhoIn 0.7s cubic-bezier(0.34, 1.4, 0.64, 1) 0.1s backwards',
+        'metaninho-hop': 'metaninhoHop 0.6s cubic-bezier(0.34, 1.4, 0.64, 1)',
         'fade-in': 'fadeIn 0.5s ease-in-out',
         'slide-up': 'slideUp 0.3s ease-out',
         'ping': 'ping 1s cubic-bezier(0, 0, 0.2, 1) infinite',
         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
       },
       keyframes: {
+        metaninhoIn: {
+          from: { opacity: '0', transform: 'translateY(14px) rotate(-6deg) scale(0.9)' },
+        },
+        metaninhoHop: {
+          '40%': { transform: 'translateY(-16px) rotate(-6deg)' },
+        },
         fadeIn: {
           '0%': { opacity: '0' },
           '100%': { opacity: '1' },

@@ -11,6 +11,7 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useIsClient } from '@/hooks/useIsClient';
 import { useTranslations } from 'next-intl';
+import MapFirstVisitTip from './MapFirstVisitTip';
 import { MapContainer, TileLayer, ScaleControl, ZoomControl, useMap } from 'react-leaflet';
 import dynamic from 'next/dynamic';
 import { CircleAlert, Loader2 } from 'lucide-react';
@@ -987,6 +988,9 @@ export default function MapComponent({
             👁 {t('daltonic.toggle')}
           </button>
         </div>
+
+        {/* First visit: what to do first, once per browser. */}
+        <MapFirstVisitTip />
 
         {/* Keyboard instructions for the interactive map (WCAG 2.1.1). */}
         <p id="map-keyboard-help" className="sr-only">{t('map_keyboard_help')}</p>

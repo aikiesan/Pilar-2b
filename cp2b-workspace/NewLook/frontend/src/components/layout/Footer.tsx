@@ -14,6 +14,7 @@ import { CP2B_SITE, SOCIAL_LINKS } from '@/config/contact'
 import { FOOTER_LINKS } from './siteNav'
 import NavLink from './NavLink'
 import { withBasePath } from '@/lib/basePath'
+import MetaninhoAmigo from '@/components/mascot/MetaninhoAmigo'
 
 // Social icons removed from lucide-react v1.x — inline SVGs
 function InstagramIcon({ className }: { className?: string }) {
@@ -137,7 +138,7 @@ export default function Footer() {
                   {t('footer.newsletter_heading')}
                 </p>
               </div>
-              <p className="text-sm text-gray-400 leading-relaxed">
+              <p className="text-sm text-gray-300 leading-relaxed">
                 {t('footer.newsletter_desc')}
               </p>
             </div>
@@ -189,7 +190,7 @@ export default function Footer() {
               </p>
             )}
           </div>
-          <p className="mt-1 text-xs text-gray-400">
+          <p className="mt-1 text-xs text-gray-300">
             {t.rich('footer.newsletter_consent', {
               privacy: (chunks) => (
                 <Link href="/privacy" className="underline underline-offset-2 hover:text-gray-200">
@@ -221,7 +222,7 @@ export default function Footer() {
                 <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-cp2b-lima">
                   PILAR
                 </p>
-                <p className="text-xs text-gray-400 leading-snug">
+                <p className="text-xs text-gray-300 leading-snug">
                   {t('footer.platform_acronym')}
                 </p>
               </div>
@@ -229,21 +230,21 @@ export default function Footer() {
                 <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-cp2b-lima">
                   2b
                 </p>
-                <p className="text-xs text-gray-400 leading-snug">
+                <p className="text-xs text-gray-300 leading-snug">
                   {t('footer.platform_2b')}
                 </p>
               </div>
             </div>
 
             <div className="pt-1 space-y-0.5 border-t border-white/10">
-              <p className="text-xs text-gray-400">{t('footer.institution')}</p>
-              <p className="text-xs text-gray-400">{t('footer.fapesp_project')}</p>
+              <p className="text-xs text-gray-300">{t('footer.institution')}</p>
+              <p className="text-xs text-gray-300">{t('footer.fapesp_project')}</p>
             </div>
           </div>
 
           {/* Col B — Quick Links */}
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-4">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-gray-300 mb-4">
               {t('footer.quick_links')}
             </p>
             <nav aria-label={t('footer.quick_links')}>
@@ -252,7 +253,7 @@ export default function Footer() {
                   <li key={link.href}>
                     <NavLink
                       href={link.href}
-                      className="text-sm text-gray-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-white/40 rounded"
+                      className="text-sm text-gray-300 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-white/40 rounded"
                     >
                       {link.label}
                     </NavLink>
@@ -264,7 +265,7 @@ export default function Footer() {
 
           {/* Col C — Connect */}
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-4">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-gray-300 mb-4">
               {t('footer.connect')}
             </p>
             <div className="flex flex-wrap gap-3">
@@ -277,7 +278,7 @@ export default function Footer() {
                   aria-label={label}
                   className={`
                     flex items-center justify-center w-10 h-10 rounded-lg
-                    text-gray-400 border border-white/10 bg-white/5
+                    text-gray-300 border border-white/10 bg-white/5
                     transition-all duration-150
                     focus:outline-none focus:ring-2 focus:ring-white/40
                     ${hover}
@@ -289,13 +290,19 @@ export default function Footer() {
             </div>
 
             <div className="mt-6 space-y-1">
-              <p className="text-xs text-gray-400">{t('footer.location')}</p>
+              <p className="text-xs text-gray-300">{t('footer.location')}</p>
               <a
                 href={CP2B_SITE}
-                className="text-xs text-gray-400 hover:text-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-white/40 rounded"
+                className="text-xs text-gray-300 hover:text-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-white/40 rounded"
               >
                 cp2b.unicamp.br ↗
               </a>
+            </div>
+
+            {/* Metaninho sits in the corner, as on the CP2b site: click him and
+                he gives a tip. */}
+            <div className="mt-6 flex justify-end md:justify-start">
+              <MetaninhoAmigo pose="tranquilo" size={96} onDark bubble="right" />
             </div>
           </div>
         </div>
@@ -304,7 +311,7 @@ export default function Footer() {
       {/* ── Section 3: Bottom bar ─────────────────────────────────── */}
       <div className="border-t border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-400">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-300">
 
             {/* Legal links */}
             <nav aria-label={t('footer.legal_links')}>
