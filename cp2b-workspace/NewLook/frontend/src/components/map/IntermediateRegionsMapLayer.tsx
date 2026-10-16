@@ -78,7 +78,7 @@ export default function IntermediateRegionsMapLayer({
     return {
       fillColor:   hasData ? getBiogasColor(biogas) : '#e0e0e0',
       fillOpacity: hasData ? opacity : 0.15,
-      color:       '#1B5E20',
+      color:       '#1E3E4C',
       weight:      hasData ? 1.5 : 1,
       opacity:     0.8,
       dashArray:   hasData ? undefined : '6, 4',
@@ -117,7 +117,7 @@ export default function IntermediateRegionsMapLayer({
       (layer as L.Path).setStyle({ weight: 3, color: '#000' });
     });
     (layer as L.Path).on('mouseout', () => {
-      (layer as L.Path).setStyle({ weight: biogas > 0 ? 1.5 : 1, color: '#1B5E20' });
+      (layer as L.Path).setStyle({ weight: biogas > 0 ? 1.5 : 1, color: '#1E3E4C' });
     });
   };
 

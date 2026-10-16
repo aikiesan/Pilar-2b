@@ -100,9 +100,9 @@ export default function TourGuide({ run, onFinish }: TourGuideProps) {
     },
     // AQUI ESTÁ A OPTIONS CONSOLIDADA
     options: {
-      primaryColor: '#8E3B22', // terra-600
-      textColor: '#58534E', // warm gray-600
-      backgroundColor: '#FBF8F2', // paper-raised
+      primaryColor: '#00573A', // Verde Escuro (terra-600)
+      textColor: '#1E3E4C', // Azul Petróleo (ink)
+      backgroundColor: '#FFFFFF', // paper-raised
       overlayColor: 'rgba(0, 0, 0, 0.5)',
       zIndex: 10000,
       beaconTrigger: 'hover',
@@ -111,8 +111,8 @@ export default function TourGuide({ run, onFinish }: TourGuideProps) {
     },
     styles: {
       tooltip: {
-        borderRadius: '8px', // Deixa as bordas levemente arredondadas
-        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
+        borderRadius: '16px', // curvas do manual do CP2b
+        boxShadow: '0 4px 12px rgba(30, 62, 76, 0.12)'
       },
     },
     

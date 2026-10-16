@@ -326,7 +326,7 @@ export default function ScenarioComparator({
 
       {/* Info note */}
       <div className="mt-4 p-3 bg-dusk-50 rounded-lg flex items-start gap-2">
-        <Info className="h-4 w-4 text-dusk-500 flex-shrink-0 mt-0.5" />
+        <Info className="h-4 w-4 text-dusk-600 flex-shrink-0 mt-0.5" />
         <p className="text-xs text-dusk-700">{t('scenario_comparator.info_note')}</p>
       </div>
     </div>

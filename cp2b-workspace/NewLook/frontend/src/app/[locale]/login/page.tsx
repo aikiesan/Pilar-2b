@@ -15,6 +15,7 @@ import { logger } from '@/lib/logger'
 import { safeNext } from '@/lib/authRedirect'
 import { firstError, validateEmail, validateRequired } from '@/lib/validation'
 import { useValidationMessage } from '@/hooks/useValidationMessage'
+import { withBasePath } from '@/lib/basePath'
 
 /** Read at redirect time, so the page needs no Suspense boundary for useSearchParams. */
 const afterLogin = () => safeNext(new URLSearchParams(window.location.search).get('next'))
@@ -86,13 +87,20 @@ export default function LoginPage() {
             className="inline-flex items-center justify-center text-ink hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-terra-600 focus:ring-offset-2 focus:ring-offset-paper rounded-lg"
             aria-label={t('login.back_to_home')}
           >
-            <Image
-              src="/images/logotipo-full-black.png"
+            <Image src={withBasePath('/images/cp2b-logo.svg')} unoptimized
               alt="PILAR-2b Logo"
               width={180}
               height={50}
               style={{ height: 'auto' }}
-              className="dark:brightness-0 dark:invert mb-6"
+              className="block dark:hidden mb-6"
+              priority
+            />
+            <Image src={withBasePath('/images/cp2b-logo-negativo.svg')} unoptimized
+              alt="PILAR-2b Logo"
+              width={180}
+              height={50}
+              style={{ height: 'auto' }}
+              className="hidden dark:block mb-6"
               priority
             />
           </Link>

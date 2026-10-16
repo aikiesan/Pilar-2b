@@ -1,12 +1,8 @@
 import type { ReactNode } from 'react';
-// Self-hosted variable fonts: tailwind.config.js named Inter and JetBrains Mono,
-// but nothing loaded them, so visitors without them installed got system-ui.
-// Bundled from npm, so the build needs no Google Fonts call and the CSP's
-// font-src 'self' still holds.
-import '@fontsource-variable/inter';
+// Text and headings use the CP2b typeface stack (Neulis Sans, then Verdana:
+// tailwind.config.js), which needs no download. Only the monospace for codes
+// and figures is bundled from npm, so the CSP's font-src 'self' still holds.
 import '@fontsource-variable/jetbrains-mono';
-// Display serif for headings (weight + optical-size axes).
-import '@fontsource-variable/fraunces/opsz.css';
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (

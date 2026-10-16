@@ -6,25 +6,25 @@
 @config "../../../tailwind.config.js";
 
 /* ============================================
-   PILAR-2b THEME — earth, warm, light
+   PILAR-2b THEME — CP2b visual identity: white, Azul Petróleo, Verde Escuro
    Palette and ramps: src/styles/palette.js. Values here are the ones a
    stylesheet needs at runtime: surfaces and text that the dark theme swaps.
    ============================================ */
 
 :root {
-  /* Surfaces: cream paper, a lighter sheet for cards, a sand band. */
-  --paper: 247 242 231;         /* #F7F2E7 */
-  --paper-raised: 251 248 242;  /* #FBF8F2 */
-  --paper-sunken: 239 232 219;  /* #EFE8DB */
-  /* Text */
-  --ink: 43 38 32;              /* #2B2620 — 13.4:1 on paper */
-  --ink-muted: 107 98 88;       /* #6B6258 — 5.4:1 on paper */
+  /* Surfaces: white page and cards, a light cool-grey band. */
+  --paper: 255 255 255;         /* #FFFFFF */
+  --paper-raised: 255 255 255;  /* #FFFFFF */
+  --paper-sunken: 244 247 248;  /* #F4F7F8 */
+  /* Text: Azul Petróleo */
+  --ink: 30 62 76;              /* #1E3E4C — 11.4:1 on white */
+  --ink-muted: 84 102 110;      /* #54666E — 6.0:1 on white, 5.6:1 on sunken */
   /* Rules */
-  --line: 228 221 211;          /* #E4DDD3 — hairlines, card frames */
-  --line-strong: 143 132 120;   /* #8F8478 — inputs and controls, ≥3:1 */
-  /* Brand */
-  --terra: 142 59 34;           /* #8E3B22 */
-  --oxblood: 96 10 0;           /* #600A00 */
+  --line: 226 232 235;          /* #E2E8EB — hairlines, card frames */
+  --line-strong: 125 140 147;   /* #7D8C93 — inputs and controls, ≥3:1 */
+  /* Brand: Verde Escuro (actions) and Verde Limão (accents) */
+  --terra: 0 87 58;             /* #00573A */
+  --lima: 182 224 59;           /* #B6E03B */
 
   /* Older names, still read by a few components */
   --background: var(--paper);
@@ -34,38 +34,39 @@
   --divider: var(--line);
   --text-primary: var(--ink);
   --text-secondary: var(--ink-muted);
-  --text-disabled: 167 162 155;
+  --text-disabled: 147 163 171;
 
-  --biomass-agricola: #6B7F3A;
-  --biomass-pecuaria: #C0782E;
-  --biomass-urbano: #4F6F86;
+  --biomass-agricola: #5CA032;
+  --biomass-pecuaria: #A15500;
+  --biomass-urbano: #166E97;
 
   --focus-ring: 0 0 0 2px rgb(var(--paper)), 0 0 0 4px rgb(var(--terra));
 }
 
+/* Dark theme: an Azul Petróleo night. */
 .dark {
-  --paper: 28 25 22;            /* #1C1916 */
-  --paper-raised: 38 34 30;     /* #26221E */
-  --paper-sunken: 20 17 15;     /* #14110F */
-  --ink: 237 230 220;           /* #EDE6DC — 14.1:1 */
-  --ink-muted: 168 159 148;     /* #A89F94 — 6.7:1 */
-  --line: 58 52 45;             /* #3A342D */
-  --line-strong: 122 112 100;   /* #7A7064 */
-  --terra: 227 154 120;         /* #E39A78 — 7.6:1 on paper */
-  --text-disabled: 120 114 108;
+  --paper: 14 28 34;            /* #0E1C22 */
+  --paper-raised: 21 40 48;     /* #152830 */
+  --paper-sunken: 10 21 26;     /* #0A151A */
+  --ink: 230 238 241;           /* #E6EEF1 — 14.8:1 */
+  --ink-muted: 163 181 189;     /* #A3B5BD — 8.2:1 */
+  --line: 38 58 67;             /* #263A43 */
+  --line-strong: 95 122 134;    /* #5F7A86 — 3.8:1 */
+  --terra: 128 194 157;         /* #80C29D — 8.4:1 on paper */
+  --text-disabled: 110 128 136;
 }
 
-/* Map panels float over a light basemap and stay on cream paper in either
-   theme: the tokens inside are pinned to their light values. */
+/* Map panels float over a light basemap and stay on white in either theme:
+   the tokens inside are pinned to their light values. */
 .surface-light {
-  --paper: 247 242 231;
-  --paper-raised: 251 248 242;
-  --paper-sunken: 239 232 219;
-  --ink: 43 38 32;
-  --ink-muted: 107 98 88;
-  --line: 228 221 211;
-  --line-strong: 143 132 120;
-  --terra: 142 59 34;
+  --paper: 255 255 255;
+  --paper-raised: 255 255 255;
+  --paper-sunken: 244 247 248;
+  --ink: 30 62 76;
+  --ink-muted: 84 102 110;
+  --line: 226 232 235;
+  --line-strong: 125 140 147;
+  --terra: 0 87 58;
   color: rgb(var(--ink));
   color-scheme: light;
 }
@@ -80,18 +81,18 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
-  /* Page and section titles set in the display serif, light, whatever weight
-     utility the markup carries (the selector outranks font-bold & co.).
-     Add `font-sans` to a heading that sits in dense UI and should stay Inter. */
+  /* Page and section titles: the brand sans, bold, in Azul Petróleo,
+     whatever weight utility the markup carries (the selector outranks
+     font-light & co.). Add `font-sans` to a heading that sits in dense UI and
+     should keep the weight its classes give it. */
   :is(h1, h2):not(.font-sans) {
     font-family: theme('fontFamily.display');
-    font-weight: 400;
-    font-optical-sizing: auto;
-    letter-spacing: -0.01em;
+    font-weight: 700;
+    letter-spacing: -0.015em;
   }
 
   ::selection {
-    background: rgb(var(--terra) / 0.18);
+    background: rgb(var(--lima) / 0.45);
   }
 
   /* Smooth transitions for dark mode toggle - applied only to interactive elements */
@@ -102,7 +103,7 @@
 
 /* Component styles */
 @layer components {
-  /* Buttons: solid terracotta, hairline outline, text. 2px corners. */
+  /* Buttons: solid Verde Escuro, outlined Azul Petróleo, text. */
   .btn-primary {
     @apply inline-flex items-center justify-center gap-2 bg-terra-600 hover:bg-terra-700 dark:bg-terra-400 dark:hover:bg-terra-300 text-white dark:text-gray-900 px-5 py-2.5 rounded font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-terra-600 dark:focus-visible:ring-terra-400 focus-visible:ring-offset-paper;
   }
@@ -115,9 +116,9 @@
     @apply inline-flex items-center gap-2 bg-transparent text-ink-muted hover:text-terra-600 dark:hover:text-terra-400 px-3 py-2 rounded font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-terra-600 dark:focus-visible:ring-terra-400;
   }
 
-  /* Cards: a lighter sheet on the paper, framed by a hairline. No lift. */
+  /* Cards: white, framed by a hairline; the frame turns Verde Limão on hover. */
   .card {
-    @apply bg-paper-raised rounded-sm border border-line p-6 transition-colors duration-200 hover:border-line-strong;
+    @apply bg-paper-raised rounded-xl border border-line p-6 transition-colors duration-200 hover:border-cp2b-lima;
   }
 
   .card-elevated {
@@ -137,13 +138,13 @@
     @apply text-[11px] sm:text-xs font-medium uppercase tracking-[0.14em] text-ink-muted;
   }
 
-  /* A title's underline: a short terracotta rule on a full hairline. */
+  /* A title's underline: a short Verde Limão rule on a full hairline. */
   .section-rule {
     @apply relative border-b border-line pb-3;
   }
   .section-rule::after {
     content: '';
-    @apply absolute -bottom-px left-0 h-px w-12 bg-terra-600 dark:bg-terra-400;
+    @apply absolute -bottom-px left-0 h-0.5 w-12 bg-cp2b-lima;
   }
 
   /* Focus ring for accessibility */
@@ -327,7 +328,7 @@ input[type="range"]::-moz-range-thumb {
 
   /* Gradient backgrounds */
   .bg-gradient-hero {
-    background: linear-gradient(135deg, rgb(var(--terra)) 0%, rgb(var(--oxblood)) 100%);
+    background: linear-gradient(135deg, rgb(var(--terra)) 0%, #1E3E4C 100%);
   }
 
   .bg-gradient-subtle {

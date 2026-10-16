@@ -8,6 +8,7 @@ import { ArrowRight } from 'lucide-react';
 import { Link } from '@/navigation';
 import MunicipalitySearch from '@/components/home/MunicipalitySearch';
 import { NAV_GROUPS, type NavLeaf } from '@/components/layout/siteNav';
+import MetaninhoAmigo from '@/components/mascot/MetaninhoAmigo';
 
 /** The pages a lost visitor most likely wanted, as the menus label them. */
 const PATHS = ['/map', '/municipalities', '/data', '/guide'];
@@ -23,9 +24,14 @@ export default function NotFound() {
     <div className="bg-paper">
       <title>{`${t('meta_title')} · PILAR-2b`}</title>
       <div className="mx-auto max-w-5xl px-4 py-14 sm:px-6 sm:py-20 lg:px-8">
-        <p className="eyebrow">{t('eyebrow')}</p>
-        <h1 className="mt-3 text-4xl text-ink sm:text-5xl">{t('title')}</h1>
-        <p className="mt-4 max-w-2xl text-ink-muted">{t('body')}</p>
+        <div className="flex items-start justify-between gap-6">
+          <div>
+            <p className="eyebrow">{t('eyebrow')}</p>
+            <h1 className="mt-3 text-4xl text-ink sm:text-5xl">{t('title')}</h1>
+            <p className="mt-4 max-w-2xl text-ink-muted">{t('body')}</p>
+          </div>
+          <MetaninhoAmigo pose="surpreso" size={120} lines="not_found" bubble="left" className="hidden shrink-0 sm:inline-block" />
+        </div>
 
         <div className="mt-8">
           <MunicipalitySearch />
@@ -37,7 +43,7 @@ export default function NotFound() {
             <li key={href}>
               <Link
                 href={href}
-                className="group flex h-full min-h-[44px] items-start gap-3 border border-line bg-paper-raised p-4 transition-colors hover:border-line-strong"
+                className="group flex h-full min-h-[44px] items-start gap-3 rounded-xl border border-line bg-paper-raised p-4 transition-colors hover:border-line-strong"
               >
                 <Icon className="mt-0.5 h-5 w-5 shrink-0 text-terra-700 dark:text-terra-300" aria-hidden="true" />
                 <span>

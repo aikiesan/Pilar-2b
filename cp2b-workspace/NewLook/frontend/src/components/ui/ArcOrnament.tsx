@@ -1,8 +1,9 @@
 /**
- * Decorative hairline arcs with a few translucent earth-tone shapes, after the
- * Itaú Cultural "Próximo Ato" pages the visual identity takes its cue from.
+ * Decorative leaves after the CP2b brand illustration (manual 1.16): the
+ * outline of the large leaf in Azul Petróleo and a small solid leaf in Verde
+ * Limão, the two shapes of the logo's icon.
  *
- * Purely decorative (aria-hidden), drawn in currentColor for the lines so it
+ * Purely decorative (aria-hidden), the outline drawn in currentColor so it
  * follows the theme, and kept faint: it sits behind hero text. Use it in hero
  * areas only; one per page is plenty.
  */
@@ -15,17 +16,31 @@ export default function ArcOrnament({ className = '' }: { className?: string }) 
       focusable="false"
       className={`pointer-events-none select-none ${className}`}
     >
-      {/* Translucent shapes: terracotta, ochre, slate-blue. */}
-      <path d="M600 40 C 470 60 360 150 330 300 L 600 260 Z" className="fill-terra-600/15 dark:fill-terra-400/10" />
-      <path d="M600 330 C 520 330 430 380 390 470 C 470 450 540 470 600 520 Z" className="fill-ochre-500/20 dark:fill-ochre-400/10" />
-      <path d="M260 600 C 300 500 380 430 480 410 L 520 600 Z" className="fill-dusk-500/15 dark:fill-dusk-400/10" />
-      {/* Hairline arcs. */}
-      <g stroke="currentColor" strokeWidth="1" vectorEffect="non-scaling-stroke" className="opacity-30">
-        <path d="M120 600 A 480 480 0 0 1 600 120" />
-        <path d="M40 520 C 180 300 380 200 600 190" />
-        <circle cx="520" cy="300" r="210" />
-        <path d="M300 0 C 360 160 470 250 600 280" />
-      </g>
+      {/* Small solid leaf: Verde Limão. */}
+      <path
+        d="M560 250 C 500 236 440 262 416 318 C 398 360 412 396 430 424 C 444 446 436 470 408 492 C 470 476 520 450 548 400 C 566 368 566 330 562 296 Z"
+        className="fill-cp2b-lima/40 dark:fill-cp2b-lima/20"
+      />
+      {/* Large leaf outline: Azul Petróleo. */}
+      <path
+        d="M236 40 C 380 30 500 140 500 290 C 500 360 470 410 440 452 C 418 482 418 520 450 560 L 380 532 C 260 484 180 400 172 286 C 168 220 176 150 182 96 L 184 44 Z"
+        stroke="currentColor"
+        strokeWidth="2"
+        vectorEffect="non-scaling-stroke"
+        className="opacity-25"
+      />
     </svg>
+  )
+}
+
+/**
+ * The same leaves behind a page header (the band with the eyebrow, title and
+ * lede): smaller and fainter than on the home page, at the right edge, and
+ * only from md up so it never crowds a phone. The header needs `relative
+ * overflow-hidden`, and its content `relative`, to sit above it.
+ */
+export function HeaderLeaves() {
+  return (
+    <ArcOrnament className="absolute -right-10 -top-6 hidden h-[calc(100%+3rem)] max-h-[26rem] w-auto text-cp2b-petroleo opacity-80 dark:text-dusk-200 md:block" />
   )
 }

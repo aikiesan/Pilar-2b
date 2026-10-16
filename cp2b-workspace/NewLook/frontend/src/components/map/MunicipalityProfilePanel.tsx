@@ -435,7 +435,7 @@ export default function MunicipalityProfilePanel({
               href={`https://cidades.ibge.gov.br/brasil/${ibgeUf}/${ibgeSlug}/panorama`}
               target="_blank"
               rel="noopener noreferrer"
-              className="group flex items-center justify-between border border-line px-3 py-2.5 transition-colors hover:bg-paper-sunken"
+              className="group flex items-center justify-between rounded-lg border border-line px-3 py-2.5 transition-colors hover:bg-paper-sunken"
             >
               <span className="text-sm text-ink">{t('ibge_more')}</span>
               <ExternalLink className="h-4 w-4 text-ink-muted" aria-hidden="true" />

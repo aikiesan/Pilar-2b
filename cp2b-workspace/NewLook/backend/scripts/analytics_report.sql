@@ -13,8 +13,10 @@
 -- The browser sends both on the same route change, so consented views over all
 -- views is the share of visitors who accept statistics. Dividing the consented
 -- visitors and sessions by that share estimates them for everyone, assuming
--- those who accept browse like those who do not. The estimate covers only days
--- with anonymous counts (from the day migration 038 went live).
+-- those who accept browse like those who do not. The estimate covers only full
+-- days with anonymous counts: the day migration 038 went live is partial (the
+-- consented views from before the deploy have no anonymous count beside them),
+-- so it shows no consent share and the period starts the day after.
 
 \if :{?days}
 \else
@@ -34,20 +36,24 @@ WITH a AS (
     FROM analytics_pageviews
     WHERE occurred_at > now() - make_interval(days => :days)
     GROUP BY 1
+), first AS (
+    SELECT min(day) AS day FROM analytics_page_counts
 )
 SELECT day,
        coalesce(a.visits, 0) AS visits,
        coalesce(a.views, 0) AS views,
        coalesce(c.views, 0) AS consented_views,
        coalesce(c.visitors, 0) AS consented_visitors,
-       round(100.0 * c.views / nullif(a.views, 0), 1) AS pct_consent
+       CASE WHEN day > (SELECT day FROM first)
+            THEN round(100.0 * c.views / nullif(a.views, 0), 1) END AS pct_consent,
+       CASE WHEN day = (SELECT day FROM first) THEN 'partial: 038 went live' END AS note
 FROM a FULL JOIN c USING (day)
 ORDER BY day DESC;
 
 \echo
 \echo '== Period: consent share and estimated visitors'
 WITH since AS (
-    SELECT greatest(current_date - :days + 1, min(day)) AS day FROM analytics_page_counts
+    SELECT greatest(current_date - :days + 1, min(day) + 1) AS day FROM analytics_page_counts
 ), a AS (
     SELECT coalesce(sum(views) FILTER (WHERE entry), 0) AS visits, coalesce(sum(views), 0) AS views
     FROM analytics_page_counts WHERE day >= (SELECT day FROM since)

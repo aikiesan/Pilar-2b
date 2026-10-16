@@ -6,7 +6,7 @@
 #
 # Answers "did the release reach production, and does it work?": the deployed
 # commit against origin/main, the PM2 processes, the API endpoints the new
-# frontend reads, the database objects of migrations 034-037, the pages, the
+# frontend reads, the database objects of migrations 034-038, the pages, the
 # redirects, and the stylesheets, scripts and fonts as Apache serves them.
 # Nothing here restarts, installs or changes the checkout (it only runs
 # `git fetch`). Exit status 1 when a check fails.
@@ -130,7 +130,7 @@ esac
 expect 200 "/api/v1/cp2b/municipalities/3509502 (Campinas)" "$API_URL/api/v1/cp2b/municipalities/3509502"
 
 # ── 4. Database ──────────────────────────────────────────────────────────────
-section "4. Banco de dados (migrações 034-037)"
+section "4. Banco de dados (migrações 034-038)"
 db_url=""
 [[ -f "$NEWLOOK/backend/.env" ]] && db_url="$(grep '^DATABASE_URL=' "$NEWLOOK/backend/.env" | tail -1 | cut -d= -f2- | tr -d "\"'")"
 if [[ "${SKIP_DB:-0}" == 1 ]]; then
@@ -143,7 +143,8 @@ else
   q() { psql "$db_url" -XAtqc "$1" 2>/dev/null; }
   has() { [[ "$(q "SELECT to_regclass('public.$1') IS NOT NULL")" == t ]]; }
   for obj in "034:municipality_cp2b_potential" "034:municipality_cp2b_map" \
-             "035:newsletter_subscribers" "036:analytics_pageviews"; do
+             "035:newsletter_subscribers" "036:analytics_pageviews" \
+             "038:analytics_page_counts" "038:analytics_page_time"; do
     if has "${obj#*:}"; then pass "${obj%%:*} ${obj#*:}"; else fail "${obj%%:*} ${obj#*:} ausente (migração ${obj%%:*} não aplicada)"; fi
   done
   if has municipality_cp2b_potential; then

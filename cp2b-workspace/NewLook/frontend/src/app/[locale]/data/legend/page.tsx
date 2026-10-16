@@ -8,6 +8,7 @@ import { Link } from '@/navigation';
 import Breadcrumb from '@/components/ui/Breadcrumb';
 import { navCrumbs } from '@/lib/breadcrumbTrail';
 import LegendTables from '@/components/data/LegendTables';
+import { HeaderLeaves } from '@/components/ui/ArcOrnament'
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('data_catalog.legend');
@@ -19,8 +20,9 @@ export default async function LegendPage() {
   const tNav = await getTranslations('common.nav');
   return (
     <div className="bg-paper">
-      <header className="border-b border-line">
-        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+      <header className="relative overflow-hidden border-b border-line">
+        <HeaderLeaves />
+        <div className="relative mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
           <Breadcrumb items={navCrumbs('/data/legend', (key) => tNav(key))} />
           <h1 className="mt-4 text-4xl text-ink sm:text-5xl">{t('legend.title')}</h1>
           <p className="mt-4 max-w-2xl text-ink-muted">{t('legend.lede')}</p>

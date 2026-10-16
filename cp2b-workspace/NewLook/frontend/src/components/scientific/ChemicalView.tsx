@@ -67,7 +67,7 @@ function ResidueCard({ residue, focused, onShowReferences }: { residue: ResidueR
               {residue.ts_medio != null ? format.percent(residue.ts_medio) : MISSING_VALUE}
             </div>
             {residue.ts_min != null && residue.ts_max != null && (
-              <div className="text-dusk-500 text-[10px]">
+              <div className="text-dusk-600 text-[10px]">
                 ({format.number(residue.ts_min, { decimals: 0 })}–{format.number(residue.ts_max, { decimals: 0 })})
               </div>
             )}
@@ -78,7 +78,7 @@ function ResidueCard({ residue, focused, onShowReferences }: { residue: ResidueR
               {residue.vs_medio != null ? format.percent(residue.vs_medio) : MISSING_VALUE}
             </div>
             {residue.vs_min != null && residue.vs_max != null && (
-              <div className="text-terra-500 text-[10px]">
+              <div className="text-terra-600 text-[10px]">
                 ({format.number(residue.vs_min, { decimals: 0 })}–{format.number(residue.vs_max, { decimals: 0 })})
               </div>
             )}
