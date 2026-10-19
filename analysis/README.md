@@ -46,6 +46,7 @@ Reproducible scripts behind `cp2b-workspace/NewLook/docs/planning/ESTRATEGIA_202
 | `build_sp_route_conversion.py` | Per Nm³ of CH4, when does selling biomethane beat burning biogas for power? (break-even environmental attribute by electricity price) | `outputs/sp_route_conversion/` |
 | `build_bndes_capex_benchmarks.py` | What does a m³/day of biomethane capacity cost in Brazil, from public BNDES approvals? (seed: `data/06_bndes_biomethane_deals_seed.csv`) | `outputs/bndes_capex_benchmarks/` |
 | `build_biogram_reconciliation.py` | Where and why does the IEA BioGRAM disagree with PILAR for SP (state, 11 regions, 30 sites)? Computes the PILAR side and the areas to draw; the BioGRAM side is typed into `data/07_biogram_sp_seed.csv`. Needs `outputs/sp_opportunity_sites/sites.csv`. | `outputs/biogram_reconciliation/` |
+| `build_biogram_national_share.py` | Is the C16 map reading coherent with Brazil? SP's share of the national crop, herd and population (IBGE 2023) × BioGRAM 1.2 Brazil, against the map reading and PILAR N3. National gaps go in `data/08_brasil_totais_2023_seed.csv`. Needs `outputs/biogram_reconciliation/pilar_por_area.csv`. | `outputs/biogram_national_share/` |
 
 ```bash
 python3 analysis/build_sp_real_uncertainty.py
@@ -56,5 +57,6 @@ python3 analysis/build_sp_mandate_coverage.py
 python3 analysis/build_sp_route_conversion.py
 python3 analysis/build_bndes_capex_benchmarks.py
 python3 analysis/build_biogram_reconciliation.py
-pytest tests/test_sp_real_uncertainty.py tests/test_sp_realization_index.py tests/test_sp_digestate_nutrients.py tests/test_sp_mandate_coverage.py tests/test_sp_route_conversion.py tests/test_bndes_capex_benchmarks.py tests/test_biogram_reconciliation.py
+python3 analysis/build_biogram_national_share.py
+pytest tests/test_sp_real_uncertainty.py tests/test_sp_realization_index.py tests/test_sp_digestate_nutrients.py tests/test_sp_mandate_coverage.py tests/test_sp_route_conversion.py tests/test_bndes_capex_benchmarks.py tests/test_biogram_reconciliation.py tests/test_biogram_national_share.py
 ```
