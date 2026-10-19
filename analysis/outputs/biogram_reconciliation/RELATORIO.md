@@ -5,21 +5,21 @@
 
 - Áreas: 1 estado, 11 regiões intermediárias, 30 sítios (círculos de 30 km no centróide do município-sede). Município entra na área pelo centróide.
 - Atlas-FDE Cenário Real, SP: 7.83 bi Nm³ CH₄/ano.
-- CP2b: snapshot CP2b ausente (cp2b-workspace/NewLook/backend/data/raw/cp2b_potential/2026/cp2b_municipio_substrato_niveis.csv).
+- CP2b: CP2b v5.1, cenário med. N3 7.00, N4 5.97 bi Nm³ CH₄/ano.
 - Valores BioGRAM digitados: **0** de 336 linhas.
 
 ## Estado de São Paulo
 
 | Categoria | Atlas Real | CP2b N3 | CP2b N4 | BioGRAM | Causa |
 |---|---:|---:|---:|---:|---|
-| palha_cana | 2,410 | — | — | — | sem dado BioGRAM |
-| vinhaca_torta | 2,058 | — | — | — | sem dado BioGRAM |
-| outras_culturas | 1,300 | — | — | — | sem dado BioGRAM |
-| dejetos_animais | 1,335 | — | — | — | sem dado BioGRAM |
-| rsu_organico | 398 | — | — | — | sem dado BioGRAM |
-| esgoto | 67 | — | — | — | sem dado BioGRAM |
-| lenhosos | 265 | — | — | — | sem dado BioGRAM |
-| total | 7,832 | — | — | — | sem dado BioGRAM |
+| palha_cana | 2,410 | 3,827 | 3,221 | — | sem dado BioGRAM |
+| vinhaca_torta | 2,058 | 1,826 | 1,657 | — | sem dado BioGRAM |
+| outras_culturas | 1,300 | 553 | 419 | — | sem dado BioGRAM |
+| dejetos_animais | 1,335 | 558 | 455 | — | sem dado BioGRAM |
+| rsu_organico | 398 | 162 | 154 | — | sem dado BioGRAM |
+| esgoto | 67 | 51 | 43 | — | sem dado BioGRAM |
+| lenhosos | 265 | 25 | 23 | — | sem dado BioGRAM |
+| total | 7,832 | 7,002 | 5,972 | — | sem dado BioGRAM |
 
 Valores em milhões de Nm³ CH₄/ano.
 
