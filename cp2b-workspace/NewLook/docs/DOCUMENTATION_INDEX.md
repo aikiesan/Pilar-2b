@@ -97,6 +97,7 @@ Standard open-source project files at `cp2b-workspace/NewLook/`:
 
 | File | Description |
 |---|---|
+| [`planning/ESTRATEGIA_2027_LIDERANCA_BIOECONOMIA.md`](planning/ESTRATEGIA_2027_LIDERANCA_BIOECONOMIA.md) | **Strategy 2027 (pt-BR): from potential atlas to decision infrastructure** — diagnosis, integrity issues to fix first, three moves (auditable credibility → biomass-to-project → live monitoring), 15 new ideas, integrated roadmap, KPIs |
 | [`planning/ROADMAP_2026-09_EN_AND_LEAN.md`](planning/ROADMAP_2026-09_EN_AND_LEAN.md) | **September 2026: a fully English platform and a leaner codebase** — goals, phases, status |
 | [`planning/BRAZIL_EXPANSION_ROADMAP.md`](planning/BRAZIL_EXPANSION_ROADMAP.md) | **Master plan Jul–Dec 2026: national coverage** — code-analysis snapshot, ingestion contract, per-source plan, month-by-month milestones, progress indicators |
 | [`planning/playbooks/`](planning/playbooks/README.md) | **Month playbooks Jul–Dec 2026** — executable step-by-step checklists per month: commands, file paths, verification queries, exit criteria |
