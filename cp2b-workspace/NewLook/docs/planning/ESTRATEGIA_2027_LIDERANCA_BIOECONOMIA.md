@@ -206,6 +206,10 @@ O setor não compra "potencial municipal"; compra **local de planta + escala + c
 - **Etapa B, alocação:** p-mediana capacitada ou MCLP com `PuLP`/`OR-Tools` sobre os hexágonos candidatos. Restrição de escala mínima por rota: biometano viável a partir de cerca de 10–15 mil Nm³/dia; geração distribuída a partir de cerca de 300 kW.
 - **Saída: "Mapa de Oportunidades"**, com N clusters de oferta e a planta ideal de cada um: tamanho, mix de substratos, raio de captação, custo médio de biomassa entregue.
 - **Diferencial:** o mix de substratos vem do motor de co-digestão que já existe (`codigestion_service.py`), agora com C:N harmonizada pela Fase 1 do `DOSSIE_SP_INTEGRACAO_MAPA.md`.
+- **Protótipo já feito** (`analysis/build_sp_opportunity_sites.py`, saída em `analysis/outputs/sp_opportunity_sites/`). Cobertura máxima gulosa sobre a oferta Real por município, com raio de captação por fluxo (palha 30 km, dejetos 15 km, RSU 50 km, vinhaça/torta/esgoto só no próprio município) e escala mínima de 15 mil Nm³/dia:
+  - 265 sítios capturam 88 % da oferta modelada; sítio mediano de 38 mil Nm³/dia;
+  - os maiores sítios são dominados por palha de cana (Taquaral, Morro Agudo, Barra Bonita), o que reforça que a palha é ao mesmo tempo a maior oportunidade e a maior incerteza (Sobol, §2.3);
+  - validação contra as 9 plantas ANP de SP: os 30 maiores sítios ficam a até 30 km de 3/9 plantas (33 %), contra 21 % de uma linha de base aleatória. É indício, não validação; a Etapa A (gasoduto, restrições) é o que falta para discriminar.
 
 ### 3.3 Motor tecno-econômico no backend (versionado)
 
