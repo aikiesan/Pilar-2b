@@ -166,6 +166,8 @@ O passo estratégico é transformar esse ativo em **confiança verificável** e 
     - A capacidade **autorizada** (558 mil m³/dia) equivale a 3,4 % do Real, mas operou a **21 %** no mês.
     - Manchete com dado: *"SP realiza menos de 1 % do seu potencial de biometano, e as plantas que já existem rodam a um quinto da capacidade"*. A lacuna é de realização (conexão, contrato, licenciamento), não de recurso.
     - As metas de 0,7 a 1,3 M m³/dia levariam o IRM a cerca de 4–8 %. O script acompanha isso mês a mês.
+    - **Ressalva que muda a manchete:** o CIBiogás (Panorama 2025) registra 4,9 M Nm³/dia de **biogás** em SP, quase todo sucroenergético e usado para eletricidade. São 2,7–3,2 M Nm³ CH₄/dia, ou **16–19 % do N4**, 23 a 27 vezes o biometano. A manchete honesta é: *"SP já aproveita cerca de um sexto do seu metano, mas menos de 1 % chega à rede como biometano"*. A lacuna principal é de **rota** (eletricidade → biometano), e isso aponta para o CGOB e a TUSD-Verde, não só para plantas novas.
+    - Antes de publicar, conferir se o U do CP2b (`existing_use_subtracted_ch4_nm3_year`) já inclui esse biogás. Se não incluir, o N4 está superestimado na mesma ordem.
 - Validar uma amostra de usinas sucroenergéticas contra a vinhaça declarada (UNICA, CTC) para testar o FDE = 1,0.
 
 ### 2.5 Higiene de produto

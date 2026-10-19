@@ -24,8 +24,11 @@ Biomethane is treated as ~CH4 (the ANP biomethane specification requires
 ≥ 90% CH4), so produced m³ are compared to Nm³ CH4 without conversion; this
 overstates IRM by at most ~10%.
 
-Scope: biomethane only. Biogas burned for electricity (ANEEL) is a separate
-route and is NOT in the numerator — kW and m³/d are never conflated.
+Scope: the monthly series is biomethane only. Biogas burned for electricity or
+heat is NOT in that numerator. It is reported beside it, as a single annual
+bracket, from the CIBiogás Panorama state figure in analysis/data/05b_* (biogas
+Nm³/d × a CH4 fraction range), because it changes the reading: SP produces
+far more methane as biogas than as biomethane.
 
 Run from the repo root:
   python3 analysis/build_sp_realization_index.py
@@ -47,6 +50,8 @@ ROOT = Path(__file__).resolve().parents[1]
 NEWLOOK = ROOT / "cp2b-workspace" / "NewLook"
 ANP_MONTHLY = ROOT / "analysis" / "data" / "05d_anp_biometano_production_state_monthly.csv"
 ANP_PLANTS = ROOT / "analysis" / "data" / "05c_anp_biometano_plants_latest.csv"
+AGGREGATES = ROOT / "analysis" / "data" / "05b_biogas_aggregates_by_state.csv"
+BIOGAS_CH4_FRACTION = (0.55, 0.65)  # vinasse/landfill biogas range
 CP2B_LOADER = NEWLOOK / "backend" / "scripts" / "load_cp2b_potential.py"
 SCEN = NEWLOOK / "backend" / "scripts" / "sp_scenarios_real_ideal.py"
 MASTER = NEWLOOK / "data" / "canonical_parameters" / "SP_master_residue_streams_2023_FINAL.csv"
@@ -98,6 +103,17 @@ def sp_authorised_capacity() -> tuple[float, str]:
     return cap, latest
 
 
+def sp_biogas_production() -> tuple[float, str, str]:
+    """Latest SP biogas production (Nm³ biogas/d), its year and source, from the aggregates file."""
+    rows = [
+        r for r in csv.DictReader(AGGREGATES.open(encoding="utf-8"))
+        if r["scope"] == "SP" and r["metric"] == "biogas_production"
+    ]
+    r = max(rows, key=lambda r: r["year"])
+    assert r["unit"] == "million Nm3/day", r["unit"]
+    return float(r["value"]) * 1e6, r["year"], r["source_name"]
+
+
 def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     n4 = cp2b_state_totals()[("med", "n4")]
@@ -143,17 +159,39 @@ def main() -> None:
         f"- Capacidade **autorizada** pela ANP em SP ({cap_month}): {cap / 1e3:,.0f} mil m³/dia, ou "
         f"{100 * cap / denoms['cp2b_n4']:.1f} % do Real (N4). Uso da capacidade no último mês: "
         f"{100 * last[2] / cap:.0f} %.",
+    ]
+    biogas, bio_year, bio_src = sp_biogas_production()
+    lo, hi = (biogas * f for f in BIOGAS_CH4_FRACTION)
+    lines += [
+        "",
+        "## E o biogás que não vira biometano?",
+        "",
+        f"- {bio_src} ({bio_year}): SP produz **{biogas / 1e6:.1f} M Nm³ de biogás por dia**, "
+        "a maior parte no setor sucroenergético, queimado para eletricidade e calor.",
+        f"- Com {BIOGAS_CH4_FRACTION[0]:.0%}–{BIOGAS_CH4_FRACTION[1]:.0%} de CH₄, isso é "
+        f"**{lo / 1e6:.1f}–{hi / 1e6:.1f} M Nm³ CH₄/dia**, ou "
+        f"**{100 * lo / denoms['cp2b_n4']:.0f}–{100 * hi / denoms['cp2b_n4']:.0f} % do N4**: "
+        f"{lo / last[2]:.0f}–{hi / last[2]:.0f} vezes o biometano do último mês.",
+        "- Consequência para a leitura do IRM: SP **já aproveita** uma fração relevante do seu metano;",
+        "  o que está abaixo de 1 % é a parcela que chega à rede como **biometano**. A lacuna",
+        "  principal é de **rota** (eletricidade → biometano), não só de projetos novos.",
+        "- Consequência para o denominador: se o U do CP2b (metano já recuperado, descontado no N3)",
+        "  não incluir esse biogás sucroenergético, o N4 está superestimado na mesma ordem. O snapshot",
+        "  do CP2b não está no repositório; conferir `existing_use_subtracted_ch4_nm3_year` antes de",
+        "  publicar qualquer IRM.",
+        "- O número do CIBiogás é estadual e anual; não entra na série mensal e não se confunde com ela.",
         "",
         "## Leitura",
         "",
         "- O estado produz **menos de 1 %** do biometano que o seu potencial mobilizável sustentaria,",
         "  e as plantas autorizadas operam bem abaixo da capacidade. A lacuna é de **realização**",
-        "  (projetos, conexão, contratos), não de recurso.",
+        "  (projetos, conexão, contratos, e a conversão do biogás que hoje vira eletricidade),",
+        "  não de recurso.",
         "- Metas oficiais citadas na estratégia (0,7 a 1,3 M m³/dia até 2027) mudariam o IRM para",
         f"  cerca de {100 * 0.7e6 / denoms['cp2b_n4']:.0f}–{100 * 1.3e6 / denoms['cp2b_n4']:.0f} %."
         " Este script permite acompanhar mês a mês se isso acontece.",
         "- O CP2b N3 já desconta o metano recuperado por plantas existentes (U), então o N4 é o",
-        "  potencial *ainda disponível*. Com IRM abaixo de 1 %, isso não muda os dois primeiros dígitos.",
+        "  potencial *ainda disponível*. Para o biometano isso pouco muda; para o biogás total, ver acima.",
         "- Biometano é tratado como CH₄ puro (especificação ANP ≥ 90 % CH₄), o que superestima o IRM",
         "  em no máximo ~10 %.",
     ]

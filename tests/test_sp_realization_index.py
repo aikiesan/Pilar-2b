@@ -40,3 +40,8 @@ def test_authorised_capacity_uses_latest_month_only():
     assert month == "04/2026"
     # Gasgrid (last report 06/2022, never produced) must not be counted
     assert round(cap) == 557_816
+
+
+def test_biogas_bracket_reads_the_latest_cibiogas_state_figure():
+    biogas, year, source = R.sp_biogas_production()
+    assert biogas == 4.9e6 and year == "2025" and "CIBiogás" in source
