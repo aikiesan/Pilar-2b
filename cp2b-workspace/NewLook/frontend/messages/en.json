@@ -1715,8 +1715,8 @@
       "thermalDesc": "Heat for industrial or agro-industrial processes",
       "biochar": "Biochar",
       "biocharDesc": "High-quality activated charcoal from sugarcane straw",
-      "carbon": "Carbon Credits",
-      "carbonDesc": "CO₂eq avoided — eligible for RenovaBio and voluntary market",
+      "carbon": "Emissions reduction potential",
+      "carbonDesc": "Avoided methane + displaced fossil fuel − leaks (not a credit)",
       "calculate": "Calculate Potential"
     },
     "results": {
@@ -1726,11 +1726,10 @@
       "energy": "Electrical Energy",
       "biomethane": "Biomethane",
       "digestate": "Biofertilizer",
-      "carbon": "CO₂eq avoided",
+      "carbon": "Emissions reduction",
       "thermal": "Thermal Energy",
       "biochar": "Biochar",
       "digestateSub": "Solid/liquid digestate estimate",
-      "carbonSub": "Avoided emissions — eligible VCM/RenovaBio",
       "primaryOutputs": "Selected outputs",
       "secondaryOutputs": "Also calculated — not selected ({count})",
       "notSelected": "Not included in plan — click New simulation to add",
@@ -1738,7 +1737,6 @@
       "priceSlidersHint": "Move sliders to simulate different price scenarios. Financial indicators update in real time.",
       "tariffEnergy": "Electricity tariff",
       "priceBiomethane": "Biomethane price",
-      "priceCarbon": "Carbon credit",
       "priceDiesel": "Diesel price",
       "methodology": "Methodology & sources",
       "financialTitle": "Financial Indicators (estimate)",
@@ -1774,7 +1772,6 @@
       "chartBiogas": "Biogas",
       "energySavings": "Savings: {amount}/year",
       "dieselEquivalent": "≈ {liters} L of diesel",
-      "carbonRevenue": "{amount}/year (VCM/RenovaBio)",
       "investment": "📊 Estimated investment",
       "paybackHeading": "⏱ Estimated payback",
       "scenariosHelpTitle": "💡 Understanding the scenarios",
@@ -1788,7 +1785,7 @@
         "efficiencyLabel": "Efficiencies:",
         "efficiency": "Electrical {electrical} (engine-generator); thermal {thermal} (heat recovery)",
         "pricesLabel": "SP 2025 default prices:",
-        "prices": "CPFL/Enel tariff {tariff}/kWh; biomethane {biomethane}/m³; carbon {carbon}/tCO₂eq (VCM)",
+        "prices": "CPFL/Enel tariff {tariff}/kWh; biomethane {biomethane}/m³. Emission reductions count in neither revenue nor payback.",
         "sourcesLabel": "Sources:",
         "disclaimer": "Estimates for a preliminary viability check. An engineering design requires a detailed technical study.",
         "streamBmp": "{stream}: {bmp} m³ CH₄/t VS",
@@ -1851,6 +1848,47 @@
         "technology": "CSTR + upgrading / premium CHP",
         "help": "Maximum efficiency for large operations. The conservative payback can be long for small operations — that does not mean the project is unviable, only that revenue does not cover the investment within a {horizon}-year horizon."
       }
+    },
+    "climate": {
+      "title": "Emissions reduction potential",
+      "subtitle": "Methane no longer emitted + fossil fuel displaced − methane the plant itself loses. A potential, not a carbon credit.",
+      "onResults": "calculated on the results screen",
+      "baselineLabel": "Today the residue goes to",
+      "baselines": {
+        "nao_informado": "Not stated (counts displaced fossil fuel only)",
+        "lagoa_anaerobia": "Uncovered anaerobic lagoon",
+        "esterqueira": "Slurry tank (liquid manure)",
+        "armazenamento_solido": "Solid storage / simple composting",
+        "cama_aviario": "Poultry litter",
+        "pasto": "Stays on pasture",
+        "espalhamento_diario": "Spread on land daily",
+        "campo": "Stays in the field (straw, bagasse, filter cake)"
+      },
+      "routeLabel": "Energy use",
+      "routes": {
+        "biometano_veicular": "Biomethane replacing diesel",
+        "biometano_rede": "Biomethane replacing natural gas",
+        "eletricidade": "Electricity to the grid (SIN)",
+        "termico_glp": "Heat replacing LPG"
+      },
+      "upgradingLabel": "Upgrading technology",
+      "upgrading": {
+        "lavagem_agua": "Water scrubbing",
+        "aminas": "Amines",
+        "membranas": "Membranes",
+        "psa": "PSA"
+      },
+      "leakLabel": "Digester leak: {value}",
+      "methane": "Avoided methane (baseline)",
+      "fossil": "Fossil fuel displaced",
+      "project": "Project emissions (leak, slip)",
+      "net": "Net reduction",
+      "breakEven": "The benefit reaches zero if the leak reaches {value} of the methane produced.",
+      "netNegative": "Under these assumptions the plant emits more methane than it avoids.",
+      "footnote": "Methane GWP: {gwp} ({value}). Becoming a credit requires additionality and a single instrument per volume (CBIO, CGOB or voluntary market).",
+      "unverified": "Includes IPCC factors still being checked.",
+      "loading": "Calculating emissions…",
+      "unavailable": "The emissions calculation is unavailable right now (API down)."
     }
   },
   "guide": {

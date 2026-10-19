@@ -17,6 +17,20 @@ jest.mock('recharts', () => {
   }
 })
 
+// The climate panel asks the backend; answer as POST /api/v1/ghg/estimate would.
+const mockEstimate = jest.fn()
+jest.mock('../ghgApi', () => ({
+  ...jest.requireActual('../ghgApi'),
+  estimateGhg: (...args: unknown[]) => mockEstimate(...args),
+}))
+beforeEach(() => {
+  mockEstimate.mockReset().mockResolvedValue({
+    be_methane_t: 1200, be_fossil_t: 300, pe_leak_t: 40, pe_slip_t: 10, pe_flare_t: 0,
+    pe_total_t: 50, er_net_t: 1450, gwp_version: 'AR6', gwp_value: 27,
+    leak_break_even: 0.62, assumptions: { leak: 0.025 }, unverified: ['linhas_de_base.lagoa_anaerobia'],
+  })
+})
+
 function renderResults(activity: 'sugarcane' | 'swine' | 'corn') {
   const result =
     activity === 'sugarcane'
@@ -60,5 +74,29 @@ describe('ResultsDashboard', () => {
     expect(container.textContent).toContain('Aproveita cerca de 55% do potencial')
     expect(container.textContent).toContain('110% de realização de receita')
     expect(container.textContent).toContain('acima de 40 anos')
+  })
+
+  it('shows the three parts of the climate result, never a credit price', async () => {
+    renderResults('sugarcane') // carbon selected
+    expect(await screen.findByText('Redução líquida')).toBeInTheDocument()
+    expect(screen.getByText('Metano evitado (linha de base)')).toBeInTheDocument()
+    expect(screen.getByText(/O benefício zera se o vazamento chegar a 62/)).toBeInTheDocument()
+    expect(screen.getByText(/GWP do metano: AR6/)).toBeInTheDocument()
+    expect(screen.queryByText('Crédito de carbono')).not.toBeInTheDocument()
+  })
+
+  it('asks the backend with the scenario methane and the default route of the products', async () => {
+    renderResults('swine') // biomethane only
+    await screen.findByText('Redução líquida')
+    const [req] = mockEstimate.mock.calls.at(-1)
+    expect(req).toMatchObject({ baseline: 'nao_informado', route: 'biometano_veicular', slip_technology: 'lavagem_agua' })
+    expect(req).not.toHaveProperty('leak') // ghg.yaml's default until the user moves the slider
+    expect(req.ch4_produced_nm3_year).toBeGreaterThan(0)
+  })
+
+  it('says so when the GHG API cannot answer', async () => {
+    mockEstimate.mockResolvedValue(null)
+    renderResults('sugarcane')
+    expect(await screen.findByText(/indisponível/)).toBeInTheDocument()
   })
 })

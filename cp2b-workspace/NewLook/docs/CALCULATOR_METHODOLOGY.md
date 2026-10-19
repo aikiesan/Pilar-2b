@@ -304,22 +304,41 @@ The 0.28 yield (28%) is the Ideal scenario baseline. It varies by scenario (see 
 
 Displayed as **t/year**.
 
-### 6.6 CO₂ Avoidance (Carbon Credits)
+### 6.6 Emissions reduction potential (GHG module)
+
+> Rewritten 19/10/2026. The old figure, `CH4 × 0.657 × 44/16`, was the biogenic CO₂ released by
+> *burning* the methane. That CO₂ counts zero under IPCC and GHG Protocol rules, so it was not a
+> reduction. It was also priced as a carbon credit inside revenue and payback. Both are gone.
+
+The calculator no longer computes CO₂. The results screen sends the scenario's methane
+(`biomethaneM3Year`, Nm³ CH₄/year) to the backend GHG module, `POST /api/v1/ghg/estimate`
+(`backend/app/services/ghg_service.py`, parameters in `data/canonical_parameters/ghg.yaml`, spec
+`docs/data/ESPEC_MODULO_GEE.md`):
 
 ```
-co2TonsYear = CH4_m3_year × 0.657 × (44/16) / 1,000
+ER = BE_methane + BE_fossil − PE                                   tCO₂e/year
+
+BE_methane = P × MCF_baseline × ρ_CH4 × GWP_CH4      what today's manure/residue handling emits
+BE_fossil  = E_delivered × EF_fossil                 diesel, natural gas, LPG or SIN grid displaced
+PE         = (leak + slip + unburnt flare) × ρ × GWP methane the plant itself loses
 ```
 
-Breakdown:
-- `0.657`: kg CO₂eq per m³ CH₄ at standard conditions (density × GWP factor for methane combustion)
-- `44/16`: molecular weight ratio CO₂/CH₄ (full oxidation stoichiometry)
-- `/ 1,000`: converts kg → tonnes
+- **Baseline (required, spec §4).** The user states where the residue goes today (lagoon, slurry tank,
+  pasture, field…). "Não informado" counts only the displaced fossil fuel. Straw, bagasse and filter
+  cake have no avoided methane.
+- **Route.** Biomethane replacing diesel (74.1 tCO₂/TJ), natural gas (56.1), heat replacing LPG
+  (63.1), or electricity to the SIN (MCTI 2023 average, 0.0385 tCO₂/MWh, at the scenario's
+  generator efficiency). Diesel displacement is worth about 20× the grid.
+- **Losses.** The digester leak defaults to 2.5 % (Danish measurements, range 1–4 %) and is a slider.
+  Slip depends on the upgrading technology (water scrubbing 2 %, amines 0.07 %, membranes 0.6 %, PSA
+  2 %) or on the CHP engine (1.5 %, "conferir"). Lost methane displaces nothing, so the losses also
+  cut `BE_fossil`.
+- **Outputs shown.** The three parts, the net reduction, the leak that zeroes the benefit, the GWP
+  version (AR6 = 27 by default), and a flag when an IPCC factor is still marked "conferir".
+- **Not revenue.** An emission reduction is a credit only with additionality and a single instrument per
+  volume (CBIO, CGOB, voluntary market). It enters neither revenue nor payback (§10).
 
-This estimates the **avoided emissions** from substituting fossil fuels with biogas-derived energy. Eligible for carbon credits under VCM (voluntary) or RenovaBio (Brazilian mandatory market).
-
-Displayed as **tCO₂eq/year**.
-
----
+Displayed as **tCO₂eq/year**. If the API is down, the panel says so and shows no number.
 
 ## 7. Seasonality Distribution
 
@@ -399,8 +418,6 @@ thermal_scenario  = base.thermalMjYear × bmpFactor × (thermalEff / 0.50)
 biomethane        = base.biomethaneM3Year × bmpFactor
 
 digestate         = base.digestateTonsYear × bmpFactor
-
-co2               = base.co2TonsYear × bmpFactor
 
 biochar           = base.biocharTonsYear × (biocharYield / 0.28)   ← independent of bmpFactor
 ```
@@ -487,7 +504,6 @@ Only the outputs the user selected are included in the payback-driving revenue:
 |----------------|----------------|
 | Energia elétrica | `energyKwhYear × energyTariffBrlKwh` |
 | Biometano | `biomethaneM3Year × biomethaneM3` |
-| Crédito de carbono | `co2TonsYear × co2CreditBrlTon` |
 | Digestato, Biochar, Térmica | Not monetized (too site-specific) |
 
 **Revenue aggregation logic:**
@@ -496,10 +512,10 @@ Only the outputs the user selected are included in the payback-driving revenue:
 primaryRev  = energySavings  if energySavings > 0
             else biomethaneRev
 
-annualRevMax = primaryRev + carbonRev
+annualRevMax = primaryRev
 ```
 
-Energy and biomethane are treated as **mutually exclusive primary revenues** (you either inject into grid or upgrade to biomethane, not both simultaneously). Carbon credits always stack on top of whichever is chosen.
+Energy and biomethane are treated as **mutually exclusive primary revenues** (you either inject into grid or upgrade to biomethane, not both simultaneously). Carbon is **not** revenue (§6.6): before 19/10/2026 a carbon credit was stacked on top, priced on a CO₂ figure that was not a reduction.
 
 ### Annual revenue variants
 
@@ -618,20 +634,19 @@ payback_min = max(roundYears(pb_min), 0.5)
 
 ## 12. Price References
 
-All prices are São Paulo state defaults for 2025. The user can override all four via the price sliders in the Results dashboard.
+All prices are São Paulo state defaults for 2025. The user can override all three via the price sliders in the Results dashboard.
 
 | Price | Default | Slider range | Source |
 |-------|---------|-------------|--------|
 | Tarifa de energia elétrica | R$ 0.85/kWh | R$ 0.50 – 1.50/kWh | CPFL/Enel residential avg 2025 |
 | Preço biometano | R$ 4.50/m³ | R$ 1.00 – 8.00/m³ | Indicative SP market 2025 |
-| Crédito de carbono | R$ 35.00/tCO₂eq | R$ 10 – 100/tCO₂eq | VCM voluntary market 2025 |
 | Diesel | R$ 6.50/L | R$ 4.00 – 9.00/L | SP pump price 2025 |
 
 **Energy tariff note:** R$ 0.85/kWh is the residential B1 class average for CPFL/Enel SP in 2025, including all taxes and surcharges (TUSD + TE + PIS/COFINS + ICMS). For agricultural (rural) tariffs or net metering (GD-I), the effective tariff may be 15–30% lower. The slider allows this adjustment.
 
 **Biomethane note:** The R$ 4.50/m³ is indicative. The market in Brazil was in formation in 2025, with spot prices ranging R$ 2.50–7.00/m³ depending on volume, pipeline access, and off-take contract terms.
 
-**Carbon note:** R$ 35/tCO₂eq reflects the lower end of the Brazilian VCM (voluntary carbon market). RenovaBio CBIO credits traded R$ 40–55 in 2024–2025. The slider goes to R$ 100 to allow sensitivity testing for future compliance market scenarios.
+**Carbon note:** there is no carbon price. The emissions reduction potential (§6.6) is shown in tCO₂e, not in reais, because turning it into a credit depends on additionality and on choosing one instrument.
 
 ---
 
@@ -660,7 +675,7 @@ All prices are São Paulo state defaults for 2025. The user can override all fou
 
 ## Appendix A — Worked Example: 500 t/year Sugarcane, Ideal Scenario
 
-**Input:** 500 t/year raw cane, all months Apr–Dec (9 months), output = Energia + Carbono
+**Input:** 500 t/year raw cane, all months Apr–Dec (9 months), output = Energia + Redução de emissões
 
 ### Step 1 — Biomass and biogas per stream
 
@@ -683,15 +698,18 @@ biomethaneM3Year  = 18,095 m³/year
 digestateTonsYear = 115.25 × 0.75           = 86.4 t/year
 thermalMjYear     = 18,095 × 35.8 × 0.50   = 323,900 MJ/year = 323.9 GJ/year
 biocharTonsYear   = 28.0 × 0.28             = 7.8 t/year  (straw only)
-co2TonsYear       = 18,095 × 0.657 × (44/16) / 1,000 = 32.6 tCO₂eq/year
 ```
 
-### Step 3 — Financial (energia + carbono selected)
+Emissions (GHG module, baseline "campo", electricity to the SIN, leak 2.5 %, engine slip 1.5 %):
+`BE_methane` 0, `BE_fossil` 2.3, `PE` 13.9 → **net −11.6 tCO₂e/year**. Straw has no avoided methane
+and the grid is clean, so the plant's own losses outweigh what it displaces. The same methane as
+biomethane replacing diesel nets +30.3 tCO₂e/year. The old formula showed +32.6 for both.
+
+### Step 3 — Financial (energia selected)
 
 ```
 energySavings = 63,014 × 0.85        = R$ 53,562/year
-carbonRev     = 32.6   × 35.00       = R$ 1,141/year
-annualRevMax  = 53,562 + 1,141       = R$ 54,703/year
+annualRevMax  = 53,562               = R$ 53,562/year   (carbon is not revenue, §6.6)
 ```
 
 ### Step 4 — CAPEX tier
@@ -708,11 +726,11 @@ ch = 1,150,000 × 1.50 = R$ 1,725,000
 
 ```
 Otimista:
-  net_best    = 54,703 × 1.10 − 747,500 × 0.03 = 60,173 − 22,425 = R$ 37,748/year
-  payback_min = (747,500 × 1.06) / 37,748       = 21.0 years
+  net_best    = 53,562 × 1.10 − 747,500 × 0.03 = 58,918 − 22,425 = R$ 36,493/year
+  payback_min = (747,500 × 1.06) / 36,493       = 21.7 years
 
 Esperado:
-  net_avg     = 54,703 × 0.75 − 1,150,000 × 0.05 = 41,027 − 57,500 = −R$ 16,473/year
+  net_avg     = 53,562 × 0.75 − 1,150,000 × 0.05 = 40,172 − 57,500 = −R$ 17,328/year
   payback_avg = → 999 (negative net — revenue too low for mid CAPEX at 500 t/year)
 
 Conservador: → 999

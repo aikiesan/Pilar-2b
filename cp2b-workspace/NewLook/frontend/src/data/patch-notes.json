@@ -2,6 +2,37 @@
   "_comment": "Patch notes, newest first. Each entry carries its own pt-BR and en text, deliberately OUTSIDE messages/*.json: the catalogs are gated by check-i18n-parity.mjs, and threading one release note through two catalogs per deploy makes writing a note a chore nobody does. scripts/check-patch-notes.mjs enforces that both locales are present here instead. `date` is ISO 8601 WITH offset -- it is rendered in the reader's locale, so a bare date would drift a day across timezones. `kind` must be one of: added, changed, fixed, security, data.",
   "entries": [
     {
+      "version": "3.7.0",
+      "date": "2026-10-19T20:00:00-03:00",
+      "title": {
+        "pt-BR": "Redução de emissões calculada de verdade",
+        "en": "Emissions reduction, calculated properly"
+      },
+      "changes": [
+        {
+          "kind": "fixed",
+          "text": {
+            "pt-BR": "O número de CO₂ da calculadora mudou porque o método mudou. O valor antigo era o CO₂ liberado ao queimar o metano, que é biogênico e não é redução. O novo soma o metano que deixa de ser emitido pelo manejo atual e o combustível fóssil deslocado, e desconta o metano que a própria planta perde em vazamentos e na purificação.",
+            "en": "The calculator's CO₂ figure changed because the method changed. The old value was the CO₂ released by burning the methane, which is biogenic and not a reduction. The new one adds the methane no longer emitted by current handling and the fossil fuel displaced, and subtracts the methane the plant itself loses through leaks and upgrading."
+          }
+        },
+        {
+          "kind": "added",
+          "text": {
+            "pt-BR": "Na calculadora, você informa para onde o resíduo vai hoje, o uso da energia, a tecnologia de purificação e o vazamento do biodigestor, e vê as três parcelas, o resultado líquido e o vazamento que zeraria o benefício.",
+            "en": "In the calculator you state where the residue goes today, how the energy is used, the upgrading technology and the digester leak, and see the three parts, the net result and the leak that would cancel the benefit."
+          }
+        },
+        {
+          "kind": "changed",
+          "text": {
+            "pt-BR": "A redução de emissões deixou de entrar na receita e no payback, e o preço do crédito de carbono saiu dos ajustes. Redução só vira crédito com adicionalidade e um único instrumento por volume. Por isso o payback pode ficar um pouco mais longo.",
+            "en": "Emission reductions no longer count in revenue or payback, and the carbon credit price left the settings. A reduction becomes a credit only with additionality and a single instrument per volume. Payback may therefore be slightly longer."
+          }
+        }
+      ]
+    },
+    {
       "version": "3.6.0",
       "date": "2026-10-15T11:09:00-03:00",
       "title": {

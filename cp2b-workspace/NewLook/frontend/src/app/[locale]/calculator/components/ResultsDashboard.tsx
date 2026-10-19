@@ -25,6 +25,7 @@ import {
   applyScenario,
 } from '../calculatorEngine'
 import { useCalculatorText } from '../useCalculatorText'
+import ClimatePanel from './ClimatePanel'
 import { LIVESTOCK_SPECIES } from './StepAtividade'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useFormat } from '@/hooks/useFormat'
@@ -163,6 +164,16 @@ export default function ResultsDashboard({ result, municipalityName, onReset }: 
   }))
 
   const secondaryOutputs = ALL_OUTPUT_TYPES.filter(o => !selectedOutputs.includes(o))
+  // The climate result has its own panel, in the selected or the secondary block.
+  const isProduct = (o: OutputType) => o !== 'carbon'
+  const climate = (
+    <ClimatePanel
+      ch4M3Year={outputs.biomethaneM3Year}
+      activityType={inputSummary.activityType}
+      selectedOutputs={selectedOutputs}
+      elecEff={SCENARIO_FACTORS[scenario].elecEff}
+    />
+  )
   const method = methodologyText(inputSummary.activityType, t, format)
   const brl = (amount: number) => format.currency(amount)
   const brlFrom = (amount: number) => t('results.investmentFrom', { amount: format.currency(amount, { compact: true }) })
@@ -273,7 +284,6 @@ export default function ResultsDashboard({ result, municipalityName, onReset }: 
           {[
             { key: 'energyTariffBrlKwh' as const, label: t('results.tariffEnergy'),    min: 0.50, max: 1.50, step: 0.01, unit: 'R$/kWh'    },
             { key: 'biomethaneM3'        as const, label: t('results.priceBiomethane'), min: 1.00, max: 8.00, step: 0.10, unit: 'R$/m³'     },
-            { key: 'co2CreditBrlTon'     as const, label: t('results.priceCarbon'),     min: 10,   max: 100,  step: 1,    unit: 'R$/tCO₂eq' },
             { key: 'dieselBrlLiter'      as const, label: t('results.priceDiesel'),     min: 4.00, max: 9.00, step: 0.10, unit: 'R$/L'      },
           ].map(({ key, label, min, max, step, unit }) => (
             <div key={key}>
@@ -355,13 +365,11 @@ export default function ResultsDashboard({ result, municipalityName, onReset }: 
             {t('results.primaryOutputs')}
           </p>
           <div className="grid grid-cols-2 gap-3">
-            {selectedOutputs.map(type => {
+            {selectedOutputs.filter(isProduct).map(type => {
               const sub = type === 'energy'
                 ? t('results.energySavings', { amount: brl(financials.energySavingsBrlYear) })
                 : type === 'biomethane'
                 ? t('results.dieselEquivalent', { liters: format.number(financials.dieselEquivLitersYear) })
-                : type === 'carbon'
-                ? t('results.carbonRevenue', { amount: brl(financials.carbonRevBrlYear) })
                 : type === 'digestate'
                 ? t('results.digestateSub')
                 : undefined
@@ -377,6 +385,7 @@ export default function ResultsDashboard({ result, municipalityName, onReset }: 
               )
             })}
           </div>
+          {selectedOutputs.includes('carbon') && <div className="mt-3">{climate}</div>}
         </div>
       )}
 
@@ -469,7 +478,8 @@ export default function ResultsDashboard({ result, municipalityName, onReset }: 
             <span className="text-gray-400 dark:text-slate-500 group-open:rotate-180 transition-transform text-xs">▼</span>
           </summary>
           <div className="px-4 py-3 space-y-1 bg-white dark:bg-slate-900">
-            {secondaryOutputs.map(type => (
+            {secondaryOutputs.includes('carbon') && <div className="pb-2">{climate}</div>}
+            {secondaryOutputs.filter(isProduct).map(type => (
               <div key={type} className="flex items-center gap-3 py-1.5 border-b border-gray-100 dark:border-slate-800 last:border-0">
                 <span className="text-lg">{OUTPUT_EMOJI[type]}</span>
                 <span className="text-sm text-gray-600 dark:text-slate-400 flex-1">{t(`results.${type}`)}</span>
@@ -543,7 +553,6 @@ export default function ResultsDashboard({ result, municipalityName, onReset }: 
             {t('results.method.prices', {
               tariff: format.currency(DEFAULT_PRICES.energyTariffBrlKwh, { decimals: 2, minDecimals: 2 }),
               biomethane: format.currency(DEFAULT_PRICES.biomethaneM3, { decimals: 2, minDecimals: 2 }),
-              carbon: format.currency(DEFAULT_PRICES.co2CreditBrlTon),
             })}
           </p>
           <p><strong className="text-gray-700 dark:text-slate-300">{t('results.method.sourcesLabel')}</strong> {method.source}</p>

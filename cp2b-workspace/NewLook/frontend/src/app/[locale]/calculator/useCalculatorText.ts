@@ -37,7 +37,8 @@ export function useCalculatorText() {
           case 'biochar':
             return `${format.number(outputs.biocharTonsYear, { decimals: 1 })} ${tUnits('t_year')}`
           case 'carbon':
-            return `${format.number(outputs.co2TonsYear, { decimals: 1 })} ${tUnits('tco2eq_year')}`
+            // Avoided emissions come from the backend GHG module, on the results screen.
+            return t('climate.onResults')
         }
       },
 

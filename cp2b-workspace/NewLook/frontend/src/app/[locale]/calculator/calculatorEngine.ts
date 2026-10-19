@@ -16,7 +16,8 @@
  *   biogas   → m³/year
  *   energy   → kWh/year  (MWh/year = kWh / 1000)
  *   volume   → m³/year
- *   CO₂eq    → tCO₂eq/year
+ *   CO₂eq    → tCO₂eq/year (avoided emissions come from the backend GHG module,
+ *              /api/v1/ghg/estimate — see ghgApi.ts; nothing here computes them)
  *   money    → BRL/year
  */
 
@@ -25,20 +26,17 @@ export const SP_ENERGY_TARIFF_BRL_KWH   = 0.85   // CPFL/Enel residential avg 20
 export const SP_DIESEL_BRL_LITER        = 6.50   // SP diesel pump price 2025
 export const BIOMETANO_BRL_M3           = 4.50   // indicative biomethane price SP
 export const CH4_DIESEL_EQUIV_RATIO     = 0.85   // 1 m³ CH4 ≈ 0.85 L diesel
-export const CO2_CREDIT_BRL_TON         = 35.0   // VCM voluntary market 2025
 
 // ── Price configuration (used by sliders) ────────────────────────────────────
 export interface PriceConfig {
   energyTariffBrlKwh: number
   biomethaneM3: number
-  co2CreditBrlTon: number
   dieselBrlLiter: number
 }
 
 export const DEFAULT_PRICES: PriceConfig = {
   energyTariffBrlKwh: SP_ENERGY_TARIFF_BRL_KWH,
   biomethaneM3: BIOMETANO_BRL_M3,
-  co2CreditBrlTon: CO2_CREDIT_BRL_TON,
   dieselBrlLiter: SP_DIESEL_BRL_LITER,
 }
 
@@ -252,7 +250,6 @@ export interface OutputResult {
   digestateTonsYear: number
   thermalMjYear: number
   biocharTonsYear: number
-  co2TonsYear: number
   monthly: MonthlyDistribution[]
 }
 
@@ -264,7 +261,6 @@ export interface FinancialResult {
   dieselEquivLitersYear: number
   energySavingsBrlYear: number
   biomethaneRevBrlYear: number
-  carbonRevBrlYear: number
 }
 
 /** What the user entered, as data; the results screen words it. */
@@ -373,7 +369,6 @@ export function calcOutputs(
   const digestateTons  = biomassTotal * 0.75
   const thermalMjYear  = ch4M3Year * CH4_LHV_MJ_PER_M3 * THERMAL_EFFICIENCY
   const biocharTons    = dryLignoCellulosic * SCENARIO_FACTORS.avg.biocharYield
-  const co2TonsYear    = ch4M3Year * 0.657 * (44 / 16) / 1000
 
   const monthly = spreadToMonths(biogasM3Year, activeMonths).map(m => ({
     ...m,
@@ -388,7 +383,6 @@ export function calcOutputs(
     digestateTonsYear: digestateTons,
     thermalMjYear,
     biocharTonsYear: biocharTons,
-    co2TonsYear,
     monthly,
   }
 }
@@ -409,7 +403,6 @@ export function applyScenario(base: OutputResult, scenario: ScenarioFactor): Out
     digestateTonsYear:  base.digestateTonsYear  * bmpF,
     thermalMjYear:      base.thermalMjYear      * bmpF * thermF,
     biocharTonsYear:    base.biocharTonsYear    * charF,
-    co2TonsYear:        base.co2TonsYear        * bmpF,
     monthly: base.monthly.map(m => ({
       ...m,
       biogas: m.biogas * bmpF,
@@ -460,8 +453,11 @@ export function calcPaybackRange(annualRevNominal: number, tier: CapexTier): Pay
 /**
  * Calculate financial indicators from computed outputs.
  * selectedOutputs controls which revenue streams are shown in the display breakdown,
- * but payback is always computed from the full economic potential (energy + carbon)
- * so that selecting only digestate/heat/biochar doesn't collapse payback to PAYBACK_UNKNOWN.
+ * but payback is always computed from the full energy potential, so that selecting only
+ * digestate/heat/biochar doesn't collapse payback to PAYBACK_UNKNOWN.
+ * Carbon is not revenue: an emission reduction becomes a credit only with additionality
+ * and a single instrument per volume (docs/data/ESPEC_MODULO_GEE.md §4), so it stays out
+ * of revenue and payback.
  * prices allows overriding SP 2025 defaults (used by sliders in ResultsDashboard).
  */
 export function calcFinancials(
@@ -472,17 +468,13 @@ export function calcFinancials(
   // Full potential revenue — used for payback (system viability is independent of display choice)
   const energyFull    = outputs.energyKwhYear    * prices.energyTariffBrlKwh
   const biomethFull   = outputs.biomethaneM3Year * prices.biomethaneM3
-  const carbonFull    = outputs.co2TonsYear      * prices.co2CreditBrlTon
-  const primaryFull   = energyFull > 0 ? energyFull : biomethFull
-  const annualRevMax  = primaryFull + carbonFull
+  const annualRevMax  = energyFull > 0 ? energyFull : biomethFull
 
   // Filtered revenue — only selected outputs, for display breakdown
   const useEnergy     = selectedOutputs.includes('energy')
   const useBiomethane = selectedOutputs.includes('biomethane')
-  const useCarbon     = selectedOutputs.includes('carbon')
   const energySavings = useEnergy     ? energyFull  : 0
   const biomethaneRev = useBiomethane ? biomethFull : 0
-  const carbonRev     = useCarbon     ? carbonFull  : 0
 
   const dieselEquiv   = outputs.biomethaneM3Year * CH4_DIESEL_EQUIV_RATIO * 1000
   const tier          = getCapexTier(outputs.totalBiogasM3Year)
@@ -496,7 +488,6 @@ export function calcFinancials(
     dieselEquivLitersYear: dieselEquiv,
     energySavingsBrlYear:  energySavings,
     biomethaneRevBrlYear:  biomethaneRev,
-    carbonRevBrlYear:      carbonRev,
   }
 }
 
