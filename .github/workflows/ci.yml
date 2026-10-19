@@ -195,6 +195,16 @@ jobs:
           cache-dependency-path: ./cp2b-workspace/NewLook/backend/requirements.txt
       - name: Install dependencies
         run: pip install -r requirements.txt
+      # Every headline number in data/canonical_parameters/official_figures.yaml
+      # is re-read or recomputed from the file that produces it; a source that
+      # changes without the registry (or the reverse) fails here.
+      - name: Official figures registry matches its sources
+        run: python ../scripts/verify_official_figures.py
+      # The strategy prototypes read their reference numbers from the backend
+      # scenario script and the CP2b loader; these guards fail if they drift.
+      - name: Strategy prototype guards (uncertainty, realization index)
+        working-directory: .
+        run: python -m pytest -q -p no:cacheprovider tests/test_sp_real_uncertainty.py tests/test_sp_realization_index.py
       - name: Run tests
         run: pytest -v --cov=app --cov-report=xml --no-cov-on-fail
         env:
