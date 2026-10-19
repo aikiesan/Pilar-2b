@@ -51,3 +51,7 @@ cp2b-workspace/NewLook/data/raw/
 
 # Multi-agent scratch state
 .agents/
+
+# Python bytecode
+__pycache__/
+*.pyc
