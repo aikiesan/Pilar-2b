@@ -1,5 +1,5 @@
 aba,aba_biogram,esperado_min_bcme,esperado_max_bcme,mapa_bcme,posicao_mapa,mapa_bruto_bcme,posicao_bruto,pilar_n3_bcme,esperado_sobre_n3_min,esperado_sobre_n3_max
-residuos_agricolas,Crop residues,7.307,8.392,6.969,-5% abaixo da faixa,8.460,+1% acima da faixa,4.354,1.678,1.927
-dejetos,Manure,1.000,1.459,1.129,dentro da faixa,1.371,dentro da faixa,0.555,1.802,2.630
-biowaste,Biowaste,1.430,1.674,1.211,-15% abaixo da faixa,1.471,dentro da faixa,0.237,6.044,7.076
-total,Total,9.738,11.525,9.316,-4% abaixo da faixa,11.329,dentro da faixa,5.145,1.893,2.240
+residuos_agricolas,Crop residues,7.298,8.345,6.969,-5% abaixo da faixa,8.460,+1% acima da faixa,4.354,1.676,1.917
+dejetos,Manure,1.016,1.179,1.129,dentro da faixa,1.371,+16% acima da faixa,0.555,1.830,2.126
+biowaste,Biowaste,1.539,1.539,1.211,-21% abaixo da faixa,1.471,-4% abaixo da faixa,0.237,6.503,6.503
+total,Total,9.853,11.064,9.316,-5% abaixo da faixa,11.329,+2% acima da faixa,5.145,1.915,2.150

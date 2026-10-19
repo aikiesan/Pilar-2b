@@ -282,7 +282,11 @@ def main() -> None:
     def f(v, d=2):
         return "—" if v is None else f"{v:.{d}f}"
 
+    def rng(low, high, d=2):
+        return f(low, d) if f(low, d) == f(high, d) else f"{f(low, d)}–{f(high, d)}"
+
     open_gaps = [r["indicador"] for r in seed.values() if not r["valor_brasil"].strip()]
+    open_groups = sorted({r["grupo_biogram"] for r in seed.values() if not r["valor_brasil"].strip()})
     tot = next(r for r in rows if r["aba"] == R.TOTAL)
     lines = [
         "# C16 — Participação de SP no Brasil × leitura do mapa BioGRAM",
@@ -298,10 +302,10 @@ def main() -> None:
         "|---|---:|---:|---|---:|---|---:|---:|",
     ]
     for r in rows:
-        lines.append(f"| {r['aba_biogram']} | {f(r['esperado_min_bcme'])}–{f(r['esperado_max_bcme'])} | "
+        lines.append(f"| {r['aba_biogram']} | {rng(r['esperado_min_bcme'], r['esperado_max_bcme'])} | "
                      f"{f(r['mapa_bcme'])} | {r['posicao_mapa']} | {f(r['mapa_bruto_bcme'])} | {r['posicao_bruto']} | "
                      f"{f(r['pilar_n3_bcme'])} | "
-                     f"{f(r['esperado_sobre_n3_min'], 1)}–{f(r['esperado_sobre_n3_max'], 1)}× |")
+                     f"{rng(r['esperado_sobre_n3_min'], r['esperado_sobre_n3_max'], 1)}× |")
     lines += [
         "",
         f"SP fica com {tot['esperado_min_bcme'] / bra['Total']:.1%}–{tot['esperado_max_bcme'] / bra['Total']:.1%} "
@@ -316,8 +320,7 @@ def main() -> None:
     ]
     for g, s in share.items():
         pct = pct_range(s["low"], s["high"])
-        val = (f"{bra[g] * s['low']:.2f}" if s["low"] == s["high"]
-               else f"{bra[g] * s['low']:.2f}–{bra[g] * s['high']:.2f}")
+        val = rng(bra[g] * s["low"], bra[g] * s["high"])
         lines.append(f"| {g} | {bra[g]:.2f} | {pct} | {val} | {s['metodo']} |")
     lines += [
         "",
@@ -330,16 +333,19 @@ def main() -> None:
         "- Participação por tonelagem, cabeças e população. O BioGRAM pesa as culturas por fator de resíduo, "
         "então a faixa é uma régua de coerência, não um recálculo do modelo.",
         "- Dejetos: pesos bovinos 75–90 %, suínos 5–10 %, aves 5–15 % do metano de dejetos do Brasil são "
-        "estimativa nossa (sólidos voláteis × B0, mesma recuperação de 65 %).",
+        "estimativa nossa (sólidos voláteis × B0, mesma recuperação de 65 %). Com os três rebanhos exatos, a "
+        "faixa que resta em dejetos vem só desses pesos.",
         "",
         "## Limites e próximos dados",
         "",
         "- " + (f"Faltam totais nacionais {YEAR} em `analysis/data/08_brasil_totais_2023_seed.csv`: "
-                + ", ".join(open_gaps) + ". Preenchidos, as faixas de cereais, oleaginosas, raízes e dejetos "
-                "viram participação exata." if open_gaps else "Todos os totais nacionais do seed estão preenchidos."),
+                + ", ".join(open_gaps) + ". Preenchidos, " + ", ".join(open_groups)
+                + " viram participação exata." if open_gaps else "Todos os totais nacionais do seed estão preenchidos."),
         "- \"Other crops\" segue como suposição: mistura café, laranja, algodão, forrageiras e hortaliças com "
         "fatores que a nota metodológica não detalha por cultura.",
-        "- RSU e esgoto: o BioGRAM usa What a Waste 3.0 e HydroWASTE, não SINISA; a participação de SP é a "
+        "- RSU e esgoto: soma dos municípios que declararam ao SINISA; SP declara em proporção maior que o "
+        "Brasil, o que puxa a participação para cima. O BioGRAM usa What a Waste 3.0 e HydroWASTE, não "
+        "SINISA; a participação de SP é a "
         "régua, não o volume.",
     ]
     (OUT / "RELATORIO.md").write_text("\n".join(lines) + "\n", encoding="utf-8")

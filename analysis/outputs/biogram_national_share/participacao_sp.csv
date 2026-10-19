@@ -1,9 +1,9 @@
 grupo_biogram,brasil_bcme_ano,participacao_sp_min,participacao_sp_max,sp_esperado_min_bcme_ano,sp_esperado_max_bcme_ano,metodo
 Sugar crops,10.83,0.5615,0.5615,6.081,6.081,"exata (tonelagem, todas as culturas)"
-Cereals and grains,8.84,0.0367,0.0437,0.325,0.387,"faixa: só a cultura principal / cota superior (falta Brasil: Arroz_em_casca, Trigo_em_grão, Sorgo_em_grão)"
+Cereals and grains,8.84,0.0357,0.0385,0.316,0.340,faixa: só a cultura principal / cota superior (falta Brasil: Sorgo_em_grão)
 Oil and protein,16.29,0.0326,0.0392,0.531,0.639,"faixa: só a cultura principal / cota superior (falta Brasil: Amendoim_em_casca, Feijão_em_grão)"
 Roots and tubers,0.4,0.0500,0.1500,0.020,0.060,suposição (sem total nacional no repo)
 Other crops,3.5,0.1000,0.3500,0.350,1.225,"suposição (mistura de culturas, fatores IEA desconhecidos)"
-Manure,20.79,0.0481,0.0702,1.000,1.459,rebanhos ponderados (bovinos 4.5% exata; suinos 3.0%–5.0% suposição; aves 12.0%–20.9% suposição; teto = participação em galinhas poedeiras)
-Municipal solid waste,6.34,0.2187,0.2515,1.386,1.594,população (21.9%) até +15% per capita
-Wastewater,0.2,0.2187,0.4000,0.044,0.080,população (21.9%) até 40% (volume tratado)
+Manure,20.79,0.0488,0.0567,1.016,1.179,rebanhos ponderados (bovinos 4.5% exata; suinos 3.7% exata; aves 12.8% exata)
+Municipal solid waste,6.34,0.2315,0.2315,1.467,1.467,"exata (SINISA 2023, RSU coletado (soma municipal); população 21.9%)"
+Wastewater,0.2,0.3563,0.3563,0.071,0.071,"exata (SINISA 2023, esgoto tratado (soma municipal); população 21.9%)"

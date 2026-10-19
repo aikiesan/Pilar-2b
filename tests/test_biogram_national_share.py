@@ -62,10 +62,19 @@ def test_filling_the_seed_makes_the_share_exact(sp):
 def test_waste_share_uses_sinisa_when_both_sides_are_filled(sp):
     seed = N.national_seed()
     assert set(N.WASTE_SEED.values()) <= set(seed)
+    for k in N.WASTE_SEED.values():  # start from blank rows, whatever the seed holds today
+        seed[k] = {**seed[k], "valor_brasil": "", "valor_sp": ""}
     seed["esgoto_tratado"] = {**seed["esgoto_tratado"], "valor_brasil": "4000", "valor_sp": "1000"}
     s = N.shares(sp, seed)
     assert s["Wastewater"]["low"] == s["Wastewater"]["high"] == 0.25
     assert s["Municipal solid waste"]["low"] < s["Municipal solid waste"]["high"]  # still population
+
+
+def test_seed_sp_side_matches_the_sp_master(sp):
+    """A filled row's SP side must be the same IBGE data PILAR uses, or the share mixes sources."""
+    for r in N.national_seed().values():
+        if r["coluna_sp"] and r["valor_sp"].strip():
+            assert math.isclose(float(r["valor_sp"]), sp[r["coluna_sp"]], rel_tol=0.005), r["indicador"]
 
 
 def test_expected_total_is_the_sum_of_the_tabs(sp):
