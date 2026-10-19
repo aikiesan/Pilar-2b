@@ -35,7 +35,7 @@ def test_national_totals_come_from_the_ingest_gates():
 
 
 def test_seed_columns_exist_in_the_sp_master(sp):
-    seeded = {r["indicador"]: r["coluna_sp"] for r in N.national_seed().values()}
+    seeded = {r["indicador"]: r["coluna_sp"] for r in N.national_seed().values() if r["coluna_sp"]}
     used = {src[1]: col for items in N.CROP_GROUPS.values() for col, src in items if src[0] == "seed"}
     used |= {src[1]: col for col, src in N.HERDS.values() if src[0] == "seed"}
     assert used == seeded
@@ -57,6 +57,15 @@ def test_filling_the_seed_makes_the_share_exact(sp):
     assert s["low"] == s["high"]
     cols = [c for c, _ in N.CROP_GROUPS["Cereals and grains"]]
     assert math.isclose(s["low"], sum(sp[c] for c in cols) / (131_900_000 + 3 * 10_000_000))
+
+
+def test_waste_share_uses_sinisa_when_both_sides_are_filled(sp):
+    seed = N.national_seed()
+    assert set(N.WASTE_SEED.values()) <= set(seed)
+    seed["esgoto_tratado"] = {**seed["esgoto_tratado"], "valor_brasil": "4000", "valor_sp": "1000"}
+    s = N.shares(sp, seed)
+    assert s["Wastewater"]["low"] == s["Wastewater"]["high"] == 0.25
+    assert s["Municipal solid waste"]["low"] < s["Municipal solid waste"]["high"]  # still population
 
 
 def test_expected_total_is_the_sum_of_the_tabs(sp):

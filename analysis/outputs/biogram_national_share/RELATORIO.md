@@ -35,6 +35,6 @@ SP fica com 14.5%–17.2% do potencial brasileiro pelo cálculo de participaçã
 
 ## Limites e próximos dados
 
-- Faltam totais nacionais 2023 em `analysis/data/08_brasil_totais_2023_seed.csv`: arroz, trigo, sorgo, amendoim, feijao, mandioca, batata_doce, batata_inglesa, suino_total, galinaceos_total. Preenchidos, as faixas de cereais, oleaginosas, raízes e dejetos viram participação exata.
+- Faltam totais nacionais 2023 em `analysis/data/08_brasil_totais_2023_seed.csv`: arroz, trigo, sorgo, amendoim, feijao, mandioca, batata_doce, batata_inglesa, suino_total, galinaceos_total, rsu_coletado, esgoto_tratado. Preenchidos, as faixas de cereais, oleaginosas, raízes e dejetos viram participação exata.
 - "Other crops" segue como suposição: mistura café, laranja, algodão, forrageiras e hortaliças com fatores que a nota metodológica não detalha por cultura.
-- RSU e esgoto por população; o BioGRAM usa What a Waste 3.0 e HydroWASTE, não SNIS.
+- RSU e esgoto: o BioGRAM usa What a Waste 3.0 e HydroWASTE, não SINISA; a participação de SP é a régua, não o volume.

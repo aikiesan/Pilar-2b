@@ -90,9 +90,11 @@ HERD_WEIGHTS = {"low": {"bovinos": 0.90, "suinos": 0.05, "aves": 0.05},
 # While the national herd is missing. Poultry: the high end is SP's share of laying
 # hens (galinhas, which the ingest does publish nationally); broilers are less SP.
 ASSUMED_HERD_SHARE = {"suinos": (0.03, 0.05), "aves": (0.12, None)}
-# Waste: population share. MSW per head in SP is above the national mean (income,
-# collection) so the high end adds 15 %; sewage sludge follows treated volume,
-# and SP treats far more than its population share.
+# Waste: SP's share of collected MSW and of treated sewage (SINISA) when the seed has
+# both sides; otherwise population share. MSW per head in SP is above the national
+# mean (income, collection) so the fallback high end adds 15 %; sewage sludge follows
+# treated volume, and SP treats far more than its population share.
+WASTE_SEED = {"Municipal solid waste": "rsu_coletado", "Wastewater": "esgoto_tratado"}
 MSW_PER_HEAD_UPLIFT = 1.15
 WASTEWATER_HIGH_SHARE = 0.40
 
@@ -128,6 +130,13 @@ def national_value(src: tuple, seed: dict[str, dict]) -> float | None:
         return published_national(src[1], src[2])
     v = seed.get(src[1], {}).get("valor_brasil", "").strip()
     return float(v.replace(",", ".")) if v else None
+
+
+def seed_share(indicador: str, seed: dict[str, dict]) -> float | None:
+    """SP ÷ Brazil for a seed row that carries both sides (valor_sp, valor_brasil)."""
+    r = seed.get(indicador, {})
+    br, sp = (r.get(k, "").strip().replace(",", ".") for k in ("valor_brasil", "valor_sp"))
+    return float(sp) / float(br) if br and sp else None
 
 
 def sp_totals() -> dict[str, float]:
@@ -202,6 +211,11 @@ def shares(sp: dict[str, float], seed: dict[str, dict]) -> dict[str, dict]:
                                     "metodo": f"população ({pop:.1%}) até +{MSW_PER_HEAD_UPLIFT - 1:.0%} per capita"}
     out["Wastewater"] = {"low": pop, "high": WASTEWATER_HIGH_SHARE,
                          "metodo": f"população ({pop:.1%}) até {WASTEWATER_HIGH_SHARE:.0%} (volume tratado)"}
+    for group, indicador in WASTE_SEED.items():
+        s = seed_share(indicador, seed)
+        if s is not None:
+            out[group] = {"low": s, "high": s,
+                          "metodo": f"exata ({seed[indicador]['notas'].split(';')[0]}; população {pop:.1%})"}
     return out
 
 
@@ -325,7 +339,8 @@ def main() -> None:
                 "viram participação exata." if open_gaps else "Todos os totais nacionais do seed estão preenchidos."),
         "- \"Other crops\" segue como suposição: mistura café, laranja, algodão, forrageiras e hortaliças com "
         "fatores que a nota metodológica não detalha por cultura.",
-        "- RSU e esgoto por população; o BioGRAM usa What a Waste 3.0 e HydroWASTE, não SNIS.",
+        "- RSU e esgoto: o BioGRAM usa What a Waste 3.0 e HydroWASTE, não SINISA; a participação de SP é a "
+        "régua, não o volume.",
     ]
     (OUT / "RELATORIO.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
     print("\n".join(lines))
