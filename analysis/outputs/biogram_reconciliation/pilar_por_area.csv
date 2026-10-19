@@ -9,6 +9,8 @@ SP,estado,São Paulo,645,rsu,422547935,555243775,352540960,186620800,176988163
 SP,estado,São Paulo,645,esgoto,66643880,102512684,55382303,51430850,42969096
 SP,estado,São Paulo,645,vinhaca_torta,2057958214,2007732934,1854240855,1825519914,1657013575
 SP,estado,São Paulo,645,silvicultura_aquicultura,239972945,0,0,0,0
+SP,estado,São Paulo,645,residuos_agricolas,3709795515,18854140648,12363174287,4380132256,3639915837
+SP,estado,São Paulo,645,biowaste,489191815,657756459,407923263,238051650,219957259
 SP,estado,São Paulo,645,total,5534212675,21634820430,13353317243,5176348549,4314691487
 SP,estado,São Paulo,645,total_pilar,7832143834,23642553363,15207558098,7001868464,5971705062
 RGINT-3501,regiao_intermediaria,São Paulo,50,acucareiras,9450,34595,13838,12454,0
@@ -21,6 +23,8 @@ RGINT-3501,regiao_intermediaria,São Paulo,50,rsu,231593954,299544602,190452673,
 RGINT-3501,regiao_intermediaria,São Paulo,50,esgoto,33860120,52084179,36221881,32270428,30032289
 RGINT-3501,regiao_intermediaria,São Paulo,50,vinhaca_torta,8071,0,0,0,0
 RGINT-3501,regiao_intermediaria,São Paulo,50,silvicultura_aquicultura,4872919,0,0,0,0
+RGINT-3501,regiao_intermediaria,São Paulo,50,residuos_agricolas,29429,72604,28321,26224,2236
+RGINT-3501,regiao_intermediaria,São Paulo,50,biowaste,265454074,351628781,226674554,89560953,84877593
 RGINT-3501,regiao_intermediaria,São Paulo,50,total,269986656,361353295,231324435,94015020,88352478
 RGINT-3501,regiao_intermediaria,São Paulo,50,total_pilar,274867646,361353295,231324435,94015020,88352478
 RGINT-3502,regiao_intermediaria,Sorocaba,78,acucareiras,57798524,481363301,341612915,101467311,90522319
@@ -33,6 +37,8 @@ RGINT-3502,regiao_intermediaria,Sorocaba,78,rsu,27084403,34155255,21621661,21428
 RGINT-3502,regiao_intermediaria,Sorocaba,78,esgoto,4613546,7096630,2546103,2546103,1479828
 RGINT-3502,regiao_intermediaria,Sorocaba,78,vinhaca_torta,49360285,58074314,53522092,53522092,48345782
 RGINT-3502,regiao_intermediaria,Sorocaba,78,silvicultura_aquicultura,87874448,0,0,0,0
+RGINT-3502,regiao_intermediaria,Sorocaba,78,residuos_agricolas,467276125,1058020709,540649060,294885378,242719161
+RGINT-3502,regiao_intermediaria,Sorocaba,78,biowaste,31697949,41251885,24167764,23974679,20400604
 RGINT-3502,regiao_intermediaria,Sorocaba,78,total,640082567,1358795573,678784963,428195755,358494302
 RGINT-3502,regiao_intermediaria,Sorocaba,78,total_pilar,777317300,1416869886,732307056,481717847,406840084
 RGINT-3503,regiao_intermediaria,Bauru,48,acucareiras,242422862,1741256846,1196943948,385730791,311383062
@@ -45,6 +51,8 @@ RGINT-3503,regiao_intermediaria,Bauru,48,rsu,11497034,14887453,9416077,9329155,8
 RGINT-3503,regiao_intermediaria,Bauru,48,esgoto,2076908,3194733,531060,531060,241396
 RGINT-3503,regiao_intermediaria,Bauru,48,vinhaca_torta,207030573,209579971,193566704,193566704,175776786
 RGINT-3503,regiao_intermediaria,Bauru,48,silvicultura_aquicultura,81451322,0,0,0,0
+RGINT-3503,regiao_intermediaria,Bauru,48,residuos_agricolas,324697442,1791398963,1216664059,402230556,322195787
+RGINT-3503,regiao_intermediaria,Bauru,48,biowaste,13573942,18082186,9947137,9860215,9200969
 RGINT-3503,regiao_intermediaria,Bauru,48,total,456605140,1992003520,1276143540,459227751,370720199
 RGINT-3503,regiao_intermediaria,Bauru,48,total_pilar,745087034,2201583492,1469710243,652794455,546496984
 RGINT-3504,regiao_intermediaria,Marília,54,acucareiras,169975675,1269114867,896286461,269627287,224289010
@@ -57,6 +65,8 @@ RGINT-3504,regiao_intermediaria,Marília,54,rsu,8403783,10462474,6607821,6543558
 RGINT-3504,regiao_intermediaria,Marília,54,esgoto,1535475,2361892,180508,180508,157416
 RGINT-3504,regiao_intermediaria,Marília,54,vinhaca_torta,145160242,146907602,135264332,135264332,122680826
 RGINT-3504,regiao_intermediaria,Marília,54,silvicultura_aquicultura,13862691,0,0,0,0
+RGINT-3504,regiao_intermediaria,Marília,54,residuos_agricolas,457618182,1568457776,1007760846,375024886,308564616
+RGINT-3504,regiao_intermediaria,Marília,54,biowaste,9939258,12824366,6788329,6724066,6475922
 RGINT-3504,regiao_intermediaria,Marília,54,total,602237256,1801155482,1080409236,444787210,370328952
 RGINT-3504,regiao_intermediaria,Marília,54,total_pilar,761260189,1948063084,1215673568,580051542,493009779
 RGINT-3505,regiao_intermediaria,Presidente Prudente,55,acucareiras,226070296,1558500600,1028012282,361751688,269621817
@@ -69,6 +79,8 @@ RGINT-3505,regiao_intermediaria,Presidente Prudente,55,rsu,6962013,11122470,7064
 RGINT-3505,regiao_intermediaria,Presidente Prudente,55,esgoto,1316401,2024910,344733,344733,291185
 RGINT-3505,regiao_intermediaria,Presidente Prudente,55,vinhaca_torta,193065383,181221915,167686304,162719543,148138447
 RGINT-3505,regiao_intermediaria,Presidente Prudente,55,silvicultura_aquicultura,2831319,0,0,0,0
+RGINT-3505,regiao_intermediaria,Presidente Prudente,55,residuos_agricolas,287615528,1629704033,1053135725,385992625,284233714
+RGINT-3505,regiao_intermediaria,Presidente Prudente,55,biowaste,8278414,13147379,7409057,6098769,5159407
 RGINT-3505,regiao_intermediaria,Presidente Prudente,55,total,539285589,1970893198,1086831234,417727218,302994411
 RGINT-3505,regiao_intermediaria,Presidente Prudente,55,total_pilar,735182291,2152115113,1254517538,580446762,451132857
 RGINT-3506,regiao_intermediaria,Araçatuba,44,acucareiras,265471995,1781560718,1170474755,420523885,333466258
@@ -81,6 +93,8 @@ RGINT-3506,regiao_intermediaria,Araçatuba,44,rsu,6365985,8358504,5286538,523770
 RGINT-3506,regiao_intermediaria,Araçatuba,44,esgoto,1166734,1794688,232347,232347,227568
 RGINT-3506,regiao_intermediaria,Araçatuba,44,vinhaca_torta,226714670,198588625,183595926,183456661,166027858
 RGINT-3506,regiao_intermediaria,Araçatuba,44,silvicultura_aquicultura,1192156,0,0,0,0
+RGINT-3506,regiao_intermediaria,Araçatuba,44,residuos_agricolas,302392824,1830113210,1185811373,435688277,342628272
+RGINT-3506,regiao_intermediaria,Araçatuba,44,biowaste,7532719,10153193,5518885,5470055,5311191
 RGINT-3506,regiao_intermediaria,Araçatuba,44,total,448266339,2033588957,1213678956,463007935,362656043
 RGINT-3506,regiao_intermediaria,Araçatuba,44,total_pilar,676173166,2232177582,1397274883,646464596,528683901
 RGINT-3507,regiao_intermediaria,São José do Rio Preto,100,acucareiras,429309392,3042253897,2063392541,687356657,590711194
@@ -93,6 +107,8 @@ RGINT-3507,regiao_intermediaria,São José do Rio Preto,100,rsu,13244388,2014791
 RGINT-3507,regiao_intermediaria,São José do Rio Preto,100,esgoto,2451462,3770877,1205526,1205526,1063221
 RGINT-3507,regiao_intermediaria,São José do Rio Preto,100,vinhaca_torta,366632786,378788448,350487869,350487869,318704590
 RGINT-3507,regiao_intermediaria,São José do Rio Preto,100,silvicultura_aquicultura,1358744,0,0,0,0
+RGINT-3507,regiao_intermediaria,São José do Rio Preto,100,residuos_agricolas,494445922,3151272667,2119425605,716427972,611129479
+RGINT-3507,regiao_intermediaria,São José do Rio Preto,100,biowaste,15695850,23918789,13993874,11385407,10873380
 RGINT-3507,regiao_intermediaria,São José do Rio Preto,100,total,719484735,3503160323,2217240061,809251847,686919864
 RGINT-3507,regiao_intermediaria,São José do Rio Preto,100,total_pilar,1087476265,3881948771,2567727930,1159739715,1005624455
 RGINT-3508,regiao_intermediaria,Ribeirão Preto,64,acucareiras,612438327,4566130059,3125469632,1000473104,872750553
@@ -105,6 +121,8 @@ RGINT-3508,regiao_intermediaria,Ribeirão Preto,64,rsu,22784576,33268983,2114499
 RGINT-3508,regiao_intermediaria,Ribeirão Preto,64,esgoto,3821786,5878732,2364115,2364115,1894011
 RGINT-3508,regiao_intermediaria,Ribeirão Preto,64,vinhaca_torta,523025991,558798491,516493017,497221752,451844570
 RGINT-3508,regiao_intermediaria,Ribeirão Preto,64,silvicultura_aquicultura,8645740,0,0,0,0
+RGINT-3508,regiao_intermediaria,Ribeirão Preto,64,residuos_agricolas,766030968,4788980926,3230960662,1071409777,924725760
+RGINT-3508,regiao_intermediaria,Ribeirão Preto,64,biowaste,26606361,39147715,23509109,10689775,9870616
 RGINT-3508,regiao_intermediaria,Ribeirão Preto,64,total,863876734,4958183578,3306994365,1131935058,977288591
 RGINT-3508,regiao_intermediaria,Ribeirão Preto,64,total_pilar,1395548465,5516982069,3823487382,1629156810,1429133161
 RGINT-3509,regiao_intermediaria,Araraquara,26,acucareiras,220745223,1300685204,850352326,309207294,279129604
@@ -117,6 +135,8 @@ RGINT-3509,regiao_intermediaria,Araraquara,26,rsu,9250824,11567709,7311626,72424
 RGINT-3509,regiao_intermediaria,Araraquara,26,esgoto,1651741,2540734,1255862,1255862,1123629
 RGINT-3509,regiao_intermediaria,Araraquara,26,vinhaca_torta,188517740,120457713,110784565,110781904,100149146
 RGINT-3509,regiao_intermediaria,Araraquara,26,silvicultura_aquicultura,8970063,0,0,0,0
+RGINT-3509,regiao_intermediaria,Araraquara,26,residuos_agricolas,268729039,1433354564,933299227,340092579,303474444
+RGINT-3509,regiao_intermediaria,Araraquara,26,biowaste,10902565,14108443,8567489,8498360,8280498
 RGINT-3509,regiao_intermediaria,Araraquara,26,total,314163938,1516715948,974331222,379810957,338513924
 RGINT-3509,regiao_intermediaria,Araraquara,26,total_pilar,511651741,1637173662,1085115787,490592861,438663070
 RGINT-3510,regiao_intermediaria,Campinas,87,acucareiras,184407337,1395173864,983976958,289840499,249149902
@@ -129,6 +149,8 @@ RGINT-3510,regiao_intermediaria,Campinas,87,rsu,62360933,80805466,51219083,50395
 RGINT-3510,regiao_intermediaria,Campinas,87,esgoto,10389599,15981448,7689245,7689245,4855575
 RGINT-3510,regiao_intermediaria,Campinas,87,vinhaca_torta,157484968,155315855,142840046,138499057,125345570
 RGINT-3510,regiao_intermediaria,Campinas,87,silvicultura_aquicultura,21215784,0,0,0,0
+RGINT-3510,regiao_intermediaria,Campinas,87,residuos_agricolas,335488497,1589384080,1070522864,353699671,298233422
+RGINT-3510,regiao_intermediaria,Campinas,87,biowaste,72750533,96786914,58908329,58084375,54116615
 RGINT-3510,regiao_intermediaria,Campinas,87,total,549319007,1957770605,1244262821,520225711,445971026
 RGINT-3510,regiao_intermediaria,Campinas,87,total_pilar,728019759,2113086460,1387102867,658724768,571316596
 RGINT-3511,regiao_intermediaria,São José dos Campos,39,acucareiras,1121193,4081464,1632586,1469327,0
@@ -141,6 +163,8 @@ RGINT-3511,regiao_intermediaria,São José dos Campos,39,rsu,23000040,30922946,1
 RGINT-3511,regiao_intermediaria,São José dos Campos,39,esgoto,3760109,5783860,2810922,2810922,1602978
 RGINT-3511,regiao_intermediaria,São José dos Campos,39,vinhaca_torta,957505,0,0,0,0
 RGINT-3511,regiao_intermediaria,São José dos Campos,39,silvicultura_aquicultura,7697758,0,0,0,0
+RGINT-3511,regiao_intermediaria,São José dos Campos,39,residuos_agricolas,5471560,13381115,4916544,4654311,2008947
+RGINT-3511,regiao_intermediaria,São José dos Campos,39,biowaste,26760150,36706807,22438736,7704995,5390463
 RGINT-3511,regiao_intermediaria,São José dos Campos,39,total,130904715,181199950,43316409,28164087,12451697
 RGINT-3511,regiao_intermediaria,São José dos Campos,39,total_pilar,139559978,181199950,43316409,28164087,12451697
 SITIO-01,sitio,São Paulo (raio 30 km),17,acucareiras,1207,4420,1768,1591,0
@@ -153,6 +177,8 @@ SITIO-01,sitio,São Paulo (raio 30 km),17,rsu,176287523,219095380,139279207,4194
 SITIO-01,sitio,São Paulo (raio 30 km),17,esgoto,24951471,38380752,32296867,28773594,27500737
 SITIO-01,sitio,São Paulo (raio 30 km),17,vinhaca_torta,1031,0,0,0,0
 SITIO-01,sitio,São Paulo (raio 30 km),17,silvicultura_aquicultura,23940,0,0,0,0
+SITIO-01,sitio,São Paulo (raio 30 km),17,residuos_agricolas,19291,32923,13237,12444,1231
+SITIO-01,sitio,São Paulo (raio 30 km),17,biowaste,201238994,257476133,171576074,70721810,68620359
 SITIO-01,sitio,São Paulo (raio 30 km),17,total,201365628,257675643,171658367,70803065,68652842
 SITIO-01,sitio,São Paulo (raio 30 km),17,total_pilar,201390599,257675643,171658367,70803065,68652842
 SITIO-02,sitio,Taquaral (raio 30 km),10,acucareiras,90489876,631103957,433452233,139983202,128141678
@@ -165,6 +191,8 @@ SITIO-02,sitio,Taquaral (raio 30 km),10,rsu,2227180,3255712,2063327,920630,82159
 SITIO-02,sitio,Taquaral (raio 30 km),10,esgoto,421212,647915,36476,36476,0
 SITIO-02,sitio,Taquaral (raio 30 km),10,vinhaca_torta,77278895,84105592,77898556,77898556,70946039
 SITIO-02,sitio,Taquaral (raio 30 km),10,silvicultura_aquicultura,45709,0,0,0,0
+SITIO-02,sitio,Taquaral (raio 30 km),10,residuos_agricolas,101702524,663127713,454069161,146984021,133576398
+SITIO-02,sitio,Taquaral (raio 30 km),10,biowaste,2648391,3903626,2099804,957106,821593
 SITIO-02,sitio,Taquaral (raio 30 km),10,total,110206682,678923868,461027398,152646891,138349689
 SITIO-02,sitio,Taquaral (raio 30 km),10,total_pilar,187531286,763029460,538925954,230545447,209295728
 SITIO-03,sitio,Morro Agudo (raio 30 km),6,acucareiras,75647069,596404006,408924567,132621468,122205483
@@ -177,6 +205,8 @@ SITIO-03,sitio,Morro Agudo (raio 30 km),6,rsu,1156674,1659039,1050802,420549,407
 SITIO-03,sitio,Morro Agudo (raio 30 km),6,esgoto,219613,337812,34998,34998,20575
 SITIO-03,sitio,Morro Agudo (raio 30 km),6,vinhaca_torta,64603049,68676758,63358914,63358914,57417869
 SITIO-03,sitio,Morro Agudo (raio 30 km),6,silvicultura_aquicultura,60,0,0,0,0
+SITIO-03,sitio,Morro Agudo (raio 30 km),6,residuos_agricolas,85726595,614641693,414688046,138295076,125759153
+SITIO-03,sitio,Morro Agudo (raio 30 km),6,biowaste,1376287,1996850,1085800,455547,428324
 SITIO-03,sitio,Morro Agudo (raio 30 km),6,total,90454657,624697413,420257373,143163002,130015734
 SITIO-03,sitio,Morro Agudo (raio 30 km),6,total_pilar,155057766,693374171,483616287,206521916,187433603
 SITIO-04,sitio,Barra Bonita (raio 30 km),8,acucareiras,69354710,573858919,426525746,111679616,103754779
@@ -189,6 +219,8 @@ SITIO-04,sitio,Barra Bonita (raio 30 km),8,rsu,2403532,2908284,1835569,1817297,1
 SITIO-04,sitio,Barra Bonita (raio 30 km),8,esgoto,436583,671558,356106,356106,165252
 SITIO-04,sitio,Barra Bonita (raio 30 km),8,vinhaca_torta,59229337,82028021,75748238,75748238,68744130
 SITIO-04,sitio,Barra Bonita (raio 30 km),8,silvicultura_aquicultura,205,0,0,0,0
+SITIO-04,sitio,Barra Bonita (raio 30 km),8,residuos_agricolas,76377460,579761533,428935667,113720135,105342396
+SITIO-04,sitio,Barra Bonita (raio 30 km),8,biowaste,2840115,3579842,2191675,2173403,1964385
 SITIO-04,sitio,Barra Bonita (raio 30 km),8,total,84879989,595004600,436830939,121214370,112135416
 SITIO-04,sitio,Barra Bonita (raio 30 km),8,total_pilar,144109531,677032621,512579177,196962608,180879546
 SITIO-05,sitio,Barretos (raio 30 km),4,acucareiras,70965487,392818590,231661233,105502954,86305300
@@ -201,6 +233,8 @@ SITIO-05,sitio,Barretos (raio 30 km),4,rsu,1332941,1812221,1148962,457703,424965
 SITIO-05,sitio,Barretos (raio 30 km),4,esgoto,230825,355059,44916,44916,15739
 SITIO-05,sitio,Barretos (raio 30 km),4,vinhaca_torta,60604950,22929900,20959152,20959152,18985689
 SITIO-05,sitio,Barretos (raio 30 km),4,silvicultura_aquicultura,0,0,0,0,0
+SITIO-05,sitio,Barretos (raio 30 km),4,residuos_agricolas,88508916,428216691,252764519,114266596,92640972
+SITIO-05,sitio,Barretos (raio 30 km),4,biowaste,1563766,2167280,1193878,502618,440704
 SITIO-05,sitio,Barretos (raio 30 km),4,total,99329992,447861820,260511292,121032070,98705057
 SITIO-05,sitio,Barretos (raio 30 km),4,total_pilar,159934942,470791721,281470445,141991222,117690746
 SITIO-06,sitio,Sertãozinho (raio 30 km),8,acucareiras,86315966,1101659065,877218724,186257080,172630227
@@ -213,6 +247,8 @@ SITIO-06,sitio,Sertãozinho (raio 30 km),8,rsu,10183898,12474080,7919604,3134391
 SITIO-06,sitio,Sertãozinho (raio 30 km),8,esgoto,1501708,2309952,1608132,1608132,1412503
 SITIO-06,sitio,Sertãozinho (raio 30 km),8,vinhaca_torta,73714351,198752138,183986765,183986765,167132957
 SITIO-06,sitio,Sertãozinho (raio 30 km),8,silvicultura_aquicultura,4,0,0,0,0
+SITIO-06,sitio,Sertãozinho (raio 30 km),8,residuos_agricolas,90385448,1108957755,879651460,188636751,174323163
+SITIO-06,sitio,Sertãozinho (raio 30 km),8,biowaste,11685607,14784032,9527736,4742523,4478333
 SITIO-06,sitio,Sertãozinho (raio 30 km),8,total,105725580,1132276313,893062631,197225597,182350511
 SITIO-06,sitio,Sertãozinho (raio 30 km),8,total_pilar,179439935,1331028451,1077049396,381212362,349483468
 SITIO-07,sitio,Valparaíso (raio 30 km),6,acucareiras,69762260,510565963,342646294,117110518,103736160
@@ -225,6 +261,8 @@ SITIO-07,sitio,Valparaíso (raio 30 km),6,rsu,759584,882749,555273,549102,539604
 SITIO-07,sitio,Valparaíso (raio 30 km),6,esgoto,147453,226814,0,0,0
 SITIO-07,sitio,Valparaíso (raio 30 km),6,vinhaca_torta,59577387,57456344,53052772,53052772,48026097
 SITIO-07,sitio,Valparaíso (raio 30 km),6,silvicultura_aquicultura,0,0,0,0,0
+SITIO-07,sitio,Valparaíso (raio 30 km),6,residuos_agricolas,74176363,515522696,344217524,118664614,104733738
+SITIO-07,sitio,Valparaíso (raio 30 km),6,biowaste,907037,1109563,555273,549102,539604
 SITIO-07,sitio,Valparaíso (raio 30 km),6,total,103076116,559371661,353921453,127959465,112767583
 SITIO-07,sitio,Valparaíso (raio 30 km),6,total_pilar,162653502,616828006,406974225,181012237,160793680
 SITIO-08,sitio,Rancharia (raio 30 km),3,acucareiras,47815106,197171518,89516292,65851498,45374153
@@ -237,6 +275,8 @@ SITIO-08,sitio,Rancharia (raio 30 km),3,rsu,441307,504640,317119,259374,188210
 SITIO-08,sitio,Rancharia (raio 30 km),3,esgoto,86795,133510,0,0,0
 SITIO-08,sitio,Rancharia (raio 30 km),3,vinhaca_torta,40834386,4196392,3868822,3868822,3516926
 SITIO-08,sitio,Rancharia (raio 30 km),3,silvicultura_aquicultura,140554,0,0,0,0
+SITIO-08,sitio,Rancharia (raio 30 km),3,residuos_agricolas,64893790,218495348,97299927,73357835,49758657
+SITIO-08,sitio,Rancharia (raio 30 km),3,biowaste,528103,638150,317119,259374,188210
 SITIO-08,sitio,Rancharia (raio 30 km),3,total,88891900,254605799,103905554,79659589,54419341
 SITIO-08,sitio,Rancharia (raio 30 km),3,total_pilar,129866840,258802191,107774376,83528411,57936267
 SITIO-09,sitio,Guará (raio 30 km),8,acucareiras,69584997,377290817,220126281,102478080,87077631
@@ -249,6 +289,8 @@ SITIO-09,sitio,Guará (raio 30 km),8,rsu,1310415,2022246,1283082,509330,506749
 SITIO-09,sitio,Guará (raio 30 km),8,esgoto,249914,384422,34998,34998,20575
 SITIO-09,sitio,Guará (raio 30 km),8,vinhaca_torta,59426003,28811034,26605105,26605105,24201161
 SITIO-09,sitio,Guará (raio 30 km),8,silvicultura_aquicultura,26776,0,0,0,0
+SITIO-09,sitio,Guará (raio 30 km),8,residuos_agricolas,88319942,402221253,230525468,111264897,93801086
+SITIO-09,sitio,Guará (raio 30 km),8,biowaste,1560329,2406668,1318080,544328,527325
 SITIO-09,sitio,Guará (raio 30 km),8,total,97268651,423670746,244677361,124143887,105727043
 SITIO-09,sitio,Guará (raio 30 km),8,total_pilar,156721431,452481780,271282466,150748992,129928204
 SITIO-10,sitio,São Carlos (raio 30 km),5,acucareiras,42542976,336594898,241114812,69870000,62168540
@@ -261,6 +303,8 @@ SITIO-10,sitio,São Carlos (raio 30 km),5,rsu,3125245,3831024,2423017,2400394,23
 SITIO-10,sitio,São Carlos (raio 30 km),5,esgoto,534815,822662,378928,378928,367447
 SITIO-10,sitio,São Carlos (raio 30 km),5,vinhaca_torta,36331956,39803363,36635691,36633029,33278513
 SITIO-10,sitio,São Carlos (raio 30 km),5,silvicultura_aquicultura,961469,0,0,0,0
+SITIO-10,sitio,São Carlos (raio 30 km),5,residuos_agricolas,49852339,343774210,243791270,72396845,63850888
+SITIO-10,sitio,São Carlos (raio 30 km),5,biowaste,3660061,4653685,2801945,2779322,2746367
 SITIO-10,sitio,São Carlos (raio 30 km),5,total,64741314,372267068,257984339,86145731,76211701
 SITIO-10,sitio,São Carlos (raio 30 km),5,total_pilar,102034738,412070430,294620029,122778760,109490214
 SITIO-11,sitio,Potirendaba (raio 30 km),11,acucareiras,55249013,328356690,205876473,82296670,71532233
@@ -273,6 +317,8 @@ SITIO-11,sitio,Potirendaba (raio 30 km),11,rsu,1409793,2136168,1353678,1078413,1
 SITIO-11,sitio,Potirendaba (raio 30 km),11,esgoto,277419,426730,142192,142192,22644
 SITIO-11,sitio,Potirendaba (raio 30 km),11,vinhaca_torta,47182987,26305771,24166229,24166229,21858628
 SITIO-11,sitio,Potirendaba (raio 30 km),11,silvicultura_aquicultura,90375,0,0,0,0
+SITIO-11,sitio,Potirendaba (raio 30 km),11,residuos_agricolas,63704138,342023440,213003601,85948895,74154669
+SITIO-11,sitio,Potirendaba (raio 30 km),11,biowaste,1687212,2562898,1495870,1220606,1059589
 SITIO-11,sitio,Potirendaba (raio 30 km),11,total,84783691,377415045,225582524,97855183,83456966
 SITIO-11,sitio,Potirendaba (raio 30 km),11,total_pilar,132057053,403720816,249748753,122021412,105315594
 SITIO-12,sitio,Guaíra (raio 30 km),1,acucareiras,29621480,385320334,308519570,64326719,55701667
@@ -285,6 +331,8 @@ SITIO-12,sitio,Guaíra (raio 30 km),1,rsu,318427,403866,255112,103390,102946
 SITIO-12,sitio,Guaíra (raio 30 km),1,esgoto,58942,90666,30222,30222,28759
 SITIO-12,sitio,Guaíra (raio 30 km),1,vinhaca_torta,25296921,64162175,59246685,59246685,53892293
 SITIO-12,sitio,Guaíra (raio 30 km),1,silvicultura_aquicultura,80,0,0,0,0
+SITIO-12,sitio,Guaíra (raio 30 km),1,residuos_agricolas,51137561,413848465,318086861,73692239,63289027
+SITIO-12,sitio,Guaíra (raio 30 km),1,biowaste,377370,494532,285334,133612,131705
 SITIO-12,sitio,Guaíra (raio 30 km),1,total,54031197,417523519,318813893,74258063,63810053
 SITIO-12,sitio,Guaíra (raio 30 km),1,total_pilar,79328198,481685694,378060579,133504748,117702346
 SITIO-13,sitio,Monte Mor (raio 30 km),12,acucareiras,25777410,203286375,145200662,42401605,38638689
@@ -297,6 +345,8 @@ SITIO-13,sitio,Monte Mor (raio 30 km),12,rsu,27024177,32601745,20669076,20345691
 SITIO-13,sitio,Monte Mor (raio 30 km),12,esgoto,4157994,6395893,3558219,3558219,2198753
 SITIO-13,sitio,Monte Mor (raio 30 km),12,vinhaca_torta,22014063,18837853,17189458,17189458,15492904
 SITIO-13,sitio,Monte Mor (raio 30 km),12,silvicultura_aquicultura,1331820,0,0,0,0
+SITIO-13,sitio,Monte Mor (raio 30 km),12,residuos_agricolas,29690164,210592740,147831309,44915174,40683609
+SITIO-13,sitio,Monte Mor (raio 30 km),12,biowaste,31182171,38997638,24227295,23903910,22420819
 SITIO-13,sitio,Monte Mor (raio 30 km),12,total,72079360,272258101,182990704,79209967,72211129
 SITIO-13,sitio,Monte Mor (raio 30 km),12,total_pilar,95425242,291095954,200180162,96399425,87704032
 SITIO-14,sitio,Motuca (raio 30 km),10,acucareiras,62753337,534363104,400079734,85146276,78403977
@@ -309,6 +359,8 @@ SITIO-14,sitio,Motuca (raio 30 km),10,rsu,1639004,2553378,1620298,1206026,118721
 SITIO-14,sitio,Motuca (raio 30 km),10,esgoto,313786,482671,178087,178087,178087
 SITIO-14,sitio,Motuca (raio 30 km),10,vinhaca_torta,53591725,87560274,81121629,61847702,56249124
 SITIO-14,sitio,Motuca (raio 30 km),10,silvicultura_aquicultura,819013,0,0,0,0
+SITIO-14,sitio,Motuca (raio 30 km),10,residuos_agricolas,70947469,590475899,439039941,96607125,88026464
+SITIO-14,sitio,Motuca (raio 30 km),10,biowaste,1952790,3036049,1798385,1384113,1365301
 SITIO-14,sitio,Motuca (raio 30 km),10,total,75730039,600257614,444527582,101504652,92533631
 SITIO-14,sitio,Motuca (raio 30 km),10,total_pilar,130140777,687817889,525649211,163352354,148782754
 SITIO-15,sitio,José Bonifácio (raio 30 km),12,acucareiras,62538943,390077793,251860285,94255770,86326504
@@ -321,6 +373,8 @@ SITIO-15,sitio,José Bonifácio (raio 30 km),12,rsu,719290,1249036,793864,644884
 SITIO-15,sitio,José Bonifácio (raio 30 km),12,esgoto,143439,220640,6387,6387,0
 SITIO-15,sitio,José Bonifácio (raio 30 km),12,vinhaca_torta,53408631,46053755,42691314,42691314,38816926
 SITIO-15,sitio,José Bonifácio (raio 30 km),12,silvicultura_aquicultura,33614,0,0,0,0
+SITIO-15,sitio,José Bonifácio (raio 30 km),12,residuos_agricolas,72089831,401399519,255648920,97963842,88742571
+SITIO-15,sitio,José Bonifácio (raio 30 km),12,biowaste,862729,1469676,800251,651272,613125
 SITIO-15,sitio,José Bonifácio (raio 30 km),12,total,92607174,437612902,269048913,110825452,99647706
 SITIO-15,sitio,José Bonifácio (raio 30 km),12,total_pilar,146049419,483666657,311740227,153516766,138464632
 SITIO-16,sitio,Cajobi (raio 30 km),10,acucareiras,65641589,542738945,392782386,110736922,101931057
@@ -333,6 +387,8 @@ SITIO-16,sitio,Cajobi (raio 30 km),10,rsu,1120951,2847230,1822584,788232,713865
 SITIO-16,sitio,Cajobi (raio 30 km),10,esgoto,223931,344455,122155,122155,0
 SITIO-16,sitio,Cajobi (raio 30 km),10,vinhaca_torta,56058310,55736986,51007255,51007255,46227237
 SITIO-16,sitio,Cajobi (raio 30 km),10,silvicultura_aquicultura,27607,0,0,0,0
+SITIO-16,sitio,Cajobi (raio 30 km),10,residuos_agricolas,76041829,569480637,410716439,116438631,106452793
+SITIO-16,sitio,Cajobi (raio 30 km),10,biowaste,1344882,3191685,1944738,910386,713865
 SITIO-16,sitio,Cajobi (raio 30 km),10,total,84047021,582617139,415437746,119127026,108210675
 SITIO-16,sitio,Cajobi (raio 30 km),10,total_pilar,140132938,638354125,466445001,170134281,154437912
 SITIO-17,sitio,Araras (raio 30 km),8,acucareiras,44682006,276268243,185041094,63544829,58893489
@@ -345,6 +401,8 @@ SITIO-17,sitio,Araras (raio 30 km),8,rsu,7156943,8929933,5650317,5556293,5502547
 SITIO-17,sitio,Araras (raio 30 km),8,esgoto,1227657,1888401,861186,861186,507499
 SITIO-17,sitio,Araras (raio 30 km),8,vinhaca_torta,38158700,36310623,33670839,33670839,30625562
 SITIO-17,sitio,Araras (raio 30 km),8,silvicultura_aquicultura,644072,0,0,0,0
+SITIO-17,sitio,Araras (raio 30 km),8,residuos_agricolas,66190389,327967853,215057658,76308757,69576006
+SITIO-17,sitio,Araras (raio 30 km),8,biowaste,8384600,10818334,6511503,6417479,6010046
 SITIO-17,sitio,Araras (raio 30 km),8,total,81486469,352842972,228416535,88604810,80448031
 SITIO-17,sitio,Araras (raio 30 km),8,total_pilar,120289242,389153596,262087374,122275650,111073592
 SITIO-18,sitio,Pindorama (raio 30 km),15,acucareiras,72773108,787367089,618405867,137240073,126996276
@@ -357,6 +415,8 @@ SITIO-18,sitio,Pindorama (raio 30 km),15,rsu,1864580,2709572,1717926,1368251,134
 SITIO-18,sitio,Pindorama (raio 30 km),15,esgoto,344832,530427,0,0,0
 SITIO-18,sitio,Pindorama (raio 30 km),15,vinhaca_torta,62148669,116650957,107462523,107462523,97387028
 SITIO-18,sitio,Pindorama (raio 30 km),15,silvicultura_aquicultura,169998,0,0,0,0
+SITIO-18,sitio,Pindorama (raio 30 km),15,residuos_agricolas,78002840,832324331,650432884,146141221,134515117
+SITIO-18,sitio,Pindorama (raio 30 km),15,biowaste,2209413,3239998,1717926,1368251,1349266
 SITIO-18,sitio,Pindorama (raio 30 km),15,total,84806207,844679631,656592379,151746747,139470153
 SITIO-18,sitio,Pindorama (raio 30 km),15,total_pilar,147124874,961330588,764054902,259209270,236857181
 SITIO-19,sitio,Brodowski (raio 30 km),6,acucareiras,70859552,435163951,269894748,110486787,92601379
@@ -369,6 +429,8 @@ SITIO-19,sitio,Brodowski (raio 30 km),6,rsu,9161578,11606490,7376863,2904488,283
 SITIO-19,sitio,Brodowski (raio 30 km),6,esgoto,1332921,2050321,1757607,1757607,1548003
 SITIO-19,sitio,Brodowski (raio 30 km),6,vinhaca_torta,60514481,42923403,39717479,39717479,36158569
 SITIO-19,sitio,Brodowski (raio 30 km),6,silvicultura_aquicultura,5670003,0,0,0,0
+SITIO-19,sitio,Brodowski (raio 30 km),6,residuos_agricolas,83866016,452476078,277917929,117054766,97337675
+SITIO-19,sitio,Brodowski (raio 30 km),6,biowaste,10494500,13656811,9134470,4662094,4386082
 SITIO-19,sitio,Brodowski (raio 30 km),6,total,103269449,480219615,293663717,128068707,107254758
 SITIO-19,sitio,Brodowski (raio 30 km),6,total_pilar,169453932,523143018,333381196,167786186,143413328
 SITIO-20,sitio,Avanhandava (raio 30 km),6,acucareiras,42116229,326904757,221267228,74078601,62442954
@@ -381,6 +443,8 @@ SITIO-20,sitio,Avanhandava (raio 30 km),6,rsu,1016054,1172338,737698,729591,7205
 SITIO-20,sitio,Avanhandava (raio 30 km),6,esgoto,193714,297973,0,0,0
 SITIO-20,sitio,Avanhandava (raio 30 km),6,vinhaca_torta,35967511,37633475,34750923,34750923,31610532
 SITIO-20,sitio,Avanhandava (raio 30 km),6,silvicultura_aquicultura,344927,0,0,0,0
+SITIO-20,sitio,Avanhandava (raio 30 km),6,residuos_agricolas,48901621,334124246,223542642,76329639,63997110
+SITIO-20,sitio,Avanhandava (raio 30 km),6,biowaste,1209767,1470311,737698,729591,720519
 SITIO-20,sitio,Avanhandava (raio 30 km),6,total,65352112,357043133,227614569,80372814,66474622
 SITIO-20,sitio,Avanhandava (raio 30 km),6,total_pilar,101664550,394676607,262365491,115123736,98085154
 SITIO-21,sitio,Guararapes (raio 30 km),7,acucareiras,67400812,531227927,372206450,114288328,97634493
@@ -393,6 +457,8 @@ SITIO-21,sitio,Guararapes (raio 30 km),7,rsu,2346636,3010428,1905758,1888751,187
 SITIO-21,sitio,Guararapes (raio 30 km),7,esgoto,406359,625068,223347,223347,223347
 SITIO-21,sitio,Guararapes (raio 30 km),7,vinhaca_torta,57560696,70299140,65017926,65017926,58857393
 SITIO-21,sitio,Guararapes (raio 30 km),7,silvicultura_aquicultura,0,0,0,0,0
+SITIO-21,sitio,Guararapes (raio 30 km),7,residuos_agricolas,75157111,539976796,374914665,116968327,99251034
+SITIO-21,sitio,Guararapes (raio 30 km),7,biowaste,2752995,3635495,2129105,2112098,2093370
 SITIO-21,sitio,Guararapes (raio 30 km),7,total,101650874,580568642,385028042,126715756,107972155
 SITIO-21,sitio,Guararapes (raio 30 km),7,total_pilar,159211569,650867781,450045968,191733683,166829548
 SITIO-22,sitio,Novo Horizonte (raio 30 km),7,acucareiras,77692738,404427678,257600239,99421729,86720673
@@ -405,6 +471,8 @@ SITIO-22,sitio,Novo Horizonte (raio 30 km),7,rsu,751650,1041186,657953,541678,46
 SITIO-22,sitio,Novo Horizonte (raio 30 km),7,esgoto,149879,230547,0,0,0
 SITIO-22,sitio,Novo Horizonte (raio 30 km),7,vinhaca_torta,66350062,48447555,44965423,44965423,40986678
 SITIO-22,sitio,Novo Horizonte (raio 30 km),7,silvicultura_aquicultura,205360,0,0,0,0
+SITIO-22,sitio,Novo Horizonte (raio 30 km),7,residuos_agricolas,84854999,430308913,275708381,104716982,90937194
+SITIO-22,sitio,Novo Horizonte (raio 30 km),7,biowaste,901529,1271733,657953,541678,464166
 SITIO-22,sitio,Novo Horizonte (raio 30 km),7,total,97225133,451526819,282932542,111634845,96699047
 SITIO-22,sitio,Novo Horizonte (raio 30 km),7,total_pilar,163780556,499974374,327897966,156600268,137685725
 SITIO-23,sitio,Piracicaba (raio 30 km),6,acucareiras,31333445,293052636,223697908,46984308,40317450
@@ -417,6 +485,8 @@ SITIO-23,sitio,Piracicaba (raio 30 km),6,rsu,4584759,7845233,5001545,4930110,492
 SITIO-23,sitio,Piracicaba (raio 30 km),6,esgoto,779391,1198871,301232,301232,214075
 SITIO-23,sitio,Piracicaba (raio 30 km),6,vinhaca_torta,26758949,34598384,31690961,27349972,24535162
 SITIO-23,sitio,Piracicaba (raio 30 km),6,silvicultura_aquicultura,939330,0,0,0,0
+SITIO-23,sitio,Piracicaba (raio 30 km),6,residuos_agricolas,36021284,298034265,225507511,48729819,41597740
+SITIO-23,sitio,Piracicaba (raio 30 km),6,biowaste,5364150,9044104,5302776,5231342,5137685
 SITIO-23,sitio,Piracicaba (raio 30 km),6,total,55910058,335498093,244132630,66525745,57842941
 SITIO-23,sitio,Piracicaba (raio 30 km),6,total_pilar,83608338,370096477,275823591,93875717,82378103
 SITIO-24,sitio,Ibitinga (raio 30 km),5,acucareiras,60504651,287524447,168248205,77857559,69592071
@@ -429,6 +499,8 @@ SITIO-24,sitio,Ibitinga (raio 30 km),5,rsu,1013313,1365905,863656,855595,848869
 SITIO-24,sitio,Ibitinga (raio 30 km),5,esgoto,192603,296265,0,0,0
 SITIO-24,sitio,Ibitinga (raio 30 km),5,vinhaca_torta,51671334,20110372,18516101,18516101,16822862
 SITIO-24,sitio,Ibitinga (raio 30 km),5,silvicultura_aquicultura,447755,0,0,0,0
+SITIO-24,sitio,Ibitinga (raio 30 km),5,residuos_agricolas,72711295,302395017,175968238,81801688,72406928
+SITIO-24,sitio,Ibitinga (raio 30 km),5,biowaste,1205916,1662171,863656,855595,848869
 SITIO-24,sitio,Ibitinga (raio 30 km),5,total,83636629,322782443,185264229,90842098,80676095
 SITIO-24,sitio,Ibitinga (raio 30 km),5,total_pilar,135755718,342892815,203780330,109358199,97498957
 SITIO-25,sitio,Cândido Mota (raio 30 km),6,acucareiras,44212261,327060686,226653442,71569612,66396976
@@ -441,6 +513,8 @@ SITIO-25,sitio,Cândido Mota (raio 30 km),6,rsu,1452707,1856483,1174268,1163453,
 SITIO-25,sitio,Cândido Mota (raio 30 km),6,esgoto,258420,397505,0,0,0
 SITIO-25,sitio,Cândido Mota (raio 30 km),6,vinhaca_torta,37757535,36779318,33880599,33880599,30788640
 SITIO-25,sitio,Cândido Mota (raio 30 km),6,silvicultura_aquicultura,111748,0,0,0,0
+SITIO-25,sitio,Cândido Mota (raio 30 km),6,residuos_agricolas,126618167,429066290,264149463,107685792,97250809
+SITIO-25,sitio,Cândido Mota (raio 30 km),6,biowaste,1711127,2253988,1174268,1163453,1161506
 SITIO-25,sitio,Cândido Mota (raio 30 km),6,total,132962992,439207835,267842137,111311015,100540122
 SITIO-25,sitio,Cândido Mota (raio 30 km),6,total_pilar,170832275,475987154,301722736,145191613,131328762
 SITIO-26,sitio,Murutinga do Sul (raio 30 km),5,acucareiras,40611913,324112377,214826433,75401176,64230765
@@ -453,6 +527,8 @@ SITIO-26,sitio,Murutinga do Sul (raio 30 km),5,rsu,824586,977538,615890,609386,6
 SITIO-26,sitio,Murutinga do Sul (raio 30 km),5,esgoto,155393,239027,0,0,0
 SITIO-26,sitio,Murutinga do Sul (raio 30 km),5,vinhaca_torta,34682817,37916802,35078959,34939694,31575389
 SITIO-26,sitio,Murutinga do Sul (raio 30 km),5,silvicultura_aquicultura,0,0,0,0,0
+SITIO-26,sitio,Murutinga do Sul (raio 30 km),5,residuos_agricolas,42151757,326342769,215583204,76140124,64669390
+SITIO-26,sitio,Murutinga do Sul (raio 30 km),5,biowaste,979979,1216566,615890,609386,603644
 SITIO-26,sitio,Murutinga do Sul (raio 30 km),5,total,67764555,359977759,219597337,80083774,67148533
 SITIO-26,sitio,Murutinga do Sul (raio 30 km),5,total_pilar,102447372,397894561,254676295,115023468,98723922
 SITIO-27,sitio,Martinópolis (raio 30 km),5,acucareiras,46586913,191687952,87322866,63877414,41962006
@@ -465,6 +541,8 @@ SITIO-27,sitio,Martinópolis (raio 30 km),5,rsu,617364,824128,520156,424715,3447
 SITIO-27,sitio,Martinópolis (raio 30 km),5,esgoto,123674,190238,6537,6537,2205
 SITIO-27,sitio,Martinópolis (raio 30 km),5,vinhaca_torta,39785502,4196392,3868822,3868822,3516926
 SITIO-27,sitio,Martinópolis (raio 30 km),5,silvicultura_aquicultura,159767,0,0,0,0
+SITIO-27,sitio,Martinópolis (raio 30 km),5,residuos_agricolas,63771527,213499631,95314314,71576357,46505830
+SITIO-27,sitio,Martinópolis (raio 30 km),5,biowaste,741038,1014366,526692,431252,347000
 SITIO-27,sitio,Martinópolis (raio 30 km),5,total,93661056,257088878,102374923,78211460,51514982
 SITIO-27,sitio,Martinópolis (raio 30 km),5,total_pilar,133606325,261285270,106243745,82080282,55031908
 SITIO-28,sitio,Mirante do Paranapanema (raio 30 km),3,acucareiras,28099943,257747232,188280375,51747017,41218274
@@ -477,6 +555,8 @@ SITIO-28,sitio,Mirante do Paranapanema (raio 30 km),3,rsu,172889,184647,115473,9
 SITIO-28,sitio,Mirante do Paranapanema (raio 30 km),3,esgoto,36217,55710,0,0,0
 SITIO-28,sitio,Mirante do Paranapanema (raio 30 km),3,vinhaca_torta,23997519,40322877,37364730,37364730,34036430
 SITIO-28,sitio,Mirante do Paranapanema (raio 30 km),3,silvicultura_aquicultura,453629,0,0,0,0
+SITIO-28,sitio,Mirante do Paranapanema (raio 30 km),3,residuos_agricolas,33773561,262622974,190000248,53415459,42151604
+SITIO-28,sitio,Mirante do Paranapanema (raio 30 km),3,biowaste,209106,240356,115473,94625,86117
 SITIO-28,sitio,Mirante do Paranapanema (raio 30 km),3,total,63523460,302063189,192711973,56102773,43075521
 SITIO-28,sitio,Mirante do Paranapanema (raio 30 km),3,total_pilar,87974608,342386066,230076703,93467503,77111952
 SITIO-29,sitio,Guaraci (raio 30 km),3,acucareiras,28459879,167096186,98781530,44763882,39619448
@@ -489,6 +569,8 @@ SITIO-29,sitio,Guaraci (raio 30 km),3,rsu,154882,245822,155711,85292,61082
 SITIO-29,sitio,Guaraci (raio 30 km),3,esgoto,32443,49905,23883,23883,5259
 SITIO-29,sitio,Guaraci (raio 30 km),3,vinhaca_torta,24304907,13816765,12772676,12772676,11623691
 SITIO-29,sitio,Guaraci (raio 30 km),3,silvicultura_aquicultura,96,0,0,0,0
+SITIO-29,sitio,Guaraci (raio 30 km),3,residuos_agricolas,33454095,170706094,100082990,46021644,39931345
+SITIO-29,sitio,Guaraci (raio 30 km),3,biowaste,187325,295727,179594,109175,66341
 SITIO-29,sitio,Guaraci (raio 30 km),3,total,41310875,187111400,106387151,52245136,45552283
 SITIO-29,sitio,Guaraci (raio 30 km),3,total_pilar,65615878,200928166,119159827,65017812,57175974
 SITIO-30,sitio,Cafelândia (raio 30 km),9,acucareiras,46343899,394669353,269668437,88213359,67472532
@@ -501,5 +583,7 @@ SITIO-30,sitio,Cafelândia (raio 30 km),9,rsu,1111468,2444640,1561638,1552512,14
 SITIO-30,sitio,Cafelândia (raio 30 km),9,esgoto,218055,335416,2020,2020,0
 SITIO-30,sitio,Cafelândia (raio 30 km),9,vinhaca_torta,39577967,52151929,48307953,48307953,43998221
 SITIO-30,sitio,Cafelândia (raio 30 km),9,silvicultura_aquicultura,9309385,0,0,0,0
+SITIO-30,sitio,Cafelândia (raio 30 km),9,residuos_agricolas,57481385,400584237,271671593,90140961,68263644
+SITIO-30,sitio,Cafelândia (raio 30 km),9,biowaste,1329523,2780055,1563658,1554532,1492375
 SITIO-30,sitio,Cafelândia (raio 30 km),9,total,83676198,436694443,275946437,94362793,71247623
 SITIO-30,sitio,Cafelândia (raio 30 km),9,total_pilar,132563550,488846372,324254390,142670746,115245844

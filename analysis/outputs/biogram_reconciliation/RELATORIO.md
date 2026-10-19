@@ -7,27 +7,36 @@
 - Atlas-FDE Cenário Real, SP: 7.83 bi Nm³ CH₄/ano.
 - CP2b: CP2b v5.1, cenário med. N3 7.00, N4 5.97 bi Nm³ CH₄/ano.
 - No escopo do BioGRAM: Atlas 5.53, CP2b N3 5.18 bi Nm³ CH₄/ano (sem vinhaça, torta, silvicultura e aquicultura). É esse total que se compara.
-- Valores BioGRAM digitados: **0** de 378 linhas da planilha.
+- Valores BioGRAM digitados: **2** de 168 linhas da planilha.
 - BioGRAM 1.2, Brasil inteiro (não há recorte estadual no arquivo): 67.19 bcm/ano, dos quais açucareiras 10.83, dejetos 20.79, oleaginosas 16.29.
 
 ## Estado de São Paulo
 
-| Categoria | Atlas Real | CP2b N3 | CP2b N4 | BioGRAM | Causa |
-|---|---:|---:|---:|---:|---|
-| acucareiras | 2,410 | 3,827 | 3,221 | — | sem dado BioGRAM |
-| cereais | 544 | 248 | 187 | — | sem dado BioGRAM |
-| oleaginosas | 489 | 239 | 178 | — | sem dado BioGRAM |
-| outras_culturas | 266 | 65 | 54 | — | sem dado BioGRAM |
-| raizes_tuberculos | 0 | 0 | 0 | — | sem dado BioGRAM |
-| dejetos | 1,335 | 558 | 455 | — | sem dado BioGRAM |
-| rsu | 423 | 187 | 177 | — | sem dado BioGRAM |
-| esgoto | 67 | 51 | 43 | — | sem dado BioGRAM |
-| vinhaca_torta | 2,058 | 1,826 | 1,657 | — | escopo |
-| silvicultura_aquicultura | 240 | 0 | 0 | — | escopo |
-| total | 5,534 | 5,176 | 4,315 | — | sem dado BioGRAM |
-| total_pilar | 7,832 | 7,002 | 5,972 | — |  |
+### Pelas abas do mapa (o que se compara)
 
-Valores em milhões de Nm³ CH₄/ano.
+| Aba do mapa | Atlas Real | CP2b N1 | CP2b N2 | CP2b N3 | CP2b N4 | BioGRAM | BioGRAM ÷ N3 | Causa |
+|---|---:|---:|---:|---:|---:|---:|---:|---|
+| Crop residues | 3,710 | 18,854 | 12,363 | 4,380 | 3,640 | 6,581 | 1.50 | parâmetro |
+| Manure | 1,335 | 2,123 | 582 | 558 | 455 | — | — | sem dado BioGRAM |
+| Biowaste | 489 | 658 | 408 | 238 | 220 | — | — | sem dado BioGRAM |
+| Total | 5,534 | 21,635 | 13,353 | 5,176 | 4,315 | 9,372 | 1.81 | disponibilidade |
+
+### Por categoria do PILAR
+
+| Categoria | Atlas Real | CP2b N3 | CP2b N4 | Causa |
+|---|---:|---:|---:|---|
+| acucareiras | 2,410 | 3,827 | 3,221 | só no agregado do mapa |
+| cereais | 544 | 248 | 187 | só no agregado do mapa |
+| oleaginosas | 489 | 239 | 178 | só no agregado do mapa |
+| outras_culturas | 266 | 65 | 54 | só no agregado do mapa |
+| raizes_tuberculos | 0 | 0 | 0 | só no agregado do mapa |
+| rsu | 423 | 187 | 177 | só no agregado do mapa |
+| esgoto | 67 | 51 | 43 | só no agregado do mapa |
+| vinhaca_torta | 2,058 | 1,826 | 1,657 | escopo |
+| silvicultura_aquicultura | 240 | 0 | 0 | escopo |
+| total_pilar | 7,832 | 7,002 | 5,972 |  |
+
+Valores em milhões de Nm³ CH₄/ano. BioGRAM reescalado da área desenhada para a área do PILAR (248,219 km² no estado) quando `biogram_area_km2` está preenchido.
 
 ## O que a nota metodológica da IEA já explica
 
@@ -51,8 +60,11 @@ Geral: grade de 0,125° (cerca de 14 km), produção agrícola FAO de 2020 proje
 
 | Causa | Linhas |
 |---|---:|
-| sem dado BioGRAM | 378 |
+| só no agregado do mapa | 294 |
+| sem dado BioGRAM | 166 |
 | escopo | 84 |
+| parâmetro | 1 |
+| disponibilidade | 1 |
 
 ## Como preencher o lado BioGRAM
 
@@ -61,8 +73,9 @@ Geral: grade de 0,125° (cerca de 14 km), produção agrícola FAO de 2020 proje
 2. Para cada categoria, digitar valor e unidade (`PJ_ano`, `TJ_ano`, `GWh_ano`, `ktoe_ano`,
    `Mtoe_ano`, `bcme_ano`, `Nm3_ch4_ano`, `mi_Nm3_ch4_ano`, `bi_Nm3_ch4_ano`), as categorias
    BioGRAM somadas em `biogram_categorias_origem`, a data e a versão da ferramenta.
-3. A unidade já vem como `bcme_ano` (bcm/ano, como o mapa e o arquivo 1.2). Se só houver o total, use a
-   linha `total`. Vinhaça, torta e silvicultura não entram na planilha: são escopo por definição.
+3. Quatro valores por área, um por aba do mapa (Total, Biowaste, Crop residues, Manure), em `mcme_ano`,
+   com a área que o mapa mostra em `biogram_area_km2` e o custo médio em `biogram_custo_usd_gj`.
+   Vinhaça, torta e silvicultura não entram na planilha: são escopo por definição.
 4. Rodar o script de novo. A causa é uma primeira leitura: confirmar cada uma antes de publicar.
 
 ## Limites
