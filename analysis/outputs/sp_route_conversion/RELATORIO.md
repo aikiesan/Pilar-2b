@@ -1,6 +1,6 @@
 # Troca de rota: eletricidade ou biometano?
 
-Gerado por `analysis/build_sp_route_conversion.py`. Estratégia 2027, rodada 2 (C16).
+Gerado por `analysis/build_sp_route_conversion.py`. Estratégia 2027, rodada 2 (C17).
 
 Por Nm³ de CH₄: PCI 9,94 kWh e rendimento elétrico 38 % (constantes do script de cenários). Molécula de biometano R$ 2,25/m³; purificação R$ 1,19/m³ (referência europeia convertida). Preços de triagem; ver o script.
 

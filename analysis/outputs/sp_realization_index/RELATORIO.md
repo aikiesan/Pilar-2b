@@ -33,9 +33,9 @@
   e as plantas autorizadas operam bem abaixo da capacidade. A lacuna é de **realização**
   (projetos, conexão, contratos, e a conversão do biogás que hoje vira eletricidade),
   não de recurso.
-- Metas oficiais citadas na estratégia (0,7 a 1,3 M m³/dia até 2027) mudariam o IRM para
-  cerca de 4–8 %. Este script permite acompanhar mês a mês se isso acontece.
+- O peso do mandato nacional sobre essa oferta está em `build_sp_mandate_coverage.py`.
 - O CP2b N3 já desconta o metano recuperado por plantas existentes (U), então o N4 é o
-  potencial *ainda disponível*. Para o biometano isso pouco muda; para o biogás total, ver acima.
+  potencial *ainda disponível*. Contra o N3, o IRM do último mês é 0.61 %;
+  para o biogás total, ver acima.
 - Biometano é tratado como CH₄ puro (especificação ANP ≥ 90 % CH₄), o que superestima o IRM
   em no máximo ~10 %.

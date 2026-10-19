@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Mandato do biometano × oferta de SP: protótipo de cenário de política (Estratégia 2027, C11).
+Mandato do biometano × oferta de SP: protótipo de cenário de política (Estratégia 2027, C11 e C26).
 
 The Combustível do Futuro law (Lei 14.993/2024, Decreto 12.614/2025) obliges
 natural-gas producers and importers to cut the GHG intensity of the gas they
@@ -14,17 +14,9 @@ São Paulo's current production, authorised capacity, biogas burned for
 electricity and mobilisable potential go towards it?
 
 The targets and their volumes are the official ones, read through the
-platform's backend/app/services/mandate_service.py from
-data/canonical_parameters/mandato_biometano.yaml (CNPE 4/2026: 504.8 thousand
-m³/d in 2026; Portaria MME 942/2026: 995.2 thousand in 2027; 2028–2030
-indicative, scaled), the same numbers the /mandate panel shows.
-
-The earlier version converted the GHG target into a volume share with
-    share = target / (1 − CI_biomethane / CI_natural_gas)
-over the 54.4 M m³/d distributed market, and found 0.31 M m³/d for 0.5 %.
-The official 0.50 M m³/d is 1.6 times that, so the base the government uses
-is wider (thermal and E&P gas included). The report keeps the conversion only
-to state the base the official volume implies.
+platform's backend/app/services/mandate_service.py (the numbers the /mandate
+panel shows). The GHG-intensity conversion is kept only to state the gas base
+an official volume implies.
 
 Supply numbers are read from analysis/build_sp_realization_index.py (ANP and
 CIBiogás data, CP2b N4), never retyped.
@@ -194,7 +186,8 @@ def main() -> None:
         "2028–2030 são trajetória indicativa, sem volume publicado.",
         "- Oferta de SP fixa no mês mais recente; a demanda de anos futuros cresce com o mercado.",
         "- CI do gás natural assumido (conferir no RenovaCalc); só afeta a base implícita.",
-        "- Biometano tratado como CH₄; biogás queimado no meio da faixa de 55–65 % de CH₄.",
+        "- Biometano tratado como CH₄; biogás queimado no meio da faixa de "
+        f"{100 * R.BIOGAS_CH4_FRACTION[0]:.0f}–{100 * R.BIOGAS_CH4_FRACTION[1]:.0f} % de CH₄.",
         "- O mandato é nacional e o CGOB é negociável: SP não precisa cobrir a meta sozinho. "
         "A tabela mede peso relativo, não obrigação estadual.",
         "",

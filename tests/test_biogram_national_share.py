@@ -3,7 +3,6 @@
     pytest tests/test_biogram_national_share.py -v
 """
 
-import csv
 import importlib.util
 import math
 from pathlib import Path

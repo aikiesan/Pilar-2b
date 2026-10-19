@@ -97,8 +97,8 @@ def main() -> None:
         )
     lf, agro = s["by_route"]["aterro"], s["by_route"]["agroindustrial"]
     landfill = [b for b in bm if b["route_key"] == "aterro" and not b["lower_bound"]]
-    lf_lo = min(b["levelized"][0]["brl_per_m3"] for b in landfill)
-    lf_hi = max(b["levelized"][-1]["brl_per_m3"] for b in landfill)
+    lf_lo = min(lv["brl_per_m3"] for b in landfill for lv in b["levelized"])
+    lf_hi = max(lv["brl_per_m3"] for b in landfill for lv in b["levelized"])
     L += [
         "",
         "## Leitura",

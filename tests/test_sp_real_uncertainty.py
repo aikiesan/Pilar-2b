@@ -35,7 +35,7 @@ def test_triangular_ppf_hits_bounds_and_mode():
     np.testing.assert_allclose(U.tri_ppf(u, lo, mode, hi), [lo, mode, hi])
 
 
-def test_triangular_ppf_matches_numpy_sampler_mean():
+def test_triangular_ppf_reproduces_the_analytic_mean():
     lo, mode, hi = 0.2, 0.4, 0.5
     x = U.tri_ppf(np.random.default_rng(0).random(200_000), lo, mode, hi)
     assert abs(x.mean() - (lo + mode + hi) / 3) < 1e-3

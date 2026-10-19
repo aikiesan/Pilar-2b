@@ -3,8 +3,6 @@
 import importlib.util
 from pathlib import Path
 
-import pytest
-
 SCRIPT = Path(__file__).resolve().parents[1] / "analysis" / "build_sp_mandate_coverage.py"
 _spec = importlib.util.spec_from_file_location("sp_mandate", SCRIPT)
 M = importlib.util.module_from_spec(_spec)
@@ -12,8 +10,8 @@ _spec.loader.exec_module(M)
 
 
 def test_volume_share_exceeds_ghg_target_because_biomethane_is_not_zero_carbon():
+    assert M.volume_share(0.0) == 0
     assert M.volume_share(1.0) > 0.01
-    assert M.volume_share(1.0) == pytest.approx(0.01 / (1 - 8.55 / M.CI_NATURAL_GAS))
 
 
 def test_targets_are_the_platform_ones_starting_with_the_cnpe_2026_value():

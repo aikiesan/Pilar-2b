@@ -119,7 +119,7 @@ def main() -> None:
     L = [
         "# Troca de rota: eletricidade ou biometano?",
         "",
-        "Gerado por `analysis/build_sp_route_conversion.py`. Estratégia 2027, rodada 2 (C16).",
+        "Gerado por `analysis/build_sp_route_conversion.py`. Estratégia 2027, rodada 2 (C17).",
         "",
         f"Por Nm³ de CH₄: PCI {fmt(S.CH4_LHV_KWH_M3)} kWh e rendimento elétrico {100 * S.ETA_ELETRICA:.0f} % "
         f"(constantes do script de cenários). Molécula de biometano R$ {fmt(MOLECULE_BRL_M3)}/m³; "
@@ -159,7 +159,7 @@ def main() -> None:
         "",
         f"1. **Com eletricidade abaixo de cerca de R$ {fmt(breakeven_electricity(S), 0)}/MWh, o biometano "
         "vence mesmo sem atributo ambiental.** O PLD SE/CO ficou na maior parte de abr–jul/2026 entre "
-        "R$ 185 e 300/MWh, ou seja, em torno desse limiar: para a energia vendida ao mercado, a troca de rota "
+        f"R$ {ELECTRICITY_BRL_MWH[0]:.0f} e {ELECTRICITY_BRL_MWH[2]:.0f}/MWh, ou seja, em torno desse limiar: para a energia vendida ao mercado, a troca de rota "
         "já se paga ou fica perto disso.",
         "2. **Quando a eletricidade é autoconsumida e vale perto da tarifa evitada, o atributo decide.** "
         "É o caso típico da usina, que usa o biogás para não comprar energia. Ali, o CGOB precisa "
@@ -173,7 +173,8 @@ def main() -> None:
         "- Não inclui o custo de conexão à rede (TUSD-Verde, gasoduto dedicado ou caminhão), que pode "
         "dominar para plantas longe da malha. O Mapa de Oportunidades (§3.2) é onde essa distância entra.",
         "- Ignora o motor-gerador já pago (custo afundado) e o O&M dele; também ignora que a usina pode "
-        "precisar comprar a energia que deixa de gerar, o que é exatamente o caso de preço de 450 R$/MWh.",
+        "precisar comprar a energia que deixa de gerar, o que é exatamente o caso de preço de "
+        f"{ELECTRICITY_BRL_MWH[-1]:.0f} R$/MWh.",
         "- Molécula, atributo e purificação vêm de fonte única ou estrangeira. Conferir antes de citar.",
         "",
     ]

@@ -71,8 +71,8 @@ Geral: grade de 0,125° (cerca de 14 km), produção agrícola FAO de 2020 proje
 1. Abrir `areas.geojson` (QGIS ou geojson.io) e desenhar cada área no BioGRAM, começando pela
    prioridade 1 (estado), depois 2 (regiões) e 3 (sítios).
 2. Para cada categoria, digitar valor e unidade (`PJ_ano`, `TJ_ano`, `GWh_ano`, `ktoe_ano`,
-   `Mtoe_ano`, `bcme_ano`, `Nm3_ch4_ano`, `mi_Nm3_ch4_ano`, `bi_Nm3_ch4_ano`), as categorias
-   BioGRAM somadas em `biogram_categorias_origem`, a data e a versão da ferramenta.
+   `Mtoe_ano`, `bcme_ano`, `mcme_ano`, `Nm3_ch4_ano`, `mi_Nm3_ch4_ano`, `bi_Nm3_ch4_ano`),
+   a data e a versão da ferramenta.
 3. Quatro valores por área, um por aba do mapa (Total, Biowaste, Crop residues, Manure), em `mcme_ano`,
    com a área que o mapa mostra em `biogram_area_km2` e o custo médio em `biogram_custo_usd_gj`.
    Vinhaça, torta e silvicultura não entram na planilha: são escopo por definição.

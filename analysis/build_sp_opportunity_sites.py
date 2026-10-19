@@ -187,7 +187,7 @@ def main() -> None:
     for operator, mun in plants:
         i = by_name.get(norm(mun))
         if i is None:
-            val_lines.append(f"| {operator} | {mun} | município não encontrado | — | — |")
+            val_lines.append(f"| {operator} | {mun} | município não encontrado | — |")
             continue
         matched += 1
         d = dist[i, site_idx].min()
@@ -202,7 +202,7 @@ def main() -> None:
         "> Gerado por `analysis/build_sp_opportunity_sites.py`. Triagem, não estudo de viabilidade:",
         "> raios de captação e tortuosidade são **suposições** declaradas no topo do script.",
         "",
-        f"- Oferta considerada: {total_supply / 1e9:.2f} bi Nm³ CH₄/ano, os 8 fluxos do Cenário Real",
+        f"- Oferta considerada: {total_supply / 1e9:.2f} bi Nm³ CH₄/ano, os {len(flows)} fluxos do Cenário Real",
         "  (Atlas-FDE) com dado municipal. Ficam de fora os fluxos que o script de cenários só tem como total estadual.",
         f"- Corte por planta: {MIN_SITE_NM3_DAY:,.0f} Nm³ CH₄/dia.",
         f"- **{len(sites)} locais** passam o corte e capturam **{100 * captured_total / total_supply:.0f} %** da oferta"
@@ -244,7 +244,7 @@ def main() -> None:
         "",
         "- O candidato é o centróide do município, não um terreno. A versão completa usa a grade H3",
         "  e exclui áreas restritas (estratégia §3.2).",
-        "- A distância é em linha reta × 1,3, não por malha viária.",
+        f"- A distância é em linha reta × {str(TORTUOSITY).replace('.', ',')}, não por malha viária.",
         "- Vinhaça e torta são atribuídas ao município, não à usina. O cadastro de usinas",
         "  (UNICA/ANP) deve substituir isso.",
         "- Não há custo nem receita: o corte é de volume. O motor tecno-econômico (§3.3) entra depois.",

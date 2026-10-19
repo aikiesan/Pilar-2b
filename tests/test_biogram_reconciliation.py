@@ -80,7 +80,7 @@ def test_regions_partition_the_state(built):
     assert math.isclose(total, R.aggregate(areas[0]["members"], atlas, None)[R.TOTAL_PILAR]["atlas"], rel_tol=1e-12)
 
 
-def test_every_site_contains_its_own_municipality(built):
+def test_every_site_has_members(built):
     _, muns, _, areas = built
     sites = [a for a in areas if a["tipo"] == "sitio"]
     assert len(sites) == R.TOP_SITES

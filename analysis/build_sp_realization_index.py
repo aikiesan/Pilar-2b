@@ -17,8 +17,8 @@ Denominators, all Nm³ CH4/yr, both read from the repository, never retyped:
 
 N3 already nets out the methane existing plants recover (U), so N4 is the
 potential *still available*; IRM against N4 therefore reads "produced per unit
-of what is still on the table". At the values below (<1%) the distinction
-changes nothing in the first two significant digits.
+of what is still on the table". N3 is the larger base, so the IRM against it
+reads about 15 % lower; the report shows both.
 
 Biomethane is treated as ~CH4 (the ANP biomethane specification requires
 ≥ 90% CH4), so produced m³ are compared to Nm³ CH4 without conversion; this
@@ -41,6 +41,7 @@ Outputs (analysis/outputs/sp_realization_index/):
 from __future__ import annotations
 
 import ast
+import calendar
 import csv
 import importlib.util
 from collections import defaultdict
@@ -78,9 +79,7 @@ def atlas_real_total() -> float:
 
 
 def days_in_month(month: int, year: int) -> int:
-    if month == 2:
-        return 29 if (year % 4 == 0 and (year % 100 != 0 or year % 400 == 0)) else 28
-    return 30 if month in (4, 6, 9, 11) else 31
+    return calendar.monthrange(year, month)[1]
 
 
 def sp_monthly_production() -> dict[tuple[int, int], float]:
@@ -116,8 +115,8 @@ def sp_biogas_production() -> tuple[float, str, str]:
 
 def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
-    n4 = cp2b_state_totals()[("med", "n4")]
-    n3 = cp2b_state_totals()[("med", "n3")]
+    totals = cp2b_state_totals()
+    n4, n3 = totals[("med", "n4")], totals[("med", "n3")]
     atlas = atlas_real_total()
     denoms = {"cp2b_n4": n4 / 365, "cp2b_n3": n3 / 365, "atlas_real": atlas / 365}
 
@@ -187,11 +186,10 @@ def main() -> None:
         "  e as plantas autorizadas operam bem abaixo da capacidade. A lacuna é de **realização**",
         "  (projetos, conexão, contratos, e a conversão do biogás que hoje vira eletricidade),",
         "  não de recurso.",
-        "- Metas oficiais citadas na estratégia (0,7 a 1,3 M m³/dia até 2027) mudariam o IRM para",
-        f"  cerca de {100 * 0.7e6 / denoms['cp2b_n4']:.0f}–{100 * 1.3e6 / denoms['cp2b_n4']:.0f} %."
-        " Este script permite acompanhar mês a mês se isso acontece.",
+        "- O peso do mandato nacional sobre essa oferta está em `build_sp_mandate_coverage.py`.",
         "- O CP2b N3 já desconta o metano recuperado por plantas existentes (U), então o N4 é o",
-        "  potencial *ainda disponível*. Para o biometano isso pouco muda; para o biogás total, ver acima.",
+        f"  potencial *ainda disponível*. Contra o N3, o IRM do último mês é {last[3]['cp2b_n3']:.2f} %;",
+        "  para o biogás total, ver acima.",
         "- Biometano é tratado como CH₄ puro (especificação ANP ≥ 90 % CH₄), o que superestima o IRM",
         "  em no máximo ~10 %.",
     ]
