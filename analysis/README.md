@@ -34,17 +34,19 @@ K-means clustering was applied to normalized residue stream vectors (agricultura
 
 ## Strategy prototypes (2026-10)
 
-Reproducible scripts behind `cp2b-workspace/NewLook/docs/planning/ESTRATEGIA_2027_LIDERANCA_BIOECONOMIA.md`. They read their reference numbers from the backend scripts instead of retyping them, and the first two have guard tests in `tests/`.
+Reproducible scripts behind `cp2b-workspace/NewLook/docs/planning/ESTRATEGIA_2027_LIDERANCA_BIOECONOMIA.md`. They read their reference numbers from the backend scripts instead of retyping them, and the uncertainty, realization and digestate scripts have guard tests in `tests/`.
 
 | Script | What it answers | Output |
 |---|---|---|
 | `build_sp_real_uncertainty.py` | How wide is the SP Cenário Real once parameter uncertainty is propagated, and which parameters drive it? (Monte Carlo + Sobol, numpy only) | `outputs/sp_real_uncertainty/` |
 | `build_sp_realization_index.py` | What share of the mobilisable potential does SP actually produce as biomethane, month by month? (ANP open data) | `outputs/sp_realization_index/` |
 | `build_sp_opportunity_sites.py` | Where would biogas plants go if supply were captured within a per-stream radius? (greedy maximal covering, checked against ANP plants and a random baseline) | `outputs/sp_opportunity_sites/` |
+| `build_sp_digestate_nutrients.py` | How much N-P-K would SP digestate carry, and how much of it is genuinely new versus already returned to the soil today? | `outputs/sp_digestate_nutrients/` |
 
 ```bash
 python3 analysis/build_sp_real_uncertainty.py
 python3 analysis/build_sp_realization_index.py
 python3 analysis/build_sp_opportunity_sites.py
-pytest tests/test_sp_real_uncertainty.py tests/test_sp_realization_index.py
+python3 analysis/build_sp_digestate_nutrients.py
+pytest tests/test_sp_real_uncertainty.py tests/test_sp_realization_index.py tests/test_sp_digestate_nutrients.py
 ```

@@ -248,6 +248,12 @@ O setor não compra "potencial municipal"; compra **local de planta + escala + c
   - o Plano Nacional de Fertilizantes ainda não trata o tema;
   - o acordo SEMIL–Swedfund (jan/2026) inclui estudar o digestato.
   - O PILAR-2b pode ser **a base de evidência** dessa regulamentação.
+- **Protótipo já feito** (`analysis/build_sp_digestate_nutrients.py`, saída em `analysis/outputs/sp_digestate_nutrients/`). Ele mudou a tese desta seção:
+  - o digestato do Cenário Real carrega cerca de 381 mil t de N, 249 mil t de P₂O₅ e 826 mil t de K₂O por ano, o equivalente a 53 %, 72 % e 96 % da demanda das lavouras de SP (sem pastagem);
+  - mas **81 % desse valor vem de fluxos que já voltam ao solo hoje** (vinhaça, torta, dejetos). O biodigestor preserva esses nutrientes, não os cria; contá-los como receita é dupla contagem;
+  - **a remoção de palha exporta** cerca de 122 mil t de K₂O e 65 mil t de N por ano (R$ 794 mi a preço de importação). É um custo que nenhum cenário registra, e o digestato é a forma de devolvê-lo;
+  - **o nutriente novo vem do RSU** (R$ 328 mi/ano hoje aterrados): o argumento de economia circular para prefeituras.
+  - Consequência: a calculadora deve separar o digestato em **valor preservado**, **reposição obrigatória** e **nutriente novo**. Coeficientes, recomendações e preços estão marcados `conferir` no script.
 
 ### 3.6 Biometano na rede: casar oferta e demanda
 
