@@ -1,0 +1,687 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>PILAR-2b Strategy Atlas</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+:root{
+  --paper:#FFFFFF; --sunken:#F4F7F8; --raised:#FFFFFF;
+  --ink:#1E3E4C; --muted:#54666E; --line:#E2E8EB; --line-strong:#7D8C93;
+  --terra:#00573A; --lima:#B6E03B; --agri:#5CA032; --pec:#A15500; --urb:#166E97;
+  --burn:#C26B49; --bad:#B23A2E; --good:#2E7D4F; --pale:#E6EDF0;
+  --m1:#166E97; --m2:#5CA032; --m3:#A15500; --m4:#7A4FA0;
+  --shadow:0 1px 2px rgba(30,62,76,.06),0 4px 16px rgba(30,62,76,.06);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1C22; --sunken:#0A151A; --raised:#152830;
+    --ink:#E6EEF1; --muted:#A3B5BD; --line:#263A43; --line-strong:#5F7A86;
+    --terra:#80C29D; --lima:#B6E03B; --agri:#86C45A; --pec:#E0954A; --urb:#5FB0D8;
+    --burn:#E39A78; --bad:#EF7B6E; --good:#7FD19E; --pale:#1F333C;
+    --m1:#5FB0D8; --m2:#86C45A; --m3:#E0954A; --m4:#B88FDB;
+    --shadow:none;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1C22; --sunken:#0A151A; --raised:#152830;
+  --ink:#E6EEF1; --muted:#A3B5BD; --line:#263A43; --line-strong:#5F7A86;
+  --terra:#80C29D; --lima:#B6E03B; --agri:#86C45A; --pec:#E0954A; --urb:#5FB0D8;
+  --burn:#E39A78; --bad:#EF7B6E; --good:#7FD19E; --pale:#1F333C;
+  --m1:#5FB0D8; --m2:#86C45A; --m3:#E0954A; --m4:#B88FDB;
+  --shadow:none;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--paper);color:var(--ink)}
+body{font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  padding:0 max(16px,env(safe-area-inset-right)) 64px max(16px,env(safe-area-inset-left))}
+.wrap{max-width:1120px;margin:0 auto}
+a{color:var(--urb)}
+h1,h2,h3{line-height:1.2;margin:0}
+h2{font-size:1.6rem;margin-bottom:.35rem}
+h3{font-size:1.05rem;margin-bottom:.4rem}
+.lead{color:var(--muted);max-width:760px;margin:.25rem 0 1.25rem}
+.src{font-size:.78rem;color:var(--muted);margin-top:.5rem}
+.src a{color:var(--muted)}
+section{padding:48px 0 8px;border-top:1px solid var(--line)}
+.num{display:inline-flex;align-items:center;justify-content:center;width:1.9rem;height:1.9rem;border-radius:50%;
+  background:var(--terra);color:var(--paper);font-weight:700;font-size:.9rem;margin-right:.5rem;vertical-align:.15em}
+.grid{display:grid;gap:16px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.g4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.card{background:var(--raised);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:var(--shadow);min-width:0}
+svg{display:block;width:100%;height:auto;overflow:visible}
+svg text{font-family:inherit}
+svg text:not([fill]){fill:var(--ink)}
+svg .mut{fill:var(--muted)}
+.take{display:flex;gap:10px;align-items:flex-start;background:var(--sunken);border-radius:10px;padding:10px 12px;margin-top:12px;font-size:.92rem}
+.take b{color:var(--terra)}
+.take::before{content:"→";font-weight:700;color:var(--terra)}
+/* hero */
+header{padding:48px 0 32px}
+.kicker{font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;color:var(--terra);font-weight:700}
+header h1{font-size:clamp(1.9rem,4.5vw,3rem);margin:.4rem 0 .6rem;max-width:900px}
+.kpi{background:var(--raised);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:var(--shadow)}
+.kpi .v{font-size:2rem;font-weight:800;color:var(--terra);line-height:1.1}
+.kpi .l{font-size:.88rem;color:var(--muted)}
+.toc{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+.toc a{font-size:.85rem;text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:4px 12px;color:var(--ink);background:var(--sunken)}
+.toc a:hover{border-color:var(--terra)}
+/* moves */
+.move{border-left:6px solid var(--c);}
+.move .h{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--c)}
+.move .q{font-style:italic;color:var(--muted);font-size:.92rem;margin:.3rem 0 .6rem}
+.move ul{margin:0;padding-left:1.1rem;font-size:.92rem}
+/* matrix */
+.mx{display:grid;grid-template-columns:42px repeat(3,minmax(0,1fr));gap:6px}
+.mx .ax{font-size:.75rem;color:var(--muted);display:flex;align-items:center;justify-content:center;text-align:center}
+.mx .ax.y{writing-mode:vertical-rl;transform:rotate(180deg)}
+.mx .cell{background:var(--sunken);border-radius:10px;padding:8px;min-height:92px;display:flex;flex-wrap:wrap;gap:5px;align-content:flex-start}
+.mx .cell.hot{background:color-mix(in srgb,var(--lima) 22%,var(--sunken))}
+.chip{border:0;cursor:pointer;font:inherit;font-size:.78rem;font-weight:700;padding:4px 8px;border-radius:999px;color:#fff;background:var(--c)}
+.chip.new{outline:2px dashed var(--ink);outline-offset:1px}
+.chip.p90{box-shadow:0 0 0 3px var(--lima)}
+.chip[aria-pressed="true"]{outline:3px solid var(--ink);outline-offset:2px}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:.82rem;color:var(--muted);margin:10px 0}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.dot{width:12px;height:12px;border-radius:50%;background:var(--c);display:inline-block}
+#detail{min-height:120px}
+#detail .id{font-weight:800;color:var(--terra);font-size:1.4rem}
+#detail .meta{font-size:.8rem;color:var(--muted);margin:.2rem 0 .5rem}
+.ideas-list{columns:2 300px;column-gap:24px;font-size:.88rem;margin-top:14px}
+.ideas-list div{break-inside:avoid;padding:4px 0;border-bottom:1px dashed var(--line)}
+.ideas-list b{color:var(--c)}
+/* tables */
+.tbl{width:100%;border-collapse:collapse;font-size:.85rem}
+.tbl th,.tbl td{padding:6px 6px;border-bottom:1px solid var(--line);text-align:center}
+.tbl th:first-child,.tbl td:first-child{text-align:left}
+.tbl thead th{font-size:.75rem;color:var(--muted);font-weight:600;vertical-align:bottom}
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.bd{display:inline-block;width:14px;height:14px;border-radius:50%;vertical-align:middle;border:2px solid var(--c)}.bd.yes{--c:var(--good);background:var(--c)}.bd.part{--c:var(--pec);background:linear-gradient(90deg,var(--c) 50%,transparent 50%)}.bd.no{--c:var(--line-strong)}
+tr.us td{background:color-mix(in srgb,var(--lima) 18%,transparent);font-weight:700}
+/* refs */
+.refgrp h3{display:flex;align-items:center;gap:8px}
+.ref{display:block;text-decoration:none;color:var(--ink);padding:8px 10px;border:1px solid var(--line);border-radius:10px;margin-bottom:6px;background:var(--raised)}
+.ref:hover{border-color:var(--terra)}
+.ref small{display:block;color:var(--muted);font-size:.78rem}
+.tag{display:inline-block;font-size:.68rem;font-weight:700;padding:1px 6px;border-radius:4px;background:var(--sunken);color:var(--muted);margin-left:4px}
+.proto{font-size:.86rem}
+code{overflow-wrap:anywhere}
+.proto code{font-size:.78rem;background:var(--sunken);padding:1px 5px;border-radius:4px;word-break:break-all}
+.warn{border:1px solid var(--pec);background:color-mix(in srgb,var(--pec) 8%,transparent);border-radius:10px;padding:10px 12px;font-size:.86rem}
+.waffle{display:grid;grid-template-columns:repeat(10,1fr);gap:3px;width:min(220px,100%);flex:0 0 auto}
+.waffle i{aspect-ratio:1;border-radius:3px;background:var(--pale);display:block;position:relative;overflow:hidden}
+.waffle i.b{background:var(--burn)}
+.waffle i.m::after{content:"";position:absolute;left:0;bottom:0;width:100%;height:72%;background:var(--terra)}
+@media (max-width:560px){ .card > div[id^="c-"]{overflow-x:auto;-webkit-overflow-scrolling:touch} .card > div[id^="c-"] > svg{min-width:460px} #c-npk > svg,#c-range > svg{min-width:0}  .mx{grid-template-columns:28px repeat(3,minmax(0,1fr))} .kpi .v{font-size:1.6rem} }
+</style>
+</head><body>
+
+<div class="wrap">
+<header>
+  <div class="kicker">PILAR-2b · Estratégia 2027 · visual edition · Oct 2026</div>
+  <h1>From a potential atlas to the decision infrastructure of Brazil's biomethane market</h1>
+  <p class="lead">Everything from the strategy work in one scroll: where São Paulo stands, what the market is doing, what the prototypes found, the 34 ideas on one map, the roadmap, the competition and the references. Every number links to its source or to the repo script that computed it.</p>
+  <div class="grid g4">
+    <div class="kpi"><div class="v">5.97 bi</div><div class="l">Nm³ CH₄/yr: SP mobilisable potential (CP2b N4, the "Real" on the map)</div></div>
+    <div class="kpi"><div class="v" style="color:var(--bad)">0.72 %</div><div class="l">of it reaches the grid as biomethane (ANP, Apr 2026)</div></div>
+    <div class="kpi"><div class="v" style="color:var(--burn)">16–19 %</div><div class="l">is already produced as biogas and burned for power (CIBiogás 2025)</div></div>
+    <div class="kpi"><div class="v">262 %</div><div class="l">of a 10 % national mandate could be covered by SP's N4 alone</div></div>
+  </div>
+  <nav class="toc" aria-label="Sections">
+    <a href="#gap">1 · The gap</a><a href="#certainty">2 · Uncertainty</a><a href="#market">3 · Market</a>
+    <a href="#mandate">4 · Mandate</a><a href="#route">5 · Route switch</a><a href="#capex">6 · CAPEX</a>
+    <a href="#ghg">7 · Carbon</a><a href="#digestate">8 · Digestate</a><a href="#sites">9 · Sites</a>
+    <a href="#moves">10 · Three moves</a><a href="#ideas">11 · 34 ideas</a><a href="#roadmap">12 · Roadmap</a>
+    <a href="#bench">13 · Benchmark</a><a href="#protos">14 · Prototypes</a><a href="#refs">15 · References</a>
+  </nav>
+</header>
+
+<!-- 1 GAP -->
+<section id="gap">
+  <h2><span class="num">1</span>The realisation gap, in one picture</h2>
+  <p class="lead">The resource isn't the problem. Getting it to the grid is.</p>
+  <div class="grid g2">
+    <div class="card">
+      <h3>SP methane, M Nm³ CH₄ per day</h3>
+      <div id="c-gap"></div>
+      <div class="src">CP2b v5.1 N3/N4; Atlas-FDE Real; ANP monthly biomethane production and authorisations (04/2026); CIBiogás Panorama 2025 (4.9 M Nm³ biogas/d at 55–65 % CH₄). Computed by <code>analysis/build_sp_realization_index.py</code>.</div>
+    </div>
+    <div class="card">
+      <h3>If SP's mobilisable methane were 100 squares…</h3>
+      <div style="display:flex;gap:18px;flex-wrap:wrap;align-items:center">
+        <div class="waffle" id="waffle" aria-label="Waffle chart: 18 of 100 squares burned as biogas, 0.72 of one square injected as biomethane"></div>
+        <div style="font-size:.9rem;min-width:160px">
+          <div><span class="dot" style="--c:var(--burn)"></span> <b>≈18</b> already made into biogas, mostly burned for power</div>
+          <div style="margin-top:8px"><span class="dot" style="--c:var(--terra)"></span> <b>&lt;1</b> injected as biomethane (0.72)</div>
+          <div style="margin-top:8px"><span class="dot" style="--c:var(--pale);border:1px solid var(--line-strong)"></span> <b>≈81</b> not used yet</div>
+        </div>
+      </div>
+      <div class="take"><span><b>The main gap is the route, not just new projects.</b> SP burns 23–27× more methane than it injects. Switching existing plants from engine-generator to upgrading is the shortest way to meet the mandate (§5).</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 2 UNCERTAINTY -->
+<section id="certainty">
+  <h2><span class="num">2</span>How sure are we? Uncertainty and what drives it</h2>
+  <p class="lead">One number with no range can't be cited. A P10–P90 band can.</p>
+  <div class="grid g2">
+    <div class="card">
+      <h3>SP "Real" scenario: Monte Carlo, 200,000 runs (bi Nm³ CH₄/yr)</h3>
+      <div id="c-mc"></div>
+      <div class="src">Atlas-FDE Real scenario, flow by flow. <code>analysis/build_sp_real_uncertainty.py</code>. The curve shape is illustrative; the quantiles are the computed ones.</div>
+    </div>
+    <div class="card">
+      <h3>What moves the number most (Sobol total index S<sub>T</sub>)</h3>
+      <div id="c-sobol"></div>
+      <div class="legend"><span><i class="dot" style="--c:var(--terra)"></i>range from corpus</span><span><i class="dot" style="--c:var(--urb)"></i>from atlas</span><span><i class="dot" style="--c:var(--pec)"></i>assumed: research priority</span></div>
+      <div class="take"><span><b>Sugarcane straw explains about half the variance.</b> Measuring straw BMP and its removable fraction narrows the state number more than any other effort.</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 3 MARKET -->
+<section id="market">
+  <h2><span class="num">3</span>The market moved from "potential" to "obligation"</h2>
+  <p class="lead">Europe shows the growth curve. Brazil's pipeline and demand projections show where 2027–2034 is heading.</p>
+  <div class="grid g2">
+    <div class="card">
+      <h3>Europe: biomethane plants</h3>
+      <div id="c-eu"></div>
+      <div class="src"><a href="https://www.gie.eu/press/europe-surpasses-1600-biomethane-plants-gie-and-eba-release-2025-european-biomethane-map/">GIE & EBA, European Biomethane Map 2025</a> · <a href="https://www.bioenergy-news.com/news/european-biomethane-hits-7-bcm-but-growth-slows-reveals-eba-study/">EBA: 7 bcm/yr, 8.2 bcm by Q2 2026</a>. The 1,322 point is the 2022/23 map edition. 86 % of plants are grid-connected, and France has passed Germany.</div>
+    </div>
+    <div class="card">
+      <h3>Brazil: supply pipeline vs. projected demand (M m³/day)</h3>
+      <div id="c-br"></div>
+      <div class="src">Capacity 657 M → 2,920 M m³/yr (<a href="https://www.cnnbrasil.com.br/agro/producao-de-biometano-deve-saltar-no-brasil-ate-2032-com-novas-plantas/">CNN Brasil / ABiogás</a>), PDE demand with 1 %→8 % blend (<a href="https://cenarioenergia.com.br/2026/08/20/plano-da-abiogas-projeta-r-216-bilhoes-para-multiplicar-oferta-de-biometano-ate-2035/">Cenário Energia</a>), SP 0.7 → 1.5 M m³/d (<a href="https://www.autodata.com.br/mobility/2026/08/25/biometano-ganha-forca-em-sao-paulo-e-projeta-r-43-bi-em-investimentos-para-expansao/133323/">SEMIL via AutoData</a>).</div>
+    </div>
+  </div>
+  <div class="grid g4" style="margin-top:16px">
+    <div class="kpi"><div class="v">93 → 200</div><div class="l">Brazilian biomethane plants, 2025 → 2032 (<a href="https://static.poder360.com.br/2025/08/ABiogas-mapeamento-biometano.pdf">ABiogás mapping</a>)</div></div>
+    <div class="kpi"><div class="v">R$ 216 bi</div><div class="l">ABiogás investment plan to 2035</div></div>
+    <div class="kpi"><div class="v">12</div><div class="l">SP plants under construction; R$ 4.3 bi in investment (SEMIL)</div></div>
+    <div class="kpi"><div class="v">&lt; 2 %</div><div class="l">of Brazil's potential (up to 120 M m³/d, ABiogás) in use today</div></div>
+  </div>
+  <div class="grid g2" style="margin-top:16px">
+    <div class="card">
+      <h3>Where Brazil's methane comes from</h3>
+      <div id="c-meth"></div>
+      <div class="src">Methane ≈ 24 % of Brazil's GHG; agriculture 72–76 %, waste ≈ 15 % (<a href="https://www.catf.us/2025/12/new-catf-analysis-highlights-brazils-largest-opportunities-cut-waste-methane/">CATF 2025</a>, <a href="https://seeg.eco.br/wp-content/uploads/2024/07/SEEG-METHANE.pdf">SEEG Methane</a>, <a href="https://www.climatebonds.net/files/reports/cbi_brazil_methane_briefing_portuguese_25_04_25.pdf">CBI briefing</a>). Shares are rounded.</div>
+    </div>
+    <div class="card">
+      <h3>Policy timeline</h3>
+      <div id="c-policy"></div>
+      <div class="take"><span><b>The Mesa de Monitoramento do Mercado de Biometano needs exactly what PILAR-2b computes:</b> territorial supply, realisation and coverage of the target.</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 4 MANDATE -->
+<section id="mandate">
+  <h2><span class="num">4</span>Can supply meet the biomethane mandate?</h2>
+  <p class="lead">Each cell shows how much of the national mandate a given supply covers. Green means 100 % or more.</p>
+  <div class="card">
+    <div class="scroll"><div id="c-mandate" style="min-width:560px"></div></div>
+    <div class="src">National gas use 54.4 M m³/d (Abegás 2025). The GHG target is converted to volume with CI 8.55 (biomethane, CNPE 4/2026) vs. 66 gCO₂e/MJ (natural gas, <i>assumed, still to check</i>). <code>analysis/build_sp_mandate_coverage.py</code>.</div>
+    <div class="take"><span><b>The resource never limits the mandate; realisation does.</b> At 1 %, today's national production covers 71 %. SP's already-burned biogas alone would cover 470 %.</span></div>
+  </div>
+</section>
+
+<!-- 5 ROUTE -->
+<section id="route">
+  <h2><span class="num">5</span>Burn it for power, or upgrade it to biomethane?</h2>
+  <p class="lead">Per Nm³ of CH₄: electricity revenue vs. molecule + environmental attribute (CGOB) − upgrading cost.</p>
+  <div class="grid g2">
+    <div class="card">
+      <h3>Biomethane advantage, R$ per m³ CH₄</h3>
+      <div id="c-heat"></div>
+      <div class="src">Molecule R$ 2.25/m³ and attribute up to R$ 1.40 (Arsesp Mercado Cativo Verde, single press source, still to check). Upgrading €19/MWh ≈ R$ 1.19/m³. <code>analysis/build_sp_route_conversion.py</code>.</div>
+    </div>
+    <div class="card">
+      <h3>Attribute price needed for biomethane to win</h3>
+      <div id="c-be"></div>
+      <div class="take"><span><b>Below ≈ R$ 281/MWh, biomethane wins with no attribute at all.</b> The PLD sat at R$ 185–300 for most of Apr–Jul 2026. For self-consumed power, though, the CGOB price decides. So the mandate level sets how many plants switch.</span></div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <h3>What that means for SP's existing biogas (R$ bi/yr, route switch)</h3>
+    <div id="c-range"></div>
+  </div>
+</section>
+
+<!-- 6 CAPEX -->
+<section id="capex">
+  <h2><span class="num">6</span>What does a m³/day of biomethane cost to build in Brazil?</h2>
+  <p class="lead">The first Brazilian, sourced cost curve, built from public BNDES approvals.</p>
+  <div class="grid g2">
+    <div class="card">
+      <h3>CAPEX, R$ per m³/day of capacity</h3>
+      <div id="c-capex"></div>
+      <div class="src"><code>analysis/data/06_bndes_biomethane_deals_seed.csv</code>, one source per row. <code>analysis/build_bndes_capex_benchmarks.py</code>.</div>
+    </div>
+    <div class="card">
+      <h3>Capital only, levelised, R$ per m³ produced</h3>
+      <div id="c-lcoe"></div>
+      <div class="take"><span><b>The European upgrading cost is optimistic for Brazil.</b> Capital alone already costs R$ 0.90–1.06/m³ on landfill projects, before O&M. That pushes the break-even attribute up.</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 7 GHG -->
+<section id="ghg">
+  <h2><span class="num">7</span>Carbon: methane leakage can erase the benefit</h2>
+  <p class="lead">For substrates that avoid no methane (straw, vinasse), losses weigh much more than for manure.</p>
+  <div class="grid g2">
+    <div class="card">
+      <h3>Net reduction of a straw plant vs. total methane loss (tCO₂e/yr)</h3>
+      <div id="c-leak"></div>
+      <div class="src">Worked example in <code>docs/data/ESPEC_MODULO_GEE.md</code> §5 (45,000 m³-scale plant, GWP 27). Leakage 2.5 % (Danish average), slip by technology: water scrubber ≤ 2 %, amine ≈ 0.04 %, membrane &lt; 1 %.</div>
+    </div>
+    <div class="card">
+      <h3>Upgrading slip by technology (% of CH₄)</h3>
+      <div id="c-slip"></div>
+      <div class="take"><span><b>Leakage must be a first-line assumption in the GHG module and a <i>measured</i> value in the CGOB backing report (C1, C22).</b> For a pig farm the same loss cuts only about 5 %.</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 8 DIGESTATE -->
+<section id="digestate">
+  <h2><span class="num">8</span>Digestate: mostly preserved value, not new revenue</h2>
+  <p class="lead">Nutrients in SP digestate (Real scenario): N 381 kt, P₂O₅ 249 kt, K₂O 826 kt per year.</p>
+  <div class="grid g2">
+    <div class="card">
+      <h3>Nutrient value by today's fate (R$ mi/yr at import prices)</h3>
+      <div id="c-dig"></div>
+      <div class="take"><span><b>81 % already returns to soil</b> (vinasse, filter cake, manure). Counting it as revenue double-counts. <b>MSW is the truly new nutrient</b> (R$ 328 mi). <b>Straw removal is a hidden cost</b>: 122 kt K₂O + 65 kt N leave the field (R$ 794 mi).</span></div>
+    </div>
+    <div class="card">
+      <h3>Digestate vs. crop demand in SP</h3>
+      <div id="c-npk"></div>
+      <div class="src">PAM 2023 × indicative recommendation, pasture excluded. <code>analysis/build_sp_digestate_nutrients.py</code>. Vinasse alone covers ≈ 84 % of cane K₂O, which is why CETESB P4.231 sets doses by potassium.</div>
+    </div>
+  </div>
+</section>
+
+<!-- 9 SITES -->
+<section id="sites">
+  <h2><span class="num">9</span>Where to build: the opportunity map prototype</h2>
+  <p class="lead">Greedy maximal covering over municipal supply, with a cut of 15,000 Nm³ CH₄/day per plant.</p>
+  <div class="grid g3">
+    <div class="kpi"><div class="v">265</div><div class="l">candidate sites pass the cut</div></div>
+    <div class="kpi"><div class="v">88 %</div><div class="l">of the 6.27 bi Nm³/yr municipal supply is captured</div></div>
+    <div class="kpi"><div class="v">38 k</div><div class="l">median Nm³ CH₄/day per site (largest: São Paulo, 594 k, MSW)</div></div>
+  </div>
+  <div class="grid g2" style="margin-top:16px">
+    <div class="card"><h3>Dominant feedstock per site</h3><div id="c-feed"></div></div>
+    <div class="card"><h3>Validation: top-30 sites within 30 km of an ANP plant</h3><div id="c-val"></div>
+      <div class="src"><code>analysis/build_sp_opportunity_sites.py</code>. Catchment radii and tortuosity are stated assumptions; this is screening, not feasibility.</div></div>
+  </div>
+</section>
+
+<!-- 10 MOVES -->
+<section id="moves">
+  <h2><span class="num">10</span>The strategy: three moves, in this order</h2>
+  <p class="lead">The asset no one else has is the traceable chain: public data → 8 ingestion gates → canonical parameter with DOI → number on the map. First make it trustworthy, then make it decisive, then make it alive.</p>
+  <div class="grid g3">
+    <div class="card move" style="--c:var(--m1)"><div class="h">Move 1 · Nov 2026 – Feb 2027</div><h3>Auditable credibility</h3>
+      <div class="q">"Can I cite this number in a report, a tender or a paper?"</div>
+      <ul><li>Official-figures register (one value per indicator)</li><li>CP2b v5.1 opened (hash + DOI)</li><li>P10–P90 for all 645 municipalities</li><li>Validation against real plants (MAPE)</li><li>Quarantine of MG synthetic herd; fix calculator CO₂</li></ul></div>
+    <div class="card move" style="--c:var(--m2)"><div class="h">Move 2 · Mar – Aug 2027</div><h3>From biomass to project</h3>
+      <div class="q">"Where should we build, how big, and with what return?"</div>
+      <ul><li>Logistics cost surface (OSRM)</li><li>Optimal siting (MCDA + location-allocation)</li><li>Techno-economic engine with a Brazilian CAPEX curve</li><li>GHG module (leakage, slip)</li><li>Digestate/NPK; gas grid supply–demand matching</li></ul></div>
+    <div class="card move" style="--c:var(--m3)"><div class="h">Move 3 · Sep 2027 →</div><h3>Live monitoring</h3>
+      <div class="q">"What is changing, and where is the realisation gap?"</div>
+      <ul><li>2008–2025 time series + year selector</li><li>Monthly seasonality</li><li>Remote sensing as data (harvest, plumes)</li><li>Observatory + alerts; live mandate panel</li><li>CGOB proof-of-backing pilot</li></ul></div>
+  </div>
+</section>
+
+<!-- 11 IDEAS -->
+<section id="ideas">
+  <h2><span class="num">11</span>34 creative ideas on one map</h2>
+  <p class="lead">Impact vs. effort. Tap a chip for the one-line pitch. Ringed chips are the 90-day priorities; dashed chips are new in this edition (C28–C34).</p>
+  <div class="legend">
+    <span><i class="dot" style="--c:var(--m1)"></i>Credibility / data</span>
+    <span><i class="dot" style="--c:var(--m2)"></i>Biomass → project</span>
+    <span><i class="dot" style="--c:var(--m3)"></i>Monitoring / policy</span>
+    <span><i class="dot" style="--c:var(--m4)"></i>Reach / distribution</span>
+  </div>
+  <div class="grid g2" style="align-items:start">
+    <div class="card"><div class="mx" id="matrix"></div></div>
+    <div class="card" id="detail" aria-live="polite"><div class="meta">Tap any chip in the matrix.</div><p style="color:var(--muted)">Quick wins sit in the top-left cell (high impact, small effort): C16, C18, C22, C26.</p></div>
+  </div>
+  <div class="ideas-list" id="ideas-list"></div>
+</section>
+
+<!-- 12 ROADMAP -->
+<section id="roadmap">
+  <h2><span class="num">12</span>Integrated roadmap</h2>
+  <p class="lead">Each quarter depends on the one before it. Credibility first, so later layers inherit it.</p>
+  <div class="card"><div class="scroll"><div id="c-gantt" style="min-width:680px"></div></div></div>
+  <div class="grid g4" style="margin-top:16px" id="kpis2027"></div>
+</section>
+
+<!-- 13 BENCH -->
+<section id="bench">
+  <h2><span class="num">13</span>Benchmark: who does what</h2>
+  <p class="lead">No public tool combines municipal resolution, parameter provenance, uncertainty and decision layers. That combination is the niche. (Indicative reading of each tool's public features.)</p>
+  <div class="card scroll">
+    <table class="tbl" id="bench-t"></table>
+    <div class="legend"><span><i class="bd yes"></i> yes</span><span><i class="bd part"></i> partial</span><span><i class="bd no"></i> no / not public</span></div>
+  </div>
+</section>
+
+<!-- 14 PROTOS -->
+<section id="protos">
+  <h2><span class="num">14</span>What is already built in the repo</h2>
+  <p class="lead">Each prototype reads the backend's own constants (never retyped), writes a report to <code>analysis/outputs/</code> and has a guard test in CI.</p>
+  <div class="grid g3 proto" id="protos-g"></div>
+  <div class="warn" style="margin-top:16px"><b>Before quoting externally:</b> the Arsesp tariff (R$ 2.25 + 1.40), CBIO R$ 31.40, natural-gas CI 66 and the European upgrading cost each come from a single or foreign source. Also check that CP2b's U term (existing use) includes SP sugar-energy biogas before publishing any realisation index. Label collision D13: "Real" means N4 (5.97 bi) on the map and Atlas-FDE (7.83 bi) in the methodology.</div>
+</section>
+
+<!-- 15 REFS -->
+<section id="refs">
+  <h2><span class="num">15</span>References</h2>
+  <p class="lead">Grouped by what they help with. <span class="tag">NEW</span> marks sources added in this edition.</p>
+  <div class="grid g3" id="refs-g"></div>
+</section>
+</div>
+
+<script>
+const NS='http://www.w3.org/2000/svg';
+const $=id=>document.getElementById(id);
+const fmt=(x,d=0)=>x.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});
+function svg(w,h,inner,label){return `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="${label||''}">${inner}</svg>`}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;')}
+
+/* horizontal bars */
+function hbars(el,data,o={}){
+  const W=560,lw=o.lw||190,rw=o.rw||90,bh=o.bh||26,gap=o.gap||10,max=o.max||Math.max(...data.map(d=>d.hi??d.v));
+  const H=data.length*(bh+gap)+(o.axis?24:4);let s='';
+  const sx=v=>lw+(W-lw-rw)*v/max;
+  data.forEach((d,i)=>{const y=i*(bh+gap);
+    s+=`<text x="${lw-8}" y="${y+bh/2+4}" text-anchor="end" font-size="13">${esc(d.l)}</text>`;
+    s+=`<rect x="${lw}" y="${y}" width="${Math.max(1.5,sx(d.v)-lw)}" height="${bh}" rx="4" fill="${d.c||'var(--terra)'}" ${d.dash?'fill-opacity=".35" stroke="'+d.c+'" stroke-dasharray="4 3"':''}/>`;
+    if(d.lo!=null) s+=`<line x1="${sx(d.lo)}" x2="${sx(d.hi)}" y1="${y+bh/2}" y2="${y+bh/2}" stroke="var(--ink)" stroke-width="2"/><line x1="${sx(d.lo)}" x2="${sx(d.lo)}" y1="${y+6}" y2="${y+bh-6}" stroke="var(--ink)" stroke-width="2"/><line x1="${sx(d.hi)}" x2="${sx(d.hi)}" y1="${y+6}" y2="${y+bh-6}" stroke="var(--ink)" stroke-width="2"/>`;
+    s+=`<text x="${sx(d.hi??d.v)+6}" y="${y+bh/2+4}" font-size="13" font-weight="700">${esc(d.t??fmt(d.v,o.d||0))}</text>`;
+  });
+  el.innerHTML=svg(W,H,s,o.label);
+}
+
+/* 1 gap */
+hbars($('c-gap'),[
+ {l:'Atlas-FDE Real',v:21.46,c:'var(--line-strong)',t:'21.46'},
+ {l:'CP2b N3 ("Ideal")',v:19.18,c:'var(--agri)',t:'19.18'},
+ {l:'CP2b N4 ("Real")',v:16.36,c:'var(--terra)',t:'16.36'},
+ {l:'Biogas burned today',v:2.95,lo:2.7,hi:3.2,c:'var(--burn)',t:'2.7–3.2'},
+ {l:'ANP authorised capacity',v:0.558,c:'var(--urb)',t:'0.56'},
+ {l:'Biomethane produced',v:0.118,c:'var(--bad)',t:'0.12  ← 0.72 %'},
+],{max:22,lw:180,rw:110,label:'Methane potential vs realised in SP'});
+(()=>{let h='';for(let i=0;i<100;i++){h+= i<18?'<i class="b"></i>': i===18?'<i class="m"></i>':'<i></i>'}$('waffle').innerHTML=h})();
+
+/* 2 MC */
+(()=>{const W=560,H=220,x0=30,x1=540,lo=6.6,hi=9.6,sx=v=>x0+(x1-x0)*(v-lo)/(hi-lo),mu=8.06,sd=0.62;
+ let p='',s='';for(let v=lo;v<=hi;v+=0.02){const y=150-130*Math.exp(-0.5*((v-mu)/sd)**2);p+=(p?'L':'M')+sx(v).toFixed(1)+','+y.toFixed(1)}
+ s+=`<rect x="${sx(7.30)}" y="14" width="${sx(8.89)-sx(7.30)}" height="136" fill="var(--lima)" opacity=".25"/>`;
+ s+=`<path d="${p}" fill="none" stroke="var(--terra)" stroke-width="3"/>`;
+ s+=`<line x1="${x0}" x2="${x1}" y1="150" y2="150" stroke="var(--line-strong)"/>`;
+ for(let v=7;v<=9.5;v+=0.5)s+=`<text x="${sx(v)}" y="168" font-size="12" text-anchor="middle" class="mut">${v.toFixed(1)}</text>`;
+ const mk=(v,lab,c,y)=>`<line x1="${sx(v)}" x2="${sx(v)}" y1="14" y2="150" stroke="${c}" stroke-width="2" stroke-dasharray="${c==='var(--ink)'?'':'5 4'}"/><text x="${sx(v)}" y="${y}" font-size="12" text-anchor="middle" font-weight="700">${lab}</text>`;
+ s+=mk(7.30,'P10 7.30','var(--terra)',190)+mk(8.06,'P50 8.06','var(--terra)',206)+mk(8.89,'P90 8.89','var(--terra)',190)+mk(7.832,'','var(--ink)',0);
+ s+=`<text x="${sx(7.832)}" y="8" font-size="12" text-anchor="middle" font-weight="700">published 7.83 <tspan class="mut" font-weight="400">(36th pct)</tspan></text>`;
+ $('c-mc').innerHTML=svg(W,H,s,'Monte Carlo distribution');})();
+hbars($('c-sobol'),[
+ ['straw BMP',.239,'c'],['straw removable fraction',.172,'a'],['cattle manure kg/day',.151,'s'],['cattle BMP',.135,'c'],['straw kg per t cane',.110,'s'],
+ ['field-residue retention',.104,'s'],['field-residue BMP',.038,'s'],['vinasse CH₄ fraction',.019,'a'],['vinasse biogas/m³ ethanol',.017,'s'],['filter cake BMP×VS',.013,'s']
+].map(([l,v,k])=>({l,v,t:v.toFixed(2),c:k==='c'?'var(--terra)':k==='a'?'var(--urb)':'var(--pec)'})),{max:.25,bh:18,gap:6,lw:200,rw:50,label:'Sobol indices'});
+
+/* 3 EU line */
+function line(el,series,o){const W=560,H=o.H||240,L=46,R=20,T=16,B=30,sx=x=>L+(W-L-R)*(x-o.x0)/(o.x1-o.x0),sy=y=>H-B-(H-B-T)*y/o.y1;let s='';
+ o.yt.forEach(v=>{s+=`<line x1="${L}" x2="${W-R}" y1="${sy(v)}" y2="${sy(v)}" stroke="var(--line)"/><text x="${L-6}" y="${sy(v)+4}" font-size="11" text-anchor="end" class="mut">${fmt(v,o.yd||0)}</text>`});
+ o.xt.forEach(v=>{s+=`<text x="${sx(v)}" y="${H-10}" font-size="11" text-anchor="middle" class="mut">${v}</text>`});
+ (o.bands||[]).forEach(b=>{s+=`<rect x="${sx(b.a)}" y="${T}" width="${sx(b.b)-sx(b.a)}" height="${H-B-T}" fill="${b.c}" opacity=".18"/><text x="${(sx(b.a)+sx(b.b))/2}" y="${T+12}" font-size="11" text-anchor="middle" class="mut">${b.l}</text>`});
+ (o.hz||[]).forEach(h=>{s+=`<line x1="${L}" x2="${W-R}" y1="${sy(h.y)}" y2="${sy(h.y)}" stroke="${h.c}" stroke-width="1.5" stroke-dasharray="4 3"/><text x="${W-R}" y="${sy(h.y)-5}" font-size="11" text-anchor="end" fill="${h.c}">${h.l}</text>`});
+ series.forEach(se=>{s+=`<path d="${se.p.map((q,i)=>(i?'L':'M')+sx(q[0])+','+sy(q[1])).join('')}" fill="none" stroke="${se.c}" stroke-width="3" ${se.dash?'stroke-dasharray="6 4"':''}/>`;
+  se.p.forEach(q=>{s+=`<circle cx="${sx(q[0])}" cy="${sy(q[1])}" r="4.5" fill="${se.c}"/>`;if(se.lab!==false)s+=`<text x="${sx(q[0])}" y="${sy(q[1])-10}" font-size="12" font-weight="700" text-anchor="middle">${q[2]??fmt(q[1],se.d||0)}</text>`});
+  if(se.name){const q=se.at||se.p[se.p.length-1];s+=`<text x="${sx(q[0])+(se.at?0:8)}" y="${sy(q[1])+(se.at?0:4)}" font-size="12" fill="${se.c}" font-weight="700" text-anchor="${se.na||'start'}">${se.name}</text>`}});
+ el.innerHTML=svg(W,H,s,o.label)}
+line($('c-eu'),[{c:'var(--terra)',p:[[2018,483],[2020,729],[2021,1023],[2023,1322],[2024,1548],[2025,1678]]}],{x0:2017.5,x1:2025.6,y1:1900,yt:[0,500,1000,1500],xt:[2018,2019,2020,2021,2022,2023,2024,2025],label:'European biomethane plants'});
+line($('c-br'),[
+ {c:'var(--terra)',name:'Brazil capacity',p:[[2025,1.8],[2032,8.0]],d:1,at:[2028.2,5.6],na:'end'},
+ {c:'var(--pec)',dash:1,name:'PDE demand',p:[[2030,3.4],[2034,8.5]],d:1,at:[2032.9,4.8],na:'middle'},
+ {c:'var(--urb)',name:'SP',p:[[2026,0.7],[2028,1.5]],d:1,nx:8,ny:4}
+],{x0:2024.5,x1:2034.5,y1:10,yt:[0,2,4,6,8,10],xt:[2025,2026,2027,2028,2029,2030,2031,2032,2033,2034],label:'Brazil supply vs demand'});
+
+/* donut */
+function donut(el,data,center,sub){const W=560,H=230,cx=115,cy=115,r=88,ir=56;let a=-Math.PI/2,s='';const tot=data.reduce((t,d)=>t+d.v,0);
+ data.forEach((d,i)=>{const b=a+2*Math.PI*d.v/tot,lg=b-a>Math.PI?1:0,p=(rr,an)=>[cx+rr*Math.cos(an),cy+rr*Math.sin(an)];const[a1,a2]=p(r,a),[b1,b2]=p(r,b),[c1,c2]=p(ir,b),[d1,d2]=p(ir,a);
+  s+=`<path d="M${a1},${a2}A${r},${r} 0 ${lg} 1 ${b1},${b2}L${c1},${c2}A${ir},${ir} 0 ${lg} 0 ${d1},${d2}Z" fill="${d.c}"/>`;
+  s+=`<rect x="250" y="${40+i*44}" width="16" height="16" rx="3" fill="${d.c}"/><text x="274" y="${53+i*44}" font-size="14" font-weight="700">${d.t}</text><text x="274" y="${70+i*44}" font-size="12" class="mut">${d.l}</text>`;a=b});
+ s+=`<text x="${cx}" y="${cy+2}" text-anchor="middle" font-size="22" font-weight="800">${center}</text><text x="${cx}" y="${cy+20}" text-anchor="middle" font-size="11" class="mut">${sub}</text>`;
+ el.innerHTML=svg(W,H,s,'donut')}
+donut($('c-meth'),[{v:74,c:'var(--agri)',t:'≈ 74 % agriculture',l:'enteric fermentation, manure (outside Metano Zero)'},{v:15,c:'var(--urb)',t:'≈ 15 % waste',l:'landfills, wastewater: the fastest to capture'},{v:11,c:'var(--line-strong)',t:'≈ 11 % other',l:'energy, land use, other'}],'24 %','of Brazil GHG is CH₄');
+
+/* policy timeline */
+(()=>{const ev=[['2022','Metano Zero programme'],['2024','Lei 14.993 Combustível do Futuro · SBCE (Lei 15.042)'],['Dec 2025','Decreto 12.614 · Arsesp TUSD-Verde'],['2026','ANP Res. 995/996 (CGOB) · CNPE 4/2026: 0.5 % · Mercado Cativo Verde (Sep)'],['2027','Mandate back to 1 %? · SP certificate of origin'],['2030','Global Methane Pledge −30 % · PDE 3.4 M m³/d'],['2034','PDE blend 8 %, 8.5 M m³/d']];
+ const W=560,H=ev.length*34+8;let s=`<line x1="80" x2="80" y1="8" y2="${H-14}" stroke="var(--line-strong)" stroke-width="2"/>`;
+ ev.forEach((e,i)=>{const y=18+i*34,now=e[0]==='2026';s+=`<circle cx="80" cy="${y}" r="${now?8:6}" fill="${now?'var(--lima)':'var(--terra)'}" stroke="var(--paper)" stroke-width="2"/><text x="66" y="${y+4}" text-anchor="end" font-size="12" font-weight="700">${e[0]}</text><text x="96" y="${y+4}" font-size="12.5">${esc(e[1])}</text>`});
+ $('c-policy').innerHTML=svg(W,H,s,'policy timeline')})();
+
+/* 4 mandate matrix */
+(()=>{const rows=[['0.5 % (CNPE 2026)',0.31,[141.8,37.6,178.5,940.9,5235.8]],['1 % (law baseline)',0.62,[70.9,18.8,89.3,470.4,2617.9]],['2 %',1.25,[35.4,9.4,44.6,235.2,1308.9]],['5 %',3.12,[14.2,3.8,17.9,94.1,523.6]],['10 %',6.25,[7.1,1.9,8.9,47.0,261.8]]];
+ const cols=['Brazil produces today','SP produces','SP authorised','SP burned biogas','SP potential N4'];
+ const W=720,L=150,dw=70,cw=(W-L-dw)/5,rh=46,T=50;let s='';
+ s+=`<text x="${L+dw/2}" y="${T-12}" font-size="11" text-anchor="middle" class="mut">needs</text><text x="${L+dw/2}" y="${T-26}" font-size="11" text-anchor="middle" class="mut">M m³/d</text>`;
+ cols.forEach((c,j)=>{const parts=c.split(' ');s+=`<text x="${L+dw+cw*j+cw/2}" y="${T-26}" font-size="12" text-anchor="middle" font-weight="700">${parts.slice(0,2).join(' ')}</text><text x="${L+dw+cw*j+cw/2}" y="${T-11}" font-size="12" text-anchor="middle" font-weight="700">${parts.slice(2).join(' ')}</text>`});
+ rows.forEach((r,i)=>{const y=T+i*rh;s+=`<text x="${L-8}" y="${y+rh/2+4}" text-anchor="end" font-size="13" font-weight="700">${r[0]}</text><text x="${L+dw/2}" y="${y+rh/2+4}" text-anchor="middle" font-size="13">${r[1].toFixed(2)}</text>`;
+  r[2].forEach((v,j)=>{const ok=v>=100,t=Math.min(1,Math.log10(Math.max(v,1))/Math.log10(100)),op=ok?Math.min(1,.35+.65*Math.log10(v/100)/1.8):.15+.6*(1-t);
+   s+=`<rect x="${L+dw+cw*j+3}" y="${y+3}" width="${cw-6}" height="${rh-6}" rx="6" fill="${ok?'var(--good)':'var(--bad)'}" fill-opacity="${op.toFixed(2)}"/><text x="${L+dw+cw*j+cw/2}" y="${y+rh/2+5}" text-anchor="middle" font-size="14" font-weight="700">${fmt(v,v<10?1:0)} %</text>`})});
+ $('c-mandate').innerHTML=svg(W,T+rows.length*rh+6,s,'mandate coverage')})();
+
+/* 5 route heatmap */
+(()=>{const E=[185,250,300,450],A=[0,0.5,1.0,1.4],G=[[0.36,0.86,1.36,1.76],[0.12,0.62,1.12,1.52],[-0.07,0.43,0.93,1.33],[-0.64,-0.14,0.36,0.76]];
+ const W=560,L=120,T=46,cw=(W-L)/4,rh=46;let s=`<text x="${L+(W-L)/2}" y="14" text-anchor="middle" font-size="12" class="mut">environmental attribute (CGOB), R$/m³ →</text>`;
+ A.forEach((a,j)=>s+=`<text x="${L+cw*j+cw/2}" y="${T-10}" text-anchor="middle" font-size="13" font-weight="700">${a.toFixed(2)}</text>`);
+ s+=`<text x="10" y="${T-10}" font-size="11" class="mut">power R$/MWh ↓</text>`;
+ E.forEach((e,i)=>{const y=T+i*rh;s+=`<text x="${L-10}" y="${y+rh/2+5}" text-anchor="end" font-size="13" font-weight="700">${e}${e===450?' (self-use)':''}</text>`;
+  G[i].forEach((v,j)=>{const ok=v>=0,op=Math.min(1,.18+Math.abs(v)/1.9);s+=`<rect x="${L+cw*j+3}" y="${y+3}" width="${cw-6}" height="${rh-6}" rx="6" fill="${ok?'var(--good)':'var(--bad)'}" fill-opacity="${op.toFixed(2)}"/><text x="${L+cw*j+cw/2}" y="${y+rh/2+5}" text-anchor="middle" font-size="14" font-weight="700">${v>0?'+':''}${v.toFixed(2)}</text>`})});
+ $('c-heat').innerHTML=svg(W,T+4*rh+6,s,'route conversion heatmap')})();
+(()=>{const W=560,H=240,L=50,R=20,T=16,B=34,x0=150,x1=500,y0=-0.75,y1=0.9,sx=x=>L+(W-L-R)*(x-x0)/(x1-x0),sy=y=>H-B-(H-B-T)*(y-y0)/(y1-y0),be=e=>0.07+(e-300)*0.0038;let s='';
+ s+=`<rect x="${sx(185)}" y="${T}" width="${sx(300)-sx(185)}" height="${H-B-T}" fill="var(--lima)" opacity=".2"/><text x="${(sx(185)+sx(300))/2}" y="${T+14}" font-size="11" text-anchor="middle" class="mut">PLD SE/CO Apr–Jul 2026</text>`;
+ [-0.5,0,0.5].forEach(v=>s+=`<line x1="${L}" x2="${W-R}" y1="${sy(v)}" y2="${sy(v)}" stroke="${v===0?'var(--line-strong)':'var(--line)'}"/><text x="${L-6}" y="${sy(v)+4}" font-size="11" text-anchor="end" class="mut">${v.toFixed(1)}</text>`);
+ [200,250,300,350,400,450,500].forEach(v=>s+=`<text x="${sx(v)}" y="${H-14}" font-size="11" text-anchor="middle" class="mut">${v}</text>`);
+ s+=`<text x="${(W)/2}" y="${H}" font-size="11" text-anchor="middle" class="mut">electricity value, R$/MWh</text>`;
+ s+=`<path d="M${sx(150)},${sy(be(150))}L${sx(281)},${sy(0)}Z" stroke="var(--good)" stroke-width="4"/><path d="M${sx(281)},${sy(0)}L${sx(500)},${sy(be(500))}" stroke="var(--bad)" stroke-width="4"/>`;
+ s+=`<circle cx="${sx(281)}" cy="${sy(0)}" r="6" fill="var(--ink)"/><text x="${sx(281)+8}" y="${sy(0)+18}" font-size="12" font-weight="700">≈ R$ 281/MWh</text>`;
+ [[300,0.07],[450,0.64]].forEach(([e,v])=>s+=`<circle cx="${sx(e)}" cy="${sy(v)}" r="4.5" fill="var(--bad)"/><text x="${sx(e)-6}" y="${sy(v)-8}" font-size="12" font-weight="700" text-anchor="end">R$ ${v.toFixed(2)}/m³</text>`);
+ s+=`<text x="${sx(155)}" y="${sy(-0.66)}" font-size="12" fill="var(--good)" font-weight="700">biomethane wins with no attribute</text><text x="${sx(495)}" y="${sy(0.25)}" font-size="12" fill="var(--bad)" font-weight="700" text-anchor="end">needs a CGOB price</text>`;
+ $('c-be').innerHTML=svg(W,H,s,'break-even attribute')})();
+(()=>{const W=1000,H=70,L=20,R=20,x0=-1,x1=2.2,sx=x=>L+(W-L-R)*(x-x0)/(x1-x0);let s='';
+ s+=`<defs><linearGradient id="rg" x1="0" x2="1"><stop offset="0" stop-color="var(--bad)"/><stop offset="${(sx(0)-sx(-.69))/(sx(1.89)-sx(-.69))}" stop-color="var(--line-strong)"/><stop offset="1" stop-color="var(--good)"/></linearGradient></defs>`;
+ s+=`<rect x="${sx(-.69)}" y="18" width="${sx(1.89)-sx(-.69)}" height="18" rx="9" fill="url(#rg)"/><line x1="${sx(0)}" x2="${sx(0)}" y1="10" y2="44" stroke="var(--ink)" stroke-width="2"/>`;
+ s+=`<text x="${sx(-.69)}" y="58" font-size="13" font-weight="700" text-anchor="middle">−0.69</text><text x="${sx(0)}" y="58" font-size="12" text-anchor="middle" class="mut">0</text><text x="${sx(1.89)}" y="58" font-size="13" font-weight="700" text-anchor="middle">+1.89</text>`;
+ s+=`<text x="${sx(-.69)}" y="12" font-size="11" class="mut">power self-used, no CGOB</text><text x="${sx(1.89)}" y="12" font-size="11" class="mut" text-anchor="end">market power, CGOB R$ 1.40</text>`;
+ $('c-range').innerHTML=svg(W,H,s,'SP route switch value range')})();
+
+/* 6 capex */
+hbars($('c-capex'),[
+ {l:'Onebio Paulínia SP (landfill)',v:2000,c:'var(--urb)',dash:1,t:'≥ 2,000 (financing only)'},
+ {l:'GNR Mauá + Vila Velha (landfill)',v:2526,c:'var(--urb)',t:'2,526'},
+ {l:'São Leopoldo RS (landfill)',v:2596,c:'var(--urb)',t:'2,596'},
+ {l:'Bioo Paraná (agro, full AD)',v:6504,c:'var(--pec)',t:'6,504'},
+],{max:7000,lw:210,rw:150,label:'CAPEX per m3/d'});
+hbars($('c-lcoe'),[
+ {l:'Landfill projects (10–12 %)',v:0.98,lo:0.90,hi:1.06,c:'var(--urb)',t:'0.90–1.06'},
+ {l:'Agro project (10–12 %)',v:2.49,lo:2.33,hi:2.65,c:'var(--pec)',t:'2.33–2.65'},
+ {l:'Assumed in route model (capital + O&M)',v:1.19,c:'var(--line-strong)',t:'1.19 (EU)'},
+],{max:2.8,lw:240,rw:90,d:2,label:'levelised capital cost'});
+
+/* 7 leak */
+(()=>{const W=560,H=240,L=54,R=20,T=16,B=34,x0=0,x1=15,y1=2900,sx=x=>L+(W-L-R)*(x-x0)/(x1-x0),sy=y=>H-B-(H-B-T)*y/y1,net=l=>2653-193.6*l;let s='';
+ [0,1000,2000].forEach(v=>s+=`<line x1="${L}" x2="${W-R}" y1="${sy(v)}" y2="${sy(v)}" stroke="var(--line)"/><text x="${L-6}" y="${sy(v)+4}" font-size="11" text-anchor="end" class="mut">${fmt(v)}</text>`);
+ [0,2,4,6,8,10,12,14].forEach(v=>s+=`<text x="${sx(v)}" y="${H-14}" font-size="11" text-anchor="middle" class="mut">${v} %</text>`);
+ s+=`<text x="${W/2}" y="${H}" font-size="11" text-anchor="middle" class="mut">leakage + slip, % of CH₄ produced</text>`;
+ s+=`<path d="M${sx(0)},${sy(net(0))}L${sx(13.7)},${sy(0)}" stroke="var(--pec)" stroke-width="4"/>`;
+ [[0,'2,653 no loss'],[2,'2,270'],[4.5,'1,780 (2.5 % + 2 % water scrubber)'],[13.7,'benefit = 0 at ≈ 14 %']].forEach(([l,t],i)=>s+=`<circle cx="${sx(l)}" cy="${sy(Math.max(0,net(l)))}" r="5" fill="var(--ink)"/><text x="${i===3?sx(l):sx(l)+8}" y="${i===3?sy(420):sy(net(l))-8}" font-size="12" font-weight="700" ${i===3?'text-anchor="end"':''}>${t}</text>`);
+ $('c-leak').innerHTML=svg(W,H,s,'leakage vs net reduction')})();
+hbars($('c-slip'),[
+ {l:'Water scrubber',v:2,c:'var(--bad)',t:'≤ 2 %'},
+ {l:'Membrane',v:1,c:'var(--pec)',t:'< 1 %'},
+ {l:'Amine',v:0.04,c:'var(--good)',t:'≈ 0.04 %'},
+ {l:'Plant leakage (DK avg.)',v:2.5,c:'var(--line-strong)',t:'2.5 %'},
+],{max:3,lw:170,rw:70,label:'slip by technology'});
+
+/* 8 digestate */
+(()=>{const d=[[4841,'already returns to soil','var(--agri)'],[794,'leaves field with straw','var(--pec)'],[328,'new (MSW, now landfilled)','var(--urb)']],tot=5963,W=560,L=10,R=10;let x=L,s='';
+ d.forEach(([v,l,c],i)=>{const w=(W-L-R)*v/tot;s+=`<rect x="${x}" y="20" width="${w}" height="48" fill="${c}" ${i===0?'rx="6"':''}/>`;
+  s+=`<text x="${i===0?x+10:x+w/2}" y="${i===0?50:96+i*0}" font-size="${i===0?16:13}" font-weight="800" ${i===0?'fill="#fff"':'text-anchor="middle"'}>${i===0?'R$ 4,841 mi · 81 %':''}</text>`;x+=w});
+ const xs=L+(W-L-R)*4841/tot,xe=xs+(W-L-R)*794/tot;
+ s+=`<line x1="${(xs+xe)/2}" x2="${(xs+xe)/2}" y1="70" y2="96" stroke="var(--pec)"/><text x="${(xs+xe)/2}" y="112" font-size="13" font-weight="700" text-anchor="end">794 · 13 %</text><text x="${(xs+xe)/2}" y="128" font-size="11" class="mut" text-anchor="end">leaves the field with straw</text>`;
+ s+=`<line x1="${(xe+W-R)/2}" x2="${(xe+W-R)/2}" y1="70" y2="140" stroke="var(--urb)"/><text x="${W-R}" y="156" font-size="13" font-weight="700" text-anchor="end">328 · 5 %</text><text x="${W-R}" y="172" font-size="11" class="mut" text-anchor="end">genuinely new (MSW)</text>`;
+ s+=`<text x="${L}" y="12" font-size="11" class="mut">vinasse, filter cake, manure</text>`;
+ $('c-dig').innerHTML=svg(W,180,s,'digestate value by fate')})();
+(()=>{const d=[['N',53,5.1],['P₂O₅',72,4.1],['K₂O',96,2.5]],W=560;let s='';
+ d.forEach(([n,v,nw],i)=>{const cx=95+i*185,cy=88,r=62,c=2*Math.PI*r;s+=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--pale)" stroke-width="16"/>`;
+  s+=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--agri)" stroke-width="16" stroke-dasharray="${c*v/100} ${c}" transform="rotate(-90 ${cx} ${cy})"/>`;
+  s+=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--urb)" stroke-width="16" stroke-dasharray="${c*nw/100} ${c}" transform="rotate(-90 ${cx} ${cy})"/>`;
+  s+=`<text x="${cx}" y="${cy+2}" text-anchor="middle" font-size="24" font-weight="800">${v} %</text><text x="${cx}" y="${cy+22}" text-anchor="middle" font-size="13" class="mut">${n}</text><text x="${cx}" y="${cy+r+30}" text-anchor="middle" font-size="12" class="mut">new nutrient only: ${String(nw)} %</text>`});
+ $('c-npk').innerHTML=svg(W,190,s,'digestate vs crop demand')})();
+
+/* 9 sites */
+donut($('c-feed'),[{v:114,c:'var(--agri)',t:'114 cane straw',l:'mill regions: Ribeirão, Barretos, Barra Bonita'},{v:74,c:'var(--pec)',t:'74 cattle',l:'west and north-west of SP'},{v:70,c:'var(--terra)',t:'70 vinasse',l:'at the mill itself'},{v:7,c:'var(--urb)',t:'7 MSW + poultry',l:'São Paulo metro is the #1 site'}],'265','sites');
+hbars($('c-val'),[{l:'Top-30 PILAR sites',v:33,c:'var(--terra)',t:'3 of 9 plants (33 %)'},{l:'Random placement (null)',v:21,c:'var(--line-strong)',t:'21 %'}],{max:45,lw:170,rw:150,bh:30,label:'validation'});
+
+/* 11 ideas */
+const MV={1:'var(--m1)',2:'var(--m2)',3:'var(--m3)',4:'var(--m4)'};
+const IDEAS=[
+['C1','Proof of backing for CGOB','Independent report per biomethane producer: biomass in the radius, declared vs. physical supply, estimated CI. Answers the market fear of fraud.',3,'M',3],
+['C2','Pre-feasibility card for tenders','Two-page PDF in the BNDES / FINEP / Desenvolve SP format: potential, carbon, NPK, cost, DOIs. Weeks of consulting become minutes.',2,'S',2],
+['C3','Supply-basin twin (P90)','10-year monthly supply simulation around a plant, with interannual variability. The P90 is the number financiers use.',3,'L',2],
+['C4','Waste matchmaking','Generators (slaughterhouses, dairies, CEASA) meet digesters by distance, C:N and volume, which fills inventory gaps by registration.',2,'M',2],
+['C5','Municipal biogas readiness index','0–100 score: potential, infrastructure, institutional capacity, demand and realisation. An annual public ranking launched at an event.',2,'M',3],
+['C6','Ask PILAR (citation-mandatory AI)','Natural-language queries over the API. Every answer cites official_figures and a DOI. It refuses any number not in the register.',2,'M',1],
+['C7','Public MCP server','Expose the API as MCP tools so PILAR becomes the citable source inside AI assistants. A cheap wrapper over FastAPI.',2,'S',4],
+['C8','QGIS plugin + pip install pilar2b','pilar2b.municipio(3509502).potencial(p=[10,50,90]) for consultancy and CETESB analysts.',2,'S',4],
+['C9','PILAR-Edu','Lesson scripts with real data and API-generated answer keys, which turn universities into recurring users.',1,'S',4],
+['C10','Gap index for journalists','A monthly open-data page with embeddable CC-BY charts: "SP realises X %; the 10 biggest gaps".',2,'S',3],
+['C11','Policy scenarios','"What if TUSD-Verde cuts connection cost by X, CBIO is worth Y, the mandate reaches Z %?" recomputes the opportunity map.',3,'M',3],
+['C12','Landfills as methane mines','A landfill layer (SINIR, CETESB) with a FOD model, age and capacity, showing the sites without gas capture.',3,'M',2],
+['C13','Vinasse & mills module','Per-mill AD of vinasse + filter cake + straw, validated on Raízen Bonfim and Cocal. The shortest path to paying users.',3,'M',2],
+['C14','"PILAR-verified" data seal','External data passes the 8 gates and gets a seal and its own DOI. The network effect an academic project lacks.',2,'L',1],
+['C15','Partner-state expansion','Replicate the SP model with one scientific partner per state (MG–UFV/UFMG, PR–CIBiogás, GO–Embrapa).',3,'L',4],
+['C16','BioGRAM × PILAR reconciliation','Draw the same areas in IEA BioGRAM and publish the difference table, with the cause of each difference. Whoever has it frames the 2027 debate.',3,'S',1],
+['C17','Route switch: power → biomethane','Per plant: the break-even attribute, and a state curve of m³/day switching per R$ of CGOB. Prototype built.',3,'M',2],
+['C18','Financing observatory','Ingest BNDES approvals and derive R$ per m³/day by route and scale. The first Brazilian CAPEX curve. Seed built.',3,'S',2],
+['C19','Methane seen from space, not captured','Carbon Mapper / EMIT / TROPOMI plumes over PILAR landfills and feedlots: capture capacity, owner, financing path.',3,'M',3],
+['C20','Biogenic CO₂ as a co-product','1.2–1.6 Mt CO₂/yr if SP\'s burned biogas were upgraded. A layer of nearby buyers plus an SBCE link.',2,'M',2],
+['C21','Mercado Cativo Verde matching','Industries in the Comgás area with estimated gas use near candidate supply: a demand portfolio per cluster.',2,'M',2],
+['C22','Leakage & slip in GHG','Explicit methane-loss term, editable by technology. Without it the reduction is optimistic.',3,'S',1],
+['C23','Integra Resíduos pack','Per regional PPP: FORSU, route, minimum scale, new nutrient and a pre-feasibility card, ready before the tenders.',2,'M',2],
+['C24','Green corridors with real data','TransJordano, Iconic, ANP CNG stations: supply within X km of each station, and the deficit.',2,'S',2],
+['C25','Bio-LNG export window','Supply near Santos, liquefaction scale and an ISCC/UDB checklist for FuelEU Maritime. Speculative.',1,'S',2],
+['C26','Live mandate panel','CNPE target, ANP production, CGOB issued, coverage and the route-switch curve: what the Mesa de Monitoramento needs.',3,'S',3],
+['C27','Revenue stack without double counting','Molecule, CGOB, CBIO, voluntary credit, CO₂, digestate: what stacks and what excludes.',2,'S',2],
+['C28','Residue factsheet DB + API','One card per residue (theoretical → technical → mobilisable, method, year), in the style of the DBFZ ResDB (77 residues, API) and DOE BT23.',2,'M',1],
+['C29','Explainable ML siting','CatBoost + SHAP siting score trained on ANP-authorised plants vs. random points, reported with ROC-AUC, so the map explains why a site scores high.',2,'M',2],
+['C30','Satellite harvest calendar','30 m sugarcane harvest maps (DTW on Landsat/Sentinel-2) turn annual straw into monthly availability per mill.',2,'M',3],
+['C31','Plant digital twin lite','Partner SCADA plus an open AD model (OpenAD-lib) compare declared vs. modelled output. Feeds C1.',2,'L',3],
+['C32','Registry interoperability map','Map CGOB attributes against I-TRACK(G) (Instituto Totum), ERGaR and ISO 6087 so the backing report is export-ready.',3,'M',1],
+['C33','Annual "Biomethane Map Brazil"','A GIE/EBA-style yearly infographic and map edition from ANP data: a media moment and backlinks.',2,'S',4],
+['C34','Pipeline vs. PDE demand tracker','The 12 SP plants under construction plus the national pipeline vs. PDE demand (3.4 M m³/d in 2030), with slippage flagged monthly.',2,'S',3],
+];
+const P90=['C16','C18','C22','C17','C26'];
+(()=>{const m=$('matrix'),eff=['S','M','L'],effL=['Small effort','Medium','Large'];let h='<div></div>'+effL.map(e=>`<div class="ax">${e}</div>`).join('');
+ [3,2,1].forEach(imp=>{h+=`<div class="ax y">${imp===3?'High impact':imp===2?'Medium':'Low'}</div>`;
+  eff.forEach(e=>{h+=`<div class="cell${imp===3&&e==='S'?' hot':''}">`+IDEAS.filter(d=>d[3]===imp&&d[4]===e).map(d=>`<button class="chip${+d[0].slice(1)>=28?' new':''}${P90.includes(d[0])?' p90':''}" style="--c:${MV[d[5]]}" data-id="${d[0]}" aria-pressed="false" title="${esc(d[1])}">${d[0]}</button>`).join('')+'</div>'})});
+ m.innerHTML=h;
+ m.addEventListener('click',ev=>{const b=ev.target.closest('.chip');if(!b)return;m.querySelectorAll('.chip').forEach(c=>c.setAttribute('aria-pressed','false'));b.setAttribute('aria-pressed','true');
+  const d=IDEAS.find(x=>x[0]===b.dataset.id);const mv=['','Credibility / data','Biomass → project','Monitoring / policy','Reach / distribution'][d[5]];
+  $('detail').innerHTML=`<div class="id">${d[0]}</div><h3>${esc(d[1])}</h3><div class="meta">${mv} · impact ${'●'.repeat(d[3])}${'○'.repeat(3-d[3])} · effort ${d[4]}${P90.includes(d[0])?' · 90-day priority':''}${+d[0].slice(1)>=28?' · new':''}</div><p>${esc(d[2])}</p>`});
+ $('ideas-list').innerHTML=IDEAS.map(d=>`<div style="--c:${MV[d[5]]}"><b>${d[0]}</b> ${esc(d[1])}</div>`).join('');})();
+
+/* 12 gantt */
+(()=>{const Q=['Q4 2026','Q1 2027','Q2 2027','Q3 2027','Q4 2027','2028'];
+ const rows=[[1,0,1,'Integrity fixes · official_figures · ANP ingestion · IRM on map'],[1,1,1,'Monte Carlo + Sobol · CP2b on Zenodo · single econ + carbon engine'],[2,2,1,'H3 grid · OSRM cost · NPK · landfill layer · MCP + Python pkg'],[2,3,1,'Opportunity map · corridors · pre-feasibility card · readiness index v1'],[3,4,1,'Series 2008–2025 · seasonality · observatory · CGOB backing pilot'],[3,5,1,'Remote sensing · P90 basin twin · partner-state MG · matchmaking']];
+ const W=900,L=10,T=34,cw=(W-L)/6,rh=44;let s='';
+ Q.forEach((q,i)=>{s+=`<rect x="${L+cw*i}" y="0" width="${cw-2}" height="24" rx="4" fill="var(--sunken)"/><text x="${L+cw*i+cw/2}" y="16" font-size="12" text-anchor="middle" font-weight="700">${q}</text>`});
+ rows.forEach((r,i)=>{const y=T+i*rh,x=L+cw*r[1],c=MV[r[0]];s+=`<rect x="${x}" y="${y}" width="${cw*r[2]-4}" height="${rh-8}" rx="8" fill="${c}"/>`;
+  const left=r[1]>=3;s+=`<text x="${left?x-8:x+cw+4}" y="${y+(rh-8)/2+4}" font-size="12.5" text-anchor="${left?'end':'start'}">${esc(r[3])}</text>`;
+  s+=`<text x="${x+10}" y="${y+(rh-8)/2+5}" font-size="12" fill="#fff" font-weight="800">Move ${r[0]}</text>`});
+ $('c-gantt').innerHTML=svg(W,T+rows.length*rh,s,'roadmap')})();
+$('kpis2027').innerHTML=[['100 %','numbers shown with provenance'],['645','SP municipalities with P10–P90'],['≥ 3','citations in government documents'],['≥ 500','DOI downloads + package installs']].map(k=>`<div class="kpi"><div class="v">${k[0]}</div><div class="l">${k[1]} (end-2027 target)</div></div>`).join('');
+
+/* 13 bench */
+(()=>{const F=['Potential (not just plants)','Municipal / fine resolution','Parameter provenance (DOI)','Uncertainty band','Siting / decision layer','GHG with leakage','Open API / download','Live monitoring','Brazil coverage'];
+ const T=[['PILAR-2b (2027 target)','●●●●●●●●◐',1],['IEA BioGRAM','●◐◐○◐○◐○●'],['European Biomethane Map','○◐○○○○◐◐○'],['CIBiogás BiogasMap','○●○○○○◐◐●'],['DataSebrae Biogás','●◐○○○○◐○●'],['ABiogás panel','◐◐○○○○○◐●'],['US EPA LMOP / AgSTAR','◐●◐○◐◐●◐○'],['DOE BT23 / BioenergyKDF','●●●◐○○●○○'],['DBFZ Resource DB','●◐●○○○●○○'],['Carbon Mapper','○●○◐○○●●◐']];
+ const cls={'●':'yes','◐':'part','○':'no'};
+ $('bench-t').innerHTML='<thead><tr><th>Tool</th>'+F.map(f=>`<th>${f}</th>`).join('')+'</tr></thead><tbody>'+T.map(t=>`<tr class="${t[2]?'us':''}"><td>${t[0]}</td>`+[...t[1]].map(c=>`<td><span class="bd ${cls[c]}" aria-label="${cls[c]}"></span></td>`).join('')+'</tr>').join('')+'</tbody>'})();
+
+/* 14 protos */
+$('protos-g').innerHTML=[
+['Uncertainty (Monte Carlo + Sobol)','build_sp_real_uncertainty.py','P10/P50/P90 7.30/8.06/8.89 bi; straw ≈ 50 % of variance'],
+['Realisation index','build_sp_realization_index.py','IRM 0.72 %; biogas 16–19 % of N4'],
+['Opportunity sites','build_sp_opportunity_sites.py','265 sites, 88 % captured; validation 33 % vs 21 % null'],
+['Digestate & nutrients','build_sp_digestate_nutrients.py','81 % already returns to soil; MSW R$ 328 mi new'],
+['Mandate coverage','build_sp_mandate_coverage.py','0.5 % needs 0.31 M m³/d; SP burned biogas covers 470 % of 1 %'],
+['Route conversion','build_sp_route_conversion.py','break-even ≈ R$ 281/MWh; SP Δ −0.69 to +1.89 bi/yr'],
+['BNDES CAPEX benchmarks','build_bndes_capex_benchmarks.py','landfill R$ 2.0–2.6 k per m³/d; agro 6.5 k'],
+['Official figures register','scripts/verify_official_figures.py','8 headline figures verified in CI'],
+['GHG module spec','docs/data/ESPEC_MODULO_GEE.md','leakage that zeroes straw benefit ≈ 14 %'],
+].map(p=>`<div class="card"><h3>${p[0]}</h3><code>${p[1]}</code><p style="margin:.5rem 0 0">${p[2]}</p></div>`).join('');
+
+/* 15 refs */
+const REFS=[
+['Mapping & potential tools','var(--urb)',[
+ ['IEA BioGRAM: global biogas/biomethane potential','https://www.iea.org/commentaries/where-in-the-world-is-biogas-a-new-iea-tool-maps-its-potential','~900 bcm global; >70 % in emerging economies'],
+ ['GIE & EBA European Biomethane Map 2025','https://www.gie.eu/press/europe-surpasses-1600-biomethane-plants-gie-and-eba-release-2025-european-biomethane-map/','1,678 plants',1],
+ ['DOE 2023 Billion-Ton Report (BT23)','https://www.energy.gov/sites/default/files/2024-03/beto-2023-bt23-report.pdf','1.1–1.5 bi t/yr, 60 resources, county data portal',1],
+ ['BioenergyKDF: one-stop bioeconomy data tools','https://advancedbiofuelsusa.info/one-stop-data-tools-for-the-bioeconomy-the-bioenergy-knowledge-discovery-framework','ORNL portal behind BT23',1],
+ ['DBFZ Resource Database','https://datalab.dbfz.de/resdb','77 residues, potentials by method, API',1],
+ ['DBFZ resource-monitoring method applied internationally','https://dbfz.de/en/press-media-library/press/press-releases/press-release-21112019','',1],
+ ['US EPA LMOP','https://www.epa.gov/lmop','landfill gas project database'],
+]],
+['Siting, ML & digital twins','var(--m2)',[
+ ['GIS biomass assessment, siting & injection (Energies 2025)','https://www.mdpi.com/1996-1073/18/3/734','review',1],
+ ['BIOPOLE project, PoliMi','https://www.deib.polimi.it/eng/research-projects/details/262','',1],
+ ['AI in anaerobic digestion: sensors, models, optimisation (Sensors 2025)','https://www.ncbi.nlm.nih.gov/pmc/articles/PMC12656501/','digital twins as an emerging strategy',1],
+ ['Systematic review of ML in anaerobic digestion','https://www.ncbi.nlm.nih.gov/pmc/articles/PMC10740876/','data curation pitfalls',1],
+ ['OpenAD-lib: open AD digital-twin framework','https://psecommunity.org/LAPSE:2026.0218','mechanistic + ML + MPC',1],
+ ['Sugarcane harvest maps at 30 m, Brazil (ESSD 2022)','https://essd.copernicus.org/articles/14/2065/2022/','DTW on Landsat/Sentinel-2, 91 % OA',1],
+ ['ML mapping of sugarcane residue burning','https://gslcluc1.umd.edu/sites/default/files/lcluc_documents/1-s2.0-S2772375523001764-main.pdf','Sentinel-1 + HLS',1],
+]],
+['Methane from space','var(--m3)',[
+ ['Carbon Mapper: Tanager-1 super-emitters','https://carbonmapper.org/articles/carbon-mapper-data-from-tanager1-satellite-reveals-methane-and-co2-super-emitters','4 SP/RJ landfills ≈ 7 % of national waste CH₄'],
+ ['Tanager-1: two years of turning data into action','https://carbonmapper.org/articles/tanager-1-two-years-of-turning-satellite-data-into-methane-action','COP30 waste-methane initiative',1],
+ ['Brazilian plume study, 40 detections at 16 sites (Remote Sensing 2025)','https://www.mdpi.com/2072-4292/17/24/3973','',1],
+ ['CATF: Brazil waste-methane opportunities','https://www.catf.us/2025/12/new-catf-analysis-highlights-brazils-largest-opportunities-cut-waste-methane/',''],
+ ['SEEG Methane','https://seeg.eco.br/wp-content/uploads/2024/07/SEEG-METHANE.pdf',''],
+ ['Climate Bonds: Brazil methane briefing','https://www.climatebonds.net/files/reports/cbi_brazil_methane_briefing_portuguese_25_04_25.pdf',''],
+]],
+['Brazil market & policy','var(--terra)',[
+ ['Biomethane capacity to 2032 (CNN Brasil)','https://www.cnnbrasil.com.br/agro/producao-de-biometano-deve-saltar-no-brasil-ate-2032-com-novas-plantas/','657 M → 2.92 bi m³/yr',1],
+ ['ABiogás biomethane mapping','https://static.poder360.com.br/2025/08/ABiogas-mapeamento-biometano.pdf','93 → 200 plants',1],
+ ['ABiogás plan R$ 216 bi to 2035','https://cenarioenergia.com.br/2026/08/20/plano-da-abiogas-projeta-r-216-bilhoes-para-multiplicar-oferta-de-biometano-ate-2035/','PDE blend 1 %→8 %',1],
+ ['SP biomethane R$ 4.3 bi expansion (AutoData)','https://www.autodata.com.br/mobility/2026/08/25/biometano-ganha-forca-em-sao-paulo-e-projeta-r-43-bi-em-investimentos-para-expansao/133323/','12 plants under construction',1],
+ ['EPE catalogue of waste-to-energy studies','https://cenarioenergia.com.br/2025/12/18/epe-consolida-estudos-e-reforca-o-papel-do-aproveitamento-energetico-de-residuos-na-transicao-energetica-brasileira/','',1],
+ ['Methane in Brazil (DOAJ article)','https://doaj.org/article/00a097952fd240bc82f6f73f84cbf656','',1],
+]],
+['Certificates, registries & MRV','var(--m4)',[
+ ['dena Biogasregister: international trade (ERGaR)','https://www.dena.de/en/biogasregister/trade-of-biomethane/international-trade/','',1],
+ ['I-TRACK(G) code for biogas/biomethane','https://biofuelsdigest.com/i-track-foundation-launches-code-for-biogas-and-biomethane-certificates/','issued via Instituto Totum',1],
+ ['ENTSOG: certification of green gases','https://www.entsog.eu/certification-green-gases','',1],
+ ['Unifying Europe\'s biomethane market (ERGaR vs AIB vs UDB)','https://www.bioenergy-news.com/news/unifying-europes-biomethane-market/','',1],
+ ['ISO 6087-1 draft: biomethane registry schemes','https://isme.me/en/project/show/iso:proj:92093','',1],
+ ['MiQ digital registry for EU methane rules','https://www.worldpipelines.com/business-news/21052026/miq-launches-new-digital-registry-with-crude-oil-capability-and-readiness-for-eu-methane-requirements/','',1],
+]],
+['Repo documents','var(--line-strong)',[
+ ['Strategy v1: three moves, C1–C15','https://github.com/aikiesan/pilar-2b/blob/claude/epic-cray-bvxgrn/cp2b-workspace/NewLook/docs/planning/ESTRATEGIA_2027_LIDERANCA_BIOECONOMIA.md',''],
+ ['Round 2: C16–C27, ~40 sources','https://github.com/aikiesan/pilar-2b/blob/claude/epic-cray-bvxgrn/cp2b-workspace/NewLook/docs/planning/ESTRATEGIA_2027_RODADA2_IDEIAS_E_REFERENCIAS.md',''],
+ ['GHG module spec','https://github.com/aikiesan/pilar-2b/blob/claude/epic-cray-bvxgrn/cp2b-workspace/NewLook/docs/data/ESPEC_MODULO_GEE.md',''],
+ ['Strategy prototypes (analysis/)','https://github.com/aikiesan/pilar-2b/tree/claude/epic-cray-bvxgrn/analysis',''],
+]],
+];
+$('refs-g').innerHTML=REFS.map(([g,c,rs])=>`<div class="refgrp"><h3><span class="dot" style="--c:${c}"></span>${g}</h3>`+rs.map(r=>`<a class="ref" href="${r[1]}" target="_blank" rel="noopener">${esc(r[0])}${r[3]?'<span class="tag">NEW</span>':''}${r[2]?`<small>${esc(r[2])}</small>`:''}</a>`).join('')+'</div>').join('');
+</script>
+
+</body></html>
