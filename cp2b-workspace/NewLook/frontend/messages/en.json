@@ -1309,7 +1309,7 @@
       "row_live_biogas": "Livestock Biogas (m³/year)",
       "row_urban_biogas": "Urban Biogas (m³/year)",
       "row_energy": "Energy Potential (MWh/year)",
-      "row_co2": "CO₂ Reduction (ton/year)"
+      "row_ghg": "Emissions reduction potential (tCO₂e/year, biomethane replacing diesel)"
     },
     "technology_routes": {},
     "cite": {

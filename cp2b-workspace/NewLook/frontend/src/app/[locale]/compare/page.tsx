@@ -20,7 +20,6 @@ interface MunicipalityData {
   agricultural_biogas_m3_year: number;
   livestock_biogas_m3_year: number;
   energy_potential_mwh_year: number;
-  co2_reduction_tons_year: number;
   population: number | null;
   area_km2: number | null;
   population_density: number | null;
@@ -35,6 +34,8 @@ function ComparePageContent() {
   const breadcrumbs = useBreadcrumbs();
   const format = useFormat();
   const [municipalities, setMunicipalities] = useState<MunicipalityData[]>([]);
+  // Net emissions reduction per IBGE code (GHG module, CP2b Real level); absent = unavailable.
+  const [ghgNet, setGhgNet] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   // Opened without a usable selection (from the header, or with one id): show
@@ -71,8 +72,22 @@ function ComparePageContent() {
           })
         );
 
-        const data = await Promise.all(promises);
+        const data: MunicipalityData[] = await Promise.all(promises);
         setMunicipalities(data);
+
+        // Optional row: a municipality without the GHG answer shows a dash.
+        const ghg = await Promise.allSettled(
+          data.map((m) =>
+            fetch(`${apiUrl}/api/v1/ghg/municipalities/${m.ibge_code}?level=n4`).then((res) =>
+              res.ok ? res.json() : Promise.reject(res.status)
+            )
+          )
+        );
+        setGhgNet(
+          Object.fromEntries(
+            ghg.flatMap((r) => (r.status === 'fulfilled' ? [[r.value.ibge_code, r.value.totals.er_net_t]] : []))
+          )
+        );
       } catch (err) {
         // The raw message ("Municipality 42 not found", "Failed to fetch") is for the log.
         logger.error('Comparison load failed:', err);
@@ -259,9 +274,9 @@ function ComparePageContent() {
               />
 
               <ComparisonRow
-                label={t('compare.row_co2')}
-                values={municipalities.map((m) => formatNumber(m.co2_reduction_tons_year))}
-                numericValues={municipalities.map((m) => m.co2_reduction_tons_year)}
+                label={t('compare.row_ghg')}
+                values={municipalities.map((m) => formatNumber(ghgNet[m.ibge_code ?? '']))}
+                numericValues={municipalities.map((m) => ghgNet[m.ibge_code ?? ''] ?? 0)}
                 getComparisonIcon={getComparisonIcon}
               />
             </tbody>

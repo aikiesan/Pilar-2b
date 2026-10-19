@@ -1309,7 +1309,7 @@
       "row_live_biogas": "Biogás Pecuário (m³/ano)",
       "row_urban_biogas": "Biogás Urbano (m³/ano)",
       "row_energy": "Potencial Energético (MWh/ano)",
-      "row_co2": "Redução de CO₂ (ton/ano)"
+      "row_ghg": "Potencial de redução de emissões (tCO₂e/ano, biometano no lugar de diesel)"
     },
     "technology_routes": {},
     "cite": {
