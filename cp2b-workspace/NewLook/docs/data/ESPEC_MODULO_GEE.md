@@ -75,8 +75,8 @@ ER = BE_metano + BE_fossil − PE
 
 | Termo | Padrão sugerido | Nota |
 |---|---|---|
-| Vazamento do biodigestor | 1–3 % do CH₄ produzido (faixa; **conferir** na literatura de vazamentos) | Parâmetro com faixa, entra no Monte Carlo |
-| Escape no *upgrading* (*methane slip*) | 0,1–2 % conforme a tecnologia (membrana, PSA, lavagem com água, aminas) | Hoje é ignorado (`METODOLOGIA_CENARIOS` §limitações) |
+| Vazamento do biodigestor | Padrão **2,5 %** do CH₄ produzido, faixa 1–4 % | Média medida em 60 plantas na Dinamarca, 2019–2021 (Danish Energy Agency, via gasworld e IEA Bioenergy Task 37). Entra no Monte Carlo |
+| Escape no *upgrading* (*methane slip*) | Lavagem com água até cerca de 2 %; aminas cerca de 0,04 %; membranas abaixo de 1 % (Kvist e Aryal 2019, via IWA). Teto regulatório dinamarquês de 1 % desde 2023 | Por tecnologia, escolhida pelo usuário. Hoje é ignorado (`METODOLOGIA_CENARIOS` §limitações) |
 | Flare | Eficiência de 90–98 % | Só nas horas sem uso energético |
 | Transporte de substrato | km × t × fator diesel por t·km | Vem da superfície de custo logístico (estratégia §3.1) |
 | Consumo próprio | Fração da energia gerada | Já é descontado do `E_util` |
@@ -118,6 +118,8 @@ Granja de suínos que captura **1.000.000 Nm³ CH₄/ano** e usa o biometano no 
 A redução real seria **cerca de 10×** o número exibido hoje. A mesma planta gerando eletricidade para o SIN teria `BE_fossil` muito menor, porque o grid é limpo, enquanto `BE_metano` continuaria dominante.
 
 Agora uma planta de **palha de cana** com o mesmo volume. `BE_metano` = 0 (a palha no campo não gera metano relevante). Ficam só `BE_fossil` menos `PE`, cerca de 2.270 tCO₂e no caso diesel. **O cálculo atual daria o mesmo 1.807 para as duas plantas**, e é isso que esconde a diferença de valor climático entre substratos.
+
+**O vazamento pesa muito mais onde não há metano evitado.** Na planta de palha, com 2,5 % de vazamento e 2 % de *slip* (lavagem com água), `PE` = 45.000 × 0,717 × 27 ÷ 1000 ≈ 871 tCO₂e. A redução líquida cai de cerca de 2.270 (com 2 % de perda) para cerca de 1.780: um quinto a menos, e um terço abaixo do caso sem perda (2.653). O vazamento que zera o benefício é `BE_fossil ÷ (ρ × GWP)` ≈ 2.653 ÷ 19,36 ≈ **14 %** do metano produzido. Na granja de suínos, o mesmo vazamento corta só cerca de 5 %. Consequência: para palha, vinhaça e outros substratos sem `BE_metano`, o módulo deve exibir o vazamento como premissa de primeira linha, e o relatório de lastro do CGOB (estratégia, C1) deve pedir medição, não padrão.
 
 ## 6. Implementação
 
