@@ -74,8 +74,9 @@ function ComparePageContent() {
 
         const data: MunicipalityData[] = await Promise.all(promises);
         setMunicipalities(data);
+        setLoading(false);
 
-        // Optional row: a municipality without the GHG answer shows a dash.
+        // Optional row, filled in after the table: a municipality without the GHG answer shows a dash.
         const ghg = await Promise.allSettled(
           data.map((m) =>
             fetch(`${apiUrl}/api/v1/ghg/municipalities/${m.ibge_code}?level=n4`).then((res) =>
@@ -85,7 +86,11 @@ function ComparePageContent() {
         );
         setGhgNet(
           Object.fromEntries(
-            ghg.flatMap((r) => (r.status === 'fulfilled' ? [[r.value.ibge_code, r.value.totals.er_net_t]] : []))
+            ghg.flatMap((r) =>
+              r.status === 'fulfilled' && typeof r.value?.totals?.er_net_t === 'number'
+                ? [[r.value.ibge_code, r.value.totals.er_net_t]]
+                : []
+            )
           )
         );
       } catch (err) {

@@ -64,9 +64,6 @@ export interface GhgRequest {
 export interface GhgEstimate {
   be_methane_t: number
   be_fossil_t: number
-  pe_leak_t: number
-  pe_slip_t: number
-  pe_flare_t: number
   pe_total_t: number
   er_net_t: number
   gwp_version: string
@@ -85,7 +82,7 @@ export async function estimateGhg(req: GhgRequest, signal?: AbortSignal): Promis
       body: JSON.stringify(req),
       signal,
     })
-    return res.ok ? res.json() : null
+    return res.ok ? await res.json() : null
   } catch {
     return null
   }

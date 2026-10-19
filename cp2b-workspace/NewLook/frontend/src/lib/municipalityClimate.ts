@@ -4,8 +4,8 @@
  * with its typical destination today (ghg.yaml `substratos_linha_de_base`).
  *
  * A potential, never a credit (docs/data/ESPEC_MODULO_GEE.md §4). The backend
- * computes every figure; here the 17 substrates are only summed into the
- * eleven residues the page already names.
+ * computes every figure; here the substrates are only summed by residue, the
+ * grouping the page already names.
  */
 import { serverGetJson } from '@/lib/serverApi'
 import { servedNumber } from '@/lib/municipalityProfile'

@@ -25,7 +25,7 @@ jest.mock('../ghgApi', () => ({
 }))
 beforeEach(() => {
   mockEstimate.mockReset().mockResolvedValue({
-    be_methane_t: 1200, be_fossil_t: 300, pe_leak_t: 40, pe_slip_t: 10, pe_flare_t: 0,
+    be_methane_t: 1200, be_fossil_t: 300,
     pe_total_t: 50, er_net_t: 1450, gwp_version: 'AR6', gwp_value: 27,
     leak_break_even: 0.62, assumptions: { leak: 0.025 }, unverified: ['linhas_de_base.lagoa_anaerobia'],
   })

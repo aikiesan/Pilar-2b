@@ -29,8 +29,7 @@ interface Project {
   basis: Basis
   lower_bound: boolean
   capex_brl_per_m3d: number
-  levelized: { rate: number; brl_per_m3: number }[]
-  bndes_mi_brl: number | null
+  levelized: { brl_per_m3: number }[]
   approved: string
   sources: string[]
 }
@@ -113,7 +112,7 @@ export default async function FinancingPage() {
               </thead>
               <tbody className="divide-y divide-line">
                 {data.projects.map((p) => (
-                  <tr key={p.project}>
+                  <tr key={`${p.project}-${p.approved}`}>
                     <td className="py-2 pr-3 text-ink">
                       {p.project} <span className="text-ink-muted">({p.uf})</span>
                       <span className="block text-xs text-ink-muted">{t(`basis.${p.basis}`)} · {p.approved}</span>
@@ -133,7 +132,7 @@ export default async function FinancingPage() {
                           href={url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="mr-2 text-terra-800 underline underline-offset-2 dark:text-terra-300"
+                          className="mr-2 text-terra-700 underline underline-offset-2 dark:text-terra-300"
                         >
                           {p.sources.length > 1 ? t('table.source_n', { n: i + 1 }) : t('table.source')}
                         </a>

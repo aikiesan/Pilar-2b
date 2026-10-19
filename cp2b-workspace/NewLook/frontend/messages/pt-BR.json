@@ -2500,7 +2500,7 @@
       "caption": "Se o metano do Cenário Real virasse biometano veicular no lugar do diesel, cada resíduo partindo da destinação típica de hoje.",
       "methane": "Metano que deixa de escapar",
       "fossil": "Diesel deslocado",
-      "project": "Vazamento, slip e queima da própria usina",
+      "project": "Vazamento, escape e queima da própria usina",
       "net": "Redução líquida",
       "by_residue": "Redução líquida por resíduo",
       "note": "Potencial de redução, não crédito de carbono. GWP do metano: {gwp}.",
@@ -2666,7 +2666,7 @@
     "limits": {
       "heading": "Limites",
       "items": [
-        "A meta cobre o ano; a produção é de um mês. Um mês abaixo da linha não é descumprimento, e o CGOB pode ser negociado entre anos conforme a regulação da ANP.",
+        "A meta cobre o ano; a produção é de um mês. Um mês abaixo da linha não é descumprimento: a meta é apurada no ano, com CGOB, conforme a regulação da ANP.",
         "As metas de 2028 a 2030 são indicativas e ainda não têm volume publicado: o painel escala o volume da proposta de 2027 pelo percentual, só como ordem de grandeza.",
         "A produção da ANP pode ser revista depois de publicada, e o último mês é o mais recente que a plataforma ingeriu.",
         "O mandato é nacional e o CGOB é negociável: São Paulo não precisa cobrir a meta sozinho. A participação de SP mede peso, não obrigação estadual."

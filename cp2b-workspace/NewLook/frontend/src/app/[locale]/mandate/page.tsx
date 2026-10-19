@@ -38,26 +38,23 @@ interface Target {
   reduction_pct: number
   volume_m3_day: number
   volume_estimated: boolean
-  cgob_year: number | null
   status: Status
   act: string
   source: string
   coverage: number
-  sp_share: number
 }
 
 interface Panel {
   latest: Month & { sp_share_of_br: number }
   targets: Target[]
   series: Month[]
-  cgob: { public_registry: boolean }
 }
 
 export const generateMetadata = (): Promise<Metadata> => navMetadata('mandate', 'mandate')
 
 export default async function MandatePage() {
   const data = await serverGetJson<Panel>('/mandate/panel')
-  if (!data) throw new Error('mandate panel unavailable')
+  if (!data?.targets.length || !data.series.length) throw new Error('mandate panel unavailable')
   const t = await getTranslations('mandate')
   const tNav = await getTranslations('common.nav')
   const format = await getFormatter()
@@ -111,7 +108,7 @@ export default async function MandatePage() {
           />
           <StatTile
             label={t('tiles.cgob')}
-            value={data.cgob.public_registry ? '—' : t('tiles.cgob_none')}
+            value={t('tiles.cgob_none')}
             note={t('tiles.cgob_note')}
           />
         </dl>
@@ -142,7 +139,12 @@ export default async function MandatePage() {
               {targets.map((g) => (
                 <li key={g.year}>
                   <span className="font-medium text-ink">{g.year}</span> · {t(`status.${g.status}`)} ·{' '}
-                  <a href={g.source} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">
+                  <a
+                    href={g.source}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-terra-700 underline underline-offset-2 dark:text-terra-300"
+                  >
                     {g.act}
                   </a>
                 </li>
@@ -179,7 +181,7 @@ export default async function MandatePage() {
               <div className="flex h-full items-end gap-px">
                 {series.map((m) => (
                   <div key={m.month} className={`relative flex-1 ${BR_COLOR}`} style={{ height: height(m.br_m3_day) }}>
-                    <div className={`absolute inset-x-0 bottom-0 ${SP_COLOR}`} style={{ height: `${(100 * m.sp_m3_day) / m.br_m3_day}%` }} />
+                    <div className={`absolute inset-x-0 bottom-0 ${SP_COLOR}`} style={{ height: `${m.br_m3_day ? (100 * m.sp_m3_day) / m.br_m3_day : 0}%` }} />
                   </div>
                 ))}
               </div>

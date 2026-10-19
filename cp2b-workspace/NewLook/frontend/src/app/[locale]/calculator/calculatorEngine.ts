@@ -16,8 +16,6 @@
  *   biogas   → m³/year
  *   energy   → kWh/year  (MWh/year = kWh / 1000)
  *   volume   → m³/year
- *   CO₂eq    → tCO₂eq/year (avoided emissions come from the backend GHG module,
- *              /api/v1/ghg/estimate — see ghgApi.ts; nothing here computes them)
  *   money    → BRL/year
  */
 
