@@ -117,7 +117,11 @@ O passo estratégico é transformar esse ativo em **confiança verificável** e 
 - Uma tabela, com um YAML gêmeo em `data/canonical_parameters/official_figures.yaml`. Campos: `id`, `valor`, `unidade`, `escopo`, `ano_base`, `método` (Atlas-FDE | CP2b-v5.1 | Teórico), `versão`, `hash_dos_insumos`, `DOI`, `substitui`.
 - Landing, painel do mapa, dossiê, patch notes e paper **leem daqui**. Um teste de CI falha se algum literal numérico de potencial aparecer hardcoded no frontend. A varredura AST de português é o precedente para esse teste.
 - Resolve, de uma vez:
-  - o "19,9 bi legado" em `DesktopLeftPanel.tsx:600` e `FloatingStatsPanel.tsx:103`;
+  - **a colisão de nomes no "Cenário Real".**
+    - O mapa mostra Real = **5,97 bi** Nm³ CH₄/ano, que é o CP2b N4 (`DesktopLeftPanel.tsx:647-652`, via `/statistics/summary`).
+    - `METODOLOGIA_CENARIOS_SP_2026-07-30.md` e `SP_TOTAIS_CONSOLIDADOS` chamam de Real **7,83 bi**, que é o Atlas-FDE.
+    - São dois números diferentes com o mesmo rótulo. Pelo menos um precisa ser renomeado, por exemplo "Real (CP2b N4)" e "Real Atlas".
+    - O 19,9 bi teórico legado já foi tirado da manchete; falta este passo.
   - a proliferação de números;
   - o risco de o manuscrito citar pares velhos (A18 §1.3).
 
@@ -155,7 +159,7 @@ O passo estratégico é transformar esse ativo em **confiança verificável** e 
 - Popular `validation_plants` com ANP (biometano autorizado e produção mensal 2020–2026) e ANEEL GD/SIGA. Os builders já existem em `analysis/build_anp_biometano_dataset.py` e `analysis/build_aneel_biogas_gd.py`; falta uma fonte de ingestão `anp_biometano` com os 8 gates.
 - **Índice de Realização Municipal (IRM)** = capacidade instalada ou produzida ÷ potencial Real (N4).
   - É o primeiro indicador de "monitoramento" e o mais citável.
-  - Com Real de SP em cerca de 21,5 M Nm³ CH₄/dia e biometano instalado de cerca de 0,7 a 1,0 M m³/dia, o estado realiza algo da ordem de **3–5 %**. É uma manchete com dado.
+  - O Real que o mapa serve (CP2b N4) é de cerca de 16,4 M Nm³ CH₄/dia; o Real Atlas, de 21,5 M. Com biometano instalado de cerca de 0,7 a 1,0 M m³/dia (SEMIL, 2026), o estado realiza algo da ordem de **3–6 %**, dependendo de qual Real for o denominador. É uma manchete com dado, e mais um motivo para resolver a colisão de nomes da §2.1.
 - Validar uma amostra de usinas sucroenergéticas contra a vinhaça declarada (UNICA, CTC) para testar o FDE = 1,0.
 
 ### 2.5 Higiene de produto
