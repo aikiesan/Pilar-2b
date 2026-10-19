@@ -135,8 +135,20 @@ O passo estratégico é transformar esse ativo em **confiança verificável** e 
   - O mapa ganha uma opção "mostrar faixa P10–P90" e hachura de baixa confiança. A hachura já está prevista no playbook de outubro.
 - **Sensibilidade global (Sobol, com SALib)** em escala estadual.
   - Gera um gráfico tornado: "o que mais move o número de SP".
-  - Hipótese a testar: a fração de 0,40/0,50 de palha de milho, soja e silvicultura e o FDE = 1,0 da vinhaça dominam a variância.
   - O resultado vira **agenda de pesquisa** para o CP2B: medir primeiro o que mais importa.
+- **Protótipo já feito:** `analysis/build_sp_real_uncertainty.py`, com resultados em `analysis/outputs/sp_real_uncertainty/` e teste em `tests/test_sp_real_uncertainty.py`.
+  - Reproduz o Real publicado fluxo a fluxo, com Monte Carlo de 200 mil amostras e Sobol de Saltelli/Jansen só com numpy, em cerca de 5 s.
+  - Resultado com as faixas provisórias: **P10 7,30 · P50 8,06 · P90 8,89 bi Nm³ CH₄/ano**. O número publicado (7,83) fica no percentil 36, ou seja, é levemente conservador.
+  - **Ranking por índice total (ST):**
+    1. BMP da palha de cana: 0,24
+    2. fração removível da palha: 0,17
+    3. kg de esterco bovino coletável por dia: 0,15
+    4. BMP bovino: 0,14
+    5. palha por tonelada de cana: 0,11
+    6. retenção de milho, soja e silvicultura: 0,10
+  - **A palha de cana sozinha responde por cerca de 50 % da variância.** A hipótese inicial apostava na fração de milho e soja; ela pesa, mas menos.
+  - Agenda de medição que sai daí: BMP de palha com pré-tratamento realista, fração de recolhimento em usinas reais (CTC, UNICA) e esterco coletável por sistema de manejo.
+  - O FDE = 1,0 da vinhaça é uma escolha **estrutural**, não um parâmetro, e precisa de análise de cenário à parte.
 
 ### 2.4 Validação empírica fechada
 
