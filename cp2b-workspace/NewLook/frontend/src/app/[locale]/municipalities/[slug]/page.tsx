@@ -7,7 +7,8 @@
  *  2. four tiles: N4 (headline), rank in the state, N3, main sector
  *  3. where the methane comes from: sector bar + residue bars by sector
  *  4. method levels: bars with their min–max range (N1 and N2 only while
- *     METHOD_PAGES_ENABLED is on — see MunicipalityProfile.upstream)
+ *     METHOD_PAGES_ENABLED is on — see MunicipalityProfile.upstream); the
+ *     climate card (GHG module) when the API answers
  *  5. neighbours compared, this municipality highlighted
  *  6. actions: nearby infrastructure (→ Proximidade), share, cite
  *  7. notes and limitations, folded; report an error
@@ -52,6 +53,7 @@ import {
   type ProfileSector,
   type Range,
 } from '@/lib/municipalityProfile'
+import { loadMunicipalityClimate } from '@/lib/municipalityClimate'
 import { isIbgeCode, municipalityPath } from '@/lib/municipalitySlug'
 import { publicUrl } from '@/lib/siteUrl'
 import { HeaderLeaves } from '@/components/ui/ArcOrnament'
@@ -147,6 +149,7 @@ export default async function MunicipalityProfilePage({ params }: Params) {
   const tSectors = await getTranslations({ locale, namespace: 'common.sectors' })
   const tNav = await getTranslations({ locale, namespace: 'common.nav' })
   const tResidues = await getTranslations({ locale, namespace: 'Map.residues' })
+  const tUnits = await getTranslations({ locale, namespace: 'common.units' })
   const format = await getFormatter({ locale })
 
   const p = profile
@@ -155,6 +158,8 @@ export default async function MunicipalityProfilePage({ params }: Params) {
   const path = municipalityPath(p.name, p.ibge)
   const url = publicUrl(`/${locale}${path}`)
   const hasCp2b = p.n4 !== null
+  // Optional: without the GHG module's answer the card is left out, never zeroed.
+  const climate = hasCp2b ? await loadMunicipalityClimate(p.ibge) : null
 
   const volume = (v: number) => format.number(v, { maximumSignificantDigits: 3 })
   const big = (v: number) =>
@@ -164,6 +169,7 @@ export default async function MunicipalityProfilePage({ params }: Params) {
     format.number(v, { notation: 'compact', compactDisplay: 'short', maximumSignificantDigits: 3 })
   const percent = (v: number) =>
     format.number(v, { style: 'percent', maximumFractionDigits: v > 0 && v < 0.01 ? 1 : 0 })
+  const tons = (v: number) => `${short(v)} ${tUnits('tco2eq_year')}`
 
   const sectorValue = (s: ProfileSector) => p.sectors[s] ?? 0
   const sectorTotal = PROFILE_SECTORS.reduce((sum, s) => sum + sectorValue(s), 0)
@@ -364,6 +370,47 @@ export default async function MunicipalityProfilePage({ params }: Params) {
                 <LevelBars rows={levels} />
                 {!METHOD_PAGES_ENABLED && <p className="mt-4 text-xs text-ink-muted">{t('scenarios.held')}</p>}
               </Card>
+              {climate && (
+                <Card id="clima" title={t('climate.heading')} caption={t('climate.caption')}>
+                  <dl className="space-y-1 text-sm">
+                    {[
+                      { label: t('climate.methane'), value: climate.methaneT, sign: '+' },
+                      { label: t('climate.fossil'), value: climate.fossilT, sign: '+' },
+                      { label: t('climate.project'), value: climate.projectT, sign: '−' },
+                    ].map(({ label, value, sign }) => (
+                      <div key={label} className="flex justify-between gap-3">
+                        <dt className="text-ink-muted">{label}</dt>
+                        <dd className="whitespace-nowrap tabular-nums text-ink">{sign} {tons(value)}</dd>
+                      </div>
+                    ))}
+                    <div className="flex justify-between gap-3 border-t border-line pt-1">
+                      <dt className="font-semibold text-ink">{t('climate.net')}</dt>
+                      <dd className="whitespace-nowrap font-semibold tabular-nums text-ink">{tons(climate.netT)}</dd>
+                    </div>
+                  </dl>
+                  {climate.residues.length > 1 && (
+                    <div className="mt-4">
+                      <h3 className="mb-2 text-sm text-ink-muted">{t('climate.by_residue')}</h3>
+                      <BarList
+                        rows={climate.residues.map((r) => ({
+                          key: r.key,
+                          label: residueName(r.key),
+                          value: Math.max(0, r.netT),
+                          valueLabel: short(r.netT),
+                          barClassName: 'bg-dusk-600 dark:bg-dusk-400',
+                        }))}
+                      />
+                    </div>
+                  )}
+                  <p className="mt-4 text-xs text-ink-muted">
+                    {t('climate.note', { gwp: climate.gwpVersion ?? '—' })}
+                    {climate.unverified && ` ${t('climate.unverified')}`}
+                  </p>
+                  <p className="mt-2 text-sm">
+                    <Link href="/calculator" className={linkClass}>{t('climate.more')}</Link>
+                  </p>
+                </Card>
+              )}
               {infrastructure}
             </div>
           </div>

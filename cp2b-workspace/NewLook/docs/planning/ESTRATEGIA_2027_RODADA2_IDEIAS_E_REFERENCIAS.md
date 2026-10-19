@@ -108,6 +108,12 @@ C19, C20, C21 e C23 entram no Movimento 2 da v1 (mar–ago/2027). C25 fica como 
 | `analysis/build_sp_mandate_coverage.py` (v1, C11) | A meta de 0,5 % pede cerca de 0,31 M m³/dia; o biogás que SP queima cobriria cerca de 4,7 vezes a meta de 1 %. |
 | `analysis/build_sp_realization_index.py` (v1, §2.4) | 0,72 % do N4 vira biometano; o biogás total equivale a 16–19 % do N4. |
 
+### Já na plataforma
+
+| Item | Onde | Resultado |
+|---|---|---|
+| C22 | `data/canonical_parameters/ghg.yaml`, `backend/app/services/ghg_service.py`, `/api/v1/ghg/*`; calculadora (painel Clima), Comparar e página do município (cartão Clima) | Vazamento de 2,5 % e *slip* por tecnologia entram na redução líquida, com o vazamento de equilíbrio. A calculadora deixou de somar CO₂ da queima como redução e de contar crédito de carbono na receita. Palha com diesel deslocado: 1.673 tCO₂e por 10⁶ Nm³, equilíbrio em 10,3 % de vazamento. Palha para a rede elétrica (SIN limpo): −638, ou seja, piora. |
+
 **Premissas a conferir antes de citar qualquer número desta rodada:**
 - a tarifa Arsesp (molécula e atributo), na deliberação;
 - o custo de purificação, hoje uma referência europeia convertida para reais, que a semente BNDES indica ser otimista;

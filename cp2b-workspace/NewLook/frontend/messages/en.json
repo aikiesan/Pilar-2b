@@ -2491,6 +2491,18 @@
       "range_short": "range {min} to {max}",
       "held": "The earlier levels (theoretical and available) appear once the method paper is published."
     },
+    "climate": {
+      "heading": "Climate",
+      "caption": "If the Real Scenario methane became vehicle biomethane in place of diesel, each residue starting from its typical destination today.",
+      "methane": "Methane no longer escaping",
+      "fossil": "Diesel displaced",
+      "project": "The plant's own leaks, slip and flaring",
+      "net": "Net reduction",
+      "by_residue": "Net reduction by residue",
+      "note": "A reduction potential, not a carbon credit. Methane GWP: {gwp}.",
+      "unverified": "Some factors are still being checked.",
+      "more": "Simulate a plant in the calculator"
+    },
     "infrastructure": {
       "heading": "Nearby infrastructure",
       "cta": "Open in Proximity and logistics",

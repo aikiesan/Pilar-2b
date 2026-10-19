@@ -2491,6 +2491,18 @@
       "range_short": "faixa {min} a {max}",
       "held": "Os níveis anteriores (teórico e disponível) aparecem depois da publicação do artigo do método."
     },
+    "climate": {
+      "heading": "Clima",
+      "caption": "Se o metano do Cenário Real virasse biometano veicular no lugar do diesel, cada resíduo partindo da destinação típica de hoje.",
+      "methane": "Metano que deixa de escapar",
+      "fossil": "Diesel deslocado",
+      "project": "Vazamento, slip e queima da própria usina",
+      "net": "Redução líquida",
+      "by_residue": "Redução líquida por resíduo",
+      "note": "Potencial de redução, não crédito de carbono. GWP do metano: {gwp}.",
+      "unverified": "Parte dos fatores ainda está em conferência.",
+      "more": "Simular uma usina na calculadora"
+    },
     "infrastructure": {
       "heading": "Infraestrutura próxima",
       "cta": "Abrir em Proximidade e logística",

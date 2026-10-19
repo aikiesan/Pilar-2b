@@ -24,6 +24,13 @@
           }
         },
         {
+          "kind": "added",
+          "text": {
+            "pt-BR": "A página de cada município ganhou o cartão Clima: quanto o metano do Cenário Real reduziria em emissões se virasse biometano veicular, por resíduo, partindo da destinação típica de hoje.",
+            "en": "Each municipality page has a Climate card: how much the Real Scenario methane would cut in emissions as vehicle biomethane, by residue, starting from its typical destination today."
+          }
+        },
+        {
           "kind": "changed",
           "text": {
             "pt-BR": "A redução de emissões deixou de entrar na receita e no payback, e o preço do crédito de carbono saiu dos ajustes. Redução só vira crédito com adicionalidade e um único instrumento por volume. Por isso o payback pode ficar um pouco mais longo.",
