@@ -92,7 +92,9 @@ O passo estratégico é transformar esse ativo em **confiança verificável** e 
    - Mesmo assim, as linhas de saída rotulam a fonte como `CP2B_municipalities_DB+IBGE_PAM_PPM_PEVS`.
    - Os suínos usam 380 m³/cabeça sobre o rebanho inteiro (linha ~1105). É o mesmo fator que a auditoria de SP identificou como inflando suínos em cerca de 9,7×.
    - `analysis/paper_verification/MG_PAPER_DATA_VERIFICATION.md` declara 21,61 bi Nm³/ano "fully verified, publication-ready". Isso é 2,8× SP, e suínos respondem por 34%.
-   - **Ação:** retirar o selo, trocar o caminho de pecuária pela PPM real (o promotor `promote_ibge_ppm.py` já existe) e reemitir o número com a regra de SP (sem bagaço e suínos por massa de dejeto).
+   - **Tamanho do erro:** os rebanhos implícitos no CSV de saída são 19,6 M suínos e 729 M galináceos. Cada um equivale a **45 % do rebanho do Brasil inteiro** (PPM 2023: 43,0 M e 1,6 bi). Já os bovinos (10,4 M) ficam abaixo da metade do efetivo oficial de MG (22,5 M). Detalhes em [`../auditorias/A20_MG_REBANHO_SINTETICO_2026-10-19.md`](../auditorias/A20_MG_REBANHO_SINTETICO_2026-10-19.md).
+   - **Feito:** aviso de retirada do selo no topo do relatório de verificação de MG. A plataforma não consome esse dataset; o impacto é no paper.
+   - **Pendente:** trocar o caminho de pecuária pela PPM real (o promotor `promote_ibge_ppm.py` já existe) e reemitir o número com a regra de SP (sem bagaço e suínos por massa de dejeto).
 2. **CO₂ da calculadora.**
    - O valor atual é a emissão biogênica de combustão. Pelas regras do IPCC e do GHG Protocol ela é neutra.
    - A redução real tem duas partes:

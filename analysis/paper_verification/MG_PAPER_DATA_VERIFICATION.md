@@ -1,5 +1,15 @@
 # PILAR-2b — Minas Gerais Paper Data Verification (853 Municipalities)
 
+> [!WARNING]
+> **Publication-ready status withdrawn (2026-10-19).** The livestock herds behind
+> this verification are synthetic: `ingest_mg_livestock()` derives them from rural
+> area × assumed regional densities with per-municipality floors, and reads no PPM
+> data, although the output rows cite PPM. The implied MG swine herd (19.6 M) is 45 %
+> of Brazil's entire herd (43.0 M, PPM 2023). Swine also uses the 380 m³/head
+> whole-herd factor that the SP audit corrected. The 21.61 bi Nm³/yr total does not
+> hold. See `cp2b-workspace/NewLook/docs/auditorias/A20_MG_REBANHO_SINTETICO_2026-10-19.md`.
+
+
 **Manuscript:** *Scaling PILAR-2b: High-Resolution Spatial Decision Support for Biomethane & Multi-Stream Co-Digestion across Minas Gerais* (CEUS Submission Draft)  
 **Verified against:** Primary IBGE PAM 2023, PPM 2023, SNIS 2022/2023, ANEEL Dados Abertos GD (06/2026), ANP Registro de Biometano (04/2026), canonical parameters in `feedstocks.yaml`, and complete PILAR-2b MG pipeline execution outputs.  
 **Date:** 2026-08-23 · **Geographic Scope:** 853 Municipalities (100% of Minas Gerais State)  
