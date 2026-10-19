@@ -80,6 +80,10 @@ Geral: grade de 0,125° (cerca de 14 km), produção agrícola FAO de 2020 proje
 
 ## Limites
 
+- O mapa da IEA só aceita um polígono desenhado à mão, sem precisão para seguir uma região intermediária
+  ou um círculo de 30 km. A comparação fica no estado: dois polígonos de 230 e 301 mil km² deram
+  densidades de resíduos agrícolas só 6 % diferentes, bem menos que as diferenças medidas. Regiões e
+  sítios precisam da grade de 0,125° da IEA (contatos na aba Notes do arquivo BioGRAM 1.2).
 - A referência é o CP2b N3 (mobilizável). Sem o snapshot CP2b, só o Atlas Real,
   e parâmetro e disponibilidade não se distinguem.
 - Os sete fluxos "outros" do Atlas são totais estaduais espalhados pelos municípios na proporção
