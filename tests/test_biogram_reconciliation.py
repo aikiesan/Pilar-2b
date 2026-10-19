@@ -55,6 +55,22 @@ def test_biogram_national_brazil_row():
     assert math.isclose(sum(v for k, v in bra.items() if k != "Total"), bra["Total"], abs_tol=0.05)
 
 
+def test_map_tabs_add_up_the_biogram_groups_once():
+    tabs = [c for g, (_, cats) in R.MAP_GROUPS.items() if g != R.TOTAL for c in cats]
+    assert sorted(tabs) == sorted(R.IN_SCOPE)
+    assert set(R.MAP_GROUPS[R.TOTAL][1]) == set(R.IN_SCOPE)
+
+
+def test_drawn_area_rescales_by_density():
+    lhv = 9.94
+    s = {"biogram_valor": "6086", "biogram_unidade": "mcme_ano", "biogram_area_km2": "230940"}
+    v, f = R.biogram_nm3(s, 248_219.484, lhv)
+    assert math.isclose(f, 248_219.484 / 230_940)
+    assert math.isclose(v, 6086 * R.nm3_per_unit("mcme_ano", lhv) * f)
+    assert R.biogram_nm3({"biogram_valor": ""}, 1.0, lhv) == (None, None)
+    assert R.biogram_nm3({"biogram_valor": "1", "biogram_unidade": "bcme_ano"}, 5.0, lhv)[1] == 1.0
+
+
 def test_regions_partition_the_state(built):
     _, muns, atlas, areas = built
     regions = [a for a in areas if a["tipo"] == "regiao_intermediaria"]
@@ -77,6 +93,7 @@ def test_unit_conversion():
     assert math.isclose(R.nm3_per_unit("PJ_ano", lhv), 1e15 / (lhv * 3.6e6))
     assert math.isclose(R.nm3_per_unit("GWh_ano", lhv), 1e6 / lhv)
     assert math.isclose(R.nm3_per_unit("bcme_ano", lhv), 36 * R.nm3_per_unit("PJ_ano", lhv))
+    assert math.isclose(R.nm3_per_unit("bcme_ano", lhv), 1000 * R.nm3_per_unit("mcme_ano", lhv))
     with pytest.raises(ValueError):
         R.nm3_per_unit("m3", lhv)
 

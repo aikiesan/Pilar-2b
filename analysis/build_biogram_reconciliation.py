@@ -35,7 +35,13 @@ used when the area is drawn in BioGRAM, or the comparison mixes geographies.
 
 Categories follow the eight BioGRAM 1.2 feedstock groups (analysis/data/sources/iea/),
 plus two PILAR categories BioGRAM leaves out: vinasse/filter cake and forestry/
-aquaculture. Only the eight groups and their total go to the entry sheet.
+aquaculture. The online map only shows three aggregates (Crop residues, Manure,
+Biowaste) and their total, so those four are what the entry sheet asks for.
+
+The map cannot select an administrative area, only a hand-drawn polygon. When the
+drawn area is typed in biogram_area_km2, the value is rescaled to the PILAR area by
+area (same density): a first-order correction that assumes the polygon misses and
+adds land of average density.
 
 Cause pre-classification (a first pass, to be confirmed by a person):
 
@@ -110,9 +116,17 @@ CATEGORIES = {
 TOTAL = "total"  # the categories BioGRAM covers: the row to compare
 TOTAL_PILAR = "total_pilar"  # every PILAR category, in BioGRAM scope or not
 IN_SCOPE = tuple(c for c, v in CATEGORIES.items() if v[2])
-SEED_CATEGORIES = (*IN_SCOPE, TOTAL)
-ALL_CATEGORIES = (*CATEGORIES, TOTAL, TOTAL_PILAR)
-DEFAULT_UNIT = "bcme_ano"  # BioGRAM 1.2 and the map report bcm of biomethane
+# The online map's tabs -> the categories each one adds up
+MAP_GROUPS = {
+    "residuos_agricolas": ("Crop residues", ("acucareiras", "cereais", "oleaginosas", "outras_culturas",
+                                             "raizes_tuberculos")),
+    "dejetos": ("Manure", ("dejetos",)),
+    "biowaste": ("Biowaste", ("rsu", "esgoto")),
+    TOTAL: ("Total", IN_SCOPE),
+}
+SEED_CATEGORIES = tuple(MAP_GROUPS)
+ALL_CATEGORIES = (*CATEGORIES, "residuos_agricolas", "biowaste", TOTAL, TOTAL_PILAR)
+DEFAULT_UNIT = "mcme_ano"  # the map reports mcme (million m³ of methane equivalent, 36 MJ/Nm³)
 
 # What the IEA methodology note (July 2026) already says about each difference.
 METHOD_NOTES = {
@@ -151,7 +165,7 @@ REFERENCE_LEVEL = "n3"
 
 SEED_COLUMNS = [
     "area_id", "area_tipo", "area_nome", "categoria", "categoria_biogram", "prioridade",
-    "biogram_valor", "biogram_unidade", "biogram_categorias_origem",
+    "biogram_valor", "biogram_unidade", "biogram_area_km2", "biogram_custo_usd_gj",
     "escopo_biogram", "data_consulta", "versao_biogram", "notas",
 ]
 
@@ -183,7 +197,8 @@ def nm3_per_unit(unit: str, lhv_kwh_m3: float) -> float:
         "GWh_ano": 3.6e12,
         "ktoe_ano": 41.868e12,
         "Mtoe_ano": 41.868e15,
-        "bcme_ano": 36e15,  # IEA: 1 bcm of natural gas equivalent = 36 PJ
+        "bcme_ano": 36e15,  # IEA: 1 Nm³ of methane = 36 MJ
+        "mcme_ano": 36e12,
     }
     volume = {"Nm3_ch4_ano": 1.0, "mi_Nm3_ch4_ano": 1e6, "bi_Nm3_ch4_ano": 1e9}
     if unit in volume:
@@ -278,13 +293,14 @@ def build_areas(muns: dict[str, dict]) -> list[dict]:
         g = f["geometry"]
         polys += [g["coordinates"]] if g["type"] == "Polygon" else g["coordinates"]
 
-    areas = [{"id": "SP", "tipo": "estado", "nome": "São Paulo", "prioridade": 1,
-              "members": set(muns), "geometry": {"type": "MultiPolygon", "coordinates": polys}}]
+    areas = [{"id": "SP", "tipo": "estado", "nome": "São Paulo", "prioridade": 1, "members": set(muns),
+              "area_km2": sum(f["properties"]["area_km2"] for f in sp),
+              "geometry": {"type": "MultiPolygon", "coordinates": polys}}]
     for f in sp:
         cd, nm = f["properties"]["cd_rgint"], f["properties"]["nm_rgint"]
         areas.append({"id": f"RGINT-{cd}", "tipo": "regiao_intermediaria", "nome": nm, "prioridade": 2,
                       "members": {c for c, m in muns.items() if m["cd_rgint"] == cd},
-                      "geometry": f["geometry"]})
+                      "area_km2": f["properties"]["area_km2"], "geometry": f["geometry"]})
     with SITES.open(encoding="utf-8") as fh:
         sites = [r for r in csv.DictReader(fh)][:TOP_SITES]
     for r in sites:
@@ -293,6 +309,7 @@ def build_areas(muns: dict[str, dict]) -> list[dict]:
             "id": f"SITIO-{int(r['rank']):02d}", "tipo": "sitio", "prioridade": 3,
             "nome": f"{r['municipio']} (raio {SITE_RADIUS_KM:.0f} km)",
             "members": {c for c, m in muns.items() if haversine_km(la, lo, m["lat"], m["lon"]) <= SITE_RADIUS_KM},
+            "area_km2": math.pi * SITE_RADIUS_KM ** 2,
             "geometry": {"type": "Polygon", "coordinates": [circle(la, lo, SITE_RADIUS_KM)]},
         })
     return areas
@@ -306,7 +323,8 @@ def aggregate(members, atlas, cp2b) -> dict[str, dict[str, float | None]]:
         for lv in LEVELS:
             row[lv] = None if cp2b is None else sum(cp2b[m][cat][lv] for m in members if m in cp2b)
         res[cat] = row
-    for total, cats in ((TOTAL, IN_SCOPE), (TOTAL_PILAR, tuple(CATEGORIES))):
+    groups = {g: cats for g, (_, cats) in MAP_GROUPS.items() if g not in CATEGORIES}
+    for total, cats in (*groups.items(), (TOTAL_PILAR, tuple(CATEGORIES))):
         res[total] = {k: (None if any(res[c][k] is None for c in cats) else sum(res[c][k] for c in cats))
                       for k in ("atlas", *LEVELS)}
     return res
@@ -334,7 +352,7 @@ def sync_seed(areas: list[dict]) -> list[dict]:
         for cat in SEED_CATEGORIES:
             r = existing.pop((a["id"], cat), None) or dict.fromkeys(SEED_COLUMNS, "")
             r.update(area_id=a["id"], area_tipo=a["tipo"], area_nome=a["nome"], categoria=cat,
-                     categoria_biogram=CATEGORIES[cat][2] if cat in CATEGORIES else "Total",
+                     categoria_biogram=MAP_GROUPS[cat][0],
                      prioridade=str(a["prioridade"]))
             r["biogram_unidade"] = r.get("biogram_unidade") or DEFAULT_UNIT
             rows.append({k: r.get(k, "") for k in SEED_COLUMNS})
@@ -347,6 +365,16 @@ def sync_seed(areas: list[dict]) -> list[dict]:
         w.writeheader()
         w.writerows(rows)
     return rows
+
+
+def biogram_nm3(s: dict, area_km2: float, lhv_kwh_m3: float) -> tuple[float | None, float | None]:
+    """(Nm³ CH4/yr rescaled to the PILAR area, area factor) from one entry-sheet row."""
+    if not s.get("biogram_valor", "").strip():
+        return None, None
+    v = float(s["biogram_valor"].replace(",", ".")) * nm3_per_unit(s["biogram_unidade"].strip(), lhv_kwh_m3)
+    drawn = s.get("biogram_area_km2", "").strip()
+    factor = area_km2 / float(drawn.replace(",", ".")) if drawn else 1.0
+    return v * factor, factor
 
 
 def classify(biogram: float | None, pilar: dict[str, float | None], escopo: str = "",
@@ -393,8 +421,8 @@ def main() -> None:
         head = ["area_id", "area_tipo", "area_nome", "n_municipios", "categoria",
                 "atlas_real_nm3_ano", *(f"cp2b_{lv}_nm3_ano" for lv in LEVELS)]
         wp.writerow(head)
-        wr.writerow(head + ["biogram_nm3_ano", f"razao_biogram_{REFERENCE_LEVEL if cp2b else 'atlas'}",
-                            "causa_preclassificada", "notas"])
+        wr.writerow(head + ["area_pilar_km2", "biogram_nm3_ano", "fator_area",
+                            f"razao_biogram_{REFERENCE_LEVEL if cp2b else 'atlas'}", "causa_preclassificada", "notas"])
         for a in areas:
             agg = aggregate(a["members"], atlas, cp2b)
             for cat in ALL_CATEGORIES:
@@ -402,18 +430,21 @@ def main() -> None:
                 base = [a["id"], a["tipo"], a["nome"], len(a["members"]), cat,
                         fmt(p["atlas"]), *(fmt(p[lv]) for lv in LEVELS)]
                 wp.writerow(base)
+                in_map = cat in SEED_CATEGORIES or CATEGORIES.get(cat, ("", "", None))[2]
                 s = seed.get((a["id"], cat)) or {
-                    "biogram_valor": "", "biogram_unidade": "", "notas": "",
-                    "escopo_biogram": "" if cat == TOTAL_PILAR else "fora do BioGRAM"}
-                bg = None
-                if s["biogram_valor"].strip():
-                    bg = float(s["biogram_valor"].replace(",", ".")) * nm3_per_unit(
-                        s["biogram_unidade"].strip(), S.CH4_LHV_KWH_M3)
-                    filled += 1
-                cause = "" if cat == TOTAL_PILAR else classify(bg, p, s["escopo_biogram"])
+                    "biogram_valor": "", "notas": "", "escopo_biogram": "" if in_map else "fora do BioGRAM"}
+                bg, factor = biogram_nm3(s, a["area_km2"], S.CH4_LHV_KWH_M3)
+                filled += bg is not None
+                if cat == TOTAL_PILAR:
+                    cause = ""
+                elif bg is None and not s["escopo_biogram"] and cat not in SEED_CATEGORIES:
+                    cause = "só no agregado do mapa"
+                else:
+                    cause = classify(bg, p, s["escopo_biogram"])
                 ref = p[REFERENCE_LEVEL] if cp2b else p["atlas"]
                 ratio = f"{bg / ref:.2f}" if bg is not None and ref else ""
-                wr.writerow(base + [fmt(bg), ratio, cause, s["notas"]])
+                wr.writerow(base + [f"{a['area_km2']:.0f}", fmt(bg), "" if factor is None else f"{factor:.3f}",
+                                    ratio, cause, s["notas"]])
                 if cause:
                     counts[cause] += 1
                 recon.append((a, cat, p, bg, cause))
@@ -422,6 +453,7 @@ def main() -> None:
     in_scope = next(r for r in recon if r[0]["id"] == "SP" and r[1] == TOTAL)[2]
     bra = biogram_national()
     state_rows = [r for r in recon if r[0]["id"] == "SP"]
+    map_rows = sorted((r for r in state_rows if r[1] in SEED_CATEGORIES), key=lambda r: SEED_CATEGORIES.index(r[1]))
     lines = [
         "# C16, reconciliação BioGRAM × PILAR",
         "",
@@ -442,15 +474,27 @@ def main() -> None:
         "",
         "## Estado de São Paulo",
         "",
-        "| Categoria | Atlas Real | CP2b N3 | CP2b N4 | BioGRAM | Causa |",
-        "|---|---:|---:|---:|---:|---|",
+        "### Pelas abas do mapa (o que se compara)",
+        "",
+        "| Aba do mapa | Atlas Real | CP2b N1 | CP2b N2 | CP2b N3 | CP2b N4 | BioGRAM | BioGRAM ÷ N3 | Causa |",
+        "|---|---:|---:|---:|---:|---:|---:|---:|---|",
     ]
     mi = lambda v: "—" if v is None else f"{v / 1e6:,.0f}"
-    for a, cat, p, bg, cause in state_rows:
-        lines.append(f"| {cat} | {mi(p['atlas'])} | {mi(p['n3'])} | {mi(p['n4'])} | {mi(bg)} | {cause} |")
+    rt = lambda bg, p: "—" if bg is None or not p.get("n3") else f"{bg / p['n3']:.2f}"
+    for a, cat, p, bg, cause in map_rows:
+        lines.append(f"| {MAP_GROUPS[cat][0]} | {mi(p['atlas'])} | {mi(p['n1'])} | {mi(p['n2'])} | {mi(p['n3'])} | "
+                     f"{mi(p['n4'])} | {mi(bg)} | {rt(bg, p)} | {cause} |")
     lines += [
         "",
-        "Valores em milhões de Nm³ CH₄/ano.",
+        "### Por categoria do PILAR",
+        "",
+        "| Categoria | Atlas Real | CP2b N3 | CP2b N4 | Causa |",
+        "|---|---:|---:|---:|---|",
+        *(f"| {cat} | {mi(p['atlas'])} | {mi(p['n3'])} | {mi(p['n4'])} | {cause} |"
+          for a, cat, p, bg, cause in state_rows if cat not in SEED_CATEGORIES),
+        "",
+        "Valores em milhões de Nm³ CH₄/ano. BioGRAM reescalado da área desenhada para a área do PILAR"
+        f" ({areas[0]['area_km2']:,.0f} km² no estado) quando `biogram_area_km2` está preenchido.",
         "",
         "## O que a nota metodológica da IEA já explica",
         "",
@@ -474,8 +518,9 @@ def main() -> None:
         "2. Para cada categoria, digitar valor e unidade (`PJ_ano`, `TJ_ano`, `GWh_ano`, `ktoe_ano`,",
         "   `Mtoe_ano`, `bcme_ano`, `Nm3_ch4_ano`, `mi_Nm3_ch4_ano`, `bi_Nm3_ch4_ano`), as categorias",
         "   BioGRAM somadas em `biogram_categorias_origem`, a data e a versão da ferramenta.",
-        "3. A unidade já vem como `bcme_ano` (bcm/ano, como o mapa e o arquivo 1.2). Se só houver o total, use a",
-        "   linha `total`. Vinhaça, torta e silvicultura não entram na planilha: são escopo por definição.",
+        "3. Quatro valores por área, um por aba do mapa (Total, Biowaste, Crop residues, Manure), em `mcme_ano`,",
+        "   com a área que o mapa mostra em `biogram_area_km2` e o custo médio em `biogram_custo_usd_gj`.",
+        "   Vinhaça, torta e silvicultura não entram na planilha: são escopo por definição.",
         "4. Rodar o script de novo. A causa é uma primeira leitura: confirmar cada uma antes de publicar.",
         "",
         "## Limites",
