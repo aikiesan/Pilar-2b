@@ -18,7 +18,7 @@
 ## 0. Resumo executivo (uma página)
 
 **Tese.** O mercado brasileiro de biometano saiu do "potencial" e entrou na "obrigação" em 2026.
-- **Mandato nacional e certificado.** A Lei 14.993/2024 e o Decreto 12.614/2025 criaram o mandato de biometano para produtores e importadores de gás natural. As Resoluções ANP 995 e 996/2026 criaram o certificado de origem, o CGOB.
+- **Mandato nacional e certificado.** A Lei 14.993/2024 e o Decreto 12.614/2025 criaram o mandato de biometano para produtores e importadores de gás natural. As Resoluções ANP 995 e 996/2026 criaram o certificado de origem, o CGOB. A Resolução CNPE 4/2026 fixou a meta de 2026 em **0,5 %** de redução de GEE, abaixo do 1 % da lei, e criou uma Mesa de Monitoramento do Mercado de Biometano para retomar o 1 %. O PILAR-2b é candidato natural a fornecer evidência a essa mesa.
 - **São Paulo.** A Arsesp criou a TUSD-Verde em dezembro de 2025. A SEMIL abriu consulta pública para um certificado paulista de origem e projeta passar de cerca de 0,7 para 1,3 milhão de m³/dia de biometano até 2027.
 - **Lacuna de informação.** Quem vai investir, regular ou comprar biometano precisa saber **onde está a biomassa, quanto dela é de fato mobilizável, a que custo chega a uma planta, e quanto carbono isso evita**. Nenhuma ferramenta pública brasileira responde isso com rastreabilidade de parâmetro e resolução municipal:
   - o BiogasMap da CIBiogás mostra plantas existentes, não potencial;
@@ -337,6 +337,11 @@ Cada ideia diz o problema que resolve, por que agora, e o esforço (**P** ≤ 2 
 | C14 | **Selo de dados "PILAR-verified"** | Fontes externas (cooperativas, prefeituras) enviam dados de geração de resíduo. Passam pelos 8 gates e recebem selo e DOI próprio. | Reaproveita o contrato de ingestão como serviço. Cria uma rede de colaboradores de dados, o efeito de rede que falta a um projeto acadêmico. | G |
 | C15 | **Expansão "estado-parceiro"** | Em vez de cobrir o Brasil inteiro com parâmetros fracos, replicar o modelo SP **com um parceiro científico por estado** (MG com a UFV ou a UFMG, PR com a CIBiogás, GO com a Embrapa). | Resolve o problema documentado de "parâmetros fracos fora de SP" (ver `BRAZIL_EXPANSION_ROADMAP.md`) e compartilha o custo de manutenção. | G |
 
+**Protótipo de C11 já feito** (`analysis/build_sp_mandate_coverage.py`). Com o consumo nacional de 54,4 M m³/dia (Abegás, 2025):
+- a meta de 2026 (0,5 %) exige cerca de 0,31 M m³/dia de biometano, e uma de 1 % exige 0,62 M. A produção nacional atual cobre 71 % da meta de 1 %, o que é coerente com o CNPE ter baixado a meta;
+- **o biogás que SP já queima para eletricidade cobriria cerca de 4,7 vezes a meta de 1 %**. A troca de rota (motor-gerador → purificação) em plantas existentes é o caminho mais curto para o mandato, e o mapa dessas plantas com a receita de CGOB que a troca destrava é um produto óbvio para a Mesa de Monitoramento;
+- o N4 de SP cobriria 2,6 vezes uma meta de 10 %: o recurso não limita nenhum patamar discutido.
+
 ---
 
 ## 6. Posicionamento e público
@@ -429,3 +434,4 @@ Cada um desses dilui o ativo de credibilidade antes de ele estar consolidado.
 - Digestato e fertilizantes: [eixos: biogás mira fertilizantes](https://eixos.com.br/newsletters/dialogos-da-transicao/biogas-mira-fertilizantes-como-nova-fronteira-economica/), [eixos: potencial de fertilizantes negligenciado](https://eixos.com.br/eventos/potencial-de-producao-de-fertilizantes-na-industria-do-biogas-foi-negligenciado-diz-ceo-da-bley-energias/)
 - Emissões municipais: [SEEG 13: Resíduos](https://seeg.eco.br/wp-content/uploads/2026/01/SEEG13-NM-RESIDUOS-BR.pdf), [SEEG 13: Agropecuária](https://seeg.eco.br/wp-content/uploads/2026/01/SEEG13-NM-AGROPECUARIA-BR.pdf)
 - Localização de plantas e sensoriamento: [Applied Energy 2026: otimização multiobjetivo de localização](https://avesis.inonu.edu.tr/yayin/08130909-2d6d-49a5-9e3d-769bbdb11a94/multi-objective-optimization-of-biogas-plant-siting-using-gis-based-suitability-mapping-xai-driven-machine-learning-and-network-constrained-logistics), [Remote Sensing 16(5):750: biomassa de cana com Sentinel-1/2](https://iris.unito.it/retrieve/9f3fc5c0-41b9-48a4-9b56-cb58a4399a1e/remotesensing-16-00750.pdf)
+- Meta de 2026 e base de consumo do mandato: [Lefosse: CNPE publica resoluções sobre o mandato do biometano (meta de 0,5 % para 2026)](https://lefosse.com/noticias/alerta/cnpe-publica-resolucoes-sobre-mandato-do-biometano-para-reducao-de-emissoes-de-gases-de-efeito-estufa-no-mercado-de-gas-natural-percentual-minimo-de-biodiesel-e-combate-ao-uso-irregular-de-etanol/), [eixos: governo publica meta de descarbonização do gás natural com biometano](https://eixos.com.br/combustiveis-e-bioenergia/biocombustiveis/governo-publica-meta-de-descarbonizacao-do-gas-natural-com-biometano/), [Poder360: consumo de gás natural no Brasil cresce 3,8 % em 2025 (Abegás, 54,4 M m³/dia)](https://www.poder360.com.br/poder-infra/consumo-de-gas-natural-no-brasil-cresce-38-em-2025/)
