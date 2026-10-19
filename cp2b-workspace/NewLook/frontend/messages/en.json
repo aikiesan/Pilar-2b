@@ -42,7 +42,8 @@
       "cp2b_events": "Events",
       "cp2b_contact": "Contact",
       "external_cp2b": "CP2b website",
-      "financing": "Biomethane financing"
+      "financing": "Biomethane financing",
+      "mandate": "Biomethane mandate"
     },
     "nav_descriptions": {
       "guide": "Tutorials and first steps",
@@ -71,7 +72,8 @@
       "cp2b_news": "What is happening at CP2b",
       "cp2b_events": "Seminars, courses and meetings",
       "cp2b_contact": "Write to CP2b, about the platform too",
-      "financing": "What a m³/day of capacity costs, from BNDES approvals"
+      "financing": "What a m³/day of capacity costs, from BNDES approvals",
+      "mandate": "The year's target against Brazil's and SP's production"
     },
     "nav_intro": {
       "platform": {
@@ -2623,6 +2625,51 @@
         "When the total investment was not disclosed, the amount financed counts as a lower bound and stays out of the ranges by route.",
         "A landfill's investment covers what the project needs (upgrading, compression, connection); the biogas capture may already exist. It does not compare with a project that starts from scratch.",
         "Levelised capital leaves out operation, maintenance and feedstock. Cost of capital, life and capacity factor are assumptions."
+      ]
+    }
+  },
+  "mandate": {
+    "eyebrow": "Mandate panel",
+    "title": "The biomethane mandate, month by month",
+    "lede": "The Fuel of the Future law obliges natural gas producers and importers to cut the emissions of the gas they sell, with biomethane proven by CGOB certificates. CNPE sets each year's target; ANP publishes each month's production. Here they are side by side.",
+    "unit_m3_day": "m³/day",
+    "tiles": {
+      "target": "{year} target",
+      "target_note": "{reduction} emissions reduction",
+      "br": "Brazil produces ({month})",
+      "coverage": "{share} of the {year} target",
+      "sp": "São Paulo produces ({month})",
+      "sp_share": "{share} of national production",
+      "cgob": "CGOB issued",
+      "cgob_none": "No registry",
+      "cgob_note": "There is no public registry yet; the panel shows issuance once there is."
+    },
+    "path": {
+      "heading": "The target path",
+      "caption": "Biomethane required each year, in m³/day, and national production in {month}. ≈: no published volume, scaled from the latest proposal.",
+      "now": "Current production",
+      "row": "{year} · {reduction}"
+    },
+    "status": {
+      "vigente": "in force",
+      "proposta": "proposal",
+      "indicativa": "indicative"
+    },
+    "series": {
+      "heading": "Biomethane production (ANP)",
+      "caption": "Daily average of each month, all products. The dashed line is the {year} target.",
+      "br": "Brazil",
+      "sp": "São Paulo",
+      "month": "Month",
+      "target": "{year} target"
+    },
+    "limits": {
+      "heading": "Limits",
+      "items": [
+        "The target covers the year; production is one month. A month below the line is not non-compliance, and CGOB may be carried between years as ANP rules allow.",
+        "The 2028–2030 targets are indicative and have no published volume yet: the panel scales the 2027 proposal by the percentage, as an order of magnitude only.",
+        "ANP production may be revised after publication, and the latest month is the most recent the platform has ingested.",
+        "The mandate is national and CGOB is tradable: São Paulo need not cover the target alone. SP's share measures weight, not a state obligation."
       ]
     }
   },

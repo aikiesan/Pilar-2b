@@ -16,8 +16,20 @@ def test_volume_share_exceeds_ghg_target_because_biomethane_is_not_zero_carbon()
     assert M.volume_share(1.0) == pytest.approx(0.01 / (1 - 8.55 / M.CI_NATURAL_GAS))
 
 
-def test_2026_target_is_the_cnpe_value():
-    assert 0.5 in M.TARGETS_PCT and "CNPE" in M.TARGETS_PCT[0.5]
+def test_targets_are_the_platform_ones_starting_with_the_cnpe_2026_value():
+    first = M.load_targets()[0]
+    assert (first["year"], first["reduction_pct"], first["status"]) == (2026, 0.5, "vigente")
+    assert "CNPE" in first["act"] and not first["volume_estimated"]
+
+
+def test_official_volume_implies_a_base_wider_than_the_distributed_market():
+    assert M.implied_base_m3_day(M.load_targets()[0]) > M.NATIONAL_NG_M3_DAY
+
+
+def test_platform_anp_series_is_the_analysis_one():
+    analysis = M.ROOT / "analysis" / "data" / "05d_anp_biometano_production_state_monthly.csv"
+    platform = M.CANONICAL / "anp_biometano_producao_uf_mensal.csv"
+    assert platform.read_bytes() == analysis.read_bytes()
 
 
 def test_national_production_includes_sp_and_other_states():

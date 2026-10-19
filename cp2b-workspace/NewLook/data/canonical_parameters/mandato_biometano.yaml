@@ -1,0 +1,62 @@
+# =============================================================================
+# PILAR-2b: painel do mandato do biometano (Estratégia 2027, C26)
+# =============================================================================
+# Lei 14.993/2024 (Combustível do Futuro): produtores e importadores de gás
+# natural reduzem as emissões do gás que vendem numa meta anual, cumprida com
+# biometano e comprovada com CGOB. A lei começa em 1 % e limita a 10 %; o CNPE
+# fixa a meta de cada ano.
+#
+# Produção mensal: anp_biometano_producao_uf_mensal.csv, cópia de
+# analysis/data/05d_* escrita por analysis/build_anp_biometano_dataset.py.
+# Motor: backend/app/services/mandate_service.py.
+#
+# status de cada meta:
+#   vigente     — fixada em resolução do CNPE
+#   proposta    — em consulta pública; pode mudar
+#   indicativa  — trajetória sem volume publicado; o volume é o da proposta
+#                 mais recente, proporcional ao percentual (só ordem de grandeza)
+# =============================================================================
+
+versao: "2026-10-19"
+
+# 3.632.492 CGOB para 363.249.200 m³ (Portaria MME 942/2026).
+m3_por_cgob: 100
+
+metas:
+  - ano: 2026
+    reducao_pct: 0.5
+    volume_m3_ano: 181728000
+    volume_m3_dia: 504800
+    status: vigente
+    ato: "Resolução CNPE nº 4/2026"
+    fonte: "https://www.gov.br/mme/pt-br/assuntos/conselhos-e-comites/cnpe/resolucoes-do-cnpe/2026/resolucao-4-publicada.pdf"
+  - ano: 2027
+    reducao_pct: 1.0
+    volume_m3_ano: 363249200
+    volume_m3_dia: 995200
+    status: proposta
+    ato: "Portaria MME nº 942/2026 (consulta pública até 06/11/2026)"
+    fonte: "https://www.gov.br/mme/pt-br/acesso-a-informacao/legislacao/portarias/2026/portaria-mme-n-942-2026.pdf"
+  - ano: 2028
+    reducao_pct: 3.0
+    status: indicativa
+    ato: "Portaria MME nº 942/2026"
+    fonte: "https://cenarioenergia.com.br/2026/10/06/mme-consulta-publica-meta-reducao-emissoes-gas-natural-2027/"
+  - ano: 2029
+    reducao_pct: 4.0
+    status: indicativa
+    ato: "Portaria MME nº 942/2026"
+    fonte: "https://cenarioenergia.com.br/2026/10/06/mme-consulta-publica-meta-reducao-emissoes-gas-natural-2027/"
+  - ano: 2030
+    reducao_pct: 5.0
+    status: indicativa
+    ato: "Portaria MME nº 942/2026"
+    fonte: "https://cenarioenergia.com.br/2026/10/06/mme-consulta-publica-meta-reducao-emissoes-gas-natural-2027/"
+
+producao:
+  arquivo: anp_biometano_producao_uf_mensal.csv
+  fonte: "ANP, dados abertos: produção de biometano por UF (via analysis/build_anp_biometano_dataset.py)"
+
+cgob:
+  registro_publico: false
+  nota: "Ainda não há registro público de CGOB emitidos; o painel mostra a emissão quando ele existir."

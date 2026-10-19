@@ -15,6 +15,7 @@ from app.api.v1.endpoints import (
     ghg,
     infrastructure,
     intermediate_regions,
+    mandate,
     mapbiomas,
     municipalities,
     newsletter,
@@ -93,6 +94,9 @@ api_router.include_router(ghg.router, prefix="/ghg", tags=["ghg", "emissions", "
 api_router.include_router(
     financing.router, prefix="/financing", tags=["financing", "capex", "biomethane"]
 )
+
+# Biomethane mandate panel: CNPE targets against ANP production (C26)
+api_router.include_router(mandate.router, prefix="/mandate", tags=["mandate", "biomethane"])
 
 # National intermediate regions (Phase 1 — 133 IBGE regions)
 api_router.include_router(

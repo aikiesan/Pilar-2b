@@ -43,7 +43,11 @@ def test_every_deal_has_a_source_a_capacity_and_a_known_route(params):
         assert d["fonte_url"].startswith("https://")
         assert float(d["capacidade_m3_dia"]) > 0
         assert d["rota"].split()[0] in {"aterro", "agroindustrial"}
-        assert d["investimento_total_mi_brl"] or d["financiamento_bndes_mi_brl"] or d["grupo_investimento"]
+        assert (
+            d["investimento_total_mi_brl"]
+            or d["financiamento_bndes_mi_brl"]
+            or d["grupo_investimento"]
+        )
 
 
 def test_basis_total_beats_financing_and_groups_share_one_total():

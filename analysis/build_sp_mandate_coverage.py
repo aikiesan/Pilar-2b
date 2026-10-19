@@ -8,17 +8,23 @@ sell by a yearly percentage, met with biomethane and proven with CGOB
 certificates. CNPE Resolução 4/2026 set 2026 at 0.5 % (exceptionally below
 the 1 % the law starts from) and created a monitoring desk to bring back 1 %.
 
-This prototype answers the territorial question a regulator asks: for a given
-mandate level, how many m³/day of biomethane does Brazil need, and how far does
+This prototype answers the territorial question a regulator asks: for each
+year's target, how many m³/day of biomethane does Brazil need, and how far do
 São Paulo's current production, authorised capacity, biogas burned for
 electricity and mobilisable potential go towards it?
 
-Conversion from a GHG-reduction target to a volume share:
+The targets and their volumes are the official ones, read through the
+platform's backend/app/services/mandate_service.py from
+data/canonical_parameters/mandato_biometano.yaml (CNPE 4/2026: 504.8 thousand
+m³/d in 2026; Portaria MME 942/2026: 995.2 thousand in 2027; 2028–2030
+indicative, scaled), the same numbers the /mandate panel shows.
+
+The earlier version converted the GHG target into a volume share with
     share = target / (1 − CI_biomethane / CI_natural_gas)
-CI_biomethane is the 8.55 gCO2e/MJ CNPE 4/2026 states. CI_natural_gas is an
-assumed life-cycle value (combustion 56.1 + upstream) — conferir no RenovaCalc.
-The obligation falls on parties above 160 thousand m³/d (ANP Res. 995/2026),
-which sell nearly all the gas, so the national consumption is used as the base.
+over the 54.4 M m³/d distributed market, and found 0.31 M m³/d for 0.5 %.
+The official 0.50 M m³/d is 1.6 times that, so the base the government uses
+is wider (thermal and E&P gas included). The report keeps the conversion only
+to state the base the official volume implies.
 
 Supply numbers are read from analysis/build_sp_realization_index.py (ANP and
 CIBiogás data, CP2b N4), never retyped.
@@ -40,30 +46,41 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 IRM_SCRIPT = ROOT / "analysis" / "build_sp_realization_index.py"
+NEWLOOK = ROOT / "cp2b-workspace" / "NewLook"
+CANONICAL = NEWLOOK / "data" / "canonical_parameters"
+SERVICE = NEWLOOK / "backend" / "app" / "services" / "mandate_service.py"
 OUT = ROOT / "analysis" / "outputs" / "sp_mandate_coverage"
 
 NATIONAL_NG_M3_DAY = 54.4e6  # Abegás, consumo 2025 (Poder360, 2026-04)
 CI_BIOMETHANE = 8.55  # gCO2e/MJ, CNPE Res. 4/2026
 CI_NATURAL_GAS = 66.0  # gCO2e/MJ life cycle, assumed; conferir no RenovaCalc
-TARGETS_PCT = {
-    0.5: "meta de 2026, CNPE Res. 4/2026",
-    1.0: "patamar inicial da Lei 14.993/2024",
-    2.0: "",
-    5.0: "",
-    10.0: "",
-}
 
 
-def load_irm():
-    spec = importlib.util.spec_from_file_location("sp_irm", IRM_SCRIPT)
+def _load(name: str, path: Path):
+    spec = importlib.util.spec_from_file_location(name, path)
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     return mod
 
 
+def load_irm():
+    return _load("sp_irm", IRM_SCRIPT)
+
+
+def load_targets() -> list[dict]:
+    """The official targets, as the platform serves them."""
+    service = _load("mandate_service", SERVICE)
+    return service.targets(service.read(CANONICAL))
+
+
 def volume_share(target_pct: float) -> float:
     """Biomethane share of gas volume needed for a GHG-intensity reduction target."""
     return target_pct / 100 / (1 - CI_BIOMETHANE / CI_NATURAL_GAS)
+
+
+def implied_base_m3_day(target: dict) -> float:
+    """The gas volume the official biomethane volume implies, under the CI conversion."""
+    return target["volume_m3_day"] / volume_share(target["reduction_pct"])
 
 
 def national_production_latest(R) -> tuple[float, str]:
@@ -81,6 +98,10 @@ def fmt_m(x: float) -> str:
     return f"{x / 1e6:.2f}".replace(".", ",")
 
 
+def fmt_pct(x: float) -> str:
+    return f"{x:g} %".replace(".", ",")
+
+
 def main() -> None:
     R = load_irm()
     sp_prod = R.sp_monthly_production()
@@ -96,41 +117,51 @@ def main() -> None:
     br_prod, br_month = national_production_latest(R)
 
     rows = []
-    for t, note in TARGETS_PCT.items():
-        need = NATIONAL_NG_M3_DAY * volume_share(t)
-        row = {"meta_gee_pct": t, "nota": note, "participacao_volumetrica_pct": round(100 * volume_share(t), 3),
-               "demanda_m3_dia": round(need), "brasil_producao_atual_pct": round(100 * br_prod / need, 1)}
+    for t in load_targets():
+        need = t["volume_m3_day"]
+        row = {
+            "ano": t["year"],
+            "meta_gee_pct": t["reduction_pct"],
+            "status": t["status"],
+            "volume_estimado": t["volume_estimated"],
+            "demanda_m3_dia": round(need),
+            "base_implicita_m3_dia": round(implied_base_m3_day(t)),
+            "brasil_producao_atual_pct": 100 * br_prod / need,
+        }
         for k, v in supply.items():
-            row[k] = round(100 * v / need, 1)
+            row[k] = 100 * v / need
         rows.append(row)
 
     OUT.mkdir(parents=True, exist_ok=True)
     with (OUT / "cobertura_por_meta.csv").open("w", newline="", encoding="utf-8") as fh:
         w = csv.DictWriter(fh, fieldnames=list(rows[0]))
         w.writeheader()
-        w.writerows(rows)
+        w.writerows({k: round(v, 1) if isinstance(v, float) else v for k, v in r.items()} for r in rows)
 
-    head = ["Meta (redução GEE)", "Biometano exigido (M m³/dia)", f"Brasil produz hoje ({br_month})"] + list(supply)
+    head = ["Ano (redução GEE)", "Biometano exigido (M m³/dia)", f"Brasil produz hoje ({br_month})"]
+    head += list(supply)
+    first, nxt, last = rows[0], rows[1], rows[-1]
+    ratio = f"{first['base_implicita_m3_dia'] / NATIONAL_NG_M3_DAY:.1f}".replace(".", ",")
     L = [
         "# Mandato do biometano × oferta de SP",
         "",
-        "Gerado por `analysis/build_sp_mandate_coverage.py`. Estratégia 2027, C11 (cenários de política).",
+        "Gerado por `analysis/build_sp_mandate_coverage.py`. Estratégia 2027, C11 e C26.",
         "",
-        f"Base: consumo nacional de gás natural de {fmt_m(NATIONAL_NG_M3_DAY)} M m³/dia (Abegás, 2025). "
-        f"Conversão de meta de GEE para volume com CI do biometano {str(CI_BIOMETHANE).replace('.', ',')} e do gás natural "
-        f"{CI_NATURAL_GAS:g} gCO₂e/MJ (este último assumido; conferir).",
+        "Volumes oficiais lidos de `data/canonical_parameters/mandato_biometano.yaml` pelo "
+        "`mandate_service` da plataforma (os mesmos do painel /mandate). Anos indicativos (≈) "
+        "escalam o volume publicado mais recente pelo percentual.",
         "",
-        "Cada célula de oferta é o % da demanda do mandato que aquela oferta cobriria.",
+        "Cada célula de oferta é o % do volume da meta que aquela oferta cobriria.",
         "",
         "| " + " | ".join(head) + " |",
-        "|" + "---|" * 2 + "---:|" * (len(head) - 2),
+        "|" + "---|" + "---:|" * (len(head) - 1),
     ]
     for r in rows:
-        label = f"{r['meta_gee_pct']:g} %".replace(".", ",") + (f" ({r['nota']})" if r["nota"] else "")
-        cells = [label, fmt_m(r["demanda_m3_dia"]), f"{r['brasil_producao_atual_pct']:.0f} %"]
+        label = f"{r['ano']} ({fmt_pct(r['meta_gee_pct'])}, {r['status']})"
+        volume = ("≈ " if r["volume_estimado"] else "") + fmt_m(r["demanda_m3_dia"])
+        cells = [label, volume, f"{r['brasil_producao_atual_pct']:.0f} %"]
         cells += [f"{r[k]:.0f} %" for k in supply]
         L.append("| " + " | ".join(cells) + " |")
-    r05, r1, r10 = rows[0], rows[1], rows[-1]
     sp_now = "SP, biometano produzido"
     sp_burn = "SP, biogás hoje queimado (CH₄, meio da faixa)"
     sp_n4 = "SP, potencial CP2b N4"
@@ -138,23 +169,31 @@ def main() -> None:
         "",
         "## Leitura",
         "",
-        f"1. **A meta de 2026 (0,5 %) pede cerca de {fmt_m(r05['demanda_m3_dia'])} M m³/dia.** O Brasil "
-        f"produz hoje {r05['brasil_producao_atual_pct']:.0f} % disso, e SP sozinho "
-        f"{r05[sp_now]:.0f} %. É coerente com o CNPE ter baixado a meta: com 1 %, a produção nacional "
-        f"atual cobriria {r1['brasil_producao_atual_pct']:.0f} %.",
-        f"2. **O biogás que SP já queima para eletricidade cobriria {r1[sp_burn]:.0f} % da meta de 1 %.** "
-        "Converter a rota de projetos que já existem (purificação em vez de motor-gerador) é o caminho "
-        "mais curto para o mandato; o PILAR-2b pode mapear essas plantas (ANEEL SIGA + CIBiogás) e "
-        "estimar a receita de CGOB que a troca de rota destrava.",
-        f"3. **O potencial N4 de SP cobriria {r10[sp_n4]:.0f} % de uma meta de 10 %.** "
-        "O recurso não limita o mandato em nenhum patamar discutido; a realização limita.",
+        f"1. **A meta de {first['ano']} ({fmt_pct(first['meta_gee_pct'])}) pede "
+        f"{fmt_m(first['demanda_m3_dia'])} M m³/dia.** O Brasil produz hoje "
+        f"{first['brasil_producao_atual_pct']:.0f} % disso, e SP sozinho {first[sp_now]:.0f} %. "
+        f"Para {nxt['ano']} ({fmt_pct(nxt['meta_gee_pct'])}), a produção nacional atual cobre "
+        f"{nxt['brasil_producao_atual_pct']:.0f} %.",
+        f"2. **O biogás que SP já queima para eletricidade cobriria {nxt[sp_burn]:.0f} % da meta de "
+        f"{nxt['ano']}.** Converter a rota de projetos que já existem (purificação em vez de "
+        "motor-gerador) é o caminho mais curto para o mandato; o PILAR-2b pode mapear essas plantas "
+        "(ANEEL SIGA + CIBiogás) e estimar a receita de CGOB que a troca de rota destrava.",
+        f"3. **O potencial N4 de SP cobriria {last[sp_n4]:.0f} % da trajetória indicativa de "
+        f"{last['ano']} ({fmt_pct(last['meta_gee_pct'])}).** O recurso não limita o mandato; a "
+        "realização limita.",
+        f"4. **A base oficial é mais larga que o mercado distribuído.** Pela conversão de intensidade "
+        f"(CI do biometano {str(CI_BIOMETHANE).replace('.', ',')}, do gás natural "
+        f"{CI_NATURAL_GAS:g} gCO₂e/MJ), o volume de {first['ano']} implica uma base de "
+        f"{fmt_m(first['base_implicita_m3_dia'])} M m³/dia de gás, {ratio} vezes os "
+        f"{fmt_m(NATIONAL_NG_M3_DAY)} M do consumo distribuído (Abegás, 2025), o que sugere "
+        "um denominador com consumo térmico e de E&P.",
         "",
         "## Limites",
         "",
-        "- Base nacional de consumo de 2025 mantida fixa; a demanda futura cresce com o mercado.",
-        "- A base de cálculo do mandato (que volumes de gás entram no denominador) é definida pela ANP; "
-        "se incluir consumo térmico e de E&P além do mercado distribuído, a demanda em m³ sobe na mesma proporção.",
-        "- CI do gás natural assumido. Uma CI menor aumenta o volume exigido por ponto de meta.",
+        "- A meta de 2027 está em consulta pública (Portaria MME 942/2026) e pode mudar; "
+        "2028–2030 são trajetória indicativa, sem volume publicado.",
+        "- Oferta de SP fixa no mês mais recente; a demanda de anos futuros cresce com o mercado.",
+        "- CI do gás natural assumido (conferir no RenovaCalc); só afeta a base implícita.",
         "- Biometano tratado como CH₄; biogás queimado no meio da faixa de 55–65 % de CH₄.",
         "- O mandato é nacional e o CGOB é negociável: SP não precisa cobrir a meta sozinho. "
         "A tabela mede peso relativo, não obrigação estadual.",

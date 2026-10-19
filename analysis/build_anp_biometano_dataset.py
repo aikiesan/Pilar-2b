@@ -14,15 +14,17 @@ Outputs:
   analysis/data/05b_biogas_aggregates_by_state.csv   (unchanged content, regenerated)
   analysis/data/05c_anp_biometano_plants_latest.csv  (one row/plant, latest snapshot)
   analysis/data/05d_anp_biometano_production_state_monthly.csv
+    (also copied to cp2b-workspace/NewLook/data/canonical_parameters/anp_biometano_producao_uf_mensal.csv)
   analysis/data/05e_anp_biometano_plant_volume_monthly.csv
   analysis/data/05f_anp_fleet_stats.csv
 """
-import csv, unicodedata
+import csv, shutil, unicodedata
 import pandas as pd
 from pathlib import Path
 
 DATA = Path("analysis/data")
 ANP = DATA / "sources" / "anp"
+PLATFORM_ANP_MONTHLY = Path("cp2b-workspace/NewLook/data/canonical_parameters/anp_biometano_producao_uf_mensal.csv")
 
 def norm(s):
     return ''.join(c for c in unicodedata.normalize('NFD', str(s))
@@ -273,6 +275,9 @@ def main():
     agg.to_csv(DATA / "05b_biogas_aggregates_by_state.csv", index=False, quoting=csv.QUOTE_MINIMAL)
     snap_out.to_csv(DATA / "05c_anp_biometano_plants_latest.csv", index=False)
     prod.drop(columns=["date"]).to_csv(DATA / "05d_anp_biometano_production_state_monthly.csv", index=False)
+    # The platform's mandate panel (C26) reads the same series from its canonical parameters,
+    # the only data directory Docker mounts; tests/test_sp_mandate_coverage.py keeps them equal.
+    shutil.copyfile(DATA / "05d_anp_biometano_production_state_monthly.csv", PLATFORM_ANP_MONTHLY)
     plant_ts.to_csv(DATA / "05e_anp_biometano_plant_volume_monthly.csv", index=False)
     fleet.to_csv(DATA / "05f_anp_fleet_stats.csv", index=False)
     with pd.ExcelWriter(DATA / "05_biogas_plants_brazil.xlsx", engine="openpyxl") as xw:

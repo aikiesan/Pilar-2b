@@ -126,7 +126,7 @@ code{overflow-wrap:anywhere}
     <div class="kpi"><div class="v">5.97 bi</div><div class="l">Nm³ CH₄/yr: SP mobilisable potential (CP2b N4, the "Real" on the map)</div></div>
     <div class="kpi"><div class="v" style="color:var(--bad)">0.72 %</div><div class="l">of it reaches the grid as biomethane (ANP, Apr 2026)</div></div>
     <div class="kpi"><div class="v" style="color:var(--burn)">16–19 %</div><div class="l">is already produced as biogas and burned for power (CIBiogás 2025)</div></div>
-    <div class="kpi"><div class="v">262 %</div><div class="l">of a 10 % national mandate could be covered by SP's N4 alone</div></div>
+    <div class="kpi"><div class="v">329 %</div><div class="l">of the 2030 indicative mandate (5 %) could be covered by SP's N4 alone</div></div>
   </div>
   <nav class="toc" aria-label="Sections">
     <a href="#gap">1 · The gap</a><a href="#certainty">2 · Uncertainty</a><a href="#market">3 · Market</a>
@@ -223,8 +223,8 @@ code{overflow-wrap:anywhere}
   <p class="lead">Each cell shows how much of the national mandate a given supply covers. Green means 100 % or more.</p>
   <div class="card">
     <div class="scroll"><div id="c-mandate" style="min-width:560px"></div></div>
-    <div class="src">National gas use 54.4 M m³/d (Abegás 2025). The GHG target is converted to volume with CI 8.55 (biomethane, CNPE 4/2026) vs. 66 gCO₂e/MJ (natural gas, <i>assumed, still to check</i>). <code>analysis/build_sp_mandate_coverage.py</code>.</div>
-    <div class="take"><span><b>The resource never limits the mandate; realisation does.</b> At 1 %, today's national production covers 71 %. SP's already-burned biogas alone would cover 470 %.</span></div>
+    <div class="src">Official volumes: CNPE Res. 4/2026 (2026), Portaria MME 942/2026 in public consultation (2027); 2028–2030 indicative, scaled from 2027. They imply a gas base of ≈ 88 M m³/d, 1.6× the 54.4 M distributed market (Abegás 2025). <code>analysis/build_sp_mandate_coverage.py</code>, same numbers as the platform's <code>/mandate</code> panel.</div>
+    <div class="take"><span><b>The resource never limits the mandate; realisation does.</b> Today's national production covers 88 % of 2026 and 45 % of 2027. SP's already-burned biogas alone would cover 295 % of 2027.</span></div>
   </div>
 </section>
 
@@ -469,9 +469,9 @@ donut($('c-meth'),[{v:74,c:'var(--agri)',t:'≈ 74 % agriculture',l:'enteric fer
  $('c-policy').innerHTML=svg(W,H,s,'policy timeline')})();
 
 /* 4 mandate matrix */
-(()=>{const rows=[['0.5 % (CNPE 2026)',0.31,[141.8,37.6,178.5,940.9,5235.8]],['1 % (law baseline)',0.62,[70.9,18.8,89.3,470.4,2617.9]],['2 %',1.25,[35.4,9.4,44.6,235.2,1308.9]],['5 %',3.12,[14.2,3.8,17.9,94.1,523.6]],['10 %',6.25,[7.1,1.9,8.9,47.0,261.8]]];
+(()=>{const rows=[['2026 · 0.5 % (CNPE)',0.50,[87.8,23.3,110.5,582.4,3241.1]],['2027 · 1 % (proposed)',1.00,[44.5,11.8,56.1,295.4,1644.0]],['2028 · 3 % (indic.)',2.99,[14.8,3.9,18.7,98.5,548.0]],['2029 · 4 % (indic.)',3.98,[11.1,3.0,14.0,73.9,411.0]],['2030 · 5 % (indic.)',4.98,[8.9,2.4,11.2,59.1,328.8]]];
  const cols=['Brazil produces today','SP produces','SP authorised','SP burned biogas','SP potential N4'];
- const W=720,L=150,dw=70,cw=(W-L-dw)/5,rh=46,T=50;let s='';
+ const W=750,L=180,dw=70,cw=(W-L-dw)/5,rh=46,T=50;let s='';
  s+=`<text x="${L+dw/2}" y="${T-12}" font-size="11" text-anchor="middle" class="mut">needs</text><text x="${L+dw/2}" y="${T-26}" font-size="11" text-anchor="middle" class="mut">M m³/d</text>`;
  cols.forEach((c,j)=>{const parts=c.split(' ');s+=`<text x="${L+dw+cw*j+cw/2}" y="${T-26}" font-size="12" text-anchor="middle" font-weight="700">${parts.slice(0,2).join(' ')}</text><text x="${L+dw+cw*j+cw/2}" y="${T-11}" font-size="12" text-anchor="middle" font-weight="700">${parts.slice(2).join(' ')}</text>`});
  rows.forEach((r,i)=>{const y=T+i*rh;s+=`<text x="${L-8}" y="${y+rh/2+4}" text-anchor="end" font-size="13" font-weight="700">${r[0]}</text><text x="${L+dw/2}" y="${y+rh/2+4}" text-anchor="middle" font-size="13">${r[1].toFixed(2)}</text>`;
@@ -572,15 +572,15 @@ const IDEAS=[
 ['C15','Partner-state expansion','Replicate the SP model with one scientific partner per state (MG–UFV/UFMG, PR–CIBiogás, GO–Embrapa).',3,'L',4],
 ['C16','BioGRAM × PILAR reconciliation','Draw the same areas in IEA BioGRAM and publish the difference table, with the cause of each difference. Whoever has it frames the 2027 debate.',3,'S',1],
 ['C17','Route switch: power → biomethane','Per plant: the break-even attribute, and a state curve of m³/day switching per R$ of CGOB. Prototype built.',3,'M',2],
-['C18','Financing observatory','Ingest BNDES approvals and derive R$ per m³/day by route and scale. The first Brazilian CAPEX curve. Seed built.',3,'S',2],
+['C18','Financing observatory','Ingest BNDES approvals and derive R$ per m³/day by route and scale. The first Brazilian CAPEX curve. On the platform (/financing).',3,'S',2],
 ['C19','Methane seen from space, not captured','Carbon Mapper / EMIT / TROPOMI plumes over PILAR landfills and feedlots: capture capacity, owner, financing path.',3,'M',3],
 ['C20','Biogenic CO₂ as a co-product','1.2–1.6 Mt CO₂/yr if SP\'s burned biogas were upgraded. A layer of nearby buyers plus an SBCE link.',2,'M',2],
 ['C21','Mercado Cativo Verde matching','Industries in the Comgás area with estimated gas use near candidate supply: a demand portfolio per cluster.',2,'M',2],
-['C22','Leakage & slip in GHG','Explicit methane-loss term, editable by technology. Without it the reduction is optimistic.',3,'S',1],
+['C22','Leakage & slip in GHG','Explicit methane-loss term, editable by technology. Without it the reduction is optimistic. On the platform (calculator, compare, municipality).',3,'S',1],
 ['C23','Integra Resíduos pack','Per regional PPP: FORSU, route, minimum scale, new nutrient and a pre-feasibility card, ready before the tenders.',2,'M',2],
 ['C24','Green corridors with real data','TransJordano, Iconic, ANP CNG stations: supply within X km of each station, and the deficit.',2,'S',2],
 ['C25','Bio-LNG export window','Supply near Santos, liquefaction scale and an ISCC/UDB checklist for FuelEU Maritime. Speculative.',1,'S',2],
-['C26','Live mandate panel','CNPE target, ANP production, CGOB issued, coverage and the route-switch curve: what the Mesa de Monitoramento needs.',3,'S',3],
+['C26','Live mandate panel','CNPE target, ANP production, CGOB issued, coverage and the route-switch curve: what the Mesa de Monitoramento needs. On the platform (/mandate), without the route-switch curve yet.',3,'S',3],
 ['C27','Revenue stack without double counting','Molecule, CGOB, CBIO, voluntary credit, CO₂, digestate: what stacks and what excludes.',2,'S',2],
 ['C28','Residue factsheet DB + API','One card per residue (theoretical → technical → mobilisable, method, year), in the style of the DBFZ ResDB (77 residues, API) and DOE BT23.',2,'M',1],
 ['C29','Explainable ML siting','CatBoost + SHAP siting score trained on ANP-authorised plants vs. random points, reported with ROC-AUC, so the map explains why a site scores high.',2,'M',2],
@@ -623,7 +623,7 @@ $('protos-g').innerHTML=[
 ['Realisation index','build_sp_realization_index.py','IRM 0.72 %; biogas 16–19 % of N4'],
 ['Opportunity sites','build_sp_opportunity_sites.py','265 sites, 88 % captured; validation 33 % vs 21 % null'],
 ['Digestate & nutrients','build_sp_digestate_nutrients.py','81 % already returns to soil; MSW R$ 328 mi new'],
-['Mandate coverage','build_sp_mandate_coverage.py','0.5 % needs 0.31 M m³/d; SP burned biogas covers 470 % of 1 %'],
+['Mandate coverage','build_sp_mandate_coverage.py','2026 needs 0.50 M m³/d (88 % produced); SP burned biogas covers 295 % of 2027'],
 ['Route conversion','build_sp_route_conversion.py','break-even ≈ R$ 281/MWh; SP Δ −0.69 to +1.89 bi/yr'],
 ['BNDES CAPEX benchmarks','build_bndes_capex_benchmarks.py','landfill R$ 2.0–2.6 k per m³/d; agro 6.5 k'],
 ['Official figures register','scripts/verify_official_figures.py','8 headline figures verified in CI'],

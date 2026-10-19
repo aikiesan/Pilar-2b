@@ -15,6 +15,13 @@
             "pt-BR": "Nova página Financiamento do biometano, em Dados: quanto custa um m³/dia de capacidade nas operações aprovadas pelo BNDES, por rota, com o capital por m³ produzido e a fonte de cada operação.",
             "en": "New Biomethane financing page, under Data: what a m³/day of capacity costs in the deals BNDES approved, by route, with the capital per m³ produced and the source of each deal."
           }
+        },
+        {
+          "kind": "added",
+          "text": {
+            "pt-BR": "Nova página Mandato do biometano, em Dados: a meta de cada ano da Lei do Combustível do Futuro em m³/dia, contra o biometano que o Brasil e São Paulo produzem mês a mês (ANP), com o ato que fixa ou propõe cada meta.",
+            "en": "New Biomethane mandate page, under Data: each year's target under the Fuel of the Future law in m³/day, against the biomethane Brazil and São Paulo produce month by month (ANP), with the act that sets or proposes each target."
+          }
         }
       ]
     },

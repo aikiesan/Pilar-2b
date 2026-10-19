@@ -36,6 +36,7 @@ import {
   Newspaper,
   Palette,
   Quote,
+  Scale,
   ShieldCheck,
   Sparkles,
   Target,
@@ -95,6 +96,7 @@ export const NAV_GROUPS: NavGroup[] = [
       { href: '/data', labelKey: 'data_catalog', descriptionKey: 'data_catalog', icon: Database },
       { href: '/data/legend', labelKey: 'data_legend', descriptionKey: 'data_legend', icon: Palette },
       { href: '/financing', labelKey: 'financing', descriptionKey: 'financing', icon: Banknote },
+      { href: '/mandate', labelKey: 'mandate', descriptionKey: 'mandate', icon: Scale },
     ],
   },
   {

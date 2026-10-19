@@ -42,7 +42,8 @@
       "cp2b_events": "Eventos",
       "cp2b_contact": "Contato",
       "external_cp2b": "site do CP2b",
-      "financing": "Financiamento do biometano"
+      "financing": "Financiamento do biometano",
+      "mandate": "Mandato do biometano"
     },
     "nav_descriptions": {
       "guide": "Tutoriais e primeiros passos",
@@ -71,7 +72,8 @@
       "cp2b_news": "O que acontece no CP2b",
       "cp2b_events": "Seminários, cursos e encontros",
       "cp2b_contact": "Fale com o CP2b, inclusive sobre a plataforma",
-      "financing": "Quanto custa um m³/dia de capacidade, pelas operações do BNDES"
+      "financing": "Quanto custa um m³/dia de capacidade, pelas operações do BNDES",
+      "mandate": "A meta do ano contra a produção nacional e de SP"
     },
     "nav_intro": {
       "platform": {
@@ -2623,6 +2625,51 @@
         "Quando o investimento total não foi divulgado, o valor financiado entra como limite inferior e fica fora das faixas por rota.",
         "O investimento de um aterro cobre o que o projeto precisa (purificação, compressão, conexão); a captação do biogás pode já existir. Não se compara a um projeto que começa do zero.",
         "Capital nivelado não inclui operação, manutenção nem matéria-prima. Taxa de capital, vida útil e fator de capacidade são premissas."
+      ]
+    }
+  },
+  "mandate": {
+    "eyebrow": "Painel do mandato",
+    "title": "O mandato do biometano, mês a mês",
+    "lede": "A Lei do Combustível do Futuro obriga produtores e importadores de gás natural a reduzir as emissões do gás que vendem, com biometano comprovado por CGOB. O CNPE fixa a meta de cada ano; a ANP publica a produção de cada mês. Aqui as duas lado a lado.",
+    "unit_m3_day": "m³/dia",
+    "tiles": {
+      "target": "Meta de {year}",
+      "target_note": "{reduction} de redução de emissões",
+      "br": "Brasil produz ({month})",
+      "coverage": "{share} da meta de {year}",
+      "sp": "São Paulo produz ({month})",
+      "sp_share": "{share} da produção nacional",
+      "cgob": "CGOB emitidos",
+      "cgob_none": "Sem registro",
+      "cgob_note": "Ainda não há registro público; o painel mostra a emissão quando houver."
+    },
+    "path": {
+      "heading": "A trajetória da meta",
+      "caption": "Biometano exigido por ano, em m³/dia, e a produção nacional de {month}. ≈: sem volume publicado, proporcional à proposta mais recente.",
+      "now": "Produção atual",
+      "row": "{year} · {reduction}"
+    },
+    "status": {
+      "vigente": "vigente",
+      "proposta": "proposta",
+      "indicativa": "indicativa"
+    },
+    "series": {
+      "heading": "Produção de biometano (ANP)",
+      "caption": "Média diária de cada mês, todos os produtos. A linha tracejada é a meta de {year}.",
+      "br": "Brasil",
+      "sp": "São Paulo",
+      "month": "Mês",
+      "target": "Meta de {year}"
+    },
+    "limits": {
+      "heading": "Limites",
+      "items": [
+        "A meta cobre o ano; a produção é de um mês. Um mês abaixo da linha não é descumprimento, e o CGOB pode ser negociado entre anos conforme a regulação da ANP.",
+        "As metas de 2028 a 2030 são indicativas e ainda não têm volume publicado: o painel escala o volume da proposta de 2027 pelo percentual, só como ordem de grandeza.",
+        "A produção da ANP pode ser revista depois de publicada, e o último mês é o mais recente que a plataforma ingeriu.",
+        "O mandato é nacional e o CGOB é negociável: São Paulo não precisa cobrir a meta sozinho. A participação de SP mede peso, não obrigação estadual."
       ]
     }
   },
