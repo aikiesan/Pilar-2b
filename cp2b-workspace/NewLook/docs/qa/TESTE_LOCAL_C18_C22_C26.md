@@ -96,11 +96,17 @@ python -m pytest tests --ignore=tests/test_pilar2b_mg_e2e.py
 
 Resultado nesta branch: backend 1322 passaram (5 pulados), frontend 967, raiz 53.
 
+Os protótipos de reconciliação BioGRAM leem o snapshot CP2b, que não está no Git
+(`backend/data/raw/cp2b_potential/2026/`). Sem ele, o script avisa e as colunas
+CP2b saem vazias: não commite essas saídas, rode na máquina que tem o snapshot.
+
 ## 5. Conferir antes de citar
 
 - **Mandato (C26):** volumes de 2026 e 2027 contra os PDFs da Resolução CNPE
-  4/2026 e da Portaria MME 942/2026 (links na página). A meta de 2027 está em
-  consulta pública até 06/11/2026; 2028–2030 são indicativas, escaladas da de 2027.
+  4/2026 e da Portaria MME 942/2026 (links na página). Em 2026, 181.728.000 m³ e
+  504,8 mil m³/dia são os dois números publicados (a razão dá 360 dias, não 365);
+  o painel usa o diário. A meta de 2027 está em consulta pública até 06/11/2026;
+  2028–2030 são indicativas, escaladas da de 2027.
 - **GEE (C22):** fatores de conversão de metano (MCF) do IPCC para lagoa, aterro e
   ETE; *slip* de motor (CHP); fator do SIN do MCTI. A API lista os que faltam
   conferir em `unverified`.

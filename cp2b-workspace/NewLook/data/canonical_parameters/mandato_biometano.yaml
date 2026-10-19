@@ -23,6 +23,8 @@ versao: "2026-10-19"
 m3_por_cgob: 100
 
 metas:
+  # Volumes como publicados; em 2026 o anual dividido pelo diário dá 360 dias,
+  # e o painel usa o diário.
   - ano: 2026
     reducao_pct: 0.5
     volume_m3_ano: 181728000
