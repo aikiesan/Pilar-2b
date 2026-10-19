@@ -159,7 +159,11 @@ O passo estratégico é transformar esse ativo em **confiança verificável** e 
 - Popular `validation_plants` com ANP (biometano autorizado e produção mensal 2020–2026) e ANEEL GD/SIGA. Os builders já existem em `analysis/build_anp_biometano_dataset.py` e `analysis/build_aneel_biogas_gd.py`; falta uma fonte de ingestão `anp_biometano` com os 8 gates.
 - **Índice de Realização Municipal (IRM)** = capacidade instalada ou produzida ÷ potencial Real (N4).
   - É o primeiro indicador de "monitoramento" e o mais citável.
-  - O Real que o mapa serve (CP2b N4) é de cerca de 16,4 M Nm³ CH₄/dia; o Real Atlas, de 21,5 M. Com biometano instalado de cerca de 0,7 a 1,0 M m³/dia (SEMIL, 2026), o estado realiza algo da ordem de **3–6 %**, dependendo de qual Real for o denominador. É uma manchete com dado, e mais um motivo para resolver a colisão de nomes da §2.1.
+  - **Protótipo já feito:** `analysis/build_sp_realization_index.py`, com saída em `analysis/outputs/sp_realization_index/` e teste em `tests/test_sp_realization_index.py`. Ele lê a produção mensal da ANP de 07/2022 a 04/2026.
+    - Em 04/2026, SP produziu **118 mil m³/dia** de biometano, ou **IRM = 0,72 %** do Real que o mapa serve (CP2b N4, 16,36 M Nm³ CH₄/dia) e 0,55 % do Real Atlas.
+    - A capacidade **autorizada** (558 mil m³/dia) equivale a 3,4 % do Real, mas operou a **21 %** no mês.
+    - Manchete com dado: *"SP realiza menos de 1 % do seu potencial de biometano, e as plantas que já existem rodam a um quinto da capacidade"*. A lacuna é de realização (conexão, contrato, licenciamento), não de recurso.
+    - As metas de 0,7 a 1,3 M m³/dia levariam o IRM a cerca de 4–8 %. O script acompanha isso mês a mês.
 - Validar uma amostra de usinas sucroenergéticas contra a vinhaça declarada (UNICA, CTC) para testar o FDE = 1,0.
 
 ### 2.5 Higiene de produto
