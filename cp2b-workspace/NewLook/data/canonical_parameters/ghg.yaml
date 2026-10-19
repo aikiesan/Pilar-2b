@@ -1,0 +1,205 @@
+# =============================================================================
+# PILAR-2b: parâmetros do módulo de emissões evitadas (GEE)
+# =============================================================================
+# Especificação: docs/data/ESPEC_MODULO_GEE.md. Motor: backend/app/services/ghg_service.py.
+#
+#   ER = BE_metano + BE_fossil − PE   (tCO2e/ano)
+#
+# status de cada valor:
+#   fonte     — lido na fonte citada
+#   conferir  — valor de referência ainda NÃO conferido na tabela citada; precisa
+#               ser lido no PDF antes de virar número oficial (o contêiner de
+#               desenvolvimento não alcança ipcc-nggip.iges.or.jp)
+#   pesquisa  — linha de base em debate; o motor usa 0 e não credita metano
+#
+# Frações em 0–1. Volumes em Nm³ de CH4 (0 °C, 1 atm).
+# =============================================================================
+
+versao: "2026-10-19"
+
+constantes:
+  rho_ch4_kg_nm3:
+    valor: 0.717
+    status: fonte
+    fonte: "Densidade do CH4 a 0 °C e 1 atm (espec. GEE §2.3)"
+  pci_ch4_mj_nm3:
+    valor: 35.8
+    status: fonte
+    fonte: "PCI do CH4, 35,8 MJ/Nm³ = 9,94 kWh/Nm³ (o valor que a plataforma já usa)"
+
+# A versão do GWP sai em toda resposta.
+gwp_ch4:
+  padrao: AR6
+  versoes:
+    AR6:
+      valor: 27.0
+      status: fonte
+      fonte: "IPCC AR6 WG1, Cap. 7, Tab. 7.15: GWP100 do CH4 não fóssil"
+    AR5:
+      valor: 28.0
+      status: fonte
+      fonte: "IPCC AR5 WG1, Cap. 8, Tab. 8.7: GWP100 do CH4; usado pelo inventário nacional"
+
+# Linha de base: o que acontece hoje com o resíduo. `mcf` é a fração do
+# potencial de metano (VS × B0) que o manejo atual emite. Valores do IPCC 2006
+# para clima de 20–22 °C (média anual de SP); o Refinement 2019 (Tab. 10.17)
+# revisou parte deles.
+linhas_de_base:
+  nao_informado:
+    mcf: 0.0
+    status: fonte
+    fonte: "Sem linha de base declarada, só BE_fossil é calculado (espec. GEE §4)"
+  lagoa_anaerobia:
+    mcf: 0.78
+    faixa: [0.66, 0.80]
+    status: conferir
+    fonte: "IPCC 2006 V4 Cap. 10, Tab. 10.17, lagoa anaeróbia descoberta, 20–22 °C; conferir no Refinement 2019, Tab. 10.17"
+  esterqueira:
+    mcf: 0.42
+    faixa: [0.35, 0.50]
+    status: conferir
+    fonte: "IPCC 2006 V4 Cap. 10, Tab. 10.17, líquido/chorume sem crosta natural, 20–22 °C; conferir no Refinement 2019, Tab. 10.17"
+  armazenamento_solido:
+    mcf: 0.04
+    faixa: [0.02, 0.05]
+    status: conferir
+    fonte: "IPCC 2006 V4 Cap. 10, Tab. 10.17, armazenamento sólido (frio 2 %, temperado 4 %, quente 5 %)"
+  cama_aviario:
+    mcf: 0.015
+    status: conferir
+    fonte: "IPCC 2006 V4 Cap. 10, Tab. 10.17, dejeto de aves com ou sem cama, 1,5 %"
+  pasto:
+    mcf: 0.015
+    faixa: [0.01, 0.02]
+    status: conferir
+    fonte: "IPCC 2006 V4 Cap. 10, Tab. 10.17, pasto/piquete (1–2 %). O benefício de metano é pequeno e não deve ser vendido como crédito"
+  espalhamento_diario:
+    mcf: 0.005
+    faixa: [0.001, 0.01]
+    status: conferir
+    fonte: "IPCC 2006 V4 Cap. 10, Tab. 10.17, espalhamento diário (0,1–1 %)"
+  aterro_sanitario:
+    mcf: 0.90
+    status: conferir
+    fonte: "IPCC 2006 V5 Cap. 3: MCF 1,0 de aterro gerenciado anaeróbio × (1 − OX 0,1). Limite superior: não modela o tempo do FOD. Desconte a captura existente do aterro com captura_existente"
+  ete_reator_sem_queima:
+    mcf: 0.80
+    faixa: [0.80, 1.00]
+    status: conferir
+    fonte: "IPCC 2006 V5 Cap. 6, Tab. 6.3, reator anaeróbio sem recuperação de metano"
+  ete_com_queima:
+    mcf: 0.0
+    status: fonte
+    fonte: "ETE que já queima o biogás em flare: o metano já é destruído e não há BE_metano (espec. GEE §2.1)"
+  campo:
+    mcf: 0.0
+    status: fonte
+    fonte: "Palha, torta e culturas de campo: não há metano evitado relevante; só BE_fossil (espec. GEE §2.1)"
+  vinhaca_fertirrigacao:
+    mcf: 0.0
+    status: pesquisa
+    fonte: "Linha de base em debate (CH4 e N2O da fertirrigação). Começa só com BE_fossil (espec. GEE §2.1)"
+
+# Linha de base padrão por substrato CP2b (scripts/load_cp2b_potential.py,
+# SUBSTRATES). Na dúvida, a escolha é a conservadora: não inventar crédito.
+substratos_linha_de_base:
+  PALHA: campo
+  BAGACO: campo
+  TORTA_FILTRO: campo
+  VINHACA: vinhaca_fertirrigacao
+  PALHA_MILHO: campo
+  PALHA_SOJA: campo
+  BAGACO_CITROS: campo
+  CASCA_CAFE: campo
+  AVES_CORTE: cama_aviario
+  AVES_POSTURA: cama_aviario
+  BOV_LEITE: esterqueira
+  BOV_CONFINADO: armazenamento_solido
+  BOV_PASTO_MISTO: pasto
+  SUINOS: lagoa_anaerobia
+  RSU_ORGANICO: aterro_sanitario
+  PODA_URBANA: campo
+  LODO_ETE: ete_com_queima
+
+# Rota de uso: o que a energia útil desloca. Fatores em tCO2/TJ de combustível,
+# ou tCO2/MWh para a eletricidade. A conversão para combustível é por paridade
+# de energia (1 MJ de biometano desloca 1 MJ do fóssil). `slip_padrao` é a
+# tecnologia assumida quando o usuário não escolhe: lavagem com água, a mais
+# comum e das que mais perdem, para o padrão não favorecer o projeto.
+rotas:
+  biometano_veicular:
+    desloca: diesel
+    ef_tco2_tj: 74.1
+    upgrading: true
+    slip_padrao: lavagem_agua
+    status: fonte
+    fonte: "IPCC 2006 V2 Cap. 3, Tab. 3.2.1, gas/diesel oil"
+  biometano_rede:
+    desloca: gas_natural
+    ef_tco2_tj: 56.1
+    upgrading: true
+    slip_padrao: lavagem_agua
+    status: fonte
+    fonte: "IPCC 2006 V2 Cap. 1, Tab. 1.4, gás natural"
+  termico_glp:
+    desloca: glp
+    ef_tco2_tj: 63.1
+    upgrading: false
+    status: fonte
+    fonte: "IPCC 2006 V2 Cap. 1, Tab. 1.4, GLP"
+  termico_oleo:
+    desloca: oleo_combustivel
+    ef_tco2_tj: 77.4
+    upgrading: false
+    status: fonte
+    fonte: "IPCC 2006 V2 Cap. 1, Tab. 1.4, óleo combustível residual"
+  eletricidade:
+    desloca: grid_sin
+    ef_tco2_mwh: 0.0385
+    eficiencia_eletrica: 0.35
+    upgrading: false
+    slip_padrao: motor_cogeracao
+    status: fonte
+    fonte: "MCTI, fator médio anual do SIN 2023 (0,0385 tCO2/MWh). Para crédito, usar a margem combinada do MCTI. Eficiência elétrica 0,35 = ELEC_EFFICIENCY da calculadora"
+
+# Emissões do projeto
+emissoes_projeto:
+  vazamento:
+    padrao: 0.025
+    faixa: [0.01, 0.04]
+    status: fonte
+    fonte: "Danish Energy Agency, medições em 60–69 plantas 2019–2021: média 2,5 %, faixa observada 0,3–40,6 % (EGU21-16061; Global Methane Initiative)"
+  # Escape de metano por tecnologia. As de upgrading valem nas rotas de
+  # biometano; o motor vale na rota de eletricidade.
+  slip:
+    lavagem_agua:
+      padrao: 0.02
+      faixa: [0.011, 0.02]
+      status: fonte
+      fonte: "Kvist e Aryal 2019, via IEA Bioenergy Task 37: lavagem com água 1,1–2 %"
+    aminas:
+      padrao: 0.0007
+      faixa: [0.0004, 0.0007]
+      status: fonte
+      fonte: "Kvist e Aryal 2019, via IEA Bioenergy Task 37: aminas 0,04–0,07 %"
+    membranas:
+      padrao: 0.006
+      faixa: [0.005, 0.006]
+      status: fonte
+      fonte: "Kvist e Aryal 2019, via IEA Bioenergy Task 37: membranas 0,5–0,6 %"
+    psa:
+      padrao: 0.02
+      faixa: [0.018, 0.02]
+      status: fonte
+      fonte: "Bauer et al. 2012 (1,8–2 %); Angelidaki et al. 2018 (< 2 %)"
+    motor_cogeracao:
+      padrao: 0.015
+      faixa: [0.005, 0.03]
+      status: conferir
+      fonte: "CH4 não queimado no motor a gás; conferir em IEA Bioenergy Task 37, Liebetrau et al. 2017"
+  teto_slip_dinamarca: 0.01  # limite regulatório dinamarquês desde 1/1/2023, referência
+  flare:
+    eficiencia_padrao: 0.90
+    faixa: [0.90, 0.98]
+    status: fonte
+    fonte: "Espec. GEE §2.3: eficiência de 90–98 %; usa o fim conservador"

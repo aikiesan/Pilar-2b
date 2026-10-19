@@ -309,3 +309,14 @@ def get_params_for_stream(stream: str, path: str | None = None) -> FeedstockPara
     if stream not in STREAM_TO_CANONICAL:
         raise KeyError(f"no canonical mapping for stream {stream!r}")
     return get_params(STREAM_TO_CANONICAL[stream], path)
+
+
+@functools.lru_cache(maxsize=1)
+def load_ghg_params() -> dict:
+    """Load and cache ghg.yaml, which sits next to feedstocks.yaml."""
+    import yaml
+
+    p = resolve_feedstocks_path().parent / "ghg.yaml"
+    if not p.is_file():
+        raise FileNotFoundError(f"GHG parameters not found at {p}")
+    return yaml.safe_load(p.read_text(encoding="utf-8"))

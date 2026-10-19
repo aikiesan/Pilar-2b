@@ -3,7 +3,11 @@
 > **Status:** proposta, 19/10/2026. Faz parte da estratégia
 > [`../planning/ESTRATEGIA_2027_LIDERANCA_BIOECONOMIA.md`](../planning/ESTRATEGIA_2027_LIDERANCA_BIOECONOMIA.md) §3.4.
 > Substitui a §6.6 de [`../CALCULATOR_METHODOLOGY.md`](../CALCULATOR_METHODOLOGY.md) quando for implementada.
-> **Os valores marcados "conferir" precisam ser lidos na tabela citada antes de entrar no YAML.**
+> **Os valores marcados "conferir" precisam ser lidos na tabela citada antes de virar número oficial.**
+> **Implementado em 19/10/2026 (C22):** `data/canonical_parameters/ghg.yaml`, `backend/app/services/ghg_service.py`,
+> `/api/v1/ghg/{parameters,estimate,municipalities/{ibge}}`. Diferença deliberada em relação à §5: o metano perdido
+> (vazamento, *slip*) não chega ao usuário e por isso **não desloca fóssil**; o módulo credita `BE_fossil` só sobre o
+> volume entregue (ver a nota no fim da §5).
 
 ---
 
@@ -118,6 +122,13 @@ Granja de suínos que captura **1.000.000 Nm³ CH₄/ano** e usa o biometano no 
 A redução real seria **cerca de 10×** o número exibido hoje. A mesma planta gerando eletricidade para o SIN teria `BE_fossil` muito menor, porque o grid é limpo, enquanto `BE_metano` continuaria dominante.
 
 Agora uma planta de **palha de cana** com o mesmo volume. `BE_metano` = 0 (a palha no campo não gera metano relevante). Ficam só `BE_fossil` menos `PE`, cerca de 2.270 tCO₂e no caso diesel. **O cálculo atual daria o mesmo 1.807 para as duas plantas**, e é isso que esconde a diferença de valor climático entre substratos.
+
+> **Nota de implementação.** A tabela acima credita o diesel sobre o volume produzido. O módulo credita só o volume
+> **entregue** (produzido − vazamento − *slip*), o que é fisicamente correto. Na granja de suínos a diferença é de 0,3 %
+> (17.700 contra 17.750). Na planta de palha ela é maior, e os números do parágrafo seguinte, calculados pelo módulo,
+> ficam: com 2,5 % de vazamento e 2 % de *slip* sobre o gás que chega ao *upgrading*, `BE_fossil` = 2.535,
+> `PE` = 861 e redução líquida ≈ **1.673** tCO₂e. O vazamento que zera o benefício cai para cerca de **10 %**
+> (12 % sem *slip*). O texto original segue abaixo, para registro.
 
 **O vazamento pesa muito mais onde não há metano evitado.** Na planta de palha, com 2,5 % de vazamento e 2 % de *slip* (lavagem com água), `PE` = 45.000 × 0,717 × 27 ÷ 1000 ≈ 871 tCO₂e. A redução líquida cai de cerca de 2.270 (com 2 % de perda) para cerca de 1.780: um quinto a menos, e um terço abaixo do caso sem perda (2.653). O vazamento que zera o benefício é `BE_fossil ÷ (ρ × GWP)` ≈ 2.653 ÷ 19,36 ≈ **14 %** do metano produzido. Na granja de suínos, o mesmo vazamento corta só cerca de 5 %. Consequência: para palha, vinhaça e outros substratos sem `BE_metano`, o módulo deve exibir o vazamento como premissa de primeira linha, e o relatório de lastro do CGOB (estratégia, C1) deve pedir medição, não padrão.
 

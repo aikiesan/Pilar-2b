@@ -11,6 +11,7 @@ from app.api.v1.endpoints import (
     codigestion,
     cp2b,
     geospatial,
+    ghg,
     infrastructure,
     intermediate_regions,
     mapbiomas,
@@ -83,6 +84,9 @@ api_router.include_router(
 
 # CP2b method: N1-N4 potential per municipality x substrate x scenario (migration 034)
 api_router.include_router(cp2b.router, prefix="/cp2b", tags=["cp2b", "potential", "methane"])
+
+# Avoided GHG emissions: ER = BE_methane + BE_fossil − PE (docs/data/ESPEC_MODULO_GEE.md)
+api_router.include_router(ghg.router, prefix="/ghg", tags=["ghg", "emissions", "climate"])
 
 # National intermediate regions (Phase 1 — 133 IBGE regions)
 api_router.include_router(
