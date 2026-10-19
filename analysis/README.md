@@ -34,7 +34,7 @@ K-means clustering was applied to normalized residue stream vectors (agricultura
 
 ## Strategy prototypes (2026-10)
 
-Reproducible scripts behind `cp2b-workspace/NewLook/docs/planning/ESTRATEGIA_2027_LIDERANCA_BIOECONOMIA.md`. They read their reference numbers from the backend scripts instead of retyping them, and the uncertainty, realization, digestate, mandate and route-conversion scripts have guard tests in `tests/`.
+Reproducible scripts behind `cp2b-workspace/NewLook/docs/planning/ESTRATEGIA_2027_LIDERANCA_BIOECONOMIA.md`. They read their reference numbers from the backend scripts instead of retyping them, and the uncertainty, realization, digestate, mandate, route-conversion and BNDES-benchmark scripts have guard tests in `tests/`.
 
 | Script | What it answers | Output |
 |---|---|---|
@@ -44,6 +44,7 @@ Reproducible scripts behind `cp2b-workspace/NewLook/docs/planning/ESTRATEGIA_202
 | `build_sp_digestate_nutrients.py` | How much N-P-K would SP digestate carry, and how much of it is genuinely new versus already returned to the soil today? | `outputs/sp_digestate_nutrients/` |
 | `build_sp_mandate_coverage.py` | How much biomethane does each level of the national mandate require, and how far do SP's production, capacity, burned biogas and potential go towards it? | `outputs/sp_mandate_coverage/` |
 | `build_sp_route_conversion.py` | Per Nm³ of CH4, when does selling biomethane beat burning biogas for power? (break-even environmental attribute by electricity price) | `outputs/sp_route_conversion/` |
+| `build_bndes_capex_benchmarks.py` | What does a m³/day of biomethane capacity cost in Brazil, from public BNDES approvals? (seed: `data/06_bndes_biomethane_deals_seed.csv`) | `outputs/bndes_capex_benchmarks/` |
 
 ```bash
 python3 analysis/build_sp_real_uncertainty.py
@@ -52,5 +53,6 @@ python3 analysis/build_sp_opportunity_sites.py
 python3 analysis/build_sp_digestate_nutrients.py
 python3 analysis/build_sp_mandate_coverage.py
 python3 analysis/build_sp_route_conversion.py
-pytest tests/test_sp_real_uncertainty.py tests/test_sp_realization_index.py tests/test_sp_digestate_nutrients.py tests/test_sp_mandate_coverage.py tests/test_sp_route_conversion.py
+python3 analysis/build_bndes_capex_benchmarks.py
+pytest tests/test_sp_real_uncertainty.py tests/test_sp_realization_index.py tests/test_sp_digestate_nutrients.py tests/test_sp_mandate_coverage.py tests/test_sp_route_conversion.py tests/test_bndes_capex_benchmarks.py
 ```

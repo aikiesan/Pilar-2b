@@ -202,9 +202,9 @@ jobs:
         run: python ../scripts/verify_official_figures.py
       # The strategy prototypes read their reference numbers from the backend
       # scenario script and the CP2b loader; these guards fail if they drift.
-      - name: Strategy prototype guards (uncertainty, realization, digestate, mandate, route)
+      - name: Strategy prototype guards (uncertainty, realization, digestate, mandate, route, BNDES)
         working-directory: .
-        run: python -m pytest -q -p no:cacheprovider tests/test_sp_real_uncertainty.py tests/test_sp_realization_index.py tests/test_sp_digestate_nutrients.py tests/test_sp_mandate_coverage.py tests/test_sp_route_conversion.py
+        run: python -m pytest -q -p no:cacheprovider tests/test_sp_real_uncertainty.py tests/test_sp_realization_index.py tests/test_sp_digestate_nutrients.py tests/test_sp_mandate_coverage.py tests/test_sp_route_conversion.py tests/test_bndes_capex_benchmarks.py
       - name: Run tests
         run: pytest -v --cov=app --cov-report=xml --no-cov-on-fail
         env:

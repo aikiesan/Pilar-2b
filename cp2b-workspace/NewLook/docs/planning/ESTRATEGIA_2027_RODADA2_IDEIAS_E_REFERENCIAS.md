@@ -102,12 +102,13 @@ C19, C20, C21 e C23 entram no Movimento 2 da v1 (mar–ago/2027). C25 fica como 
 | Script | Resultado principal |
 |---|---|
 | `analysis/build_sp_route_conversion.py` | Atributo de equilíbrio: nenhum até cerca de R$ 281/MWh; R$ 0,07/m³ a R$ 300/MWh; R$ 0,64/m³ a R$ 450/MWh (energia autoconsumida). No biogás atual de SP, a diferença entre rotas vai de −R$ 0,7 bi a +R$ 1,9 bi por ano, conforme os preços. |
+| `analysis/build_bndes_capex_benchmarks.py` (C18, semente com 5 operações do BNDES, `analysis/data/06_*`) | Aterro: cerca de R$ 2.500–2.600 por m³/dia de capacidade, ou R$ 0,90–1,06 por m³ só de capital. Agroindustrial com digestão: cerca de R$ 6.500 por m³/dia. **O custo de purificação europeu usado na troca de rota (R$ 1,19/m³, capital e operação) é otimista para o Brasil**, então os atributos de equilíbrio acima são um piso. |
 | `analysis/build_sp_mandate_coverage.py` (v1, C11) | A meta de 0,5 % pede cerca de 0,31 M m³/dia; o biogás que SP queima cobriria cerca de 4,7 vezes a meta de 1 %. |
 | `analysis/build_sp_realization_index.py` (v1, §2.4) | 0,72 % do N4 vira biometano; o biogás total equivale a 16–19 % do N4. |
 
 **Premissas a conferir antes de citar qualquer número desta rodada:**
 - a tarifa Arsesp (molécula e atributo), na deliberação;
-- o custo de purificação, hoje uma referência europeia convertida para reais;
+- o custo de purificação, hoje uma referência europeia convertida para reais, que a semente BNDES indica ser otimista;
 - o CI do gás natural do protótipo de mandato;
 - o preço do CBIO, na B3;
 - o volume final contratado na chamada da Comgás.
