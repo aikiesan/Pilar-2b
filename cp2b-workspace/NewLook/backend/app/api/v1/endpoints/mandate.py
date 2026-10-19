@@ -21,3 +21,6 @@ async def get_mandate_panel():
     except FileNotFoundError as e:
         logger.error(f"Mandate parameters missing: {e}")
         raise HTTPException(status_code=503, detail="Mandate parameters not available")
+    except ValueError as e:
+        logger.error(f"Mandate parameters invalid: {e}")
+        raise HTTPException(status_code=500, detail="Mandate parameters invalid")

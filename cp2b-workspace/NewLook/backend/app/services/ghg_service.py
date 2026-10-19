@@ -28,7 +28,7 @@ canonical_loader.load_ghg_params); this module performs no I/O.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field, replace
+from dataclasses import dataclass, replace
 from typing import Optional
 
 MJ_PER_TJ = 1e6
@@ -69,9 +69,9 @@ class GhgResult:
     # leak in [0, 1 − flared] zeroes it.
     leak_break_even: Optional[float]
     # The values actually used, so every number can be traced back to ghg.yaml.
-    assumptions: dict = field(default_factory=dict)
+    assumptions: dict
     # Parameters used whose ghg.yaml status is still `conferir` or `pesquisa`.
-    unverified: tuple[str, ...] = ()
+    unverified: tuple[str, ...]
 
     @property
     def pe_total_t(self) -> float:

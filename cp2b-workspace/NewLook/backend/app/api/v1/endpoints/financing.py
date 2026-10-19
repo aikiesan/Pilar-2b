@@ -26,3 +26,6 @@ async def get_financing_benchmarks():
     except FileNotFoundError as e:
         logger.error(f"Financing parameters missing: {e}")
         raise HTTPException(status_code=503, detail="Financing parameters not available")
+    except ValueError as e:
+        logger.error(f"Financing parameters invalid: {e}")
+        raise HTTPException(status_code=500, detail="Financing parameters invalid")

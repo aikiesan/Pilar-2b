@@ -51,12 +51,11 @@ class GhgEstimateRequest(BaseModel):
 def _serialize(r: GhgResult) -> dict:
     out = asdict(r)
     out["pe_total_t"] = r.pe_total_t
-    out["unverified"] = list(r.unverified)
     return out
 
 
 def _run(fn):
-    """Call the engine, turning its ValueError into a 422 and anything else into a 500."""
+    """Call the engine: its ValueError becomes a 422, a missing ghg.yaml a 503."""
     try:
         return fn()
     except ValueError:

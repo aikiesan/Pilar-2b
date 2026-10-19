@@ -327,10 +327,7 @@ def load_financing_params() -> dict:
     """Load and cache the BNDES deals and their assumptions (C18), next to feedstocks.yaml."""
     from app.services import financing_service
 
-    directory = resolve_feedstocks_path().parent
-    if not (directory / financing_service.PARAMS_YAML).is_file():
-        raise FileNotFoundError(f"financing parameters not found in {directory}")
-    return financing_service.read(directory)
+    return financing_service.read(resolve_feedstocks_path().parent)
 
 
 @functools.lru_cache(maxsize=1)
@@ -338,7 +335,4 @@ def load_mandate_params() -> dict:
     """Load and cache the mandate targets and the ANP monthly series (C26)."""
     from app.services import mandate_service
 
-    directory = resolve_feedstocks_path().parent
-    if not (directory / mandate_service.PARAMS_YAML).is_file():
-        raise FileNotFoundError(f"mandate parameters not found in {directory}")
-    return mandate_service.read(directory)
+    return mandate_service.read(resolve_feedstocks_path().parent)
