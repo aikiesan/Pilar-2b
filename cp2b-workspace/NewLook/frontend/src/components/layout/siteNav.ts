@@ -14,6 +14,7 @@
  */
 import type { LucideIcon } from 'lucide-react'
 import {
+  Banknote,
   BarChart3,
   BookOpen,
   Building2,
@@ -93,6 +94,7 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       { href: '/data', labelKey: 'data_catalog', descriptionKey: 'data_catalog', icon: Database },
       { href: '/data/legend', labelKey: 'data_legend', descriptionKey: 'data_legend', icon: Palette },
+      { href: '/financing', labelKey: 'financing', descriptionKey: 'financing', icon: Banknote },
     ],
   },
   {

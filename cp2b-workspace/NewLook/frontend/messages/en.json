@@ -41,7 +41,8 @@
       "cp2b_news": "News",
       "cp2b_events": "Events",
       "cp2b_contact": "Contact",
-      "external_cp2b": "CP2b website"
+      "external_cp2b": "CP2b website",
+      "financing": "Biomethane financing"
     },
     "nav_descriptions": {
       "guide": "Tutorials and first steps",
@@ -69,7 +70,8 @@
       "cp2b_publications": "Papers, reports and books",
       "cp2b_news": "What is happening at CP2b",
       "cp2b_events": "Seminars, courses and meetings",
-      "cp2b_contact": "Write to CP2b, about the platform too"
+      "cp2b_contact": "Write to CP2b, about the platform too",
+      "financing": "What a m³/day of capacity costs, from BNDES approvals"
     },
     "nav_intro": {
       "platform": {
@@ -2575,6 +2577,53 @@
       "heading": "Where the methane comes from",
       "caption": "Accessible methane (N4) by sector and residue, in Nm³ CH₄ per year.",
       "zero": "No accessible methane: {list}."
+    }
+  },
+  "financing": {
+    "eyebrow": "Financing observatory",
+    "title": "What a m³/day of biomethane costs in Brazil",
+    "lede": "The biomethane deals approved by BNDES disclose the amount financed, often the total investment, and the plant capacity. Together they form the first Brazilian capital cost curve, with one source per deal.",
+    "unit_m3_day": "m³/day",
+    "tiles": {
+      "deals": "Deals",
+      "bndes": "BNDES financing",
+      "fundo_clima": "From the Climate Fund",
+      "capacity": "Combined capacity",
+      "known": "Sum of what was disclosed"
+    },
+    "routes": {
+      "aterro": "Landfill",
+      "aterro_caption": "Upgrading the biogas the landfill already captures, compression and connection.",
+      "agroindustrial": "Agro-industrial",
+      "agroindustrial_caption": "Includes the digester, not just upgrading: vinasse, effluents and agro-industrial residues."
+    },
+    "range": "{min} to {max}",
+    "per_m3_day": "per m³/day of capacity, {n, plural, one {# deal with total investment} other {# deals with total investment}}",
+    "at_least": "≥ {value}",
+    "basis": {
+      "total": "total investment",
+      "joint_total": "total investment disclosed jointly",
+      "financing": "financing only: a lower bound"
+    },
+    "table": {
+      "heading": "The deals",
+      "caption": "Levelised capital: R$ per m³ produced, capital only, with a {years}-year life, a {factor} capacity factor and a {rates} cost of capital.",
+      "project": "Project",
+      "route": "Route",
+      "capacity": "Capacity (m³/day)",
+      "capex": "CAPEX per m³/day",
+      "levelized": "Capital per m³",
+      "source": "Source",
+      "source_n": "source {n}"
+    },
+    "limits": {
+      "heading": "Limits",
+      "items": [
+        "These are press releases and news reports, not the contracts. Each row cites its source; the values should be checked against BNDES open data before they become a reference.",
+        "When the total investment was not disclosed, the amount financed counts as a lower bound and stays out of the ranges by route.",
+        "A landfill's investment covers what the project needs (upgrading, compression, connection); the biogas capture may already exist. It does not compare with a project that starts from scratch.",
+        "Levelised capital leaves out operation, maintenance and feedstock. Cost of capital, life and capacity factor are assumptions."
+      ]
     }
   },
   "method": {

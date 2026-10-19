@@ -15,6 +15,7 @@ const publicRoutes = [
   { path: '/municipalities', changeFrequency: 'monthly' as const, priority: 0.7, lastModified: '2026-10-14' },
   { path: '/data',      changeFrequency: 'monthly' as const, priority: 0.8, lastModified: '2026-10-14' },
   { path: '/data/legend', changeFrequency: 'monthly' as const, priority: 0.5, lastModified: '2026-10-14' },
+  { path: '/financing', changeFrequency: 'monthly' as const, priority: 0.6, lastModified: '2026-10-19' },
   ...CATALOG_SECTORS.map((sector) => (
     { path: `/data/${sector}`, changeFrequency: 'monthly' as const, priority: 0.6, lastModified: '2026-10-14' }
   )),

@@ -1,0 +1,39 @@
+# =============================================================================
+# PILAR-2b: observatório do financiamento do biometano (Estratégia 2027, C18)
+# =============================================================================
+# Operações aprovadas pelo BNDES: bndes_biometano_operacoes.csv, uma fonte por
+# linha. Motor: backend/app/services/financing_service.py; protótipo:
+# analysis/build_bndes_capex_benchmarks.py.
+#
+#   CAPEX por m³/dia  = investimento total ÷ capacidade
+#                       (só o financiamento, quando o total não foi divulgado:
+#                       um LIMITE INFERIOR, marcado como tal)
+#   capital nivelado  = CAPEX por m³/dia × FRC(taxa, vida) ÷ (365 × fator de capacidade)
+#                       R$ por m³ produzido, só capital: sem O&M, sem matéria-prima
+#
+# status:
+#   premissa — escolha do método, não um dado; editável
+# =============================================================================
+
+versao: "2026-10-19"
+
+premissas:
+  taxas_capital:
+    valores: [0.10, 0.12]
+    status: premissa
+    fonte: "Custo real de capital, faixa assumida (Fundo Clima e Finem têm taxas abaixo do mercado)"
+  vida_util_anos:
+    valor: 20
+    status: premissa
+    fonte: "Vida útil de uma planta de purificação"
+  fator_capacidade:
+    valor: 0.90
+    status: premissa
+    fonte: "Fração do ano à capacidade nominal"
+
+# Projetos cujo investimento total só foi divulgado em conjunto
+# (coluna grupo_investimento do CSV).
+grupos_investimento:
+  lara_mdc:
+    investimento_total_mi_brl: 245.0
+    fonte: "https://eixos.com.br/gas-natural/biogas/bndes-aprova-r-1807-milhoes-para-implantacao-de-duas-plantas-de-biometano-no-es-e-em-sp/"

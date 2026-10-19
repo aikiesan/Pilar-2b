@@ -2,6 +2,23 @@
   "_comment": "Patch notes, newest first. Each entry carries its own pt-BR and en text, deliberately OUTSIDE messages/*.json: the catalogs are gated by check-i18n-parity.mjs, and threading one release note through two catalogs per deploy makes writing a note a chore nobody does. scripts/check-patch-notes.mjs enforces that both locales are present here instead. `date` is ISO 8601 WITH offset -- it is rendered in the reader's locale, so a bare date would drift a day across timezones. `kind` must be one of: added, changed, fixed, security, data.",
   "entries": [
     {
+      "version": "3.8.0",
+      "date": "2026-10-20T08:00:00-03:00",
+      "title": {
+        "pt-BR": "O mercado do biometano em números",
+        "en": "The biomethane market in figures"
+      },
+      "changes": [
+        {
+          "kind": "added",
+          "text": {
+            "pt-BR": "Nova página Financiamento do biometano, em Dados: quanto custa um m³/dia de capacidade nas operações aprovadas pelo BNDES, por rota, com o capital por m³ produzido e a fonte de cada operação.",
+            "en": "New Biomethane financing page, under Data: what a m³/day of capacity costs in the deals BNDES approved, by route, with the capital per m³ produced and the source of each deal."
+          }
+        }
+      ]
+    },
+    {
       "version": "3.7.0",
       "date": "2026-10-19T20:00:00-03:00",
       "title": {

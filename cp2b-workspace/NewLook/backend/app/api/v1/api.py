@@ -10,6 +10,7 @@ from app.api.v1.endpoints import (
     auth,
     codigestion,
     cp2b,
+    financing,
     geospatial,
     ghg,
     infrastructure,
@@ -87,6 +88,11 @@ api_router.include_router(cp2b.router, prefix="/cp2b", tags=["cp2b", "potential"
 
 # Avoided GHG emissions: ER = BE_methane + BE_fossil − PE (docs/data/ESPEC_MODULO_GEE.md)
 api_router.include_router(ghg.router, prefix="/ghg", tags=["ghg", "emissions", "climate"])
+
+# Financing observatory: CAPEX per m³/day from BNDES approvals (C18)
+api_router.include_router(
+    financing.router, prefix="/financing", tags=["financing", "capex", "biomethane"]
+)
 
 # National intermediate regions (Phase 1 — 133 IBGE regions)
 api_router.include_router(

@@ -41,7 +41,8 @@
       "cp2b_news": "Notícias",
       "cp2b_events": "Eventos",
       "cp2b_contact": "Contato",
-      "external_cp2b": "site do CP2b"
+      "external_cp2b": "site do CP2b",
+      "financing": "Financiamento do biometano"
     },
     "nav_descriptions": {
       "guide": "Tutoriais e primeiros passos",
@@ -69,7 +70,8 @@
       "cp2b_publications": "Artigos, relatórios e livros",
       "cp2b_news": "O que acontece no CP2b",
       "cp2b_events": "Seminários, cursos e encontros",
-      "cp2b_contact": "Fale com o CP2b, inclusive sobre a plataforma"
+      "cp2b_contact": "Fale com o CP2b, inclusive sobre a plataforma",
+      "financing": "Quanto custa um m³/dia de capacidade, pelas operações do BNDES"
     },
     "nav_intro": {
       "platform": {
@@ -2575,6 +2577,53 @@
       "heading": "De onde vem o metano",
       "caption": "Metano acessível (N4) por setor e resíduo, em Nm³ CH₄ por ano.",
       "zero": "Sem metano acessível: {list}."
+    }
+  },
+  "financing": {
+    "eyebrow": "Observatório do financiamento",
+    "title": "Quanto custa um m³/dia de biometano no Brasil",
+    "lede": "As operações de biometano aprovadas pelo BNDES divulgam o valor financiado, muitas vezes o investimento total, e a capacidade da planta. Juntas, formam a primeira curva brasileira de custo de capital, com uma fonte por operação.",
+    "unit_m3_day": "m³/dia",
+    "tiles": {
+      "deals": "Operações",
+      "bndes": "Financiamento do BNDES",
+      "fundo_clima": "Do Fundo Clima",
+      "capacity": "Capacidade somada",
+      "known": "Soma do que foi divulgado"
+    },
+    "routes": {
+      "aterro": "Aterro sanitário",
+      "aterro_caption": "Purificação do biogás que o aterro já capta, compressão e conexão.",
+      "agroindustrial": "Agroindustrial",
+      "agroindustrial_caption": "Inclui a biodigestão, não só a purificação: vinhaça, efluentes e resíduos da agroindústria."
+    },
+    "range": "{min} a {max}",
+    "per_m3_day": "por m³/dia de capacidade, {n, plural, one {# operação com investimento total} other {# operações com investimento total}}",
+    "at_least": "≥ {value}",
+    "basis": {
+      "total": "investimento total",
+      "joint_total": "investimento total divulgado em conjunto",
+      "financing": "só o financiamento: limite inferior"
+    },
+    "table": {
+      "heading": "As operações",
+      "caption": "Capital nivelado: R$ por m³ produzido, só capital, com {years} anos de vida útil, {factor} de fator de capacidade e custo de capital de {rates}.",
+      "project": "Projeto",
+      "route": "Rota",
+      "capacity": "Capacidade (m³/dia)",
+      "capex": "CAPEX por m³/dia",
+      "levelized": "Capital por m³",
+      "source": "Fonte",
+      "source_n": "fonte {n}"
+    },
+    "limits": {
+      "heading": "Limites",
+      "items": [
+        "São notas de imprensa e reportagens, não o contrato. Cada linha cita a sua fonte; os valores devem ser conferidos nos dados abertos do BNDES antes de virar referência.",
+        "Quando o investimento total não foi divulgado, o valor financiado entra como limite inferior e fica fora das faixas por rota.",
+        "O investimento de um aterro cobre o que o projeto precisa (purificação, compressão, conexão); a captação do biogás pode já existir. Não se compara a um projeto que começa do zero.",
+        "Capital nivelado não inclui operação, manutenção nem matéria-prima. Taxa de capital, vida útil e fator de capacidade são premissas."
+      ]
     }
   },
   "method": {

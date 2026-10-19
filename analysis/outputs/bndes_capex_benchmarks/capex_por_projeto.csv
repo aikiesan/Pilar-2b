@@ -1,5 +1,7 @@
 projeto,uf,rota,capacidade_m3_dia,base,capex_brl_por_m3d,capex_nivelado_brl_m3_10pct,capex_nivelado_brl_m3_12pct
+Gás Verde Igarassu,PE,aterro (purificação do biogás do aterro),45600,investimento total,1978,0.707,0.806
 Onebio / Biometano Verde Paulínia (Edge + Orizon),SP,aterro,225000,só financiamento BNDES,2000,0.715,0.815
 GNR Mauá (Lara + MDC Energia) + GNR Vila Velha (Lara + MDC Energia),SP/ES,aterro,97000,investimento total conjunto,2526,0.903,1.029
 Biometano São Leopoldo (Solví),RS,aterro (purificação PSA de biogás já captado),36744,investimento total,2596,0.928,1.058
+Tropical Biogás (bp bioenergy),GO,agroindustrial (vinhaça: digestão + purificação),67000,investimento total,4116,1.472,1.678
 Bioo Paraná,PR,agroindustrial (efluente + digestão + purificação; também CO2 e fertilizante),30137,investimento total,6504,2.325,2.651

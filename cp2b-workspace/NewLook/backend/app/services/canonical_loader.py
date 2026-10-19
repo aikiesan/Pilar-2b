@@ -320,3 +320,14 @@ def load_ghg_params() -> dict:
     if not p.is_file():
         raise FileNotFoundError(f"GHG parameters not found at {p}")
     return yaml.safe_load(p.read_text(encoding="utf-8"))
+
+
+@functools.lru_cache(maxsize=1)
+def load_financing_params() -> dict:
+    """Load and cache the BNDES deals and their assumptions (C18), next to feedstocks.yaml."""
+    from app.services import financing_service
+
+    directory = resolve_feedstocks_path().parent
+    if not (directory / financing_service.PARAMS_YAML).is_file():
+        raise FileNotFoundError(f"financing parameters not found in {directory}")
+    return financing_service.read(directory)
