@@ -13,6 +13,8 @@
 > [`../DECISOES_METODOLOGICAS.md`](../DECISOES_METODOLOGICAS.md),
 > [`../audit/CP2B_CANONICAL_AUDIT.md`](../audit/CP2B_CANONICAL_AUDIT.md).
 
+
+> **Rodada 2 (2026-10-19):** fatos novos de 2026, benchmark com o IEA BioGRAM e outras ferramentas, ideias C16–C27 e o protótipo de troca de rota estão em [`ESTRATEGIA_2027_RODADA2_IDEIAS_E_REFERENCIAS.md`](ESTRATEGIA_2027_RODADA2_IDEIAS_E_REFERENCIAS.md).
 ---
 
 ## 0. Resumo executivo (uma página)
