@@ -33,6 +33,10 @@ does. Regions come from the IBGE code on each municipality; a site is a circle
 of SITE_RADIUS_KM around the site's municipal centroid. The same rule has to be
 used when the area is drawn in BioGRAM, or the comparison mixes geographies.
 
+Categories follow the eight BioGRAM 1.2 feedstock groups (analysis/data/sources/iea/),
+plus two PILAR categories BioGRAM leaves out: vinasse/filter cake and forestry/
+aquaculture. Only the eight groups and their total go to the entry sheet.
+
 Cause pre-classification (a first pass, to be confirmed by a person):
 
   escopo           BioGRAM excludes the category, or PILAR has zero where BioGRAM
@@ -74,6 +78,7 @@ CP2B_SNAPSHOT = Path(os.environ.get(
     "CP2B_SNAPSHOT_DIR", NEWLOOK / "backend" / "data" / "raw" / "cp2b_potential" / "2026"))
 MASTER = NEWLOOK / "data" / "canonical_parameters" / "SP_master_residue_streams_2023_FINAL.csv"
 SUMMARY = ROOT / "analysis" / "data" / "02_municipality_summary_SP_2023.csv"
+BIOGRAM_NATIONAL = ROOT / "analysis" / "data" / "sources" / "iea" / "biogram_1_2_paises.csv"
 REGIONS_GEOJSON = NEWLOOK / "frontend" / "public" / "data" / "br_intermediary_regions.geojson"
 SITES = ROOT / "analysis" / "outputs" / "sp_opportunity_sites" / "sites.csv"
 SEED = ROOT / "analysis" / "data" / "07_biogram_sp_seed.csv"
@@ -84,23 +89,51 @@ TOP_SITES = 30
 AGREE_TOL = 0.25  # ±25 % around the reference level counts as agreement
 EARTH_R_KM = 6371.0
 
-# BioGRAM-facing category -> (CP2b substrates, Atlas Real flows). Sugarcane is
-# split because straw and vinasse/filter cake are where the big parameter
-# disputes are; if BioGRAM only reports "cana", type it in the "total" row.
+# Category -> (CP2b substrates, Atlas Real flows, BioGRAM 1.2 feedstock group or None).
+# Groups as in the IEA "Definitions" sheet: citrus and coffee are "Other crops", yard
+# waste is inside "Municipal solid waste", processing residues such as bagasse are
+# assigned back to the crop. None: not a BioGRAM feedstock (no vinasse or filter cake
+# stream in the methodology note; forestry excluded; no fish).
 CATEGORIES = {
-    "palha_cana": (("PALHA", "BAGACO"), ("palha de cana",)),
-    "vinhaca_torta": (("VINHACA", "TORTA_FILTRO"), ("vinhaça", "torta de filtro")),
-    "outras_culturas": (("PALHA_MILHO", "PALHA_SOJA", "BAGACO_CITROS", "CASCA_CAFE"),
-                        ("milho", "soja", "citros", "cafe")),
-    "dejetos_animais": (("AVES_CORTE", "AVES_POSTURA", "BOV_LEITE", "BOV_CONFINADO",
-                         "BOV_PASTO_MISTO", "SUINOS"),
-                        ("bovinos", "suínos", "aves", "aquicultura")),
-    "rsu_organico": (("RSU_ORGANICO",), ("RSU (FORSU)",)),
-    "esgoto": (("LODO_ETE",), ("esgoto (ETE)",)),
-    "lenhosos": (("PODA_URBANA",), ("silvicultura", "poda_urbana")),
+    "acucareiras": (("PALHA", "BAGACO"), ("palha de cana",), "Sugar crops"),
+    "cereais": (("PALHA_MILHO",), ("milho",), "Cereals and grains"),
+    "oleaginosas": (("PALHA_SOJA",), ("soja",), "Oil and protein"),
+    "outras_culturas": (("BAGACO_CITROS", "CASCA_CAFE"), ("citros", "cafe"), "Other crops"),
+    "raizes_tuberculos": ((), (), "Roots and tubers"),
+    "dejetos": (("AVES_CORTE", "AVES_POSTURA", "BOV_LEITE", "BOV_CONFINADO", "BOV_PASTO_MISTO", "SUINOS"),
+                ("bovinos", "suínos", "aves"), "Manure"),
+    "rsu": (("RSU_ORGANICO", "PODA_URBANA"), ("RSU (FORSU)", "poda_urbana"), "Municipal solid waste"),
+    "esgoto": (("LODO_ETE",), ("esgoto (ETE)",), "Wastewater"),
+    "vinhaca_torta": (("VINHACA", "TORTA_FILTRO"), ("vinhaça", "torta de filtro"), None),
+    "silvicultura_aquicultura": ((), ("silvicultura", "aquicultura"), None),
 }
-TOTAL = "total"
-ALL_CATEGORIES = (*CATEGORIES, TOTAL)
+TOTAL = "total"  # the categories BioGRAM covers: the row to compare
+TOTAL_PILAR = "total_pilar"  # every PILAR category, in BioGRAM scope or not
+IN_SCOPE = tuple(c for c, v in CATEGORIES.items() if v[2])
+SEED_CATEGORIES = (*IN_SCOPE, TOTAL)
+ALL_CATEGORIES = (*CATEGORIES, TOTAL, TOTAL_PILAR)
+DEFAULT_UNIT = "bcme_ano"  # BioGRAM 1.2 and the map report bcm of biomethane
+
+# What the IEA methodology note (July 2026) already says about each difference.
+METHOD_NOTES = {
+    "acucareiras": ("Palha e bagaço; 60 % da palha fica no campo; só ração e cama saem como outro uso "
+                    "(32 % disponível em EMDE). A queima de bagaço nas usinas não é descontada.",
+                    "disponibilidade (bagaço) e parâmetro (palha)"),
+    "cereais": ("60 % no campo (milho 50 %); parte vai para ração e cama conforme a densidade de animais; "
+                "milho 247 Nm³/t SV.", "parâmetro"),
+    "oleaginosas": ("Mesma regra de campo; soja 240 Nm³/t SV.", "parâmetro"),
+    "outras_culturas": ("Inclui frutas, café, algodão, forrageiras, hortaliças, tabaco; o PILAR só tem citros "
+                        "e café.", "escopo"),
+    "raizes_tuberculos": ("Mandioca, batatas; o PILAR não modela.", "escopo"),
+    "dejetos": ("65 % recuperável em média, sem usos concorrentes; inclui búfalos, ovinos e caprinos.",
+                "disponibilidade (pasto)"),
+    "rsu": ("Inclui papel e papelão além de alimento e jardim; coleta e destinos do What a Waste 3.0.",
+            "escopo (papel) e parâmetro"),
+    "esgoto": ("Lodo primário 150 e secundário 70 kg seco por ML tratado (HydroWASTE); 272 Nm³/t SV.",
+               "parâmetro"),
+    "vinhaca_torta": ("Não é matéria-prima do BioGRAM.", "escopo"),
+    "silvicultura_aquicultura": ("Florestal excluído explicitamente; peixe não consta.", "escopo"),
+}
 
 # Atlas "outros" flow -> analysis/data/02_* column used to spread its state total
 OUTROS_WEIGHT = {
@@ -117,7 +150,7 @@ LEVELS = ("n1", "n2", "n3", "n4")
 REFERENCE_LEVEL = "n3"
 
 SEED_COLUMNS = [
-    "area_id", "area_tipo", "area_nome", "categoria", "prioridade",
+    "area_id", "area_tipo", "area_nome", "categoria", "categoria_biogram", "prioridade",
     "biogram_valor", "biogram_unidade", "biogram_categorias_origem",
     "escopo_biogram", "data_consulta", "versao_biogram", "notas",
 ]
@@ -177,7 +210,7 @@ def municipalities() -> dict[str, dict]:
 def atlas_real_by_municipality(S, muns: dict[str, dict]) -> dict[str, dict[str, float]]:
     """ibge -> category -> Nm³ CH4/yr, Atlas-FDE Cenário Real."""
     rows = list(csv.DictReader(MASTER.open(encoding="utf-8-sig")))
-    flow_cat = {f: c for c, (_, flows) in CATEGORIES.items() for f in flows}
+    flow_cat = {f: c for c, (_, flows, _) in CATEGORIES.items() for f in flows}
     state_outros = S.calcular(rows, "real")
     weights = {f: {code: float(m["row"][col] or 0) for code, m in muns.items()} for f, col in OUTROS_WEIGHT.items()}
     wsum = {f: sum(w.values()) for f, w in weights.items()}
@@ -205,7 +238,7 @@ def cp2b_by_municipality() -> tuple[dict[str, dict[str, dict[str, float]]] | Non
     digest = hashlib.sha256(path.read_bytes()).hexdigest()
     if digest != expected["levels"]:
         return None, f"snapshot CP2b com checksum diferente do v5.1 ({digest[:12]}…), recusado"
-    sub_cat = {s: c for c, (subs, _) in CATEGORIES.items() for s in subs}
+    sub_cat = {s: c for c, (subs, _, _) in CATEGORIES.items() for s in subs}
     out: dict[str, dict[str, dict[str, float]]] = defaultdict(lambda: defaultdict(lambda: dict.fromkeys(LEVELS, 0.0)))
     with path.open(encoding="utf-8-sig") as fh:
         for r in csv.DictReader(fh):
@@ -273,9 +306,19 @@ def aggregate(members, atlas, cp2b) -> dict[str, dict[str, float | None]]:
         for lv in LEVELS:
             row[lv] = None if cp2b is None else sum(cp2b[m][cat][lv] for m in members if m in cp2b)
         res[cat] = row
-    res[TOTAL] = {k: (None if any(res[c][k] is None for c in CATEGORIES) else sum(res[c][k] for c in CATEGORIES))
-                  for k in ("atlas", *LEVELS)}
+    for total, cats in ((TOTAL, IN_SCOPE), (TOTAL_PILAR, tuple(CATEGORIES))):
+        res[total] = {k: (None if any(res[c][k] is None for c in cats) else sum(res[c][k] for c in cats))
+                      for k in ("atlas", *LEVELS)}
     return res
+
+
+def biogram_national(iso3: str = "BRA") -> dict[str, float]:
+    """BioGRAM 1.2 row for one country, bcm/yr by feedstock group plus 'Total'."""
+    with BIOGRAM_NATIONAL.open(encoding="utf-8") as fh:
+        for r in csv.DictReader(fh):
+            if r["ISO3"] == iso3:
+                return {k: float(v) for k, v in r.items() if k not in ("Country", "ISO3")}
+    raise KeyError(iso3)
 
 
 # ── BioGRAM side ─────────────────────────────────────────────────────────────
@@ -288,11 +331,16 @@ def sync_seed(areas: list[dict]) -> list[dict]:
             existing = {(r["area_id"], r["categoria"]): r for r in csv.DictReader(fh)}
     rows = []
     for a in areas:
-        for cat in ALL_CATEGORIES:
-            r = existing.get((a["id"], cat)) or dict.fromkeys(SEED_COLUMNS, "")
+        for cat in SEED_CATEGORIES:
+            r = existing.pop((a["id"], cat), None) or dict.fromkeys(SEED_COLUMNS, "")
             r.update(area_id=a["id"], area_tipo=a["tipo"], area_nome=a["nome"], categoria=cat,
+                     categoria_biogram=CATEGORIES[cat][2] if cat in CATEGORIES else "Total",
                      prioridade=str(a["prioridade"]))
+            r["biogram_unidade"] = r.get("biogram_unidade") or DEFAULT_UNIT
             rows.append({k: r.get(k, "") for k in SEED_COLUMNS})
+    lost = [k for k, r in existing.items() if r.get("biogram_valor", "").strip()]
+    if lost:
+        raise SystemExit(f"{SEED.name}: valores digitados em linhas que não existem mais: {lost[:5]}")
     SEED.parent.mkdir(parents=True, exist_ok=True)
     with SEED.open("w", newline="", encoding="utf-8") as fh:
         w = csv.DictWriter(fh, fieldnames=SEED_COLUMNS)
@@ -303,7 +351,7 @@ def sync_seed(areas: list[dict]) -> list[dict]:
 
 def classify(biogram: float | None, pilar: dict[str, float | None], escopo: str = "",
              tol: float = AGREE_TOL) -> str:
-    if escopo.strip().lower() in ("excluido", "excluído"):
+    if escopo.strip().lower() in ("excluido", "excluído", "fora do biogram"):
         return "escopo"
     if biogram is None:
         return "sem dado BioGRAM"
@@ -354,20 +402,25 @@ def main() -> None:
                 base = [a["id"], a["tipo"], a["nome"], len(a["members"]), cat,
                         fmt(p["atlas"]), *(fmt(p[lv]) for lv in LEVELS)]
                 wp.writerow(base)
-                s = seed[(a["id"], cat)]
+                s = seed.get((a["id"], cat)) or {
+                    "biogram_valor": "", "biogram_unidade": "", "notas": "",
+                    "escopo_biogram": "" if cat == TOTAL_PILAR else "fora do BioGRAM"}
                 bg = None
                 if s["biogram_valor"].strip():
                     bg = float(s["biogram_valor"].replace(",", ".")) * nm3_per_unit(
                         s["biogram_unidade"].strip(), S.CH4_LHV_KWH_M3)
                     filled += 1
-                cause = classify(bg, p, s["escopo_biogram"])
+                cause = "" if cat == TOTAL_PILAR else classify(bg, p, s["escopo_biogram"])
                 ref = p[REFERENCE_LEVEL] if cp2b else p["atlas"]
                 ratio = f"{bg / ref:.2f}" if bg is not None and ref else ""
                 wr.writerow(base + [fmt(bg), ratio, cause, s["notas"]])
-                counts[cause] += 1
+                if cause:
+                    counts[cause] += 1
                 recon.append((a, cat, p, bg, cause))
 
-    state = next(r for r in recon if r[0]["id"] == "SP" and r[1] == TOTAL)[2]
+    state = next(r for r in recon if r[0]["id"] == "SP" and r[1] == TOTAL_PILAR)[2]
+    in_scope = next(r for r in recon if r[0]["id"] == "SP" and r[1] == TOTAL)[2]
+    bra = biogram_national()
     state_rows = [r for r in recon if r[0]["id"] == "SP"]
     lines = [
         "# C16, reconciliação BioGRAM × PILAR",
@@ -380,7 +433,12 @@ def main() -> None:
         f"- Atlas-FDE Cenário Real, SP: {state['atlas'] / 1e9:.2f} bi Nm³ CH₄/ano.",
         f"- CP2b: {cp2b_note}."
         + (f" N3 {state['n3'] / 1e9:.2f}, N4 {state['n4'] / 1e9:.2f} bi Nm³ CH₄/ano." if cp2b else ""),
-        f"- Valores BioGRAM digitados: **{filled}** de {len(recon)} linhas.",
+        f"- No escopo do BioGRAM: Atlas {in_scope['atlas'] / 1e9:.2f}"
+        + (f", CP2b N3 {in_scope['n3'] / 1e9:.2f} bi Nm³ CH₄/ano" if cp2b else " bi Nm³ CH₄/ano")
+        + " (sem vinhaça, torta, silvicultura e aquicultura). É esse total que se compara.",
+        f"- Valores BioGRAM digitados: **{filled}** de {len(seed)} linhas da planilha.",
+        f"- BioGRAM 1.2, Brasil inteiro (não há recorte estadual no arquivo): {bra['Total']:.2f} bcm/ano, dos quais"
+        f" açucareiras {bra['Sugar crops']:.2f}, dejetos {bra['Manure']:.2f}, oleaginosas {bra['Oil and protein']:.2f}.",
         "",
         "## Estado de São Paulo",
         "",
@@ -393,6 +451,15 @@ def main() -> None:
     lines += [
         "",
         "Valores em milhões de Nm³ CH₄/ano.",
+        "",
+        "## O que a nota metodológica da IEA já explica",
+        "",
+        "| Categoria | Grupo BioGRAM | Regra do BioGRAM | Causa esperada |",
+        "|---|---|---|---|",
+        *(f"| {c} | {CATEGORIES[c][2] or 'fora'} | {METHOD_NOTES[c][0]} | {METHOD_NOTES[c][1]} |" for c in CATEGORIES),
+        "",
+        "Geral: grade de 0,125° (cerca de 14 km), produção agrícola FAO de 2020 projetada pelo OECD-FAO Outlook,",
+        "1 Nm³ de metano = 36 MJ, e cerca de 9 % do potencial técnico bruto sai por ser disperso demais para uma planta.",
         "",
         "## Causas pré-classificadas (todas as linhas)",
         "",
@@ -407,7 +474,8 @@ def main() -> None:
         "2. Para cada categoria, digitar valor e unidade (`PJ_ano`, `TJ_ano`, `GWh_ano`, `ktoe_ano`,",
         "   `Mtoe_ano`, `bcme_ano`, `Nm3_ch4_ano`, `mi_Nm3_ch4_ano`, `bi_Nm3_ch4_ano`), as categorias",
         "   BioGRAM somadas em `biogram_categorias_origem`, a data e a versão da ferramenta.",
-        "3. Se o BioGRAM não cobre a categoria, `escopo_biogram = excluido`. Se só dá o total, use a linha `total`.",
+        "3. A unidade já vem como `bcme_ano` (bcm/ano, como o mapa e o arquivo 1.2). Se só houver o total, use a",
+        "   linha `total`. Vinhaça, torta e silvicultura não entram na planilha: são escopo por definição.",
         "4. Rodar o script de novo. A causa é uma primeira leitura: confirmar cada uma antes de publicar.",
         "",
         "## Limites",
@@ -416,6 +484,8 @@ def main() -> None:
         "  e parâmetro e disponibilidade não se distinguem.",
         "- Os sete fluxos \"outros\" do Atlas são totais estaduais espalhados pelos municípios na proporção",
         "  do GWh técnico de `02_*`: rateio, não dado municipal.",
+        "- O BioGRAM soma células de 0,125° que caem no polígono; o PILAR, municípios pelo centróide. Nas",
+        "  regiões o efeito de borda é pequeno; num círculo de 30 km (cerca de 14 células) não é.",
         f"- Tolerância de concordância ±{100 * AGREE_TOL:.0f} %; o vizinho mais próximo entre N1–N4 em escala log",
         "  decide entre disponibilidade e parâmetro.",
         "- Energia ↔ volume pelo PCI do PILAR "

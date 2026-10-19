@@ -23,20 +23,36 @@ def built():
 
 
 def test_crosswalk_covers_every_cp2b_substrate_once():
-    subs = [s for c, (ss, _) in R.CATEGORIES.items() for s in ss]
+    subs = [s for c, (ss, _, _) in R.CATEGORIES.items() for s in ss]
     assert sorted(subs) == sorted(R.loader_constant("SUBSTRATES"))
 
 
 def test_crosswalk_covers_every_atlas_flow_once(built):
     S = built[0]
-    flows = [f for c, (_, ff) in R.CATEGORIES.items() for f in ff]
+    flows = [f for c, (_, ff, _) in R.CATEGORIES.items() for f in ff]
     assert sorted(flows) == sorted(S.calcular([], "real"))
 
 
 def test_atlas_allocation_preserves_published_state_total(built):
     _, _, atlas, areas = built
     state = R.aggregate(areas[0]["members"], atlas, None)
-    assert round(state[R.TOTAL]["atlas"]) == 7_832_143_834
+    assert round(state[R.TOTAL_PILAR]["atlas"]) == 7_832_143_834
+    out = sum(state[c]["atlas"] for c, v in R.CATEGORIES.items() if v[2] is None)
+    assert math.isclose(state[R.TOTAL]["atlas"] + out, state[R.TOTAL_PILAR]["atlas"], rel_tol=1e-12)
+
+
+def test_categories_are_the_biogram_feedstock_groups():
+    import csv
+    with (R.ROOT / "analysis" / "data" / "sources" / "iea" / "biogram_1_2_definicoes.csv").open(encoding="utf-8") as fh:
+        groups = {r["Feedstock group"] for r in csv.DictReader(fh)}
+    assert {v[2] for v in R.CATEGORIES.values() if v[2]} == groups
+    assert set(R.METHOD_NOTES) == set(R.CATEGORIES)
+
+
+def test_biogram_national_brazil_row():
+    bra = R.biogram_national("BRA")
+    assert bra["Total"] == 67.19
+    assert math.isclose(sum(v for k, v in bra.items() if k != "Total"), bra["Total"], abs_tol=0.05)
 
 
 def test_regions_partition_the_state(built):
@@ -44,8 +60,8 @@ def test_regions_partition_the_state(built):
     regions = [a for a in areas if a["tipo"] == "regiao_intermediaria"]
     assert len(regions) == 11
     assert sum(len(a["members"]) for a in regions) == len(muns) == 645
-    total = sum(R.aggregate(a["members"], atlas, None)[R.TOTAL]["atlas"] for a in regions)
-    assert math.isclose(total, R.aggregate(areas[0]["members"], atlas, None)[R.TOTAL]["atlas"], rel_tol=1e-12)
+    total = sum(R.aggregate(a["members"], atlas, None)[R.TOTAL_PILAR]["atlas"] for a in regions)
+    assert math.isclose(total, R.aggregate(areas[0]["members"], atlas, None)[R.TOTAL_PILAR]["atlas"], rel_tol=1e-12)
 
 
 def test_every_site_contains_its_own_municipality(built):
@@ -90,8 +106,19 @@ def test_seed_keeps_typed_values(tmp_path, monkeypatch, built):
     areas = built[3]
     monkeypatch.setattr(R, "SEED", tmp_path / "seed.csv")
     rows = R.sync_seed(areas)
-    assert len(rows) == len(areas) * len(R.ALL_CATEGORIES)
-    text = R.SEED.read_text(encoding="utf-8").replace("SP,estado,São Paulo,total,1,,", "SP,estado,São Paulo,total,1,123,")
+    assert len(rows) == len(areas) * len(R.SEED_CATEGORIES)
+    assert all(r["biogram_unidade"] == R.DEFAULT_UNIT for r in rows)
+    text = R.SEED.read_text(encoding="utf-8").replace("SP,estado,São Paulo,total,Total,1,,", "SP,estado,São Paulo,total,Total,1,123,")
     R.SEED.write_text(text, encoding="utf-8")
     again = {(r["area_id"], r["categoria"]): r for r in R.sync_seed(areas)}
     assert again[("SP", "total")]["biogram_valor"] == "123"
+
+
+def test_seed_refuses_to_drop_typed_values(tmp_path, monkeypatch, built):
+    areas = built[3]
+    monkeypatch.setattr(R, "SEED", tmp_path / "seed.csv")
+    R.sync_seed(areas)
+    with R.SEED.open("a", encoding="utf-8") as fh:
+        fh.write("SP,estado,São Paulo,lenhosos,,1,5,bcme_ano,,,,,\n")
+    with pytest.raises(SystemExit):
+        R.sync_seed(areas)
