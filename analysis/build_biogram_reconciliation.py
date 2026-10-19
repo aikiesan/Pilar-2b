@@ -49,6 +49,9 @@ Cause pre-classification (a first pass, to be confirmed by a person):
                    has a value.
   concorda         BioGRAM within ±AGREE_TOL of the reference level (CP2b N3,
                    the mobilisable headline; Atlas Real without the snapshot).
+  escopo           also when BioGRAM is above N1 by more than the tolerance: no
+                   availability rule can explain more than the theoretical level,
+                   so BioGRAM counts material PILAR does not (e.g. paper in MSW).
   disponibilidade  BioGRAM is nearest to N1 or N2: it does not take out the
                    collection, availability or competing-use shares that N3 does.
   parâmetro        nearest to N3 or N4 but outside the tolerance: the yields
@@ -393,9 +396,21 @@ def classify(biogram: float | None, pilar: dict[str, float | None], escopo: str 
         return "concorda"
     if not have_cp2b:
         return "parâmetro ou disponibilidade (sem CP2b)"
+    if pilar["n1"] and biogram > pilar["n1"] * (1 + tol):
+        return "escopo"
     levels = {lv: pilar[lv] for lv in LEVELS if pilar[lv]}
     nearest = min(levels, key=lambda lv: abs(math.log(biogram / levels[lv])))
     return "disponibilidade" if nearest in ("n1", "n2") else "parâmetro"
+
+
+def cp2b_bracket(biogram: float | None, pilar: dict[str, float | None]) -> str:
+    """Where BioGRAM falls on the CP2b cascade, e.g. 'entre N3 e N2'."""
+    if biogram is None or pilar.get("n1") is None:
+        return ""
+    for hi, lo in (("n1", "n2"), ("n2", "n3"), ("n3", "n4")):
+        if pilar[lo] <= biogram <= pilar[hi]:
+            return f"entre {lo.upper()} e {hi.upper()}"
+    return "acima do N1" if biogram > pilar["n1"] else "abaixo do N4"
 
 
 def main() -> None:
@@ -422,7 +437,7 @@ def main() -> None:
                 "atlas_real_nm3_ano", *(f"cp2b_{lv}_nm3_ano" for lv in LEVELS)]
         wp.writerow(head)
         wr.writerow(head + ["area_pilar_km2", "biogram_nm3_ano", "fator_area",
-                            f"razao_biogram_{REFERENCE_LEVEL if cp2b else 'atlas'}", "causa_preclassificada", "notas"])
+                            f"razao_biogram_{REFERENCE_LEVEL if cp2b else 'atlas'}", "faixa_cp2b", "causa_preclassificada", "notas"])
         for a in areas:
             agg = aggregate(a["members"], atlas, cp2b)
             for cat in ALL_CATEGORIES:
@@ -444,7 +459,7 @@ def main() -> None:
                 ref = p[REFERENCE_LEVEL] if cp2b else p["atlas"]
                 ratio = f"{bg / ref:.2f}" if bg is not None and ref else ""
                 wr.writerow(base + [f"{a['area_km2']:.0f}", fmt(bg), "" if factor is None else f"{factor:.3f}",
-                                    ratio, cause, s["notas"]])
+                                    ratio, cp2b_bracket(bg, p), cause, s["notas"]])
                 if cause:
                     counts[cause] += 1
                 recon.append((a, cat, p, bg, cause))
@@ -476,14 +491,14 @@ def main() -> None:
         "",
         "### Pelas abas do mapa (o que se compara)",
         "",
-        "| Aba do mapa | Atlas Real | CP2b N1 | CP2b N2 | CP2b N3 | CP2b N4 | BioGRAM | BioGRAM ÷ N3 | Causa |",
-        "|---|---:|---:|---:|---:|---:|---:|---:|---|",
+        "| Aba do mapa | Atlas Real | CP2b N1 | CP2b N2 | CP2b N3 | CP2b N4 | BioGRAM | BioGRAM ÷ N3 | Faixa | Causa |",
+        "|---|---:|---:|---:|---:|---:|---:|---:|---|---|",
     ]
     mi = lambda v: "—" if v is None else f"{v / 1e6:,.0f}"
     rt = lambda bg, p: "—" if bg is None or not p.get("n3") else f"{bg / p['n3']:.2f}"
     for a, cat, p, bg, cause in map_rows:
         lines.append(f"| {MAP_GROUPS[cat][0]} | {mi(p['atlas'])} | {mi(p['n1'])} | {mi(p['n2'])} | {mi(p['n3'])} | "
-                     f"{mi(p['n4'])} | {mi(bg)} | {rt(bg, p)} | {cause} |")
+                     f"{mi(p['n4'])} | {mi(bg)} | {rt(bg, p)} | {cp2b_bracket(bg, p) or '—'} | {cause} |")
     lines += [
         "",
         "### Por categoria do PILAR",

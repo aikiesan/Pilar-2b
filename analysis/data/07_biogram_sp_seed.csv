@@ -1,8 +1,8 @@
 area_id,area_tipo,area_nome,categoria,categoria_biogram,prioridade,biogram_valor,biogram_unidade,biogram_area_km2,biogram_custo_usd_gj,escopo_biogram,data_consulta,versao_biogram,notas
-SP,estado,São Paulo,residuos_agricolas,Crop residues,1,6086,mcme_ano,230940,28.87,,2026-10-19,mapa IEA (dataset 1.2 de 21/09/2026),"Polígono à mão (aba Crop residues). Outro polígono, 329.940 km², deu 8.307 mcme: densidade 2,52 vs 2,64 mcme/100 km²."
-SP,estado,São Paulo,dejetos,Manure,1,,mcme_ano,,,,,,
-SP,estado,São Paulo,biowaste,Biowaste,1,,mcme_ano,,,,,,
-SP,estado,São Paulo,total,Total,1,11329,mcme_ano,301860,28.28,,2026-10-19,mapa IEA (dataset 1.2 de 21/09/2026),"Polígono à mão (aba Total), maior que SP; não é o mesmo polígono da linha Crop residues."
+SP,estado,São Paulo,residuos_agricolas,Crop residues,1,8460,mcme_ano,301320,28.74,,2026-10-19,mapa IEA (dataset 1.2 de 21/09/2026),"Mesmo polígono das quatro abas (cerca de 301.500 km², uns 21 % maior que SP). Um polígono menor, 230.940 km², deu 6.086 mcme (densidade 6 % menor)."
+SP,estado,São Paulo,dejetos,Manure,1,1371,mcme_ano,301500,28.19,,2026-10-19,mapa IEA (dataset 1.2 de 21/09/2026),"Mesmo polígono das quatro abas (cerca de 301.500 km², uns 21 % maior que SP)."
+SP,estado,São Paulo,biowaste,Biowaste,1,1471,mcme_ano,301500,25.72,,2026-10-19,mapa IEA (dataset 1.2 de 21/09/2026),"Mesmo polígono das quatro abas (cerca de 301.500 km², uns 21 % maior que SP)."
+SP,estado,São Paulo,total,Total,1,11329,mcme_ano,301860,28.28,,2026-10-19,mapa IEA (dataset 1.2 de 21/09/2026),"Mesmo polígono das quatro abas (cerca de 301.500 km², uns 21 % maior que SP). As três abas somam 11.302 mcme."
 RGINT-3501,regiao_intermediaria,São Paulo,residuos_agricolas,Crop residues,2,,mcme_ano,,,,,,
 RGINT-3501,regiao_intermediaria,São Paulo,dejetos,Manure,2,,mcme_ano,,,,,,
 RGINT-3501,regiao_intermediaria,São Paulo,biowaste,Biowaste,2,,mcme_ano,,,,,,

@@ -107,9 +107,17 @@ LEVELS = {"atlas": 2.0e9, "n1": 10e9, "n2": 6e9, "n3": 3e9, "n4": 2.5e9}
     (9e9, "", "disponibilidade"),
     (1.0e9, "", "parâmetro"),
     (5e9, "excluido", "escopo"),
+    (15e9, "", "escopo"),  # above N1: no availability rule explains it
 ])
 def test_classify_with_cp2b(bg, escopo, expected):
     assert R.classify(bg, LEVELS, escopo) == expected
+
+
+def test_cp2b_bracket():
+    assert R.cp2b_bracket(4e9, LEVELS) == "entre N3 e N2"
+    assert R.cp2b_bracket(11e9, LEVELS) == "acima do N1"
+    assert R.cp2b_bracket(1e9, LEVELS) == "abaixo do N4"
+    assert R.cp2b_bracket(None, LEVELS) == ""
 
 
 def test_classify_without_cp2b_falls_back_to_atlas():
