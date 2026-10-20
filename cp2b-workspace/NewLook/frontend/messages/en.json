@@ -2712,6 +2712,24 @@
     "title": "The biomethane mandate, month by month",
     "lede": "The Fuel of the Future law obliges natural gas producers and importers to cut the emissions of the gas they sell, with biomethane proven by CGOB certificates. CNPE sets each year's target; ANP publishes each month's production. Here they are side by side.",
     "unit_m3_day": "m³/day",
+    "sources": {
+      "line": "Figures checked on {date}. Each card opens the list of its sources, with the kind of each.",
+      "where_link": "Where to check the latest data",
+      "summary": "Sources for this card ({count}) · checked on {date}",
+      "kinds": {
+        "oficial": "Official",
+        "dados": "Data",
+        "estudo": "Study",
+        "empresa": "Company",
+        "imprensa": "Press",
+        "estimativa": "Estimate"
+      },
+      "where": {
+        "heading": "Where to check",
+        "caption": "The pages where this panel's figures are published and updated. The cards above give the date of each source.",
+        "legend": "Official and Data: readers can check the source itself. Study and Company: figures from whoever published them. Press: check the original before quoting. Estimate: a PILAR-2b assumption with no public source."
+      }
+    },
     "tiles": {
       "target": "{year} target",
       "target_note": "{reduction} emissions reduction",
@@ -2721,13 +2739,17 @@
       "sp_share": "{month} · {share} of national production",
       "cgob": "CGOB issued",
       "cgob_none": "No registry",
-      "cgob_note": "There is no public registry yet; the panel shows issuance once there is."
+      "cgob_note": "None issued as of the last check: issuance waits on the ANP system built with Serpro. B3, ACX and Instituto Totum are already accredited to register them."
     },
     "path": {
       "heading": "The target path",
       "caption": "Biomethane required each year, in m³/day, and national production in {month}. ≈: no published volume, scaled from the latest proposal.",
       "now": "Current production",
-      "row": "{year} · {reduction}"
+      "row": "{year} · {reduction}",
+      "source_groups": {
+        "panel": "Law, targets and CGOB rules",
+        "cgob": "CGOB issued"
+      }
     },
     "status": {
       "vigente": "in force",
@@ -2740,11 +2762,14 @@
       "br": "Brazil",
       "sp": "São Paulo",
       "month": "Month",
-      "target": "{year} target"
+      "target": "{year} target",
+      "source_groups": {
+        "production": "Monthly production by state and capacity by plant"
+      }
     },
     "route": {
       "heading": "Is it worth swapping the engine for an upgrader?",
-      "caption": "Per m³ of methane: what the environmental attribute (CGOB or equivalent) must be worth for selling biomethane to pay as much as burning the biogas for power, at each power price. Molecule at {molecule}/m³, upgrading at {upgrading}/m³.",
+      "caption": "Per m³ of methane: what the environmental attribute (CGOB or equivalent) must be worth for selling biomethane to pay as much as burning the biogas for power, at each power price. Molecule at {molecule}/m³ (the cost of the natural gas it replaces in the Comgás grid), upgrading at {upgrading}/m³.",
       "prices": {
         "pld_baixo": "Low spot price",
         "pld_medio": "Mid spot price",
@@ -2754,20 +2779,26 @@
       "row": "{label} · {price}/MWh",
       "none_needed": "not needed",
       "per_m3": "{value}/m³",
-      "reference": "Attribute paid in the Green Captive Market",
+      "reference": "CGOB floor suppliers ask for",
       "threshold": "With power below {threshold}/MWh, biomethane already pays more with no attribute at all.",
-      "reference_covers": "Even when the plant uses its own power, the break-even attribute stays below what the Green Captive Market already pays.",
-      "reference_short": "When the plant uses its own power, the attribute must exceed what the Green Captive Market pays today.",
-      "burned": "São Paulo already produces biogas with about {volume} m³/day of methane, almost all burned for power: {ratio}× the {year} target.",
-      "limits": "Screening prices from a single source; replace with contract data before quoting. Grid connection (pipeline or truck) and the engine already paid for are left out.",
-      "sources": "Sources",
-      "source_tariff": "Green Captive Market tariff",
-      "source_pld": "CCEE spot price"
+      "reference_covers": "Even when the plant uses its own power, the break-even attribute stays below the floor suppliers ask for the CGOB.",
+      "reference_short": "When the plant uses its own power, the attribute must exceed the floor suppliers ask for the CGOB.",
+      "burned": "São Paulo already produces biogas with about {volume} m³/day of methane, most of it burned for power: {ratio}× the {year} target.",
+      "limits": "The attribute has no public price: the floor is what suppliers ask for, and part of the market expects less. The Green Captive Market table exists, but its values were not checked. Grid connection (pipeline or truck) and the engine already paid for are left out.",
+      "source_groups": {
+        "molecula": "Molecule",
+        "atributo": "Environmental attribute",
+        "purificacao": "Upgrading cost",
+        "cambio": "Exchange rate (euro)",
+        "eletricidade": "Power price (spot)",
+        "autoconsumo": "Self-consumed power",
+        "biogas_sp": "SP biogas"
+      }
     },
     "stack": {
       "heading": "What adds up in the revenue of one m³ of biomethane",
       "caption": "Projects and lenders often add revenues that do not add up. Each line says whether it counts alongside the others, and why.",
-      "total": "Possible sum per m³: up to {total} (molecule, one attribute and the CBIO ceiling). The other lines have no public price or are not revenue.",
+      "total": "Possible sum per m³: up to {total} (molecule, one attribute at the CGOB floor suppliers ask for, and the CBIO ceiling). The other lines have no public price or are not revenue.",
       "groups": {
         "adds": "Adds up",
         "once": "Sold only once",
@@ -2778,7 +2809,7 @@
         "molecule": {
           "title": "Molecule",
           "value": "{value}/m³",
-          "note": "The gas without its environmental attribute, at the Green Captive Market price."
+          "note": "The gas without its environmental attribute, at the cost of the natural gas it replaces in the Comgás grid."
         },
         "co2": {
           "title": "Biogenic CO₂",
@@ -2792,13 +2823,12 @@
         },
         "cgob": {
           "title": "CGOB, for the mandate",
-          "value": "1 CGOB = {m3} m³",
+          "value": "1 CGOB = {m3} m³ · floor asked {perCgob}",
           "note": "The certificate natural gas producers and importers buy to meet the target."
         },
         "captive": {
           "title": "Attribute in the Green Captive Market",
-          "value": "{value}/m³ ≈ {perCgob} per CGOB",
-          "note": "Goes to the Comgás customer who buys the biomethane: once sold to them, the attribute cannot be sold again as a CGOB."
+          "note": "Goes to the Comgás customer who buys the biomethane: once sold to them, the attribute cannot be sold again as a CGOB. The table price was not checked."
         },
         "voluntary_cert": {
           "title": "Voluntary certificate (GAS-REC, I-REC)",
@@ -2807,7 +2837,7 @@
         "cbio": {
           "title": "CBIO (RenovaBio)",
           "value": "up to {low}–{high}/m³",
-          "note": "Ceiling of {cbio} CBIO per m³ (biomethane with no emissions at all), at the Jan–Feb 2026 price and the 2025 average. ANP allows a CBIO and a CGOB from the same invoice, with the CGOB flagging the CBIO; part of the market sees double counting in this."
+          "note": "Ceiling of {cbio} CBIO per m³ (biomethane with no emissions at all), at the Jan–Feb 2026 price and the 2025 average; in March 2026 the CBIO reached R$ 19.90. ANP allows a CBIO and a CGOB from the same invoice, with the CGOB flagging the CBIO; part of the market sees double counting in this."
         },
         "carbon": {
           "title": "Voluntary carbon credit",
@@ -2829,13 +2859,15 @@
         }
       },
       "digestate_basis": "Shares of the nutrient value of SP digestate, by where the residue goes today (PILAR-2b prototype, Real scenario).",
-      "limits": "Screening values from a single or secondary source: check against ANP Resolution 996/2026, the B3 series and the current RenovaCalc before quoting.",
-      "sources": "Sources",
-      "source_rule": "CGOB and CBIO rule",
-      "source_critique": "critique of double issuance",
-      "source_cbio": "CBIO price",
-      "source_fossil": "fossil reference",
-      "source_captive": "Green Captive Market"
+      "limits": "Screening values: the molecule is the natural gas cost, the attribute is the CGOB floor suppliers ask for, and the CBIO price moved a lot in 2026.",
+      "source_groups": {
+        "fossil": "CBIO fossil reference",
+        "cbio": "CBIO: definition and price",
+        "regra_cgob": "CGOB rule with CBIO",
+        "critica": "Critique of double issuance",
+        "densidade": "Reference conditions of the m³ (CO₂ density)",
+        "digestato": "Digestate"
+      }
     },
     "co2": {
       "heading": "Biogenic CO₂: how much upgrading separates, and who would buy it",
@@ -2845,26 +2877,29 @@
       "rows": {
         "now": "SP biomethane plants, today",
         "capacity": "The same plants at capacity",
-        "burned": "Biogas SP burns, if it were upgraded",
+        "burned": "All SP biogas, if it were upgraded",
         "market": "Brazil's whole CO₂ market"
       },
-      "market_share": "SP's plants already separate about {share} of all the CO₂ Brazil consumes. The biogas SP burns, upgraded, would give {low}–{high} times that market.",
-      "ethanol": "And ethanol has far more: EPE puts the biogenic CO₂ available in that sector at {ethanol}, against {biogas} in biogas. Fermentation gives almost pure CO₂; the Cocal mill already separates {unit} t/day.",
-      "removal": "Selling the CO₂ to drinks or food returns it to the air: that is not a removal. Only permanent storage would count as one, and Brazil's emissions trading system (SBCE, Law 15,042/2024) has not regulated it yet.",
+      "market_share": "SP's plants already separate about {share} of all the CO₂ Brazil consumes. All SP biogas, upgraded, would give {low}–{high} times that market. Some already sell it: Cocal separates {unit} t/day upgrading biogas in Narandiba (SP), and Gás Verde about 100 t/day in Rio de Janeiro.",
+      "ethanol": "And ethanol has far more: EPE puts the biogenic CO₂ available in that sector at {ethanol}, almost pure from fermentation, against {biogas} in biogas.",
+      "removal": "Selling the CO₂ to drinks or food returns it to the air: that is not a removal. Only permanent geological storage can count as one. Law 14,993/2024 and Decree 13,095/2026 put storage permits with ANP and allow it to count in the SBCE (Law 15,042/2024), but ANP's rules and the SBCE methodologies are still being drafted.",
       "plants": "By plant (t of CO₂ per day)",
       "plant": "Plant",
       "today": "Today",
       "at_capacity": "At capacity",
-      "limits": "Biogas at 35–45 % CO₂. The buyers (drinks, food, greenhouses, e-methanol) are not on the map yet: that layer needs the RAIS establishment register, the same one the Mercado Cativo Verde matching needs. Market and ethanol figures come from a single source; check them before quoting.",
-      "sources": "Sources",
-      "source_market": "CO₂ market",
-      "source_epe": "EPE",
-      "source_sbce": "Law 15,042/2024"
+      "limits": "Biogas at 35–45 % CO₂; CO₂ at 1.84 kg/m³ (20 °C and 1 atm, the ANP reference). Brazil's CO₂ market has no official figure: 1,600 t/day is a 2023 estimate, and a 2022 one gives 1,100. The buyers (drinks, food, greenhouses, e-methanol) are not on the map yet: that layer needs the RAIS establishment register.",
+      "source_groups": {
+        "plantas": "Plants and biogas processed",
+        "mercado": "Size of the CO₂ market",
+        "exemplos": "Who already sells",
+        "epe": "Biogenic CO₂ available (EPE)",
+        "remocao": "Removal, storage and the SBCE"
+      }
     },
     "limits": {
       "heading": "Limits",
       "items": [
-        "The target covers the year; production is one month. A month below the line is not non-compliance: the target is settled over the year, with CGOB, as ANP rules set.",
+        "The target covers the year; production is one month. A month below the line is not non-compliance: the target is settled over the year, with CGOB, under ANP Resolution 995/2026.",
         "The 2028–2030 targets are indicative and have no published volume yet: the panel scales the 2027 proposal by the percentage, as an order of magnitude only.",
         "ANP production may be revised after publication, and the latest month is the most recent the platform has ingested.",
         "The mandate is national and CGOB is tradable: São Paulo need not cover the target alone. SP's share measures weight, not a state obligation."

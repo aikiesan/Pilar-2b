@@ -9,7 +9,10 @@
  * CO2 (C20) upgrading separates at each SP plant, against the market for it.
  *
  * Every figure comes from /api/v1/mandate/panel (data/canonical_parameters/
- * mandato_biometano.yaml and the ANP series and plant snapshot). Rendered on the server and kept
+ * mandato_biometano.yaml and the ANP series and plant snapshot), and every
+ * card lists the sources behind its figures from the YAML's `fontes` registry:
+ * kind, publisher, date and link; "Onde conferir" points to the live pages.
+ * Rendered on the server and kept
  * for an hour; when the API is down the render throws, so ISR keeps the last
  * good page rather than caching an outage.
  */
@@ -19,6 +22,7 @@ import { Ban, CirclePlus, Repeat1, TriangleAlert, type LucideIcon } from 'lucide
 import Breadcrumb from '@/components/ui/Breadcrumb'
 import { HeaderLeaves } from '@/components/ui/ArcOrnament'
 import { BarList, Card, StatTile } from '@/components/municipality/ProfileVisuals'
+import SourceList, { SOURCE_KINDS, SourceItem, countSources, type Reference } from '@/components/mandate/SourceList'
 import { navCrumbs } from '@/lib/breadcrumbTrail'
 import { navMetadata } from '@/lib/pageMetadata'
 import { serverGetJson } from '@/lib/serverApi'
@@ -37,6 +41,12 @@ const PRICE_KEYS = ['pld_baixo', 'pld_medio', 'pld_alto', 'autoconsumo'] as cons
 type PriceKey = (typeof PRICE_KEYS)[number]
 const isPriceKey = (k: string): k is PriceKey => (PRICE_KEYS as readonly string[]).includes(k)
 
+/** Source groups each card labels (the `fontes` keys of each YAML block), in display order. */
+const ROUTE_GROUPS = ['molecula', 'atributo', 'purificacao', 'cambio', 'eletricidade', 'autoconsumo', 'biogas_sp'] as const
+const STACK_GROUPS = ['fossil', 'cbio', 'regra_cgob', 'critica', 'densidade', 'digestato'] as const
+const CO2_GROUPS = ['plantas', 'mercado', 'exemplos', 'epe', 'remocao'] as const
+type Grouped = Partial<Record<string, Reference[]>>
+
 interface Month {
   month: string
   br_m3_day: number
@@ -50,7 +60,7 @@ interface Target {
   volume_estimated: boolean
   status: Status
   act: string
-  source: string
+  source: Reference
   coverage: number
 }
 
@@ -66,7 +76,7 @@ interface RouteSwitch {
     breakeven_attribute_brl_m3: number
   }[]
   sp_burned_ch4_m3_day: number
-  sources: { molecule_attribute_url: string; electricity_url: string }
+  references: Grouped
 }
 
 /** The revenue-stack groups, in order, and the lines in each (messages under `stack.items`). */
@@ -86,13 +96,7 @@ interface RevenueStack {
   cbio_prices: { key: string; brl: number; brl_m3_max: number }[]
   co2_kg_per_m3: [number, number]
   digestate_value_share: { ja_reciclado: number; reposicao: number; novo: number }
-  sources: {
-    cgob_rule_url: string
-    cgob_cbio_critique_url: string
-    cbio_price_url: string
-    fossil_reference_url: string
-    captive_market_url: string
-  }
+  references: Grouped
 }
 
 /** [low, high]: rich biogas (more CH4) separates less CO2. */
@@ -108,10 +112,15 @@ interface BiogenicCo2 {
   ethanol_unit_t_day: number
   ethanol_t_year: number
   epe_biogas_t_year: number
-  sources: { market_url: string; epe_url: string; sbce_url: string }
+  references: Grouped
 }
 
 interface Panel {
+  sources_checked: string
+  references: Reference[]
+  production_references: Reference[]
+  where_to_check: Reference[]
+  cgob: { public_registry: boolean; references: Reference[] }
   latest: Month & { sp_share_of_br: number }
   targets: Target[]
   series: Month[]
@@ -157,6 +166,27 @@ export default async function MandatePage() {
   const height = (v: number) => `${(100 * v) / seriesMax}%`
   const latestLabel = monthLabel(latest.month)
 
+  // Sources: "2026", "2026-10" or "2026-10-20", shown at the precision given.
+  const sourceDate = (d: string) => {
+    const [y, m, day] = d.split('-')
+    if (!m) return y
+    const date = new Date(Date.UTC(Number(y), Number(m) - 1, Number(day ?? 15), 12))
+    return format.dateTime(date, day ? { dateStyle: 'medium', timeZone: 'UTC' } : { month: 'short', year: 'numeric', timeZone: 'UTC' })
+  }
+  const checked = sourceDate(data.sources_checked)
+  const kindLabel = (k: (typeof SOURCE_KINDS)[number]) => t(`sources.kinds.${k}`)
+  const sourceList = (groups: { key: string; label: string; sources: Reference[] }[]) => {
+    const present = groups.filter((g) => g.sources.length)
+    return (
+      <SourceList
+        summary={t('sources.summary', { count: countSources(present), date: checked })}
+        groups={present}
+        kindLabel={kindLabel}
+        dateLabel={sourceDate}
+      />
+    )
+  }
+
   const brl = (v: number) => format.number(v, { style: 'currency', currency: 'BRL', minimumFractionDigits: 2, maximumFractionDigits: 2 })
   const brl0 = (v: number) => format.number(v, { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })
   const route = data.route_switch
@@ -198,18 +228,13 @@ export default async function MandatePage() {
       molecule: t('stack.items.molecule.value', { value: brl(s.molecule_brl_m3) }),
       co2: t('stack.items.co2.value', { low: kg(s.co2_kg_per_m3[0]), high: kg(s.co2_kg_per_m3[1]) }),
       digestate_new: t('stack.items.digestate_new.value', { share: share(s.digestate_value_share.novo) }),
-      cgob: t('stack.items.cgob.value', { m3: s.m3_per_cgob }),
-      captive: t('stack.items.captive.value', {
-        value: brl(s.attribute_brl_m3),
-        perCgob: brl0(s.attribute_brl_m3 * s.m3_per_cgob),
-      }),
+      cgob: t('stack.items.cgob.value', { m3: s.m3_per_cgob, perCgob: brl0(s.attribute_brl_m3 * s.m3_per_cgob) }),
       cbio: t('stack.items.cbio.value', { low: brl(Math.min(...cbio)), high: brl(Math.max(...cbio)) }),
       digestate_kept: t('stack.items.digestate_kept.value', { share: share(s.digestate_value_share.ja_reciclado) }),
       straw: t('stack.items.straw.value', { share: share(s.digestate_value_share.reposicao) }),
     }
   }
   const stackFigures = stack ? figures(stack) : {}
-  const linkClass = 'text-terra-700 underline underline-offset-2 dark:text-terra-300'
 
   const co2 = data.biogenic_co2
   const tonnes = (v: number) => format.number(v, { notation: 'compact', maximumSignificantDigits: 2 })
@@ -236,6 +261,12 @@ export default async function MandatePage() {
           <p className="eyebrow mt-4">{t('eyebrow')}</p>
           <h1 className="mt-2 text-4xl text-ink sm:text-5xl">{t('title')}</h1>
           <p className="mt-4 max-w-2xl text-ink-muted">{t('lede')}</p>
+          <p className="mt-3 max-w-2xl text-sm text-ink-muted">
+            {t('sources.line', { date: checked })}{' '}
+            <a href="#onde-conferir" className="text-terra-700 underline underline-offset-2 dark:text-terra-300">
+              {t('sources.where_link')}
+            </a>
+          </p>
         </div>
       </header>
 
@@ -294,7 +325,7 @@ export default async function MandatePage() {
                 <li key={g.year}>
                   <span className="font-medium text-ink">{g.year}</span> · {t(`status.${g.status}`)} ·{' '}
                   <a
-                    href={g.source}
+                    href={g.source.url ?? undefined}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-terra-700 underline underline-offset-2 dark:text-terra-300"
@@ -304,6 +335,10 @@ export default async function MandatePage() {
                 </li>
               ))}
             </ul>
+            {sourceList([
+              { key: 'panel', label: t('path.source_groups.panel'), sources: data.references },
+              { key: 'cgob', label: t('path.source_groups.cgob'), sources: data.cgob.references },
+            ])}
           </Card>
 
           <Card
@@ -363,6 +398,7 @@ export default async function MandatePage() {
                 ))}
               </tbody>
             </table>
+            {sourceList([{ key: 'production', label: t('series.source_groups.production'), sources: data.production_references }])}
           </Card>
         </div>
 
@@ -407,16 +443,10 @@ export default async function MandatePage() {
                 </p>
               </div>
             </div>
-            <p className="mt-4 text-xs text-ink-muted">
-              {t('route.limits')} {t('route.sources')}:{' '}
-              <a href={route.sources.molecule_attribute_url} target="_blank" rel="noopener noreferrer" className={linkClass}>
-                {t('route.source_tariff')}
-              </a>
-              {' · '}
-              <a href={route.sources.electricity_url} target="_blank" rel="noopener noreferrer" className={linkClass}>
-                {t('route.source_pld')}
-              </a>
-            </p>
+            <p className="mt-4 text-xs text-ink-muted">{t('route.limits')}</p>
+            {sourceList(
+              ROUTE_GROUPS.map((g) => ({ key: g, label: t(`route.source_groups.${g}`), sources: route.references[g] ?? [] })),
+            )}
           </Card>
         )}
 
@@ -459,24 +489,11 @@ export default async function MandatePage() {
               ))}
             </div>
             <p className="mt-4 text-xs text-ink-muted">
-              {t('stack.digestate_basis')} {t('stack.limits')} {t('stack.sources')}:{' '}
-              {(
-                [
-                  ['source_rule', stack.sources.cgob_rule_url],
-                  ['source_critique', stack.sources.cgob_cbio_critique_url],
-                  ['source_cbio', stack.sources.cbio_price_url],
-                  ['source_fossil', stack.sources.fossil_reference_url],
-                  ['source_captive', stack.sources.captive_market_url],
-                ] as const
-              ).map(([key, href], i) => (
-                <span key={key}>
-                  {i > 0 && ' · '}
-                  <a href={href} target="_blank" rel="noopener noreferrer" className={linkClass}>
-                    {t(`stack.${key}`)}
-                  </a>
-                </span>
-              ))}
+              {t('stack.digestate_basis')} {t('stack.limits')}
             </p>
+            {sourceList(
+              STACK_GROUPS.map((g) => ({ key: g, label: t(`stack.source_groups.${g}`), sources: stack.references[g] ?? [] })),
+            )}
           </Card>
         )}
 
@@ -532,37 +549,31 @@ export default async function MandatePage() {
                     share: pct((co2.sp_now_t_year[0] + co2.sp_now_t_year[1]) / 2 / co2.market_t_year),
                     low: format.number(co2.sp_burned_t_year[0] / co2.market_t_year, { maximumFractionDigits: 1 }),
                     high: format.number(co2.sp_burned_t_year[1] / co2.market_t_year, { maximumFractionDigits: 1 }),
+                    unit: co2.ethanol_unit_t_day,
                   })}
                 </p>
                 <p>
                   {t('co2.ethanol', {
                     ethanol: t('co2.unit_one', { value: tonnes(co2.ethanol_t_year) }),
                     biogas: t('co2.unit_one', { value: tonnes(co2.epe_biogas_t_year) }),
-                    unit: co2.ethanol_unit_t_day,
                   })}
                 </p>
                 <p>{t('co2.removal')}</p>
               </div>
             </div>
-            <p className="mt-4 text-xs text-ink-muted">
-              {t('co2.limits')} {t('co2.sources')}:{' '}
-              {(
-                [
-                  ['source_market', co2.sources.market_url],
-                  ['source_epe', co2.sources.epe_url],
-                  ['source_sbce', co2.sources.sbce_url],
-                ] as const
-              ).map(([key, href], i) => (
-                <span key={key}>
-                  {i > 0 && ' · '}
-                  <a href={href} target="_blank" rel="noopener noreferrer" className={linkClass}>
-                    {t(`co2.${key}`)}
-                  </a>
-                </span>
-              ))}
-            </p>
+            <p className="mt-4 text-xs text-ink-muted">{t('co2.limits')}</p>
+            {sourceList(CO2_GROUPS.map((g) => ({ key: g, label: t(`co2.source_groups.${g}`), sources: co2.references[g] ?? [] })))}
           </Card>
         )}
+
+        <Card id="onde-conferir" title={t('sources.where.heading')} caption={t('sources.where.caption')}>
+          <ul className="grid gap-x-6 gap-y-2 text-sm md:grid-cols-2">
+            {data.where_to_check.map((s) => (
+              <SourceItem key={s.key} source={s} kindLabel={kindLabel} dateLabel={sourceDate} />
+            ))}
+          </ul>
+          <p className="mt-4 text-xs text-ink-muted">{t('sources.where.legend')}</p>
+        </Card>
 
         <Card id="limites" title={t('limits.heading')}>
           <ul className="max-w-3xl list-disc space-y-2 pl-5 text-sm text-ink-muted">

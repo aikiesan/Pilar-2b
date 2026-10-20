@@ -2712,6 +2712,24 @@
     "title": "O mandato do biometano, mês a mês",
     "lede": "A Lei do Combustível do Futuro obriga produtores e importadores de gás natural a reduzir as emissões do gás que vendem, com biometano comprovado por CGOB. O CNPE fixa a meta de cada ano; a ANP publica a produção de cada mês. Aqui as duas lado a lado.",
     "unit_m3_day": "m³/dia",
+    "sources": {
+      "line": "Números conferidos em {date}. Cada quadro abre a lista das suas fontes, com o tipo de cada uma.",
+      "where_link": "Onde conferir os dados mais recentes",
+      "summary": "Fontes deste quadro ({count}) · conferidas em {date}",
+      "kinds": {
+        "oficial": "Oficial",
+        "dados": "Dados",
+        "estudo": "Estudo",
+        "empresa": "Empresa",
+        "imprensa": "Imprensa",
+        "estimativa": "Estimativa"
+      },
+      "where": {
+        "heading": "Onde conferir",
+        "caption": "As páginas onde os números deste painel são publicados e atualizados. Os quadros acima mostram a data de cada fonte.",
+        "legend": "Oficial e Dados: o usuário confere na própria fonte. Estudo e Empresa: números de quem publicou. Imprensa: conferir no original antes de citar. Estimativa: suposição do PILAR-2b, sem fonte pública."
+      }
+    },
     "tiles": {
       "target": "Meta de {year}",
       "target_note": "{reduction} de redução de emissões",
@@ -2721,13 +2739,17 @@
       "sp_share": "{month} · {share} da produção nacional",
       "cgob": "CGOB emitidos",
       "cgob_none": "Sem registro",
-      "cgob_note": "Ainda não há registro público; o painel mostra a emissão quando houver."
+      "cgob_note": "Nenhum emitido até a última verificação: a emissão depende do sistema da ANP com o Serpro. B3, ACX e Instituto Totum já estão credenciadas para o registro."
     },
     "path": {
       "heading": "A trajetória da meta",
       "caption": "Biometano exigido por ano, em m³/dia, e a produção nacional de {month}. ≈: sem volume publicado, proporcional à proposta mais recente.",
       "now": "Produção atual",
-      "row": "{year} · {reduction}"
+      "row": "{year} · {reduction}",
+      "source_groups": {
+        "panel": "Lei, metas e regras do CGOB",
+        "cgob": "CGOB emitidos"
+      }
     },
     "status": {
       "vigente": "vigente",
@@ -2740,11 +2762,14 @@
       "br": "Brasil",
       "sp": "São Paulo",
       "month": "Mês",
-      "target": "Meta de {year}"
+      "target": "Meta de {year}",
+      "source_groups": {
+        "production": "Produção mensal por estado e capacidade por planta"
+      }
     },
     "route": {
       "heading": "Vale trocar o motor pela purificação?",
-      "caption": "Por m³ de metano: quanto o atributo ambiental (CGOB ou equivalente) precisa valer para vender biometano pagar o mesmo que queimar o biogás para gerar eletricidade, a cada preço da energia. Molécula a {molecule}/m³, purificação a {upgrading}/m³.",
+      "caption": "Por m³ de metano: quanto o atributo ambiental (CGOB ou equivalente) precisa valer para vender biometano pagar o mesmo que queimar o biogás para gerar eletricidade, a cada preço da energia. Molécula a {molecule}/m³ (o custo do gás natural que ela substitui na rede da Comgás), purificação a {upgrading}/m³.",
       "prices": {
         "pld_baixo": "PLD baixo",
         "pld_medio": "PLD médio",
@@ -2754,20 +2779,26 @@
       "row": "{label} · {price}/MWh",
       "none_needed": "não precisa",
       "per_m3": "{value}/m³",
-      "reference": "Atributo pago no Mercado Cativo Verde",
+      "reference": "Piso pedido para o CGOB",
       "threshold": "Com a eletricidade abaixo de {threshold}/MWh, o biometano já paga mais sem atributo algum.",
-      "reference_covers": "Mesmo quando a usina usa a própria energia, o atributo de equilíbrio fica abaixo do que o Mercado Cativo Verde já paga.",
-      "reference_short": "Quando a usina usa a própria energia, o atributo precisa passar do que o Mercado Cativo Verde paga hoje.",
-      "burned": "São Paulo já produz biogás com cerca de {volume} m³/dia de metano, quase todo queimado para eletricidade: {ratio}× a meta de {year}.",
-      "limits": "Preços de triagem, de fonte única; trocar por contrato antes de citar. Não entram a conexão à rede (gasoduto ou caminhão) nem o motor-gerador já pago.",
-      "sources": "Fontes",
-      "source_tariff": "tarifa do Mercado Cativo Verde",
-      "source_pld": "PLD da CCEE"
+      "reference_covers": "Mesmo quando a usina usa a própria energia, o atributo de equilíbrio fica abaixo do piso que os fornecedores pedem para o CGOB.",
+      "reference_short": "Quando a usina usa a própria energia, o atributo precisa passar do piso que os fornecedores pedem para o CGOB.",
+      "burned": "São Paulo já produz biogás com cerca de {volume} m³/dia de metano, a maior parte queimada para gerar eletricidade: {ratio}× a meta de {year}.",
+      "limits": "O atributo não tem preço público: o piso é o que os fornecedores pedem, e parte do mercado espera menos. A tabela do Mercado Cativo Verde existe, mas seus valores não foram conferidos. Não entram a conexão à rede (gasoduto ou caminhão) nem o motor-gerador já pago.",
+      "source_groups": {
+        "molecula": "Molécula",
+        "atributo": "Atributo ambiental",
+        "purificacao": "Custo da purificação",
+        "cambio": "Câmbio (euro)",
+        "eletricidade": "Preço da eletricidade (PLD)",
+        "autoconsumo": "Energia autoconsumida",
+        "biogas_sp": "Biogás de SP"
+      }
     },
     "stack": {
       "heading": "O que soma na receita de um m³ de biometano",
       "caption": "Projetos e financiadores costumam somar receitas que não se somam. Aqui, cada linha diz se entra na conta junto com as outras, e por quê.",
-      "total": "Soma possível por m³: até {total} (molécula, um atributo e o teto do CBIO). As outras linhas não têm preço público ou não são receita.",
+      "total": "Soma possível por m³: até {total} (molécula, um atributo no piso pedido para o CGOB e o teto do CBIO). As outras linhas não têm preço público ou não são receita.",
       "groups": {
         "adds": "Soma",
         "once": "Vende-se uma vez",
@@ -2778,7 +2809,7 @@
         "molecule": {
           "title": "Molécula",
           "value": "{value}/m³",
-          "note": "O gás sem o atributo ambiental, ao preço do Mercado Cativo Verde."
+          "note": "O gás sem o atributo ambiental, ao custo do gás natural que ele substitui na rede da Comgás."
         },
         "co2": {
           "title": "CO₂ biogênico",
@@ -2792,13 +2823,12 @@
         },
         "cgob": {
           "title": "CGOB, para o mandato",
-          "value": "1 CGOB = {m3} m³",
+          "value": "1 CGOB = {m3} m³ · piso pedido {perCgob}",
           "note": "O certificado que produtores e importadores de gás natural compram para cumprir a meta."
         },
         "captive": {
           "title": "Atributo no Mercado Cativo Verde",
-          "value": "{value}/m³ ≈ {perCgob} por CGOB",
-          "note": "Vai para o cliente da Comgás que compra o biometano: vendido a ele, o atributo não pode ser vendido de novo como CGOB."
+          "note": "Vai para o cliente da Comgás que compra o biometano: vendido a ele, o atributo não pode ser vendido de novo como CGOB. O preço da tabela não foi conferido."
         },
         "voluntary_cert": {
           "title": "Certificado voluntário (GAS-REC, I-REC)",
@@ -2807,7 +2837,7 @@
         "cbio": {
           "title": "CBIO (RenovaBio)",
           "value": "até {low}–{high}/m³",
-          "note": "Teto de {cbio} CBIO por m³ (biometano sem emissão alguma), ao preço de jan–fev/2026 e à média de 2025. A ANP permite CBIO e CGOB da mesma nota fiscal, com o CGOB indicando o CBIO; parte do mercado vê nisso dupla contagem."
+          "note": "Teto de {cbio} CBIO por m³ (biometano sem emissão alguma), ao preço de jan–fev/2026 e à média de 2025; em mar/2026 o CBIO chegou a R$ 19,90. A ANP permite CBIO e CGOB da mesma nota fiscal, com o CGOB indicando o CBIO; parte do mercado vê nisso dupla contagem."
         },
         "carbon": {
           "title": "Crédito de carbono voluntário",
@@ -2829,13 +2859,15 @@
         }
       },
       "digestate_basis": "Partes do valor dos nutrientes do digestato de SP, pelo destino atual do resíduo (protótipo do PILAR-2b, cenário Real).",
-      "limits": "Valores de triagem, de fonte única ou secundária: conferir na Resolução ANP 996/2026, na série da B3 e na RenovaCalc vigente antes de citar.",
-      "sources": "Fontes",
-      "source_rule": "regra CGOB e CBIO",
-      "source_critique": "crítica à dupla emissão",
-      "source_cbio": "preço do CBIO",
-      "source_fossil": "fóssil de referência",
-      "source_captive": "Mercado Cativo Verde"
+      "limits": "Valores de triagem: a molécula é o custo do gás natural, o atributo é o piso pedido para o CGOB e o preço do CBIO mudou muito em 2026.",
+      "source_groups": {
+        "fossil": "Fóssil de referência do CBIO",
+        "cbio": "CBIO: definição e preço",
+        "regra_cgob": "Regra do CGOB com CBIO",
+        "critica": "Crítica à dupla emissão",
+        "densidade": "Condição de referência dos m³ (densidade do CO₂)",
+        "digestato": "Digestato"
+      }
     },
     "co2": {
       "heading": "CO₂ biogênico: quanto a purificação separa, e quem compraria",
@@ -2845,26 +2877,29 @@
       "rows": {
         "now": "Plantas de biometano de SP, hoje",
         "capacity": "As mesmas plantas na capacidade",
-        "burned": "Biogás que SP queima, se fosse purificado",
+        "burned": "Todo o biogás de SP, se fosse purificado",
         "market": "Mercado brasileiro de CO₂, todo"
       },
-      "market_share": "As plantas de SP já separam cerca de {share} de todo o CO₂ que o Brasil consome. O biogás que SP queima, purificado, daria {low}–{high} vezes esse mercado.",
-      "ethanol": "E o etanol tem muito mais: a EPE estima {ethanol} de CO₂ biogênico disponível no setor, contra {biogas} no biogás. A fermentação dá CO₂ quase puro; a usina Cocal já separa {unit} t/dia.",
-      "removal": "Vender o CO₂ para bebida ou alimento devolve o gás ao ar: não é remoção. Só o armazenamento permanente contaria como remoção, e o SBCE (Lei 15.042/2024) ainda não regulamentou isso.",
+      "market_share": "As plantas de SP já separam cerca de {share} de todo o CO₂ que o Brasil consome. Todo o biogás de SP, purificado, daria {low}–{high} vezes esse mercado. Já há quem venda: a Cocal separa {unit} t/dia na purificação do biogás em Narandiba (SP), e a Gás Verde, cerca de 100 t/dia no Rio de Janeiro.",
+      "ethanol": "E o etanol tem muito mais: a EPE estima {ethanol} de CO₂ biogênico disponível no setor, quase puro na fermentação, contra {biogas} no biogás.",
+      "removal": "Vender o CO₂ para bebida ou alimento devolve o gás ao ar: não é remoção. Só a estocagem geológica permanente pode contar como remoção. A Lei 14.993/2024 e o Decreto 13.095/2026 dão à ANP a autorização da estocagem e preveem que ela possa contar no SBCE (Lei 15.042/2024), mas as regras da ANP e as metodologias do SBCE ainda estão em elaboração.",
       "plants": "Por planta (t de CO₂ por dia)",
       "plant": "Planta",
       "today": "Hoje",
       "at_capacity": "Na capacidade",
-      "limits": "Biogás com 35–45 % de CO₂. Os compradores (bebidas, alimentos, estufas, e-metanol) ainda não estão no mapa: a camada depende dos estabelecimentos da RAIS, a mesma do casamento com o Mercado Cativo Verde. Mercado e etanol vêm de fonte única; conferir antes de citar.",
-      "sources": "Fontes",
-      "source_market": "mercado de CO₂",
-      "source_epe": "EPE",
-      "source_sbce": "Lei 15.042/2024"
+      "limits": "Biogás com 35–45 % de CO₂; CO₂ a 1,84 kg/m³ (20 °C e 1 atm, a referência da ANP). O mercado brasileiro de CO₂ não tem número oficial: 1.600 t/dia é estimativa de 2023, e outra de 2022 dá 1.100. Os compradores (bebidas, alimentos, estufas, e-metanol) ainda não estão no mapa: a camada depende dos estabelecimentos da RAIS.",
+      "source_groups": {
+        "plantas": "Plantas e biogás processado",
+        "mercado": "Tamanho do mercado de CO₂",
+        "exemplos": "Quem já vende",
+        "epe": "CO₂ biogênico disponível (EPE)",
+        "remocao": "Remoção, estocagem e SBCE"
+      }
     },
     "limits": {
       "heading": "Limites",
       "items": [
-        "A meta cobre o ano; a produção é de um mês. Um mês abaixo da linha não é descumprimento: a meta é apurada no ano, com CGOB, conforme a regulação da ANP.",
+        "A meta cobre o ano; a produção é de um mês. Um mês abaixo da linha não é descumprimento: a meta é apurada no ano, com CGOB, conforme a Resolução ANP 995/2026.",
         "As metas de 2028 a 2030 são indicativas e ainda não têm volume publicado: o painel escala o volume da proposta de 2027 pelo percentual, só como ordem de grandeza.",
         "A produção da ANP pode ser revista depois de publicada, e o último mês é o mais recente que a plataforma ingeriu.",
         "O mandato é nacional e o CGOB é negociável: São Paulo não precisa cobrir a meta sozinho. A participação de SP mede peso, não obrigação estadual."

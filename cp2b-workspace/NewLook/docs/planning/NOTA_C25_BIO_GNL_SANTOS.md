@@ -28,10 +28,10 @@ acompanhar três gatilhos (abaixo).
 |---|---|
 | **Oferta a 100 km** (linha reta) | 287 mil m³/dia de CH₄ no CP2b N3 (o potencial mobilizável) e 845 mil no Atlas Real, 78 % de RSU, ou seja, gás de aterro da Grande SP; a 200 km, 1,7 milhão no N3. Plantas da ANP: 3 (Metagás, Essencis Caieiras, ZEG Jambeiro), 127 mil m³/dia de capacidade e cerca de 65 mil m³/dia produzidos hoje |
 | **Escala** | 1 t de GNL ≈ 1.500 m³ de CH₄. Uma liquefação pequena de 25 t/dia pede 37 mil m³/dia, 13 % do N3 a 100 km; só a Essencis Caieiras, com capacidade cheia, dá cerca de 45 t/dia. A única referência brasileira encontrada: Golar Power, 45 t/dia em duas unidades (2020; sem confirmação de construção) |
-| **Valor do atributo no FuelEU** | R$ 2,6–4,8/m³ de CH₄ para navio que abastece em Santos e vai à Europa (só metade da energia da viagem conta), com bio-GNL de 20 gCO₂e/MJ e o excedente vendido em *pool* (€ 1.300–2.300 por t de VLSFO equivalente) ou abatido da penalidade (€ 2.400). Usado dentro da UE, o dobro |
-| **Valor no Brasil** | Molécula R$ 2,25 mais atributo do Mercado Cativo Verde R$ 1,40, ou seja, R$ 3,65/m³ (painel do mandato) |
+| **Valor do atributo no FuelEU** | R$ 2,4–4,4/m³ de CH₄ para navio que abastece em Santos e vai à Europa (só metade da energia da viagem conta), com bio-GNL de 20 gCO₂e/MJ e o excedente vendido em *pool* (€ 1.300–2.300 por t de VLSFO equivalente) ou abatido da penalidade (€ 2.400), a R$ 5,80/€. Usado dentro da UE, o dobro |
+| **Valor no Brasil** | Molécula R$ 2,63 (custo do gás natural da Comgás, que o biometano substitui) mais R$ 1,00 do piso que os fornecedores pedem para o CGOB, ou seja, R$ 3,63/m³ (painel do mandato; o atributo não tem preço público) |
 
-A diferença (cerca de R$ 1–3/m³ a mais no atributo) teria de pagar a liquefação, o
+A diferença (cerca de R$ 1,4–3,4/m³ a mais no atributo) teria de pagar a liquefação, o
 caminhão pela Serra do Mar, a certificação e o abastecimento por barcaça. Nenhum
 desses custos está no PILAR-2b.
 
@@ -73,4 +73,4 @@ de base: oferta por raio, plantas da ANP, mandato e pilha de receitas.
 - UDB e terceiros países: [Marine Log](https://www.marinelog.com/news/ecs-union-database-plan-could-limit-biofuel-availability-to-ships/), [Argus](https://www.argusmedia.com/en/news-and-insights/latest-market-news/2731821-us-bio-lng-bunkers-wait-fueleu-recognition-panel), [Eurogas](https://www.eurogas.org/resource/eurogas-45-other-organisations-call-for-urgent-action-allowing-imports-of-biomethane-and-biomethane-based-fuels-under-the-udb/), [Dentons (abr/2026)](https://www.dentons.com/en/insights/newsletters/2026/april/1/future-of-energy-markets-europe/challenges-affecting-the-development-of-a-pan-eu-biomethane-market)
 - Santos: [DP World, navio a GNL](https://www.dpworld.com/pt-br/news/brazil/dp-world-brasil-recebe-primeiro-navio-movido-a-gnl); [Ship & Bunker, etanol](https://shipandbunker.com/news/am/659387-bunker-one-supplies-latin-americas-first-bioethanol-to-cma-cgm-boxship)
 - Liquefação: [Energy Intelligence, Golar Power](https://www.energyintel.com/0000017b-a7db-de4c-a17b-e7db087d0000)
-- Preços brasileiros, metas e biogás de SP: `data/canonical_parameters/mandato_biometano.yaml` (fontes por linha)
+- Preços brasileiros, câmbio, metas e biogás de SP: `data/canonical_parameters/mandato_biometano.yaml` (registro `fontes`, com link e tipo de cada número; verificação em `docs/qa/VERIFICACAO_FONTES_PAINEL_MANDATO.md`)

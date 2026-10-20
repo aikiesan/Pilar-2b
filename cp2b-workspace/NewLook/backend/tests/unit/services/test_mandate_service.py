@@ -5,6 +5,11 @@ import pytest
 from app.services import mandate_service as M
 from app.services.canonical_loader import load_mandate_params
 
+SOURCES = {
+    "f": {"titulo": "t", "autor": "a", "data": "2026-10", "url": "https://x", "tipo": "oficial"},
+    "g": {"titulo": "t", "autor": "PILAR-2b", "data": "2026-10", "url": None, "tipo": "estimativa"},
+}
+
 
 def _row(month, uf, m3):
     return {"mesano": month, "uf": uf, "producao_m3": str(m3)}
@@ -26,8 +31,12 @@ def _params(rows):
             },
             {"ano": 2028, "reducao_pct": 3.0, "status": "indicativa", "ato": "a", "fonte": "f"},
         ],
-        "producao": {"fonte": "anp", "linhas": rows},
-        "cgob": {"registro_publico": False, "nota": "n"},
+        "producao": {"fontes": ["f"], "linhas": rows},
+        "cgob": {"registro_publico": False, "fontes": ["f"]},
+        "fontes": SOURCES,
+        "fontes_verificadas_em": "2026-10-20",
+        "fontes_painel": ["f"],
+        "onde_conferir": ["f"],
     }
 
 
@@ -75,22 +84,17 @@ def _route_params(prices=(100, 400)):
         "rendimento_eletrico": 0.4,
         "molecula_brl_m3": 2.0,
         "atributo_referencia_brl_m3": 1.0,
-        "fonte_molecula_atributo": "f",
-        "url_molecula_atributo": "u",
         "purificacao_eur_mwh": 20.0,
         "brl_por_eur": 5.0,
-        "fonte_purificacao": "f",
         "precos_eletricidade": [{"chave": f"p{i}", "brl_mwh": p} for i, p in enumerate(prices)],
-        "fonte_eletricidade": "f",
-        "url_eletricidade": "u",
         "biogas_sp_m3_dia": 1000,
         "fracao_ch4": [0.5, 0.7],
-        "fonte_biogas_sp": "f",
+        "fontes": {"molecula": ["f"], "autoconsumo": ["g"]},
     }
 
 
 def test_both_routes_pay_the_same_at_the_breakeven_attribute():
-    r = M.route_switch({"troca_de_rota": _route_params()})
+    r = M.route_switch({"troca_de_rota": _route_params(), "fontes": SOURCES})
     # 10 kWh × 0.4 = 4 kWh of power per m³; upgrading 10/1000 MWh × €20 × 5 = R$ 1.
     assert r["upgrading_brl_m3"] == pytest.approx(1.0)
     for row in r["prices"]:
@@ -102,11 +106,57 @@ def test_both_routes_pay_the_same_at_the_breakeven_attribute():
     assert low["breakeven_attribute_brl_m3"] == pytest.approx(0.4 - 1.0)  # wins with no attribute
     assert high["breakeven_attribute_brl_m3"] == pytest.approx(1.6 - 1.0)
     assert r["sp_burned_ch4_m3_day"] == pytest.approx(600)
+    assert [x["key"] for x in r["references"]["molecula"]] == ["f"]
+    assert r["references"]["autoconsumo"][0]["url"] is None
+
+
+def test_references_resolve_in_order_and_refuse_unknown_keys_or_kinds():
+    refs = M.references({"fontes": SOURCES}, ["g", "f"])
+    assert [r["key"] for r in refs] == ["g", "f"]
+    assert refs[1] == {
+        "key": "f",
+        "title": "t",
+        "publisher": "a",
+        "date": "2026-10",
+        "url": "https://x",
+        "kind": "oficial",
+        "note": None,
+    }
+    with pytest.raises(ValueError):
+        M.references({"fontes": SOURCES}, ["missing"])
+    with pytest.raises(ValueError):
+        M.references({"fontes": {"h": {**SOURCES["f"], "tipo": "blog"}}}, ["h"])
+
+
+def test_every_canonical_source_is_used_dated_and_linked():
+    params = load_mandate_params()
+    registry = params["fontes"]
+    used = set(params["fontes_painel"]) | set(params["onde_conferir"])
+    used |= set(params["producao"]["fontes"]) | set(params["cgob"]["fontes"])
+    used |= {t["fonte"] for t in params["metas"]}
+    for block in ("troca_de_rota", "pilha_de_receitas", "co2_biogenico"):
+        for keys in params[block]["fontes"].values():
+            used |= set(keys)
+    # Every figure cites a registered source, and every registered source is cited.
+    assert used == set(registry)
+    for key, f in registry.items():
+        assert f["titulo"] and f["autor"] and str(f["data"])[:4].isdigit(), key
+        # Only the platform's own assumptions go without a link.
+        if f["tipo"] == "estimativa":
+            assert f["url"] is None, key
+        else:
+            assert f["url"].startswith("https://"), key
+    # The panel resolves them all without error.
+    panel = M.panel(params)
+    assert panel["sources_checked"] == "2026-10-20"
+    assert {r["key"] for r in panel["where_to_check"]} <= set(registry)
 
 
 def test_at_the_threshold_price_no_attribute_is_needed():
-    r = M.route_switch({"troca_de_rota": _route_params()})
-    at = M.route_switch({"troca_de_rota": _route_params(prices=(r["threshold_brl_mwh"],))})
+    r = M.route_switch({"troca_de_rota": _route_params(), "fontes": SOURCES})
+    at = M.route_switch(
+        {"troca_de_rota": _route_params(prices=(r["threshold_brl_mwh"],)), "fontes": SOURCES}
+    )
     assert at["prices"][0]["breakeven_attribute_brl_m3"] == pytest.approx(0.0, abs=1e-12)
     assert r["threshold_brl_mwh"] == pytest.approx(250)
 
@@ -120,13 +170,14 @@ def test_panel_without_route_parameters_still_works():
 
 def test_canonical_route_switch():
     r = M.panel(load_mandate_params())["route_switch"]
-    assert r["upgrading_brl_m3"] == pytest.approx(1.19, abs=0.01)
-    assert r["threshold_brl_mwh"] == pytest.approx(281, abs=1)
+    # 9.94 kWh × € 25/MWh × R$ 5.8/€.
+    assert r["upgrading_brl_m3"] == pytest.approx(1.44, abs=0.01)
+    assert r["threshold_brl_mwh"] == pytest.approx(315, abs=1)
     by = {row["electricity_brl_mwh"]: row["breakeven_attribute_brl_m3"] for row in r["prices"]}
-    assert by[185] < 0 and by[250] < 0
-    assert by[300] == pytest.approx(0.07, abs=0.01)
-    assert by[450] == pytest.approx(0.64, abs=0.01)
-    # Even the self-consumption case needs less than the attribute the tariff already pays.
+    # The whole Apr–Jul/2026 PLD range sits below the threshold.
+    assert by[135] < 0 and by[190] < 0 and by[225] < 0
+    assert by[450] == pytest.approx(0.51, abs=0.01)
+    # Even the self-consumption case needs less than the CGOB floor suppliers ask for.
     assert by[450] < r["reference_attribute_brl_m3"]
     assert r["sp_burned_ch4_m3_day"] == pytest.approx(2.94e6)
 
@@ -140,12 +191,9 @@ def _stack_params():
             "precos_cbio": [{"chave": "c", "brl": 50.0}],
             "densidade_co2_kg_m3": 2.0,
             "digestato_valor_por_destino": {"ja_reciclado": 0.8, "reposicao": 0.15, "novo": 0.05},
-            "url_regra_cgob": "u",
-            "url_critica_cgob_cbio": "u",
-            "url_cbio": "u",
-            "url_fossil_referencia": "u",
-            "url_mercado_cativo_verde": "u",
+            "fontes": {"cbio": ["f"]},
         },
+        "fontes": SOURCES,
     }
 
 
@@ -173,7 +221,8 @@ def test_canonical_revenue_stack():
     by = {c["key"]: c["brl_m3_max"] for c in r["cbio_prices"]}
     assert by["jan_fev_2026"] == pytest.approx(0.10, abs=0.01)
     assert by["media_2025"] == pytest.approx(0.17, abs=0.01)
-    assert r["co2_kg_per_m3"] == pytest.approx([1.06, 1.62], abs=0.01)
+    # CO2 at 20 °C and 1 atm, the ANP reference (1.84 kg/m³).
+    assert r["co2_kg_per_m3"] == pytest.approx([0.99, 1.51], abs=0.01)
     assert sum(r["digestate_value_share"].values()) == pytest.approx(1.0)
 
 
@@ -187,9 +236,7 @@ def _co2_params(rows):
         "etanol_mt_ano": 27,
         "biogas_kt_ano": 491,
         "biogas_operando_kt_ano": 99,
-        "url_mercado": "u",
-        "url_epe": "u",
-        "url_sbce": "u",
+        "fontes": {"mercado": ["f"]},
     }
     return params
 
@@ -229,8 +276,9 @@ def test_canonical_biogenic_co2():
     assert c["month"] == "2026-04"
     assert len(c["plants"]) == 9  # Gasgrid's 2022 authorization is left out
     assert c["plants"][0]["municipality"] == "CAIEIRAS"
-    # The strategy note's order of magnitude: 1.2–1.6 Mt/yr from the biogas SP burns.
-    assert c["sp_burned_t_year"] == pytest.approx([1.24e6, 1.59e6], rel=0.01)
+    # All the biogas SP produces, if upgraded: 1.15–1.48 Mt/yr at 1.84 kg/m³.
+    assert c["sp_burned_t_year"] == pytest.approx([1.15e6, 1.48e6], rel=0.01)
     # SP plants today already separate several percent of the whole Brazilian market.
     assert 0.05 < c["sp_now_t_year"][0] / c["market_t_year"] < 0.15
-    assert c["sp_burned_t_year"][0] > 2 * c["market_t_year"]
+    # About twice the whole market (2.0–2.5×).
+    assert 1.9 < c["sp_burned_t_year"][0] / c["market_t_year"] < 2.6

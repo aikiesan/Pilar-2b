@@ -75,7 +75,7 @@ def fmt(x: float, d: int = 2) -> str:
 def main() -> None:
     r = route()
     p = r["params"]
-    attributes = (*ATTRIBUTE_STEPS_BRL_M3, r["reference_attribute_brl_m3"])
+    attributes = sorted({*ATTRIBUTE_STEPS_BRL_M3, r["reference_attribute_brl_m3"]})
     ch4_m3_yr = r["sp_burned_ch4_m3_day"] * 365
 
     rows = []
@@ -105,7 +105,8 @@ def main() -> None:
         "",
         f"Por Nm³ de CH₄: PCI {fmt(p['pci_ch4_kwh_m3'])} kWh e rendimento elétrico "
         f"{100 * p['rendimento_eletrico']:.0f} % "
-        f"(os do script de cenários). Molécula de biometano R$ {fmt(r['molecule_brl_m3'])}/m³; "
+        f"(os do script de cenários). Molécula R$ {fmt(r['molecule_brl_m3'])}/m³ (custo do gás natural "
+        "da Comgás, o que o biometano substitui); "
         f"purificação R$ {fmt(up)}/m³ (referência europeia convertida). Preços de triagem em "
         "`mandato_biometano.yaml` (`troca_de_rota`), cada um com fonte.",
         "",
@@ -135,7 +136,7 @@ def main() -> None:
     best = max(r["vantagem_sp_brl_bi_ano"] for r in rows)
     L += [
         "",
-        f"Aplicado ao biogás que SP já produz ({p['fonte_biogas_sp']}: "
+        f"Aplicado ao biogás que SP já produz ({r['references']['biogas_sp'][0]['publisher']}: "
         f"{fmt(p['biogas_sp_m3_dia'] / 1e6, 1)} M Nm³/dia, "
         f"meio da faixa de CH₄ = {fmt(ch4_m3_yr / 1e9)} bi Nm³ CH₄/ano), a diferença entre rotas vai de "
         f"R$ {fmt(worst)} bi a R$ {fmt(best)} bi por ano na grade acima.",
@@ -143,10 +144,12 @@ def main() -> None:
         "## Leitura",
         "",
         f"1. **Com eletricidade abaixo de cerca de R$ {fmt(r['threshold_brl_mwh'], 0)}/MWh, o biometano "
-        "vence mesmo sem atributo ambiental.** O PLD SE/CO ficou na maior parte de abr–jul/2026 entre "
-        f"R$ {prices[0]:.0f} e {prices[2]:.0f}/MWh, ou seja, em torno desse limiar: "
-        "para a energia vendida ao mercado, a troca de rota "
-        "já se paga ou fica perto disso.",
+        "vence mesmo sem atributo ambiental.** O PLD SE/CO ficou em abr–jul/2026 entre cerca de "
+        f"R$ {prices[0]:.0f} e {prices[2]:.0f}/MWh (boletins da CCEE), "
+        + ("abaixo desse limiar: para a energia vendida ao mercado, a troca de rota já se paga."
+           if prices[2] < r["threshold_brl_mwh"] else
+           "em torno desse limiar: para a energia vendida ao mercado, a troca de rota já se paga "
+           "ou fica perto disso."),
         "2. **Quando a eletricidade é autoconsumida e vale perto da tarifa evitada, o atributo decide.** "
         "É o caso típico da usina, que usa o biogás para não comprar energia. Ali, o CGOB precisa "
         "valer algo como o atributo de equilíbrio da última linha da primeira tabela.",
@@ -161,7 +164,9 @@ def main() -> None:
         "- Ignora o motor-gerador já pago (custo afundado) e o O&M dele; também ignora que a usina pode "
         "precisar comprar a energia que deixa de gerar, o que é exatamente o caso de preço de "
         f"{prices[-1]:.0f} R$/MWh.",
-        "- Molécula, atributo e purificação vêm de fonte única ou estrangeira. Conferir antes de citar.",
+        "- Molécula = custo do gás natural da Comgás (o que o biometano substitui), não preço de "
+        "biometano; atributo = piso pedido para o CGOB, sem preço público; purificação = referência "
+        "europeia. Fontes por número em `fontes` do YAML; conferir antes de citar.",
         "",
     ]
     (OUT / "RELATORIO.md").write_text("\n".join(L), encoding="utf-8")

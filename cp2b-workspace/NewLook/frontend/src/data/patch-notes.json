@@ -2,6 +2,30 @@
   "_comment": "Patch notes, newest first. Each entry carries its own pt-BR and en text, deliberately OUTSIDE messages/*.json: the catalogs are gated by check-i18n-parity.mjs, and threading one release note through two catalogs per deploy makes writing a note a chore nobody does. scripts/check-patch-notes.mjs enforces that both locales are present here instead. `date` is ISO 8601 WITH offset -- it is rendered in the reader's locale, so a bare date would drift a day across timezones. `kind` must be one of: added, changed, fixed, security, data.",
   "entries": [
     {
+      "version": "3.8.1",
+      "date": "2026-10-20T18:00:00-03:00",
+      "title": {
+        "pt-BR": "Cada número do mandato com a sua fonte",
+        "en": "Every mandate figure with its source"
+      },
+      "changes": [
+        {
+          "kind": "added",
+          "text": {
+            "pt-BR": "No Mandato do biometano, cada cartão termina em \"Fontes deste quadro\": para cada número, quem publicou, quando, o tipo de fonte (oficial, dados, estudo, empresa, imprensa ou estimativa) e o link para conferir. O novo cartão \"Onde conferir\" reúne as páginas onde os números mais recentes saem primeiro (ANP, MME, Comgás, CCEE, B3, RenovaCalc e Banco Central).",
+            "en": "On the Biomethane mandate page, each card ends in \"Sources for this card\": for each figure, who published it, when, the kind of source (official, data, study, company, press or estimate) and a link to check it. The new \"Where to check\" card gathers the pages where the latest figures come out first (ANP, MME, Comgás, CCEE, B3, RenovaCalc and the Central Bank)."
+          }
+        },
+        {
+          "kind": "data",
+          "text": {
+            "pt-BR": "Números do mandato conferidos um a um. Corrigidos: o PLD passou a seguir os boletins da CCEE (R$ 135–225/MWh); a purificação, € 25/MWh a R$ 5,80/€; a molécula, o custo do gás da Comgás (R$ 2,63/m³); o atributo, o piso de R$ 1,00/m³ pedido para o CGOB, porque os valores atribuídos ao Mercado Cativo Verde não foram confirmados; e o CO₂ passou a 1,84 kg/m³ (20 °C, a referência da ANP). Com isso, o biometano vence sem atributo até cerca de R$ 315/MWh.",
+            "en": "Mandate figures checked one by one. Corrected: the PLD now follows CCEE's bulletins (R$ 135–225/MWh); upgrading, €25/MWh at R$ 5.80/€; the molecule, Comgás's gas cost (R$ 2.63/m³); the attribute, the R$ 1.00/m³ floor asked for the CGOB, because the values attributed to the Green Captive Market could not be confirmed; and CO₂ now uses 1.84 kg/m³ (20 °C, ANP's reference). As a result, biomethane wins without an attribute up to about R$ 315/MWh."
+          }
+        }
+      ]
+    },
+    {
       "version": "3.8.0",
       "date": "2026-10-20T08:00:00-03:00",
       "title": {
@@ -26,8 +50,8 @@
         {
           "kind": "added",
           "text": {
-            "pt-BR": "No Mandato do biometano, o cartão \"Vale trocar o motor pela purificação?\": quanto o atributo ambiental precisa valer, a cada preço da eletricidade, para vender biometano pagar o mesmo que gerar energia com o biogás, ao lado do que o Mercado Cativo Verde já paga.",
-            "en": "On the Biomethane mandate page, the \"Is it worth swapping the engine for an upgrader?\" card: what the environmental attribute must be worth, at each power price, for selling biomethane to pay as much as generating power from the biogas, next to what the Green Captive Market already pays."
+            "pt-BR": "No Mandato do biometano, o cartão \"Vale trocar o motor pela purificação?\": quanto o atributo ambiental precisa valer, a cada preço da eletricidade, para vender biometano pagar o mesmo que gerar energia com o biogás, ao lado do piso pedido para o CGOB.",
+            "en": "On the Biomethane mandate page, the \"Is it worth swapping the engine for an upgrader?\" card: what the environmental attribute must be worth, at each power price, for selling biomethane to pay as much as generating power from the biogas, next to the floor suppliers ask for the CGOB."
           }
         },
         {

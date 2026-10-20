@@ -12,8 +12,8 @@ investimento de produto, três perguntas de uma página:
   2. escala    quantas toneladas por dia de bio-GNL isso dá, contra o tamanho
                de uma planta pequena de liquefação;
   3. valor     quanto um m³ valeria no FuelEU (excedente vendido em pool ou
-               penalidade evitada) contra o que já vale no Brasil (molécula +
-               atributo do Mercado Cativo Verde, do painel do mandato).
+               penalidade evitada) contra o que já vale no Brasil (molécula ao
+               custo do gás natural + piso pedido para o CGOB, do painel do mandato).
 
 The supply side reuses build_biogram_reconciliation.py (municipal centroids,
 Atlas Real and CP2b by municipality, the haversine); the Brazilian prices and
@@ -278,7 +278,8 @@ def main() -> None:
         f"## 3. Valor no FuelEU ({FUELEU_YEAR}: limite de {fmt(fueleu_target(), 2)} gCO₂e/MJ)",
         "",
         f"R$ por m³ de CH₄ (a R$ {fmt(brl_eur, 2)}/€), pelo excedente de conformidade que o bio-GNL cria. "
-        f"No Brasil, molécula + atributo do Mercado Cativo Verde = **R$ {fmt(domestic, 2)}/m³**.",
+        f"No Brasil, molécula (custo do gás natural da Comgás) + piso pedido para o CGOB = "
+        f"**R$ {fmt(domestic, 2)}/m³**.",
         "",
         "| Bio-GNL (gCO₂e/MJ) | Escopo | Pool mín. | Pool máx. | Penalidade |",
         "|---:|---|---:|---:|---:|",
@@ -302,7 +303,7 @@ def main() -> None:
         "O mesmo gás atende o mandato e o Mercado Cativo Verde sem sair do país.",
         f"2. **No meio da faixa, o FuelEU pagaria pelo atributo R$ {fmt(mid[0]['brl_m3'], 2)}–"
         f"{fmt(mid[2]['brl_m3'], 2)}/m³ numa viagem para a Europa** (só metade da energia conta), "
-        f"contra R$ {fmt(route['atributo_referencia_brl_m3'], 2)}/m³ do atributo no Brasil. "
+        f"contra R$ {fmt(route['atributo_referencia_brl_m3'], 2)}/m³ do piso pedido para o CGOB no Brasil. "
         "A diferença precisa cobrir liquefação, caminhão pela serra e certificação.",
         "3. **O bloqueio é a certificação, não a oferta.** A Comissão Europeia sinalizou que não reconhece na "
         "Union Database (UDB) biometano que passa por rede de gás fora da UE (balanço de massa), e o RNG "

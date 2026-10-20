@@ -22,6 +22,10 @@ Biogenic CO2 (C20): what upgrading separates at each SP plant in the ANP
 snapshot (biogas × CO2 share × density), today and at capacity, and what the
 biogas SP burns would give if upgraded, against the market it would sell into.
 
+Sources: every figure names entries of the YAML's `fontes` registry by key;
+`references` resolves them into {title, publisher, date, url, kind, note} so the
+page can link each card to where its numbers come from.
+
 Inputs live in data/canonical_parameters: mandato_biometano.yaml and the ANP
 monthly series and plant snapshot it names. `read` is the only I/O; it needs nothing from the
 app, so the analysis prototype loads this file directly.
@@ -35,6 +39,7 @@ from collections import defaultdict
 from pathlib import Path
 
 PARAMS_YAML = "mandato_biometano.yaml"
+SOURCE_KINDS = ("oficial", "dados", "estudo", "empresa", "imprensa", "estimativa")
 
 
 def read(directory: Path) -> dict:
@@ -49,6 +54,35 @@ def read(directory: Path) -> dict:
         with (directory / block["arquivo"]).open(encoding="utf-8") as fh:
             block["linhas"] = list(csv.DictReader(fh))
     return params
+
+
+def references(params: dict, keys: list[str]) -> list[dict]:
+    """The registry entries behind `keys`, in order; an unknown key or kind is an error."""
+    registry = params["fontes"]
+    out = []
+    for key in keys:
+        if key not in registry:
+            raise ValueError(f"unknown source {key!r}")
+        f = registry[key]
+        if f["tipo"] not in SOURCE_KINDS:
+            raise ValueError(f"source {key!r} has unknown kind {f['tipo']!r}")
+        out.append(
+            {
+                "key": key,
+                "title": f["titulo"],
+                "publisher": f["autor"],
+                "date": str(f["data"]),
+                "url": f.get("url"),
+                "kind": f["tipo"],
+                "note": f.get("nota"),
+            }
+        )
+    return out
+
+
+def grouped_references(params: dict, groups: dict) -> dict:
+    """`references` for each group of keys (one group per figure of a card)."""
+    return {name: references(params, keys) for name, keys in groups.items()}
 
 
 def monthly_production(rows: list[dict]) -> list[dict]:
@@ -93,7 +127,7 @@ def targets(params: dict) -> list[dict]:
                 "cgob_year": t["volume_m3_ano"] / params["m3_por_cgob"] if not estimated else None,
                 "status": t["status"],
                 "act": t["ato"],
-                "source": t["fonte"],
+                "source": references(params, [t["fonte"]])[0],
             }
         )
     return out
@@ -125,14 +159,7 @@ def route_switch(params: dict) -> dict:
         "threshold_brl_mwh": net_molecule / (lhv * eta) * 1000.0,
         "prices": rows,
         "sp_burned_ch4_m3_day": p["biogas_sp_m3_dia"] * (low + high) / 2,
-        "sources": {
-            "molecule_attribute": p["fonte_molecula_atributo"],
-            "molecule_attribute_url": p["url_molecula_atributo"],
-            "upgrading": p["fonte_purificacao"],
-            "electricity": p["fonte_eletricidade"],
-            "electricity_url": p["url_eletricidade"],
-            "sp_biogas": p["fonte_biogas_sp"],
-        },
+        "references": grouped_references(params, p["fontes"]),
     }
 
 
@@ -156,13 +183,7 @@ def revenue_stack(params: dict) -> dict:
         ],
         "co2_kg_per_m3": co2,
         "digestate_value_share": p["digestato_valor_por_destino"],
-        "sources": {
-            "cgob_rule_url": p["url_regra_cgob"],
-            "cgob_cbio_critique_url": p["url_critica_cgob_cbio"],
-            "cbio_price_url": p["url_cbio"],
-            "fossil_reference_url": p["url_fossil_referencia"],
-            "captive_market_url": p["url_mercado_cativo_verde"],
-        },
+        "references": grouped_references(params, p["fontes"]),
     }
 
 
@@ -206,11 +227,7 @@ def biogenic_co2(params: dict) -> dict:
         "ethanol_t_year": p["etanol_mt_ano"] * 1e6,
         "epe_biogas_t_year": p["biogas_kt_ano"] * 1e3,
         "epe_biogas_operating_t_year": p["biogas_operando_kt_ano"] * 1e3,
-        "sources": {
-            "market_url": p["url_mercado"],
-            "epe_url": p["url_epe"],
-            "sbce_url": p["url_sbce"],
-        },
+        "references": grouped_references(params, p["fontes"]),
     }
 
 
@@ -233,10 +250,13 @@ def panel(params: dict) -> dict:
         "latest": {**latest, "sp_share_of_br": latest["sp_m3_day"] / latest["br_m3_day"]},
         "targets": goals,
         "series": series,
-        "production_source": params["producao"]["fonte"],
+        "sources_checked": str(params["fontes_verificadas_em"]),
+        "references": references(params, params["fontes_painel"]),
+        "production_references": references(params, params["producao"]["fontes"]),
+        "where_to_check": references(params, params["onde_conferir"]),
         "cgob": {
             "public_registry": params["cgob"]["registro_publico"],
-            "note": params["cgob"]["nota"],
+            "references": references(params, params["cgob"]["fontes"]),
         },
         "route_switch": route_switch(params) if "troca_de_rota" in params else None,
         "revenue_stack": revenue_stack(params) if "pilha_de_receitas" in params else None,
