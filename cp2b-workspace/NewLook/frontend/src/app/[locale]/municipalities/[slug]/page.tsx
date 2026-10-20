@@ -8,7 +8,7 @@
  *  3. where the methane comes from: sector bar + residue bars by sector
  *  4. method levels: bars with their min–max range (N1 and N2 only while
  *     METHOD_PAGES_ENABLED is on — see MunicipalityProfile.upstream); the
- *     climate card (GHG module) when the API answers
+ *     climate section (GHG module, folded) when the API answers
  *  5. neighbours compared, this municipality highlighted
  *  6. actions: nearby infrastructure (→ Proximidade), share, cite
  *  7. notes and limitations, folded; report an error
@@ -22,6 +22,7 @@
  */
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
+import { ChevronDown } from 'lucide-react'
 import { getFormatter, getTranslations, setRequestLocale } from 'next-intl/server'
 import { Link } from '@/navigation'
 import NavLink from '@/components/layout/NavLink'
@@ -370,50 +371,65 @@ export default async function MunicipalityProfilePage({ params }: Params) {
                 <LevelBars rows={levels} />
                 {!METHOD_PAGES_ENABLED && <p className="mt-4 text-xs text-ink-muted">{t('scenarios.held')}</p>}
               </Card>
-              {climate && (
-                <Card id="clima" title={t('climate.heading')} caption={t('climate.caption')}>
-                  <dl className="space-y-1 text-sm">
-                    {[
-                      { label: t('climate.methane'), value: climate.methaneT, sign: '+' },
-                      { label: t('climate.fossil'), value: climate.fossilT, sign: '+' },
-                      { label: t('climate.project'), value: climate.projectT, sign: '−' },
-                    ].map(({ label, value, sign }) => (
-                      <div key={label} className="flex justify-between gap-3">
-                        <dt className="text-ink-muted">{label}</dt>
-                        <dd className="whitespace-nowrap tabular-nums text-ink">{sign} {tons(value)}</dd>
-                      </div>
-                    ))}
-                    <div className="flex justify-between gap-3 border-t border-line pt-1">
-                      <dt className="font-semibold text-ink">{t('climate.net')}</dt>
-                      <dd className="whitespace-nowrap font-semibold tabular-nums text-ink">{tons(climate.netT)}</dd>
-                    </div>
-                  </dl>
-                  {climate.residues.length > 1 && (
-                    <div className="mt-4">
-                      <h3 className="mb-2 text-sm text-ink-muted">{t('climate.by_residue')}</h3>
-                      <BarList
-                        rows={climate.residues.map((r) => ({
-                          key: r.key,
-                          label: residueName(r.key),
-                          value: Math.max(0, r.netT),
-                          valueLabel: short(r.netT),
-                          barClassName: 'bg-dusk-600 dark:bg-dusk-400',
-                        }))}
-                      />
-                    </div>
-                  )}
-                  <p className="mt-4 text-xs text-ink-muted">
-                    {t('climate.note', { gwp: climate.gwpVersion ?? '—' })}
-                    {climate.unverified && ` ${t('climate.unverified')}`}
-                  </p>
-                  <p className="mt-2 text-sm">
-                    <Link href="/calculator" className={linkClass}>{t('climate.more')}</Link>
-                  </p>
-                </Card>
-              )}
               {infrastructure}
             </div>
           </div>
+        )}
+
+        {/* 4b. Climate (GHG module), folded: closed, it still shows the net figure. */}
+        {climate && (
+          <details id="clima" className="group scroll-mt-24 border border-line bg-paper-raised">
+            <summary className="flex min-h-[48px] cursor-pointer flex-wrap items-center justify-between gap-x-4 gap-y-1 px-4 py-3 text-ink sm:px-5">
+              <h2 className="text-lg">{t('climate.heading')}</h2>
+              <span className="flex items-center gap-2 text-sm">
+                <span className="text-ink-muted">{t('climate.net')}</span>
+                <span className="font-semibold tabular-nums">{tons(climate.netT)}</span>
+                <ChevronDown aria-hidden="true" className="h-4 w-4 text-ink-muted transition-transform group-open:rotate-180" />
+              </span>
+            </summary>
+            <div className="border-t border-line px-4 py-4 sm:px-5">
+              <p className="max-w-3xl text-sm text-ink-muted">{t('climate.caption')}</p>
+              <div className="mt-4 grid gap-6 md:grid-cols-2">
+                <dl className="space-y-1 text-sm">
+                  {[
+                    { label: t('climate.methane'), value: climate.methaneT, sign: '+' },
+                    { label: t('climate.fossil'), value: climate.fossilT, sign: '+' },
+                    { label: t('climate.project'), value: climate.projectT, sign: '−' },
+                  ].map(({ label, value, sign }) => (
+                    <div key={label} className="flex justify-between gap-3">
+                      <dt className="text-ink-muted">{label}</dt>
+                      <dd className="whitespace-nowrap tabular-nums text-ink">{sign} {tons(value)}</dd>
+                    </div>
+                  ))}
+                  <div className="flex justify-between gap-3 border-t border-line pt-1">
+                    <dt className="font-semibold text-ink">{t('climate.net')}</dt>
+                    <dd className="whitespace-nowrap font-semibold tabular-nums text-ink">{tons(climate.netT)}</dd>
+                  </div>
+                </dl>
+                {climate.residues.length > 1 && (
+                  <div>
+                    <h3 className="mb-2 text-sm text-ink-muted">{t('climate.by_residue')}</h3>
+                    <BarList
+                      rows={climate.residues.map((r) => ({
+                        key: r.key,
+                        label: residueName(r.key),
+                        value: Math.max(0, r.netT),
+                        valueLabel: short(r.netT),
+                        barClassName: 'bg-dusk-600 dark:bg-dusk-400',
+                      }))}
+                    />
+                  </div>
+                )}
+              </div>
+              <p className="mt-4 text-xs text-ink-muted">
+                {t('climate.note', { gwp: climate.gwpVersion ?? '—' })}
+                {climate.unverified && ` ${t('climate.unverified')}`}
+              </p>
+              <p className="mt-2 text-sm">
+                <Link href="/calculator" className={linkClass}>{t('climate.more')}</Link>
+              </p>
+            </div>
+          </details>
         )}
 
         <div className="grid gap-5 lg:grid-cols-5">
