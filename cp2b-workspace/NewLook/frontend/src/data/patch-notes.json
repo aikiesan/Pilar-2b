@@ -57,6 +57,13 @@
             "pt-BR": "Na página do município, o Clima virou uma seção que abre e fecha, em largura total, com a redução líquida à vista.",
             "en": "On the municipality page, Climate is now a full-width section that opens and closes, with the net reduction in view."
           }
+        },
+        {
+          "kind": "changed",
+          "text": {
+            "pt-BR": "O CO₂ de cada município nos exports e nos totais da API agora vem do módulo de GEE (redução líquida, potencial CP2b acessível), o mesmo número do Clima, no lugar da conta antiga de 0,4 t por MWh.",
+            "en": "Each municipality's CO₂ in the exports and the API totals now comes from the GHG module (net reduction, accessible CP2b potential), the same figure as Climate, instead of the old 0.4 t per MWh."
+          }
         }
       ]
     },

@@ -109,11 +109,12 @@ def main():
         ibge_code = r["ibge_code"]
         total_biogas = _float(r["total_biogas_m3_year"])
 
-        # Calculate derived energy and CO2 metrics
+        # Calculate derived energy
         # Methane conversion: 1 m3 CH4 = 9.97 kWh = 0.00997 MWh
         # (biogas_m3_yr column is actually biomethane/CH4 equivalent)
+        # co2_reduction_tons_year is not written here: sync_co2_from_ghg fills it
+        # from the GHG module once the CP2b potential is loaded.
         energy_mwh = total_biogas * 0.00997
-        co2_reduction = energy_mwh * 0.4
 
         # Calculate daily totals
         total_biogas_day = total_biogas / 365.0
@@ -166,7 +167,6 @@ def main():
                 
                 energy_potential_mwh_year = %s,
                 energy_potential_kwh_day = %s,
-                co2_reduction_tons_year = %s,
                 potential_category = %s,
                 updated_at = NOW()
             WHERE ibge_code = %s
@@ -209,7 +209,6 @@ def main():
                 _float(r["total_biomass_tons_year"]),
                 energy_mwh,
                 energy_kwh_day,
-                co2_reduction,
                 cat,
                 ibge_code,
             ),

@@ -105,7 +105,7 @@ Na raiz do repositório (protótipos de análise):
 python -m pytest tests --ignore=tests/test_pilar2b_mg_e2e.py
 ```
 
-Resultado nesta branch: backend 1333 passaram (5 pulados), frontend 972, raiz 54.
+Resultado nesta branch: backend 1337 passaram (5 pulados), frontend 972, raiz 54.
 
 Os protótipos de reconciliação BioGRAM leem o snapshot CP2b, que não está no Git
 (`backend/data/raw/cp2b_potential/2026/`). Sem ele, o script avisa e as colunas
@@ -133,6 +133,15 @@ CP2b saem vazias: não commite essas saídas, rode na máquina que tem o snapsho
   996/2026 (o ambiente de nuvem não alcança o texto oficial); o preço do CBIO é
   do início de 2026 e o fóssil de referência de 86,7 g/MJ é de 2018. Conferir os
   três antes de citar.
-- **Pendência conhecida:** `municipalities.co2_reduction_tons_year` ainda é
-  `energia × 0,4` (`backend/scripts/sync_db_canonical.py`) e outros endpoints o
-  servem. O cartão Clima e a calculadora já usam o módulo novo.
+- **CO₂ por município:** `municipalities.co2_reduction_tons_year` deixou de ser
+  `energia × 0,4`. O seeder `sync_co2_from_ghg` grava nela a redução líquida do
+  módulo de GEE (CP2b N4, cenário médio), o mesmo total do cartão Clima; os
+  exports do município passam a chamá-la "Redução líquida de GEE (tCO₂e)". Num
+  banco já populado, rodar uma vez (ele imprime o total do estado):
+
+  ```bash
+  docker compose exec backend python -m scripts.sync_co2_from_ghg
+  curl -s localhost:8000/api/v1/statistics/summary   # total_co2_reduction_tons_year muda
+  ```
+
+  Sem a tabela do CP2b, o seeder recusa e a coluna fica como estava.
