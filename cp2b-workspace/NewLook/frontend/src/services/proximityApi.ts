@@ -50,10 +50,32 @@ export interface ProximityMunicipality {
 export interface ProximityInfrastructure {
   type: string;
   name: string | null;
-  distance_km: number;
+  /** Null when the layer is not loaded on the server. */
+  distance_km: number | null;
+  found?: boolean;
+  /** The search radius for this type; nothing farther counts as found. */
+  max_distance_km?: number;
+  /** The feature's point nearest the analysis point; only when found. */
   coordinates?: { latitude: number; longitude: number };
   [key: string]: unknown;
 }
+
+/** The types the analysis measures, in the order the backend sends them. */
+export const INFRASTRUCTURE_TYPES = ['gas_pipeline', 'substation', 'railway', 'transmission_line', 'ete'] as const;
+export type InfrastructureType = (typeof INFRASTRUCTURE_TYPES)[number];
+
+export function isInfrastructureType(type: string): type is InfrastructureType {
+  return (INFRASTRUCTURE_TYPES as readonly string[]).includes(type);
+}
+
+/** One colour per type, on the results list and on the map; pipelines and roads as on the main map. */
+export const INFRASTRUCTURE_COLORS: Record<InfrastructureType, string> = {
+  gas_pipeline: '#FF6B35',
+  substation: '#7C3AED',
+  railway: '#8B4513',
+  transmission_line: '#B8860B',
+  ete: '#0284C7',
+};
 
 /** The /proximity/analyze response, as the backend sends it. */
 export interface ProximityAnalysisResult {
@@ -275,7 +297,7 @@ export function exportAnalysisToCSV(result: ProximityAnalysisResult, headers: Pr
     ...infrastructure.map((inf) => [
       inf.type,
       inf.name ?? '',
-      fixed(inf.distance_km),
+      inf.distance_km == null ? '' : fixed(inf.distance_km),
       inf.coordinates ? inf.coordinates.latitude.toFixed(6) : '',
       inf.coordinates ? inf.coordinates.longitude.toFixed(6) : '',
     ]),

@@ -27,6 +27,11 @@ jest.mock('leaflet', () => ({
   latLngBounds: jest.fn((corner1, corner2) => ({
     corner1,
     corner2,
+    extended: [] as unknown[],
+    extend(point: unknown) {
+      this.extended.push(point);
+      return this;
+    },
     isValid: () => true,
   })),
 }));
@@ -52,6 +57,14 @@ jest.mock('react-leaflet', () => ({
   ),
   Marker: ({ position, icon, children }: any) => (
     <div data-testid="marker" data-position={JSON.stringify(position)}>
+      {children}
+    </div>
+  ),
+  Polyline: ({ positions, pathOptions }: any) => (
+    <div data-testid="polyline" data-positions={JSON.stringify(positions)} data-color={pathOptions.color} />
+  ),
+  CircleMarker: ({ center, pathOptions, children }: any) => (
+    <div data-testid="circle-marker" data-center={JSON.stringify(center)} data-color={pathOptions.fillColor}>
       {children}
     </div>
   ),
@@ -581,6 +594,39 @@ describe('ProximityMap', () => {
         <ProximityMap {...defaultProps} selectedPoint={extremeCoords} />
       );
       expect(screen.getByText('-90,0000; -180,0000')).toBeInTheDocument();
+    });
+  });
+
+  describe('Nearest Infrastructure', () => {
+    const origin = { lat: -22.9, lng: -47.06 };
+    const items = [
+      { type: 'gas_pipeline', name: 'Ramal Campinas', distance_km: 4.27, found: true, coordinates: { latitude: -22.88, longitude: -47.02 } },
+      { type: 'substation', name: null, distance_km: 6.8, found: true, coordinates: { latitude: -22.95, longitude: -47.09 } },
+      { type: 'ete', name: null, distance_km: 41.5, found: false, max_distance_km: 30 },
+      { type: 'transmission_line', name: null, distance_km: null, found: false },
+    ];
+
+    it('draws a dashed line and a marker for each found item only', () => {
+      render(<ProximityMap {...defaultProps} selectedPoint={origin} infrastructure={{ origin, items }} />);
+      const lines = screen.getAllByTestId('polyline');
+      expect(lines).toHaveLength(2);
+      expect(lines[0]).toHaveAttribute('data-positions', JSON.stringify([[-22.9, -47.06], [-22.88, -47.02]]));
+      expect(lines[0]).toHaveAttribute('data-color', '#FF6B35');
+      expect(screen.getAllByTestId('circle-marker')).toHaveLength(2);
+    });
+
+    it('names each one in its popup, with the distance', () => {
+      render(<ProximityMap {...defaultProps} selectedPoint={origin} infrastructure={{ origin, items }} />);
+      expect(screen.getByText('Gasoduto')).toBeInTheDocument();
+      expect(screen.getByText('Ramal Campinas')).toBeInTheDocument();
+      expect(screen.getByText('4,3 km')).toBeInTheDocument();
+      expect(screen.getByText('Subestação de energia')).toBeInTheDocument();
+    });
+
+    it('keeps the found items in view, even beyond the radius', () => {
+      render(<ProximityMap {...defaultProps} selectedPoint={origin} infrastructure={{ origin, items }} />);
+      const bounds = mockFitBounds.mock.calls.at(-1)[0];
+      expect(bounds.extended).toEqual([[-22.88, -47.02], [-22.95, -47.09]]);
     });
   });
 });

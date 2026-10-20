@@ -6,14 +6,19 @@
 
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useIsClient } from '@/hooks/useIsClient';
-import { MapContainer, TileLayer, Circle, Marker, Popup, GeoJSON, useMapEvents, useMap, ZoomControl } from 'react-leaflet';
+import { MapContainer, TileLayer, Circle, CircleMarker, Marker, Polyline, Popup, GeoJSON, useMapEvents, useMap, ZoomControl } from 'react-leaflet';
 import L from 'leaflet';
 import { useTranslations } from 'next-intl';
 import 'leaflet/dist/leaflet.css';
 import '@/lib/leafletConfig';
 import { useFormat } from '@/hooks/useFormat';
+import {
+  INFRASTRUCTURE_COLORS,
+  isInfrastructureType,
+  type ProximityInfrastructure,
+} from '@/services/proximityApi';
 
 // São Paulo state center coordinates
 const SAO_PAULO_CENTER: [number, number] = [-22.5, -48.5];
@@ -47,6 +52,15 @@ interface ProximityMapProps {
   onMapClick: (lat: number, lng: number) => void;
   bufferGeometry?: any;
   municipalities?: any[];
+  /** Nearest infrastructure from the analysis, measured from `origin`. */
+  infrastructure?: { origin: { lat: number; lng: number }; items: ProximityInfrastructure[] };
+}
+
+const NO_POINTS: [number, number][] = [];
+
+/** The found items that carry a position. */
+function locatedInfrastructure(items: ProximityInfrastructure[] = []) {
+  return items.flatMap((item) => (item.found !== false && item.coordinates ? [{ ...item, at: item.coordinates }] : []));
 }
 
 // Component to handle map click events
@@ -62,10 +76,13 @@ function MapClickHandler({ onMapClick }: { onMapClick: (lat: number, lng: number
 // Component to auto-fit map bounds to selected point and radius
 function MapBoundsHandler({
   selectedPoint,
-  radius
+  radius,
+  extraPoints = NO_POINTS,
 }: {
   selectedPoint: { lat: number; lng: number } | null;
   radius: number;
+  /** Also kept in view: the nearest infrastructure, which may lie beyond the radius. */
+  extraPoints?: [number, number][];
 }) {
   const map = useMap();
 
@@ -81,9 +98,10 @@ function MapBoundsHandler({
         [selectedPoint.lat + latDelta, selectedPoint.lng + lngDelta]
       );
 
+      extraPoints.forEach((point) => bounds.extend(point));
       map.fitBounds(bounds, { padding: [50, 50], maxZoom: 12 });
     }
-  }, [selectedPoint, radius, map]);
+  }, [selectedPoint, radius, map, extraPoints]);
 
   return null;
 }
@@ -93,13 +111,20 @@ export default function ProximityMap({
   radius,
   onMapClick,
   bufferGeometry,
-  municipalities
+  municipalities,
+  infrastructure,
 }: ProximityMapProps) {
   const t = useTranslations('pages.proximity');
   const tCommon = useTranslations('common');
   const format = useFormat();
   const coordinate = (value: number, decimals: number) => format.number(value, { decimals, minDecimals: decimals });
   const isMounted = useIsClient();
+  const items = infrastructure?.items;
+  const located = useMemo(() => locatedInfrastructure(items), [items]);
+  const infrastructurePoints = useMemo(
+    () => located.map((item): [number, number] => [item.at.latitude, item.at.longitude]),
+    [located],
+  );
 
   if (!isMounted) {
     return (
@@ -157,7 +182,11 @@ export default function ProximityMap({
         <MapClickHandler onMapClick={onMapClick} />
 
         {/* Auto-fit bounds when point/radius changes */}
-        <MapBoundsHandler selectedPoint={selectedPoint} radius={radius} />
+        <MapBoundsHandler
+          selectedPoint={selectedPoint}
+          radius={radius}
+          extraPoints={infrastructurePoints}
+        />
 
         {/* Display buffer geometry from analysis */}
         {bufferGeometry && (
@@ -203,6 +232,41 @@ export default function ProximityMap({
             </Marker>
           </>
         )}
+
+        {/* Nearest infrastructure: a dashed line from the point to each one */}
+        {infrastructure && located.map((item) => {
+          const color = isInfrastructureType(item.type) ? INFRASTRUCTURE_COLORS[item.type] : '#64748B';
+          const label = isInfrastructureType(item.type) ? t(`infrastructure.types.${item.type}`) : item.type;
+          const at: [number, number] = [item.at.latitude, item.at.longitude];
+          return (
+            <React.Fragment key={`infra-${item.type}`}>
+              <Polyline
+                positions={[[infrastructure.origin.lat, infrastructure.origin.lng], at]}
+                pathOptions={{ color, weight: 2, opacity: 0.9, dashArray: '6, 6' }}
+              />
+              <CircleMarker
+                center={at}
+                radius={7}
+                pathOptions={{ color: '#ffffff', weight: 2, fillColor: color, fillOpacity: 1 }}
+              >
+                <Popup>
+                  <div className="text-sm min-w-[180px]">
+                    <p className="font-semibold text-gray-900 mb-1">{label}</p>
+                    {item.name && item.name !== label && <p className="text-gray-600">{item.name}</p>}
+                    <p className="mt-1 text-gray-600">
+                      {t('map.distance')}{' '}
+                      <span className="font-medium">
+                        {t('infrastructure.distance', {
+                          distance: format.number(item.distance_km ?? 0, { decimals: 1, minDecimals: 1 }),
+                        })}
+                      </span>
+                    </p>
+                  </div>
+                </Popup>
+              </CircleMarker>
+            </React.Fragment>
+          );
+        })}
 
         {/* Municipality markers from analysis results */}
         {municipalities && municipalities.map((mun: any, index: number) => {

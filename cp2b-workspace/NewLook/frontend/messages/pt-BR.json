@@ -1285,6 +1285,21 @@
         "scope": "Estado de <strong>São Paulo</strong>",
         "coordinates": "{lat}; {lng}"
       },
+      "infrastructure": {
+        "title": "Infraestrutura mais próxima",
+        "subtitle": "Distância em linha reta do ponto até o elemento mais próximo de cada tipo, nas camadas de infraestrutura do mapa. No mapa, a linha tracejada liga o ponto a cada um.",
+        "types": {
+          "gas_pipeline": "Gasoduto",
+          "substation": "Subestação de energia",
+          "railway": "Rodovia estadual",
+          "transmission_line": "Linha de transmissão",
+          "ete": "Estação de tratamento de esgoto"
+        },
+        "distance": "{distance} km",
+        "none_within": "Nenhum em até {radius} km",
+        "nearest_at": "o mais próximo está a {distance} km",
+        "unavailable": "Camada não carregada no servidor"
+      },
       "processed_in": "Processado em {ms} ms",
       "badge": {
         "optimal": "Logística ideal",

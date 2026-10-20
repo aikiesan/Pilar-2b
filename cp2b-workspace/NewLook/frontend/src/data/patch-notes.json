@@ -29,6 +29,20 @@
             "pt-BR": "Tour guiado do mapa com o Metaninho: um passo para cada parte (mapas prontos, busca, métrica, modo de desenho, abas, cenário, estado, mapa de fundo, legenda), com Voltar, Próximo, Fechar e Não mostrar novamente. Na primeira visita o Metaninho oferece o guia; o botão Guia do mapa, no canto do mapa, o abre a qualquer momento.",
             "en": "Guided map tour with Metaninho: one step per part (ready-made maps, search, metric, drawing mode, tabs, scenario, state, basemap, legend), with Back, Next, Close and Don't show again. On the first visit Metaninho offers the guide; the Map guide button in the map corner opens it at any time."
           }
+        },
+        {
+          "kind": "added",
+          "text": {
+            "pt-BR": "Análise de Proximidade mostra a infraestrutura mais próxima do ponto: gasoduto, subestação, rodovia estadual, linha de transmissão e ETE, com nome e distância em um cartão e uma linha tracejada até cada um no mapa.",
+            "en": "Proximity Analysis now shows the infrastructure nearest the point: gas pipeline, substation, state highway, transmission line and sewage plant, with name and distance in a card and a dashed line to each on the map."
+          }
+        },
+        {
+          "kind": "changed",
+          "text": {
+            "pt-BR": "Na página do município, o Clima virou uma seção que abre e fecha, em largura total, com a redução líquida à vista.",
+            "en": "On the municipality page, Climate is now a full-width section that opens and closes, with the net reduction in view."
+          }
         }
       ]
     },

@@ -25,7 +25,8 @@ import {
   Info,
   Building,
   Leaf,
-  Zap
+  Zap,
+  Factory
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import {
@@ -33,6 +34,8 @@ import {
   dominantLandUseClass,
   exportAnalysisToCSV,
   generateShareURL,
+  INFRASTRUCTURE_COLORS,
+  isInfrastructureType,
   parseShareURL,
   ProximityError,
   type LandUseClass,
@@ -407,6 +410,12 @@ function ProximityAnalysisContent() {
                 onMapClick={handleMapClick}
                 bufferGeometry={analysisResult?.results.buffer_geometry}
                 municipalities={analysisResult?.results.municipalities}
+                infrastructure={
+                  analysisResult?.results.infrastructure && {
+                    origin: { lat: analysisResult.request.latitude, lng: analysisResult.request.longitude },
+                    items: analysisResult.results.infrastructure,
+                  }
+                }
               />
             </div>
           </div>
@@ -444,6 +453,60 @@ function ProximityAnalysisContent() {
                 )}
               </div>
             </div>
+
+            {/* Nearest infrastructure, also drawn on the map */}
+            {analysisResult.results.infrastructure && analysisResult.results.infrastructure.length > 0 && (
+              <section className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-6 sm:p-8" aria-labelledby="proximity-infrastructure">
+                <h3 id="proximity-infrastructure" className="text-2xl font-bold text-gray-900 dark:text-slate-100 mb-2 flex items-center">
+                  <Factory className="h-6 w-6 mr-3 text-dusk-600" aria-hidden="true" />
+                  {tp('infrastructure.title')}
+                </h3>
+                <p className="mb-6 max-w-3xl text-sm text-gray-600 dark:text-slate-400">{tp('infrastructure.subtitle')}</p>
+                <ul className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {analysisResult.results.infrastructure.map((item) => {
+                    const type = item.type
+                    const known = isInfrastructureType(type)
+                    const label = known ? tp(`infrastructure.types.${type}`) : type
+                    const found = item.found !== false && item.distance_km != null
+                    const km = (value: number) => format.number(value, { decimals: 1, minDecimals: 1 })
+                    return (
+                      <li
+                        key={item.type}
+                        className="flex items-start gap-3 rounded-xl border border-gray-200 dark:border-slate-700 p-4"
+                      >
+                        <span
+                          aria-hidden="true"
+                          className="mt-1 h-3.5 w-3.5 flex-shrink-0 rounded-full border-2 border-white shadow"
+                          style={{ backgroundColor: known ? INFRASTRUCTURE_COLORS[type] : '#64748B' }}
+                        />
+                        <div className="min-w-0 flex-1">
+                          <p className="font-semibold text-gray-900 dark:text-slate-100">{label}</p>
+                          {found ? (
+                            <>
+                              <p className="text-2xl font-bold text-gray-900 dark:text-slate-100">
+                                {tp('infrastructure.distance', { distance: km(item.distance_km ?? 0) })}
+                              </p>
+                              {item.name && item.name !== label && (
+                                <p className="truncate text-sm text-gray-600 dark:text-slate-400" title={item.name}>{item.name}</p>
+                              )}
+                            </>
+                          ) : item.distance_km == null ? (
+                            <p className="text-sm text-gray-500 dark:text-slate-400">{tp('infrastructure.unavailable')}</p>
+                          ) : (
+                            <p className="text-sm text-gray-600 dark:text-slate-400">
+                              {item.max_distance_km != null
+                                ? `${tp('infrastructure.none_within', { radius: format.number(item.max_distance_km) })}; `
+                                : ''}
+                              {tp('infrastructure.nearest_at', { distance: km(item.distance_km) })}
+                            </p>
+                          )}
+                        </div>
+                      </li>
+                    )
+                  })}
+                </ul>
+              </section>
+            )}
 
             {/* Main Content Grid */}
             <div className="grid grid-cols-1 gap-6">

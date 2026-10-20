@@ -561,3 +561,78 @@ class TestCorrelateMapbiomasResiduos:
         }
         result = ProximityService().correlate_mapbiomas_residuos(land_use)
         assert [c["mapbiomas_class_id"] for c in result["correlations"]] == [20]
+
+
+class TestNearestInfrastructure:
+    """The nearest feature of each layer, read from shapefiles."""
+
+    # Campinas; one degree of latitude is about 111 km.
+    LAT, LNG = -22.9, -47.06
+
+    @pytest.fixture
+    def shapefiles(self, tmp_path, monkeypatch):
+        import geopandas as gpd
+        from shapely.geometry import LineString, Point
+
+        import app.services.proximity_service as module
+
+        # A pipeline running north-south 0.1° (about 10 km) east of the point,
+        # and a farther one; the name sits in Nome_Dut_1, as in the real layer.
+        gpd.GeoDataFrame(
+            {"Nome_Dut_1": ["Ramal Campinas", "Ramal Longe"], "Label": ["x", "y"]},
+            geometry=[
+                LineString([(self.LNG + 0.1, self.LAT - 0.5), (self.LNG + 0.1, self.LAT + 0.5)]),
+                LineString([(self.LNG + 0.5, self.LAT - 0.5), (self.LNG + 0.5, self.LAT + 0.5)]),
+            ],
+            crs="EPSG:4326",
+        ).to_file(tmp_path / "Gasodutos_Distribuicao_SP.shp")
+        # A substation with no name, about 20 km south.
+        gpd.GeoDataFrame(
+            {"nome": [None], "potencia": [1.5]},
+            geometry=[Point(self.LNG, self.LAT - 0.18)],
+            crs="EPSG:4326",
+        ).to_file(tmp_path / "Subestacoes_Energia.shp")
+        # A treatment plant beyond the 30 km search radius.
+        gpd.GeoDataFrame(
+            {"ETE_NM": ["ETE Distante"]},
+            geometry=[Point(self.LNG, self.LAT + 1)],
+            crs="EPSG:4326",
+        ).to_file(tmp_path / "ETEs_2019_SP.shp")
+
+        monkeypatch.setattr(module, "SHAPEFILE_DIR", tmp_path)
+        monkeypatch.setattr(module, "_utm_frames", {})
+        by_type = {
+            item["type"]: item
+            for item in ProximityService().find_nearest_infrastructure(self.LAT, self.LNG)
+        }
+        return by_type
+
+    def test_found_feature_has_name_distance_and_nearest_point(self, shapefiles):
+        pipe = shapefiles["gas_pipeline"]
+        assert pipe["found"] is True
+        assert pipe["name"] == "Ramal Campinas"
+        assert pipe["distance_km"] == pytest.approx(10.2, abs=0.5)
+        # The nearest point lies on the line, level with the analysis point.
+        assert pipe["coordinates"]["longitude"] == pytest.approx(self.LNG + 0.1, abs=1e-3)
+        assert pipe["coordinates"]["latitude"] == pytest.approx(self.LAT, abs=1e-3)
+        assert pipe["max_distance_km"] == 100
+
+    def test_unnamed_feature_has_no_name(self, shapefiles):
+        sub = shapefiles["substation"]
+        assert sub["found"] is True
+        assert sub["name"] is None
+        assert sub["distance_km"] == pytest.approx(20, abs=0.5)
+        assert sub["properties"]["nome"] is None
+
+    def test_feature_beyond_the_radius_is_not_found(self, shapefiles):
+        ete = shapefiles["ete"]
+        assert ete["found"] is False
+        assert ete["name"] is None
+        assert ete["distance_km"] > 100
+        assert "coordinates" not in ete
+        assert ete["max_distance_km"] == 30
+
+    def test_missing_layer_is_not_found(self, shapefiles):
+        line = shapefiles["transmission_line"]
+        assert line["found"] is False
+        assert line["distance_km"] is None

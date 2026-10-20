@@ -1285,6 +1285,21 @@
         "scope": "<strong>São Paulo</strong> State",
         "coordinates": "{lat}, {lng}"
       },
+      "infrastructure": {
+        "title": "Nearest infrastructure",
+        "subtitle": "Straight-line distance from the point to the nearest feature of each type, in the map's infrastructure layers. On the map, a dashed line joins the point to each one.",
+        "types": {
+          "gas_pipeline": "Gas pipeline",
+          "substation": "Power substation",
+          "railway": "State highway",
+          "transmission_line": "Transmission line",
+          "ete": "Sewage treatment plant"
+        },
+        "distance": "{distance} km",
+        "none_within": "None within {radius} km",
+        "nearest_at": "the nearest is {distance} km away",
+        "unavailable": "Layer not loaded on the server"
+      },
       "processed_in": "Processed in {ms} ms",
       "badge": {
         "optimal": "Ideal logistics",

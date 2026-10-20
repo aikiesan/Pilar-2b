@@ -64,10 +64,11 @@ financing, mandate).
 |---|---|
 | <http://localhost:3006/pt-BR/calculator> | Painel Clima: escolher destino atual do resíduo, uso da energia, purificação e vazamento; ver as três parcelas, o líquido e o vazamento de equilíbrio. A receita não soma mais crédito de carbono |
 | <http://localhost:3006/pt-BR/compare?ids=3509502,3550308> | Linha de redução líquida de GEE vinda do módulo novo |
-| <http://localhost:3006/pt-BR/municipalities/campinas-sp#clima> | Cartão Clima: metano evitado, fóssil deslocado, emissões do projeto, líquido e barras por resíduo |
+| <http://localhost:3006/pt-BR/municipalities/campinas-sp#clima> | Seção Clima (abre e fecha, abaixo da composição): metano evitado, fóssil deslocado, emissões do projeto, líquido e barras por resíduo |
 | <http://localhost:3006/pt-BR/financing> | Menu Dados → Financiamento do biometano. Quatro números no topo, dois cartões por rota, tabela com fonte por linha e "Limites" |
 | <http://localhost:3006/pt-BR/mandate> | Menu Dados → Mandato do biometano. Meta de 2026 (505 mil m³/dia), produção BR e SP de abr/2026, trajetória 2026–2030 com os atos, gráfico de 24 meses com a linha tracejada da meta |
 | <http://localhost:3006/pt-BR/map> | Guia do Metaninho: na primeira visita, depois da escolha de cookies, ele aparece oferecendo o guia ("Mostrar o guia", "Agora não", "Não mostrar novamente"). O guia tem 12 passos no desktop e 8 no celular, com Voltar, Próximo, Fechar (X ou Esc) e "Não mostrar novamente". O botão "Guia do mapa", abaixo da bússola, abre o guia a qualquer momento. Para ver a oferta de novo: apagar `pilar2b-map-tour-done` do localStorage e `pilar2b-map-tour-later` do sessionStorage |
+| <http://localhost:3006/pt-BR/proximity> | Clicar num ponto e "Analisar": cartão "Infraestrutura mais próxima" (gasoduto, subestação, rodovia estadual, linha de transmissão, ETE) com nome e distância, e no mapa uma linha tracejada colorida até cada um. "Camada não carregada no servidor" indica shapefile faltando em `backend/data/shapefiles/` |
 | <http://localhost:3006/pt-BR/patch-notes> | Versões 3.7.0 (GEE) e 3.8.0 (financiamento e mandato) |
 | As mesmas URLs com `/en/` | Textos em inglês, sem chave crua aparecendo |
 
@@ -95,7 +96,7 @@ Na raiz do repositório (protótipos de análise):
 python -m pytest tests --ignore=tests/test_pilar2b_mg_e2e.py
 ```
 
-Resultado nesta branch: backend 1322 passaram (5 pulados), frontend 969, raiz 53.
+Resultado nesta branch: backend 1326 passaram (5 pulados), frontend 972, raiz 53.
 
 Os protótipos de reconciliação BioGRAM leem o snapshot CP2b, que não está no Git
 (`backend/data/raw/cp2b_potential/2026/`). Sem ele, o script avisa e as colunas

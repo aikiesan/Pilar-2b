@@ -5,15 +5,16 @@ PostGIS-based spatial analysis for biogas potential assessment
 
 import json
 import logging
+import math
 import re
 import unicodedata
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Sequence, Tuple
 
 import geopandas as gpd
 import pyproj
 from shapely.geometry import Point
-from shapely.ops import transform
+from shapely.ops import nearest_points, transform
 
 from app.utils.shapefile_loader import read_shapefile_wgs84
 
@@ -122,6 +123,43 @@ _LOCAL_SHAPEFILE_DIR = (
 
 # Use Railway path if it exists, otherwise fall back to local
 SHAPEFILE_DIR = _RAILWAY_SHAPEFILE_DIR if _RAILWAY_SHAPEFILE_DIR.exists() else _LOCAL_SHAPEFILE_DIR
+
+
+_utm_frames: Dict[Path, gpd.GeoDataFrame] = {}
+
+
+def _read_shapefile_utm(path: Path) -> gpd.GeoDataFrame:
+    """A shapefile in UTM 23S (metres), reprojected once per process.
+
+    The nearest-infrastructure search measures every feature of a layer on
+    each request; reprojecting the layer once keeps that a vector operation.
+    Callers read the frame and never modify it.
+    """
+    key = path.resolve()
+    gdf = _utm_frames.get(key)
+    if gdf is None:
+        gdf = read_shapefile_wgs84(path)
+        gdf = gdf[gdf.geometry.notna() & ~gdf.geometry.is_empty].to_crs(UTM_23S)
+        _utm_frames[key] = gdf
+    return gdf
+
+
+def _is_missing(value: Any) -> bool:
+    """None, NaN or an empty string: a shapefile cell with nothing in it."""
+    if value is None:
+        return True
+    if isinstance(value, float) and math.isnan(value):
+        return True
+    return isinstance(value, str) and not value.strip()
+
+
+def _feature_name(row: Any, fields: Sequence[str]) -> str | None:
+    """The first filled name column of a feature, or None."""
+    for field in fields:
+        value = row.get(field)
+        if not _is_missing(value):
+            return str(value).strip()
+    return None
 
 
 class ProximityService:
@@ -636,33 +674,45 @@ class ProximityService:
         analysis_point = Point(lng, lat)
         results = []
 
-        # Infrastructure configurations
+        # Infrastructure configurations. `name_fields` are the columns that hold a
+        # feature's name in each layer, in the order the map's popups read them.
         infrastructure_configs = [
             {
                 "type": "gas_pipeline",
                 "name": "Gasoduto",
                 "files": ["Gasodutos_Distribuicao_SP", "Gasodutos_Transporte_SP"],
                 "max_distance_km": 100,
+                "name_fields": ["Nome_Dut_1", "Label", "name"],
             },
             {
                 "type": "substation",
                 "name": "Subestação",
                 "files": ["Subestacoes_Energia"],
                 "max_distance_km": 50,
+                "name_fields": ["nome", "name"],
             },
             {
+                # The id is historical: the layer is the state highways.
                 "type": "railway",
                 "name": "Rodovia",
                 "files": ["Rodovias_Estaduais_SP"],
                 "max_distance_km": 50,
+                "name_fields": ["nome", "name", "NOME"],
             },
             {
                 "type": "transmission_line",
                 "name": "Linha de Transmissão",
                 "files": ["Linhas_De_Transmissao_Energia"],
                 "max_distance_km": 50,
+                "name_fields": ["Nome", "label", "name"],
             },
-            {"type": "ete", "name": "ETE", "files": ["ETEs_2019_SP"], "max_distance_km": 30},
+            {
+                "type": "ete",
+                "name": "ETE",
+                "files": ["ETEs_2019_SP"],
+                "max_distance_km": 30,
+                "name_fields": ["ETE_NM", "name"],
+            },
         ]
 
         for config in infrastructure_configs:
@@ -672,6 +722,7 @@ class ProximityService:
                 config["type"],
                 config["name"],
                 config["max_distance_km"],
+                config["name_fields"],
             )
             results.append(result)
 
@@ -684,6 +735,7 @@ class ProximityService:
         infra_type: str,
         infra_name: str,
         max_distance_km: float,
+        name_fields: Sequence[str] = ("nome", "NOME", "name"),
     ) -> Dict[str, Any]:
         """
         Find nearest feature from shapefile(s).
@@ -694,12 +746,17 @@ class ProximityService:
             infra_type: Infrastructure type ID
             infra_name: Human-readable name
             max_distance_km: Maximum search distance
+            name_fields: Columns that may hold the feature's name, in order
 
         Returns:
-            Dict with nearest feature info
+            Dict with nearest feature info. When found, `coordinates` is the
+            feature's point nearest the analysis point (on a line, not its
+            centroid), so the map can draw the distance it reports.
         """
         nearest_distance = float("inf")
-        nearest_feature = None
+        nearest_row = None
+        nearest_geom_utm = None
+        point_utm = transform(self.wgs84_to_utm, point)
 
         for shapefile_name in shapefile_names:
             shapefile_path = SHAPEFILE_DIR / f"{shapefile_name}.shp"
@@ -709,48 +766,43 @@ class ProximityService:
                 continue
 
             try:
-                gdf = read_shapefile_wgs84(shapefile_path)
+                gdf = _read_shapefile_utm(shapefile_path)
+                if gdf.empty:
+                    continue
+                distances = gdf.geometry.distance(point_utm)
+                if distances.isna().all():
+                    continue
+                idx = distances.idxmin()
+                distance_km = float(distances[idx]) / 1000
 
-                # Transform point to UTM for accurate distance
-                point_utm = transform(self.wgs84_to_utm, point)
-
-                # Calculate distance for each feature
-                for idx, row in gdf.iterrows():
-                    geom = row.geometry
-                    if geom is None:
-                        continue
-
-                    # Transform geometry to UTM
-                    geom_utm = transform(self.wgs84_to_utm, geom)
-
-                    # Calculate distance in km
-                    distance_km = point_utm.distance(geom_utm) / 1000
-
-                    if distance_km < nearest_distance:
-                        nearest_distance = distance_km
-                        nearest_feature = {
-                            "name": row.get(
-                                "nome", row.get("NOME", row.get("name", shapefile_name))
-                            ),
-                            "properties": {
-                                k: str(v) if v is not None else None
-                                for k, v in row.items()
-                                if k != "geometry" and not str(k).startswith("_")
-                            },
-                        }
+                if distance_km < nearest_distance:
+                    nearest_distance = distance_km
+                    nearest_row = gdf.loc[idx]
+                    nearest_geom_utm = nearest_row.geometry
 
             except Exception as e:
                 logger.error(f"Error reading shapefile {shapefile_name}: {e}")
                 continue
 
         # Check if within max distance
-        if nearest_distance <= max_distance_km and nearest_feature:
+        if nearest_distance <= max_distance_km and nearest_row is not None:
+            nearest_utm = nearest_points(point_utm, nearest_geom_utm)[1]
+            nearest_wgs84 = transform(self.utm_to_wgs84, nearest_utm)
             return {
                 "type": infra_type,
-                "name": nearest_feature.get("name", infra_name),
+                "name": _feature_name(nearest_row, name_fields),
                 "distance_km": round(nearest_distance, 2),
                 "found": True,
-                "properties": nearest_feature.get("properties", {}),
+                "max_distance_km": max_distance_km,
+                "coordinates": {
+                    "latitude": round(nearest_wgs84.y, 6),
+                    "longitude": round(nearest_wgs84.x, 6),
+                },
+                "properties": {
+                    k: None if _is_missing(v) else str(v)
+                    for k, v in nearest_row.items()
+                    if k != "geometry" and not str(k).startswith("_")
+                },
             }
         else:
             return {
@@ -760,6 +812,7 @@ class ProximityService:
                     round(nearest_distance, 2) if nearest_distance != float("inf") else None
                 ),
                 "found": False,
+                "max_distance_km": max_distance_km,
                 "properties": None,
                 "note": f"Nenhum(a) {infra_name} encontrado(a) em {max_distance_km}km",
             }
