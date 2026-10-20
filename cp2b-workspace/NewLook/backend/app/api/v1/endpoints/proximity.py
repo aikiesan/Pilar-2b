@@ -158,7 +158,7 @@ class ProximityAnalysisResponse(BaseModel):
     - Municipalities within radius with biogas potential
     - Aggregated biogas potential by category (urban, agricultural, livestock)
     - MapBiomas land use percentages
-    - Nearest infrastructure (pipelines, substations, railways)
+    - Nearest infrastructure (pipelines, thermal power plants, highways)
     """,
 )
 async def analyze_proximity(request: ProximityAnalysisRequest):
@@ -446,10 +446,10 @@ async def get_infrastructure_types():
             },
             {
                 "id": "substation",
-                "name": "Subestação Elétrica",
+                "name": "Usina termelétrica",
                 "icon": "⚡",
                 "search_radius_km": 50,
-                "description": "Subestações de energia elétrica",
+                "description": "Usinas termelétricas (ANEEL)",
             },
             {
                 "id": "railway",

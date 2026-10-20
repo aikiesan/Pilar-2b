@@ -686,8 +686,10 @@ class ProximityService:
                 "name_fields": ["Nome_Dut_1", "Distrib"],  # transport: duct; distribution: company
             },
             {
+                # The id and file name are historical: the layer holds ANEEL's
+                # thermal power plants (CEG codes UTE…), not substations.
                 "type": "substation",
-                "name": "Subestação",
+                "name": "Usina termelétrica",
                 "files": ["Subestacoes_Energia"],
                 "max_distance_km": 50,
                 "name_fields": ["nome"],

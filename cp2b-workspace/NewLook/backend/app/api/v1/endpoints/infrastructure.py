@@ -96,10 +96,13 @@ async def get_pipelines_geojson() -> Dict[str, Any]:
 @router.get("/substations/geojson")
 async def get_substations_geojson() -> Dict[str, Any]:
     """
-    Get electrical substations GeoJSON for São Paulo state
+    Get the thermal power plants GeoJSON for São Paulo state.
+
+    The route and file names say "substations" for compatibility, but the
+    layer holds ANEEL's thermal power plants (CEG codes UTE…).
 
     Returns:
-        GeoJSON FeatureCollection with substation points from Subestacoes_Energia.shp
+        GeoJSON FeatureCollection with plant points from Subestacoes_Energia.shp
     """
     try:
         geojson = shapefile_loader.load_shapefile_as_geojson("Subestacoes_Energia")

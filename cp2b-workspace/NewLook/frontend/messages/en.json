@@ -577,7 +577,7 @@
         "road": "Road",
         "pipeline": "Gas pipeline",
         "transmission_line": "Transmission line",
-        "substation": "Substation",
+        "substation": "Thermal power plant",
         "biogas_plant": "Biogas plant",
         "biogas_plant_of": "{type} plant",
         "biogas": "Biogas",
@@ -1290,7 +1290,7 @@
         "subtitle": "Straight-line distance from the point to the nearest feature of each type, in the map's infrastructure layers. On the map, a dashed line joins the point to each one.",
         "types": {
           "gas_pipeline": "Gas pipeline",
-          "substation": "Power substation",
+          "substation": "Thermal power plant",
           "railway": "State highway",
           "transmission_line": "Transmission line",
           "ete": "Sewage treatment plant"

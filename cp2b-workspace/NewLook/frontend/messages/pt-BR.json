@@ -577,7 +577,7 @@
         "road": "Rodovia",
         "pipeline": "Gasoduto",
         "transmission_line": "Linha de Transmissão",
-        "substation": "Subestação",
+        "substation": "Usina termelétrica",
         "biogas_plant": "Planta de Biogás",
         "biogas_plant_of": "Planta de {type}",
         "biogas": "Biogás",
@@ -1290,7 +1290,7 @@
         "subtitle": "Distância em linha reta do ponto até o elemento mais próximo de cada tipo, nas camadas de infraestrutura do mapa. No mapa, a linha tracejada liga o ponto a cada um.",
         "types": {
           "gas_pipeline": "Gasoduto",
-          "substation": "Subestação de energia",
+          "substation": "Usina termelétrica",
           "railway": "Rodovia estadual",
           "transmission_line": "Linha de transmissão",
           "ete": "Estação de tratamento de esgoto"

@@ -620,7 +620,7 @@ describe('ProximityMap', () => {
       expect(screen.getByText('Gasoduto')).toBeInTheDocument();
       expect(screen.getByText('Ramal Campinas')).toBeInTheDocument();
       expect(screen.getByText('4,3 km')).toBeInTheDocument();
-      expect(screen.getByText('Subestação de energia')).toBeInTheDocument();
+      expect(screen.getByText('Usina termelétrica')).toBeInTheDocument();
     });
 
     it('keeps the found items in view, even beyond the radius', () => {

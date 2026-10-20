@@ -2,6 +2,23 @@
   "_comment": "Patch notes, newest first. Each entry carries its own pt-BR and en text, deliberately OUTSIDE messages/*.json: the catalogs are gated by check-i18n-parity.mjs, and threading one release note through two catalogs per deploy makes writing a note a chore nobody does. scripts/check-patch-notes.mjs enforces that both locales are present here instead. `date` is ISO 8601 WITH offset -- it is rendered in the reader's locale, so a bare date would drift a day across timezones. `kind` must be one of: added, changed, fixed, security, data.",
   "entries": [
     {
+      "version": "3.8.3",
+      "date": "2026-10-20T22:30:00-03:00",
+      "title": {
+        "pt-BR": "Usinas termelétricas com o nome certo",
+        "en": "Thermal power plants, correctly named"
+      },
+      "changes": [
+        {
+          "kind": "fixed",
+          "text": {
+            "pt-BR": "Na Análise de Proximidade, a camada chamada \"Subestação\" traz na verdade as usinas termelétricas da ANEEL (códigos CEG UTE…, como as de bagaço de cana). Agora ela aparece como \"Usina termelétrica\".",
+            "en": "In Proximity Analysis, the layer labelled \"Substation\" actually holds ANEEL's thermal power plants (CEG codes UTE…, such as sugarcane-bagasse plants). It now shows as \"Thermal power plant\"."
+          }
+        }
+      ]
+    },
+    {
       "version": "3.8.2",
       "date": "2026-10-20T21:00:00-03:00",
       "title": {

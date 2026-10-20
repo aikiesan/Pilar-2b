@@ -591,7 +591,7 @@ class TestNearestInfrastructure:
             ],
             crs="EPSG:4326",
         ).to_file(tmp_path / "Gasodutos_Distribuicao_SP.shp")
-        # A substation with no name, about 20 km south.
+        # A thermal plant with no name, about 20 km south.
         gpd.GeoDataFrame(
             {"nome": [None], "potencia": [1.5]},
             geometry=[Point(self.LNG, self.LAT - 0.18)],
