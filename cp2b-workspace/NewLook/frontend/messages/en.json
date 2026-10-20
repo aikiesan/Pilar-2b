@@ -2764,6 +2764,79 @@
       "source_tariff": "Green Captive Market tariff",
       "source_pld": "CCEE spot price"
     },
+    "stack": {
+      "heading": "What adds up in the revenue of one m³ of biomethane",
+      "caption": "Projects and lenders often add revenues that do not add up. Each line says whether it counts alongside the others, and why.",
+      "total": "Possible sum per m³: up to {total} (molecule, one attribute and the CBIO ceiling). The other lines have no public price or are not revenue.",
+      "groups": {
+        "adds": "Adds up",
+        "once": "Sold only once",
+        "caveat": "Adds up, with a caveat",
+        "not": "Do not add"
+      },
+      "items": {
+        "molecule": {
+          "title": "Molecule",
+          "value": "{value}/m³",
+          "note": "The gas without its environmental attribute, at the Green Captive Market price."
+        },
+        "co2": {
+          "title": "Biogenic CO₂",
+          "value": "{low}–{high} kg/m³",
+          "note": "A physical co-product of upgrading; in an engine it leaves diluted in the exhaust. No public price in SP: it needs a buyer nearby."
+        },
+        "digestate_new": {
+          "title": "Digestate from urban waste",
+          "value": "{share} of the digestate value",
+          "note": "The nutrient that goes to landfill today: the only one that is new revenue."
+        },
+        "cgob": {
+          "title": "CGOB, for the mandate",
+          "value": "1 CGOB = {m3} m³",
+          "note": "The certificate natural gas producers and importers buy to meet the target."
+        },
+        "captive": {
+          "title": "Attribute in the Green Captive Market",
+          "value": "{value}/m³ ≈ {perCgob} per CGOB",
+          "note": "Goes to the Comgás customer who buys the biomethane: once sold to them, the attribute cannot be sold again as a CGOB."
+        },
+        "voluntary_cert": {
+          "title": "Voluntary certificate (GAS-REC, I-REC)",
+          "note": "To back a CGOB with a 2026 invoice, ANP requires cancelling the voluntary certificate for the same volume."
+        },
+        "cbio": {
+          "title": "CBIO (RenovaBio)",
+          "value": "up to {low}–{high}/m³",
+          "note": "Ceiling of {cbio} CBIO per m³ (biomethane with no emissions at all), at the Jan–Feb 2026 price and the 2025 average. ANP allows a CBIO and a CGOB from the same invoice, with the CGOB flagging the CBIO; part of the market sees double counting in this."
+        },
+        "carbon": {
+          "title": "Voluntary carbon credit",
+          "note": "For the methane avoided (lagoon, landfill). Do not add it without checking what the methodology credits: if it also credits the fossil fuel displaced, it overlaps the CBIO and the attribute. The Climate module's reduction is not a credit."
+        },
+        "digestate_kept": {
+          "title": "Digestate from streams already returned to the soil",
+          "value": "{share} of the digestate value",
+          "note": "Vinasse, filter cake, manure: the digester keeps the nutrient, it does not create it."
+        },
+        "straw": {
+          "title": "Nutrient in the straw removed",
+          "value": "{share} of the digestate value",
+          "note": "A cost, not revenue: avoided only if the digestate goes back to the cane field."
+        },
+        "electricity": {
+          "title": "Power from the same biogas",
+          "note": "Either power or biomethane: see the route switch above."
+        }
+      },
+      "digestate_basis": "Shares of the nutrient value of SP digestate, by where the residue goes today (PILAR-2b prototype, Real scenario).",
+      "limits": "Screening values from a single or secondary source: check against ANP Resolution 996/2026, the B3 series and the current RenovaCalc before quoting.",
+      "sources": "Sources",
+      "source_rule": "CGOB and CBIO rule",
+      "source_critique": "critique of double issuance",
+      "source_cbio": "CBIO price",
+      "source_fossil": "fossil reference",
+      "source_captive": "Green Captive Market"
+    },
     "limits": {
       "heading": "Limits",
       "items": [

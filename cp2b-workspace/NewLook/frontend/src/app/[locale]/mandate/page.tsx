@@ -4,7 +4,8 @@
  * Brazil and São Paulo produce (ANP, monthly), and the CGOB issued once a
  * public registry exists. Below them, the route switch (C17): what the
  * environmental attribute must pay for a plant to stop burning biogas for
- * electricity and sell biomethane instead.
+ * electricity and sell biomethane instead; and the revenue stack (C27): what
+ * adds up in the revenue of one m³ and what excludes what.
  *
  * Every figure comes from /api/v1/mandate/panel (data/canonical_parameters/
  * mandato_biometano.yaml and the ANP series). Rendered on the server and kept
@@ -13,6 +14,7 @@
  */
 import type { Metadata } from 'next'
 import { getFormatter, getTranslations } from 'next-intl/server'
+import { Ban, CirclePlus, Repeat1, TriangleAlert, type LucideIcon } from 'lucide-react'
 import Breadcrumb from '@/components/ui/Breadcrumb'
 import { HeaderLeaves } from '@/components/ui/ArcOrnament'
 import { BarList, Card, StatTile } from '@/components/municipality/ProfileVisuals'
@@ -66,11 +68,38 @@ interface RouteSwitch {
   sources: { molecule_attribute_url: string; electricity_url: string }
 }
 
+/** The revenue-stack groups, in order, and the lines in each (messages under `stack.items`). */
+const STACK = [
+  { group: 'adds', Icon: CirclePlus, items: ['molecule', 'co2', 'digestate_new'] },
+  { group: 'once', Icon: Repeat1, items: ['cgob', 'captive', 'voluntary_cert'] },
+  { group: 'caveat', Icon: TriangleAlert, items: ['cbio'] },
+  { group: 'not', Icon: Ban, items: ['carbon', 'digestate_kept', 'straw', 'electricity'] },
+] as const satisfies readonly { group: string; Icon: LucideIcon; items: readonly string[] }[]
+type StackItem = (typeof STACK)[number]['items'][number]
+
+interface RevenueStack {
+  molecule_brl_m3: number
+  attribute_brl_m3: number
+  m3_per_cgob: number
+  cbio_per_m3_max: number
+  cbio_prices: { key: string; brl: number; brl_m3_max: number }[]
+  co2_kg_per_m3: [number, number]
+  digestate_value_share: { ja_reciclado: number; reposicao: number; novo: number }
+  sources: {
+    cgob_rule_url: string
+    cgob_cbio_critique_url: string
+    cbio_price_url: string
+    fossil_reference_url: string
+    captive_market_url: string
+  }
+}
+
 interface Panel {
   latest: Month & { sp_share_of_br: number }
   targets: Target[]
   series: Month[]
   route_switch: RouteSwitch | null
+  revenue_stack: RevenueStack | null
 }
 
 export const generateMetadata = (): Promise<Metadata> => navMetadata('mandate', 'mandate')
@@ -126,6 +155,28 @@ export default async function MandatePage() {
       ]
     : []
   const routeMax = Math.max(...routeRows.map((r) => r.value))
+
+  const stack = data.revenue_stack
+  // The figure beside each line; lines without one only explain.
+  const figures = (s: RevenueStack): Partial<Record<StackItem, string>> => {
+    const cbio = s.cbio_prices.map((c) => c.brl_m3_max)
+    const kg = (v: number) => format.number(v, { maximumFractionDigits: 1, minimumFractionDigits: 1 })
+    const share = (v: number) => pct(v)
+    return {
+      molecule: t('stack.items.molecule.value', { value: brl(s.molecule_brl_m3) }),
+      co2: t('stack.items.co2.value', { low: kg(s.co2_kg_per_m3[0]), high: kg(s.co2_kg_per_m3[1]) }),
+      digestate_new: t('stack.items.digestate_new.value', { share: share(s.digestate_value_share.novo) }),
+      cgob: t('stack.items.cgob.value', { m3: s.m3_per_cgob }),
+      captive: t('stack.items.captive.value', {
+        value: brl(s.attribute_brl_m3),
+        perCgob: brl0(s.attribute_brl_m3 * s.m3_per_cgob),
+      }),
+      cbio: t('stack.items.cbio.value', { low: brl(Math.min(...cbio)), high: brl(Math.max(...cbio)) }),
+      digestate_kept: t('stack.items.digestate_kept.value', { share: share(s.digestate_value_share.ja_reciclado) }),
+      straw: t('stack.items.straw.value', { share: share(s.digestate_value_share.reposicao) }),
+    }
+  }
+  const stackFigures = stack ? figures(stack) : {}
   const linkClass = 'text-terra-700 underline underline-offset-2 dark:text-terra-300'
 
   return (
@@ -317,6 +368,66 @@ export default async function MandatePage() {
               <a href={route.sources.electricity_url} target="_blank" rel="noopener noreferrer" className={linkClass}>
                 {t('route.source_pld')}
               </a>
+            </p>
+          </Card>
+        )}
+
+        {stack && (
+          <Card id="pilha-de-receitas" title={t('stack.heading')} caption={t('stack.caption')}>
+            <p className="max-w-3xl text-sm font-medium text-ink">
+              {t('stack.total', {
+                total: brl(
+                  stack.molecule_brl_m3 +
+                    stack.attribute_brl_m3 +
+                    Math.max(...stack.cbio_prices.map((c) => c.brl_m3_max)),
+                ),
+              })}
+            </p>
+            <div className="mt-4 grid gap-4 md:grid-cols-2">
+              {STACK.map(({ group, Icon, items }) => (
+                <section key={group} aria-labelledby={`stack-${group}`} className="rounded-lg border border-line p-4">
+                  <h3 id={`stack-${group}`} className="flex items-center gap-2 text-sm font-semibold text-ink">
+                    <Icon className="h-4 w-4 shrink-0 text-terra-700 dark:text-terra-300" aria-hidden="true" />
+                    {t(`stack.groups.${group}`)}
+                  </h3>
+                  <dl className="mt-3 space-y-3 text-sm">
+                    {items.map((item) => (
+                      <div key={item}>
+                        <dt className="flex flex-wrap items-baseline justify-between gap-x-3 font-medium text-ink">
+                          <span>{t(`stack.items.${item}.title`)}</span>
+                          {stackFigures[item] && <span className="tabular-nums">{stackFigures[item]}</span>}
+                        </dt>
+                        <dd className="mt-0.5 text-ink-muted">
+                          {item === 'cbio'
+                            ? t('stack.items.cbio.note', {
+                                cbio: format.number(stack.cbio_per_m3_max, { maximumSignificantDigits: 2 }),
+                              })
+                            : t(`stack.items.${item}.note`)}
+                        </dd>
+                      </div>
+                    ))}
+                  </dl>
+                </section>
+              ))}
+            </div>
+            <p className="mt-4 text-xs text-ink-muted">
+              {t('stack.digestate_basis')} {t('stack.limits')} {t('stack.sources')}:{' '}
+              {(
+                [
+                  ['source_rule', stack.sources.cgob_rule_url],
+                  ['source_critique', stack.sources.cgob_cbio_critique_url],
+                  ['source_cbio', stack.sources.cbio_price_url],
+                  ['source_fossil', stack.sources.fossil_reference_url],
+                  ['source_captive', stack.sources.captive_market_url],
+                ] as const
+              ).map(([key, href], i) => (
+                <span key={key}>
+                  {i > 0 && ' · '}
+                  <a href={href} target="_blank" rel="noopener noreferrer" className={linkClass}>
+                    {t(`stack.${key}`)}
+                  </a>
+                </span>
+              ))}
             </p>
           </Card>
         )}

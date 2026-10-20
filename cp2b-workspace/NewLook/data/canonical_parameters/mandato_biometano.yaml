@@ -105,3 +105,38 @@ troca_de_rota:
   biogas_sp_m3_dia: 4900000
   fracao_ch4: [0.55, 0.65]
   fonte_biogas_sp: "CIBiogás, Panorama do Biogás 2025"
+
+# -----------------------------------------------------------------------------
+# Pilha de receitas (C27): o que soma na receita de um m³ de biometano e o que
+# se exclui. Molécula, atributo, PCI e fração de CH₄ vêm de `troca_de_rota`;
+# aqui ficam só o que é próprio da pilha. Valores de triagem: conferir antes
+# de citar.
+# -----------------------------------------------------------------------------
+pilha_de_receitas:
+  # Teto do CBIO: a nota de eficiência não passa da intensidade do fóssil de
+  # referência (biometano com intensidade zero). 1 CBIO = 1 t CO₂e.
+  fossil_referencia_g_co2e_mj: 86.7
+  fonte_fossil_referencia: "RenovaCalc, aba biometano, citada pelo CIBiogás na CP 10/2018 da ANP; conferir na versão vigente"
+  url_fossil_referencia: "https://www.gov.br/anp/pt-br/assuntos/consultas-e-audiencias-publicas/consulta-audiencia-publica/2018/arquivos-consultas-e-audiencias-publicas-2018/cap-10-2018/cibiogas-comentarios-sugestoes.pdf"
+  precos_cbio:
+    - chave: jan_fev_2026
+      brl: 31.40
+    - chave: media_2025
+      brl: 54.70
+  fonte_cbio: "Itaú BBA, relatório RenovaBio (início de 2026); conferir na série da B3"
+  url_cbio: "https://novidadesmt.com.br/agronegocio/renovabio-inicia-2026-com-metas-menores-e-precos-de-cbios-em-queda-aponta-relatorio-do-itau-bba/"
+  # CBIO e CGOB da mesma nota fiscal: permitido, com o CGOB indicando o CBIO
+  # (Resolução ANP 996/2026); lastro retroativo de 2026 exige cancelar o
+  # certificado voluntário do mesmo volume.
+  fonte_regra_cgob: "Resolução ANP 996/2026, resumo de Tauil & Chequer (mar/2026); conferir no texto da resolução"
+  url_regra_cgob: "https://www.tauilchequer.com.br/pt/insights/publications/2026/03/anp-issues-rules-on-biomethane-targets-and-cgob-issuance"
+  url_critica_cgob_cbio: "https://brasilenergia.com.br/energia/certificado-de-garantia-de-origem-de-biometano-um-fim-em-si-mesmo"
+  url_mercado_cativo_verde: "https://agenciainfra.com/blog/comgas-obtem-aval-para-vender-biometano-no-mercado-cativo-verde/"
+  densidade_co2_kg_m3: 1.977
+  # Parte do valor dos nutrientes do digestato de SP por destino atual do
+  # resíduo (analysis/build_sp_digestate_nutrients.py, cenário Real); um teste
+  # da raiz confere contra o protótipo.
+  digestato_valor_por_destino:
+    ja_reciclado: 0.81
+    reposicao: 0.13
+    novo: 0.06

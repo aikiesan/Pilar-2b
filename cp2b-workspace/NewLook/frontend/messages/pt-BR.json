@@ -2764,6 +2764,79 @@
       "source_tariff": "tarifa do Mercado Cativo Verde",
       "source_pld": "PLD da CCEE"
     },
+    "stack": {
+      "heading": "O que soma na receita de um m³ de biometano",
+      "caption": "Projetos e financiadores costumam somar receitas que não se somam. Aqui, cada linha diz se entra na conta junto com as outras, e por quê.",
+      "total": "Soma possível por m³: até {total} (molécula, um atributo e o teto do CBIO). As outras linhas não têm preço público ou não são receita.",
+      "groups": {
+        "adds": "Soma",
+        "once": "Vende-se uma vez",
+        "caveat": "Soma, com ressalva",
+        "not": "Não somar"
+      },
+      "items": {
+        "molecule": {
+          "title": "Molécula",
+          "value": "{value}/m³",
+          "note": "O gás sem o atributo ambiental, ao preço do Mercado Cativo Verde."
+        },
+        "co2": {
+          "title": "CO₂ biogênico",
+          "value": "{low}–{high} kg/m³",
+          "note": "Coproduto físico da purificação; no motor, sai diluído no escapamento. Sem preço público em SP: depende de comprador por perto."
+        },
+        "digestate_new": {
+          "title": "Digestato do resíduo urbano",
+          "value": "{share} do valor do digestato",
+          "note": "O nutriente que hoje vai para o aterro: o único que é receita nova."
+        },
+        "cgob": {
+          "title": "CGOB, para o mandato",
+          "value": "1 CGOB = {m3} m³",
+          "note": "O certificado que produtores e importadores de gás natural compram para cumprir a meta."
+        },
+        "captive": {
+          "title": "Atributo no Mercado Cativo Verde",
+          "value": "{value}/m³ ≈ {perCgob} por CGOB",
+          "note": "Vai para o cliente da Comgás que compra o biometano: vendido a ele, o atributo não pode ser vendido de novo como CGOB."
+        },
+        "voluntary_cert": {
+          "title": "Certificado voluntário (GAS-REC, I-REC)",
+          "note": "Para gerar lastro de CGOB com nota fiscal de 2026, a ANP exige cancelar o certificado voluntário do mesmo volume."
+        },
+        "cbio": {
+          "title": "CBIO (RenovaBio)",
+          "value": "até {low}–{high}/m³",
+          "note": "Teto de {cbio} CBIO por m³ (biometano sem emissão alguma), ao preço de jan–fev/2026 e à média de 2025. A ANP permite CBIO e CGOB da mesma nota fiscal, com o CGOB indicando o CBIO; parte do mercado vê nisso dupla contagem."
+        },
+        "carbon": {
+          "title": "Crédito de carbono voluntário",
+          "note": "Pelo metano evitado (lagoa, aterro). Não somar sem ver o que a metodologia credita: se também credita o fóssil deslocado, sobrepõe-se ao CBIO e ao atributo. A redução do módulo Clima não é crédito."
+        },
+        "digestate_kept": {
+          "title": "Digestato de fluxos que já voltam ao solo",
+          "value": "{share} do valor do digestato",
+          "note": "Vinhaça, torta de filtro, esterco: o biodigestor preserva o nutriente, não o cria."
+        },
+        "straw": {
+          "title": "Nutriente da palha removida",
+          "value": "{share} do valor do digestato",
+          "note": "Custo, não receita: só é evitado se o digestato voltar ao canavial."
+        },
+        "electricity": {
+          "title": "Eletricidade do mesmo biogás",
+          "note": "Ou eletricidade ou biometano: veja a troca de rota acima."
+        }
+      },
+      "digestate_basis": "Partes do valor dos nutrientes do digestato de SP, pelo destino atual do resíduo (protótipo do PILAR-2b, cenário Real).",
+      "limits": "Valores de triagem, de fonte única ou secundária: conferir na Resolução ANP 996/2026, na série da B3 e na RenovaCalc vigente antes de citar.",
+      "sources": "Fontes",
+      "source_rule": "regra CGOB e CBIO",
+      "source_critique": "crítica à dupla emissão",
+      "source_cbio": "preço do CBIO",
+      "source_fossil": "fóssil de referência",
+      "source_captive": "Mercado Cativo Verde"
+    },
     "limits": {
       "heading": "Limites",
       "items": [

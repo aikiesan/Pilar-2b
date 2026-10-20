@@ -33,6 +33,13 @@
         {
           "kind": "added",
           "text": {
+            "pt-BR": "No Mandato do biometano, o cartão \"O que soma na receita de um m³ de biometano\": molécula, CGOB, CBIO, crédito voluntário, CO₂ biogênico e digestato, separados entre o que soma, o que se vende uma vez só e o que não se soma, com a regra e a fonte de cada linha.",
+            "en": "On the Biomethane mandate page, the \"What adds up in the revenue of one m³ of biomethane\" card: molecule, CGOB, CBIO, voluntary credit, biogenic CO₂ and digestate, split into what adds up, what is sold only once and what does not add, with the rule and source for each line."
+          }
+        },
+        {
+          "kind": "added",
+          "text": {
             "pt-BR": "Tour guiado do mapa com o Metaninho: um passo para cada parte (mapas prontos, busca, métrica, modo de desenho, abas, cenário, estado, mapa de fundo, legenda), com Voltar, Próximo, Fechar e Não mostrar novamente. Na primeira visita o Metaninho oferece o guia; o botão Guia do mapa, no canto do mapa, o abre a qualquer momento.",
             "en": "Guided map tour with Metaninho: one step per part (ready-made maps, search, metric, drawing mode, tabs, scenario, state, basemap, legend), with Back, Next, Close and Don't show again. On the first visit Metaninho offers the guide; the Map guide button in the map corner opens it at any time."
           }

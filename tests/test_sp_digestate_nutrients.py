@@ -46,3 +46,25 @@ def test_storage_loss_applies_to_nitrogen_only():
     out = D.digestate_nutrients({"aves": 1000.0})["aves"]
     assert out["N"] == pytest.approx(D.COMPOSITION["aves"]["N"] * D.N_STORAGE_RETENTION)
     assert out["K2O"] == pytest.approx(D.COMPOSITION["aves"]["K2O"])
+
+
+def test_mandate_panel_digestate_shares_are_the_prototypes():
+    """The revenue-stack card (C27) quotes these shares; they must follow the prototype."""
+    import yaml
+
+    by_fate = {f: dict.fromkeys(D.NUTRIENTS, 0.0) for f in D.FATE_LABEL}
+    for r in ROWS:
+        for s, v in D.digestate_nutrients(D.feedstock_tonnes(S, r)).items():
+            for n in D.NUTRIENTS:
+                by_fate[D.FATE[s]][n] += v[n]
+    value = {f: D.value_brl(t) for f, t in by_fate.items()}
+    total = sum(value.values())
+    params = yaml.safe_load(
+        (D.NEWLOOK / "data" / "canonical_parameters" / "mandato_biometano.yaml").read_text(
+            encoding="utf-8"
+        )
+    )
+    quoted = params["pilha_de_receitas"]["digestato_valor_por_destino"]
+    fate = {"ja_reciclado": "ja_reciclado", "reposicao": "exportado_pela_remocao", "novo": "novo"}
+    for key, f in fate.items():
+        assert quoted[key] == pytest.approx(value[f] / total, abs=0.006)
