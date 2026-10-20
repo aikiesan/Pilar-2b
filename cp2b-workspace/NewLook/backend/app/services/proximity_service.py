@@ -675,21 +675,22 @@ class ProximityService:
         results = []
 
         # Infrastructure configurations. `name_fields` are the columns that hold a
-        # feature's name in each layer, in the order the map's popups read them.
+        # feature's own name in each layer; `name`/`Label` hold the layer's generic
+        # label (or 0) and are left out.
         infrastructure_configs = [
             {
                 "type": "gas_pipeline",
                 "name": "Gasoduto",
                 "files": ["Gasodutos_Distribuicao_SP", "Gasodutos_Transporte_SP"],
                 "max_distance_km": 100,
-                "name_fields": ["Nome_Dut_1", "Label", "name"],
+                "name_fields": ["Nome_Dut_1", "Distrib"],  # transport: duct; distribution: company
             },
             {
                 "type": "substation",
                 "name": "Subestação",
                 "files": ["Subestacoes_Energia"],
                 "max_distance_km": 50,
-                "name_fields": ["nome", "name"],
+                "name_fields": ["nome"],
             },
             {
                 # The id is historical: the layer is the state highways.
@@ -697,21 +698,21 @@ class ProximityService:
                 "name": "Rodovia",
                 "files": ["Rodovias_Estaduais_SP"],
                 "max_distance_km": 50,
-                "name_fields": ["nome", "name", "NOME"],
+                "name_fields": ["sigla"],
             },
             {
                 "type": "transmission_line",
                 "name": "Linha de Transmissão",
                 "files": ["Linhas_De_Transmissao_Energia"],
                 "max_distance_km": 50,
-                "name_fields": ["Nome", "label", "name"],
+                "name_fields": ["Nome"],
             },
             {
                 "type": "ete",
                 "name": "ETE",
                 "files": ["ETEs_2019_SP"],
                 "max_distance_km": 30,
-                "name_fields": ["ETE_NM", "name"],
+                "name_fields": ["ETE_NM"],
             },
         ]
 

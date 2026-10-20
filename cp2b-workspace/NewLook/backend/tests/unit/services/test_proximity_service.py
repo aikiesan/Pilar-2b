@@ -576,10 +576,15 @@ class TestNearestInfrastructure:
 
         import app.services.proximity_service as module
 
-        # A pipeline running north-south 0.1° (about 10 km) east of the point,
-        # and a farther one; the name sits in Nome_Dut_1, as in the real layer.
+        # A distribution pipeline running north-south 0.1° (about 10 km) east of
+        # the point, and a farther one. As in the real layer, the company is in
+        # Distrib while name and Label hold a generic label and 0.
         gpd.GeoDataFrame(
-            {"Nome_Dut_1": ["Ramal Campinas", "Ramal Longe"], "Label": ["x", "y"]},
+            {
+                "Distrib": ["COMGAS", "OUTRA"],
+                "name": ["Gasoduto de Distribuicao"] * 2,
+                "Label": [0, 0],
+            },
             geometry=[
                 LineString([(self.LNG + 0.1, self.LAT - 0.5), (self.LNG + 0.1, self.LAT + 0.5)]),
                 LineString([(self.LNG + 0.5, self.LAT - 0.5), (self.LNG + 0.5, self.LAT + 0.5)]),
@@ -610,7 +615,7 @@ class TestNearestInfrastructure:
     def test_found_feature_has_name_distance_and_nearest_point(self, shapefiles):
         pipe = shapefiles["gas_pipeline"]
         assert pipe["found"] is True
-        assert pipe["name"] == "Ramal Campinas"
+        assert pipe["name"] == "COMGAS"
         assert pipe["distance_km"] == pytest.approx(10.2, abs=0.5)
         # The nearest point lies on the line, level with the analysis point.
         assert pipe["coordinates"]["longitude"] == pytest.approx(self.LNG + 0.1, abs=1e-3)
