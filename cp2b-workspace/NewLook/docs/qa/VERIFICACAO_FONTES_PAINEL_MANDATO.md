@@ -6,9 +6,20 @@ pilha de receitas (C27) e CO₂ biogênico (C20). Conferido em **20/10/2026**.
 
 Cada fonte tem uma entrada no registro `fontes` de
 [`data/canonical_parameters/mandato_biometano.yaml`](../../data/canonical_parameters/mandato_biometano.yaml),
-com título, autor, data, link e tipo. A API (`/api/v1/mandate/panel`) devolve as
-referências de cada cartão, e a página as lista em "Fontes deste quadro", com o
-tipo, a data e o link. O cartão "Onde conferir" reúne as páginas vivas, onde o
+com título, citação curta, autor, data, link e tipo. A API
+(`/api/v1/mandate/panel`) devolve as referências de cada número, e a página as
+mostra de três formas:
+
+- **Botão ao lado de cada número**, com a citação curta (por exemplo, "CCEE,
+  InfoPLD jul/2026") na cor do tipo de fonte. O botão abre a fonte direto, em
+  outra aba; passar o mouse (ou o leitor de tela) dá a citação completa. Uma
+  suposição do PILAR-2b aparece com borda tracejada e sem link.
+- **Botão "conta"** ao lado de cada número que o PILAR-2b calcula. Ele leva ao
+  bloco "Como calculamos" do cartão, que escreve a conta com os valores usados.
+  O cartão da troca de rota abre com as "Premissas deste quadro": cada
+  insumo, o valor e as fontes dele.
+- **Lista "Fontes deste quadro"** no fim de cada cartão, e os cartões "Onde
+  conferir" e "Como citar este painel" no fim da página. O cartão "Onde conferir" reúne as páginas vivas, onde o
 número mais recente aparece primeiro. Um teste do backend
 (`test_every_canonical_source_is_used_dated_and_linked`) exige que toda fonte
 do registro seja usada, tenha data e tenha link `https`. Só uma suposição
@@ -53,6 +64,9 @@ do registro seja usada, tenha data e tenha link `https`. Só uma suposição
 | PLD SE/CO (baixo, médio, alto) | R$ 185, 250, 300/MWh | **R$ 135, 190, 225/MWh** | **Corrigido** | [Painel de Preços da CCEE](https://www.ccee.org.br/precos/painel-precos) (`ccee_painel_precos`), [PLD diário, dados abertos](https://dadosabertos.ccee.org.br/dataset/pld_media_diaria) (`ccee_pld_dados`), [InfoPLD de 30/07/2026](https://www.ccee.org.br/documents/80415/35629354/InfoPLD_Diario30072026.pdf/1a4ac8d1-b541-e513-63ba-a066190ca457). Abr–jul/2026: 133 (jul), 177–206 (abr–jun), 222 (máximo diário, mai). Os valores antigos estavam acima de todo o período |
 | Energia autoconsumida | R$ 450/MWh | igual | Suposição | `autoconsumo_suposto` (sem link) |
 | Biogás de SP | 4,9 M Nm³/dia | igual | Confirmado | [CIBiogás, Panorama 2025](https://materiais.cibiogas.org/panorama-do-biogas-2025-download-lp) (`cibiogas_panorama_2025`). A condição de referência do Nm³ não foi conferida |
+| PCI do metano | 9,94 kWh/Nm³ (sem fonte) | igual | **Fonte acrescentada** | [NIST Chemistry WebBook](https://webbook.nist.gov/cgi/cbook.cgi?ID=C74828&Mask=1) (`nist_metano`): calor de combustão de cerca de 890 kJ/mol, menos a água vaporizada, dá cerca de 802 kJ/mol; ÷ 22,414 L/mol = 35,8 MJ/Nm³ = 9,94 kWh/Nm³ (0 °C) |
+| Rendimento elétrico do motor | 38 % (sem fonte) | igual | **Suposição, agora marcada** | `rendimento_suposto` (sem link); teto de motor grande: [Cat CG170B-16, 44,7 %](https://www.cat.com/pt_BR/products/new/power-systems/electric-power/gas-generator-sets/110821.html) (`cat_cg170`, página do fabricante) |
+| Metano no biogás | 55–65 % (sem fonte) | igual | **Fonte acrescentada** | [Embrapa Agroenergia, 2014](https://www.infoteca.cnptia.embrapa.br/infoteca/bitstream/doc/998908/1/CIT13.pdf) (`embrapa_reforma_biogas`): 60–65 % de CH₄. O limite inferior de 55 % é escolha do PILAR-2b, para incluir biogás mais pobre, como o de aterro |
 
 **Efeito no resultado:** o limiar passou de R$ 281 para **R$ 315/MWh**. Agora
 todo o PLD de abr–jul/2026 fica abaixo dele: o biometano vence sem atributo
@@ -83,7 +97,7 @@ piso de R$ 1,00. No biogás atual de SP, a diferença entre as rotas vai de
 | Na capacidade | 0,29–0,37 → **0,27–0,35 Mt/ano** | Corrigido (densidade) | Conta do painel |
 | Todo o biogás de SP, purificado | 1,24–1,59 → **1,15–1,48 Mt/ano** | Corrigido (densidade) | Conta do painel: cerca de 2 vezes o mercado |
 | Mercado brasileiro de CO₂ | 1.600 t/dia (584 mil t/ano) | Confirmado (estimativa de imprensa) | [AgFeed, out/2023](https://agfeed.com.br/negocios/depois-do-biometano-venda-de-co2-da-mais-um-gas-a-usinas-de-etanol), estimativa do diretor da Air and Parts. Outra estimativa dá ~1.100 t/dia ([eixos, 2022](https://eixos.com.br/urca-energia-investe-r-45-milhoes-na-producao-de-co2-verde-a-partir-de-biometano/)). Não há número oficial; o painel diz isso |
-| Parcela de SP no mercado | 8 % → **cerca de 7 %** | Corrigido (densidade) | Conta do painel |
+| Parcela de SP no mercado | cerca de 8 % (meio da faixa de hoje, 46 mil t, ÷ 584 mil t) | Igual: a densidade baixou a faixa, mas o meio continua perto de 8 % | Conta do painel |
 | Cocal, Narandiba (SP) | 48 t/dia, desde 2021 | Confirmado | [Cocal](https://www.cocal.com.br/negocios/co2/) e AgFeed |
 | Gás Verde, Seropédica (RJ) | ~100 t/dia | Confirmado (página da empresa) | [Gás Verde](https://gasverde.com.br/en/green-co%E2%82%82/) |
 | CO₂ do etanol / do biogás (EPE) | ~27 Mt/ano; 491 mil t/ano (99 mil em operação) | Confirmado | [Caderno da EPE](https://www.epe.gov.br/pt/publicacoes-dados-abertos/publicacoes/caderno-co-biogenico-na-bioenergia) (antes só o resumo da eixos, que continua como apoio) |

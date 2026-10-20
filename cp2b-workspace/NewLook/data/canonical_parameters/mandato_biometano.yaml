@@ -93,6 +93,8 @@ cgob:
 # (analysis/data/05b_*).
 # -----------------------------------------------------------------------------
 troca_de_rota:
+  # PCI do metano a 0 °C e 1 atm (NIST: 35,8 MJ/Nm³). Rendimento elétrico do
+  # motor-gerador: suposição; motores grandes chegam a 40–45 %.
   pci_ch4_kwh_m3: 9.94
   rendimento_eletrico: 0.38
   # Molécula: o gás natural que o biometano substitui na rede, ao custo do gás
@@ -126,6 +128,7 @@ troca_de_rota:
   # Biogás que SP já produz (CIBiogás: ~4,9 milhões de Nm³/dia); no Brasil,
   # cerca de 62 % do biogás vai para eletricidade.
   biogas_sp_m3_dia: 4900000
+  # CH₄ no biogás: 55–65 % (Embrapa dá 60–65 %; o limite inferior inclui aterro).
   fracao_ch4: [0.55, 0.65]
   fontes:
     molecula: [comgas_tarifas, arsesp_ajuste_set2026]
@@ -134,6 +137,9 @@ troca_de_rota:
     cambio: [bcb_ptax]
     eletricidade: [ccee_painel_precos, ccee_pld_dados, ccee_infopld_jul2026]
     autoconsumo: [autoconsumo_suposto]
+    pci: [nist_metano]
+    rendimento: [rendimento_suposto, cat_cg170]
+    fracao_ch4: [embrapa_reforma_biogas]
     biogas_sp: [cibiogas_panorama_2025]
 
 # -----------------------------------------------------------------------------
@@ -167,6 +173,7 @@ pilha_de_receitas:
   fontes:
     fossil: [renovacalc, renovacalc_pereira_2025]
     cbio: [anp_cbio, b3_icbio, cbio_itau_2026]
+    unidade_cgob: [res_anp_995]
     regra_cgob: [res_anp_996, cgob_tauil]
     critica: [cgob_critica_abrace]
     densidade: [res_anp_906]
@@ -211,18 +218,21 @@ onde_conferir:
 
 # -----------------------------------------------------------------------------
 # Registro de fontes. titulo: o que é; autor: quem publicou; data: AAAA-MM ou
-# AAAA-MM-DD; url: o endereço (null para suposição); nota: o que conferir.
+# AAAA-MM-DD; url: o endereço (null para suposição); nota: o que conferir;
+# curta: a citação curta do botão ao lado de cada número na página.
 # -----------------------------------------------------------------------------
 fontes:
   # --- Mandato (C26) ---
   lei_14993:
     titulo: "Lei nº 14.993/2024 (Combustível do Futuro): art. 17, mandato do biometano; arts. 26–29, estocagem geológica de CO₂"
+    curta: "Lei 14.993/2024"
     autor: Presidência da República
     data: "2024-10"
     url: "https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2024/lei/l14993.htm"
     tipo: oficial
   cnpe_4_2026:
     titulo: "Resolução CNPE nº 4/2026: meta de 0,5 % para 2026"
+    curta: "CNPE 4/2026"
     autor: CNPE / MME
     data: "2026-04"
     url: "https://www.gov.br/mme/pt-br/assuntos/conselhos-e-comites/cnpe/resolucoes-do-cnpe/2026/resolucao-4-publicada.pdf"
@@ -230,18 +240,21 @@ fontes:
     nota: "O volume diário publicado é o anual dividido por 360."
   portaria_942:
     titulo: "Portaria MME nº 942/2026: proposta de 1 % em 2027 e trajetória de 3, 4 e 5 % até 2030"
+    curta: "Portaria MME 942/2026"
     autor: MME
     data: "2026-10"
     url: "https://www.gov.br/mme/pt-br/acesso-a-informacao/legislacao/portarias/2026/portaria-mme-n-942-2026.pdf"
     tipo: oficial
   consulta_234:
     titulo: "Consulta pública nº 234/2026 do MME sobre as metas de 2027 a 2030 (até 06/11/2026)"
+    curta: "Consulta MME 234/2026"
     autor: MME
     data: "2026-10"
     url: "https://consultas-publicas.mme.gov.br/"
     tipo: oficial
   res_anp_995:
     titulo: "Resolução ANP nº 995/2026: metas individuais e 1 CGOB = 100 m³ (espelho do texto)"
+    curta: "Res. ANP 995/2026"
     autor: ANP (DOU de 04/03/2026)
     data: "2026-03"
     url: "https://www.legisweb.com.br/legislacao/?id=491704"
@@ -249,6 +262,7 @@ fontes:
     nota: "Espelho do LegisWeb; o texto oficial está no DOU de 04/03/2026."
   res_anp_996:
     titulo: "Resolução ANP nº 996/2026: emissão, lastro e registro do CGOB (espelho do texto)"
+    curta: "Res. ANP 996/2026"
     autor: ANP (DOU de 04/03/2026)
     data: "2026-03"
     url: "https://www.legisweb.com.br/legislacao/?id=491705"
@@ -256,18 +270,21 @@ fontes:
     nota: "Espelho do LegisWeb; o texto oficial está no DOU de 04/03/2026."
   anp_painel_biometano:
     titulo: "Painel Dinâmico de Produtores de Biometano: produção mensal, capacidade por planta e base para download"
+    curta: "ANP, painel do biometano"
     autor: ANP
     data: "2026-09"
     url: "https://www.gov.br/anp/pt-br/centrais-de-conteudo/paineis-dinamicos-da-anp/paineis-e-mapa-dinamicos-de-produtores-de-combustiveis-e-derivados/painel-dinamico-de-produtores-de-biometano"
     tipo: dados
   cgob_exame:
     titulo: "CGOB: o que é e o que falta para operacionalizá-lo (nenhum emitido; sistema da ANP com o Serpro)"
+    curta: "Exame, set/2026"
     autor: Exame
     data: "2026-09"
     url: "https://exame.com/esg/cgob-o-que-e-o-certificado-de-garantia-de-origem-de-biometano-e-o-que-falta-para-operacionaliza-lo/"
     tipo: imprensa
   cgob_b3:
     titulo: "B3 é a terceira entidade credenciada para registro de CGOB (com ACX Brasil e Instituto Totum)"
+    curta: "eixos, out/2026"
     autor: eixos
     data: "2026-10"
     url: "https://eixos.com.br/gas-natural/biogas/b3-e-a-terceira-entidade-credenciada-para-registro-de-cgob/"
@@ -276,6 +293,7 @@ fontes:
   # --- Troca de rota (C17) ---
   comgas_tarifas:
     titulo: "Tarifas da Comgás, com as tabelas do Mercado Cativo Verde (ajuste Arsesp de set/2026)"
+    curta: "Comgás, tarifas"
     autor: Comgás
     data: "2026-09"
     url: "https://www.comgas.com.br/sobre-sua-conta/tarifas/"
@@ -283,24 +301,28 @@ fontes:
     nota: "Os valores da tabela do Cativo Verde não foram conferidos; o painel usa o custo do gás."
   arsesp_ajuste_set2026:
     titulo: "Ajuste trimestral de set/2026: custo do gás da Comgás de R$ 2,629087/m³ sem impostos (segmentos não térmicos)"
+    curta: "Correio da Manhã, set/2026"
     autor: Correio da Manhã
     data: "2026-09"
     url: "https://www.correiodamanha.com.br/nacional/sao-paulo/2026/09/318093-tarifa-de-gas-fica-estavel-para-casas-e-comercio.html"
     tipo: imprensa
   argus_biometano_2026:
     titulo: "Brazil's biomethane at a crossroads: fornecedores pedem piso de R$ 1/m³ para o CGOB; biometano a R$ 3,28/m³ na planta"
+    curta: "Argus, jan/2026"
     autor: Argus
     data: "2026-01-02"
     url: "https://www.argusmedia.com/pt/news-and-insights/latest-market-news/2771482-viewpoint-brazil-s-biomethane-at-a-crossroads"
     tipo: imprensa
   mercado_cativo_verde:
     titulo: "Comgás obtém aval da Arsesp para vender biometano no Mercado Cativo Verde"
+    curta: "Agência iNFRA, set/2026"
     autor: Agência iNFRA
     data: "2026-09-10"
     url: "https://agenciainfra.com/blog/comgas-obtem-aval-para-vender-biometano-no-mercado-cativo-verde/"
     tipo: imprensa
   purificacao_custos:
     titulo: "Custos de purificação de biogás: cerca de € 0,25/m³ a 250 m³/h e menos de € 0,15/m³ acima de 2.000 m³/h"
+    curta: "PMC9821904, 2023"
     autor: PubMed Central (PMC9821904)
     data: "2023"
     url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC9821904/"
@@ -308,36 +330,74 @@ fontes:
     nota: "Referência europeia; trocar por custo brasileiro quando houver."
   bcb_ptax:
     titulo: "Cotações PTAX do Banco Central (euro)"
+    curta: "BCB, PTAX"
     autor: Banco Central do Brasil
     data: "2026-10"
     url: "https://www.bcb.gov.br/estabilidadefinanceira/historicocotacoes"
     tipo: dados
   ccee_painel_precos:
     titulo: "Painel de Preços: histórico do PLD por submercado"
+    curta: "CCEE, painel de preços"
     autor: CCEE
     data: "2026-10"
     url: "https://www.ccee.org.br/precos/painel-precos"
     tipo: dados
   ccee_pld_dados:
     titulo: "PLD médio diário (dados abertos)"
+    curta: "CCEE, dados abertos"
     autor: CCEE
     data: "2026-10"
     url: "https://dadosabertos.ccee.org.br/dataset/pld_media_diaria"
     tipo: dados
   ccee_infopld_jul2026:
     titulo: "InfoPLD diário de 30/07/2026"
+    curta: "CCEE, InfoPLD jul/2026"
     autor: CCEE
     data: "2026-07-30"
     url: "https://www.ccee.org.br/documents/80415/35629354/InfoPLD_Diario30072026.pdf/1a4ac8d1-b541-e513-63ba-a066190ca457"
     tipo: dados
   autoconsumo_suposto:
     titulo: "Energia autoconsumida a R$ 450/MWh: perto da tarifa que a usina deixa de pagar"
+    curta: "Suposição PILAR-2b"
     autor: PILAR-2b
     data: "2026-10"
     url: null
     tipo: estimativa
+  rendimento_suposto:
+    titulo: "Rendimento elétrico de 38 % para o motor-gerador a biogás"
+    curta: "Suposição PILAR-2b"
+    autor: PILAR-2b
+    data: "2026-10"
+    url: null
+    tipo: estimativa
+    nota: "Motores grandes chegam a 40–45 %; motores pequenos ou adaptados ficam bem abaixo."
+  cat_cg170:
+    titulo: "Grupo gerador a gás Cat CG170B-16 (1.840 kW, aceita biogás): eficiência elétrica máxima de 44,7 %"
+    curta: "Caterpillar, CG170B-16"
+    autor: Caterpillar
+    data: "2026"
+    url: "https://www.cat.com/pt_BR/products/new/power-systems/electric-power/gas-generator-sets/110821.html"
+    tipo: empresa
+    nota: "Teto de um motor grande, dado do fabricante."
+  nist_metano:
+    titulo: "Metano no NIST Chemistry WebBook: calor de combustão do gás"
+    curta: "NIST WebBook, metano"
+    autor: NIST
+    data: "2026"
+    url: "https://webbook.nist.gov/cgi/cbook.cgi?ID=C74828&Mask=1"
+    tipo: dados
+    nota: "PCI = calor de combustão (cerca de 890 kJ/mol) − 2 × 44,0 kJ/mol da água vaporizada ≈ 802 kJ/mol; ÷ 22,414 L/mol (0 °C, 1 atm) = 35,8 MJ/Nm³ = 9,94 kWh/Nm³."
+  embrapa_reforma_biogas:
+    titulo: "Reforma do biogás: revisão (biogás com cerca de 60–65 % de CH₄ e 35–40 % de CO₂)"
+    curta: "Embrapa, 2014"
+    autor: Embrapa Agroenergia
+    data: "2014"
+    url: "https://www.infoteca.cnptia.embrapa.br/infoteca/bitstream/doc/998908/1/CIT13.pdf"
+    tipo: estudo
+    nota: "A faixa usada (55–65 % de CH₄) desce o limite inferior para incluir biogás mais pobre, como o de aterro."
   cibiogas_panorama_2025:
     titulo: "Panorama do Biogás no Brasil 2025: SP com cerca de 4,9 milhões de Nm³/dia; 62 % do biogás do país vira eletricidade"
+    curta: "CIBiogás, Panorama 2025"
     autor: CIBiogás
     data: "2026-04"
     url: "https://materiais.cibiogas.org/panorama-do-biogas-2025-download-lp"
@@ -346,12 +406,14 @@ fontes:
   # --- Pilha de receitas (C27) ---
   renovacalc:
     titulo: "RenovaCalc, a calculadora da nota de eficiência do RenovaBio"
+    curta: "ANP, RenovaCalc"
     autor: ANP
     data: "2026"
     url: "https://www.gov.br/anp/pt-br/assuntos/renovabio/renovacalc"
     tipo: oficial
   renovacalc_pereira_2025:
     titulo: "Pereira et al. (2025): RenovaCalc; fóssil de referência do biometano de 86,70 g CO₂e/MJ"
+    curta: "Pereira et al., 2025"
     autor: ANP
     data: "2025"
     url: "https://www.gov.br/anp/pt-br/assuntos/renovabio/arq/arquivos-estudos-relatorio-e-seminarios/renovacalc-pereira-et-al-2025.pdf"
@@ -359,18 +421,21 @@ fontes:
     nota: "A ANP revisa a RenovaCalc (consulta encerrada em 16/10/2026); o valor pode mudar."
   anp_cbio:
     titulo: "Crédito de Descarbonização (CBIO): 1 CBIO = 1 t CO₂e evitada"
+    curta: "ANP, CBIO"
     autor: ANP
     data: "2026"
     url: "https://www.gov.br/anp/pt-br/assuntos/renovabio/credito-de-descarbonizacao-cbio"
     tipo: oficial
   b3_icbio:
     titulo: "Índice de Crédito de Descarbonização (ICBIO B3): preço do CBIO"
+    curta: "B3, ICBIO"
     autor: B3
     data: "2026-10"
     url: "https://www.b3.com.br/pt_br/market-data-e-indices/indices/indices-de-segmentos-e-setoriais/indice-de-credito-de-descarbonizacao-b3-icbio-b3.htm"
     tipo: dados
   cbio_itau_2026:
     titulo: "Itaú BBA: CBIO a R$ 31,40 em jan–fev/2026, contra média de R$ 54,70 em 2025"
+    curta: "Itaú BBA, 2026"
     autor: Novidades MT (relatório Itaú BBA)
     data: "2026-03"
     url: "https://novidadesmt.com.br/agronegocio/renovabio-inicia-2026-com-metas-menores-e-precos-de-cbios-em-queda-aponta-relatorio-do-itau-bba/"
@@ -378,24 +443,28 @@ fontes:
     nota: "Em mar/2026 o CBIO chegou a R$ 19,90 (NovaCana); conferir o preço atual na B3."
   cgob_tauil:
     titulo: "ANP publica as regras das metas de biometano e da emissão do CGOB (resumo das Resoluções 995 e 996/2026)"
+    curta: "Tauil & Chequer, mar/2026"
     autor: Tauil & Chequer
     data: "2026-03"
     url: "https://www.tauilchequer.com.br/pt/insights/publications/2026/03/anp-issues-rules-on-biomethane-targets-and-cgob-issuance"
     tipo: imprensa
   cgob_critica_abrace:
     titulo: "Certificado de Garantia de Origem de Biometano: um fim em si mesmo? (crítica à minuta, antes da Resolução 996/2026)"
+    curta: "Brasil Energia, jul/2025"
     autor: Brasil Energia (Juliana Rodrigues, Abrace)
     data: "2025-07-11"
     url: "https://brasilenergia.com.br/energia/certificado-de-garantia-de-origem-de-biometano-um-fim-em-si-mesmo"
     tipo: imprensa
   res_anp_906:
     titulo: "Resolução ANP nº 906/2022: especificação do biometano; volumes a 20 °C e 1 atm (espelho do texto)"
+    curta: "Res. ANP 906/2022"
     autor: ANP
     data: "2022-11"
     url: "https://www.legisweb.com.br/legislacao/?id=438796"
     tipo: oficial
   modelo_digestato:
     titulo: "Nutrientes do digestato de SP por destino atual do resíduo (protótipo, cenário Real)"
+    curta: "Modelo PILAR-2b"
     autor: PILAR-2b
     data: "2026-10"
     url: null
@@ -404,6 +473,7 @@ fontes:
   # --- CO₂ biogênico (C20) ---
   mercado_co2_agfeed:
     titulo: "Depois do biometano, venda de CO₂ dá mais um gás a usinas de etanol (mercado de ~1.600 t/dia; Cocal, 48 t/dia)"
+    curta: "AgFeed, out/2023"
     autor: AgFeed
     data: "2023-10-10"
     url: "https://agfeed.com.br/negocios/depois-do-biometano-venda-de-co2-da-mais-um-gas-a-usinas-de-etanol"
@@ -411,48 +481,56 @@ fontes:
     nota: "Estimativa do diretor da Air and Parts; não há número oficial do mercado."
   mercado_co2_eixos_2022:
     titulo: "Urca Energia investe R$ 45 milhões na produção de CO₂ verde a partir de biometano (consumo de ~1.100 t/dia)"
+    curta: "eixos, 2022"
     autor: eixos
     data: "2022"
     url: "https://eixos.com.br/urca-energia-investe-r-45-milhoes-na-producao-de-co2-verde-a-partir-de-biometano/"
     tipo: imprensa
   cocal_co2:
     titulo: "CO₂ verde da Cocal: purificação do biogás em Narandiba (SP), desde 2021"
+    curta: "Cocal"
     autor: Cocal
     data: "2026"
     url: "https://www.cocal.com.br/negocios/co2/"
     tipo: empresa
   gasverde_co2:
     titulo: "CO₂ verde da Gás Verde: cerca de 100 t/dia do biometano de aterro, Seropédica (RJ)"
+    curta: "Gás Verde"
     autor: Gás Verde
     data: "2025"
     url: "https://gasverde.com.br/en/green-co%E2%82%82/"
     tipo: empresa
   epe_caderno_co2:
     titulo: "Caderno CO₂ Biogênico na Bioenergia (etanol ~27 Mt/ano; biogás 491 mil t/ano)"
+    curta: "EPE, 2025"
     autor: EPE
     data: "2025"
     url: "https://www.epe.gov.br/pt/publicacoes-dados-abertos/publicacoes/caderno-co-biogenico-na-bioenergia"
     tipo: estudo
   epe_co2_eixos:
     titulo: "Na corrida pelos biocombustíveis, CO₂ vira produto (resumo do caderno da EPE)"
+    curta: "eixos, 2025"
     autor: eixos
     data: "2025"
     url: "https://eixos.com.br/newsletters/dialogos-da-transicao/na-corrida-pelos-biocombustiveis-co2-vira-produto/"
     tipo: imprensa
   lei_15042:
     titulo: "Lei nº 15.042/2024: Sistema Brasileiro de Comércio de Emissões (SBCE)"
+    curta: "Lei 15.042/2024"
     autor: Presidência da República
     data: "2024-12"
     url: "https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2024/lei/l15042.htm"
     tipo: oficial
   decreto_13095:
     titulo: "Decreto nº 13.095/2026: captura, transporte e estocagem geológica de CO₂"
+    curta: "Decreto 13.095/2026"
     autor: Presidência da República
     data: "2026-08-12"
     url: "https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2026/decreto/d13095.htm"
     tipo: oficial
   anp_ccs:
     titulo: "Estocagem geológica de CO₂ (CCS) na ANP"
+    curta: "ANP, CCS"
     autor: ANP
     data: "2026"
     url: "https://www.gov.br/anp/pt-br/assuntos/ccs"

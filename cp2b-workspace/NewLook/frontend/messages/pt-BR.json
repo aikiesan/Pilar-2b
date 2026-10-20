@@ -2713,7 +2713,7 @@
     "lede": "A Lei do Combustível do Futuro obriga produtores e importadores de gás natural a reduzir as emissões do gás que vendem, com biometano comprovado por CGOB. O CNPE fixa a meta de cada ano; a ANP publica a produção de cada mês. Aqui as duas lado a lado.",
     "unit_m3_day": "m³/dia",
     "sources": {
-      "line": "Números conferidos em {date}. Cada quadro abre a lista das suas fontes, com o tipo de cada uma.",
+      "line": "Números conferidos em {date}. Ao lado de cada número, um botão abre a fonte direto, com a cor do tipo de fonte; o botão \"conta\" mostra o cálculo.",
       "where_link": "Onde conferir os dados mais recentes",
       "summary": "Fontes deste quadro ({count}) · conferidas em {date}",
       "kinds": {
@@ -2728,6 +2728,19 @@
         "heading": "Onde conferir",
         "caption": "As páginas onde os números deste painel são publicados e atualizados. Os quadros acima mostram a data de cada fonte.",
         "legend": "Oficial e Dados: o usuário confere na própria fonte. Estudo e Empresa: números de quem publicou. Imprensa: conferir no original antes de citar. Estimativa: suposição do PILAR-2b, sem fonte pública."
+      },
+      "legend": "Tipos de fonte:",
+      "describe": "Fonte ({kind}): {title} — {publisher}, {date}.",
+      "new_tab": "Abre em nova aba.",
+      "calc": "conta",
+      "calc_label": "Como calculamos este número",
+      "method_heading": "Como calculamos",
+      "inputs_heading": "Premissas deste quadro",
+      "cite": {
+        "heading": "Como citar este painel",
+        "text": "CP2b/NIPE-UNICAMP. PILAR-2b: painel do mandato do biometano, com fontes conferidas em {checked}. Disponível em: {url}. Acesso em: {date}.",
+        "note": "Ao usar um número, cite também a fonte original: é o botão ao lado dele.",
+        "more": "Outros formatos de citação"
       }
     },
     "tiles": {
@@ -2749,6 +2762,11 @@
       "source_groups": {
         "panel": "Lei, metas e regras do CGOB",
         "cgob": "CGOB emitidos"
+      },
+      "method": {
+        "coverage": "Cobertura: produção nacional de {month} ({br} m³/dia) ÷ meta diária de {year} ({target} m³/dia) = {share}.",
+        "indicative": "Metas sem volume publicado (≈): {volume} m³/dia de {year} ÷ {pct} × o percentual de cada ano.",
+        "production": "Produção: soma dos m³ do mês na base da ANP, todos os produtos, ÷ dias do mês."
       }
     },
     "status": {
@@ -2769,7 +2787,7 @@
     },
     "route": {
       "heading": "Vale trocar o motor pela purificação?",
-      "caption": "Por m³ de metano: quanto o atributo ambiental (CGOB ou equivalente) precisa valer para vender biometano pagar o mesmo que queimar o biogás para gerar eletricidade, a cada preço da energia. Molécula a {molecule}/m³ (o custo do gás natural que ela substitui na rede da Comgás), purificação a {upgrading}/m³.",
+      "caption": "Por m³ de metano: quanto o atributo ambiental (CGOB ou equivalente) precisa valer para vender biometano pagar o mesmo que queimar o biogás para gerar eletricidade, a cada preço da energia.",
       "prices": {
         "pld_baixo": "PLD baixo",
         "pld_medio": "PLD médio",
@@ -2792,7 +2810,33 @@
         "cambio": "Câmbio (euro)",
         "eletricidade": "Preço da eletricidade (PLD)",
         "autoconsumo": "Energia autoconsumida",
-        "biogas_sp": "Biogás de SP"
+        "biogas_sp": "Biogás de SP",
+        "pci": "PCI do metano",
+        "rendimento": "Rendimento elétrico do motor",
+        "fracao_ch4": "Metano no biogás"
+      },
+      "inputs": {
+        "molecule": "Molécula (custo do gás da Comgás, sem impostos)",
+        "attribute": "Piso pedido para o CGOB",
+        "upgrading": "Purificação ({eur} €/MWh a {fx}/€)",
+        "lhv": "PCI do metano (0 °C)",
+        "efficiency": "Rendimento elétrico do motor",
+        "ch4": "Metano no biogás",
+        "biogas": "Biogás produzido em SP",
+        "per_m3": "{value}/m³",
+        "kwh_m3": "{value} kWh/m³",
+        "m3_day": "{value} m³/dia",
+        "pld": "PLD SE/CO (abr–jul/2026, CCEE)",
+        "per_mwh": "{value}/MWh",
+        "mwh_range": "{low} a {high}/MWh",
+        "range": "{low}–{high}"
+      },
+      "method": {
+        "electricity": "Rota elétrica, por m³ de CH₄: {lhv} kWh × {eta} × preço da eletricidade. A {price}/MWh: {value}/m³.",
+        "upgrading": "Purificação: {eur} €/MWh × {fx}/€ × {lhv} kWh ÷ 1.000 = {upgrading}/m³.",
+        "breakeven": "Atributo de equilíbrio = rota elétrica − (molécula − purificação). A {price}/MWh: {electricity} − ({molecule} − {upgrading}) = {value}/m³. Negativo: não precisa de atributo.",
+        "threshold": "Limiar: ({molecule} − {upgrading}) ÷ ({lhv} kWh × {eta}) × 1.000 = {threshold}/MWh.",
+        "burned": "Metano de SP: {biogas} m³/dia de biogás × {mid} de CH₄ (meio da faixa) = {ch4} m³/dia; ÷ meta de {year} ({target} m³/dia) = {ratio}×."
       }
     },
     "stack": {
@@ -2866,7 +2910,14 @@
         "regra_cgob": "Regra do CGOB com CBIO",
         "critica": "Crítica à dupla emissão",
         "densidade": "Condição de referência dos m³ (densidade do CO₂)",
-        "digestato": "Digestato"
+        "digestato": "Digestato",
+        "unidade_cgob": "1 CGOB = 100 m³"
+      },
+      "method": {
+        "cbio": "Teto do CBIO: {lhv} MJ/m³ × {fossil} g CO₂e/MJ ÷ 1.000.000 = {cbio} CBIO/m³ (biometano sem emissão alguma); × {low} a {high} por CBIO = {brl_low} a {brl_high}/m³.",
+        "co2": "CO₂ por m³ de biometano: (1 − CH₄) ÷ CH₄ × {density} kg/m³, com CH₄ de {high} a {low} = {kg_low} a {kg_high} kg.",
+        "cgob": "CGOB: 1 certificado = {m3} m³; no piso de {attr}/m³, {perCgob} por CGOB.",
+        "total": "Soma possível: {molecule} + {attr} + {cbio} = {total}/m³."
       }
     },
     "co2": {
@@ -2894,6 +2945,12 @@
         "exemplos": "Quem já vende",
         "epe": "CO₂ biogênico disponível (EPE)",
         "remocao": "Remoção, estocagem e SBCE"
+      },
+      "method": {
+        "plant": "Por planta: biogás processado no mês (ANP) × {co2_low} a {co2_high} de CO₂ × {density} kg/m³ ÷ 1.000 = t/dia; × 365 = t/ano. Na capacidade, a mesma conta com a capacidade de biogás da planta.",
+        "burned": "Todo o biogás de SP: {biogas} m³/dia, a mesma conta.",
+        "market": "Mercado: {day} t/dia × 365 = {year}.",
+        "share": "Parcela de SP: meio da faixa de hoje ({now}) ÷ mercado = {share}."
       }
     },
     "limits": {

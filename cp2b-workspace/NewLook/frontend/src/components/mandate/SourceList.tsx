@@ -16,6 +16,8 @@ export type SourceKind = (typeof SOURCE_KINDS)[number]
 export interface Reference {
   key: string
   title: string
+  /** Short citation on the button beside a figure: "CCEE, InfoPLD jul/2026". */
+  short: string
   publisher: string
   date: string
   url: string | null
@@ -24,7 +26,7 @@ export interface Reference {
 }
 
 /** Strongest first: official and data the reader can recheck, press and estimates to confirm. */
-const KIND_CLASS: Record<SourceKind, string> = {
+export const KIND_CLASS: Record<SourceKind, string> = {
   oficial: 'border-dusk-700 text-dusk-800 dark:border-dusk-300 dark:text-dusk-200',
   dados: 'border-dusk-700 text-dusk-800 dark:border-dusk-300 dark:text-dusk-200',
   estudo: 'border-line-strong text-ink',

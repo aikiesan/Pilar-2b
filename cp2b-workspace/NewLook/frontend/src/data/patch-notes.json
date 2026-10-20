@@ -2,6 +2,37 @@
   "_comment": "Patch notes, newest first. Each entry carries its own pt-BR and en text, deliberately OUTSIDE messages/*.json: the catalogs are gated by check-i18n-parity.mjs, and threading one release note through two catalogs per deploy makes writing a note a chore nobody does. scripts/check-patch-notes.mjs enforces that both locales are present here instead. `date` is ISO 8601 WITH offset -- it is rendered in the reader's locale, so a bare date would drift a day across timezones. `kind` must be one of: added, changed, fixed, security, data.",
   "entries": [
     {
+      "version": "3.8.2",
+      "date": "2026-10-20T21:00:00-03:00",
+      "title": {
+        "pt-BR": "A fonte ao lado de cada número",
+        "en": "The source beside every figure"
+      },
+      "changes": [
+        {
+          "kind": "added",
+          "text": {
+            "pt-BR": "No Mandato do biometano, cada número tem ao lado um botão com a citação curta da fonte (por exemplo, \"CCEE, InfoPLD jul/2026\"), na cor do tipo de fonte, que abre o documento direto. Suposições do PILAR-2b aparecem com borda tracejada. Os números que o PILAR-2b calcula têm o botão \"conta\", que leva ao bloco \"Como calculamos\" do cartão, com a conta escrita com os valores usados.",
+            "en": "On the Biomethane mandate page, every figure has a button beside it with the source's short citation (for example, \"CCEE, InfoPLD jul/2026\"), coloured by kind of source, that opens the document directly. PILAR-2b's own assumptions have a dashed border. Figures PILAR-2b computes have a \"calculation\" button that leads to the card's \"How we calculate\" block, with the arithmetic written out with the values used."
+          }
+        },
+        {
+          "kind": "added",
+          "text": {
+            "pt-BR": "O cartão \"Vale trocar o motor pela purificação?\" abre com as premissas, cada uma com suas fontes; o fim da página traz \"Como citar este painel\".",
+            "en": "The \"Is it worth swapping the engine for an upgrader?\" card opens with its inputs, each with its sources; the end of the page adds \"How to cite this panel\"."
+          }
+        },
+        {
+          "kind": "data",
+          "text": {
+            "pt-BR": "Ganharam fonte o poder calorífico do metano (NIST) e o teor de metano no biogás (Embrapa); o rendimento elétrico de 38 % passou a aparecer como suposição, ao lado do teto de um motor grande (44,7 %).",
+            "en": "The methane heating value (NIST) and the methane content of biogas (Embrapa) now have a source; the 38 % electrical efficiency is now shown as an assumption, next to a large engine's ceiling (44.7 %)."
+          }
+        }
+      ]
+    },
+    {
       "version": "3.8.1",
       "date": "2026-10-20T18:00:00-03:00",
       "title": {

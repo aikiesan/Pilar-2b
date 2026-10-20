@@ -9,23 +9,30 @@
  * CO2 (C20) upgrading separates at each SP plant, against the market for it.
  *
  * Every figure comes from /api/v1/mandate/panel (data/canonical_parameters/
- * mandato_biometano.yaml and the ANP series and plant snapshot), and every
- * card lists the sources behind its figures from the YAML's `fontes` registry:
- * kind, publisher, date and link; "Onde conferir" points to the live pages.
- * Rendered on the server and kept
+ * mandato_biometano.yaml and the ANP series and plant snapshot). Beside each
+ * figure, buttons open its sources straight away (the YAML's `fontes`
+ * registry: short citation, kind, publisher, date, link); a figure the
+ * platform computes gets a "conta" button to the card's "Como calculamos"
+ * block, which writes the arithmetic out with the inputs. Each card also
+ * lists all its sources, "Onde conferir" points to the live pages and
+ * "Como citar" gives the citation of the panel. Rendered on the server and kept
  * for an hour; when the API is down the render throws, so ISR keeps the last
  * good page rather than caching an outage.
  */
 import type { Metadata } from 'next'
-import { getFormatter, getTranslations } from 'next-intl/server'
+import type { ReactNode } from 'react'
+import { getFormatter, getLocale, getTranslations } from 'next-intl/server'
 import { Ban, CirclePlus, Repeat1, TriangleAlert, type LucideIcon } from 'lucide-react'
 import Breadcrumb from '@/components/ui/Breadcrumb'
 import { HeaderLeaves } from '@/components/ui/ArcOrnament'
 import { BarList, Card, StatTile } from '@/components/municipality/ProfileVisuals'
 import SourceList, { SOURCE_KINDS, SourceItem, countSources, type Reference } from '@/components/mandate/SourceList'
+import Cite, { CalcLink, CiteLegend, type Describe } from '@/components/mandate/Cite'
+import { Link } from '@/navigation'
 import { navCrumbs } from '@/lib/breadcrumbTrail'
 import { navMetadata } from '@/lib/pageMetadata'
 import { serverGetJson } from '@/lib/serverApi'
+import { publicUrl } from '@/lib/siteUrl'
 
 export const revalidate = 3600
 
@@ -42,8 +49,19 @@ type PriceKey = (typeof PRICE_KEYS)[number]
 const isPriceKey = (k: string): k is PriceKey => (PRICE_KEYS as readonly string[]).includes(k)
 
 /** Source groups each card labels (the `fontes` keys of each YAML block), in display order. */
-const ROUTE_GROUPS = ['molecula', 'atributo', 'purificacao', 'cambio', 'eletricidade', 'autoconsumo', 'biogas_sp'] as const
-const STACK_GROUPS = ['fossil', 'cbio', 'regra_cgob', 'critica', 'densidade', 'digestato'] as const
+const ROUTE_GROUPS = [
+  'molecula',
+  'atributo',
+  'purificacao',
+  'cambio',
+  'eletricidade',
+  'autoconsumo',
+  'pci',
+  'rendimento',
+  'fracao_ch4',
+  'biogas_sp',
+] as const
+const STACK_GROUPS = ['fossil', 'cbio', 'unidade_cgob', 'regra_cgob', 'critica', 'densidade', 'digestato'] as const
 const CO2_GROUPS = ['plantas', 'mercado', 'exemplos', 'epe', 'remocao'] as const
 type Grouped = Partial<Record<string, Reference[]>>
 
@@ -76,6 +94,15 @@ interface RouteSwitch {
     breakeven_attribute_brl_m3: number
   }[]
   sp_burned_ch4_m3_day: number
+  /** The inputs behind the figures, for the "Como calculamos" block. */
+  inputs: {
+    lhv_kwh_m3: number
+    electric_efficiency: number
+    upgrading_eur_mwh: number
+    brl_per_eur: number
+    ch4_fraction: [number, number]
+    sp_biogas_m3_day: number
+  }
   references: Grouped
 }
 
@@ -96,6 +123,8 @@ interface RevenueStack {
   cbio_prices: { key: string; brl: number; brl_m3_max: number }[]
   co2_kg_per_m3: [number, number]
   digestate_value_share: { ja_reciclado: number; reposicao: number; novo: number }
+  fossil_g_co2e_mj: number
+  co2_density_kg_m3: number
   references: Grouped
 }
 
@@ -151,6 +180,7 @@ export default async function MandatePage() {
   const t = await getTranslations('mandate')
   const tNav = await getTranslations('common.nav')
   const format = await getFormatter()
+  const locale = await getLocale()
 
   const volume = (v: number) =>
     format.number(v, { notation: 'compact', compactDisplay: 'long', maximumSignificantDigits: 3 })
@@ -165,6 +195,8 @@ export default async function MandatePage() {
   const seriesMax = Math.max(current.volume_m3_day, ...series.map((m) => m.br_m3_day))
   const height = (v: number) => `${(100 * v) / seriesMax}%`
   const latestLabel = monthLabel(latest.month)
+  // Indicative targets scale the latest published volume by their percentage.
+  const published = targets.filter((g) => !g.volume_estimated).at(-1)
 
   // Sources: "2026", "2026-10" or "2026-10-20", shown at the precision given.
   const sourceDate = (d: string) => {
@@ -175,6 +207,58 @@ export default async function MandatePage() {
   }
   const checked = sourceDate(data.sources_checked)
   const kindLabel = (k: (typeof SOURCE_KINDS)[number]) => t(`sources.kinds.${k}`)
+  const describe: Describe = (s) =>
+    [
+      t('sources.describe', { kind: kindLabel(s.kind), title: s.title, publisher: s.publisher, date: sourceDate(s.date) }),
+      s.note,
+      s.url ? t('sources.new_tab') : null,
+    ]
+      .filter(Boolean)
+      .join(' ')
+  /** The source buttons beside a figure: every source of the groups given, once each. */
+  const cite = (...groups: (readonly Reference[] | undefined)[]) => {
+    const unique = new Map(groups.flatMap((g) => g ?? []).map((r) => [r.key, r] as const))
+    return <Cite sources={[...unique.values()]} describe={describe} />
+  }
+  /** The "conta" button beside a computed figure: to the card's "Como calculamos" block. */
+  const calc = (card: string) => (
+    <CalcLink href={`#conta-${card}`} label={t('sources.calc_label')} text={t('sources.calc')} />
+  )
+  const method = (card: string, lines: ReactNode[]) => (
+    <section
+      id={`conta-${card}`}
+      aria-labelledby={`conta-${card}-heading`}
+      className="mt-4 scroll-mt-24 rounded-lg border border-line bg-paper-raised p-3 text-xs text-ink-muted"
+    >
+      <h3 id={`conta-${card}-heading`} className="font-semibold text-ink">
+        {t('sources.method_heading')}
+      </h3>
+      <ul className="mt-1.5 list-disc space-y-1 pl-4">
+        {lines.map((line, i) => (
+          <li key={i}>{line}</li>
+        ))}
+      </ul>
+    </section>
+  )
+  /** A card's inputs: each value with the buttons of its sources. */
+  const inputs = (rows: { key: string; label: string; value: string; sources: ReactNode }[]) => (
+    <section aria-labelledby="premissas-heading" className="mb-5">
+      <h3 id="premissas-heading" className="text-sm font-semibold text-ink">
+        {t('sources.inputs_heading')}
+      </h3>
+      <dl className="mt-2 grid gap-x-6 text-sm md:grid-cols-2">
+        {rows.map((r) => (
+          <div key={r.key} className="flex flex-wrap items-baseline justify-between gap-x-3 border-b border-line py-1.5">
+            <dt className="text-ink-muted">{r.label}</dt>
+            <dd className="text-right tabular-nums text-ink">
+              {r.value}
+              {r.sources}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </section>
+  )
   const sourceList = (groups: { key: string; label: string; sources: Reference[] }[]) => {
     const present = groups.filter((g) => g.sources.length)
     return (
@@ -203,6 +287,7 @@ export default async function MandatePage() {
             key,
             emphasis: false,
             label: t('route.row', { label: t(`route.prices.${key}`), price: brl0(p.electricity_brl_mwh) }),
+            sources: key === 'autoconsumo' ? cite(route.references.autoconsumo) : calc('troca-de-rota'),
             value: Math.max(0, attribute),
             valueLabel: attribute > 0 ? t('route.per_m3', { value: brl(attribute) }) : t('route.none_needed'),
           }
@@ -211,12 +296,18 @@ export default async function MandatePage() {
           key: 'reference',
           emphasis: true,
           label: t('route.reference'),
+          sources: cite(route.references.atributo),
           value: route.reference_attribute_brl_m3,
           valueLabel: t('route.per_m3', { value: brl(route.reference_attribute_brl_m3) }),
         },
       ]
     : []
   const routeMax = Math.max(...routeRows.map((r) => r.value))
+  const pld = route?.prices.filter((p) => p.key.startsWith('pld_')).map((p) => p.electricity_brl_mwh) ?? []
+  const selfUse = route?.prices.find((p) => p.key === 'autoconsumo')
+  // The worked example in "Como calculamos": the highest price, where the attribute matters.
+  const example = route?.prices.at(-1)
+  const decimal = (v: number, digits = 2) => format.number(v, { maximumFractionDigits: digits })
 
   const stack = data.revenue_stack
   // The figure beside each line; lines without one only explain.
@@ -235,6 +326,40 @@ export default async function MandatePage() {
     }
   }
   const stackFigures = stack ? figures(stack) : {}
+  // The buttons under each line: its sources, and "conta" where the platform computes the figure.
+  const stackSources = (s: RevenueStack): Partial<Record<StackItem, ReactNode>> => {
+    const r = s.references
+    const rr = route?.references
+    return {
+      molecule: cite(rr?.molecula),
+      co2: (
+        <>
+          {cite(r.densidade, rr?.fracao_ch4)}
+          {calc('pilha-de-receitas')}
+        </>
+      ),
+      digestate_new: cite(r.digestato),
+      cgob: (
+        <>
+          {cite(r.unidade_cgob, rr?.atributo)}
+          {calc('pilha-de-receitas')}
+        </>
+      ),
+      captive: cite(rr?.atributo),
+      voluntary_cert: cite(r.regra_cgob),
+      cbio: (
+        <>
+          {cite(r.cbio, r.fossil, r.regra_cgob, r.critica)}
+          {calc('pilha-de-receitas')}
+        </>
+      ),
+      digestate_kept: cite(r.digestato),
+      straw: cite(r.digestato),
+    }
+  }
+  const stackButtons = stack ? stackSources(stack) : {}
+  const stackCbio = stack ? Math.max(...stack.cbio_prices.map((c) => c.brl_m3_max)) : 0
+  const stackTotal = stack ? stack.molecule_brl_m3 + stack.attribute_brl_m3 + stackCbio : 0
 
   const co2 = data.biogenic_co2
   const tonnes = (v: number) => format.number(v, { notation: 'compact', maximumSignificantDigits: 2 })
@@ -251,6 +376,17 @@ export default async function MandatePage() {
       ] as const
     : []
   const co2Max = Math.max(...co2Rows.map((r) => r.range[1]))
+  const co2Sources = (key: (typeof co2Rows)[number]['key']): ReactNode => {
+    if (!co2) return null
+    if (key === 'market') return cite(co2.references.mercado)
+    const basis = key === 'burned' ? route?.references.biogas_sp : co2.references.plantas
+    return (
+      <>
+        {cite(basis)}
+        {calc('co2-biogenico')}
+      </>
+    )
+  }
 
   return (
     <div className="bg-paper">
@@ -267,6 +403,13 @@ export default async function MandatePage() {
               {t('sources.where_link')}
             </a>
           </p>
+          <div className="mt-2 max-w-2xl">
+            <CiteLegend
+              heading={t('sources.legend')}
+              kinds={SOURCE_KINDS.map((kind) => ({ kind, label: kindLabel(kind) }))}
+              calcText={t('sources.calc')}
+            />
+          </div>
         </div>
       </header>
 
@@ -277,29 +420,60 @@ export default async function MandatePage() {
             label={t('tiles.target', { year: current.year })}
             value={volume(current.volume_m3_day)}
             unit={t('unit_m3_day')}
-            note={t('tiles.target_note', { reduction: reduction(current.reduction_pct) })}
+            note={
+              <>
+                {t('tiles.target_note', { reduction: reduction(current.reduction_pct) })}
+                {cite([current.source])}
+              </>
+            }
           />
           <StatTile
             label={t('tiles.br')}
             value={volume(latest.br_m3_day)}
             unit={t('unit_m3_day')}
-            note={t('tiles.coverage', { month: latestLabel, share: pct(current.coverage), year: current.year })}
+            note={
+              <>
+                {t('tiles.coverage', { month: latestLabel, share: pct(current.coverage), year: current.year })}
+                {cite(data.production_references)}
+                {calc('trajetoria')}
+              </>
+            }
           />
           <StatTile
             label={t('tiles.sp')}
             value={volume(latest.sp_m3_day)}
             unit={t('unit_m3_day')}
-            note={t('tiles.sp_share', { month: latestLabel, share: pct(latest.sp_share_of_br) })}
+            note={
+              <>
+                {t('tiles.sp_share', { month: latestLabel, share: pct(latest.sp_share_of_br) })}
+                {cite(data.production_references)}
+              </>
+            }
           />
           <StatTile
             label={t('tiles.cgob')}
             value={t('tiles.cgob_none')}
-            note={t('tiles.cgob_note')}
+            note={
+              <>
+                {t('tiles.cgob_note')}
+                {cite(data.cgob.references)}
+              </>
+            }
           />
         </dl>
 
         <div className="grid gap-5 lg:grid-cols-5">
-          <Card id="trajetoria" className="lg:col-span-2" title={t('path.heading')} caption={t('path.caption', { month: latestLabel })}>
+          <Card
+            id="trajetoria"
+            className="lg:col-span-2"
+            title={t('path.heading')}
+            caption={
+              <>
+                {t('path.caption', { month: latestLabel })}
+                {cite(data.production_references)}
+              </>
+            }
+          >
             <BarList
               labelWidth="minmax(7rem, 9rem)"
               rows={[
@@ -332,9 +506,29 @@ export default async function MandatePage() {
                   >
                     {g.act}
                   </a>
+                  {g.volume_estimated && calc('trajetoria')}
                 </li>
               ))}
             </ul>
+            {method('trajetoria', [
+              t('path.method.production'),
+              t('path.method.coverage', {
+                month: latestLabel,
+                br: volume(latest.br_m3_day),
+                year: current.year,
+                target: volume(current.volume_m3_day),
+                share: pct(current.coverage),
+              }),
+              ...(published && targets.some((g) => g.volume_estimated)
+                ? [
+                    t('path.method.indicative', {
+                      volume: volume(published.volume_m3_day),
+                      year: published.year,
+                      pct: reduction(published.reduction_pct),
+                    }),
+                  ]
+                : []),
+            ])}
             {sourceList([
               { key: 'panel', label: t('path.source_groups.panel'), sources: data.references },
               { key: 'cgob', label: t('path.source_groups.cgob'), sources: data.cgob.references },
@@ -345,7 +539,13 @@ export default async function MandatePage() {
             id="producao"
             className="lg:col-span-3"
             title={t('series.heading')}
-            caption={t('series.caption', { year: current.year })}
+            caption={
+              <>
+                {t('series.caption', { year: current.year })}
+                {cite(data.production_references)}
+                {calc('trajetoria')}
+              </>
+            }
           >
             <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-ink">
               {[
@@ -406,8 +606,78 @@ export default async function MandatePage() {
           <Card
             id="troca-de-rota"
             title={t('route.heading')}
-            caption={t('route.caption', { molecule: brl(route.molecule_brl_m3), upgrading: brl(route.upgrading_brl_m3) })}
+            caption={t('route.caption')}
           >
+            {inputs([
+              {
+                key: 'molecule',
+                label: t('route.inputs.molecule'),
+                value: t('route.inputs.per_m3', { value: brl(route.molecule_brl_m3) }),
+                sources: cite(route.references.molecula),
+              },
+              {
+                key: 'attribute',
+                label: t('route.inputs.attribute'),
+                value: t('route.inputs.per_m3', { value: brl(route.reference_attribute_brl_m3) }),
+                sources: cite(route.references.atributo),
+              },
+              {
+                key: 'upgrading',
+                label: t('route.inputs.upgrading', {
+                  eur: decimal(route.inputs.upgrading_eur_mwh, 0),
+                  fx: brl(route.inputs.brl_per_eur),
+                }),
+                value: t('route.inputs.per_m3', { value: brl(route.upgrading_brl_m3) }),
+                sources: cite(route.references.purificacao, route.references.cambio),
+              },
+              ...(pld.length
+                ? [
+                    {
+                      key: 'pld',
+                      label: t('route.inputs.pld'),
+                      value: t('route.inputs.mwh_range', { low: brl0(Math.min(...pld)), high: brl0(Math.max(...pld)) }),
+                      sources: cite(route.references.eletricidade),
+                    },
+                  ]
+                : []),
+              ...(selfUse
+                ? [
+                    {
+                      key: 'self_use',
+                      label: t('route.prices.autoconsumo'),
+                      value: t('route.inputs.per_mwh', { value: brl0(selfUse.electricity_brl_mwh) }),
+                      sources: cite(route.references.autoconsumo),
+                    },
+                  ]
+                : []),
+              {
+                key: 'lhv',
+                label: t('route.inputs.lhv'),
+                value: t('route.inputs.kwh_m3', { value: decimal(route.inputs.lhv_kwh_m3) }),
+                sources: cite(route.references.pci),
+              },
+              {
+                key: 'efficiency',
+                label: t('route.inputs.efficiency'),
+                value: pct(route.inputs.electric_efficiency),
+                sources: cite(route.references.rendimento),
+              },
+              {
+                key: 'ch4',
+                label: t('route.inputs.ch4'),
+                value: t('route.inputs.range', {
+                  low: pct(route.inputs.ch4_fraction[0]),
+                  high: pct(route.inputs.ch4_fraction[1]),
+                }),
+                sources: cite(route.references.fracao_ch4),
+              },
+              {
+                key: 'biogas',
+                label: t('route.inputs.biogas'),
+                value: t('route.inputs.m3_day', { value: volume(route.inputs.sp_biogas_m3_day) }),
+                sources: cite(route.references.biogas_sp),
+              },
+            ])}
             <div className="grid gap-5 lg:grid-cols-5">
               {/* Label and value above each bar: the labels are long and the
                   card is narrow beside the text, so a side-by-side row would cut them. */}
@@ -415,7 +685,10 @@ export default async function MandatePage() {
                 {routeRows.map((r) => (
                   <li key={r.key} className="text-sm">
                     <div className={`flex items-baseline justify-between gap-3 ${r.emphasis ? 'font-semibold text-ink' : 'text-ink'}`}>
-                      <span>{r.label}</span>
+                      <span>
+                        {r.label}
+                        {r.sources}
+                      </span>
                       <span className="shrink-0 tabular-nums">{r.valueLabel}</span>
                     </div>
                     <span className="mt-1 block h-2.5" aria-hidden="true">
@@ -428,11 +701,16 @@ export default async function MandatePage() {
                 ))}
               </ul>
               <div className="space-y-3 text-sm text-ink-muted lg:col-span-2">
-                <p className="text-ink">{t('route.threshold', { threshold: brl0(route.threshold_brl_mwh) })}</p>
+                <p className="text-ink">
+                  {t('route.threshold', { threshold: brl0(route.threshold_brl_mwh) })}
+                  {calc('troca-de-rota')}
+                </p>
                 <p>
                   {Math.max(...route.prices.map((p) => p.breakeven_attribute_brl_m3)) < route.reference_attribute_brl_m3
                     ? t('route.reference_covers')
                     : t('route.reference_short')}
+                  {cite(route.references.atributo)}
+                  {calc('troca-de-rota')}
                 </p>
                 <p>
                   {t('route.burned', {
@@ -440,9 +718,55 @@ export default async function MandatePage() {
                     ratio: format.number(route.sp_burned_ch4_m3_day / routeTarget.volume_m3_day, { maximumFractionDigits: 1 }),
                     year: routeTarget.year,
                   })}
+                  {cite(route.references.biogas_sp, route.references.fracao_ch4, [routeTarget.source])}
+                  {calc('troca-de-rota')}
                 </p>
               </div>
             </div>
+            {method('troca-de-rota', [
+              ...(example
+                ? [
+                    t('route.method.electricity', {
+                      lhv: decimal(route.inputs.lhv_kwh_m3),
+                      eta: pct(route.inputs.electric_efficiency),
+                      price: brl0(example.electricity_brl_mwh),
+                      value: brl(example.electricity_route_brl_m3),
+                    }),
+                  ]
+                : []),
+              t('route.method.upgrading', {
+                eur: decimal(route.inputs.upgrading_eur_mwh, 0),
+                fx: brl(route.inputs.brl_per_eur),
+                lhv: decimal(route.inputs.lhv_kwh_m3),
+                upgrading: brl(route.upgrading_brl_m3),
+              }),
+              ...(example
+                ? [
+                    t('route.method.breakeven', {
+                      price: brl0(example.electricity_brl_mwh),
+                      electricity: brl(example.electricity_route_brl_m3),
+                      molecule: brl(route.molecule_brl_m3),
+                      upgrading: brl(route.upgrading_brl_m3),
+                      value: brl(example.breakeven_attribute_brl_m3),
+                    }),
+                  ]
+                : []),
+              t('route.method.threshold', {
+                molecule: brl(route.molecule_brl_m3),
+                upgrading: brl(route.upgrading_brl_m3),
+                lhv: decimal(route.inputs.lhv_kwh_m3),
+                eta: pct(route.inputs.electric_efficiency),
+                threshold: brl0(route.threshold_brl_mwh),
+              }),
+              t('route.method.burned', {
+                biogas: volume(route.inputs.sp_biogas_m3_day),
+                mid: pct((route.inputs.ch4_fraction[0] + route.inputs.ch4_fraction[1]) / 2),
+                ch4: volume(route.sp_burned_ch4_m3_day),
+                year: routeTarget.year,
+                target: volume(routeTarget.volume_m3_day),
+                ratio: format.number(route.sp_burned_ch4_m3_day / routeTarget.volume_m3_day, { maximumFractionDigits: 1 }),
+              }),
+            ])}
             <p className="mt-4 text-xs text-ink-muted">{t('route.limits')}</p>
             {sourceList(
               ROUTE_GROUPS.map((g) => ({ key: g, label: t(`route.source_groups.${g}`), sources: route.references[g] ?? [] })),
@@ -453,13 +777,8 @@ export default async function MandatePage() {
         {stack && (
           <Card id="pilha-de-receitas" title={t('stack.heading')} caption={t('stack.caption')}>
             <p className="max-w-3xl text-sm font-medium text-ink">
-              {t('stack.total', {
-                total: brl(
-                  stack.molecule_brl_m3 +
-                    stack.attribute_brl_m3 +
-                    Math.max(...stack.cbio_prices.map((c) => c.brl_m3_max)),
-                ),
-              })}
+              {t('stack.total', { total: brl(stackTotal) })}
+              {calc('pilha-de-receitas')}
             </p>
             <div className="mt-4 grid gap-4 md:grid-cols-2">
               {STACK.map(({ group, Icon, items }) => (
@@ -481,6 +800,7 @@ export default async function MandatePage() {
                                 cbio: format.number(stack.cbio_per_m3_max, { maximumSignificantDigits: 2 }),
                               })
                             : t(`stack.items.${item}.note`)}
+                          {stackButtons[item]}
                         </dd>
                       </div>
                     ))}
@@ -488,6 +808,39 @@ export default async function MandatePage() {
                 </section>
               ))}
             </div>
+            {method('pilha-de-receitas', [
+              ...(route
+                ? [
+                    t('stack.method.cbio', {
+                      lhv: decimal(route.inputs.lhv_kwh_m3 * 3.6, 1),
+                      fossil: decimal(stack.fossil_g_co2e_mj, 1),
+                      cbio: format.number(stack.cbio_per_m3_max, { maximumSignificantDigits: 2 }),
+                      low: brl(Math.min(...stack.cbio_prices.map((c) => c.brl))),
+                      high: brl(Math.max(...stack.cbio_prices.map((c) => c.brl))),
+                      brl_low: brl(Math.min(...stack.cbio_prices.map((c) => c.brl_m3_max))),
+                      brl_high: brl(Math.max(...stack.cbio_prices.map((c) => c.brl_m3_max))),
+                    }),
+                    t('stack.method.co2', {
+                      density: decimal(stack.co2_density_kg_m3),
+                      high: pct(route.inputs.ch4_fraction[1]),
+                      low: pct(route.inputs.ch4_fraction[0]),
+                      kg_low: decimal(stack.co2_kg_per_m3[0]),
+                      kg_high: decimal(stack.co2_kg_per_m3[1]),
+                    }),
+                  ]
+                : []),
+              t('stack.method.cgob', {
+                m3: stack.m3_per_cgob,
+                attr: brl(stack.attribute_brl_m3),
+                perCgob: brl0(stack.attribute_brl_m3 * stack.m3_per_cgob),
+              }),
+              t('stack.method.total', {
+                molecule: brl(stack.molecule_brl_m3),
+                attr: brl(stack.attribute_brl_m3),
+                cbio: brl(stackCbio),
+                total: brl(stackTotal),
+              }),
+            ])}
             <p className="mt-4 text-xs text-ink-muted">
               {t('stack.digestate_basis')} {t('stack.limits')}
             </p>
@@ -505,7 +858,10 @@ export default async function MandatePage() {
                   {co2Rows.map((r) => (
                     <li key={r.key} className="text-sm">
                       <div className={`flex items-baseline justify-between gap-3 text-ink ${r.key === 'burned' ? 'font-semibold' : ''}`}>
-                        <span>{t(`co2.rows.${r.key}`)}</span>
+                        <span>
+                          {t(`co2.rows.${r.key}`)}
+                          {co2Sources(r.key)}
+                        </span>
                         <span className="shrink-0 tabular-nums">
                           {r.key === 'market' ? t('co2.unit_one', { value: tonnes(r.range[0]) }) : tonnesRange(r.range)}
                         </span>
@@ -521,7 +877,11 @@ export default async function MandatePage() {
                   ))}
                 </ul>
                 <table className="w-full text-sm">
-                  <caption className="mb-2 text-left font-medium text-ink">{t('co2.plants')}</caption>
+                  <caption className="mb-2 text-left font-medium text-ink">
+                    {t('co2.plants')}
+                    {cite(co2.references.plantas)}
+                    {calc('co2-biogenico')}
+                  </caption>
                   <thead>
                     <tr className="border-b border-line text-xs text-ink-muted">
                       <th scope="col" className="py-1 pr-2 text-left font-normal">{t('co2.plant')}</th>
@@ -551,16 +911,42 @@ export default async function MandatePage() {
                     high: format.number(co2.sp_burned_t_year[1] / co2.market_t_year, { maximumFractionDigits: 1 }),
                     unit: co2.ethanol_unit_t_day,
                   })}
+                  {calc('co2-biogenico')}
+                  {cite(co2.references.exemplos, co2.references.mercado)}
                 </p>
                 <p>
                   {t('co2.ethanol', {
                     ethanol: t('co2.unit_one', { value: tonnes(co2.ethanol_t_year) }),
                     biogas: t('co2.unit_one', { value: tonnes(co2.epe_biogas_t_year) }),
                   })}
+                  {cite(co2.references.epe)}
                 </p>
-                <p>{t('co2.removal')}</p>
+                <p>
+                  {t('co2.removal')}
+                  {cite(co2.references.remocao)}
+                </p>
               </div>
             </div>
+            {method('co2-biogenico', [
+              ...(route && stack
+                ? [
+                    t('co2.method.plant', {
+                      co2_low: pct(1 - route.inputs.ch4_fraction[1]),
+                      co2_high: pct(1 - route.inputs.ch4_fraction[0]),
+                      density: decimal(stack.co2_density_kg_m3),
+                    }),
+                    t('co2.method.burned', { biogas: volume(route.inputs.sp_biogas_m3_day) }),
+                  ]
+                : []),
+              t('co2.method.market', {
+                day: format.number(co2.market_t_year / 365, { maximumFractionDigits: 0 }),
+                year: t('co2.unit_one', { value: tonnes(co2.market_t_year) }),
+              }),
+              t('co2.method.share', {
+                now: tonnesRange(co2.sp_now_t_year),
+                share: pct((co2.sp_now_t_year[0] + co2.sp_now_t_year[1]) / 2 / co2.market_t_year),
+              }),
+            ])}
             <p className="mt-4 text-xs text-ink-muted">{t('co2.limits')}</p>
             {sourceList(CO2_GROUPS.map((g) => ({ key: g, label: t(`co2.source_groups.${g}`), sources: co2.references[g] ?? [] })))}
           </Card>
@@ -573,6 +959,22 @@ export default async function MandatePage() {
             ))}
           </ul>
           <p className="mt-4 text-xs text-ink-muted">{t('sources.where.legend')}</p>
+        </Card>
+
+        <Card id="citar" title={t('sources.cite.heading')}>
+          <p className="max-w-3xl break-words border-l-2 border-line-strong pl-3 text-xs text-ink">
+            {t('sources.cite.text', {
+              checked,
+              url: publicUrl(`/${locale}/mandate`),
+              date: format.dateTime(new Date(), { dateStyle: 'long' }),
+            })}
+          </p>
+          <p className="mt-3 text-sm text-ink-muted">
+            {t('sources.cite.note')}{' '}
+            <Link href="/cite" className="text-terra-700 underline underline-offset-2 dark:text-terra-300">
+              {t('sources.cite.more')}
+            </Link>
+          </p>
         </Card>
 
         <Card id="limites" title={t('limits.heading')}>

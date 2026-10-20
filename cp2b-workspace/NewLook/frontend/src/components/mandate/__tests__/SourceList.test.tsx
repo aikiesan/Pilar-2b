@@ -11,6 +11,7 @@ import SourceList, { countSources, type Reference } from '../SourceList'
 const official: Reference = {
   key: 'lei',
   title: 'Lei nº 14.993/2024',
+  short: 'Lei 14.993/2024',
   publisher: 'Presidência da República',
   date: '2024-10',
   url: 'https://www.planalto.gov.br/l14993.htm',
@@ -20,6 +21,7 @@ const official: Reference = {
 const assumption: Reference = {
   key: 'suposto',
   title: 'Energia autoconsumida a R$ 450/MWh',
+  short: 'Suposição PILAR-2b',
   publisher: 'PILAR-2b',
   date: '2026-10',
   url: null,

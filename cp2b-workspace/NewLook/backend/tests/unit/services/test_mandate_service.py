@@ -6,8 +6,22 @@ from app.services import mandate_service as M
 from app.services.canonical_loader import load_mandate_params
 
 SOURCES = {
-    "f": {"titulo": "t", "autor": "a", "data": "2026-10", "url": "https://x", "tipo": "oficial"},
-    "g": {"titulo": "t", "autor": "PILAR-2b", "data": "2026-10", "url": None, "tipo": "estimativa"},
+    "f": {
+        "titulo": "t",
+        "curta": "c",
+        "autor": "a",
+        "data": "2026-10",
+        "url": "https://x",
+        "tipo": "oficial",
+    },
+    "g": {
+        "titulo": "t",
+        "curta": "c",
+        "autor": "PILAR-2b",
+        "data": "2026-10",
+        "url": None,
+        "tipo": "estimativa",
+    },
 }
 
 
@@ -116,6 +130,7 @@ def test_references_resolve_in_order_and_refuse_unknown_keys_or_kinds():
     assert refs[1] == {
         "key": "f",
         "title": "t",
+        "short": "c",
         "publisher": "a",
         "date": "2026-10",
         "url": "https://x",
@@ -141,6 +156,8 @@ def test_every_canonical_source_is_used_dated_and_linked():
     assert used == set(registry)
     for key, f in registry.items():
         assert f["titulo"] and f["autor"] and str(f["data"])[:4].isdigit(), key
+        # The short citation sits on the button beside each figure.
+        assert 0 < len(f["curta"]) <= 32, key
         # Only the platform's own assumptions go without a link.
         if f["tipo"] == "estimativa":
             assert f["url"] is None, key
@@ -180,6 +197,18 @@ def test_canonical_route_switch():
     # Even the self-consumption case needs less than the CGOB floor suppliers ask for.
     assert by[450] < r["reference_attribute_brl_m3"]
     assert r["sp_burned_ch4_m3_day"] == pytest.approx(2.94e6)
+    # The inputs the page shows rebuild the figures it shows.
+    i = r["inputs"]
+    assert i["lhv_kwh_m3"] * i["upgrading_eur_mwh"] * i["brl_per_eur"] / 1000 == pytest.approx(
+        r["upgrading_brl_m3"]
+    )
+    yield_mwh = i["lhv_kwh_m3"] * i["electric_efficiency"] / 1000
+    assert (r["molecule_brl_m3"] - r["upgrading_brl_m3"]) / yield_mwh == pytest.approx(
+        r["threshold_brl_mwh"]
+    )
+    assert i["sp_biogas_m3_day"] * sum(i["ch4_fraction"]) / 2 == pytest.approx(
+        r["sp_burned_ch4_m3_day"]
+    )
 
 
 def _stack_params():

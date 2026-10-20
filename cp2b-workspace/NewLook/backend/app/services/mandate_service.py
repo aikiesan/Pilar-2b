@@ -70,6 +70,7 @@ def references(params: dict, keys: list[str]) -> list[dict]:
             {
                 "key": key,
                 "title": f["titulo"],
+                "short": f["curta"],
                 "publisher": f["autor"],
                 "date": str(f["data"]),
                 "url": f.get("url"),
@@ -159,6 +160,15 @@ def route_switch(params: dict) -> dict:
         "threshold_brl_mwh": net_molecule / (lhv * eta) * 1000.0,
         "prices": rows,
         "sp_burned_ch4_m3_day": p["biogas_sp_m3_dia"] * (low + high) / 2,
+        # The inputs behind every figure, so the page can show the arithmetic.
+        "inputs": {
+            "lhv_kwh_m3": lhv,
+            "electric_efficiency": eta,
+            "upgrading_eur_mwh": p["purificacao_eur_mwh"],
+            "brl_per_eur": p["brl_por_eur"],
+            "ch4_fraction": [low, high],
+            "sp_biogas_m3_day": p["biogas_sp_m3_dia"],
+        },
         "references": grouped_references(params, p["fontes"]),
     }
 
@@ -183,6 +193,8 @@ def revenue_stack(params: dict) -> dict:
         ],
         "co2_kg_per_m3": co2,
         "digestate_value_share": p["digestato_valor_por_destino"],
+        "fossil_g_co2e_mj": p["fossil_referencia_g_co2e_mj"],
+        "co2_density_kg_m3": p["densidade_co2_kg_m3"],
         "references": grouped_references(params, p["fontes"]),
     }
 
