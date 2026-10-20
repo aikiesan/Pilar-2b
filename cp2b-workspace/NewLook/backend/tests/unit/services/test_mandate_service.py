@@ -67,3 +67,62 @@ def test_canonical_targets_are_official_and_ordered():
     assert by[2026]["status"] == "vigente" and by[2026]["volume_m3_day"] == 504800
     assert by[2027]["cgob_year"] == pytest.approx(3632492)
     assert all(t["volume_estimated"] == (t["status"] == "indicativa") for t in goals)
+
+
+def _route_params(prices=(100, 400)):
+    return {
+        "pci_ch4_kwh_m3": 10.0,
+        "rendimento_eletrico": 0.4,
+        "molecula_brl_m3": 2.0,
+        "atributo_referencia_brl_m3": 1.0,
+        "fonte_molecula_atributo": "f",
+        "url_molecula_atributo": "u",
+        "purificacao_eur_mwh": 20.0,
+        "brl_por_eur": 5.0,
+        "fonte_purificacao": "f",
+        "precos_eletricidade": [{"chave": f"p{i}", "brl_mwh": p} for i, p in enumerate(prices)],
+        "fonte_eletricidade": "f",
+        "url_eletricidade": "u",
+        "biogas_sp_m3_dia": 1000,
+        "fracao_ch4": [0.5, 0.7],
+        "fonte_biogas_sp": "f",
+    }
+
+
+def test_both_routes_pay_the_same_at_the_breakeven_attribute():
+    r = M.route_switch({"troca_de_rota": _route_params()})
+    # 10 kWh × 0.4 = 4 kWh of power per m³; upgrading 10/1000 MWh × €20 × 5 = R$ 1.
+    assert r["upgrading_brl_m3"] == pytest.approx(1.0)
+    for row in r["prices"]:
+        biomethane = (
+            r["molecule_brl_m3"] + row["breakeven_attribute_brl_m3"] - r["upgrading_brl_m3"]
+        )
+        assert biomethane == pytest.approx(row["electricity_route_brl_m3"])
+    low, high = r["prices"]
+    assert low["breakeven_attribute_brl_m3"] == pytest.approx(0.4 - 1.0)  # wins with no attribute
+    assert high["breakeven_attribute_brl_m3"] == pytest.approx(1.6 - 1.0)
+    assert r["sp_burned_ch4_m3_day"] == pytest.approx(600)
+
+
+def test_at_the_threshold_price_no_attribute_is_needed():
+    r = M.route_switch({"troca_de_rota": _route_params()})
+    at = M.route_switch({"troca_de_rota": _route_params(prices=(r["threshold_brl_mwh"],))})
+    assert at["prices"][0]["breakeven_attribute_brl_m3"] == pytest.approx(0.0, abs=1e-12)
+    assert r["threshold_brl_mwh"] == pytest.approx(250)
+
+
+def test_panel_without_route_parameters_still_works():
+    assert M.panel(_params([_row("01/2026", "SP", 31)]))["route_switch"] is None
+
+
+def test_canonical_route_switch():
+    r = M.panel(load_mandate_params())["route_switch"]
+    assert r["upgrading_brl_m3"] == pytest.approx(1.19, abs=0.01)
+    assert r["threshold_brl_mwh"] == pytest.approx(281, abs=1)
+    by = {row["electricity_brl_mwh"]: row["breakeven_attribute_brl_m3"] for row in r["prices"]}
+    assert by[185] < 0 and by[250] < 0
+    assert by[300] == pytest.approx(0.07, abs=0.01)
+    assert by[450] == pytest.approx(0.64, abs=0.01)
+    # Even the self-consumption case needs less than the attribute the tariff already pays.
+    assert by[450] < r["reference_attribute_brl_m3"]
+    assert r["sp_burned_ch4_m3_day"] == pytest.approx(2.94e6)

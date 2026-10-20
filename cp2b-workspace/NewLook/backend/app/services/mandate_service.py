@@ -8,6 +8,12 @@ A target with a published volume (vigente, proposta) is used as published. An
 indicative one has no volume: it is the latest published target scaled by the
 percentage, an order of magnitude only, flagged `volume_estimated`.
 
+Route switch (C17): per Nm³ of CH4, the environmental attribute (CGOB or
+equivalent) at which selling biomethane pays as much as burning the biogas for
+power, at each electricity price:
+
+    break-even attribute = CH4 × LHV × η × electricity price − (molecule − upgrading)
+
 Inputs live in data/canonical_parameters: mandato_biometano.yaml and the ANP
 monthly series it names. `read` is the only I/O; it needs nothing from the
 app, so the analysis prototype loads this file directly.
@@ -81,6 +87,43 @@ def targets(params: dict) -> list[dict]:
     return out
 
 
+def route_switch(params: dict) -> dict:
+    """Break-even attribute per electricity price, and the CH4 SP burns today."""
+    p = params["troca_de_rota"]
+    lhv, eta = p["pci_ch4_kwh_m3"], p["rendimento_eletrico"]
+    upgrading = lhv / 1000.0 * p["purificacao_eur_mwh"] * p["brl_por_eur"]
+    net_molecule = p["molecula_brl_m3"] - upgrading
+    rows = []
+    for price in p["precos_eletricidade"]:
+        electricity = lhv * eta * price["brl_mwh"] / 1000.0
+        rows.append(
+            {
+                "key": price["chave"],
+                "electricity_brl_mwh": price["brl_mwh"],
+                "electricity_route_brl_m3": electricity,
+                "breakeven_attribute_brl_m3": electricity - net_molecule,
+            }
+        )
+    low, high = p["fracao_ch4"]
+    return {
+        "molecule_brl_m3": p["molecula_brl_m3"],
+        "upgrading_brl_m3": upgrading,
+        "reference_attribute_brl_m3": p["atributo_referencia_brl_m3"],
+        # Below this electricity price biomethane wins with no attribute at all.
+        "threshold_brl_mwh": net_molecule / (lhv * eta) * 1000.0,
+        "prices": rows,
+        "sp_burned_ch4_m3_day": p["biogas_sp_m3_dia"] * (low + high) / 2,
+        "sources": {
+            "molecule_attribute": p["fonte_molecula_atributo"],
+            "molecule_attribute_url": p["url_molecula_atributo"],
+            "upgrading": p["fonte_purificacao"],
+            "electricity": p["fonte_eletricidade"],
+            "electricity_url": p["url_eletricidade"],
+            "sp_biogas": p["fonte_biogas_sp"],
+        },
+    }
+
+
 def panel(params: dict) -> dict:
     """Targets, the monthly series, and how far the latest month goes towards each target."""
     series = monthly_production(params["producao"]["linhas"])
@@ -105,4 +148,5 @@ def panel(params: dict) -> dict:
             "public_registry": params["cgob"]["registro_publico"],
             "note": params["cgob"]["nota"],
         },
+        "route_switch": route_switch(params) if "troca_de_rota" in params else None,
     }

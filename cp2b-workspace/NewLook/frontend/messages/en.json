@@ -2742,6 +2742,28 @@
       "month": "Month",
       "target": "{year} target"
     },
+    "route": {
+      "heading": "Is it worth swapping the engine for an upgrader?",
+      "caption": "Per m³ of methane: what the environmental attribute (CGOB or equivalent) must be worth for selling biomethane to pay as much as burning the biogas for power, at each power price. Molecule at {molecule}/m³, upgrading at {upgrading}/m³.",
+      "prices": {
+        "pld_baixo": "Low spot price",
+        "pld_medio": "Mid spot price",
+        "pld_alto": "High spot price",
+        "autoconsumo": "Self-consumed power"
+      },
+      "row": "{label} · {price}/MWh",
+      "none_needed": "not needed",
+      "per_m3": "{value}/m³",
+      "reference": "Attribute paid in the Green Captive Market",
+      "threshold": "With power below {threshold}/MWh, biomethane already pays more with no attribute at all.",
+      "reference_covers": "Even when the plant uses its own power, the break-even attribute stays below what the Green Captive Market already pays.",
+      "reference_short": "When the plant uses its own power, the attribute must exceed what the Green Captive Market pays today.",
+      "burned": "São Paulo already produces biogas with about {volume} m³/day of methane, almost all burned for power: {ratio}× the {year} target.",
+      "limits": "Screening prices from a single source; replace with contract data before quoting. Grid connection (pipeline or truck) and the engine already paid for are left out.",
+      "sources": "Sources",
+      "source_tariff": "Green Captive Market tariff",
+      "source_pld": "CCEE spot price"
+    },
     "limits": {
       "heading": "Limits",
       "items": [

@@ -2,7 +2,9 @@
  * /mandate — Painel do mandato do biometano (Estratégia 2027, C26): each
  * year's target under the Combustível do Futuro law against the biomethane
  * Brazil and São Paulo produce (ANP, monthly), and the CGOB issued once a
- * public registry exists.
+ * public registry exists. Below them, the route switch (C17): what the
+ * environmental attribute must pay for a plant to stop burning biogas for
+ * electricity and sell biomethane instead.
  *
  * Every figure comes from /api/v1/mandate/panel (data/canonical_parameters/
  * mandato_biometano.yaml and the ANP series). Rendered on the server and kept
@@ -27,6 +29,11 @@ const SP_COLOR = 'bg-terra-600 dark:bg-terra-400'
 
 type Status = 'vigente' | 'proposta' | 'indicativa'
 
+/** Electricity prices the route card labels (`troca_de_rota.precos_eletricidade`). */
+const PRICE_KEYS = ['pld_baixo', 'pld_medio', 'pld_alto', 'autoconsumo'] as const
+type PriceKey = (typeof PRICE_KEYS)[number]
+const isPriceKey = (k: string): k is PriceKey => (PRICE_KEYS as readonly string[]).includes(k)
+
 interface Month {
   month: string
   br_m3_day: number
@@ -44,10 +51,26 @@ interface Target {
   coverage: number
 }
 
+interface RouteSwitch {
+  molecule_brl_m3: number
+  upgrading_brl_m3: number
+  reference_attribute_brl_m3: number
+  threshold_brl_mwh: number
+  prices: {
+    key: string
+    electricity_brl_mwh: number
+    electricity_route_brl_m3: number
+    breakeven_attribute_brl_m3: number
+  }[]
+  sp_burned_ch4_m3_day: number
+  sources: { molecule_attribute_url: string; electricity_url: string }
+}
+
 interface Panel {
   latest: Month & { sp_share_of_br: number }
   targets: Target[]
   series: Month[]
+  route_switch: RouteSwitch | null
 }
 
 export const generateMetadata = (): Promise<Metadata> => navMetadata('mandate', 'mandate')
@@ -72,6 +95,38 @@ export default async function MandatePage() {
   const seriesMax = Math.max(current.volume_m3_day, ...series.map((m) => m.br_m3_day))
   const height = (v: number) => `${(100 * v) / seriesMax}%`
   const latestLabel = monthLabel(latest.month)
+
+  const brl = (v: number) => format.number(v, { style: 'currency', currency: 'BRL', minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  const brl0 = (v: number) => format.number(v, { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })
+  const route = data.route_switch
+  // The burned methane is set against the next target still being decided.
+  const routeTarget = targets.find((g) => g.status === 'proposta') ?? current
+  // The break-even attribute at each electricity price, then the one the market pays.
+  const routeRows = route
+    ? [
+        ...route.prices.flatMap((p) => {
+          const key = p.key
+          if (!isPriceKey(key)) return []
+          const attribute = p.breakeven_attribute_brl_m3
+          return {
+            key,
+            emphasis: false,
+            label: t('route.row', { label: t(`route.prices.${key}`), price: brl0(p.electricity_brl_mwh) }),
+            value: Math.max(0, attribute),
+            valueLabel: attribute > 0 ? t('route.per_m3', { value: brl(attribute) }) : t('route.none_needed'),
+          }
+        }),
+        {
+          key: 'reference',
+          emphasis: true,
+          label: t('route.reference'),
+          value: route.reference_attribute_brl_m3,
+          valueLabel: t('route.per_m3', { value: brl(route.reference_attribute_brl_m3) }),
+        },
+      ]
+    : []
+  const routeMax = Math.max(...routeRows.map((r) => r.value))
+  const linkClass = 'text-terra-700 underline underline-offset-2 dark:text-terra-300'
 
   return (
     <div className="bg-paper">
@@ -211,6 +266,60 @@ export default async function MandatePage() {
             </table>
           </Card>
         </div>
+
+        {route && (
+          <Card
+            id="troca-de-rota"
+            title={t('route.heading')}
+            caption={t('route.caption', { molecule: brl(route.molecule_brl_m3), upgrading: brl(route.upgrading_brl_m3) })}
+          >
+            <div className="grid gap-5 lg:grid-cols-5">
+              {/* Label and value above each bar: the labels are long and the
+                  card is narrow beside the text, so a side-by-side row would cut them. */}
+              <ul className="space-y-3 lg:col-span-3">
+                {routeRows.map((r) => (
+                  <li key={r.key} className="text-sm">
+                    <div className={`flex items-baseline justify-between gap-3 ${r.emphasis ? 'font-semibold text-ink' : 'text-ink'}`}>
+                      <span>{r.label}</span>
+                      <span className="shrink-0 tabular-nums">{r.valueLabel}</span>
+                    </div>
+                    <span className="mt-1 block h-2.5" aria-hidden="true">
+                      <span
+                        className={`block h-full rounded-r ${r.emphasis ? SP_COLOR : 'bg-ink-muted'}`}
+                        style={{ width: `${(100 * r.value) / routeMax}%` }}
+                      />
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              <div className="space-y-3 text-sm text-ink-muted lg:col-span-2">
+                <p className="text-ink">{t('route.threshold', { threshold: brl0(route.threshold_brl_mwh) })}</p>
+                <p>
+                  {Math.max(...route.prices.map((p) => p.breakeven_attribute_brl_m3)) < route.reference_attribute_brl_m3
+                    ? t('route.reference_covers')
+                    : t('route.reference_short')}
+                </p>
+                <p>
+                  {t('route.burned', {
+                    volume: volume(route.sp_burned_ch4_m3_day),
+                    ratio: format.number(route.sp_burned_ch4_m3_day / routeTarget.volume_m3_day, { maximumFractionDigits: 1 }),
+                    year: routeTarget.year,
+                  })}
+                </p>
+              </div>
+            </div>
+            <p className="mt-4 text-xs text-ink-muted">
+              {t('route.limits')} {t('route.sources')}:{' '}
+              <a href={route.sources.molecule_attribute_url} target="_blank" rel="noopener noreferrer" className={linkClass}>
+                {t('route.source_tariff')}
+              </a>
+              {' · '}
+              <a href={route.sources.electricity_url} target="_blank" rel="noopener noreferrer" className={linkClass}>
+                {t('route.source_pld')}
+              </a>
+            </p>
+          </Card>
+        )}
 
         <Card id="limites" title={t('limits.heading')}>
           <ul className="max-w-3xl list-disc space-y-2 pl-5 text-sm text-ink-muted">

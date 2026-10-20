@@ -26,6 +26,13 @@
         {
           "kind": "added",
           "text": {
+            "pt-BR": "No Mandato do biometano, o cartão \"Vale trocar o motor pela purificação?\": quanto o atributo ambiental precisa valer, a cada preço da eletricidade, para vender biometano pagar o mesmo que gerar energia com o biogás, ao lado do que o Mercado Cativo Verde já paga.",
+            "en": "On the Biomethane mandate page, the \"Is it worth swapping the engine for an upgrader?\" card: what the environmental attribute must be worth, at each power price, for selling biomethane to pay as much as generating power from the biogas, next to what the Green Captive Market already pays."
+          }
+        },
+        {
+          "kind": "added",
+          "text": {
             "pt-BR": "Tour guiado do mapa com o Metaninho: um passo para cada parte (mapas prontos, busca, métrica, modo de desenho, abas, cenário, estado, mapa de fundo, legenda), com Voltar, Próximo, Fechar e Não mostrar novamente. Na primeira visita o Metaninho oferece o guia; o botão Guia do mapa, no canto do mapa, o abre a qualquer momento.",
             "en": "Guided map tour with Metaninho: one step per part (ready-made maps, search, metric, drawing mode, tabs, scenario, state, basemap, legend), with Back, Next, Close and Don't show again. On the first visit Metaninho offers the guide; the Map guide button in the map corner opens it at any time."
           }

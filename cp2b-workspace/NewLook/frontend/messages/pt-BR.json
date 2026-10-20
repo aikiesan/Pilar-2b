@@ -2742,6 +2742,28 @@
       "month": "Mês",
       "target": "Meta de {year}"
     },
+    "route": {
+      "heading": "Vale trocar o motor pela purificação?",
+      "caption": "Por m³ de metano: quanto o atributo ambiental (CGOB ou equivalente) precisa valer para vender biometano pagar o mesmo que queimar o biogás para gerar eletricidade, a cada preço da energia. Molécula a {molecule}/m³, purificação a {upgrading}/m³.",
+      "prices": {
+        "pld_baixo": "PLD baixo",
+        "pld_medio": "PLD médio",
+        "pld_alto": "PLD alto",
+        "autoconsumo": "Energia autoconsumida"
+      },
+      "row": "{label} · {price}/MWh",
+      "none_needed": "não precisa",
+      "per_m3": "{value}/m³",
+      "reference": "Atributo pago no Mercado Cativo Verde",
+      "threshold": "Com a eletricidade abaixo de {threshold}/MWh, o biometano já paga mais sem atributo algum.",
+      "reference_covers": "Mesmo quando a usina usa a própria energia, o atributo de equilíbrio fica abaixo do que o Mercado Cativo Verde já paga.",
+      "reference_short": "Quando a usina usa a própria energia, o atributo precisa passar do que o Mercado Cativo Verde paga hoje.",
+      "burned": "São Paulo já produz biogás com cerca de {volume} m³/dia de metano, quase todo queimado para eletricidade: {ratio}× a meta de {year}.",
+      "limits": "Preços de triagem, de fonte única; trocar por contrato antes de citar. Não entram a conexão à rede (gasoduto ou caminhão) nem o motor-gerador já pago.",
+      "sources": "Fontes",
+      "source_tariff": "tarifa do Mercado Cativo Verde",
+      "source_pld": "PLD da CCEE"
+    },
     "limits": {
       "heading": "Limites",
       "items": [

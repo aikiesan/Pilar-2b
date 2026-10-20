@@ -1,27 +1,32 @@
-"""Guards for analysis/build_sp_route_conversion.py."""
+"""Guards for analysis/build_sp_route_conversion.py and the panel's route-switch parameters."""
 
 import importlib.util
 from pathlib import Path
 
 import pytest
 
-SCRIPT = Path(__file__).resolve().parents[1] / "analysis" / "build_sp_route_conversion.py"
+ROOT = Path(__file__).resolve().parents[1]
+SCRIPT = ROOT / "analysis" / "build_sp_route_conversion.py"
 _spec = importlib.util.spec_from_file_location("sp_route", SCRIPT)
 M = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(M)
-S = M.load(M.SCEN, "sp_scen")
+R = M.route()
 
 
 def test_routes_are_equal_at_the_breakeven_attribute():
-    for e in M.ELECTRICITY_BRL_MWH:
-        a = M.breakeven_attribute(S, e)
-        assert M.biomethane_value(S, a) == pytest.approx(M.electricity_value(S, e))
+    for price in R["prices"]:
+        biomethane = M.biomethane_value(R, price["breakeven_attribute_brl_m3"])
+        assert biomethane == pytest.approx(price["electricity_route_brl_m3"])
 
 
-def test_breakeven_electricity_needs_no_attribute():
-    e = M.breakeven_electricity(S)
-    assert M.breakeven_attribute(S, e) == pytest.approx(0.0, abs=1e-12)
+def test_yaml_energy_constants_are_the_scenario_scripts():
+    S = M.load(M.NEWLOOK / "backend" / "scripts" / "sp_scenarios_real_ideal.py", "sp_scen")
+    assert R["params"]["pci_ch4_kwh_m3"] == S.CH4_LHV_KWH_M3
+    assert R["params"]["rendimento_eletrico"] == S.ETA_ELETRICA
 
 
-def test_uses_scenario_script_energy_constants():
-    assert M.electricity_value(S, 1000.0) == pytest.approx(S.CH4_LHV_KWH_M3 * S.ETA_ELETRICA)
+def test_yaml_sp_biogas_is_the_realization_index_input():
+    irm = M.load(ROOT / "analysis" / "build_sp_realization_index.py", "sp_irm")
+    biogas, _year, _source = irm.sp_biogas_production()
+    assert R["params"]["biogas_sp_m3_dia"] == biogas
+    assert tuple(R["params"]["fracao_ch4"]) == irm.BIOGAS_CH4_FRACTION

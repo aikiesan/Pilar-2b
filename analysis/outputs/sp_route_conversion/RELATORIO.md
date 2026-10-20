@@ -2,7 +2,7 @@
 
 Gerado por `analysis/build_sp_route_conversion.py`. Estratégia 2027, rodada 2 (C17).
 
-Por Nm³ de CH₄: PCI 9,94 kWh e rendimento elétrico 38 % (constantes do script de cenários). Molécula de biometano R$ 2,25/m³; purificação R$ 1,19/m³ (referência europeia convertida). Preços de triagem; ver o script.
+Por Nm³ de CH₄: PCI 9,94 kWh e rendimento elétrico 38 % (os do script de cenários). Molécula de biometano R$ 2,25/m³; purificação R$ 1,19/m³ (referência europeia convertida). Preços de triagem em `mandato_biometano.yaml` (`troca_de_rota`), cada um com fonte.
 
 ## Atributo ambiental de equilíbrio
 
@@ -24,7 +24,7 @@ Quanto o atributo ambiental (CGOB ou equivalente) precisa valer para o biometano
 | 300 | -0,07 | 0,43 | 0,93 | 1,33 |
 | 450 | -0,64 | -0,14 | 0,36 | 0,76 |
 
-Aplicado ao biogás que SP já produz (CIBiogás Panorama 2025: 4,9 M Nm³/dia, meio da faixa de CH₄ = 1,07 bi Nm³ CH₄/ano), a diferença entre rotas vai de R$ -0,69 bi a R$ 1,89 bi por ano na grade acima.
+Aplicado ao biogás que SP já produz (CIBiogás, Panorama do Biogás 2025: 4,9 M Nm³/dia, meio da faixa de CH₄ = 1,07 bi Nm³ CH₄/ano), a diferença entre rotas vai de R$ -0,69 bi a R$ 1,89 bi por ano na grade acima.
 
 ## Leitura
 

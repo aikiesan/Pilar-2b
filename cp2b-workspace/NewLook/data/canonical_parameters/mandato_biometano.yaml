@@ -62,3 +62,46 @@ producao:
 cgob:
   registro_publico: false
   nota: "Ainda não há registro público de CGOB emitidos; o painel mostra a emissão quando ele existir."
+
+# -----------------------------------------------------------------------------
+# Troca de rota (C17): por Nm³ de CH₄, quando vender biometano paga mais que
+# queimar o biogás para gerar eletricidade?
+#
+#   rota elétrica    CH₄ × PCI × rendimento elétrico × preço da eletricidade
+#   rota biometano   molécula + atributo ambiental (CGOB ou equivalente) − purificação
+#
+# O painel mostra o ATRIBUTO DE EQUILÍBRIO: quanto o atributo precisa valer
+# para as duas rotas pagarem o mesmo, a cada preço de eletricidade. Preços de
+# triagem com fonte; trocar por dado de contrato antes de citar. PCI e
+# rendimento são os do script de cenários (backend/scripts/sp_scenarios_real_ideal.py);
+# um teste confere que os dois arquivos concordam, assim como o biogás de SP
+# (analysis/data/05b_*).
+# -----------------------------------------------------------------------------
+troca_de_rota:
+  pci_ch4_kwh_m3: 9.94
+  rendimento_eletrico: 0.38
+  molecula_brl_m3: 2.25
+  atributo_referencia_brl_m3: 1.40
+  fonte_molecula_atributo: "Tarifa do Mercado Cativo Verde Arsesp/Comgás (set/2026), fonte única de imprensa; conferir na deliberação da Arsesp"
+  url_molecula_atributo: "https://diariodotransporte.com.br/2026/09/10/bombeiros-de-sao-paulo-abrem-consulta-publica-para-revisar-instrucao-de-comercializacao-distribuicao-utilizacao-e-producao-de-gas-natural-e-biometano/"
+  purificacao_eur_mwh: 19.0
+  brl_por_eur: 6.3
+  fonte_purificacao: "Referência europeia de CAPEX + OPEX para uma unidade de 250 m³/h; conferir com dado brasileiro"
+  # R$/MWh. pld: médias diárias do PLD SE/CO na CCEE, abr–jul/2026.
+  # autoconsumo: valor próximo da tarifa que a usina deixa de pagar quando
+  # usa a própria energia (suposto).
+  precos_eletricidade:
+    - chave: pld_baixo
+      brl_mwh: 185
+    - chave: pld_medio
+      brl_mwh: 250
+    - chave: pld_alto
+      brl_mwh: 300
+    - chave: autoconsumo
+      brl_mwh: 450
+  fonte_eletricidade: "CCEE, InfoPLD diário (SE/CO, abr–jul/2026); autoconsumo suposto"
+  url_eletricidade: "https://www.ccee.org.br/documents/80415/35629354/InfoPLD_Diario30072026.pdf/1a4ac8d1-b541-e513-63ba-a066190ca457"
+  # Biogás que SP já produz, quase todo queimado para eletricidade.
+  biogas_sp_m3_dia: 4900000
+  fracao_ch4: [0.55, 0.65]
+  fonte_biogas_sp: "CIBiogás, Panorama do Biogás 2025"

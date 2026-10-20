@@ -19,8 +19,10 @@ price. That is the number a regulator setting the mandate (and so the CGOB
 price) can act on.
 
 All prices are screening values with their source; replace by contract data
-before quoting. CH4 LHV and electric efficiency are the scenario script's own
-constants (imported, not retyped).
+before quoting. They live in data/canonical_parameters/mandato_biometano.yaml
+(`troca_de_rota`) and the arithmetic in backend/app/services/mandate_service.py
+(`route_switch`), which the mandate panel serves; this script loads both and
+only adds the sensitivity grid and the report.
 
 Run from the repo root:
   python3 analysis/build_sp_route_conversion.py
@@ -37,23 +39,14 @@ import importlib.util
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-SCEN = ROOT / "cp2b-workspace" / "NewLook" / "backend" / "scripts" / "sp_scenarios_real_ideal.py"
-IRM_SCRIPT = ROOT / "analysis" / "build_sp_realization_index.py"
+NEWLOOK = ROOT / "cp2b-workspace" / "NewLook"
+SERVICE = NEWLOOK / "backend" / "app" / "services" / "mandate_service.py"
+PARAMS_DIR = NEWLOOK / "data" / "canonical_parameters"
 OUT = ROOT / "analysis" / "outputs" / "sp_route_conversion"
 
-# R$/MWh. 185–300: CCEE daily PLD averages, SE/CO, Apr–Jul 2026. 450: a value
-# closer to what a mill avoids paying when the power is self-consumed (assumed).
-ELECTRICITY_BRL_MWH = (185.0, 250.0, 300.0, 450.0)
-# R$/m³. Molecule in the Arsesp/Comgás Mercado Cativo Verde tariff (2026-09),
-# single press source (Diário do Transporte); conferir na deliberação Arsesp.
-MOLECULE_BRL_M3 = 2.25
-# R$/m³ of the environmental attribute: 0 (none) up to the 1.40 the same tariff
-# publication states.
-ATTRIBUTE_BRL_M3 = (0.0, 0.5, 1.0, 1.40)
-# Upgrading CAPEX + OPEX ≈ €19/MWh for a 250 m³/h unit (European benchmark,
-# LNEG-hosted presentation) × LHV × EUR/BRL; conferir com dado brasileiro.
-UPGRADING_EUR_MWH = 19.0
-BRL_PER_EUR = 6.3
+# R$/m³ of the environmental attribute for the sensitivity grid: none, two
+# steps, and the reference the tariff publishes (appended from the YAML).
+ATTRIBUTE_STEPS_BRL_M3 = (0.0, 0.5, 1.0)
 
 
 def load(path: Path, name: str):
@@ -63,28 +56,16 @@ def load(path: Path, name: str):
     return mod
 
 
-def electricity_value(S, price_brl_mwh: float) -> float:
-    """R$ per Nm³ CH4 burned for power."""
-    return S.CH4_LHV_KWH_M3 * S.ETA_ELETRICA * price_brl_mwh / 1000.0
+def route() -> dict:
+    """The panel's route-switch block, with the raw YAML parameters under `params`."""
+    M = load(SERVICE, "mandate_service")
+    params = M.read(PARAMS_DIR)
+    return {**M.route_switch(params), "params": params["troca_de_rota"]}
 
 
-def upgrading_cost(S) -> float:
-    """R$ per Nm³ CH4 upgraded."""
-    return S.CH4_LHV_KWH_M3 / 1000.0 * UPGRADING_EUR_MWH * BRL_PER_EUR
-
-
-def biomethane_value(S, attribute: float) -> float:
-    return MOLECULE_BRL_M3 + attribute - upgrading_cost(S)
-
-
-def breakeven_attribute(S, price_brl_mwh: float) -> float:
-    """Attribute price (R$/m³) at which both routes pay the same."""
-    return electricity_value(S, price_brl_mwh) - (MOLECULE_BRL_M3 - upgrading_cost(S))
-
-
-def breakeven_electricity(S) -> float:
-    """Electricity price (R$/MWh) below which biomethane wins with no attribute at all."""
-    return (MOLECULE_BRL_M3 - upgrading_cost(S)) / (S.CH4_LHV_KWH_M3 * S.ETA_ELETRICA) * 1000.0
+def biomethane_value(r: dict, attribute: float) -> float:
+    """R$ per Nm³ CH4 sold as biomethane."""
+    return r["molecule_brl_m3"] + attribute - r["upgrading_brl_m3"]
 
 
 def fmt(x: float, d: int = 2) -> str:
@@ -92,20 +73,20 @@ def fmt(x: float, d: int = 2) -> str:
 
 
 def main() -> None:
-    S = load(SCEN, "sp_scen")
-    R = load(IRM_SCRIPT, "sp_irm")
-    biogas, year, source = R.sp_biogas_production()
-    ch4_m3_yr = biogas * sum(R.BIOGAS_CH4_FRACTION) / 2 * 365
+    r = route()
+    p = r["params"]
+    attributes = (*ATTRIBUTE_STEPS_BRL_M3, r["reference_attribute_brl_m3"])
+    ch4_m3_yr = r["sp_burned_ch4_m3_day"] * 365
 
     rows = []
-    for e in ELECTRICITY_BRL_MWH:
-        for a in ATTRIBUTE_BRL_M3:
-            delta = biomethane_value(S, a) - electricity_value(S, e)
+    for price in r["prices"]:
+        for a in attributes:
+            delta = biomethane_value(r, a) - price["electricity_route_brl_m3"]
             rows.append({
-                "eletricidade_brl_mwh": e,
+                "eletricidade_brl_mwh": price["electricity_brl_mwh"],
                 "atributo_brl_m3": a,
-                "rota_eletrica_brl_m3": round(electricity_value(S, e), 3),
-                "rota_biometano_brl_m3": round(biomethane_value(S, a), 3),
+                "rota_eletrica_brl_m3": round(price["electricity_route_brl_m3"], 3),
+                "rota_biometano_brl_m3": round(biomethane_value(r, a), 3),
                 "vantagem_biometano_brl_m3": round(delta, 3),
                 "vantagem_sp_brl_bi_ano": round(delta * ch4_m3_yr / 1e9, 3),
             })
@@ -115,15 +96,18 @@ def main() -> None:
         w.writeheader()
         w.writerows(rows)
 
-    up = upgrading_cost(S)
+    up = r["upgrading_brl_m3"]
+    prices = [x["electricity_brl_mwh"] for x in r["prices"]]
     L = [
         "# Troca de rota: eletricidade ou biometano?",
         "",
         "Gerado por `analysis/build_sp_route_conversion.py`. Estratégia 2027, rodada 2 (C17).",
         "",
-        f"Por Nm³ de CH₄: PCI {fmt(S.CH4_LHV_KWH_M3)} kWh e rendimento elétrico {100 * S.ETA_ELETRICA:.0f} % "
-        f"(constantes do script de cenários). Molécula de biometano R$ {fmt(MOLECULE_BRL_M3)}/m³; "
-        f"purificação R$ {fmt(up)}/m³ (referência europeia convertida). Preços de triagem; ver o script.",
+        f"Por Nm³ de CH₄: PCI {fmt(p['pci_ch4_kwh_m3'])} kWh e rendimento elétrico "
+        f"{100 * p['rendimento_eletrico']:.0f} % "
+        f"(os do script de cenários). Molécula de biometano R$ {fmt(r['molecule_brl_m3'])}/m³; "
+        f"purificação R$ {fmt(up)}/m³ (referência europeia convertida). Preços de triagem em "
+        "`mandato_biometano.yaml` (`troca_de_rota`), cada um com fonte.",
         "",
         "## Atributo ambiental de equilíbrio",
         "",
@@ -133,33 +117,35 @@ def main() -> None:
         "| Preço da eletricidade (R$/MWh) | Rota elétrica (R$/m³ CH₄) | Atributo de equilíbrio (R$/m³) |",
         "|---:|---:|---:|",
     ]
-    for e in ELECTRICITY_BRL_MWH:
-        be = breakeven_attribute(S, e)
-        L.append(f"| {fmt(e, 0)} | {fmt(electricity_value(S, e))} | "
+    for price in r["prices"]:
+        be = price["breakeven_attribute_brl_m3"]
+        L.append(f"| {fmt(price['electricity_brl_mwh'], 0)} | {fmt(price['electricity_route_brl_m3'])} | "
                  f"{'nenhum (já vence sem atributo)' if be <= 0 else 'R$ ' + fmt(be)} |")
     L += [
         "",
         "## Vantagem do biometano, por m³ de CH₄ (R$)",
         "",
-        "| Eletricidade (R$/MWh) \\ Atributo (R$/m³) | " + " | ".join(fmt(a) for a in ATTRIBUTE_BRL_M3) + " |",
-        "|---:|" + "---:|" * len(ATTRIBUTE_BRL_M3),
+        "| Eletricidade (R$/MWh) \\ Atributo (R$/m³) | " + " | ".join(fmt(a) for a in attributes) + " |",
+        "|---:|" + "---:|" * len(attributes),
     ]
-    for e in ELECTRICITY_BRL_MWH:
+    for e in prices:
         cells = [fmt(r["vantagem_biometano_brl_m3"]) for r in rows if r["eletricidade_brl_mwh"] == e]
         L.append(f"| {fmt(e, 0)} | " + " | ".join(cells) + " |")
     worst = min(r["vantagem_sp_brl_bi_ano"] for r in rows)
     best = max(r["vantagem_sp_brl_bi_ano"] for r in rows)
     L += [
         "",
-        f"Aplicado ao biogás que SP já produz ({source}: {fmt(biogas / 1e6, 1)} M Nm³/dia, "
+        f"Aplicado ao biogás que SP já produz ({p['fonte_biogas_sp']}: "
+        f"{fmt(p['biogas_sp_m3_dia'] / 1e6, 1)} M Nm³/dia, "
         f"meio da faixa de CH₄ = {fmt(ch4_m3_yr / 1e9)} bi Nm³ CH₄/ano), a diferença entre rotas vai de "
         f"R$ {fmt(worst)} bi a R$ {fmt(best)} bi por ano na grade acima.",
         "",
         "## Leitura",
         "",
-        f"1. **Com eletricidade abaixo de cerca de R$ {fmt(breakeven_electricity(S), 0)}/MWh, o biometano "
+        f"1. **Com eletricidade abaixo de cerca de R$ {fmt(r['threshold_brl_mwh'], 0)}/MWh, o biometano "
         "vence mesmo sem atributo ambiental.** O PLD SE/CO ficou na maior parte de abr–jul/2026 entre "
-        f"R$ {ELECTRICITY_BRL_MWH[0]:.0f} e {ELECTRICITY_BRL_MWH[2]:.0f}/MWh, ou seja, em torno desse limiar: para a energia vendida ao mercado, a troca de rota "
+        f"R$ {prices[0]:.0f} e {prices[2]:.0f}/MWh, ou seja, em torno desse limiar: "
+        "para a energia vendida ao mercado, a troca de rota "
         "já se paga ou fica perto disso.",
         "2. **Quando a eletricidade é autoconsumida e vale perto da tarifa evitada, o atributo decide.** "
         "É o caso típico da usina, que usa o biogás para não comprar energia. Ali, o CGOB precisa "
@@ -174,7 +160,7 @@ def main() -> None:
         "dominar para plantas longe da malha. O Mapa de Oportunidades (§3.2) é onde essa distância entra.",
         "- Ignora o motor-gerador já pago (custo afundado) e o O&M dele; também ignora que a usina pode "
         "precisar comprar a energia que deixa de gerar, o que é exatamente o caso de preço de "
-        f"{ELECTRICITY_BRL_MWH[-1]:.0f} R$/MWh.",
+        f"{prices[-1]:.0f} R$/MWh.",
         "- Molécula, atributo e purificação vêm de fonte única ou estrangeira. Conferir antes de citar.",
         "",
     ]
