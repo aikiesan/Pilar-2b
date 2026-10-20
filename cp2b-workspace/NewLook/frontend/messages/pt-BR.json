@@ -977,17 +977,24 @@
     },
     "clusters_loading": "Calculando agrupamentos de co-digestão…",
     "tour": {
-      "open": "Tour do mapa",
+      "open": "Guia do mapa",
       "progress": "{current} de {total}",
       "back": "Voltar",
       "next": "Próximo",
       "last": "Concluir",
       "close": "Fechar tour",
       "never": "Não mostrar novamente",
+      "offer": {
+        "title": "Oi! Eu sou o Metaninho",
+        "body": "Primeira vez no mapa? Posso mostrar como ele funciona em poucos passos, e você sai quando quiser.",
+        "start": "Mostrar o guia",
+        "later": "Agora não",
+        "close": "Fechar"
+      },
       "steps": {
         "welcome": {
-          "title": "Oi! Eu sou o Metaninho",
-          "body": "Vou mostrar o mapa em poucos passos. Cada município aparece colorido pelo potencial de biogás dos seus resíduos: quanto mais forte a cor, maior o potencial. Feche quando quiser; o botão de ajuda reabre o tour."
+          "title": "Como ler o mapa",
+          "body": "Cada município aparece colorido pelo potencial de biogás dos seus resíduos: quanto mais forte a cor, maior o potencial. A seguir, cada parte do mapa em poucos passos."
         },
         "themes": {
           "title": "Mapas prontos",
@@ -1035,7 +1042,7 @@
         },
         "help": {
           "title": "Rever quando quiser",
-          "body": "Este botão reabre o tour a qualquer momento. Bom proveito!"
+          "body": "Este botão reabre o guia a qualquer momento. Bom proveito!"
         }
       }
     }

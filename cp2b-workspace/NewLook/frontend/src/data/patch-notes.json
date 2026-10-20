@@ -26,8 +26,8 @@
         {
           "kind": "added",
           "text": {
-            "pt-BR": "Tour guiado do mapa com o Metaninho: um passo para cada parte (mapas prontos, busca, métrica, modo de desenho, abas, cenário, estado, mapa de fundo, legenda), com Voltar, Próximo, Fechar e Não mostrar novamente. Abre sozinho na primeira visita e pelo botão de ajuda no canto do mapa.",
-            "en": "Guided map tour with Metaninho: one step per part (ready-made maps, search, metric, drawing mode, tabs, scenario, state, basemap, legend), with Back, Next, Close and Don't show again. It opens by itself on the first visit and from the help button in the map corner."
+            "pt-BR": "Tour guiado do mapa com o Metaninho: um passo para cada parte (mapas prontos, busca, métrica, modo de desenho, abas, cenário, estado, mapa de fundo, legenda), com Voltar, Próximo, Fechar e Não mostrar novamente. Na primeira visita o Metaninho oferece o guia; o botão Guia do mapa, no canto do mapa, o abre a qualquer momento.",
+            "en": "Guided map tour with Metaninho: one step per part (ready-made maps, search, metric, drawing mode, tabs, scenario, state, basemap, legend), with Back, Next, Close and Don't show again. On the first visit Metaninho offers the guide; the Map guide button in the map corner opens it at any time."
           }
         }
       ]

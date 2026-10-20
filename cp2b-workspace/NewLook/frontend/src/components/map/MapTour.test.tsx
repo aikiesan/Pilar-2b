@@ -1,65 +1,92 @@
 import React from 'react'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import ptBR from '../../../messages/pt-BR.json'
-import MapTour from './MapTour'
+import MapTour, { MapTourButton } from './MapTour'
+import { saveConsent } from '@/lib/consent'
 
 jest.mock('next-intl', () => jest.requireActual('@/test/mocks/next-intl-real'))
 
 const TOUR = ptBR.Map.tour
 
-/** Mounts the tour and lets the first-visit delay run out. */
+/** Mounts the tour with its button and lets the first-visit delay run out. */
 async function mount() {
-  const view = render(<MapTour />)
+  const view = render(
+    <>
+      <MapTourButton />
+      <MapTour />
+    </>,
+  )
   await act(async () => {
     jest.advanceTimersByTime(1500)
   })
   return view
 }
 
-const card = () => screen.queryByRole('heading', { name: TOUR.steps.welcome.title })
+const click = async (name: string) => {
+  fireEvent.click(screen.getByRole('button', { name }))
+  await act(async () => {})
+}
+const offer = () => screen.queryByRole('dialog', { name: TOUR.offer.title })
+const tour = () => screen.queryByRole('heading', { name: TOUR.steps.welcome.title })
 
 describe('MapTour', () => {
   beforeEach(() => {
     jest.useFakeTimers()
     window.localStorage.clear()
     window.sessionStorage.clear()
+    saveConsent('essential')
   })
   afterEach(() => jest.useRealTimers())
 
-  it('opens by itself on the first visit, with Metaninho greeting and the step counter', async () => {
+  it('on the first visit Metaninho offers the guide, and the guide opens on accepting', async () => {
     await mount()
-    expect(card()).toBeInTheDocument()
+    expect(offer()).toHaveTextContent(TOUR.offer.body)
+    expect(tour()).not.toBeInTheDocument()
+    await click(TOUR.offer.start)
+    expect(offer()).not.toBeInTheDocument()
+    expect(tour()).toBeInTheDocument()
     // jsdom lays nothing out, so only the centered steps remain: welcome and click.
     expect(screen.getByText('1 de 2')).toBeInTheDocument()
   })
 
-  it('"Não mostrar novamente" closes it and keeps it from opening by itself again', async () => {
+  it('waits for the cookie choice, so the banner never covers the offer', async () => {
+    window.localStorage.clear()
+    await mount()
+    expect(offer()).not.toBeInTheDocument()
+    await act(async () => {
+      saveConsent('all')
+    })
+    await act(async () => {
+      jest.advanceTimersByTime(1500)
+    })
+    expect(offer()).toBeInTheDocument()
+  })
+
+  it('"Agora não" hides the offer for this visit only', async () => {
+    await mount()
+    await click(TOUR.offer.later)
+    expect(offer()).not.toBeInTheDocument()
+    expect(window.sessionStorage.getItem('pilar2b-map-tour-later')).not.toBeNull()
+    expect(window.localStorage.getItem('pilar2b-map-tour-done')).toBeNull()
+  })
+
+  it('"Não mostrar novamente" stops the offer on later visits', async () => {
     const { unmount } = await mount()
-    fireEvent.click(screen.getByRole('button', { name: TOUR.never }))
-    await act(async () => {})
-    expect(card()).not.toBeInTheDocument()
-    expect(window.localStorage.getItem('pilar2b-map-tour-done')).not.toBeNull()
+    await click(TOUR.never)
+    expect(offer()).not.toBeInTheDocument()
     unmount()
     window.sessionStorage.clear()
     await mount()
-    expect(card()).not.toBeInTheDocument()
+    expect(offer()).not.toBeInTheDocument()
   })
 
-  it('the close button ends it for this visit only', async () => {
-    await mount()
-    fireEvent.click(screen.getByRole('button', { name: TOUR.close }))
-    await act(async () => {})
-    expect(card()).not.toBeInTheDocument()
-    expect(window.localStorage.getItem('pilar2b-map-tour-done')).toBeNull()
-    expect(window.sessionStorage.getItem('pilar2b-map-tour-later')).not.toBeNull()
-  })
-
-  it('the help button opens it again at the first step', async () => {
+  it('the guide button opens the tour at any time, and its close button ends it', async () => {
     window.localStorage.setItem('pilar2b-map-tour-done', '1')
     await mount()
-    expect(card()).not.toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: TOUR.open }))
-    await act(async () => {})
-    expect(card()).toBeInTheDocument()
+    expect(offer()).not.toBeInTheDocument()
+    await click(TOUR.open)
+    expect(tour()).toBeInTheDocument()
+    await click(TOUR.close)
+    expect(tour()).not.toBeInTheDocument()
   })
 })

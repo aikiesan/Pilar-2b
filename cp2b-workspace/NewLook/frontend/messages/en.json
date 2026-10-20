@@ -977,17 +977,24 @@
     },
     "clusters_loading": "Calculating co-digestion clusters…",
     "tour": {
-      "open": "Map tour",
+      "open": "Map guide",
       "progress": "{current} of {total}",
       "back": "Back",
       "next": "Next",
       "last": "Done",
       "close": "Close tour",
       "never": "Don't show again",
+      "offer": {
+        "title": "Hi! I'm Metaninho",
+        "body": "First time on the map? I can show you how it works in a few steps, and you can leave any time.",
+        "start": "Show me the guide",
+        "later": "Not now",
+        "close": "Close"
+      },
       "steps": {
         "welcome": {
-          "title": "Hi! I'm Metaninho",
-          "body": "Let me show you the map in a few steps. Each municipality is colored by the biogas potential of its waste: the stronger the color, the higher the potential. Close it any time; the help button reopens the tour."
+          "title": "How to read the map",
+          "body": "Each municipality is colored by the biogas potential of its waste: the stronger the color, the higher the potential. Next, each part of the map in a few steps."
         },
         "themes": {
           "title": "Ready-made maps",
@@ -1035,7 +1042,7 @@
         },
         "help": {
           "title": "Back any time",
-          "body": "This button reopens the tour whenever you like. Enjoy!"
+          "body": "This button reopens the guide whenever you like. Enjoy!"
         }
       }
     }
