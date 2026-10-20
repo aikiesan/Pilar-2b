@@ -229,6 +229,7 @@ def main() -> None:
 
     r100 = next(r for r in rings if r["raio_km"] == 100)
     rsu_share = r100["atlas_por_categoria"].get("rsu", 0.0) / r100["atlas_real_m3_dia"]
+    n3_100 = "" if r100["cp2b_n3_m3_dia"] is None else f" ({fmt(r100['cp2b_n3_m3_dia'] / 1e3)} mil no CP2b N3)"
     mid = [v for v in value_rows if v["bio_gnl_g_mj"] == BIOLNG_G_MJ[1] and v["parcela"] == EXTRA_EU_SHARE]
     L = [
         "# Bio-GNL em Santos: oferta, escala e valor",
@@ -296,7 +297,7 @@ def main() -> None:
         "## Leitura",
         "",
         f"1. **Oferta existe, mas é de aterro, e o mercado interno a disputa.** A 100 km há {fmt(r100['atlas_real_m3_dia'] / 1e3)} mil "
-        f"m³/dia de CH₄ no Atlas Real e {fmt(r100['anp_cap_m3_dia'] / 1e3)} mil de capacidade ANP; uma planta de "
+        f"m³/dia de CH₄ no Atlas Real{n3_100} e {fmt(r100['anp_cap_m3_dia'] / 1e3)} mil de capacidade ANP; uma planta de "
         f"{LIQUEFACTION_T_DAY[1]} t/dia pede {fmt(ch4_m3_day(LIQUEFACTION_T_DAY[1]) / 1e3)} mil. "
         "O mesmo gás atende o mandato e o Mercado Cativo Verde sem sair do país.",
         f"2. **No meio da faixa, o FuelEU pagaria pelo atributo R$ {fmt(mid[0]['brl_m3'], 2)}–"
