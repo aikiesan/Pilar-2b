@@ -115,6 +115,7 @@ def test_panel_without_route_parameters_still_works():
     panel = M.panel(_params([_row("01/2026", "SP", 31)]))
     assert panel["route_switch"] is None
     assert panel["revenue_stack"] is None
+    assert panel["biogenic_co2"] is None
 
 
 def test_canonical_route_switch():
@@ -174,3 +175,62 @@ def test_canonical_revenue_stack():
     assert by["media_2025"] == pytest.approx(0.17, abs=0.01)
     assert r["co2_kg_per_m3"] == pytest.approx([1.06, 1.62], abs=0.01)
     assert sum(r["digestate_value_share"].values()) == pytest.approx(1.0)
+
+
+def _co2_params(rows):
+    params = _stack_params()
+    params["troca_de_rota"]["biogas_sp_m3_dia"] = 1000
+    params["co2_biogenico"] = {
+        "plantas": {"linhas": rows},
+        "mercado_brasil_t_dia": 10,
+        "unidade_cocal_t_dia": 48,
+        "etanol_mt_ano": 27,
+        "biogas_kt_ano": 491,
+        "biogas_operando_kt_ano": 99,
+        "url_mercado": "u",
+        "url_epe": "u",
+        "url_sbce": "u",
+    }
+    return params
+
+
+def _plant(month, uf, name, biogas, capacity):
+    return {
+        "mesano": month,
+        "razao_social": name,
+        "uf": uf,
+        "municipio": "M",
+        "vol_biogas_m3d": str(biogas),
+        "cap_biogas_m3d": str(capacity),
+    }
+
+
+def test_biogenic_co2_is_the_biogas_co2_share_times_the_density():
+    rows = [
+        _plant("04/2026", "SP", "a", 1000, 2000),
+        _plant("04/2026", "SP", "b", 3000, 3000),
+        _plant("04/2026", "RJ", "c", 9999, 9999),
+        _plant("06/2022", "SP", "stale", 9999, 9999),
+    ]
+    c = M.biogenic_co2(_co2_params(rows))
+    assert c["month"] == "2026-04"
+    # Only SP plants of the latest month, largest first.
+    assert [p["name"] for p in c["plants"]] == ["b", "a"]
+    # 1000 m³ of biogas at 30 % and 50 % CO2 (fracao_ch4 0.7 and 0.5), 2 kg/m³.
+    assert c["plants"][1]["now_t_day"] == pytest.approx([0.6, 1.0])
+    assert c["plants"][1]["capacity_t_day"] == pytest.approx([1.2, 2.0])
+    assert c["sp_now_t_year"] == pytest.approx([2.4 * 365, 4.0 * 365])
+    assert c["sp_burned_t_year"] == pytest.approx([0.6 * 365, 1.0 * 365])
+    assert c["market_t_year"] == 3650
+
+
+def test_canonical_biogenic_co2():
+    c = M.panel(load_mandate_params())["biogenic_co2"]
+    assert c["month"] == "2026-04"
+    assert len(c["plants"]) == 9  # Gasgrid's 2022 authorization is left out
+    assert c["plants"][0]["municipality"] == "CAIEIRAS"
+    # The strategy note's order of magnitude: 1.2–1.6 Mt/yr from the biogas SP burns.
+    assert c["sp_burned_t_year"] == pytest.approx([1.24e6, 1.59e6], rel=0.01)
+    # SP plants today already separate several percent of the whole Brazilian market.
+    assert 0.05 < c["sp_now_t_year"][0] / c["market_t_year"] < 0.15
+    assert c["sp_burned_t_year"][0] > 2 * c["market_t_year"]

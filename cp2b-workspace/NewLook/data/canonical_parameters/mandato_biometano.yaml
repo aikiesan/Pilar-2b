@@ -140,3 +140,29 @@ pilha_de_receitas:
     ja_reciclado: 0.81
     reposicao: 0.13
     novo: 0.06
+
+# -----------------------------------------------------------------------------
+# CO₂ biogênico (C20): o CO₂ que a purificação separa, por planta de SP, e o
+# tamanho do mercado onde ele seria vendido. Fração de CH₄ e biogás de SP vêm
+# de `troca_de_rota`; densidade do CO₂, de `pilha_de_receitas`. Valores de
+# mercado de fonte única: conferir antes de citar.
+# -----------------------------------------------------------------------------
+co2_biogenico:
+  # Retrato do último mês por planta (capacidade e biogás processado), cópia de
+  # analysis/data/05c_* escrita por analysis/build_anp_biometano_dataset.py.
+  plantas:
+    arquivo: anp_biometano_plantas_ultimo_mes.csv
+    fonte: "ANP, dados abertos: capacidade e biogás processado por planta (via analysis/build_anp_biometano_dataset.py)"
+  # Consumo brasileiro de CO₂ (todo o mercado industrial) e a unidade de CO₂ da
+  # usina Cocal (fermentação), declarados pelo diretor da Air and Parts.
+  mercado_brasil_t_dia: 1600
+  unidade_cocal_t_dia: 48
+  fonte_mercado: "Air and Parts (diretor), AgFeed, out/2023; fonte única"
+  url_mercado: "https://agfeed.com.br/negocios/depois-do-biometano-venda-de-co2-da-mais-um-gas-a-usinas-de-etanol"
+  # CO₂ biogênico disponível no Brasil, estudo da EPE.
+  etanol_mt_ano: 27
+  biogas_kt_ano: 491
+  biogas_operando_kt_ano: 99
+  fonte_epe: "EPE, estudo de CO₂ biogênico, resumido pela eixos; conferir no caderno da EPE"
+  url_epe: "https://eixos.com.br/newsletters/dialogos-da-transicao/na-corrida-pelos-biocombustiveis-co2-vira-produto/"
+  url_sbce: "https://www2.camara.leg.br/legin/fed/lei/2024/lei-15042-11-dezembro-2024-796690-publicacaooriginal-173745-pl.html"

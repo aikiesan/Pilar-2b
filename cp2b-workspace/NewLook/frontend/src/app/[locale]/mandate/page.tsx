@@ -4,11 +4,12 @@
  * Brazil and São Paulo produce (ANP, monthly), and the CGOB issued once a
  * public registry exists. Below them, the route switch (C17): what the
  * environmental attribute must pay for a plant to stop burning biogas for
- * electricity and sell biomethane instead; and the revenue stack (C27): what
- * adds up in the revenue of one m³ and what excludes what.
+ * electricity and sell biomethane instead; the revenue stack (C27): what
+ * adds up in the revenue of one m³ and what excludes what; and the biogenic
+ * CO2 (C20) upgrading separates at each SP plant, against the market for it.
  *
  * Every figure comes from /api/v1/mandate/panel (data/canonical_parameters/
- * mandato_biometano.yaml and the ANP series). Rendered on the server and kept
+ * mandato_biometano.yaml and the ANP series and plant snapshot). Rendered on the server and kept
  * for an hour; when the API is down the render throws, so ISR keeps the last
  * good page rather than caching an outage.
  */
@@ -94,13 +95,44 @@ interface RevenueStack {
   }
 }
 
+/** [low, high]: rich biogas (more CH4) separates less CO2. */
+type Range = [number, number]
+
+interface BiogenicCo2 {
+  month: string
+  plants: { name: string; municipality: string; now_t_day: Range; capacity_t_day: Range }[]
+  sp_now_t_year: Range
+  sp_capacity_t_year: Range
+  sp_burned_t_year: Range
+  market_t_year: number
+  ethanol_unit_t_day: number
+  ethanol_t_year: number
+  epe_biogas_t_year: number
+  sources: { market_url: string; epe_url: string; sbce_url: string }
+}
+
 interface Panel {
   latest: Month & { sp_share_of_br: number }
   targets: Target[]
   series: Month[]
   route_switch: RouteSwitch | null
   revenue_stack: RevenueStack | null
+  biogenic_co2: BiogenicCo2 | null
 }
+
+const LOWERCASE_WORDS = new Set(['de', 'da', 'do', 'das', 'dos', 'e'])
+/** ANP registers names in capitals: "ESSENCIS BIOMETANO S.A." → "Essencis Biometano S.A.". */
+const titleCase = (s: string) =>
+  s
+    .toLowerCase()
+    .split(' ')
+    .map((w, i) =>
+      i > 0 && LOWERCASE_WORDS.has(w)
+        ? w
+        : w.replace(/(^|-)(\p{L})/gu, (_m, sep: string, c: string) => sep + c.toUpperCase()),
+    )
+    .join(' ')
+    .replace(/\bS\.a\b\.?/g, 'S.A.')
 
 export const generateMetadata = (): Promise<Metadata> => navMetadata('mandate', 'mandate')
 
@@ -178,6 +210,22 @@ export default async function MandatePage() {
   }
   const stackFigures = stack ? figures(stack) : {}
   const linkClass = 'text-terra-700 underline underline-offset-2 dark:text-terra-300'
+
+  const co2 = data.biogenic_co2
+  const tonnes = (v: number) => format.number(v, { notation: 'compact', maximumSignificantDigits: 2 })
+  const tonnesRange = (r: Range) => t('co2.unit', { low: tonnes(r[0]), high: tonnes(r[1]) })
+  const perDay = (r: Range) =>
+    r[1] < 0.5 ? '—' : `${format.number(r[0], { maximumFractionDigits: 0 })}–${format.number(r[1], { maximumFractionDigits: 0 })}`
+  // Low and high of each amount, the market as a single reference.
+  const co2Rows = co2
+    ? [
+        { key: 'now', range: co2.sp_now_t_year, color: 'bg-ink-muted' },
+        { key: 'capacity', range: co2.sp_capacity_t_year, color: 'bg-ink-muted' },
+        { key: 'burned', range: co2.sp_burned_t_year, color: SP_COLOR },
+        { key: 'market', range: [co2.market_t_year, co2.market_t_year] as Range, color: BR_COLOR },
+      ] as const
+    : []
+  const co2Max = Math.max(...co2Rows.map((r) => r.range[1]))
 
   return (
     <div className="bg-paper">
@@ -425,6 +473,90 @@ export default async function MandatePage() {
                   {i > 0 && ' · '}
                   <a href={href} target="_blank" rel="noopener noreferrer" className={linkClass}>
                     {t(`stack.${key}`)}
+                  </a>
+                </span>
+              ))}
+            </p>
+          </Card>
+        )}
+
+        {co2 && (
+          <Card id="co2-biogenico" title={t('co2.heading')} caption={t('co2.caption', { month: monthLabel(co2.month) })}>
+            <div className="grid gap-5 lg:grid-cols-5">
+              <div className="space-y-5 lg:col-span-3">
+                <ul className="space-y-3">
+                  {co2Rows.map((r) => (
+                    <li key={r.key} className="text-sm">
+                      <div className={`flex items-baseline justify-between gap-3 text-ink ${r.key === 'burned' ? 'font-semibold' : ''}`}>
+                        <span>{t(`co2.rows.${r.key}`)}</span>
+                        <span className="shrink-0 tabular-nums">
+                          {r.key === 'market' ? t('co2.unit_one', { value: tonnes(r.range[0]) }) : tonnesRange(r.range)}
+                        </span>
+                      </div>
+                      {/* The faint bar is the high end, the solid one the low end. */}
+                      <span className="mt-1 block h-2.5" aria-hidden="true">
+                        <span className="relative block h-full" style={{ width: `${(100 * r.range[1]) / co2Max}%` }}>
+                          <span className={`absolute inset-0 rounded-r opacity-40 ${r.color}`} />
+                          <span className={`absolute inset-y-0 left-0 rounded-r ${r.color}`} style={{ width: `${(100 * r.range[0]) / r.range[1]}%` }} />
+                        </span>
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                <table className="w-full text-sm">
+                  <caption className="mb-2 text-left font-medium text-ink">{t('co2.plants')}</caption>
+                  <thead>
+                    <tr className="border-b border-line text-xs text-ink-muted">
+                      <th scope="col" className="py-1 pr-2 text-left font-normal">{t('co2.plant')}</th>
+                      <th scope="col" className="py-1 pr-2 text-right font-normal">{t('co2.today')}</th>
+                      <th scope="col" className="py-1 text-right font-normal">{t('co2.at_capacity')}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {co2.plants.map((p) => (
+                      <tr key={`${p.name}-${p.municipality}`} className="border-b border-line last:border-0">
+                        <th scope="row" className="py-1.5 pr-2 text-left font-normal">
+                          <span className="block text-ink">{titleCase(p.name)}</span>
+                          <span className="block text-xs text-ink-muted">{titleCase(p.municipality)}</span>
+                        </th>
+                        <td className="whitespace-nowrap py-1.5 pr-2 text-right tabular-nums text-ink">{perDay(p.now_t_day)}</td>
+                        <td className="whitespace-nowrap py-1.5 text-right tabular-nums text-ink-muted">{perDay(p.capacity_t_day)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="space-y-3 text-sm text-ink-muted lg:col-span-2">
+                <p className="text-ink">
+                  {t('co2.market_share', {
+                    share: pct((co2.sp_now_t_year[0] + co2.sp_now_t_year[1]) / 2 / co2.market_t_year),
+                    low: format.number(co2.sp_burned_t_year[0] / co2.market_t_year, { maximumFractionDigits: 1 }),
+                    high: format.number(co2.sp_burned_t_year[1] / co2.market_t_year, { maximumFractionDigits: 1 }),
+                  })}
+                </p>
+                <p>
+                  {t('co2.ethanol', {
+                    ethanol: t('co2.unit_one', { value: tonnes(co2.ethanol_t_year) }),
+                    biogas: t('co2.unit_one', { value: tonnes(co2.epe_biogas_t_year) }),
+                    unit: co2.ethanol_unit_t_day,
+                  })}
+                </p>
+                <p>{t('co2.removal')}</p>
+              </div>
+            </div>
+            <p className="mt-4 text-xs text-ink-muted">
+              {t('co2.limits')} {t('co2.sources')}:{' '}
+              {(
+                [
+                  ['source_market', co2.sources.market_url],
+                  ['source_epe', co2.sources.epe_url],
+                  ['source_sbce', co2.sources.sbce_url],
+                ] as const
+              ).map(([key, href], i) => (
+                <span key={key}>
+                  {i > 0 && ' · '}
+                  <a href={href} target="_blank" rel="noopener noreferrer" className={linkClass}>
+                    {t(`co2.${key}`)}
                   </a>
                 </span>
               ))}

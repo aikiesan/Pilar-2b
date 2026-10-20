@@ -30,6 +30,12 @@ def test_platform_anp_series_is_the_analysis_one():
     assert platform.read_bytes() == analysis.read_bytes()
 
 
+def test_platform_anp_plants_are_the_analysis_snapshot():
+    analysis = M.ROOT / "analysis" / "data" / "05c_anp_biometano_plants_latest.csv"
+    platform = M.CANONICAL / "anp_biometano_plantas_ultimo_mes.csv"
+    assert platform.read_bytes() == analysis.read_bytes()
+
+
 def test_national_production_includes_sp_and_other_states():
     R = M.load_irm()
     br, month = M.national_production_latest(R)

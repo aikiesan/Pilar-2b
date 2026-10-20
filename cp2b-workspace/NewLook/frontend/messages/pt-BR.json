@@ -2837,6 +2837,30 @@
       "source_fossil": "fóssil de referência",
       "source_captive": "Mercado Cativo Verde"
     },
+    "co2": {
+      "heading": "CO₂ biogênico: quanto a purificação separa, e quem compraria",
+      "caption": "O CO₂ que sai da purificação do biogás em cada planta de biometano de SP (ANP, {month}), contra o mercado onde ele seria vendido.",
+      "unit": "{low}–{high} t/ano",
+      "unit_one": "{value} t/ano",
+      "rows": {
+        "now": "Plantas de biometano de SP, hoje",
+        "capacity": "As mesmas plantas na capacidade",
+        "burned": "Biogás que SP queima, se fosse purificado",
+        "market": "Mercado brasileiro de CO₂, todo"
+      },
+      "market_share": "As plantas de SP já separam cerca de {share} de todo o CO₂ que o Brasil consome. O biogás que SP queima, purificado, daria {low}–{high} vezes esse mercado.",
+      "ethanol": "E o etanol tem muito mais: a EPE estima {ethanol} de CO₂ biogênico disponível no setor, contra {biogas} no biogás. A fermentação dá CO₂ quase puro; a usina Cocal já separa {unit} t/dia.",
+      "removal": "Vender o CO₂ para bebida ou alimento devolve o gás ao ar: não é remoção. Só o armazenamento permanente contaria como remoção, e o SBCE (Lei 15.042/2024) ainda não regulamentou isso.",
+      "plants": "Por planta (t de CO₂ por dia)",
+      "plant": "Planta",
+      "today": "Hoje",
+      "at_capacity": "Na capacidade",
+      "limits": "Biogás com 35–45 % de CO₂. Os compradores (bebidas, alimentos, estufas, e-metanol) ainda não estão no mapa: a camada depende dos estabelecimentos da RAIS, a mesma do casamento com o Mercado Cativo Verde. Mercado e etanol vêm de fonte única; conferir antes de citar.",
+      "sources": "Fontes",
+      "source_market": "mercado de CO₂",
+      "source_epe": "EPE",
+      "source_sbce": "Lei 15.042/2024"
+    },
     "limits": {
       "heading": "Limites",
       "items": [

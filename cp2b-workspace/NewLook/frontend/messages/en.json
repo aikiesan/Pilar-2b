@@ -2837,6 +2837,30 @@
       "source_fossil": "fossil reference",
       "source_captive": "Green Captive Market"
     },
+    "co2": {
+      "heading": "Biogenic CO₂: how much upgrading separates, and who would buy it",
+      "caption": "The CO₂ that comes out of biogas upgrading at each São Paulo biomethane plant (ANP, {month}), against the market it would be sold into.",
+      "unit": "{low}–{high} t/yr",
+      "unit_one": "{value} t/yr",
+      "rows": {
+        "now": "SP biomethane plants, today",
+        "capacity": "The same plants at capacity",
+        "burned": "Biogas SP burns, if it were upgraded",
+        "market": "Brazil's whole CO₂ market"
+      },
+      "market_share": "SP's plants already separate about {share} of all the CO₂ Brazil consumes. The biogas SP burns, upgraded, would give {low}–{high} times that market.",
+      "ethanol": "And ethanol has far more: EPE puts the biogenic CO₂ available in that sector at {ethanol}, against {biogas} in biogas. Fermentation gives almost pure CO₂; the Cocal mill already separates {unit} t/day.",
+      "removal": "Selling the CO₂ to drinks or food returns it to the air: that is not a removal. Only permanent storage would count as one, and Brazil's emissions trading system (SBCE, Law 15,042/2024) has not regulated it yet.",
+      "plants": "By plant (t of CO₂ per day)",
+      "plant": "Plant",
+      "today": "Today",
+      "at_capacity": "At capacity",
+      "limits": "Biogas at 35–45 % CO₂. The buyers (drinks, food, greenhouses, e-methanol) are not on the map yet: that layer needs the RAIS establishment register, the same one the Mercado Cativo Verde matching needs. Market and ethanol figures come from a single source; check them before quoting.",
+      "sources": "Sources",
+      "source_market": "CO₂ market",
+      "source_epe": "EPE",
+      "source_sbce": "Law 15,042/2024"
+    },
     "limits": {
       "heading": "Limits",
       "items": [

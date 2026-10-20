@@ -18,8 +18,12 @@ Revenue stack (C27): the figures behind "what adds up in one m³": the CBIO
 ceiling (a note no larger than the fossil reference), the biogenic CO2 the
 upgrader separates, and the digestate value by where the residue goes today.
 
+Biogenic CO2 (C20): what upgrading separates at each SP plant in the ANP
+snapshot (biogas × CO2 share × density), today and at capacity, and what the
+biogas SP burns would give if upgraded, against the market it would sell into.
+
 Inputs live in data/canonical_parameters: mandato_biometano.yaml and the ANP
-monthly series it names. `read` is the only I/O; it needs nothing from the
+monthly series and plant snapshot it names. `read` is the only I/O; it needs nothing from the
 app, so the analysis prototype loads this file directly.
 """
 
@@ -34,12 +38,16 @@ PARAMS_YAML = "mandato_biometano.yaml"
 
 
 def read(directory: Path) -> dict:
-    """The YAML, with the ANP rows under `producao.linhas`."""
+    """The YAML, with the ANP rows under `producao.linhas` (and `co2_biogenico.plantas.linhas`)."""
     import yaml
 
     params = yaml.safe_load((directory / PARAMS_YAML).read_text(encoding="utf-8"))
-    with (directory / params["producao"]["arquivo"]).open(encoding="utf-8") as fh:
-        params["producao"]["linhas"] = list(csv.DictReader(fh))
+    blocks = [params["producao"]]
+    if "co2_biogenico" in params:
+        blocks.append(params["co2_biogenico"]["plantas"])
+    for block in blocks:
+        with (directory / block["arquivo"]).open(encoding="utf-8") as fh:
+            block["linhas"] = list(csv.DictReader(fh))
     return params
 
 
@@ -158,6 +166,54 @@ def revenue_stack(params: dict) -> dict:
     }
 
 
+def biogenic_co2(params: dict) -> dict:
+    """t/day of CO2 upgrading separates at each SP plant, and the SP and Brazil references.
+
+    Every amount is a [low, high] pair: rich biogas (more CH4) separates less CO2.
+    """
+    route, p = params["troca_de_rota"], params["co2_biogenico"]
+    density = params["pilha_de_receitas"]["densidade_co2_kg_m3"]
+    shares = [1 - f for f in sorted(route["fracao_ch4"], reverse=True)]
+
+    def t_day(biogas_m3_day: float) -> list[float]:
+        return [biogas_m3_day * s * density / 1000.0 for s in shares]
+
+    rows = p["plantas"]["linhas"]
+    # Plants that stopped reporting keep an old month in the snapshot; only the latest counts.
+    month = max(rows, key=lambda r: tuple(reversed(r["mesano"].split("/"))))["mesano"]
+    plants = sorted(
+        (
+            {
+                "name": r["razao_social"],
+                "municipality": r["municipio"],
+                "now_t_day": t_day(float(r["vol_biogas_m3d"] or 0)),
+                "capacity_t_day": t_day(float(r["cap_biogas_m3d"] or 0)),
+            }
+            for r in rows
+            if r["uf"] == "SP" and r["mesano"] == month
+        ),
+        key=lambda x: -x["now_t_day"][0],
+    )
+    mm, yyyy = month.split("/")
+    return {
+        "month": f"{yyyy}-{mm}",
+        "plants": plants,
+        "sp_now_t_year": [sum(x["now_t_day"][i] for x in plants) * 365 for i in (0, 1)],
+        "sp_capacity_t_year": [sum(x["capacity_t_day"][i] for x in plants) * 365 for i in (0, 1)],
+        "sp_burned_t_year": [v * 365 for v in t_day(route["biogas_sp_m3_dia"])],
+        "market_t_year": p["mercado_brasil_t_dia"] * 365,
+        "ethanol_unit_t_day": p["unidade_cocal_t_dia"],
+        "ethanol_t_year": p["etanol_mt_ano"] * 1e6,
+        "epe_biogas_t_year": p["biogas_kt_ano"] * 1e3,
+        "epe_biogas_operating_t_year": p["biogas_operando_kt_ano"] * 1e3,
+        "sources": {
+            "market_url": p["url_mercado"],
+            "epe_url": p["url_epe"],
+            "sbce_url": p["url_sbce"],
+        },
+    }
+
+
 def panel(params: dict) -> dict:
     """Targets, the monthly series, and how far the latest month goes towards each target."""
     series = monthly_production(params["producao"]["linhas"])
@@ -184,4 +240,5 @@ def panel(params: dict) -> dict:
         },
         "route_switch": route_switch(params) if "troca_de_rota" in params else None,
         "revenue_stack": revenue_stack(params) if "pilha_de_receitas" in params else None,
+        "biogenic_co2": biogenic_co2(params) if "co2_biogenico" in params else None,
     }
