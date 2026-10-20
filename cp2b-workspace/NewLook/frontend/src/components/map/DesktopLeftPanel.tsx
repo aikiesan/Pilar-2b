@@ -208,7 +208,7 @@ function FiltersSection({
   return (
     <div className="space-y-4">
       {/* Search */}
-      <div>
+      <div data-tour="map-search">
         <label htmlFor={searchId} className="block text-[10px] font-semibold text-ink-muted uppercase tracking-wide mb-1">
           {t('search.label')}
         </label>
@@ -245,7 +245,7 @@ function FiltersSection({
 
       {/* Metric toggle — Biomassa / Biogás / Biometano / Bioenergia */}
       {onDisplayMetricChange && (
-        <div className="grid grid-cols-2 gap-1">
+        <div data-tour="map-metric" className="grid grid-cols-2 gap-1">
           {DISPLAY_METRICS.map((m) => {
             const spec = METRIC_SPECS[m];
             const active = displayMetric === m;
@@ -271,7 +271,7 @@ function FiltersSection({
       )}
 
       {/* Visualization mode */}
-      <div>
+      <div data-tour="map-viz">
         <label className="block text-[10px] font-semibold text-ink-muted uppercase tracking-wide mb-1">
           {t('vizModes.label')}
         </label>
@@ -788,7 +788,7 @@ export default function DesktopLeftPanel({
           />
 
           {/* Tab nav */}
-          <div className="flex border-b border-line flex-shrink-0">
+          <div data-tour="map-tabs" className="flex border-b border-line flex-shrink-0">
             {tabs.map(tab => (
               <button
                 key={tab.id}

@@ -67,6 +67,7 @@ financing, mandate).
 | <http://localhost:3006/pt-BR/municipalities/campinas-sp#clima> | Cartão Clima: metano evitado, fóssil deslocado, emissões do projeto, líquido e barras por resíduo |
 | <http://localhost:3006/pt-BR/financing> | Menu Dados → Financiamento do biometano. Quatro números no topo, dois cartões por rota, tabela com fonte por linha e "Limites" |
 | <http://localhost:3006/pt-BR/mandate> | Menu Dados → Mandato do biometano. Meta de 2026 (505 mil m³/dia), produção BR e SP de abr/2026, trajetória 2026–2030 com os atos, gráfico de 24 meses com a linha tracejada da meta |
+| <http://localhost:3006/pt-BR/map> | Tour do Metaninho: abre sozinho na primeira visita (12 passos no desktop, 8 no celular). Voltar, Próximo, Fechar (X ou Esc, volta na próxima visita) e "Não mostrar novamente". O botão "?" abaixo da bússola reabre. Para ver a abertura automática de novo: apagar `pilar2b-map-tour-done` no localStorage |
 | <http://localhost:3006/pt-BR/patch-notes> | Versões 3.7.0 (GEE) e 3.8.0 (financiamento e mandato) |
 | As mesmas URLs com `/en/` | Textos em inglês, sem chave crua aparecendo |
 
@@ -94,7 +95,7 @@ Na raiz do repositório (protótipos de análise):
 python -m pytest tests --ignore=tests/test_pilar2b_mg_e2e.py
 ```
 
-Resultado nesta branch: backend 1322 passaram (5 pulados), frontend 967, raiz 53.
+Resultado nesta branch: backend 1322 passaram (5 pulados), frontend 968, raiz 53.
 
 Os protótipos de reconciliação BioGRAM leem o snapshot CP2b, que não está no Git
 (`backend/data/raw/cp2b_potential/2026/`). Sem ele, o script avisa e as colunas

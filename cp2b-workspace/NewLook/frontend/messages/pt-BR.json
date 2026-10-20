@@ -976,11 +976,68 @@
       "loading": "Dados nacionais em carregamento…"
     },
     "clusters_loading": "Calculando agrupamentos de co-digestão…",
-    "first_visit": {
-      "title": "Primeira vez por aqui?",
-      "body": "Clique num município do mapa para ver quanto biogás os resíduos dele podem gerar. Para achar sua cidade, use a busca na aba Filtros.",
-      "dismiss": "Entendi",
-      "close": "Fechar dica"
+    "tour": {
+      "open": "Tour do mapa",
+      "progress": "{current} de {total}",
+      "back": "Voltar",
+      "next": "Próximo",
+      "last": "Concluir",
+      "close": "Fechar tour",
+      "never": "Não mostrar novamente",
+      "steps": {
+        "welcome": {
+          "title": "Oi! Eu sou o Metaninho",
+          "body": "Vou mostrar o mapa em poucos passos. Cada município aparece colorido pelo potencial de biogás dos seus resíduos: quanto mais forte a cor, maior o potencial. Feche quando quiser; o botão de ajuda reabre o tour."
+        },
+        "themes": {
+          "title": "Mapas prontos",
+          "body": "Esta faixa traz mapas temáticos prontos: potencial total, agrícola, pecuária, urbano, cana e outros. Um clique aplica o tema ao mapa."
+        },
+        "search": {
+          "title": "Ache sua cidade",
+          "body": "Digite o nome de um município: o mapa passa a mostrar só os que combinam com a busca."
+        },
+        "metric": {
+          "title": "O que o mapa mede",
+          "body": "Escolha biomassa, biogás, biometano ou bioenergia. As cores do mapa e a legenda mudam junto."
+        },
+        "viz": {
+          "title": "Jeito de desenhar",
+          "body": "Coroplético pinta cada município, Calor mostra onde o potencial se concentra e Bolhas desenha um círculo do tamanho do potencial."
+        },
+        "tabs": {
+          "title": "Mais opções no painel",
+          "body": "Temas filtra por tipo de resíduo, Camadas liga infraestrutura, logística e restrições ambientais, Fontes diz de onde vêm os dados e Ferramentas compara municípios e exporta os números."
+        },
+        "scenario": {
+          "title": "Real ou Ideal",
+          "body": "Real é o potencial acessível, já descontadas as perdas e a logística (CP2b N4). Ideal é o mobilizável antes delas (N3). Daltônico troca as cores por uma paleta segura para daltonismo."
+        },
+        "scope": {
+          "title": "Qual estado",
+          "body": "Alterne entre São Paulo e o piloto de Minas Gerais, ainda em validação (beta)."
+        },
+        "basemap": {
+          "title": "Mapa de fundo",
+          "body": "Troque o fundo entre mapa, satélite e terreno, conforme o que quiser enxergar."
+        },
+        "legend": {
+          "title": "Legenda",
+          "body": "A escala de cores: cada faixa é um intervalo de potencial, na métrica e no cenário escolhidos."
+        },
+        "mobile_tabs": {
+          "title": "Controles",
+          "body": "No celular, filtros, temas e camadas ficam nesta barra. Toque numa aba para abrir o painel."
+        },
+        "click": {
+          "title": "Clique num município",
+          "body": "O clique abre um painel com o potencial do município por resíduo e o link para o perfil completo."
+        },
+        "help": {
+          "title": "Rever quando quiser",
+          "body": "Este botão reabre o tour a qualquer momento. Bom proveito!"
+        }
+      }
     }
   },
   "metadata": {

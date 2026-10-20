@@ -11,7 +11,7 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useIsClient } from '@/hooks/useIsClient';
 import { useTranslations } from 'next-intl';
-import MapFirstVisitTip from './MapFirstVisitTip';
+import MapTour from './MapTour';
 import { MapContainer, TileLayer, ScaleControl, ZoomControl, useMap } from 'react-leaflet';
 import dynamic from 'next/dynamic';
 import { CircleAlert, Loader2 } from 'lucide-react';
@@ -922,7 +922,7 @@ export default function MapComponent({
         {/* ── Thematic maps ribbon — the "test drive". Ready-made maps surfaced
             directly on the map, always visible, one click applies. Pinned to the
             top of the map area; every other top control sits just below it. ── */}
-        <div className="absolute top-0 inset-x-0 z-[1002]">
+        <div data-tour="map-themes" className="absolute top-0 inset-x-0 z-[1002]">
           {isMounted && (
             <ThematicMapBar
               activePresetId={activePresetId}
@@ -938,7 +938,7 @@ export default function MapComponent({
         {/* ── Scope switcher — top-left on every viewport. Picks SP (default)
             or the MG beta pilot. On mobile this is the primary
             navigation affordance and sits alone at the top so nothing wraps. */}
-        <div className="absolute top-14 left-2 z-[1000] md:top-16 md:left-3">
+        <div data-tour="map-scope" className="absolute top-14 left-2 z-[1000] md:top-16 md:left-3">
           <ScopeSwitcher
             scope={scope}
             onScopeChange={handleScopeChange}
@@ -948,14 +948,20 @@ export default function MapComponent({
 
         {/* ── Basemap switcher + compass — top-right ── */}
         <div className="absolute top-14 right-2 z-[1000] flex flex-col items-end gap-2 md:top-16 md:right-3">
-          {isMounted && <BasemapControl value={basemap} onChange={setBasemap} />}
+          {isMounted && (
+            <div data-tour="map-basemap">
+              <BasemapControl value={basemap} onChange={setBasemap} />
+            </div>
+          )}
           {isMounted && <NorthArrow />}
+          {/* Guided tour: opens on the first visit, and from this button. */}
+          {isMounted && <MapTour />}
         </div>
 
         {/* Scenario toggle — per-municipality biogas potential by scenario.
             Desktop only: on mobile it moves into the bottom sheet (it's a
             specific analytical control, not something you switch constantly). */}
-        <div className="surface-light absolute top-16 left-1/2 -translate-x-1/2 z-[1000] hidden md:flex items-center gap-1 px-1.5 py-1 border border-line bg-paper-raised/95 shadow-md backdrop-blur">
+        <div data-tour="map-scenario" className="surface-light absolute top-16 left-1/2 -translate-x-1/2 z-[1000] hidden md:flex items-center gap-1 px-1.5 py-1 border border-line bg-paper-raised/95 shadow-md backdrop-blur">
           <span className="px-2 text-[11px] font-semibold text-gray-500">{t('scenario_label')}</span>
           {MAP_SCENARIOS.map(({ key, color }) => (
             <button
@@ -988,9 +994,6 @@ export default function MapComponent({
             👁 {t('daltonic.toggle')}
           </button>
         </div>
-
-        {/* First visit: what to do first, once per browser. */}
-        <MapFirstVisitTip />
 
         {/* Keyboard instructions for the interactive map (WCAG 2.1.1). */}
         <p id="map-keyboard-help" className="sr-only">{t('map_keyboard_help')}</p>
@@ -1306,11 +1309,11 @@ export default function MapComponent({
             colorMode === 'biogas' ? (
               <>
                 {/* Desktop — always expanded */}
-                <div className="hidden md:block">
+                <div data-tour="map-legend" className="hidden md:block">
                   <MapLegend displayMetric={displayMetric} daltonic={daltonic} showNationalBeta={showNationalBeta} scenario={mapScenario} scaleBreaks={scaleBreaks} scopeLabel={activeStateName} betaScope={isMgScope} />
                 </div>
                 {/* Mobile — chip + expandable legend */}
-                <div className="md:hidden">
+                <div data-tour="map-legend" className="md:hidden">
                   {legendOpenMobile ? (
                     <div className="relative">
                       <button

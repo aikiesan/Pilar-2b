@@ -450,7 +450,7 @@ export default function MobileBottomSheet({
       </div>
 
       {/* Persistent tab bar — always visible */}
-      <div className="min-h-14 flex flex-shrink-0 items-stretch border-t border-line bg-paper-raised pb-[env(safe-area-inset-bottom)] shadow-lg">
+      <div data-tour="map-mobile-tabs" className="min-h-14 flex flex-shrink-0 items-stretch border-t border-line bg-paper-raised pb-[env(safe-area-inset-bottom)] shadow-lg">
         {/* Filtros */}
         <button
           onClick={() => toggleSheet('filters')}

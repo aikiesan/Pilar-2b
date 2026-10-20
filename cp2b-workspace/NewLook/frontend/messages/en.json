@@ -976,11 +976,68 @@
       "loading": "National data is still loading…"
     },
     "clusters_loading": "Calculating co-digestion clusters…",
-    "first_visit": {
-      "title": "First time here?",
-      "body": "Click a municipality on the map to see how much biogas its waste could produce. To find your city, use the search in the Filters tab.",
-      "dismiss": "Got it",
-      "close": "Close tip"
+    "tour": {
+      "open": "Map tour",
+      "progress": "{current} of {total}",
+      "back": "Back",
+      "next": "Next",
+      "last": "Done",
+      "close": "Close tour",
+      "never": "Don't show again",
+      "steps": {
+        "welcome": {
+          "title": "Hi! I'm Metaninho",
+          "body": "Let me show you the map in a few steps. Each municipality is colored by the biogas potential of its waste: the stronger the color, the higher the potential. Close it any time; the help button reopens the tour."
+        },
+        "themes": {
+          "title": "Ready-made maps",
+          "body": "This strip holds ready-made thematic maps: total potential, agriculture, livestock, urban, sugarcane and more. One click applies the theme to the map."
+        },
+        "search": {
+          "title": "Find your city",
+          "body": "Type a municipality's name: the map then shows only the ones matching the search."
+        },
+        "metric": {
+          "title": "What the map measures",
+          "body": "Choose biomass, biogas, biomethane or bioenergy. The map colors and the legend change with it."
+        },
+        "viz": {
+          "title": "How it is drawn",
+          "body": "Choropleth fills each municipality, Heat shows where the potential concentrates and Bubbles draws a circle sized by the potential."
+        },
+        "tabs": {
+          "title": "More in the panel",
+          "body": "Themes filters by waste type, Layers turns on infrastructure, logistics and environmental restrictions, Sources says where the data come from and Tools compares municipalities and exports the numbers."
+        },
+        "scenario": {
+          "title": "Real or Ideal",
+          "body": "Real is the accessible potential, after losses and logistics (CP2b N4). Ideal is the mobilizable potential before them (N3). Color-blind switches to a palette safe for color vision deficiency."
+        },
+        "scope": {
+          "title": "Which state",
+          "body": "Switch between São Paulo and the Minas Gerais pilot, still under validation (beta)."
+        },
+        "basemap": {
+          "title": "Basemap",
+          "body": "Switch the background between map, satellite and terrain, depending on what you want to see."
+        },
+        "legend": {
+          "title": "Legend",
+          "body": "The color scale: each band is a range of potential, for the chosen metric and scenario."
+        },
+        "mobile_tabs": {
+          "title": "Controls",
+          "body": "On a phone, filters, themes and layers live in this bar. Tap a tab to open the panel."
+        },
+        "click": {
+          "title": "Click a municipality",
+          "body": "A click opens a panel with the municipality's potential by waste type and a link to its full profile."
+        },
+        "help": {
+          "title": "Back any time",
+          "body": "This button reopens the tour whenever you like. Enjoy!"
+        }
+      }
     }
   },
   "metadata": {

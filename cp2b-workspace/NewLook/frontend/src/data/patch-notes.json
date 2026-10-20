@@ -22,6 +22,13 @@
             "pt-BR": "Nova página Mandato do biometano, em Dados: a meta de cada ano da Lei do Combustível do Futuro em m³/dia, contra o biometano que o Brasil e São Paulo produzem mês a mês (ANP), com o ato que fixa ou propõe cada meta.",
             "en": "New Biomethane mandate page, under Data: each year's target under the Fuel of the Future law in m³/day, against the biomethane Brazil and São Paulo produce month by month (ANP), with the act that sets or proposes each target."
           }
+        },
+        {
+          "kind": "added",
+          "text": {
+            "pt-BR": "Tour guiado do mapa com o Metaninho: um passo para cada parte (mapas prontos, busca, métrica, modo de desenho, abas, cenário, estado, mapa de fundo, legenda), com Voltar, Próximo, Fechar e Não mostrar novamente. Abre sozinho na primeira visita e pelo botão de ajuda no canto do mapa.",
+            "en": "Guided map tour with Metaninho: one step per part (ready-made maps, search, metric, drawing mode, tabs, scenario, state, basemap, legend), with Back, Next, Close and Don't show again. It opens by itself on the first visit and from the help button in the map corner."
+          }
         }
       ]
     },
