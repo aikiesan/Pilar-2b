@@ -2797,12 +2797,12 @@
       "row": "{label} · {price}/MWh",
       "none_needed": "não precisa",
       "per_m3": "{value}/m³",
-      "reference": "Piso pedido para o CGOB",
+      "reference": "Atributo no Mercado Cativo Verde",
       "threshold": "Com a eletricidade abaixo de {threshold}/MWh, o biometano já paga mais sem atributo algum.",
-      "reference_covers": "Mesmo quando a usina usa a própria energia, o atributo de equilíbrio fica abaixo do piso que os fornecedores pedem para o CGOB.",
-      "reference_short": "Quando a usina usa a própria energia, o atributo precisa passar do piso que os fornecedores pedem para o CGOB.",
+      "reference_covers": "Mesmo quando a usina usa a própria energia, o atributo de equilíbrio fica abaixo do que o Mercado Cativo Verde paga pelo atributo.",
+      "reference_short": "Quando a usina usa a própria energia, o atributo precisa passar do que o Mercado Cativo Verde paga.",
       "burned": "São Paulo já produz biogás com cerca de {volume} m³/dia de metano, a maior parte queimada para gerar eletricidade: {ratio}× a meta de {year}.",
-      "limits": "O atributo não tem preço público: o piso é o que os fornecedores pedem, e parte do mercado espera menos. A tabela do Mercado Cativo Verde existe, mas seus valores não foram conferidos. Não entram a conexão à rede (gasoduto ou caminhão) nem o motor-gerador já pago.",
+      "limits": "Molécula e atributo são os preços iniciais que a Arsesp fixou para o Mercado Cativo Verde da Comgás, sem PIS/Cofins (set/2026). O CGOB ainda não tem preço: os fornecedores pedem piso de R$ 1/m³, e parte do mercado espera menos. Não entram a conexão à rede (gasoduto ou caminhão) nem o motor-gerador já pago.",
       "source_groups": {
         "molecula": "Molécula",
         "atributo": "Atributo ambiental",
@@ -2816,8 +2816,8 @@
         "fracao_ch4": "Metano no biogás"
       },
       "inputs": {
-        "molecule": "Molécula (custo do gás da Comgás, sem impostos)",
-        "attribute": "Piso pedido para o CGOB",
+        "molecule": "Molécula (Mercado Cativo Verde, sem PIS/Cofins)",
+        "attribute": "Atributo (Mercado Cativo Verde, sem PIS/Cofins)",
         "upgrading": "Purificação ({eur} €/MWh a {fx}/€)",
         "lhv": "PCI do metano (0 °C)",
         "efficiency": "Rendimento elétrico do motor",
@@ -2842,7 +2842,7 @@
     "stack": {
       "heading": "O que soma na receita de um m³ de biometano",
       "caption": "Projetos e financiadores costumam somar receitas que não se somam. Aqui, cada linha diz se entra na conta junto com as outras, e por quê.",
-      "total": "Soma possível por m³: até {total} (molécula, um atributo no piso pedido para o CGOB e o teto do CBIO). As outras linhas não têm preço público ou não são receita.",
+      "total": "Soma possível por m³: até {total} (molécula e atributo ao preço do Mercado Cativo Verde e o teto do CBIO). As outras linhas não têm preço público ou não são receita.",
       "groups": {
         "adds": "Soma",
         "once": "Vende-se uma vez",
@@ -2853,7 +2853,7 @@
         "molecule": {
           "title": "Molécula",
           "value": "{value}/m³",
-          "note": "O gás sem o atributo ambiental, ao custo do gás natural que ele substitui na rede da Comgás."
+          "note": "O gás sem o atributo ambiental, ao preço que a Arsesp fixou para a molécula do biometano no Mercado Cativo Verde da Comgás."
         },
         "co2": {
           "title": "CO₂ biogênico",
@@ -2867,12 +2867,13 @@
         },
         "cgob": {
           "title": "CGOB, para o mandato",
-          "value": "1 CGOB = {m3} m³ · piso pedido {perCgob}",
-          "note": "O certificado que produtores e importadores de gás natural compram para cumprir a meta."
+          "value": "1 CGOB = {m3} m³ · {perCgob} ao preço do Cativo Verde",
+          "note": "O certificado que produtores e importadores de gás natural compram para cumprir a meta. Ainda sem preço público: os fornecedores pedem piso de R$ 1/m³."
         },
         "captive": {
           "title": "Atributo no Mercado Cativo Verde",
-          "note": "Vai para o cliente da Comgás que compra o biometano: vendido a ele, o atributo não pode ser vendido de novo como CGOB. O preço da tabela não foi conferido."
+          "note": "Vai para o cliente da Comgás que compra o biometano: vendido a ele, o atributo não pode ser vendido de novo como CGOB. Preço inicial fixado pela Arsesp, sem PIS/Cofins.",
+          "value": "{value}/m³"
         },
         "voluntary_cert": {
           "title": "Certificado voluntário (GAS-REC, I-REC)",
@@ -2903,7 +2904,7 @@
         }
       },
       "digestate_basis": "Partes do valor dos nutrientes do digestato de SP, pelo destino atual do resíduo (protótipo do PILAR-2b, cenário Real).",
-      "limits": "Valores de triagem: a molécula é o custo do gás natural, o atributo é o piso pedido para o CGOB e o preço do CBIO mudou muito em 2026.",
+      "limits": "Valores de triagem: molécula e atributo são os preços iniciais do Mercado Cativo Verde, o CGOB ainda não tem preço e o preço do CBIO mudou muito em 2026.",
       "source_groups": {
         "fossil": "Fóssil de referência do CBIO",
         "cbio": "CBIO: definição e preço",
@@ -2916,7 +2917,7 @@
       "method": {
         "cbio": "Teto do CBIO: {lhv} MJ/m³ × {fossil} g CO₂e/MJ ÷ 1.000.000 = {cbio} CBIO/m³ (biometano sem emissão alguma); × {low} a {high} por CBIO = {brl_low} a {brl_high}/m³.",
         "co2": "CO₂ por m³ de biometano: (1 − CH₄) ÷ CH₄ × {density} kg/m³, com CH₄ de {high} a {low} = {kg_low} a {kg_high} kg.",
-        "cgob": "CGOB: 1 certificado = {m3} m³; no piso de {attr}/m³, {perCgob} por CGOB.",
+        "cgob": "CGOB: 1 certificado = {m3} m³; ao preço do atributo no Cativo Verde ({attr}/m³), {perCgob} por CGOB.",
         "total": "Soma possível: {molecule} + {attr} + {cbio} = {total}/m³."
       }
     },

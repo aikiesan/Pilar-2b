@@ -189,12 +189,14 @@ def test_canonical_route_switch():
     r = M.panel(load_mandate_params())["route_switch"]
     # 9.94 kWh × € 25/MWh × R$ 5.8/€.
     assert r["upgrading_brl_m3"] == pytest.approx(1.44, abs=0.01)
-    assert r["threshold_brl_mwh"] == pytest.approx(315, abs=1)
+    # Green Captive Market molecule (Arsesp Del. 1.846/2026): R$ 2.25 − 1.44 over 3.78 kWh/m³.
+    assert r["threshold_brl_mwh"] == pytest.approx(214, abs=1)
     by = {row["electricity_brl_mwh"]: row["breakeven_attribute_brl_m3"] for row in r["prices"]}
-    # The whole Apr–Jul/2026 PLD range sits below the threshold.
-    assert by[135] < 0 and by[190] < 0 and by[225] < 0
-    assert by[450] == pytest.approx(0.51, abs=0.01)
-    # Even the self-consumption case needs less than the CGOB floor suppliers ask for.
+    # The low and mid PLD sit below the threshold; the high one just above it.
+    assert by[135] < 0 and by[190] < 0
+    assert by[225] == pytest.approx(0.04, abs=0.01)
+    assert by[450] == pytest.approx(0.89, abs=0.01)
+    # Even the self-consumption case needs less than the Green Captive Market attribute.
     assert by[450] < r["reference_attribute_brl_m3"]
     assert r["sp_burned_ch4_m3_day"] == pytest.approx(2.94e6)
     # The inputs the page shows rebuild the figures it shows.

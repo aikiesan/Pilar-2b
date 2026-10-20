@@ -2797,12 +2797,12 @@
       "row": "{label} · {price}/MWh",
       "none_needed": "not needed",
       "per_m3": "{value}/m³",
-      "reference": "CGOB floor suppliers ask for",
+      "reference": "Attribute in the Green Captive Market",
       "threshold": "With power below {threshold}/MWh, biomethane already pays more with no attribute at all.",
-      "reference_covers": "Even when the plant uses its own power, the break-even attribute stays below the floor suppliers ask for the CGOB.",
-      "reference_short": "When the plant uses its own power, the attribute must exceed the floor suppliers ask for the CGOB.",
+      "reference_covers": "Even when the plant uses its own power, the break-even attribute stays below what the Green Captive Market pays for the attribute.",
+      "reference_short": "When the plant uses its own power, the attribute must exceed what the Green Captive Market pays.",
       "burned": "São Paulo already produces biogas with about {volume} m³/day of methane, most of it burned for power: {ratio}× the {year} target.",
-      "limits": "The attribute has no public price: the floor is what suppliers ask for, and part of the market expects less. The Green Captive Market table exists, but its values were not checked. Grid connection (pipeline or truck) and the engine already paid for are left out.",
+      "limits": "Molecule and attribute are the opening prices Arsesp set for the Comgás Green Captive Market, before PIS/Cofins (Sep/2026). The CGOB has no price yet: suppliers ask for a R$ 1/m³ floor, and part of the market expects less. Grid connection (pipeline or truck) and the engine already paid for are left out.",
       "source_groups": {
         "molecula": "Molecule",
         "atributo": "Environmental attribute",
@@ -2816,8 +2816,8 @@
         "fracao_ch4": "Methane in biogas"
       },
       "inputs": {
-        "molecule": "Molecule (Comgás gas cost, before taxes)",
-        "attribute": "Floor asked for the CGOB",
+        "molecule": "Molecule (Green Captive Market, before PIS/Cofins)",
+        "attribute": "Attribute (Green Captive Market, before PIS/Cofins)",
         "upgrading": "Upgrading ({eur} €/MWh at {fx}/€)",
         "lhv": "Methane LHV (0 °C)",
         "efficiency": "Engine electrical efficiency",
@@ -2842,7 +2842,7 @@
     "stack": {
       "heading": "What adds up in the revenue of one m³ of biomethane",
       "caption": "Projects and lenders often add revenues that do not add up. Each line says whether it counts alongside the others, and why.",
-      "total": "Possible sum per m³: up to {total} (molecule, one attribute at the CGOB floor suppliers ask for, and the CBIO ceiling). The other lines have no public price or are not revenue.",
+      "total": "Possible sum per m³: up to {total} (molecule and attribute at Green Captive Market prices, and the CBIO ceiling). The other lines have no public price or are not revenue.",
       "groups": {
         "adds": "Adds up",
         "once": "Sold only once",
@@ -2853,7 +2853,7 @@
         "molecule": {
           "title": "Molecule",
           "value": "{value}/m³",
-          "note": "The gas without its environmental attribute, at the cost of the natural gas it replaces in the Comgás grid."
+          "note": "The gas without its environmental attribute, at the price Arsesp set for the biomethane molecule in the Comgás Green Captive Market."
         },
         "co2": {
           "title": "Biogenic CO₂",
@@ -2867,12 +2867,13 @@
         },
         "cgob": {
           "title": "CGOB, for the mandate",
-          "value": "1 CGOB = {m3} m³ · floor asked {perCgob}",
-          "note": "The certificate natural gas producers and importers buy to meet the target."
+          "value": "1 CGOB = {m3} m³ · {perCgob} at the Green Captive price",
+          "note": "The certificate natural gas producers and importers buy to meet the target. No public price yet: suppliers ask for a R$ 1/m³ floor."
         },
         "captive": {
           "title": "Attribute in the Green Captive Market",
-          "note": "Goes to the Comgás customer who buys the biomethane: once sold to them, the attribute cannot be sold again as a CGOB. The table price was not checked."
+          "note": "Goes to the Comgás customer who buys the biomethane: once sold to them, the attribute cannot be sold again as a CGOB. Opening price set by Arsesp, before PIS/Cofins.",
+          "value": "{value}/m³"
         },
         "voluntary_cert": {
           "title": "Voluntary certificate (GAS-REC, I-REC)",
@@ -2903,7 +2904,7 @@
         }
       },
       "digestate_basis": "Shares of the nutrient value of SP digestate, by where the residue goes today (PILAR-2b prototype, Real scenario).",
-      "limits": "Screening values: the molecule is the natural gas cost, the attribute is the CGOB floor suppliers ask for, and the CBIO price moved a lot in 2026.",
+      "limits": "Screening values: molecule and attribute are the Green Captive Market opening prices, the CGOB has no price yet, and the CBIO price moved a lot in 2026.",
       "source_groups": {
         "fossil": "CBIO fossil reference",
         "cbio": "CBIO: definition and price",
@@ -2916,7 +2917,7 @@
       "method": {
         "cbio": "CBIO ceiling: {lhv} MJ/m³ × {fossil} g CO₂e/MJ ÷ 1,000,000 = {cbio} CBIO/m³ (zero-emission biomethane); × {low} to {high} per CBIO = {brl_low} to {brl_high}/m³.",
         "co2": "CO₂ per m³ of biomethane: (1 − CH₄) ÷ CH₄ × {density} kg/m³, with CH₄ from {high} to {low} = {kg_low} to {kg_high} kg.",
-        "cgob": "CGOB: 1 certificate = {m3} m³; at the {attr}/m³ floor, {perCgob} per CGOB.",
+        "cgob": "CGOB: 1 certificate = {m3} m³; at the Green Captive attribute price ({attr}/m³), {perCgob} per CGOB.",
         "total": "Possible sum: {molecule} + {attr} + {cbio} = {total}/m³."
       }
     },

@@ -56,9 +56,9 @@ do registro seja usada, tenha data e tenha link `https`. Só uma suposição
 
 | Número no painel | Antes | Agora | Status | Fonte (chave no YAML) |
 |---|---|---|---|---|
-| Molécula | R$ 2,25/m³ (Cativo Verde) | **R$ 2,63/m³** (custo do gás da Comgás, sem impostos, segmentos não térmicos) | **Corrigido** | [Comgás, tarifas](https://www.comgas.com.br/sobre-sua-conta/tarifas/) (`comgas_tarifas`); [ajuste Arsesp de set/2026: R$ 2,629087/m³](https://www.correiodamanha.com.br/nacional/sao-paulo/2026/09/318093-tarifa-de-gas-fica-estavel-para-casas-e-comercio.html) (`arsesp_ajuste_set2026`) |
-| Atributo de referência | R$ 1,40/m³ (Cativo Verde) | **R$ 1,00/m³** (piso pedido pelos fornecedores para o CGOB) | **Corrigido** | [Argus, jan/2026](https://www.argusmedia.com/pt/news-and-insights/latest-market-news/2771482-viewpoint-brazil-s-biomethane-at-a-crossroads) (`argus_biometano_2026`) |
-| Tabela do Mercado Cativo Verde | R$ 2,25 + R$ 1,40 | fora do painel | **Não confirmado** | O link antigo (Diário do Transporte) era sobre os Bombeiros e não tinha esses valores. A [Agência iNFRA](https://agenciainfra.com/blog/comgas-obtem-aval-para-vender-biometano-no-mercado-cativo-verde/) confirma a autorização da Arsesp, mas não os valores |
+| Molécula | R$ 2,63/m³ (custo do gás natural da Comgás, 20/10/2026) | **R$ 2,25/m³** (molécula de biometano no Mercado Cativo Verde, sem PIS/Cofins) | **Confirmado na fonte primária** | [Del. Arsesp 1.846/2026](https://www.comgas.com.br/media/ctfk1j4p/deliberacao_1846.pdf) (`arsesp_1846`), art. 1º, IV, em vigor desde 10/09/2026; [Comgás, tarifas](https://www.comgas.com.br/sobre-sua-conta/tarifas/) (`comgas_tarifas`). O gás natural dos demais segmentos custa R$ 2,885935/m³ com PIS/Cofins (§ 2º), ou R$ 2,63 sem |
+| Atributo de referência | R$ 1,00/m³ (piso pedido para o CGOB, 20/10/2026) | **R$ 1,40/m³** (atributo ambiental no Mercado Cativo Verde, sem PIS/Cofins) | **Confirmado na fonte primária** | [Del. Arsesp 1.846/2026](https://www.comgas.com.br/media/ctfk1j4p/deliberacao_1846.pdf) (`arsesp_1846`), art. 1º, IV. O CGOB ainda não tem preço: os fornecedores pedem piso de R$ 1/m³ ([Argus, jan/2026](https://www.argusmedia.com/pt/news-and-insights/latest-market-news/2771482-viewpoint-brazil-s-biomethane-at-a-crossroads), `argus_biometano_2026`) |
+| Tabela do Mercado Cativo Verde | não confirmada | R$ 2,25 + R$ 1,40 = R$ 3,65/m³ sem PIS/Cofins; **R$ 4,009694/m³** com PIS/Cofins (8,9 %) | **Confirmado na fonte primária** | [Del. Arsesp 1.846/2026](https://www.comgas.com.br/media/ctfk1j4p/deliberacao_1846.pdf) (`arsesp_1846`), art. 1º, § 2º, art. 4º e Anexo 3 (tarifas-teto do cativo verde, industrial de R$ 5,58 a 4,42/m³ e GNV de R$ 4,53 a 4,70/m³, com PIS/Cofins e sem ICMS). Baixado da página de tarifas da Comgás em 20/10/2026; autenticidade no DOE-SP, código 2026.09.09.1.1.35.18.203.2113787. A [Agência iNFRA](https://agenciainfra.com/blog/comgas-obtem-aval-para-vender-biometano-no-mercado-cativo-verde/) noticia a autorização |
 | Purificação | € 19/MWh, R$ 1,19/m³ | **€ 25/MWh ≈ R$ 1,44/m³** | **Corrigido** | [PMC9821904](https://pmc.ncbi.nlm.nih.gov/articles/PMC9821904/) (`purificacao_custos`): ~€ 0,25/m³ a 250 m³/h, abaixo de € 0,15 acima de 2.000 m³/h. É referência europeia |
 | Câmbio euro | R$ 6,30 | **R$ 5,80** | **Corrigido** | [PTAX do BCB](https://www.bcb.gov.br/estabilidadefinanceira/historicocotacoes) (`bcb_ptax`): média de set/2026 ≈ 5,92; 16/10/2026 = 5,71 |
 | PLD SE/CO (baixo, médio, alto) | R$ 185, 250, 300/MWh | **R$ 135, 190, 225/MWh** | **Corrigido** | [Painel de Preços da CCEE](https://www.ccee.org.br/precos/painel-precos) (`ccee_painel_precos`), [PLD diário, dados abertos](https://dadosabertos.ccee.org.br/dataset/pld_media_diaria) (`ccee_pld_dados`), [InfoPLD de 30/07/2026](https://www.ccee.org.br/documents/80415/35629354/InfoPLD_Diario30072026.pdf/1a4ac8d1-b541-e513-63ba-a066190ca457). Abr–jul/2026: 133 (jul), 177–206 (abr–jun), 222 (máximo diário, mai). Os valores antigos estavam acima de todo o período |
@@ -68,12 +68,17 @@ do registro seja usada, tenha data e tenha link `https`. Só uma suposição
 | Rendimento elétrico do motor | 38 % (sem fonte) | igual | **Suposição, agora marcada** | `rendimento_suposto` (sem link); teto de motor grande: [Cat CG170B-16, 44,7 %](https://www.cat.com/pt_BR/products/new/power-systems/electric-power/gas-generator-sets/110821.html) (`cat_cg170`, página do fabricante) |
 | Metano no biogás | 55–65 % (sem fonte) | igual | **Fonte acrescentada** | [Embrapa Agroenergia, 2014](https://www.infoteca.cnptia.embrapa.br/infoteca/bitstream/doc/998908/1/CIT13.pdf) (`embrapa_reforma_biogas`): 60–65 % de CH₄. O limite inferior de 55 % é escolha do PILAR-2b, para incluir biogás mais pobre, como o de aterro |
 
-**Efeito no resultado:** o limiar passou de R$ 281 para **R$ 315/MWh**. Agora
-todo o PLD de abr–jul/2026 fica abaixo dele: o biometano vence sem atributo
-para a energia vendida ao mercado. Com energia autoconsumida (R$ 450/MWh), o
-atributo de equilíbrio caiu de R$ 0,64 para **R$ 0,51/m³**, ainda abaixo do
-piso de R$ 1,00. No biogás atual de SP, a diferença entre as rotas vai de
-−R$ 0,55 bi a +R$ 1,8 bi por ano (antes, −0,7 a +1,9).
+**Efeito no resultado:** com a molécula do Cativo Verde (R$ 2,25 em vez de
+2,63), o limiar caiu de R$ 315 para **R$ 214/MWh**. O PLD baixo e o médio de
+abr–jul/2026 (R$ 135 e 190) ficam abaixo dele: ali o biometano vence sem
+atributo. No PLD alto (R$ 225), precisa de **R$ 0,04/m³**. Com energia
+autoconsumida (R$ 450/MWh), o atributo de equilíbrio sobe de R$ 0,51 para
+**R$ 0,89/m³**, ainda abaixo dos R$ 1,40 que o Cativo Verde paga. No biogás
+atual de SP, a diferença entre as rotas vai de −R$ 0,96 bi a +R$ 1,8 bi por ano.
+
+Histórico: até 20/10/2026 de manhã, o painel usava o custo do gás natural
+(R$ 2,63) e o piso do CGOB (R$ 1,00), porque os valores do Cativo Verde só
+apareciam sem fonte. Com a deliberação em mãos, os valores oficiais voltaram.
 
 ## Pilha de receitas (C27)
 
@@ -85,7 +90,7 @@ piso de R$ 1,00. No biogás atual de SP, a diferença entre as rotas vai de
 | CBIO e CGOB da mesma nota | permitido, com o CGOB indicando o CBIO | Confirmado (resumo) | [Res. ANP 996/2026](https://www.legisweb.com.br/legislacao/?id=491705); resumo [Tauil & Chequer](https://www.tauilchequer.com.br/pt/insights/publications/2026/03/anp-issues-rules-on-biomethane-targets-and-cgob-issuance) |
 | Crítica à dupla contagem | — | Contexto | [Brasil Energia (Abrace), jul/2025](https://brasilenergia.com.br/energia/certificado-de-garantia-de-origem-de-biometano-um-fim-em-si-mesmo), anterior à resolução |
 | Densidade do CO₂ | 1,977 kg/m³ → **1,84 kg/m³** | **Corrigido** | Os m³ da ANP são a 20 °C e 1 atm ([Res. ANP 906/2022](https://www.legisweb.com.br/legislacao/?id=438796)); 1,977 é a 0 °C. O CO₂ por m³ de biometano passou de 1,06–1,62 para **0,99–1,51 kg** |
-| Molécula + atributo | R$ 2,25 + 1,40 → **R$ 2,63 + 1,00** | **Corrigido** | Os mesmos da troca de rota. A soma possível passou de R$ 3,82 para **R$ 3,80/m³** |
+| Molécula + atributo | R$ 2,63 + 1,00 → **R$ 2,25 + 1,40** | **Confirmado (Del. Arsesp 1.846/2026)** | Os mesmos da troca de rota. A soma possível passou de R$ 3,80 para **R$ 3,82/m³** |
 | Digestato por destino | 81 % / 13 % / 6 % | Suposição (modelo) | `modelo_digestato`: protótipo `analysis/build_sp_digestate_nutrients.py` |
 
 ## CO₂ biogênico (C20)
@@ -118,9 +123,9 @@ aparece primeiro:
 
 ## O que ainda falta conferir
 
-1. **Tabela do Mercado Cativo Verde** (Comgás, ajuste Arsesp de set/2026): abrir
-   a página de tarifas da Comgás ou a deliberação da Arsesp e anotar a tabela.
-   Se ela publicar um valor para o atributo, ele substitui o piso de R$ 1,00.
+1. **Tabela do Mercado Cativo Verde:** resolvido em 20/10/2026 com a Del.
+   Arsesp 1.846/2026 (ver a troca de rota). Falta o preço do CGOB, que ainda
+   não teve primeira emissão.
 2. **Texto oficial das Resoluções ANP 995 e 996/2026** no DOU de 04/03/2026. O
    painel cita o espelho do LegisWeb.
 3. **Condição de referência do Nm³** do CIBiogás (0 °C ou 20 °C). O PCI do

@@ -2,6 +2,23 @@
   "_comment": "Patch notes, newest first. Each entry carries its own pt-BR and en text, deliberately OUTSIDE messages/*.json: the catalogs are gated by check-i18n-parity.mjs, and threading one release note through two catalogs per deploy makes writing a note a chore nobody does. scripts/check-patch-notes.mjs enforces that both locales are present here instead. `date` is ISO 8601 WITH offset -- it is rendered in the reader's locale, so a bare date would drift a day across timezones. `kind` must be one of: added, changed, fixed, security, data.",
   "entries": [
     {
+      "version": "3.8.4",
+      "date": "2026-10-20T23:30:00-03:00",
+      "title": {
+        "pt-BR": "Troca de rota com os preços oficiais do Cativo Verde",
+        "en": "Route switch with the official Green Captive prices"
+      },
+      "changes": [
+        {
+          "kind": "changed",
+          "text": {
+            "pt-BR": "No Mandato do biometano, a molécula (R$ 2,25/m³) e o atributo ambiental (R$ 1,40/m³) passam a ser os do Mercado Cativo Verde da Comgás, conferidos na Deliberação Arsesp 1.846/2026, que agora é a fonte de ambos. Com isso, o biometano vence sem atributo até cerca de R$ 214/MWh, e com energia autoconsumida precisa de R$ 0,89/m³, abaixo do que o Cativo Verde paga.",
+            "en": "In the Biomethane mandate, the molecule (R$ 2.25/m³) and the environmental attribute (R$ 1.40/m³) are now those of the Comgás Green Captive Market, checked against Arsesp Deliberation 1,846/2026, now the source of both. Biomethane now wins with no attribute up to about R$ 214/MWh, and with self-consumed power it needs R$ 0.89/m³, below what the Green Captive Market pays."
+          }
+        }
+      ]
+    },
+    {
       "version": "3.8.3",
       "date": "2026-10-20T22:30:00-03:00",
       "title": {

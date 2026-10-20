@@ -105,8 +105,8 @@ def main() -> None:
         "",
         f"Por Nm³ de CH₄: PCI {fmt(p['pci_ch4_kwh_m3'])} kWh e rendimento elétrico "
         f"{100 * p['rendimento_eletrico']:.0f} % "
-        f"(os do script de cenários). Molécula R$ {fmt(r['molecule_brl_m3'])}/m³ (custo do gás natural "
-        "da Comgás, o que o biometano substitui); "
+        f"(os do script de cenários). Molécula R$ {fmt(r['molecule_brl_m3'])}/m³ (preço inicial do "
+        "biometano no Mercado Cativo Verde da Comgás, Arsesp Del. 1.846/2026); "
         f"purificação R$ {fmt(up)}/m³ (referência europeia convertida). Preços de triagem em "
         "`mandato_biometano.yaml` (`troca_de_rota`), cada um com fonte.",
         "",
@@ -164,9 +164,9 @@ def main() -> None:
         "- Ignora o motor-gerador já pago (custo afundado) e o O&M dele; também ignora que a usina pode "
         "precisar comprar a energia que deixa de gerar, o que é exatamente o caso de preço de "
         f"{prices[-1]:.0f} R$/MWh.",
-        "- Molécula = custo do gás natural da Comgás (o que o biometano substitui), não preço de "
-        "biometano; atributo = piso pedido para o CGOB, sem preço público; purificação = referência "
-        "europeia. Fontes por número em `fontes` do YAML; conferir antes de citar.",
+        "- Molécula e atributo = preços iniciais do Mercado Cativo Verde da Comgás, sem PIS/Cofins "
+        "(Arsesp Del. 1.846/2026); o CGOB ainda não tem preço e pode valer outra coisa; purificação = "
+        "referência europeia. Fontes por número em `fontes` do YAML; conferir antes de citar.",
         "",
     ]
     (OUT / "RELATORIO.md").write_text("\n".join(L), encoding="utf-8")

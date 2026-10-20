@@ -320,6 +320,7 @@ export default async function MandatePage() {
       co2: t('stack.items.co2.value', { low: kg(s.co2_kg_per_m3[0]), high: kg(s.co2_kg_per_m3[1]) }),
       digestate_new: t('stack.items.digestate_new.value', { share: share(s.digestate_value_share.novo) }),
       cgob: t('stack.items.cgob.value', { m3: s.m3_per_cgob, perCgob: brl0(s.attribute_brl_m3 * s.m3_per_cgob) }),
+      captive: t('stack.items.captive.value', { value: brl(s.attribute_brl_m3) }),
       cbio: t('stack.items.cbio.value', { low: brl(Math.min(...cbio)), high: brl(Math.max(...cbio)) }),
       digestate_kept: t('stack.items.digestate_kept.value', { share: share(s.digestate_value_share.ja_reciclado) }),
       straw: t('stack.items.straw.value', { share: share(s.digestate_value_share.reposicao) }),
