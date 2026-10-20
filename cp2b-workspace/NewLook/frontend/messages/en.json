@@ -2636,10 +2636,10 @@
     "tiles": {
       "target": "{year} target",
       "target_note": "{reduction} emissions reduction",
-      "br": "Brazil produces ({month})",
-      "coverage": "{share} of the {year} target",
-      "sp": "São Paulo produces ({month})",
-      "sp_share": "{share} of national production",
+      "br": "Brazil produces",
+      "coverage": "{month} · {share} of the {year} target",
+      "sp": "São Paulo produces",
+      "sp_share": "{month} · {share} of national production",
       "cgob": "CGOB issued",
       "cgob_none": "No registry",
       "cgob_note": "There is no public registry yet; the panel shows issuance once there is."

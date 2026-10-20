@@ -2636,10 +2636,10 @@
     "tiles": {
       "target": "Meta de {year}",
       "target_note": "{reduction} de redução de emissões",
-      "br": "Brasil produz ({month})",
-      "coverage": "{share} da meta de {year}",
-      "sp": "São Paulo produz ({month})",
-      "sp_share": "{share} da produção nacional",
+      "br": "Brasil produz",
+      "coverage": "{month} · {share} da meta de {year}",
+      "sp": "São Paulo produz",
+      "sp_share": "{month} · {share} da produção nacional",
       "cgob": "CGOB emitidos",
       "cgob_none": "Sem registro",
       "cgob_note": "Ainda não há registro público; o painel mostra a emissão quando houver."

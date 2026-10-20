@@ -95,16 +95,16 @@ export default async function MandatePage() {
             note={t('tiles.target_note', { reduction: reduction(current.reduction_pct) })}
           />
           <StatTile
-            label={t('tiles.br', { month: latestLabel })}
+            label={t('tiles.br')}
             value={volume(latest.br_m3_day)}
             unit={t('unit_m3_day')}
-            note={t('tiles.coverage', { share: pct(current.coverage), year: current.year })}
+            note={t('tiles.coverage', { month: latestLabel, share: pct(current.coverage), year: current.year })}
           />
           <StatTile
-            label={t('tiles.sp', { month: latestLabel })}
+            label={t('tiles.sp')}
             value={volume(latest.sp_m3_day)}
             unit={t('unit_m3_day')}
-            note={t('tiles.sp_share', { share: pct(latest.sp_share_of_br) })}
+            note={t('tiles.sp_share', { month: latestLabel, share: pct(latest.sp_share_of_br) })}
           />
           <StatTile
             label={t('tiles.cgob')}
