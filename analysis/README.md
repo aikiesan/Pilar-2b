@@ -48,6 +48,7 @@ Reproducible scripts behind `cp2b-workspace/NewLook/docs/planning/ESTRATEGIA_202
 | `build_biogram_reconciliation.py` | Where and why does the IEA BioGRAM disagree with PILAR for SP (state, 11 regions, 30 sites)? Computes the PILAR side and the areas to draw; the BioGRAM side is typed into `data/07_biogram_sp_seed.csv`. Needs `outputs/sp_opportunity_sites/sites.csv`. | `outputs/biogram_reconciliation/` |
 | `build_biogram_national_share.py` | Is the C16 map reading coherent with Brazil? SP's share of the national crop, herd and population (IBGE 2023) × BioGRAM 1.2 Brazil, against the map reading and PILAR N3. National gaps go in `data/08_brasil_totais_2023_seed.csv`. Needs `outputs/biogram_reconciliation/pilar_por_area.csv`. | `outputs/biogram_national_share/` |
 | `build_sp_biolng_santos.py` | C25 (speculative): how much methane lies within 50–200 km of the port of Santos (Atlas Real, CP2b N3 with the snapshot, ANP plants), what bio-LNG scale it supports, and what FuelEU Maritime would pay per m³ against the domestic attribute. Reuses the reconciliation helpers and the mandate parameters. | `outputs/sp_biolng_santos/` |
+| `build_sp_green_corridors.py` | C24: CNG stations from the ANP price survey (`data/sources/anp/anp_postos_gnv_sp.csv`, written by `ingest_anp_postos_gnv.py`) along six SP highway corridors, the ANP plants producing within 50 km, Atlas Real (and CP2b N3 with the snapshot), and the stations with no producing plant nearby. Reuses the reconciliation helpers and the C25 plant table. | `outputs/sp_green_corridors/` |
 
 ```bash
 python3 analysis/build_sp_real_uncertainty.py
@@ -60,5 +61,6 @@ python3 analysis/build_bndes_capex_benchmarks.py
 python3 analysis/build_biogram_reconciliation.py
 python3 analysis/build_biogram_national_share.py
 python3 analysis/build_sp_biolng_santos.py
-pytest tests/test_sp_real_uncertainty.py tests/test_sp_realization_index.py tests/test_sp_digestate_nutrients.py tests/test_sp_mandate_coverage.py tests/test_sp_route_conversion.py tests/test_bndes_capex_benchmarks.py tests/test_biogram_reconciliation.py tests/test_biogram_national_share.py tests/test_sp_biolng_santos.py
+python3 analysis/build_sp_green_corridors.py
+pytest tests/test_sp_real_uncertainty.py tests/test_sp_realization_index.py tests/test_sp_digestate_nutrients.py tests/test_sp_mandate_coverage.py tests/test_sp_route_conversion.py tests/test_bndes_capex_benchmarks.py tests/test_biogram_reconciliation.py tests/test_biogram_national_share.py tests/test_sp_biolng_santos.py tests/test_sp_green_corridors.py
 ```
