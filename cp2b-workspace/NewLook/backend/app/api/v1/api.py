@@ -22,6 +22,7 @@ from app.api.v1.endpoints import (
     proximity,
     residuos,
     scientific,
+    sources,
     statistics,
 )
 from app.routers import calculator, technology_routes
@@ -97,6 +98,9 @@ api_router.include_router(
 
 # Biomethane mandate panel: CNPE targets against ANP production (C26)
 api_router.include_router(mandate.router, prefix="/mandate", tags=["mandate", "biomethane"])
+
+# Sources of every map layer and page block (fontes_dados.yaml)
+api_router.include_router(sources.router, prefix="/sources", tags=["sources"])
 
 # National intermediate regions (Phase 1 — 133 IBGE regions)
 api_router.include_router(

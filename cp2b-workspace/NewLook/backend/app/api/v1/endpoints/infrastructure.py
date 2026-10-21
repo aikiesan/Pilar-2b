@@ -311,7 +311,9 @@ async def list_infrastructure_layers() -> Dict[str, Any]:
     return {
         "layers": [dict(r) for r in rows],
         "total_features": sum(int(r["features"]) for r in rows),
-        "source": "MapBiomas 10.1 — INFRAESTRUTURA (loaded via migration 023)",
+        # The territorial layers are not INFRAESTRUTURA; each layer's source is
+        # in the registry (fontes_dados.yaml), served at /api/v1/sources.
+        "source": "MapBiomas 10.1 (migration 023); per layer: /api/v1/sources",
     }
 
 

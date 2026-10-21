@@ -1,0 +1,180 @@
+# Fontes dos dados que a plataforma mostra: cada camada do mapa, a página do
+# município e a Proximidade citam entradas deste registro pela chave.
+#
+# Mesmo formato do registro `fontes` de mandato_biometano.yaml, mais:
+#   licenca   licença do dado, só quando conferida na página de origem; senão null
+#   conferir  o que falta confirmar (link, data, licença, editor original). Uma
+#             entrada sem link que não é estimativa da plataforma tem de dizer
+#             por quê. A lista de pendências sai daqui, não de um documento à parte.
+#   metadados id da mesma fonte em docs/data/METADATA.json (a linhagem do artigo);
+#             o teste exige que o link seja o mesmo nos dois.
+#
+# tipo: oficial | dados | estudo | empresa | imprensa | estimativa
+# Lido por backend/app/services/data_sources.py e servido em GET /api/v1/sources.
+
+versao: "2026-10-21"
+
+fontes:
+  # --- Potencial por município ---
+  cp2b_v51:
+    titulo: "Método CP2b v5.1 (24/09/2026): potencial de metano por município e resíduo, níveis N1 a N4"
+    curta: "CP2b v5.1"
+    autor: CP2B / NIPE-UNICAMP
+    data: "2026-09"
+    url: null
+    tipo: estimativa
+    nota: "Cada elemento de cálculo, com a fonte e o status, está em /api/v1/cp2b/parameters."
+  ibge_pam:
+    titulo: "IBGE, Produção Agrícola Municipal (PAM), SIDRA tabela 5457"
+    curta: "IBGE, PAM"
+    autor: IBGE
+    data: "2023"
+    url: "https://sidra.ibge.gov.br/tabela/5457"
+    tipo: oficial
+    metadados: ibge_pam
+    conferir: "Ano de referência: o arquivo mestre se chama *_SP_2023."
+  ibge_ppm:
+    titulo: "IBGE, Pesquisa da Pecuária Municipal (PPM), tabelas SIDRA"
+    curta: "IBGE, PPM"
+    autor: IBGE
+    data: "2024"
+    url: "https://sidra.ibge.gov.br/pesquisa/ppm/tabelas"
+    tipo: oficial
+  ibge_censo_2022:
+    titulo: "IBGE, Censo Demográfico 2022 (população)"
+    curta: "IBGE, Censo 2022"
+    autor: IBGE
+    data: "2022"
+    url: "https://censo2022.ibge.gov.br/"
+    tipo: oficial
+    metadados: ibge_census_2022
+  snis:
+    titulo: "SNIS, Sistema Nacional de Informações sobre Saneamento (resíduos sólidos e esgoto)"
+    curta: "SNIS 2022"
+    autor: Ministério das Cidades
+    data: "2022"
+    url: "https://www.gov.br/cidades/pt-br/acesso-a-informacao/acoes-e-programas/saneamento/snis"
+    tipo: oficial
+    metadados: snis_2022
+
+  # --- Território ---
+  ibge_malha_municipal:
+    titulo: "IBGE, Malha Municipal 2025 (BR_Municipios_2025)"
+    curta: "IBGE, malha 2025"
+    autor: IBGE
+    data: "2025"
+    url: "https://www.ibge.gov.br/geociencias/organizacao-do-territorio/malhas-territoriais/15774-malhas.html"
+    tipo: oficial
+    conferir: "Link da página de malhas e licença do IBGE."
+  ibge_populacao:
+    titulo: "IBGE, Estimativas da população residente 2025 (POP2025_20260113)"
+    curta: "IBGE, população 2025"
+    autor: IBGE
+    data: "2025"
+    url: "https://www.ibge.gov.br/estatisticas/sociais/populacao/9103-estimativas-de-populacao.html"
+    tipo: oficial
+    conferir: "Link da página de estimativas."
+  ibge_pib_municipios:
+    titulo: "IBGE, Produto Interno Bruto dos Municípios 2010 a 2023"
+    curta: "IBGE, PIB dos municípios"
+    autor: IBGE
+    data: "2023"
+    url: "https://www.ibge.gov.br/estatisticas/economicas/contas-nacionais/9088-produto-interno-bruto-dos-municipios.html"
+    tipo: oficial
+    conferir: "Link da página do PIB dos Municípios."
+  ibge_regioes_intermediarias:
+    titulo: "IBGE, Regiões Geográficas Intermediárias (divisão regional de 2017, malha de 2024)"
+    curta: "IBGE, regiões 2017"
+    autor: IBGE
+    data: "2017"
+    url: "https://www.ibge.gov.br/geociencias/organizacao-do-territorio/divisao-regional/15778-divisoes-regionais-do-brasil.html"
+    tipo: oficial
+    conferir: "Link da página de divisões regionais."
+
+  # --- MapBiomas ---
+  mapbiomas_uso:
+    titulo: "MapBiomas Coleção 10: mapa anual de cobertura e uso da terra, 2024 (classes agropecuárias de SP)"
+    curta: "MapBiomas Col. 10"
+    autor: Projeto MapBiomas
+    data: "2025-08"
+    url: "https://brasil.mapbiomas.org/"
+    tipo: dados
+    metadados: mapbiomas
+    conferir: >-
+      Licença: brasil.mapbiomas.org diz CC-BY e sites.mapbiomas.org diz CC-BY-SA.
+      O raster não grava se a coleção é a 10.0 ou a 10.1. Link da página de download.
+  mapbiomas_infraestrutura:
+    titulo: "MapBiomas 10.1, camadas de infraestrutura (usinas, subestações, linhas de transmissão, gasodutos, rodovias)"
+    curta: "MapBiomas 10.1"
+    autor: Projeto MapBiomas
+    data: null
+    url: null
+    tipo: dados
+    conferir: >-
+      Página de onde o pacote SHAPEFILES_MAPBIOMAS_10.1 foi baixado, data e licença.
+      O MapBiomas redistribui: falta o editor original de cada camada (EPE, ANEEL,
+      DNIT, DER-SP).
+  mapbiomas_territorios:
+    titulo: "MapBiomas 10.1, camadas territoriais (UCs de proteção integral estaduais, terras indígenas, assentamentos)"
+    curta: "MapBiomas 10.1"
+    autor: Projeto MapBiomas
+    data: null
+    url: null
+    tipo: dados
+    conferir: >-
+      Mesmo pacote das camadas de infraestrutura. Falta o editor original
+      (MMA/CNUC, FUNAI, INCRA), a data e a licença.
+
+  # --- Camadas antigas de SP (shapefiles) ---
+  sp_rodovias_estaduais:
+    titulo: "Rodovias estaduais de São Paulo (Rodovias_Estaduais_SP.shp)"
+    curta: "Rodovias SP"
+    autor: null
+    data: null
+    url: null
+    tipo: dados
+    conferir: >-
+      Editor, data e link. O nome da camada diz "EPE, 2023"; o arquivo veio do
+      repositório aikiesan/project_map, que não é o editor.
+  sp_etes:
+    titulo: "Estações de tratamento de esgoto de São Paulo (ETEs_2019_SP.shp)"
+    curta: "ETEs SP"
+    autor: null
+    data: null
+    url: null
+    tipo: dados
+    conferir: >-
+      Editor, data e link. O nome da camada diz "SNIS, 2023" e o arquivo, 2019.
+
+# Camada do mapa (id do frontend, MapComponent.tsx) -> fontes, na ordem de citação.
+camadas:
+  municipalities: [cp2b_v51, ibge_malha_municipal]
+  mg-beta: [ibge_pam, ibge_ppm, ibge_censo_2022, snis]
+  intermediate-regions: [ibge_regioes_intermediarias]
+  mapbiomas: [mapbiomas_uso]
+  biogas_plant: [mapbiomas_infraestrutura]
+  ethanol_plant: [mapbiomas_infraestrutura]
+  biomass_thermal_plant: [mapbiomas_infraestrutura]
+  biodiesel_plant: [mapbiomas_infraestrutura]
+  slaughterhouse: [mapbiomas_infraestrutura]
+  substation: [mapbiomas_infraestrutura]
+  transmission_line: [mapbiomas_infraestrutura]
+  gas_pipeline_transport: [mapbiomas_infraestrutura]
+  gas_pipeline_distribution: [mapbiomas_infraestrutura]
+  gas_delivery_point: [mapbiomas_infraestrutura]
+  compression_station: [mapbiomas_infraestrutura]
+  gas_processing_unit: [mapbiomas_infraestrutura]
+  gas_pipeline_outflow: [mapbiomas_infraestrutura]
+  protected_area_state: [mapbiomas_territorios]
+  indigenous_territory: [mapbiomas_territorios]
+  settlement: [mapbiomas_territorios]
+  highway_state: [mapbiomas_infraestrutura]
+  highway_federal: [mapbiomas_infraestrutura]
+  etes: [sp_etes]
+  railways: [sp_rodovias_estaduais]
+
+# Blocos de página fora do mapa -> fontes.
+paginas:
+  municipio_potencial: [cp2b_v51]
+  municipio_demografia: [ibge_populacao, ibge_pib_municipios, ibge_malha_municipal]
+  proximidade_uso_do_solo: [mapbiomas_uso]

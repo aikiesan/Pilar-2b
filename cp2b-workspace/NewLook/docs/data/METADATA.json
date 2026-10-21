@@ -48,7 +48,7 @@
       "reference_year": "2024",
       "collection": "10 (raster band classification_2024; 10.0 vs 10.1 not recorded in the file)",
       "resolution_m": 30,
-      "url": "https://mapbiomas.org",
+      "url": "https://brasil.mapbiomas.org",
       "doi": "10.58053/MapBiomas/JNJGVT (Collection 10 reference; confirm DOI for the collection actually used)",
       "retrieved": "VERIFY",
       "notes": "Forthcoming 2008-2024 LULC transition integration uses Collection 10 transition rasters (ABIOVE pipeline)."

@@ -336,3 +336,11 @@ def load_mandate_params() -> dict:
     from app.services import mandate_service
 
     return mandate_service.read(resolve_feedstocks_path().parent)
+
+
+@functools.lru_cache(maxsize=1)
+def load_data_sources() -> dict:
+    """Load and cache the registry of data sources, next to feedstocks.yaml."""
+    from app.services import data_sources
+
+    return data_sources.read(resolve_feedstocks_path().parent)
