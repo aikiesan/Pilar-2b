@@ -49,7 +49,8 @@ def test_corridor_counts_are_consistent():
     muns = B.municipalities()
     index = G.name_index()
     counts, n = G.stations_by_municipality(index)
-    rows = G.corridor_rows(B, M, muns, index, counts, G.plants(M, 0.6), {}, None)
+    geoms = G.geometries(muns, index, None)
+    rows = G.corridor_rows(B, M, muns, index, counts, G.plants(M, 0.6), {}, None, geoms)
     assert [r["corredor"] for r in rows] == list(G.CORRIDORS)
     for r in rows:
         assert 0 <= r["postos_sem_planta_50km"] <= r["postos_gnv"] <= n
@@ -64,3 +65,33 @@ def test_corridor_counts_are_consistent():
 def test_truck_order_of_magnitude():
     # 29 kg/100 km at 0.667 kg/m³ is about 0.43 m³/km.
     assert G.truck_m3_day(M) == pytest.approx(0.29 / M.CH4_KG_M3 * G.TRUCK_KM_DAY)
+
+
+def _feature(sigla, coords):
+    return {"properties": {"sigla": sigla},
+            "geometry": {"type": "LineString", "coordinates": [[lon, lat] for lat, lon in coords]}}
+
+
+def test_road_segments_are_kept_only_beside_the_anchor_line():
+    anchor = [(-23.55, -46.63), (-23.18, -45.88)]  # roughly São Paulo → São José dos Campos
+    dutra = _feature("BR-116/SP-060", [(-23.45, -46.45), (-23.30, -46.15)])
+    regis = _feature("BR-116", [(-23.65, -46.80), (-23.75, -47.00)])  # south-west of the start
+    other = _feature("SP-070", [(-23.45, -46.45), (-23.30, -46.15)])
+    parts = G.corridor_geometry(anchor, {"BR-116"}, [dutra, regis, other])
+    assert len(parts) == 1 and parts[0][0] == (-23.45, -46.45)
+    # No export: the anchor line stands in for the road.
+    assert G.corridor_geometry(anchor, {"BR-116"}, None) == [anchor]
+
+
+def test_along_tells_beside_from_past_the_end():
+    line = [(-23.0, -47.0), (-23.0, -46.0)]
+    d, inside = G.along((-22.9, -46.5), line)
+    assert inside and d == pytest.approx(11.12, abs=0.05)
+    assert not G.along((-23.0, -45.8), line)[1]
+    assert not G.along((-23.0, -47.2), line)[1]
+
+
+def test_near_matches_the_exact_distance():
+    parts = [[(-23.0, -47.0), (-23.0, -46.0)]]
+    assert G.near((-22.9, -46.5), parts, 12)
+    assert not G.near((-22.9, -46.5), parts, 11)

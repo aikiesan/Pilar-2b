@@ -13,9 +13,13 @@ corredor rodoviário de SP, três perguntas:
                quanto metano há no Atlas Real (e no CP2b N3, com o snapshot);
   3. déficit   quantos desses postos não têm planta em operação a 50 km.
 
-Each corridor is a polyline through anchor municipalities (their centroids), so
-no coordinate is typed here; the segments are straight and approximate the road.
-Stations sit at their municipality's centroid. The supply side reuses
+Each corridor is its highways as drawn in the platform's own road layers
+(MapBiomas 10.1 INFRAESTRUTURA, exported by analysis/sql/export_corridor_highways.sql):
+the segments whose code (sigla) is the corridor's and that lie along a line
+through anchor municipalities, which only says where the corridor starts and
+ends (so the Régis Bittencourt half of BR-116 stays out of the Dutra). Without
+the export, the anchor line itself stands in for the road. No coordinate is
+typed here. Stations sit at their municipality's centroid. The supply side reuses
 build_biogram_reconciliation.py (centroids, Atlas Real, CP2b, haversine) and the
 ANP plant table and constants of build_sp_biolng_santos.py; the CH4 share comes
 from mandato_biometano.yaml through mandate_service.
@@ -42,6 +46,7 @@ ROOT = Path(__file__).resolve().parents[1]
 C25 = ROOT / "analysis" / "build_sp_biolng_santos.py"
 NAMES = ROOT / "analysis" / "data" / "01_master_residue_streams_SP_2023.csv"
 STATIONS = ROOT / "analysis" / "data" / "sources" / "anp" / "anp_postos_gnv_sp.csv"
+ROADS = ROOT / "analysis" / "data" / "sources" / "mapbiomas" / "rodovias_corredores_sp.geojson"
 OUT = ROOT / "analysis" / "outputs" / "sp_green_corridors"
 
 STATION_KM = 20  # a station counts for a corridor when its municipality is this close
@@ -49,10 +54,11 @@ SUPPLY_KM = 50   # plants and Atlas Real municipalities this close supply the co
 # A plant "supplies" only above this output: OneBio Paulínia (≈ 125 m³/d) and Santa Cruz
 # (≈ 10 m³/d) are authorized and listed as operating but deliver almost nothing.
 PRODUCING_M3_DAY = 1_000
+ANCHOR_KM = 30   # a road segment belongs to the corridor when its middle is this close to the anchor line
 CAPITAL = "3550308"  # São Paulo: 38 of the stations, at one centroid on four corridors
 
-# Anchor municipalities in road order. Straight segments between their centroids;
-# check against the road map before quoting a corridor's length.
+# Road codes ("/"-separated, as in the layer's sigla) and anchor municipalities in road
+# order. The anchors pick the stretch of each road; the road layer gives its shape.
 CORRIDORS = {
     "Anhanguera/Bandeirantes": ("SP-330/SP-348", [
         "São Paulo", "Jundiaí", "Campinas", "Americana", "Limeira", "Pirassununga", "Ribeirão Preto"]),
@@ -125,6 +131,62 @@ def polyline_km(p, line) -> float:
     return min(point_segment_km(p, a, b) for a, b in zip(line, line[1:]))
 
 
+def along(p, line) -> tuple[float, bool]:
+    """Distance from p to the polyline, and whether p falls beside it rather than past an end."""
+    best, inside = math.inf, True
+    last = len(line) - 2
+    for i, (a, b) in enumerate(zip(line, line[1:])):
+        d = point_segment_km(p, a, b)
+        if d < best:
+            lat0 = math.cos(math.radians(a[0]))
+            dx, dy = (b[1] - a[1]) * lat0, b[0] - a[0]
+            t = ((p[1] - a[1]) * lat0 * dx + (p[0] - a[0]) * dy) / (dx * dx + dy * dy or 1.0)
+            best, inside = d, not ((i == 0 and t < 0) or (i == last and t > 1))
+    return best, inside
+
+
+def road_parts(geometry: dict) -> list[list[tuple[float, float]]]:
+    """GeoJSON LineString/MultiLineString -> polylines of (lat, lon)."""
+    lines = [geometry["coordinates"]] if geometry["type"] == "LineString" else geometry["coordinates"]
+    return [[(y, x) for x, y, *_ in ln] for ln in lines if len(ln) >= 2]
+
+
+def load_roads() -> list[dict] | None:
+    if not ROADS.exists():
+        return None
+    import json
+
+    with ROADS.open(encoding="utf-8") as fh:
+        return json.load(fh)["features"]
+
+
+def corridor_geometry(anchor_line, codes: set[str], roads: list[dict] | None) -> list[list[tuple[float, float]]]:
+    """The corridor's road segments, or the anchor line when the road export is absent."""
+    if roads is None:
+        return [anchor_line]
+    parts = []
+    for f in roads:
+        if not codes & {c.strip() for c in (f["properties"]["sigla"] or "").split("/")}:
+            continue
+        for part in road_parts(f["geometry"]):
+            d, inside = along(part[len(part) // 2], anchor_line)
+            if d <= ANCHOR_KM and inside:
+                parts.append(part)
+    return parts
+
+
+def near(p, parts, km: float) -> bool:
+    """Is p within km of any of the polylines (bounding-box prefilter, then exact)."""
+    dlat = km / 111.0
+    dlon = km / (111.0 * math.cos(math.radians(p[0])))
+    for part in parts:
+        lats, lons = [q[0] for q in part], [q[1] for q in part]
+        if min(lats) - dlat <= p[0] <= max(lats) + dlat and min(lons) - dlon <= p[1] <= max(lons) + dlon:
+            if polyline_km(p, part) <= km:
+                return True
+    return False
+
+
 def stations_by_municipality(index: dict[str, str]) -> tuple[Counter, int]:
     counts: Counter = Counter()
     with STATIONS.open(encoding="utf-8") as fh:
@@ -158,14 +220,26 @@ def truck_m3_day(M) -> float:
     return TRUCK_KG_100KM / 100 / M.CH4_KG_M3 * TRUCK_KM_DAY
 
 
-def corridor_rows(B, M, muns, index, counts, plant_list, atlas, cp2b) -> list[dict]:
+def geometries(muns, index, roads) -> dict[str, list]:
+    out = {}
+    for name, (codes, anchors) in CORRIDORS.items():
+        line = [(muns[index[norm(a)]]["lat"], muns[index[norm(a)]]["lon"]) for a in anchors]
+        out[name] = corridor_geometry(line, set(codes.split("/")), roads)
+    return out
+
+
+def corridor_rows(B, M, muns, index, counts, plant_list, atlas, cp2b, geoms) -> list[dict]:
     rows = []
     for name, (roads, anchors) in CORRIDORS.items():
         line = [(muns[index[norm(a)]]["lat"], muns[index[norm(a)]]["lon"]) for a in anchors]
         length = sum(B.haversine_km(*a, *b) for a, b in zip(line, line[1:]))
-        near_station = {c for c in counts if polyline_km((muns[c]["lat"], muns[c]["lon"]), line) <= STATION_KM}
-        near_supply = {c for c, m in muns.items() if polyline_km((m["lat"], m["lon"]), line) <= SUPPLY_KM}
-        near_plants = [p for p in plant_list if polyline_km((p["lat"], p["lon"]), line) <= SUPPLY_KM]
+        parts = geoms[name]
+        if not parts:
+            raise SystemExit(f"{name}: nenhum trecho de {roads} perto das âncoras")
+        road_km = sum(B.haversine_km(*a, *b) for part in parts for a, b in zip(part, part[1:]))
+        near_station = {c for c in counts if near((muns[c]["lat"], muns[c]["lon"]), parts, STATION_KM)}
+        near_supply = {c for c, m in muns.items() if near((m["lat"], m["lon"]), parts, SUPPLY_KM)}
+        near_plants = [p for p in plant_list if near((p["lat"], p["lon"]), parts, SUPPLY_KM)]
         # Deficit: stations on the corridor with no producing plant within SUPPLY_KM of their municipality.
         uncovered = sum(counts[c] for c in near_station if not any(
             producing(p) and B.haversine_km(muns[c]["lat"], muns[c]["lon"], p["lat"], p["lon"]) <= SUPPLY_KM
@@ -173,7 +247,7 @@ def corridor_rows(B, M, muns, index, counts, plant_list, atlas, cp2b) -> list[di
         stations = sum(counts[c] for c in near_station)
         rows.append({
             "corredor": name, "rodovias": roads, "ancoras": " – ".join(anchors),
-            "extensao_km": length, "postos_gnv": stations,
+            "extensao_km": length, "trechos_via": len(parts), "via_km": road_km, "postos_gnv": stations,
             "postos_gnv_fora_da_capital": stations - (counts[CAPITAL] if CAPITAL in near_station else 0),
             "municipios_com_posto": len(near_station),
             "postos_sem_planta_50km": uncovered,
@@ -245,7 +319,9 @@ def main() -> None:
     plant_list = plants(M, ch4_share)
     atlas = B.atlas_real_by_municipality(S, muns)
     cp2b, cp2b_note = B.cp2b_by_municipality()
-    rows = corridor_rows(B, M, muns, index, counts, plant_list, atlas, cp2b)
+    roads = load_roads()
+    geoms = geometries(muns, index, roads)
+    rows = corridor_rows(B, M, muns, index, counts, plant_list, atlas, cp2b, geoms)
     truck = truck_m3_day(M)
 
     with NAMES.open(encoding="utf-8-sig") as fh:
@@ -277,14 +353,17 @@ def main() -> None:
     for name in TRANSJORDANO:
         m = muns[index[norm(name)]]
         best, dist = nearest_plant(B, m["lat"], m["lon"], plant_list)
-        near = sum(p["atual_m3_dia"] for p in plant_list
-                   if producing(p) and B.haversine_km(m["lat"], m["lon"], p["lat"], p["lon"]) <= SUPPLY_KM)
-        tj.append((name, counts.get(index[norm(name)], 0), best, dist, near))
+        near_m3 = sum(p["atual_m3_dia"] for p in plant_list
+                      if producing(p) and B.haversine_km(m["lat"], m["lon"], p["lat"], p["lon"]) <= SUPPLY_KM)
+        tj.append((name, counts.get(index[norm(name)], 0), best, dist, near_m3))
 
-    lines = [[(muns[index[norm(a)]]["lat"], muns[index[norm(a)]]["lon"]) for a in anchors]
-             for _roads, anchors in CORRIDORS.values()]
-    on_any = {c for c in counts if any(polyline_km((muns[c]["lat"], muns[c]["lon"]), ln) <= STATION_KM
-                                       for ln in lines)}
+    on_any = {c for c in counts if any(near((muns[c]["lat"], muns[c]["lon"]), parts, STATION_KM)
+                                       for parts in geoms.values())}
+    geometry_note = (
+        f"Corredor = trechos das rodovias na camada viária da plataforma (MapBiomas 10.1 INFRAESTRUTURA, "
+        f"{len(roads)} trechos exportados), ao longo da linha entre os municípios-âncora (a até {ANCHOR_KM} km dela)"
+        if roads is not None else
+        "Corredor = linha pelos centroides dos municípios-âncora (trechos retos; sem o export da malha viária)")
     stations_on_any = sum(counts[c] for c in on_any)
     with STATIONS.open(encoding="utf-8") as fh:
         last_collection = max(r["ultima_coleta"] for r in csv.DictReader(fh))
@@ -297,20 +376,20 @@ def main() -> None:
         f"Postos: pesquisa de preços da ANP, {n_stations} postos de GNV em SP com coleta entre jan/2025 e "
         f"jun/2026 (última coleta mais recente: {last_collection}). A pesquisa é amostral: é um piso, não o cadastro.",
         "",
-        f"Corredor = linha pelos centroides dos municípios-âncora (trechos retos). Posto entra no corredor se o "
-        f"município está a até {STATION_KM} km da linha; planta e Atlas Real, a até {SUPPLY_KM} km. Produção ANP "
+        f"{geometry_note}. Posto entra no corredor se o "
+        f"município está a até {STATION_KM} km da rodovia; planta e Atlas Real, a até {SUPPLY_KM} km. Produção ANP "
         f"atual = biogás processado no último mês × {fmt(100 * ch4_share)} % de CH₄; conta como oferta a planta "
         f"que entrega pelo menos {fmt(PRODUCING_M3_DAY)} m³/dia. CP2b N3: {cp2b_note}.",
         "",
         "## 1. Por corredor",
         "",
-        "| Corredor | Extensão | Postos GNV (fora da capital) | Sem planta produzindo a 50 km | Plantas ANP (produzindo) | "
+        "| Corredor | Extensão (trechos da via) | Postos GNV (fora da capital) | Sem planta produzindo a 50 km | Plantas ANP (produzindo) | "
         "Capacidade ANP | Produção ANP | Atlas Real | CP2b N3 |",
         "|---|---:|---:|---:|---:|---:|---:|---:|---:|",
     ]
     for r in rows:
         n3 = "—" if r["cp2b_n3_m3_dia"] is None else fmt(r["cp2b_n3_m3_dia"])
-        L.append(f"| {r['corredor']} ({r['rodovias']}) | {fmt(r['extensao_km'])} km | {r['postos_gnv']} ({r['postos_gnv_fora_da_capital']}) | "
+        L.append(f"| {r['corredor']} ({r['rodovias']}) | {fmt(r['extensao_km'])} km ({r['trechos_via']}) | {r['postos_gnv']} ({r['postos_gnv_fora_da_capital']}) | "
                  f"{r['postos_sem_planta_50km']} | {r['plantas_anp']} ({r['plantas_produzindo']}) | {fmt(r['cap_anp_m3_dia'])} | "
                  f"{fmt(r['producao_anp_m3_dia'])} | {fmt(r['atlas_real_m3_dia'])} | {n3} |")
     L += [
@@ -325,8 +404,8 @@ def main() -> None:
         "| Posto | Postos GNV na pesquisa ANP | Planta em operação mais próxima | Distância | Produção ANP a 50 km |",
         "|---|---:|---|---:|---:|",
     ]
-    for name, n, best, dist, near in tj:
-        L.append(f"| {name} | {n} | {best['planta'] if best else '—'} | {fmt(dist)} km | {fmt(near)} |")
+    for name, n, best, dist, near_m3 in tj:
+        L.append(f"| {name} | {n} | {best['planta'] if best else '—'} | {fmt(dist)} km | {fmt(near_m3)} |")
     L += [
         "",
         f"Ordem de grandeza da frota: {TRANSJORDANO_TRUCKS} caminhões × {fmt(truck)} m³/dia "
@@ -350,7 +429,8 @@ def main() -> None:
         "",
         "- Pesquisa de preços amostral: municípios fora da amostra da ANP aparecem sem posto. Postos novos de "
         "biometano (TransJordano) não constam. Complementar com a lista de postos GNV da Comgás.",
-        "- Posto no centroide do município; corredores por trechos retos entre âncoras. Distâncias em linha reta. "
+        "- Posto no centroide do município; distâncias em linha reta até a rodovia. A extensão é a da linha "
+        "entre as âncoras, não a da via (pistas duplas contariam duas vezes). "
         "As plantas da capital (Metagás) também estão no centroide, por isso a distância 0 km.",
         "- Proximidade importa para biometano entregue por caminhão (gasoduto virtual). Planta injetada na rede "
         "da Comgás pode atender um posto ligado à rede a qualquer distância, por contrato (TUSD-Verde).",
