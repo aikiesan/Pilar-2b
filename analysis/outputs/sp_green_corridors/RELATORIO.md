@@ -2,18 +2,18 @@
 
 Gerado por `analysis/build_sp_green_corridors.py`. Estratégia 2027, rodada 2 (C24). Postos: pesquisa de preços da ANP, 126 postos de GNV em SP com coleta entre jan/2025 e jun/2026 (última coleta mais recente: 2026-06-30). A pesquisa é amostral: é um piso, não o cadastro.
 
-Corredor = linha pelos centroides dos municípios-âncora (trechos retos). Posto entra no corredor se o município está a até 20 km da linha; planta e Atlas Real, a até 50 km. Produção ANP atual = biogás processado no último mês × 60 % de CH₄; conta como oferta a planta que entrega pelo menos 1.000 m³/dia. CP2b N3: CP2b v5.1, cenário med.
+Corredor = trechos das rodovias na camada viária da plataforma (MapBiomas 10.1 INFRAESTRUTURA, 783 trechos exportados), ao longo da linha entre os municípios-âncora (a até 30 km dela). Posto entra no corredor se o município está a até 20 km da rodovia; planta e Atlas Real, a até 50 km. Produção ANP atual = biogás processado no último mês × 60 % de CH₄; conta como oferta a planta que entrega pelo menos 1.000 m³/dia. CP2b N3: CP2b v5.1, cenário med.
 
 ## 1. Por corredor
 
-| Corredor | Extensão | Postos GNV (fora da capital) | Sem planta produzindo a 50 km | Plantas ANP (produzindo) | Capacidade ANP | Produção ANP | Atlas Real | CP2b N3 |
+| Corredor | Extensão (trechos da via) | Postos GNV (fora da capital) | Sem planta produzindo a 50 km | Plantas ANP (produzindo) | Capacidade ANP | Produção ANP | Atlas Real | CP2b N3 |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|
-| Anhanguera/Bandeirantes (SP-330/SP-348) | 306 km | 69 (31) | 4 | 6 (4) | 440.704 | 81.047 | 4.208.248 | 4.249.580 |
-| Dutra (BR-116) | 229 km | 70 (32) | 3 | 3 (3) | 127.200 | 65.280 | 1.144.827 | 341.449 |
-| Anchieta/Imigrantes (SP-150/SP-160) | 48 km | 51 (13) | 0 | 2 (2) | 97.200 | 54.816 | 740.813 | 259.469 |
-| Washington Luís (SP-310) | 279 km | 8 (8) | 6 | 3 (1) | 319.810 | 19.076 | 4.633.073 | 5.000.805 |
-| Raposo Tavares (SP-270) | 535 km | 47 (9) | 1 | 4 (3) | 180.894 | 61.971 | 5.010.560 | 3.355.540 |
-| Marechal Rondon (Tietê–Araçatuba) (SP-300) | 375 km | 1 (1) | 1 | 2 (2) | 154.062 | 26.097 | 4.490.431 | 4.317.653 |
+| Anhanguera/Bandeirantes (SP-330/SP-348) | 306 km (93) | 70 (32) | 4 | 6 (4) | 440.704 | 81.047 | 3.997.956 | 3.939.308 |
+| Dutra (BR-116) | 229 km (61) | 70 (32) | 3 | 3 (3) | 127.200 | 65.280 | 1.161.170 | 370.031 |
+| Anchieta/Imigrantes (SP-150/SP-160) | 48 km (22) | 51 (13) | 0 | 2 (2) | 97.200 | 54.816 | 754.082 | 261.889 |
+| Washington Luís (SP-310) | 279 km (71) | 8 (8) | 6 | 3 (1) | 319.810 | 19.076 | 4.400.382 | 4.830.640 |
+| Raposo Tavares (SP-270) | 535 km (138) | 49 (11) | 1 | 5 (4) | 208.006 | 73.423 | 4.949.609 | 3.379.898 |
+| Marechal Rondon (Tietê–Araçatuba) (SP-300) | 375 km (99) | 1 (1) | 1 | 2 (2) | 154.062 | 26.097 | 4.224.704 | 3.887.789 |
 
 Volumes em m³ de CH₄ por dia. Um posto pode estar em mais de um corredor (a capital está em quatro).
 
@@ -46,18 +46,18 @@ Ordem de grandeza da frota: 100 caminhões × 196 m³/dia (29 kg/100 km, 450 km/
 | Araraquara | 2 | Raízen-Geo Biogás Costa Pinto | 112 km | 0 |
 | Barueri | 2 | Essencis Biometano (Caieiras) | 20 km | 54.816 |
 
-111 dos 126 postos (88 %) estão em algum dos 6 corredores.
+114 dos 126 postos (90 %) estão em algum dos 6 corredores.
 
 ## Leitura
 
-1. **A demanda está na Grande SP e nos eixos Dutra e Anhanguera/Bandeirantes** (32 e 31 postos fora da capital). Ali a oferta que já produz é gás de aterro e de esgoto da Grande SP.
-2. **No interior, a oferta existe e o posto não.** Washington Luís: 8 fora da capital e 4,6 milhões de m³/dia no Atlas Real (5,0 no CP2b N3); Raposo Tavares: 9 fora da capital e 5,0 milhões de m³/dia no Atlas Real (3,4 no CP2b N3); Marechal Rondon (Tietê–Araçatuba): 1 fora da capital e 4,5 milhões de m³/dia no Atlas Real (4,3 no CP2b N3). É onde um posto de biometano fora da rede (cana, vinhaça) teria matéria-prima e nenhum concorrente.
+1. **A demanda está na Grande SP e nos eixos Anhanguera/Bandeirantes e Dutra** (32 e 32 postos fora da capital). Ali a oferta que já produz é gás de aterro e de esgoto da Grande SP.
+2. **No interior, a oferta existe e o posto não.** Washington Luís: 8 fora da capital e 4,4 milhões de m³/dia no Atlas Real (4,8 no CP2b N3); Marechal Rondon (Tietê–Araçatuba): 1 fora da capital e 4,2 milhões de m³/dia no Atlas Real (3,9 no CP2b N3). É onde um posto de biometano fora da rede (cana, vinhaça) teria matéria-prima e nenhum concorrente.
 3. **Déficit: no Washington Luís, 6 dos 8 postos não têm planta produzindo a 50 km.** A frota da TransJordano pediria cerca de 20 mil m³/dia (ordem de grandeza), e Ribeirão Preto não tem planta produzindo a 50 km (a mais próxima a 169 km): o gás chega pela rede ou por caminhão.
 
 ## Limites
 
 - Pesquisa de preços amostral: municípios fora da amostra da ANP aparecem sem posto. Postos novos de biometano (TransJordano) não constam. Complementar com a lista de postos GNV da Comgás.
-- Posto no centroide do município; corredores por trechos retos entre âncoras. Distâncias em linha reta. As plantas da capital (Metagás) também estão no centroide, por isso a distância 0 km.
+- Posto no centroide do município; distâncias em linha reta até a rodovia. A extensão é a da linha entre as âncoras, não a da via (pistas duplas contariam duas vezes). As plantas da capital (Metagás) também estão no centroide, por isso a distância 0 km.
 - Proximidade importa para biometano entregue por caminhão (gasoduto virtual). Planta injetada na rede da Comgás pode atender um posto ligado à rede a qualquer distância, por contrato (TUSD-Verde).
 - Consumo do caminhão: um registro europeu, sem medição brasileira publicada.
 
