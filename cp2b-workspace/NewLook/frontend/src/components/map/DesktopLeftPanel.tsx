@@ -573,6 +573,7 @@ function DataSourcesSection({ t }: { t: MapTranslator }) {
                 </div>
                 {src.url && (
                   <a href={src.url} target="_blank" rel="noopener noreferrer"
+                    aria-label={src.name} title={src.name}
                     className="text-ink-muted hover:text-dusk-600 transition-colors shrink-0 mt-0.5">
                     <ExternalLink className="w-3 h-3" />
                   </a>

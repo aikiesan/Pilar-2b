@@ -146,8 +146,8 @@ class TestGetAllTechnologies:
                 "authors": '["Silva, J."]',
                 "year": 2020,
                 "journal": "J. Biogas",
-                "doi": None,
-                "url": None,
+                "doi": "10.1000/a",
+                "url": "https://example.org/a",
             }
         ]
         mock_cursor.fetchall.side_effect = [tech_rows, ref_rows]
@@ -159,6 +159,11 @@ class TestGetAllTechnologies:
         by_id = {t["id"]: t for t in data}
         assert [r["title"] for r in by_id["tech_a"]["references"]] == ["Paper A"]
         assert by_id["tech_b"]["references"] == []
+        # Regression: the batched query selected NULL for doi and url, so the
+        # list lost every link the detail route returns.
+        assert "r.doi, r.url" in ref_sql
+        ref = by_id["tech_a"]["references"][0]
+        assert (ref["doi"], ref["url"]) == ("10.1000/a", "https://example.org/a")
 
 
 # ─── Get technology by ID ─────────────────────────────────────────────────────

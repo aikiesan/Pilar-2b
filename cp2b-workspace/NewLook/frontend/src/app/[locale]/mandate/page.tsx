@@ -499,14 +499,18 @@ export default async function MandatePage() {
               {targets.map((g) => (
                 <li key={g.year}>
                   <span className="font-medium text-ink">{g.year}</span> · {t(`status.${g.status}`)} ·{' '}
-                  <a
-                    href={g.source.url ?? undefined}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-terra-700 underline underline-offset-2 dark:text-terra-300"
-                  >
-                    {g.act}
-                  </a>
+                  {g.source.url ? (
+                    <a
+                      href={g.source.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-terra-700 underline underline-offset-2 dark:text-terra-300"
+                    >
+                      {g.act}
+                    </a>
+                  ) : (
+                    <span className="text-ink">{g.act}</span>
+                  )}
                   {g.volume_estimated && calc('trajetoria')}
                 </li>
               ))}
