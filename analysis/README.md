@@ -34,7 +34,7 @@ K-means clustering was applied to normalized residue stream vectors (agricultura
 
 ## Strategy prototypes (2026-10)
 
-Reproducible scripts behind `cp2b-workspace/NewLook/docs/planning/ESTRATEGIA_2027_LIDERANCA_BIOECONOMIA.md`. They read their reference numbers from the backend scripts instead of retyping them, and the uncertainty, realization, digestate, mandate, route-conversion and BNDES-benchmark scripts have guard tests in `tests/`.
+Reproducible scripts behind `cp2b-workspace/NewLook/docs/planning/ESTRATEGIA_2027_LIDERANCA_BIOECONOMIA.md`. They read their reference numbers from the backend scripts instead of retyping them, and the uncertainty, realization, digestate, mandate, route-conversion, BNDES-benchmark and Integra Resíduos scripts have guard tests in `tests/`.
 
 | Script | What it answers | Output |
 |---|---|---|
@@ -49,6 +49,7 @@ Reproducible scripts behind `cp2b-workspace/NewLook/docs/planning/ESTRATEGIA_202
 | `build_biogram_national_share.py` | Is the C16 map reading coherent with Brazil? SP's share of the national crop, herd and population (IBGE 2023) × BioGRAM 1.2 Brazil, against the map reading and PILAR N3. National gaps go in `data/08_brasil_totais_2023_seed.csv`. Needs `outputs/biogram_reconciliation/pilar_por_area.csv`. | `outputs/biogram_national_share/` |
 | `build_sp_biolng_santos.py` | C25 (speculative): how much methane lies within 50–200 km of the port of Santos (Atlas Real, CP2b N3 with the snapshot, ANP plants), what bio-LNG scale it supports, and what FuelEU Maritime would pay per m³ against the domestic attribute. Reuses the reconciliation helpers and the mandate parameters. | `outputs/sp_biolng_santos/` |
 | `build_sp_green_corridors.py` | C24: CNG stations from the ANP price survey (`data/sources/anp/anp_postos_gnv_sp.csv`, written by `ingest_anp_postos_gnv.py`) along six SP highway corridors, the ANP plants producing within 50 km, Atlas Real (and CP2b N3 with the snapshot), and the stations with no producing plant nearby. Reuses the reconciliation helpers and the C25 plant table. | `outputs/sp_green_corridors/` |
+| `build_integra_residuos.py` | C23: per Integra Resíduos block, collected RSU and FORSU, methane by digestion and by landfill capture (Atlas Tabela V.6 ratio, alternatives not a sum), share of the minimum plant scale, the new digestate nutrient, landfill CAPEX from the BNDES benchmarks, nearby landfill/FORSU plants and a draft pre-feasibility card (C2). Block members are typed with their source into `data/09_integra_residuos_blocos_seed.csv`; until then a labelled IBGE intermediate region runs as a demonstration. | `outputs/integra_residuos/` |
 
 ```bash
 python3 analysis/build_sp_real_uncertainty.py
@@ -62,5 +63,6 @@ python3 analysis/build_biogram_reconciliation.py
 python3 analysis/build_biogram_national_share.py
 python3 analysis/build_sp_biolng_santos.py
 python3 analysis/build_sp_green_corridors.py
+python3 analysis/build_integra_residuos.py
 pytest tests/test_sp_real_uncertainty.py tests/test_sp_realization_index.py tests/test_sp_digestate_nutrients.py tests/test_sp_mandate_coverage.py tests/test_sp_route_conversion.py tests/test_bndes_capex_benchmarks.py tests/test_biogram_reconciliation.py tests/test_biogram_national_share.py tests/test_sp_biolng_santos.py tests/test_sp_green_corridors.py
 ```
