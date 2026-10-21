@@ -2,6 +2,30 @@
   "_comment": "Patch notes, newest first. Each entry carries its own pt-BR and en text, deliberately OUTSIDE messages/*.json: the catalogs are gated by check-i18n-parity.mjs, and threading one release note through two catalogs per deploy makes writing a note a chore nobody does. scripts/check-patch-notes.mjs enforces that both locales are present here instead. `date` is ISO 8601 WITH offset -- it is rendered in the reader's locale, so a bare date would drift a day across timezones. `kind` must be one of: added, changed, fixed, security, data.",
   "entries": [
     {
+      "version": "3.8.5",
+      "date": "2026-10-21T12:00:00-03:00",
+      "title": {
+        "pt-BR": "Botões de fonte no mapa e na página do município",
+        "en": "Source buttons on the map and the municipality page"
+      },
+      "changes": [
+        {
+          "kind": "added",
+          "text": {
+            "pt-BR": "Cada camada ligada no mapa mostra de onde vêm os dados, com um botão que abre a fonte. O mesmo vale para os popups da infraestrutura, a legenda do MapBiomas, o painel e a página do município (potencial, população e regiões) e o uso do solo na Análise de Proximidade. Quando falta confirmar o link, a data ou a licença de uma fonte, o botão diz o que falta.",
+            "en": "Every layer switched on in the map shows where its data comes from, with a button that opens the source. So do the infrastructure popups, the MapBiomas legend, the municipality panel and page (potential, population and regions) and land use in Proximity Analysis. Where a source's link, date or licence is still to be confirmed, the button says what is missing."
+          }
+        },
+        {
+          "kind": "fixed",
+          "text": {
+            "pt-BR": "A legenda do uso do solo dizia MapBiomas Coleção 8. O mapa é o de 2024, da Coleção 10, a primeira que chega a 2024.",
+            "en": "The land-use legend said MapBiomas Collection 8. The map is the 2024 one, from Collection 10, the first to reach 2024."
+          }
+        }
+      ]
+    },
+    {
       "version": "3.8.4",
       "date": "2026-10-20T23:30:00-03:00",
       "title": {
@@ -434,7 +458,7 @@
     },
     {
       "version": "3.1.0",
-      "date": "2026-09-21T11:25:00-03:00",
+      "date": "2026-09-21T11:25:00-03:00",
       "title": {
         "pt-BR": "Camadas C:N restauradas, exportação municipal e correção de segurança",
         "en": "C:N layers restored, municipal exports, and a security fix"

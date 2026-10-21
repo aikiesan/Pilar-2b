@@ -23,6 +23,9 @@ import { useSummaryStatistics } from '@/hooks/useGeospatialData';
 import { useMapPalette } from '@/hooks/useMapPalette';
 import { useFormat } from '@/hooks/useFormat';
 import { useMetricText } from '@/hooks/useMetricText';
+import { useDataSources, useDescribeSource } from '@/hooks/useDataSources';
+import { layerSources } from '@/lib/dataSources';
+import Cite from '@/components/mandate/Cite';
 import { DISPLAY_METRICS, METRIC_SPECS, MAP_PALETTES } from '@/lib/mapMetrics';
 import {
   THEMATIC_PRESETS,
@@ -460,6 +463,8 @@ function LayersSection({
   t: MapTranslator;
 }) {
   const opacityId = useId();
+  const sources = useDataSources();
+  const describeSource = useDescribeSource();
   // Layers arrive named in the page locale (MapComponent reads Map.layerNames).
   const getLayerName = (layer: Layer) => layer.name;
 
@@ -544,6 +549,14 @@ function LayersSection({
                       <p className="text-[9px] text-amber-700 leading-snug mt-0.5 pr-10">
                         {t('beta.notice')}
                       </p>
+                    )}
+                    {/* The source of what is on the map, once it is on the map. */}
+                    {layer.visible && (
+                      <Cite
+                        sources={layerSources(sources, layer.id)}
+                        describe={describeSource}
+                        className="!ml-0 mt-0.5"
+                      />
                     )}
                   </div>
                 );

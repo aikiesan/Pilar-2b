@@ -38,6 +38,10 @@ import { useFormat } from '@/hooks/useFormat';
 import { useMetricText } from '@/hooks/useMetricText';
 import type { ResidueType } from '@/types/map';
 import { municipalityPath } from '@/lib/municipalitySlug';
+import Cite from '@/components/mandate/Cite';
+import { useDataSources, useDescribeSource } from '@/hooks/useDataSources';
+import { layerSources, pageSources, type DataSource } from '@/lib/dataSources';
+import { MG_BETA_LAYER_ID } from '@/lib/mapScope';
 import {
   BarList,
   Card,
@@ -79,6 +83,9 @@ export default function MunicipalityProfilePanel({
   const tCommon = useTranslations('common');
   const format = useFormat();
   const metricText = useMetricText();
+  const catalog = useDataSources();
+  const describeSource = useDescribeSource();
+  const tSources = useTranslations('dataSources');
   // The residue list starts in the unit the map is painting; null = follow it.
   const [chosenView, setChosenView] = useState<ResidueView | null>(null);
 
@@ -158,6 +165,20 @@ export default function MunicipalityProfilePanel({
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
+
+  // ── Sources ──────────────────────────────────────────────────────────────
+  // Minas figures are the beta layer's: the CP2b method on IBGE and SNIS inputs.
+  const potentialSources = [
+    ...pageSources(catalog, 'municipio_potencial'),
+    ...(isMgMunicipality ? layerSources(catalog, MG_BETA_LAYER_ID) : []),
+  ];
+  const sourceLine = (sources: DataSource[]) =>
+    sources.length > 0 && (
+      <p className="flex flex-wrap items-center text-[10px] text-ink-muted">
+        {tSources('label', { count: sources.length })}
+        <Cite sources={sources} describe={describeSource} />
+      </p>
+    );
 
   // ── Context ──────────────────────────────────────────────────────────────
   // A GDP of zero is a missing figure, not a municipality with no economy.
@@ -292,6 +313,8 @@ export default function MunicipalityProfilePanel({
             )}
           </dl>
 
+          {sourceLine(potentialSources)}
+
           {/* Context: one row of small figures */}
           <dl className="grid grid-cols-4 divide-x divide-line border border-line bg-paper-raised">
             {context.map((c) => (
@@ -304,6 +327,7 @@ export default function MunicipalityProfilePanel({
               </div>
             ))}
           </dl>
+          {sourceLine(pageSources(catalog, 'municipio_demografia'))}
 
           {/* Composition by sector, in the active metric */}
           <Card

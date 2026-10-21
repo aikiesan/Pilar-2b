@@ -58,6 +58,9 @@ import { loadMunicipalityClimate } from '@/lib/municipalityClimate'
 import { isIbgeCode, municipalityPath } from '@/lib/municipalitySlug'
 import { publicUrl } from '@/lib/siteUrl'
 import { HeaderLeaves } from '@/components/ui/ArcOrnament'
+import Cite from '@/components/mandate/Cite'
+import { serverGetJson } from '@/lib/serverApi'
+import { SOURCES_PATH, describeSource, pageSources, type DataSource, type SourceCatalog } from '@/lib/dataSources'
 
 export const revalidate = 3600
 // Rendered on first visit, then kept: 5,571 pages are not built ahead.
@@ -151,7 +154,10 @@ export default async function MunicipalityProfilePage({ params }: Params) {
   const tNav = await getTranslations({ locale, namespace: 'common.nav' })
   const tResidues = await getTranslations({ locale, namespace: 'Map.residues' })
   const tUnits = await getTranslations({ locale, namespace: 'common.units' })
+  const tSources = await getTranslations({ locale, namespace: 'dataSources' })
   const format = await getFormatter({ locale })
+  // Optional: without the registry the source buttons are left out.
+  const catalog = await serverGetJson<SourceCatalog>(SOURCES_PATH)
 
   const p = profile
   const state = getState(ufOf(p.ibge))
@@ -216,6 +222,14 @@ export default async function MunicipalityProfilePage({ params }: Params) {
   const proximityHref = p.centroid
     ? `/proximity?lat=${p.centroid.lat.toFixed(6)}&lng=${p.centroid.lng.toFixed(6)}&radius=${PROXIMITY_RADIUS_KM}`
     : '/proximity'
+  const cite = (sources: DataSource[]) => (
+    <Cite sources={sources} describe={(s) => describeSource(s, tSources, (kind) => tSources(`kinds.${kind}`), format)} />
+  )
+  const potentialSources = [
+    ...pageSources(catalog, 'municipio_potencial'),
+    ...(perCapita !== null ? pageSources(catalog, 'municipio_populacao') : []),
+  ]
+  const regionSources = p.intermediateRegion || p.immediateRegion ? pageSources(catalog, 'municipio_regioes') : []
   const stamp = p.methodVersion ? t('data.stamp', { version: p.methodVersion }) : t('data.stamp_no_version')
   const today = format.dateTime(new Date(), { dateStyle: 'long' })
   const linkClass = 'font-medium text-terra-800 underline underline-offset-4 hover:text-terra-900 dark:text-terra-300'
@@ -264,6 +278,12 @@ export default async function MunicipalityProfilePage({ params }: Params) {
                   <dd className="tabular-nums text-ink">{p.ibge}</dd>
                 </div>
               </dl>
+              {regionSources.length > 0 && (
+                <p className="mt-1.5 flex flex-wrap items-center text-xs text-ink-muted">
+                  {tSources('label', { count: regionSources.length })}
+                  {cite(regionSources)}
+                </p>
+              )}
             </div>
             <details className="group w-full max-w-sm sm:w-auto">
               <summary className="inline-flex min-h-[44px] cursor-pointer items-center text-sm font-medium text-terra-800 underline underline-offset-4 dark:text-terra-300">
@@ -315,6 +335,12 @@ export default async function MunicipalityProfilePage({ params }: Params) {
                 <StackedBar height="h-2" segments={sectorSegments} />
               </StatTile>
             </dl>
+            {potentialSources.length > 0 && (
+              <p className="mt-2 flex flex-wrap items-center text-xs text-ink-muted">
+                {tSources('label', { count: potentialSources.length })}
+                {cite(potentialSources)}
+              </p>
+            )}
           </section>
         ) : (
           <section aria-labelledby="lede-h" className="max-w-2xl border border-line border-l-2 border-l-terra-900 bg-paper-raised px-5 py-4">

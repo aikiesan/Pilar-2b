@@ -175,6 +175,10 @@ camadas:
 
 # Blocos de página fora do mapa -> fontes.
 paginas:
+  # Página do município: os quatro números do topo, o "por habitante" e as regiões.
   municipio_potencial: [cp2b_v51]
+  municipio_populacao: [ibge_populacao]
+  municipio_regioes: [ibge_regioes_intermediarias]
+  # Painel do município no mapa: população, área, densidade e PIB per capita.
   municipio_demografia: [ibge_populacao, ibge_pib_municipios, ibge_malha_municipal]
   proximidade_uso_do_solo: [mapbiomas_uso]

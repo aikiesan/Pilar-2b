@@ -43,6 +43,9 @@ import {
 } from '@/services/proximityApi'
 import { defaultLocale, isLocale } from '@/config/i18n'
 import { useFormat } from '@/hooks/useFormat'
+import Cite from '@/components/mandate/Cite'
+import { useDataSources, useDescribeSource } from '@/hooks/useDataSources'
+import { pageSources } from '@/lib/dataSources'
 import { logger } from '@/lib/logger'
 import { DATA_EXPORT_ENABLED } from '@/lib/featureFlags'
 import type { Messages } from '@/types/i18n'
@@ -87,6 +90,10 @@ function ProximityAnalysisContent() {
   const tCommon = useTranslations('common')
   const breadcrumbs = useBreadcrumbs()
   const format = useFormat()
+  const catalog = useDataSources()
+  const describeSource = useDescribeSource()
+  const tSources = useTranslations('dataSources')
+  const landUseSources = pageSources(catalog, 'proximidade_uso_do_solo')
   const current = useLocale()
   const locale = isLocale(current) ? current : defaultLocale
   const { user, loading: authLoading, isAuthenticated } = useAuth()
@@ -560,6 +567,12 @@ function ProximityAnalysisContent() {
                       <p className="text-sm opacity-80">{tp('predominant_use')}</p>
                     </div>
                   </div>
+                  {landUseSources.length > 0 && (
+                    <p className="-mt-3 flex flex-wrap items-center text-xs text-gray-600 dark:text-slate-400">
+                      {tSources('label', { count: landUseSources.length })}
+                      <Cite sources={landUseSources} describe={describeSource} />
+                    </p>
+                  )}
 
                   {/* Land Use Breakdown - Card Style */}
                   {analysisResult.results.land_use.by_class && Object.keys(analysisResult.results.land_use.by_class).length > 0 && (

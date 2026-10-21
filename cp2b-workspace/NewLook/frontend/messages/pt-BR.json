@@ -2964,6 +2964,21 @@
       ]
     }
   },
+  "dataSources": {
+    "label": "{count, plural, one {Fonte:} other {Fontes:}}",
+    "describe": "Fonte ({kind}): {title}{by}.",
+    "to_check": "A conferir: {what}",
+    "unchecked": "a conferir",
+    "new_tab": "Abre em nova aba.",
+    "kinds": {
+      "oficial": "Oficial",
+      "dados": "Dados",
+      "estudo": "Estudo",
+      "empresa": "Empresa",
+      "imprensa": "Imprensa",
+      "estimativa": "Estimativa"
+    }
+  },
   "method": {
     "eyebrow": "Método",
     "nav_label": "Seções do método",

@@ -2964,6 +2964,21 @@
       ]
     }
   },
+  "dataSources": {
+    "label": "{count, plural, one {Source:} other {Sources:}}",
+    "describe": "Source ({kind}): {title}{by}.",
+    "to_check": "To check: {what}",
+    "unchecked": "to check",
+    "new_tab": "Opens in a new tab.",
+    "kinds": {
+      "oficial": "Official",
+      "dados": "Data",
+      "estudo": "Study",
+      "empresa": "Company",
+      "imprensa": "Press",
+      "estimativa": "Estimate"
+    }
+  },
   "method": {
     "eyebrow": "Method",
     "nav_label": "Method sections",

@@ -5,7 +5,7 @@
 
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import { GeoJSON, Marker, Popup } from 'react-leaflet';
 import type { GeoJsonObject, Feature } from 'geojson';
@@ -15,6 +15,8 @@ import { useFormat } from '@/hooks/useFormat';
 import { useInfrastructureLayer } from '@/hooks/useGeospatialData';
 import { PLANT_LAYERS, BIOMETHANE_PLANT, type PlantTypeInfo } from '@/lib/plantLayers';
 import { escapeHtml } from '@/lib/html';
+import { useDataSources } from '@/hooks/useDataSources';
+import { layerSources, type DataSource } from '@/lib/dataSources';
 
 /** What a layer's load came to. The map words it (Map.layerAlert); server notes go to the log. */
 export type InfrastructureLayerStatus = {
@@ -333,9 +335,29 @@ function popupTitle(name: string): string {
   return `<h3 style="margin: 0 0 8px 0; font-size: 14px; font-weight: bold;">${escapeHtml(name)}</h3>`;
 }
 
+/** "Fonte: MapBiomas 10.1 (a conferir)": the layer's sources, linked where the registry has a link. */
+function popupSources(sources: DataSource[], label: string, unchecked: string): string {
+  if (!sources.length) return '';
+  const items = sources
+    .map((s) =>
+      s.url
+        ? `<a href="${escapeHtml(s.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(s.short)}</a>`
+        : `${escapeHtml(s.short)}${s.to_check ? ` (${escapeHtml(unchecked)})` : ''}`,
+    )
+    .join(', ');
+  return `<p style="margin: 6px 0 0; font-size: 11px; color: #6b7280;">${escapeHtml(label)} ${items}</p>`;
+}
+
 export default function InfrastructureLayer({ layerType, onStatus, uf, bbox, pane }: InfrastructureLayerProps) {
   const t = useTranslations('Map.infrastructure');
+  const tSources = useTranslations('dataSources');
   const format = useFormat();
+  // Read when a popup opens, so popups bound before the registry arrived still cite it.
+  const sources = useRef<DataSource[]>([]);
+  const catalog = useDataSources();
+  useEffect(() => {
+    sources.current = layerSources(catalog, layerType);
+  }, [catalog, layerType]);
   // Use React Query hook for automatic caching and background refetching
   const { data, loading, error, isFetching } = useInfrastructureLayer(layerType, true, uf, bbox);
   const featureCount = Array.isArray(data?.features) ? data.features.length : 0;
@@ -538,12 +560,16 @@ export default function InfrastructureLayer({ layerType, onStatus, uf, bbox, pan
     popupContent += popupTitle(name);
     popupContent += rows.map(([label, value]) => popupRow(label, value, na)).join('');
 
-    popupContent += `</div>`;
-
-    layer.bindPopup(popupContent, {
-      maxWidth: 300,
-      className: 'infrastructure-popup'
-    });
+    layer.bindPopup(
+      () =>
+        popupContent +
+        popupSources(sources.current, tSources('label', { count: sources.current.length }), tSources('unchecked')) +
+        `</div>`,
+      {
+        maxWidth: 300,
+        className: 'infrastructure-popup'
+      },
+    );
 
     // Hover effect for line features
     if (layer instanceof L.Path && (layerType === 'railways' || layerType === 'pipelines' || layerType === 'transmission-lines')) {

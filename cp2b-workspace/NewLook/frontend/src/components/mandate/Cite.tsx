@@ -17,14 +17,17 @@ const CHIP =
 
 export type Describe = (source: Reference) => string
 
-export default function Cite({
+/** What a button needs; the map's data sources (lib/dataSources) have it too. */
+type Citable = Pick<Reference, 'key' | 'short' | 'url' | 'kind'>
+
+export default function Cite<S extends Citable>({
   sources,
   describe,
   className = '',
 }: {
-  sources: readonly Reference[] | undefined
+  sources: readonly S[] | undefined
   /** The full citation, read out and shown on hover: "Fonte (oficial): …". */
-  describe: Describe
+  describe: (source: S) => string
   className?: string
 }) {
   if (!sources?.length) return null
