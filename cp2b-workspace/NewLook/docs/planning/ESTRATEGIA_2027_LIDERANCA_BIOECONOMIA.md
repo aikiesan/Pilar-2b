@@ -267,6 +267,7 @@ O setor não compra "potencial municipal"; compra **local de planta + escala + c
   - postos de GNV;
   - pontos de entrega da distribuidora.
 - **"Corredores de biometano":** trechos de rodovia (por exemplo, Anhanguera, Washington Luís, Raposo Tavares) onde a oferta de biomassa a menos de X km e a demanda de frota se sobrepõem. É o tipo de mapa que a SEMIL usa no Plano Estadual de Energia 2050, que aponta o transporte como principal vetor.
+- **Atualização (out/2026, C24):** os corredores já existem (TransJordano, Iconic). Com os postos de GNV da ANP, a demanda está na Grande SP, na Dutra e na Anhanguera/Bandeirantes, e a matéria-prima sem posto está na Washington Luís e na Rondon. Ver [`NOTA_C24_CORREDORES_VERDES.md`](NOTA_C24_CORREDORES_VERDES.md).
 - Para municípios como Presidente Prudente, que se prepara para 100 % de biometano no transporte público: um "**simulador de autossuficiência municipal**" (frota × consumo vs. potencial Real em um raio).
 
 **Critério de saída do Movimento 2:**

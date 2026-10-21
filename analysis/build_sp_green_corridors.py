@@ -211,7 +211,9 @@ def reading(rows: list[dict], tj: list[tuple], fleet_m3: float) -> list[str]:
         "Ali a oferta que já produz é gás de aterro e de esgoto da Grande SP.",
         "2. **No interior, a oferta existe e o posto não.** "
         + "; ".join(f"{r['corredor']}: {r['postos_gnv_fora_da_capital']} fora da capital e "
-                    f"{fmt(r['atlas_real_m3_dia'] / 1e6, 1)} milhões de m³/dia no Atlas Real" for r in quiet)
+                    f"{fmt(r['atlas_real_m3_dia'] / 1e6, 1)} milhões de m³/dia no Atlas Real"
+                    + ("" if r["cp2b_n3_m3_dia"] is None else f" ({fmt(r['cp2b_n3_m3_dia'] / 1e6, 1)} no CP2b N3)")
+                    for r in quiet)
         + ". É onde um posto de biometano fora da rede (cana, vinhaça) teria matéria-prima e nenhum concorrente.",
         f"3. **Déficit: no {worst['corredor']}, {worst['postos_sem_planta_50km']} dos {worst['postos_gnv']} postos não "
         f"têm planta produzindo a {SUPPLY_KM} km.** "
