@@ -51,7 +51,7 @@ Ordem de grandeza da frota: 100 caminhões × 196 m³/dia (29 kg/100 km, 450 km/
 ## Leitura
 
 1. **A demanda está na Grande SP e nos eixos Dutra e Anhanguera/Bandeirantes** (32 e 31 postos fora da capital). Ali a oferta que já produz é gás de aterro e de esgoto da Grande SP.
-2. **No interior, a oferta existe e o posto não.** Washington Luís: 8 fora da capital e 4,6 milhões de m³/dia no Atlas Real; Raposo Tavares: 9 fora da capital e 5,0 milhões de m³/dia no Atlas Real; Marechal Rondon (Tietê–Araçatuba): 1 fora da capital e 4,5 milhões de m³/dia no Atlas Real. É onde um posto de biometano fora da rede (cana, vinhaça) teria matéria-prima e nenhum concorrente.
+2. **No interior, a oferta existe e o posto não.** Washington Luís: 8 fora da capital e 4,6 milhões de m³/dia no Atlas Real (5,0 no CP2b N3); Raposo Tavares: 9 fora da capital e 5,0 milhões de m³/dia no Atlas Real (3,4 no CP2b N3); Marechal Rondon (Tietê–Araçatuba): 1 fora da capital e 4,5 milhões de m³/dia no Atlas Real (4,3 no CP2b N3). É onde um posto de biometano fora da rede (cana, vinhaça) teria matéria-prima e nenhum concorrente.
 3. **Déficit: no Washington Luís, 6 dos 8 postos não têm planta produzindo a 50 km.** A frota da TransJordano pediria cerca de 20 mil m³/dia (ordem de grandeza), e Ribeirão Preto não tem planta produzindo a 50 km (a mais próxima a 169 km): o gás chega pela rede ou por caminhão.
 
 ## Limites
