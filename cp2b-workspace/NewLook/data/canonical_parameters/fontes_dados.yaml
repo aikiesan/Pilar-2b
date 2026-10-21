@@ -135,7 +135,13 @@ fontes:
     tipo: dados
     conferir: >-
       Editor, data e link. O nome da camada diz "EPE, 2023"; o arquivo veio do
-      repositório aikiesan/project_map, que não é o editor.
+      repositório aikiesan/project_map, que não é o editor. Origem provável
+      (inspeção local, 2026-10-21): recorte de SP da camada rodovia-estadual do
+      pacote MapBiomas 10.1 (mapbiomas_infraestrutura). Os 23 campos são os mesmos,
+      mais Shape_Leng, e as 367 siglas do arquivo estão na camada do MapBiomas.
+      O .dbf perdeu os acentos ("Construtda", "Noo"). O .shp.xml só traz a data de
+      criação (2025-08-20) e um caminho local, e no project_map tem marcadores de
+      conflito do git. Falta o editor original (DER-SP ou DNIT).
   sp_etes:
     titulo: "Estações de tratamento de esgoto de São Paulo (ETEs_2019_SP.shp)"
     curta: "ETEs SP"
@@ -145,6 +151,10 @@ fontes:
     tipo: dados
     conferir: >-
       Editor, data e link. O nome da camada diz "SNIS, 2023" e o arquivo, 2019.
+      O .shp.xml só traz a data de criação (2020-04-02) e um caminho local. Os
+      campos ETE_* e o código de ottobacia (ETE_ACH_CD) sugerem a base de ETEs do
+      Atlas Esgotos da ANA, atualizada em 2020 (candidata, não conferida campo a
+      campo): https://www.snirh.gov.br/portal/centrais-de-conteudos/central-de-publicacoes/encarteatlasesgotos_etes.pdf
 
 # Camada do mapa (id do frontend, MapComponent.tsx) -> fontes, na ordem de citação.
 camadas:
@@ -171,7 +181,7 @@ camadas:
   highway_state: [mapbiomas_infraestrutura]
   highway_federal: [mapbiomas_infraestrutura]
   etes: [sp_etes]
-  railways: [sp_rodovias_estaduais]
+  railways: [sp_rodovias_estaduais, mapbiomas_infraestrutura]
 
 # Blocos de página fora do mapa -> fontes.
 paginas:
