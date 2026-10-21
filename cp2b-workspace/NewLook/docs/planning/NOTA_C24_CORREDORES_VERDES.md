@@ -4,7 +4,8 @@ Estratégia 2027, rodada 2, ideia C24. Atualiza a §3.6 da v1 ("corredores de
 biometano"), que era hipótese. Números de
 [`analysis/build_sp_green_corridors.py`](../../../../analysis/build_sp_green_corridors.py)
 (relatório em `analysis/outputs/sp_green_corridors/RELATORIO.md`, gerado com o
-snapshot CP2b v5.1). Tudo é triagem: conferir antes de citar.
+snapshot CP2b v5.1). Os corredores seguem o traçado das rodovias na camada viária da
+plataforma (MapBiomas 10.1 INFRAESTRUTURA). Tudo é triagem: conferir antes de citar.
 
 ## Pergunta
 
@@ -26,9 +27,9 @@ junto à usina de cana, nesses eixos.
 | | |
 |---|---|
 | **Postos** | 126 postos de GNV em SP na pesquisa de preços da ANP (jan/2025–jun/2026), em 43 municípios; 38 na capital. É um piso: a pesquisa é amostral |
-| **Nos corredores** | 111 dos 126 (88 %) a até 20 km de um dos seis corredores. Fora da capital: Dutra 32, Anhanguera/Bandeirantes 31, Anchieta/Imigrantes 13, Raposo 9, Washington Luís 8, Rondon 1 |
-| **Oferta que já produz** (plantas ANP a até 50 km que entregam ≥ 1.000 m³/dia) | Anhanguera/Bandeirantes 81 mil m³/dia (4 plantas), Dutra 65 mil (3), Raposo 62 mil (3), Anchieta/Imigrantes 55 mil (2), Rondon 26 mil (2), Washington Luís 19 mil (1) |
-| **Potencial a até 50 km** (CP2b N3) | Washington Luís 5,0 milhões de m³/dia, Rondon 4,3, Anhanguera/Bandeirantes 4,2, Raposo 3,4, Dutra 0,34, Anchieta/Imigrantes 0,26 |
+| **Nos corredores** | 114 dos 126 (90 %) a até 20 km de uma das seis rodovias. Fora da capital: Anhanguera/Bandeirantes 32, Dutra 32, Anchieta/Imigrantes 13, Raposo 11, Washington Luís 8, Rondon 1 |
+| **Oferta que já produz** (plantas ANP a até 50 km que entregam ≥ 1.000 m³/dia) | Anhanguera/Bandeirantes 81 mil m³/dia (4 plantas), Raposo 73 mil (4), Dutra 65 mil (3), Anchieta/Imigrantes 55 mil (2), Rondon 26 mil (2), Washington Luís 19 mil (1) |
+| **Potencial a até 50 km** (CP2b N3) | Washington Luís 4,8 milhões de m³/dia, Anhanguera/Bandeirantes 3,9, Rondon 3,9, Raposo 3,4, Dutra 0,37, Anchieta/Imigrantes 0,26 |
 | **Déficit** | Washington Luís: 6 dos 8 postos sem planta produzindo a 50 km. Anhanguera/Bandeirantes 4, Dutra 3 |
 | **TransJordano** | Sumaré: CRI Elias Fausto a 28 km (7 mil m³/dia a 50 km). Cubatão: Metagás a 34 km. Ribeirão Preto: nenhuma planta produzindo a 50 km, a mais próxima a 169 km (Raízen Costa Pinto). A frota pediria cerca de 20 mil m³/dia (ordem de grandeza, ver Limites) |
 
@@ -52,8 +53,10 @@ como oferta. Sem esse corte, Campinas e Araraquara pareceriam servidas.
 - A pesquisa de preços da ANP é amostral: município fora da amostra aparece sem posto,
   e os postos novos de biometano (TransJordano) não constam. Complementar com a lista
   de postos GNV da Comgás.
-- Posto no centroide do município; corredor como trechos retos entre municípios-âncora
-  (lista no relatório); distâncias em linha reta.
+- Posto no centroide do município; distância em linha reta até a rodovia. Os
+  municípios-âncora (lista no relatório) só marcam onde cada corredor começa e termina.
+  Com linhas retas entre eles, em vez do traçado, os números mudam pouco (Raposo: 9
+  postos fora da capital e 3 plantas produzindo, em vez de 11 e 4).
 - A proximidade importa para biometano levado por caminhão. Uma planta que injeta na
   rede da Comgás atende, por contrato (TUSD-Verde), um posto ligado à rede a qualquer
   distância. O protótipo não separa as plantas injetadas.
@@ -67,3 +70,4 @@ como oferta. Sem esse corte, Campinas e Araraquara pareceriam servidas.
 - TransJordano: [Agência iNFRA](https://agenciainfra.com/blog/bndes-libera-r-140-mi-para-corredor-verde-em-sp/), [eixos](https://eixos.com.br/gas-natural/biogas/bndes-aprova-r-140-milhoes-para-corredor-verde-com-caminhoes-a-biometano-em-sp/), [Mundo Logística (rota de 450 km)](https://mundologistica.com.br/noticias/transjordano-corredor-verde-sp)
 - Consumo: [Spritmonitor, Scania G410 CNG](https://www.spritmonitor.de/en/detail/1249571.html)
 - Plantas e produção: `analysis/data/05_biogas_plants_brazil.csv` (ANP); potencial: Atlas Real e CP2b v5.1, como na reconciliação BioGRAM (C16)
+- Rodovias: camada viária da plataforma (MapBiomas 10.1 INFRAESTRUTURA, rodovias estaduais e federais), exportada por `analysis/sql/export_corridor_highways.sql` em `analysis/data/sources/mapbiomas/rodovias_corredores_sp.geojson`
