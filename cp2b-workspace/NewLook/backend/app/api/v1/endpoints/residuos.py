@@ -31,6 +31,12 @@ def _to_float(val) -> Optional[float]:
         return None
 
 
+def _ref_url(ref: dict) -> Optional[str]:
+    # `url` is the cleaned link (unify_references.py); a few rows only have
+    # the raw `external_url` of scientific_references.
+    return ref.get("url") or ref.get("external_url")
+
+
 def _rows(conn, sql: str, params=None) -> list[dict]:
     cursor = conn.cursor()
     cursor.execute(sql, params or [])
@@ -267,7 +273,7 @@ async def get_all_references(
                     "volume": None,
                     "pages": None,
                     "doi": ref.get("doi"),
-                    "url": ref.get("url"),
+                    "url": _ref_url(ref),
                     "reported_value": val,
                     "reported_unit": ref.get("reported_unit"),
                     "is_primary": bool(ref.get("has_validated_params")),
@@ -504,7 +510,7 @@ async def get_residuo_references(residuo_id: int):
                 "volume": None,
                 "pages": None,
                 "doi": ref.get("doi"),
-                "url": ref.get("url"),
+                "url": _ref_url(ref),
                 "reported_value": _to_float(ref.get("reported_value")),
                 "reported_unit": ref.get("reported_unit"),
                 "is_primary": bool(ref.get("has_validated_params")),
@@ -595,7 +601,7 @@ async def get_residuo(residuo_id: int):
             "volume": None,
             "pages": None,
             "doi": ref.get("doi"),
-            "url": ref.get("url"),
+            "url": _ref_url(ref),
             "reported_value": _to_float(ref.get("reported_value")),
             "reported_unit": ref.get("reported_unit"),
             "is_primary": bool(ref.get("has_validated_params")),
