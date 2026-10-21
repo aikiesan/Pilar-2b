@@ -31,7 +31,7 @@ acompanhar três gatilhos (abaixo).
 | **Valor do atributo no FuelEU** | R$ 2,4–4,4/m³ de CH₄ para navio que abastece em Santos e vai à Europa (só metade da energia da viagem conta), com bio-GNL de 20 gCO₂e/MJ e o excedente vendido em *pool* (€ 1.300–2.300 por t de VLSFO equivalente) ou abatido da penalidade (€ 2.400), a R$ 5,80/€. Usado dentro da UE, o dobro |
 | **Valor no Brasil** | Molécula R$ 2,25 mais atributo R$ 1,40, ou seja, R$ 3,65/m³ sem PIS/Cofins: os preços iniciais do Mercado Cativo Verde da Comgás (Deliberação Arsesp 1.846/2026, art. 1º, IV; painel do mandato) |
 
-A diferença (cerca de R$ 1,4–3,4/m³ a mais no atributo) teria de pagar a liquefação, o
+A diferença (cerca de R$ 1,0–3,0/m³ a mais no atributo) teria de pagar a liquefação, o
 caminhão pela Serra do Mar, a certificação e o abastecimento por barcaça. Nenhum
 desses custos está no PILAR-2b.
 
