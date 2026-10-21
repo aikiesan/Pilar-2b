@@ -4,7 +4,7 @@
   "_maintainer": "Lucas Nakamura Cerejo — NIPE/CP2B UNICAMP",
   "_status_notes": [
     "VERIFY items below must be confirmed before manuscript submission.",
-    "DISCREPANCY: MapBiomas collection — code references Collection 8.0 (backend/app/services/mapbiomas_service.py), while FOSS4G_PAPER_SUPPLEMENT.md states Collection 9. Reconcile and state ONE collection in the paper.",
+    "RESOLVED (2026-10): MapBiomas collection is 10. The served raster's only band is classification_2024; Collection 8 ends in 2022 and Collection 9 in 2023. The code said 8.0 and FOSS4G_PAPER_SUPPLEMENT.md says 9; both were wrong.",
     "DISCREPANCY: IBGE agricultural reference year — master residue file is named *_SP_2023 (PAM 2023), while some docs cite Censo Agropecuario 2017 for livestock. Confirm the exact reference year per stream (crops vs livestock).",
     "Retrieval dates ('retrieved') are placeholders pending confirmation from the data owner."
   ],
@@ -46,7 +46,7 @@
       "name": "MapBiomas — Land use / land cover",
       "role": "Land-use classification for proximity analysis and feedstock siting context",
       "reference_year": "2024",
-      "collection": "8.0 (code) — VERIFY vs Collection 9 cited in FOSS4G_PAPER_SUPPLEMENT.md",
+      "collection": "10 (raster band classification_2024; 10.0 vs 10.1 not recorded in the file)",
       "resolution_m": 30,
       "url": "https://mapbiomas.org",
       "doi": "10.58053/MapBiomas/JNJGVT (Collection 10 reference; confirm DOI for the collection actually used)",

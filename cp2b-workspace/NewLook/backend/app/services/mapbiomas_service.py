@@ -27,8 +27,11 @@ from shapely.ops import transform
 
 logger = logging.getLogger(__name__)
 
+# The raster's only band is `classification_2024`. Collection 8 ends in 2022
+# and Collection 9 in 2023; Collection 10 (Aug 2025) is the first to map 2024.
+MAPBIOMAS_SOURCE = "MapBiomas Collection 10"
+
 # MapBiomas land use classes for São Paulo agricultural areas
-# Based on MapBiomas Collection 8.0
 MAPBIOMAS_CLASSES = {
     15: {"name": "Pastagem", "color": "#FFD966", "category": "agricultural"},
     9: {"name": "Silvicultura", "color": "#6D4C41", "category": "forestry"},
@@ -268,7 +271,7 @@ class MapBiomasService:
         """
         return {
             "classes": MAPBIOMAS_CLASSES,
-            "source": "MapBiomas Collection 8.0",
+            "source": MAPBIOMAS_SOURCE,
             "year": 2024,
             "region": "São Paulo - Áreas Agropecuárias",
         }

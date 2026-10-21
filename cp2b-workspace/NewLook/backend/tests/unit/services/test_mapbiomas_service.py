@@ -9,7 +9,12 @@ from unittest.mock import MagicMock, patch
 import numpy as np
 import pytest
 
-from app.services.mapbiomas_service import MAPBIOMAS_CLASSES, MapBiomasService
+from app.services.mapbiomas_service import (
+    MAPBIOMAS_CLASSES,
+    MAPBIOMAS_SOURCE,
+    RASTER_PATH,
+    MapBiomasService,
+)
 
 
 @pytest.fixture
@@ -397,7 +402,7 @@ class TestGetClassInfo:
 
         info = service.get_class_info()
 
-        assert info["source"] == "MapBiomas Collection 8.0"
+        assert info["source"] == "MapBiomas Collection 10"
         assert info["year"] == 2024
         assert "São Paulo" in info["region"]
 
@@ -609,3 +614,13 @@ class TestCoordinateTransformations:
         # Should be very close to original (allow small error)
         assert abs(final_lng - orig_lng) < 0.0001
         assert abs(final_lat - orig_lat) < 0.0001
+
+
+def test_metadata_file_names_the_collection_the_raster_belongs_to():
+    """Regression: the file said Collection 8 for a 2024 map. Collection 8
+    ends in 2022 and 9 in 2023, so a 2024 band can only be Collection 10."""
+    import json
+
+    meta = json.loads((RASTER_PATH.parent / "mapbiomas_metadata.json").read_text("utf-8"))
+    assert meta["source"] == MAPBIOMAS_SOURCE == "MapBiomas Collection 10"
+    assert meta["year"] == 2024 and RASTER_PATH.name.endswith("_2024.tif")

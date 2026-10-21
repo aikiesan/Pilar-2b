@@ -138,7 +138,7 @@ const DATA_SOURCES: {
     icon: '🌾',
     sources: [
       { name: 'IBGE - PAM', detailKey: 'pam', year: '2024', url: 'https://sidra.ibge.gov.br/pesquisa/pam/tabelas' },
-      { name: 'MapBiomas 10.0', detailKey: 'mapbiomas', year: '2024', url: 'https://brasil.mapbiomas.org' },
+      { name: 'MapBiomas 10', detailKey: 'mapbiomas', year: '2024', url: 'https://brasil.mapbiomas.org' },
       // i18n-exempt: agency acronyms (Ministry of Agriculture / CONAB)
       { name: 'MAPA / CONAB', detailKey: 'conab', year: '2024', url: 'https://www.conab.gov.br' },
     ],

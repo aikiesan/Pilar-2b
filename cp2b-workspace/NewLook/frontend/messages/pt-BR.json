@@ -824,7 +824,7 @@
     },
     "mapbiomasLegend": {
       "subtitle": "Uso do solo agropecuário",
-      "source": "Fonte: MapBiomas Coleção 8",
+      "source": "Fonte: MapBiomas Coleção 10 (mapa de 2024)",
       "classes": {
         "0": "Sem dados",
         "3": "Formação florestal",
@@ -1275,7 +1275,7 @@
       "detailed_distribution": "Distribuição Detalhada do Uso do Solo",
       "visual_proportion": "Proporção Visual",
       "link_copied": "Link copiado para a área de transferência!",
-      "mapbiomas_badge": "MapBiomas 2023",
+      "mapbiomas_badge": "MapBiomas 2024",
       "map": {
         "loading": "Carregando mapa…",
         "radius": "Raio: {radius} km",

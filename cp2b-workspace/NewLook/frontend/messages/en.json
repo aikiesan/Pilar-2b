@@ -824,7 +824,7 @@
     },
     "mapbiomasLegend": {
       "subtitle": "Agricultural land use",
-      "source": "Source: MapBiomas Collection 8",
+      "source": "Source: MapBiomas Collection 10 (2024 map)",
       "classes": {
         "0": "No data",
         "3": "Forest formation",
@@ -1275,7 +1275,7 @@
       "detailed_distribution": "Detailed Land Use Distribution",
       "visual_proportion": "Visual Proportion",
       "link_copied": "Link copied to clipboard!",
-      "mapbiomas_badge": "MapBiomas 2023",
+      "mapbiomas_badge": "MapBiomas 2024",
       "map": {
         "loading": "Loading map…",
         "radius": "Radius: {radius} km",

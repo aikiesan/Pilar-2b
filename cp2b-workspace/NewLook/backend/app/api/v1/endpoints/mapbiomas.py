@@ -14,6 +14,8 @@ from typing import Any, Dict
 
 from fastapi import APIRouter, HTTPException, Response
 
+from app.services.mapbiomas_service import MAPBIOMAS_SOURCE
+
 try:
     import numpy as np
     import rasterio
@@ -66,6 +68,7 @@ def load_metadata() -> Dict[str, Any]:
     return {
         "year": 2024,
         "name": "MapBiomas Agropecuária SP",
+        "source": MAPBIOMAS_SOURCE,
         "crs": "EPSG:4326",
         "bounds": {
             "west": -53.11091487994166,
