@@ -1,0 +1,1936 @@
+ano,codigo_cetesb,nome,iqr,dispoe_em
+2022,150,Adamantina,9.09,Adamantina - A.P.
+2022,151,Adolfo,9.82,Catanduva - A.P.
+2022,152,Aguaí,10,Aguaí - A.P.
+2022,154,Águas da Prata,9.82,Tapiratiba - A.P.
+2022,153,Águas de Lindóia,9.82,Paulínia - A.P.
+2022,607,Águas de Santa Bárbara,9.82,Piratininga - A.P.
+2022,155,Águas de São Pedro,9.82,Rio das Pedras - A.P.
+2022,156,Agudos,7.1,
+2022,732,Alambari,9.4,Cesário Lange - A.P.
+2022,157,Alfredo Marcondes,9.5,
+2022,158,Altair,10,Onda Verde - A.P.
+2022,159,Altinópolis,9.36,Sales Oliveira - A.P.
+2022,160,Alto Alegre,9.5,
+2022,733,Alumínio,9.55,Iperó - A.P.
+2022,161,Álvares Florence,10,Meridiano - A.P.
+2022,162,Álvares Machado,9.55,Quatá - A.P.
+2022,163,Álvaro de Carvalho,9.82,Piratininga - A.P.
+2022,164,Alvinlândia,9.82,Piratininga - A.P.
+2022,165,Americana,10,Americana - A.P.
+2022,166,Américo Brasiliense,10,Guatapará - A.P.
+2022,167,Américo de Campos,6.5,
+2022,168,Amparo,9.82,Paulínia - A.P.
+2022,169,Analândia,10,Guatapará - A.P.
+2022,170,Andradina,-1,Três Lagoas - MS
+2022,171,Angatuba,9.4,Cesário Lange - A.P.
+2022,172,Anhembi,7.2,
+2022,173,Anhumas,9.5,
+2022,174,Aparecida,9.45,Cachoeira Paulista - A.P.
+2022,175,Aparecida d`Oeste,7.5,
+2022,176,Apiaí,9.55,Iperó - A.P.
+2022,734,Araçariguama,8.2,Santana de Parnaíba - A.P.
+2022,177,Araçatuba,9.7,
+2022,178,Araçoiaba da Serra,9.55,Iperó - A.P.
+2022,179,Aramina,7.4,
+2022,180,Arandu,9.82,Piratininga - A.P.
+2022,735,Arapeí,-1,Barra Mansa - RJ
+2022,181,Araraquara,10,Guatapará - A.P.
+2022,182,Araras,9.82,Paulínia - A.P.
+2022,775,Arco-Íris,9,
+2022,183,Arealva,7.8,
+2022,184,Areias,9.45,Cachoeira Paulista - A.P.
+2022,185,Areiópolis,9.5,
+2022,186,Ariranha,9.82,Catanduva - A.P.
+2022,187,Artur Nogueira,10,Americana - A.P.
+2022,188,Arujá,7.45,Santa Isabel - A.P.
+2022,736,Aspásia,9.2,
+2022,189,Assis,9.55,Quatá - A.P.
+2022,190,Atibaia,9.82,Paulínia - A.P.
+2022,191,Auriflama,7.8,
+2022,192,Avaí,9.82,Piratininga - A.P.
+2022,193,Avanhandava,7.6,
+2022,194,Avaré,7.4,
+2022,195,Bady Bassitt,10,Onda Verde - A.P.
+2022,196,Balbinos,7.2,
+2022,197,Bálsamo,8.4,
+2022,198,Bananal,-1,Barra Mansa - RJ
+2022,199,Barão de Antonina,10,
+2022,200,Barbosa,9,
+2022,201,Bariri,9.82,Piratininga - A.P.
+2022,202,Barra Bonita,7.6,
+2022,737,Barra do Chapéu,7.2,
+2022,203,Barra do Turvo,7.4,
+2022,204,Barretos,9.36,Barretos - A.P.
+2022,205,Barrinha,10,Guatapará - A.P.
+2022,206,Barueri,8.2,Santana de Parnaíba - A.P.
+2022,207,Bastos,9.55,Quatá - A.P.
+2022,208,Batatais,9.36,Sales Oliveira - A.P.
+2022,209,Bauru,9.82,Piratininga - A.P.
+2022,210,Bebedouro,9.82,Catanduva - A.P.
+2022,211,Bento de Abreu,8.7,
+2022,212,Bernardino de Campos,9.82,Piratininga - A.P.
+2022,738,Bertioga,9.45,Santos - A.P.
+2022,213,Bilac,9.5,
+2022,214,Birigui,7.7,
+2022,215,Biritiba-Mirim,7.45,Santa Isabel - A.P.
+2022,216,Boa Esperança do Sul,3.2,
+2022,217,Bocaina,9.82,Piratininga - A.P.
+2022,218,Bofete,7.8,
+2022,219,Boituva,9.4,Cesário Lange - A.P.
+2022,220,Bom Jesus dos Perdões,9.45,São Paulo - CDR
+2022,739,Bom Sucesso de Itararé,4.5,
+2022,221,Borá,9.55,Quatá - A.P.
+2022,222,Boracéia,9.82,Piratininga - A.P.
+2022,223,Borborema,8.3,
+2022,721,Borebi,6.6,
+2022,224,Botucatu,7.3,
+2022,225,Bragança Paulista,9.6,Bragança Paulista - A.P.
+2022,226,Braúna,9.5,
+2022,776,Brejo Alegre,7.5,
+2022,227,Brodowski,10,Jardinópolis - A.P.
+2022,228,Brotas,9,
+2022,229,Buri,8.2,
+2022,230,Buritama,9,
+2022,231,Buritizal,10,Guará - A.P.
+2022,232,Cabrália Paulista,9.82,Piratininga - A.P.
+2022,233,Cabreúva,9,
+2022,234,Caçapava,9.36,Tremembé - A.P.
+2022,235,Cachoeira Paulista,9.45,Cachoeira Paulista - A.P.
+2022,236,Caconde,9.82,Tapiratiba - A.P.
+2022,237,Cafelândia,9.82,Catanduva - A.P.
+2022,238,Caiabu,4,
+2022,239,Caieiras,9.45,Caieiras - A.P.
+2022,240,Caiuá,7.3,
+2022,241,Cajamar,9.45,Caieiras - A.P.
+2022,740,Cajati,9,
+2022,242,Cajobi,8.7,
+2022,243,Cajuru,10,Jardinópolis - A.P.
+2022,741,Campina do Monte Alegre,7.3,
+2022,244,Campinas,9.82,Paulínia - A.P.
+2022,245,Campo Limpo Paulista,9.45,Caieiras - A.P.
+2022,246,Campos do Jordão,9.36,Tremembé - A.P.
+2022,247,Campos Novos Paulista,5.1,
+2022,248,Cananéia,10,Pariquera-Açu
+2022,777,Canas,9.45,Cachoeira Paulista - A.P.
+2022,249,Cândido Mota,9.55,Quatá - A.P.
+2022,250,Cândido Rodrigues,7.5,
+2022,742,Canitar,5.1,
+2022,251,Capão Bonito,8.1,
+2022,252,Capela do Alto,9.55,Iperó - A.P.
+2022,253,Capivari,9.82,Paulínia - A.P.
+2022,254,Caraguatatuba,9.09,Jambeiro - A.P.
+2022,255,Carapicuíba,8.2,Santana de Parnaíba - A.P.
+2022,256,Cardoso,7.9,
+2022,257,Casa Branca,9.82,Casa Branca - A.P.
+2022,258,Cássia dos Coqueiros,4.8,
+2022,259,Castilho,9.5,
+2022,260,Catanduva,9.82,Catanduva - A.P.
+2022,261,Catiguá,9.82,Catanduva - A.P.
+2022,262,Cedral,10,Onda Verde - A.P.
+2022,263,Cerqueira César,6.1,
+2022,265,Cerquilho,7.1,
+2022,264,Cesário Lange,9.4,Cesário Lange - A.P.
+2022,266,Charqueada,9,
+2022,267,Clementina,8.7,
+2022,268,Colina,9.3,
+2022,269,Colômbia,8,
+2022,270,Conchal,9.4,Conchal - A.P.
+2022,271,Conchas,9.82,Rio das Pedras - A.P.
+2022,272,Cordeirópolis,5.7,
+2022,273,Coroados,8.2,
+2022,274,Coronel Macedo,9.6,
+2022,275,Corumbataí,8.7,
+2022,276,Cosmópolis,9.82,Paulínia - A.P.
+2022,277,Cosmorama,7.9,
+2022,278,Cotia,9.45,Caieiras - A.P.
+2022,279,Cravinhos,10,Guatapará - A.P.
+2022,280,Cristais Paulista,10,Guará - A.P.
+2022,281,Cruzália,7.4,
+2022,282,Cruzeiro,9.45,Cachoeira Paulista - A.P.
+2022,283,Cubatão,9.45,Santos - A.P.
+2022,284,Cunha,9.45,Cachoeira Paulista - A.P.
+2022,285,Descalvado,10,Guatapará - A.P.
+2022,286,Diadema,7.45,Mauá - A.P.
+2022,722,Dirce Reis,7.1,
+2022,287,Divinolândia,9.82,Tapiratiba - A.P.
+2022,288,Dobrada,7.2,
+2022,289,Dois Córregos,7.6,
+2022,290,Dolcinópolis,10,Meridiano - A.P.
+2022,291,Dourado,9.1,
+2022,292,Dracena,3.7,
+2022,293,Duartina,7.9,
+2022,294,Dumont,10,Guatapará - A.P.
+2022,295,Echaporã,8.36,Marília - A.P.
+2022,296,Eldorado,9,
+2022,297,Elias Fausto,9.09,Indaiatuba - A.P.
+2022,743,Elisiário,9.82,Catanduva - A.P.
+2022,723,Embaúba,9.82,Catanduva - A.P.
+2022,298,Embu das Artes,6.2,Santana de Parnaíba - A.P.
+2022,299,Embu-Guaçu,9.45,Caieiras - A.P.
+2022,744,Emilianópolis,5.5,
+2022,745,Engenheiro Coelho,9.4,Conchal - A.P.
+2022,530,Espírito Santo do Pinhal,9.82,Tapiratiba - A.P.
+2022,724,Espírito Santo do Turvo,9.82,Piratininga - A.P.
+2022,301,Estrela d`Oeste,7.9,
+2022,300,Estrela do Norte,9.55,Quatá - A.P.
+2022,725,Euclides da Cunha Paulista,7.2,
+2022,302,Fartura,8,
+2022,304,Fernandópolis,10,Meridiano - A.P.
+2022,303,Fernando Prestes,7.3,
+2022,786,Fernão,9.82,Piratininga - A.P.
+2022,305,Ferraz de Vasconcelos,9.09,Jambeiro - A.P.
+2022,306,Flora Rica,9.1,
+2022,307,Floreal,10,Meridiano - A.P.
+2022,308,Flórida Paulista,7.8,
+2022,309,Florínia,8.2,
+2022,310,Franca,7.09,
+2022,311,Francisco Morato,9.45,Caieiras - A.P.
+2022,312,Franco da Rocha,9.45,Caieiras - A.P.
+2022,313,Gabriel Monteiro,9.5,
+2022,314,Gália,9.82,Piratininga - A.P.
+2022,315,Garça,8.36,Marília - A.P.
+2022,316,Gastão Vidigal,8.8,
+2022,787,Gavião Peixoto,7.9,
+2022,317,General Salgado,7.2,
+2022,318,Getulina,8.36,Marília - A.P.
+2022,319,Glicério,7.4,
+2022,320,Guaiçara,9.82,Piratininga - A.P.
+2022,321,Guaimbê,9.6,
+2022,322,Guaíra,10,Guará - A.P.
+2022,323,Guapiaçu,10,Onda Verde - A.P.
+2022,324,Guapiara,7.2,
+2022,325,Guará,10,Guará - A.P.
+2022,326,Guaraçaí,8.7,
+2022,327,Guaraci,8.5,
+2022,328,Guarani d`Oeste,10,Meridiano - A.P.
+2022,329,Guarantã,9.82,Piratininga - A.P.
+2022,330,Guararapes,8.6,
+2022,331,Guararema,9.09,Jambeiro - A.P.
+2022,332,Guaratinguetá,9.45,Cachoeira Paulista - A.P.
+2022,333,Guareí,5.7,
+2022,334,Guariba,7.6,
+2022,335,Guarujá,9.45,Santos - A.P.
+2022,336,Guarulhos,9.6,
+2022,726,Guatapará,10,Guatapará - A.P.
+2022,337,Guzolândia,7.1,
+2022,338,Herculândia,9.55,Quatá - A.P.
+2022,747,Holambra,9.82,Paulínia - A.P.
+2022,748,Hortolândia,9.82,Paulínia - A.P.
+2022,339,Iacanga,8.4,
+2022,340,Iacri,9.55,Quatá - A.P.
+2022,727,Iaras,9.82,Piratininga - A.P.
+2022,341,Ibaté,8.6,
+2022,342,Ibirá,4.5,
+2022,343,Ibirarema,9.3,
+2022,344,Ibitinga,9.82,Catanduva - A.P.
+2022,345,Ibiúna,9.55,Iperó - A.P.
+2022,346,Icém,10,Onda Verde - A.P.
+2022,347,Iepê,7.6,
+2022,348,Igaraçu do Tietê,7.1,
+2022,349,Igarapava,-1,Uberaba - MG
+2022,350,Igaratá,7.45,Santa Isabel - A.P.
+2022,351,Iguape,9.45,Caieiras - A.P.
+2022,352,Ilhabela,9.09,Jambeiro - A.P.
+2022,767,Ilha Comprida,9.45,Caieiras - A.P.
+2022,749,Ilha Solteira,9.1,
+2022,353,Indaiatuba,9.09,Indaiatuba - A.P.
+2022,354,Indiana,7.3,
+2022,355,Indiaporã,9.5,
+2022,356,Inúbia Paulista,10,
+2022,357,Ipaussu,7.4,
+2022,358,Iperó,9.55,Iperó - A.P.
+2022,359,Ipeúna,9.82,Paulínia - A.P.
+2022,784,Ipiguá,10,Onda Verde - A.P.
+2022,360,Iporanga,10,
+2022,361,Ipuã,7.7,
+2022,362,Iracemápolis,9.82,Rio das Pedras - A.P.
+2022,363,Irapuã,9.6,
+2022,364,Irapuru,9.09,Adamantina - A.P.
+2022,365,Itaberá,4.6,
+2022,366,Itaí,7.6,
+2022,367,Itajobi,9.82,Catanduva - A.P.
+2022,368,Itaju,8.4,
+2022,369,Itanhaém,7.45,Mauá - A.P.
+2022,750,Itaóca,8,
+2022,370,Itapecerica da Serra,9.45,Caieiras - A.P.
+2022,371,Itapetininga,9.4,Cesário Lange - A.P.
+2022,372,Itapeva,1.2,
+2022,373,Itapevi,8.55,Itapevi - A.P.
+2022,374,Itapira,9.4,
+2022,768,Itapirapuã Paulista,4.3,
+2022,375,Itápolis,1.6,
+2022,376,Itaporanga,9.82,Piratininga - A.P.
+2022,377,Itapuí,7.3,
+2022,378,Itapura,7.9,
+2022,379,Itaquaquecetuba,9.45,São Paulo - CDR
+2022,380,Itararé,7.2,
+2022,381,Itariri,9.7,
+2022,382,Itatiba,7.1,
+2022,383,Itatinga,7.3,Botucatu
+2022,384,Itirapina,8.1,
+2022,385,Itirapuã,9.36,Sales Oliveira - A.P.
+2022,386,Itobi,8,
+2022,387,Itu,9,
+2022,388,Itupeva,9.82,Paulínia - A.P.
+2022,389,Ituverava,-1,Uberaba - MG
+2022,390,Jaborandi,7.6,
+2022,391,Jaboticabal,10,
+2022,392,Jacareí,9.1,
+2022,393,Jaci,10,Onda Verde - A.P.
+2022,394,Jacupiranga,9.6,
+2022,395,Jaguariúna,9.82,Paulínia - A.P.
+2022,396,Jales,7.9,
+2022,397,Jambeiro,9.09,Jambeiro - A.P.
+2022,398,Jandira,8.55,Itapevi - A.P.
+2022,399,Jardinópolis,10,Jardinópolis - A.P.
+2022,400,Jarinu,8.2,
+2022,401,Jaú,9.82,Piratininga - A.P.
+2022,402,Jeriquara,10,Guará - A.P.
+2022,403,Joanópolis,7.5,
+2022,404,João Ramalho,9.55,Quatá - A.P.
+2022,405,José Bonifácio,10,Onda Verde - A.P.
+2022,406,Júlio Mesquita,7.7,
+2022,788,Jumirim,9.82,Rio das Pedras - A.P.
+2022,407,Jundiaí,8.2,Santana de Parnaíba - A.P.
+2022,408,Junqueirópolis,9,
+2022,409,Juquiá,9.45,Caieiras - A.P.
+2022,410,Juquitiba,9.45,Caieiras - A.P.
+2022,411,Lagoinha,9.36,Tremembé - A.P.
+2022,412,Laranjal Paulista,9.4,Cesário Lange - A.P.
+2022,413,Lavínia,9,
+2022,414,Lavrinhas,9.45,Cachoeira Paulista - A.P.
+2022,415,Leme,8.5,
+2022,416,Lençóis Paulista,7.5,
+2022,417,Limeira,8.73,
+2022,418,Lindóia,9.82,Paulínia - A.P.
+2022,419,Lins,9.82,Catanduva - A.P.
+2022,420,Lorena,9.45,Cachoeira Paulista - A.P.
+2022,769,Lourdes,9,
+2022,421,Louveira,9.82,Paulínia - A.P.
+2022,422,Lucélia,9.09,Adamantina - A.P.
+2022,423,Lucianópolis,9.82,Piratininga - A.P.
+2022,424,Luís Antônio,10,Guatapará - A.P.
+2022,425,Luiziânia,9.5,
+2022,426,Lupércio,9.82,Piratininga - A.P.
+2022,427,Lutécia,9.55,Quatá - A.P.
+2022,428,Macatuba,8.4,
+2022,429,Macaubal,8.6,
+2022,430,Macedônia,7.2,
+2022,431,Magda,10,Meridiano - A.P.
+2022,432,Mairinque,8.55,Itapevi - A.P.
+2022,433,Mairiporã,9.45,São Paulo - CDR
+2022,434,Manduri,7.2,
+2022,435,Marabá Paulista,9,
+2022,436,Maracaí,8.5,
+2022,751,Marapoama,9.82,Catanduva - A.P.
+2022,437,Mariápolis,9.09,Adamantina - A.P.
+2022,438,Marília,8.36,Marília - A.P.
+2022,439,Marinópolis,8.5,
+2022,440,Martinópolis,9.09,Adamantina - A.P.
+2022,441,Matão,7.5,
+2022,442,Mauá,7.45,Mauá - A.P.
+2022,443,Mendonça,9.82,Catanduva - A.P.
+2022,444,Meridiano,10,Meridiano - A.P.
+2022,770,Mesópolis,10,Meridiano - A.P.
+2022,445,Miguelópolis,10,Guará - A.P.
+2022,446,Mineiros do Tietê,7.6,
+2022,448,Miracatu,9.45,Caieiras - A.P.
+2022,447,Mira Estrela,8.1,
+2022,449,Mirandópolis,-1,Três Lagoas - MS
+2022,450,Mirante do Paranapanema,9.6,
+2022,451,Mirassol,9.1,
+2022,452,Mirassolândia,9.2,
+2022,453,Mococa,8.7,
+2022,454,Mogi das Cruzes,9.09,Jambeiro - A.P.
+2022,455,Mogi Guaçu,9.82,Casa Branca - A.P.
+2022,456,Mogi Mirim,9.82,Casa Branca - A.P.
+2022,457,Mombuca,9.82,Rio das Pedras - A.P.
+2022,458,Monções,9,
+2022,459,Mongaguá,9.45,Santos - A.P.
+2022,460,Monte Alegre do Sul,9.82,Paulínia - A.P.
+2022,461,Monte Alto,9.36,Sales Oliveira - A.P.
+2022,462,Monte Aprazível,10,Onda Verde - A.P.
+2022,463,Monte Azul Paulista,9.6,
+2022,464,Monte Castelo,9.5,
+2022,466,Monteiro Lobato,9.36,Tremembé - A.P.
+2022,465,Monte Mor,9.09,Indaiatuba - A.P.
+2022,467,Morro Agudo,9.36,Sales Oliveira - A.P.
+2022,468,Morungaba,9.82,Paulínia - A.P.
+2022,729,Motuca,8.4,
+2022,469,Murutinga do Sul,8.7,
+2022,789,Nantes,9,
+2022,470,Narandiba,8.3,Pirapozinho - A.P.
+2022,471,Natividade da Serra,9.36,Tremembé - A.P.
+2022,472,Nazaré Paulista,7.45,Santa Isabel - A.P.
+2022,473,Neves Paulista,10,Onda Verde - A.P.
+2022,474,Nhandeara,10,Meridiano - A.P.
+2022,475,Nipoã,7.6,
+2022,476,Nova Aliança,10,Onda Verde - A.P.
+2022,771,Nova Campina,7.5,
+2022,752,Nova Canaã Paulista,7.1,
+2022,790,Nova Castilho,8.3,
+2022,477,Nova Europa,9.82,Catanduva - A.P.
+2022,478,Nova Granada,10,Onda Verde - A.P.
+2022,479,Nova Guataporanga,9.2,
+2022,480,Nova Independência,9.09,Adamantina - A.P.
+2022,753,Novais,9.82,Catanduva - A.P.
+2022,481,Nova Luzitânia,10,Meridiano - A.P.
+2022,482,Nova Odessa,9.82,Paulínia - A.P.
+2022,483,Novo Horizonte,9.82,Catanduva - A.P.
+2022,484,Nuporanga,9.36,Sales Oliveira - A.P.
+2022,485,Ocauçu,8.36,Marília - A.P.
+2022,486,Óleo,9.1,
+2022,487,Olímpia,10,Onda Verde - A.P.
+2022,488,Onda Verde,10,Onda Verde - A.P.
+2022,489,Oriente,9.5,
+2022,490,Orindiúva,10,
+2022,491,Orlândia,9.36,Sales Oliveira - A.P.
+2022,492,Osasco,9.4,
+2022,493,Oscar Bressane,4.9,
+2022,494,Osvaldo Cruz,9.6,
+2022,495,Ourinhos,9.82,Piratininga - A.P.
+2022,791,Ouroeste,-1,Iturama - MG
+2022,496,Ouro Verde,9.5,
+2022,497,Pacaembu,8.3,
+2022,498,Palestina,10,Onda Verde - A.P.
+2022,499,Palmares Paulista,9.82,Catanduva - A.P.
+2022,500,Palmeira d`Oeste,10,Meridiano - A.P.
+2022,501,Palmital,9.55,Quatá - A.P.
+2022,502,Panorama,8.3,
+2022,503,Paraguaçu Paulista,9.55,Quatá - A.P.
+2022,504,Paraibuna,9.09,Jambeiro - A.P.
+2022,505,Paraíso,9.82,Catanduva - A.P.
+2022,506,Paranapanema,7.3,
+2022,508,Paranapuã,7.7,
+2022,509,Parapuã,9.3,
+2022,507,Pardinho,7.3,Botucatu
+2022,510,Pariquera-Açu,10,
+2022,754,Parisi,10,Meridiano - A.P.
+2022,511,Patrocínio Paulista,9.36,Sales Oliveira - A.P.
+2022,512,Paulicéia,5,
+2022,513,Paulínia,9.82,Paulínia - A.P.
+2022,792,Paulistânia,7.7,
+2022,514,Paulo de Faria,8.4,
+2022,515,Pederneiras,7.3,
+2022,516,Pedra Bela,9.6,Bragança Paulista - A.P.
+2022,517,Pedranópolis,10,Meridiano - A.P.
+2022,518,Pedregulho,10,Guará - A.P.
+2022,519,Pedreira,9.82,Rio das Pedras - A.P.
+2022,755,Pedrinhas Paulista,8.1,
+2022,520,Pedro de Toledo,3.7,
+2022,521,Penápolis,9.4,
+2022,522,Pereira Barreto,9,
+2022,523,Pereiras,9.4,Cesário Lange - A.P.
+2022,524,Peruíbe,4.9,
+2022,525,Piacatu,9.5,
+2022,526,Piedade,9.55,Iperó - A.P.
+2022,527,Pilar do Sul,7.1,
+2022,528,Pindamonhangaba,9.36,Tremembé - A.P.
+2022,529,Pindorama,9.82,Catanduva - A.P.
+2022,531,Pinhalzinho,9.82,Paulínia - A.P.
+2022,532,Piquerobi,9.55,Quatá - A.P.
+2022,533,Piquete,9.45,Cachoeira Paulista - A.P.
+2022,534,Piracaia,9.82,Paulínia - A.P.
+2022,535,Piracicaba,8.45,
+2022,537,Piraju,9.82,Piratininga - A.P.
+2022,538,Pirajuí,9.82,Piratininga - A.P.
+2022,539,Pirangi,8,
+2022,540,Pirapora do Bom Jesus,8.2,Santana de Parnaíba - A.P.
+2022,541,Pirapozinho,8.3,Pirapozinho - A.P.
+2022,536,Pirassununga,5.1,
+2022,542,Piratininga,9.82,Piratininga - A.P.
+2022,543,Pitangueiras,9.82,Catanduva - A.P.
+2022,544,Planalto,7.6,
+2022,545,Platina,9.55,Quatá - A.P.
+2022,546,Poá,9.09,Jambeiro - A.P.
+2022,547,Poloni,7.2,
+2022,548,Pompéia,9.55,Quatá - A.P.
+2022,549,Pongaí,8.36,Marília - A.P.
+2022,550,Pontal,9.36,Sales Oliveira - A.P.
+2022,756,Pontalinda,10,Meridiano - A.P.
+2022,551,Pontes Gestal,9.7,
+2022,552,Populina,8.5,
+2022,553,Porangaba,9.4,Cesário Lange - A.P.
+2022,554,Porto Feliz,9.55,Iperó - A.P.
+2022,555,Porto Ferreira,8.1,
+2022,757,Potim,9.45,Cachoeira Paulista - A.P.
+2022,556,Potirendaba,10,Onda Verde - A.P.
+2022,778,Pracinha,9.09,Adamantina - A.P.
+2022,557,Pradópolis,10,Guatapará - A.P.
+2022,558,Praia Grande,8.5,"Mauá - A.P., Santos - A.P."
+2022,779,Pratânia,9.5,
+2022,559,Presidente Alves,7.6,
+2022,560,Presidente Bernardes,9.55,Quatá - A.P.
+2022,561,Presidente Epitácio,8.1,
+2022,562,Presidente Prudente,9.09,Adamantina - A.P.
+2022,563,Presidente Venceslau,7.9,
+2022,564,Promissão,9.82,Catanduva - A.P.
+2022,780,Quadra,9.4,Cesário Lange - A.P.
+2022,565,Quatá,9.55,Quatá - A.P.
+2022,566,Queiroz,8.7,
+2022,567,Queluz,9.45,Cachoeira Paulista - A.P.
+2022,568,Quintana,9.5,
+2022,569,Rafard,9.82,Rio das Pedras - A.P.
+2022,570,Rancharia,9.55,Quatá - A.P.
+2022,571,Redenção da Serra,9.09,Jambeiro - A.P.
+2022,572,Regente Feijó,7.6,
+2022,573,Reginópolis,7.1,
+2022,574,Registro,9.4,
+2022,575,Restinga,5.8,
+2022,576,Ribeira,-1,Rio Negrinho - SC
+2022,577,Ribeirão Bonito,7.3,
+2022,578,Ribeirão Branco,7.9,
+2022,579,Ribeirão Corrente,9,
+2022,580,Ribeirão do Sul,8.8,
+2022,793,Ribeirão dos Índios,9.5,
+2022,758,Ribeirão Grande,5.6,
+2022,581,Ribeirão Pires,7.45,Mauá - A.P.
+2022,582,Ribeirão Preto,10,Guatapará - A.P.
+2022,583,Riversul,4.5,
+2022,584,Rifaina,8.1,
+2022,585,Rincão,10,Guatapará - A.P.
+2022,586,Rinópolis,9.2,
+2022,587,Rio Claro,9.4,
+2022,588,Rio das Pedras,9.82,Paulínia - A.P.
+2022,589,Rio Grande da Serra,7.45,Mauá - A.P.
+2022,590,Riolândia,8.8,
+2022,730,Rosana,8.8,
+2022,591,Roseira,9.45,Cachoeira Paulista - A.P.
+2022,592,Rubiácea,9,
+2022,593,Rubinéia,8.2,Santa Fé do Sul
+2022,594,Sabino,9.82,Catanduva - A.P.
+2022,595,Sagres,8.7,
+2022,596,Sales,9.82,Catanduva - A.P.
+2022,597,Sales Oliveira,9.36,Sales Oliveira - A.P.
+2022,598,Salesópolis,9.09,Jambeiro - A.P.
+2022,599,Salmourão,8.5,
+2022,759,Saltinho,9.82,Rio das Pedras - A.P.
+2022,600,Salto,9.6,
+2022,602,Salto de Pirapora,8,
+2022,601,Salto Grande,9.82,Piratininga - A.P.
+2022,603,Sandovalina,8.3,Pirapozinho - A.P.
+2022,604,Santa Adélia,9.82,Catanduva - A.P.
+2022,605,Santa Albertina,8.8,
+2022,606,Santa Bárbara d`Oeste,10,Americana - A.P.
+2022,608,Santa Branca,9.09,Jambeiro - A.P.
+2022,609,Santa Clara d`Oeste,7.3,
+2022,610,Santa Cruz da Conceição,9.82,Paulínia - A.P.
+2022,781,Santa Cruz da Esperança,9.5,
+2022,611,Santa Cruz das Palmeiras,9.82,Casa Branca - A.P.
+2022,612,Santa Cruz do Rio Pardo,9.82,Piratininga - A.P.
+2022,613,Santa Ernestina,9.82,Catanduva - A.P.
+2022,614,Santa Fé do Sul,8.2,
+2022,615,Santa Gertrudes,9.82,Rio das Pedras - A.P.
+2022,616,Santa Isabel,7.45,Santa Isabel - A.P.
+2022,617,Santa Lúcia,8.3,
+2022,618,Santa Maria da Serra,9.82,Rio das Pedras - A.P.
+2022,619,Santa Mercedes,9.09,Adamantina - A.P.
+2022,624,Santana da Ponte Pensa,9,
+2022,623,Santana de Parnaíba,8.2,Santana de Parnaíba - A.P.
+2022,620,Santa Rita d`Oeste,8.5,
+2022,621,Santa Rita do Passa Quatro,3.9,
+2022,622,Santa Rosa de Viterbo,9.2,Sta. Rosa de Viterbo - A.P.
+2022,782,Santa Salete,7.5,Urânia
+2022,625,Santo Anastácio,9.09,Adamantina - A.P.
+2022,626,Santo André,9.1,
+2022,627,Santo Antônio da Alegria,7.3,
+2022,630,Santo Antônio de Posse,9.82,Paulínia - A.P.
+2022,760,Santo Antônio do Aracanguá,9.5,
+2022,628,Santo Antônio do Jardim,9.82,Casa Branca - A.P.
+2022,629,Santo Antônio do Pinhal,9.36,Tremembé - A.P.
+2022,631,Santo Expedito,8.5,
+2022,632,Santópolis do Aguapeí,9.5,
+2022,633,Santos,9.45,Santos - A.P.
+2022,634,São Bento do Sapucaí,9.36,Tremembé - A.P.
+2022,635,São Bernardo do Campo,7.45,Mauá - A.P.
+2022,636,São Caetano do Sul,7.45,Mauá - A.P.
+2022,637,São Carlos,10,
+2022,638,São Francisco,4.7,
+2022,639,São João da Boa Vista,9.82,Tapiratiba - A.P.
+2022,640,São João das Duas Pontes,7.4,
+2022,761,São João de Iracema,10,Meridiano - A.P.
+2022,641,São João do Pau d`Alho,9.5,
+2022,642,São Joaquim da Barra,9.36,Sales Oliveira - A.P.
+2022,644,São José da Bela Vista,7.1,
+2022,643,São José do Barreiro,9.45,Cachoeira Paulista - A.P.
+2022,646,São José do Rio Pardo,9.82,Tapiratiba - A.P.
+2022,647,São José do Rio Preto,10,Onda Verde - A.P.
+2022,645,São José dos Campos,10,
+2022,772,São Lourenço da Serra,9.45,Caieiras - A.P.
+2022,648,São Luís do Paraitinga,9.09,Jambeiro - A.P.
+2022,649,São Manuel,5.5,
+2022,650,São Miguel Arcanjo,8.6,
+2022,100,São Paulo,9.6,Caieiras - A.P.
+2022,651,São Pedro,9.82,Rio das Pedras - A.P.
+2022,652,São Pedro do Turvo,7.7,
+2022,653,São Roque,8.55,Itapevi - A.P.
+2022,654,São Sebastião,9.2,"Jambeiro - A.P., Santos - A.P."
+2022,655,São Sebastião da Grama,8.2,
+2022,656,São Simão,5.1,
+2022,657,São Vicente,9.45,Santos - A.P.
+2022,658,Sarapuí,9.55,Iperó - A.P.
+2022,659,Sarutaiá,10,
+2022,660,Sebastianópolis do Sul,10,Meridiano - A.P.
+2022,661,Serra Azul,10,Jardinópolis - A.P.
+2022,663,Serrana,9.36,Sales Oliveira - A.P.
+2022,662,Serra Negra,9.82,Paulínia - A.P.
+2022,664,Sertãozinho,10,Jardinópolis - A.P.
+2022,665,Sete Barras,9.45,Caieiras - A.P.
+2022,666,Severínia,8.5,
+2022,667,Silveiras,9.45,Cachoeira Paulista - A.P.
+2022,668,Socorro,7.9,
+2022,669,Sorocaba,9.55,Iperó - A.P.
+2022,670,Sud Mennucci,7.7,
+2022,671,Sumaré,9.82,Paulínia - A.P.
+2022,672,Suzano,9.09,Jambeiro - A.P.
+2022,762,Suzanápolis,9.1,
+2022,673,Tabapuã,9.82,Catanduva - A.P.
+2022,674,Tabatinga,7.6,
+2022,675,Taboão da Serra,9.45,Caieiras - A.P.
+2022,676,Taciba,8.5,
+2022,677,Taguaí,7.5,
+2022,678,Taiaçu,7.9,
+2022,679,Taiúva,9,
+2022,680,Tambaú,7.9,
+2022,681,Tanabi,10,Onda Verde - A.P.
+2022,682,Tapiraí,9,
+2022,683,Tapiratiba,9.82,Tapiratiba - A.P.
+2022,785,Taquaral,8.1,
+2022,684,Taquaritinga,7.1,
+2022,685,Taquarituba,7.8,
+2022,763,Taquarivaí,8.8,
+2022,686,Tarabai,8.3,Pirapozinho - A.P.
+2022,731,Tarumã,9.55,Quatá - A.P.
+2022,687,Tatuí,9.4,Cesário Lange - A.P.
+2022,688,Taubaté,9.36,Tremembé - A.P.
+2022,689,Tejupá,7.2,
+2022,690,Teodoro Sampaio,7.4,
+2022,691,Terra Roxa,6.1,
+2022,692,Tietê,9.55,Iperó - A.P.
+2022,693,Timburi,9.5,
+2022,773,Torre de Pedra,9.4,Cesário Lange - A.P.
+2022,694,Torrinha,9.82,Rio das Pedras - A.P.
+2022,794,Trabiju,8,
+2022,695,Tremembé,9.36,Tremembé - A.P.
+2022,696,Três Fronteiras,7.3,
+2022,764,Tuiuti,9.82,Paulínia - A.P.
+2022,697,Tupã,9.55,Quatá - A.P.
+2022,698,Tupi Paulista,8.6,
+2022,699,Turiúba,7.8,
+2022,700,Turmalina,8.4,
+2022,765,Ubarana,10,Onda Verde - A.P.
+2022,701,Ubatuba,9.09,Jambeiro - A.P.
+2022,702,Ubirajara,9.82,Piratininga - A.P.
+2022,703,Uchoa,10,Onda Verde - A.P.
+2022,704,União Paulista,6,
+2022,705,Urânia,7.5,
+2022,706,Uru,9.82,Catanduva - A.P.
+2022,707,Urupês,9.82,Catanduva - A.P.
+2022,709,Valentim Gentil,8.4,
+2022,708,Valinhos,9.82,Paulínia - A.P.
+2022,710,Valparaíso,8.7,
+2022,766,Vargem,9.82,Paulínia - A.P.
+2022,711,Vargem Grande do Sul,7.1,
+2022,720,Vargem Grande Paulista,9.45,Caieiras - A.P.
+2022,712,Várzea Paulista,9.45,Caieiras - A.P.
+2022,713,Vera Cruz,8.36,Marília - A.P.
+2022,714,Vinhedo,9.82,Paulínia - A.P.
+2022,715,Viradouro,9.3,
+2022,716,Vista Alegre do Alto,8,
+2022,783,Vitória Brasil,9,
+2022,717,Votorantim,7.8,
+2022,718,Votuporanga,10,Meridiano - A.P.
+2022,774,Zacarias,7.8,
+2022,719,Chavantes,5.1,
+2022,746,Estiva Gerbi,7.1,
+2023,150,Adamantina,9.6,Adamantina - A.P.
+2023,151,Adolfo,3.2,
+2023,152,Aguaí,9.82,Aguaí - A.P.
+2023,154,Águas da Prata,9.82,Paulínia - A.P.
+2023,153,Águas de Lindóia,9.82,Paulínia - A.P.
+2023,607,Águas de Santa Bárbara,9.6,Piratininga - A.P.
+2023,155,Águas de São Pedro,9.64,Rio das Pedras - A.P.
+2023,156,Agudos,7.1,                                                                                                                                                                                                                                                              
+2023,732,Alambari,9.8,Cesário Lange - A.P.
+2023,157,Alfredo Marcondes,8.6,
+2023,158,Altair,10,Onda Verde - A.P.
+2023,159,Altinópolis,8.36,Sales Oliveira - A.P.
+2023,160,Alto Alegre,7.1,
+2023,733,Alumínio,9.55,Iperó - A.P.
+2023,161,Álvares Florence,10,Meridiano - A.P.
+2023,162,Álvares Machado,9.6,Adamantina - A.P.
+2023,163,Álvaro de Carvalho,9.6,Piratininga - A.P.
+2023,164,Alvinlândia,9.6,Piratininga - A.P.
+2023,165,Americana,10,Americana - A.P.
+2023,166,Américo Brasiliense,9.82,Guatapará - A.P.
+2023,167,Américo de Campos,8.1,
+2023,168,Amparo,9.82,Paulínia - A.P.
+2023,169,Analândia,9.82,Guatapará - A.P.
+2023,170,Andradina,-1,Três Lagoas - MS
+2023,171,Angatuba,9.8,Cesário Lange - A.P.
+2023,172,Anhembi,8.9,
+2023,173,Anhumas,9.5,
+2023,174,Aparecida,9.4,Cachoeira Paulista - A.P.
+2023,175,Aparecida d`Oeste,9.6,
+2023,176,Apiaí,9.55,Iperó - A.P.
+2023,734,Araçariguama,9.18,                                                                                                                                                                                                                                                              
+2023,177,Araçatuba,9.7,
+2023,178,Araçoiaba da Serra,9.55,Iperó - A.P.
+2023,179,Aramina,-1,Uberaba - MG
+2023,180,Arandu,9.6,Piratininga - A.P.
+2023,735,Arapeí,-1,Barra Mansa - RJ
+2023,181,Araraquara,9.82,Guatapará - A.P.
+2023,182,Araras,9.82,Paulínia - A.P.
+2023,775,Arco-Íris,9.5,
+2023,183,Arealva,6.8,
+2023,184,Areias,9.4,Cachoeira Paulista - A.P.
+2023,185,Areiópolis,9.5,
+2023,186,Ariranha,9.82,Catanduva - A.P.
+2023,187,Artur Nogueira,9.5,Conchal - A.P.
+2023,188,Arujá,7.45,Santa Isabel - A.P.
+2023,736,Aspásia,9.2,
+2023,189,Assis,9.55,Quatá - A.P.
+2023,190,Atibaia,9.45,São Paulo - CDR
+2023,191,Auriflama,9.1,
+2023,192,Avaí,9.6,Piratininga - A.P.
+2023,193,Avanhandava,7.2,
+2023,194,Avaré,9.6,
+2023,195,Bady Bassitt,10,Onda Verde - A.P.
+2023,196,Balbinos,7.9,
+2023,197,Bálsamo,9,
+2023,198,Bananal,-1,Barra Mansa - RJ
+2023,199,Barão de Antonina,9.2,
+2023,200,Barbosa,7.2,
+2023,201,Bariri,9.6,Piratininga - A.P.
+2023,202,Barra Bonita,7.8,
+2023,737,Barra do Chapéu,4.4,
+2023,203,Barra do Turvo,7.6,
+2023,204,Barretos,8.36,Barretos - A.P.
+2023,205,Barrinha,9.82,Guatapará - A.P.
+2023,206,Barueri,9.4,Santana de Parnaíba - A.P.
+2023,207,Bastos,9.55,Quatá - A.P.
+2023,208,Batatais,8.36,Sales Oliveira - A.P.
+2023,209,Bauru,9.6,Piratininga - A.P.
+2023,210,Bebedouro,9.82,Catanduva - A.P.
+2023,211,Bento de Abreu,9,
+2023,212,Bernardino de Campos,9.6,Piratininga - A.P.
+2023,738,Bertioga,9.27,Santos - A.P.
+2023,213,Bilac,8.6,
+2023,214,Birigui,4.2,
+2023,215,Biritiba-Mirim,7.45,Santa Isabel - A.P.
+2023,216,Boa Esperança do Sul,9.82,Guatapará - A.P.
+2023,217,Bocaina,9.6,Piratininga - A.P.
+2023,218,Bofete,7.9,
+2023,219,Boituva,9.8,Cesário Lange - A.P.
+2023,220,Bom Jesus dos Perdões,9.45,São Paulo - CDR
+2023,739,Bom Sucesso de Itararé,4.1,
+2023,221,Borá,9.55,Quatá - A.P.
+2023,222,Boracéia,9.6,Piratininga - A.P.
+2023,223,Borborema,8.3,
+2023,721,Borebi,9.5,
+2023,224,Botucatu,7.3,
+2023,225,Bragança Paulista,7.7,Bragança Paulista - A.P.
+2023,226,Braúna,9.5,
+2023,776,Brejo Alegre,3.7,
+2023,227,Brodowski,10,Jardinópolis - A.P.
+2023,228,Brotas,9.64,Rio das Pedras - A.P.
+2023,229,Buri,5,
+2023,230,Buritama,9,
+2023,231,Buritizal,-1,Uberaba - MG
+2023,232,Cabrália Paulista,9.6,Piratininga - A.P.
+2023,233,Cabreúva,8.9,
+2023,234,Caçapava,10,Tremembé - A.P.
+2023,235,Cachoeira Paulista,9.4,Cachoeira Paulista - A.P.
+2023,236,Caconde,9.36,Tapiratiba - A.P.
+2023,237,Cafelândia,9.82,Catanduva - A.P.
+2023,238,Caiabu,9.8,Regente Feijó - A.P.
+2023,239,Caieiras,9.45,Caieiras - A.P.
+2023,240,Caiuá,6.6,
+2023,241,Cajamar,9.45,Caieiras - A.P.
+2023,740,Cajati,6.5,                                                                                                                                                                                                                                                              
+2023,242,Cajobi,8.2,
+2023,243,Cajuru,8.36,Sales Oliveira - A.P.
+2023,741,Campina do Monte Alegre,7.5,
+2023,244,Campinas,9.82,Paulínia - A.P.
+2023,245,Campo Limpo Paulista,9.45,Caieiras - A.P.
+2023,246,Campos do Jordão,10,Tremembé - A.P.
+2023,247,Campos Novos Paulista,9.3,
+2023,248,Cananéia,7.6,Pariquera-Açu
+2023,777,Canas,9.4,Cachoeira Paulista - A.P.
+2023,249,Cândido Mota,9.55,Quatá - A.P.
+2023,250,Cândido Rodrigues,7.5,
+2023,742,Canitar,9.6,Piratininga - A.P.
+2023,251,Capão Bonito,8.8,
+2023,252,Capela do Alto,9.55,Iperó - A.P.
+2023,253,Capivari,9.82,Paulínia - A.P.
+2023,254,Caraguatatuba,10,Jambeiro - A.P.
+2023,255,Carapicuíba,9.4,Santana de Parnaíba - A.P.
+2023,256,Cardoso,7.8,
+2023,257,Casa Branca,9.82,Casa Branca - A.P.
+2023,258,Cássia dos Coqueiros,7.6,
+2023,259,Castilho,9.5,
+2023,260,Catanduva,9.82,Catanduva - A.P.
+2023,261,Catiguá,9.82,Catanduva - A.P.
+2023,262,Cedral,10,Onda Verde - A.P.
+2023,263,Cerqueira César,6.1,
+2023,265,Cerquilho,8.6,
+2023,264,Cesário Lange,9.8,Cesário Lange - A.P.
+2023,266,Charqueada,9.64,Rio das Pedras - A.P.
+2023,267,Clementina,9.5,
+2023,268,Colina,9.6,
+2023,269,Colômbia,7.2,
+2023,270,Conchal,9.5,Conchal - A.P.
+2023,271,Conchas,9.64,Rio das Pedras - A.P.
+2023,272,Cordeirópolis,5.1,
+2023,273,Coroados,8.2,
+2023,274,Coronel Macedo,9.2,
+2023,275,Corumbataí,9.5,
+2023,276,Cosmópolis,9.82,Paulínia - A.P.
+2023,277,Cosmorama,7.1,
+2023,278,Cotia,9.45,Caieiras - A.P.
+2023,279,Cravinhos,9.82,Guatapará - A.P.
+2023,280,Cristais Paulista,10,Guará - A.P.
+2023,281,Cruzália,7.8,
+2023,282,Cruzeiro,9.4,Cachoeira Paulista - A.P.
+2023,283,Cubatão,9.27,Santos - A.P.
+2023,284,Cunha,9.4,Cachoeira Paulista - A.P.
+2023,285,Descalvado,9.82,Guatapará - A.P.
+2023,286,Diadema,9.27,Mauá - A.P.
+2023,722,Dirce Reis,8.6,
+2023,287,Divinolândia,9.36,Tapiratiba - A.P.
+2023,288,Dobrada,9.82,Guatapará - A.P.
+2023,289,Dois Córregos,8.2,
+2023,290,Dolcinópolis,10,Meridiano - A.P.
+2023,291,Dourado,9.1,
+2023,292,Dracena,9.6,Adamantina - A.P.
+2023,293,Duartina,6.7,
+2023,294,Dumont,9.82,Guatapará - A.P.
+2023,295,Echaporã,9.82,Marília - A.P.
+2023,296,Eldorado,7.2,                                                                                                                                                                                                                                                              
+2023,297,Elias Fausto,9.82,Indaiatuba - A.P.
+2023,743,Elisiário,9.82,Catanduva - A.P.
+2023,723,Embaúba,9.82,Catanduva - A.P.
+2023,298,Embu das Artes,7.48,Santana de Parnaíba - A.P.
+2023,299,Embu-Guaçu,9.45,Caieiras - A.P.
+2023,744,Emilianópolis,8.6,
+2023,745,Engenheiro Coelho,9.5,Conchal - A.P.
+2023,530,Espírito Santo do Pinhal,9.82,Casa Branca - A.P.
+2023,724,Espírito Santo do Turvo,9.6,Piratininga - A.P.
+2023,301,Estrela d`Oeste,8.3,
+2023,300,Estrela do Norte,9.8,Regente Feijó - A.P.
+2023,725,Euclides da Cunha Paulista,7.1,
+2023,302,Fartura,7.9,
+2023,304,Fernandópolis,10,Meridiano - A.P.
+2023,303,Fernando Prestes,8.3,
+2023,786,Fernão,9.82,Marília - A.P.
+2023,305,Ferraz de Vasconcelos,10,Jambeiro - A.P.
+2023,306,Flora Rica,9.6,Adamantina - A.P.
+2023,307,Floreal,8.4,
+2023,308,Flórida Paulista,7.5,
+2023,309,Florínia,8.5,
+2023,310,Franca,8.09,
+2023,311,Francisco Morato,9.45,Caieiras - A.P.
+2023,312,Franco da Rocha,9.45,Caieiras - A.P.
+2023,313,Gabriel Monteiro,9.5,
+2023,314,Gália,9.82,Marília - A.P.
+2023,315,Garça,9.82,Marília - A.P.
+2023,316,Gastão Vidigal,9.7,
+2023,787,Gavião Peixoto,7.9,
+2023,317,General Salgado,8.6,
+2023,318,Getulina,9.82,Marília - A.P.
+2023,319,Glicério,7.4,
+2023,320,Guaiçara,9.6,Piratininga - A.P.
+2023,321,Guaimbê,8.8,
+2023,322,Guaíra,8.36,Barretos - A.P.
+2023,323,Guapiaçu,10,Onda Verde - A.P.
+2023,324,Guapiara,8.7,
+2023,325,Guará,10,Guará - A.P.
+2023,326,Guaraçaí,7.5,
+2023,327,Guaraci,8.8,
+2023,328,Guarani d`Oeste,10,Meridiano - A.P.
+2023,329,Guarantã,9.6,Piratininga - A.P.
+2023,330,Guararapes,8.5,
+2023,331,Guararema,10,Jambeiro - A.P.
+2023,332,Guaratinguetá,9.4,Cachoeira Paulista - A.P.
+2023,333,Guareí,9.8,Cesário Lange - A.P.
+2023,334,Guariba,8.5,
+2023,335,Guarujá,9.27,Santos - A.P.
+2023,336,Guarulhos,9.6,
+2023,726,Guatapará,9.82,Guatapará - A.P.
+2023,337,Guzolândia,8.7,
+2023,338,Herculândia,9.82,Marília - A.P.
+2023,747,Holambra,9.82,Paulínia - A.P.
+2023,748,Hortolândia,9.82,Paulínia - A.P.
+2023,339,Iacanga,8.4,
+2023,340,Iacri,9.55,Quatá - A.P.
+2023,727,Iaras,9.6,Piratininga - A.P.
+2023,341,Ibaté,7.5,
+2023,342,Ibirá,9.82,Catanduva - A.P.
+2023,343,Ibirarema,9.7,
+2023,344,Ibitinga,9.82,Catanduva - A.P.
+2023,345,Ibiúna,9.55,Iperó - A.P.
+2023,346,Icém,10,Onda Verde - A.P.
+2023,347,Iepê,9.55,Quatá - A.P.
+2023,348,Igaraçu do Tietê,4.8,
+2023,349,Igarapava,10,Guará - A.P.
+2023,350,Igaratá,7.45,Santa Isabel - A.P.
+2023,351,Iguape,9.45,Caieiras - A.P.
+2023,352,Ilhabela,10,Jambeiro - A.P.
+2023,767,Ilha Comprida,9.45,Caieiras - A.P.
+2023,749,Ilha Solteira,7.9,
+2023,353,Indaiatuba,9.82,Indaiatuba - A.P.
+2023,354,Indiana,8.1,
+2023,355,Indiaporã,8.7,
+2023,356,Inúbia Paulista,9.5,
+2023,357,Ipaussu,9.1,
+2023,358,Iperó,9.55,Iperó - A.P.
+2023,359,Ipeúna,9.64,Rio das Pedras - A.P.
+2023,784,Ipiguá,10,Onda Verde - A.P.
+2023,360,Iporanga,10,
+2023,361,Ipuã,8.36,Sales Oliveira - A.P.
+2023,362,Iracemápolis,9.64,Rio das Pedras - A.P.
+2023,363,Irapuã,9.6,
+2023,364,Irapuru,9.6,Adamantina - A.P.
+2023,365,Itaberá,4,
+2023,366,Itaí,8.8,
+2023,367,Itajobi,9.82,Catanduva - A.P.
+2023,368,Itaju,8.4,
+2023,369,Itanhaém,9.27,Mauá - A.P.
+2023,750,Itaóca,8,
+2023,370,Itapecerica da Serra,9.45,Caieiras - A.P.
+2023,371,Itapetininga,9.8,Cesário Lange - A.P.
+2023,372,Itapeva,7.8,
+2023,373,Itapevi,9.09,Itapevi - A.P.
+2023,374,Itapira,9.4,
+2023,768,Itapirapuã Paulista,4.1,
+2023,375,Itápolis,9.82,Catanduva - A.P.
+2023,376,Itaporanga,9.6,Piratininga - A.P.
+2023,377,Itapuí,7.8,
+2023,378,Itapura,7.8,
+2023,379,Itaquaquecetuba,9.45,São Paulo - CDR
+2023,380,Itararé,9.1,
+2023,381,Itariri,7.5,
+2023,382,Itatiba,7.9,
+2023,383,Itatinga,7.3,Botucatu
+2023,384,Itirapina,4.4,
+2023,385,Itirapuã,8.36,Sales Oliveira - A.P.
+2023,386,Itobi,9.36,Tapiratiba - A.P.
+2023,387,Itu,9.3,
+2023,388,Itupeva,9.82,Paulínia - A.P.
+2023,389,Ituverava,-1,Uberaba - MG
+2023,390,Jaborandi,7.3,
+2023,391,Jaboticabal,10,
+2023,392,Jacareí,10,
+2023,393,Jaci,10,Onda Verde - A.P.
+2023,394,Jacupiranga,7.3,
+2023,395,Jaguariúna,9.82,Paulínia - A.P.
+2023,396,Jales,7.3,
+2023,397,Jambeiro,10,Jambeiro - A.P.
+2023,398,Jandira,9.09,Itapevi - A.P.
+2023,399,Jardinópolis,10,Jardinópolis - A.P.
+2023,400,Jarinu,8,
+2023,401,Jaú,9.6,Piratininga - A.P.
+2023,402,Jeriquara,-1,Uberaba - MG
+2023,403,Joanópolis,7.5,
+2023,404,João Ramalho,9.55,Quatá - A.P.
+2023,405,José Bonifácio,10,Onda Verde - A.P.
+2023,406,Júlio Mesquita,7.4,
+2023,788,Jumirim,9.64,Rio das Pedras - A.P.
+2023,407,Jundiaí,9.4,Santana de Parnaíba - A.P.
+2023,408,Junqueirópolis,7.1,
+2023,409,Juquiá,9.45,Caieiras - A.P.
+2023,410,Juquitiba,9.45,Caieiras - A.P.
+2023,411,Lagoinha,10,Tremembé - A.P.
+2023,412,Laranjal Paulista,9.8,Cesário Lange - A.P.
+2023,413,Lavínia,8.5,
+2023,414,Lavrinhas,9.4,Cachoeira Paulista - A.P.
+2023,415,Leme,7.5,
+2023,416,Lençóis Paulista,7.4,
+2023,417,Limeira,7.36,
+2023,418,Lindóia,9.82,Paulínia - A.P.
+2023,419,Lins,9.82,Catanduva - A.P.
+2023,420,Lorena,9.4,Cachoeira Paulista - A.P.
+2023,769,Lourdes,8.7,
+2023,421,Louveira,9.82,Paulínia - A.P.
+2023,422,Lucélia,9.6,Adamantina - A.P.
+2023,423,Lucianópolis,9.6,Piratininga - A.P.
+2023,424,Luís Antônio,9.82,Guatapará - A.P.
+2023,425,Luiziânia,9.5,
+2023,426,Lupércio,9.6,Piratininga - A.P.
+2023,427,Lutécia,9.55,Quatá - A.P.
+2023,428,Macatuba,9.2,
+2023,429,Macaubal,7.9,
+2023,430,Macedônia,7.6,
+2023,431,Magda,10,Meridiano - A.P.
+2023,432,Mairinque,9.18,                                                                                                                                                                                                                                                              
+2023,433,Mairiporã,9.45,São Paulo - CDR
+2023,434,Manduri,7.3,
+2023,435,Marabá Paulista,10,
+2023,436,Maracaí,8.5,
+2023,751,Marapoama,9.82,Catanduva - A.P.
+2023,437,Mariápolis,9.6,Adamantina - A.P.
+2023,438,Marília,9.82,Marília - A.P.
+2023,439,Marinópolis,8.3,
+2023,440,Martinópolis,9.55,Quatá - A.P.
+2023,441,Matão,6.6,
+2023,442,Mauá,9.27,Mauá - A.P.
+2023,443,Mendonça,9.82,Catanduva - A.P.
+2023,444,Meridiano,10,Meridiano - A.P.
+2023,770,Mesópolis,10,Meridiano - A.P.
+2023,445,Miguelópolis,8.36,Barretos - A.P.
+2023,446,Mineiros do Tietê,8.2,
+2023,448,Miracatu,9.45,Caieiras - A.P.
+2023,447,Mira Estrela,8,
+2023,449,Mirandópolis,-1,Três Lagoas - MS
+2023,450,Mirante do Paranapanema,9.7,
+2023,451,Mirassol,9.8,
+2023,452,Mirassolândia,9.5,
+2023,453,Mococa,8.1,
+2023,454,Mogi das Cruzes,10,Jambeiro - A.P.
+2023,455,Mogi Guaçu,9.82,Casa Branca - A.P.
+2023,456,Mogi Mirim,9.82,Casa Branca - A.P.
+2023,457,Mombuca,9.64,Rio das Pedras - A.P.
+2023,458,Monções,9.5,
+2023,459,Mongaguá,9.27,Santos - A.P.
+2023,460,Monte Alegre do Sul,9.82,Paulínia - A.P.
+2023,461,Monte Alto,8.36,Sales Oliveira - A.P.
+2023,462,Monte Aprazível,10,Onda Verde - A.P.
+2023,463,Monte Azul Paulista,8.8,
+2023,464,Monte Castelo,8.9,
+2023,466,Monteiro Lobato,10,Tremembé - A.P.
+2023,465,Monte Mor,9.82,Indaiatuba - A.P.
+2023,467,Morro Agudo,8.36,Sales Oliveira - A.P.
+2023,468,Morungaba,9.82,Paulínia - A.P.
+2023,729,Motuca,7.9,
+2023,469,Murutinga do Sul,9.1,
+2023,789,Nantes,9,
+2023,470,Narandiba,8.8,Pirapozinho - A.P.
+2023,471,Natividade da Serra,10,Tremembé - A.P.
+2023,472,Nazaré Paulista,7.45,Santa Isabel - A.P.
+2023,473,Neves Paulista,10,Onda Verde - A.P.
+2023,474,Nhandeara,10,Meridiano - A.P.
+2023,475,Nipoã,7.6,
+2023,476,Nova Aliança,10,Onda Verde - A.P.
+2023,771,Nova Campina,7.2,
+2023,752,Nova Canaã Paulista,8.9,
+2023,790,Nova Castilho,9.5,
+2023,477,Nova Europa,9.82,Catanduva - A.P.
+2023,478,Nova Granada,10,Onda Verde - A.P.
+2023,479,Nova Guataporanga,7.8,
+2023,480,Nova Independência,9.6,Adamantina - A.P.
+2023,753,Novais,9.82,Catanduva - A.P.
+2023,481,Nova Luzitânia,10,Meridiano - A.P.
+2023,482,Nova Odessa,9.82,Paulínia - A.P.
+2023,483,Novo Horizonte,9.82,Catanduva - A.P.
+2023,484,Nuporanga,8.36,Sales Oliveira - A.P.
+2023,485,Ocauçu,9.6,Piratininga - A.P.
+2023,486,Óleo,9.5,
+2023,487,Olímpia,10,Onda Verde - A.P.
+2023,488,Onda Verde,10,Onda Verde - A.P.
+2023,489,Oriente,9.5,
+2023,490,Orindiúva,9,
+2023,491,Orlândia,8.36,Sales Oliveira - A.P.
+2023,492,Osasco,9.4,
+2023,493,Oscar Bressane,9.82,Marília - A.P.
+2023,494,Osvaldo Cruz,9.2,Osvaldo Cruz - A.P.
+2023,495,Ourinhos,9.6,Piratininga - A.P.
+2023,791,Ouroeste,10,Meridiano - A.P.
+2023,496,Ouro Verde,8,
+2023,497,Pacaembu,8.5,
+2023,498,Palestina,10,Onda Verde - A.P.
+2023,499,Palmares Paulista,9.82,Catanduva - A.P.
+2023,500,Palmeira d`Oeste,9.7,
+2023,501,Palmital,9.55,Quatá - A.P.
+2023,502,Panorama,6.6,
+2023,503,Paraguaçu Paulista,9.55,Quatá - A.P.
+2023,504,Paraibuna,10,Jambeiro - A.P.
+2023,505,Paraíso,9.82,Catanduva - A.P.
+2023,506,Paranapanema,4.6,
+2023,508,Paranapuã,8.7,
+2023,509,Parapuã,8.5,
+2023,507,Pardinho,7.3,Botucatu
+2023,510,Pariquera-Açu,7.6,
+2023,754,Parisi,10,Meridiano - A.P.
+2023,511,Patrocínio Paulista,8.36,Sales Oliveira - A.P.
+2023,512,Paulicéia,7.1,
+2023,513,Paulínia,9.82,Paulínia - A.P.
+2023,792,Paulistânia,8.9,
+2023,514,Paulo de Faria,9,
+2023,515,Pederneiras,8.3,                                                                                                                                                                                                                                                              
+2023,516,Pedra Bela,7.7,Bragança Paulista - A.P.
+2023,517,Pedranópolis,10,Meridiano - A.P.
+2023,518,Pedregulho,10,Guará - A.P.
+2023,519,Pedreira,9.82,Paulínia - A.P.
+2023,755,Pedrinhas Paulista,9.7,
+2023,520,Pedro de Toledo,2.1,
+2023,521,Penápolis,9.4,
+2023,522,Pereira Barreto,9.6,
+2023,523,Pereiras,9.8,Cesário Lange - A.P.
+2023,524,Peruíbe,5.1,
+2023,525,Piacatu,9.5,
+2023,526,Piedade,9.55,Iperó - A.P.
+2023,527,Pilar do Sul,9.4,Salto - A.P.
+2023,528,Pindamonhangaba,10,Tremembé - A.P.
+2023,529,Pindorama,9.82,Catanduva - A.P.
+2023,531,Pinhalzinho,9.82,Paulínia - A.P.
+2023,532,Piquerobi,9.55,Quatá - A.P.
+2023,533,Piquete,9.4,Cachoeira Paulista - A.P.
+2023,534,Piracaia,9.82,Paulínia - A.P.
+2023,535,Piracicaba,9.18,                                                                                                                                                                                                                                                              
+2023,537,Piraju,9.6,Piratininga - A.P.
+2023,538,Pirajuí,9.6,Piratininga - A.P.
+2023,539,Pirangi,8.1,
+2023,540,Pirapora do Bom Jesus,9.4,Santana de Parnaíba - A.P.
+2023,541,Pirapozinho,8.8,Pirapozinho - A.P.
+2023,536,Pirassununga,9.82,Casa Branca - A.P.
+2023,542,Piratininga,9.6,Piratininga - A.P.
+2023,543,Pitangueiras,9.82,Catanduva - A.P.
+2023,544,Planalto,8.2,
+2023,545,Platina,9.55,Quatá - A.P.
+2023,546,Poá,10,Jambeiro - A.P.
+2023,547,Poloni,7.8,
+2023,548,Pompéia,9.55,Quatá - A.P.
+2023,549,Pongaí,9.82,Catanduva - A.P.
+2023,550,Pontal,8.36,Sales Oliveira - A.P.
+2023,756,Pontalinda,10,Meridiano - A.P.
+2023,551,Pontes Gestal,8.6,
+2023,552,Populina,7.4,
+2023,553,Porangaba,9.8,Cesário Lange - A.P.
+2023,554,Porto Feliz,9.55,Iperó - A.P.
+2023,555,Porto Ferreira,9,
+2023,757,Potim,9.4,Cachoeira Paulista - A.P.
+2023,556,Potirendaba,10,Onda Verde - A.P.
+2023,778,Pracinha,9.6,Adamantina - A.P.
+2023,557,Pradópolis,9.82,Guatapará - A.P.
+2023,558,Praia Grande,9.27,Mauá - A.P.
+2023,779,Pratânia,7.7,
+2023,559,Presidente Alves,7.6,
+2023,560,Presidente Bernardes,9.55,Quatá - A.P.
+2023,561,Presidente Epitácio,7.3,
+2023,562,Presidente Prudente,9.6,Adamantina - A.P.
+2023,563,Presidente Venceslau,9.8,Regente Feijó - A.P.
+2023,564,Promissão,9.82,Catanduva - A.P.
+2023,780,Quadra,9.8,Cesário Lange - A.P.
+2023,565,Quatá,9.55,Quatá - A.P.
+2023,566,Queiroz,7.9,
+2023,567,Queluz,9.4,Cachoeira Paulista - A.P.
+2023,568,Quintana,9.5,
+2023,569,Rafard,9.64,Rio das Pedras - A.P.
+2023,570,Rancharia,9.55,Quatá - A.P.
+2023,571,Redenção da Serra,10,Jambeiro - A.P.
+2023,572,Regente Feijó,9.8,Regente Feijó - A.P.
+2023,573,Reginópolis,7.1,
+2023,574,Registro,7.5,
+2023,575,Restinga,7.3,
+2023,576,Ribeira,-1,Rio Negrinho - SC
+2023,577,Ribeirão Bonito,7.3,
+2023,578,Ribeirão Branco,5.5,
+2023,579,Ribeirão Corrente,9,
+2023,580,Ribeirão do Sul,5.7,
+2023,793,Ribeirão dos Índios,8.8,
+2023,758,Ribeirão Grande,8.9,
+2023,581,Ribeirão Pires,9.27,Mauá - A.P.
+2023,582,Ribeirão Preto,9.82,Guatapará - A.P.
+2023,583,Riversul,4.5,
+2023,584,Rifaina,9,
+2023,585,Rincão,9.82,Guatapará - A.P.
+2023,586,Rinópolis,10,
+2023,587,Rio Claro,8.9,
+2023,588,Rio das Pedras,9.82,Paulínia - A.P.
+2023,589,Rio Grande da Serra,9.27,Mauá - A.P.
+2023,590,Riolândia,8,
+2023,730,Rosana,8.5,
+2023,591,Roseira,9.4,Cachoeira Paulista - A.P.
+2023,592,Rubiácea,9,
+2023,593,Rubinéia,8.4,Santa Fé do Sul
+2023,594,Sabino,9.82,Catanduva - A.P.
+2023,595,Sagres,8.5,
+2023,596,Sales,9.82,Catanduva - A.P.
+2023,597,Sales Oliveira,8.36,Sales Oliveira - A.P.
+2023,598,Salesópolis,10,Jambeiro - A.P.
+2023,599,Salmourão,9.1,
+2023,759,Saltinho,9.64,Rio das Pedras - A.P.
+2023,600,Salto,9.4,Salto - A.P.
+2023,602,Salto de Pirapora,7.1,
+2023,601,Salto Grande,9.6,Piratininga - A.P.
+2023,603,Sandovalina,8.8,Pirapozinho - A.P.
+2023,604,Santa Adélia,9.82,Catanduva - A.P.
+2023,605,Santa Albertina,8.8,
+2023,606,Santa Bárbara d`Oeste,10,Americana - A.P.
+2023,608,Santa Branca,10,Jambeiro - A.P.
+2023,609,Santa Clara d`Oeste,10,Meridiano - A.P.
+2023,610,Santa Cruz da Conceição,9.82,Paulínia - A.P.
+2023,781,Santa Cruz da Esperança,9.1,
+2023,611,Santa Cruz das Palmeiras,9.82,Casa Branca - A.P.
+2023,612,Santa Cruz do Rio Pardo,9.6,Piratininga - A.P.
+2023,613,Santa Ernestina,6.9,
+2023,614,Santa Fé do Sul,8.4,
+2023,615,Santa Gertrudes,9.64,Rio das Pedras - A.P.
+2023,616,Santa Isabel,7.45,Santa Isabel - A.P.
+2023,617,Santa Lúcia,8.7,
+2023,618,Santa Maria da Serra,9.64,Rio das Pedras - A.P.
+2023,619,Santa Mercedes,9.6,Adamantina - A.P.
+2023,624,Santana da Ponte Pensa,10,Meridiano - A.P.
+2023,623,Santana de Parnaíba,9.4,Santana de Parnaíba - A.P.
+2023,620,Santa Rita d`Oeste,7.1,
+2023,621,Santa Rita do Passa Quatro,9.82,Casa Branca - A.P.
+2023,622,Santa Rosa de Viterbo,9.2,
+2023,782,Santa Salete,7.7,
+2023,625,Santo Anastácio,9.6,Adamantina - A.P.
+2023,626,Santo André,9.1,
+2023,627,Santo Antônio da Alegria,8.2,
+2023,630,Santo Antônio de Posse,9.82,Paulínia - A.P.
+2023,760,Santo Antônio do Aracanguá,7.2,
+2023,628,Santo Antônio do Jardim,9.82,Casa Branca - A.P.
+2023,629,Santo Antônio do Pinhal,10,Tremembé - A.P.
+2023,631,Santo Expedito,6.8,
+2023,632,Santópolis do Aguapeí,8.7,
+2023,633,Santos,9.27,Santos - A.P.
+2023,634,São Bento do Sapucaí,10,Tremembé - A.P.
+2023,635,São Bernardo do Campo,9.27,Mauá - A.P.
+2023,636,São Caetano do Sul,9.27,Mauá - A.P.
+2023,637,São Carlos,10,
+2023,638,São Francisco,7.9,
+2023,639,São João da Boa Vista,9.82,Paulínia - A.P.
+2023,640,São João das Duas Pontes,9,
+2023,761,São João de Iracema,10,Meridiano - A.P.
+2023,641,São João do Pau d`Alho,9.1,
+2023,642,São Joaquim da Barra,8.36,Sales Oliveira - A.P.
+2023,644,São José da Bela Vista,7.1,
+2023,643,São José do Barreiro,9.4,Cachoeira Paulista - A.P.
+2023,646,São José do Rio Pardo,9.36,Tapiratiba - A.P.
+2023,647,São José do Rio Preto,10,Onda Verde - A.P.
+2023,645,São José dos Campos,10,
+2023,772,São Lourenço da Serra,9.45,Caieiras - A.P.
+2023,648,São Luís do Paraitinga,10,Jambeiro - A.P.
+2023,649,São Manuel,7.2,
+2023,650,São Miguel Arcanjo,9,
+2023,100,São Paulo,9.5,Caieiras - A.P.
+2023,651,São Pedro,9.64,Rio das Pedras - A.P.
+2023,652,São Pedro do Turvo,7.3,
+2023,653,São Roque,9.55,Iperó - A.P.
+2023,654,São Sebastião,9.78,"Jambeiro - A.P., Santos - A.P."
+2023,655,São Sebastião da Grama,8.2,
+2023,656,São Simão,9.82,Guatapará - A.P.
+2023,657,São Vicente,9.27,Santos - A.P.
+2023,658,Sarapuí,9.55,Iperó - A.P.
+2023,659,Sarutaiá,8.6,
+2023,660,Sebastianópolis do Sul,10,Meridiano - A.P.
+2023,661,Serra Azul,10,Jardinópolis - A.P.
+2023,663,Serrana,8.36,Sales Oliveira - A.P.
+2023,662,Serra Negra,9.82,Paulínia - A.P.
+2023,664,Sertãozinho,10,Jardinópolis - A.P.
+2023,665,Sete Barras,9.45,Caieiras - A.P.
+2023,666,Severínia,7.8,
+2023,667,Silveiras,9.4,Cachoeira Paulista - A.P.
+2023,668,Socorro,8.4,
+2023,669,Sorocaba,9.55,Iperó - A.P.
+2023,670,Sud Mennucci,8.6,
+2023,671,Sumaré,9.82,Paulínia - A.P.
+2023,672,Suzano,10,Jambeiro - A.P.
+2023,762,Suzanápolis,8.7,
+2023,673,Tabapuã,9.82,Catanduva - A.P.
+2023,674,Tabatinga,9.82,Catanduva - A.P.
+2023,675,Taboão da Serra,9.45,Caieiras - A.P.
+2023,676,Taciba,8.6,
+2023,677,Taguaí,7.3,
+2023,678,Taiaçu,7.4,
+2023,679,Taiúva,7.3,
+2023,680,Tambaú,7.2,
+2023,681,Tanabi,10,Onda Verde - A.P.
+2023,682,Tapiraí,9,
+2023,683,Tapiratiba,9.36,Tapiratiba - A.P.
+2023,785,Taquaral,8.1,
+2023,684,Taquaritinga,6.2,
+2023,685,Taquarituba,7.5,
+2023,763,Taquarivaí,8.8,
+2023,686,Tarabai,8.8,Pirapozinho - A.P.
+2023,731,Tarumã,9.55,Quatá - A.P.
+2023,687,Tatuí,9.8,Cesário Lange - A.P.
+2023,688,Taubaté,10,Tremembé - A.P.
+2023,689,Tejupá,7.2,
+2023,690,Teodoro Sampaio,7.1,
+2023,691,Terra Roxa,3.4,
+2023,692,Tietê,9.55,Iperó - A.P.
+2023,693,Timburi,9.5,
+2023,773,Torre de Pedra,9.8,Cesário Lange - A.P.
+2023,694,Torrinha,9.64,Rio das Pedras - A.P.
+2023,794,Trabiju,4.1,
+2023,695,Tremembé,10,Tremembé - A.P.
+2023,696,Três Fronteiras,7.1,
+2023,764,Tuiuti,9.82,Paulínia - A.P.
+2023,697,Tupã,9.6,Adamantina - A.P.
+2023,698,Tupi Paulista,9.5,
+2023,699,Turiúba,7.8,
+2023,700,Turmalina,7.9,
+2023,765,Ubarana,10,Onda Verde - A.P.
+2023,701,Ubatuba,10,Jambeiro - A.P.
+2023,702,Ubirajara,9.6,Piratininga - A.P.
+2023,703,Uchoa,10,Onda Verde - A.P.
+2023,704,União Paulista,4.8,
+2023,705,Urânia,7.9,
+2023,706,Uru,9.82,Catanduva - A.P.
+2023,707,Urupês,9.82,Catanduva - A.P.
+2023,709,Valentim Gentil,8.6,
+2023,708,Valinhos,9.82,Paulínia - A.P.
+2023,710,Valparaíso,9,
+2023,766,Vargem,9.82,Paulínia - A.P.
+2023,711,Vargem Grande do Sul,7.8,
+2023,720,Vargem Grande Paulista,9.45,Caieiras - A.P.
+2023,712,Várzea Paulista,9.45,Caieiras - A.P.
+2023,713,Vera Cruz,9.82,Marília - A.P.
+2023,714,Vinhedo,9.82,Paulínia - A.P.
+2023,715,Viradouro,9.3,
+2023,716,Vista Alegre do Alto,8.6,
+2023,783,Vitória Brasil,8.7,
+2023,717,Votorantim,2.5,
+2023,718,Votuporanga,10,Meridiano - A.P.
+2023,774,Zacarias,9,
+2023,719,Chavantes,7.3,
+2023,746,Estiva Gerbi,7.6,
+2024,150,Adamantina,8.73,Adamantina - A.P.
+2024,151,Adolfo,9.82,Catanduva - A.P.
+2024,152,Aguaí,9.82,Aguaí - A.P.
+2024,154,Águas da Prata,8.8,Tapiratiba - A.P.
+2024,153,Águas de Lindóia,9.18,Paulínia - A.P.
+2024,607,Águas de Santa Bárbara,9.64,Piratininga - A.P.
+2024,155,Águas de São Pedro,9,Rio das Pedras - A.P.
+2024,156,Agudos,7.5,                                                                                                                                                                                                                                                              
+2024,732,Alambari,9.8,Cesário Lange - A.P.
+2024,157,Alfredo Marcondes,8.7,                                                                                                                                                                                                                                                              
+2024,158,Altair,10,Onda Verde - A.P.
+2024,159,Altinópolis,8,Sales Oliveira - A.P.
+2024,160,Alto Alegre,9.5,                                                                                                                                                                                                                                                              
+2024,733,Alumínio,9.18,Iperó - A.P.
+2024,161,Álvares Florence,10,Meridiano - A.P.
+2024,162,Álvares Machado,9.55,Quatá - A.P.
+2024,163,Álvaro de Carvalho,9.55,Marília - A.P.
+2024,164,Alvinlândia,9.55,Marília - A.P.
+2024,165,Americana,10,Americana - A.P.
+2024,166,Américo Brasiliense,9.55,Guatapará - A.P.
+2024,167,Américo de Campos,8.5,                                                                                                                                                                                                                                                              
+2024,168,Amparo,9.18,Paulínia - A.P.
+2024,169,Analândia,9.55,Guatapará - A.P.
+2024,170,Andradina,-1,Três Lagoas - MS
+2024,171,Angatuba,9.8,Cesário Lange - A.P.
+2024,172,Anhembi,8.1,                                                                                                                                                                                                                                                              
+2024,173,Anhumas,9.1,                                                                                                                                                                                                                                                              
+2024,174,Aparecida,9.64,Cachoeira Paulista - A.P.
+2024,175,Aparecida d`Oeste,8,                                                                                                                                                                                                                                                              
+2024,176,Apiaí,9.18,Iperó - A.P.
+2024,734,Araçariguama,9.4,Itapevi - A.P.
+2024,177,Araçatuba,9.7,                                                                                                                                                                                                                                                              
+2024,178,Araçoiaba da Serra,9.18,Iperó - A.P.
+2024,179,Aramina,-1,Uberaba - MG
+2024,180,Arandu,9.64,Piratininga - A.P.
+2024,735,Arapeí,-1,Barra Mansa - RJ
+2024,181,Araraquara,9.55,Guatapará - A.P.
+2024,182,Araras,9,Rio das Pedras - A.P.
+2024,775,Arco-Íris,7.6,                                                                                                                                                                                                                                                              
+2024,183,Arealva,6.7,                                                                                                                                                                                                                                                              
+2024,184,Areias,9.64,Cachoeira Paulista - A.P.
+2024,185,Areiópolis,8.3,                                                                                                                                                                                                                                                              
+2024,186,Ariranha,9.82,Catanduva - A.P.
+2024,187,Artur Nogueira,9.7,Conchal - A.P.
+2024,188,Arujá,10,                                                                                                                                                                                                                                                              
+2024,736,Aspásia,9.7,                                                                                                                                                                                                                                                              
+2024,189,Assis,9.55,Quatá - A.P.
+2024,190,Atibaia,9.45,São Paulo - CDR
+2024,191,Auriflama,10,Meridiano - A.P.
+2024,192,Avaí,9.64,Piratininga - A.P.
+2024,193,Avanhandava,8.6,                                                                                                                                                                                                                                                              
+2024,194,Avaré,7.6,                                                                                                                                                                                                                                                              
+2024,195,Bady Bassitt,10,Onda Verde - A.P.
+2024,196,Balbinos,7.4,                                                                                                                                                                                                                                                              
+2024,197,Bálsamo,10,Onda Verde - A.P.
+2024,198,Bananal,-1,Barra Mansa - RJ
+2024,199,Barão de Antonina,9.2,                                                                                                                                                                                                                                                              
+2024,200,Barbosa,7.3,                                                                                                                                                                                                                                                              
+2024,201,Bariri,9.64,Piratininga - A.P.
+2024,202,Barra Bonita,7.6,                                                                                                                                                                                                                                                              
+2024,737,Barra do Chapéu,4.2,                                                                                                                                                                                                                                                              
+2024,203,Barra do Turvo,8.7,                                                                                                                                                                                                                                                              
+2024,204,Barretos,9.18,Barretos - A.P.
+2024,205,Barrinha,9.55,Guatapará - A.P.
+2024,206,Barueri,9.2,Santana de Parnaíba - A.P.
+2024,207,Bastos,9.55,Quatá - A.P.
+2024,208,Batatais,8,Sales Oliveira - A.P.
+2024,209,Bauru,9.64,Piratininga - A.P.
+2024,210,Bebedouro,9.82,Catanduva - A.P.
+2024,211,Bento de Abreu,9,                                                                                                                                                                                                                                                              
+2024,212,Bernardino de Campos,9.64,Piratininga - A.P.
+2024,738,Bertioga,9.27,Santos - A.P.
+2024,213,Bilac,8.4,                                                                                                                                                                                                                                                              
+2024,214,Birigui,7.5,                                                                                                                                                                                                                                                              
+2024,215,Biritiba-Mirim,7.91,Santa Isabel - A.P.
+2024,216,Boa Esperança do Sul,9.55,Guatapará - A.P.
+2024,217,Bocaina,9.64,Piratininga - A.P.
+2024,218,Bofete,8,                                                                                                                                                                                                                                                              
+2024,219,Boituva,9.8,Cesário Lange - A.P.
+2024,220,Bom Jesus dos Perdões,9.45,São Paulo - CDR
+2024,739,Bom Sucesso de Itararé,9.18,Iperó - A.P.
+2024,221,Borá,9.55,Quatá - A.P.
+2024,222,Boracéia,9.64,Piratininga - A.P.
+2024,223,Borborema,8.3,                                                                                                                                                                                                                                                              
+2024,721,Borebi,9.7,                                                                                                                                                                                                                                                              
+2024,224,Botucatu,7.6,                                                                                                                                                                                                                                                              
+2024,225,Bragança Paulista,8.82,Bragança Paulista - A.P.
+2024,226,Braúna,8,                                                                                                                                                                                                                                                              
+2024,776,Brejo Alegre,6.3,                                                                                                                                                                                                                                                              
+2024,227,Brodowski,9.09,Jardinópolis - A.P.
+2024,228,Brotas,9.82,Casa Branca - A.P.
+2024,229,Buri,6.1,                                                                                                                                                                                                                                                              
+2024,230,Buritama,7.8,                                                                                                                                                                                                                                                              
+2024,231,Buritizal,-1,Uberaba - MG
+2024,232,Cabrália Paulista,9.64,Piratininga - A.P.
+2024,233,Cabreúva,9.1,                                                                                                                                                                                                                                                              
+2024,234,Caçapava,9.82,Tremembé - A.P.
+2024,235,Cachoeira Paulista,9.64,Cachoeira Paulista - A.P.
+2024,236,Caconde,8.8,Tapiratiba - A.P.
+2024,237,Cafelândia,9.82,Catanduva - A.P.
+2024,238,Caiabu,9.8,Regente Feijó - A.P.
+2024,239,Caieiras,9.45,Caieiras - A.P.
+2024,240,Caiuá,8.6,                                                                                                                                                                                                                                                              
+2024,241,Cajamar,9.45,Caieiras - A.P.
+2024,740,Cajati,7.4,                                                                                                                                                                                                                                                              
+2024,242,Cajobi,8.8,                                                                                                                                                                                                                                                              
+2024,243,Cajuru,8,Sales Oliveira - A.P.
+2024,741,Campina do Monte Alegre,9,                                                                                                                                                                                                                                                              
+2024,244,Campinas,9.18,Paulínia - A.P.
+2024,245,Campo Limpo Paulista,9.45,Caieiras - A.P.
+2024,246,Campos do Jordão,9.82,Tremembé - A.P.
+2024,247,Campos Novos Paulista,9.3,                                                                                                                                                                                                                                                              
+2024,248,Cananéia,8.7,Pariquera-Açu
+2024,777,Canas,9.64,Cachoeira Paulista - A.P.
+2024,249,Cândido Mota,9.55,Quatá - A.P.
+2024,250,Cândido Rodrigues,7.5,                                                                                                                                                                                                                                                              
+2024,742,Canitar,9.64,Piratininga - A.P.
+2024,251,Capão Bonito,8.5,                                                                                                                                                                                                                                                              
+2024,252,Capela do Alto,9.18,Iperó - A.P.
+2024,253,Capivari,9.18,Paulínia - A.P.
+2024,254,Caraguatatuba,10,Jambeiro - A.P.
+2024,255,Carapicuíba,9.2,Santana de Parnaíba - A.P.
+2024,256,Cardoso,4.5,                                                                                                                                                                                                                                                              
+2024,257,Casa Branca,9.82,Casa Branca - A.P.
+2024,258,Cássia dos Coqueiros,7.4,                                                                                                                                                                                                                                                              
+2024,259,Castilho,9,                                                                                                                                                                                                                                                              
+2024,260,Catanduva,9.82,Catanduva - A.P.
+2024,261,Catiguá,9.82,Catanduva - A.P.
+2024,262,Cedral,10,Onda Verde - A.P.
+2024,263,Cerqueira César,5.7,                                                                                                                                                                                                                                                              
+2024,265,Cerquilho,9,                                                                                                                                                                                                                                                              
+2024,264,Cesário Lange,9.8,Cesário Lange - A.P.
+2024,266,Charqueada,9,Rio das Pedras - A.P.
+2024,267,Clementina,7.9,                                                                                                                                                                                                                                                              
+2024,268,Colina,9.3,                                                                                                                                                                                                                                                              
+2024,269,Colômbia,8.4,                                                                                                                                                                                                                                                              
+2024,270,Conchal,9.7,Conchal - A.P.
+2024,271,Conchas,9,Rio das Pedras - A.P.
+2024,272,Cordeirópolis,8.4,                                                                                                                                                                                                                                                              
+2024,273,Coroados,7.8,                                                                                                                                                                                                                                                              
+2024,274,Coronel Macedo,9.5,                                                                                                                                                                                                                                                              
+2024,275,Corumbataí,9.5,                                                                                                                                                                                                                                                              
+2024,276,Cosmópolis,9.18,Paulínia - A.P.
+2024,277,Cosmorama,10,Meridiano - A.P.
+2024,278,Cotia,9.2,Santana de Parnaíba - A.P.
+2024,279,Cravinhos,10,Guará - A.P.
+2024,280,Cristais Paulista,10,Guará - A.P.
+2024,281,Cruzália,8.4,                                                                                                                                                                                                                                                              
+2024,282,Cruzeiro,9.64,Cachoeira Paulista - A.P.
+2024,283,Cubatão,9.27,Mauá - A.P.
+2024,284,Cunha,9.64,Cachoeira Paulista - A.P.
+2024,285,Descalvado,9.55,Guatapará - A.P.
+2024,286,Diadema,9.27,Mauá - A.P.
+2024,722,Dirce Reis,9,                                                                                                                                                                                                                                                              
+2024,287,Divinolândia,8.8,Tapiratiba - A.P.
+2024,288,Dobrada,9.55,Guatapará - A.P.
+2024,289,Dois Córregos,8.2,                                                                                                                                                                                                                                                              
+2024,290,Dolcinópolis,10,Meridiano - A.P.
+2024,291,Dourado,6.6,                                                                                                                                                                                                                                                              
+2024,292,Dracena,8.73,Adamantina - A.P.
+2024,293,Duartina,5,                                                                                                                                                                                                                                                              
+2024,294,Dumont,9.55,Guatapará - A.P.
+2024,295,Echaporã,9.55,Marília - A.P.
+2024,296,Eldorado,8.7,                                                                                                                                                                                                                                                              
+2024,297,Elias Fausto,9.82,Indaiatuba - A.P.
+2024,743,Elisiário,9.82,Catanduva - A.P.
+2024,723,Embaúba,10,Onda Verde - A.P.
+2024,298,Embu das Artes,9.2,Santana de Parnaíba - A.P.
+2024,299,Embu-Guaçu,9.45,Caieiras - A.P.
+2024,744,Emilianópolis,8.6,                                                                                                                                                                                                                                                              
+2024,745,Engenheiro Coelho,9.7,Conchal - A.P.
+2024,530,Espírito Santo do Pinhal,9.82,Casa Branca - A.P.
+2024,724,Espírito Santo do Turvo,9.64,Piratininga - A.P.
+2024,301,Estrela d`Oeste,9.2,                                                                                                                                                                                                                                                              
+2024,300,Estrela do Norte,9.8,Regente Feijó - A.P.
+2024,725,Euclides da Cunha Paulista,7.5,                                                                                                                                                                                                                                                              
+2024,302,Fartura,7.8,                                                                                                                                                                                                                                                              
+2024,304,Fernandópolis,10,Meridiano - A.P.
+2024,303,Fernando Prestes,8.3,                                                                                                                                                                                                                                                              
+2024,786,Fernão,9.55,Marília - A.P.
+2024,305,Ferraz de Vasconcelos,9.45,São Paulo - CDR
+2024,306,Flora Rica,8.73,Adamantina - A.P.
+2024,307,Floreal,7.9,                                                                                                                                                                                                                                                              
+2024,308,Flórida Paulista,9.6,                                                                                                                                                                                                                                                              
+2024,309,Florínia,8.8,                                                                                                                                                                                                                                                              
+2024,310,Franca,7.45,                                                                                                                                                                                                                                                              
+2024,311,Francisco Morato,9.45,Caieiras - A.P.
+2024,312,Franco da Rocha,9.45,Caieiras - A.P.
+2024,313,Gabriel Monteiro,9.5,                                                                                                                                                                                                                                                              
+2024,314,Gália,9.55,Marília - A.P.
+2024,315,Garça,9.55,Marília - A.P.
+2024,316,Gastão Vidigal,9.2,                                                                                                                                                                                                                                                              
+2024,787,Gavião Peixoto,7.9,                                                                                                                                                                                                                                                              
+2024,317,General Salgado,7.5,                                                                                                                                                                                                                                                              
+2024,318,Getulina,9.55,Marília - A.P.
+2024,319,Glicério,7.8,                                                                                                                                                                                                                                                              
+2024,320,Guaiçara,9.64,Piratininga - A.P.
+2024,321,Guaimbê,9.6,                                                                                                                                                                                                                                                              
+2024,322,Guaíra,9.18,Barretos - A.P.
+2024,323,Guapiaçu,10,Onda Verde - A.P.
+2024,324,Guapiara,8,                                                                                                                                                                                                                                                              
+2024,325,Guará,10,Guará - A.P.
+2024,326,Guaraçaí,7.5,                                                                                                                                                                                                                                                              
+2024,327,Guaraci,9.6,                                                                                                                                                                                                                                                              
+2024,328,Guarani d`Oeste,10,Meridiano - A.P.
+2024,329,Guarantã,9.55,Marília - A.P.
+2024,330,Guararapes,8.5,                                                                                                                                                                                                                                                              
+2024,331,Guararema,10,Jambeiro - A.P.
+2024,332,Guaratinguetá,9.64,Cachoeira Paulista - A.P.
+2024,333,Guareí,9.8,Cesário Lange - A.P.
+2024,334,Guariba,9.1,                                                                                                                                                                                                                                                              
+2024,335,Guarujá,9.27,Santos - A.P.
+2024,336,Guarulhos,9.45,São Paulo - CDR
+2024,726,Guatapará,9.55,Guatapará - A.P.
+2024,337,Guzolândia,9.7,                                                                                                                                                                                                                                                              
+2024,338,Herculândia,9.55,Quatá - A.P.
+2024,747,Holambra,9.7,Conchal - A.P.
+2024,748,Hortolândia,9.18,Paulínia - A.P.
+2024,339,Iacanga,8.4,                                                                                                                                                                                                                                                              
+2024,340,Iacri,9.55,Quatá - A.P.
+2024,727,Iaras,9.64,Piratininga - A.P.
+2024,341,Ibaté,4.6,                                                                                                                                                                                                                                                              
+2024,342,Ibirá,9.82,Catanduva - A.P.
+2024,343,Ibirarema,9.5,                                                                                                                                                                                                                                                              
+2024,344,Ibitinga,9.82,Catanduva - A.P.
+2024,345,Ibiúna,9.18,Iperó - A.P.
+2024,346,Icém,10,Onda Verde - A.P.
+2024,347,Iepê,9.55,Quatá - A.P.
+2024,348,Igaraçu do Tietê,4.8,                                                                                                                                                                                                                                                              
+2024,349,Igarapava,10,Guará - A.P.
+2024,350,Igaratá,7.91,Santa Isabel - A.P.
+2024,351,Iguape,9.45,Caieiras - A.P.
+2024,352,Ilhabela,10,Jambeiro - A.P.
+2024,767,Ilha Comprida,9.45,Caieiras - A.P.
+2024,749,Ilha Solteira,8.1,                                                                                                                                                                                                                                                              
+2024,353,Indaiatuba,9.82,Indaiatuba - A.P.
+2024,354,Indiana,9.1,                                                                                                                                                                                                                                                              
+2024,355,Indiaporã,7.7,                                                                                                                                                                                                                                                              
+2024,356,Inúbia Paulista,9.6,                                                                                                                                                                                                                                                              
+2024,357,Ipaussu,9.1,                                                                                                                                                                                                                                                              
+2024,358,Iperó,9.18,Iperó - A.P.
+2024,359,Ipeúna,9,Rio das Pedras - A.P.
+2024,784,Ipiguá,10,Onda Verde - A.P.
+2024,360,Iporanga,10,                                                                                                                                                                                                                                                              
+2024,361,Ipuã,8,Sales Oliveira - A.P.
+2024,362,Iracemápolis,9,Rio das Pedras - A.P.
+2024,363,Irapuã,9.6,                                                                                                                                                                                                                                                              
+2024,364,Irapuru,8.73,Adamantina - A.P.
+2024,365,Itaberá,4.9,                                                                                                                                                                                                                                                              
+2024,366,Itaí,9.1,                                                                                                                                                                                                                                                              
+2024,367,Itajobi,9.82,Catanduva - A.P.
+2024,368,Itaju,9.7,                                                                                                                                                                                                                                                              
+2024,369,Itanhaém,9.27,Mauá - A.P.
+2024,750,Itaóca,7.6,                                                                                                                                                                                                                                                              
+2024,370,Itapecerica da Serra,9.45,Caieiras - A.P.
+2024,371,Itapetininga,9.8,Cesário Lange - A.P.
+2024,372,Itapeva,8.9,                                                                                                                                                                                                                                                              
+2024,373,Itapevi,9.4,Itapevi - A.P.
+2024,374,Itapira,9.1,                                                                                                                                                                                                                                                              
+2024,768,Itapirapuã Paulista,4.5,                                                                                                                                                                                                                                                              
+2024,375,Itápolis,9.82,Catanduva - A.P.
+2024,376,Itaporanga,9.64,Piratininga - A.P.
+2024,377,Itapuí,6.4,                                                                                                                                                                                                                                                              
+2024,378,Itapura,7.9,                                                                                                                                                                                                                                                              
+2024,379,Itaquaquecetuba,9.45,São Paulo - CDR
+2024,380,Itararé,8.5,                                                                                                                                                                                                                                                              
+2024,381,Itariri,7.8,                                                                                                                                                                                                                                                              
+2024,382,Itatiba,9.2,                                                                                                                                                                                                                                                              
+2024,383,Itatinga,7.6,Botucatu
+2024,384,Itirapina,10,São Carlos - A.P.
+2024,385,Itirapuã,8,Sales Oliveira - A.P.
+2024,386,Itobi,8.8,Tapiratiba - A.P.
+2024,387,Itu,9.5,                                                                                                                                                                                                                                                              
+2024,388,Itupeva,9.18,Paulínia - A.P.
+2024,389,Ituverava,-1,Uberaba - MG
+2024,390,Jaborandi,9,                                                                                                                                                                                                                                                              
+2024,391,Jaboticabal,10,                                                                                                                                                                                                                                                              
+2024,392,Jacareí,10,                                                                                                                                                                                                                                                              
+2024,393,Jaci,10,Onda Verde - A.P.
+2024,394,Jacupiranga,8.8,                                                                                                                                                                                                                                                              
+2024,395,Jaguariúna,9.18,Paulínia - A.P.
+2024,396,Jales,8.4,                                                                                                                                                                                                                                                              
+2024,397,Jambeiro,10,Jambeiro - A.P.
+2024,398,Jandira,9.4,Itapevi - A.P.
+2024,399,Jardinópolis,9.09,Jardinópolis - A.P.
+2024,400,Jarinu,7.4,                                                                                                                                                                                                                                                              
+2024,401,Jaú,9.64,Piratininga - A.P.
+2024,402,Jeriquara,8.7,                                                                                                                                                                                                                                                              
+2024,403,Joanópolis,8.82,Bragança Paulista - A.P.
+2024,404,João Ramalho,9.55,Quatá - A.P.
+2024,405,José Bonifácio,10,Onda Verde - A.P.
+2024,406,Júlio Mesquita,7.7,                                                                                                                                                                                                                                                              
+2024,788,Jumirim,9,Rio das Pedras - A.P.
+2024,407,Jundiaí,9.2,Santana de Parnaíba - A.P.
+2024,408,Junqueirópolis,8.6,                                                                                                                                                                                                                                                              
+2024,409,Juquiá,9.45,Caieiras - A.P.
+2024,410,Juquitiba,9.45,Caieiras - A.P.
+2024,411,Lagoinha,9.82,Tremembé - A.P.
+2024,412,Laranjal Paulista,9.8,Cesário Lange - A.P.
+2024,413,Lavínia,8.5,                                                                                                                                                                                                                                                              
+2024,414,Lavrinhas,9.64,Cachoeira Paulista - A.P.
+2024,415,Leme,7.5,                                                                                                                                                                                                                                                              
+2024,416,Lençóis Paulista,7.5,                                                                                                                                                                                                                                                              
+2024,417,Limeira,8.91,                                                                                                                                                                                                                                                              
+2024,418,Lindóia,9.18,Paulínia - A.P.
+2024,419,Lins,9.82,Catanduva - A.P.
+2024,420,Lorena,9.64,Cachoeira Paulista - A.P.
+2024,769,Lourdes,8.6,                                                                                                                                                                                                                                                              
+2024,421,Louveira,9.18,Paulínia - A.P.
+2024,422,Lucélia,8.73,Adamantina - A.P.
+2024,423,Lucianópolis,9.64,Piratininga - A.P.
+2024,424,Luís Antônio,9.55,Guatapará - A.P.
+2024,425,Luiziânia,9.5,                                                                                                                                                                                                                                                              
+2024,426,Lupércio,9.55,Marília - A.P.
+2024,427,Lutécia,9.55,Quatá - A.P.
+2024,428,Macatuba,9.2,                                                                                                                                                                                                                                                              
+2024,429,Macaubal,9,                                                                                                                                                                                                                                                              
+2024,430,Macedônia,9.1,                                                                                                                                                                                                                                                              
+2024,431,Magda,10,Meridiano - A.P.
+2024,432,Mairinque,9.36,                                                                                                                                                                                                                                                              
+2024,433,Mairiporã,9.45,São Paulo - CDR
+2024,434,Manduri,7.2,                                                                                                                                                                                                                                                              
+2024,435,Marabá Paulista,8.5,                                                                                                                                                                                                                                                              
+2024,436,Maracaí,7.9,                                                                                                                                                                                                                                                              
+2024,751,Marapoama,9.82,Catanduva - A.P.
+2024,437,Mariápolis,8.73,Adamantina - A.P.
+2024,438,Marília,9.55,Marília - A.P.
+2024,439,Marinópolis,8.8,                                                                                                                                                                                                                                                              
+2024,440,Martinópolis,9.8,Regente Feijó - A.P.
+2024,441,Matão,8.7,                                                                                                                                                                                                                                                              
+2024,442,Mauá,9.27,Mauá - A.P.
+2024,443,Mendonça,9.82,Catanduva - A.P.
+2024,444,Meridiano,10,Meridiano - A.P.
+2024,770,Mesópolis,10,Meridiano - A.P.
+2024,445,Miguelópolis,9.18,Barretos - A.P.
+2024,446,Mineiros do Tietê,8.2,                                                                                                                                                                                                                                                              
+2024,448,Miracatu,9.45,Caieiras - A.P.
+2024,447,Mira Estrela,8.9,                                                                                                                                                                                                                                                              
+2024,449,Mirandópolis,-1,Três Lagoas - MS
+2024,450,Mirante do Paranapanema,9.5,                                                                                                                                                                                                                                                              
+2024,451,Mirassol,9.8,                                                                                                                                                                                                                                                              
+2024,452,Mirassolândia,9.5,                                                                                                                                                                                                                                                              
+2024,453,Mococa,8.2,                                                                                                                                                                                                                                                              
+2024,454,Mogi das Cruzes,10,Jambeiro - A.P.
+2024,455,Mogi Guaçu,9.82,Casa Branca - A.P.
+2024,456,Mogi Mirim,9.82,Casa Branca - A.P.
+2024,457,Mombuca,9,Rio das Pedras - A.P.
+2024,458,Monções,9.7,                                                                                                                                                                                                                                                              
+2024,459,Mongaguá,9.27,Santos - A.P.
+2024,460,Monte Alegre do Sul,9.18,Paulínia - A.P.
+2024,461,Monte Alto,8,Sales Oliveira - A.P.
+2024,462,Monte Aprazível,10,Onda Verde - A.P.
+2024,463,Monte Azul Paulista,9.6,                                                                                                                                                                                                                                                              
+2024,464,Monte Castelo,7.9,                                                                                                                                                                                                                                                              
+2024,466,Monteiro Lobato,9.82,Tremembé - A.P.
+2024,465,Monte Mor,9.82,Indaiatuba - A.P.
+2024,467,Morro Agudo,8,Sales Oliveira - A.P.
+2024,468,Morungaba,9.18,Paulínia - A.P.
+2024,729,Motuca,7.4,                                                                                                                                                                                                                                                              
+2024,469,Murutinga do Sul,9.5,                                                                                                                                                                                                                                                              
+2024,789,Nantes,9,                                                                                                                                                                                                                                                              
+2024,470,Narandiba,9.1,Pirapozinho - A.P.
+2024,471,Natividade da Serra,9.82,Tremembé - A.P.
+2024,472,Nazaré Paulista,7.91,Santa Isabel - A.P.
+2024,473,Neves Paulista,10,Onda Verde - A.P.
+2024,474,Nhandeara,10,Meridiano - A.P.
+2024,475,Nipoã,6.8,                                                                                                                                                                                                                                                              
+2024,476,Nova Aliança,10,Onda Verde - A.P.
+2024,771,Nova Campina,7.3,                                                                                                                                                                                                                                                              
+2024,752,Nova Canaã Paulista,7.2,                                                                                                                                                                                                                                                              
+2024,790,Nova Castilho,7.8,                                                                                                                                                                                                                                                              
+2024,477,Nova Europa,9.82,Catanduva - A.P.
+2024,478,Nova Granada,10,Onda Verde - A.P.
+2024,479,Nova Guataporanga,8,                                                                                                                                                                                                                                                              
+2024,480,Nova Independência,8.73,Adamantina - A.P.
+2024,753,Novais,9.82,Catanduva - A.P.
+2024,481,Nova Luzitânia,10,Meridiano - A.P.
+2024,482,Nova Odessa,9.18,Paulínia - A.P.
+2024,483,Novo Horizonte,9.82,Catanduva - A.P.
+2024,484,Nuporanga,8,Sales Oliveira - A.P.
+2024,485,Ocauçu,9.64,Piratininga - A.P.
+2024,486,Óleo,9.5,                                                                                                                                                                                                                                                              
+2024,487,Olímpia,10,Onda Verde - A.P.
+2024,488,Onda Verde,10,Onda Verde - A.P.
+2024,489,Oriente,9,                                                                                                                                                                                                                                                              
+2024,490,Orindiúva,9,                                                                                                                                                                                                                                                              
+2024,491,Orlândia,8,Sales Oliveira - A.P.
+2024,492,Osasco,9.4,                                                                                                                                                                                                                                                              
+2024,493,Oscar Bressane,9.55,Marília - A.P.
+2024,494,Osvaldo Cruz,9.6,                                                                                                                                                                                                                                                              
+2024,495,Ourinhos,9.64,Piratininga - A.P.
+2024,791,Ouroeste,10,Meridiano - A.P.
+2024,496,Ouro Verde,7.4,                                                                                                                                                                                                                                                              
+2024,497,Pacaembu,9,                                                                                                                                                                                                                                                              
+2024,498,Palestina,10,Onda Verde - A.P.
+2024,499,Palmares Paulista,9.82,Catanduva - A.P.
+2024,500,Palmeira d`Oeste,8.7,                                                                                                                                                                                                                                                              
+2024,501,Palmital,9.55,Quatá - A.P.
+2024,502,Panorama,4.6,                                                                                                                                                                                                                                                              
+2024,503,Paraguaçu Paulista,9.55,Quatá - A.P.
+2024,504,Paraibuna,10,Jambeiro - A.P.
+2024,505,Paraíso,9.82,Catanduva - A.P.
+2024,506,Paranapanema,5.7,                                                                                                                                                                                                                                                              
+2024,508,Paranapuã,7.3,                                                                                                                                                                                                                                                              
+2024,509,Parapuã,10,                                                                                                                                                                                                                                                              
+2024,507,Pardinho,7.6,Botucatu
+2024,510,Pariquera-Açu,8.7,                                                                                                                                                                                                                                                              
+2024,754,Parisi,10,Meridiano - A.P.
+2024,511,Patrocínio Paulista,8,Sales Oliveira - A.P.
+2024,512,Paulicéia,5.1,                                                                                                                                                                                                                                                              
+2024,513,Paulínia,9.18,Paulínia - A.P.
+2024,792,Paulistânia,7.7,                                                                                                                                                                                                                                                              
+2024,514,Paulo de Faria,9,                                                                                                                                                                                                                                                              
+2024,515,Pederneiras,7.8,                                                                                                                                                                                                                                                              
+2024,516,Pedra Bela,8.82,Bragança Paulista - A.P.
+2024,517,Pedranópolis,10,Meridiano - A.P.
+2024,518,Pedregulho,10,Guará - A.P.
+2024,519,Pedreira,9.18,Paulínia - A.P.
+2024,755,Pedrinhas Paulista,8,                                                                                                                                                                                                                                                              
+2024,520,Pedro de Toledo,1.4,                                                                                                                                                                                                                                                              
+2024,521,Penápolis,9.4,                                                                                                                                                                                                                                                              
+2024,522,Pereira Barreto,9.6,                                                                                                                                                                                                                                                              
+2024,523,Pereiras,9.8,Cesário Lange - A.P.
+2024,524,Peruíbe,4.8,                                                                                                                                                                                                                                                              
+2024,525,Piacatu,9.5,                                                                                                                                                                                                                                                              
+2024,526,Piedade,9.18,Iperó - A.P.
+2024,527,Pilar do Sul,9.8,Salto - A.P.
+2024,528,Pindamonhangaba,9.82,Tremembé - A.P.
+2024,529,Pindorama,9.82,Catanduva - A.P.
+2024,531,Pinhalzinho,9.18,Paulínia - A.P.
+2024,532,Piquerobi,9.55,Quatá - A.P.
+2024,533,Piquete,9.64,Cachoeira Paulista - A.P.
+2024,534,Piracaia,9.18,Paulínia - A.P.
+2024,535,Piracicaba,9.1,                                                                                                                                                                                                                                                              
+2024,537,Piraju,9.64,Piratininga - A.P.
+2024,538,Pirajuí,9.64,Piratininga - A.P.
+2024,539,Pirangi,7.9,                                                                                                                                                                                                                                                              
+2024,540,Pirapora do Bom Jesus,9.2,Santana de Parnaíba - A.P.
+2024,541,Pirapozinho,9.1,Pirapozinho - A.P.
+2024,536,Pirassununga,5.1,                                                                                                                                                                                                                                                              
+2024,542,Piratininga,9.64,Piratininga - A.P.
+2024,543,Pitangueiras,9.82,Catanduva - A.P.
+2024,544,Planalto,7.2,                                                                                                                                                                                                                                                              
+2024,545,Platina,9.55,Quatá - A.P.
+2024,546,Poá,9.45,São Paulo - CDR
+2024,547,Poloni,7.6,                                                                                                                                                                                                                                                              
+2024,548,Pompéia,9.55,Quatá - A.P.
+2024,549,Pongaí,9.82,Catanduva - A.P.
+2024,550,Pontal,8,Sales Oliveira - A.P.
+2024,756,Pontalinda,10,Meridiano - A.P.
+2024,551,Pontes Gestal,9.5,                                                                                                                                                                                                                                                              
+2024,552,Populina,8.2,                                                                                                                                                                                                                                                              
+2024,553,Porangaba,9.8,Cesário Lange - A.P.
+2024,554,Porto Feliz,9.18,Iperó - A.P.
+2024,555,Porto Ferreira,7.6,                                                                                                                                                                                                                                                              
+2024,757,Potim,9.64,Cachoeira Paulista - A.P.
+2024,556,Potirendaba,10,Onda Verde - A.P.
+2024,778,Pracinha,8.73,Adamantina - A.P.
+2024,557,Pradópolis,9.55,Guatapará - A.P.
+2024,558,Praia Grande,9.27,"Mauá - A.P., Santos - A.P."
+2024,779,Pratânia,7.9,                                                                                                                                                                                                                                                              
+2024,559,Presidente Alves,7.5,                                                                                                                                                                                                                                                              
+2024,560,Presidente Bernardes,9.55,Quatá - A.P.
+2024,561,Presidente Epitácio,7.5,                                                                                                                                                                                                                                                              
+2024,562,Presidente Prudente,9.8,Regente Feijó - A.P.
+2024,563,Presidente Venceslau,9.8,Regente Feijó - A.P.
+2024,564,Promissão,9.82,Catanduva - A.P.
+2024,780,Quadra,9.8,Cesário Lange - A.P.
+2024,565,Quatá,9.55,Quatá - A.P.
+2024,566,Queiroz,7.3,                                                                                                                                                                                                                                                              
+2024,567,Queluz,9.64,Cachoeira Paulista - A.P.
+2024,568,Quintana,8.5,                                                                                                                                                                                                                                                              
+2024,569,Rafard,9,Rio das Pedras - A.P.
+2024,570,Rancharia,9.55,Quatá - A.P.
+2024,571,Redenção da Serra,10,Jambeiro - A.P.
+2024,572,Regente Feijó,9.8,Regente Feijó - A.P.
+2024,573,Reginópolis,7.4,                                                                                                                                                                                                                                                              
+2024,574,Registro,7.5,                                                                                                                                                                                                                                                              
+2024,575,Restinga,7,                                                                                                                                                                                                                                                              
+2024,576,Ribeira,-1,Rio Negrinho - SC
+2024,577,Ribeirão Bonito,6.2,                                                                                                                                                                                                                                                              
+2024,578,Ribeirão Branco,3.5,                                                                                                                                                                                                                                                              
+2024,579,Ribeirão Corrente,8.7,                                                                                                                                                                                                                                                              
+2024,580,Ribeirão do Sul,8.3,                                                                                                                                                                                                                                                              
+2024,793,Ribeirão dos Índios,9.2,                                                                                                                                                                                                                                                              
+2024,758,Ribeirão Grande,8.9,                                                                                                                                                                                                                                                              
+2024,581,Ribeirão Pires,9.27,Mauá - A.P.
+2024,582,Ribeirão Preto,9.55,Guatapará - A.P.
+2024,583,Riversul,9.8,Cesário Lange - A.P.
+2024,584,Rifaina,9.2,                                                                                                                                                                                                                                                              
+2024,585,Rincão,9.55,Guatapará - A.P.
+2024,586,Rinópolis,9.2,                                                                                                                                                                                                                                                              
+2024,587,Rio Claro,9.5,                                                                                                                                                                                                                                                              
+2024,588,Rio das Pedras,9.18,Paulínia - A.P.
+2024,589,Rio Grande da Serra,9.27,Mauá - A.P.
+2024,590,Riolândia,7.5,                                                                                                                                                                                                                                                              
+2024,730,Rosana,9,                                                                                                                                                                                                                                                              
+2024,591,Roseira,9.64,Cachoeira Paulista - A.P.
+2024,592,Rubiácea,9,                                                                                                                                                                                                                                                              
+2024,593,Rubinéia,8.6,Santa Fé do Sul
+2024,594,Sabino,9.82,Catanduva - A.P.
+2024,595,Sagres,9,                                                                                                                                                                                                                                                              
+2024,596,Sales,9.82,Catanduva - A.P.
+2024,597,Sales Oliveira,8,Sales Oliveira - A.P.
+2024,598,Salesópolis,10,Jambeiro - A.P.
+2024,599,Salmourão,10,                                                                                                                                                                                                                                                              
+2024,759,Saltinho,9,Rio das Pedras - A.P.
+2024,600,Salto,9.8,Salto - A.P.
+2024,602,Salto de Pirapora,7.7,                                                                                                                                                                                                                                                              
+2024,601,Salto Grande,9.64,Piratininga - A.P.
+2024,603,Sandovalina,9.1,Pirapozinho - A.P.
+2024,604,Santa Adélia,9.82,Catanduva - A.P.
+2024,605,Santa Albertina,8.8,                                                                                                                                                                                                                                                              
+2024,606,Santa Bárbara d`Oeste,10,Americana - A.P.
+2024,608,Santa Branca,10,Jambeiro - A.P.
+2024,609,Santa Clara d`Oeste,10,Meridiano - A.P.
+2024,610,Santa Cruz da Conceição,9.18,Paulínia - A.P.
+2024,781,Santa Cruz da Esperança,9.5,                                                                                                                                                                                                                                                              
+2024,611,Santa Cruz das Palmeiras,9.82,Casa Branca - A.P.
+2024,612,Santa Cruz do Rio Pardo,9.64,Piratininga - A.P.
+2024,613,Santa Ernestina,8.5,                                                                                                                                                                                                                                                              
+2024,614,Santa Fé do Sul,8.6,                                                                                                                                                                                                                                                              
+2024,615,Santa Gertrudes,9,Rio das Pedras - A.P.
+2024,616,Santa Isabel,7.91,Santa Isabel - A.P.
+2024,617,Santa Lúcia,8.4,                                                                                                                                                                                                                                                              
+2024,618,Santa Maria da Serra,9,Rio das Pedras - A.P.
+2024,619,Santa Mercedes,8.7,                                                                                                                                                                                                                                                              
+2024,624,Santana da Ponte Pensa,10,Meridiano - A.P.
+2024,623,Santana de Parnaíba,9.2,Santana de Parnaíba - A.P.
+2024,620,Santa Rita d`Oeste,7.8,                                                                                                                                                                                                                                                              
+2024,621,Santa Rita do Passa Quatro,9.82,Casa Branca - A.P.
+2024,622,Santa Rosa de Viterbo,9.2,                                                                                                                                                                                                                                                              
+2024,782,Santa Salete,7.5,                                                                                                                                                                                                                                                              
+2024,625,Santo Anastácio,9.8,Regente Feijó - A.P.
+2024,626,Santo André,9.1,                                                                                                                                                                                                                                                              
+2024,627,Santo Antônio da Alegria,7.3,                                                                                                                                                                                                                                                              
+2024,630,Santo Antônio de Posse,9.7,Conchal - A.P.
+2024,760,Santo Antônio do Aracanguá,8,                                                                                                                                                                                                                                                              
+2024,628,Santo Antônio do Jardim,9.82,Casa Branca - A.P.
+2024,629,Santo Antônio do Pinhal,9.82,Tremembé - A.P.
+2024,631,Santo Expedito,7.3,                                                                                                                                                                                                                                                              
+2024,632,Santópolis do Aguapeí,9.5,                                                                                                                                                                                                                                                              
+2024,633,Santos,9.27,Santos - A.P.
+2024,634,São Bento do Sapucaí,9.82,Tremembé - A.P.
+2024,635,São Bernardo do Campo,9.27,Mauá - A.P.
+2024,636,São Caetano do Sul,9.27,Mauá - A.P.
+2024,637,São Carlos,10,São Carlos - A.P.
+2024,638,São Francisco,4.6,                                                                                                                                                                                                                                                              
+2024,639,São João da Boa Vista,8.8,Tapiratiba - A.P.
+2024,640,São João das Duas Pontes,7.7,                                                                                                                                                                                                                                                              
+2024,761,São João de Iracema,10,Meridiano - A.P.
+2024,641,São João do Pau d`Alho,9,                                                                                                                                                                                                                                                              
+2024,642,São Joaquim da Barra,8,Sales Oliveira - A.P.
+2024,644,São José da Bela Vista,7.1,                                                                                                                                                                                                                                                              
+2024,643,São José do Barreiro,9.64,Cachoeira Paulista - A.P.
+2024,646,São José do Rio Pardo,8.8,Tapiratiba - A.P.
+2024,647,São José do Rio Preto,10,Onda Verde - A.P.
+2024,645,São José dos Campos,9.8,                                                                                                                                                                                                                                                              
+2024,772,São Lourenço da Serra,9.45,Caieiras - A.P.
+2024,648,São Luís do Paraitinga,10,Jambeiro - A.P.
+2024,649,São Manuel,7.5,                                                                                                                                                                                                                                                              
+2024,650,São Miguel Arcanjo,8.2,                                                                                                                                                                                                                                                              
+2024,100,São Paulo,9.8,Caieiras - A.P.
+2024,651,São Pedro,9,Rio das Pedras - A.P.
+2024,652,São Pedro do Turvo,7.7,                                                                                                                                                                                                                                                              
+2024,653,São Roque,9.36,                                                                                                                                                                                                                                                              
+2024,654,São Sebastião,9.7,"Jambeiro - A.P., Santos - A.P."
+2024,655,São Sebastião da Grama,6,                                                                                                                                                                                                                                                              
+2024,656,São Simão,9.55,Guatapará - A.P.
+2024,657,São Vicente,9.27,Santos - A.P.
+2024,658,Sarapuí,9.18,Iperó - A.P.
+2024,659,Sarutaiá,9.5,                                                                                                                                                                                                                                                              
+2024,660,Sebastianópolis do Sul,10,Meridiano - A.P.
+2024,661,Serra Azul,9.09,Jardinópolis - A.P.
+2024,663,Serrana,8,Sales Oliveira - A.P.
+2024,662,Serra Negra,9.18,Paulínia - A.P.
+2024,664,Sertãozinho,9.09,Jardinópolis - A.P.
+2024,665,Sete Barras,9.45,Caieiras - A.P.
+2024,666,Severínia,7.6,                                                                                                                                                                                                                                                              
+2024,667,Silveiras,9.64,Cachoeira Paulista - A.P.
+2024,668,Socorro,8.8,                                                                                                                                                                                                                                                              
+2024,669,Sorocaba,9.18,Iperó - A.P.
+2024,670,Sud Mennucci,7.2,                                                                                                                                                                                                                                                              
+2024,671,Sumaré,9.18,Paulínia - A.P.
+2024,672,Suzano,10,Jambeiro - A.P.
+2024,762,Suzanápolis,7.2,                                                                                                                                                                                                                                                              
+2024,673,Tabapuã,9.82,Catanduva - A.P.
+2024,674,Tabatinga,9.82,Catanduva - A.P.
+2024,675,Taboão da Serra,9.45,Caieiras - A.P.
+2024,676,Taciba,7.8,                                                                                                                                                                                                                                                              
+2024,677,Taguaí,7.7,                                                                                                                                                                                                                                                              
+2024,678,Taiaçu,7.4,                                                                                                                                                                                                                                                              
+2024,679,Taiúva,8,                                                                                                                                                                                                                                                              
+2024,680,Tambaú,7.2,                                                                                                                                                                                                                                                              
+2024,681,Tanabi,10,Onda Verde - A.P.
+2024,682,Tapiraí,8.5,                                                                                                                                                                                                                                                              
+2024,683,Tapiratiba,8.8,Tapiratiba - A.P.
+2024,785,Taquaral,7.3,                                                                                                                                                                                                                                                              
+2024,684,Taquaritinga,5.4,                                                                                                                                                                                                                                                              
+2024,685,Taquarituba,4.4,                                                                                                                                                                                                                                                              
+2024,763,Taquarivaí,8.3,                                                                                                                                                                                                                                                              
+2024,686,Tarabai,9.1,Pirapozinho - A.P.
+2024,731,Tarumã,9.55,Quatá - A.P.
+2024,687,Tatuí,9.8,Cesário Lange - A.P.
+2024,688,Taubaté,9.82,Tremembé - A.P.
+2024,689,Tejupá,7.1,                                                                                                                                                                                                                                                              
+2024,690,Teodoro Sampaio,6.1,                                                                                                                                                                                                                                                              
+2024,691,Terra Roxa,9.18,Barretos - A.P.
+2024,692,Tietê,9.18,Iperó - A.P.
+2024,693,Timburi,9.5,                                                                                                                                                                                                                                                              
+2024,773,Torre de Pedra,9.8,Cesário Lange - A.P.
+2024,694,Torrinha,9,Rio das Pedras - A.P.
+2024,794,Trabiju,8.1,                                                                                                                                                                                                                                                              
+2024,695,Tremembé,9.82,Tremembé - A.P.
+2024,696,Três Fronteiras,7.8,                                                                                                                                                                                                                                                              
+2024,764,Tuiuti,8.82,Bragança Paulista - A.P.
+2024,697,Tupã,8.73,Adamantina - A.P.
+2024,698,Tupi Paulista,8.5,                                                                                                                                                                                                                                                              
+2024,699,Turiúba,8.6,                                                                                                                                                                                                                                                              
+2024,700,Turmalina,8.7,                                                                                                                                                                                                                                                              
+2024,765,Ubarana,10,Onda Verde - A.P.
+2024,701,Ubatuba,10,Jambeiro - A.P.
+2024,702,Ubirajara,9.64,Piratininga - A.P.
+2024,703,Uchoa,10,Onda Verde - A.P.
+2024,704,União Paulista,5.3,                                                                                                                                                                                                                                                              
+2024,705,Urânia,7.4,                                                                                                                                                                                                                                                              
+2024,706,Uru,9.82,Catanduva - A.P.
+2024,707,Urupês,9.82,Catanduva - A.P.
+2024,709,Valentim Gentil,9,                                                                                                                                                                                                                                                              
+2024,708,Valinhos,9.18,Paulínia - A.P.
+2024,710,Valparaíso,8.6,                                                                                                                                                                                                                                                              
+2024,766,Vargem,9.18,Paulínia - A.P.
+2024,711,Vargem Grande do Sul,8.3,                                                                                                                                                                                                                                                              
+2024,720,Vargem Grande Paulista,9.4,Itapevi - A.P.
+2024,712,Várzea Paulista,9.45,Caieiras - A.P.
+2024,713,Vera Cruz,9.55,Marília - A.P.
+2024,714,Vinhedo,9.18,Paulínia - A.P.
+2024,715,Viradouro,9.3,                                                                                                                                                                                                                                                              
+2024,716,Vista Alegre do Alto,9.1,                                                                                                                                                                                                                                                              
+2024,783,Vitória Brasil,8.7,                                                                                                                                                                                                                                                              
+2024,717,Votorantim,6.7,                                                                                                                                                                                                                                                              
+2024,718,Votuporanga,10,Meridiano - A.P.
+2024,774,Zacarias,8.2,                                                                                                                                                                                                                                                              
+2024,719,Chavantes,9.64,Piratininga - A.P.
+2024,746,Estiva Gerbi,7.2,                                                                                                                                                                                                                                                              
