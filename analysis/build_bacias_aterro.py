@@ -280,10 +280,11 @@ def cp2b_gap(steps, params, rows, master, muns, S, D, A) -> list[str]:
         "",
     ]
     if uniform:
-        L += ["**A parcela é a mesma para todos os municípios de cada região intermediária.** O desconto segue a "
-              "região de origem do resíduo, não o aterro para onde ele vai: municípios da mesma bacia recebem "
-              "descontos diferentes, e um aterro com captura numa região de parcela baixa não desconta quase nada "
-              "de quem manda resíduo para ele.", ""]
+        L += ["**A parcela é a mesma para todos os municípios de cada região intermediária.** A cascata do CP2b "
+              "aloca o uso existente do RSU (e do lodo) na região intermediária da planta, com peso no N3 antes do "
+              "desconto, porque aterros e ETEs recebem de vários municípios. O desconto segue a região de origem "
+              "do resíduo, não o aterro para onde ele vai: municípios da mesma bacia podem receber descontos "
+              "diferentes.", ""]
     if plant_no_cut:
         L += [f"- Destino com planta de aterro no cadastro e desconto abaixo de 5 %: {', '.join(plant_no_cut)}."]
     if cut_no_plant:
@@ -302,9 +303,19 @@ def cp2b_gap(steps, params, rows, master, muns, S, D, A) -> list[str]:
         f"Leitura: a diferença comum a todas as bacias (no estado, CP2b antes do desconto = "
         f"{fmt(st['n3_antes'] / dig, 2)} × C23) vem de método: o CP2b "
         "parte de mais metano por tonelada e aplica a separabilidade FC; o C23 supõe a FORSU toda separada. A "
-        "diferença grande vem do uso existente. Com as bacias da CETESB, o desconto pode ser feito pelo aterro "
-        "que de fato recebe o resíduo e pela captura que esse aterro tem: proposta para a próxima versão do método "
-        "CP2b, a conferir com a equipe do método antes de qualquer cartão usar um dos dois números.",
+        "diferença grande vem do uso existente.",
+        "",
+        "Descontar o uso existente pela bacia CETESB do aterro não é ideia nova: a equipe do método CP2b avaliou "
+        "isso (Proposta 2 do checkpoint 3 sobre os dados CETESB, 24/09/2026) e decidiu não implementar nesta "
+        "versão, para não forçar dados de RSU que o método não tem. A opção ficou registrada como limitação no "
+        "artigo. Dois pontos do método explicam os extremos da tabela:",
+        "- o uso existente é o volume medido pela ANP, não a capacidade autorizada. Um destino com planta "
+        "autorizada e produção quase nula, como Paulínia, quase não desconta;",
+        "- o uso da região de São Paulo inclui gás de aterros já encerrados (São João e Bandeirantes), que sai de "
+        "resíduo antigo. Se ele deve ser descontado do RSU gerado hoje é questão em aberto no método.",
+        "",
+        "Este relatório mostra os dois números lado a lado e não escolhe entre eles. Nenhum cartão deve usar um "
+        "dos dois sem a equipe do método.",
         "",
     ]
     return L
