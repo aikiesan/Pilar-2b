@@ -12,13 +12,13 @@
 | SUINOS | FC | 0,9 | 0,70–0,95 (0,85) | dentro | eficiência de coleta no alojamento, 90 % para todos os rebanhos | C | Paraná (Brazil) | https://doi.org/10.3390/su17010321 |
 | SUINOS | FCo | 0,99 (0,987–0,991) | 0,90–1,00 (1,00) | dentro | estabelecimentos que tratam dejeto sem biodigestor (Censo 2006); conta estabelecimentos, não massa | B | Brazil (South detail) | https://rpa.sede.embrapa.br/RPA/article/view/1865 |
 | VINHACA | FCo | 0,95 | 0,90–1,00 (1,00) | dentro | destilarias de SP sem digestão (8 de 165 digerem); fertirrigação compatível | A | São Paulo | https://doi.org/10.1016/j.jclepro.2017.03.064 |
-| PALHA | FCo | 0,5 (0,3–0,7) | 0,80–0,95 (0,90) | abaixo | fração recolhível; o resto fica no solo por função agronômica | A | Centre-South / São Paulo | https://doi.org/10.1590/S0103-90162013000500010 |
-| PALHA | FCo | 0,27 (0,09–0,5) | 0,80–0,95 (0,90) | abaixo | recolhimento observado em usinas de SP (9 % e 27 %; caso potencial 50 %) | B | São Paulo (SUCRE partner mills) | https://lnbr.cnpem.br/wp-content/uploads/2020/07/Sustainable-Bioelectricity.pdf |
+| PALHA | FC×FCo (registro: FCo) | 0,5 (0,3–0,7) | 0,28–0,47 (0,36) | sobrepõe | fração recolhível; o resto fica no solo por função agronômica | A | Centre-South / São Paulo | https://doi.org/10.1590/S0103-90162013000500010 |
+| PALHA | FC×FCo (registro: FCo) | 0,27 (0,09–0,5) | 0,28–0,47 (0,36) | sobrepõe | recolhimento observado em usinas de SP (9 % e 27 %; caso potencial 50 %) | B | São Paulo (SUCRE partner mills) | https://lnbr.cnpem.br/wp-content/uploads/2020/07/Sustainable-Bioelectricity.pdf |
 | PALHA | FS (registro: FC) | 0,67 (0,31–0,67) | 0,85–0,97 (0,92) | abaixo | massa que resta após a decomposição no solo antes do enfardamento: o registro chama de FC, mas é retenção de massa após perda (DEC-013) | B | São Paulo (Embrapa Meio Ambiente) | https://www.alice.cnptia.embrapa.br/alice/handle/doc/1065070 |
-| PALHA_MILHO | FCo | 0,5 (0,25–0,5) | 0,85–1,00 (0,95) | abaixo | fração removível sem perda de produtividade | A | Brazil / global review | https://doi.org/10.1590/1678-992X-2016-0459 |
-| PALHA_MILHO | FCo | 0,4 (0,25–0,5) | 0,85–1,00 (0,95) | abaixo | fração acima da cobertura do plantio direto | B | Brazil (Cerrado/Sudeste) | https://www.alice.cnptia.embrapa.br/alice/bitstream/doc/485005/1/Plantascobertura.pdf |
-| PALHA_MILHO | FCo | 0,12 (0,12–0,3) | 0,85–1,00 (0,95) | abaixo | remoção sustentável × fração sem uso concorrente | B | Brazil | https://doi.org/10.3390/bioresourbioprod2030018 |
-| PALHA_SOJA | FCo | 0,25 (0–0,25) | 0,90–1,00 (1,00) | abaixo | remoção sustentável; sem uso concorrente | B | Brazil | https://doi.org/10.3390/bioresourbioprod2030018 |
+| PALHA_MILHO | FC×FCo (registro: FCo) | 0,5 (0,25–0,5) | 0,21–0,50 (0,38) | dentro | fração removível sem perda de produtividade | A | Brazil / global review | https://doi.org/10.1590/1678-992X-2016-0459 |
+| PALHA_MILHO | FC×FCo (registro: FCo) | 0,4 (0,25–0,5) | 0,21–0,50 (0,38) | dentro | fração acima da cobertura do plantio direto | B | Brazil (Cerrado/Sudeste) | https://www.alice.cnptia.embrapa.br/alice/bitstream/doc/485005/1/Plantascobertura.pdf |
+| PALHA_MILHO | FC×FCo (registro: FCo) | 0,12 (0,12–0,3) | 0,21–0,50 (0,38) | sobrepõe | remoção sustentável × fração sem uso concorrente | B | Brazil | https://doi.org/10.3390/bioresourbioprod2030018 |
+| PALHA_SOJA | FC×FCo (registro: FCo) | 0,25 (0–0,25) | 0,18–0,40 (0,30) | sobrepõe | remoção sustentável; sem uso concorrente | B | Brazil | https://doi.org/10.3390/bioresourbioprod2030018 |
 | CASCA_CAFE | FCo | 0,5 (0,5–0,7) | 0,50–0,70 (0,60) | dentro | fração ainda sem uso (adubo, combustível de secador) | C | Brazil | https://doi.org/10.3390/bioresourbioprod2030018 |
 | BAGACO_CITROS | FCo | 0,02 (0–0,05) | 0,15–0,40 (0,25) | abaixo | fração ainda sem uso: o resíduo vira polpa cítrica peletizada para ração | B | São Paulo / Brazil | https://www.esalq.usp.br/visaoagricola/sites/default/files/va02-reportagem.pdf |
 | BAGACO_CITROS | FS | 0,92 (0,91–0,93) | 0,80–0,95 (0,88) | dentro | massa retida após 90 dias de ensilagem | A | Paraná, Brazil | https://doi.org/10.5433/1679-0359.2013v34n6Supl2p4037 |
@@ -64,5 +64,6 @@ Não entram na comparação. A coluna CP2b mostra o fator do CP2b que o registro
 ## Como ler
 
 - Números, DOIs e notas são os do registro do Literature Watch, com a verificação que a rotina registrou. Antes de citar, abra a fonte.
+- FC×FCo: nas palhas o CP2b deixa a palha que fica no solo no FC, não no FCo. A fração removível da literatura é comparada com o produto, mín×mín a máx×máx.
 - "—" na coluna CP2b: o cp2b_parametros.csv do v5.1 não traz esse fator para o substrato, ou o snapshot não foi lido (veja o cabeçalho).
 - Um registro pode aparecer nas duas tabelas quando fala de mais de um substrato com sentidos diferentes (a eficiência de coleta de 90 % é FC para o confinado e só contexto para o leite).
