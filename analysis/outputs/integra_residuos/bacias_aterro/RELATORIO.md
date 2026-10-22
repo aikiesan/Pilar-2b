@@ -100,7 +100,7 @@ Parcela do N3 descontada como uso existente, por região intermediária do IBGE 
 | São José dos Campos | 80,7 % |
 | São Paulo | 74,7 % |
 
-**A parcela é a mesma para todos os municípios de cada região intermediária.** O desconto segue a região de origem do resíduo, não o aterro para onde ele vai: municípios da mesma bacia recebem descontos diferentes, e um aterro com captura numa região de parcela baixa não desconta quase nada de quem manda resíduo para ele.
+**A parcela é a mesma para todos os municípios de cada região intermediária.** A cascata do CP2b aloca o uso existente do RSU (e do lodo) na região intermediária da planta, com peso no N3 antes do desconto, porque aterros e ETEs recebem de vários municípios. O desconto segue a região de origem do resíduo, não o aterro para onde ele vai: municípios da mesma bacia podem receber descontos diferentes.
 
 - Destino com planta de aterro no cadastro e desconto abaixo de 5 %: Paulínia (A.P.), Indaiatuba (A.P.), Quatá (A.P.).
 - Desconto acima de 50 % sem planta de aterro do cadastro do repositório no município do destino: Mauá (A.P.), Santana de Parnaíba (A.P.), Santos (A.P.), Jambeiro (A.P.), Tremembé (A.P.), Itapevi (A.P.), Cachoeira Paulista (A.P.), Sales Oliveira (A.P.), Jardinópolis (A.P.), Barretos (A.P.), Santa Isabel (A.P.), Guará (A.P.).
@@ -148,7 +148,13 @@ Parcela do N3 descontada como uso existente, por região intermediária do IBGE 
 | Pariquera-Açu | 222 | 1.101 | 715 | 0 | 715 | 0,0 % | Sorocaba |
 | Santa Fé do Sul | 69 | 74 | 48 | 10 | 38 | 21,3 % | São José do Rio Preto |
 
-Leitura: a diferença comum a todas as bacias (no estado, CP2b antes do desconto = 0,82 × C23) vem de método: o CP2b parte de mais metano por tonelada e aplica a separabilidade FC; o C23 supõe a FORSU toda separada. A diferença grande vem do uso existente. Com as bacias da CETESB, o desconto pode ser feito pelo aterro que de fato recebe o resíduo e pela captura que esse aterro tem: proposta para a próxima versão do método CP2b, a conferir com a equipe do método antes de qualquer cartão usar um dos dois números.
+Leitura: a diferença comum a todas as bacias (no estado, CP2b antes do desconto = 0,82 × C23) vem de método: o CP2b parte de mais metano por tonelada e aplica a separabilidade FC; o C23 supõe a FORSU toda separada. A diferença grande vem do uso existente.
+
+Descontar o uso existente pela bacia CETESB do aterro não é ideia nova: a equipe do método CP2b avaliou isso (Proposta 2 do checkpoint 3 sobre os dados CETESB, 24/09/2026) e decidiu não implementar nesta versão, para não forçar dados de RSU que o método não tem. A opção ficou registrada como limitação no artigo. Dois pontos do método explicam os extremos da tabela:
+- o uso existente é o volume medido pela ANP, não a capacidade autorizada. Um destino com planta autorizada e produção quase nula, como Paulínia, quase não desconta;
+- o uso da região de São Paulo inclui gás de aterros já encerrados (São João e Bandeirantes), que sai de resíduo antigo. Se ele deve ser descontado do RSU gerado hoje é questão em aberto no método.
+
+Este relatório mostra os dois números lado a lado e não escolhe entre eles. Nenhum cartão deve usar um dos dois sem a equipe do método.
 
 ## Cartão de pré-viabilidade (rascunho), bacias na escala mínima pela rota aterro
 
