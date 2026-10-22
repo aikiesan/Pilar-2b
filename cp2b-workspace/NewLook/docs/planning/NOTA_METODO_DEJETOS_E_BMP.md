@@ -15,6 +15,8 @@ Fontes desta nota (no repositório, branch `claude/epic-cray-bvxgrn`):
 - `analysis/outputs/evidencia_geracao/RELATORIO.md`: 48 registros de geração
   de dejetos, 18 comparados com o CP2b, na unidade do CP2b.
 - `analysis/outputs/evidencia_bmp/RELATORIO.md`: 40 registros de BMP.
+- `analysis/outputs/evidencia_fde/RELATORIO.md`: 41 registros de FC, FCo, FS e
+  FL, lidos pela definição de cada fonte; 14 têm a definição do CP2b.
 - As faixas do CP2b vêm do `cp2b_parametros.csv` do snapshot v5.1, com o
   sha256 do loader conferido.
 
@@ -37,6 +39,13 @@ das faixas). A diferença está no g.
 Pergunta: o g de 10–18 kg/dia é excreção total ou já é a fração coletável?
 Se for coletável, o FC de 0,5 desconta a coleta pela segunda vez. Se for
 excreção total, está abaixo da literatura por um fator de 3 a 3,6.
+
+O registro de fatores ajuda a ler o FC de 0,5. Em SP, 0,36 % dos sistemas de
+leite são confinados, 5,5 % intensivos a pasto, 19 % semiextensivos e 75 %
+extensivos (inventário MCTI 2015, tier A). Numa fazenda da Embrapa em São
+Carlos as vacas ficam no cocho de maio a outubro, metade do ano (tier B). Um
+FC de 0,5 sobre todas as vacas ordenhadas pede coleta grande fora do
+confinamento. Vale dizer no artigo de onde vem esse 0,5.
 
 ### 2. Bovino confinado: matéria seca do CP2b acima da medida
 
@@ -73,6 +82,25 @@ Pergunta: qual é o número de lotes por ano usado (ou implícito) no CP2b?
 Lembrete: parte da matéria seca é maravalha (0,7 kg por ave, tier A), que tem
 BMP mais baixo que o dejeto.
 
+### 4. Definições de FS e FCo que o texto precisa fixar
+
+- FS: a DEC-013 diz que o FS é massa retida após perda documentada, nunca dias
+  de oferta / 365. O `DECISOES_METODOLOGICAS.md` ainda descreve o FS como
+  "disponibilidade sazonal relativa à geração anual". Oito registros do
+  Literature Watch dão FS como fração do ano (dias de cocho, safra de cana,
+  café e laranja); um revisor que os conheça vai cobrar. Sugestão: uma frase
+  nos Métodos dizendo que a sazonalidade pesa no dimensionamento da planta,
+  não no potencial anual.
+- FCo das aves: o CP2b usa 0,95 porque adubo é compatível com a digestão. O
+  inventário MCTI 2015 diz que cerca de 80 % do esterco de aves já vai para
+  adubo; quem ler o FCo como "fração não usada como adubo" chega a 0,2. A
+  cama de frango tem preço de mercado como adubo (R$ 145–236/t, SC, 2010), o
+  que torna o uso concorrente econômico. Vale uma frase no artigo.
+- Confinado: os dias de cocho (68 a 151 por ciclo, conforme a categoria e o
+  confinamento) não se aplicam, porque a
+  base do CP2b é o estoque confinado do GEDAVE, não os animais que passam pelo
+  cocho no ano. Vale deixar isso explícito para não parecer esquecimento.
+
 ## O que a literatura sustenta
 
 - Poedeiras: dejeto fresco de 0,035–0,041 t/ave/ano contra a mediana de 0,050
@@ -80,6 +108,10 @@ BMP mais baixo que o dejeto.
 - BMP da torta de filtro: o único registro tier A (262 NmL/g SV) cai dentro de
   200–380, perto da mediana de 280.
 - BMP da casca de café: quatro registros tier A, todos dentro de 120–220.
+- FC dos suínos: a eficiência de coleta de 90 % usada no Paraná (tier C) fica
+  dentro de 0,70–0,95. O termo de coleta 0,90 das aves é o mesmo da fonte.
+- FCo da vinhaça e dos suínos: 0,95 e 0,99 de unidades sem digestão, dentro de
+  0,90–1,00.
 
 ## Para depois da submissão
 
@@ -92,6 +124,13 @@ BMP mais baixo que o dejeto.
   Como o FC do pasto é 0, isso muda só o N1.
 - Suínos: o registro só tem volume de chorume, sem ST. Falta um dado de
   excreta fresca com ST para comparar com o override de 8–12 %.
+- FC do confinado: a mesma eficiência de 90 % fica acima do máximo de 0,75
+  do CP2b. É tier C e vale para todos os rebanhos; não basta para mexer.
+- Lignocelulósicos e citros: o registro traz FCo de palha de cana (0,27–0,5),
+  palha de milho (0,12–0,5), palha de soja (até 0,25), casca de café (0,5) e
+  bagaço de laranja (0,02: quase todo vira polpa peletizada para ração). O
+  relatório põe esses valores ao lado da faixa do CP2b quando o snapshot a
+  traz.
 - Lacunas no registro de BMP: nada sobre bovinos, suínos, aves, lodo ou RSU.
   Vale pedir à rotina Literature Watch que priorize esses substratos.
 
