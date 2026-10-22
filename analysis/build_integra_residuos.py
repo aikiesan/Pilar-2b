@@ -414,7 +414,7 @@ def main() -> None:
                  "aprovados pelo BNDES com investimento total (`outputs/bndes_capex_benchmarks/`). Só para a rota "
                  "aterro: não há referência brasileira pública de CAPEX para biodigestão de FORSU no repositório.")
     L += [
-        f"- **CP2b v5.1:** {cp2b_note}.",
+        f"- **CP2b:** {cp2b_note}.",
         "",
         "## Leitura",
         "",

@@ -333,7 +333,7 @@ def main() -> None:
         "destinos recebem mais do que a bacia mostra (coluna `recebe_tambem_de_multiplos` em `bacias.csv`).",
         "- Massa de RSU pela geração per capita do Atlas e população do master, como no C23, não pela pesagem "
         "no aterro.",
-        f"- CP2b v5.1: {cp2b_note}.",
+        f"- CP2b: {cp2b_note}.",
         "",
         "## Fontes",
         "",
