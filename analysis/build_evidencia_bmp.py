@@ -79,8 +79,8 @@ def read_registry(path: Path) -> list[dict]:
         return list(csv.DictReader(fh))
 
 
-def cp2b_bmp() -> tuple[dict[str, tuple[float, float, float]], str]:
-    """{code: (min, med, max)} of the CP2b element "BMP", and a note on where it came from."""
+def cp2b_parameters(elements: tuple[str, ...]) -> tuple[dict[tuple[str, str], tuple[float, float, float]], str]:
+    """{(code, element): (min, med, max)} from cp2b_parametros.csv, and a note on where it came from."""
     path = B.CP2B_SNAPSHOT / B.loader_constant("FILES")["parameters"]
     if not path.exists():
         return {}, "Sem o snapshot CP2b v5.1: a coluna CP2b fica vazia."
@@ -90,11 +90,17 @@ def cp2b_bmp() -> tuple[dict[str, tuple[float, float, float]], str]:
     out = {}
     with path.open(encoding="utf-8-sig") as fh:
         for r in csv.DictReader(fh):
-            if r.get("elemento") == "BMP":
+            if r.get("elemento") in elements:
                 lo, med, hi = num(r.get("min")), num(r.get("med")), num(r.get("max"))
                 if None not in (lo, med, hi):
-                    out[r["codigo"]] = (lo, med, hi)
+                    out[(r["codigo"], r["elemento"])] = (lo, med, hi)
     return out, f"CP2b v5.1, {path.name} (sha256 conferido)."
+
+
+def cp2b_bmp() -> tuple[dict[str, tuple[float, float, float]], str]:
+    """{code: (min, med, max)} of the CP2b element "BMP", and a note on where it came from."""
+    params, note = cp2b_parameters(("BMP",))
+    return {code: v for (code, _), v in params.items()}, note
 
 
 def yaml_bmp() -> dict[str, tuple[float, float, float]]:
@@ -181,7 +187,7 @@ def write_csv(path: Path, rows: list[dict]) -> None:
         w.writerows(rows)
 
 
-def report(rows, summ_in, summ_out, registry: Path, note: str, has_cp2b: bool) -> list[str]:
+def report(rows, summ_in, summ_out, registry: Path, note: str) -> list[str]:
     L = [
         "# Evidência de BMP: Literature Watch × CP2b × feedstocks.yaml",
         "",
@@ -198,7 +204,7 @@ def report(rows, summ_in, summ_out, registry: Path, note: str, has_cp2b: bool) -
     for s in summ_in:
         L.append(f"| {s['codigo']} | {s['registros']} | {s['brutos_comparaveis']} | {fmt(s['mediana_bruto'])} "
                  f"| {span(s['min_bruto'], s['max_bruto'])} | {s['tier_a']} "
-                 f"| {s['faixa_cp2b'] or '—'} | {s['fora_cp2b'] if has_cp2b else '—'} "
+                 f"| {s['faixa_cp2b'] or '—'} | {s['fora_cp2b'] if s['faixa_cp2b'] else '—'} "
                  f"| {s['faixa_feedstocks_yaml'] or '—'} | {s['fora_feedstocks_yaml']} |")
     if any(s["codigo"] == "VINHACA" for s in summ_in):
         L += ["", "O CP2b calcula a vinhaça direto por m³ de etanol (elemento \"direto\"), sem BMP por g SV. "
@@ -249,7 +255,7 @@ def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     write_csv(OUT / "evidencia.csv", rows)
     write_csv(OUT / "resumo.csv", summ_in + summ_out)
-    (OUT / "RELATORIO.md").write_text("\n".join(report(rows, summ_in, summ_out, registry, note, bool(cp2b))) + "\n",
+    (OUT / "RELATORIO.md").write_text("\n".join(report(rows, summ_in, summ_out, registry, note)) + "\n",
                                       encoding="utf-8")
     print(f"{len(rows)} registros · {note}")
     print(f"Wrote {OUT.relative_to(ROOT)}/")
