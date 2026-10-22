@@ -44,8 +44,9 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import importlib.util
-from collections import Counter
+from collections import Counter, defaultdict
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -74,6 +75,15 @@ SITUACOES = {
     "fora_sp": "dispõe fora de SP",
     "sem_destino": "Dispoe_em vazio na camada da CETESB",
     "nao_casado": "destino com nome que não casou com o IBGE",
+}
+# CP2b v5.1 levels of the organic fraction of RSU, snapshot column -> short name.
+CP2B_RSU = "RSU_ORGANICO"
+CP2B_STEPS = {
+    "n1_ch4_nm3_year": "n1",
+    "n2_ch4_nm3_year": "n2",
+    "n3_before_existing_use_ch4_nm3_year": "n3_antes",
+    "existing_use_subtracted_ch4_nm3_year": "uso_existente",
+    "n3_ch4_nm3_year": "n3",
 }
 FONTE_TITULO = "CETESB, IQR – Índice de Qualidade de Aterro de Resíduos, campo Dispoe_em"
 FONTE_URL = "https://datageo.ambiente.sp.gov.br/"
@@ -169,6 +179,40 @@ def same_destination(records: list[dict], previous: list[dict]) -> tuple[int, in
     return sum(1 for r in both if before[r["ibge_code"]] == r["dispoe_em"]), len(both)
 
 
+def cp2b_rsu_steps(B) -> tuple[dict[str, dict[str, float]] | None, dict[str, str]]:
+    """ibge -> CP2b RSU_ORGANICO level -> Nm³ CH4/yr (scenario med), and the method's RSU parameters.
+
+    Only from the v5.1 snapshot with the loader's checksum; (None, {}) otherwise.
+    """
+    files = B.loader_constant("FILES")
+    path = B.CP2B_SNAPSHOT / files["levels"]
+    expected = B.loader_constant("EXPECTED_SHA256")["levels"]
+    if not path.exists() or hashlib.sha256(path.read_bytes()).hexdigest() != expected:
+        return None, {}
+    steps = {}
+    with path.open(encoding="utf-8-sig") as fh:
+        for r in csv.DictReader(fh):
+            if r["scenario"] == "med" and r["substrate"] == CP2B_RSU:
+                steps[str(int(float(r["ibge_code"])))] = {k: float(r[c] or 0) for c, k in CP2B_STEPS.items()}
+    params = {}
+    pfile = B.CP2B_SNAPSHOT / files["parameters"]
+    if pfile.exists():
+        with pfile.open(encoding="utf-8-sig") as fh:
+            for r in csv.DictReader(fh):
+                if r.get("codigo") == CP2B_RSU:
+                    params[r["elemento"]] = r["med"] or r["fonte"]
+    return steps, params
+
+
+def deduction_by_region(steps: dict[str, dict[str, float]], muns: dict[str, dict]) -> dict[str, tuple[float, float]]:
+    """IBGE intermediate region -> (min, max) share of N3 that CP2b subtracts as existing use."""
+    shares = defaultdict(list)
+    for code, s in steps.items():
+        if s["n3_antes"] and code in muns:
+            shares[muns[code]["nm_rgint"]].append(s["uso_existente"] / s["n3_antes"])
+    return {k: (min(v), max(v)) for k, v in sorted(shares.items())}
+
+
 def label(names: dict[str, str], code: str, suffix: str) -> str:
     return f"{names.get(code, code)}" + (f" ({suffix})" if suffix else "")
 
@@ -182,6 +226,88 @@ def write_csv(path: Path, rows: list[dict], fallback: list[str]) -> None:
         w = csv.DictWriter(fh, fieldnames=list(dict.fromkeys(k for r in rows for k in r)) or fallback)
         w.writeheader()
         w.writerows(rows)
+
+
+def cp2b_gap(steps, params, rows, master, muns, S, D, A) -> list[str]:
+    """Report section: where CP2b's RSU methane parts from C23's, step by step, from the snapshot itself."""
+    fmt = R.fmt
+
+    def x(a: float, b: float) -> str:
+        return f"× {fmt(a / b, 2)}" if b else "—"
+
+    def par(name: str) -> str:
+        try:
+            return fmt(float(params[name]), 2).rstrip("0").rstrip(",")
+        except (KeyError, ValueError):
+            return "?"
+
+    dig = sum(R.member_flows(S, D, A, r)["ch4_digestao_nm3_ano"] for r in master.values())
+    st = {k: sum(s[k] for s in steps.values()) for k in CP2B_STEPS.values()}
+    regions = deduction_by_region(steps, muns)
+    uniform = all(hi - lo < 1e-3 for lo, hi in regions.values())
+    plant_no_cut = [r["nome"] for r in rows if r["plantas_no_municipio"] and r["cp2b_desconto_pct"] != ""
+                    and r["cp2b_desconto_pct"] < 5]
+    cut_no_plant = [r["nome"] for r in rows if not r["plantas_no_municipio"] and r["cp2b_desconto_pct"] != ""
+                    and r["cp2b_desconto_pct"] > 50]
+    L = [
+        "## CP2b × C23: de onde vem a diferença no RSU",
+        "",
+        "O CP2b v5.1 (snapshot verificado) dá para o RSU orgânico bem menos metano que a rota digestão do C23. "
+        "No estado, passo a passo (cenário med, Nm³ CH₄/dia):",
+        "",
+        "| Passo | Estado | Fator | O que é |",
+        "|---|---:|---:|---|",
+        f"| C23, biodigestão da FORSU | {fmt(dig / S.DAYS)} | | per capita do Atlas × fração orgânica × BMP do "
+        "cenário Real |",
+        f"| CP2b N1 | {fmt(st['n1'] / S.DAYS)} | {x(st['n1'], dig)} | massa coletada SNIS 2022 × g × ST × SV × "
+        f"BMP (g {par('g')}, BMP {par('BMP')} Nm³ CH₄/t SV) |",
+        f"| CP2b N2 | {fmt(st['n2'] / S.DAYS)} | {x(st['n2'], st['n1'])} | FC {par('FC')}, "
+        "separabilidade do orgânico no resíduo misturado (provisório no CP2b) |",
+        f"| CP2b N3 antes do uso existente | {fmt(st['n3_antes'] / S.DAYS)} | {x(st['n3_antes'], st['n2'])} | "
+        "FCo × FS |",
+        f"| CP2b N3 | {fmt(st['n3'] / S.DAYS)} | {x(st['n3'], st['n3_antes'])} | menos "
+        f"{fmt(st['uso_existente'] / S.DAYS)} de uso existente |",
+        "",
+        f"Nota do método para o uso existente: _{params.get('u (usos excludentes) / notas', 'sem nota no snapshot')}_",
+        "",
+        "Parcela do N3 descontada como uso existente, por região intermediária do IBGE (menor e maior entre os "
+        "municípios):",
+        "",
+        "| Região intermediária | Parcela descontada |",
+        "|---|---:|",
+        *[f"| {k} | {fmt(100 * lo, 1)} %" + ("" if hi - lo < 1e-3 else f"–{fmt(100 * hi, 1)} %") + " |"
+          for k, (lo, hi) in regions.items()],
+        "",
+    ]
+    if uniform:
+        L += ["**A parcela é a mesma para todos os municípios de cada região intermediária.** O desconto segue a "
+              "região de origem do resíduo, não o aterro para onde ele vai: municípios da mesma bacia recebem "
+              "descontos diferentes, e um aterro com captura numa região de parcela baixa não desconta quase nada "
+              "de quem manda resíduo para ele.", ""]
+    if plant_no_cut:
+        L += [f"- Destino com planta de aterro no cadastro e desconto abaixo de 5 %: {', '.join(plant_no_cut)}."]
+    if cut_no_plant:
+        L += ["- Desconto acima de 50 % sem planta de aterro do cadastro do repositório no município do destino: "
+              f"{', '.join(cut_no_plant)}."]
+    L += [
+        "",
+        "| Destino | C23 digestão | CP2b N1 | N2 | Uso existente | N3 | Desconto | Regiões dos membros |",
+        "|---|---:|---:|---:|---:|---:|---:|---|",
+        *[f"| {r['nome']} | {fmt(r['ch4_digestao_nm3_dia'])} | {fmt(r['cp2b_rsu_org_n1_nm3_dia'])} | "
+          f"{fmt(r['cp2b_rsu_org_n2_nm3_dia'])} | {fmt(r['cp2b_rsu_org_uso_existente_nm3_dia'])} | "
+          f"{fmt(r['cp2b_rsu_org_n3_nm3_dia'])} | "
+          f"{fmt(r['cp2b_desconto_pct'], 1) if r['cp2b_desconto_pct'] != '' else '—'} % | "
+          f"{r['regioes_intermediarias']} |" for r in rows],
+        "",
+        f"Leitura: a diferença comum a todas as bacias (no estado, CP2b antes do desconto = "
+        f"{fmt(st['n3_antes'] / dig, 2)} × C23) vem de método: o CP2b "
+        "parte de mais metano por tonelada e aplica a separabilidade FC; o C23 supõe a FORSU toda separada. A "
+        "diferença grande vem do uso existente. Com as bacias da CETESB, o desconto pode ser feito pelo aterro "
+        "que de fato recebe o resíduo e pela captura que esse aterro tem: proposta para a próxima versão do método "
+        "CP2b, a conferir com a equipe do método antes de qualquer cartão usar um dos dois números.",
+        "",
+    ]
+    return L
 
 
 def main() -> None:
@@ -202,6 +328,7 @@ def main() -> None:
     names = D.names()
     by_name = {R.norm(n): c for c, n in names.items()}
     cp2b, cp2b_note = B.cp2b_by_municipality()
+    steps, cp2b_params = cp2b_rsu_steps(B)
 
     records, unmatched = read_iqr(args.iqr, args.ano, by_name)
     prev = str(int(args.ano) - 1)
@@ -224,6 +351,11 @@ def main() -> None:
             "iqr_min": min(scores) if scores else "", "iqr_max": max(scores) if scores else "",
             "plantas_no_municipio": "; ".join(p["planta"] for p in host if p["distancia_km"] == 0),
         })
+        if steps:
+            tot = {k: sum(steps.get(r["ibge_code"], {}).get(k, 0.0) for r in recs) for k in CP2B_STEPS.values()}
+            row.update({f"cp2b_rsu_org_{k}_nm3_dia": round(v / S.DAYS) for k, v in tot.items()})
+            row["cp2b_desconto_pct"] = round(100 * tot["uso_existente"] / tot["n3_antes"], 1) if tot["n3_antes"] else ""
+            row["regioes_intermediarias"] = "; ".join(sorted({muns[r["ibge_code"]]["nm_rgint"] for r in recs}))
         for m, r in zip(mem_rows, recs):
             m.update({"situacao": r["situacao"], "dispoe_em": r["dispoe_em"], "iqr": r["iqr_bruto"]})
         rows.append(row)
@@ -308,6 +440,7 @@ def main() -> None:
         "3. **Rota digestão:** é o teto se toda a fração orgânica dos membros fosse separada e levada ao mesmo "
         "destino, o que supõe coleta seletiva da FORSU.",
         "",
+        *(cp2b_gap(steps, cp2b_params, rows, master, muns, S, D, A) if steps else []),
         "## Cartão de pré-viabilidade (rascunho), bacias na escala mínima pela rota aterro",
         "",
         *(cards or ["- Nenhuma bacia na escala mínima.", ""]),

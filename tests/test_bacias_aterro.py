@@ -97,3 +97,22 @@ def test_catchment_is_the_sum_of_its_members():
     n = len(mem)
     assert row["ch4_aterro_nm3_dia"] == pytest.approx(sum(m["ch4_aterro_nm3_dia"] for m in mem), abs=n)
     assert row["ch4_digestao_nm3_dia"] == pytest.approx(sum(m["ch4_digestao_nm3_dia"] for m in mem), abs=n)
+
+
+def test_cp2b_steps_need_the_verified_snapshot(tmp_path, monkeypatch):
+    B = R.load(R.RECONCILIATION, "biogram_reconciliation")
+    monkeypatch.setattr(B, "CP2B_SNAPSHOT", tmp_path)
+    assert C.cp2b_rsu_steps(B) == (None, {})
+    (tmp_path / B.loader_constant("FILES")["levels"]).write_text("ibge_code,substrate\n", encoding="utf-8")
+    assert C.cp2b_rsu_steps(B) == (None, {})  # wrong checksum: refused, never read
+
+
+def test_deduction_share_by_intermediate_region():
+    muns = {"1": {"nm_rgint": "A"}, "2": {"nm_rgint": "A"}, "3": {"nm_rgint": "B"}}
+    steps = {
+        "1": {"n3_antes": 100.0, "uso_existente": 75.0},
+        "2": {"n3_antes": 40.0, "uso_existente": 30.0},
+        "3": {"n3_antes": 10.0, "uso_existente": 0.0},
+        "4": {"n3_antes": 0.0, "uso_existente": 0.0},
+    }
+    assert C.deduction_by_region(steps, muns) == {"A": (0.75, 0.75), "B": (0.0, 0.0)}
