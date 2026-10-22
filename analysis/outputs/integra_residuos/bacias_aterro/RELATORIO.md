@@ -70,6 +70,86 @@ Escala mínima: 15.000 Nm³ CH₄/dia. Ordenadas pelo metano da rota aterro. IQR
 2. **Rota aterro:** é o gás que a razão estadual do Atlas atribui ao resíduo que chega por ano, não o gás do resíduo já aterrado, que pode ser maior num aterro antigo. A coluna de plantas mostra onde já existe captura no cadastro do repositório.
 3. **Rota digestão:** é o teto se toda a fração orgânica dos membros fosse separada e levada ao mesmo destino, o que supõe coleta seletiva da FORSU.
 
+## CP2b × C23: de onde vem a diferença no RSU
+
+O CP2b v5.1 (snapshot verificado) dá para o RSU orgânico bem menos metano que a rota digestão do C23. No estado, passo a passo (cenário med, Nm³ CH₄/dia):
+
+| Passo | Estado | Fator | O que é |
+|---|---:|---:|---|
+| C23, biodigestão da FORSU | 1.089.272 | | per capita do Atlas × fração orgânica × BMP do cenário Real |
+| CP2b N1 | 1.368.385 | × 1,26 | massa coletada SNIS 2022 × g × ST × SV × BMP (g 0,5, BMP 270 Nm³ CH₄/t SV) |
+| CP2b N2 | 889.450 | × 0,65 | FC 0,65, separabilidade do orgânico no resíduo misturado (provisório no CP2b) |
+| CP2b N3 antes do uso existente | 889.450 | × 1,00 | FCo × FS |
+| CP2b N3 | 442.516 | × 0,50 | menos 446.934 de uso existente |
+
+Nota do método para o uso existente: _A = massa coletada SNIS 2022 (RDO+RPU). FC = separabilidade do orgânico em resíduo misturado (triagem mecânica; sem fonte primária — provisório). Aterro com captura = uso existente (subtraído no N3)._
+
+Parcela do N3 descontada como uso existente, por região intermediária do IBGE (menor e maior entre os municípios):
+
+| Região intermediária | Parcela descontada |
+|---|---:|
+| Araraquara | 0,0 % |
+| Araçatuba | 0,0 % |
+| Bauru | 0,0 % |
+| Campinas | 0,8 % |
+| Marília | 0,0 % |
+| Presidente Prudente | 19,3 % |
+| Ribeirão Preto | 64,8 % |
+| Sorocaba | 0,0 % |
+| São José do Rio Preto | 21,3 % |
+| São José dos Campos | 80,7 % |
+| São Paulo | 74,7 % |
+
+**A parcela é a mesma para todos os municípios de cada região intermediária.** O desconto segue a região de origem do resíduo, não o aterro para onde ele vai: municípios da mesma bacia recebem descontos diferentes, e um aterro com captura numa região de parcela baixa não desconta quase nada de quem manda resíduo para ele.
+
+- Destino com planta de aterro no cadastro e desconto abaixo de 5 %: Paulínia (A.P.), Indaiatuba (A.P.), Quatá (A.P.).
+- Desconto acima de 50 % sem planta de aterro do cadastro do repositório no município do destino: Mauá (A.P.), Santana de Parnaíba (A.P.), Santos (A.P.), Jambeiro (A.P.), Tremembé (A.P.), Itapevi (A.P.), Cachoeira Paulista (A.P.), Sales Oliveira (A.P.), Jardinópolis (A.P.), Barretos (A.P.), Santa Isabel (A.P.), Guará (A.P.).
+
+| Destino | C23 digestão | CP2b N1 | N2 | Uso existente | N3 | Desconto | Regiões dos membros |
+|---|---:|---:|---:|---:|---:|---:|---|
+| Caieiras (A.P.) | 354.878 | 421.125 | 273.731 | 200.802 | 72.929 | 73,4 % | Campinas; Sorocaba; São Paulo |
+| Paulínia (A.P.) | 64.277 | 73.959 | 48.074 | 399 | 47.674 | 0,8 % | Campinas |
+| São Paulo (CDR) | 57.908 | 60.736 | 39.478 | 26.952 | 12.527 | 68,3 % | Campinas; São Paulo |
+| Mauá (A.P.) | 54.596 | 64.933 | 42.206 | 31.543 | 10.663 | 74,7 % | São Paulo |
+| Santana de Parnaíba (A.P.) | 42.791 | 73.850 | 48.002 | 29.922 | 18.081 | 62,3 % | Campinas; São Paulo |
+| Guatapará (A.P.) | 29.210 | 32.959 | 21.423 | 10.439 | 10.984 | 48,7 % | Araraquara; Campinas; Ribeirão Preto |
+| Iperó (A.P.) | 28.019 | 31.824 | 20.686 | 0 | 20.686 | 0,0 % | Sorocaba |
+| Santos (A.P.) | 26.702 | 48.225 | 31.346 | 23.427 | 7.919 | 74,7 % | São Paulo |
+| Jambeiro (A.P.) | 25.305 | 38.312 | 24.903 | 19.292 | 5.611 | 77,5 % | São José dos Campos; São Paulo |
+| Piratininga (A.P.) | 19.541 | 21.125 | 13.731 | 0 | 13.731 | 0,0 % | Bauru; Marília; Sorocaba |
+| Onda Verde (A.P.) | 17.417 | 29.639 | 19.265 | 5.430 | 13.835 | 28,2 % | Ribeirão Preto; São José do Rio Preto |
+| Tremembé (A.P.) | 15.724 | 19.267 | 12.523 | 10.111 | 2.412 | 80,7 % | São José dos Campos |
+| Catanduva (A.P.) | 13.544 | 20.108 | 13.070 | 2.413 | 10.657 | 18,5 % | Araraquara; Bauru; Ribeirão Preto; São José do Rio Preto |
+| Cesário Lange (A.P.) | 10.065 | 10.192 | 6.625 | 5 | 6.620 | 0,1 % | Campinas; Sorocaba |
+| Americana (A.P.) | 9.780 | 12.902 | 8.386 | 70 | 8.317 | 0,8 % | Campinas |
+| Itapevi (A.P.) | 9.578 | 10.424 | 6.775 | 4.793 | 1.982 | 70,7 % | Sorocaba; São Paulo |
+| Cachoeira Paulista (A.P.) | 9.195 | 8.672 | 5.637 | 4.551 | 1.086 | 80,7 % | São José dos Campos |
+| Casa Branca (A.P.) | 8.479 | 9.314 | 6.054 | 43 | 6.011 | 0,7 % | Araraquara; Bauru; Campinas |
+| Sales Oliveira (A.P.) | 7.952 | 12.770 | 8.301 | 5.376 | 2.924 | 64,8 % | Ribeirão Preto |
+| Indaiatuba (A.P.) | 7.604 | 9.609 | 6.246 | 52 | 6.194 | 0,8 % | Campinas |
+| Quatá (A.P.) | 7.520 | 8.972 | 5.832 | 289 | 5.543 | 4,9 % | Marília; Presidente Prudente |
+| Marília (A.P.) | 7.395 | 7.538 | 4.900 | 0 | 4.900 | 0,0 % | Bauru; Marília |
+| Regente Feijó (A.P.) | 7.231 | 12.167 | 7.908 | 1.524 | 6.384 | 19,3 % | Presidente Prudente |
+| São Carlos (A.P.) | 6.218 | 6.975 | 4.534 | 0 | 4.534 | 0,0 % | Araraquara |
+| Rio das Pedras (A.P.) | 6.085 | 7.048 | 4.582 | 35 | 4.547 | 0,8 % | Bauru; Campinas; Sorocaba |
+| Meridiano (A.P.) | 4.956 | 6.579 | 4.276 | 849 | 3.428 | 19,8 % | Araçatuba; São José do Rio Preto |
+| Jardinópolis (A.P.) | 4.638 | 5.125 | 3.331 | 2.158 | 1.174 | 64,8 % | Ribeirão Preto |
+| Bragança Paulista (A.P.) | 4.585 | 6.427 | 4.177 | 35 | 4.143 | 0,8 % | Campinas |
+| Barretos (A.P.) | 4.155 | 5.683 | 3.694 | 2.393 | 1.301 | 64,8 % | Ribeirão Preto |
+| Tapiratiba (A.P.) | 3.996 | 4.792 | 3.115 | 26 | 3.089 | 0,8 % | Campinas |
+| Salto (A.P.) | 3.694 | 4.497 | 2.923 | 0 | 2.923 | 0,0 % | Sorocaba |
+| Adamantina (A.P.) | 3.690 | 5.441 | 3.537 | 414 | 3.123 | 11,7 % | Araçatuba; Marília; Presidente Prudente |
+| Conchal (A.P.) | 2.692 | 3.472 | 2.257 | 19 | 2.238 | 0,8 % | Campinas |
+| Santa Isabel (A.P.) | 2.234 | 3.217 | 2.091 | 1.301 | 790 | 62,2 % | Campinas; São José dos Campos; São Paulo |
+| Guará (A.P.) | 2.015 | 2.513 | 1.633 | 1.058 | 575 | 64,8 % | Ribeirão Preto |
+| Pirapozinho (A.P.) | 811 | 1.498 | 974 | 188 | 786 | 19,3 % | Presidente Prudente |
+| Aguaí (A.P.) | 663 | 664 | 432 | 4 | 428 | 0,8 % | Campinas |
+| Botucatu | 474 | 599 | 390 | 0 | 390 | 0,0 % | Bauru |
+| Pariquera-Açu | 222 | 1.101 | 715 | 0 | 715 | 0,0 % | Sorocaba |
+| Santa Fé do Sul | 69 | 74 | 48 | 10 | 38 | 21,3 % | São José do Rio Preto |
+
+Leitura: a diferença comum a todas as bacias (no estado, CP2b antes do desconto = 0,82 × C23) vem de método: o CP2b parte de mais metano por tonelada e aplica a separabilidade FC; o C23 supõe a FORSU toda separada. A diferença grande vem do uso existente. Com as bacias da CETESB, o desconto pode ser feito pelo aterro que de fato recebe o resíduo e pela captura que esse aterro tem: proposta para a próxima versão do método CP2b, a conferir com a equipe do método antes de qualquer cartão usar um dos dois números.
+
 ## Cartão de pré-viabilidade (rascunho), bacias na escala mínima pela rota aterro
 
 ### Caieiras (A.P.)
@@ -536,7 +616,7 @@ Lista completa em `fora_das_bacias.csv`.
 - O significado dos sufixos `A.P.` e `CDR` não está nos metadados; os destinos com sufixos diferentes ficam em bacias separadas.
 - Quem dispõe em mais de um destino não é repartido: a camada não traz as toneladas por destino. Esses destinos recebem mais do que a bacia mostra (coluna `recebe_tambem_de_multiplos` em `bacias.csv`).
 - Massa de RSU pela geração per capita do Atlas e população do master, como no C23, não pela pesagem no aterro.
-- CP2b v5.1: CP2b v5.1, cenário med.
+- CP2b: CP2b v5.1, cenário med.
 
 ## Fontes
 
