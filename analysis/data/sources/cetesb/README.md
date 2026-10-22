@@ -6,6 +6,12 @@
   (`A.P.`, `CDR`, ou a UF quando fora de SP); o significado de `A.P.` e dos campos vazios não está nos
   metadados e está por conferir. `IQR` = -1 aparece em 8 ou 9 municípios por ano, também por conferir.
 
+Limpeza feita depois da extração (o conteúdo não mudou): no dbf, os `Dispoe_em` sem valor vinham preenchidos
+com bytes NUL (263 campos nos três anos); aqui ficaram vazios. As quebras de linha passaram de CRLF para LF.
+Um `Dispoe_em` com vírgula lista mais de um destino (ex.: `Jambeiro - A.P., Santos - A.P.`), e alguns nomes
+usam crase no lugar do apóstrofo (`Estrela d`Oeste`) ou grafia diferente da do IBGE (`Florínia`, `São Luís do
+Paraitinga`, `Sta. Rosa de Viterbo`); `analysis/build_bacias_aterro.py` trata isso e lista o que não casar.
+
 Extraído em 22/10/2026 dos arquivos baixados do DataGeo (datageo.ambiente.sp.gov.br):
 
 | ano | arquivo | registros | sha256 | pedido WFS |
