@@ -101,6 +101,18 @@ BMP mais baixo que o dejeto.
   base do CP2b é o estoque confinado do GEDAVE, não os animais que passam pelo
   cocho no ano. Vale deixar isso explícito para não parecer esquecimento.
 
+### 5. Bagaço de laranja: quase todo já vira ração
+
+O CP2b usa FCo de 0,25 (0,15–0,40), ou seja, 75 % do bagaço de laranja vai
+para polpa peletizada, pectina e d-limoneno. A Visão Agrícola (ESALQ, 2004,
+tier B) diz que o resíduo, 50 % do peso da fruta, vira polpa cítrica
+peletizada para ração, com sobra de 0 a 5 %. Com 0,02 no lugar de 0,25, o
+bagaço de laranja cai a cerca de 1/12 do que o CP2b conta hoje.
+
+Pergunta: de onde vem o 0,25? Se houver dado das fábricas de suco de SP sobre
+a fração que não vai para a peletização, ele resolve. Se não, a fonte de 2004
+é antiga, mas é a única no registro.
+
 ## O que a literatura sustenta
 
 - Poedeiras: dejeto fresco de 0,035–0,041 t/ave/ano contra a mediana de 0,050
@@ -112,6 +124,12 @@ BMP mais baixo que o dejeto.
   dentro de 0,70–0,95. O termo de coleta 0,90 das aves é o mesmo da fonte.
 - FCo da vinhaça e dos suínos: 0,95 e 0,99 de unidades sem digestão, dentro de
   0,90–1,00.
+- Palhas: o CP2b deixa no FC a palha que fica no solo (cana 0,40, milho 0,40,
+  soja 0,30). A fração removível da literatura, comparada com FC × FCo, cai
+  dentro ou se sobrepõe à faixa do CP2b: cana 0,27–0,5 contra 0,28–0,47;
+  milho 0,12–0,5 contra 0,21–0,50; soja até 0,25 contra 0,18–0,40.
+- FCo da casca de café: 0,5 (uso como adubo e combustível de secador), dentro
+  de 0,50–0,70.
 
 ## Para depois da submissão
 
@@ -126,11 +144,11 @@ BMP mais baixo que o dejeto.
   excreta fresca com ST para comparar com o override de 8–12 %.
 - FC do confinado: a mesma eficiência de 90 % fica acima do máximo de 0,75
   do CP2b. É tier C e vale para todos os rebanhos; não basta para mexer.
-- Lignocelulósicos e citros: o registro traz FCo de palha de cana (0,27–0,5),
-  palha de milho (0,12–0,5), palha de soja (até 0,25), casca de café (0,5) e
-  bagaço de laranja (0,02: quase todo vira polpa peletizada para ração). O
-  relatório põe esses valores ao lado da faixa do CP2b quando o snapshot a
-  traz.
+- Palha de cana: a decomposição no solo deixa 0,67 da massa aos 36 dias e
+  0,31 ao fim de um ano (Embrapa, tier B), contra o FS de 0,92 do CP2b. O
+  número depende de quanto tempo a palha fica no campo antes do enfardamento;
+  vale registrar a premissa. O FCo da palha (0,90, queima em caldeira e 2G)
+  continua sem fonte quantitativa para SP; o registro não fecha essa lacuna.
 - Lacunas no registro de BMP: nada sobre bovinos, suínos, aves, lodo ou RSU.
   Vale pedir à rotina Literature Watch que priorize esses substratos.
 

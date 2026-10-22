@@ -10,6 +10,8 @@ CP2b range.
 import importlib.util
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[1]
 spec = importlib.util.spec_from_file_location("evidencia_fde", ROOT / "analysis" / "build_evidencia_fde.py")
 F = importlib.util.module_from_spec(spec)
@@ -27,7 +29,7 @@ def test_registry_has_the_columns_the_reading_uses():
 
 def test_every_reading_names_a_record_and_a_substrate_of_its_stream():
     for rid, code, factor, what in F.MAP:
-        assert rid in RECORDS and factor in F.FACTORS and what
+        assert rid in RECORDS and factor in F.FACTORS + (F.FC_FCO,) and what
         assert code in SUBS and code in F.STREAMS[RECORDS[rid]["feedstock_code"]]
         lo, _, hi = F.bounds(RECORDS[rid])
         assert lo is not None and lo <= hi
@@ -65,3 +67,9 @@ def test_verdict_only_with_a_cp2b_range():
     assert rows[0]["situacao"] == "abaixo"
     ctx = F.context(RECORDS, {(code, factor): (0.1, 0.2, 0.3)})
     assert all("situacao" not in r for r in ctx)
+
+
+def test_crop_residue_removal_is_compared_with_fc_times_fco():
+    got = F.with_fc_fco({("X", "FC"): (0.35, 0.4, 0.5), ("X", "FCo"): (0.8, 0.9, 0.95), ("Y", "FC"): (1, 1, 1)})
+    assert got[("X", F.FC_FCO)] == pytest.approx((0.28, 0.36, 0.475))
+    assert ("Y", F.FC_FCO) not in got

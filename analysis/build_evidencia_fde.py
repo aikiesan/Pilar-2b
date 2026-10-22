@@ -16,6 +16,10 @@ often means something else. CP2b reads them as:
   FS   mass retained after a documented loss (DEC-013), never days of supply / 365
   FL   a spatial fraction per municipality (fl_v5), not a distance
 
+Crop residues keep the straw left on the soil for agronomic reasons in FC, not
+in FCo, so a removable fraction from the literature is compared with FC × FCo
+(min×min, med×med, max×max).
+
 So each record is read by hand below. MAP holds the records whose definition is
 the CP2b one; they are placed against the CP2b range. CONTEXT holds the records
 that touch a CP2b substrate with another definition (a share of farms, days on
@@ -57,6 +61,7 @@ E = G.E
 fmt, num = E.fmt, E.num
 
 FACTORS = ("FC", "FCo", "FS", "FL")
+FC_FCO = "FC×FCo"
 # Registry stream -> CP2b substrate codes it can speak to (empty: CP2b does not model it)
 STREAMS = {
     "bovinos": ("BOV_LEITE", "BOV_CONFINADO", "BOV_PASTO_MISTO"),
@@ -82,14 +87,14 @@ MAP = (
                                          "conta estabelecimentos, não massa"),
     ("FDE-20261017-20", "VINHACA", "FCo", "destilarias de SP sem digestão (8 de 165 digerem); fertirrigação "
                                           "compatível"),
-    ("FDE-20261017-13", "PALHA", "FCo", "fração recolhível; o resto fica no solo por função agronômica"),
-    ("FDE-20261017-15", "PALHA", "FCo", "recolhimento observado em usinas de SP (9 % e 27 %; caso potencial 50 %)"),
+    ("FDE-20261017-13", "PALHA", FC_FCO, "fração recolhível; o resto fica no solo por função agronômica"),
+    ("FDE-20261017-15", "PALHA", FC_FCO, "recolhimento observado em usinas de SP (9 % e 27 %; caso potencial 50 %)"),
     ("FDE-20261017-19", "PALHA", "FS", "massa que resta após a decomposição no solo antes do enfardamento: o "
                                        "registro chama de FC, mas é retenção de massa após perda (DEC-013)"),
-    ("FDE-20261018-01", "PALHA_MILHO", "FCo", "fração removível sem perda de produtividade"),
-    ("FDE-20261018-02", "PALHA_MILHO", "FCo", "fração acima da cobertura do plantio direto"),
-    ("FDE-20261018-03", "PALHA_MILHO", "FCo", "remoção sustentável × fração sem uso concorrente"),
-    ("FDE-20261018-04", "PALHA_SOJA", "FCo", "remoção sustentável; sem uso concorrente"),
+    ("FDE-20261018-01", "PALHA_MILHO", FC_FCO, "fração removível sem perda de produtividade"),
+    ("FDE-20261018-02", "PALHA_MILHO", FC_FCO, "fração acima da cobertura do plantio direto"),
+    ("FDE-20261018-03", "PALHA_MILHO", FC_FCO, "remoção sustentável × fração sem uso concorrente"),
+    ("FDE-20261018-04", "PALHA_SOJA", FC_FCO, "remoção sustentável; sem uso concorrente"),
     ("FDE-20261018-05", "CASCA_CAFE", "FCo", "fração ainda sem uso (adubo, combustível de secador)"),
     ("FDE-20261018-16", "BAGACO_CITROS", "FCo", "fração ainda sem uso: o resíduo vira polpa cítrica peletizada "
                                                 "para ração"),
@@ -168,6 +173,16 @@ def bounds(r: dict) -> tuple[float | None, float | None, float | None]:
 def _source(r: dict) -> dict:
     return {"tier": r.get("tier", ""), "regiao": r.get("region", ""), "fonte": r.get("source_key", ""),
             "doi": r.get("doi", ""), "url": r.get("url", "")}
+
+
+def with_fc_fco(params: dict) -> dict:
+    """The CP2b ranges plus FC × FCo per substrate, as min×min, med×med, max×max."""
+    out = dict(params)
+    for code in {c for c, _ in params}:
+        fc, fco = params.get((code, "FC")), params.get((code, "FCo"))
+        if fc and fco:
+            out[(code, FC_FCO)] = tuple(a * b for a, b in zip(fc, fco))
+    return out
 
 
 def compare(records: dict[str, dict], cp2b: dict) -> list[dict]:
@@ -265,6 +280,8 @@ def report(cmp_rows, ctx_rows, records: dict[str, dict], registry: Path, note: s
     L += ["", "## Como ler", "",
           "- Números, DOIs e notas são os do registro do Literature Watch, com a verificação que a rotina "
           "registrou. Antes de citar, abra a fonte.",
+          "- FC×FCo: nas palhas o CP2b deixa a palha que fica no solo no FC, não no FCo. A fração removível da "
+          "literatura é comparada com o produto, mín×mín a máx×máx.",
           "- \"—\" na coluna CP2b: o cp2b_parametros.csv do v5.1 não traz esse fator para o substrato, ou o "
           "snapshot não foi lido (veja o cabeçalho).",
           "- Um registro pode aparecer nas duas tabelas quando fala de mais de um substrato com sentidos "
@@ -275,7 +292,8 @@ def report(cmp_rows, ctx_rows, records: dict[str, dict], registry: Path, note: s
 def main() -> None:
     registry = latest_registry()
     records = {r["record_id"]: r for r in E.read_registry(registry)}
-    cp2b, note = E.cp2b_parameters(FACTORS)
+    params, note = E.cp2b_parameters(FACTORS)
+    cp2b = with_fc_fco(params)
     cmp_rows, ctx_rows = compare(records, cp2b), context(records, cp2b)
     OUT.mkdir(parents=True, exist_ok=True)
     G.write_csv(OUT / "comparacao.csv", cmp_rows)
