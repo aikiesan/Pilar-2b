@@ -1,0 +1,40 @@
+{
+  "scope": [
+    "SP",
+    "MG"
+  ],
+  "municipalities": 1498,
+  "sources": {
+    "population": {
+      "source": "IBGE Censo 2022",
+      "sidra_table": 4709,
+      "url_template": "https://apisidra.ibge.gov.br/values/t/4709/n6/in%20n3%20{uf}/v/all/p/all?formato=json"
+    },
+    "livestock": {
+      "source": "IBGE PPM 2024",
+      "sidra_table": 3939,
+      "url_template": "https://apisidra.ibge.gov.br/values/t/3939/n6/in%20n3%20{uf}/v/all/p/2024/c79/all?formato=json"
+    },
+    "urban": {
+      "source": "SNIS-RS 2022 Planilha de Informações",
+      "url": "https://www.gov.br/cidades/pt-br/acesso-a-informacao/acoes-e-programas/saneamento/snis/produtos-do-snis/diagnosticos/Planilha_RS_2022_atualizado_29112024.zip",
+      "variables": {
+        "CO111": "RDO t/year",
+        "CO115": "RPU t/year",
+        "CO119": "RDO+RPU t/year"
+      }
+    }
+  },
+  "coverage": {
+    "population": 1498,
+    "ppm_primary_herds": 1470,
+    "snis_respondents": 1414,
+    "snis_co111_reporters": 383
+  },
+  "totals": {
+    "population_2022": 64951227.0,
+    "snis_co111_t_year": 8642367.6,
+    "snis_co115_t_year": 2002809.1,
+    "snis_co119_t_year": 20254028.9
+  }
+}

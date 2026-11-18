@@ -1,0 +1,76 @@
+v2-data/
+
+# Local development helper files (auto-generated)
+START_BACKEND.ps1
+START_FRONTEND.ps1
+START_PROJECT.ps1
+RESTART_BACKEND.ps1
+RESTART_BACKEND_SIMPLE.ps1
+FIX_BACKEND_DEPS.ps1
+PROJECT_STATUS.md
+LOCAL_SETUP_SUCCESS.md
+SUCCESS_SUMMARY.txt
+SUPABASE_INTEGRATION_SUCCESS.md
+FINAL_SETUP_COMPLETE.txt
+POLYGON_CHLOROPLETH_RESTORED.md
+FILTERED_FDE_CASCADE_FEATURE.md
+DETAILED_RESIDUE_IMPLEMENTATION_PLAN.md
+HANDOFF_PROMPT_FOR_CONTINUATION.md
+
+# Temporary and exploration files
+*.html
+.coverage
+coverage.xml
+htmlcov/
+*.gdb/
+query_stats.py
+*_load_log.csv
+manuscript_validation_*.json
+cp2b-workspace/NewLook/backend/nul
+analysis/outputs/
+
+# Regenerable validation datasets removed from version control.
+/cp2b-workspace/NewLook/docs/data/datasets/METADATA.json
+/cp2b-workspace/NewLook/docs/data/datasets/baseline_*.json
+/cp2b-workspace/NewLook/docs/data/datasets/biogas_canonical_state_summary.csv
+/cp2b-workspace/NewLook/docs/data/datasets/canonical_results.json
+/cp2b-workspace/NewLook/docs/data/datasets/espectro_estimativas_biometano_*.csv
+/cp2b-workspace/NewLook/docs/data/datasets/estado_*.json
+/cp2b-workspace/NewLook/docs/data/datasets/municipality_biomass_tons.csv
+/cp2b-workspace/NewLook/docs/data/datasets/validator_exclusions.json
+
+# Local raw data drops
+cp2b-workspace/Nova pasta/
+cp2b-workspace/NewLook/data/raw/
+# Claude Code local settings (not for version control)
+.claude/
+
+
+# PILAR-2b raw primary sources (2.4 GB, distributed out of band)
+00_Fontes_Primarias-*/
+
+# Multi-agent scratch state
+.agents/
+
+# --- Rede de segurança (repo novo, 2026-11) ---
+# Segredos: nunca versionar
+.env
+.env.*
+!.env.example
+!*.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa*
+id_ed25519*
+
+# Documentos e pacotes locais (pareceres, handoffs, zips de dados brutos)
+*.docx
+*.zip
+/*.xlsx
+/*_SNIS_*.csv
+/PILAR2b_raw_*/
+/Reposicionamento_*/
+/PILAR-2b Design System/
+__pycache__/

@@ -1,0 +1,50 @@
+{
+  "project": "CP2B — Mapeamento de Resíduos Agroindustriais SP",
+  "generated": "2026-05-04 12:19",
+  "total_biogas": "19.90 B m³ CH4/yr",
+  "total_energy": "198,410 GWh/yr",
+  "literature": "16.0–24.8 B m³/yr (IN RANGE)",
+  "files": {
+    "01_master_residue_streams_SP_2023.csv": {
+      "description": "Long-format. One row per municipality × residue stream. Use for all analysis.",
+      "rows": 5769,
+      "key_columns": {
+        "ibge_code": "7-digit IBGE municipality code",
+        "residue_stream": "Stream identifier (sugarcane, corn, cattle, rsu_organic...)",
+        "sector": "agricultural | livestock | urban | forestry",
+        "residue_tons_yr": "Gross residue mass (dry tons/yr). NULL for pre-calc streams.",
+        "biogas_m3_yr": "Technical biogas potential (m³ CH4/yr). Bagaço excluded (70% cana).",
+        "energy_GWh_yr": "Energy equivalent (GWh/yr). Conversion: m³ × 9.97 kWh / 1e6",
+        "biogas_m3_per_capita": "m³ CH4/inhabitant/yr. For equity/clustering analysis.",
+        "biogas_m3_per_km2": "m³ CH4/km²/yr. For spatial density analysis.",
+        "mun_potential_class": "BAIXO | MÉDIO | ALTO | MUITO ALTO | CRÍTICO (based on total GWh)",
+        "mun_dominant_stream": "Stream with highest biogas_m3_yr in that municipality"
+      }
+    },
+    "02_municipality_summary_SP_2023.csv": {
+      "description": "Wide-format. One row per municipality. GWh columns per stream. Use for clustering.",
+      "rows": 645
+    },
+    "03_conversion_factors.csv": {
+      "description": "Referenced conversion factors with safety margins. Source for biogas calculations."
+    },
+    "04_state_summary_by_stream.csv": {
+      "description": "SP state totals per residue stream. Use for Paper Table 1."
+    }
+  },
+  "methodology": {
+    "bagaco_exclusion": "70% of sugarcane biogas excluded — bagaço burned for cogeneration at mills",
+    "conversion_units": "m³ CH4/ton for crops; m³ CH4/head/yr for livestock",
+    "energy_conversion": "1 m³ CH4 = 9.97 kWh = 0.00000997 GWh",
+    "missing_streams": "Industrial (brewery, dairy, slaughterhouse) not in SQLite DB — need PostgreSQL",
+    "data_sources": "IBGE PAM 2023 (crops), IBGE PPM 2023 (livestock), CP2B municipalities DB",
+    "literature_delta": "19.90 B m³ vs CP2B 19.6 B (+1.5%); vs IEE-USP 16.0 B (+24%); vs GEF 24.8 B (-20%)"
+  },
+  "clustering_suggestions": [
+    "K-means on [GWh_sugarcane, GWh_cattle, GWh_swine, GWh_rsu_organic, GWh_corn, GWh_soybean]",
+    "Hierarchical clustering on biogas_m3_per_km2 + biogas_m3_per_capita",
+    "Profile clusters by nm_rgint (Intermediate Geographic Region) for policy targeting",
+    "Dominant stream classification already in mun_dominant_stream column",
+    "Add PIB municipal + population density for viability scoring"
+  ]
+}

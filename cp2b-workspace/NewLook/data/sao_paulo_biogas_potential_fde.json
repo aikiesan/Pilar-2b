@@ -1,0 +1,16 @@
+{
+  "theoretical": {
+    "m3_year": 0,
+    "gwh_year": 0,
+    "twh_year": 0.0
+  },
+  "realistic_with_fde": {
+    "m3_year": 0,
+    "gwh_year": 0,
+    "twh_year": 0.0
+  },
+  "fde_reduction_factor": 0,
+  "households_served": 0,
+  "household_coverage_percent": 0.0,
+  "by_sector": {}
+}

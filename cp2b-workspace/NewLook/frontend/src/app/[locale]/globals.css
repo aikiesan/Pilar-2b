@@ -1,0 +1,872 @@
+@import 'leaflet/dist/leaflet.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@config "../../../tailwind.config.js";
+
+/* ============================================
+   PILAR-2b THEME — CP2b visual identity: white, Azul Petróleo, Verde Escuro
+   Palette and ramps: src/styles/palette.js. Values here are the ones a
+   stylesheet needs at runtime: surfaces and text that the dark theme swaps.
+   ============================================ */
+
+:root {
+  /* Surfaces: white page and cards, a light cool-grey band. */
+  --paper: 255 255 255;         /* #FFFFFF */
+  --paper-raised: 255 255 255;  /* #FFFFFF */
+  --paper-sunken: 244 247 248;  /* #F4F7F8 */
+  /* Text: Azul Petróleo */
+  --ink: 30 62 76;              /* #1E3E4C — 11.4:1 on white */
+  --ink-muted: 84 102 110;      /* #54666E — 6.0:1 on white, 5.6:1 on sunken */
+  /* Rules */
+  --line: 226 232 235;          /* #E2E8EB — hairlines, card frames */
+  --line-strong: 125 140 147;   /* #7D8C93 — inputs and controls, ≥3:1 */
+  /* Brand: Verde Escuro (actions) and Verde Limão (accents) */
+  --terra: 0 87 58;             /* #00573A */
+  --lima: 182 224 59;           /* #B6E03B */
+
+  /* Older names, still read by a few components */
+  --background: var(--paper);
+  --surface: var(--paper-raised);
+  --foreground: var(--ink);
+  --border: var(--line);
+  --divider: var(--line);
+  --text-primary: var(--ink);
+  --text-secondary: var(--ink-muted);
+  --text-disabled: 147 163 171;
+
+  --biomass-agricola: #5CA032;
+  --biomass-pecuaria: #A15500;
+  --biomass-urbano: #166E97;
+
+  --focus-ring: 0 0 0 2px rgb(var(--paper)), 0 0 0 4px rgb(var(--terra));
+}
+
+/* Dark theme: an Azul Petróleo night. */
+.dark {
+  --paper: 14 28 34;            /* #0E1C22 */
+  --paper-raised: 21 40 48;     /* #152830 */
+  --paper-sunken: 10 21 26;     /* #0A151A */
+  --ink: 230 238 241;           /* #E6EEF1 — 14.8:1 */
+  --ink-muted: 163 181 189;     /* #A3B5BD — 8.2:1 */
+  --line: 38 58 67;             /* #263A43 */
+  --line-strong: 95 122 134;    /* #5F7A86 — 3.8:1 */
+  --terra: 128 194 157;         /* #80C29D — 8.4:1 on paper */
+  --text-disabled: 110 128 136;
+}
+
+/* Map panels float over a light basemap and stay on white in either theme:
+   the tokens inside are pinned to their light values. */
+.surface-light {
+  --paper: 255 255 255;
+  --paper-raised: 255 255 255;
+  --paper-sunken: 244 247 248;
+  --ink: 30 62 76;
+  --ink-muted: 84 102 110;
+  --line: 226 232 235;
+  --line-strong: 125 140 147;
+  --terra: 0 87 58;
+  color: rgb(var(--ink));
+  color-scheme: light;
+}
+
+/* Base styles */
+@layer base {
+  body {
+    @apply bg-paper text-ink;
+    @apply transition-colors duration-200;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Page and section titles: the brand sans, bold, in Azul Petróleo,
+     whatever weight utility the markup carries (the selector outranks
+     font-light & co.). Add `font-sans` to a heading that sits in dense UI and
+     should keep the weight its classes give it. */
+  :is(h1, h2):not(.font-sans) {
+    font-family: theme('fontFamily.display');
+    font-weight: 700;
+    letter-spacing: -0.015em;
+  }
+
+  ::selection {
+    background: rgb(var(--lima) / 0.45);
+  }
+
+  /* Smooth transitions for dark mode toggle - applied only to interactive elements */
+  a, button, input, select, textarea, [role="button"] {
+    @apply transition-colors duration-150;
+  }
+}
+
+/* Component styles */
+@layer components {
+  /* Buttons: solid Verde Escuro, outlined Azul Petróleo, text. */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 bg-terra-600 hover:bg-terra-700 dark:bg-terra-400 dark:hover:bg-terra-300 text-white dark:text-gray-900 px-5 py-2.5 rounded font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-terra-600 dark:focus-visible:ring-terra-400 focus-visible:ring-offset-paper;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 bg-transparent text-ink border border-ink/80 hover:bg-ink hover:text-paper px-5 py-2.5 rounded font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-terra-600 dark:focus-visible:ring-terra-400 focus-visible:ring-offset-paper;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center gap-2 bg-transparent text-ink-muted hover:text-terra-600 dark:hover:text-terra-400 px-3 py-2 rounded font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-terra-600 dark:focus-visible:ring-terra-400;
+  }
+
+  /* Cards: white, framed by a hairline; the frame turns Verde Limão on hover. */
+  .card {
+    @apply bg-paper-raised rounded-xl border border-line p-6 transition-colors duration-200 hover:border-cp2b-lima;
+  }
+
+  .card-elevated {
+    @apply bg-paper-raised rounded border border-line shadow-lg p-8;
+  }
+
+  .navbar-gradient {
+    background: rgb(var(--paper-raised));
+  }
+
+  .section-container {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  /* Small spaced caps above a title, after the PDF's section labels. */
+  .eyebrow {
+    @apply text-[11px] sm:text-xs font-medium uppercase tracking-[0.14em] text-ink-muted;
+  }
+
+  /* A title's underline: a short Verde Limão rule on a full hairline. */
+  .section-rule {
+    @apply relative border-b border-line pb-3;
+  }
+  .section-rule::after {
+    content: '';
+    @apply absolute -bottom-px left-0 h-0.5 w-12 bg-cp2b-lima;
+  }
+
+  /* Focus ring for accessibility */
+  .focus-ring {
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-terra-600 dark:focus-visible:ring-terra-400 focus-visible:ring-offset-2 focus-visible:ring-offset-paper;
+  }
+
+  /* Text gradient */
+  .text-gradient {
+    @apply bg-gradient-to-r from-terra-600 to-ochre-600 bg-clip-text text-transparent;
+  }
+
+  /* Badges: outlined rectangles, not pills. */
+  .badge {
+    @apply inline-flex items-center px-2 py-0.5 rounded-sm border text-xs font-medium;
+  }
+
+  .badge-primary {
+    @apply badge border-terra-600/40 bg-terra-50 text-terra-700 dark:border-terra-400/40 dark:bg-transparent dark:text-terra-300;
+  }
+
+  .badge-secondary {
+    @apply badge border-line bg-paper-sunken text-ink-muted;
+  }
+
+  /* ── Semantic surface tokens — use instead of raw bg-white / bg-gray-50 ── */
+  .surface        { @apply bg-paper-raised; }
+  .surface-muted  { @apply bg-paper; }
+  .surface-raised { @apply bg-paper-raised; }
+
+  /* ── Border token ── */
+  .border-subtle  { @apply border border-line; }
+
+  /* ── Text tokens ── */
+  /* Note: .text-base conflicts with Tailwind's .text-base font-size utility.
+     Use .text-primary instead for primary foreground color. */
+  .text-primary-fg   { @apply text-ink; }
+  .text-secondary-fg { @apply text-ink-muted; }
+  .text-muted-fg     { @apply text-gray-400 dark:text-slate-500; }
+
+  /* ── Input field — fixes white-on-white in dark mode ── */
+  .input-field {
+    @apply w-full border border-line-strong
+           bg-paper-raised
+           text-ink
+           placeholder-gray-500 dark:placeholder-slate-500
+           rounded px-3 py-2 text-sm
+           focus:outline-none focus:ring-2 focus:ring-terra-600 dark:focus:ring-terra-400
+           transition-colors;
+  }
+
+  /* ── Info panel variants ── */
+  .panel-amber  { @apply bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800; }
+  .panel-yellow { @apply bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700; }
+  .panel-blue   { @apply bg-dusk-50 dark:bg-dusk-900/20 border border-dusk-200 dark:border-dusk-800; }
+  .panel-green  { @apply bg-terra-50 dark:bg-terra-900/20 border border-terra-200 dark:border-terra-800; }
+}
+
+/* ── Styled range slider — visible in both light and dark modes ──────────── */
+/* Fills left of thumb with terracotta, right with a warm grey track.
+   JavaScript must set --range-pct on the element via onInput. */
+input[type="range"] {
+  appearance: none;
+  -webkit-appearance: none;
+  height: 6px;
+  border-radius: 9999px;
+  outline: none;
+  cursor: pointer;
+  background: linear-gradient(
+    to right,
+    #8E3B22 0%,
+    #8E3B22 var(--range-pct, 0%),
+    #E4DDD3 var(--range-pct, 0%),
+    #E4DDD3 100%
+  );
+  transition: background 0.1s;
+}
+
+.dark input[type="range"] {
+  background: linear-gradient(
+    to right,
+    #E39A78 0%,
+    #E39A78 var(--range-pct, 0%),
+    #3A342D var(--range-pct, 0%),
+    #3A342D 100%
+  );
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #8E3B22;
+  border: 2px solid #ffffff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+  box-shadow: 0 2px 6px rgba(142,59,34,0.35);
+}
+
+.dark input[type="range"]::-webkit-slider-thumb {
+  background: #E39A78;
+  border-color: #26221E;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #8E3B22;
+  border: 2px solid #ffffff;
+  cursor: pointer;
+}
+
+.dark input[type="range"]::-moz-range-thumb {
+  background: #E39A78;
+  border-color: #26221E;
+}
+
+/* Screen reader only utility (accessibility) */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Utilities */
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.3s ease-out;
+  }
+
+  /* Floating animation */
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  /* Pulse glow animation */
+  .animate-pulse-glow {
+    animation: pulseGlow 2s ease-in-out infinite;
+  }
+
+  /* Gradient animation */
+  .animate-gradient {
+    background-size: 200% 200%;
+    animation: gradientShift 3s ease infinite;
+  }
+
+  /* Subtle bounce */
+  .animate-bounce-subtle {
+    animation: bounceSutil 2s ease-in-out infinite;
+  }
+
+  /* Shimmer effect */
+  .animate-shimmer {
+    animation: shimmer 2s linear infinite;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    background-size: 200% 100%;
+  }
+
+  /* Gradient backgrounds */
+  .bg-gradient-hero {
+    background: linear-gradient(135deg, rgb(var(--terra)) 0%, #1E3E4C 100%);
+  }
+
+  .bg-gradient-subtle {
+    background: linear-gradient(180deg, rgb(var(--paper-raised)) 0%, rgb(var(--paper)) 100%);
+  }
+}
+
+/* Custom keyframe animations */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(76, 175, 80, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(76, 175, 80, 0.6);
+  }
+}
+
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes bounceSutil {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes loadingBar {
+  0% {
+    transform: scaleX(0);
+  }
+  50% {
+    transform: scaleX(0.7);
+  }
+  100% {
+    transform: scaleX(1);
+  }
+}
+
+/* Loading bar animation utility */
+.animate-loading-bar {
+  animation: loadingBar 2s ease-in-out infinite;
+}
+
+/* Leaflet map styles */
+.leaflet-container {
+  height: 100%;
+  width: 100%;
+  border-radius: 0.75rem;
+}
+
+/* Phone zoom controls balance a compact visual footprint with a generous
+   touch target. Desktop retains Leaflet's standard control dimensions. */
+@media (max-width: 767px) {
+  .pilar-primary-map .leaflet-control-zoom {
+    margin-left: 8px;
+    overflow: hidden;
+    border: 0;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgb(0 0 0 / 0.18);
+  }
+
+  .pilar-primary-map .leaflet-control-zoom a,
+  .pilar-primary-map .leaflet-touch .leaflet-control-zoom a {
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
+    font-size: 18px;
+  }
+
+  /* Keep attribution, scale and zoom above the persistent mobile tab bar. */
+  .pilar-primary-map .leaflet-bottom {
+    bottom: calc(3.5rem + env(safe-area-inset-bottom));
+  }
+
+  .pilar-primary-map .leaflet-control-scale {
+    margin-left: 8px;
+    margin-bottom: 4px;
+  }
+
+  .pilar-primary-map .leaflet-control-attribution {
+    max-width: calc(100vw - 16px);
+    margin-right: 8px;
+    font-size: 9px;
+    line-height: 1.2;
+    white-space: normal;
+  }
+}
+
+/* Custom Leaflet popup styles */
+.leaflet-popup-content-wrapper {
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  padding: 0 !important;
+}
+
+.leaflet-popup-content {
+  margin: 0 !important;
+  padding: 12px !important;
+  width: auto !important;
+}
+
+/* Municipality popup — cap at 560px on desktop, but never wider than the
+   phone screen. MunicipalityLayer already computes a mobile-appropriate width
+   via Leaflet's min/maxWidth options; the previous fixed `560px !important`
+   overrode that and overflowed small screens. Here we only cap max-width and
+   let Leaflet's inline sizing drive the actual width. */
+.municipality-popup .leaflet-popup-content-wrapper {
+  max-width: min(560px, 92vw) !important;
+}
+
+.municipality-popup .leaflet-popup-content {
+  max-width: min(560px, 92vw) !important;
+  margin: 0 !important;
+  padding: 12px !important;
+  box-sizing: border-box !important;
+}
+
+/* Ensure popup tip (arrow) stays white */
+.municipality-popup .leaflet-popup-tip {
+  background: white !important;
+}
+
+.leaflet-popup-tip {
+  background: white;
+}
+
+/* Custom tooltip styles */
+.leaflet-tooltip {
+  background-color: rgba(30, 81, 40, 0.9);
+  border: none;
+  color: white;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 0.375rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.leaflet-tooltip-top:before,
+.leaflet-tooltip-bottom:before {
+  border-top-color: rgba(30, 81, 40, 0.9);
+}
+
+.leaflet-tooltip-left:before,
+.leaflet-tooltip-right:before {
+  border-right-color: rgba(30, 81, 40, 0.9);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgb(var(--paper-sunken));
+  border-radius: 0;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgb(var(--line-strong));
+  border-radius: 0;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(var(--terra));
+}
+
+/* Selection colour: see ::selection in @layer base. */
+
+/* Technology Routes Animations */
+@keyframes progress {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  10%, 30%, 50%, 70%, 90% {
+    transform: translateX(-5px);
+  }
+  20%, 40%, 60%, 80% {
+    transform: translateX(5px);
+  }
+}
+
+.animate-progress {
+  animation: progress linear forwards;
+}
+
+.animate-shake {
+  animation: shake 0.5s ease-in-out;
+}
+
+/* ============================================
+   MAP VISUALIZATION ENHANCEMENTS
+   ============================================ */
+
+/* Glass-morphism effects */
+.glass-panel {
+  @apply bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-200/50 dark:border-slate-700/50;
+}
+
+.glass-panel-light {
+  @apply bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg rounded-xl shadow-xl border border-gray-200/30 dark:border-slate-700/30;
+}
+
+/* Smooth panel transitions */
+.panel-transition {
+  @apply transition-all duration-300 ease-in-out;
+}
+
+/* Hover lift effect */
+.hover-lift {
+  @apply transition-transform duration-200 hover:scale-105 hover:shadow-xl;
+}
+
+/* Enhanced animations for map components */
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(100px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-100px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInBottom {
+  from {
+    opacity: 0;
+    transform: translateY(100px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes pulse-border {
+  0%, 100% {
+    border-color: rgba(59, 130, 246, 0.3);
+  }
+  50% {
+    border-color: rgba(59, 130, 246, 0.8);
+  }
+}
+
+@keyframes data-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.4s ease-out;
+}
+
+.animate-slide-in-left {
+  animation: slideInLeft 0.4s ease-out;
+}
+
+.animate-slide-in-bottom {
+  animation: slideInBottom 0.5s ease-out;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.3s ease-out;
+}
+
+.animate-pulse-border {
+  animation: pulse-border 2s ease-in-out infinite;
+}
+
+.animate-data-pulse {
+  animation: data-pulse 1.5s ease-in-out infinite;
+}
+
+/* Custom tooltip for enhanced tooltips */
+.custom-tooltip {
+  @apply glass-panel-light p-0 border-0;
+}
+
+/* Range slider custom styles */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+  width: 100%;
+}
+
+/* Chrome, Safari, Edge, Opera */
+input[type="range"]::-webkit-slider-track {
+  height: 8px;
+  border-radius: 4px;
+  background: linear-gradient(to right, #F2B8A1, #C26B49);
+  border: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #8E3B22;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+  margin-top: -6px; /* Center thumb on track */
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  background: #7A3119;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+input[type="range"]::-webkit-slider-thumb:active {
+  transform: scale(1.1);
+}
+
+/* Firefox */
+input[type="range"]::-moz-range-track {
+  height: 8px;
+  border-radius: 4px;
+  background: linear-gradient(to right, #F2B8A1, #C26B49);
+  border: none;
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #8E3B22;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+}
+
+input[type="range"]::-moz-range-thumb:hover {
+  transform: scale(1.2);
+  background: #7A3119;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+input[type="range"]::-moz-range-thumb:active {
+  transform: scale(1.1);
+}
+
+/* Dark mode adjustments */
+.dark input[type="range"]::-webkit-slider-track {
+  background: linear-gradient(to right, #7A3119, #E39A78);
+}
+
+.dark input[type="range"]::-moz-range-track {
+  background: linear-gradient(to right, #7A3119, #E39A78);
+}
+
+/* Smooth color transitions for choropleth */
+.choropleth-transition {
+  transition: fill 0.5s ease, opacity 0.3s ease;
+}
+
+/* Bubble chart animations */
+.bubble-appear {
+  animation: scaleIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Loading skeleton shimmer */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.3) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Dark mode skeleton */
+.dark .skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-size: 200% 100%;
+}
+
+/* Enhanced focus states for accessibility */
+.focus-visible-ring {
+  @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:focus-visible:ring-blue-400;
+}
+
+/* Gradient overlays for panels */
+.gradient-overlay-top {
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 1) 0%,
+    rgba(255, 255, 255, 0) 100%
+  );
+}
+
+.dark .gradient-overlay-top {
+  background: linear-gradient(
+    to bottom,
+    rgba(15, 23, 42, 1) 0%,
+    rgba(15, 23, 42, 0) 100%
+  );
+}
+
+/* Stat card highlights */
+.stat-highlight {
+  @apply relative overflow-hidden;
+}
+
+.stat-highlight::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: left 0.5s;
+}
+
+.stat-highlight:hover::before {
+  left: 100%;
+}
+
+/* =============================================================================
+   Reduced motion (WCAG 2.1 — 2.3.3 / 2.2.2; respects user vestibular settings).
+   When the user requests reduced motion, neutralise animations and transitions
+   (e.g. the loading shimmer and hover sweeps) instead of removing functionality.
+   ============================================================================= */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

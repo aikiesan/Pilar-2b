@@ -1,0 +1,32 @@
+{
+  "dataset_name": "SP_master_residue_streams_2023_FINAL.csv",
+  "version": "3.0",
+  "date": "2026-07-29",
+  "single_canonical_location": "cp2b-workspace/NewLook/data/canonical_parameters/SP_master_residue_streams_2023_FINAL.csv",
+  "sha256_hash": "2ab1d03d6293690e76b7d883599554307965772afc367a52f2f834eb5d7a28f9",
+  "file_size_bytes": 189129,
+  "coverage": "645 municipalities (São Paulo State)",
+  "columns_count": 58,
+  "sources": {
+    "agricultural_area_and_yield": {
+      "primary_source": "MapBiomas Coleção 10 × Produtividade Agrícola IBGE PAM",
+      "validation_sources": [
+        "UNICA (cana)",
+        "CONAB (grãos)"
+      ],
+      "notes": "Área de uso do solo por sensoriamento remoto (MapBiomas) multiplicada por produtividade municipal (IBGE PAM t/ha)"
+    },
+    "livestock_heads": {
+      "source": "IBGE Pesquisa da Pecuária Municipal (PPM) 2023",
+      "notes": "Efetivo de rebanho em número de cabeças (bovinos corte/leite, suínos, aves)"
+    },
+    "urban_waste": {
+      "source": "SNIS 2022 (Sistema Nacional de Informações sobre Saneamento) & Censo IBGE 2022",
+      "notes": "População municipal atualizada pelo Censo IBGE 2022 e volume de RDO coletado (SNIS CO111)"
+    }
+  },
+  "reconciliation": {
+    "master_filename_alias": "analysis/data/01_master_residue_streams_SP_2023.csv (mirrored & verified via SHA256)",
+    "blocker_13_status": "RESOLVED"
+  }
+}

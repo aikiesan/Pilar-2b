@@ -1,0 +1,7 @@
+#!/bin/sh
+# Bloqueia atribuição automática ao Claude nas mensagens de commit.
+# Ative uma vez por clone:  git config core.hooksPath .githooks
+if grep -qiE '^(Co-Authored-By:.*(Claude|anthropic)|.*Generated with \[?Claude Code)' "$1"; then
+  echo "commit-msg: tire a linha de Co-Authored-By/Generated with Claude Code da mensagem." >&2
+  exit 1
+fi

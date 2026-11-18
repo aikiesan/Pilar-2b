@@ -1,0 +1,120 @@
+# `ingest/` — the PILAR-2b ingestion contract
+
+Every external dataset enters the platform through the same four steps and
+the same validation battery. **Copy `sources/aneel_siga/` as your template.**
+
+```
+fetch    → immutable raw snapshot at data/raw/<source_id>/<year>/
+load     → typed pandas DataFrame keyed on ibge_code / cod_rgint / uf
+validate → standard 8-gate battery + source-specific gates
+promote  → staging.* → public.* in ONE transaction (blocked until migration 021)
+```
+
+## Running
+
+```bash
+cd backend
+python -m ingest.runner list
+python -m ingest.runner run aneel_siga --year 2025            # fetch+load+validate
+python -m ingest.runner run aneel_siga --year 2025 --step load
+```
+
+A validate run always writes `docs/data/ingest_reports/<source>_<year>.md`.
+Exit code is non-zero when any gate fails — promotion is blocked.
+
+## PAM and PPM from the bbp schema (Biomass Brasil Pipeline)
+
+PAM (1612, 1613) and PPM (3939, 74, 3940) can be read from the schema `bbp` of
+this database instead of the workbooks under `data/raw/`. The Biomass Brasil
+Pipeline (github.com/aikiesan/Biomass_Brasil_Pipeline) parses every SIDRA export
+once and loads it as a versioned release; `bbp.v_sidra` is the current one.
+`ingest/bbp.py` turns it into the same `{ibge_code: {product: value}}` reading
+the workbook readers return, so the frame and the gates are identical.
+
+```bash
+# 1. in the bbp repository: load a release into this database (schema bbp only)
+docker compose --profile pilar2b run --rm bbp-pilar2b load --target pilar2b --label "..."
+# 2. here (docker compose run --rm --no-deps backend ...):
+python scripts/promote_ibge_ppm.py --source bbp --year 2025
+python scripts/promote_pam.py --source bbp --year 2025 --timeseries-only
+```
+
+* **Preliminary year.** IBGE publishes the newest year of every table as
+  preliminary. Those rows are written with `quality = 'preliminary'`
+  (migration 037). The map's latest-year reader skips them, and
+  `promote_pam.py` refuses to move the biomass columns onto such a year. Once
+  the year is re-exported as final and promoted again, the rows turn
+  `measured` and the headline follows.
+* **Gates.** `PUBLISHED_NATIONAL` now covers 2008–2025 for the three sources
+  (SIDRA API, Brasil level), so the aggregation gate tests every year.
+* **Parity (2026-10-13, local DB).** bbp reproduces every PPM cell of
+  2008–2024 and every PAM 2023 cell already loaded from the workbooks, with 0
+  differences.
+
+## Sanitation (SNIS → SINISA) from the bbp schema
+
+SNIS stopped at reference year 2022; SINISA replaces it from 2023 with new
+field codes (GTR/GTE instead of CO/CS/ES). bbp reads both, checks every year
+against the survey's own published totals and maps both onto one set of
+harmonised variables (bbp `config/sanitation.yaml`: SNIS CO119 and SINISA
+GTR1028 are both `msw_collected_t`, with the glossary evidence for each pair,
+`equivalent` or `similar`). The current release is `bbp.v_sanitation`.
+
+```bash
+# 1. in the bbp repository
+docker compose run --rm --no-deps bbp run sanitation
+docker compose --profile pilar2b run --rm bbp-pilar2b load --target pilar2b --label "..."
+# 2. here (docker compose run --rm --no-deps backend ...)
+python scripts/promote_sanitation.py --survey SNIS --years 2008-2022 --parity     # read-only
+python scripts/promote_sanitation.py --survey SINISA --years 2023-2024 --impact   # read-only
+python scripts/promote_sanitation.py --survey SINISA --years 2023-2024            # writes
+```
+
+* Rows keep the names `promote_snis.py` always wrote (`rdo_rpu_coletado`,
+  `esgoto_tratado`, ...); `source_id` is `snis` or `sinisa`.
+* **Parity (2026-10-15, local DB).** bbp reproduces all 420,699 SNIS rows of
+  2008–2022 already promoted from the CSVs, 0 differences.
+* **SINISA moves the map.** The latest-year reader picks a variable from any
+  source, so SINISA 2024 becomes the latest `rdo_coletado` and
+  `populacao_total`. Run `--impact` first and decide before writing.
+
+## Adding a new source (the 15-minute version)
+
+Full step-by-step with checklists: `docs/data/INGESTION_GUIDE.md`.
+
+1. `mkdir sources/<source_id>/` and copy `sources/aneel_siga/source.py`.
+2. Fill in `SPEC` (columns, dtypes, bounds, scope, tolerance) — this is where
+   most of the thinking happens; bounds must be citable.
+3. Implement `load()` for the raw format. Keep every unit conversion in ONE
+   place with a comment (see the kW→MW audit note in the template).
+4. Register the source in `runner.SOURCES` (one line).
+5. Add a fixture excerpt (a few real rows) under
+   `tests/unit/ingest/fixtures/<source_id>/<year>/` and tests mirroring
+   `test_aneel_siga.py`.
+6. Add/complete the source entry in `docs/data/METADATA.json` — the lineage
+   gate fails on `VERIFY` placeholders, by design.
+
+## Gate battery (details in `gates.py`, definitions in roadmap §5)
+
+| # | Gate | Fails when |
+|---|------|-----------|
+| 1 | schema | missing/mistyped columns, null/duplicate/invalid keys |
+| 2 | coverage | per-UF row counts ≠ official IBGE municipality counts (minus documented allowlist) |
+| 3 | range | any value outside the SPEC's citable plausibility bounds |
+| 4 | aggregation | sums ≠ the source's own published totals (± tolerance) — must be fed real published numbers, never skipped |
+| 5 | cross-source | an independent-source consistency check fails (wired per source) |
+| 6 | idempotency | two runs produce different promoted rows (frame checksums) |
+| 7 | lineage | METADATA.json entry missing/incomplete/has VERIFY placeholders |
+| 8 | regression | a headline platform metric changed without a written explanation |
+
+## Design decisions
+
+- **Gates are pure functions over DataFrames** — no DB required, so they run
+  in unit tests, CI, and real ingests identically.
+- **`fetch` never downloads silently** for sources whose portal exports are
+  manual: taking a snapshot is a deliberate, dated act recorded in
+  METADATA.json (`retrieved`).
+- **`promote` is not wired to the CLI** until the staging schema exists
+  (migration 021, roadmap §3.1). Database writes stay reviewed and manual.
+- Tests for this package live in `tests/unit/ingest/`; coverage is measured
+  over `app/` only, so ingest code never games the coverage floor.

@@ -1,0 +1,2627 @@
+{
+  "common": {
+    "nav": {
+      "home": "Home",
+      "guide": "Guide",
+      "map": "Map",
+      "dashboard": "Dashboard",
+      "about": "About",
+      "references": "References",
+      "cite": "How to Cite",
+      "patch_notes": "What’s New",
+      "proximity": "Proximity",
+      "technology_routes": "Biogas Calculator",
+      "scientific_database": "Science base",
+      "advanced": "Analysis",
+      "compare": "Compare",
+      "group_platform": "Platform",
+      "group_method": "Method",
+      "open_map": "Open map",
+      "group_data": "Data",
+      "map_interactive": "Interactive map",
+      "municipalities": "Municipalities",
+      "compare_municipalities": "Compare municipalities",
+      "proximity_logistics": "Proximity and logistics",
+      "multicriteria": "Multi-criteria analysis",
+      "data_catalog": "Product catalogue",
+      "data_legend": "Legend and codes",
+      "method_overview": "Overview",
+      "method_fde": "Availability factors (FDE)",
+      "method_scenarios": "Scenarios",
+      "method_validation": "Validation and limitations",
+      "guide_usage": "User guide",
+      "more": "More",
+      "cp2b_about": "About CP2b",
+      "cp2b_governance": "Governance",
+      "cp2b_partners": "Partners",
+      "cp2b_axes": "Research axes",
+      "cp2b_solutions": "Solutions",
+      "cp2b_team": "Team",
+      "cp2b_publications": "Publications",
+      "cp2b_news": "News",
+      "cp2b_events": "Events",
+      "cp2b_contact": "Contact",
+      "external_cp2b": "CP2b website"
+    },
+    "nav_descriptions": {
+      "guide": "Tutorials and first steps",
+      "map": "Potential by municipality, layers and themes",
+      "advanced": "MCDA and statistics",
+      "compare": "Up to 4 municipalities side by side",
+      "scientific_database": "Chemical characterization, kinetics and references",
+      "technology_routes": "Simulate biogas, biomethane and energy",
+      "proximity": "Residues and infrastructure within a radius",
+      "cite": "How to cite PILAR-2b",
+      "patch_notes": "Platform changes, version by version",
+      "municipalities": "Find a municipality and open its profile",
+      "data_catalog": "Each residue as a data product, with method and sources",
+      "data_legend": "Residue codes, map colours and files for GIS",
+      "method_overview": "From official data to potential, in three steps",
+      "method_fde": "The four factors, residue by residue",
+      "method_scenarios": "Parameter bands and the real and ideal scenarios",
+      "method_validation": "Confidence levels and what the data does not say",
+      "cp2b_about": "The centre behind PILAR-2b",
+      "cp2b_governance": "How CP2b is organised and run",
+      "cp2b_partners": "Partner institutions and funding",
+      "cp2b_axes": "The centre's research lines",
+      "cp2b_solutions": "CP2b's technologies and services",
+      "cp2b_team": "CP2b's researchers",
+      "cp2b_publications": "Papers, reports and books",
+      "cp2b_news": "What is happening at CP2b",
+      "cp2b_events": "Seminars, courses and meetings",
+      "cp2b_contact": "Write to CP2b, about the platform too"
+    },
+    "nav_intro": {
+      "platform": {
+        "lede": "The tools to explore biogas potential, municipality by municipality.",
+        "cta": "Open the map"
+      },
+      "data": {
+        "lede": "Each residue is a data product: method, legend, access and validation.",
+        "cta": "Open the catalogue"
+      },
+      "method": {
+        "lede": "How each number is calculated, from which sources and with what confidence.",
+        "cta": "Method overview"
+      },
+      "about": {
+        "lede": "PILAR-2b is a platform of CP2B, a NIPE-UNICAMP centre supported by FAPESP. Who we are is on the CP2b website.",
+        "cta": "About CP2b"
+      }
+    },
+    "auth": {
+      "login": "Sign in",
+      "logout": "Sign out",
+      "logout_account": "Sign out",
+      "settings": "Settings",
+      "user": "User",
+      "admin": "Administrator",
+      "authenticated": "Authenticated"
+    },
+    "menu": {
+      "open": "Open menu",
+      "close": "Close menu",
+      "tab_bar": "Shortcuts",
+      "more_label": "More: every section"
+    },
+    "search": {
+      "trigger": "Search municipality",
+      "trigger_aria": "Search municipality (press /)",
+      "placeholder": "Name or IBGE code, e.g. Campinas",
+      "input_aria": "Search municipality",
+      "close_aria": "Close search",
+      "results_aria": "Search results",
+      "no_results": "No municipality found for \"{query}\"",
+      "hints": "↑↓ navigate · Enter select · Esc close",
+      "loading": "Loading the list of municipalities…",
+      "unavailable": "The list of municipalities is not available right now. Try again in a moment.",
+      "scope_hint": "The platform covers São Paulo and the Minas Gerais pilot."
+    },
+    "logo_alt": "PILAR-2b — Intelligent Platform for Locating and Using Residues for Biogas and Bioproducts",
+    "logo_cp2b_link": "CP2b: go to the website of the São Paulo Center for Biogas and Bioproducts Studies",
+    "badge": {
+      "beta": "Beta"
+    },
+    "theme": {
+      "switch_to_dark": "Switch to dark mode",
+      "switch_to_light": "Switch to light mode"
+    },
+    "lang": {
+      "switch_to_en": "Switch to English",
+      "switch_to_pt": "Mudar para Português",
+      "group_aria": "Language selection"
+    },
+    "actions": {
+      "close": "Close",
+      "clear": "Clear",
+      "retry": "Try again"
+    },
+    "states": {
+      "loading": "Loading…",
+      "no_data": "No data"
+    },
+    "sectors": {
+      "agricultural": "Agricultural",
+      "livestock": "Livestock",
+      "urban": "Urban",
+      "industrial": "Industrial",
+      "forestry": "Forestry"
+    },
+    "units": {
+      "t_year": "t/year",
+      "m3_year": "m³/year",
+      "nm3_ch4_year": "Nm³ CH₄/year",
+      "mwh_year": "MWh/year",
+      "km": "km",
+      "km2": "km²",
+      "ha": "ha",
+      "inhabitants": "inhab.",
+      "gj_year": "GJ/year",
+      "tco2eq_year": "tCO₂eq/year"
+    },
+    "legacy": {
+      "label": "previous estimate (legacy)"
+    }
+  },
+  "auth": {
+    "errors": {
+      "login_failed": "Sign-in failed. Please check your credentials.",
+      "registration_failed": "Registration failed. Please try again.",
+      "invalid_credentials": "Incorrect email or password.",
+      "account_inactive": "This account is inactive. Contact the administrator.",
+      "account_locked": "This account is temporarily locked after repeated failed attempts. Try again in a few minutes.",
+      "email_taken": "An account with this email already exists.",
+      "invite_only": "Accounts are created by invitation only. Ask the CP2B team for access.",
+      "too_many_attempts": "Too many attempts. Wait a minute and try again.",
+      "network": "The server could not be reached. Check your connection and try again."
+    },
+    "login": {
+      "back_to_home": "Back to home page - PILAR-2b",
+      "title": "Sign in to your account",
+      "or": "Or",
+      "create_account": "create a new account",
+      "email_label": "Email address",
+      "email_placeholder": "your@email.com",
+      "password_label": "Password",
+      "remember_me": "Remember me",
+      "forgot_password": "Forgot password?",
+      "submitting": "Signing in…",
+      "submit": "Sign in",
+      "new_to_platform": "New to the platform?",
+      "create_new_account": "Create new account"
+    },
+    "register": {
+      "back_to_home": "Back to home page",
+      "title": "Create new account",
+      "or": "Or",
+      "login_existing": "sign in with your existing account",
+      "full_name_label": "Full name",
+      "full_name_placeholder": "John Doe",
+      "email_label": "Email address",
+      "email_placeholder": "your@email.com",
+      "password_label": "Password",
+      "password_strength": "Password strength",
+      "password_weak": "Weak",
+      "password_medium": "Medium",
+      "password_strong": "Strong",
+      "confirm_password_label": "Confirm password",
+      "agree_to": "I agree to the",
+      "terms_of_service": "Terms of Service",
+      "and": "and",
+      "privacy_policy": "Privacy Policy",
+      "submitting": "Creating account…",
+      "submit": "Create account",
+      "already_have_account": "Already have an account?",
+      "login": "Sign in"
+    },
+    "common": {
+      "copyright": "© {year} PILAR-2b. Intelligent Platform for Locating and Using Residues for Biogas and Bioproducts."
+    }
+  },
+  "landing": {
+    "skip_to_content": "Skip to main content",
+    "footer": {
+      "fapesp_project": "FAPESP 2024/01112-1 · CP2Bsd",
+      "copyright": "© {year} NIPE-UNICAMP",
+      "newsletter_heading": "Get Our Updates",
+      "newsletter_desc": "Subscribe to receive PILAR-2b news, analyses, and biogas sector insights.",
+      "newsletter_email_placeholder": "Your email",
+      "newsletter_submit": "Subscribe",
+      "newsletter_success": "Thank you! You'll receive our updates soon.",
+      "quick_links": "Quick Links",
+      "connect": "Connect",
+      "privacy": "Privacy Policy",
+      "terms": "Terms of Use",
+      "accessibility": "Accessibility",
+      "back_to_top": "Back to top",
+      "platform_acronym": "Intelligent Platform for Locating and Using Residues",
+      "platform_2b": "Biogas and Bioproducts",
+      "institution": "NIPE-UNICAMP · Campinas, SP",
+      "whatsapp_label": "WhatsApp PILAR-2b",
+      "instagram_label": "Instagram @centro_biogas_cp2b",
+      "linkedin_label": "LinkedIn PILAR-2b / CP2b",
+      "youtube_label": "YouTube CP2b",
+      "location": "São Paulo, Brazil",
+      "legal_links": "Legal links",
+      "newsletter_consent": "By subscribing you agree to receive the newsletter; see the <privacy>Privacy Policy</privacy>.",
+      "cookie_preferences": "Cookie preferences"
+    }
+  },
+  "Map": {
+    "title": "Interactive Map",
+    "loading_map": "Loading map…",
+    "loading": {
+      "title": "Loading Interactive Map",
+      "subtitle": "5,571 municipalities in Brazil",
+      "step_geodata": "Loading geospatial data",
+      "step_geometries": "Processing geometries",
+      "step_layers": "Initializing layers"
+    },
+    "panels": {
+      "filters": "Filters",
+      "layers": "Layers",
+      "dataSources": "Sources",
+      "tools": "Tools",
+      "themes": "Themes"
+    },
+    "search": {
+      "label": "Search municipality",
+      "placeholder": "Name or IBGE code…",
+      "clear_aria": "Clear search",
+      "no_match": "No municipality with that name on the map. Check the spelling or clear the search."
+    },
+    "residues": {
+      "sugarcane": "Sugarcane",
+      "soybean": "Soybean",
+      "corn": "Corn",
+      "coffee": "Coffee",
+      "citrus": "Citrus",
+      "cattle": "Cattle",
+      "swine": "Swine",
+      "poultry": "Poultry",
+      "aquaculture": "Aquaculture",
+      "rsu": "OFMSW (organics)",
+      "rpo": "Urban pruning",
+      "sewage": "WWTP sludge",
+      "forestry": "Forestry"
+    },
+    "urbanTotals": {
+      "streams": {
+        "rsu": "OFMSW",
+        "rpo": "Urban pruning",
+        "sewage": "WWTP sludge"
+      }
+    },
+    "categories": {
+      "agricultural": "Agricultural",
+      "livestock": "Livestock",
+      "urban": "Urban"
+    },
+    "residueFilter": {
+      "label": "Filter by Residue",
+      "clearFilters": "Clear filters"
+    },
+    "biomassTypes": {
+      "label": "Biomass Type",
+      "total": "Total Potential",
+      "agricultural": "Agricultural",
+      "livestock": "Livestock",
+      "urban": "Urban"
+    },
+    "vizModes": {
+      "label": "Visualization Mode",
+      "choropleth": "Choropleth",
+      "heatmap": "Heat",
+      "bubble": "Bubbles",
+      "clusters": "Co-digestion"
+    },
+    "colorModes": {
+      "label": "Choropleth Mode",
+      "biogas": "Biogas Potential",
+      "biomass": "Biomass Potential",
+      "cn_profile": "C/N Profile",
+      "tipologia": "Residue typology",
+      "regime": "Nutrient regime",
+      "beta_locked": "Beta layer in testing — sign in to view. The methodology is still being verified.",
+      "clear_filter": "Show all classes"
+    },
+    "opacity": {
+      "label": "Map Opacity"
+    },
+    "municipalities": {
+      "visible": "Visible Municipalities"
+    },
+    "layers": {
+      "mapLayers": "Map Layers"
+    },
+    "layerGroups": {
+      "base": "Base",
+      "environmental": "Environmental",
+      "infrastructure": "Infrastructure",
+      "gasRoute": "Biomethane route",
+      "siteRestriction": "Siting constraints",
+      "logistics": "Logistics"
+    },
+    "tools": {
+      "compare": "Compare",
+      "compareDesc": "municipalities side by side (up to 4)",
+      "export": "Export",
+      "exportDesc": "filtered data in CSV or GeoJSON",
+      "share": "Share",
+      "shareDesc": "URL includes all active filters",
+      "viewProfile": "View Profile",
+      "viewProfileDesc": "Detailed page for selected municipality",
+      "open": "Open",
+      "copyUrl": "Copy URL"
+    },
+    "dataSources": {
+      "agricultural": "Agricultural",
+      "livestock": "Livestock",
+      "urban": "Urban",
+      "infrastructure": "Infrastructure"
+    },
+    "errors": {
+      "loadingError": "Error Loading Map",
+      "noData": "No Data Available",
+      "reloadPage": "Reload Page",
+      "tryAgain": "Try Again"
+    },
+    "scenario_label": "Scenario",
+    "map_aria_label": "Interactive map of biogas potential across {state} municipalities",
+    "map_keyboard_help": "Interactive map. With the map focused, use the arrow keys to pan and the plus and minus keys to zoom in and out. The same data is also available as tables and rankings on the analysis pages.",
+    "scenario_conservador": "Conservative",
+    "scenario_baseline": "Mid-term",
+    "scenario_fronteira": "Frontier",
+    "scenario_otimista": "Optimistic",
+    "scenario_fronteira_tip": "Biogas Frontier: realistic-high mobilization of all 31 residues — surpasses the FIESP benchmark (~6.4 Mm³/d biomethane).",
+    "scenario_real": "Real",
+    "scenario_ideal": "Ideal",
+    "scenario_real_tip": "Real Scenario (CP2b N4, accessible potential): the mobilisable potential (N3) after storage losses and the spatial logistic factor computed on the road network (hubs that reach a viable scale). The full factor cascade of the CP2b v5.1 method, reference scenario. SP: 16.4 Mm³/day of CH₄ (min–max scenario envelope 5.2–42.7, not a probability interval). 11 of 17 substrates still carry provisional parameters.",
+    "scenario_ideal_tip": "Ideal Scenario (CP2b N3, mobilisable potential): technical potential minus uses that exclude digestion and the methane operating plants already recover, before storage losses and logistics. The CP2b v5.1 headline figure, reference scenario. SP: 19.2 Mm³/day of CH₄ (min–max scenario envelope 7.7–45.0); sugarcane includes surplus bagasse. 11 of 17 substrates still carry provisional parameters.",
+    "scenario_served_note": "Real and Ideal scenarios (CP2b method) are available for São Paulo only.",
+    "thematic": {
+      "groups": {
+        "setorial": "Sector",
+        "residuo": "Residue",
+        "energia": "Energy",
+        "logistica": "Logistics",
+        "analise": "Analyses"
+      },
+      "show": "Show thematic maps",
+      "hide": "Hide thematic maps",
+      "title": "Thematic maps",
+      "validating_tooltip": "{description} Under validation for MG.",
+      "validating_badge": "VALIDATING",
+      "short_title": "Themes",
+      "presets": {
+        "total": {
+          "label": "Total potential",
+          "description": "Total biomass by municipality, all sectors combined."
+        },
+        "agricola": {
+          "label": "Agricultural",
+          "description": "Agricultural residues — sugarcane, soybean, corn, coffee, citrus."
+        },
+        "pecuaria": {
+          "label": "Livestock",
+          "description": "Cattle, swine, poultry and aquaculture manure."
+        },
+        "urbano": {
+          "label": "Urban",
+          "description": "OFMSW, urban pruning and WWTP sludge in the selected scenario."
+        },
+        "cana": {
+          "label": "Sugarcane",
+          "description": "Sugarcane straw and bagasse — the state's largest stream."
+        },
+        "soja": {
+          "label": "Soybean",
+          "description": "Soybean straw by municipality."
+        },
+        "milho": {
+          "label": "Corn",
+          "description": "Corn straw and cobs."
+        },
+        "cafe": {
+          "label": "Coffee",
+          "description": "Coffee husk and pulp."
+        },
+        "citrus": {
+          "label": "Citrus",
+          "description": "Citrus pulp (orange)."
+        },
+        "bovinos": {
+          "label": "Cattle",
+          "description": "Cattle manure by municipality."
+        },
+        "suinos": {
+          "label": "Swine",
+          "description": "Swine manure — a high yield per head."
+        },
+        "aves": {
+          "label": "Poultry",
+          "description": "Poultry litter and manure."
+        },
+        "rsu": {
+          "label": "OFMSW",
+          "description": "Organic fraction of municipal solid waste."
+        },
+        "biometano": {
+          "label": "Biomethane",
+          "description": "Biomethane potential (Nm³/day) in the Real scenario."
+        },
+        "bioenergia": {
+          "label": "Bioenergy",
+          "description": "Energy potential (MWh/year) from methane."
+        },
+        "escoamento": {
+          "label": "Gas offtake & pipelines",
+          "description": "Total potential over the gas pipeline network and biogas plants — where there is infrastructure to move the gas."
+        },
+        "aquicultura": {
+          "label": "Aquaculture",
+          "description": "Fish-farming effluent and sludge."
+        },
+        "rpo": {
+          "label": "Urban pruning",
+          "description": "Urban pruning and weeding residues."
+        },
+        "sewage": {
+          "label": "WWTP sludge",
+          "description": "CH₄ potential of sludge from wastewater treatment plants."
+        },
+        "biogas": {
+          "label": "Raw biogas",
+          "description": "Raw biogas (Nm³/day) — methane plus the CO₂ that comes with it."
+        },
+        "rede_eletrica": {
+          "label": "Power grid (SIN)",
+          "description": "Bioenergy over substations and transmission lines — where electricity can be fed in."
+        },
+        "usinas": {
+          "label": "Existing plants",
+          "description": "Theoretical potential vs. plants already in operation (biogas, ethanol, biomass power)."
+        },
+        "restricoes": {
+          "label": "Environmental constraints",
+          "description": "Protected areas, Indigenous lands and settlements — where licensing is not possible."
+        },
+        "rodovias": {
+          "label": "Highways & offtake",
+          "description": "Road network and gas gathering pipelines over the potential."
+        },
+        "clusters": {
+          "label": "Typologies (K4)",
+          "description": "K-means clustering of municipalities by biomass profile (2023)."
+        },
+        "calor": {
+          "label": "Heat map",
+          "description": "Potential density as a heat surface."
+        },
+        "bolhas": {
+          "label": "Proportional bubbles",
+          "description": "Potential per municipality as sized bubbles."
+        },
+        "per_capita": {
+          "label": "Per capita potential",
+          "description": "Biomethane per inhabitant (Nm³/inhabitant·year) — potential normalized by resident population (2022 Census)."
+        }
+      },
+      "group_labels": {
+        "setorial": "Sectors",
+        "residuo": "By residue",
+        "energia": "Energy",
+        "logistica": "Logistics",
+        "analise": "Analyses"
+      },
+      "group_titles": {
+        "setorial": "Sectors",
+        "residuo": "By residue",
+        "energia": "Energy",
+        "logistica": "Logistics & infrastructure",
+        "analise": "Advanced analyses"
+      },
+      "panel_intro": "Ready-made thematic maps — one click sets the live map's metric, colors, residue and scenario.",
+      "mg_note": "In the MG pilot, the agricultural themes are active. Livestock and urban are awaiting publication and validation."
+    },
+    "profilePanel": {
+      "detail_aria": "Details for the municipality of {name}",
+      "municipality": "Municipality",
+      "municipality_with_region": "Municipality · {region}",
+      "close_aria": "Close municipality panel",
+      "residue_profile": "2023 Residue Profile",
+      "population": "Population",
+      "area": "Area",
+      "density_unit": "inhab/km²",
+      "composition_by_source": "Composition by Source",
+      "sector_agricultural": "Agricultural",
+      "sector_livestock": "Livestock",
+      "sector_urban": "Urban",
+      "no_sector_breakdown": "No sector breakdown for this municipality in this scenario.",
+      "ch4_unit": "Nm³ CH₄/year",
+      "scenario_note": "Estimated CH₄ potential per scenario. It does not represent collected mass in t/year.",
+      "no_urban_inventory": "No validated urban inventory",
+      "no_urban_inventory_mg": "No validated urban inventory for MG",
+      "urban_note": "OFMSW, urban pruning and WWTP sludge were not inferred from population.",
+      "full_profile": "View Full Profile",
+      "inhabitants": "inhabitants",
+      "density": "Density",
+      "gdp_per_capita": "GDP per capita",
+      "per_capita": "per capita",
+      "metric_total": "{metric} — Total",
+      "ibge_more": "More data on IBGE Cidades",
+      "immediate_region": "Immediate region {region}",
+      "n4_label": "Accessible methane · N4",
+      "n3_label": "Mobilisable · N3",
+      "per_day": "≈ {value} per day",
+      "n4_kept": "{percent} reaches N4",
+      "main_residue": "Main residue",
+      "main_residue_share": "{percent} of N4 methane",
+      "residues_heading": "Residues",
+      "view_aria": "Residue unit",
+      "view_methane": "CH₄ {tier}",
+      "view_biomass": "Tonnes",
+      "residues_caption_methane": "Methane by residue, CP2b method level {tier}, in {unit}.",
+      "residues_caption_biomass": "Biomass generated by residue, in {unit}.",
+      "zero_list": "Zero: {list}",
+      "no_data_list": "No data: {list}"
+    },
+    "infrastructure": {
+      "na": "—",
+      "no_name": "Unnamed",
+      "names": {
+        "road": "Road",
+        "pipeline": "Gas pipeline",
+        "transmission_line": "Transmission line",
+        "substation": "Substation",
+        "biogas_plant": "Biogas plant",
+        "biogas_plant_of": "{type} plant",
+        "biogas": "Biogas",
+        "ete": "Wastewater treatment plant"
+      },
+      "fields": {
+        "type": "Type",
+        "operator": "Operator",
+        "status": "Status",
+        "diameter": "Diameter",
+        "max_pressure": "Max pressure",
+        "length": "Length",
+        "section": "Section",
+        "concessionaire": "Concessionaire",
+        "voltage": "Voltage",
+        "operation_year": "Year of operation",
+        "power": "Power",
+        "fuel": "Fuel",
+        "owner": "Owner",
+        "ceg": "CEG",
+        "operation_start": "Operation start",
+        "subtype": "Subtype",
+        "source": "Source",
+        "treatment_type": "Treatment type",
+        "system": "System",
+        "population_served": "Population served",
+        "removal_efficiency": "Removal efficiency"
+      },
+      "units": {
+        "inches": "{value} in"
+      }
+    },
+    "cnLegend": {
+      "title": "C:N Ratio Profile",
+      "n_rich": "Nitrogen-rich (< 20)",
+      "optimal": "Optimal for co-digestion (20–30)",
+      "c_slight": "Slightly carbon-rich (30–40)",
+      "c_mod": "Carbon-rich (40–55)",
+      "c_rich": "Carbon excess (> 55)"
+    },
+    "metrics": {
+      "biomass_tons": {
+        "label": "Biomass",
+        "legend": "Biomass (t/year)",
+        "unit": "t/year"
+      },
+      "biogas_m3": {
+        "label": "Biogas",
+        "legend": "Biogas (Nm³/day)",
+        "unit": "Nm³/day"
+      },
+      "methane_m3": {
+        "label": "Methane",
+        "legend": "Methane CH₄ (Nm³/day)",
+        "unit": "Nm³/day"
+      },
+      "biomethane_m3": {
+        "label": "Biomethane",
+        "legend": "Biomethane (Nm³/day)",
+        "unit": "Nm³/day"
+      },
+      "bioenergy_mwh": {
+        "label": "Bioenergy",
+        "legend": "Bioenergy (MWh/year)",
+        "unit": "MWh/year"
+      },
+      "ch4_per_capita": {
+        "label": "Per capita",
+        "legend": "Biomethane per capita (Nm³/inhabitant·year)",
+        "unit": "Nm³/inhab·year"
+      }
+    },
+    "palettes": {
+      "ylgnbu": {
+        "label": "Green-Blue (default)",
+        "note": "YlGnBu · the platform's default scale"
+      },
+      "greens": {
+        "label": "Greens",
+        "note": "Sequential · agricultural emphasis"
+      },
+      "ylorrd": {
+        "label": "Yellow-Red",
+        "note": "Warm sequential · intensity"
+      },
+      "bupu": {
+        "label": "Blue-Purple",
+        "note": "Cool sequential · urban focus"
+      },
+      "plasma": {
+        "label": "Plasma",
+        "note": "Vibrant · high contrast"
+      },
+      "viridis": {
+        "label": "Viridis",
+        "note": "Perceptually uniform · safe for every type of color blindness"
+      },
+      "cividis": {
+        "label": "Cividis",
+        "note": "Optimized for deuteranopia and protanopia"
+      },
+      "blues": {
+        "label": "Blue (single hue)",
+        "note": "Single hue · monotonic lightness"
+      },
+      "heading": "Color scale",
+      "group_aria": "Map color scale",
+      "cvd_safe": "Color-blind safe",
+      "scope_note": "Applies to the choropleth map. Color-blind mode, when on, takes precedence over this choice."
+    },
+    "legend": {
+      "zero": "Zero",
+      "expand": "Expand legend",
+      "collapse": "Collapse legend",
+      "cvd_palette": "Palette (color blindness)",
+      "cvd_palette_aria": "Color-blind-safe palette",
+      "mg_beta": "Minas Gerais — beta pilot",
+      "title": "Legend"
+    },
+    "potentialCategory": {
+      "high": "High potential",
+      "medium": "Medium potential",
+      "low": "Low potential",
+      "unclassified": "Unclassified"
+    },
+    "hover": {
+      "click_for_details": "Click for details"
+    },
+    "popup": {
+      "data_unavailable": "Data not available",
+      "population": "Population",
+      "area": "Area",
+      "region": "Region",
+      "sector_distribution": "Distribution by sector",
+      "main_residues": "Main residues",
+      "references_note": "Each residue has its own analyses and scientific references"
+    },
+    "stat_strip": {
+      "theoretical": "theoretical",
+      "municipalities": "municipalities",
+      "filters": "{count, plural, one {# filter} other {# filters}}",
+      "mg_beta": "+{count} MG municipalities in beta, not included in the total"
+    },
+    "plants": {
+      "biogas": {
+        "name": "Biogas",
+        "description": "Biogas production plants"
+      },
+      "ethanol": {
+        "name": "Ethanol",
+        "description": "Ethanol mills"
+      },
+      "biomass_thermal": {
+        "name": "Biomass power plant",
+        "description": "Biomass-fired thermal power plants"
+      },
+      "biodiesel": {
+        "name": "Biodiesel",
+        "description": "Biodiesel production plants"
+      },
+      "biomethane": {
+        "name": "Biomethane",
+        "description": "Biomethane production plants"
+      }
+    },
+    "plantsLegend": {
+      "show": "Plant legend",
+      "title": "Legend: biomass plants",
+      "source": "Source:",
+      "year": "Year:",
+      "mapbiomas_note": "Annual land-cover and land-use mapping of Brazil",
+      "anp_note": "Brazil's National Agency of Petroleum, Natural Gas and Biofuels"
+    },
+    "basemaps": {
+      "mapa": "Map",
+      "satelite": "Satellite",
+      "terreno": "Terrain",
+      "switch": "Change basemap",
+      "heading": "Basemap"
+    },
+    "beta": {
+      "notice": "Minas Gerais — beta pilot. PAM 2023, PPM 2024, Census 2022 and OFMSW/SNIS-RS 2022 are published; urban pruning and WWTP sludge are still being validated.",
+      "badge": "BETA — under validation"
+    },
+    "typology": {
+      "classes": {
+        "livestock": "Livestock",
+        "sugarcane": "Sugarcane",
+        "mixed": "Mixed/diversified",
+        "forestry": "Forestry",
+        "urban": "Urban — MSW and sewage",
+        "grains": "Grains and agro-industrial residues",
+        "coffee": "Coffee"
+      },
+      "regime": {
+        "n_deficit": "Nitrogen-deficient",
+        "sweet": "Balanced",
+        "n_excess": "Nitrogen excess"
+      }
+    },
+    "layerNames": {
+      "municipalities": "Municipalities (SP + MG beta)",
+      "mg-beta": "Minas Gerais municipalities (BETA)",
+      "intermediate-regions": "Intermediate regions (IBGE)",
+      "mapbiomas": "MapBiomas 2024",
+      "biogas_plant": "Biogas plants (MapBiomas, BR)",
+      "ethanol_plant": "Ethanol mills (MapBiomas, BR)",
+      "biomass_thermal_plant": "Biomass power plants (MapBiomas, BR)",
+      "biodiesel_plant": "Biodiesel plants (MapBiomas, BR)",
+      "slaughterhouse": "Slaughterhouses (MapBiomas, BR)",
+      "substation": "Substations (MapBiomas, BR)",
+      "transmission_line": "Transmission lines (MapBiomas, BR)",
+      "gas_pipeline_transport": "Gas transmission pipelines (MapBiomas, BR)",
+      "gas_pipeline_distribution": "Gas distribution pipelines (MapBiomas, BR)",
+      "gas_delivery_point": "Gas delivery points (MapBiomas, BR)",
+      "compression_station": "Compressor stations (MapBiomas, BR)",
+      "gas_processing_unit": "Gas processing plants (MapBiomas, BR)",
+      "gas_pipeline_outflow": "Gas gathering pipelines (MapBiomas, BR)",
+      "protected_area_state": "Strictly protected areas (MapBiomas, BR)",
+      "indigenous_territory": "Indigenous lands (MapBiomas, BR)",
+      "settlement": "Rural settlements (MapBiomas, BR)",
+      "highway_state": "Paved state highways (MapBiomas, BR)",
+      "highway_federal": "Paved federal highways (MapBiomas, BR)",
+      "etes": "WWTPs (SNIS, 2023 — SP)",
+      "railways": "Highways (EPE, 2023 — SP)"
+    },
+    "daltonic": {
+      "title": "Color-blind mode — a palette safe for color vision deficiency",
+      "toggle": "Color-blind"
+    },
+    "layerAlert": {
+      "unavailable": "{layer} unavailable",
+      "empty": "The server returned an empty layer.",
+      "error": "The layer could not be loaded. Try again later."
+    },
+    "scope": {
+      "toggle_title": "Switch between São Paulo and the Minas Gerais beta pilot",
+      "sp_option": "São Paulo (canonical)",
+      "mg_option": "Minas Gerais (beta pilot)",
+      "shown": "{count} municipalities shown"
+    },
+    "heatmap_legend": {
+      "title": "Concentration"
+    },
+    "mapbiomasLegend": {
+      "subtitle": "Agricultural land use",
+      "source": "Source: MapBiomas Collection 8",
+      "classes": {
+        "0": "No data",
+        "3": "Forest formation",
+        "4": "Savanna formation",
+        "9": "Forest plantation",
+        "11": "Wetland",
+        "12": "Grassland",
+        "15": "Pasture",
+        "20": "Sugarcane",
+        "21": "Agriculture–pasture mosaic",
+        "24": "Urban infrastructure",
+        "25": "Other non-vegetated area",
+        "33": "River, lake and ocean",
+        "35": "Oil palm",
+        "39": "Soybean",
+        "40": "Rice",
+        "41": "Other temporary crops",
+        "46": "Coffee",
+        "47": "Citrus",
+        "48": "Other perennial crops",
+        "62": "Cotton"
+      }
+    },
+    "dataSourceDetails": {
+      "pam": "Municipal Agricultural Production",
+      "mapbiomas": "Land cover and land use",
+      "conab": "Harvests and agricultural production",
+      "ppm": "Municipal Livestock Survey",
+      "abpa": "Poultry and swine by municipality",
+      "snis": "National Sanitation Information System",
+      "munic": "Municipal solid waste",
+      "epe": "Gas pipelines, substations and transmission lines",
+      "anp": "Biomass and biogas plants"
+    },
+    "panel": {
+      "title": "Biomass · {state}",
+      "expand": "Expand panel",
+      "collapse": "Collapse panel"
+    },
+    "mobile": {
+      "close_filters": "Close filters",
+      "close_layers": "Close layers",
+      "clear_search": "Clear search",
+      "mg_filters_note": "In the MG beta, only the agricultural filters are validated. Livestock and urban are awaiting publication.",
+      "daltonic": "Color-blind mode",
+      "active": "on"
+    },
+    "comparePanel": {
+      "title": "Municipality Comparison",
+      "subtitle": "Compare up to 4 municipalities side by side",
+      "add_label": "Add a municipality to compare",
+      "add_placeholder": "Name or IBGE code…",
+      "metric_column": "Metric",
+      "empty_title": "No municipality selected",
+      "empty_hint": "Use the search above to add municipalities to the comparison",
+      "highest": "Highest value",
+      "lowest": "Lowest value",
+      "remove_aria": "Remove {name} from the comparison",
+      "categories": {
+        "overview": "Overview",
+        "biogas": "Total biogas"
+      },
+      "metrics": {
+        "population": "Population",
+        "area": "Area",
+        "total": "Total"
+      }
+    },
+    "exportPanel": {
+      "title": "Export Data",
+      "subtitle": "Choose an export format",
+      "formats": {
+        "csv": {
+          "title": "CSV (spreadsheet)",
+          "description": "Tabular data that opens in Excel"
+        },
+        "geojson": {
+          "title": "GeoJSON (geospatial)",
+          "description": "The standard format for geographic data"
+        },
+        "png": {
+          "title": "PNG (image)",
+          "description": "A snapshot of the current map"
+        }
+      },
+      "status": {
+        "loading": "Exporting…",
+        "success": "Download started!",
+        "error": "Error: {message}"
+      },
+      "errors": {
+        "no_data": "There is no data to export",
+        "map_not_found": "The map could not be found",
+        "image_failed": "The image could not be generated",
+        "unknown": "Unknown error"
+      },
+      "note_label": "Note:",
+      "note": "The export includes only the municipalities visible with the current filters.",
+      "note_count": "{count, plural, one {{formatted} municipality will be exported.} other {{formatted} municipalities will be exported.}}",
+      "csv": {
+        "ibge_code": "IBGE code",
+        "municipality": "Municipality",
+        "region": "Intermediate region",
+        "population": "Population",
+        "area_km2": "Area (km²)",
+        "total_biogas": "Total biogas (m³/year)",
+        "biogas_of": "Biogas — {source} (m³/year)"
+      }
+    },
+    "selection": {
+      "total": "Total",
+      "residues": "{count, plural, one {# residue} other {# residues}}"
+    },
+    "codigestion": {
+      "title": "Co-digestion",
+      "cluster": "Cluster {id}",
+      "municipality_count": "{count, plural, one {# municipality} other {# municipalities}}",
+      "best_opportunity": "Best Opportunity",
+      "recommended_blend": "Recommended blend",
+      "combined_cn": "Combined C:N",
+      "available_feedstock": "Available feedstock",
+      "combined_feedstock": "Combined feedstock",
+      "blend": "Blend ({ratio})",
+      "improvement": "Improvement (score)",
+      "municipalities": "Municipalities ({count})",
+      "all_pairs": "All Pairs ({count})",
+      "optimal_band": "{low}–{high} optimal",
+      "disclaimer": "<strong>Spatial screening only.</strong> Chemical feasibility must be validated in the laboratory before implementation.",
+      "substrates": {
+        "sugarcane": "Sugarcane straw",
+        "soybean": "Soybean straw",
+        "corn": "Corn stover",
+        "coffee": "Coffee husk",
+        "citrus": "Citrus pulp",
+        "cattle": "Cattle manure",
+        "swine": "Swine manure",
+        "poultry": "Poultry litter",
+        "aquaculture": "Aquaculture residue",
+        "rsu": "OFMSW (organic MSW)",
+        "rpo": "WWTP sludge"
+      }
+    },
+    "regionsLayer": {
+      "fallback_name": "Region",
+      "state": "State: {uf}",
+      "municipalities": "{count, plural, one {# municipality} other {# municipalities}}",
+      "biogas": "Biogas",
+      "biomass": "Biomass",
+      "loading": "National data is still loading…"
+    },
+    "clusters_loading": "Calculating co-digestion clusters…",
+    "first_visit": {
+      "title": "First time here?",
+      "body": "Click a municipality on the map to see how much biogas its waste could produce. To find your city, use the search in the Filters tab.",
+      "dismiss": "Got it",
+      "close": "Close tip"
+    }
+  },
+  "metadata": {
+    "title": "PILAR-2b — Intelligent Platform for Locating and Using Residues for Biogas and Bioproducts",
+    "description": "Open platform that estimates, municipality by municipality, the biogas and bioproduct potential of agricultural, livestock and urban residues. Canonical base: São Paulo state; Minas Gerais in validation (beta); national expansion under way. Interactive map, multi-criteria analysis and methane potential by residue and municipality; availability factors under review.",
+    "keywords": "biogas, biomethane, bioproducts, renewable energy, residues, São Paulo, Minas Gerais, Brazil, geospatial analysis, biomass, MCDA, FAPESP, open-source, PILAR-2b, reproducible research"
+  },
+  "pages": {
+    "advanced_analysis": {
+      "title": "Advanced Analysis",
+      "literature_base_link": "Scientific base — 399 references (literature review)",
+      "frontier_note": "Biogas Frontier: realistic-high mobilization of all 31 residues — surpasses the FIESP benchmark (~6.4 Mm³/d biomethane).",
+      "category_agricultural": "Agricultural",
+      "category_livestock": "Livestock",
+      "category_urban": "Urban",
+      "category_industrial": "Industrial",
+      "visualization_label": "View:",
+      "search_label": "Search",
+      "search_placeholder": "Municipality name…",
+      "export_csv": "Export CSV",
+      "subtitle": "Biogas potential with FDE correction factors (FC, FCp, FS, FL)",
+      "methodology": "Methodology",
+      "download": "Download",
+      "references": "References",
+      "error_loading": "Error loading data",
+      "error_load_municipalities": "Error loading municipality data",
+      "kpi_total_municipalities": "Total Municipalities",
+      "kpi_municipalities_registered": "registered municipalities",
+      "kpi_category": "Category",
+      "kpi_theoretical": "Theoretical Potential",
+      "kpi_fde": "Real Potential (FDE)",
+      "tab_cascade": "Cascade",
+      "tab_flow": "Flow",
+      "tab_scenarios": "Scenarios",
+      "tab_table": "Table",
+      "current_analysis": "Current Analysis",
+      "label_category": "Category:",
+      "label_residues": "Selected Residues:",
+      "label_all_residues": "All residues",
+      "label_fde": "Effective FDE:",
+      "flow_analysis": "Flow Analysis",
+      "label_potential": "Potential:",
+      "chart_distribution": "Distribution",
+      "chart_top5": "Top 5 Municipalities",
+      "chart_scenario_comparison": "FDE Scenario Comparison",
+      "chart_regional": "Regional Distribution",
+      "table_ranking": "Municipality Ranking",
+      "col_rank": "#",
+      "col_municipality": "Municipality",
+      "col_region": "Region",
+      "col_biogas": "Biogas (m³/year)",
+      "col_population": "Population",
+      "showing_results": "Showing 50 of {count} municipalities",
+      "no_municipalities": "No municipalities found",
+      "no_municipalities_hint": "Try adjusting your search filters",
+      "industrial_selection_title": "Select Specific Industrial Residues",
+      "references_available_title": "Scientific References Available",
+      "residues_selected": "{count, plural, one {# residue} other {# residues}}",
+      "unit_m3_year": "m³/year (100%)",
+      "unit_m3_year_pct": "m³/year ({pct}%)",
+      "csv_rank": "Rank",
+      "csv_fde": "FDE (%)",
+      "csv_scenario": "Scenario",
+      "industrial_selection_body": "For accurate Industrial figures, select one or more specific industrial residues (brewers' spent grain, dairy whey, slaughterhouse waste, etc.) in the side panel. The calculations then use the real municipal data for those residues, each with its own FDE factors.",
+      "references_available_body": "Each residue has its own analyses and scientific references, which you can browse in the <link>scientific database</link> or with the <strong>References</strong> button above.",
+      "integrated_adjustment": "Integrated adjustment",
+      "integrated_adjustment_hint": "Changes here update the charts in real time",
+      "table_summary": "{count, plural, one {# municipality} other {# municipalities}} | FDE: {fde} | {scenario}"
+    },
+    "scientific_database": {
+      "title": "Scientific Knowledge Base",
+      "subtitle": "Physico-chemical data, degradation kinetics and scientific references for São Paulo residues",
+      "refresh": "Refresh",
+      "loading": "Loading the scientific database…",
+      "error": {
+        "title": "Part of the scientific database could not be loaded",
+        "body_partial": "What did load is shown below. Try again in a moment.",
+        "body_empty": "Nothing could be loaded. Check your connection and try again."
+      },
+      "kpi": {
+        "references": "References",
+        "references_hint": "scientific papers",
+        "residues": "Residues",
+        "residues_hint": "characterized",
+        "kinetics": "Kinetic Profiles",
+        "kinetics_hint": "residues with degradation kinetics",
+        "fde": "FDE Factors",
+        "fde_hint": "of the residues have all four factors"
+      },
+      "tabs": {
+        "label": "Database sections",
+        "residues": "Residue Database",
+        "kinetics": "Degradation Kinetics",
+        "chemical": "Chemical Characterization",
+        "references": "Scientific References",
+        "comparison": "Interactive Comparison"
+      },
+      "sectors": {
+        "AG_AGRICULTURA": "Agricultural",
+        "PC_PECUARIA": "Livestock",
+        "UR_URBANO": "Urban",
+        "IN_INDUSTRIAL": "Industrial"
+      },
+      "units": {
+        "bmp": "L CH₄/kg VS",
+        "bmp_short": "L/kg VS",
+        "ts": "TS",
+        "vs": "VS",
+        "vs_of_ts": "% TS"
+      },
+      "residues_view": {
+        "heading": "Characterized Residues",
+        "count": "{residues, plural, one {# residue} other {# residues}} in {sectors, plural, one {# economic sector} other {# economic sectors}}",
+        "sector_count": "{count, plural, one {# residue} other {# residues}}",
+        "hint": "Click a residue to see its full chemical characterization"
+      },
+      "kinetics_view": {
+        "select_heading": "Select Residues to Compare",
+        "select_hint": "Select up to {max} residues to compare; until you do, the first {shown} are shown.",
+        "curves_heading": "Methane Production Curves",
+        "no_data": "Kinetic data not available",
+        "no_data_hint": "No residue in the database has kinetic parameters yet.",
+        "axis_time": "Time (days)",
+        "axis_yield": "Yield ({unit})",
+        "tooltip_day": "Day {day}",
+        "curve_note": "Curve: modified Gompertz model fitted to each residue's t50/t80.",
+        "band_note_single": "Dashed band: typical experimental variability of BMP assays (±12%, replicate CV; Holliger et al., 2016).",
+        "band_note_multi": "Select a single residue to see the experimental-variability band (±12%).",
+        "table_heading": "Kinetic Parameters (Three-Fraction Model)",
+        "col_residue": "Residue",
+        "col_class": "Kinetics",
+        "col_bmp_exp": "BMP exp.",
+        "col_bmp_sim": "BMP sim.",
+        "col_error": "Error",
+        "classes": {
+          "slow": "Slow",
+          "medium": "Medium",
+          "medium_fast": "Medium-fast",
+          "fast": "Fast"
+        },
+        "model_heading": "Three-Fraction Model (DBFZ)",
+        "fraction_slow": "slow fraction",
+        "fraction_med": "medium fraction",
+        "fraction_fast": "fast fraction",
+        "fq_note": "<strong>FQ</strong> (fermentability quotient) = f_slow + f_med + f_fast: the digestible share of the volatile solids."
+      },
+      "chemical_view": {
+        "empty": "No residue could be loaded.",
+        "references": "{count, plural, one {# reference} other {# references}}",
+        "see_references": "See references"
+      },
+      "cn": {
+        "optimal": "C:N optimal for anaerobic digestion (20–30)",
+        "low": "C:N low: consider co-digestion with a carbon-rich substrate",
+        "high": "C:N high: consider co-digestion with a nitrogen-rich substrate",
+        "very_high": "C:N very high: co-digestion with a nitrogen-rich substrate is needed"
+      },
+      "references_view": {
+        "stats_heading": "Knowledge Base",
+        "total": "Total references",
+        "residues": "Residues",
+        "validated": "With validated data",
+        "filters": "Filters",
+        "search": "Search",
+        "search_placeholder": "Title, author, journal…",
+        "residue_filter": "Filter by residue",
+        "all_residues": "All residues",
+        "sector_filter": "Economic sector",
+        "validated_only": "Only papers with validated data",
+        "clear": "Clear filters",
+        "results": "{count, plural, one {# result} other {# results}}",
+        "of_total": "of {total}",
+        "empty": "No references found",
+        "empty_hint": "Try adjusting your search filters",
+        "validated_badge": "Validated data",
+        "open_paper": "Open the paper",
+        "cite": "Cite:",
+        "copied": "✓ Copied!",
+        "no_author": "Unknown author",
+        "no_date": "n.d.",
+        "untitled": "Untitled"
+      },
+      "comparison_view": {
+        "select_heading": "Select residues to compare (up to {max})",
+        "chart_heading": "Multi-Parameter Comparison",
+        "table_heading": "Comparison Table",
+        "col_parameter": "Parameter",
+        "col_best": "Best",
+        "no_data": "No data",
+        "need_two": "Select at least 2 residues",
+        "need_two_hint": "to build the interactive comparison",
+        "params": {
+          "bmp": "BMP ({bmp_unit})",
+          "vs": "VS ({vs_unit})",
+          "cn": "C:N",
+          "ch4": "CH₄ content (%)"
+        }
+      }
+    },
+    "proximity": {
+      "title": "Proximity Analysis",
+      "subtitle": "Spatial analysis of biogas potential by collection radius",
+      "how_to_use": "How to use",
+      "step1": "Click on the map to select a point",
+      "step2": "Adjust the capture radius with the slider",
+      "step3": "Click Analyze to see nearby municipalities",
+      "selected_point": "Selected Point",
+      "latitude": "Latitude:",
+      "longitude": "Longitude:",
+      "click_to_select": "Click on the map to select a point",
+      "capture_radius": "Capture Radius",
+      "radius_optimal": "Optimal",
+      "radius_acceptable": "Acceptable",
+      "radius_limit": "At limit",
+      "radius_excessive": "Excessive",
+      "analyzing": "Analyzing…",
+      "analyze": "Analyze",
+      "land_use_title": "Land Use Analysis",
+      "municipalities_count": "{count, plural, one {# municipality} other {# municipalities}}",
+      "share": "Share",
+      "export": "Export Data",
+      "total_area": "Total Analyzed Area",
+      "km2": "square kilometers",
+      "agricultural_use": "Agricultural Use",
+      "farmable_area": "Farmable Area",
+      "main_class": "Main Class",
+      "predominant_use": "predominant land use in area",
+      "detailed_distribution": "Detailed Land Use Distribution",
+      "visual_proportion": "Visual Proportion",
+      "link_copied": "Link copied to clipboard!",
+      "mapbiomas_badge": "MapBiomas 2023",
+      "map": {
+        "loading": "Loading map…",
+        "radius": "Radius: {radius} km",
+        "distance": "Distance:",
+        "population": "Population:",
+        "biogas": "Biogas:",
+        "scope": "<strong>São Paulo</strong> State",
+        "coordinates": "{lat}, {lng}"
+      },
+      "processed_in": "Processed in {ms} ms",
+      "badge": {
+        "optimal": "Ideal logistics",
+        "moderate": "Moderate costs",
+        "high": "High costs",
+        "unviable": "Economically unviable"
+      },
+      "dominant_badge": "Dominant",
+      "class_fallback": "Class {id}",
+      "of_area": "of the area",
+      "categories": {
+        "agricultural": "Farming",
+        "forestry": "Forestry",
+        "forest": "Native vegetation",
+        "grassland": "Grassland",
+        "water": "Water",
+        "urban": "Urban",
+        "other": "Other",
+        "nodata": "No data",
+        "unknown": "Unclassified"
+      },
+      "suitability": {
+        "high": {
+          "title": "✓ High suitability for agricultural biogas",
+          "body": "Farming dominates the area ({percent}), which suits the collection of agricultural residues for biogas. This region has excellent potential for digesters."
+        },
+        "medium": {
+          "title": "Moderate suitability for agricultural biogas",
+          "body": "Farming covers {percent} of the area. There is reasonable potential for biogas from agricultural sources, which other biomass sources can complement."
+        },
+        "low": {
+          "title": "Little farming in the area",
+          "body": "Only {percent} of the area is farmed. Consider urban (MSW) or livestock sources to make biogas viable in this region."
+        }
+      },
+      "errors": {
+        "rate_limited": "Too many analyses in a row. Wait {seconds} seconds and try again.",
+        "timeout": "The analysis is taking too long. Try again with a smaller radius.",
+        "network": "Connection error. Check your internet connection and try again.",
+        "invalid_coordinates": "The point is outside the area the proximity analysis covers, which today is the state of São Paulo. Choose a point on land within the state.",
+        "invalid_radius": "The radius must be between {min} and {max} km.",
+        "server": "The analysis could not be completed. Please try again."
+      },
+      "csv": {
+        "municipality": "Municipality",
+        "ibge_code": "IBGE code",
+        "distance_km": "Distance (km)",
+        "biogas_m3_year": "Biogas (m³/year)",
+        "population": "Population",
+        "land_use_class": "Land-use class",
+        "percent": "Share (%)",
+        "area_km2": "Area (km²)",
+        "type": "Type",
+        "name": "Name",
+        "latitude": "Latitude",
+        "longitude": "Longitude",
+        "metric": "Metric",
+        "value": "Value",
+        "point_latitude": "Analysis point (lat)",
+        "point_longitude": "Analysis point (lng)",
+        "radius_km": "Radius (km)",
+        "total_municipalities": "Municipalities",
+        "total_population": "Total population",
+        "avg_distance_km": "Average distance (km)",
+        "total_biogas": "Total biogas potential (m³/year)",
+        "agricultural_biogas": "Agricultural potential (m³/year)",
+        "livestock_biogas": "Livestock potential (m³/year)",
+        "urban_biogas": "Urban potential (m³/year)",
+        "agricultural_land": "Agricultural land use (%)",
+        "processing_time_s": "Processing time (s)"
+      }
+    },
+    "compare": {
+      "title": "Municipality Comparison",
+      "comparing": "Comparing {count} municipalities",
+      "indicator": "Indicator",
+      "admin_region": "Administrative Region",
+      "area": "Area (km²)",
+      "population": "Population",
+      "error": "Error loading data. Please try again.",
+      "min_municipalities_error": "Select at least 2 municipalities to compare",
+      "none_found": "No municipality found",
+      "loading_comparison": "Loading comparison…",
+      "ibge_code": "IBGE Code",
+      "biogas_section": "BIOGAS POTENTIAL",
+      "energy_section": "ENERGY & ENVIRONMENTAL POTENTIAL",
+      "row_population_density": "Population Density (pop/km²)",
+      "row_total_biogas": "Total Biogas (m³/year)",
+      "row_agri_biogas": "Agricultural Biogas (m³/year)",
+      "row_live_biogas": "Livestock Biogas (m³/year)",
+      "row_urban_biogas": "Urban Biogas (m³/year)",
+      "row_energy": "Energy Potential (MWh/year)",
+      "row_co2": "CO₂ Reduction (ton/year)"
+    },
+    "technology_routes": {},
+    "cite": {
+      "title": "How to Cite PILAR-2b",
+      "subtitle": "Platform developed by CP2b / NIPE-UNICAMP. When using the platform’s data, maps or results in academic, technical or commercial work, please cite it using one of the formats below.",
+      "copy": "Copy",
+      "copied": "Copied!",
+      "copyright_title": "Copyright & registration",
+      "copyright_body": "© 2026 NIPE-UNICAMP (CP2b). Software registered with INPI — process no. <strong>BR512026003115-0</strong> (issued 12/05/2026, valid until 2076). Research funded by FAPESP (process 2024/01112-1 — CP2Bsd).",
+      "license_title": "License",
+      "license_source_label": "Source code:",
+      "license_data_label": "Data and documentation:",
+      "license_data_note": "(attribution)",
+      "license_repo_label": "Repository / CITATION.cff:",
+      "why_title": "Why cite",
+      "why": "Citation ensures scientific traceability, enables reproducibility of the analyses, gives due credit to FAPESP-funded research, and acknowledges the INPI-registered software. It also helps sustain the open development of the platform.",
+      "refs_title": "Scientific basis",
+      "refs": "Analyses are grounded in a literature review of 399 scientific references (372 peer-reviewed), available in the platform’s Scientific Database.",
+      "refs_link": "Open the Scientific Database (399 references)"
+    },
+    "settings": {
+      "title": "Settings"
+    }
+  },
+  "dashboard_hub": {
+    "loading": "Loading dashboard…",
+    "welcome_title": "Welcome to PILAR-2b",
+    "welcome_subtitle": "Tools to analyse biogas potential by municipality — São Paulo (canonical base) and Minas Gerais (beta — in validation)",
+    "hero_institution": "CP2b · NIPE / UNICAMP",
+    "cta_open_map": "Open Interactive Map",
+    "open_map_aria": "Open the interactive map",
+    "path_label": "How to use",
+    "path_map": "Explore the Map",
+    "path_proximity": "Proximity",
+    "path_science": "Routes & Science",
+    "features_heading": "Available Tools",
+    "badge_popular": "Popular",
+    "badge_new": "New",
+    "feat_map_title": "Interactive Map",
+    "feat_map_desc": "Explore biogas potential by municipality, with residue-type filters. São Paulo complete; Minas Gerais in validation (beta).",
+    "feat_proximity_title": "Proximity Analysis",
+    "feat_proximity_desc": "Analyze biogas plant feasibility considering nearby infrastructure",
+    "feat_routes_title": "Technology Routes",
+    "feat_routes_desc": "Compare different biogas and biomethane production technologies",
+    "feat_scientific_title": "Scientific Knowledge Base",
+    "feat_scientific_desc": "Access technical data on residues, BMP, and anaerobic digestion parameters",
+    "feat_compare_title": "Municipality Comparison",
+    "feat_compare_desc": "Compare multiple municipalities side-by-side with biogas potential metrics by sector",
+    "feat_advanced_title": "Advanced Analysis",
+    "feat_advanced_desc": "Advanced tools for potential analysis and technical feasibility",
+    "feat_references_title": "References",
+    "feat_references_desc": "Scientific bibliography, data sources and documentation. Each residue has its own analyses and scientific references."
+  },
+  "settings_page": {
+    "loading": "Loading…",
+    "title": "Settings",
+    "subtitle": "Manage your account preferences and settings",
+    "save": "Save",
+    "saving": "Saving…",
+    "saved": "Saved!",
+    "profile_heading": "Profile",
+    "profile_subtitle": "Your personal information",
+    "name": "Name",
+    "email": "Email",
+    "role": "Role",
+    "role_admin": "Administrator",
+    "role_user": "User",
+    "not_set": "Not set",
+    "notifications_heading": "Notifications",
+    "notifications_subtitle": "Configure your notification preferences",
+    "notif_email": "Email notifications",
+    "notif_browser": "Browser notifications",
+    "notif_data": "Data updates",
+    "notif_weekly": "Weekly report",
+    "appearance_heading": "Appearance",
+    "appearance_subtitle": "Customize the application interface",
+    "theme": "Theme",
+    "theme_light": "Light",
+    "theme_dark": "Dark",
+    "theme_auto": "Auto",
+    "language": "Language",
+    "compact_mode": "Compact mode",
+    "security_heading": "Security",
+    "security_subtitle": "Manage your account security",
+    "two_factor": "Two-factor authentication",
+    "session_timeout": "Session timeout (minutes)",
+    "change_password": "Change Password",
+    "help_title": "Need help?",
+    "help_body": "Contact our support team for technical assistance."
+  },
+  "charts": {
+    "loading": "Loading data…",
+    "no_data": "No data available",
+    "select_category_cascade": "Select a category to view the cascade",
+    "unit_m3_yr": "m³/year",
+    "cascade_title": "Potential Cascade — Theoretical to FDE",
+    "cascade_fde_label": "FDE:",
+    "cascade_final_label": "Final:",
+    "cascade_tooltip_value": "Value:",
+    "cascade_tooltip_percent": "% of Theoretical:",
+    "cascade_factors_heading": "Applied Correction Factors",
+    "category_comparison_title": "Comparison Between Waste Categories",
+    "category_comparison_dataset": "Total Potential (billion m³/year)",
+    "category_comparison_tooltip": "Total: {value} billion m³/year",
+    "category_comparison_yaxis": "Potential (billion m³/year)",
+    "category_comparison_heading": "Comparative Analysis",
+    "histogram_title": "Biogas Potential Distribution",
+    "histogram_dataset": "Number of Municipalities",
+    "histogram_xaxis": "Potential Range (million m³/year)",
+    "histogram_yaxis": "Number of Municipalities",
+    "histogram_stats": "Distribution Statistics",
+    "histogram_mean": "Mean",
+    "histogram_median": "Median",
+    "histogram_std_dev": "Std. Dev.",
+    "top_municipalities_title": "Top Municipalities by Biogas Potential",
+    "top_municipalities_dataset": "Biogas (m³/year)",
+    "top_municipalities_xaxis": "Biogas Potential (m³/year)",
+    "sankey_title": "Biomass Flow — Theoretical to Biogas",
+    "sankey_loading": "Loading diagram…",
+    "sankey_no_data": "No data available",
+    "sankey_select_category": "Select a category to view the flow",
+    "sankey_node_theoretical": "Theoretical Potential",
+    "sankey_node_collection_loss": "Collection Losses",
+    "sankey_node_collected": "Collected",
+    "sankey_node_competition": "Competing Uses",
+    "sankey_node_available": "Available",
+    "sankey_node_seasonal_loss": "Seasonal Losses",
+    "sankey_node_adjusted": "Adjusted",
+    "sankey_node_logistics_loss": "Logistics Losses",
+    "sankey_node_biogas": "Biogas Potential",
+    "sankey_summary_input": "Input",
+    "sankey_summary_total_losses": "Total Losses",
+    "sankey_summary_to_biogas": "To Biogas",
+    "sankey_legend_title": "Flow Legend",
+    "sankey_legend_useful": "Useful flow (to biogas)",
+    "sankey_legend_losses": "Losses and competing uses",
+    "chart_regional": "Regional Distribution",
+    "sankey_ch4_label": "CH₄ Equivalent",
+    "sankey_ch4_fraction": "Based on {pct}% CH₄ in biogas",
+    "sankey_benchmark_label": "FIESP benchmark: ~16 B m³ CH₄/year",
+    "sankey_unit": "m³/year",
+    "sankey_summary_ch4": "CH₄ Equivalent",
+    "category_comparison_count": "{count, plural, one {# municipality} other {# municipalities}}",
+    "category_comparison_average": "Average: {value}"
+  },
+  "analysis": {
+    "scenarios": {
+      "optimistic_name": "Optimistic",
+      "optimistic_desc": "High collection efficiency, low competition, constant availability",
+      "realistic_name": "Realistic",
+      "realistic_desc": "Values based on literature evidence and field validation",
+      "conservative_name": "Conservative",
+      "conservative_desc": "Considers all practical constraints conservatively",
+      "pessimistic_name": "Pessimistic",
+      "pessimistic_desc": "Scenario with highest losses and competition",
+      "frontier_name": "Biogas Frontier",
+      "frontier_desc": "Realistic-high mobilization of all 31 residues under dedicated policy; surpasses the FIESP benchmark (~6.4 Mm³/d biomethane)"
+    },
+    "residue_scenarios": {
+      "baseline_name": "Baseline",
+      "baseline_desc": "Default factors based on literature data (CSV)",
+      "conservative_name": "Conservative",
+      "conservative_desc": "Reduces all factors by 20% (worst case)",
+      "optimistic_name": "Optimistic",
+      "optimistic_desc": "Increases factors by 15% (best case)",
+      "frontier_name": "Biogas Frontier",
+      "frontier_desc": "Realistic-high mobilization of all 31 residues under dedicated policy (surpasses the FIESP benchmark)",
+      "custom_name": "Custom",
+      "custom_desc": "Manually adjusted factors per residue"
+    },
+    "factors": {
+      "fc_label": "FC — Collection",
+      "fcp_label": "FCp — Competition",
+      "fs_label": "FS — Seasonality",
+      "fl_label": "FL — Logistics"
+    },
+    "factor_docs": {
+      "fc_title": "Collection Factor (FC)",
+      "fc_desc": "Collection efficiency from generation point to processing",
+      "fc_context": "Depends on collection infrastructure, mechanization and geographic dispersion",
+      "fcp_title": "Competition Factor (FCp)",
+      "fcp_desc": "Fraction of collected residue diverted to alternative uses",
+      "fcp_context": "Includes animal feed, fertilizer, industrial material or boiler fuel",
+      "fs_title": "Seasonality Factor (FS)",
+      "fs_desc": "Adjustment for variable availability throughout the year",
+      "fs_context": "Seasonal crops (sugarcane Apr–Nov) vs. livestock (constant)",
+      "fl_title": "Logistics Factor (FL)",
+      "fl_desc": "Economic feasibility of transport to biogas plant",
+      "fl_context": "Based on typical distance, freight cost and biogas value"
+    },
+    "methodology_panel": {
+      "title": "FDE Methodology",
+      "formula_heading": "FDE Formula",
+      "formula": "FDE = FC × (1 − FCp) × FS × FL",
+      "formula_desc": "Effective Availability Factor",
+      "factors_heading": "Correction Factors",
+      "about_heading": "About the FDE Methodology",
+      "about_text": "FDE (Effective Availability Factor) quantifies the fraction of theoretically generated residue that is actually available for biogas production.",
+      "interpretation_heading": "Value Interpretation",
+      "view_references": "View Full References",
+      "close": "Close",
+      "description": "Description",
+      "context": "Context",
+      "typical_range": "Typical Range",
+      "references": "References",
+      "validation_warning_title": "Data Under Validation",
+      "validation_warning_text": "Correction factors are being validated. The values shown are preliminary estimates based on scientific literature data.",
+      "interp_high_detail": "FDE ≥ 50%: High availability, excellent potential",
+      "interp_medium_detail": "FDE 30-50%: Moderate availability, viable potential",
+      "interp_low_detail": "FDE < 30%: Low availability, assess viability",
+      "color_green": "Green",
+      "color_yellow": "Yellow",
+      "color_red": "Red"
+    },
+    "scenario_comparator": {
+      "loading": "Loading scenarios…",
+      "fde_label": "FDE:",
+      "col_scenario": "Scenario",
+      "col_fc": "FC",
+      "col_fcp": "FCp",
+      "col_fs": "FS",
+      "col_fl": "FL",
+      "col_fde": "FDE",
+      "col_available": "Available",
+      "col_custom": "Custom",
+      "info_note": "Scenarios use the currently selected biomass potential",
+      "title": "Scenario Comparison"
+    },
+    "residue_selector": {
+      "livestock": "Livestock Residues",
+      "urban": "Urban Residues",
+      "industrial": "Industrial Residues",
+      "clear": "Clear",
+      "selected_count": "{count} residue(s) selected",
+      "category_label_agricultural": "Agricultural",
+      "category_label_livestock": "Livestock",
+      "category_label_urban": "Urban",
+      "apply_filters": "Apply Filters",
+      "other_crops": "Other",
+      "select_all": "Select all {group} residues"
+    },
+    "references_modal": {
+      "tab_data_sources": "Data Sources",
+      "title": "References and Data Sources",
+      "subtitle": "Scientific references and official data sources",
+      "tab_scientific": "Scientific References",
+      "source_access": "Access source",
+      "source_access_short": "Access",
+      "close_aria": "Close",
+      "scientific_footer_heading": "About the references",
+      "scientific_footer_text": "All references are used in the calculation of residue-to-biogas conversion factors. Availability factors are being validated for the State of São Paulo context.",
+      "data_sources_footer_heading": "About the data sources",
+      "data_sources_footer_text": "All data sources are official and updated regularly. Georeferenced data follows the SIRGAS 2000 system (EPSG 4674).",
+      "data_sources_footer_priority": "Update Priority: MapBiomas Collection 10.0 and PAM 2024",
+      "data_sources_footer_validation": "Cross-Validation: SIDRA vs MapBiomas vs operational data",
+      "data_sources_footer_precision": "Spatial Precision: GEDAVE and MapBiomas provide georeferencing",
+      "reference_count": "{count, plural, one {# reference} other {# references}}",
+      "source_count": "{count, plural, one {# main source} other {# main sources}}",
+      "db_pointer": "Validated scientific references in the database: {count}",
+      "open_database": "Open the scientific database"
+    },
+    "per_residue_editor": {
+      "title": "Factor Adjustment by Residue",
+      "subtitle": "Customize FDE factors for each selected residue",
+      "empty_state": "Select one or more residues to adjust FDE factors",
+      "modified_label": "(modified)",
+      "mod_short": "(mod.)",
+      "code_label": "Code:",
+      "restore_default": "Restore Default",
+      "current_fde": "Current FDE:",
+      "default_fde": "Default: {value}",
+      "confidence_label": "Confidence:",
+      "fde_calc_heading": "FDE Calculation",
+      "based_on_count": "{count, plural, one {Based on # selected residue} other {Based on # selected residues}}",
+      "fc_label": "FC — Collection Factor",
+      "fc_desc": "Residue collection efficiency",
+      "fcp_label": "FCp — Competition Factor",
+      "fcp_desc": "Fraction diverted to alternative uses",
+      "fs_label": "FS — Seasonality Factor",
+      "fs_desc": "Availability throughout the year",
+      "fl_label": "FL — Logistics Factor",
+      "fl_desc": "Transport feasibility",
+      "average_fde": "Average FDE (all residues):",
+      "confidence_high": "High",
+      "confidence_medium": "Medium",
+      "confidence_low": "Low"
+    },
+    "factor_sliders": {
+      "heading": "Correction factors",
+      "reset": "Reset",
+      "reset_title": "Reset to the default values",
+      "resulting_fde": "Resulting FDE:"
+    },
+    "scenario_selector": {
+      "title": "Analysis Scenarios"
+    },
+    "top_card": {
+      "title": "Top {count} Municipalities",
+      "empty": "No municipality found",
+      "view_all": "View all",
+      "more": "{count, plural, one {+# more municipality} other {+# more municipalities}}"
+    }
+  },
+  "cookieConsent": {
+    "title": "We use cookies & data",
+    "description": "We use essential cookies and count visits anonymously, without cookies. If you allow it, a statistics cookie also shows how many people visit and come back. The data stays on UNICAMP's servers. Change your choice any time under Cookie preferences, in the footer.",
+    "privacyLink": "Privacy Policy",
+    "acceptAll": "Accept All",
+    "essentialOnly": "Essential Only"
+  },
+  "calculator": {
+    "title": "Biogas Viability Calculator",
+    "subtitle": "Discover your farm's potential in minutes",
+    "footer_note": "CP2B / UNICAMP · Based on validated scientific coefficients · ",
+    "common": {
+      "next": "Next",
+      "back": "Back",
+      "skip": "Skip (demo mode) →"
+    },
+    "step1": {
+      "title": "Identification",
+      "nome": "Full name",
+      "nomePlaceholder": "Your name",
+      "email": "Email",
+      "municipio": "Municipality (SP)",
+      "municipioPlaceholder": "Type municipality…",
+      "lgpdConsent": "I consent to the use of my data by CP2B/UNICAMP for research and technical contact purposes, in accordance with LGPD.",
+      "emailPlaceholder": "you@example.com",
+      "municipioManualPlaceholder": "Type the municipality name",
+      "municipioLoading": "Loading municipalities…",
+      "municipioListUnavailable": "The municipality list could not be loaded; type the name instead."
+    },
+    "step2": {
+      "title": "Activity",
+      "agricultural": "Agricultural",
+      "agriculturalSub": "Sugarcane",
+      "livestock": "Livestock",
+      "livestockSub": "Swine, Cattle, Poultry",
+      "livestockDesc": "Swine, cattle, poultry",
+      "sugarcane": "Sugarcane",
+      "sugarcaneDesc": "4 streams: bagasse, straw, vinasse, filter cake",
+      "corn": "Corn",
+      "cornDesc": "Straw and cob",
+      "soy": "Soybean",
+      "soyDesc": "Post-harvest straw",
+      "coffee": "Coffee",
+      "coffeeDesc": "Coffee husk",
+      "citrus": "Citrus",
+      "citrusDesc": "Orange/lemon pulp",
+      "tons": "Tonnes/year",
+      "hectares": "Hectares",
+      "tonsLabel": "Sugarcane processed (t/year)",
+      "hectaresLabel": "Planted sugarcane area (ha)",
+      "cropTonnesLabel": "Available residue quantity (t/year)",
+      "cropTonnesHint": "Enter the total dry residue available for the biodigester",
+      "swine": "Swine",
+      "swineDesc": "Swine manure — intensive or semi-intensive farming",
+      "cattle": "Cattle",
+      "cattleDesc": "Cattle manure — beef and/or dairy",
+      "poultry": "Poultry",
+      "poultryDesc": "Poultry manure — laying and/or broiler",
+      "livestockInstructions": "Enter the number of heads per species (leave blank if not applicable):",
+      "suinos": "Swine",
+      "bovinosCorte": "Beef Cattle",
+      "bovinosLeite": "Dairy Cattle",
+      "galPostura": "Laying Hens",
+      "galCorte": "Broiler Chickens",
+      "heads": "heads",
+      "seasonalWarning": "Seasonal biomass. The calculations assume storage with an efficiency loss (~20%). Combining it with other biomass will be possible in a future release.",
+      "change": "Change",
+      "preview": "~ {value} m³ of biogas/year estimated (ideal scenario)",
+      "caneEquivalent": "≈ {value} t/year",
+      "reference": {
+        "caneTons": "Reference: small grower, 100–500 t/year (2–7 ha)",
+        "caneHectares": "Reference: small farm, 2–10 ha (150–850 t/year)",
+        "crop": "Reference: small grower, 50–300 t of residue/year",
+        "swine": "Reference: small farm, 50–500 head",
+        "cattle_beef": "Reference: small farm, 20–200 head",
+        "cattle_dairy": "Reference: small farm, 10–80 head",
+        "poultry_eggs": "Reference: small poultry farm, 500–5,000 birds",
+        "poultry_meat": "Reference: small poultry farm, 500–5,000 birds"
+      }
+    },
+    "step3": {
+      "title": "Seasonality",
+      "caneNote": "SP standard harvest: April – December. Confirm or adjust crushing months.",
+      "livestockNote": "Livestock: continuous year-round generation. Adjust if there is an off-season.",
+      "cropNote": "Harvest/processing months pre-selected. Adjust to match your calendar.",
+      "toggleHint": "Click months to include or exclude from the calculation.",
+      "monthsActive": "{count, plural, one {# active month} other {# active months}}",
+      "shortSafraWarning": "Short harvest season may reduce economic viability"
+    },
+    "step4": {
+      "title": "Bioproducts",
+      "instructions": "Select the products you want to generate from your biogas:",
+      "energy": "Electrical Energy",
+      "energyDesc": "Generation via engine-generator, replacing grid electricity tariff",
+      "biomethane": "Biomethane",
+      "biomethaneDesc": "Diesel / LPG substitution on-farm or for sale",
+      "digestate": "Biofertilizer / Digestate",
+      "digestateDesc": "Nutrient-rich effluent for fertigation",
+      "thermal": "Thermal Energy",
+      "thermalDesc": "Heat for industrial or agro-industrial processes",
+      "biochar": "Biochar",
+      "biocharDesc": "High-quality activated charcoal from sugarcane straw",
+      "carbon": "Carbon Credits",
+      "carbonDesc": "CO₂eq avoided — eligible for RenovaBio and voluntary market",
+      "calculate": "Calculate Potential"
+    },
+    "results": {
+      "potentialHeader": "Estimated potential in {municipality}",
+      "biogasPerYear": "m³ of biogas per year",
+      "seasonalityTitle": "Monthly distribution",
+      "energy": "Electrical Energy",
+      "biomethane": "Biomethane",
+      "digestate": "Biofertilizer",
+      "carbon": "CO₂eq avoided",
+      "thermal": "Thermal Energy",
+      "biochar": "Biochar",
+      "digestateSub": "Solid/liquid digestate estimate",
+      "carbonSub": "Avoided emissions — eligible VCM/RenovaBio",
+      "primaryOutputs": "Selected outputs",
+      "secondaryOutputs": "Also calculated — not selected ({count})",
+      "notSelected": "Not included in plan — click New simulation to add",
+      "priceSliders": "Adjust SP 2025 prices",
+      "priceSlidersHint": "Move sliders to simulate different price scenarios. Financial indicators update in real time.",
+      "tariffEnergy": "Electricity tariff",
+      "priceBiomethane": "Biomethane price",
+      "priceCarbon": "Carbon credit",
+      "priceDiesel": "Diesel price",
+      "methodology": "Methodology & sources",
+      "financialTitle": "Financial Indicators (estimate)",
+      "payback": "Estimated payback",
+      "annualRevenue": "Max annual revenue/savings",
+      "financialDisclaimer": "Estimates based on SP 2025 average tariffs. Detailed engineering analysis required for actual project.",
+      "feedback": "Send feedback / Report inconsistency",
+      "newCalculation": "New simulation",
+      "activity": "{activity} ({quantity})",
+      "biogasTotal": "{value} m³",
+      "scenarioHeading": "Deployment scenario",
+      "selected": "Selected ✓",
+      "select": "Select",
+      "technology": "Technology",
+      "utilization": "Utilization",
+      "utilizationValue": "{percent} of the biomass",
+      "startup": "Start-up",
+      "startupValue": "{count, plural, one {# month} other {# months}} to full load",
+      "investmentFrom": "From {amount}",
+      "paybackFrom": "From {years, plural, one {# year} other {# years}}",
+      "paybackYears": "{years, plural, one {# year} other {# years}}",
+      "paybackUnknown": "Cannot be estimated in this case",
+      "paybackScenarios": "see scenarios ▾",
+      "paybackOptimistic": "🟢 Optimistic: {value} — full operation, good tariffs",
+      "paybackExpected": "🟡 Expected: {value} — learning curve included",
+      "paybackConservative": "🔴 Conservative: {value}",
+      "perYear": "{amount}/year",
+      "expectedPerYear": "expected: {amount}/year",
+      "comparisonTitle": "📊 Comparison — payback, optimistic to conservative",
+      "comparisonYears": "years (optimistic)",
+      "comparisonUnknown": "not estimable",
+      "chartEnergy": "Energy",
+      "chartBiogas": "Biogas",
+      "energySavings": "Savings: {amount}/year",
+      "dieselEquivalent": "≈ {liters} L of diesel",
+      "carbonRevenue": "{amount}/year (VCM/RenovaBio)",
+      "investment": "📊 Estimated investment",
+      "paybackHeading": "⏱ Estimated payback",
+      "scenariosHelpTitle": "💡 Understanding the scenarios",
+      "scenariosAssumptions": "Optimistic payback: minimum CAPEX, {bestRevenue} revenue realization, {bestMaintenance} maintenance per year. Conservative payback: maximum CAPEX, {worstRevenue} realization, {worstMaintenance} maintenance per year, +{startup} start-up cost. “Cannot be estimated” = over {horizon} years.",
+      "method": {
+        "methodLabel": "Method:",
+        "methodText": "Biochemical methane potential (BMP) normalized by volatile solids (VS). Monthly distribution proportional to the selected calendar.",
+        "bmpLabel": "BMP used:",
+        "compositionLabel": "Biogas composition:",
+        "composition": "{ch4} | CH₄ LHV: {lhv} MJ/m³",
+        "efficiencyLabel": "Efficiencies:",
+        "efficiency": "Electrical {electrical} (engine-generator); thermal {thermal} (heat recovery)",
+        "pricesLabel": "SP 2025 default prices:",
+        "prices": "CPFL/Enel tariff {tariff}/kWh; biomethane {biomethane}/m³; carbon {carbon}/tCO₂eq (VCM)",
+        "sourcesLabel": "Sources:",
+        "disclaimer": "Estimates for a preliminary viability check. An engineering design requires a detailed technical study.",
+        "streamBmp": "{stream}: {bmp} m³ CH₄/t VS",
+        "speciesPpb": "{species}: {ppb} m³/head·year",
+        "cropBmp": "{bmp} m³ CH₄/t VS (VS = {vs}, availability = {availability})",
+        "ch4PerStream": "{low}–{high} CH₄ per stream",
+        "ch4Livestock": "{low}–{high} CH₄ (covered lagoon/CSTR)",
+        "ch4Crop": "{value} CH₄"
+      }
+    },
+    "streams": {
+      "bagaco": {
+        "name": "Bagasse",
+        "note": "{percent} available for biogas (rest: cogeneration)"
+      },
+      "palha": {
+        "name": "Straw / trash",
+        "note": "{percent} available for biogas (rest: soil cover)"
+      },
+      "vinhaca": {
+        "name": "Vinasse",
+        "note": "{percent} available for biogas (10% mandatory fertigation)"
+      },
+      "torta": {
+        "name": "Filter cake",
+        "note": "{percent} available for biogas (rest: fertilizer)"
+      }
+    },
+    "breakdown": {
+      "caneTitle": "📦 Residues from your process:",
+      "generated": "{value} t generated",
+      "toBiogas": "→ {value} t for biogas",
+      "caneTotals": "Total residues generated: <strong>{total} t/year</strong> • For biogas: <strong>{biogas} t/year</strong>",
+      "herdTitle": "📦 Estimated residues from your herd:",
+      "speciesHeads": "{species} — {count, plural, one {# head} other {# head}}",
+      "manure": "≈ {value} m³ of manure/year",
+      "potential": "Potential (PPB)",
+      "biogasYear": "→ {value} m³ of biogas/year",
+      "cropTitle": "📦 Estimated residue:",
+      "cropTotal": "Total residue entered",
+      "cropAvailable": "Available for the digester ({percent})",
+      "cropOther": "Other uses / losses ({percent})",
+      "cropVs": "Volatile solids (VS) available",
+      "cropVsValue": "{value} t VS/year",
+      "source": "Parameter source: {source}"
+    },
+    "scenarios": {
+      "min": {
+        "label": "Basic",
+        "technology": "Covered lagoon / tubular PVC",
+        "help": "The simplest and most affordable technology, suited to small farms. It uses about {utilization} of the potential. Payback is shorter because the investment is smaller, but so is the output."
+      },
+      "avg": {
+        "label": "Ideal",
+        "technology": "CSTR digester",
+        "help": "The most common setup on medium-sized farms. It uses {utilization} of the potential. The expected payback includes the learning curve and maintenance — more honest than a sales pitch."
+      },
+      "max": {
+        "label": "Advanced",
+        "technology": "CSTR + upgrading / premium CHP",
+        "help": "Maximum efficiency for large operations. The conservative payback can be long for small operations — that does not mean the project is unviable, only that revenue does not cover the investment within a {horizon}-year horizon."
+      }
+    }
+  },
+  "guide": {
+    "sidebar_heading": "Platform Guide",
+    "main_topics": "Main topics",
+    "nav_intro": "Introduction",
+    "nav_open_map": "→ Open the Map",
+    "topics_label": "Topics",
+    "nav_map": "Using the Map",
+    "nav_analyses": "Advanced Analyses",
+    "nav_science": "Scientific Basis",
+    "nav_calculator": "Biogas Calculator",
+    "nav_proximity": "Proximity Analysis",
+    "banner_title": "Open the Interactive Map",
+    "banner_subtitle": "Start in São Paulo, filter by residue, or browse any state in Brazil.",
+    "eyebrow": "Platform guide",
+    "heading": "Everything about PILAR-2b",
+    "lead": "Explore each feature or take a quick tour of the platform. The topics below cover practical use, the methodology, and the most common questions.",
+    "start_tour": "Start guided tour",
+    "topics_items": [
+      {
+        "title": "Interactive Map",
+        "description": "Visually explore the biogas potential of every municipality in São Paulo."
+      },
+      {
+        "title": "Analyses",
+        "description": "Comparative charts by region, residue type, and time horizon."
+      },
+      {
+        "title": "Scientific Basis",
+        "description": "The methodology, sources, and references behind the calculations."
+      },
+      {
+        "title": "Biogas Calculator",
+        "description": "Estimate production from your own custom parameters."
+      },
+      {
+        "title": "Proximity Analysis",
+        "description": "Identify neighbouring municipalities with complementary potential."
+      }
+    ],
+    "nav_faq": "Frequently asked questions",
+    "faq": {
+      "heading": "Frequently asked questions",
+      "items": {
+        "what": {
+          "q": "What is PILAR-2b?",
+          "a": "An open platform, developed at NIPE/UNICAMP, that estimates, municipality by municipality, the biogas and bioproduct potential of agricultural, livestock and urban residues. The topics above show the first steps."
+        },
+        "coverage": {
+          "q": "Which regions does the platform cover?",
+          "a": "São Paulo state is the canonical base, with every layer and analysis. Minas Gerais is a pilot, marked “beta — in validation”: its figures may still change. Expansion to the rest of Brazil is under way."
+        },
+        "potential": {
+          "q": "What are theoretical and available potential?",
+          "a": "Theoretical potential starts from the amount of residue generated. Available potential applies availability factors per residue, which estimate the share that can actually be mobilised and are under review. References and chemical characterization are in the <science>Scientific Database</science>."
+        },
+        "reuse": {
+          "q": "Can I reuse the data and the code?",
+          "a": "Yes. The code is licensed under GPL-3.0 and the data under CC BY 4.0, which allows any use, commercial included, as long as the source is credited. See <cite>How to cite</cite>."
+        },
+        "accessibility": {
+          "q": "Is the platform accessible?",
+          "a": "The goal is WCAG 2.1 level AA: keyboard navigation, text alternatives and sufficient contrast. The <a11y>accessibility statement</a11y> describes the current state and how to report barriers."
+        },
+        "report": {
+          "q": "I found an error in the data. How do I report it?",
+          "a": "Write to CP2b through the <contact>contact form</contact>, naming the municipality, the indicator and the screen where you saw it."
+        }
+      }
+    }
+  },
+  "guide_articles": {
+    "sidebar": {
+      "back_button": "All Topics",
+      "on_this_page": "ON THIS PAGE",
+      "other_topics": "OTHER TOPICS"
+    },
+    "mapa": {
+      "title": "Interactive Map",
+      "subtitle": "Visually explore the biogas potential in each municipality of São Paulo.",
+      "sections": [
+        {
+          "id": "o-que-e",
+          "title": "What is it",
+          "content": "The Interactive Map presents the geographic distribution of the estimated production potential of biomass, biogas, biomethane, and bioenergy from urban, livestock, agricultural, or forestry organic waste across the municipalities of the State of São Paulo (canonical base) and, as a beta in validation, those of Minas Gerais, with options for total and per capita potential. The displayed potential is broken down by the source of each part of the total potential, distinguishing across all waste classes.\n In addition to potential, the tool allows visualizing the infrastructure of the State of São Paulo (biogas plants, ethanol mills, electrical substations, etc.), logistics elements, and site constraints."
+        },
+        {
+          "id": "para-que-serve",
+          "title": "What is it for",
+          "content": "• Identify regions with higher energy potential density;\n• Cross-reference data with the location of active infrastructure in the State;\n• Support feasibility studies for new academic research or ventures in the renewable energy sector."
+        },
+        {
+          "id": "como-usar",
+          "title": "How to use",
+          "content": "1. With the map open, look at the sidebar on the left side of the screen featuring all available analysis filters and select your preferences.\n2. Select the municipality in the top search bar or click directly on it in the map.\n3. View the generation indicators in the right sidebar, containing an overview, potential, waste breakdown, and a button for a more detailed municipal analysis."
+        }
+      ]
+    },
+    "analises": {
+      "title": "Advanced Analyses",
+      "subtitle": "Explore the possible filters and get the simulations of biogas potential from different scenarios.",
+      "sections": [
+        {
+          "id": "o-que-e",
+          "title": "What is it",
+          "content": "The Advanced Analyses section allows modeling detailed biogas production estimates. By selecting waste types, sub-residues, and scenarios (baseline, conservative, optimistic, or biogas frontier), the platform calculates and displays theoretical potential, losses at each stage, and final real potential.\nAll parameters are customizable: users can adjust harvest, competition, seasonality, and logistics factors, as well as inspect the mathematical formulas applied directly on the page.\n"
+        },
+        {
+          "id": "para-que-serve",
+          "title": "What is it for",
+          "content": "• Compare classes and sub-residues: evaluate the viability of multiple materials together;\n• Map process losses: understand the impact of each factor in the transition from theoretical to real potential;\n• Simulate custom scenarios: adjust the percentages of each variable to reflect your plant's operational reality;\n• Project sensitivity: contrast multiple market and productivity scenarios for the same feedstock.\n"
+        },
+        {
+          "id": "como-usar",
+          "title": "How to use",
+          "content": "1. Select Waste: In the left menu, choose the class and sub-residues to include in the simulation;\n2. Define the Scenario: In the center of the screen, select the reference scenario most aligned with your objective;\n3. Choose Visualization: Choose one of the 4 available graphical display modes to analyze the results;\n4. Adjust Parameters: In the panel next to the chart, customize factor percentages based on your data sources."
+        }
+      ]
+    },
+    "base-cientifica": {
+      "title": "Scientific Basis",
+      "subtitle": "Visually explore the scientific foundations supporting the platform's results and potentials.",
+      "sections": [
+        {
+          "id": "o-que-e",
+          "title": "What is it",
+          "content": "The Scientific Knowledge Base brings together the articles and technical reports supporting the platform's data. Each metric used in potential calculations is grounded in auditable bibliographic references available for direct consultation.\nIn addition, the section features two comparative analysis tools among the residues studied in PILAR-2b:\n• Degradation Curves: analysis of methane production kinetics over time.\n• Multi-parameter Comparison: direct contrast between key indicators, such as BMP, C:N, VS, and CH₄ content."
+        },
+        {
+          "id": "para-que-serve",
+          "title": "What is it for",
+          "content": "• Ensure transparency and methodological rigor: confirms the scientific sources supporting the final potential calculation.\n• Support new research: serves as a structured database for advanced studies in biogas and bioproducts.\n• Streamline comparative diagnostics: allows evaluating the performance and physicochemical characteristics of different waste types."
+        },
+        {
+          "id": "como-usar",
+          "title": "How to use",
+          "content": "1. Explore References: On the main screen, select one of the 40 residues distributed across 4 economic sectors to access the 'Chemical Characterization' section and view its bibliographic references.\n2. Analyze Degradation Kinetics: Access the 'Degradation Kinetics' tab, select up to 6 residues simultaneously, and view methane production behavior over days.\n3. Make Direct Comparisons: In the 'Interactive Comparison' tab, cross-reference multiple operational and chemical parameters among the selected residues."
+        }
+      ]
+    },
+    "calculadora": {
+      "title": "Biogas Calculator",
+      "subtitle": "Calculate the implementation feasibility of a biogas and bioproducts project.",
+      "sections": [
+        {
+          "id": "o-que-e",
+          "title": "What is it",
+          "content": "The Biogas Calculator is a tool designed for users seeking to valorize biomass residues for bioenergy and bioproduct generation. In the initial form, the user enters the residue type, the annual volume generated (in tons per year or by cultivation area in hectares), the harvest period (seasonality months), and the final product of interest. From these inputs, the platform projects biogas potential (in m³/year), allows configuring the system implementation level, and provides an estimated financial return (payback).\n"
+        },
+        {
+          "id": "para-que-serve",
+          "title": "What is it for",
+          "content": "• Evaluate the techno-economic feasibility of biogas and bioproduct projects;\n• Estimate the investment payback period;\n• Project the annual volume of biogas generated based on biomass availability.\n"
+        },
+        {
+          "id": "como-usar",
+          "title": "How to use",
+          "content": "1. Identify yourself: enter your name, email and municipality, and consent to the use of your data (LGPD);\n2. Select the residue: Choose the biomass of interest for sizing;\n3. Enter the volume: Provide the annual availability (in tons/year) or planted area (in hectares);\n4. Define the harvest season: Indicate crop seasonality distribution across the months;\n5. Choose product and calculate: Select the desired bioproduct and click to calculate potential and view financial indicators."
+        }
+      ]
+    },
+    "proximidade": {
+      "title": "Proximity Analysis",
+      "subtitle": "Spatial and logistical simulation by catchment radius for biogas and biomethane plant feasibility.",
+      "sections": [
+        {
+          "id": "o-que-e",
+          "title": "What is it",
+          "content": "Proximity Analysis is a geospatial tool that allows selecting any coordinate in the State of São Paulo and defining a customizable catchment radius (buffer from 10 km to 100 km).\nThe tool automatically aggregates all municipalities within the area of influence, calculating the total analyzed area, agricultural area, and primary class, while detailing land use distribution and providing feedback on biogas production suitability."
+        },
+        {
+          "id": "para-que-serve",
+          "title": "What is it for",
+          "content": "\n• Evaluate locational feasibility and optimal economic radius for biomass transport for the installation of biogas and biomethane plants.\n• Identify neighboring municipalities for regional consortium formation.\n• Analyze surrounding land suitability (detailed land use breakdown) for continuous substrate supply."
+        },
+        {
+          "id": "como-usar",
+          "title": "How to use",
+          "content": "1. Click anywhere on the interactive map to define the point of interest (latitude and longitude).\n2. Adjust the \"Catchment Radius\" slider (from 10 km to 100 km), following the logistics feasibility recommendations.\n3. Click the \"Analyze\" button to process spatial data.\n4. Explore results: agricultural area, detailed MapBiomas class distribution, and energy indicators.\n5. Use the \"Export Data\" button to download the CSV spreadsheet or \"Share\" to generate a direct link with the analyzed coordinate and radius."
+        }
+      ]
+    }
+  },
+  "tour": {
+    "steps": {
+      "welcome": {
+        "title": "Welcome to PILAR-2b",
+        "content": "This is the main navigation bar. From here you can access all features of the biogas potential platform for São Paulo municipalities."
+      },
+      "map": {
+        "title": "Interactive Map",
+        "content": "Visualize the biogas potential of each municipality on a choropleth map. Additional layers show landfills, existing plants, and watersheds."
+      },
+      "analysis": {
+        "title": "Analyses",
+        "content": "Comparative charts by region, residue type, and time horizon."
+      },
+      "science": {
+        "title": "Scientific Basis",
+        "content": "Access the detailed methodology, raw data, and source code to understand how we calculate biogas potential and to replicate or adapt the analysis."
+      },
+      "calculator": {
+        "title": "Biogas Calculator",
+        "content": "Estimate biogas production from custom parameters: substrate type, volume, and retention time."
+      },
+      "proximity": {
+        "title": "Proximity Analysis",
+        "content": "Identify neighboring municipalities with complementary potential for regional projects and inter-municipal consortia."
+      },
+      "search": {
+        "title": "Municipality Search",
+        "content": "Type the name or IBGE code of a municipality in São Paulo or the Minas Gerais pilot to open its profile."
+      },
+      "help": {
+        "title": "Help Anytime",
+        "content": "You're all set! Whenever you need, click here to restart this tour or open the full guide."
+      }
+    },
+    "locale": {
+      "back": "Back",
+      "close": "Close",
+      "last": "Finish",
+      "next": "Next",
+      "skip": "Skip"
+    },
+    "fab": {
+      "aria_label": "Open help and guided tour",
+      "title": "Help & Tour"
+    }
+  },
+  "patchNotes": {
+    "eyebrow": "Release log",
+    "heading": "What’s new on the platform",
+    "lead": "Every PILAR-2b update, recorded with the date, the time and what changed. Newest entries first.",
+    "empty": "No updates recorded yet.",
+    "version_prefix": "Version {version}",
+    "kind": {
+      "added": "New",
+      "changed": "Changed",
+      "fixed": "Fixed",
+      "security": "Security",
+      "data": "Data"
+    }
+  },
+  "comparison": {
+    "selected": "Compare ({count}/{max}):",
+    "remove": "Remove {name}",
+    "compare": "Compare",
+    "min_hint": "Select at least {min} municipalities to compare",
+    "limit": "You can compare at most {max} municipalities at a time.",
+    "picker": {
+      "title": "Compare municipalities",
+      "intro": "Choose {min} to {max} municipalities to see population, area and biogas potential by sector side by side.",
+      "search_label": "Search for a municipality",
+      "search_placeholder": "Name or IBGE code",
+      "no_results": "No municipality found for “{query}”.",
+      "loading": "Loading municipalities…",
+      "error": "The list of municipalities could not be loaded. Please try again later.",
+      "add": "Add",
+      "added": "Added",
+      "map_hint": "You can also pick municipalities on the map, with the Compare tool.",
+      "open_map": "Open map"
+    }
+  },
+  "legal": {
+    "updated": "Last updated: {date}"
+  },
+  "errorBoundary": {
+    "title": "Something didn't work as expected",
+    "message": "Part of the page stopped working. Try again; if it keeps happening, go back home.",
+    "details": "Error details (development only)",
+    "home": "Go to the home page"
+  },
+  "validation": {
+    "required": "Please fill in all required fields.",
+    "email_invalid": "Enter a valid email address.",
+    "password_too_short": "The password must be at least {min} characters long.",
+    "passwords_mismatch": "The passwords do not match.",
+    "consent_required": "Your consent is needed to continue."
+  },
+  "newsletter": {
+    "title": "Stay Up to Date",
+    "description": "Get updates on new features, analyses and biogas insights.",
+    "submit": "Subscribe for free",
+    "subscribed": "Subscribed!",
+    "success": "Thank you! You will receive our updates soon.",
+    "errors": {
+      "invalid_email": "That e-mail address was not accepted. Please check it and try again.",
+      "rate_limited": "Too many attempts. Please wait a minute and try again.",
+      "failed": "Your request could not be processed. Please try again."
+    },
+    "unsubscribe": {
+      "title": "Unsubscribe from the newsletter",
+      "question": "Stop sending the PILAR-2b newsletter to this address?",
+      "confirm": "Unsubscribe",
+      "working": "Unsubscribing…",
+      "done": "Done: this address will no longer receive the newsletter.",
+      "invalid": "This unsubscribe link is not valid. If the newsletter keeps arriving, write to lucasnc@unicamp.br.",
+      "failed": "The subscription could not be cancelled right now. Please try again.",
+      "back": "Back to the platform"
+    }
+  },
+  "videoModal": {
+    "close": "Close video"
+  },
+  "home": {
+    "hero": {
+      "eyebrow": "Open platform · NIPE-UNICAMP",
+      "title": "Biogas and bioproduct potential, municipality by municipality",
+      "lede": "Estimates of what agricultural, livestock and urban residues can yield as biogas and biomethane, with the method and the sources in plain view. Canonical base: São Paulo state; Minas Gerais under validation.",
+      "cta_map": "Open map",
+      "cta_method": "How it works"
+    },
+    "preview": {
+      "cta": "Explore the map",
+      "caption": "Preview: residual biomass by municipality in São Paulo State",
+      "alt": "Map preview: São Paulo State's municipalities shaded from pale yellow to dark blue by residual biomass.",
+      "legend_low": "less",
+      "legend_high": "more"
+    },
+    "search": {
+      "label": "Find a municipality",
+      "placeholder": "Name or IBGE code, e.g. Campinas",
+      "results_label": "Municipalities found",
+      "loading": "Loading the list of municipalities…",
+      "unavailable": "The list of municipalities is not available right now. Try again in a moment, or open the map.",
+      "no_results": "No municipality found for \"{query}\"",
+      "no_results_hint": "The platform covers São Paulo and the Minas Gerais pilot."
+    },
+    "counts": {
+      "heading": "The platform in numbers",
+      "municipalities": "municipalities in the base",
+      "residues": "residues with FDE factors",
+      "sectors": "sectors",
+      "references": "scientific references",
+      "unavailable": "unavailable right now",
+      "unavailable_note": "A dash marks a number that comes from the API and could not be read just now."
+    },
+    "sectors": {
+      "eyebrow": "Data by sector",
+      "heading": "What the platform measures",
+      "lede": "Each residue carries its availability factors, its methane potential and the sources behind them.",
+      "names": {
+        "agricultural": "Agricultural",
+        "livestock": "Livestock",
+        "urban": "Urban",
+        "industrial": "Industrial"
+      },
+      "residue_count": "{count, plural, one {# residue} other {# residues}}",
+      "more": "and {count} more",
+      "cta": "Open the data catalogue"
+    },
+    "how": {
+      "eyebrow": "Method",
+      "heading": "How a number is made",
+      "steps": {
+        "data": {
+          "title": "Municipal production",
+          "body": "It starts from what each municipality grows, raises and discards: harvests, herds, urban waste and sewage sludge, from official sources."
+        },
+        "factors": {
+          "title": "Availability factors (FDE)",
+          "body": "Four factors bring the theoretical down to the available: collection (FC), competing uses (FCp), seasonality (FS) and logistics (FL)."
+        },
+        "potential": {
+          "title": "Available potential",
+          "body": "Methane potential by residue and municipality, by the CP2b method."
+        }
+      },
+      "cta": "Read the science base"
+    },
+    "news": {
+      "eyebrow": "News",
+      "heading": "What changed",
+      "version": "version {version}",
+      "cta": "All release notes"
+    },
+    "cite": {
+      "eyebrow": "Open data",
+      "heading": "Use it, cite it",
+      "body": "The data may be used freely, commercial use included, as long as the source is cited.",
+      "licence": "Code GPL-3.0 · Data CC BY 4.0",
+      "cta": "How to cite"
+    },
+    "partners": {
+      "heading": "Made by and funded by",
+      "made_by": "Made by",
+      "made_by_names": "NIPE-UNICAMP · CP2B",
+      "funding": "Funding",
+      "grant_cp2bsd": "FAPESP 2024/01112-1 · CP2Bsd",
+      "grant_national": "FAPESP 2025/08745-2 · national expansion",
+      "cta": "Partners"
+    },
+    "held": {
+      "counts_residues": "residues in the catalogue",
+      "factors_title": "Availability factors",
+      "factors_body": "What cannot reach a biogas plant is taken out of what is generated.",
+      "sectors_lede": "Each residue comes with its methane potential, its chemical characterization and the sources behind them."
+    }
+  },
+  "data_catalog": {
+    "sectors": {
+      "agricultural": "Agricultural",
+      "livestock": "Livestock",
+      "urban": "Urban",
+      "industrial": "Industrial"
+    },
+    "confidence": {
+      "HIGH": "High",
+      "MEDIUM": "Medium",
+      "LOW": "Low"
+    },
+    "confidence_meaning": {
+      "HIGH": "±5% uncertainty: operational data from existing plants, academic or regulatory validation (EMBRAPA, CETESB, SNIS).",
+      "MEDIUM": "±10% uncertainty: industry estimates, limited operational validation or extrapolation from similar substrates; needs field checks.",
+      "LOW": "±20% uncertainty: theoretical calculation, no operational validation; availability still uncertain."
+    },
+    "catalog": {
+      "eyebrow": "Data",
+      "title": "Data catalogue",
+      "lede": "Each residue is a data product: its availability factors, its methane potential, the sources behind them and how far they can be trusted.",
+      "sectors_nav": "Sectors",
+      "legend_cta": "Legend and codes",
+      "residue_count": "{count, plural, one {# residue} other {# residues}}",
+      "see_sector": "See the sector"
+    },
+    "table": {
+      "caption": "{sector} residues: code, BMP, FDE and confidence",
+      "residue": "Residue",
+      "code": "Code",
+      "bmp": "BMP (m³ CH₄/kg VS)",
+      "fde": "FDE",
+      "confidence": "Confidence"
+    },
+    "sector_page": {
+      "lede": "The {sector} residues with availability factors on the platform."
+    },
+    "product": {
+      "tabs_label": "Data product sections",
+      "tabs": {
+        "overview": "Overview",
+        "method": "Method",
+        "legend": "Legend and codes",
+        "access": "Data access",
+        "statistics": "Statistics",
+        "validation": "Validation and limitations"
+      },
+      "card_label": "About this data",
+      "card_scope": "availability factors (FDE) and methane potential (BMP)",
+      "card_place": "São Paulo state (canonical base)",
+      "card_source": "sheet FDE_Disponibilidade_Residuos_CP2B",
+      "facts_heading": "At a glance",
+      "fact_sector": "Sector",
+      "fact_code": "Code",
+      "fact_bmp": "Methane potential (BMP)",
+      "fact_bmp_value": "{value} m³ CH₄/kg VS",
+      "fact_fde": "Availability (FDE)",
+      "fact_fde_note": "of what is generated reaches a biogas plant",
+      "fact_confidence": "Confidence",
+      "open_map": "See on the map",
+      "open_analysis": "Adjust the factors in the analysis",
+      "method_heading": "How this residue's FDE is calculated",
+      "method_formula": "FDE = FC × (1 − FCp) × FS × FL",
+      "method_lede": "Four factors take the amount generated down to the amount available. The FDE is never stored: it is always computed from the four.",
+      "method_factor": "Factor",
+      "method_value": "Value",
+      "method_why": "Rationale",
+      "method_result": "Resulting FDE",
+      "method_potential": "The available potential is the municipality's generation times the FDE times the residue's BMP, in the real and ideal scenarios.",
+      "method_more": "Read the science base",
+      "access_heading": "Where this data lives",
+      "access_platform": "On the platform",
+      "access_map": "Interactive map, by municipality",
+      "access_analysis": "Multi-criteria analysis, with adjustable factors",
+      "access_science": "Science base, with the chemical characterization and the references",
+      "access_api": "Through the API",
+      "access_api_lede": "The API is open and answers in JSON. The residue appears under the code {code}.",
+      "access_api_residues": "Every residue with its chemical characterization",
+      "access_api_references": "Every reference, with its residue code",
+      "access_licence": "Code GPL-3.0 · Data CC BY 4.0. Cite the source when you use it.",
+      "access_paused": "Files with municipal figures are paused during the beta while the database is validated. The map, panels and API keep serving everything.",
+      "statistics_heading": "Chemical characterization",
+      "statistics_lede": "Means and ranges from the science base, by published study.",
+      "validation_heading": "Confidence",
+      "validation_source": "Level definitions: docs/data/FDE_METHODOLOGY.md.",
+      "references_heading": "References",
+      "limitations_heading": "Limitations",
+      "limitations": {
+        "scope": "The factors were surveyed for São Paulo state. They may not hold in other states; Minas Gerais is under validation (beta).",
+        "factors": "The four factors are typical values for the residue, not measurements for each municipality.",
+        "report": "Found an error? Write to the team from the About page."
+      },
+      "contact_cta": "Contact the team"
+    },
+    "legend": {
+      "eyebrow": "Data",
+      "title": "Legend and codes",
+      "lede": "What each code means and which colours the map paints each metric with, so the legend can be reproduced in a GIS.",
+      "codes_heading": "Residue codes",
+      "codes_caption": "Code, Portuguese and English name, sector and sector colour",
+      "col_code": "Code",
+      "col_name_pt": "Name (PT)",
+      "col_name_en": "Name (EN)",
+      "col_sector": "Sector",
+      "col_colour": "Colour",
+      "ramps_heading": "Map colour ramps",
+      "ramps_lede": "Eight classes per metric, lowest to highest. The map computes the limits for each view, on a log scale between the 2nd and 98th percentiles of what is on screen; the limits below are the reference scale, used when they cannot be computed.",
+      "ramps_caption": "{metric}: class, colour and reference limits ({unit})",
+      "col_tier": "Class",
+      "col_range": "Reference limits",
+      "range_up_to": "up to {upper}",
+      "range_between": "{lower} to {upper}",
+      "range_above": "above {lower}",
+      "files_heading": "Files",
+      "file_codes": "Residue codes (CSV)",
+      "file_legend": "Map legend: colours and reference limits (CSV)",
+      "file_qgis": "Colour ramps for QGIS (Style Manager XML)",
+      "files_note": "Metadata only: codes, names and colours. Files with municipal figures are paused during the beta.",
+      "this_residue": "This residue"
+    },
+    "live": {
+      "loading": "Loading from the science base…",
+      "unavailable": "The science base did not answer just now. Try again in a moment.",
+      "not_in_database": "This residue has no chemical characterization in the science base yet.",
+      "chemistry_caption": "Chemical characterization of the residue",
+      "chemistry_source": "Source: PILAR-2b science base (GET /api/v1/residuos/).",
+      "mean_range": "{mean} ({min} to {max})",
+      "not_reported": "not reported",
+      "units": {
+        "bmp": "L CH₄/kg VS",
+        "ts": "% of fresh mass",
+        "vs": "% of TS",
+        "ch4": "% of biogas"
+      },
+      "rows": {
+        "bmp": "BMP",
+        "ts": "Total solids (TS)",
+        "vs": "Volatile solids (VS)",
+        "cn": "C:N ratio",
+        "ch4": "Methane in biogas",
+        "ph": "pH",
+        "studies": "BMP studies"
+      },
+      "no_references": "No reference is registered for this residue yet.",
+      "reference_count": "{count, plural, one {# registered reference} other {# registered references}}",
+      "validated": "parameters checked",
+      "open_source": "Open the source",
+      "new_tab": "(opens in a new tab)"
+    },
+    "held": {
+      "catalog_lede": "Each residue is a data product: its methane potential, its chemical characterization and the sources behind them.",
+      "sector_lede": "The {sector} residues on the platform.",
+      "table_caption": "{sector} residues: code and BMP",
+      "card_scope": "methane potential (BMP) and chemical characterization",
+      "card_source": "PILAR-2b science base",
+      "notice": "This residue's availability factors are under review and return to this page once they are published.",
+      "limitations_scope": "The data were surveyed for São Paulo state. They may not hold in other states; Minas Gerais is under validation (beta)."
+    }
+  },
+  "municipalities_index": {
+    "eyebrow": "Platform",
+    "title": "Municipalities",
+    "lede": "Search for a municipality to open its profile: methane potential by the CP2b method, by sector and by residue.",
+    "all_heading": "Every municipality, A to Z",
+    "count": "{count, plural, one {# municipality in the database} other {# municipalities in the database}}",
+    "letters_nav": "Jump to letter",
+    "unavailable": "The list of municipalities could not be loaded just now: the API did not answer. The search above tries again when you use it.",
+    "empty": "The API returned no municipalities."
+  },
+  "municipality_profile": {
+    "index": "Municipalities",
+    "eyebrow": "Municipality in {state}",
+    "ibge_code": "IBGE code",
+    "region_immediate": "Immediate region",
+    "region_intermediate": "Intermediate region",
+    "switch": "Not your municipality? Change it",
+    "lede_label": "Accessible methane potential",
+    "top_share": "in the state's top {share}% by potential",
+    "per_capita": "{value} Nm³ CH₄ per inhabitant per year",
+    "no_cp2b_title": "No CP2b data",
+    "no_cp2b_body": "The CP2b method covers the municipalities of São Paulo. There is no methane potential estimate for {name} yet.",
+    "unavailable_title": "Data unavailable right now",
+    "unavailable_body": "The platform's API did not answer, so this municipality's figures cannot be shown. Try again in a few minutes.",
+    "retry": "Try again",
+    "sectors": {
+      "empty": "No sector has accessible potential in this municipality."
+    },
+    "scenarios": {
+      "heading": "Method levels",
+      "n4_label": "Accessible · N4",
+      "n4_body": "After storage and logistics to a viable plant.",
+      "n3_label": "Mobilisable · N3",
+      "n3_body": "Existing uses taken out.",
+      "caption": "Bar: central value. Line: the method's range, minimum to maximum.",
+      "n1_label": "Theoretical · N1",
+      "n1_body": "All the residue generated in the municipality.",
+      "n2_label": "Available · N2",
+      "n2_body": "After the availability factors.",
+      "range_short": "range {min} to {max}",
+      "held": "The earlier levels (theoretical and available) appear once the method paper is published."
+    },
+    "infrastructure": {
+      "heading": "Nearby infrastructure",
+      "cta": "Open in Proximity and logistics",
+      "cta_plain": "Open Proximity and logistics",
+      "short": "Distances to gas pipelines, transmission lines, substations and plants."
+    },
+    "data": {
+      "downloads_paused": "Downloads are paused during the beta while the database is validated. This municipality's workbook and report return with the other files.",
+      "cite_label": "How to cite this page",
+      "citation": "CP2b/NIPE-UNICAMP. PILAR-2b: profile of the municipality of {name} ({uf}). Available at: {url}. Accessed: {date}.",
+      "cite_more": "Other citation formats",
+      "stamp": "Data: CP2b method, {version}",
+      "stamp_no_version": "Data: CP2b method"
+    },
+    "share": {
+      "heading": "Share",
+      "whatsapp": "Share on WhatsApp",
+      "linkedin": "Share on LinkedIn",
+      "copy": "Copy link",
+      "copied": "Link copied.",
+      "copy_failed": "Could not copy. The address is {url}",
+      "text": "Methane potential of {name} ({uf}) on PILAR-2b",
+      "new_window": "(opens in a new window)"
+    },
+    "neighbours": {
+      "heading": "Neighbouring municipalities",
+      "none": "No municipality borders {name} in the database.",
+      "unavailable": "The list of neighbours could not be loaded right now.",
+      "no_data": "no CP2b data",
+      "caption": "Accessible methane (N4) of the municipalities bordering {name}, in Nm³ CH₄ per year.",
+      "this": "this municipality"
+    },
+    "notes": {
+      "heading": "Notes and limitations",
+      "items": [
+        "The potential is a model estimate, built from official data on crop production, herds, population and sanitation. It is not a field measurement.",
+        "The values are methane (CH₄). Raw biogas also contains other gases, so the same potential as biogas is a larger volume.",
+        "The accessible level (N4) accounts for logistics to a plant of viable scale. A municipality can have mobilisable potential (N3) and zero accessible potential when no plant reaches that scale.",
+        "The method covers the municipalities of São Paulo. Those in other states show as no CP2b data."
+      ],
+      "report_body": "If a figure for this municipality does not match what you know, tell the team.",
+      "report": "Report an error",
+      "open": "Open"
+    },
+    "meta": {
+      "title": "{name} ({uf}) · Municipalities · PILAR-2b",
+      "description": "Accessible methane potential of {name} ({uf}) by the CP2b method: {value} Nm³ CH₄ per year, by sector and residue.",
+      "description_no_data": "Profile of {name} ({uf}) on PILAR-2b. The CP2b method does not cover this municipality yet."
+    },
+    "og": {
+      "alt": "{name} ({uf}): accessible methane potential by the CP2b method, on PILAR-2b.",
+      "label": "Accessible methane potential",
+      "unit": "Nm³ of methane (CH₄) per year · CP2b method, level N4",
+      "no_data": "No CP2b data",
+      "no_data_body": "The CP2b method covers the municipalities of São Paulo."
+    },
+    "kpi": {
+      "n4_label": "Accessible methane · N4",
+      "unit_year": "Nm³ CH₄ per year",
+      "per_day": "≈ {value} Nm³ CH₄ per day",
+      "rank_label": "Rank in the state",
+      "rank_value": "{position, selectordinal, one {#st} two {#nd} few {#rd} other {#th}}",
+      "rank_of": "of {of} municipalities in {state}",
+      "n3_label": "Mobilisable · N3",
+      "n3_kept": "{percent} reaches the accessible level",
+      "sector_label": "Main sector",
+      "sector_share": "{percent} of the accessible methane"
+    },
+    "composition": {
+      "heading": "Where the methane comes from",
+      "caption": "Accessible methane (N4) by sector and residue, in Nm³ CH₄ per year.",
+      "zero": "No accessible methane: {list}."
+    }
+  },
+  "method": {
+    "eyebrow": "Method",
+    "nav_label": "Method sections",
+    "overview": {
+      "title": "How PILAR-2b calculates potential",
+      "lede": "Every figure on the platform starts from official data, goes through four availability factors and ends as biogas potential. These pages show each step, with its sources and its confidence.",
+      "steps_heading": "Three steps",
+      "formulas_heading": "The two equations",
+      "fde_formula": "FDE = FC × (1 − FCp) × FS × FL",
+      "fde_formula_note": "The FDE is the share of the residue generated that reaches a biogas plant. It is never stored: it is always computed from the four factors.",
+      "potential_formula": "Potential = Generation × FDE × BMP",
+      "potential_formula_note": "Generation comes from official sources per municipality; the BMP (methane potential) comes from the science base, per residue.",
+      "sections_heading": "In this section",
+      "licence": "Code GPL-3.0 · Data and documentation CC BY 4.0.",
+      "cite_cta": "How to cite PILAR-2b"
+    },
+    "fde": {
+      "title": "Availability factors (FDE)",
+      "lede": "Not every residue generated becomes biogas. Four factors take the amount generated down to the amount available, and each residue has its own.",
+      "factors_heading": "The four factors",
+      "context_label": "What it depends on",
+      "competition_note": "FCp enters as (1 − FCp): it is the share that goes to other uses, so what is left for biogas is the complement.",
+      "table_heading": "Each residue's factors",
+      "table_caption": "Each residue's collection, competition, seasonality and logistics factors, the resulting FDE and the confidence level",
+      "col_residue": "Residue",
+      "col_sector": "Sector",
+      "col_confidence": "Confidence",
+      "bands_heading": "Confidence levels",
+      "bands_lede": "Each residue carries a confidence level, which says where its factors come from and how far the figure can vary."
+    },
+    "scenarios": {
+      "title": "Scenarios",
+      "lede": "The map shows two scenarios. The chemistry is the same in both; what changes is how much of the residue reaches a digester.",
+      "real_title": "Real (short term)",
+      "real_body": "The residue that actually reaches a digester today, with current collection rates and competing uses. It is the scenario the map opens on.",
+      "ideal_title": "Ideal (frontier)",
+      "ideal_body": "All the residue generated is collected and treated. It is an infrastructure hypothesis: it shows the ceiling, not a forecast.",
+      "definitions": "The definitions follow the Atlas de Bioenergia SP 2020. Both scenarios are computed on the server, and every coefficient is recorded and auditable.",
+      "ch4_heading": "From biogas to methane",
+      "ch4_body": "Methane is taken as {share} of raw biogas (FIESP 2025), the same value on the server and in the browser.",
+      "retired_heading": "Band scenarios, off the map",
+      "retired_body": "Earlier versions offered four band scenarios (conservative, medium term, frontier and optimistic), which moved the BMP within its uncertainty range. They left the map because they answer how much the chemistry could yield, not how much residue reaches a digester. Old links with those scenarios still open.",
+      "map_cta": "See the scenarios on the map"
+    },
+    "validation": {
+      "title": "Validation and limitations",
+      "lede": "What backs each factor, how far it can vary and what the data does not say yet.",
+      "levels_heading": "Confidence levels",
+      "residue_count": "{count, plural, one {# residue} other {# residues}}",
+      "process_heading": "Where the factors come from",
+      "process": {
+        "data": "Production: official data (IBGE, EMBRAPA, UNICA) where it exists; sector reports where it does not, with lower confidence.",
+        "competition": "Competing uses: each alternative destination (cogeneration, fertilizer, feed, industrial use) and the legal requirements, such as fertigation regulated by CETESB.",
+        "collection": "Collection, seasonality and logistics: how concentrated or dispersed the source is, transport and storage infrastructure, and the production calendar.",
+        "conservative": "Where the evidence is uncertain, the factor takes the conservative estimate and the residue gets low confidence."
+      },
+      "beta": "The database is in beta: the factors are still being validated, and each correction is published in the patch notes.",
+      "limitations_heading": "Limitations",
+      "report_heading": "Found an error?",
+      "report_body": "Write to the team: name the residue, the municipality or the page, and what looks wrong.",
+      "patch_notes_cta": "See the patch notes"
+    }
+  },
+  "wayfinding": {
+    "breadcrumb": "You are here",
+    "main_nav": "Main navigation",
+    "loading": "Loading…",
+    "not_found": {
+      "meta_title": "Page not found",
+      "eyebrow": "Page not found",
+      "title": "We couldn't find this page",
+      "body": "The address may have changed or contain a typo. Search for a municipality below or take one of the most used paths.",
+      "paths": "Most used paths",
+      "back_home": "Back to home"
+    },
+    "error": {
+      "eyebrow": "Something went wrong",
+      "title": "This page didn't load properly",
+      "body": "It may have been a brief connection or server hiccup. Try again; if it keeps happening, go back home or open the map.",
+      "retry": "Try again"
+    }
+  },
+  "mascot": {
+    "label": "Metaninho, CP2b's mascot: ask for a tip",
+    "lines": {
+      "tips": [
+        "Hi! I'm Metaninho: one carbon and four hydrogens. In biogas, I'm the part that becomes energy.",
+        "Start with the map: click a municipality to see how much biogas its waste could produce.",
+        "Looking for your city? Type its name or IBGE code in the search at the top of the page.",
+        "Not sure about something? The Guide explains each screen, step by step."
+      ],
+      "not_found": [
+        "Oops! This page doesn't exist. How about searching for a municipality up here?",
+        "I get lost sometimes too. The paths below lead to the main parts of the platform."
+      ]
+    }
+  }
+}

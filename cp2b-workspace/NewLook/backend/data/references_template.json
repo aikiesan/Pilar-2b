@@ -1,0 +1,30 @@
+[
+  {
+    "residuo_codigo": "AG_CANA_001",
+    "parameter_type": "bmp",
+    "citation": "Silva et al. (2020)",
+    "authors": "Silva, A.; Souza, B.",
+    "title": "Methane potential of sugarcane bagasse",
+    "journal": "Bioresource Technology",
+    "year": 2020,
+    "doi": "10.1016/j.biortech.2020.123456",
+    "url": "https://doi.org/10.1016/j.biortech.2020.123456",
+    "reported_value": 245.5,
+    "reported_unit": "NmL CH4/g VS",
+    "validation_status": "high_quality"
+  },
+  {
+    "residuo_codigo": "PC_BOVINOS_001",
+    "parameter_type": "ts",
+    "citation": "Santos (2019)",
+    "authors": "Santos, M.",
+    "title": "Characterization of cattle manure",
+    "journal": "Journal of Cleaner Production",
+    "year": 2019,
+    "doi": "10.1016/j.jclepro.2019.01.001",
+    "url": "https://doi.org/10.1016/j.jclepro.2019.01.001",
+    "reported_value": 18.5,
+    "reported_unit": "%",
+    "validation_status": "medium_quality"
+  }
+]

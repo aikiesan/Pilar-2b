@@ -1,0 +1,2 @@
+# Redirect About page to external website
+/about https://nipe.unicamp.br/cp2b/ 302

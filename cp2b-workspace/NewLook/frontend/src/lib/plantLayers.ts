@@ -1,0 +1,102 @@
+/**
+ * Plant-layer catalogue — the single source of truth for how each biomass plant
+ * layer is drawn AND how it is explained.
+ *
+ * Marker styling used to live in InfrastructureLayer and the legend carried its
+ * own hardcoded copy of the same four entries, so the two could disagree — and
+ * did: the legend advertised Biometano/Etanol/UTE whenever the *biogás* layer
+ * was switched on, and never mentioned Biodiesel at all. Both sides read this
+ * table now, so a plant type that is drawn is necessarily a plant type that is
+ * described, in the same colour.
+ */
+
+/** National plant layers (MapBiomas INFRAESTRUTURA), keyed by layer id. */
+export type PlantLayerId =
+  | 'biogas_plant'
+  | 'ethanol_plant'
+  | 'biomass_thermal_plant'
+  | 'biodiesel_plant';
+
+/** Catalog key for a plant type: Map.plants.<key>.{name,description}. */
+export type PlantTypeKey = 'biogas' | 'ethanol' | 'biomass_thermal' | 'biodiesel' | 'biomethane';
+
+export interface PlantTypeInfo {
+  key: PlantTypeKey;
+  icon: string;
+  color: string;
+  borderColor: string;
+  /** Dataset name, cited as published. */
+  dataSource: string;
+  year: string;
+}
+
+/**
+ * Plant types by layer id.
+ *
+ * Colours are deliberately one per hue family — purple/green/orange/brown — so
+ * that two plant types are never told apart by shade alone at map zoom.
+ */
+export const PLANT_LAYERS: Record<PlantLayerId, PlantTypeInfo> = {
+  biogas_plant: {
+    key: 'biogas',
+    icon: '🏭',
+    color: '#27AE60',
+    borderColor: '#1E5128',
+    dataSource: 'MapBiomas — INFRAESTRUTURA',
+    year: '2024',
+  },
+  ethanol_plant: {
+    key: 'ethanol',
+    icon: '🌽',
+    color: '#9B59B6',
+    borderColor: '#6C3483',
+    dataSource: 'MapBiomas — INFRAESTRUTURA',
+    year: '2024',
+  },
+  biomass_thermal_plant: {
+    key: 'biomass_thermal',
+    icon: '⚡',
+    color: '#E67E22',
+    borderColor: '#BA4A00',
+    dataSource: 'MapBiomas — INFRAESTRUTURA',
+    year: '2024',
+  },
+  // Biodiesel was drawn with the BIOMETANO marker (blue 💨), which put a plant
+  // type on the map under another type's colour. Brown is free in the palette
+  // above and reads as oil, which is what a biodiesel plant handles.
+  biodiesel_plant: {
+    key: 'biodiesel',
+    icon: '🛢️',
+    color: '#8D6E63',
+    borderColor: '#5D4037',
+    dataSource: 'MapBiomas — INFRAESTRUTURA',
+    year: '2024',
+  },
+};
+
+export function isPlantLayer(id: string): id is PlantLayerId {
+  return id in PLANT_LAYERS;
+}
+
+/**
+ * Biometano has no national layer of its own: it only appears as a SUBTIPO of
+ * the legacy São Paulo `biogas-plants` shapefile, which still differentiates its
+ * markers by subtype. Kept out of PLANT_LAYERS so it cannot be toggled as a
+ * layer, but exported so both the marker code and the legend can use it there.
+ */
+export const BIOMETHANE_PLANT: PlantTypeInfo = {
+  key: 'biomethane',
+  icon: '💨',
+  color: '#3498DB',
+  borderColor: '#1F618D',
+  dataSource: 'MapBiomas + ANP',
+  year: '2024',
+};
+
+/** Legacy SP layer: one legend covering every subtype it can draw. */
+export const SP_PLANT_SUBTYPES: PlantTypeInfo[] = [
+  PLANT_LAYERS.ethanol_plant,
+  PLANT_LAYERS.biogas_plant,
+  BIOMETHANE_PLANT,
+  PLANT_LAYERS.biomass_thermal_plant,
+];

@@ -1,0 +1,9 @@
+// npm run typecheck: everything tsconfig.json checks, plus what it leaves out of
+// `next build` — unit tests, test utilities and the e2e specs.
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "incremental": false
+  },
+  "exclude": ["node_modules"]
+}

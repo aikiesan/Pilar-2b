@@ -1,0 +1,28 @@
+scope,key,n_units,total_kw
+by_state,MG,209,30104.7
+by_state,PR,118,26415.91
+by_state,SP,34,20480.22
+by_state,RJ,8,15696.88
+by_state,MT,33,12853.41
+by_state,ES,14,8119.1
+by_state,RS,25,8017.13
+by_state,SC,44,7486.35
+by_state,PB,3,6563.0
+by_state,GO,22,6424.2
+by_state,MA,3,3083.52
+by_state,MS,23,2939.49
+by_state,RO,3,2565.0
+by_state,PE,2,1009.18
+by_state,CE,4,235.0
+by_state,TO,1,85.0
+by_subtype,Biogás - Floresta,25,19642.82
+by_subtype,Biogás - RA,376,63017.46
+by_subtype,Biogás - RU,101,51212.64
+by_subtype,Biogás-AGR,44,18205.17
+by_class,Comercial,68,70398.18
+by_class,Industrial,53,25575.43
+by_class,Poder Público,4,2625.8
+by_class,Residencial,10,736.87
+by_class,Rural,410,52689.01
+by_class,Serviço Público,1,52.8
+national,BR,546,152078.09
