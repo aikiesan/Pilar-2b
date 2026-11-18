@@ -149,3 +149,86 @@ Content and data questions the work surfaced but did not decide:
 ## How to verify locally
 
 See [`qa/LOCAL_VERIFICATION.md`](../qa/LOCAL_VERIFICATION.md).
+
+## Local Docker test harness (added 2026-09-22)
+
+Running the suites against the Docker stack surfaced problems that do not show up
+on the host. Each was verified directly, not taken from an agent's report.
+
+### Fixed
+
+- **Every route 500s: a non-atomic write in `next dev` (root cause pinned 2026-09-22).**
+  `SyntaxError: Unexpected non-whitespace character after JSON at position N`,
+  every route, both locales. Earlier notes blamed a vague "Turbopack cache". The
+  exact mechanism: `next dev` rewrites `.next/dev/prerender-manifest.json` as it
+  compiles routes, and when several requests hit a cold server at once a shorter
+  write lands on a longer one without truncating it. Measured: a 548-byte file
+  whose valid JSON ends at byte 543, followed by `58"}}` — the tail of the
+  previous write. Every render reads that file, so the whole app stays down until
+  `.next` is wiped; it never heals, and deleting just the file mid-run only swaps
+  it for `ENOENT`, because Next writes it at startup. Not the Windows bind mount —
+  `.next` is an anonymous volume on the container's own filesystem — and not stale
+  dependencies (Next is 16.3.5 in container and lockfile alike).
+  A `restart` hit it because it keeps the same `.next`; 8 Playwright workers on a
+  cold server hit it because that is exactly the concurrent-first-request case.
+  Recovery: `docker compose up -d --force-recreate --renew-anon-volumes frontend`.
+  Prevention, now automatic: **`e2e/global-setup.ts`** requests every route in
+  `e2e/routes.ts` one at a time before any worker starts. Playwright starts
+  `webServer` before `globalSetup` (`createPluginSetupTasks` precedes
+  `globalSetups` in its runner), so this works in CI and against Docker alike.
+  Verified three ways: a freshly recreated cold container on 8 workers went from
+  37 failed to **37 passed**; the CI-style path (Playwright spawning its own cold
+  host server) passed 37/37 where it used to lose one random route per run; and
+  with the manifest corrupted on purpose, the run now stops before any test with
+  one message naming the file and the recovery command, instead of 37 failures
+  over several minutes of timeouts that all pointed at the map.
+  This is very likely a real share of the CI e2e flakiness the backlog attributed
+  to CORS alone.
+- **Hot reload does not work over the Windows bind mount.** An edit made while the
+  container runs never triggers a recompile (nothing in the logs). Source changes
+  reach the container only on recreate.
+- **The locale e2e suite passed on a broken app.** With every page returning 500,
+  it reported 7 of 8 green: "no Portuguese on this page" is trivially true of an
+  error page. It now asserts status `< 400` and a minimum rendered-text length
+  before the locale check, and was re-proven to fail against a dead target.
+- **Redundant dev server.** `playwright.config.ts`'s `webServer` is independent of
+  `baseURL`, so testing Docker on :3006 still spawned a second server on :3000.
+  New opt-out `PLAYWRIGHT_SKIP_WEBSERVER=1`. Deliberately *not* inferred from
+  `PLAYWRIGHT_BASE_URL`: CI sets that explicitly and does need its server.
+- **16 canonical-parameter guards silently skipped in the container.**
+  `tests/unit/test_canonical_parameters.py` hand-counted `parents[3]`, which is
+  `/` inside Docker (compose binds `./backend` as `/app`), so it looked for
+  `/data/canonical_parameters/feedstocks.yaml`, skipped, and never went red. These
+  are the BMP/TS/VS physical-bounds and citation-integrity checks. Now uses
+  `canonical_loader.resolve_feedstocks_path()` — the app's own resolver, whose
+  Docker layout `test_canonical_loader.py` already covers. Host 16/16, and 16/16
+  with `CANONICAL_PARAMETERS_PATH` set.
+
+### Open — reported, deliberately not changed
+
+- **Compliance tests are host-only by design.** `tests/compliance/*` read
+  `frontend/src/...` and `backend/app/main.py` from the full repo layout, which the
+  backend container does not have. 17 fail in the container; 20/20 pass on the host.
+  Path resolution cannot fix this — the frontend files are genuinely absent.
+- **CI never runs the database tests.** They gate on `TEST_DATABASE_URL`
+  (`tests/conftest.py:240`); CI's backend-test job sets only `DATABASE_URL`, so they
+  skip despite the job provisioning PostGIS. Not flipped on, because the CI database
+  is empty and they would fail against an unseeded schema — which would turn a green
+  gate red. Needs a migrate-and-seed step first.
+- **`municipalities.ibge_code` is nullable.** `001_initial_schema.sql:22` declares
+  `VARCHAR(7) UNIQUE` with no `NOT NULL`, and nothing later adds it; Postgres UNIQUE
+  admits many NULLs. For the join key of the whole dataset — and given the SP-only
+  source-file trap, where MG joins silently fall back to placeholders — that deserves
+  a migration. It must first confirm zero NULLs in the live data, so it is not
+  written blind.
+- **`flake8` is not in `requirements.txt`.** CI installs it ad hoc. It belongs in a
+  dev requirements file rather than the runtime one the production image is built from.
+- **SP C:N data is absent locally.** Migration 031 is applied and its columns exist,
+  but `cn_harm`/`regime_harm` are filled for 0 rows. Half of this is now fixed:
+  `ffc97fc` wired the typology loaders into `run_migrations.py --seed`. The other
+  half is data, not code — `load_dossier_sp_indices.py` reads
+  `backend/data/raw/dossie_sp/2026/dossier_municipios.csv`, which is gitignored
+  (`backend/data/raw/*`) and absent from any fresh clone, so the seed warns and
+  moves on. The beta C:N and typology map modes show no SP data locally until that
+  file is copied in. Production is unaffected if the VM has it.
+

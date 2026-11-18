@@ -56,3 +56,9 @@ export const SIGNED_IN_ROUTES = [
 /** The routes a run covers: the signed-in pages too when the server is in open mode. */
 export const routesToCheck = (): string[] =>
   process.env.E2E_OPEN_MODE ? [...ROUTES, ...SIGNED_IN_ROUTES] : ROUTES;
+
+/**
+ * Every route a public spec opens. global-setup.ts requests each of these one at
+ * a time before any worker starts — see the comment there for why that matters.
+ */
+export const WARMUP_ROUTES = ['/pt-BR/map', ...routesToCheck()];
