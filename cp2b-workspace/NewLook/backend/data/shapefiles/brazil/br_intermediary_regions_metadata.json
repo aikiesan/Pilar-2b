@@ -1,0 +1,51 @@
+{
+  "source": "BR_RG_Intermediarias_2024.shp",
+  "total_regions": 133,
+  "crs": "EPSG:4326",
+  "simplification_tolerance": 0.01,
+  "coordinate_reduction_percent": 98.80747038810686,
+  "optimization_date": "2025-12-01 21:38:25",
+  "files": {
+    "geojson": {
+      "path": "br_intermediary_regions.geojson",
+      "size_mb": 1.1852912902832031
+    },
+    "parquet": {
+      "path": "br_intermediary_regions.parquet",
+      "size_mb": 0.6489667892456055
+    },
+    "centroids": {
+      "path": "br_intermediary_regions_centroids.csv",
+      "size_kb": 7.857421875
+    }
+  },
+  "regions_by_state": {
+    "AC": 2,
+    "AL": 2,
+    "AM": 4,
+    "AP": 2,
+    "BA": 10,
+    "CE": 6,
+    "DF": 1,
+    "ES": 4,
+    "GO": 6,
+    "MA": 5,
+    "MG": 13,
+    "MS": 3,
+    "MT": 5,
+    "PA": 7,
+    "PB": 4,
+    "PE": 4,
+    "PI": 6,
+    "PR": 6,
+    "RJ": 5,
+    "RN": 3,
+    "RO": 2,
+    "RR": 2,
+    "RS": 8,
+    "SC": 7,
+    "SE": 2,
+    "SP": 11,
+    "TO": 3
+  }
+}
