@@ -10,6 +10,10 @@ import DesktopLeftPanel from './DesktopLeftPanel';
 
 jest.mock('next-intl', () => jest.requireActual('@/test/mocks/next-intl-real'));
 jest.mock('@/hooks/useGeospatialData', () => ({ useSummaryStatistics: () => ({ data: undefined }) }));
+jest.mock('@/hooks/useDataSources', () => ({
+  ...jest.requireActual('@/hooks/useDataSources'),
+  useDataSources: () => jest.requireActual('@/test/fixtures/sourceCatalog').sourceCatalog,
+}));
 
 const baseProps: React.ComponentProps<typeof DesktopLeftPanel> = {
   searchQuery: '',
@@ -53,6 +57,22 @@ describe('DesktopLeftPanel', () => {
     fireEvent.click(toggle);
     expect(onLayerToggle).toHaveBeenCalledWith('municipalities', false);
     expect(screen.getByRole('slider', { name: 'Opacidade do Mapa: 80%' })).toHaveValue('0.8');
+    expect(await axe(container)).toHaveNoViolations();
+  });
+
+  it('cites the sources of a layer that is on the map, and only then', async () => {
+    const layers = [
+      { id: 'municipalities', name: 'Municípios', visible: true, icon: '🗺️' },
+      { id: 'biogas_plant', name: 'Usinas de biogás', visible: false, icon: '⚡' },
+    ];
+    const { container } = render(<DesktopLeftPanel {...baseProps} layers={layers} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Camadas' }));
+    const link = screen.getByRole('link', { name: /^Fonte \(Oficial\): IBGE, Malha Municipal 2025 — IBGE, 2025\./ });
+    expect(link).toHaveAttribute('href', expect.stringContaining('15774-malhas'));
+    expect(link).toHaveTextContent('IBGE, malha 2025');
+    // The platform's own estimate has no link, and says it is an estimate.
+    expect(screen.getByText(/^Fonte \(Estimativa\): Método CP2b v5\.1/)).toBeInTheDocument();
+    expect(screen.queryByText('MapBiomas 10.1')).not.toBeInTheDocument();
     expect(await axe(container)).toHaveNoViolations();
   });
 });

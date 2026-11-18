@@ -2,7 +2,7 @@
   "year": 2024,
   "name": "MapBiomas Agropecuária SP",
   "description": "Agricultural land use classification for São Paulo state",
-  "source": "MapBiomas Collection 8",
+  "source": "MapBiomas Collection 10",
   "crs": "EPSG:4326",
   "bounds": {
     "west": -53.11091487994166,

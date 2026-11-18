@@ -54,6 +54,7 @@ def mock_db_connection(monkeypatch):
         "app.api.v1.endpoints.cp2b",
         "app.api.v1.endpoints.analytics",
         "app.api.v1.endpoints.geospatial",
+        "app.api.v1.endpoints.ghg",
         "app.api.v1.endpoints.intermediate_regions",
         "app.api.v1.endpoints.municipalities",
         "app.api.v1.endpoints.newsletter",

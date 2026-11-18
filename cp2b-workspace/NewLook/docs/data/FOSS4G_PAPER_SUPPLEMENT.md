@@ -3,7 +3,7 @@
 **Platform:** PILAR-2b — Plataforma Interativa de Localização e Análise de Resíduos
 (INPI BR 512026003115-0; NIPE/UNICAMP)
 **Coverage:** 645 municipalities, state of São Paulo, Brazil
-**Data vintage:** IBGE Censo Agropecuário 2017/IBGE 2022 pop.; MapBiomas Collection 9; SNIS 2022
+**Data vintage:** IBGE Censo Agropecuário 2017/IBGE 2022 pop.; MapBiomas Collection 10 (2024 map); SNIS 2022
 **Generated:** 2026-06-06 by `backend/scripts/compute_sp_canonical_totals.py` (100% forward methodology)
 **Phase 1 revision:** Corrected IBGE PAM unit interpretation for sugarcane (4 sub-streams) and citrus (peel fraction)
 
@@ -203,7 +203,7 @@ pressing. Full per-factor citations and uncertainty ranges are in `feedstocks.ya
 |---|---|---|
 | IBGE Censo Agropecuário 2017 | Agricultural crop areas, livestock head counts | https://sidra.ibge.gov.br/pesquisa/censo-agropecuario/censo-agropecuario-2017 |
 | IBGE Estimativas de população 2022 | Municipal populations (SP: 44,411,238) | https://sidra.ibge.gov.br/ |
-| MapBiomas Collection 9 | Land-use classification for crop/pasture areas | https://mapbiomas.org/ |
+| MapBiomas Collection 10 (2024 map) | Land-use classification for crop/pasture areas | https://brasil.mapbiomas.org/ |
 | EPE BEN 2024 | Sugarcane biomass availability factors | https://www.epe.gov.br/pt/publicacoes-dados-abertos/publicacoes/balanco-energetico-nacional-2024 |
 | UNICA/CONSECANA 2022 | Sugarcane industrial sub-stream residue fractions | https://unica.com.br/ |
 | FUNDECITRUS 2022 | Citrus peel residue fraction (45–55% of whole fruit) | https://www.fundecitrus.com.br/ |

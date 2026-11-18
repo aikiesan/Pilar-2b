@@ -2,6 +2,230 @@
   "_comment": "Patch notes, newest first. Each entry carries its own pt-BR and en text, deliberately OUTSIDE messages/*.json: the catalogs are gated by check-i18n-parity.mjs, and threading one release note through two catalogs per deploy makes writing a note a chore nobody does. scripts/check-patch-notes.mjs enforces that both locales are present here instead. `date` is ISO 8601 WITH offset -- it is rendered in the reader's locale, so a bare date would drift a day across timezones. `kind` must be one of: added, changed, fixed, security, data.",
   "entries": [
     {
+      "version": "3.8.5",
+      "date": "2026-10-21T12:00:00-03:00",
+      "title": {
+        "pt-BR": "Botões de fonte no mapa e na página do município",
+        "en": "Source buttons on the map and the municipality page"
+      },
+      "changes": [
+        {
+          "kind": "added",
+          "text": {
+            "pt-BR": "Cada camada ligada no mapa mostra de onde vêm os dados, com um botão que abre a fonte. O mesmo vale para os popups da infraestrutura, a legenda do MapBiomas, o painel e a página do município (potencial, população e regiões) e o uso do solo na Análise de Proximidade. Quando falta confirmar o link, a data ou a licença de uma fonte, o botão diz o que falta.",
+            "en": "Every layer switched on in the map shows where its data comes from, with a button that opens the source. So do the infrastructure popups, the MapBiomas legend, the municipality panel and page (potential, population and regions) and land use in Proximity Analysis. Where a source's link, date or licence is still to be confirmed, the button says what is missing."
+          }
+        },
+        {
+          "kind": "fixed",
+          "text": {
+            "pt-BR": "A legenda do uso do solo dizia MapBiomas Coleção 8. O mapa é o de 2024, da Coleção 10, a primeira que chega a 2024.",
+            "en": "The land-use legend said MapBiomas Collection 8. The map is the 2024 one, from Collection 10, the first to reach 2024."
+          }
+        }
+      ]
+    },
+    {
+      "version": "3.8.4",
+      "date": "2026-10-20T23:30:00-03:00",
+      "title": {
+        "pt-BR": "Troca de rota com os preços oficiais do Cativo Verde",
+        "en": "Route switch with the official Green Captive prices"
+      },
+      "changes": [
+        {
+          "kind": "changed",
+          "text": {
+            "pt-BR": "No Mandato do biometano, a molécula (R$ 2,25/m³) e o atributo ambiental (R$ 1,40/m³) passam a ser os do Mercado Cativo Verde da Comgás, conferidos na Deliberação Arsesp 1.846/2026, que agora é a fonte de ambos. Com isso, o biometano vence sem atributo até cerca de R$ 214/MWh, e com energia autoconsumida precisa de R$ 0,89/m³, abaixo do que o Cativo Verde paga.",
+            "en": "In the Biomethane mandate, the molecule (R$ 2.25/m³) and the environmental attribute (R$ 1.40/m³) are now those of the Comgás Green Captive Market, checked against Arsesp Deliberation 1,846/2026, now the source of both. Biomethane now wins with no attribute up to about R$ 214/MWh, and with self-consumed power it needs R$ 0.89/m³, below what the Green Captive Market pays."
+          }
+        }
+      ]
+    },
+    {
+      "version": "3.8.3",
+      "date": "2026-10-20T22:30:00-03:00",
+      "title": {
+        "pt-BR": "Usinas termelétricas com o nome certo",
+        "en": "Thermal power plants, correctly named"
+      },
+      "changes": [
+        {
+          "kind": "fixed",
+          "text": {
+            "pt-BR": "Na Análise de Proximidade, a camada chamada \"Subestação\" traz na verdade as usinas termelétricas da ANEEL (códigos CEG UTE…, como as de bagaço de cana). Agora ela aparece como \"Usina termelétrica\".",
+            "en": "In Proximity Analysis, the layer labelled \"Substation\" actually holds ANEEL's thermal power plants (CEG codes UTE…, such as sugarcane-bagasse plants). It now shows as \"Thermal power plant\"."
+          }
+        }
+      ]
+    },
+    {
+      "version": "3.8.2",
+      "date": "2026-10-20T21:00:00-03:00",
+      "title": {
+        "pt-BR": "A fonte ao lado de cada número",
+        "en": "The source beside every figure"
+      },
+      "changes": [
+        {
+          "kind": "added",
+          "text": {
+            "pt-BR": "No Mandato do biometano, cada número tem ao lado um botão com a citação curta da fonte (por exemplo, \"CCEE, InfoPLD jul/2026\"), na cor do tipo de fonte, que abre o documento direto. Suposições do PILAR-2b aparecem com borda tracejada. Os números que o PILAR-2b calcula têm o botão \"conta\", que leva ao bloco \"Como calculamos\" do cartão, com a conta escrita com os valores usados.",
+            "en": "On the Biomethane mandate page, every figure has a button beside it with the source's short citation (for example, \"CCEE, InfoPLD jul/2026\"), coloured by kind of source, that opens the document directly. PILAR-2b's own assumptions have a dashed border. Figures PILAR-2b computes have a \"calculation\" button that leads to the card's \"How we calculate\" block, with the arithmetic written out with the values used."
+          }
+        },
+        {
+          "kind": "added",
+          "text": {
+            "pt-BR": "O cartão \"Vale trocar o motor pela purificação?\" abre com as premissas, cada uma com suas fontes; o fim da página traz \"Como citar este painel\".",
+            "en": "The \"Is it worth swapping the engine for an upgrader?\" card opens with its inputs, each with its sources; the end of the page adds \"How to cite this panel\"."
+          }
+        },
+        {
+          "kind": "data",
+          "text": {
+            "pt-BR": "Ganharam fonte o poder calorífico do metano (NIST) e o teor de metano no biogás (Embrapa); o rendimento elétrico de 38 % passou a aparecer como suposição, ao lado do teto de um motor grande (44,7 %).",
+            "en": "The methane heating value (NIST) and the methane content of biogas (Embrapa) now have a source; the 38 % electrical efficiency is now shown as an assumption, next to a large engine's ceiling (44.7 %)."
+          }
+        }
+      ]
+    },
+    {
+      "version": "3.8.1",
+      "date": "2026-10-20T18:00:00-03:00",
+      "title": {
+        "pt-BR": "Cada número do mandato com a sua fonte",
+        "en": "Every mandate figure with its source"
+      },
+      "changes": [
+        {
+          "kind": "added",
+          "text": {
+            "pt-BR": "No Mandato do biometano, cada cartão termina em \"Fontes deste quadro\": para cada número, quem publicou, quando, o tipo de fonte (oficial, dados, estudo, empresa, imprensa ou estimativa) e o link para conferir. O novo cartão \"Onde conferir\" reúne as páginas onde os números mais recentes saem primeiro (ANP, MME, Comgás, CCEE, B3, RenovaCalc e Banco Central).",
+            "en": "On the Biomethane mandate page, each card ends in \"Sources for this card\": for each figure, who published it, when, the kind of source (official, data, study, company, press or estimate) and a link to check it. The new \"Where to check\" card gathers the pages where the latest figures come out first (ANP, MME, Comgás, CCEE, B3, RenovaCalc and the Central Bank)."
+          }
+        },
+        {
+          "kind": "data",
+          "text": {
+            "pt-BR": "Números do mandato conferidos um a um. Corrigidos: o PLD passou a seguir os boletins da CCEE (R$ 135–225/MWh); a purificação, € 25/MWh a R$ 5,80/€; a molécula, o custo do gás da Comgás (R$ 2,63/m³); o atributo, o piso de R$ 1,00/m³ pedido para o CGOB, porque os valores atribuídos ao Mercado Cativo Verde não foram confirmados; e o CO₂ passou a 1,84 kg/m³ (20 °C, a referência da ANP). Com isso, o biometano vence sem atributo até cerca de R$ 315/MWh.",
+            "en": "Mandate figures checked one by one. Corrected: the PLD now follows CCEE's bulletins (R$ 135–225/MWh); upgrading, €25/MWh at R$ 5.80/€; the molecule, Comgás's gas cost (R$ 2.63/m³); the attribute, the R$ 1.00/m³ floor asked for the CGOB, because the values attributed to the Green Captive Market could not be confirmed; and CO₂ now uses 1.84 kg/m³ (20 °C, ANP's reference). As a result, biomethane wins without an attribute up to about R$ 315/MWh."
+          }
+        }
+      ]
+    },
+    {
+      "version": "3.8.0",
+      "date": "2026-10-20T08:00:00-03:00",
+      "title": {
+        "pt-BR": "O mercado do biometano em números",
+        "en": "The biomethane market in figures"
+      },
+      "changes": [
+        {
+          "kind": "added",
+          "text": {
+            "pt-BR": "Nova página Financiamento do biometano, em Dados: quanto custa um m³/dia de capacidade nas operações aprovadas pelo BNDES, por rota, com o capital por m³ produzido e a fonte de cada operação.",
+            "en": "New Biomethane financing page, under Data: what a m³/day of capacity costs in the deals BNDES approved, by route, with the capital per m³ produced and the source of each deal."
+          }
+        },
+        {
+          "kind": "added",
+          "text": {
+            "pt-BR": "Nova página Mandato do biometano, em Dados: a meta de cada ano da Lei do Combustível do Futuro em m³/dia, contra o biometano que o Brasil e São Paulo produzem mês a mês (ANP), com o ato que fixa ou propõe cada meta.",
+            "en": "New Biomethane mandate page, under Data: each year's target under the Fuel of the Future law in m³/day, against the biomethane Brazil and São Paulo produce month by month (ANP), with the act that sets or proposes each target."
+          }
+        },
+        {
+          "kind": "added",
+          "text": {
+            "pt-BR": "No Mandato do biometano, o cartão \"Vale trocar o motor pela purificação?\": quanto o atributo ambiental precisa valer, a cada preço da eletricidade, para vender biometano pagar o mesmo que gerar energia com o biogás, ao lado do piso pedido para o CGOB.",
+            "en": "On the Biomethane mandate page, the \"Is it worth swapping the engine for an upgrader?\" card: what the environmental attribute must be worth, at each power price, for selling biomethane to pay as much as generating power from the biogas, next to the floor suppliers ask for the CGOB."
+          }
+        },
+        {
+          "kind": "added",
+          "text": {
+            "pt-BR": "No Mandato do biometano, o cartão \"O que soma na receita de um m³ de biometano\": molécula, CGOB, CBIO, crédito voluntário, CO₂ biogênico e digestato, separados entre o que soma, o que se vende uma vez só e o que não se soma, com a regra e a fonte de cada linha.",
+            "en": "On the Biomethane mandate page, the \"What adds up in the revenue of one m³ of biomethane\" card: molecule, CGOB, CBIO, voluntary credit, biogenic CO₂ and digestate, split into what adds up, what is sold only once and what does not add, with the rule and source for each line."
+          }
+        },
+        {
+          "kind": "added",
+          "text": {
+            "pt-BR": "No Mandato do biometano, o cartão \"CO₂ biogênico\": quanto CO₂ a purificação separa em cada planta de biometano de SP, hoje e na capacidade, e quanto o biogás que SP queima daria, ao lado do tamanho do mercado brasileiro de CO₂ e do CO₂ do etanol.",
+            "en": "On the Biomethane mandate page, the \"Biogenic CO₂\" card: how much CO₂ upgrading separates at each São Paulo biomethane plant, today and at capacity, and what the biogas SP burns would give, next to the size of Brazil's CO₂ market and the CO₂ from ethanol."
+          }
+        },
+        {
+          "kind": "added",
+          "text": {
+            "pt-BR": "Tour guiado do mapa com o Metaninho: um passo para cada parte (mapas prontos, busca, métrica, modo de desenho, abas, cenário, estado, mapa de fundo, legenda), com Voltar, Próximo, Fechar e Não mostrar novamente. Na primeira visita o Metaninho oferece o guia; o botão Guia do mapa, no canto do mapa, o abre a qualquer momento.",
+            "en": "Guided map tour with Metaninho: one step per part (ready-made maps, search, metric, drawing mode, tabs, scenario, state, basemap, legend), with Back, Next, Close and Don't show again. On the first visit Metaninho offers the guide; the Map guide button in the map corner opens it at any time."
+          }
+        },
+        {
+          "kind": "added",
+          "text": {
+            "pt-BR": "Análise de Proximidade mostra a infraestrutura mais próxima do ponto: gasoduto, subestação, rodovia estadual, linha de transmissão e ETE, com nome e distância em um cartão e uma linha tracejada até cada um no mapa.",
+            "en": "Proximity Analysis now shows the infrastructure nearest the point: gas pipeline, substation, state highway, transmission line and sewage plant, with name and distance in a card and a dashed line to each on the map."
+          }
+        },
+        {
+          "kind": "changed",
+          "text": {
+            "pt-BR": "Na página do município, o Clima virou uma seção que abre e fecha, em largura total, com a redução líquida à vista.",
+            "en": "On the municipality page, Climate is now a full-width section that opens and closes, with the net reduction in view."
+          }
+        },
+        {
+          "kind": "changed",
+          "text": {
+            "pt-BR": "O CO₂ de cada município nos exports e nos totais da API agora vem do módulo de GEE (redução líquida, potencial CP2b acessível), o mesmo número do Clima, no lugar da conta antiga de 0,4 t por MWh.",
+            "en": "Each municipality's CO₂ in the exports and the API totals now comes from the GHG module (net reduction, accessible CP2b potential), the same figure as Climate, instead of the old 0.4 t per MWh."
+          }
+        }
+      ]
+    },
+    {
+      "version": "3.7.0",
+      "date": "2026-10-19T20:00:00-03:00",
+      "title": {
+        "pt-BR": "Redução de emissões calculada de verdade",
+        "en": "Emissions reduction, calculated properly"
+      },
+      "changes": [
+        {
+          "kind": "fixed",
+          "text": {
+            "pt-BR": "O número de CO₂ da calculadora mudou porque o método mudou. O valor antigo era o CO₂ liberado ao queimar o metano, que é biogênico e não é redução. O novo soma o metano que deixa de ser emitido pelo manejo atual e o combustível fóssil deslocado, e desconta o metano que a própria planta perde em vazamentos e na purificação.",
+            "en": "The calculator's CO₂ figure changed because the method changed. The old value was the CO₂ released by burning the methane, which is biogenic and not a reduction. The new one adds the methane no longer emitted by current handling and the fossil fuel displaced, and subtracts the methane the plant itself loses through leaks and upgrading."
+          }
+        },
+        {
+          "kind": "added",
+          "text": {
+            "pt-BR": "Na calculadora, você informa para onde o resíduo vai hoje, o uso da energia, a tecnologia de purificação e o vazamento do biodigestor, e vê as três parcelas, o resultado líquido e o vazamento que zeraria o benefício.",
+            "en": "In the calculator you state where the residue goes today, how the energy is used, the upgrading technology and the digester leak, and see the three parts, the net result and the leak that would cancel the benefit."
+          }
+        },
+        {
+          "kind": "added",
+          "text": {
+            "pt-BR": "A página de cada município ganhou o cartão Clima: quanto o metano do Cenário Real reduziria em emissões se virasse biometano veicular, por resíduo, partindo da destinação típica de hoje.",
+            "en": "Each municipality page has a Climate card: how much the Real Scenario methane would cut in emissions as vehicle biomethane, by residue, starting from its typical destination today."
+          }
+        },
+        {
+          "kind": "changed",
+          "text": {
+            "pt-BR": "A redução de emissões deixou de entrar na receita e no payback, e o preço do crédito de carbono saiu dos ajustes. Redução só vira crédito com adicionalidade e um único instrumento por volume. Por isso o payback pode ficar um pouco mais longo.",
+            "en": "Emission reductions no longer count in revenue or payback, and the carbon credit price left the settings. A reduction becomes a credit only with additionality and a single instrument per volume. Payback may therefore be slightly longer."
+          }
+        }
+      ]
+    },
+    {
       "version": "3.6.0",
       "date": "2026-10-15T11:09:00-03:00",
       "title": {
@@ -234,7 +458,7 @@
     },
     {
       "version": "3.1.0",
-      "date": "2026-09-21T11:25:00-03:00",
+      "date": "2026-09-21T11:25:00-03:00",
       "title": {
         "pt-BR": "Camadas C:N restauradas, exportação municipal e correção de segurança",
         "en": "C:N layers restored, municipal exports, and a security fix"
