@@ -1,0 +1,56 @@
+import type { ReactNode } from 'react';
+// Text and headings use the CP2b typeface stack (Neulis Sans, then Verdana:
+// tailwind.config.js), which needs no download. Only the monospace for codes
+// and figures is bundled from npm, so the CSP's font-src 'self' still holds.
+import '@fontsource-variable/jetbrains-mono';
+
+export default function RootLayout({ children }: { children: ReactNode }) {
+  return (
+    <html suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{document.documentElement.classList.add(localStorage.getItem('pilar2b-theme')==='dark'?'dark':'light');}catch(e){}`,
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@graph': [
+                {
+                  '@type': 'Organization',
+                  '@id': 'https://cp2b.unicamp.br/pilar2b/#organization',
+                  name: 'NIPE-UNICAMP',
+                  url: 'https://cp2b.unicamp.br/pilar2b',
+                  description:
+                    'Interdisciplinary Center for Energy Planning at the University of Campinas',
+                },
+                {
+                  '@type': 'WebApplication',
+                  '@id': 'https://cp2b.unicamp.br/pilar2b/#webapp',
+                  name: 'PILAR-2b',
+                  url: 'https://cp2b.unicamp.br/pilar2b',
+                  applicationCategory: 'UtilitiesApplication',
+                  operatingSystem: 'All',
+                  provider: {
+                    '@type': 'Organization',
+                    '@id': 'https://cp2b.unicamp.br/pilar2b/#organization',
+                  },
+                  inLanguage: [
+                    { '@type': 'Language', name: 'English', alternateName: 'en' },
+                    { '@type': 'Language', name: 'Portuguese', alternateName: 'pt-BR' },
+                  ],
+                },
+              ],
+            }),
+          }}
+        />
+      </head>
+      <body className="font-sans antialiased flex flex-col min-h-screen" suppressHydrationWarning>
+        {children}
+      </body>
+    </html>
+  );
+}

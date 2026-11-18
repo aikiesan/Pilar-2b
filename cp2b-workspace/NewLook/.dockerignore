@@ -1,0 +1,81 @@
+# Build context for backend/Dockerfile is <NewLook>/, not backend/ — the image needs
+# data/canonical_parameters/, which sits outside backend/. Docker only reads the
+# .dockerignore at the CONTEXT root, so backend/.dockerignore no longer applies to
+# that build and its rules are re-homed here (paths rebased under backend/).
+#
+# Keep data/canonical_parameters/ OUT of this file: shipping it is the entire point.
+
+# Frontend — has no business in the backend image, and node_modules/.next make the
+# context enormous.
+frontend/
+
+# Shapefiles and rasters: hundreds of MB, fetched at build time by
+# backend/scripts/download-shapefiles.sh rather than copied from the host.
+backend/data/shapefiles/*
+!backend/data/shapefiles/.gitkeep
+backend/data/rasters/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
+env/
+venv/
+.venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Testing
+.pytest_cache/
+.coverage
+.tox/
+htmlcov/
+*.cover
+coverage.xml
+
+# Build
+build/
+dist/
+*.egg-info/
+*.egg
+
+# Logs
+*.log
+pip-log.txt
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Documentation (not needed in container)
+*.md
+docs/
+
+# Temporary files
+tmp/
+temp/
+*.tmp

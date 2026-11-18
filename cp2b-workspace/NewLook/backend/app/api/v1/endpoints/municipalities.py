@@ -1,0 +1,1114 @@
+"""
+Municipalities API endpoints
+Geometry and tabular data both served from local PostgreSQL / PostGIS.
+"""
+
+import json
+import logging
+import os
+import re
+from typing import Annotated, Optional
+
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
+
+from app.core.database import get_db
+from app.core.log_sanitizer import log_safe
+from app.core.response_cache import cached_json_response
+from app.middleware.auth import optional_auth
+from app.models.auth import UserProfile
+from app.services.biomass_availability import derive_biomass_with_coverage, raw_value
+from app.services.canonical_loader import (
+    biomass_tons_from_collected_waste,
+    biomass_tons_from_units,
+)
+from app.services.dossier_text import DEFAULT_LANG, Lang
+from app.services.map_metrics import compute_municipality_map_metrics
+
+logger = logging.getLogger(__name__)
+router = APIRouter()
+
+# Back-calculating biomass from legacy V2 biogas (reverse-BMP) invents tonnage for
+# streams we have no provenance for. On an availability map that is worse than an
+# honest gap — it made SP show derived numbers while the rest of Brazil showed real
+# zeros. Now defaults OFF; set BIOMASS_REVERSE_FALLBACK=true to restore the old
+# behaviour, in which case the values are tagged 'estimated', never 'measured'.
+_ALLOW_REVERSE_FALLBACK = os.getenv("BIOMASS_REVERSE_FALLBACK", "false").lower() == "true"
+
+# Public map rollout is staged by state: canonical São Paulo plus the Minas
+# Gerais pilot. Keeping this boundary server-side prevents stale clients from
+# re-exposing the retired national beta payload.
+_MAP_ENABLED_UF_PREFIXES = tuple(
+    prefix.strip()
+    for prefix in os.getenv("MAP_ENABLED_UF_PREFIXES", "35,31").split(",")
+    if re.fullmatch(r"\d{2}", prefix.strip())
+) or ("35", "31")
+
+
+# Brazil has 5,571 municipalities; a whole-list read must fit under this cap.
+_ALL_MUNICIPALITIES = 6000
+
+
+def _is_enabled_map_ibge_code(ibge_code: object) -> bool:
+    code = str(ibge_code).strip()
+    return len(code) == 7 and code[:2] in _MAP_ENABLED_UF_PREFIXES
+
+
+def _load_biomass_provenance(cursor, ibge_codes: list[str]) -> dict[str, dict[str, str]]:
+    """ibge_code -> {stream: quality} for the rows being served.
+
+    One query for the whole page rather than per-municipality: the national
+    slice is 5,571 rows, and a per-row lookup there is 5,571 round trips.
+    A stream absent from the result is no_data — that is the contract.
+    """
+    if not ibge_codes:
+        return {}
+    cursor.execute(
+        """
+        SELECT ibge_code, stream, quality
+        FROM municipality_biomass_provenance
+        WHERE ibge_code = ANY(%s)
+        """,
+        (ibge_codes,),
+    )
+    out: dict[str, dict[str, str]] = {}
+    for r in cursor.fetchall():
+        out.setdefault(str(r["ibge_code"]), {})[r["stream"]] = r["quality"]
+    return out
+
+
+# Activity counts that drive derived tonnage, keyed by (source_id, variable).
+# PPM counts animals; SNIS counts residents. The manure/waste tonnage they imply
+# is derived, not stored (see migration 025 / canonical_loader). "population" is a
+# synthetic key consumed by the urban streams, not a livestock stream itself.
+_ACTIVITY_VARIABLES = {
+    ("ibge_ppm", "bovino"): "cattle",
+    ("ibge_ppm", "suino_total"): "swine",
+    ("ibge_ppm", "galinaceos_total"): "poultry",
+    ("snis", "populacao_total"): "population",
+    # Household waste a municipality REPORTS collecting (SNIS CO111). ~5,060 of
+    # 5,571 municipalities report it, and where they do it beats modelling the
+    # tonnage from population — a measurement instead of an estimate.
+    ("snis", "rdo_coletado"): "rdo_coletado",
+}
+# Properties served only for a single municipality (fields=detail), never across
+# the whole collection. See the trim in get_municipalities_geojson for the
+# measurements that motivated this.
+_DETAIL_ONLY_KEYS = frozenset(
+    {
+        "municipality_name",  # duplicate of `name`
+        "id",
+        # population is NOT detail-only: the "Potencial per capita" thematic map
+        # (Censo 2022) normalises the choropleth by resident population, so the
+        # map itself reads it. One integer per feature — cheap. population_density
+        # / gdp / area stay detail-only (no map reads them yet).
+        "population_density",
+        "population_year",
+        "gdp_total",
+        "gdp_per_capita",
+        "gdp_year",
+        "area_km2",
+        "area_year",
+        "administrative_region",
+        "immediate_region_code",
+        "intermediate_region_code",
+        "energy_potential_mwh_year",
+        "co2_reduction_tons_year",
+        "biomass_gross_total_tons_yr",
+    }
+)
+
+# {sector}_biogas_*/{sector}_biomethane_* (the tooltip/panel breakdown) and the
+# legacy per-stream *_biogas_m3_year columns.
+_DETAIL_ONLY_RE = re.compile(
+    r"^(agricultural|livestock|urban)_(biogas|biomethane)_|^\w+_biogas_m3_year$"
+)
+
+# Cenário Real / Cenário Ideal: the CP2b method, reference scenario (migration
+# 034, view municipality_cp2b_map). Real = N4 (accessible), Ideal = N3
+# (mobilisable); the frontend joins the two in scenarioFactors.SERVED_SOURCE_TIER.
+# The columns keep the method's names, ch4_cp2b_{n3,n4}[_{residue|sector}]_m3_year,
+# so no column holds one quantity under another's name. They replaced the Atlas
+# de Bioenergia SP 2020 pair (ch4_real_*/ch4_ideal_*, migrations 026/029), which
+# stays in `municipalities` but is no longer served. The residue set has no
+# aquaculture or forestry, and sugarcane includes the surplus bagasse.
+_CP2B_TIERS = ("cp2b_n3", "cp2b_n4")
+_CP2B_RESIDUES = (
+    "sugarcane",
+    "soybean",
+    "corn",
+    "coffee",
+    "citrus",
+    "cattle",
+    "swine",
+    "poultry",
+    "rsu",
+    "rpo",
+    "sewage",
+)
+# In the map payload: what the choropleth and the residue filter paint, as CH4
+# (ch4_*) and as the method's own raw-biogas equivalents (biogas_*). Biogas is
+# served, never re-derived from CH4: its fraction differs by substrate (0.52 RSU
+# ... 0.68 sewage), so one state-wide mix would misstate every residue and
+# municipality even though the state total would still match.
+_CP2B_TOTAL_COLUMNS = tuple(f"{q}_{t}_m3_year" for q in ("ch4", "biogas") for t in _CP2B_TIERS)
+_CP2B_SHARE_COLUMNS = tuple(
+    f"{q}_{t}_{r}_m3_year" for q in ("ch4", "biogas") for t in _CP2B_TIERS for r in _CP2B_RESIDUES
+)
+_CP2B_MAP_COLUMNS = _CP2B_TOTAL_COLUMNS + _CP2B_SHARE_COLUMNS
+# Detail only (/metrics): the sector split the profile panel reads, and the
+# figure without lignocellulosic residues the method also reports.
+_CP2B_DETAIL_COLUMNS = tuple(
+    f"{q}_{t}_{s}_m3_year"
+    for q in ("ch4", "biogas")
+    for t in _CP2B_TIERS
+    for s in ("agricultural", "livestock", "urban")
+) + tuple(f"ch4_{t}_non_lignocellulosic_m3_year" for t in _CP2B_TIERS)
+_CP2B_VIEW = "municipality_cp2b_map"
+
+
+def _cp2b_properties(row) -> dict[str, float]:
+    """The CP2b feature properties for one GeoJSON row.
+
+    Cenário Real / Ideal = CP2b N4 / N3, reference scenario (migration 034). The
+    generic `if v` omission cannot tell a zero from a gap: 26 municipalities have
+    N4 = 0 with N3 > 0 (no hub reaches viable scale), and that 0 is a result, not
+    a missing reading. So totals travel whenever they are not NULL, 0 included,
+    and NULL (outside SP, or before the load) stays absent, which the map paints
+    as no data. Residue shares still drop zeros: they are read only when the
+    total is present, and an absent share there is exactly 0. None of these names
+    match _DETAIL_ONLY_RE, so they survive fields=map.
+    """
+    out = {c: row[c] for c in _CP2B_TOTAL_COLUMNS if row.get(c) is not None}
+    out.update({c: row[c] for c in _CP2B_SHARE_COLUMNS if row.get(c)})
+    return out
+
+
+def _load_cp2b_detail(cursor, ibge_code: str) -> dict[str, float | None]:
+    """CP2b N3/N4 for one municipality, or {} when the view is absent or has no row.
+
+    Absent — not zero — outside São Paulo and before migration 034 is loaded, so
+    the panel shows "no data" rather than a measured nothing.
+    """
+    if not _table_exists(cursor, _CP2B_VIEW):
+        return {}
+    cols = ", ".join((*_CP2B_MAP_COLUMNS, *_CP2B_DETAIL_COLUMNS, "cp2b_method_version"))
+    try:
+        code = int(ibge_code)
+    except (TypeError, ValueError):
+        return {}
+    cursor.execute(f"SELECT {cols} FROM {_CP2B_VIEW} WHERE ibge_code = %s", (code,))
+    row = cursor.fetchone()
+    return dict(row) if row else {}
+
+
+# Livestock streams derived from PPM head counts (per-head generation).
+_PPM_STREAMS = ("cattle", "swine", "poultry")
+# RSU has a defensible population fallback. RPO does not: SNIS CO115 combines
+# sweeping and pruning, and the corpus has no cited municipal pruning share.
+_URBAN_STREAMS = ("rsu",)
+
+
+def _load_activity_counts(cursor, ibge_codes: list[str]) -> dict[str, dict[str, float]]:
+    """ibge_code -> {stream|'population': count} from the latest year of each source.
+
+    One batched query for the page, like _load_biomass_provenance. Counts are
+    converted to tonnes at read time via the canonical generation factor — the
+    `municipalities` columns cannot be used: the livestock ones hold these same
+    head counts mislabelled as tonnes, and population is NULL nationally.
+    """
+    if not ibge_codes:
+        return {}
+    # Variable names are unique across the two sources, so filtering on variable
+    # alone is unambiguous and avoids a fragile composite-tuple ANY().
+    by_variable = {var: key for (_src, var), key in _ACTIVITY_VARIABLES.items()}
+    # Latest FINAL year: IBGE's preliminary year (quality 'preliminary', migration
+    # 037) is in the series but must not move the map's headline until it is final.
+    cursor.execute(
+        """
+        SELECT DISTINCT ON (ibge_code, variable)
+               ibge_code, variable, value
+        FROM municipality_timeseries
+        WHERE variable = ANY(%s)
+          AND ibge_code = ANY(%s)
+          AND quality <> 'preliminary'
+        ORDER BY ibge_code, variable, year DESC
+        """,
+        (list(by_variable), ibge_codes),
+    )
+    out: dict[str, dict[str, float]] = {}
+    for r in cursor.fetchall():
+        key = by_variable[r["variable"]]
+        if r["value"] is not None:
+            out.setdefault(str(r["ibge_code"]), {})[key] = float(r["value"])
+    return out
+
+
+def _derive_activity_biomass(
+    *,
+    head: dict[str, float],
+    population: float | None,
+    collected_waste: float | None = None,
+) -> tuple[dict[str, float], dict[str, str]]:
+    """Livestock/urban tonnage + provenance from activity counts.
+
+    Livestock manure = head x generation, always modelled ('estimated') — IBGE
+    counts animals, not manure.
+
+    Urban waste prefers MEASUREMENT over modelling:
+      * rsu, where SNIS reports collected household waste (CO111) -> that tonnage
+        x the canonical organic fraction, tagged 'measured'. ~5,060 municipalities.
+      * rsu elsewhere, and rpo always -> population x per-capita generation,
+        tagged 'estimated'.
+
+    rpo (urban pruning) stays modelled even where SNIS reports public-cleaning
+    waste (CO115): RPU bundles street sweeping with pruning and there is no cited
+    factor for the pruning share of it. Inventing one to reach a 'measured' tag
+    would be worse than an honest estimate — the per-capita figure is at least
+    grounded in ABRELPE's 3-5%-of-RSU characterization.
+
+    Returns the 'medio' scenario for the displayed value. A stream with no
+    activity data is simply absent -> no_data.
+    """
+    tons: dict[str, float] = {}
+    prov: dict[str, str] = {}
+    for stream, count in head.items():
+        tons[stream] = biomass_tons_from_units(stream, count).medio
+        prov[stream] = "estimated"
+
+    if collected_waste is not None and collected_waste > 0:
+        tons["rsu"] = biomass_tons_from_collected_waste("rsu", collected_waste).medio
+        prov["rsu"] = "measured"
+
+    if population is not None and population > 0:
+        for stream in _URBAN_STREAMS:
+            if stream in tons:
+                continue  # a measured value already won
+            tons[stream] = biomass_tons_from_units(stream, population).medio
+            prov[stream] = "estimated"
+    return tons, prov
+
+
+def _table_exists(cursor, table_name: str, schema: str = "public") -> bool:
+    cursor.execute(
+        """
+        SELECT 1 FROM information_schema.tables
+        WHERE table_schema = %s AND table_name = %s
+        LIMIT 1
+        """,
+        (schema, table_name),
+    )
+    return cursor.fetchone() is not None
+
+
+# detail level -> (geometry column, ST_AsGeoJSON precision). Mirrors the
+# geospatial.py endpoint so the two never drift. The LOD columns come from
+# migration 022 and are pre-simplified with ST_SimplifyPreserveTopology, which
+# — unlike the ST_Simplify this used to call inline — cannot self-intersect or
+# collapse small municipalities (52 polygons self-intersected at national scale
+# under the old ST_Simplify(geometry, 0.001)).
+_GEOM_LOD = {
+    "overview": ("geometry_overview", 4),  # ~2.2 km, ~1.9 MB nationally
+    "detail": ("geometry_detail", 5),  # ~550 m,  ~6.7 MB nationally
+    "full": ("geometry", 9),  # unsimplified; pair with a limit
+}
+
+
+def _geojson_select_sql(
+    include_municipality_summary: bool,
+    geom_column: str,
+    geom_precision: int,
+    has_limit: bool,
+    include_cp2b: bool = False,
+) -> str:
+    """Build SELECT for GeoJSON rows; omit a JOIN whose table is not deployed."""
+    cluster_cols = (
+        "ms.cluster_id, ms.cluster_label,\n"
+        "                    ms.mun_total_gwh, ms.mun_n_streams, ms.mun_dominant_stream"
+        if include_municipality_summary
+        else (
+            "NULL::integer AS cluster_id, NULL::text AS cluster_label,\n"
+            "                    NULL::double precision AS mun_total_gwh, "
+            "NULL::integer AS mun_n_streams, NULL::text AS mun_dominant_stream"
+        )
+    )
+    join = (
+        "\n                LEFT JOIN municipality_summary ms ON m.ibge_code::integer = ms.ibge_code"
+        if include_municipality_summary
+        else ""
+    )
+    # Real/Ideal = CP2b N4/N3 (migration 034). Without the view the columns are
+    # NULL, so the properties are omitted and the map paints NO_DATA — never zero.
+    cp2b_cols = ",\n                    ".join(
+        f"cp.{c}" if include_cp2b else f"NULL::double precision AS {c}" for c in _CP2B_MAP_COLUMNS
+    )
+    if include_cp2b:
+        join += (
+            f"\n                LEFT JOIN {_CP2B_VIEW} cp ON cp.ibge_code = m.ibge_code::integer"
+        )
+    limit_clause = "LIMIT %s" if has_limit else ""
+    return f"""
+                SELECT
+                    m.ibge_code, m.municipality_name, m.id,
+                    ST_AsGeoJSON(
+                        COALESCE(
+                            m.{geom_column},
+                            m.geometry,
+                            ST_Buffer(m.centroid::geography, 5000)::geometry
+                        ),
+                        {geom_precision}
+                    ) AS geojson,
+                    m.total_biogas_m3_year, m.urban_biogas_m3_year,
+                    m.agricultural_biogas_m3_year, m.livestock_biogas_m3_year,
+                    m.energy_potential_mwh_year, m.co2_reduction_tons_year,
+                    m.population, m.area_km2, m.population_density,
+                    m.population_year, m.area_year,
+                    m.gdp_total, m.gdp_per_capita, m.gdp_year,
+                    m.administrative_region, m.immediate_region, m.intermediate_region,
+                    m.immediate_region_code, m.intermediate_region_code,
+                    m.sugarcane_biogas_m3_year, m.soybean_biogas_m3_year,
+                    m.corn_biogas_m3_year, m.coffee_biogas_m3_year, m.citrus_biogas_m3_year,
+                    m.cattle_biogas_m3_year, m.swine_biogas_m3_year, m.poultry_biogas_m3_year,
+                    m.aquaculture_biogas_m3_year, m.rsu_biogas_m3_year, m.rpo_biogas_m3_year,
+                    m.total_biomass_tons_year, m.agricultural_biomass_tons_year,
+                    m.livestock_biomass_tons_year, m.urban_biomass_tons_year,
+                    m.sugarcane_biomass_tons_year, m.soybean_biomass_tons_year,
+                    m.corn_biomass_tons_year, m.coffee_biomass_tons_year,
+                    m.citrus_biomass_tons_year,
+                    m.cattle_biomass_tons_year, m.swine_biomass_tons_year,
+                    m.poultry_biomass_tons_year,
+                    m.aquaculture_biomass_tons_year, m.rsu_biomass_tons_year,
+                    m.rpo_biomass_tons_year,
+                    {cp2b_cols},
+                    {cluster_cols}
+                FROM municipalities m{join}
+                WHERE m.geometry IS NOT NULL
+                  AND LEFT(m.ibge_code::text, 2) = ANY(%s)
+                ORDER BY m.total_biogas_m3_year DESC NULLS LAST
+                {limit_clause}
+                """
+
+
+def _cat(total_biogas: float) -> str:
+    if total_biogas > 100_000_000:
+        return "ALTO"
+    if total_biogas > 10_000_000:
+        return "MEDIO"
+    if total_biogas > 0:
+        return "BAIXO"
+    return "SEM DADOS"
+
+
+def _build_municipalities_geojson(limit: Optional[int], detail: str, fields: str) -> dict:
+    """Monta a FeatureCollection a partir do PostGIS. CARO — ver a rota abaixo.
+
+    Extraído da rota para que o cache possa decidir se paga este custo. Nada
+    aqui é assíncrono (psycopg2 é síncrono), então continua sendo uma função
+    comum, chamada de dentro do cache.
+    """
+    geom_column, geom_precision = _GEOM_LOD[detail]
+    try:
+        with get_db() as conn:
+            cursor = conn.cursor()
+            has_summary = _table_exists(cursor, "municipality_summary")
+            if not has_summary:
+                logger.warning(
+                    "municipality_summary missing — GeoJSON served without cluster columns "
+                    "(apply backend/migrations/013_cp2b_municipality_summary.sql)."
+                )
+            has_cp2b = _table_exists(cursor, _CP2B_VIEW)
+            sql = _geojson_select_sql(
+                has_summary,
+                geom_column,
+                geom_precision,
+                has_limit=limit is not None,
+                include_cp2b=has_cp2b,
+            )
+            params: tuple = (list(_MAP_ENABLED_UF_PREFIXES),)
+            if limit is not None:
+                params += (limit,)
+            cursor.execute(sql, params)
+            rows = cursor.fetchall()
+            page_ibge = [str(r["ibge_code"]) for r in rows]
+            has_provenance = _table_exists(cursor, "municipality_biomass_provenance")
+            provenance = _load_biomass_provenance(cursor, page_ibge) if has_provenance else {}
+            has_timeseries = _table_exists(cursor, "municipality_timeseries")
+            activity_counts = _load_activity_counts(cursor, page_ibge) if has_timeseries else {}
+            cursor.close()
+    except Exception as e:
+        logger.error(f"Error fetching municipalities GeoJSON: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch municipalities")
+
+    if not has_provenance:
+        logger.error(
+            "municipality_biomass_provenance missing — biomass coverage cannot be "
+            "determined, so every municipality is served as no_data. Apply "
+            "backend/app/migrations/025_biomass_provenance.sql."
+        )
+
+    def _f(row, key, default=0):
+        v = row.get(key)
+        return v if v is not None else default
+
+    features = []
+    # A systemic cause (e.g. feedstocks.yaml not reachable) fails on every row, so
+    # logging per-municipality buries the signal under thousands of identical lines.
+    # Count them and report once below.
+    canonical_failures = 0
+    first_canonical_error: Optional[str] = None
+    for row in rows:
+        ibge_code = str(_f(row, "ibge_code", ""))
+        tb = float(_f(row, "total_biogas_m3_year"))
+        # Livestock and urban tonnage are DERIVED, not stored: PPM head counts and
+        # resident population times a canonical generation factor. This is what the
+        # map was missing — it read head counts straight from the *_biomass columns
+        # as though they were tonnes (205M birds -> 205M t; real 9.3M). Agricultural
+        # tonnage still comes from the row's columns inside the helper.
+        activity = activity_counts.get(ibge_code, {})
+        derived_tons, derived_prov = _derive_activity_biomass(
+            head={s: activity[s] for s in _PPM_STREAMS if s in activity},
+            population=activity.get("population") or raw_value(row.get("population")),
+            collected_waste=activity.get("rdo_coletado"),
+        )
+        # provenance: agricultural (measured, from the DB table) + livestock/urban
+        # (estimated, synthesised here from activity data). Coverage never comes
+        # from the stored value — outside SP every column holds a seeded 0 that
+        # means "never loaded", indistinguishable from a real zero. See migration 025.
+        row_provenance = {**provenance.get(ibge_code, {}), **derived_prov}
+        biomass_fields = derive_biomass_with_coverage(
+            row,
+            provenance=row_provenance,
+            derived_tons=derived_tons,
+            allow_reverse_fallback=_ALLOW_REVERSE_FALLBACK,
+        )
+        try:
+            canonical_metrics = compute_municipality_map_metrics(
+                row, ibge_code=ibge_code, derived_tons=derived_tons
+            ).to_flat_dict()
+        except Exception as exc:
+            canonical_failures += 1
+            if first_canonical_error is None:
+                first_canonical_error = f"{ibge_code}: {exc}"
+            canonical_metrics = {}
+        # Identity, geography, and cluster context: always present. Small, and
+        # either non-zero or semantically meaningful when zero (a cluster_id of 0
+        # is a real cluster), so these are never trimmed.
+        properties = {
+            "ibge_code": ibge_code,
+            "name": _f(row, "municipality_name", "Unknown"),
+            "id": _f(row, "id"),
+            "municipality_name": _f(row, "municipality_name"),
+            "area_km2": _f(row, "area_km2"),
+            "population_year": _f(row, "population_year"),
+            "area_year": _f(row, "area_year"),
+            "administrative_region": _f(row, "administrative_region", ""),
+            "immediate_region": _f(row, "immediate_region", ""),
+            "intermediate_region": _f(row, "intermediate_region", ""),
+            "immediate_region_code": _f(row, "immediate_region_code", ""),
+            "intermediate_region_code": _f(row, "intermediate_region_code", ""),
+            "potential_category": _cat(tb),
+        }
+
+        # Cluster context exists only for SP (LEFT JOIN on municipality_summary);
+        # it is NULL for the 4,926 non-SP rows. Drop the NULLs — but keep a real
+        # cluster_id of 0, which is a valid cluster, not missing data.
+        cluster_fields = {
+            "cluster_id": row.get("cluster_id"),
+            "cluster_label": row.get("cluster_label"),
+            "mun_total_GWh": row.get("mun_total_gwh"),
+            "mun_n_streams": row.get("mun_n_streams"),
+            "mun_dominant_stream": row.get("mun_dominant_stream"),
+        }
+        properties.update({k: v for k, v in cluster_fields.items() if v is not None})
+
+        # Numeric metric fields: OMITTED when zero/None. At 5,571 municipalities,
+        # 65% of these entries are zero (only SP's 645 rows carry biogas data yet),
+        # which was ~5.8 MB of "field":0 pairs per national response. Every frontend
+        # reader accesses these as `Number(props[key]) || 0` (verified in
+        # MunicipalityLayer.getBiogasValue and the dashboard/municipality pages),
+        # so an absent key is read as exactly 0 — same value, far less payload.
+        metric_fields = {
+            "population": _f(row, "population"),
+            "population_density": _f(row, "population_density"),
+            "gdp_total": _f(row, "gdp_total"),
+            "gdp_per_capita": _f(row, "gdp_per_capita"),
+            "gdp_year": _f(row, "gdp_year"),
+            "total_biogas_m3_year": tb,
+            "agricultural_biogas_m3_year": _f(row, "agricultural_biogas_m3_year"),
+            "livestock_biogas_m3_year": _f(row, "livestock_biogas_m3_year"),
+            "urban_biogas_m3_year": _f(row, "urban_biogas_m3_year"),
+            "energy_potential_mwh_year": _f(row, "energy_potential_mwh_year"),
+            "co2_reduction_tons_year": _f(row, "co2_reduction_tons_year"),
+            "sugarcane_biogas_m3_year": _f(row, "sugarcane_biogas_m3_year"),
+            "soybean_biogas_m3_year": _f(row, "soybean_biogas_m3_year"),
+            "corn_biogas_m3_year": _f(row, "corn_biogas_m3_year"),
+            "coffee_biogas_m3_year": _f(row, "coffee_biogas_m3_year"),
+            "citrus_biogas_m3_year": _f(row, "citrus_biogas_m3_year"),
+            "cattle_biogas_m3_year": _f(row, "cattle_biogas_m3_year"),
+            "swine_biogas_m3_year": _f(row, "swine_biogas_m3_year"),
+            "poultry_biogas_m3_year": _f(row, "poultry_biogas_m3_year"),
+            "aquaculture_biogas_m3_year": _f(row, "aquaculture_biogas_m3_year"),
+            "rsu_biogas_m3_year": _f(row, "rsu_biogas_m3_year"),
+            "rpo_biogas_m3_year": _f(row, "rpo_biogas_m3_year"),
+            **canonical_metrics,
+        }
+        properties.update({k: v for k, v in metric_fields.items() if v})
+
+        # Real/Ideal (CP2b N4/N3): zeros kept, NULL absent — see _cp2b_properties.
+        properties.update(_cp2b_properties(row))
+
+        # ── Trim to what the choropleth actually paints (fields=map, default) ────
+        #
+        # Measured on the national payload: 106 keys × 5,571 features is 15.05 MB of
+        # repeated KEY NAMES against 4.13 MB of actual values, and 590k property
+        # slots for the browser to allocate. Gzip hides most of the bytes, but not
+        # the parse and memory cost — that is what makes pan and zoom sluggish.
+        #
+        # These groups are read only when a single municipality is opened (hover
+        # tooltip, click popup, profile panel), so they are served per-municipality
+        # from /municipalities/{id}/metrics instead of 5,571 times up front:
+        #   * {sector}_biogas/_biomethane bands — 6.18 MB, 35% of the payload
+        #   * demographics (population, gdp, area, density)
+        #   * the legacy *_biogas_m3_year columns, which nothing on the map reads
+        #   * municipality_name, a byte-for-byte duplicate of name
+        #
+        # Everything the map itself needs stays: per-residue tonnage and coverage
+        # (residue filtering), sector tonnage (biomass-type switching), the four
+        # metric scenario bands, and cluster context.
+        if fields == "map":
+            properties = {
+                k: v
+                for k, v in properties.items()
+                if k not in _DETAIL_ONLY_KEYS and not _DETAIL_ONLY_RE.match(k)
+            }
+
+        # Biomass is emitted WHOLE — nulls and zeros included — and must never go
+        # through the `if v` omission above. That optimisation is correct for biogas,
+        # where the frontend's `Number(props[key]) || 0` reads an absent key as 0 and
+        # 0 is what was meant. Biomass now distinguishes 0.0 ("we looked; there is
+        # none") from null ("we never loaded this municipality"), and omitting either
+        # collapses them straight back into the 0 that made a 77% data gap render as
+        # a finding about Brazilian agriculture. Explicit costs bytes; implicit costs
+        # correctness, and silently — any consumer that missed the memo defaults to
+        # the wrong reading. See migration 025.
+        properties.update(biomass_fields)
+
+        features.append(
+            {
+                "type": "Feature",
+                "geometry": json.loads(row["geojson"]),
+                "properties": properties,
+            }
+        )
+
+    if canonical_failures:
+        logger.error(
+            "canonical metrics failed for %d/%d municipalities (first: %s). Responses are "
+            "missing their biomass_/biogas_/biomethane_ properties; check GET /health for "
+            "canonical_parameters status.",
+            canonical_failures,
+            len(rows),
+            first_canonical_error,
+        )
+
+    logger.info(f"Returning {len(features)} municipalities from PostGIS")
+    return {
+        "type": "FeatureCollection",
+        "features": features,
+        "metadata": {
+            "total_municipalities": len(features),
+            "source_geometry": "PostGIS municipalities.geometry",
+            "source_biogas_data": "PostGIS municipalities table (legacy V2 import)",
+            "source_biomass_data": (
+                "Stored biomass columns (agricultural: authoritative from master CSV)"
+            ),
+            "canonical_metrics": (
+                "Properties prefixed biomass_gross_, biomass_corrected_, biogas_ch4_, biomethane_ "
+                "are canonical forward-calculated 4-metric × 3-scenario values. "
+                "Agricultural streams use authoritative biomass tonnage. "
+                "Livestock/urban streams without stored biomass use legacy biogas "
+                "with ±FDE envelope."
+            ),
+        },
+    }
+
+
+@router.get("/geojson")
+async def get_municipalities_geojson(
+    request: Request,
+    limit: Optional[int] = Query(
+        default=None,
+        ge=1,
+        le=6000,
+        description="Max features. Default None serves all 5,571 (the old le=1000 "
+        "cap silently truncated the national dataset to the first 1,000).",
+    ),
+    detail: str = Query(
+        "overview",
+        pattern="^(overview|detail|full)$",
+        description="Geometry level of detail (migration 022). 'overview' ~2.2 km "
+        "(default, national choropleth); 'detail' ~550 m; 'full' unsimplified "
+        "(pair with limit — 471 MB exceeds PostgreSQL's jsonb ceiling nationally).",
+    ),
+    fields: str = Query(
+        "map",
+        pattern="^(map|full)$",
+        description="Property set. 'map' (default) carries only what the choropleth "
+        "paints — per-residue tonnage and coverage, sector tonnage, the four metric "
+        "scenario bands, cluster context. 'full' adds the per-municipality detail "
+        "(sector biogas/biomethane breakdown, demographics, legacy columns) that the "
+        "tooltip and panel need; those are better fetched per municipality from "
+        "/municipalities/{id}/metrics than 5,571 times up front.",
+    ),
+    current_user: Optional[UserProfile] = Depends(optional_auth),
+):
+    """A rota mais cara da plataforma, e a que mais se repete.
+
+    Medido na VM antes do cache: 4,1 s com um usuário, 49,8 s com 25, vazão
+    saturando em ~2,5 req/s — 1.770 KB reconstruídos do zero a cada visita,
+    idênticos entre uma e outra. O cache guarda os bytes já serializados e
+    responde 304 a quem já os tem. Ver app/core/response_cache.py.
+
+    A chave inclui os três parâmetros que mudam o corpo. Esquecer um faria dois
+    pedidos diferentes compartilharem bytes — o modo silencioso de um cache
+    errar, e a razão de a chave ser montada aqui e não dentro do cache.
+    """
+    enabled_ufs = ",".join(_MAP_ENABLED_UF_PREFIXES)
+    key = (
+        f"municipalities:geojson:ufs={enabled_ufs}:limit={limit}:"
+        f"detail={detail}:fields={fields}"
+    )
+    return cached_json_response(
+        request,
+        key,
+        lambda: _build_municipalities_geojson(limit, detail, fields),
+    )
+
+
+@router.get("/test-geometry")
+async def test_geometry():
+    """Sanity-check that PostGIS geometry is populated."""
+    try:
+        with get_db() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT COUNT(*) AS total,
+                       COUNT(geometry) AS with_geometry,
+                       ST_AsGeoJSON(ST_Envelope(ST_Collect(geometry))) AS bbox
+                FROM municipalities
+                """)
+            row = cursor.fetchone()
+            cursor.close()
+        return {
+            "total_rows": int(row["total"] or 0),
+            "with_geometry": int(row["with_geometry"] or 0),
+            "bounding_box": json.loads(row["bbox"]) if row["bbox"] else None,
+        }
+    except Exception as e:
+        logger.error("Error in municipalities stats: %s", e, exc_info=True)
+        return {"error": "Internal server error"}
+
+
+@router.get("/stats/summary")
+async def get_municipalities_stats():
+    try:
+        with get_db() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT COUNT(*) AS total,
+                       COALESCE(SUM(population), 0) AS total_population,
+                       COALESCE(SUM(area_km2), 0) AS total_area,
+                       COALESCE(SUM(total_biogas_m3_year), 0) AS total_biogas
+                FROM municipalities
+            """)
+            row = cursor.fetchone()
+            cursor.close()
+        return {
+            "total_municipalities": int(row["total"] or 0),
+            "total_population": int(row["total_population"] or 0),
+            "total_area_km2": round(float(row["total_area"] or 0), 2),
+            "total_biogas_m3_year": round(float(row["total_biogas"] or 0), 2),
+        }
+    except Exception as e:
+        logger.error(f"Error calculating stats: {e}")
+        raise HTTPException(status_code=500, detail="Error calculating stats")
+
+
+@router.get("/")
+async def get_municipalities(
+    limit: int = Query(default=100, le=1000),
+    offset: int = Query(default=0, ge=0),
+    search: Optional[str] = Query(default=None),
+):
+    try:
+        with get_db() as conn:
+            cursor = conn.cursor()
+            if search:
+                cursor.execute(
+                    "SELECT * FROM municipalities WHERE municipality_name ILIKE %s "
+                    "LIMIT %s OFFSET %s",
+                    [f"%{search}%", limit, offset],
+                )
+            else:
+                cursor.execute("SELECT * FROM municipalities LIMIT %s OFFSET %s", [limit, offset])
+            data = [dict(r) for r in cursor.fetchall()]
+
+            cursor.execute(
+                "SELECT COUNT(*) AS total FROM municipalities"
+                + (" WHERE municipality_name ILIKE %s" if search else ""),
+                [f"%{search}%"] if search else [],
+            )
+            total = cursor.fetchone()["total"]
+            cursor.close()
+
+        return {
+            "data": data,
+            "total": total,
+            "limit": limit,
+            "offset": offset,
+            "has_more": offset + limit < total,
+        }
+    except Exception as e:
+        logger.error(f"Error fetching municipalities: {e}")
+        raise HTTPException(status_code=500, detail="Error fetching municipalities")
+
+
+@router.get("/names")
+async def get_municipality_names(
+    limit: int = Query(default=1000, le=_ALL_MUNICIPALITIES),
+):
+    """Lightweight list for typeahead — returns only id, name, ibge_code, no geometry.
+
+    The frontend's /municipalities index and its readable addresses
+    (/municipalities/campinas-sp) read the whole list, so the cap lets every
+    municipality through; the default stays at 1000 for the typeahead.
+    """
+    try:
+        with get_db() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                SELECT id, municipality_name, ibge_code
+                FROM municipalities
+                ORDER BY municipality_name
+                LIMIT %s
+                """,
+                (limit,),
+            )
+            data = [dict(r) for r in cursor.fetchall()]
+            cursor.close()
+        return {"data": data}
+    except Exception as e:
+        logger.error(f"Error fetching municipality names: {e}")
+        raise HTTPException(status_code=500, detail="Database error")
+
+
+@router.get("/{ibge_code}/metrics")
+async def get_municipality_metrics(ibge_code: str):
+    """Full computed properties for ONE municipality — the detail the collection omits.
+
+    The choropleth payload carries only what it paints (`fields=map`). Everything
+    the hover tooltip and profile panel additionally show — the sector
+    biogas/biomethane breakdown, demographics, legacy columns — is served here,
+    one municipality at a time, instead of 5,571 times up front. That trade is
+    worth roughly 6.2 MB and ~340k property slots on the initial load.
+
+    Deliberately reuses the same derivation the collection uses (provenance,
+    activity-count conversion, canonical metrics) rather than re-deriving: the
+    tooltip and the polygon under it must never disagree about a municipality.
+    """
+    try:
+        with get_db() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM municipalities WHERE ibge_code = %s", (ibge_code,))
+            row = cursor.fetchone()
+            if not row:
+                cursor.close()
+                raise HTTPException(status_code=404, detail=f"Municipality {ibge_code} not found")
+
+            has_provenance = _table_exists(cursor, "municipality_biomass_provenance")
+            provenance = (
+                _load_biomass_provenance(cursor, [ibge_code]).get(ibge_code, {})
+                if has_provenance
+                else {}
+            )
+            has_timeseries = _table_exists(cursor, "municipality_timeseries")
+            activity = (
+                _load_activity_counts(cursor, [ibge_code]).get(ibge_code, {})
+                if has_timeseries
+                else {}
+            )
+            cp2b = _load_cp2b_detail(cursor, ibge_code)
+            cursor.close()
+
+        derived_tons, derived_prov = _derive_activity_biomass(
+            head={s: activity[s] for s in _PPM_STREAMS if s in activity},
+            population=activity.get("population") or raw_value(row.get("population")),
+            collected_waste=activity.get("rdo_coletado"),
+        )
+        biomass_fields = derive_biomass_with_coverage(
+            row,
+            provenance={**provenance, **derived_prov},
+            derived_tons=derived_tons,
+            allow_reverse_fallback=_ALLOW_REVERSE_FALLBACK,
+        )
+        try:
+            canonical = compute_municipality_map_metrics(
+                row, ibge_code=ibge_code, derived_tons=derived_tons
+            ).to_flat_dict()
+        except Exception as exc:
+            logger.error("canonical metrics failed for %s: %s", log_safe(ibge_code, 50), exc)
+            canonical = {}
+
+        return {
+            "ibge_code": ibge_code,
+            "name": row.get("municipality_name"),
+            "uf": row.get("uf"),
+            "population": row.get("population"),
+            "population_density": row.get("population_density"),
+            "population_year": row.get("population_year"),
+            "area_km2": row.get("area_km2"),
+            "area_year": row.get("area_year"),
+            "gdp_total": row.get("gdp_total"),
+            "gdp_per_capita": row.get("gdp_per_capita"),
+            "gdp_year": row.get("gdp_year"),
+            "immediate_region": row.get("immediate_region"),
+            "intermediate_region": row.get("intermediate_region"),
+            **biomass_fields,
+            **canonical,
+            **cp2b,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching municipality metrics: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch municipality metrics")
+
+
+# ─── Profile context ──────────────────────────────────────────────────────────
+#
+# What the municipality page shows around its own figures: where it stands in
+# its state on CP2b N4 (Cenário Real), the municipalities that border it, and its
+# centroid for the Proximidade link. Read from the same view the map paints, so
+# the rank can never disagree with the choropleth.
+
+# Borders in the simplified polygons can leave slivers: two municipalities that
+# share a boundary may sit a few metres apart. ~50 m in degrees (SRID 4326).
+_NEIGHBOUR_TOLERANCE_DEG = 0.0005
+
+_CONTEXT_BASE_SQL = """
+    SELECT ibge_code, municipality_name, centroid_lat, centroid_lng
+    FROM municipalities WHERE ibge_code = %s
+"""
+
+_NEIGHBOURS_SQL = """
+    SELECT n.ibge_code, n.municipality_name
+    FROM municipalities m
+    JOIN municipalities n
+      ON n.ibge_code <> m.ibge_code
+     AND n.geometry IS NOT NULL
+     AND ST_DWithin(n.geometry, m.geometry, %s)
+    WHERE m.ibge_code = %s AND m.geometry IS NOT NULL
+    ORDER BY n.municipality_name
+"""
+
+# Ranked within the state (first two IBGE digits) among municipalities with a
+# served N4, 0 included: a modelled zero is a result and ranks last; NULL is no
+# data and does not rank.
+_RANK_SQL = f"""
+    SELECT position, of_total FROM (
+        SELECT ibge_code,
+               rank() OVER (ORDER BY ch4_cp2b_n4_m3_year DESC) AS position,
+               count(*) OVER () AS of_total
+        FROM {_CP2B_VIEW}
+        WHERE ch4_cp2b_n4_m3_year IS NOT NULL AND ibge_code / 100000 = %s
+    ) ranked
+    WHERE ibge_code = %s
+"""
+
+_N4_BY_CODE_SQL = f"""
+    SELECT ibge_code, ch4_cp2b_n4_m3_year FROM {_CP2B_VIEW} WHERE ibge_code = ANY(%s)
+"""
+
+
+def _float_or_none(value) -> float | None:
+    return None if value is None else float(value)
+
+
+def build_context(
+    ibge_code: str,
+    base: dict,
+    rank: dict | None,
+    neighbours: list,
+    n4_by_code: dict[str, float | None],
+) -> dict:
+    """Pure: the queried rows → the /context payload.
+
+    A neighbour outside the CP2b view (another state, or before the load) has
+    `ch4_cp2b_n4_m3_year: None`: no data, never 0.
+    """
+    lat, lng = base.get("centroid_lat"), base.get("centroid_lng")
+    return {
+        "ibge_code": ibge_code,
+        "centroid": (
+            {"lat": float(lat), "lng": float(lng)} if lat is not None and lng is not None else None
+        ),
+        "rank_in_state": (
+            {"position": int(rank["position"]), "of": int(rank["of_total"]), "level": "n4"}
+            if rank
+            else None
+        ),
+        "neighbours": [
+            {
+                "ibge_code": str(n["ibge_code"]),
+                "name": n["municipality_name"],
+                "ch4_cp2b_n4_m3_year": n4_by_code.get(str(n["ibge_code"])),
+            }
+            for n in neighbours
+        ],
+    }
+
+
+@router.get("/{ibge_code}/context")
+async def get_municipality_context(ibge_code: str):
+    """State rank on CP2b N4, bordering municipalities and centroid for one municipality."""
+    if not (ibge_code.isdigit() and len(ibge_code) == 7):
+        raise HTTPException(status_code=422, detail="ibge_code must be 7 digits")
+    try:
+        with get_db() as conn:
+            cursor = conn.cursor()
+            try:
+                cursor.execute(_CONTEXT_BASE_SQL, (ibge_code,))
+                base = cursor.fetchone()
+                if not base:
+                    raise HTTPException(
+                        status_code=404, detail=f"Municipality {ibge_code} not found"
+                    )
+                cursor.execute(_NEIGHBOURS_SQL, (_NEIGHBOUR_TOLERANCE_DEG, ibge_code))
+                neighbours = cursor.fetchall()
+                rank = None
+                n4_by_code: dict[str, float | None] = {}
+                if _table_exists(cursor, _CP2B_VIEW):
+                    code = int(ibge_code)
+                    cursor.execute(_RANK_SQL, (code // 100000, code))
+                    rank = cursor.fetchone()
+                    if neighbours:
+                        cursor.execute(
+                            _N4_BY_CODE_SQL, ([int(n["ibge_code"]) for n in neighbours],)
+                        )
+                        n4_by_code = {
+                            str(r["ibge_code"]): _float_or_none(r["ch4_cp2b_n4_m3_year"])
+                            for r in cursor.fetchall()
+                        }
+            finally:
+                cursor.close()
+        return build_context(ibge_code, dict(base), rank, neighbours, n4_by_code)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Error fetching municipality context %s: %s", log_safe(ibge_code, 50), e)
+        raise HTTPException(status_code=500, detail="Failed to fetch municipality context")
+
+
+@router.get("/{municipality_id}")
+async def get_municipality(municipality_id: str):
+    try:
+        with get_db() as conn:
+            cursor = conn.cursor()
+            try:
+                cursor.execute("SELECT * FROM municipalities WHERE id = %s", [int(municipality_id)])
+            except ValueError:
+                cursor.execute(
+                    "SELECT * FROM municipalities WHERE ibge_code = %s", [municipality_id]
+                )
+            row = cursor.fetchone()
+            cursor.close()
+
+        if not row:
+            raise HTTPException(status_code=404, detail=f"Municipality {municipality_id} not found")
+        return dict(row)
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching municipality: {e}")
+        raise HTTPException(status_code=500, detail="Error fetching municipality")
+
+
+# ─── Dossier downloads ────────────────────────────────────────────────────────
+#
+# The workbook and the PDF report were built in #219 but never exposed: only
+# `python -m scripts.export_municipality_dossier` could produce them. These two
+# routes put them behind the download buttons on the municipality profile page.
+#
+# Both are declared with `def`, not `async def`, on purpose. build_workbook and
+# build_pdf are CPU-bound (pandas + openpyxl styling, reportlab laying out a
+# vector locator map) and take hundreds of milliseconds; on an async route they
+# would block the event loop for every other request. A sync route runs in
+# FastAPI's threadpool instead.
+
+
+def _dossier(ibge_code: str, want_pdf: bool, lang: Lang = DEFAULT_LANG) -> tuple[bytes, str]:
+    """Gather one municipality and render it, returning (payload, filename).
+
+    Goes through app.services.municipality_dossier — the same gatherer the CLI
+    exporter uses — so a file downloaded here and one produced on the command
+    line cannot drift apart.
+    """
+    if not re.fullmatch(r"\d{7}", ibge_code):
+        raise HTTPException(status_code=400, detail="ibge_code must be 7 digits")
+
+    from app.services.municipality_dossier import collect, geojson, identity, state_outline
+    from app.services.municipality_exports import ascii_slug, build_pdf, build_workbook
+
+    with get_db() as conn:
+        who = identity(conn, ibge_code)
+        if who is None:
+            raise HTTPException(
+                status_code=404, detail=f"no municipality with ibge_code {ibge_code}"
+            )
+        sections = collect(conn, ibge_code)
+        # Geometry is only read for the PDF: the workbook has no locator map,
+        # and the detail geometry is the expensive part of this query.
+        shape = geojson(conn, ibge_code, "detail") if want_pdf else None
+        outline = state_outline(conn, who["uf"]) if want_pdf else None
+
+    stem = f"{ibge_code}_{ascii_slug(who['municipality_name'])}"
+    if want_pdf:
+        return build_pdf(sections, who, shape, outline, lang), f"{stem}.pdf"
+    return build_workbook(sections, who, lang), f"{stem}.xlsx"
+
+
+def _attachment(payload: bytes, filename: str, media_type: str) -> Response:
+    return Response(
+        content=payload,
+        media_type=media_type,
+        headers={
+            # ascii_slug already strips accents, so the plain filename is safe
+            # to send unencoded and needs no RFC 5987 filename* fallback.
+            "Content-Disposition": f'attachment; filename="{filename}"',
+            "Content-Length": str(len(payload)),
+        },
+    )
+
+
+# The language of the download: the profile page passes its own locale, so an
+# English reader gets an English workbook and report.
+DossierLang = Annotated[Lang, Query(description="Report language: pt-BR (default) or en")]
+
+
+@router.get("/{ibge_code}/dossie.xlsx", tags=["exports"])
+def download_municipality_workbook(ibge_code: str, lang: DossierLang = DEFAULT_LANG) -> Response:
+    """Curated six-sheet workbook — summary, sectors, residues, series, infrastructure, sources."""
+    payload, filename = _dossier(ibge_code, want_pdf=False, lang=lang)
+    return _attachment(
+        payload,
+        filename,
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )
+
+
+@router.get("/{ibge_code}/dossie.pdf", tags=["exports"])
+def download_municipality_report(ibge_code: str, lang: DossierLang = DEFAULT_LANG) -> Response:
+    """Municipal report as PDF, with the locator map drawn as vector (no tiles)."""
+    payload, filename = _dossier(ibge_code, want_pdf=True, lang=lang)
+    return _attachment(payload, filename, "application/pdf")

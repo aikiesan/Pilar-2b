@@ -1,0 +1,49 @@
+# ⚠️ DRAFT — NOT FOR DIRECT a2ensite. Review before applying.
+#
+# Apache reverse-proxy block to expose the GeoServer container under the SAME
+# public origin as the rest of PILAR-2b, consistent with apache/pilar2b.conf
+# (which proxies /api/ -> :8001 and /pilar2b/ -> :3002).
+#
+# This adds:   https://cp2b.unicamp.br/pilar2b/geoserver/  ->  GeoServer :8080
+#
+# Two ways to use it:
+#   (A) Merge the <Location>/ProxyPass lines below INTO the existing
+#       <VirtualHost> in apache/pilar2b.conf (recommended — single vhost).
+#   (B) Keep as a separate file and a2ensite it (only if it shares ServerName).
+#
+# IMPORTANT — GeoServer must know its public path or it emits broken
+# GetCapabilities/GetMap URLs. Set, in .env.geoserver:
+#     GEOSERVER_PROXY_BASE_URL=https://cp2b.unicamp.br/pilar2b/geoserver
+# (Note: the live apache/pilar2b.conf actually uses the subdomain
+#  ServerName pilar2b.cp2b.unicamp.br with basePath /pilar2b. Pick ONE public
+#  URL and make PROXY_BASE_URL match it exactly — either
+#  https://cp2b.unicamp.br/pilar2b/geoserver  or
+#  https://pilar2b.cp2b.unicamp.br/geoserver .)
+#
+# Required modules (already enabled for pilar2b.conf): proxy, proxy_http, headers.
+#   sudo a2enmod proxy proxy_http headers
+#
+# ── Snippet to add inside the existing <VirtualHost *:80> ────────────────────
+
+    # ── GeoServer (WMS/WFS/WMTS) ─────────────────────────────────────────────
+    # Proxies the public /pilar2b/geoserver/ path to the GeoServer container.
+    # ProxyPreserveHost On is already set by pilar2b.conf; combined with
+    # PROXY_BASE_URL on the GeoServer side this yields correct capabilities URLs.
+    #
+    # GeoServer listens on 8080 in the container; publish/forward to a loopback
+    # port on the VM (here 8080). Do NOT expose 8080 publicly — only Apache
+    # should reach it.
+    ProxyPass        /pilar2b/geoserver/ http://127.0.0.1:8080/geoserver/
+    ProxyPassReverse /pilar2b/geoserver/ http://127.0.0.1:8080/geoserver/
+
+    # Long-running WMS/WFS requests over big extents: give them headroom.
+    ProxyTimeout 120
+
+    # Optional: lock the GeoServer *web admin UI* to the campus network only,
+    # while leaving the OGC services (wms/wfs/wmts) public. Uncomment + adjust:
+    # <Location /pilar2b/geoserver/web>
+    #     Require ip 143.106.0.0/16     # UNICAMP range — adjust to your CIDR
+    # </Location>
+    # <Location /pilar2b/geoserver/rest>
+    #     Require ip 143.106.0.0/16     # REST config API — keep off the public net
+    # </Location>

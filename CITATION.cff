@@ -1,0 +1,56 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it using the metadata below."
+title: "PILAR-2b: Plataforma Inteligente de Localização e Aproveitamento de Resíduos para Biogas e Bioprodutos"
+version: "3.0.3"
+date-released: "2026-05-18"
+license: GPL-3.0
+repository-code: "https://github.com/aikiesan/Pilar-2b"
+url: "https://cp2b.unicamp.br/pilar2b/pt-BR"
+abstract: >
+  PILAR-2b is an open-source microservices platform for analyzing biogas and
+  bioproduct potential from agricultural, livestock, and urban residues across
+  645 municipalities in São Paulo State, Brazil. It integrates heterogeneous
+  government datasets (IBGE, MapBiomas, ABIOVE) into a unified geospatial
+  database with a browser-based interface that requires no desktop GIS software.
+  The platform implements a feedstock-dependent correction factor (FDE)
+  methodology that decomposes theoretical biomass potential into practical
+  mobilisable availability, and quantifies the spatial distribution of biogas
+  potential at municipal resolution within an open and replicable computational
+  architecture.
+keywords:
+  - biogas
+  - bioenergy
+  - geospatial-analysis
+  - open-source
+  - brazil
+  - renewable-energy
+  - waste-valorization
+  - gis
+  - foss4g
+  - fastapi
+  - nextjs
+  - postgis
+  - feedstock-dependent-efficiency
+authors:
+  - family-names: Cerejo
+    given-names: Lucas Nakamura
+    affiliation: "NIPE - Universidade Estadual de Campinas (UNICAMP)"
+  - family-names: Lamparelli
+    given-names: Rubens Augusto Camargo
+    affiliation: "NIPE - Universidade Estadual de Campinas (UNICAMP)"
+  - family-names: Moraes
+    given-names: Bruna de Souza
+    affiliation: "Universidade Estadual de Campinas (UNICAMP)"
+  - family-names: Aguiar
+    given-names: Ana Beatriz Soares
+    affiliation: "Universidade Estadual de Campinas (UNICAMP)"
+references:
+  - type: grant
+    institution:
+      name: "Fundação de Amparo à Pesquisa do Estado de São Paulo (FAPESP)"
+    number: "2024/01112-1"
+    description: "CP2Bsd — research funding"
+identifiers:
+  - type: other
+    value: "BR512026003115-0"
+    description: "INPI Brazil Software Registration — issued 12/05/2026, valid 50 years"

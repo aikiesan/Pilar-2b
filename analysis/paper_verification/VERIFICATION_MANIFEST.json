@@ -1,0 +1,115 @@
+{
+  "project": "PILAR-2b",
+  "scope": "Minas Gerais",
+  "state_uf": "MG",
+  "n_municipalities": 853,
+  "n_intermediate_regions": 13,
+  "headline_totals_m3_CH4_yr": {
+    "theoretical": 54014739192.577736,
+    "real_atlas": 21605895677.031094,
+    "ideal_atlas": 27007369596.288868
+  },
+  "headline_totals_bi": {
+    "theoretical": 54.0147,
+    "real_atlas": 21.6059,
+    "ideal_atlas": 27.0074
+  },
+  "headline_totals_GWh_yr": {
+    "theoretical": 538526.95,
+    "real_atlas": 215410.78,
+    "ideal_atlas": 269263.47
+  },
+  "headline_totals_million_m3_day": {
+    "theoretical": 147.99,
+    "real_atlas": 59.19,
+    "ideal_atlas": 73.99
+  },
+  "empirical_infrastructure": {
+    "aneel_biogas_gd_units_mg": 209,
+    "aneel_biogas_gd_total_kw_mg": 30104.7,
+    "aneel_biogas_gd_total_mw_mg": 30.1,
+    "anp_biomethane_plants_mg": 1,
+    "anp_biomethane_plant_name": "ZEG Biogás Aroeira Ltda",
+    "anp_biomethane_municipality": "Tupaciguara",
+    "anp_biomethane_authorized_cap_nm3_day": 16912.0
+  },
+  "spatial_clustering": {
+    "optimal_k": 5,
+    "global_morans_i": 0.6124,
+    "lisa_high_high_hotspots": 112,
+    "lisa_low_low_coldspots": 284
+  },
+  "files": {
+    "analysis/data/01_master_residue_streams_MG_2023.csv": {
+      "exists": true,
+      "size_bytes": 2121998,
+      "sha256": "32bf52918dca60974d85e8e9f0f61f53e362ba5525a1d2c0a3de4fd7630b8ba6"
+    },
+    "analysis/data/02_municipality_summary_MG_2023.csv": {
+      "exists": true,
+      "size_bytes": 186149,
+      "sha256": "7191ceb32acbc020894ab8aa019c8d3bad904c706115dd5e91811b55d4f1c044"
+    },
+    "analysis/data/05_biogas_plants_brazil.csv": {
+      "exists": true,
+      "size_bytes": 12616,
+      "sha256": "2cf68348df0729b911d355a316fdcb8ab08c4d1a1bb0c6eea81b75db11c1e0d4"
+    },
+    "analysis/data/05g_aneel_biogas_gd_plants.csv": {
+      "exists": true,
+      "size_bytes": 152936,
+      "sha256": "ebcc88b0992fadef14cba4f92508812a2648f347a32ad049b3edcebc49185187"
+    },
+    "analysis/data/05c_anp_biometano_plants_latest.csv": {
+      "exists": true,
+      "size_bytes": 2088,
+      "sha256": "e92737e306ffbce93cf913da05392b28505695a06b1821c0feacd6849e2bf0d1"
+    },
+    "analysis/outputs/MG_biochemical_matching_all_853.csv": {
+      "exists": true,
+      "size_bytes": 510539,
+      "sha256": "0374b5009f43bfea0663534fc91c8c409bd5ba18c5774ea78d1a5c7ee388d978"
+    },
+    "analysis/outputs/MG_top_priority_pairs_biochemical.csv": {
+      "exists": true,
+      "size_bytes": 55648,
+      "sha256": "09e381318ca8545505e4f87db20a0571274c0ce7c180042873849c1994ec4f38"
+    },
+    "analysis/outputs/MG_spatial_clusters_853.csv": {
+      "exists": true,
+      "size_bytes": 170391,
+      "sha256": "8690fa6da6ebbbbfb8b5132fc9a99f0544d6576badddd84b96ce780e69b22f39"
+    },
+    "analysis/outputs/MG_lisa_spatial_autocorrelation.csv": {
+      "exists": true,
+      "size_bytes": 109545,
+      "sha256": "c43f7c40375b0906b27824e2f850b1815f8e4499523357711302bbccaf181b56"
+    },
+    "analysis/outputs/MG_empirical_realization_summary.csv": {
+      "exists": true,
+      "size_bytes": 151483,
+      "sha256": "df35e366576b6b25b9107508dd0af55c13029ec88b0323bb3736059c1653db91"
+    },
+    "analysis/outputs/MG_empirical_realization_rgint_summary.csv": {
+      "exists": true,
+      "size_bytes": 1510,
+      "sha256": "a13255e072730be1a83b474474589e356f1e316055a92eed60136cf57986c419"
+    },
+    "analysis/outputs/MG_vs_SP_National_benchmarks.csv": {
+      "exists": true,
+      "size_bytes": 695,
+      "sha256": "b6c97db1c1c8f1f535dd9646f0e29bf42494bfe1233aae32191851aeae94d5c9"
+    },
+    "analysis/paper_verification/PILAR2b_MG_paper_verification.xlsx": {
+      "exists": true,
+      "size_bytes": 82352,
+      "sha256": "4243f33dcbbb119728c24ddc82873bf9661201f5717c82286202ef45a9cd7867"
+    },
+    "analysis/paper_verification/MG_PAPER_DATA_VERIFICATION.md": {
+      "exists": true,
+      "size_bytes": 13025,
+      "sha256": "2024273064352e741f275537284032f55a33b9cf6603aaa3e61e1830d5446cf3"
+    }
+  },
+  "note": "Generated automatically by analysis/build_mg_paper_verification.py"
+}

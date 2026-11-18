@@ -1,0 +1,19 @@
+import { getRequestConfig } from 'next-intl/server';
+import { notFound } from 'next/navigation';
+import { defaultLocale, isLocale } from './src/config/i18n';
+
+export default getRequestConfig(async ({ requestLocale }) => {
+  // next-intl v4: requestLocale is always a Promise (never undefined itself).
+  // Without middleware the awaited value is undefined — fall back to default.
+  const locale = (await requestLocale) ?? defaultLocale;
+
+  // Reject genuinely unknown locales (the [locale] layout already 404s them,
+  // but guard here too for safety).
+  if (!isLocale(locale)) notFound();
+
+  return {
+    locale,
+    messages: (await import(`./messages/${locale}.json`)).default,
+    timeZone: 'America/Sao_Paulo',
+  };
+});

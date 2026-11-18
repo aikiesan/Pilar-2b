@@ -1,0 +1,547 @@
+CodGeracaoDistribuida;NomTitularEmpreendimento;SigUF;NomMunicipio;CodMunicipioIbge;DscFonteGeracao;DscClasseConsumo;SigTipoConsumidor;DscPorte;MdaPotenciaInstaladaKW;DatConexao;NumCoordNEmpreendimento;NumCoordEEmpreendimento
+;***;CE;Redenção;2311603;Biogás-AGR;Rural;PF;Microgeracao;69,00;;-4,24;-38,77
+;J REIS AVICOLA LTDA;CE;Aquiraz;2301000;Biogás-AGR;Rural;PJ;Microgeracao;36,00;;-4,03;-38,45
+;***;CE;Paracuru;2310209;Biogás-AGR;Rural;PF;Microgeracao;65,00;;-3,56;-39,10
+;***;CE;Paracuru;2310209;Biogás-AGR;Rural;PF;Microgeracao;65,00;;-3,56;-39,10
+;***;ES;Cachoeiro de Itapemirim;3201209;Biogás - RA;Rural;PF;Microgeracao;75,00;;-20,67;-41,24
+;***;ES;Cachoeiro de Itapemirim;3201209;Biogás - RA;Rural;PF;Minigeracao;259,00;;-20,70;-41,20
+;CONSORCIO CARIACICA II;ES;Cariacica;3201308;Biogás - RA;Comercial;PJ;Minigeracao;999,00;;-20,25;-40,39
+;CONSORCIO CARIACICA I;ES;Cariacica;3201308;Biogás - RA;Comercial;PJ;Minigeracao;1000,00;;-20,25;-40,39
+;CONSORCIO CARIACICA III;ES;Cariacica;3201308;Biogás - RA;Comercial;PJ;Minigeracao;1000,00;;-20,25;-40,39
+;***;ES;Muqui;3203809;Biogás - RA;Rural;PF;Microgeracao;75,00;;-20,87;-41,27
+;***;ES;Muqui;3203809;Biogás - RA;Rural;PF;Minigeracao;78,00;;-20,93;-41,36
+;***;ES;Viana;3205101;Biogás - Floresta;Rural;PF;Minigeracao;150,00;;-20,64;-40,51
+;***;ES;Muqui;3203809;Biogás - RA;Rural;PF;Microgeracao;75,00;;-20,89;-41,29
+;TELEFONICA BRASIL S A;ES;Cachoeiro de Itapemirim;3201209;Biogás - RA;Comercial;PJ;Minigeracao;2220,00;;-20,79;-41,17
+;CONSORCIO CARIACICA V;ES;Cariacica;3201308;Biogás - RA;Comercial;PJ;Minigeracao;999,00;;-20,24;-40,38
+;CONSORCIO CARIACICA IV;ES;Cariacica;3201308;Biogás - RA;Comercial;PJ;Minigeracao;999,00;;-20,24;-40,38
+;***;ES;Cachoeiro de Itapemirim;3201209;Biogás - RA;Rural;PF;Minigeracao;112,50;;-20,70;-41,18
+;***;ES;Muqui;3203809;Biogás - RA;Industrial;PF;Minigeracao;77,60;;-20,07;-41,04
+;***;GO;Rio Verde;5218805;Biogás - RA;Rural;PF;Minigeracao;120,00;;-18,10;-50,73
+;***;GO;Rio Verde;5218805;Biogás - RA;Rural;PF;Minigeracao;201,60;;-18,10;-50,73
+;Granja Leiteira Sol Dourado LTDA;GO;Gameleira de Goiás;5208152;Biogás - RA;Rural;PJ;Minigeracao;211,00;;-16,41;-48,72
+;***;GO;Rio Verde;5218805;Biogás - RA;Rural;PF;Minigeracao;77,00;;-18,15;-50,99
+;***;GO;Inhumas;5210000;Biogás - RA;Rural;PF;Microgeracao;62,50;;-16,25;-49,48
+;***;GO;Rio Verde;5218805;Biogás - RA;Rural;PF;Minigeracao;210,00;;-18,10;-50,73
+;***;GO;Rio Verde;5218805;Biogás - RA;Rural;PF;Minigeracao;211,20;;-18,10;-50,73
+;***;GO;Rio Verde;5218805;Biogás - RA;Rural;PF;Minigeracao;160,00;;-18,10;-50,73
+;Soagro Sociedade Agropecuaria;GO;Rio Verde;5218805;Biogás - RA;Rural;PJ;Minigeracao;75,60;;-18,10;-50,73
+;***;GO;Cachoeira Alta;5204102;Biogás - RA;Residencial;PF;Minigeracao;134,40;;-18,53;-51,00
+;***;GO;Rio Verde;5218805;Biogás - RA;Rural;PF;Microgeracao;65,00;;-18,10;-50,73
+;***;GO;Pontalina;5217708;Biogás - RA;Rural;PF;Microgeracao;29,60;;-17,58;-49,39
+;***;GO;Piracanjuba;5217104;Biogás - RA;Rural;PF;Minigeracao;85,32;;-17,18;-48,99
+;AGROPECUÁRIA SORGATTO LTDA;GO;Cristalina;5206206;Biogás-AGR;Rural;PJ;Minigeracao;3000,00;;-16,39;-47,54
+;***;GO;Rio Verde;5218805;Biogás - RA;Rural;PF;Minigeracao;249,00;;-17,88;-51,18
+;SEMPRE SEMENTES EIRELI;GO;Santa Helena de Goiás;5219308;Biogás - Floresta;Comercial;PJ;Minigeracao;1000,00;;-17,76;-50,57
+;***;GO;Cachoeira Alta;5204102;Biogás - RA;Rural;PF;Microgeracao;2,10;;-18,55;-51,10
+;***;GO;Inhumas;5210000;Biogás - RU;Rural;PF;Minigeracao;192,00;;-16,31;-49,51
+;***;GO;Orizona;5215306;Biogás - RA;Rural;PF;Microgeracao;75,00;;-17,03;-48,34
+;***;GO;Morrinhos;5213806;Biogás - RU;Industrial;PF;Microgeracao;52,25;;-17,71;-48,96
+;***;GO;Rio Verde;5218805;Biogás - Floresta;Rural;PF;Microgeracao;75,00;;-17,72;-50,95
+;***;GO;Inhumas;5210000;Biogás-AGR;Comercial;PF;Minigeracao;135,63;;-16,31;-49,51
+;CONSORCIO VALORGAS ENERGIA SUSTENTAVEL;MA;Rosário;2109601;Biogás - RA;Comercial;PJ;Minigeracao;1056,00;;-3,02;-44,19
+;CONSORCIO VALORGAS ENERGIA SUSTENTAVEL M;MA;Rosário;2109601;Biogás - RA;Comercial;PJ;Minigeracao;971,52;;-3,02;-44,19
+;CONSORCIO VALORGAS ENERGIA SUST III;MA;Rosário;2109601;Biogás - RA;Comercial;PJ;Minigeracao;1056,00;;-2,93;-44,28
+;***;MG;Presidente Olegário;3153400;Biogás - RA;Comercial;PF;Minigeracao;264,00;;;
+;SEAP INVESTIMENTOS RURAIS LTDA;MG;Uberlândia;3170206;Biogás-AGR;Rural;PJ;Microgeracao;69,76;;-19,17;-48,49
+;***;MG;Jequeri;3135506;Biogás-AGR;Rural;PF;Minigeracao;200,00;;-20,36;-42,68
+;***;MG;Lima Duarte;3138609;Biogás-AGR;Rural;PF;Microgeracao;61,60;;-21,87;-43,89
+;***;MG;Pouso Alto;3152600;Biogás - RU;Rural;PF;Minigeracao;264,00;;-22,23;-44,95
+;***;MG;Varjão de Minas;3170750;Biogás - RU;Rural;PF;Minigeracao;480,00;;-18,46;-45,94
+;***;MG;Patrocínio;3148103;Biogás - RA;Rural;PF;Minigeracao;96,00;;-18,77;-46,94
+;***;MG;Uberlândia;3170206;Biogás-AGR;Rural;PF;Minigeracao;128,00;;-18,92;-48,28
+;***;MG;Urucânia;3170503;Biogás - RA;Rural;PF;Minigeracao;96,00;;-20,37;-42,73
+;***;MG;Onça de Pitangui;3145802;Biogás - RA;Rural;PF;Minigeracao;96,00;;-19,70;-44,74
+;***;MG;Lagoa Dourada;3137403;Biogás - RU;Rural;PF;Minigeracao;264,00;;-20,89;-44,07
+;***;MG;Serra do Salitre;3166808;Biogás-AGR;Rural;PF;Minigeracao;96,00;;-19,27;-46,73
+;***;MG;Varjão de Minas;3170750;Biogás-AGR;Rural;PF;Minigeracao;96,00;;-18,46;-45,94
+;***;MG;Pará de Minas;3147105;Biogás-AGR;Rural;PF;Microgeracao;60,00;;-19,80;-44,64
+;***;MG;São José da Varginha;3163102;Biogás-AGR;Rural;PF;Microgeracao;74,40;;-19,73;-44,57
+;***;MG;Jequeri;3135506;Biogás-AGR;Rural;PF;Minigeracao;96,00;;-20,38;-42,67
+;***;MG;Jequeri;3135506;Biogás-AGR;Rural;PF;Minigeracao;95,92;;-20,41;-42,66
+;***;MG;Teixeiras;3168507;Biogás - RA;Rural;PF;Minigeracao;192,00;;-20,60;-42,91
+;***;MG;Urucânia;3170503;Biogás - RA;Rural;PF;Minigeracao;96,00;;-20,36;-42,70
+;***;MG;Pará de Minas;3147105;Biogás - Floresta;Rural;PF;Microgeracao;75,00;;-19,86;-44,51
+;***;MG;Rio Casca;3154903;Biogás - RA;Rural;PF;Microgeracao;75,00;;-20,08;-42,69
+;***;MG;Piranga;3150802;Biogás - RA;Rural;PF;Minigeracao;264,00;;-20,71;-43,24
+;***;MG;Piranga;3150802;Biogás - RA;Rural;PF;Minigeracao;75,20;;-20,68;-43,19
+;***;MG;Araguari;3103504;Biogás-AGR;Rural;PF;Minigeracao;264,00;;-18,64;-48,24
+;***;MG;Oratórios;3145851;Biogás - RA;Rural;PF;Minigeracao;96,00;;-20,41;-42,79
+;***;MG;Iraí de Minas;3131604;Biogás - RA;Rural;PF;Minigeracao;75,20;;-19,05;-47,48
+;***;MG;Jequeri;3135506;Biogás - RA;Rural;PF;Minigeracao;96,00;;-20,44;-42,61
+;***;MG;Piranga;3150802;Biogás - RA;Rural;PF;Microgeracao;75,00;;-20,69;-43,18
+;COOPERATIVA BRASILEIRA DE ACESSO;MG;São José da Varginha;3163102;Biogás - RA;Rural;PJ;Microgeracao;75,00;;-19,72;-44,57
+;***;MG;Jequeri;3135506;Biogás - RA;Rural;PF;Microgeracao;75,00;;-20,35;-42,68
+;***;MG;Santa Cruz do Escalvado;3157401;Biogás - RA;Rural;PF;Microgeracao;75,00;;-20,30;-42,82
+;***;MG;Piedade de Ponte Nova;3150208;Biogás - RA;Rural;PF;Microgeracao;60,00;;-20,24;-42,74
+;COOPERATIVA BRASILEIRA DE ACESSO;MG;Pará de Minas;3147105;Biogás - RA;Rural;PJ;Microgeracao;75,00;;-19,79;-44,71
+;COOPERATIVA BRASILEIRA DE ACESSO;MG;Pará de Minas;3147105;Biogás - RA;Rural;PJ;Microgeracao;75,00;;-19,81;-44,64
+;***;MG;Piranga;3150802;Biogás - RA;Rural;PF;Microgeracao;75,00;;-20,70;-43,23
+;***;MG;Monte Belo;3143005;Biogás - RA;Rural;PF;Microgeracao;60,00;;-21,27;-46,36
+;***;MG;Teixeiras;3168507;Biogás - RA;Rural;PF;Minigeracao;192,00;;-20,57;-42,86
+;***;MG;Cabo Verde;3109501;Biogás - RA;Rural;PF;Microgeracao;75,00;;-21,47;-46,38
+;***;MG;Carmo do Paranaíba;3114303;Biogás - RA;Rural;PF;Minigeracao;264,00;;-18,88;-46,12
+;RIO RANCHO AGROPECUARIA SA;MG;Conceição do Pará;3117603;Biogás - RA;Rural;PJ;Microgeracao;75,00;;-19,77;-44,82
+;***;MG;Jequeri;3135506;Biogás - RA;Rural;PF;Microgeracao;75,00;;-20,36;-42,69
+;***;MG;Santa Juliana;3157708;Biogás - RA;Rural;PF;Microgeracao;75,00;;-19,28;-47,51
+;***;MG;Ituiutaba;3134202;Biogás - RA;Rural;PF;Minigeracao;75,20;;-18,95;-49,50
+;***;MG;Elói Mendes;3123601;Biogás - RA;Rural;PF;Microgeracao;75,00;;-21,68;-45,57
+;COOPERATIVA BRASILEIRA DE ACESSO;MG;Pará de Minas;3147105;Biogás - RA;Rural;PJ;Microgeracao;75,00;;-19,80;-44,64
+;***;MG;Ponte Nova;3152105;Biogás - RA;Rural;PF;Microgeracao;75,00;;-20,42;-42,87
+;***;MG;Pará de Minas;3147105;Biogás - RA;Rural;PF;Minigeracao;87,20;;-19,79;-44,63
+;***;MG;Ponte Nova;3152105;Biogás - RA;Rural;PF;Microgeracao;75,00;;-20,35;-42,91
+;***;MG;Abre Campo;3100302;Biogás - RA;Rural;PF;Microgeracao;75,00;;-20,32;-42,51
+;CONSORCIO DE GERACAO COMP ENERGIA VERDE;MG;Coromandel;3119302;Biogás - RU;Rural;PJ;Microgeracao;72,00;;-18,65;-47,03
+;***;MG;Patos de Minas;3148004;Biogás - RA;Rural;PF;Minigeracao;75,20;;-18,64;-46,59
+;***;MG;Juiz de Fora;3136702;Biogás - RA;Rural;PF;Minigeracao;672,00;;-21,76;-43,61
+;EMPRESA AGRICOLA FOLHADOS SA;MG;Patrocínio;3148103;Biogás - RA;Rural;PJ;Minigeracao;208,00;;-18,94;-46,99
+;***;MG;Pouso Alto;3152600;Biogás - RA;Rural;PF;Minigeracao;200,00;;-22,18;-44,94
+;***;MG;Urucânia;3170503;Biogás - RU;Rural;PF;Microgeracao;75,00;;-20,36;-42,70
+;***;MG;Matipó;3140902;Biogás - RA;Rural;PF;Microgeracao;69,00;;-20,30;-42,30
+;***;MG;Urucânia;3170503;Biogás - RU;Rural;PF;Microgeracao;75,00;;-20,36;-42,70
+;AGROCERES PIC SUINOS SA;MG;Presidente Olegário;3153400;Biogás - RA;Rural;PJ;Minigeracao;200,00;;-18,18;-46,38
+;***;MG;Urucânia;3170503;Biogás - RA;Rural;PF;Minigeracao;144,00;;-20,33;-42,74
+;***;MG;Santa Juliana;3157708;Biogás - Floresta;Rural;PF;Microgeracao;75,00;;-19,31;-47,56
+;***;MG;Passos;3147907;Biogás - RU;Rural;PF;Microgeracao;48,00;;-20,75;-46,43
+;***;MG;Patos de Minas;3148004;Biogás - RA;Rural;PF;Microgeracao;75,00;;-18,70;-46,62
+;***;MG;Urucânia;3170503;Biogás - RA;Rural;PF;Minigeracao;96,00;;-20,35;-42,70
+;***;MG;Jequeri;3135506;Biogás - RA;Rural;PF;Minigeracao;98,44;;-20,42;-42,66
+;***;MG;Conselheiro Lafaiete;3118304;Biogás - RA;Rural;PF;Minigeracao;96,00;;-20,66;-43,83
+;***;MG;Ponte Nova;3152105;Biogás - RA;Rural;PF;Minigeracao;75,20;;-20,44;-42,85
+;***;MG;Abre Campo;3100302;Biogás - RA;Rural;PF;Microgeracao;60,00;;-20,29;-42,47
+;***;MG;Corinto;3119104;Biogás - RA;Rural;PF;Minigeracao;96,00;;-18,34;-44,59
+;CONSORCIO DE GERACAO COMP ENERGIA VERDE;MG;Coromandel;3119302;Biogás - RA;Rural;PJ;Minigeracao;75,20;;-18,55;-47,14
+;COOPERATIVA BRASILEIRA DE ACESSO;MG;São José da Varginha;3163102;Biogás - RA;Rural;PJ;Microgeracao;75,00;;-19,78;-44,58
+;***;MG;Jequeri;3135506;Biogás - RA;Rural;PF;Minigeracao;200,00;;-20,36;-42,67
+;***;MG;Pará de Minas;3147105;Biogás - RA;Rural;PF;Minigeracao;120,00;;-19,85;-44,56
+;***;MG;Piedade de Ponte Nova;3150208;Biogás - RA;Rural;PF;Minigeracao;264,00;;-20,24;-42,72
+;***;MG;Santa Vitória;3159803;Biogás - RA;Rural;PF;Minigeracao;500,00;;-18,98;-50,17
+;***;MG;Raul Soares;3154002;Biogás - RA;Rural;PF;Minigeracao;200,00;;-20,13;-42,47
+;***;MG;Curvelo;3120904;Biogás - RA;Rural;PF;Minigeracao;200,00;;-18,98;-44,27
+;***;MG;Piranga;3150802;Biogás - RA;Rural;PF;Microgeracao;75,00;;-20,71;-43,19
+;***;MG;Patos de Minas;3148004;Biogás - RA;Rural;PF;Microgeracao;50,00;;-18,79;-46,68
+;***;MG;Esmeraldas;3124104;Biogás - Floresta;Rural;PF;Microgeracao;60,00;;-19,79;-44,31
+;***;MG;Urucânia;3170503;Biogás - RA;Rural;PF;Microgeracao;75,00;;-20,32;-42,75
+;***;MG;Urucânia;3170503;Biogás - RA;Rural;PF;Microgeracao;75,00;;-20,36;-42,72
+;***;MG;Pará de Minas;3147105;Biogás - RU;Rural;PF;Microgeracao;60,00;;-19,82;-44,65
+;***;MG;Paiva;3146602;Biogás - RU;Rural;PF;Microgeracao;20,00;;-21,30;-43,40
+;***;MG;Jequeri;3135506;Biogás - RA;Rural;PF;Microgeracao;15,00;;-20,38;-42,67
+;***;MG;Inimutaba;3131109;Biogás - RU;Rural;PF;Microgeracao;75,00;;-18,65;-44,32
+;***;MG;Pará de Minas;3147105;Biogás - RU;Rural;PF;Microgeracao;75,00;;-19,80;-44,64
+;***;MG;Pará de Minas;3147105;Biogás - RU;Rural;PF;Microgeracao;75,00;;-19,80;-44,64
+;***;MG;Pará de Minas;3147105;Biogás - RU;Rural;PF;Microgeracao;75,00;;-19,87;-44,73
+;***;MG;Pará de Minas;3147105;Biogás - RA;Rural;PF;Minigeracao;250,00;;-19,80;-44,64
+;***;MG;Pará de Minas;3147105;Biogás - RU;Rural;PF;Microgeracao;75,00;;-19,80;-44,64
+;***;MG;Araguari;3103504;Biogás - RA;Rural;PF;Microgeracao;75,00;;-18,51;-48,46
+;***;MG;Pará de Minas;3147105;Biogás - RU;Rural;PF;Microgeracao;75,00;;-19,77;-44,69
+;***;MG;Coromandel;3119302;Biogás - RA;Rural;PF;Minigeracao;200,00;;-18,61;-47,06
+;***;MG;Inimutaba;3131109;Biogás - RU;Rural;PF;Microgeracao;75,00;;-18,65;-44,32
+;***;MG;Pequi;3149606;Biogás - RU;Rural;PF;Minigeracao;78,00;;-19,64;-44,60
+;***;MG;Perdizes;3149804;Biogás - RA;Rural;PF;Minigeracao;225,00;;-19,43;-47,10
+;***;MG;São José da Varginha;3163102;Biogás - Floresta;Rural;PF;Microgeracao;75,00;;-19,78;-44,58
+;FAZENDA SERTAOZINHO LTDA;MG;Botelhos;3108404;Biogás - RA;Rural;PJ;Microgeracao;75,00;;-21,63;-46,34
+;***;MG;São José da Varginha;3163102;Biogás - RU;Rural;PF;Microgeracao;75,00;;-19,78;-44,59
+;***;MG;Pará de Minas;3147105;Biogás - RU;Rural;PF;Microgeracao;75,00;;-19,81;-44,64
+;***;MG;Pequi;3149606;Biogás - RU;Rural;PF;Microgeracao;75,00;;-19,64;-44,60
+;CONSORCIO VALE VERDE ENERGIA LIMPA;MG;Ponte Nova;3152105;Biogás - RA;Rural;PJ;Microgeracao;75,00;;-20,44;-42,85
+;***;MG;Pará de Minas;3147105;Biogás - RU;Rural;PF;Microgeracao;75,00;;-19,87;-44,56
+;***;MG;São José da Varginha;3163102;Biogás - RU;Rural;PF;Microgeracao;75,00;;-19,78;-44,58
+;***;MG;Pará de Minas;3147105;Biogás - RU;Rural;PF;Microgeracao;55,00;;-19,80;-44,67
+;***;MG;São José da Varginha;3163102;Biogás - RU;Rural;PF;Microgeracao;75,00;;-19,77;-44,58
+;***;MG;Urucânia;3170503;Biogás - RU;Rural;PF;Microgeracao;75,00;;-20,37;-42,73
+;***;MG;Abre Campo;3100302;Biogás - RU;Rural;PF;Microgeracao;75,00;;-20,28;-42,46
+;***;MG;São José da Varginha;3163102;Biogás - RU;Rural;PF;Microgeracao;75,00;;-19,75;-44,54
+;***;MG;Pará de Minas;3147105;Biogás - RA;Rural;PF;Minigeracao;150,00;;-19,80;-44,64
+;***;MG;São José da Varginha;3163102;Biogás - RU;Rural;PF;Microgeracao;75,00;;-19,75;-44,53
+;***;MG;Itaguara;3132206;Biogás - RA;Rural;PF;Microgeracao;75,00;;-20,38;-44,49
+;***;MG;Urucânia;3170503;Biogás - RA;Rural;PF;Microgeracao;75,00;;-20,36;-42,70
+;***;MG;Urucânia;3170503;Biogás - RA;Rural;PF;Microgeracao;75,00;;-20,36;-42,70
+;***;MG;Pará de Minas;3147105;Biogás - RA;Rural;PF;Microgeracao;60,00;;-19,81;-44,66
+;MARIO CLEBES SILVA;MG;Luz;3138807;Biogás - Floresta;Rural;PJ;Microgeracao;75,00;;-19,74;-45,80
+;***;MG;Jequeri;3135506;Biogás - RA;Rural;PF;Minigeracao;128,00;;-20,41;-42,66
+;***;MG;Bom Despacho;3107406;Biogás - RU;Rural;PF;Minigeracao;150,00;;-19,71;-45,30
+;***;MG;Urucânia;3170503;Biogás - Floresta;Rural;PF;Microgeracao;75,00;;-20,37;-42,72
+;***;MG;Carmo do Paranaíba;3114303;Biogás - RA;Rural;PF;Microgeracao;75,00;;-18,95;-46,31
+;***;MG;Uberlândia;3170206;Biogás - RA;Rural;PF;Microgeracao;75,00;;-18,84;-48,58
+;***;MG;Corinto;3119104;Biogás - RA;Rural;PF;Microgeracao;75,00;;-18,29;-44,37
+;INSTITUTO DE ADMINIST & GESTAO EDUC;MG;Araguari;3103504;Biogás - RA;Rural;PJ;Microgeracao;75,00;;-18,59;-48,29
+;CONSORCIO ORIGO ENERGIA SERRA DO CIPO;MG;Santana do Paraíso;3158953;Biogás - RA;Comercial;PJ;Minigeracao;1000,00;;-19,44;-42,51
+;***;MG;Uberaba;3170107;Biogás - RU;Rural;PF;Microgeracao;74,40;;-19,41;-48,38
+;***;MG;Uberaba;3170107;Biogás - RA;Rural;PF;Microgeracao;74,40;;-19,39;-48,37
+;***;MG;Jequeri;3135506;Biogás - RU;Rural;PF;Microgeracao;74,40;;-20,41;-42,66
+;***;MG;Uberlândia;3170206;Biogás - RU;Rural;PF;Microgeracao;74,40;;-18,85;-48,58
+;***;MG;Morada Nova de Minas;3143500;Biogás - RU;Rural;PF;Minigeracao;130,00;;-18,86;-45,27
+;***;MG;São João da Ponte;3162401;Biogás - RU;Rural;PF;Minigeracao;200,00;;-15,99;-43,69
+;***;MG;São Gonçalo do Sapucaí;3162005;Biogás - RA;Rural;PF;Microgeracao;75,00;;-21,87;-45,67
+;***;MG;São José da Varginha;3163102;Biogás - RU;Rural;PF;Microgeracao;67,50;;-19,74;-44,55
+;***;MG;Urucânia;3170503;Biogás - RU;Rural;PF;Microgeracao;75,00;;-20,32;-42,71
+;***;MG;Machado;3139003;Biogás - RU;Rural;PF;Microgeracao;75,00;;-21,64;-46,03
+;***;MG;Piedade de Ponte Nova;3150208;Biogás - RU;Rural;PF;Microgeracao;75,00;;-20,24;-42,74
+;***;MG;Coromandel;3119302;Biogás - RA;Rural;PF;Minigeracao;200,00;;-18,61;-47,06
+;***;MG;São José da Varginha;3163102;Biogás - RU;Rural;PF;Microgeracao;75,00;;-19,76;-44,56
+;***;MG;Urucânia;3170503;Biogás - RU;Rural;PF;Microgeracao;75,00;;-20,35;-42,70
+;***;MG;Bambuí;3105103;Biogás - RU;Rural;PF;Microgeracao;67,20;;-20,10;-46,00
+;***;MG;Rio Casca;3154903;Biogás - RU;Rural;PF;Microgeracao;75,00;;-20,23;-42,56
+;FORTALEZA STA TERESINHA AGRIC PEC S;MG;São João da Ponte;3162401;Biogás - RU;Rural;PJ;Minigeracao;200,00;;-16,00;-43,75
+;***;MG;Botelhos;3108404;Biogás - RA;Rural;PF;Microgeracao;75,00;;-21,59;-46,39
+;***;MG;Três Corações;3169307;Biogás - RA;Rural;PF;Microgeracao;75,00;;-21,70;-45,16
+;***;MG;Urucânia;3170503;Biogás - RA;Rural;PF;Microgeracao;75,00;;-20,36;-42,70
+;***;MG;Pará de Minas;3147105;Biogás - RA;Rural;PF;Microgeracao;55,50;;-19,80;-44,69
+;***;MG;Maravilhas;3139706;Biogás - RA;Rural;PF;Microgeracao;75,00;;-19,47;-44,70
+;***;MG;Santo Antônio do Grama;3160108;Biogás - RA;Rural;PF;Microgeracao;60,00;;-20,34;-42,62
+;***;MG;Monte Carmelo;3143104;Biogás - RA;Rural;PF;Microgeracao;75,00;;-18,67;-47,47
+;***;MG;Passos;3147907;Biogás - RA;Residencial;PF;Microgeracao;75,00;;-20,64;-46,53
+;***;MG;Pará de Minas;3147105;Biogás - RA;Rural;PF;Microgeracao;75,00;;-19,83;-44,77
+;***;MG;Belo Horizonte;3106200;Biogás - RU;Rural;PF;Microgeracao;75,00;;-20,01;-44,69
+;***;MG;Passos;3147907;Biogás - RA;Rural;PF;Microgeracao;75,00;;-20,72;-46,52
+;***;MG;Formiga;3126109;Biogás - RA;Rural;PF;Microgeracao;75,00;;-20,55;-45,64
+;***;MG;Pará de Minas;3147105;Biogás - RU;Rural;PF;Microgeracao;75,00;;-19,93;-44,76
+;***;MG;Jequeri;3135506;Biogás - RA;Rural;PF;Microgeracao;75,00;;-20,39;-42,84
+;***;MG;Santo Antônio do Grama;3160108;Biogás - RU;Rural;PF;Microgeracao;75,00;;-20,33;-42,58
+;***;MG;Santa Juliana;3157708;Biogás - RA;Rural;PF;Microgeracao;75,00;;-19,25;-47,56
+;***;MG;Jequeri;3135506;Biogás - RA;Rural;PF;Microgeracao;75,00;;-20,03;-43,07
+;***;MG;Ponte Nova;3152105;Biogás - RA;Rural;PF;Minigeracao;250,00;;-20,32;-42,90
+;***;MG;Onça de Pitangui;3145802;Biogás - RA;Rural;PF;Microgeracao;64,80;;-19,79;-44,75
+;***;MG;Prata;3152808;Biogás - RA;Rural;PF;Microgeracao;75,00;;-19,27;-48,90
+;***;MG;Urucânia;3170503;Biogás - RA;Rural;PF;Microgeracao;75,00;;-20,35;-42,70
+;***;MG;Santo Antônio do Aventureiro;3160009;Biogás - RA;Rural;PF;Microgeracao;75,00;;-21,70;-42,79
+;***;MG;Monsenhor Paulo;3142601;Biogás - RA;Rural;PF;Microgeracao;75,00;;-21,76;-45,59
+;***;MG;Passos;3147907;Biogás - RA;Rural;PF;Microgeracao;75,00;;-20,73;-46,52
+;***;MG;Carmo do Rio Claro;3114402;Biogás - RA;Rural;PF;Microgeracao;75,00;;-20,95;-46,21
+;***;MG;Santana do Manhuaçu;3158904;Biogás - RA;Rural;PF;Microgeracao;75,00;;-20,14;-41,91
+;***;MG;Pará de Minas;3147105;Biogás - RA;Rural;PF;Microgeracao;64,80;;-19,80;-44,69
+;***;MG;Jequeri;3135506;Biogás - RA;Rural;PF;Microgeracao;75,00;;-20,42;-42,68
+;***;MG;Raul Soares;3154002;Biogás - RA;Rural;PF;Microgeracao;75,00;;-20,11;-42,48
+;***;MG;Pará de Minas;3147105;Biogás - RA;Rural;PF;Microgeracao;74,56;;-19,93;-44,58
+;***;MG;Jequeri;3135506;Biogás - RA;Rural;PF;Microgeracao;74,25;;-20,38;-42,67
+;uniao bancaria atletica uba;MG;Manhuaçu;3139409;Biogás - Floresta;Comercial;PJ;Microgeracao;75,00;;-20,27;-42,07
+;***;MG;Pará de Minas;3147105;Biogás - RA;Rural;PF;Microgeracao;64,80;;-19,83;-44,77
+;NOVO POMAR PRODUTOS ALIMENTICIOS;MG;Presidente Olegário;3153400;Biogás - RA;Comercial;PJ;Microgeracao;60,00;;-18,40;-46,40
+;CONSORCIO VALORGAS ENERGIA SUSTENTAVEL MG II;MG;Santana do Paraíso;3158953;Biogás - RA;Comercial;PJ;Minigeracao;800,00;;-19,44;-42,51
+;***;MG;Ponte Nova;3152105;Biogás - RA;Rural;PF;Microgeracao;75,00;;-20,35;-42,80
+;***;MG;Onça de Pitangui;3145802;Biogás - RU;Rural;PF;Microgeracao;67,50;;-19,77;-44,74
+;***;MG;Pedrinópolis;3149200;Biogás - RU;Rural;PF;Microgeracao;75,00;;-19,26;-47,45
+;***;MG;Jequeri;3135506;Biogás - RA;Rural;PF;Microgeracao;75,00;;-20,41;-42,66
+;***;MG;Canápolis;3111804;Biogás - RA;Rural;PF;Microgeracao;75,00;;-18,78;-49,02
+;***;MG;Pará de Minas;3147105;Biogás - RA;Rural;PF;Microgeracao;75,00;;-19,93;-44,58
+;CONSORCIO ENERGIA LIVRE;MG;Sabará;3156700;Biogás - RU;Comercial;PJ;Minigeracao;4997,60;;-19,85;-43,85
+;***;MG;Conceição do Pará;3117603;Biogás - RA;Rural;PF;Microgeracao;60,00;;-19,83;-44,87
+;***;MG;São José da Varginha;3163102;Biogás - RA;Rural;PF;Microgeracao;75,00;;-19,74;-44,55
+;RADIL ALIMENTOS LTDA;MG;São Sebastião do Oeste;3164605;Biogás - RA;Industrial;PJ;Microgeracao;75,00;;-20,20;-45,03
+;***;MG;Sete Lagoas;3167202;Biogás - RA;Rural;PF;Minigeracao;83,84;;-19,39;-44,23
+;ARAPE AGROINDUSTRIA LTDA;MG;Bambuí;3105103;Biogás - RA;Rural;PJ;Microgeracao;60,00;;-20,02;-45,83
+;INSTITUTO DE ADMINIST & GESTAO EDUC;MG;Araguari;3103504;Biogás - RA;Comercial;PJ;Microgeracao;75,00;;-18,59;-48,31
+;AMIDOS PADRE TRINDADE LTDA;MG;Formiga;3126109;Biogás - RA;Rural;PJ;Microgeracao;75,00;;-20,42;-45,38
+;***;MG;Itapecerica;3133501;Biogás - RA;Rural;PF;Microgeracao;75,00;;-20,41;-45,07
+;***;MG;Monte Carmelo;3143104;Biogás - RA;Rural;PF;Minigeracao;108,00;;-18,76;-47,35
+;***;MG;Pará de Minas;3147105;Biogás - RU;Rural;PF;Minigeracao;144,00;;-19,46;-45,00
+;***;MG;Guarará;3128501;Biogás - RA;Rural;PF;Minigeracao;264,00;;-21,81;-43,01
+;***;MG;Três Corações;3169307;Biogás - RA;Rural;PF;Microgeracao;60,00;;-21,72;-45,16
+;***;MG;Ponte Nova;3152105;Biogás - RA;Rural;PF;Microgeracao;75,00;;-20,36;-42,80
+;***;MG;Uberlândia;3170206;Biogás - RA;Rural;PF;Microgeracao;75,00;;-19,10;-48,81
+;***;MG;Pará de Minas;3147105;Biogás - RA;Rural;PF;Microgeracao;75,00;;-19,81;-44,64
+;***;MG;Alpinópolis;3101904;Biogás - RA;Rural;PF;Microgeracao;75,00;;-20,91;-46,45
+;***;MG;Patos de Minas;3148004;Biogás - RA;Rural;PF;Microgeracao;60,00;;-18,72;-46,67
+;***;MG;Pará de Minas;3147105;Biogás - RA;Rural;PF;Microgeracao;64,80;;-19,82;-44,65
+;***;MG;Jequeri;3135506;Biogás - RA;Rural;PF;Microgeracao;74,40;;-20,39;-42,71
+;FRIGORIFICO LUCIANA LTDA;MG;Uberlândia;3170206;Biogás - RA;Rural;PJ;Minigeracao;99,22;;-18,72;-48,38
+;***;MG;Passos;3147907;Biogás - RA;Rural;PF;Microgeracao;74,25;;-20,73;-46,57
+;***;MG;Pará de Minas;3147105;Biogás - RU;Rural;PF;Microgeracao;74,38;;-19,73;-44,63
+;***;MG;Jequeri;3135506;Biogás - RA;Rural;PF;Microgeracao;75,00;;-20,39;-42,67
+;NETZERO BRASIL BIOCHAR LTDA;MG;Lajinha;3137700;Biogás - Floresta;Industrial;PJ;Minigeracao;82,42;;-20,16;-41,65
+;ATIVA GESTAO DE NEGOCIOS S A;MG;Formiga;3126109;Biogás - RA;Rural;PJ;Microgeracao;69,76;;-20,35;-45,46
+;UTE UNIAO RECICLAVEIS RIO NOVO LTDA;MG;Leopoldina;3138401;Biogás - RU;Industrial;PJ;Minigeracao;2500,00;;-21,42;-42,51
+;***;MS;Ivinhema;5004700;Biogás - RA;Rural;PF;Minigeracao;110,00;;-22,24;-53,87
+;***;MS;Glória de Dourados;5004007;Biogás - RA;Rural;PF;Microgeracao;67,16;;-22,51;-54,16
+;***;MS;Jateí;5005103;Biogás - Floresta;Rural;PF;Microgeracao;74,00;;-22,48;-54,27
+;PRODUZIR AGROPECUARIA LTDA;MS;São Gabriel do Oeste;5007695;Biogás - RA;Rural;PJ;Minigeracao;112,50;;-19,27;-54,50
+;***;MS;Laguna Carapã;5005251;Biogás - RA;Rural;PF;Minigeracao;193,00;;-22,73;-55,13
+;***;MS;Jateí;5005103;Biogás - RA;Rural;PF;Minigeracao;190,00;;-22,48;-54,31
+;***;MS;Jateí;5005103;Biogás - RU;Rural;PF;Minigeracao;110,00;;-22,54;-54,14
+;***;MS;Ivinhema;5004700;Biogás - RA;Rural;PF;Minigeracao;112,50;;-22,34;-53,81
+;***;MS;Ivinhema;5004700;Biogás - RU;Rural;PF;Microgeracao;73,26;;-22,36;-53,88
+;***;MS;Rio Brilhante;5007208;Biogás - RA;Rural;PF;Microgeracao;74,25;;-21,84;-54,51
+;***;MS;Caarapó;5002407;Biogás-AGR;Rural;PF;Minigeracao;111,38;;-22,64;-54,71
+;LUA CLARA AGROINDUSTRIAL E TRANSPORTE LTDA;MS;Deodápolis;5003454;Biogás - RU;Industrial;PJ;Minigeracao;95,00;;-22,29;-54,13
+;JEROÁ SUINOCULTURA LTDA;MS;Campo Grande;5002704;Biogás - RA;Rural;PJ;Minigeracao;260,00;;-20,64;-54,57
+;COOP DE ELET RURAL DA GRANDE CAMPO GRANDE CERCAMPO;MS;Campo Grande;5002704;Biogás - RU;Rural;PJ;Minigeracao;500,06;;-20,99;-54,51
+;***;MS;Jateí;5005103;Biogás - RU;Rural;PF;Minigeracao;95,00;;-22,47;-54,27
+;***;MS;Rio Brilhante;5007208;Biogás - RU;Comercial;PF;Microgeracao;61,80;;-20,46;-54,64
+;EMPRESA DE RADIODIFUSÃO FM TUIUIU LTDA;MS;Dois Irmãos do Buriti;5003488;Biogás - RU;Industrial;PJ;Minigeracao;190,00;;-22,34;-53,84
+;***;MS;Rio Negro;5007307;Biogás - RU;Rural;PF;Minigeracao;95,00;;-18,56;-53,12
+;***;MS;São Gabriel do Oeste;5007695;Biogás - RA;Rural;PF;Minigeracao;95,00;;-19,28;-54,62
+;AGROCERES PIC SUINOS LTDA;MS;Dourados;5003702;Biogás - RU;Rural;PJ;Microgeracao;75,00;;-22,44;-55,46
+;***;MS;Itaporã;5004502;Biogás - RU;Rural;PF;Microgeracao;74,25;;-22,02;-54,80
+;***;MS;Rio Negro;5007307;Biogás - RU;Rural;PF;Minigeracao;95,58;;-19,55;-54,96
+;***;MS;Itaporã;5004502;Biogás - RU;Rural;PF;Microgeracao;74,75;;-22,02;-54,78
+;***;MT;Santa Rita do Trivelato;5107768;Biogás-AGR;Rural;PF;Minigeracao;252,00;;-13,82;-55,27
+;***;MT;Tapurah;5108006;Biogás-AGR;Rural;PF;Minigeracao;276,00;;-12,62;-56,29
+;***;MT;Sorriso;5107925;Biogás-AGR;Rural;PF;Minigeracao;276,00;;-12,53;-55,82
+;***;MT;Tapurah;5108006;Biogás - RA;Rural;PF;Minigeracao;230,00;;-12,74;-56,51
+;***;MT;Sorriso;5107925;Biogás - RA;Rural;PF;Minigeracao;103,50;;-12,60;-55,67
+;COOPERATIVA AGROPECUARIA MISTA NOVA MUTUM;MT;Nova Mutum;5106224;Biogás - RA;Rural;PJ;Minigeracao;276,00;;-13,75;-56,06
+;***;MT;Nova Mutum;5106224;Biogás - RA;Rural;PF;Minigeracao;276,00;;-13,52;-56,08
+;FRIGORIFICO NUTRIBRAS LTDA;MT;Vera;5108501;Biogás - RA;Industrial;PJ;Minigeracao;103,50;;-12,27;-55,40
+;***;MT;Tapurah;5108006;Biogás - RA;Rural;PF;Minigeracao;270,48;;-12,58;-56,49
+;IDEAL PORK S.A;MT;Nova Mutum;5106224;Biogás - RA;Rural;PJ;Minigeracao;1000,00;;-13,52;-56,08
+;***;MT;Tapurah;5108006;Biogás - RA;Rural;PF;Minigeracao;2865,80;;-12,58;-56,49
+;***;MT;Lucas do Rio Verde;5105259;Biogás - RA;Rural;PF;Microgeracao;69,00;;-13,00;-56,00
+;***;MT;Lucas do Rio Verde;5105259;Biogás - RA;Rural;PF;Microgeracao;31,50;;-12,73;-56,15
+;***;MT;Lucas do Rio Verde;5105259;Biogás - RU;Rural;PF;Microgeracao;10,13;;-12,73;-56,15
+;***;MT;Sorriso;5107925;Biogás-AGR;Rural;PF;Minigeracao;276,00;;-13,38;-55,21
+;***;MT;Campo Verde;5102678;Biogás-AGR;Rural;PF;Minigeracao;103,50;;-15,43;-55,26
+;***;MT;Ipiranga do Norte;5104526;Biogás - RA;Industrial;PF;Microgeracao;69,00;;-11,65;-56,06
+;***;MT;Ipiranga do Norte;5104526;Biogás - RA;Rural;PF;Minigeracao;1932,00;;-12,04;-56,05
+;***;MT;Lucas do Rio Verde;5105259;Biogás - RA;Rural;PF;Minigeracao;276,00;;-12,75;-56,22
+;FRIGORIFICO NUTRIBRAS LTDA;MT;Vera;5108501;Biogás - RA;Industrial;PJ;Minigeracao;690,00;;-12,27;-55,40
+;ASSOCIAÇÃO BOM PRINCÍPIO SOLAR;MT;Lucas do Rio Verde;5105259;Biogás - RA;Comercial;PJ;Microgeracao;69,00;;-13,00;-56,00
+;AGRO INVESTIMENTOS SACHETTI LTDA;MT;Itiquira;5104609;Biogás - RA;Rural;PJ;Minigeracao;460,00;;-17,00;-54,00
+;***;MT;Lucas do Rio Verde;5105259;Biogás - RA;Rural;PF;Minigeracao;276,00;;-12,79;-56,16
+;***;MT;Lucas do Rio Verde;5105259;Biogás - RA;Rural;PF;Minigeracao;276,00;;-13,06;-55,92
+;***;MT;Tapurah;5108006;Biogás - RA;Rural;PF;Minigeracao;276,00;;-12,80;-56,51
+;***;MT;Sorriso;5107925;Biogás - RA;Rural;PF;Microgeracao;75,00;;-12,62;-55,82
+;IBF AGROPECUARIA SA;MT;Primavera do Leste;5107040;Biogás - RA;Rural;PJ;Minigeracao;475,00;;-15,00;-54,00
+;***;MT;Nova Mutum;5106224;Biogás - RA;Rural;PF;Microgeracao;75,00;;-13,89;-55,61
+;***;MT;Sorriso;5107925;Biogás-AGR;Rural;PF;Microgeracao;60,00;;-12,59;-55,68
+;Consórcio Urca MT Energia de Geração Compartilhada;MT;Sorriso;5107925;Biogás - RA;Industrial;PJ;Minigeracao;1000,00;;-12,53;-55,82
+;***;MT;Sorriso;5107925;Biogás - RA;Rural;PF;Microgeracao;75,00;;-12,79;-55,84
+;Consórcio Urca MT Energia de Geração Compartilhada;MT;Tapurah;5108006;Biogás - RU;Rural;PJ;Minigeracao;250,00;;-12,25;-56,41
+;***;MT;Lucas do Rio Verde;5105259;Biogás-AGR;Rural;PF;Minigeracao;100,00;;-12,69;-56,12
+;COMPANHIA USINA SÃO JOÃO;PB;Santa Rita;2513703;Biogás - Floresta;Industrial;PJ;Minigeracao;1563,00;;-7,19;-34,15
+;CONSORCIO ENERGIA LIVRE;PB;Campina Grande;2504009;Biogás - RU;Comercial;PJ;Minigeracao;2500,00;;-8,10;-36,10
+;ASJA PARAIBA GERACAO DISTRIBUIDA LIMITADA;PB;Guarabira;2506301;Biogás - Floresta;Industrial;PJ;Minigeracao;2500,00;;-3,28;-60,30
+;Incorporadora Camaragibe SPE Ltda;PE;Camaragibe;2603454;Biogás - RU;Comercial;PJ;Microgeracao;28,38;;-8,02;-34,99
+;BANCO SANTANDER BRASIL S A;PE;Petrolina;2611101;Biogás - RU;Comercial;PJ;Minigeracao;980,80;;-9,39;-40,51
+;***;PR;São Miguel do Iguaçu;4125704;Biogás - RA;Rural;PF;Microgeracao;75,00;;-25,50;-54,23
+;MUNICIPIO DE MARECHAL CANDIDO RONDON;PR;Marechal Cândido Rondon;4114609;Biogás - RA;Poder Público;PJ;Microgeracao;35,00;;-24,58;-54,11
+;COOPERATIVA DE INFRAESTRUTURA E ELETRIFICACAO RURAL DE PALOTINA;PR;Palotina;4117909;Biogás - RU;Rural;PJ;Minigeracao;87,20;;-24,31;-53,86
+;AGROPECUARIA IPE LTDA;PR;Luiziana;4113734;Biogás-AGR;Rural;PJ;Microgeracao;64,80;;-24,32;-52,37
+;***;PR;Rebouças;4121505;Biogás - RA;Rural;PF;Microgeracao;75,00;;-25,71;-50,49
+;***;PR;Leópolis;4113403;Biogás - RA;Rural;PF;Microgeracao;60,00;;-23,02;-50,67
+;J.A.PASQUINI & CIA.LTDA.;PR;Nova Esperança;4116901;Biogás - RA;Industrial;PJ;Minigeracao;500,00;;-23,16;-52,18
+;MUNICIPIO DE CASCAVEL;PR;Cascavel;4104808;Biogás - RU;Poder Público;PJ;Minigeracao;300,00;;-24,85;-53,49
+;***;PR;Pinhalão;4119202;Biogás - RU;Rural;PF;Microgeracao;59,20;;-23,88;-50,07
+;COPACOL COOPERATIVA AGROINDUSTRIAL CONSOLATA;PR;Cafelândia;4103453;Biogás - RA;Industrial;PJ;Minigeracao;154,00;;-24,66;-53,35
+;***;PR;São Miguel do Iguaçu;4125704;Biogás - RA;Rural;PF;Microgeracao;60,00;;-25,47;-54,19
+;COOPERATIVA DE ENERGIAS RENOVAVEIS DO PARANA;PR;Boa Esperança do Iguaçu;4103024;Biogás - RA;Rural;PJ;Microgeracao;75,00;;-25,65;-53,18
+;***;PR;Marilena;4115002;Biogás - RU;Rural;PF;Minigeracao;210,00;;-22,74;-53,05
+;***;PR;Castro;4104907;Biogás - RA;Rural;PF;Microgeracao;72,00;;-24,80;-49,89
+;SINERGIA SOLUÇÕES ENERGETICAS ADMNISTRADORA DE CONSORCIOS LT;PR;Entre Rios do Oeste;4107538;Biogás - Floresta;Comercial;PJ;Microgeracao;75,00;;-24,70;-54,20
+;CIA LATINO AMERICANA DE MEDICAMENTOS;PR;Umuarama;4128104;Biogás - RA;Rural;PJ;Microgeracao;69,00;;-23,85;-53,28
+;***;PR;Castro;4104907;Biogás - RA;Rural;PF;Minigeracao;96,00;;-24,80;-49,89
+;COPACOL COOPERATIVA AGROINDUSTRIAL CONSOLATA;PR;Formosa do Oeste;4108205;Biogás-AGR;Industrial;PJ;Minigeracao;260,00;;-24,30;-53,36
+;TERRAFEC INDUSTRIA E COMERCIO DE ALIMENTOS LTDA;PR;Santa Isabel do Ivaí;4123709;Biogás-AGR;Industrial;PJ;Minigeracao;235,00;;-22,98;-53,22
+;***;PR;Quatro Pontes;4120853;Biogás - RA;Rural;PF;Minigeracao;490,40;;-24,60;-53,99
+;FAMACHIQ LTDA;PR;Rebouças;4121505;Biogás - RA;Industrial;PJ;Minigeracao;525,00;;-25,63;-50,69
+;***;PR;Arapoti;4101606;Biogás - RA;Industrial;PF;Minigeracao;223,56;;-24,18;-49,93
+;CIA LATINO AMERICANA DE MEDICAMENTOS;PR;Toledo;4127700;Biogás - RA;Comercial;PJ;Microgeracao;74,99;;-24,72;-53,90
+;COMPANHIA DE SANEAMENTO DO PARANA SANEPAR;PR;Foz do Iguaçu;4108304;Biogás - RU;Serviço Público;PJ;Microgeracao;52,80;;-25,56;-54,59
+;***;PR;Ouro Verde do Oeste;4117453;Biogás - RA;Rural;PF;Microgeracao;39,68;;-24,75;-53,86
+;***;PR;São Miguel do Iguaçu;4125704;Biogás - RA;Rural;PF;Microgeracao;72,00;;-25,36;-54,16
+;AGROPECUARIA AGUA AZUL LTDA;PR;Farol;4107553;Biogás - RA;Rural;PJ;Microgeracao;74,12;;-24,11;-52,56
+;***;PR;Marechal Cândido Rondon;4114609;Biogás - RA;Rural;PF;Microgeracao;74,12;;-24,65;-54,18
+;***;PR;Nova Santa Rosa;4117222;Biogás - RA;Rural;PF;Microgeracao;67,20;;-24,50;-53,93
+;MIOLATINA DO BRASIL EMBUTIDOS LTDA;PR;São Jorge D'Oeste;4125209;Biogás - RA;Rural;PJ;Microgeracao;74,00;;-25,73;-52,86
+;***;PR;Marechal Cândido Rondon;4114609;Biogás - RA;Rural;PF;Microgeracao;,74;;-25,39;-54,13
+;RG ENERGIA LTDA;PR;Cafelândia;4103453;Biogás - RA;Industrial;PJ;Microgeracao;74,24;;-24,60;-53,35
+;COOPERATIVA DE INFRAESTRUTURA E ELETRIFICACAO RURAL DE PALOTINA;PR;Maripá;4115358;Biogás - RA;Rural;PJ;Microgeracao;59,36;;-24,40;-53,87
+;***;PR;São Miguel do Iguaçu;4125704;Biogás - RA;Rural;PF;Microgeracao;74,75;;-25,38;-54,16
+;CIA LATINO AMERICANA DE MEDICAMENTOS;PR;Toledo;4127700;Biogás - RA;Residencial;PJ;Microgeracao;57,67;;-24,66;-53,88
+;COOPERATIVA DE ENERGIAS RENOVAVEIS DO PARANA;PR;Marechal Cândido Rondon;4114609;Biogás - RA;Rural;PJ;Microgeracao;74,80;;-24,67;-54,12
+;***;PR;Santa Helena;4123501;Biogás - RA;Rural;PF;Microgeracao;74,12;;-24,97;-54,23
+;***;PR;Santa Izabel do Oeste;4123808;Biogás - RA;Rural;PF;Microgeracao;57,00;;-25,79;-53,50
+;Cooperativa De Crédito, Poupança E Investimento Aliança Sicredi Aliança Pr/Sp;PR;Toledo;4127700;Biogás - RA;Comercial;PJ;Microgeracao;74,82;;-24,58;-53,92
+;MIOLAR ALIMENTOS LTDA;PR;São Jorge D'Oeste;4125209;Biogás - RA;Industrial;PJ;Microgeracao;74,00;;-25,73;-52,86
+;***;PR;Dois Vizinhos;4107207;Biogás - RA;Rural;PF;Microgeracao;74,12;;-25,72;-53,20
+;***;PR;Dois Vizinhos;4107207;Biogás - RA;Rural;PF;Microgeracao;75,00;;-25,78;-53,10
+;***;PR;Entre Rios do Oeste;4107538;Biogás - RA;Rural;PF;Microgeracao;75,00;;-24,72;-54,24
+;***;PR;Marechal Cândido Rondon;4114609;Biogás - RA;Rural;PF;Microgeracao;75,00;;-24,58;-54,23
+;COOPERATIVA DE ENERGIAS RENOVAVEIS DO PARANA;PR;Ouro Verde do Oeste;4117453;Biogás - RA;Rural;PJ;Microgeracao;74,67;;-24,79;-53,84
+;CIA LATINO AMERICANA DE MEDICAMENTOS;PR;Toledo;4127700;Biogás - RA;Comercial;PJ;Microgeracao;75,00;;-24,70;-53,82
+;***;PR;Toledo;4127700;Biogás - RA;Rural;PF;Microgeracao;74,93;;-24,67;-53,98
+;COOPERATIVA DE ENERGIAS RENOVAVEIS DO PARANA;PR;Toledo;4127700;Biogás - RA;Rural;PJ;Microgeracao;74,98;;-24,81;-53,76
+;***;PR;Nova Santa Rosa;4117222;Biogás - RA;Residencial;PF;Microgeracao;74,12;;-24,49;-53,89
+;RG ENERGIA LTDA;PR;Toledo;4127700;Biogás - RA;Rural;PJ;Microgeracao;75,00;;-24,69;-53,84
+;COOPERATIVA DE ENERGIAS RENOVAVEIS DO PARANA;PR;Toledo;4127700;Biogás - RA;Industrial;PJ;Microgeracao;75,00;;-24,64;-53,69
+;COOPERATIVA DE ENERGIAS RENOVAVEIS DO PARANA;PR;Toledo;4127700;Biogás - RA;Industrial;PJ;Microgeracao;75,00;;-24,70;-53,91
+;***;PR;Nova Santa Rosa;4117222;Biogás - RA;Rural;PF;Microgeracao;73,60;;-24,50;-53,93
+;***;PR;Marechal Cândido Rondon;4114609;Biogás - RA;Rural;PF;Microgeracao;75,00;;-24,68;-54,08
+;RG ENERGIA LTDA;PR;Santa Helena;4123501;Biogás - RA;Rural;PJ;Microgeracao;73,60;;-24,92;-54,27
+;CIA LATINO AMERICANA DE MEDICAMENTOS;PR;Toledo;4127700;Biogás - RA;Comercial;PJ;Microgeracao;75,00;;-24,66;-53,88
+;***;PR;Realeza;4121406;Biogás - RA;Rural;PF;Microgeracao;75,00;;-25,82;-53,51
+;DAJU LTDA;PR;Santa Helena;4123501;Biogás - RA;Comercial;PJ;Microgeracao;75,00;;-24,78;-54,31
+;COOPERATIVA DE ENERGIAS RENOVAVEIS DO PARANA;PR;Toledo;4127700;Biogás - RA;Industrial;PJ;Microgeracao;75,00;;-24,70;-53,84
+;***;PR;Catanduvas;4105003;Biogás - RA;Rural;PF;Microgeracao;75,00;;-25,21;-53,17
+;***;PR;Pato Bragado;4118451;Biogás - RA;Rural;PF;Microgeracao;75,00;;-24,63;-54,19
+;***;PR;Maripá;4115358;Biogás - RA;Rural;PF;Microgeracao;62,30;;-24,47;-53,89
+;***;PR;Pato Bragado;4118451;Biogás - RA;Comercial;PF;Microgeracao;74,12;;-24,60;-54,23
+;SS RACOES LTDA;PR;Marechal Cândido Rondon;4114609;Biogás - RA;Industrial;PJ;Microgeracao;74,12;;-24,69;-54,06
+;***;PR;Santa Helena;4123501;Biogás - RA;Rural;PF;Microgeracao;74,20;;-24,80;-54,30
+;EMPRESA HOTELEIRA PORTO MADERO LTDA;PR;Santa Helena;4123501;Biogás - RA;Comercial;PJ;Microgeracao;73,92;;-25,01;-54,36
+;CIA LATINO AMERICANA DE MEDICAMENTOS;PR;Assis Chateaubriand;4102000;Biogás - RA;Comercial;PJ;Microgeracao;74,12;;-24,60;-53,63
+;COOPERATIVA DE ENERGIAS RENOVAVEIS DO PARANA;PR;Santa Helena;4123501;Biogás - RA;Industrial;PJ;Microgeracao;68,30;;-24,80;-54,30
+;***;PR;Toledo;4127700;Biogás - RA;Industrial;PF;Microgeracao;73,92;;-24,77;-53,65
+;***;PR;Pitangueiras;4119657;Biogás - RA;Rural;PF;Microgeracao;75,00;;-23,22;-51,56
+;***;PR;Castro;4104907;Biogás - RA;Rural;PF;Microgeracao;75,00;;-24,88;-49,82
+;CEDIMED CENTRO DE DIAGNOSTICO MEDICO DE CASCAVEL LTDA;PR;Santa Helena;4123501;Biogás - RA;Industrial;PJ;Microgeracao;74,88;;-25,01;-54,37
+;***;PR;Toledo;4127700;Biogás - RA;Residencial;PF;Microgeracao;68,26;;-24,74;-53,86
+;***;PR;Toledo;4127700;Biogás - RA;Rural;PF;Microgeracao;68,26;;-24,58;-53,77
+;***;PR;Enéas Marques;4107405;Biogás - RA;Rural;PF;Microgeracao;74,20;;-25,94;-53,10
+;***;PR;Santa Helena;4123501;Biogás - RA;Industrial;PF;Microgeracao;74,12;;-25,01;-54,25
+;COOPERATIVA DE GERACAO COMPARTILHADA COGECOM;PR;Missal;4116059;Biogás - RA;Rural;PJ;Microgeracao;74,69;;-25,15;-54,18
+;***;PR;Itaipulândia;4110953;Biogás - RA;Rural;PF;Microgeracao;73,92;;-25,19;-54,31
+;COPACOL COOPERATIVA AGROINDUSTRIAL CONSOLATA;PR;Jesuítas;4112751;Biogás - RA;Rural;PJ;Minigeracao;998,40;;-24,51;-53,41
+;COPACOL COOPERATIVA AGROINDUSTRIAL CONSOLATA;PR;Jesuítas;4112751;Biogás - RA;Rural;PJ;Minigeracao;499,20;;-24,49;-53,39
+;Siviero Cereais Insumos Agrícolas e Transportes LTDA;PR;Clevelândia;4105706;Biogás - RA;Comercial;PJ;Minigeracao;192,00;;-26,41;-52,35
+;COMPANHIA DE SANEAMENTO DO PARANA SANEPAR;PR;Curitiba;4106902;Biogás - RA;Poder Público;PJ;Minigeracao;1770,00;;-25,51;-49,22
+;COCAMAR COOPERATIVA AGROINDUSTRIAL;PR;Presidente Castelo Branco;4120408;Biogás-AGR;Industrial;PJ;Minigeracao;422,10;;-23,28;-52,16
+;***;PR;Mamborê;4114005;Biogás - RA;Rural;PF;Minigeracao;220,00;;-24,31;-51,53
+;COOPERATIVA DE GERACAO COMPARTILHADA COGECOM;PR;Castro;4104907;Biogás-AGR;Comercial;PJ;Minigeracao;1200,00;;-24,72;-49,99
+;CASTROLANDA - COOPERATIVA AGROINDUSTRIAL LTDA;PR;Piraí do Sul;4119400;Biogás-AGR;Comercial;PJ;Minigeracao;233,00;;-24,49;-49,85
+;MUNICIPIO DE PONTA GROSSA;PR;Ponta Grossa;4119905;Biogás - RU;Poder Público;PJ;Minigeracao;520,80;;-25,18;-50,09
+;EDB COOPERATIVA ENERGIA DO BRASIL;PR;Ouro Verde do Oeste;4117453;Biogás - RU;Comercial;PJ;Minigeracao;1000,00;;-24,75;-53,90
+;STARKEN ALIMENTOS EIRELI;PR;Santa Cruz de Monte Castelo;4123303;Biogás - RU;Industrial;PJ;Minigeracao;250,10;;-23,00;-53,31
+;Centro Internacional de Energias Renováveis-Biogás;PR;Toledo;4127700;Biogás - RA;Industrial;PJ;Minigeracao;500,00;;-24,60;-53,74
+;COOPERATIVA BRASILEIRA DE GERACAO DISTRIBUIDA;PR;Arapoti;4101606;Biogás - RA;Comercial;PJ;Microgeracao;73,50;;-24,20;-49,92
+;COOPERATIVA BRASILEIRA DE GERACAO DISTRIBUIDA;PR;Arapoti;4101606;Biogás - RA;Comercial;PJ;Microgeracao;73,50;;-24,20;-75,82
+;***;PR;Itaipulândia;4110953;Biogás - RA;Rural;PF;Microgeracao;73,92;;-25,08;-54,42
+;SINERGI COOPERATIVA DE GERACAO DISTRIBUIDA DE ENERGIAS RENOVAVEIS;PR;Toledo;4127700;Biogás - RA;Industrial;PJ;Microgeracao;73,92;;-24,81;-53,77
+;COOPERATIVA BRASILEIRA DE GERACAO DISTRIBUIDA;PR;Mercedes;4115853;Biogás - RA;Comercial;PJ;Microgeracao;74,12;;-24,45;-54,10
+;COOPERATIVA DE GERACAO COMPARTILHADA COGECOM;PR;Honório Serpa;4109658;Biogás - RA;Residencial;PJ;Microgeracao;74,25;;-26,11;-52,44
+;***;PR;Mangueirinha;4114401;Biogás - RA;Rural;PF;Microgeracao;74,20;;-25,99;-52,20
+;***;PR;Mercedes;4115853;Biogás - RA;Rural;PF;Microgeracao;75,00;;-24,39;-54,19
+;***;PR;Pato Bragado;4118451;Biogás - RA;Residencial;PF;Microgeracao;74,57;;-24,64;-54,18
+;COOPERATIVA DE GERACAO COMPARTILHADA COGECOM;PR;Francisco Beltrão;4108403;Biogás - RA;Industrial;PJ;Microgeracao;74,25;;-25,99;-53,03
+;FRIGORIFICO FLORAI LTDA;PR;Floraí;4107801;Biogás - RA;Industrial;PJ;Microgeracao;74,25;;-23,31;-52,36
+;***;PR;Pato Bragado;4118451;Biogás - RA;Industrial;PF;Microgeracao;74,12;;-24,63;-54,21
+;COOPERATIVA DOS PRODUTORES DE ENERGIA E ADUBO - COOPENAD;PR;Salgado Filho;4122800;Biogás - RU;Industrial;PJ;Minigeracao;1040,00;;-26,17;-53,38
+;COOPERATIVA DE GERACAO DISTRIBUIDA NOVA ENERGIA;PR;Tunas do Paraná;4127882;Biogás - Floresta;Comercial;PJ;Minigeracao;4500,00;;-25,43;-49,30
+;CONSORCIO ENLIV ENERGIA;PR;Toledo;4127700;Biogás - Floresta;Industrial;PJ;Minigeracao;500,00;;-24,36;-53,44
+;EDB COOPERATIVA ENERGIA DO BRASIL;PR;Marechal Cândido Rondon;4114609;Biogás - Floresta;Rural;PJ;Minigeracao;260,00;;-24,65;-54,14
+;BIO4 GERADORA DE ENERGIA LTDA;PR;Marechal Cândido Rondon;4114609;Biogás - Floresta;Rural;PJ;Minigeracao;336,00;;-24,65;-54,14
+;***;PR;Salto do Lontra;4123006;Biogás - RA;Rural;PF;Microgeracao;74,99;;-25,87;-53,32
+;Cargill PGO;PR;Ponta Grossa;4119905;Biogás - Floresta;Comercial;PJ;Minigeracao;2296,00;;-25,19;-50,08
+;C.VALE - COOPERATIVA AGROINDUSTRIAL;PR;Maripá;4115358;Biogás - RA;Rural;PJ;Microgeracao;75,00;;-24,37;-53,76
+;JAIRSON GOULARTE AGROINDUSTRIA;PR;Cafezal do Sul;4103479;Biogás-AGR;Industrial;PJ;Microgeracao;74,00;;-23,96;-53,57
+;***;PR;Cafelândia;4103453;Biogás - RA;Residencial;PF;Microgeracao;74,40;;-24,64;-53,36
+;***;PR;Rolândia;4122404;Biogás - Floresta;Rural;PF;Minigeracao;136,00;;-20,33;-51,33
+;***;PR;Vera Cruz do Oeste;4128559;Biogás - RA;Rural;PF;Microgeracao;74,70;;-25,07;-56,00
+;J. G. COMBATE COMERCIO VAREJISTA DE MOVEIS LTDA;PR;Cascavel;4104808;Biogás - RA;Comercial;PJ;Microgeracao;74,70;;-25,14;-54,71
+;***;PR;Corbélia;4106308;Biogás - RA;Rural;PF;Microgeracao;75,00;;-25,26;-54,76
+;***;PR;Santa Helena;4123501;Biogás - RA;Rural;PF;Microgeracao;75,00;;-25,27;-55,74
+;ASSOCIACAO NET ZERO;PR;Cascavel;4104808;Biogás - RA;Comercial;PJ;Minigeracao;300,00;;-24,98;-53,29
+;BANCO SANTANDER BRASIL S A;RJ;Barra Mansa;3300407;Biogás - RU;Comercial;PJ;Minigeracao;1000,00;;-22,56;-44,19
+;Hortigil Hortifruti S.A;RJ;Barra Mansa;3300407;Biogás - RU;Comercial;PJ;Minigeracao;1000,00;;-22,45;-44,30
+;TELEFONICA BRASIL S A;RJ;São Pedro da Aldeia;3305208;Biogás - RU;Industrial;PJ;Minigeracao;1429,20;;-22,75;-42,14
+;LOJAS AMERICANAS S A;RJ;Rio de Janeiro;3304557;Biogás - RU;Comercial;PJ;Minigeracao;1000,00;;-22,96;-43,20
+;Claro S.A - We Trust In Sustainable Energy;RJ;Rio de Janeiro;3304557;Biogás - RU;Comercial;PJ;Minigeracao;4998,40;;-22,96;-43,20
+;BANCO SANTANDER BRASIL S A;RJ;Rio de Janeiro;3304557;Biogás - RU;Comercial;PJ;Minigeracao;1000,00;;-22,82;-43,19
+;CONSORCIO EVA SEROPEDICA ENERGIA DE GERAÇÃO;RJ;Seropédica;3305554;Biogás - RU;Industrial;PJ;Minigeracao;4999,28;;-22,79;-43,76
+;TELEFONICA BRASIL S A;RJ;Paracambi;3303609;Biogás - RU;Comercial;PJ;Minigeracao;270,00;;-22,63;-43,68
+;***;RO;São Miguel do Guaporé;1100320;Biogás - RA;Rural;PF;Microgeracao;75,00;;-11,68;-62,66
+;***;RO;Cacoal;1100049;Biogás-AGR;Rural;PF;Minigeracao;90,00;;-11,29;-61,33
+;IRMAOS GONCALVES COMERCIO E INDUSTRIA LTDA;RO;Ji-Paraná;1100122;Biogás-AGR;Comercial;PJ;Minigeracao;2400,00;;-10,87;-61,96
+;***;RS;Salvador do Sul;4316501;Biogás - RA;Rural;PF;Minigeracao;90,00;;-29,46;-51,51
+;***;RS;Catuípe;4305009;Biogás-AGR;Rural;PF;Minigeracao;77,00;;-28,15;-54,14
+;***;RS;Pinhal;4314456;Biogás - RA;Rural;PF;Microgeracao;74,26;;-27,53;-53,22
+;***;RS;Santo Cristo;4317905;Biogás - RA;Rural;PF;Microgeracao;73,26;;-27,81;-54,61
+;BANCO SANTANDER BRASIL S A;RS;Candiota;4304358;Biogás - RU;Comercial;PJ;Minigeracao;999,00;;-31,49;-53,74
+;SIM REDE DE POSTOS LTDA;RS;Candiota;4304358;Biogás - RU;Comercial;PJ;Minigeracao;999,00;;-31,49;-53,74
+;***;RS;Canguçu;4304507;Biogás-AGR;Rural;PF;Microgeracao;72,00;;-31,23;-52,62
+;***;RS;Rodeio Bonito;4315909;Biogás - RA;Rural;PF;Minigeracao;87,20;;-27,46;-53,19
+;***;RS;Frederico Westphalen;4308508;Biogás - RA;Rural;PF;Microgeracao;48,00;;-27,30;-53,34
+;***;RS;Giruá;4309001;Biogás - RA;Rural;PF;Microgeracao;54,40;;-27,92;-54,40
+;***;RS;Santa Rosa;4317202;Biogás - RA;Rural;PF;Microgeracao;74,24;;-28,15;-55,45
+;PINUS BOM JESUS INDUSTRIA E;RS;Bom Jesus;4302303;Biogás - Floresta;Comercial;PJ;Minigeracao;2850,40;;-28,55;-50,39
+;Coop. dos Citr. Ecol. Do Vale do Caí LTDA;RS;Montenegro;4312401;Biogás-AGR;Industrial;PJ;Minigeracao;294,00;;-29,69;-51,54
+;***;RS;Santo Cristo;4317905;Biogás - RA;Rural;PF;Microgeracao;74,25;;-27,82;-54,74
+;***;RS;Seberi;4320206;Biogás - RA;Rural;PF;Minigeracao;77,60;;-27,50;-53,38
+;***;RS;Santo Cristo;4317905;Biogás - RA;Rural;PF;Microgeracao;74,40;;-27,86;-54,61
+;***;RS;Charrua;4305371;Biogás - RA;Rural;PF;Microgeracao;74,25;;-27,94;-51,98
+;***;RS;Cerro Largo;4305207;Biogás-AGR;Rural;PF;Microgeracao;69,00;;-28,06;-54,76
+;***;RS;Santo Cristo;4317905;Biogás - RA;Rural;PF;Microgeracao;73,26;;-27,98;-54,65
+;COOPERATIVA BRASILEIRA DE GERACAO DISTRIBUIDA;RS;Tapera;4321006;Biogás - RA;Comercial;PJ;Minigeracao;460,80;;-28,64;-52,78
+;***;RS;Teutônia;4321451;Biogás - RA;Rural;PF;Minigeracao;84,15;;-29,45;-51,67
+;***;RS;Paverama;4314159;Biogás - RA;Rural;PF;Microgeracao;52,00;;-29,52;-51,77
+;BIOTERMICA ENERGIA S.A.;RS;São Leopoldo;4318705;Biogás - RU;Comercial;PJ;Minigeracao;920,00;;-30,26;-52,81
+;***;RS;Água Santa;4300059;Biogás - RA;Rural;PF;Minigeracao;190,40;;-28,13;-52,07
+;***;RS;Cristal do Sul;4306072;Biogás - RA;Rural;PF;Microgeracao;74,26;;-27,43;-53,25
+;***;SC;Vargeão;4219101;Biogás - RA;Rural;PF;Microgeracao;75,00;;-26,83;-52,13
+;***;SC;Ipuaçu;4207684;Biogás - RA;Rural;PF;Microgeracao;39,60;;-26,60;-52,44
+;***;SC;Entre Rios;4205175;Biogás - RA;Rural;PF;Microgeracao;62,40;;-26,70;-52,57
+;***;SC;São Carlos;4216008;Biogás - RA;Rural;PF;Microgeracao;34,00;;-27,01;-53,06
+;***;SC;Seara;4217501;Biogás - RA;Rural;PF;Microgeracao;75,00;;-27,13;-52,37
+;Maiale Carnes Suínas;SC;Chapecó;4204202;Biogás - RA;Industrial;PJ;Minigeracao;90,00;;-27,08;-52,64
+;***;SC;Chapecó;4204202;Biogás - RA;Industrial;PF;Microgeracao;60,00;;-27,08;-52,64
+;***;SC;Jaguaruna;4208807;Biogás - Floresta;Comercial;PF;Microgeracao;75,00;;-28,63;-49,03
+;Agroter Agropecuária & Ferragem Ltda;SC;Marema;4210555;Biogás - RA;Rural;PJ;Microgeracao;75,00;;-26,83;-52,62
+;MASTER AGROINDUSTRIAL LTDA;SC;Videira;4219309;Biogás - RA;Industrial;PJ;Minigeracao;400,00;;-27,04;-51,11
+;***;SC;Xanxerê;4219507;Biogás - RA;Rural;PF;Microgeracao;75,00;;-26,92;-52,45
+;***;SC;Braço do Norte;4202800;Biogás - RU;Rural;PF;Microgeracao;11,04;;-28,21;-49,09
+;***;SC;Cunhataí;4204756;Biogás - RA;Rural;PF;Microgeracao;64,00;;-26,98;-53,10
+;***;SC;Cunha Porã;4204707;Biogás - RA;Rural;PF;Minigeracao;75,20;;-26,90;-53,13
+;***;SC;São Carlos;4216008;Biogás - RA;Rural;PF;Microgeracao;74,25;;-27,00;-53,07
+;***;SC;Xanxerê;4219507;Biogás - RA;Rural;PF;Microgeracao;73,60;;-26,90;-52,42
+;***;SC;Blumenau;4202404;Biogás - RA;Industrial;PF;Minigeracao;183,60;;-26,76;-49,10
+;COOPERATIVA REGIONAL AGROPECUARIA DE CAMPOS NOVOS COPERCAMPOS;SC;Santa Cecília;4215505;Biogás - RA;Rural;PJ;Microgeracao;67,20;;-26,91;-50,46
+;***;SC;Faxinal dos Guedes;4205308;Biogás - RA;Rural;PF;Microgeracao;73,26;;-26,87;-52,25
+;***;SC;Faxinal dos Guedes;4205308;Biogás - RA;Rural;PF;Microgeracao;74,40;;-26,85;-52,21
+;COOPERATIVA REGIONAL AGROPECUARIA DE CAMPOS NOVOS;SC;Campos Novos;4203600;Biogás - RA;Rural;PJ;Minigeracao;176,00;;-27,47;-51,22
+;***;SC;Xavantina;4219606;Biogás - RA;Rural;PF;Minigeracao;75,60;;-27,07;-52,32
+;***;SC;Descanso;4204905;Biogás - RA;Rural;PF;Minigeracao;85,00;;-26,80;-53,52
+;***;SC;Itapiranga;4208401;Biogás - RA;Rural;PF;Microgeracao;75,00;;-27,17;-53,57
+;***;SC;Guaraciaba;4206405;Biogás - RA;Rural;PF;Microgeracao;75,00;;-26,54;-53,58
+;***;SC;Palma Sola;4212007;Biogás - RA;Rural;PF;Microgeracao;75,00;;-26,34;-53,29
+;***;SC;Barra Bonita;4202099;Biogás - RA;Rural;PF;Microgeracao;73,26;;-26,66;-53,42
+;COOPERATIVA SUSTENTAVEL DE ENERGIAS RENOVAVEIS - COOPER SUSTENTAVEL;SC;Jaguaruna;4208807;Biogás - RA;Comercial;PJ;Microgeracao;75,00;;-28,65;-49,05
+;***;SC;Guaraciaba;4206405;Biogás - RA;Rural;PF;Microgeracao;74,40;;-26,62;-53,52
+;COMPENSADOS FUCK LTDA;SC;Três Barras;4218301;Biogás - RA;Industrial;PJ;Minigeracao;500,00;;-26,15;-50,32
+;***;SC;Sul Brasil;4217758;Biogás - RA;Rural;PF;Microgeracao;24,75;;-26,67;-52,97
+;***;SC;Cunha Porã;4204707;Biogás - RA;Rural;PF;Microgeracao;39,60;;-26,88;-53,17
+;***;SC;Coronel Freitas;4204400;Biogás - RA;Residencial;PF;Microgeracao;35,20;;-26,90;-52,73
+;***;SC;Guaraciaba;4206405;Biogás - RA;Rural;PF;Microgeracao;74,80;;-26,55;-53,58
+;***;SC;Tunápolis;4218756;Biogás - RA;Rural;PF;Microgeracao;74,80;;-27,03;-53,64
+;***;SC;Xanxerê;4219507;Biogás - RA;Rural;PF;Microgeracao;60,00;;-26,88;-52,46
+;***;SC;Xanxerê;4219507;Biogás - RU;Rural;PF;Minigeracao;168,00;;-26,15;-52,62
+;***;SC;Xanxerê;4219507;Biogás - RA;Rural;PF;Microgeracao;74,69;;-26,85;-52,35
+;***;SC;Caibi;4203105;Biogás - RA;Rural;PF;Minigeracao;115,20;;-26,96;-53,22
+;***;SC;Pouso Redondo;4213708;Biogás-AGR;Rural;PF;Microgeracao;74,40;;-27,31;-49,91
+;AGRIC ADUBOS E GESTAO DE RESIDUOS INDUSTRIAIS E COMERCIAIS S.A.;SC;Campos Novos;4203600;Biogás-AGR;Industrial;PJ;Minigeracao;1141,60;;-27,35;-51,34
+;***;SC;Arabutã;4201273;Biogás - RA;Industrial;PF;Minigeracao;287,10;;-27,14;-52,12
+;***;SC;Pouso Redondo;4213708;Biogás-AGR;Rural;PF;Microgeracao;74,40;;-27,21;-49,97
+;COOPERATIVA DE GERACAO DISTRIBUIDA ENERGIA;SC;Mafra;4210100;Biogás - Floresta;Comercial;PJ;Minigeracao;2200,00;;-26,18;-49,88
+;DAISE APARECIDA CANCIAN BRESSIANI E OUTR;SP;Elias Fausto;3514908;Biogás - RA;Rural;PJ;Microgeracao;74,00;;-23,07;-47,37
+;JOSE LEMO;SP;Monte Azul Paulista;3531506;Biogás - RA;Rural;PJ;Microgeracao;75,00;;-20,93;-48,70
+;FENIX COLINA PARTICIPACOES E EMPREENDIMENTOS LTDA.;SP;Colina;3512001;Biogás - RA;Rural;PJ;Microgeracao;74,26;;-20,67;-48,50
+;Eliano Antunes de Oliveira;SP;Coronel Macedo;3512605;Biogás - RA;Rural;PJ;Microgeracao;74,26;;-23,66;-49,25
+;PAULO PELLICCI E OUTROS;SP;São Manuel;3550100;Biogás - RA;Comercial;PJ;Minigeracao;87,20;;-22,72;-48,55
+;JOSE VALENTIM CASARIN;SP;Piracicaba;3538709;Biogás - RA;Rural;PJ;Microgeracao;74,40;;-22,86;-47,78
+;Gaswatt Energi;SP;São Paulo;3550308;Biogás - RU;Comercial;PJ;Minigeracao;3150,00;;-23,63;-46,46
+;WALDOMIRO APARECIDO PASTORI;SP;Torrinha;3554706;Biogás - RA;Rural;PJ;Minigeracao;150,40;;-22,45;-48,16
+;RENATO RAPPA;SP;Itatiba;3523404;Biogás - RU;Rural;PJ;Minigeracao;96,00;;-23,00;-46,84
+;FENIX COLINA PARTICIPACOES;SP;Colina;3512001;Biogás - RA;Rural;PJ;Minigeracao;75,20;;-20,73;-48,60
+;MARCO ANTONIO GUARDABAXO;SP;São José do Rio Pardo;3549706;Biogás - RA;Rural;PJ;Minigeracao;96,00;;-21,55;-46,83
+;MARCO ANTONIO GUARDABAXO;SP;São José do Rio Pardo;3549706;Biogás - RA;Rural;PJ;Minigeracao;200,00;;-21,56;-46,88
+;JOSE FLAVIO NETO;SP;Mococa;3530508;Biogás - RA;Rural;PJ;Microgeracao;74,40;;-21,53;-47,01
+;CLARO S/A;SP;São Paulo;3550308;Biogás - RU;Comercial;PJ;Minigeracao;4950,00;;-23,64;-46,42
+;ELAINE DE FATIMA DIEHL MARCIO ME;SP;Piracicaba;3538709;Biogás - RA;Rural;PJ;Microgeracao;74,25;;-22,79;-47,72
+;TEREOS ACUCAR E ENERGIA BRASIL S.A.;SP;Olímpia;3533908;Biogás - RA;Industrial;PJ;Minigeracao;464,00;;-20,70;-49,10
+;ARUALDO BALLONI;SP;Limeira;3526902;Biogás - RA;Rural;PJ;Microgeracao;69,00;;-22,67;-47,41
+;FENIX COLINA PARTICIPACOES E EMPREENDIMENTOS LTDA.;SP;Colina;3512001;Biogás - RA;Rural;PJ;Microgeracao;53,76;;-20,73;-48,60
+;CONSORCIO RZ SP IV;SP;Narandiba;3532207;Biogás-AGR;Comercial;PJ;Minigeracao;4971,68;;-22,56;-51,54
+;PAULO PEREIRA RANGEL FILHO;SP;Bauru;3506003;Biogás - RA;Rural;PJ;Microgeracao;53,76;;-22,33;-49,07
+;FLAVIO VERONEZ E OUTROS;SP;Rafard;3542107;Biogás - RA;Rural;PJ;Microgeracao;60,72;;-23,04;-47,59
+;REVITA ENGENHARIA SA;SP;Quatá;3541703;Biogás - RU;Comercial;PJ;Minigeracao;1000,00;;-22,18;-50,70
+;ARUALDO BALLONI;SP;Limeira;3526902;Biogás - RA;Rural;PJ;Microgeracao;42,75;;-22,67;-47,41
+;RENATO MAURICIO DE PAULA E OUTROS;SP;Franca;3516200;Biogás - RA;Rural;PJ;Minigeracao;336,00;;-20,46;-47,39
+;13.228.387/0001-80;SP;Cordeirópolis;3512407;Biogás - RA;Rural;PJ;Microgeracao;69,00;;-22,45;-47,44
+;MUNICIPIO DE SAO JOSE DOS CAMPOS;SP;São José dos Campos;3549904;Biogás - RU;Comercial;PJ;Minigeracao;1560,00;;-23,25;-45,86
+;FIGUEIRA INDUSTRIA E COMERCIO DE ALIMENTOS LTDA;SP;Paraguaçu Paulista;3535507;Biogás - Floresta;Industrial;PJ;Minigeracao;460,00;;-22,43;-50,56
+;CONDOMINIO RESIDENCIAL ARTS GARDEN N N;SP;Mogi das Cruzes;3530607;Biogás - RU;Comercial;PJ;Microgeracao;23,70;;-23,52;-46,18
+;CONDOMINIO RESIDENCIAL ARTS GARDEN N N;SP;Mogi das Cruzes;3530607;Biogás - RU;Comercial;PJ;Microgeracao;28,44;;-23,52;-46,18
+;CRI GEO BIOGAS S.A;SP;Elias Fausto;3514908;Biogás - RA;Comercial;PJ;Minigeracao;1143,20;;-24,93;-48,60
+;LUIZ ANTONIO RODRIGUES;SP;Gália;3516606;Biogás - RA;Residencial;PJ;Microgeracao;69,00;;-22,32;-49,56
+;FARINHEIRA VO JORGE LTDA;SP;Indiana;3520608;Biogás - RA;Industrial;PJ;Minigeracao;250,00;;-22,14;-51,25
+;CORPUS SANEAMENTO E OBRAS LTDA;SP;Indaiatuba;3520509;Biogás - RU;Comercial;PJ;Minigeracao;199,84;;-23,10;-47,45
+;SOLAR SANTANA DO PARNAIBA SPE LTDA;SP;Andradina;3502101;Biogás-AGR;Industrial;PJ;Minigeracao;300,00;;-20,87;-51,35
+;***;TO;Palmeiras do Tocantins;1713809;Biogás-AGR;Rural;PF;Minigeracao;85,00;;-6,61;-47,54

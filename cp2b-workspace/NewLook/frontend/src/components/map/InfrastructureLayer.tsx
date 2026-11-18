@@ -1,0 +1,576 @@
+/**
+ * PILAR-2b V3 - Infrastructure Layer Component (Optimized)
+ * Renders infrastructure GeoJSON layers with React Query caching
+ */
+
+'use client';
+
+import React, { useEffect } from 'react';
+import { useTranslations } from 'next-intl';
+import { GeoJSON, Marker, Popup } from 'react-leaflet';
+import type { GeoJsonObject, Feature } from 'geojson';
+import L from 'leaflet';
+import { logger } from '@/lib/logger';
+import { useFormat } from '@/hooks/useFormat';
+import { useInfrastructureLayer } from '@/hooks/useGeospatialData';
+import { PLANT_LAYERS, BIOMETHANE_PLANT, type PlantTypeInfo } from '@/lib/plantLayers';
+import { escapeHtml } from '@/lib/html';
+
+/** What a layer's load came to. The map words it (Map.layerAlert); server notes go to the log. */
+export type InfrastructureLayerStatus = {
+  layerType: string;
+  state: 'loading' | 'empty' | 'error' | 'ready';
+  featureCount?: number;
+};
+
+// Hyphenated ids are the legacy São Paulo shapefile layers; snake_case ids are
+// the national PostGIS layers (migration 023 / MapBiomas 10.1 INFRAESTRUTURA).
+// The id shape is what useInfrastructureLayer routes on, so keep them distinct.
+type LegacySpLayer =
+  | 'railways' | 'pipelines' | 'substations' | 'biogas-plants'
+  | 'transmission-lines' | 'etes'
+  | 'admin-regions' | 'intermediate-regions' | 'immediate-regions';
+
+export type NationalLayer =
+  | 'biogas_plant' | 'biodiesel_plant' | 'ethanol_plant' | 'slaughterhouse'
+  | 'biomass_thermal_plant' | 'substation' | 'transmission_line'
+  | 'gas_pipeline_transport' | 'gas_pipeline_distribution'
+  // Rota de escoamento: onde o biometano entra na malha
+  | 'gas_delivery_point' | 'compression_station' | 'gas_processing_unit'
+  | 'gas_pipeline_outflow'
+  // Restrição de sítio: mobilizável não é o mesmo que licenciável
+  | 'protected_area_state' | 'indigenous_territory' | 'settlement'
+  // Logística
+  | 'highway_state' | 'highway_federal';
+
+interface InfrastructureLayerProps {
+  layerType: LegacySpLayer | NationalLayer;
+  onStatus?: (status: InfrastructureLayerStatus) => void;
+  /** Server-side UF filter; national layers only. */
+  uf?: string;
+  /** Server-side bbox filter, for layers whose uf is NULL by design (lines and
+   *  polygons that cross state borders). 'min_lng,min_lat,max_lng,max_lat'. */
+  bbox?: string;
+  /**
+   * Leaflet pane to draw into. Infrastructure must sit ABOVE the municipality
+   * choropleth: that choropleth renders on a canvas in the default overlayPane
+   * (z 400), and infra lines/polygons are SVG in the same pane — so without a
+   * dedicated higher pane the pipelines/highways/protected areas would be buried
+   * under the fill. MapComponent creates an 'infrastructure' pane at z 450.
+   */
+  pane?: string;
+}
+
+// Layer styling configurations
+const layerStyles: Record<string, any> = {
+  railways: {
+    color: '#8B4513',
+    weight: 2,
+    opacity: 0.7
+  },
+  pipelines: {
+    color: '#FF6B35',
+    weight: 3,
+    opacity: 0.8
+  },
+  'transmission-lines': {
+    color: '#FFD700',
+    weight: 2,
+    opacity: 0.7,
+    dashArray: '5, 5'
+  },
+  'admin-regions': {
+    color: '#4169E1',
+    weight: 2,
+    opacity: 0.6,
+    fillColor: '#4169E1',
+    fillOpacity: 0.1
+  },
+  'intermediate-regions': {
+    color: '#9370DB',
+    weight: 2,
+    opacity: 0.6,
+    fillColor: '#9370DB',
+    fillOpacity: 0.1
+  },
+  'immediate-regions': {
+    color: '#8A2BE2',
+    weight: 1.5,
+    opacity: 0.6,
+    fillColor: '#8A2BE2',
+    fillOpacity: 0.1
+  },
+  substations: {
+    // Point features use markers instead of styles
+  },
+  'biogas-plants': {
+    // Point features use markers instead of styles
+  },
+  etes: {
+    // Point features use markers instead of styles
+  },
+
+  // ── National layers (migration 023) ──────────────────────────────────────
+  // Line layers need a style; the point layers below fall through to markers.
+  transmission_line: {
+    color: '#FFD700',
+    weight: 2,
+    opacity: 0.7,
+    dashArray: '5, 5'
+  },
+  gas_pipeline_transport: {
+    color: '#FF6B35',
+    weight: 3,
+    opacity: 0.8
+  },
+  gas_pipeline_distribution: {
+    color: '#FFA07A',
+    weight: 2,
+    opacity: 0.8,
+    dashArray: '4, 4'
+  },
+  // Escoamento: mesma família cromática dos outros gasodutos, tom distinto.
+  gas_pipeline_outflow: {
+    color: '#FF8C42',
+    weight: 1.8,
+    opacity: 0.75,
+    dashArray: '2, 3'
+  },
+  // Restrição de sítio — contorno visível, preenchimento discreto. São camadas
+  // de contexto: precisam ser lidas como limite, não competir com o coroplético.
+  protected_area_state: {
+    color: '#166534',
+    weight: 1,
+    opacity: 0.7,
+    fillColor: '#22C55E',
+    fillOpacity: 0.18
+  },
+  indigenous_territory: {
+    color: '#92400E',
+    weight: 1,
+    opacity: 0.7,
+    fillColor: '#F59E0B',
+    fillOpacity: 0.18
+  },
+  settlement: {
+    color: '#7C2D12',
+    weight: 0.8,
+    opacity: 0.6,
+    fillColor: '#FB923C',
+    fillOpacity: 0.15
+  },
+  // Rodovias: finas e neutras. São referência de leitura para o resto do mapa,
+  // nunca o dado em inspeção.
+  highway_state: {
+    color: '#64748B',
+    weight: 0.8,
+    opacity: 0.55
+  },
+  highway_federal: {
+    color: '#334155',
+    weight: 1.2,
+    opacity: 0.65
+  },
+  biogas_plant: {},
+  biodiesel_plant: {},
+  ethanol_plant: {},
+  slaughterhouse: {},
+  biomass_thermal_plant: {},
+  substation: {}
+};
+
+// Custom icons for point features
+// Slaughterhouses are a national layer (frigorificos, 207 sites): they mark
+// concentrated livestock-residue supply, so they matter for co-location.
+const createSlaughterhouseIcon = () => {
+  return L.divIcon({
+    className: 'custom-slaughterhouse-icon',
+    html: `
+      <div style="
+        background-color: #B22222;
+        border: 2px solid #7F1414;
+        border-radius: 50%;
+        width: 16px;
+        height: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      ">
+        <span style="color: #fff; font-size: 10px; font-weight: bold;">🥩</span>
+      </div>
+    `,
+    iconSize: [16, 16],
+    iconAnchor: [8, 8]
+  });
+};
+
+// Nós da malha de gás: entrega (city gate), compressão e processamento.
+const GAS_NODE_COLORS: Record<string, [string, string]> = {
+  gas_delivery_point: ['#0EA5E9', '#075985'],
+  compression_station: ['#8B5CF6', '#5B21B6'],
+  gas_processing_unit: ['#14B8A6', '#0F766E'],
+};
+
+const createGasNodeIcon = (layerType: string) => {
+  const [fill, stroke] = GAS_NODE_COLORS[layerType] ?? ['#0EA5E9', '#075985'];
+  return L.divIcon({
+    className: 'custom-gas-node-icon',
+    html: `
+      <div style="
+        background-color: ${fill};
+        border: 2px solid ${stroke};
+        width: 12px;
+        height: 12px;
+        transform: rotate(45deg);
+      "></div>
+    `,
+    iconSize: [12, 12],
+    iconAnchor: [6, 6],
+  });
+};
+
+const createSubstationIcon = () => {
+  return L.divIcon({
+    className: 'custom-substation-icon',
+    html: `
+      <div style="
+        background-color: #FFD700;
+        border: 2px solid #FFA500;
+        border-radius: 50%;
+        width: 16px;
+        height: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      ">
+        <span style="color: #000; font-size: 10px; font-weight: bold;">⚡</span>
+      </div>
+    `,
+    iconSize: [16, 16],
+    iconAnchor: [8, 8]
+  });
+};
+
+/**
+ * Marker for one plant type, built from the shared catalogue.
+ *
+ * These four icons used to be four near-identical literals here, with the
+ * legend keeping its own copy of the same colours — so a plant type could be
+ * drawn in one colour and explained in another. Both sides read
+ * lib/plantLayers now.
+ */
+const createPlantIcon = (type: PlantTypeInfo, className: string) => {
+  return L.divIcon({
+    className,
+    html: `
+      <div style="
+        background-color: ${type.color};
+        border: 2px solid ${type.borderColor};
+        border-radius: 50%;
+        width: 18px;
+        height: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      ">
+        <span style="color: white; font-size: 12px; font-weight: bold;">${type.icon}</span>
+      </div>
+    `,
+    iconSize: [18, 18],
+    iconAnchor: [9, 9]
+  });
+};
+
+const createEthanolPlantIcon = () =>
+  createPlantIcon(PLANT_LAYERS.ethanol_plant, 'custom-ethanol-plant-icon');
+const createBiogasPlantIcon = () =>
+  createPlantIcon(PLANT_LAYERS.biogas_plant, 'custom-biogas-plant-icon');
+const createBiomassUTEIcon = () =>
+  createPlantIcon(PLANT_LAYERS.biomass_thermal_plant, 'custom-biomass-ute-icon');
+const createBiodieselPlantIcon = () =>
+  createPlantIcon(PLANT_LAYERS.biodiesel_plant, 'custom-biodiesel-plant-icon');
+// Biometano is a SUBTIPO of the legacy SP layer, not a layer of its own.
+const createBiomethaneIcon = () =>
+  createPlantIcon(BIOMETHANE_PLANT, 'custom-biomethane-plant-icon');
+
+const createETEIcon = () => {
+  return L.divIcon({
+    className: 'custom-ete-icon',
+    html: `
+      <div style="
+        background-color: #4682B4;
+        border: 2px solid #1E3A8A;
+        border-radius: 50%;
+        width: 16px;
+        height: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      ">
+        <span style="color: white; font-size: 10px; font-weight: bold;">💧</span>
+      </div>
+    `,
+    iconSize: [16, 16],
+    iconAnchor: [8, 8]
+  });
+};
+
+/**
+ * Popup markup is built as an HTML string because Leaflet's `bindPopup` takes
+ * one. Every interpolated value therefore has to be escaped: the values come
+ * from shapefile and PostGIS attributes, which are not user-editable today, but
+ * an unescaped template here is a stored-XSS vector the moment any of those
+ * fields becomes writable (backlog FE #8). See lib/html.
+ */
+/** One `<strong>Label:</strong> value` line, or nothing when there is no value. */
+function popupRow(label: string, value: unknown, fallback: string): string {
+  const text =
+    value === null || value === undefined || value === '' ? fallback : String(value);
+  return `<p style="margin: 4px 0; font-size: 12px;"><strong>${escapeHtml(label)}:</strong> ${escapeHtml(text)}</p>`;
+}
+
+function popupTitle(name: string): string {
+  return `<h3 style="margin: 0 0 8px 0; font-size: 14px; font-weight: bold;">${escapeHtml(name)}</h3>`;
+}
+
+export default function InfrastructureLayer({ layerType, onStatus, uf, bbox, pane }: InfrastructureLayerProps) {
+  const t = useTranslations('Map.infrastructure');
+  const format = useFormat();
+  // Use React Query hook for automatic caching and background refetching
+  const { data, loading, error, isFetching } = useInfrastructureLayer(layerType, true, uf, bbox);
+  const featureCount = Array.isArray(data?.features) ? data.features.length : 0;
+
+  useEffect(() => {
+    if (!onStatus) return;
+
+    if (loading || (isFetching && !data)) {
+      onStatus({ layerType, state: 'loading' });
+      return;
+    }
+
+    if (error) {
+      onStatus({ layerType, state: 'error' });
+      return;
+    }
+
+    if (data && featureCount === 0) {
+      // The server's explanation ("No features loaded for layer …") is English-only.
+      const note = data.metadata?.error || data.metadata?.note;
+      if (note) logger.info(`${layerType} layer is empty:`, note);
+      onStatus({ layerType, state: 'empty', featureCount });
+      return;
+    }
+
+    if (data) {
+      onStatus({ layerType, state: 'ready', featureCount });
+    }
+  }, [data, error, featureCount, isFetching, layerType, loading, onStatus, t]);
+
+  // Show subtle loading indicator when refetching in background
+  if (isFetching && !data) {
+    logger.info(`Loading ${layerType} layer...`);
+  }
+
+  // Don't render geometry while loading or if there's an error. The parent map
+  // receives the status above and can surface it to users instead of failing silently.
+  if (loading || error || !data || featureCount === 0) {
+    if (error) {
+      logger.error(`Error loading ${layerType} layer:`, error);
+    }
+    return null;
+  }
+
+  logger.info(`Rendering ${layerType} layer (cached: ${!isFetching})`);
+
+  // Style function for line features (roads, pipelines)
+  const style = (feature?: Feature) => {
+    return layerStyles[layerType] || {
+      color: '#666',
+      weight: 2,
+      opacity: 0.7
+    };
+  };
+
+  // Point to layer function for point features (substations, biogas plants, ETEs)
+  const pointToLayer = (feature: any, latlng: L.LatLng) => {
+    let icon: L.DivIcon;
+
+    if (layerType === 'substations' || layerType === 'substation') {
+      icon = createSubstationIcon();
+    } else if (layerType === 'biogas_plant') {
+      // National layer: one icon per layer, since the layer itself is the type.
+      icon = createBiogasPlantIcon();
+    } else if (layerType === 'ethanol_plant') {
+      icon = createEthanolPlantIcon();
+    } else if (layerType === 'biomass_thermal_plant') {
+      icon = createBiomassUTEIcon();
+    } else if (layerType === 'biodiesel_plant') {
+      icon = createBiodieselPlantIcon();
+    } else if (layerType === 'slaughterhouse') {
+      icon = createSlaughterhouseIcon();
+    } else if (layerType === 'biogas-plants') {
+      // Differentiate biomass plants by type
+      const props = feature.properties;
+      const subtype = props.SUBTIPO?.toLowerCase() || '';
+      const plantType = props.TIPO_PLANT?.toLowerCase() || '';
+
+      // Determine icon based on plant subtype or type
+      if (subtype.includes('etanol') || plantType.includes('etanol')) {
+        icon = createEthanolPlantIcon();
+      } else if (subtype.includes('biometano') || plantType.includes('biometano')) {
+        icon = createBiomethaneIcon();
+      } else if (subtype.includes('ute') || plantType.includes('ute') || subtype.includes('termelétrica') || subtype.includes('termeletrica')) {
+        icon = createBiomassUTEIcon();
+      } else if (subtype.includes('biogás') || subtype.includes('biogas') || plantType.includes('biogás') || plantType.includes('biogas')) {
+        icon = createBiogasPlantIcon();
+      } else {
+        // Default to biogas icon for unknown types
+        icon = createBiogasPlantIcon();
+      }
+    } else if (layerType === 'etes') {
+      icon = createETEIcon();
+    } else if (
+      layerType === 'gas_delivery_point' ||
+      layerType === 'compression_station' ||
+      layerType === 'gas_processing_unit'
+    ) {
+      // A rota do gás em um só registro visual: losango, para não se confundir
+      // com os círculos das usinas. A cor separa os três papéis — entrega,
+      // compressão, processamento — que é a leitura que interessa a quem
+      // pergunta "onde eu injeto o biometano que este município produz?".
+      icon = createGasNodeIcon(layerType);
+    } else {
+      // Default marker
+      icon = L.divIcon({
+        className: 'custom-default-icon',
+        html: '<div style="background-color: #999; width: 12px; height: 12px; border-radius: 50%;"></div>',
+        iconSize: [12, 12],
+        iconAnchor: [6, 6]
+      });
+    }
+
+    // Same pane as the paths so every infrastructure feature sits above the
+    // municipality choropleth (markers default to markerPane, which is already
+    // above it, but keeping them together makes the layering explicit).
+    return L.marker(latlng, pane ? { icon, pane } : { icon });
+  };
+
+  // Event handlers for each feature
+  const onEachFeature = (feature: any, layer: L.Layer) => {
+    const props = feature.properties;
+
+    let popupContent = `<div style="font-family: sans-serif; max-width: 280px;">`;
+
+    const na = t('na');
+    // Each branch declares its rows; the shared helpers handle escaping and the
+    // "no value" fallback, so the seven near-identical templates that used to
+    // live here are now one code path.
+    let name: string;
+    let rows: Array<[string, unknown]>;
+
+    if (layerType === 'railways') {
+      name = props.nome || props.name || props.NOME || t('names.road');
+      rows = [
+        [t('fields.type'), props.tipo || props.type || t('names.road')],
+        [t('fields.operator'), props.operador || props.operator],
+        [t('fields.status'), props.status || props.STATUS],
+      ];
+    } else if (layerType === 'pipelines') {
+      // Actual fields: Nome_Dut_1, Label, name, Transporta, Diam_Pol_x, P_Max_Op, situaDuo, COMPRIM_KM
+      name = props.Nome_Dut_1 || props.Label || props.name || t('names.pipeline');
+      rows = [
+        [t('fields.type'), props.name || t('names.pipeline')],
+        [t('fields.operator'), props.Transporta || props.operator],
+        [t('fields.diameter'), props.Diam_Pol_x ? t('units.inches', { value: format.number(props.Diam_Pol_x) }) : null],
+        [t('fields.max_pressure'), props.P_Max_Op ? `${format.number(props.P_Max_Op)} bar` : null],
+        [t('fields.length'), props.COMPRIM_KM ? `${format.number(props.COMPRIM_KM, { decimals: 1, minDecimals: 1 })} km` : null],
+        [t('fields.status'), props.situaDuo],
+      ];
+      if (props.MUNIC_ORIG && props.MUNIC_DEST) {
+        rows.push([t('fields.section'), `${props.MUNIC_ORIG} → ${props.MUNIC_DEST}`]);
+      }
+    } else if (layerType === 'transmission-lines') {
+      // Actual fields: Nome, label, Concession, Tensao, Extensao, Ano_Opera
+      name = props.Nome || props.label || props.name || t('names.transmission_line');
+      rows = [
+        [t('fields.concessionaire'), props.Concession || props.concession],
+        [t('fields.voltage'), props.Tensao || props.tensao],
+        [t('fields.length'), props.Extensao],
+        [t('fields.operation_year'), props.Ano_Opera],
+      ];
+    } else if (layerType === 'substations') {
+      // Actual fields: nome, potencia, combust, propriet, ceg, ini_oper
+      name = props.nome || props.name || t('names.substation');
+      rows = [
+        [t('fields.power'), props.potencia ? `${format.number(props.potencia)} kW` : null],
+        [t('fields.fuel'), props.combust],
+        [t('fields.owner'), props.propriet],
+        [t('fields.ceg'), props.ceg],
+        [t('fields.operation_start'), props.ini_oper],
+      ];
+    } else if (layerType === 'biogas-plants') {
+      // Actual fields: TIPO_PLANT, SUBTIPO, STATUS, FONTE_DADO
+      name = props.TIPO_PLANT
+        ? t('names.biogas_plant_of', { type: props.TIPO_PLANT })
+        : t('names.biogas_plant');
+      rows = [
+        [t('fields.type'), props.TIPO_PLANT || t('names.biogas')],
+        [t('fields.subtype'), props.SUBTIPO],
+        [t('fields.status'), props.STATUS],
+        [t('fields.source'), props.FONTE_DADO],
+      ];
+    } else if (layerType === 'etes') {
+      // Actual fields: ETE_NM, ETE_DS_STA, ETE_DS_TIP, ETE_QT_POP, ETE_PC_REM, ETE_DS_TI
+      name = props.ETE_NM || props.name || t('names.ete');
+      rows = [
+        [t('fields.status'), props.ETE_DS_STA],
+        [t('fields.treatment_type'), props.ETE_DS_TIP],
+        [t('fields.system'), props.ETE_DS_TI],
+        [t('fields.population_served'), props.ETE_QT_POP ? format.number(props.ETE_QT_POP) : null],
+        [t('fields.removal_efficiency'), props.ETE_PC_REM ? format.percent(props.ETE_PC_REM) : null],
+      ];
+    } else {
+      // Default popup for other layers (admin regions, etc.)
+      name = props.name || props.nome || props.NM_MUN || t('no_name');
+      rows = [];
+    }
+
+    popupContent += popupTitle(name);
+    popupContent += rows.map(([label, value]) => popupRow(label, value, na)).join('');
+
+    popupContent += `</div>`;
+
+    layer.bindPopup(popupContent, {
+      maxWidth: 300,
+      className: 'infrastructure-popup'
+    });
+
+    // Hover effect for line features
+    if (layer instanceof L.Path && (layerType === 'railways' || layerType === 'pipelines' || layerType === 'transmission-lines')) {
+      layer.on({
+        mouseover: (e) => {
+          const target = e.target;
+          target.setStyle({
+            weight: 5,
+            opacity: 1
+          });
+          target.bringToFront();
+        },
+        mouseout: (e) => {
+          const target = e.target;
+          target.setStyle(layerStyles[layerType]);
+        }
+      });
+    }
+  };
+
+  return (
+    <GeoJSON
+      data={data}
+      style={style}
+      pointToLayer={pointToLayer}
+      onEachFeature={onEachFeature}
+      pane={pane}
+    />
+  );
+}
