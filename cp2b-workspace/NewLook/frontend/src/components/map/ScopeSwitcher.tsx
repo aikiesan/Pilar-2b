@@ -30,7 +30,9 @@ export default function ScopeSwitcher({ scope, onScopeChange, count, className =
       if (rootRef.current && !rootRef.current.contains(event.target as Node)) setOpen(false);
     };
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setOpen(false);
+      if (event.key !== 'Escape') return;
+      event.preventDefault(); // the map's Escape (clear the selection) skips it
+      setOpen(false);
     };
     document.addEventListener('mousedown', onDoc);
     document.addEventListener('keydown', onKey);
@@ -53,7 +55,7 @@ export default function ScopeSwitcher({ scope, onScopeChange, count, className =
         aria-haspopup="listbox"
         aria-expanded={open}
         title={t('toggle_title')}
-        className="flex min-h-[44px] items-center gap-1.5 px-3 py-2.5 border border-line bg-paper-raised/95 text-sm font-semibold text-ink shadow-md backdrop-blur transition-colors hover:bg-paper-raised md:min-h-0 md:py-1.5"
+        className="flex min-h-[44px] items-center gap-1.5 px-3 py-2.5 border border-line bg-paper-raised/95 text-sm font-semibold text-ink shadow-md backdrop-blur transition-colors hover:bg-paper-raised"
       >
         <MapPin className="h-4 w-4 text-terra-800" />
         <span className="max-w-[9rem] truncate">{state?.nome ?? 'São Paulo' /* i18n-exempt: proper noun */}</span>

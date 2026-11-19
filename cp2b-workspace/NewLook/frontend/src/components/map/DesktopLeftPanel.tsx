@@ -3,11 +3,10 @@
 import React, { useId, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import {
-  Search,
+  SlidersHorizontal,
   Layers,
   Database,
   Wrench,
-  X,
   ChevronLeft,
   ChevronRight,
   ExternalLink,
@@ -35,7 +34,6 @@ import {
 import { DATA_EXPORT_ENABLED } from '@/lib/featureFlags';
 import { MG_BETA_LAYER_ID } from '@/lib/mapScope';
 import type { Messages } from '@/types/i18n';
-import Metaninho from '@/components/mascot/Metaninho';
 
 /** The `Map` translator, handed to the section components below. */
 type MapTranslator = ReturnType<typeof useTranslations<'Map'>>;
@@ -56,8 +54,6 @@ interface Layer {
 }
 
 interface DesktopLeftPanelProps {
-  searchQuery: string;
-  onSearchChange: (v: string) => void;
   selectedResidues: ResidueType[];
   onResiduesChange: (r: ResidueType[]) => void;
   biomassType: BiomassType;
@@ -183,13 +179,10 @@ const DATA_SOURCES: {
 // redundant. The underlying state still exists — presets set it — it just no
 // longer has a hand-operated control in the first sidebar.
 function FiltersSection({
-  searchQuery, onSearchChange, visualizationMode, onVisualizationModeChange,
+  visualizationMode, onVisualizationModeChange,
   displayMetric = 'biomass_tons', onDisplayMetricChange, t,
-  colorMode, onColorModeChange, scopeUf = 'SP', noMatch = false,
+  colorMode, onColorModeChange, scopeUf = 'SP',
 }: {
-  noMatch?: boolean;
-  searchQuery: string;
-  onSearchChange: (v: string) => void;
   visualizationMode: VisualizationMode;
   onVisualizationModeChange: (m: VisualizationMode) => void;
   displayMetric?: DisplayMetric;
@@ -200,7 +193,6 @@ function FiltersSection({
   scopeUf?: 'SP' | 'MG';
 }) {
   const metricText = useMetricText();
-  const searchId = useId();
   const vizModes: { value: VisualizationMode; label: string; disabled?: boolean }[] = [
     { value: 'choropleth', label: t('vizModes.choropleth') },
     { value: 'heatmap', label: t('vizModes.heatmap') },
@@ -210,42 +202,6 @@ function FiltersSection({
 
   return (
     <div className="space-y-4">
-      {/* Search */}
-      <div data-tour="map-search">
-        <label htmlFor={searchId} className="block text-[10px] font-semibold text-ink-muted uppercase tracking-wide mb-1">
-          {t('search.label')}
-        </label>
-        <div className="relative">
-          <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink-muted" />
-          <input
-            id={searchId}
-            type="text"
-            value={searchQuery}
-            onChange={e => onSearchChange(e.target.value)}
-            placeholder={t('search.placeholder')}
-            className="w-full pl-7 pr-7 py-1.5 text-xs border border-line-strong rounded-lg focus:ring-2 focus:ring-terra-500 focus:border-terra-500 transition-all"
-          />
-          {searchQuery && (
-            <button
-              onClick={() => onSearchChange('')}
-              aria-label={t('search.clear_aria')}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink-muted"
-            >
-              <X className="w-3 h-3" />
-            </button>
-          )}
-        </div>
-        {/* A search with no match empties the map: say so, and what to try. */}
-        <p role="status" className="mt-1.5 flex items-start gap-2 text-xs leading-snug text-ink-muted empty:hidden">
-          {noMatch && (
-            <>
-              <Metaninho pose="curioso" size={32} className="shrink-0" />
-              <span>{t('search.no_match')}</span>
-            </>
-          )}
-        </p>
-      </div>
-
       {/* Metric toggle — Biomassa / Biogás / Biometano / Bioenergia */}
       {onDisplayMetricChange && (
         <div data-tour="map-metric" className="grid grid-cols-2 gap-1">
@@ -707,7 +663,7 @@ function StatStrip({ municipalityCount, totalMunicipalities, filterCount, betaMu
 import ColorModeSelector, { buildColorModeOptions } from './ColorModeSelector';
 
 export default function DesktopLeftPanel({
-  searchQuery, onSearchChange, selectedResidues,
+  selectedResidues,
   visualizationMode, onVisualizationModeChange,
   opacity, onOpacityChange, layers, onLayerToggle,
   municipalityCount, totalMunicipalities, betaMunicipalityCount = 0,
@@ -726,7 +682,7 @@ export default function DesktopLeftPanel({
   const activeLayerCount = layers.filter(l => l.visible).length;
 
   const tabs: { id: TabId; icon: React.ReactNode; label: string; badge?: number }[] = [
-    { id: 'filters', icon: <Search className="w-3.5 h-3.5" />, label: t('panels.filters'), badge: filterCount > 0 ? filterCount : undefined },
+    { id: 'filters', icon: <SlidersHorizontal className="w-3.5 h-3.5" />, label: t('panels.filters'), badge: filterCount > 0 ? filterCount : undefined },
     { id: 'temas', icon: <Sparkles className="w-3.5 h-3.5" />, label: t('panels.themes') },
     { id: 'layers', icon: <Layers className="w-3.5 h-3.5" />, label: t('panels.layers'), badge: activeLayerCount > 1 ? activeLayerCount : undefined },
     { id: 'data', icon: <Database className="w-3.5 h-3.5" />, label: t('panels.dataSources') },
@@ -829,13 +785,11 @@ export default function DesktopLeftPanel({
           <div className="flex-1 overflow-y-auto px-3 py-3 min-h-0">
             {activeTab === 'filters' && (
               <FiltersSection
-                searchQuery={searchQuery} onSearchChange={onSearchChange}
                 visualizationMode={visualizationMode} onVisualizationModeChange={onVisualizationModeChange}
                 displayMetric={displayMetric} onDisplayMetricChange={onDisplayMetricChange}
                 t={t}
                 colorMode={colorMode} onColorModeChange={onColorModeChange}
                 scopeUf={scopeUf}
-                noMatch={!!searchQuery.trim() && municipalityCount === 0}
               />
             )}
             {activeTab === 'temas' && (

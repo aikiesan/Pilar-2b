@@ -1,6 +1,5 @@
 /**
- * The left panel's controls have names: the search field, its clear button,
- * each layer switch and the opacity slider. Icons are decorative (the lucide mock hides them, as the
+ * The left panel's controls have names: each layer switch and the opacity slider. Icons are decorative (the lucide mock hides them, as the
  * real icons are), so an icon-only button needs a name of its own.
  */
 import React from 'react';
@@ -16,8 +15,6 @@ jest.mock('@/hooks/useDataSources', () => ({
 }));
 
 const baseProps: React.ComponentProps<typeof DesktopLeftPanel> = {
-  searchQuery: '',
-  onSearchChange: () => {},
   selectedResidues: [],
   onResiduesChange: () => {},
   biomassType: 'total',
@@ -37,17 +34,6 @@ const baseProps: React.ComponentProps<typeof DesktopLeftPanel> = {
 };
 
 describe('DesktopLeftPanel', () => {
-  it('labels the search field and names its clear button', async () => {
-    const onSearchChange = jest.fn();
-    const { container } = render(
-      <DesktopLeftPanel {...baseProps} searchQuery="Camp" onSearchChange={onSearchChange} />
-    );
-    expect(screen.getByLabelText('Buscar município')).toHaveValue('Camp');
-    fireEvent.click(screen.getByRole('button', { name: 'Limpar busca' }));
-    expect(onSearchChange).toHaveBeenCalledWith('');
-    expect(await axe(container)).toHaveNoViolations();
-  });
-
   it('names each layer switch after its layer', async () => {
     const onLayerToggle = jest.fn();
     const { container } = render(<DesktopLeftPanel {...baseProps} onLayerToggle={onLayerToggle} />);

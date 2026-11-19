@@ -8,7 +8,7 @@
 
 'use client';
 
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { useIsClient } from '@/hooks/useIsClient';
 import { useTranslations } from 'next-intl';
 import MapTour, { MapTourButton } from './MapTour';
@@ -53,10 +53,11 @@ import {
   type MapScope,
 } from '@/data/brazilStates';
 import ScopeSwitcher from './ScopeSwitcher';
+import MapMunicipalitySearch from './MapMunicipalitySearch';
 import MapLegend from './MapLegend';
 import MapLoadingSkeleton from './MapLoadingSkeleton';
 import { isPlantLayer } from '@/lib/plantLayers';
-import { matchesMunicipality } from '@/lib/municipalitySearch';
+import { matchesMunicipality, searchMunicipalities } from '@/lib/municipalitySearch';
 import 'leaflet/dist/leaflet.css';
 import '@/lib/leafletConfig';
 
@@ -125,8 +126,9 @@ const DesktopLeftPanel = dynamic(() => import('./DesktopLeftPanel'), { ssr: fals
 
 // Map chrome overlays (basemap switcher + compass)
 const BasemapControl = dynamic(() => import('./BasemapControl'), { ssr: false });
-const NorthArrow = dynamic(() => import('./NorthArrow'), { ssr: false });
 const ThematicMapBar = dynamic(() => import('./ThematicMapBar'), { ssr: false });
+const ThematicMapMenu = dynamic(() => import('./ThematicMapMenu'), { ssr: false });
+const MunicipalityHighlight = dynamic(() => import('./MunicipalityHighlight'), { ssr: false });
 
 // Profile + Tooltip overlays
 const MunicipalityProfilePanel = dynamic(() => import('./MunicipalityProfilePanel'), { ssr: false });
@@ -270,8 +272,8 @@ interface MapComponentProps {
   onBiomassTypeChange?: (type: BiomassType) => void;
   opacity?: number;
   onOpacityChange?: (opacity: number) => void;
+  /** A municipality (name or IBGE code) to select once the map loads. */
   searchQuery?: string;
-  onSearchChange?: (query: string) => void;
 }
 
 export default function MapComponent({
@@ -281,7 +283,6 @@ export default function MapComponent({
   opacity: propOpacity = 0.7,
   onOpacityChange,
   searchQuery: propSearchQuery = '',
-  onSearchChange,
 }: MapComponentProps = {}) {
   const t = useTranslations('Map');
   const tCommon = useTranslations('common');
@@ -306,6 +307,9 @@ export default function MapComponent({
   const urlMode = readURLParam('mode');
   const urlType = readURLParam('type');
   const urlResidues = readURLParam('r');
+  // `m` is the selected municipality (IBGE code); `q` is the old search, read once
+  // so links made before the search selected instead of filtering still land on it.
+  const urlMunicipality = readURLParam('m');
   const urlQuery = readURLParam('q');
   const urlMetric = readURLParam('metric');
   const urlScope = readURLParam('scope'); // 'brazil' → national view
@@ -341,14 +345,17 @@ export default function MapComponent({
   const initialResidues = sanitizeResiduesForScope(initialScope, parsedInitialResidues);
   const initialResiduesWereSanitized = initialResidues.length !== parsedInitialResidues.length;
   const initialResidueParam = initialResidues.join(',');
-  const initialQuery = urlQuery ?? propSearchQuery;
+  const initialPick = urlMunicipality ?? urlQuery ?? (propSearchQuery || null);
   const initialMetric: DisplayMetric =
     VALID_METRICS.includes(urlMetric as DisplayMetric) ? (urlMetric as DisplayMetric) : 'biomass_tons';
 
   // Local state (authoritative)
   const [selectedResidues, setSelectedResidues] = useState<ResidueType[]>(initialResidues);
   const [biomassType, setBiomassType] = useState<BiomassType>(initialBiomass);
-  const [searchQuery, setSearchQuery] = useState<string>(initialQuery);
+  // A municipality to select as soon as the data is in: from the URL or the caller.
+  const pendingPick = useRef<string | null>(initialPick);
+  // Bumped when the view should frame the selection (search, URL), not on a click.
+  const [fitKey, setFitKey] = useState(0);
   const [opacity, setOpacity] = useState<number>(propOpacity);
   const [displayMetric, setDisplayMetric] = useState<DisplayMetric>(initialMetric);
   const [selectedClusterId, setSelectedClusterId] = useState<string | null>(null);
@@ -457,7 +464,6 @@ export default function MapComponent({
     mode: VisualizationMode,
     type: BiomassType,
     residues: ResidueType[],
-    query: string,
     metric: DisplayMetric,
   ) => {
     if (typeof window === 'undefined') return;
@@ -465,7 +471,7 @@ export default function MapComponent({
     params.set('mode', mode);
     if (type !== 'total') params.set('type', type); else params.delete('type');
     if (residues.length > 0) params.set('r', residues.join(',')); else params.delete('r');
-    if (query) params.set('q', query); else params.delete('q');
+    params.delete('q');
     if (metric !== 'biomass_tons') params.set('metric', metric); else params.delete('metric');
     window.history.replaceState(null, '', `${window.location.pathname}?${params.toString()}`);
   }, []);
@@ -475,7 +481,6 @@ export default function MapComponent({
     setScope(next);
     setSelectedMunicipality(null);
     setHoveredMunicipality(null);
-    setSearchQuery('');
     setSelectedResidues(nextResidues);
     setActivePresetId(null);
     if (typeof window !== 'undefined') {
@@ -483,6 +488,7 @@ export default function MapComponent({
       if (next === SAO_PAULO_UF) params.delete('scope');
       else params.set('scope', next === SCOPE_BRAZIL ? 'brazil' : next);
       params.delete('q');
+      params.delete('m');
       if (nextResidues.length > 0) params.set('r', nextResidues.join(','));
       else params.delete('r');
       window.history.replaceState(null, '', `${window.location.pathname}?${params.toString()}`);
@@ -493,13 +499,13 @@ export default function MapComponent({
     setVisualizationMode(mode);
     setActivePresetId(null);
     if (mode !== 'clusters') { setShowClusterPanel(false); setSelectedClusterId(null); }
-    syncURL(mode, biomassType, selectedResidues, searchQuery, displayMetric);
+    syncURL(mode, biomassType, selectedResidues, displayMetric);
   };
 
   const handleDisplayMetricChange = (metric: DisplayMetric) => {
     setDisplayMetric(metric);
     setActivePresetId(null);
-    syncURL(visualizationMode, biomassType, selectedResidues, searchQuery, metric);
+    syncURL(visualizationMode, biomassType, selectedResidues, metric);
   };
 
   const handleBiomassTypeChange = (type: BiomassType) => {
@@ -520,7 +526,7 @@ export default function MapComponent({
     setDisplayMetric(nextMetric);
     setActivePresetId(null);
     onBiomassTypeChange?.(type);
-    syncURL(visualizationMode, type, residues, searchQuery, nextMetric);
+    syncURL(visualizationMode, type, residues, nextMetric);
   };
 
   const handleResiduesChange = (residues: ResidueType[]) => {
@@ -531,14 +537,9 @@ export default function MapComponent({
     setSelectedResidues(scopedResidues);
     setDisplayMetric(nextMetric);
     setActivePresetId(null);
-    syncURL(visualizationMode, biomassType, scopedResidues, searchQuery, nextMetric);
+    syncURL(visualizationMode, biomassType, scopedResidues, nextMetric);
   };
 
-  const handleSearchChange = (query: string) => {
-    setSearchQuery(query);
-    onSearchChange?.(query);
-    syncURL(visualizationMode, biomassType, selectedResidues, query, displayMetric);
-  };
 
   const handleOpacityChange = (val: number) => {
     setOpacity(val);
@@ -546,9 +547,41 @@ export default function MapComponent({
   };
 
   // ── Municipality interaction callbacks (Phase 2) ──────────────────────────
-  const handleMunicipalityClick = useCallback((feature: MunicipalityFeature) => {
+  // One way to select a municipality, whether by a click, the search or the URL:
+  // the profile opens, the outline follows, and the URL keeps it (?m=<ibge>).
+  const selectMunicipality = useCallback((feature: MunicipalityFeature | null, frame = false) => {
     setSelectedMunicipality(feature);
+    if (feature && frame) setFitKey((k) => k + 1);
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const code = feature?.properties?.ibge_code;
+    if (code != null && code !== '') params.set('m', String(code)); else params.delete('m');
+    params.delete('q');
+    window.history.replaceState(null, '', `${window.location.pathname}?${params.toString()}`);
   }, []);
+
+  const handleMunicipalityClick = useCallback((feature: MunicipalityFeature) => {
+    selectMunicipality(feature);
+  }, [selectMunicipality]);
+
+  // The municipality the URL (or the caller) names, selected and framed once the
+  // data is in. Matched as the search matches, among the municipalities of the
+  // current scope; an unknown one is dropped quietly, leaving the map as it is.
+  useEffect(() => {
+    const wanted = pendingPick.current;
+    if (!wanted || !data) return;
+    const inScope = data.features.filter(
+      (f) => isPublicMapMunicipality(f.properties?.ibge_code) && ufOf(f.properties?.ibge_code) === scope,
+    );
+    const [match] = searchMunicipalities(
+      inScope,
+      wanted,
+      (f) => ({ name: f.properties?.name ?? '', code: f.properties?.ibge_code ?? '' }),
+      1,
+    );
+    pendingPick.current = null;
+    if (match) selectMunicipality(match, true);
+  }, [data, scope, selectMunicipality]);
 
   const handleMunicipalityHover = useCallback((feature: MunicipalityFeature | null, e?: MouseEvent) => {
     setHoveredMunicipality(feature);
@@ -559,7 +592,9 @@ export default function MapComponent({
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-      if (e.key === 'Escape') { setSelectedMunicipality(null); return; }
+      // A menu that closed on this Escape (Temas, state) marks it handled;
+      // closing a menu must not also drop the selected municipality.
+      if (e.key === 'Escape') { if (!e.defaultPrevented) selectMunicipality(null); return; }
       if (e.key === 'c' || e.key === 'C') { setShowComparison(true); return; }
       if (e.key === 'e' || e.key === 'E') {
         if (DATA_EXPORT_ENABLED) setShowExport(true);
@@ -568,7 +603,7 @@ export default function MapComponent({
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, []);
+  }, [selectMunicipality]);
 
   // ── Comparison callbacks (Phase 3) ────────────────────────────────────────
   const handleAddToComparison = useCallback((feature: MunicipalityFeature) => {
@@ -664,8 +699,8 @@ export default function MapComponent({
     const KEEP = new Set<string>(['municipalities', MG_BETA_LAYER_ID, 'intermediate-regions', 'mapbiomas']);
     setLayers(prev => prev.map(l => (KEEP.has(l.id) ? l : { ...l, visible: presetLayers.has(l.id) })));
     setActivePresetId(preset.id);
-    syncURL(nextMode, nextType, nextResidues, searchQuery, nextMetric);
-  }, [visualizationMode, biomassType, selectedResidues, displayMetric, searchQuery, onBiomassTypeChange, syncURL]);
+    syncURL(nextMode, nextType, nextResidues, nextMetric);
+  }, [visualizationMode, biomassType, selectedResidues, displayMetric, onBiomassTypeChange, syncURL]);
 
   const visibleLayerIds = useMemo(
     () => layers.filter(l => l.visible).map((l): string => l.id),
@@ -735,7 +770,8 @@ export default function MapComponent({
       if (!inScope && !(showNationalBeta && isBeta)) return false;
 
       // Search query filter
-      const query = activeFilters?.searchQuery || searchQuery;
+      // Only a caller's filter narrows by name: the map's own search selects instead.
+      const query = activeFilters?.searchQuery;
       // By name or IBGE code, as everywhere (lib/municipalitySearch).
       if (query && !matchesMunicipality(query, props.name, props.ibge_code)) return false;
 
@@ -783,7 +819,7 @@ export default function MapComponent({
     });
 
     return { ...scaledData, features: filtered } as MunicipalityCollection;
-  }, [scaledData, activeFilters, searchQuery, selectedResidues, scope, residueBreakdownAvailable, mapScenario, showNationalBeta]);
+  }, [scaledData, activeFilters, selectedResidues, scope, residueBreakdownAvailable, mapScenario, showNationalBeta]);
 
   // ── Adaptive colour scale ───────────────────────────────────────────────────
   // Classified over the selected state's municipalities CURRENTLY VISIBLE, in the
@@ -839,6 +875,27 @@ export default function MapComponent({
   const betaCount = mgDisplayData.features.length;
   const isMgScope = scope === '31';
   const activeScopeCount = activeStateData.features.length;
+  const infraAlertCards = infrastructureAlerts.map(status => (
+    <div
+      key={status.layerType}
+      className="rounded-lg border border-amber-300 bg-amber-50/95 px-3 py-2 text-xs text-amber-900 shadow-lg backdrop-blur"
+      role="status"
+    >
+      <p className="font-semibold">
+        {t('layerAlert.unavailable', { layer: getLayerLabel(status.layerType) })}
+      </p>
+      <p className="mt-1 leading-snug">
+        {status.state === 'error' ? t('layerAlert.error') : t('layerAlert.empty')}
+      </p>
+    </div>
+  ));
+  // The search finds every municipality of the state, not only those the
+  // filters left painted: a city without the selected residue still exists,
+  // and picking it outlines it and opens its profile all the same.
+  const searchFeatures = (scaledData ?? data)?.features.filter((f) => {
+    const code = f.properties?.ibge_code;
+    return isPublicMapMunicipality(code) && (scope === SCOPE_BRAZIL || ufOf(code) === scope);
+  }) ?? [];
   const activeScopeTotal = isMgScope ? MG_MUNICIPALITY_COUNT : SP_MUNICIPALITY_COUNT;
   const activeStateName = getState(scope)?.nome ?? 'São Paulo'; // i18n-exempt: proper noun
 
@@ -849,8 +906,6 @@ export default function MapComponent({
       {/* ── Desktop Persistent Sidebar ── */}
       {isMounted && (
         <DesktopLeftPanel
-          searchQuery={searchQuery}
-          onSearchChange={handleSearchChange}
           selectedResidues={selectedResidues}
           onResiduesChange={handleResiduesChange}
           biomassType={biomassType}
@@ -919,10 +974,12 @@ export default function MapComponent({
           </div>
         )}
 
-        {/* ── Thematic maps ribbon — the "test drive". Ready-made maps surfaced
-            directly on the map, always visible, one click applies. Pinned to the
-            top of the map area; every other top control sits just below it. ── */}
-        <div data-tour="map-themes" className="absolute top-0 inset-x-0 z-[1002]">
+        {/* ── Thematic maps ribbon — phones only. Their chips are the
+            navigation there. From md up the same maps live in one button in the
+            top row (ThematicMapMenu below), so the map has one row of controls
+            over it instead of two. Both carry the tour's "map-themes" anchor;
+            the tour points at whichever is on screen. ── */}
+        <div data-tour="map-themes" className="absolute top-0 inset-x-0 z-[1002] md:hidden">
           {isMounted && (
             <ThematicMapBar
               activePresetId={activePresetId}
@@ -935,65 +992,104 @@ export default function MapComponent({
           )}
         </div>
 
-        {/* ── Scope switcher — top-left on every viewport. Picks SP (default)
-            or the MG beta pilot. On mobile this is the primary
-            navigation affordance and sits alone at the top so nothing wraps. */}
-        <div data-tour="map-scope" className="absolute top-14 left-2 z-[1000] md:top-16 md:left-3">
-          <ScopeSwitcher
-            scope={scope}
-            onScopeChange={handleScopeChange}
-            count={activeScopeCount}
+        {/* ── The top row: one row of controls over the map.
+            Left: search, state (SP or the MG pilot) and, from md up, the
+            thematic maps. Right: scenario (md up; on phones it lives in the
+            bottom sheet) and basemap. On phones the row sits under the ribbon
+            and the basemap keeps its corner; on a desktop too narrow for both
+            groups the right one wraps under, aligned right, instead of
+            overlapping the left. The compass is gone: this map never rotates. */}
+        <div className="pointer-events-none absolute top-14 left-2 right-2 z-[1000] flex flex-nowrap items-start justify-between gap-2 md:top-3 md:left-3 md:right-3 md:flex-wrap [&>*]:pointer-events-auto">
+        <div className="flex min-w-0 flex-1 flex-wrap items-start gap-2 md:flex-none">
+          <MapMunicipalitySearch
+            features={searchFeatures}
+            selected={selectedMunicipality}
+            onSelect={(feature) => selectMunicipality(feature, true)}
+            onClear={() => selectMunicipality(null)}
           />
+          <div data-tour="map-scope">
+            <ScopeSwitcher
+              scope={scope}
+              onScopeChange={handleScopeChange}
+              count={activeScopeCount}
+            />
+          </div>
+          {isMounted && (
+            <div data-tour="map-themes" className="hidden md:block">
+              <ThematicMapMenu
+                activePresetId={activePresetId}
+                onApplyPreset={handleApplyPreset}
+                disabledBiomassTypes={[]}
+                disabledResidues={isMgScope ? ['aquaculture', 'rpo', 'sewage'] : []}
+              />
+            </div>
+          )}
         </div>
 
-        {/* ── Basemap switcher + compass — top-right ── */}
-        <div className="absolute top-14 right-2 z-[1000] flex flex-col items-end gap-2 md:top-16 md:right-3">
+        <div className="ml-auto flex shrink-0 items-start gap-2">
+          {/* Each button is the full 44 px of the bar (the click target); the
+              coloured pill inside it is only the look. */}
+          <div data-tour="map-scenario" className="surface-light hidden h-11 md:flex items-stretch px-1 border border-line bg-paper-raised/95 shadow-md backdrop-blur">
+            <span className="hidden items-center px-2 text-[11px] font-semibold text-gray-500 2xl:flex">{t('scenario_label')}</span>
+            {MAP_SCENARIOS.map(({ key, color }) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setMapScenario(key)}
+                title={
+                  key === 'fronteira' || key === 'real' || key === 'ideal'
+                    ? t(`scenario_${key}_tip`)
+                    : undefined
+                }
+                aria-pressed={mapScenario === key}
+                className="group flex items-center px-0.5 focus:outline-none"
+              >
+                <span
+                  className={`rounded-full px-3 py-1 text-[11px] font-medium transition-all group-focus-visible:ring-2 group-focus-visible:ring-terra-600 ${
+                    mapScenario === key ? 'text-white shadow-sm' : 'text-gray-600 group-hover:bg-gray-100'
+                  }`}
+                  style={mapScenario === key ? { backgroundColor: color } : undefined}
+                >
+                  {t(`scenario_${key}`)}
+                </span>
+              </button>
+            ))}
+            <span className="mx-0.5 my-auto h-4 w-px bg-gray-200" aria-hidden="true" />
+            <button
+              type="button"
+              onClick={toggleDaltonic}
+              aria-pressed={daltonic}
+              // Below 2xl only the eye shows; the name stays for screen readers.
+              aria-label={t('daltonic.toggle')}
+              title={t('daltonic.title')}
+              className="group flex items-center px-0.5 focus:outline-none"
+            >
+              <span
+                className={`rounded-full px-2.5 py-1 text-[11px] font-medium transition-all group-focus-visible:ring-2 group-focus-visible:ring-terra-600 ${
+                  daltonic ? 'bg-slate-700 text-white shadow-sm' : 'text-gray-600 group-hover:bg-gray-100'
+                }`}
+              >
+                👁<span className="hidden 2xl:inline"> {t('daltonic.toggle')}</span>
+              </span>
+            </button>
+          </div>
           {isMounted && (
             <div data-tour="map-basemap">
               <BasemapControl value={basemap} onChange={setBasemap} />
             </div>
           )}
-          {isMounted && <NorthArrow />}
           {/* Opens Metaninho's guided tour at any time. */}
           {isMounted && <MapTourButton />}
         </div>
-
-        {/* Scenario toggle — per-municipality biogas potential by scenario.
-            Desktop only: on mobile it moves into the bottom sheet (it's a
-            specific analytical control, not something you switch constantly). */}
-        <div data-tour="map-scenario" className="surface-light absolute top-16 left-1/2 -translate-x-1/2 z-[1000] hidden md:flex items-center gap-1 px-1.5 py-1 border border-line bg-paper-raised/95 shadow-md backdrop-blur">
-          <span className="px-2 text-[11px] font-semibold text-gray-500">{t('scenario_label')}</span>
-          {MAP_SCENARIOS.map(({ key, color }) => (
-            <button
-              key={key}
-              type="button"
-              onClick={() => setMapScenario(key)}
-              title={
-                key === 'fronteira' || key === 'real' || key === 'ideal'
-                  ? t(`scenario_${key}_tip`)
-                  : undefined
-              }
-              className={`rounded-full px-3 py-1 text-[11px] font-medium transition-all ${
-                mapScenario === key ? 'text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100'
-              }`}
-              style={mapScenario === key ? { backgroundColor: color } : undefined}
-            >
-              {t(`scenario_${key}`)}
-            </button>
-          ))}
-          <span className="mx-0.5 h-4 w-px bg-gray-200" aria-hidden="true" />
-          <button
-            type="button"
-            onClick={toggleDaltonic}
-            aria-pressed={daltonic}
-            title={t('daltonic.title')}
-            className={`rounded-full px-2.5 py-1 text-[11px] font-medium transition-all ${
-              daltonic ? 'bg-slate-700 text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100'
-            }`}
-          >
-            👁 {t('daltonic.toggle')}
-          </button>
-        </div>
+        {/* Layer alerts (md up): a full-width line of the row, so they land
+            under the controls on one line or two. Status only, no clicks: the
+            line lets clicks through to the map. */}
+        {infrastructureAlerts.length > 0 && (
+          <div className="hidden basis-full justify-end md:flex !pointer-events-none">
+            <div className="max-w-sm space-y-2">{infraAlertCards}</div>
+          </div>
+        )}
+        </div>{/* end top row */}
 
         {/* First visit: Metaninho offers the guided tour. */}
         {isMounted && <MapTour />}
@@ -1148,26 +1244,16 @@ export default function MapComponent({
                 />
               : <IntermediateRegionBoundaryLayer visible={true} />
           )}
+          <MunicipalityHighlight feature={selectedMunicipality} fitKey={fitKey} />
         </MapContainer>
         </div>
 
         {/* Overlays — all absolute-positioned within the map area */}
+        {/* Phones: under the top row. From md up the alerts ride inside the top
+            row (below), so they sit under the controls however the row wraps. */}
         {infrastructureAlerts.length > 0 && (
-          <div className="absolute top-28 right-4 z-[450] max-w-sm space-y-2">
-            {infrastructureAlerts.map(status => (
-              <div
-                key={status.layerType}
-                className="rounded-lg border border-amber-300 bg-amber-50/95 px-3 py-2 text-xs text-amber-900 shadow-lg backdrop-blur"
-                role="status"
-              >
-                <p className="font-semibold">
-                  {t('layerAlert.unavailable', { layer: getLayerLabel(status.layerType) })}
-                </p>
-                <p className="mt-1 leading-snug">
-                  {status.state === 'error' ? t('layerAlert.error') : t('layerAlert.empty')}
-                </p>
-              </div>
-            ))}
+          <div className="absolute top-28 right-4 z-[450] max-w-sm space-y-2 md:hidden">
+            {infraAlertCards}
           </div>
         )}
 
@@ -1186,7 +1272,7 @@ export default function MapComponent({
         {isMounted && (
           <MunicipalityProfilePanel
             municipality={selectedMunicipality}
-            onClose={() => setSelectedMunicipality(null)}
+            onClose={() => selectMunicipality(null)}
             visible={selectedMunicipality !== null}
             metric={displayMetric}
             scenario={mapScenario}
@@ -1369,8 +1455,6 @@ export default function MapComponent({
       {isMounted && (
         <MobileBottomSheet
           scopeUf={isMgScope ? 'MG' : 'SP'}
-          searchQuery={searchQuery}
-          onSearchChange={handleSearchChange}
           selectedResidues={selectedResidues}
           onResiduesChange={handleResiduesChange}
           biomassType={biomassType}
