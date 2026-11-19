@@ -152,8 +152,7 @@ def get_all_technologies(
                 ref_query = """
                     SELECT
                         tr.technology_id, tr.reference_id, tr.relevance_note,
-                        r.title, r.authors, r.year, r.journal,
-                        NULL::text AS doi, NULL::text AS url
+                        r.title, r.authors, r.year, r.journal, r.doi, r.url
                     FROM technology_references tr
                     LEFT JOIN residuo_references r ON tr.reference_id = r.id
                     WHERE tr.technology_id = ANY(%(tech_ids)s)

@@ -41,7 +41,9 @@
       "cp2b_news": "News",
       "cp2b_events": "Events",
       "cp2b_contact": "Contact",
-      "external_cp2b": "CP2b website"
+      "external_cp2b": "CP2b website",
+      "financing": "Biomethane financing",
+      "mandate": "Biomethane mandate"
     },
     "nav_descriptions": {
       "guide": "Tutorials and first steps",
@@ -69,7 +71,9 @@
       "cp2b_publications": "Papers, reports and books",
       "cp2b_news": "What is happening at CP2b",
       "cp2b_events": "Seminars, courses and meetings",
-      "cp2b_contact": "Write to CP2b, about the platform too"
+      "cp2b_contact": "Write to CP2b, about the platform too",
+      "financing": "What a m³/day of capacity costs, from BNDES approvals",
+      "mandate": "The year's target against Brazil's and SP's production"
     },
     "nav_intro": {
       "platform": {
@@ -573,7 +577,7 @@
         "road": "Road",
         "pipeline": "Gas pipeline",
         "transmission_line": "Transmission line",
-        "substation": "Substation",
+        "substation": "Thermal power plant",
         "biogas_plant": "Biogas plant",
         "biogas_plant_of": "{type} plant",
         "biogas": "Biogas",
@@ -820,7 +824,7 @@
     },
     "mapbiomasLegend": {
       "subtitle": "Agricultural land use",
-      "source": "Source: MapBiomas Collection 8",
+      "source": "Source: MapBiomas Collection 10 (2024 map)",
       "classes": {
         "0": "No data",
         "3": "Forest formation",
@@ -972,11 +976,75 @@
       "loading": "National data is still loading…"
     },
     "clusters_loading": "Calculating co-digestion clusters…",
-    "first_visit": {
-      "title": "First time here?",
-      "body": "Click a municipality on the map to see how much biogas its waste could produce. To find your city, use the search in the Filters tab.",
-      "dismiss": "Got it",
-      "close": "Close tip"
+    "tour": {
+      "open": "Map guide",
+      "progress": "{current} of {total}",
+      "back": "Back",
+      "next": "Next",
+      "last": "Done",
+      "close": "Close tour",
+      "never": "Don't show again",
+      "offer": {
+        "title": "Hi! I'm Metaninho",
+        "body": "First time on the map? I can show you how it works in a few steps, and you can leave any time.",
+        "start": "Show me the guide",
+        "later": "Not now",
+        "close": "Close"
+      },
+      "steps": {
+        "welcome": {
+          "title": "How to read the map",
+          "body": "Each municipality is colored by the biogas potential of its waste: the stronger the color, the higher the potential. Next, each part of the map in a few steps."
+        },
+        "themes": {
+          "title": "Ready-made maps",
+          "body": "This strip holds ready-made thematic maps: total potential, agriculture, livestock, urban, sugarcane and more. One click applies the theme to the map."
+        },
+        "search": {
+          "title": "Find your city",
+          "body": "Type a municipality's name: the map then shows only the ones matching the search."
+        },
+        "metric": {
+          "title": "What the map measures",
+          "body": "Choose biomass, biogas, biomethane or bioenergy. The map colors and the legend change with it."
+        },
+        "viz": {
+          "title": "How it is drawn",
+          "body": "Choropleth fills each municipality, Heat shows where the potential concentrates and Bubbles draws a circle sized by the potential."
+        },
+        "tabs": {
+          "title": "More in the panel",
+          "body": "Themes filters by waste type, Layers turns on infrastructure, logistics and environmental restrictions, Sources says where the data come from and Tools compares municipalities and exports the numbers."
+        },
+        "scenario": {
+          "title": "Real or Ideal",
+          "body": "Real is the accessible potential, after losses and logistics (CP2b N4). Ideal is the mobilizable potential before them (N3). Color-blind switches to a palette safe for color vision deficiency."
+        },
+        "scope": {
+          "title": "Which state",
+          "body": "Switch between São Paulo and the Minas Gerais pilot, still under validation (beta)."
+        },
+        "basemap": {
+          "title": "Basemap",
+          "body": "Switch the background between map, satellite and terrain, depending on what you want to see."
+        },
+        "legend": {
+          "title": "Legend",
+          "body": "The color scale: each band is a range of potential, for the chosen metric and scenario."
+        },
+        "mobile_tabs": {
+          "title": "Controls",
+          "body": "On a phone, filters, themes and layers live in this bar. Tap a tab to open the panel."
+        },
+        "click": {
+          "title": "Click a municipality",
+          "body": "A click opens a panel with the municipality's potential by waste type and a link to its full profile."
+        },
+        "help": {
+          "title": "Back any time",
+          "body": "This button reopens the guide whenever you like. Enjoy!"
+        }
+      }
     }
   },
   "metadata": {
@@ -1207,7 +1275,7 @@
       "detailed_distribution": "Detailed Land Use Distribution",
       "visual_proportion": "Visual Proportion",
       "link_copied": "Link copied to clipboard!",
-      "mapbiomas_badge": "MapBiomas 2023",
+      "mapbiomas_badge": "MapBiomas 2024",
       "map": {
         "loading": "Loading map…",
         "radius": "Radius: {radius} km",
@@ -1216,6 +1284,21 @@
         "biogas": "Biogas:",
         "scope": "<strong>São Paulo</strong> State",
         "coordinates": "{lat}, {lng}"
+      },
+      "infrastructure": {
+        "title": "Nearest infrastructure",
+        "subtitle": "Straight-line distance from the point to the nearest feature of each type, in the map's infrastructure layers. On the map, a dashed line joins the point to each one.",
+        "types": {
+          "gas_pipeline": "Gas pipeline",
+          "substation": "Thermal power plant",
+          "railway": "State highway",
+          "transmission_line": "Transmission line",
+          "ete": "Sewage treatment plant"
+        },
+        "distance": "{distance} km",
+        "none_within": "None within {radius} km",
+        "nearest_at": "the nearest is {distance} km away",
+        "unavailable": "Layer not loaded on the server"
       },
       "processed_in": "Processed in {ms} ms",
       "badge": {
@@ -1309,7 +1392,7 @@
       "row_live_biogas": "Livestock Biogas (m³/year)",
       "row_urban_biogas": "Urban Biogas (m³/year)",
       "row_energy": "Energy Potential (MWh/year)",
-      "row_co2": "CO₂ Reduction (ton/year)"
+      "row_ghg": "Emissions reduction potential (tCO₂e/year, biomethane replacing diesel)"
     },
     "technology_routes": {},
     "cite": {
@@ -1715,8 +1798,8 @@
       "thermalDesc": "Heat for industrial or agro-industrial processes",
       "biochar": "Biochar",
       "biocharDesc": "High-quality activated charcoal from sugarcane straw",
-      "carbon": "Carbon Credits",
-      "carbonDesc": "CO₂eq avoided — eligible for RenovaBio and voluntary market",
+      "carbon": "Emissions reduction potential",
+      "carbonDesc": "Avoided methane + displaced fossil fuel − leaks (not a credit)",
       "calculate": "Calculate Potential"
     },
     "results": {
@@ -1726,11 +1809,10 @@
       "energy": "Electrical Energy",
       "biomethane": "Biomethane",
       "digestate": "Biofertilizer",
-      "carbon": "CO₂eq avoided",
+      "carbon": "Emissions reduction",
       "thermal": "Thermal Energy",
       "biochar": "Biochar",
       "digestateSub": "Solid/liquid digestate estimate",
-      "carbonSub": "Avoided emissions — eligible VCM/RenovaBio",
       "primaryOutputs": "Selected outputs",
       "secondaryOutputs": "Also calculated — not selected ({count})",
       "notSelected": "Not included in plan — click New simulation to add",
@@ -1738,7 +1820,6 @@
       "priceSlidersHint": "Move sliders to simulate different price scenarios. Financial indicators update in real time.",
       "tariffEnergy": "Electricity tariff",
       "priceBiomethane": "Biomethane price",
-      "priceCarbon": "Carbon credit",
       "priceDiesel": "Diesel price",
       "methodology": "Methodology & sources",
       "financialTitle": "Financial Indicators (estimate)",
@@ -1774,7 +1855,6 @@
       "chartBiogas": "Biogas",
       "energySavings": "Savings: {amount}/year",
       "dieselEquivalent": "≈ {liters} L of diesel",
-      "carbonRevenue": "{amount}/year (VCM/RenovaBio)",
       "investment": "📊 Estimated investment",
       "paybackHeading": "⏱ Estimated payback",
       "scenariosHelpTitle": "💡 Understanding the scenarios",
@@ -1788,7 +1868,7 @@
         "efficiencyLabel": "Efficiencies:",
         "efficiency": "Electrical {electrical} (engine-generator); thermal {thermal} (heat recovery)",
         "pricesLabel": "SP 2025 default prices:",
-        "prices": "CPFL/Enel tariff {tariff}/kWh; biomethane {biomethane}/m³; carbon {carbon}/tCO₂eq (VCM)",
+        "prices": "CPFL/Enel tariff {tariff}/kWh; biomethane {biomethane}/m³. Emission reductions count in neither revenue nor payback.",
         "sourcesLabel": "Sources:",
         "disclaimer": "Estimates for a preliminary viability check. An engineering design requires a detailed technical study.",
         "streamBmp": "{stream}: {bmp} m³ CH₄/t VS",
@@ -1851,6 +1931,47 @@
         "technology": "CSTR + upgrading / premium CHP",
         "help": "Maximum efficiency for large operations. The conservative payback can be long for small operations — that does not mean the project is unviable, only that revenue does not cover the investment within a {horizon}-year horizon."
       }
+    },
+    "climate": {
+      "title": "Emissions reduction potential",
+      "subtitle": "Methane no longer emitted + fossil fuel displaced − methane the plant itself loses. A potential, not a carbon credit.",
+      "onResults": "calculated on the results screen",
+      "baselineLabel": "Today the residue goes to",
+      "baselines": {
+        "nao_informado": "Not stated (counts displaced fossil fuel only)",
+        "lagoa_anaerobia": "Uncovered anaerobic lagoon",
+        "esterqueira": "Slurry tank (liquid manure)",
+        "armazenamento_solido": "Solid storage / simple composting",
+        "cama_aviario": "Poultry litter",
+        "pasto": "Stays on pasture",
+        "espalhamento_diario": "Spread on land daily",
+        "campo": "Stays in the field (straw, bagasse, filter cake)"
+      },
+      "routeLabel": "Energy use",
+      "routes": {
+        "biometano_veicular": "Biomethane replacing diesel",
+        "biometano_rede": "Biomethane replacing natural gas",
+        "eletricidade": "Electricity to the grid (SIN)",
+        "termico_glp": "Heat replacing LPG"
+      },
+      "upgradingLabel": "Upgrading technology",
+      "upgrading": {
+        "lavagem_agua": "Water scrubbing",
+        "aminas": "Amines",
+        "membranas": "Membranes",
+        "psa": "PSA"
+      },
+      "leakLabel": "Digester leak: {value}",
+      "methane": "Avoided methane (baseline)",
+      "fossil": "Fossil fuel displaced",
+      "project": "Project emissions (leak, slip)",
+      "net": "Net reduction",
+      "breakEven": "The benefit reaches zero if the leak reaches {value} of the methane produced.",
+      "netNegative": "Under these assumptions the plant emits more methane than it avoids.",
+      "footnote": "Methane GWP: {gwp} ({value}). Becoming a credit requires additionality and a single instrument per volume (CBIO, CGOB or voluntary market).",
+      "unverified": "Includes IPCC factors still being checked.",
+      "loading": "Calculating emissions…",
+      "unavailable": "The emissions calculation is unavailable right now (API down)."
     }
   },
   "guide": {
@@ -2453,6 +2574,18 @@
       "range_short": "range {min} to {max}",
       "held": "The earlier levels (theoretical and available) appear once the method paper is published."
     },
+    "climate": {
+      "heading": "Climate",
+      "caption": "If the Real Scenario methane became vehicle biomethane in place of diesel, each residue starting from its typical destination today.",
+      "methane": "Methane no longer escaping",
+      "fossil": "Diesel displaced",
+      "project": "The plant's own leaks, slip and flaring",
+      "net": "Net reduction",
+      "by_residue": "Net reduction by residue",
+      "note": "A reduction potential, not a carbon credit. Methane GWP: {gwp}.",
+      "unverified": "Some factors are still being checked.",
+      "more": "Simulate a plant in the calculator"
+    },
     "infrastructure": {
       "heading": "Nearby infrastructure",
       "cta": "Open in Proximity and logistics",
@@ -2525,6 +2658,325 @@
       "heading": "Where the methane comes from",
       "caption": "Accessible methane (N4) by sector and residue, in Nm³ CH₄ per year.",
       "zero": "No accessible methane: {list}."
+    }
+  },
+  "financing": {
+    "eyebrow": "Financing observatory",
+    "title": "What a m³/day of biomethane costs in Brazil",
+    "lede": "The biomethane deals approved by BNDES disclose the amount financed, often the total investment, and the plant capacity. Together they form the first Brazilian capital cost curve, with one source per deal.",
+    "unit_m3_day": "m³/day",
+    "tiles": {
+      "deals": "Deals",
+      "bndes": "BNDES financing",
+      "fundo_clima": "From the Climate Fund",
+      "capacity": "Combined capacity",
+      "known": "Sum of what was disclosed"
+    },
+    "routes": {
+      "aterro": "Landfill",
+      "aterro_caption": "Upgrading the biogas the landfill already captures, compression and connection.",
+      "agroindustrial": "Agro-industrial",
+      "agroindustrial_caption": "Includes the digester, not just upgrading: vinasse, effluents and agro-industrial residues."
+    },
+    "range": "{min} to {max}",
+    "per_m3_day": "per m³/day of capacity, {n, plural, one {# deal with total investment} other {# deals with total investment}}",
+    "at_least": "≥ {value}",
+    "basis": {
+      "total": "total investment",
+      "joint_total": "total investment disclosed jointly",
+      "financing": "financing only: a lower bound"
+    },
+    "table": {
+      "heading": "The deals",
+      "caption": "Levelised capital: R$ per m³ produced, capital only, with a {years}-year life, a {factor} capacity factor and a {rates} cost of capital.",
+      "project": "Project",
+      "route": "Route",
+      "capacity": "Capacity (m³/day)",
+      "capex": "CAPEX per m³/day",
+      "levelized": "Capital per m³",
+      "source": "Source",
+      "source_n": "source {n}"
+    },
+    "limits": {
+      "heading": "Limits",
+      "items": [
+        "These are press releases and news reports, not the contracts. Each row cites its source; the values should be checked against BNDES open data before they become a reference.",
+        "When the total investment was not disclosed, the amount financed counts as a lower bound and stays out of the ranges by route.",
+        "A landfill's investment covers what the project needs (upgrading, compression, connection); the biogas capture may already exist. It does not compare with a project that starts from scratch.",
+        "Levelised capital leaves out operation, maintenance and feedstock. Cost of capital, life and capacity factor are assumptions."
+      ]
+    }
+  },
+  "mandate": {
+    "eyebrow": "Mandate panel",
+    "title": "The biomethane mandate, month by month",
+    "lede": "The Fuel of the Future law obliges natural gas producers and importers to cut the emissions of the gas they sell, with biomethane proven by CGOB certificates. CNPE sets each year's target; ANP publishes each month's production. Here they are side by side.",
+    "unit_m3_day": "m³/day",
+    "sources": {
+      "line": "Figures checked on {date}. Beside each figure, a button opens its source directly, coloured by the kind of source; the \"calculation\" button shows the arithmetic.",
+      "where_link": "Where to check the latest data",
+      "summary": "Sources for this card ({count}) · checked on {date}",
+      "kinds": {
+        "oficial": "Official",
+        "dados": "Data",
+        "estudo": "Study",
+        "empresa": "Company",
+        "imprensa": "Press",
+        "estimativa": "Estimate"
+      },
+      "where": {
+        "heading": "Where to check",
+        "caption": "The pages where this panel's figures are published and updated. The cards above give the date of each source.",
+        "legend": "Official and Data: readers can check the source itself. Study and Company: figures from whoever published them. Press: check the original before quoting. Estimate: a PILAR-2b assumption with no public source."
+      },
+      "legend": "Kinds of source:",
+      "describe": "Source ({kind}): {title} — {publisher}, {date}.",
+      "new_tab": "Opens in a new tab.",
+      "calc": "calculation",
+      "calc_label": "How we calculate this figure",
+      "method_heading": "How we calculate",
+      "inputs_heading": "Inputs of this card",
+      "cite": {
+        "heading": "How to cite this panel",
+        "text": "CP2b/NIPE-UNICAMP. PILAR-2b: biomethane mandate panel, sources checked on {checked}. Available at: {url}. Accessed: {date}.",
+        "note": "When you use a figure, also cite its original source: the button beside it.",
+        "more": "Other citation formats"
+      }
+    },
+    "tiles": {
+      "target": "{year} target",
+      "target_note": "{reduction} emissions reduction",
+      "br": "Brazil produces",
+      "coverage": "{month} · {share} of the {year} target",
+      "sp": "São Paulo produces",
+      "sp_share": "{month} · {share} of national production",
+      "cgob": "CGOB issued",
+      "cgob_none": "No registry",
+      "cgob_note": "None issued as of the last check: issuance waits on the ANP system built with Serpro. B3, ACX and Instituto Totum are already accredited to register them."
+    },
+    "path": {
+      "heading": "The target path",
+      "caption": "Biomethane required each year, in m³/day, and national production in {month}. ≈: no published volume, scaled from the latest proposal.",
+      "now": "Current production",
+      "row": "{year} · {reduction}",
+      "source_groups": {
+        "panel": "Law, targets and CGOB rules",
+        "cgob": "CGOB issued"
+      },
+      "method": {
+        "coverage": "Coverage: national production in {month} ({br} m³/day) ÷ the {year} daily target ({target} m³/day) = {share}.",
+        "indicative": "Targets without a published volume (≈): {volume} m³/day for {year} ÷ {pct} × each year's percentage.",
+        "production": "Production: the month's m³ in the ANP base, all products, ÷ days in the month."
+      }
+    },
+    "status": {
+      "vigente": "in force",
+      "proposta": "proposal",
+      "indicativa": "indicative"
+    },
+    "series": {
+      "heading": "Biomethane production (ANP)",
+      "caption": "Daily average of each month, all products. The dashed line is the {year} target.",
+      "br": "Brazil",
+      "sp": "São Paulo",
+      "month": "Month",
+      "target": "{year} target",
+      "source_groups": {
+        "production": "Monthly production by state and capacity by plant"
+      }
+    },
+    "route": {
+      "heading": "Is it worth swapping the engine for an upgrader?",
+      "caption": "Per m³ of methane: what the environmental attribute (CGOB or equivalent) must be worth for selling biomethane to pay as much as burning the biogas for power, at each power price.",
+      "prices": {
+        "pld_baixo": "Low spot price",
+        "pld_medio": "Mid spot price",
+        "pld_alto": "High spot price",
+        "autoconsumo": "Self-consumed power"
+      },
+      "row": "{label} · {price}/MWh",
+      "none_needed": "not needed",
+      "per_m3": "{value}/m³",
+      "reference": "Attribute in the Green Captive Market",
+      "threshold": "With power below {threshold}/MWh, biomethane already pays more with no attribute at all.",
+      "reference_covers": "Even when the plant uses its own power, the break-even attribute stays below what the Green Captive Market pays for the attribute.",
+      "reference_short": "When the plant uses its own power, the attribute must exceed what the Green Captive Market pays.",
+      "burned": "São Paulo already produces biogas with about {volume} m³/day of methane, most of it burned for power: {ratio}× the {year} target.",
+      "limits": "Molecule and attribute are the opening prices Arsesp set for the Comgás Green Captive Market, before PIS/Cofins (Sep/2026). The CGOB has no price yet: suppliers ask for a R$ 1/m³ floor, and part of the market expects less. Grid connection (pipeline or truck) and the engine already paid for are left out.",
+      "source_groups": {
+        "molecula": "Molecule",
+        "atributo": "Environmental attribute",
+        "purificacao": "Upgrading cost",
+        "cambio": "Exchange rate (euro)",
+        "eletricidade": "Power price (spot)",
+        "autoconsumo": "Self-consumed power",
+        "biogas_sp": "SP biogas",
+        "pci": "Methane LHV",
+        "rendimento": "Engine electrical efficiency",
+        "fracao_ch4": "Methane in biogas"
+      },
+      "inputs": {
+        "molecule": "Molecule (Green Captive Market, before PIS/Cofins)",
+        "attribute": "Attribute (Green Captive Market, before PIS/Cofins)",
+        "upgrading": "Upgrading ({eur} €/MWh at {fx}/€)",
+        "lhv": "Methane LHV (0 °C)",
+        "efficiency": "Engine electrical efficiency",
+        "ch4": "Methane in biogas",
+        "biogas": "Biogas produced in SP",
+        "per_m3": "{value}/m³",
+        "kwh_m3": "{value} kWh/m³",
+        "m3_day": "{value} m³/day",
+        "pld": "PLD SE/CO (Apr–Jul/2026, CCEE)",
+        "per_mwh": "{value}/MWh",
+        "mwh_range": "{low} to {high}/MWh",
+        "range": "{low}–{high}"
+      },
+      "method": {
+        "electricity": "Power route, per m³ of CH₄: {lhv} kWh × {eta} × power price. At {price}/MWh: {value}/m³.",
+        "upgrading": "Upgrading: {eur} €/MWh × {fx}/€ × {lhv} kWh ÷ 1,000 = {upgrading}/m³.",
+        "breakeven": "Break-even attribute = power route − (molecule − upgrading). At {price}/MWh: {electricity} − ({molecule} − {upgrading}) = {value}/m³. Negative: no attribute needed.",
+        "threshold": "Threshold: ({molecule} − {upgrading}) ÷ ({lhv} kWh × {eta}) × 1,000 = {threshold}/MWh.",
+        "burned": "SP methane: {biogas} m³/day of biogas × {mid} CH₄ (middle of the range) = {ch4} m³/day; ÷ the {year} target ({target} m³/day) = {ratio}×."
+      }
+    },
+    "stack": {
+      "heading": "What adds up in the revenue of one m³ of biomethane",
+      "caption": "Projects and lenders often add revenues that do not add up. Each line says whether it counts alongside the others, and why.",
+      "total": "Possible sum per m³: up to {total} (molecule and attribute at Green Captive Market prices, and the CBIO ceiling). The other lines have no public price or are not revenue.",
+      "groups": {
+        "adds": "Adds up",
+        "once": "Sold only once",
+        "caveat": "Adds up, with a caveat",
+        "not": "Do not add"
+      },
+      "items": {
+        "molecule": {
+          "title": "Molecule",
+          "value": "{value}/m³",
+          "note": "The gas without its environmental attribute, at the price Arsesp set for the biomethane molecule in the Comgás Green Captive Market."
+        },
+        "co2": {
+          "title": "Biogenic CO₂",
+          "value": "{low}–{high} kg/m³",
+          "note": "A physical co-product of upgrading; in an engine it leaves diluted in the exhaust. No public price in SP: it needs a buyer nearby."
+        },
+        "digestate_new": {
+          "title": "Digestate from urban waste",
+          "value": "{share} of the digestate value",
+          "note": "The nutrient that goes to landfill today: the only one that is new revenue."
+        },
+        "cgob": {
+          "title": "CGOB, for the mandate",
+          "value": "1 CGOB = {m3} m³ · {perCgob} at the Green Captive price",
+          "note": "The certificate natural gas producers and importers buy to meet the target. No public price yet: suppliers ask for a R$ 1/m³ floor."
+        },
+        "captive": {
+          "title": "Attribute in the Green Captive Market",
+          "note": "Goes to the Comgás customer who buys the biomethane: once sold to them, the attribute cannot be sold again as a CGOB. Opening price set by Arsesp, before PIS/Cofins.",
+          "value": "{value}/m³"
+        },
+        "voluntary_cert": {
+          "title": "Voluntary certificate (GAS-REC, I-REC)",
+          "note": "To back a CGOB with a 2026 invoice, ANP requires cancelling the voluntary certificate for the same volume."
+        },
+        "cbio": {
+          "title": "CBIO (RenovaBio)",
+          "value": "up to {low}–{high}/m³",
+          "note": "Ceiling of {cbio} CBIO per m³ (biomethane with no emissions at all), at the Jan–Feb 2026 price and the 2025 average; in March 2026 the CBIO reached R$ 19.90. ANP allows a CBIO and a CGOB from the same invoice, with the CGOB flagging the CBIO; part of the market sees double counting in this."
+        },
+        "carbon": {
+          "title": "Voluntary carbon credit",
+          "note": "For the methane avoided (lagoon, landfill). Do not add it without checking what the methodology credits: if it also credits the fossil fuel displaced, it overlaps the CBIO and the attribute. The Climate module's reduction is not a credit."
+        },
+        "digestate_kept": {
+          "title": "Digestate from streams already returned to the soil",
+          "value": "{share} of the digestate value",
+          "note": "Vinasse, filter cake, manure: the digester keeps the nutrient, it does not create it."
+        },
+        "straw": {
+          "title": "Nutrient in the straw removed",
+          "value": "{share} of the digestate value",
+          "note": "A cost, not revenue: avoided only if the digestate goes back to the cane field."
+        },
+        "electricity": {
+          "title": "Power from the same biogas",
+          "note": "Either power or biomethane: see the route switch above."
+        }
+      },
+      "digestate_basis": "Shares of the nutrient value of SP digestate, by where the residue goes today (PILAR-2b prototype, Real scenario).",
+      "limits": "Screening values: molecule and attribute are the Green Captive Market opening prices, the CGOB has no price yet, and the CBIO price moved a lot in 2026.",
+      "source_groups": {
+        "fossil": "CBIO fossil reference",
+        "cbio": "CBIO: definition and price",
+        "regra_cgob": "CGOB rule with CBIO",
+        "critica": "Critique of double issuance",
+        "densidade": "Reference conditions of the m³ (CO₂ density)",
+        "digestato": "Digestate",
+        "unidade_cgob": "1 CGOB = 100 m³"
+      },
+      "method": {
+        "cbio": "CBIO ceiling: {lhv} MJ/m³ × {fossil} g CO₂e/MJ ÷ 1,000,000 = {cbio} CBIO/m³ (zero-emission biomethane); × {low} to {high} per CBIO = {brl_low} to {brl_high}/m³.",
+        "co2": "CO₂ per m³ of biomethane: (1 − CH₄) ÷ CH₄ × {density} kg/m³, with CH₄ from {high} to {low} = {kg_low} to {kg_high} kg.",
+        "cgob": "CGOB: 1 certificate = {m3} m³; at the Green Captive attribute price ({attr}/m³), {perCgob} per CGOB.",
+        "total": "Possible sum: {molecule} + {attr} + {cbio} = {total}/m³."
+      }
+    },
+    "co2": {
+      "heading": "Biogenic CO₂: how much upgrading separates, and who would buy it",
+      "caption": "The CO₂ that comes out of biogas upgrading at each São Paulo biomethane plant (ANP, {month}), against the market it would be sold into.",
+      "unit": "{low}–{high} t/yr",
+      "unit_one": "{value} t/yr",
+      "rows": {
+        "now": "SP biomethane plants, today",
+        "capacity": "The same plants at capacity",
+        "burned": "All SP biogas, if it were upgraded",
+        "market": "Brazil's whole CO₂ market"
+      },
+      "market_share": "SP's plants already separate about {share} of all the CO₂ Brazil consumes. All SP biogas, upgraded, would give {low}–{high} times that market. Some already sell it: Cocal separates {unit} t/day upgrading biogas in Narandiba (SP), and Gás Verde about 100 t/day in Rio de Janeiro.",
+      "ethanol": "And ethanol has far more: EPE puts the biogenic CO₂ available in that sector at {ethanol}, almost pure from fermentation, against {biogas} in biogas.",
+      "removal": "Selling the CO₂ to drinks or food returns it to the air: that is not a removal. Only permanent geological storage can count as one. Law 14,993/2024 and Decree 13,095/2026 put storage permits with ANP and allow it to count in the SBCE (Law 15,042/2024), but ANP's rules and the SBCE methodologies are still being drafted.",
+      "plants": "By plant (t of CO₂ per day)",
+      "plant": "Plant",
+      "today": "Today",
+      "at_capacity": "At capacity",
+      "limits": "Biogas at 35–45 % CO₂; CO₂ at 1.84 kg/m³ (20 °C and 1 atm, the ANP reference). Brazil's CO₂ market has no official figure: 1,600 t/day is a 2023 estimate, and a 2022 one gives 1,100. The buyers (drinks, food, greenhouses, e-methanol) are not on the map yet: that layer needs the RAIS establishment register.",
+      "source_groups": {
+        "plantas": "Plants and biogas processed",
+        "mercado": "Size of the CO₂ market",
+        "exemplos": "Who already sells",
+        "epe": "Biogenic CO₂ available (EPE)",
+        "remocao": "Removal, storage and the SBCE"
+      },
+      "method": {
+        "plant": "Per plant: biogas processed in the month (ANP) × {co2_low} to {co2_high} CO₂ × {density} kg/m³ ÷ 1,000 = t/day; × 365 = t/year. At capacity, the same with the plant's biogas capacity.",
+        "burned": "All SP biogas: {biogas} m³/day, the same arithmetic.",
+        "market": "Market: {day} t/day × 365 = {year}.",
+        "share": "SP share: middle of today's range ({now}) ÷ market = {share}."
+      }
+    },
+    "limits": {
+      "heading": "Limits",
+      "items": [
+        "The target covers the year; production is one month. A month below the line is not non-compliance: the target is settled over the year, with CGOB, under ANP Resolution 995/2026.",
+        "The 2028–2030 targets are indicative and have no published volume yet: the panel scales the 2027 proposal by the percentage, as an order of magnitude only.",
+        "ANP production may be revised after publication, and the latest month is the most recent the platform has ingested.",
+        "The mandate is national and CGOB is tradable: São Paulo need not cover the target alone. SP's share measures weight, not a state obligation."
+      ]
+    }
+  },
+  "dataSources": {
+    "label": "{count, plural, one {Source:} other {Sources:}}",
+    "describe": "Source ({kind}): {title}{by}.",
+    "to_check": "To check: {what}",
+    "unchecked": "to check",
+    "new_tab": "Opens in a new tab.",
+    "kinds": {
+      "oficial": "Official",
+      "dados": "Data",
+      "estudo": "Study",
+      "empresa": "Company",
+      "imprensa": "Press",
+      "estimativa": "Estimate"
     }
   },
   "method": {

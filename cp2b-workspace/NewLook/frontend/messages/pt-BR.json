@@ -41,7 +41,9 @@
       "cp2b_news": "Notícias",
       "cp2b_events": "Eventos",
       "cp2b_contact": "Contato",
-      "external_cp2b": "site do CP2b"
+      "external_cp2b": "site do CP2b",
+      "financing": "Financiamento do biometano",
+      "mandate": "Mandato do biometano"
     },
     "nav_descriptions": {
       "guide": "Tutoriais e primeiros passos",
@@ -69,7 +71,9 @@
       "cp2b_publications": "Artigos, relatórios e livros",
       "cp2b_news": "O que acontece no CP2b",
       "cp2b_events": "Seminários, cursos e encontros",
-      "cp2b_contact": "Fale com o CP2b, inclusive sobre a plataforma"
+      "cp2b_contact": "Fale com o CP2b, inclusive sobre a plataforma",
+      "financing": "Quanto custa um m³/dia de capacidade, pelas operações do BNDES",
+      "mandate": "A meta do ano contra a produção nacional e de SP"
     },
     "nav_intro": {
       "platform": {
@@ -573,7 +577,7 @@
         "road": "Rodovia",
         "pipeline": "Gasoduto",
         "transmission_line": "Linha de Transmissão",
-        "substation": "Subestação",
+        "substation": "Usina termelétrica",
         "biogas_plant": "Planta de Biogás",
         "biogas_plant_of": "Planta de {type}",
         "biogas": "Biogás",
@@ -820,7 +824,7 @@
     },
     "mapbiomasLegend": {
       "subtitle": "Uso do solo agropecuário",
-      "source": "Fonte: MapBiomas Coleção 8",
+      "source": "Fonte: MapBiomas Coleção 10 (mapa de 2024)",
       "classes": {
         "0": "Sem dados",
         "3": "Formação florestal",
@@ -972,11 +976,75 @@
       "loading": "Dados nacionais em carregamento…"
     },
     "clusters_loading": "Calculando agrupamentos de co-digestão…",
-    "first_visit": {
-      "title": "Primeira vez por aqui?",
-      "body": "Clique num município do mapa para ver quanto biogás os resíduos dele podem gerar. Para achar sua cidade, use a busca na aba Filtros.",
-      "dismiss": "Entendi",
-      "close": "Fechar dica"
+    "tour": {
+      "open": "Guia do mapa",
+      "progress": "{current} de {total}",
+      "back": "Voltar",
+      "next": "Próximo",
+      "last": "Concluir",
+      "close": "Fechar tour",
+      "never": "Não mostrar novamente",
+      "offer": {
+        "title": "Oi! Eu sou o Metaninho",
+        "body": "Primeira vez no mapa? Posso mostrar como ele funciona em poucos passos, e você sai quando quiser.",
+        "start": "Mostrar o guia",
+        "later": "Agora não",
+        "close": "Fechar"
+      },
+      "steps": {
+        "welcome": {
+          "title": "Como ler o mapa",
+          "body": "Cada município aparece colorido pelo potencial de biogás dos seus resíduos: quanto mais forte a cor, maior o potencial. A seguir, cada parte do mapa em poucos passos."
+        },
+        "themes": {
+          "title": "Mapas prontos",
+          "body": "Esta faixa traz mapas temáticos prontos: potencial total, agrícola, pecuária, urbano, cana e outros. Um clique aplica o tema ao mapa."
+        },
+        "search": {
+          "title": "Ache sua cidade",
+          "body": "Digite o nome de um município: o mapa passa a mostrar só os que combinam com a busca."
+        },
+        "metric": {
+          "title": "O que o mapa mede",
+          "body": "Escolha biomassa, biogás, biometano ou bioenergia. As cores do mapa e a legenda mudam junto."
+        },
+        "viz": {
+          "title": "Jeito de desenhar",
+          "body": "Coroplético pinta cada município, Calor mostra onde o potencial se concentra e Bolhas desenha um círculo do tamanho do potencial."
+        },
+        "tabs": {
+          "title": "Mais opções no painel",
+          "body": "Temas filtra por tipo de resíduo, Camadas liga infraestrutura, logística e restrições ambientais, Fontes diz de onde vêm os dados e Ferramentas compara municípios e exporta os números."
+        },
+        "scenario": {
+          "title": "Real ou Ideal",
+          "body": "Real é o potencial acessível, já descontadas as perdas e a logística (CP2b N4). Ideal é o mobilizável antes delas (N3). Daltônico troca as cores por uma paleta segura para daltonismo."
+        },
+        "scope": {
+          "title": "Qual estado",
+          "body": "Alterne entre São Paulo e o piloto de Minas Gerais, ainda em validação (beta)."
+        },
+        "basemap": {
+          "title": "Mapa de fundo",
+          "body": "Troque o fundo entre mapa, satélite e terreno, conforme o que quiser enxergar."
+        },
+        "legend": {
+          "title": "Legenda",
+          "body": "A escala de cores: cada faixa é um intervalo de potencial, na métrica e no cenário escolhidos."
+        },
+        "mobile_tabs": {
+          "title": "Controles",
+          "body": "No celular, filtros, temas e camadas ficam nesta barra. Toque numa aba para abrir o painel."
+        },
+        "click": {
+          "title": "Clique num município",
+          "body": "O clique abre um painel com o potencial do município por resíduo e o link para o perfil completo."
+        },
+        "help": {
+          "title": "Rever quando quiser",
+          "body": "Este botão reabre o guia a qualquer momento. Bom proveito!"
+        }
+      }
     }
   },
   "metadata": {
@@ -1207,7 +1275,7 @@
       "detailed_distribution": "Distribuição Detalhada do Uso do Solo",
       "visual_proportion": "Proporção Visual",
       "link_copied": "Link copiado para a área de transferência!",
-      "mapbiomas_badge": "MapBiomas 2023",
+      "mapbiomas_badge": "MapBiomas 2024",
       "map": {
         "loading": "Carregando mapa…",
         "radius": "Raio: {radius} km",
@@ -1216,6 +1284,21 @@
         "biogas": "Biogás:",
         "scope": "Estado de <strong>São Paulo</strong>",
         "coordinates": "{lat}; {lng}"
+      },
+      "infrastructure": {
+        "title": "Infraestrutura mais próxima",
+        "subtitle": "Distância em linha reta do ponto até o elemento mais próximo de cada tipo, nas camadas de infraestrutura do mapa. No mapa, a linha tracejada liga o ponto a cada um.",
+        "types": {
+          "gas_pipeline": "Gasoduto",
+          "substation": "Usina termelétrica",
+          "railway": "Rodovia estadual",
+          "transmission_line": "Linha de transmissão",
+          "ete": "Estação de tratamento de esgoto"
+        },
+        "distance": "{distance} km",
+        "none_within": "Nenhum em até {radius} km",
+        "nearest_at": "o mais próximo está a {distance} km",
+        "unavailable": "Camada não carregada no servidor"
       },
       "processed_in": "Processado em {ms} ms",
       "badge": {
@@ -1309,7 +1392,7 @@
       "row_live_biogas": "Biogás Pecuário (m³/ano)",
       "row_urban_biogas": "Biogás Urbano (m³/ano)",
       "row_energy": "Potencial Energético (MWh/ano)",
-      "row_co2": "Redução de CO₂ (ton/ano)"
+      "row_ghg": "Potencial de redução de emissões (tCO₂e/ano, biometano no lugar de diesel)"
     },
     "technology_routes": {},
     "cite": {
@@ -1715,8 +1798,8 @@
       "thermalDesc": "Calor para processos industriais ou agroindustriais",
       "biochar": "Biochar",
       "biocharDesc": "Carvão ativado de alta qualidade da palha de cana",
-      "carbon": "Créditos de Carbono",
-      "carbonDesc": "CO₂eq evitado — elegível RenovaBio e mercado voluntário",
+      "carbon": "Potencial de redução de emissões",
+      "carbonDesc": "Metano evitado + fóssil deslocado − vazamentos (não é crédito)",
       "calculate": "Calcular Potencial"
     },
     "results": {
@@ -1726,11 +1809,10 @@
       "energy": "Energia Elétrica",
       "biomethane": "Biometano",
       "digestate": "Biofertilizante",
-      "carbon": "CO₂eq evitado",
+      "carbon": "Redução de emissões",
       "thermal": "Energia Térmica",
       "biochar": "Biochar",
       "digestateSub": "Estimativa digestato sólido/líquido",
-      "carbonSub": "Emissões evitadas — elegível VCM/RenovaBio",
       "primaryOutputs": "Saídas selecionadas",
       "secondaryOutputs": "Também calculado — não selecionado ({count})",
       "notSelected": "Não incluído no plano — clique em Nova simulação para adicionar",
@@ -1738,7 +1820,6 @@
       "priceSlidersHint": "Mova os sliders para simular diferentes cenários de preço. Os indicadores financeiros atualizam em tempo real.",
       "tariffEnergy": "Tarifa elétrica",
       "priceBiomethane": "Preço biometano",
-      "priceCarbon": "Crédito de carbono",
       "priceDiesel": "Preço diesel",
       "methodology": "Metodologia e fontes",
       "financialTitle": "Indicadores Financeiros (estimativa)",
@@ -1774,7 +1855,6 @@
       "chartBiogas": "Biogás",
       "energySavings": "Economia: {amount}/ano",
       "dieselEquivalent": "≈ {liters} L de diesel",
-      "carbonRevenue": "{amount}/ano (VCM/RenovaBio)",
       "investment": "📊 Investimento estimado",
       "paybackHeading": "⏱ Payback estimado",
       "scenariosHelpTitle": "💡 Entenda os cenários",
@@ -1788,7 +1868,7 @@
         "efficiencyLabel": "Eficiências:",
         "efficiency": "Elétrica {electrical} (motor-gerador); Térmica {thermal} (recuperação de calor)",
         "pricesLabel": "Preços padrão SP 2025:",
-        "prices": "Tarifa CPFL/Enel {tariff}/kWh; Biometano {biomethane}/m³; Carbono {carbon}/tCO₂eq (VCM)",
+        "prices": "Tarifa CPFL/Enel {tariff}/kWh; Biometano {biomethane}/m³. Redução de emissões não entra na receita nem no payback.",
         "sourcesLabel": "Fontes:",
         "disclaimer": "Estimativas para viabilidade preliminar. Projeto executivo requer estudo técnico detalhado.",
         "streamBmp": "{stream}: {bmp} m³ CH₄/tSV",
@@ -1851,6 +1931,47 @@
         "technology": "CSTR + upgrading / CHP premium",
         "help": "Máxima eficiência para grandes operações. O payback conservador pode ser longo para operações pequenas — não significa inviabilidade, mas que a receita não cobre o investimento no horizonte de {horizon} anos."
       }
+    },
+    "climate": {
+      "title": "Potencial de redução de emissões",
+      "subtitle": "Metano que deixa de ser emitido + combustível fóssil deslocado − metano que a própria planta perde. É um potencial, não um crédito de carbono.",
+      "onResults": "calculado na tela de resultados",
+      "baselineLabel": "Hoje o resíduo vai para",
+      "baselines": {
+        "nao_informado": "Não informado (conta só o fóssil deslocado)",
+        "lagoa_anaerobia": "Lagoa anaeróbia descoberta",
+        "esterqueira": "Esterqueira (dejeto líquido)",
+        "armazenamento_solido": "Armazenamento sólido / compostagem simples",
+        "cama_aviario": "Cama de aviário",
+        "pasto": "Fica no pasto",
+        "espalhamento_diario": "Espalhado no solo todo dia",
+        "campo": "Fica no campo (palha, bagaço, torta)"
+      },
+      "routeLabel": "Uso da energia",
+      "routes": {
+        "biometano_veicular": "Biometano no lugar de diesel",
+        "biometano_rede": "Biometano no lugar de gás natural",
+        "eletricidade": "Eletricidade para o grid (SIN)",
+        "termico_glp": "Calor no lugar de GLP"
+      },
+      "upgradingLabel": "Tecnologia de purificação",
+      "upgrading": {
+        "lavagem_agua": "Lavagem com água",
+        "aminas": "Aminas",
+        "membranas": "Membranas",
+        "psa": "PSA"
+      },
+      "leakLabel": "Vazamento do biodigestor: {value}",
+      "methane": "Metano evitado (linha de base)",
+      "fossil": "Fóssil deslocado",
+      "project": "Emissões do projeto (vazamento, escape)",
+      "net": "Redução líquida",
+      "breakEven": "O benefício zera se o vazamento chegar a {value} do metano produzido.",
+      "netNegative": "Com estas premissas a planta emite mais metano do que evita.",
+      "footnote": "GWP do metano: {gwp} ({value}). Virar crédito exige adicionalidade e um único instrumento por volume (CBIO, CGOB ou mercado voluntário).",
+      "unverified": "Inclui fatores do IPCC ainda em conferência.",
+      "loading": "Calculando emissões…",
+      "unavailable": "O cálculo de emissões está indisponível agora (API fora do ar)."
     }
   },
   "guide": {
@@ -2453,6 +2574,18 @@
       "range_short": "faixa {min} a {max}",
       "held": "Os níveis anteriores (teórico e disponível) aparecem depois da publicação do artigo do método."
     },
+    "climate": {
+      "heading": "Clima",
+      "caption": "Se o metano do Cenário Real virasse biometano veicular no lugar do diesel, cada resíduo partindo da destinação típica de hoje.",
+      "methane": "Metano que deixa de escapar",
+      "fossil": "Diesel deslocado",
+      "project": "Vazamento, escape e queima da própria usina",
+      "net": "Redução líquida",
+      "by_residue": "Redução líquida por resíduo",
+      "note": "Potencial de redução, não crédito de carbono. GWP do metano: {gwp}.",
+      "unverified": "Parte dos fatores ainda está em conferência.",
+      "more": "Simular uma usina na calculadora"
+    },
     "infrastructure": {
       "heading": "Infraestrutura próxima",
       "cta": "Abrir em Proximidade e logística",
@@ -2525,6 +2658,325 @@
       "heading": "De onde vem o metano",
       "caption": "Metano acessível (N4) por setor e resíduo, em Nm³ CH₄ por ano.",
       "zero": "Sem metano acessível: {list}."
+    }
+  },
+  "financing": {
+    "eyebrow": "Observatório do financiamento",
+    "title": "Quanto custa um m³/dia de biometano no Brasil",
+    "lede": "As operações de biometano aprovadas pelo BNDES divulgam o valor financiado, muitas vezes o investimento total, e a capacidade da planta. Juntas, formam a primeira curva brasileira de custo de capital, com uma fonte por operação.",
+    "unit_m3_day": "m³/dia",
+    "tiles": {
+      "deals": "Operações",
+      "bndes": "Financiamento do BNDES",
+      "fundo_clima": "Do Fundo Clima",
+      "capacity": "Capacidade somada",
+      "known": "Soma do que foi divulgado"
+    },
+    "routes": {
+      "aterro": "Aterro sanitário",
+      "aterro_caption": "Purificação do biogás que o aterro já capta, compressão e conexão.",
+      "agroindustrial": "Agroindustrial",
+      "agroindustrial_caption": "Inclui a biodigestão, não só a purificação: vinhaça, efluentes e resíduos da agroindústria."
+    },
+    "range": "{min} a {max}",
+    "per_m3_day": "por m³/dia de capacidade, {n, plural, one {# operação com investimento total} other {# operações com investimento total}}",
+    "at_least": "≥ {value}",
+    "basis": {
+      "total": "investimento total",
+      "joint_total": "investimento total divulgado em conjunto",
+      "financing": "só o financiamento: limite inferior"
+    },
+    "table": {
+      "heading": "As operações",
+      "caption": "Capital nivelado: R$ por m³ produzido, só capital, com {years} anos de vida útil, {factor} de fator de capacidade e custo de capital de {rates}.",
+      "project": "Projeto",
+      "route": "Rota",
+      "capacity": "Capacidade (m³/dia)",
+      "capex": "CAPEX por m³/dia",
+      "levelized": "Capital por m³",
+      "source": "Fonte",
+      "source_n": "fonte {n}"
+    },
+    "limits": {
+      "heading": "Limites",
+      "items": [
+        "São notas de imprensa e reportagens, não o contrato. Cada linha cita a sua fonte; os valores devem ser conferidos nos dados abertos do BNDES antes de virar referência.",
+        "Quando o investimento total não foi divulgado, o valor financiado entra como limite inferior e fica fora das faixas por rota.",
+        "O investimento de um aterro cobre o que o projeto precisa (purificação, compressão, conexão); a captação do biogás pode já existir. Não se compara a um projeto que começa do zero.",
+        "Capital nivelado não inclui operação, manutenção nem matéria-prima. Taxa de capital, vida útil e fator de capacidade são premissas."
+      ]
+    }
+  },
+  "mandate": {
+    "eyebrow": "Painel do mandato",
+    "title": "O mandato do biometano, mês a mês",
+    "lede": "A Lei do Combustível do Futuro obriga produtores e importadores de gás natural a reduzir as emissões do gás que vendem, com biometano comprovado por CGOB. O CNPE fixa a meta de cada ano; a ANP publica a produção de cada mês. Aqui as duas lado a lado.",
+    "unit_m3_day": "m³/dia",
+    "sources": {
+      "line": "Números conferidos em {date}. Ao lado de cada número, um botão abre a fonte direto, com a cor do tipo de fonte; o botão \"conta\" mostra o cálculo.",
+      "where_link": "Onde conferir os dados mais recentes",
+      "summary": "Fontes deste quadro ({count}) · conferidas em {date}",
+      "kinds": {
+        "oficial": "Oficial",
+        "dados": "Dados",
+        "estudo": "Estudo",
+        "empresa": "Empresa",
+        "imprensa": "Imprensa",
+        "estimativa": "Estimativa"
+      },
+      "where": {
+        "heading": "Onde conferir",
+        "caption": "As páginas onde os números deste painel são publicados e atualizados. Os quadros acima mostram a data de cada fonte.",
+        "legend": "Oficial e Dados: o usuário confere na própria fonte. Estudo e Empresa: números de quem publicou. Imprensa: conferir no original antes de citar. Estimativa: suposição do PILAR-2b, sem fonte pública."
+      },
+      "legend": "Tipos de fonte:",
+      "describe": "Fonte ({kind}): {title} — {publisher}, {date}.",
+      "new_tab": "Abre em nova aba.",
+      "calc": "conta",
+      "calc_label": "Como calculamos este número",
+      "method_heading": "Como calculamos",
+      "inputs_heading": "Premissas deste quadro",
+      "cite": {
+        "heading": "Como citar este painel",
+        "text": "CP2b/NIPE-UNICAMP. PILAR-2b: painel do mandato do biometano, com fontes conferidas em {checked}. Disponível em: {url}. Acesso em: {date}.",
+        "note": "Ao usar um número, cite também a fonte original: é o botão ao lado dele.",
+        "more": "Outros formatos de citação"
+      }
+    },
+    "tiles": {
+      "target": "Meta de {year}",
+      "target_note": "{reduction} de redução de emissões",
+      "br": "Brasil produz",
+      "coverage": "{month} · {share} da meta de {year}",
+      "sp": "São Paulo produz",
+      "sp_share": "{month} · {share} da produção nacional",
+      "cgob": "CGOB emitidos",
+      "cgob_none": "Sem registro",
+      "cgob_note": "Nenhum emitido até a última verificação: a emissão depende do sistema da ANP com o Serpro. B3, ACX e Instituto Totum já estão credenciadas para o registro."
+    },
+    "path": {
+      "heading": "A trajetória da meta",
+      "caption": "Biometano exigido por ano, em m³/dia, e a produção nacional de {month}. ≈: sem volume publicado, proporcional à proposta mais recente.",
+      "now": "Produção atual",
+      "row": "{year} · {reduction}",
+      "source_groups": {
+        "panel": "Lei, metas e regras do CGOB",
+        "cgob": "CGOB emitidos"
+      },
+      "method": {
+        "coverage": "Cobertura: produção nacional de {month} ({br} m³/dia) ÷ meta diária de {year} ({target} m³/dia) = {share}.",
+        "indicative": "Metas sem volume publicado (≈): {volume} m³/dia de {year} ÷ {pct} × o percentual de cada ano.",
+        "production": "Produção: soma dos m³ do mês na base da ANP, todos os produtos, ÷ dias do mês."
+      }
+    },
+    "status": {
+      "vigente": "vigente",
+      "proposta": "proposta",
+      "indicativa": "indicativa"
+    },
+    "series": {
+      "heading": "Produção de biometano (ANP)",
+      "caption": "Média diária de cada mês, todos os produtos. A linha tracejada é a meta de {year}.",
+      "br": "Brasil",
+      "sp": "São Paulo",
+      "month": "Mês",
+      "target": "Meta de {year}",
+      "source_groups": {
+        "production": "Produção mensal por estado e capacidade por planta"
+      }
+    },
+    "route": {
+      "heading": "Vale trocar o motor pela purificação?",
+      "caption": "Por m³ de metano: quanto o atributo ambiental (CGOB ou equivalente) precisa valer para vender biometano pagar o mesmo que queimar o biogás para gerar eletricidade, a cada preço da energia.",
+      "prices": {
+        "pld_baixo": "PLD baixo",
+        "pld_medio": "PLD médio",
+        "pld_alto": "PLD alto",
+        "autoconsumo": "Energia autoconsumida"
+      },
+      "row": "{label} · {price}/MWh",
+      "none_needed": "não precisa",
+      "per_m3": "{value}/m³",
+      "reference": "Atributo no Mercado Cativo Verde",
+      "threshold": "Com a eletricidade abaixo de {threshold}/MWh, o biometano já paga mais sem atributo algum.",
+      "reference_covers": "Mesmo quando a usina usa a própria energia, o atributo de equilíbrio fica abaixo do que o Mercado Cativo Verde paga pelo atributo.",
+      "reference_short": "Quando a usina usa a própria energia, o atributo precisa passar do que o Mercado Cativo Verde paga.",
+      "burned": "São Paulo já produz biogás com cerca de {volume} m³/dia de metano, a maior parte queimada para gerar eletricidade: {ratio}× a meta de {year}.",
+      "limits": "Molécula e atributo são os preços iniciais que a Arsesp fixou para o Mercado Cativo Verde da Comgás, sem PIS/Cofins (set/2026). O CGOB ainda não tem preço: os fornecedores pedem piso de R$ 1/m³, e parte do mercado espera menos. Não entram a conexão à rede (gasoduto ou caminhão) nem o motor-gerador já pago.",
+      "source_groups": {
+        "molecula": "Molécula",
+        "atributo": "Atributo ambiental",
+        "purificacao": "Custo da purificação",
+        "cambio": "Câmbio (euro)",
+        "eletricidade": "Preço da eletricidade (PLD)",
+        "autoconsumo": "Energia autoconsumida",
+        "biogas_sp": "Biogás de SP",
+        "pci": "PCI do metano",
+        "rendimento": "Rendimento elétrico do motor",
+        "fracao_ch4": "Metano no biogás"
+      },
+      "inputs": {
+        "molecule": "Molécula (Mercado Cativo Verde, sem PIS/Cofins)",
+        "attribute": "Atributo (Mercado Cativo Verde, sem PIS/Cofins)",
+        "upgrading": "Purificação ({eur} €/MWh a {fx}/€)",
+        "lhv": "PCI do metano (0 °C)",
+        "efficiency": "Rendimento elétrico do motor",
+        "ch4": "Metano no biogás",
+        "biogas": "Biogás produzido em SP",
+        "per_m3": "{value}/m³",
+        "kwh_m3": "{value} kWh/m³",
+        "m3_day": "{value} m³/dia",
+        "pld": "PLD SE/CO (abr–jul/2026, CCEE)",
+        "per_mwh": "{value}/MWh",
+        "mwh_range": "{low} a {high}/MWh",
+        "range": "{low}–{high}"
+      },
+      "method": {
+        "electricity": "Rota elétrica, por m³ de CH₄: {lhv} kWh × {eta} × preço da eletricidade. A {price}/MWh: {value}/m³.",
+        "upgrading": "Purificação: {eur} €/MWh × {fx}/€ × {lhv} kWh ÷ 1.000 = {upgrading}/m³.",
+        "breakeven": "Atributo de equilíbrio = rota elétrica − (molécula − purificação). A {price}/MWh: {electricity} − ({molecule} − {upgrading}) = {value}/m³. Negativo: não precisa de atributo.",
+        "threshold": "Limiar: ({molecule} − {upgrading}) ÷ ({lhv} kWh × {eta}) × 1.000 = {threshold}/MWh.",
+        "burned": "Metano de SP: {biogas} m³/dia de biogás × {mid} de CH₄ (meio da faixa) = {ch4} m³/dia; ÷ meta de {year} ({target} m³/dia) = {ratio}×."
+      }
+    },
+    "stack": {
+      "heading": "O que soma na receita de um m³ de biometano",
+      "caption": "Projetos e financiadores costumam somar receitas que não se somam. Aqui, cada linha diz se entra na conta junto com as outras, e por quê.",
+      "total": "Soma possível por m³: até {total} (molécula e atributo ao preço do Mercado Cativo Verde e o teto do CBIO). As outras linhas não têm preço público ou não são receita.",
+      "groups": {
+        "adds": "Soma",
+        "once": "Vende-se uma vez",
+        "caveat": "Soma, com ressalva",
+        "not": "Não somar"
+      },
+      "items": {
+        "molecule": {
+          "title": "Molécula",
+          "value": "{value}/m³",
+          "note": "O gás sem o atributo ambiental, ao preço que a Arsesp fixou para a molécula do biometano no Mercado Cativo Verde da Comgás."
+        },
+        "co2": {
+          "title": "CO₂ biogênico",
+          "value": "{low}–{high} kg/m³",
+          "note": "Coproduto físico da purificação; no motor, sai diluído no escapamento. Sem preço público em SP: depende de comprador por perto."
+        },
+        "digestate_new": {
+          "title": "Digestato do resíduo urbano",
+          "value": "{share} do valor do digestato",
+          "note": "O nutriente que hoje vai para o aterro: o único que é receita nova."
+        },
+        "cgob": {
+          "title": "CGOB, para o mandato",
+          "value": "1 CGOB = {m3} m³ · {perCgob} ao preço do Cativo Verde",
+          "note": "O certificado que produtores e importadores de gás natural compram para cumprir a meta. Ainda sem preço público: os fornecedores pedem piso de R$ 1/m³."
+        },
+        "captive": {
+          "title": "Atributo no Mercado Cativo Verde",
+          "note": "Vai para o cliente da Comgás que compra o biometano: vendido a ele, o atributo não pode ser vendido de novo como CGOB. Preço inicial fixado pela Arsesp, sem PIS/Cofins.",
+          "value": "{value}/m³"
+        },
+        "voluntary_cert": {
+          "title": "Certificado voluntário (GAS-REC, I-REC)",
+          "note": "Para gerar lastro de CGOB com nota fiscal de 2026, a ANP exige cancelar o certificado voluntário do mesmo volume."
+        },
+        "cbio": {
+          "title": "CBIO (RenovaBio)",
+          "value": "até {low}–{high}/m³",
+          "note": "Teto de {cbio} CBIO por m³ (biometano sem emissão alguma), ao preço de jan–fev/2026 e à média de 2025; em mar/2026 o CBIO chegou a R$ 19,90. A ANP permite CBIO e CGOB da mesma nota fiscal, com o CGOB indicando o CBIO; parte do mercado vê nisso dupla contagem."
+        },
+        "carbon": {
+          "title": "Crédito de carbono voluntário",
+          "note": "Pelo metano evitado (lagoa, aterro). Não somar sem ver o que a metodologia credita: se também credita o fóssil deslocado, sobrepõe-se ao CBIO e ao atributo. A redução do módulo Clima não é crédito."
+        },
+        "digestate_kept": {
+          "title": "Digestato de fluxos que já voltam ao solo",
+          "value": "{share} do valor do digestato",
+          "note": "Vinhaça, torta de filtro, esterco: o biodigestor preserva o nutriente, não o cria."
+        },
+        "straw": {
+          "title": "Nutriente da palha removida",
+          "value": "{share} do valor do digestato",
+          "note": "Custo, não receita: só é evitado se o digestato voltar ao canavial."
+        },
+        "electricity": {
+          "title": "Eletricidade do mesmo biogás",
+          "note": "Ou eletricidade ou biometano: veja a troca de rota acima."
+        }
+      },
+      "digestate_basis": "Partes do valor dos nutrientes do digestato de SP, pelo destino atual do resíduo (protótipo do PILAR-2b, cenário Real).",
+      "limits": "Valores de triagem: molécula e atributo são os preços iniciais do Mercado Cativo Verde, o CGOB ainda não tem preço e o preço do CBIO mudou muito em 2026.",
+      "source_groups": {
+        "fossil": "Fóssil de referência do CBIO",
+        "cbio": "CBIO: definição e preço",
+        "regra_cgob": "Regra do CGOB com CBIO",
+        "critica": "Crítica à dupla emissão",
+        "densidade": "Condição de referência dos m³ (densidade do CO₂)",
+        "digestato": "Digestato",
+        "unidade_cgob": "1 CGOB = 100 m³"
+      },
+      "method": {
+        "cbio": "Teto do CBIO: {lhv} MJ/m³ × {fossil} g CO₂e/MJ ÷ 1.000.000 = {cbio} CBIO/m³ (biometano sem emissão alguma); × {low} a {high} por CBIO = {brl_low} a {brl_high}/m³.",
+        "co2": "CO₂ por m³ de biometano: (1 − CH₄) ÷ CH₄ × {density} kg/m³, com CH₄ de {high} a {low} = {kg_low} a {kg_high} kg.",
+        "cgob": "CGOB: 1 certificado = {m3} m³; ao preço do atributo no Cativo Verde ({attr}/m³), {perCgob} por CGOB.",
+        "total": "Soma possível: {molecule} + {attr} + {cbio} = {total}/m³."
+      }
+    },
+    "co2": {
+      "heading": "CO₂ biogênico: quanto a purificação separa, e quem compraria",
+      "caption": "O CO₂ que sai da purificação do biogás em cada planta de biometano de SP (ANP, {month}), contra o mercado onde ele seria vendido.",
+      "unit": "{low}–{high} t/ano",
+      "unit_one": "{value} t/ano",
+      "rows": {
+        "now": "Plantas de biometano de SP, hoje",
+        "capacity": "As mesmas plantas na capacidade",
+        "burned": "Todo o biogás de SP, se fosse purificado",
+        "market": "Mercado brasileiro de CO₂, todo"
+      },
+      "market_share": "As plantas de SP já separam cerca de {share} de todo o CO₂ que o Brasil consome. Todo o biogás de SP, purificado, daria {low}–{high} vezes esse mercado. Já há quem venda: a Cocal separa {unit} t/dia na purificação do biogás em Narandiba (SP), e a Gás Verde, cerca de 100 t/dia no Rio de Janeiro.",
+      "ethanol": "E o etanol tem muito mais: a EPE estima {ethanol} de CO₂ biogênico disponível no setor, quase puro na fermentação, contra {biogas} no biogás.",
+      "removal": "Vender o CO₂ para bebida ou alimento devolve o gás ao ar: não é remoção. Só a estocagem geológica permanente pode contar como remoção. A Lei 14.993/2024 e o Decreto 13.095/2026 dão à ANP a autorização da estocagem e preveem que ela possa contar no SBCE (Lei 15.042/2024), mas as regras da ANP e as metodologias do SBCE ainda estão em elaboração.",
+      "plants": "Por planta (t de CO₂ por dia)",
+      "plant": "Planta",
+      "today": "Hoje",
+      "at_capacity": "Na capacidade",
+      "limits": "Biogás com 35–45 % de CO₂; CO₂ a 1,84 kg/m³ (20 °C e 1 atm, a referência da ANP). O mercado brasileiro de CO₂ não tem número oficial: 1.600 t/dia é estimativa de 2023, e outra de 2022 dá 1.100. Os compradores (bebidas, alimentos, estufas, e-metanol) ainda não estão no mapa: a camada depende dos estabelecimentos da RAIS.",
+      "source_groups": {
+        "plantas": "Plantas e biogás processado",
+        "mercado": "Tamanho do mercado de CO₂",
+        "exemplos": "Quem já vende",
+        "epe": "CO₂ biogênico disponível (EPE)",
+        "remocao": "Remoção, estocagem e SBCE"
+      },
+      "method": {
+        "plant": "Por planta: biogás processado no mês (ANP) × {co2_low} a {co2_high} de CO₂ × {density} kg/m³ ÷ 1.000 = t/dia; × 365 = t/ano. Na capacidade, a mesma conta com a capacidade de biogás da planta.",
+        "burned": "Todo o biogás de SP: {biogas} m³/dia, a mesma conta.",
+        "market": "Mercado: {day} t/dia × 365 = {year}.",
+        "share": "Parcela de SP: meio da faixa de hoje ({now}) ÷ mercado = {share}."
+      }
+    },
+    "limits": {
+      "heading": "Limites",
+      "items": [
+        "A meta cobre o ano; a produção é de um mês. Um mês abaixo da linha não é descumprimento: a meta é apurada no ano, com CGOB, conforme a Resolução ANP 995/2026.",
+        "As metas de 2028 a 2030 são indicativas e ainda não têm volume publicado: o painel escala o volume da proposta de 2027 pelo percentual, só como ordem de grandeza.",
+        "A produção da ANP pode ser revista depois de publicada, e o último mês é o mais recente que a plataforma ingeriu.",
+        "O mandato é nacional e o CGOB é negociável: São Paulo não precisa cobrir a meta sozinho. A participação de SP mede peso, não obrigação estadual."
+      ]
+    }
+  },
+  "dataSources": {
+    "label": "{count, plural, one {Fonte:} other {Fontes:}}",
+    "describe": "Fonte ({kind}): {title}{by}.",
+    "to_check": "A conferir: {what}",
+    "unchecked": "a conferir",
+    "new_tab": "Abre em nova aba.",
+    "kinds": {
+      "oficial": "Oficial",
+      "dados": "Dados",
+      "estudo": "Estudo",
+      "empresa": "Empresa",
+      "imprensa": "Imprensa",
+      "estimativa": "Estimativa"
     }
   },
   "method": {

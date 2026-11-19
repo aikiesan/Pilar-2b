@@ -374,6 +374,21 @@ class TestGetAllReferences:
         assert only["residuo_nome"] == "Palha de Soja"
         assert only["residuo_nome_en"] == "Soybean Straw"
 
+    def test_link_falls_back_to_external_url(self, client, mock_db_connection):
+        _, mock_cursor = mock_db_connection
+        refs = [
+            {"id": 1, "title": "A", "url": "https://doi.org/10.1/a", "external_url": "x"},
+            {"id": 2, "title": "B", "url": None, "external_url": "https://example.org/b"},
+            {"id": 3, "title": "C", "url": None, "external_url": None},
+        ]
+        mock_cursor.fetchall.side_effect = [refs, [], []]
+        data = client.get("/api/v1/residuos/references/all").json()["references"]
+        assert {r["title"]: r["url"] for r in data} == {
+            "A": "https://doi.org/10.1/a",
+            "B": "https://example.org/b",
+            "C": None,
+        }
+
     def test_english_name_is_null_until_translated(self, client, mock_db_connection):
         _, mock_cursor = mock_db_connection
         ref = {

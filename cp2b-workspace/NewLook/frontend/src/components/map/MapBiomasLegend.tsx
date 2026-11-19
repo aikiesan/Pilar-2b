@@ -8,6 +8,9 @@
 import React, { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { ChevronDown, ChevronUp, Leaf } from 'lucide-react';
+import Cite from '@/components/mandate/Cite';
+import { useDataSources, useDescribeSource } from '@/hooks/useDataSources';
+import { layerSources } from '@/lib/dataSources';
 
 // MapBiomas agricultural classes visualized in the raster layer, by MapBiomas
 // class id. Names are copy: Map.mapbiomasLegend.classes.<id>.
@@ -38,6 +41,8 @@ interface MapBiomasLegendProps {
 export default function MapBiomasLegend({ visible = true }: MapBiomasLegendProps) {
   const t = useTranslations('Map.mapbiomasLegend');
   const [isExpanded, setIsExpanded] = useState(true);
+  const sources = useDataSources();
+  const describeSource = useDescribeSource();
 
   if (!visible) return null;
 
@@ -85,6 +90,7 @@ export default function MapBiomasLegend({ visible = true }: MapBiomasLegendProps
 
           <p className="text-xs text-gray-400 dark:text-gray-500 mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
             {t('source')}
+            <Cite sources={layerSources(sources, 'mapbiomas')} describe={describeSource} />
           </p>
         </div>
       )}

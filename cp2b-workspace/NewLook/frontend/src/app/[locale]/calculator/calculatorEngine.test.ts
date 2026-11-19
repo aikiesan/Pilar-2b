@@ -79,7 +79,8 @@ describe('calcOutputs', () => {
     expect(outputs.energyKwhYear).toBeCloseTo((ch4 * 35.8 * 0.35) / 3.6, 6)
     expect(outputs.thermalMjYear).toBeCloseTo(ch4 * 35.8 * 0.5, 6)
     expect(outputs.digestateTonsYear).toBe(375)
-    expect(outputs.co2TonsYear).toBeCloseTo((ch4 * 0.657 * (44 / 16)) / 1000, 6)
+    // Avoided emissions are the backend GHG module's (ghgApi.ts): the engine computes no CO₂.
+    expect(outputs).not.toHaveProperty('co2TonsYear')
   })
 
   it('keeps the monthly energy consistent with the yearly total', () => {
@@ -163,9 +164,17 @@ describe('calcFinancials', () => {
 
   it('follows the prices it is given', () => {
     const cheap = calcFinancials(outputs, ALL_OUTPUT_TYPES, {
-      energyTariffBrlKwh: 0.5, biomethaneM3: 1, co2CreditBrlTon: 10, dieselBrlLiter: 4,
+      energyTariffBrlKwh: 0.5, biomethaneM3: 1, dieselBrlLiter: 4,
     })
     expect(cheap.annualRevenueMaxBRL).toBeLessThan(calcFinancials(outputs).annualRevenueMaxBRL)
+  })
+
+  it('never counts carbon as revenue (ESPEC_MODULO_GEE §4)', () => {
+    const withCarbon = calcFinancials(outputs, ['energy', 'carbon'])
+    const without = calcFinancials(outputs, ['energy'])
+    expect(withCarbon.annualRevenueMaxBRL).toBe(without.annualRevenueMaxBRL)
+    expect(withCarbon.payback).toEqual(without.payback)
+    expect(withCarbon).not.toHaveProperty('carbonRevBrlYear')
   })
 })
 

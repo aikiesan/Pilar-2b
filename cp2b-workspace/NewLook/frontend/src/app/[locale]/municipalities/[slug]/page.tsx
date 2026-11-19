@@ -7,7 +7,8 @@
  *  2. four tiles: N4 (headline), rank in the state, N3, main sector
  *  3. where the methane comes from: sector bar + residue bars by sector
  *  4. method levels: bars with their min–max range (N1 and N2 only while
- *     METHOD_PAGES_ENABLED is on — see MunicipalityProfile.upstream)
+ *     METHOD_PAGES_ENABLED is on — see MunicipalityProfile.upstream); the
+ *     climate section (GHG module, folded) when the API answers
  *  5. neighbours compared, this municipality highlighted
  *  6. actions: nearby infrastructure (→ Proximidade), share, cite
  *  7. notes and limitations, folded; report an error
@@ -21,6 +22,7 @@
  */
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
+import { ChevronDown } from 'lucide-react'
 import { getFormatter, getTranslations, setRequestLocale } from 'next-intl/server'
 import { Link } from '@/navigation'
 import NavLink from '@/components/layout/NavLink'
@@ -52,9 +54,13 @@ import {
   type ProfileSector,
   type Range,
 } from '@/lib/municipalityProfile'
+import { loadMunicipalityClimate } from '@/lib/municipalityClimate'
 import { isIbgeCode, municipalityPath } from '@/lib/municipalitySlug'
 import { publicUrl } from '@/lib/siteUrl'
 import { HeaderLeaves } from '@/components/ui/ArcOrnament'
+import Cite from '@/components/mandate/Cite'
+import { serverGetJson } from '@/lib/serverApi'
+import { SOURCES_PATH, describeSource, pageSources, type DataSource, type SourceCatalog } from '@/lib/dataSources'
 
 export const revalidate = 3600
 // Rendered on first visit, then kept: 5,571 pages are not built ahead.
@@ -147,7 +153,11 @@ export default async function MunicipalityProfilePage({ params }: Params) {
   const tSectors = await getTranslations({ locale, namespace: 'common.sectors' })
   const tNav = await getTranslations({ locale, namespace: 'common.nav' })
   const tResidues = await getTranslations({ locale, namespace: 'Map.residues' })
+  const tUnits = await getTranslations({ locale, namespace: 'common.units' })
+  const tSources = await getTranslations({ locale, namespace: 'dataSources' })
   const format = await getFormatter({ locale })
+  // Optional: without the registry the source buttons are left out.
+  const catalog = await serverGetJson<SourceCatalog>(SOURCES_PATH)
 
   const p = profile
   const state = getState(ufOf(p.ibge))
@@ -155,6 +165,8 @@ export default async function MunicipalityProfilePage({ params }: Params) {
   const path = municipalityPath(p.name, p.ibge)
   const url = publicUrl(`/${locale}${path}`)
   const hasCp2b = p.n4 !== null
+  // Optional: without the GHG module's answer the card is left out, never zeroed.
+  const climate = hasCp2b ? await loadMunicipalityClimate(p.ibge) : null
 
   const volume = (v: number) => format.number(v, { maximumSignificantDigits: 3 })
   const big = (v: number) =>
@@ -164,6 +176,7 @@ export default async function MunicipalityProfilePage({ params }: Params) {
     format.number(v, { notation: 'compact', compactDisplay: 'short', maximumSignificantDigits: 3 })
   const percent = (v: number) =>
     format.number(v, { style: 'percent', maximumFractionDigits: v > 0 && v < 0.01 ? 1 : 0 })
+  const tons = (v: number) => `${short(v)} ${tUnits('tco2eq_year')}`
 
   const sectorValue = (s: ProfileSector) => p.sectors[s] ?? 0
   const sectorTotal = PROFILE_SECTORS.reduce((sum, s) => sum + sectorValue(s), 0)
@@ -209,6 +222,14 @@ export default async function MunicipalityProfilePage({ params }: Params) {
   const proximityHref = p.centroid
     ? `/proximity?lat=${p.centroid.lat.toFixed(6)}&lng=${p.centroid.lng.toFixed(6)}&radius=${PROXIMITY_RADIUS_KM}`
     : '/proximity'
+  const cite = (sources: DataSource[]) => (
+    <Cite sources={sources} describe={(s) => describeSource(s, tSources, (kind) => tSources(`kinds.${kind}`), format)} />
+  )
+  const potentialSources = [
+    ...pageSources(catalog, 'municipio_potencial'),
+    ...(perCapita !== null ? pageSources(catalog, 'municipio_populacao') : []),
+  ]
+  const regionSources = p.intermediateRegion || p.immediateRegion ? pageSources(catalog, 'municipio_regioes') : []
   const stamp = p.methodVersion ? t('data.stamp', { version: p.methodVersion }) : t('data.stamp_no_version')
   const today = format.dateTime(new Date(), { dateStyle: 'long' })
   const linkClass = 'font-medium text-terra-800 underline underline-offset-4 hover:text-terra-900 dark:text-terra-300'
@@ -257,6 +278,12 @@ export default async function MunicipalityProfilePage({ params }: Params) {
                   <dd className="tabular-nums text-ink">{p.ibge}</dd>
                 </div>
               </dl>
+              {regionSources.length > 0 && (
+                <p className="mt-1.5 flex flex-wrap items-center text-xs text-ink-muted">
+                  {tSources('label', { count: regionSources.length })}
+                  {cite(regionSources)}
+                </p>
+              )}
             </div>
             <details className="group w-full max-w-sm sm:w-auto">
               <summary className="inline-flex min-h-[44px] cursor-pointer items-center text-sm font-medium text-terra-800 underline underline-offset-4 dark:text-terra-300">
@@ -308,6 +335,12 @@ export default async function MunicipalityProfilePage({ params }: Params) {
                 <StackedBar height="h-2" segments={sectorSegments} />
               </StatTile>
             </dl>
+            {potentialSources.length > 0 && (
+              <p className="mt-2 flex flex-wrap items-center text-xs text-ink-muted">
+                {tSources('label', { count: potentialSources.length })}
+                {cite(potentialSources)}
+              </p>
+            )}
           </section>
         ) : (
           <section aria-labelledby="lede-h" className="max-w-2xl border border-line border-l-2 border-l-terra-900 bg-paper-raised px-5 py-4">
@@ -367,6 +400,62 @@ export default async function MunicipalityProfilePage({ params }: Params) {
               {infrastructure}
             </div>
           </div>
+        )}
+
+        {/* 4b. Climate (GHG module), folded: closed, it still shows the net figure. */}
+        {climate && (
+          <details id="clima" className="group scroll-mt-24 border border-line bg-paper-raised">
+            <summary className="flex min-h-[48px] cursor-pointer flex-wrap items-center justify-between gap-x-4 gap-y-1 px-4 py-3 text-ink sm:px-5">
+              <h2 className="text-lg">{t('climate.heading')}</h2>
+              <span className="flex items-center gap-2 text-sm">
+                <span className="text-ink-muted">{t('climate.net')}</span>
+                <span className="font-semibold tabular-nums">{tons(climate.netT)}</span>
+                <ChevronDown aria-hidden="true" className="h-4 w-4 text-ink-muted transition-transform group-open:rotate-180" />
+              </span>
+            </summary>
+            <div className="border-t border-line px-4 py-4 sm:px-5">
+              <p className="max-w-3xl text-sm text-ink-muted">{t('climate.caption')}</p>
+              <div className="mt-4 grid gap-6 md:grid-cols-2">
+                <dl className="space-y-1 text-sm">
+                  {[
+                    { label: t('climate.methane'), value: climate.methaneT, sign: '+' },
+                    { label: t('climate.fossil'), value: climate.fossilT, sign: '+' },
+                    { label: t('climate.project'), value: climate.projectT, sign: '−' },
+                  ].map(({ label, value, sign }) => (
+                    <div key={label} className="flex justify-between gap-3">
+                      <dt className="text-ink-muted">{label}</dt>
+                      <dd className="whitespace-nowrap tabular-nums text-ink">{sign} {tons(value)}</dd>
+                    </div>
+                  ))}
+                  <div className="flex justify-between gap-3 border-t border-line pt-1">
+                    <dt className="font-semibold text-ink">{t('climate.net')}</dt>
+                    <dd className="whitespace-nowrap font-semibold tabular-nums text-ink">{tons(climate.netT)}</dd>
+                  </div>
+                </dl>
+                {climate.residues.length > 1 && (
+                  <div>
+                    <h3 className="mb-2 text-sm text-ink-muted">{t('climate.by_residue')}</h3>
+                    <BarList
+                      rows={climate.residues.map((r) => ({
+                        key: r.key,
+                        label: residueName(r.key),
+                        value: Math.max(0, r.netT),
+                        valueLabel: short(r.netT),
+                        barClassName: 'bg-dusk-600 dark:bg-dusk-400',
+                      }))}
+                    />
+                  </div>
+                )}
+              </div>
+              <p className="mt-4 text-xs text-ink-muted">
+                {t('climate.note', { gwp: climate.gwpVersion ?? '—' })}
+                {climate.unverified && ` ${t('climate.unverified')}`}
+              </p>
+              <p className="mt-2 text-sm">
+                <Link href="/calculator" className={linkClass}>{t('climate.more')}</Link>
+              </p>
+            </div>
+          </details>
         )}
 
         <div className="grid gap-5 lg:grid-cols-5">

@@ -86,7 +86,9 @@ SP_MUNICIPALITY_FIXTURE: dict = {
     # These are stored pre-computed in the DB; just needs to be in plausible range
     "energy_potential_mwh_year": round(_GRAND_TOTAL * 0.005),  # ~835 000 MWh
     "energy_potential_kwh_day": round(_GRAND_TOTAL * 0.005 * 1000 / 365),
-    "co2_reduction_tons_year": round(_GRAND_TOTAL * 0.005 * 0.4),  # 0.4 tCO2/MWh
+    # The GHG module's net reduction (scripts/sync_co2_from_ghg.py), not a factor
+    # on energy; any value the endpoints can serve.
+    "co2_reduction_tons_year": 334_000,
     "ranking": 5,
     # ── Biomass fields (reverse-BMP derived; may be None in legacy rows) ─────
     "total_biomass_tons_year": None,
@@ -241,25 +243,24 @@ class TestDemographicConsistency:
         )
 
 
-# ── Energy and CO₂ plausibility ───────────────────────────────────────────────
+# ── Energy plausibility ───────────────────────────────────────────────────────
 
 
 @pytest.mark.unit
 class TestEnergyPlausibility:
     """
-    Energy potential and CO₂ reduction fields must be within physically plausible
-    ranges.  The conversion factors used in production:
+    The energy potential field must be within a physically plausible range.  The
+    conversion used in production:
       energy ≈ biogas_m3 × 0.005 MWh/m³  (50% CH4, η_elec=35%, LHV 35.8 MJ/m³)
-      co2    ≈ energy_MWh × 0.4 tCO2/MWh (grid displacement factor, SEEG BR 2023)
+    The CO₂ reduction is no longer derived from energy: it is the GHG module's net
+    reduction per municipality, tested in test_sync_co2_from_ghg.py.
 
     Acceptable range: ×0.1 to ×10 of the point estimate (order-of-magnitude check).
     """
 
-    # Conversion bounds — sources: SEEG Brasil 2023, IPCC AR6 energy sector
+    # Conversion bounds
     ENERGY_MWH_PER_M3_LOW = 0.001  # pessimistic (low CH4, low efficiency)
     ENERGY_MWH_PER_M3_HIGH = 0.010  # optimistic (high CH4, high efficiency)
-    CO2_TONS_PER_MWH_LOW = 0.20  # recent grid mix (high renewables)
-    CO2_TONS_PER_MWH_HIGH = 0.70  # older fossil baseline
 
     def test_energy_potential_within_physical_range(self):
         row = SP_MUNICIPALITY_FIXTURE
@@ -270,17 +271,6 @@ class TestEnergyPlausibility:
         assert lo <= energy <= hi, (
             f"energy_potential_mwh_year ({energy:,}) outside plausible range "
             f"[{lo:,.0f}, {hi:,.0f}] for biogas = {total:,} m³/yr"
-        )
-
-    def test_co2_reduction_within_physical_range(self):
-        row = SP_MUNICIPALITY_FIXTURE
-        energy = row["energy_potential_mwh_year"]
-        co2 = row["co2_reduction_tons_year"]
-        lo = energy * self.CO2_TONS_PER_MWH_LOW
-        hi = energy * self.CO2_TONS_PER_MWH_HIGH
-        assert lo <= co2 <= hi, (
-            f"co2_reduction_tons_year ({co2:,}) outside plausible range "
-            f"[{lo:,.0f}, {hi:,.0f}] for energy = {energy:,} MWh/yr"
         )
 
     def test_energy_kwh_day_consistent_with_mwh_year(self):

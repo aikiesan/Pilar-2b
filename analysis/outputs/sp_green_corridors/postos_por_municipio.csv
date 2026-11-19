@@ -1,0 +1,44 @@
+ibge_code,municipio,postos_gnv,planta_mais_proxima,distancia_km,producao_anp_50km_m3_dia
+3550308,São Paulo,38,Metagás Biogás e Energia,0.0,54816
+3518800,Guarulhos,11,Essencis Biometano (Caieiras),29.8,54816
+3509502,Campinas,6,CRI Geo Biogás (Elias Fausto),39.4,7155
+3525904,Jundiaí,5,Essencis Biometano (Caieiras),26.5,45230
+3549904,São José dos Campos,5,ENGEP Ambiental / ZEG Jambeiro,30.6,10464
+3547809,Santo André,4,Metagás Biogás e Energia,22.7,54816
+3556206,Valinhos,4,CRI Geo Biogás (Elias Fausto),41.2,7155
+3530706,Mogi Guaçu,3,Raízen-Geo Biogás Costa Pinto,95.1,0
+3534401,Osasco,3,Essencis Biometano (Caieiras),17.6,54816
+3552502,Suzano,3,Metagás Biogás e Energia,34.7,16741
+3503208,Araraquara,2,Raízen-Geo Biogás Costa Pinto,111.7,0
+3505708,Barueri,2,Essencis Biometano (Caieiras),19.7,54816
+3513405,Cruzeiro,2,ENGEP Ambiental / ZEG Jambeiro,108.4,0
+3519600,Ibitinga,2,Raízen-Geo Biogás Costa Pinto,150.9,0
+3523404,Itatiba,2,Essencis Biometano (Caieiras),41.7,38075
+3523909,Itu,2,CRI Geo Biogás (Elias Fausto),27.7,7155
+3529401,Mauá,2,Metagás Biogás e Energia,20.6,54816
+3530607,Mogi das Cruzes,2,Metagás Biogás e Energia,47.9,16741
+3543402,Ribeirão Preto,2,Raízen-Geo Biogás Costa Pinto,168.6,0
+3548906,São Carlos,2,Raízen-Geo Biogás Costa Pinto,90.2,0
+3554102,Taubaté,2,ENGEP Ambiental / ZEG Jambeiro,30.2,10464
+3501608,Americana,1,CRI Geo Biogás (Elias Fausto),39.5,7155
+3502804,Araçatuba,1,Cocal Energia (Narandiba),188.5,0
+3503307,Araras,1,Raízen-Geo Biogás Costa Pinto,63.4,0
+3508504,Caçapava,1,ENGEP Ambiental / ZEG Jambeiro,19.5,10464
+3511102,Catanduva,1,Raízen-Geo Biogás Costa Pinto,214.9,0
+3518404,Guaratinguetá,1,ENGEP Ambiental / ZEG Jambeiro,72.9,0
+3519071,Hortolândia,1,CRI Geo Biogás (Elias Fausto),27.1,7155
+3520509,Indaiatuba,1,CRI Geo Biogás (Elias Fausto),17.6,7155
+3522307,Itapetininga,1,CRI Geo Biogás (Elias Fausto),99.9,0
+3523107,Itaquaquecetuba,1,Metagás Biogás e Energia,38.3,54816
+3524402,Jacareí,1,ENGEP Ambiental / ZEG Jambeiro,28.7,10464
+3526902,Limeira,1,Raízen-Geo Biogás Costa Pinto,45.4,18942
+3530805,Mogi Mirim,1,CRI Geo Biogás (Elias Fausto),79.2,0
+3539806,Poá,1,Metagás Biogás e Energia,33.5,54816
+3540705,Porto Ferreira,1,Raízen-Geo Biogás Costa Pinto,104.2,0
+3543907,Rio Claro,1,Raízen-Geo Biogás Costa Pinto,44.5,18942
+3545209,Salto,1,CRI Geo Biogás (Elias Fausto),14.1,7155
+3548708,São Bernardo do Campo,1,Metagás Biogás e Energia,20.6,16741
+3548807,São Caetano do Sul,1,Metagás Biogás e Energia,8.8,54816
+3551009,São Vicente,1,Metagás Biogás e Energia,38.0,16741
+3552205,Sorocaba,1,CRI Geo Biogás (Elias Fausto),44.5,7155
+3552809,Taboão da Serra,1,Metagás Biogás e Energia,14.5,54816

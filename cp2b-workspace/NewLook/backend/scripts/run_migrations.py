@@ -34,6 +34,7 @@ logger = logging.getLogger("run_migrations")
 # with the N-additive C:N that migration 031 added. Running the second alone
 # matches no rows and reports 0 loaded. load_cp2b_potential fills the tables
 # migration 034 creates; it only needs the municipalities seeded.
+# sync_co2_from_ghg reads those tables, so it comes after it.
 SEEDERS = (
     "load_biomass_from_master",
     "sync_db_canonical",
@@ -41,6 +42,7 @@ SEEDERS = (
     "load_municipality_typology",
     "load_dossier_sp_indices",
     "load_cp2b_potential",
+    "sync_co2_from_ghg",
 )
 
 

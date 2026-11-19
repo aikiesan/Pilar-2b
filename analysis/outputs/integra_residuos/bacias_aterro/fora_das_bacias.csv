@@ -1,0 +1,267 @@
+ibge_code,municipio,nome_cetesb,situacao,dispoe_em,iqr
+3502101,Andradina,Andradina,fora_sp,Três Lagoas - MS,-1
+3503000,Aramina,Aramina,fora_sp,Uberaba - MG,-1
+3503158,Arapeí,Arapeí,fora_sp,Barra Mansa - RJ,-1
+3504909,Bananal,Bananal,fora_sp,Barra Mansa - RJ,-1
+3508207,Buritizal,Buritizal,fora_sp,Uberaba - MG,-1
+3524105,Ituverava,Ituverava,fora_sp,Uberaba - MG,-1
+3530102,Mirandópolis,Mirandópolis,fora_sp,Três Lagoas - MS,-1
+3542800,Ribeira,Ribeira,fora_sp,Rio Negrinho - SC,-1
+3541000,Praia Grande,Praia Grande,multiplo,"Mauá - A.P., Santos - A.P.",9.27
+3550704,São Sebastião,São Sebastião,multiplo,"Jambeiro - A.P., Santos - A.P.",9.7
+3500709,Agudos,Agudos,sem_destino,,7.5
+3500808,Alfredo Marcondes,Alfredo Marcondes,sem_destino,,8.7
+3501103,Alto Alegre,Alto Alegre,sem_destino,,9.5
+3501806,Américo de Campos,Américo de Campos,sem_destino,,8.5
+3502309,Anhembi,Anhembi,sem_destino,,8.1
+3502408,Anhumas,Anhumas,sem_destino,,9.1
+3502606,Aparecida d'Oeste,Aparecida d`Oeste,sem_destino,,8
+3502804,Araçatuba,Araçatuba,sem_destino,,9.7
+3503356,Arco-Íris,Arco-Íris,sem_destino,,7.6
+3503406,Arealva,Arealva,sem_destino,,6.7
+3503604,Areiópolis,Areiópolis,sem_destino,,8.3
+3503901,Arujá,Arujá,sem_destino,,10
+3503950,Aspásia,Aspásia,sem_destino,,9.7
+3504404,Avanhandava,Avanhandava,sem_destino,,8.6
+3504503,Avaré,Avaré,sem_destino,,7.6
+3504701,Balbinos,Balbinos,sem_destino,,7.4
+3505104,Barbosa,Barbosa,sem_destino,,7.3
+3505302,Barra Bonita,Barra Bonita,sem_destino,,7.6
+3505351,Barra do Chapéu,Barra do Chapéu,sem_destino,,4.2
+3505401,Barra do Turvo,Barra do Turvo,sem_destino,,8.7
+3505005,Barão de Antonina,Barão de Antonina,sem_destino,,9.2
+3506201,Bento de Abreu,Bento de Abreu,sem_destino,,9
+3506409,Bilac,Bilac,sem_destino,,8.4
+3506508,Birigui,Birigui,sem_destino,,7.5
+3506904,Bofete,Bofete,sem_destino,,8
+3507407,Borborema,Borborema,sem_destino,,8.3
+3507456,Borebi,Borebi,sem_destino,,9.7
+3507506,Botucatu,Botucatu,sem_destino,,7.6
+3507704,Braúna,Braúna,sem_destino,,8
+3507753,Brejo Alegre,Brejo Alegre,sem_destino,,6.3
+3508009,Buri,Buri,sem_destino,,6.1
+3508108,Buritama,Buritama,sem_destino,,7.8
+3508405,Cabreúva,Cabreúva,sem_destino,,9.1
+3509106,Caiuá,Caiuá,sem_destino,,8.6
+3509254,Cajati,Cajati,sem_destino,,7.4
+3509304,Cajobi,Cajobi,sem_destino,,8.8
+3509452,Campina do Monte Alegre,Campina do Monte Alegre,sem_destino,,9
+3509809,Campos Novos Paulista,Campos Novos Paulista,sem_destino,,9.3
+3510203,Capão Bonito,Capão Bonito,sem_destino,,8.5
+3510708,Cardoso,Cardoso,sem_destino,,4.5
+3511003,Castilho,Castilho,sem_destino,,9
+3511409,Cerqueira César,Cerqueira César,sem_destino,,5.7
+3511508,Cerquilho,Cerquilho,sem_destino,,9
+3511904,Clementina,Clementina,sem_destino,,7.9
+3512001,Colina,Colina,sem_destino,,9.3
+3512100,Colômbia,Colômbia,sem_destino,,8.4
+3512407,Cordeirópolis,Cordeirópolis,sem_destino,,8.4
+3512506,Coroados,Coroados,sem_destino,,7.8
+3512605,Coronel Macedo,Coronel Macedo,sem_destino,,9.5
+3512704,Corumbataí,Corumbataí,sem_destino,,9.5
+3513306,Cruzália,Cruzália,sem_destino,,8.4
+3510906,Cássia dos Coqueiros,Cássia dos Coqueiros,sem_destino,,7.4
+3510104,Cândido Rodrigues,Cândido Rodrigues,sem_destino,,7.5
+3513850,Dirce Reis,Dirce Reis,sem_destino,,9
+3514106,Dois Córregos,Dois Córregos,sem_destino,,8.2
+3514304,Dourado,Dourado,sem_destino,,6.6
+3514502,Duartina,Duartina,sem_destino,,5
+3514809,Eldorado,Eldorado,sem_destino,,8.7
+3515129,Emilianópolis,Emilianópolis,sem_destino,,8.6
+3557303,Estiva Gerbi,Estiva Gerbi,sem_destino,,7.2
+3515202,Estrela d'Oeste,Estrela d`Oeste,sem_destino,,9.2
+3515350,Euclides da Cunha Paulista,Euclides da Cunha Paulista,sem_destino,,7.5
+3515400,Fartura,Fartura,sem_destino,,7.8
+3515608,Fernando Prestes,Fernando Prestes,sem_destino,,8.3
+3515905,Floreal,Floreal,sem_destino,,7.9
+3516101,Florínea,Florínia,sem_destino,,8.8
+3516002,Flórida Paulista,Flórida Paulista,sem_destino,,9.6
+3516200,Franca,Franca,sem_destino,,7.45
+3516507,Gabriel Monteiro,Gabriel Monteiro,sem_destino,,9.5
+3516804,Gastão Vidigal,Gastão Vidigal,sem_destino,,9.2
+3516853,Gavião Peixoto,Gavião Peixoto,sem_destino,,7.9
+3516903,General Salgado,General Salgado,sem_destino,,7.5
+3517109,Glicério,Glicério,sem_destino,,7.8
+3517307,Guaimbê,Guaimbê,sem_destino,,9.6
+3517604,Guapiara,Guapiara,sem_destino,,8
+3517901,Guaraci,Guaraci,sem_destino,,9.6
+3518206,Guararapes,Guararapes,sem_destino,,8.5
+3517802,Guaraçaí,Guaraçaí,sem_destino,,7.5
+3518602,Guariba,Guariba,sem_destino,,9.1
+3518909,Guzolândia,Guzolândia,sem_destino,,9.7
+3519105,Iacanga,Iacanga,sem_destino,,8.4
+3519303,Ibaté,Ibaté,sem_destino,,4.6
+3519501,Ibirarema,Ibirarema,sem_destino,,9.5
+3520004,Igaraçu do Tietê,Igaraçu do Tietê,sem_destino,,4.8
+3520442,Ilha Solteira,Ilha Solteira,sem_destino,,8.1
+3520608,Indiana,Indiana,sem_destino,,9.1
+3520707,Indiaporã,Indiaporã,sem_destino,,7.7
+3520806,Inúbia Paulista,Inúbia Paulista,sem_destino,,9.6
+3520905,Ipaussu,Ipaussu,sem_destino,,9.1
+3521200,Iporanga,Iporanga,sem_destino,,10
+3521507,Irapuã,Irapuã,sem_destino,,9.6
+3521705,Itaberá,Itaberá,sem_destino,,4.9
+3522000,Itaju,Itaju,sem_destino,,9.7
+3522158,Itaoca,Itaóca,sem_destino,,7.6
+3522406,Itapeva,Itapeva,sem_destino,,8.9
+3522604,Itapira,Itapira,sem_destino,,9.1
+3522653,Itapirapuã Paulista,Itapirapuã Paulista,sem_destino,,4.5
+3523008,Itapura,Itapura,sem_destino,,7.9
+3522901,Itapuí,Itapuí,sem_destino,,6.4
+3523206,Itararé,Itararé,sem_destino,,8.5
+3523305,Itariri,Itariri,sem_destino,,7.8
+3523404,Itatiba,Itatiba,sem_destino,,9.2
+3521804,Itaí,Itaí,sem_destino,,9.1
+3523909,Itu,Itu,sem_destino,,9.5
+3524204,Jaborandi,Jaborandi,sem_destino,,9
+3524303,Jaboticabal,Jaboticabal,sem_destino,,10
+3524402,Jacareí,Jacareí,sem_destino,,10
+3524600,Jacupiranga,Jacupiranga,sem_destino,,8.8
+3524808,Jales,Jales,sem_destino,,8.4
+3525201,Jarinu,Jarinu,sem_destino,,7.4
+3525409,Jeriquara,Jeriquara,sem_destino,,8.7
+3526001,Junqueirópolis,Junqueirópolis,sem_destino,,8.6
+3525805,Júlio Mesquita,Júlio Mesquita,sem_destino,,7.7
+3526506,Lavínia,Lavínia,sem_destino,,8.5
+3526704,Leme,Leme,sem_destino,,7.5
+3526803,Lençóis Paulista,Lençóis Paulista,sem_destino,,7.5
+3526902,Limeira,Limeira,sem_destino,,8.91
+3527256,Lourdes,Lourdes,sem_destino,,8.6
+3527702,Luiziânia,Luiziânia,sem_destino,,9.5
+3528007,Macatuba,Macatuba,sem_destino,,9.2
+3528106,Macaubal,Macaubal,sem_destino,,9
+3528205,Macedônia,Macedônia,sem_destino,,9.1
+3528403,Mairinque,Mairinque,sem_destino,,9.36
+3528601,Manduri,Manduri,sem_destino,,7.2
+3528700,Marabá Paulista,Marabá Paulista,sem_destino,,8.5
+3528809,Maracaí,Maracaí,sem_destino,,7.9
+3529104,Marinópolis,Marinópolis,sem_destino,,8.8
+3529302,Matão,Matão,sem_destino,,8.7
+3529807,Mineiros do Tietê,Mineiros do Tietê,sem_destino,,8.2
+3530003,Mira Estrela,Mira Estrela,sem_destino,,8.9
+3530201,Mirante do Paranapanema,Mirante do Paranapanema,sem_destino,,9.5
+3530300,Mirassol,Mirassol,sem_destino,,9.8
+3530409,Mirassolândia,Mirassolândia,sem_destino,,9.5
+3530508,Mococa,Mococa,sem_destino,,8.2
+3531506,Monte Azul Paulista,Monte Azul Paulista,sem_destino,,9.6
+3531605,Monte Castelo,Monte Castelo,sem_destino,,7.9
+3531001,Monções,Monções,sem_destino,,9.7
+3532058,Motuca,Motuca,sem_destino,,7.4
+3532108,Murutinga do Sul,Murutinga do Sul,sem_destino,,9.5
+3532157,Nantes,Nantes,sem_destino,,9
+3532702,Nipoã,Nipoã,sem_destino,,6.8
+3532827,Nova Campina,Nova Campina,sem_destino,,7.3
+3532843,Nova Canaã Paulista,Nova Canaã Paulista,sem_destino,,7.2
+3532868,Nova Castilho,Nova Castilho,sem_destino,,7.8
+3533106,Nova Guataporanga,Nova Guataporanga,sem_destino,,8
+3534104,Oriente,Oriente,sem_destino,,9
+3534203,Orindiúva,Orindiúva,sem_destino,,9
+3534401,Osasco,Osasco,sem_destino,,9.4
+3534609,Osvaldo Cruz,Osvaldo Cruz,sem_destino,,9.6
+3534807,Ouro Verde,Ouro Verde,sem_destino,,7.4
+3534906,Pacaembu,Pacaembu,sem_destino,,9
+3535200,Palmeira d'Oeste,Palmeira d`Oeste,sem_destino,,8.7
+3535408,Panorama,Panorama,sem_destino,,4.6
+3535804,Paranapanema,Paranapanema,sem_destino,,5.7
+3535903,Paranapuã,Paranapuã,sem_destino,,7.3
+3536000,Parapuã,Parapuã,sem_destino,,10
+3536208,Pariquera-Açu,Pariquera-Açu,sem_destino,,8.7
+3536406,Paulicéia,Paulicéia,sem_destino,,5.1
+3536570,Paulistânia,Paulistânia,sem_destino,,7.7
+3536604,Paulo de Faria,Paulo de Faria,sem_destino,,9
+3536703,Pederneiras,Pederneiras,sem_destino,,7.8
+3537156,Pedrinhas Paulista,Pedrinhas Paulista,sem_destino,,8
+3537206,Pedro de Toledo,Pedro de Toledo,sem_destino,,1.4
+3537305,Penápolis,Penápolis,sem_destino,,9.4
+3537404,Pereira Barreto,Pereira Barreto,sem_destino,,9.6
+3537602,Peruíbe,Peruíbe,sem_destino,,4.8
+3537701,Piacatu,Piacatu,sem_destino,,9.5
+3538709,Piracicaba,Piracicaba,sem_destino,,9.1
+3539004,Pirangi,Pirangi,sem_destino,,7.9
+3539301,Pirassununga,Pirassununga,sem_destino,,5.1
+3539608,Planalto,Planalto,sem_destino,,7.2
+3539905,Poloni,Poloni,sem_destino,,7.6
+3540309,Pontes Gestal,Pontes Gestal,sem_destino,,9.5
+3540408,Populina,Populina,sem_destino,,8.2
+3540705,Porto Ferreira,Porto Ferreira,sem_destino,,7.6
+3541059,Pratânia,Pratânia,sem_destino,,7.9
+3541109,Presidente Alves,Presidente Alves,sem_destino,,7.5
+3541307,Presidente Epitácio,Presidente Epitácio,sem_destino,,7.5
+3541802,Queiroz,Queiroz,sem_destino,,7.3
+3542008,Quintana,Quintana,sem_destino,,8.5
+3542503,Reginópolis,Reginópolis,sem_destino,,7.4
+3542602,Registro,Registro,sem_destino,,7.5
+3542701,Restinga,Restinga,sem_destino,,7
+3542909,Ribeirão Bonito,Ribeirão Bonito,sem_destino,,6.2
+3543006,Ribeirão Branco,Ribeirão Branco,sem_destino,,3.5
+3543105,Ribeirão Corrente,Ribeirão Corrente,sem_destino,,8.7
+3543253,Ribeirão Grande,Ribeirão Grande,sem_destino,,8.9
+3543204,Ribeirão do Sul,Ribeirão do Sul,sem_destino,,8.3
+3543238,Ribeirão dos Índios,Ribeirão dos Índios,sem_destino,,9.2
+3543600,Rifaina,Rifaina,sem_destino,,9.2
+3543808,Rinópolis,Rinópolis,sem_destino,,9.2
+3543907,Rio Claro,Rio Claro,sem_destino,,9.5
+3544202,Riolândia,Riolândia,sem_destino,,7.5
+3544251,Rosana,Rosana,sem_destino,,9
+3544400,Rubiácea,Rubiácea,sem_destino,,9
+3544707,Sagres,Sagres,sem_destino,,9
+3545100,Salmourão,Salmourão,sem_destino,,10
+3545308,Salto de Pirapora,Salto de Pirapora,sem_destino,,7.7
+3545704,Santa Albertina,Santa Albertina,sem_destino,,8.8
+3546256,Santa Cruz da Esperança,Santa Cruz da Esperança,sem_destino,,9.5
+3546504,Santa Ernestina,Santa Ernestina,sem_destino,,8.5
+3546603,Santa Fé do Sul,Santa Fé do Sul,sem_destino,,8.6
+3546900,Santa Lúcia,Santa Lúcia,sem_destino,,8.4
+3547106,Santa Mercedes,Santa Mercedes,sem_destino,,8.7
+3547403,Santa Rita d'Oeste,Santa Rita d`Oeste,sem_destino,,7.8
+3547601,Santa Rosa de Viterbo,Santa Rosa de Viterbo,sem_destino,,9.2
+3547650,Santa Salete,Santa Salete,sem_destino,,7.5
+3547809,Santo André,Santo André,sem_destino,,9.1
+3547908,Santo Antônio da Alegria,Santo Antônio da Alegria,sem_destino,,7.3
+3548054,Santo Antônio do Aracanguá,Santo Antônio do Aracanguá,sem_destino,,8
+3548302,Santo Expedito,Santo Expedito,sem_destino,,7.3
+3548401,Santópolis do Aguapeí,Santópolis do Aguapeí,sem_destino,,9.5
+3551207,Sarutaiá,Sarutaiá,sem_destino,,9.5
+3551900,Severínia,Severínia,sem_destino,,7.6
+3552106,Socorro,Socorro,sem_destino,,8.8
+3552304,Sud Mennucci,Sud Mennucci,sem_destino,,7.2
+3552551,Suzanápolis,Suzanápolis,sem_destino,,7.2
+3549003,São Francisco,São Francisco,sem_destino,,4.6
+3549508,São José da Bela Vista,São José da Bela Vista,sem_destino,,7.1
+3549904,São José dos Campos,São José dos Campos,sem_destino,,9.8
+3549201,São João das Duas Pontes,São João das Duas Pontes,sem_destino,,7.7
+3549300,São João do Pau d'Alho,São João do Pau d`Alho,sem_destino,,9
+3550100,São Manuel,São Manuel,sem_destino,,7.5
+3550209,São Miguel Arcanjo,São Miguel Arcanjo,sem_destino,,8.2
+3550506,São Pedro do Turvo,São Pedro do Turvo,sem_destino,,7.7
+3550605,São Roque,São Roque,sem_destino,,9.36
+3550803,São Sebastião da Grama,São Sebastião da Grama,sem_destino,,6
+3552908,Taciba,Taciba,sem_destino,,7.8
+3553005,Taguaí,Taguaí,sem_destino,,7.7
+3553104,Taiaçu,Taiaçu,sem_destino,,7.4
+3553203,Taiúva,Taiúva,sem_destino,,8
+3553302,Tambaú,Tambaú,sem_destino,,7.2
+3553500,Tapiraí,Tapiraí,sem_destino,,8.5
+3553658,Taquaral,Taquaral,sem_destino,,7.3
+3553708,Taquaritinga,Taquaritinga,sem_destino,,5.4
+3553807,Taquarituba,Taquarituba,sem_destino,,4.4
+3553856,Taquarivaí,Taquarivaí,sem_destino,,8.3
+3554201,Tejupá,Tejupá,sem_destino,,7.1
+3554300,Teodoro Sampaio,Teodoro Sampaio,sem_destino,,6.1
+3554607,Timburi,Timburi,sem_destino,,9.5
+3554755,Trabiju,Trabiju,sem_destino,,8.1
+3554904,Três Fronteiras,Três Fronteiras,sem_destino,,7.8
+3555109,Tupi Paulista,Tupi Paulista,sem_destino,,8.5
+3555208,Turiúba,Turiúba,sem_destino,,8.6
+3555307,Turmalina,Turmalina,sem_destino,,8.7
+3555703,União Paulista,União Paulista,sem_destino,,5.3
+3555802,Urânia,Urânia,sem_destino,,7.4
+3556107,Valentim Gentil,Valentim Gentil,sem_destino,,9
+3556305,Valparaíso,Valparaíso,sem_destino,,8.6
+3556404,Vargem Grande do Sul,Vargem Grande do Sul,sem_destino,,8.3
+3556800,Viradouro,Viradouro,sem_destino,,9.3
+3556909,Vista Alegre do Alto,Vista Alegre do Alto,sem_destino,,9.1
+3556958,Vitória Brasil,Vitória Brasil,sem_destino,,8.7
+3557006,Votorantim,Votorantim,sem_destino,,6.7
+3557154,Zacarias,Zacarias,sem_destino,,8.2
+3533809,Óleo,Óleo,sem_destino,,9.5
