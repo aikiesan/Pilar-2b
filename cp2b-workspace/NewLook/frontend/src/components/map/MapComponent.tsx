@@ -1013,10 +1013,10 @@ export default function MapComponent({
           // zoomSnap, so with its defaults (snap 1, 60 px per level) one notch of
           // a mouse wheel moved two whole levels — the map grew 4x at once. With
           // a 0.1 snap and 300 px per level a notch moves about 0.3 of a level;
-          // a trackpad, which sends many small deltas, glides. The canvas
-          // renderer draws fractional zoom fine.
+          // a trackpad, which sends many small deltas, glides. zoomDelta stays at
+          // its default 1: it is the step of the +/− buttons and the keyboard, not
+          // of the wheel. The canvas renderer draws fractional zoom fine.
           zoomSnap={0.1}
-          zoomDelta={0.5}
           wheelPxPerZoomLevel={300}
           // Canvas renderer: one <canvas> instead of one SVG node per polygon.
           // SVG re-transformed every municipality path on each zoom frame (the
