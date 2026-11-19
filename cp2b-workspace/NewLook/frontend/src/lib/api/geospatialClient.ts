@@ -136,8 +136,10 @@ class GeospatialClient {
 
   async getMunicipalitiesGeoJSON(): Promise<MunicipalityCollection> {
     // fields=map keeps the payload to what the choropleth reads; detail comes
-    // from getMunicipalityMetrics on hover/click.
-    const url = `${this.baseUrl}/api/v1/municipalities/geojson?fields=map`;
+    // from getMunicipalityMetrics on hover/click. detail=map: outlines simplified
+    // once per shared border (migration 039), not the ~2.2 km overview default,
+    // whose sharp polygons did not meet their neighbours.
+    const url = `${this.baseUrl}/api/v1/municipalities/geojson?fields=map&detail=map`;
 
     try {
       logger.info('🗺️ Fetching municipality data from local backend (PostGIS)');
