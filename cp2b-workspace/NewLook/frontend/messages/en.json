@@ -2623,5 +2623,35 @@
         "I get lost sometimes too. The paths below lead to the main parts of the platform."
       ]
     }
+  },
+  "explore": {
+    "eyebrow": "Explore",
+    "title": "What do you want to know?",
+    "lede": "Pick a question. Each one opens its answer ready: the map on the right pair of indicators, with the ranges written in the legend and where each number comes from.",
+    "doors_heading": "Questions",
+    "open_map": "Open the map",
+    "soon": "Coming soon",
+    "purpose": {
+      "siting": {
+        "question": "Where to build a plant?",
+        "answer": "Crosses methane potential with the distance to the nearest gas pipeline: where there is feedstock and where to inject the biomethane."
+      },
+      "lacuna": {
+        "question": "Where is there potential but no plant?",
+        "answer": "Crosses methane potential with the biogas plants already operating in each municipality."
+      },
+      "municipality": {
+        "question": "How much does my municipality have?",
+        "answer": "Search by name or IBGE code and open its profile, with the potential by sector and by residue."
+      },
+      "codigestao": {
+        "question": "Who to co-digest with?",
+        "answer": "Crosses agricultural with livestock biomass: where the two sit side by side."
+      },
+      "download": {
+        "question": "Download the data",
+        "answer": "The whole table, the class breaks and the geometry, with where each value comes from."
+      }
+    }
   }
 }

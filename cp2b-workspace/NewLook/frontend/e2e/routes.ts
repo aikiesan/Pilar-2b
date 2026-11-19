@@ -16,6 +16,7 @@ export const ROUTES = [
   '/en/calculator',
   '/en/compare',
   '/en/municipalities',
+  '/en/explore',
   '/en/data',
   '/en/data/legend',
   '/en/data/agricultural',
