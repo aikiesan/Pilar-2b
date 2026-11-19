@@ -4,8 +4,8 @@
  *
  * Every figure comes from /api/v1/financing/benchmarks, whose deals live in
  * data/canonical_parameters/bndes_biometano_operacoes.csv, one source per row.
- * Rendered on the server and kept for an hour; when the API is down the render
- * throws, so ISR keeps the last good page rather than caching an outage.
+ * Rendered on the server per request, with each API read kept for an hour;
+ * when the API is down the render throws, so an outage is never cached as the page.
  */
 import type { Metadata } from 'next'
 import { getFormatter, getTranslations } from 'next-intl/server'
@@ -14,9 +14,8 @@ import { HeaderLeaves } from '@/components/ui/ArcOrnament'
 import { Card, StatTile } from '@/components/municipality/ProfileVisuals'
 import { navCrumbs } from '@/lib/breadcrumbTrail'
 import { navMetadata } from '@/lib/pageMetadata'
+import { connection } from 'next/server'
 import { serverGetJson } from '@/lib/serverApi'
-
-export const revalidate = 3600
 
 type RouteKey = 'aterro' | 'agroindustrial'
 type Basis = 'total' | 'joint_total' | 'financing'
@@ -46,6 +45,9 @@ const ROUTES: RouteKey[] = ['aterro', 'agroindustrial']
 export const generateMetadata = (): Promise<Metadata> => navMetadata('financing', 'financing')
 
 export default async function FinancingPage() {
+  // Rendered per request, never at build time (no API there, and the throw
+  // below would fail the build); serverGetJson keeps each API read for an hour.
+  await connection()
   const data = await serverGetJson<Benchmarks>('/financing/benchmarks')
   if (!data) throw new Error('financing benchmarks unavailable')
   const t = await getTranslations('financing')

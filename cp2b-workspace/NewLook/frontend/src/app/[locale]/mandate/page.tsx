@@ -15,9 +15,9 @@
  * platform computes gets a "conta" button to the card's "Como calculamos"
  * block, which writes the arithmetic out with the inputs. Each card also
  * lists all its sources, "Onde conferir" points to the live pages and
- * "Como citar" gives the citation of the panel. Rendered on the server and kept
- * for an hour; when the API is down the render throws, so ISR keeps the last
- * good page rather than caching an outage.
+ * "Como citar" gives the citation of the panel. Rendered on the server per
+ * request, with each API read kept for an hour; when the API is down the
+ * render throws, so an outage is never cached as the page.
  */
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
@@ -31,10 +31,9 @@ import Cite, { CalcLink, CiteLegend, type Describe } from '@/components/mandate/
 import { Link } from '@/navigation'
 import { navCrumbs } from '@/lib/breadcrumbTrail'
 import { navMetadata } from '@/lib/pageMetadata'
+import { connection } from 'next/server'
 import { serverGetJson } from '@/lib/serverApi'
 import { publicUrl } from '@/lib/siteUrl'
-
-export const revalidate = 3600
 
 /** Months of ANP production the chart shows. */
 const SERIES_MONTHS = 24
@@ -175,6 +174,9 @@ const titleCase = (s: string) =>
 export const generateMetadata = (): Promise<Metadata> => navMetadata('mandate', 'mandate')
 
 export default async function MandatePage() {
+  // Rendered per request, never at build time (no API there, and the throw
+  // below would fail the build); serverGetJson keeps each API read for an hour.
+  await connection()
   const data = await serverGetJson<Panel>('/mandate/panel')
   if (!data?.targets.length || !data.series.length) throw new Error('mandate panel unavailable')
   const t = await getTranslations('mandate')
