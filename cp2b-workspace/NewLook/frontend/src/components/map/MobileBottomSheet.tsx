@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
-import { Search, Layers, ChevronDown, ChevronUp, X } from 'lucide-react';
+import { SlidersHorizontal, Layers, ChevronDown, ChevronUp, X } from 'lucide-react';
 import type { ResidueType, BiomassType, VisualizationMode } from '@/types/map';
 import type { DisplayMetric, ResidueCNMatrix, ColorMode } from '@/types/geospatial';
 import { DISPLAY_METRICS, METRIC_SPECS } from '@/lib/mapMetrics';
@@ -17,8 +17,6 @@ interface Layer {
 }
 
 interface MobileBottomSheetProps {
-  searchQuery: string;
-  onSearchChange: (query: string) => void;
   selectedResidues: ResidueType[];
   onResiduesChange: (residues: ResidueType[]) => void;
   biomassType: BiomassType;
@@ -75,7 +73,7 @@ const BIOMASS_META: { value: BiomassType; icon: string }[] = [
 import ColorModeSelector, { buildColorModeOptions } from './ColorModeSelector';
 
 export default function MobileBottomSheet({
-  searchQuery, onSearchChange, selectedResidues, onResiduesChange,
+  selectedResidues, onResiduesChange,
   biomassType, onBiomassTypeChange, visualizationMode, onVisualizationModeChange,
   opacity, onOpacityChange, layers, onLayerToggle,
   municipalityCount, totalMunicipalities,
@@ -139,33 +137,6 @@ export default function MobileBottomSheet({
             {/* FILTERS CONTENT */}
             {activeSheet === 'filters' && (
               <>
-                {/* Search */}
-                <div>
-                  <label className="block text-xs font-semibold text-ink-muted uppercase tracking-wide mb-1.5">
-                    {t('search.label')}
-                  </label>
-                  <div className="relative">
-                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-muted" />
-                    <input
-                      type="text"
-                      value={searchQuery}
-                      onChange={e => onSearchChange(e.target.value)}
-                      placeholder={t('search.placeholder')}
-                      className="w-full pl-9 pr-9 py-2.5 text-sm border border-line-strong rounded-xl focus:ring-2 focus:ring-terra-500 focus:border-terra-500"
-                    />
-                    {searchQuery && (
-                      <button
-                        type="button"
-                        onClick={() => onSearchChange('')}
-                        aria-label={t('mobile.clear_search')}
-                        className="absolute right-0 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center text-ink-muted hover:text-ink-muted"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-
                 {/* Metric toggle — biomass / biogas / biomethane / bioenergy */}
                 {onDisplayMetricChange && (
                   <div className="grid grid-cols-2 gap-1.5">
@@ -458,7 +429,7 @@ export default function MobileBottomSheet({
             activeSheet === 'filters' ? 'text-terra-700 bg-terra-50' : 'text-ink-muted hover:bg-paper-sunken'
           }`}
         >
-          <Search className="w-5 h-5" />
+          <SlidersHorizontal className="w-5 h-5" />
           <span className="text-[10px] font-semibold">
             {t('panels.filters')}
             {filterCount > 0 && <span className="ml-1 text-terra-600">({filterCount})</span>}

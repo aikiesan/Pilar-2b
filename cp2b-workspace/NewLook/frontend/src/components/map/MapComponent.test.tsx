@@ -78,6 +78,15 @@ jest.mock('react-leaflet', () => ({
   }),
 }));
 
+// The outline of the selected municipality: which one, and whether the view was asked to frame it.
+jest.mock('./MunicipalityHighlight', () => ({
+  __esModule: true,
+  default: ({ feature, fitKey }: any) =>
+    feature ? (
+      <div data-testid="municipality-highlight" data-ibge={feature.properties.ibge_code} data-fit={fitKey} />
+    ) : null,
+}));
+
 jest.mock('./MunicipalityLayer', () => ({
   __esModule: true,
   default: ({ data, biomassType, opacity, paintBetaData }: any) => (
@@ -622,24 +631,42 @@ describe('MapComponent', () => {
       });
     });
 
-    it('should filter by search query (name)', async () => {
-      render(<MapComponent searchQuery="São Paulo" />);
+    // The search selects; it never filters. A municipality named on load (by
+    // name or IBGE code) is outlined and framed, its neighbours stay on the map,
+    // and the URL keeps it as ?m=<ibge>.
+    it.each([
+      ['its name', 'campinas'],
+      ['its IBGE code', '3509502'],
+    ])('selects a municipality named by %s, keeping every other one on the map', async (_label, query) => {
+      render(<MapComponent searchQuery={query} />);
       act(() => { jest.advanceTimersByTime(1500); });
 
-      // The filtering logic should reduce municipalities to 1
-      // Note: In real test, we'd verify the filtered count via the municipality layer
       await waitFor(() => {
-        expect(screen.getByTestId('municipality-layer')).toBeInTheDocument();
+        expect(screen.getByTestId('municipality-highlight')).toHaveAttribute('data-ibge', '3509502');
+      });
+      expect(screen.getByTestId('municipality-highlight')).toHaveAttribute('data-fit', '1');
+      expect(screen.getByTestId('municipality-layer')).toHaveTextContent('3 municipalities');
+      expect(window.location.search).toContain('m=3509502');
+    });
+
+    it('selects the municipality an ?m= link names', async () => {
+      window.history.replaceState(null, '', '/map?m=3548500');
+      render(<MapComponent />);
+      act(() => { jest.advanceTimersByTime(1500); });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('municipality-highlight')).toHaveAttribute('data-ibge', '3548500');
       });
     });
 
-    it('should filter by search query (IBGE code)', async () => {
-      render(<MapComponent searchQuery="3509502" />);
+    it('drops an unknown municipality quietly', async () => {
+      render(<MapComponent searchQuery="Atlântida" />);
       act(() => { jest.advanceTimersByTime(1500); });
 
       await waitFor(() => {
-        expect(screen.getByTestId('municipality-layer')).toBeInTheDocument();
+        expect(screen.getByTestId('municipality-layer')).toHaveTextContent('3 municipalities');
       });
+      expect(screen.queryByTestId('municipality-highlight')).not.toBeInTheDocument();
     });
 
     it('should filter by biogas range', async () => {
@@ -733,7 +760,6 @@ describe('MapComponent', () => {
     it('should combine multiple filters', async () => {
       render(
         <MapComponent
-          searchQuery="Paulo"
           activeFilters={filters({
             minBiogas: 50_000_000,
             maxBiogas: undefined,

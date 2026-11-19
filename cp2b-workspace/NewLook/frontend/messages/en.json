@@ -863,7 +863,6 @@
     "mobile": {
       "close_filters": "Close filters",
       "close_layers": "Close layers",
-      "clear_search": "Clear search",
       "mg_filters_note": "In the MG beta, only the agricultural filters are validated. Livestock and urban are awaiting publication.",
       "daltonic": "Color-blind mode",
       "active": "on"

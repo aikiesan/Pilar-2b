@@ -1,0 +1,76 @@
+'use client';
+
+/**
+ * The selected municipality, outlined on the map: a dark line over a white
+ * halo, so it reads on every fill and basemap, drawn in its own pane above the
+ * choropleth and the infrastructure. Nothing else changes: its neighbours keep
+ * their colours, which is the point of finding it on the map rather than
+ * filtering the map down to it.
+ *
+ * `fitKey` asks for the view to frame the municipality; it changes when the
+ * selection comes from the search or the URL, not from a click (the visitor
+ * already sees what they clicked, and a jump would lose their place).
+ */
+import { useEffect, useMemo } from 'react';
+import { GeoJSON, useMap } from 'react-leaflet';
+import L from 'leaflet';
+import type { MunicipalityFeature } from '@/types/geospatial';
+
+export const HIGHLIGHT_PANE = 'municipality-highlight';
+
+const HALO = { color: '#ffffff', weight: 7, opacity: 0.95, fill: false } as const;
+const LINE = { color: '#111827', weight: 3, opacity: 1, fill: false } as const;
+
+/**
+ * Room the view leaves around the municipality, clear of what opens with it:
+ * the profile panel on the right on a desktop, the bottom sheet (about 60% of
+ * the height) on a phone; the top keeps clear of the search.
+ */
+function fitPadding(map: L.Map): { paddingTopLeft: L.PointExpression; paddingBottomRight: L.PointExpression } {
+  const { x, y } = map.getSize();
+  return x >= 768
+    ? { paddingTopLeft: [48, 96], paddingBottomRight: [400, 48] }
+    : { paddingTopLeft: [24, 130], paddingBottomRight: [24, Math.round(y * 0.6)] };
+}
+
+export default function MunicipalityHighlight({
+  feature,
+  fitKey,
+}: {
+  feature: MunicipalityFeature | null;
+  fitKey: number;
+}) {
+  const map = useMap();
+
+  // Above the infrastructure pane (450) and below markers (600); never catches
+  // the pointer, so clicks still reach the municipality underneath. Made during
+  // render, idempotently: the GeoJSON children add their layers in their own
+  // effects, which run before any effect of this component would.
+  useMemo(() => {
+    if (!map.getPane(HIGHLIGHT_PANE)) {
+      const pane = map.createPane(HIGHLIGHT_PANE);
+      pane.style.zIndex = '460';
+      pane.style.pointerEvents = 'none';
+    }
+  }, [map]);
+
+  useEffect(() => {
+    if (!feature || fitKey === 0) return;
+    const bounds = L.geoJSON(feature).getBounds();
+    const size = map.getSize();
+    // A zero-sized container makes Leaflet's zoom maths return NaN (see ScopeViewController).
+    if (!bounds.isValid() || size.x === 0 || size.y === 0) return;
+    map.flyToBounds(bounds, { ...fitPadding(map), maxZoom: 8, duration: 0.6 });
+    // Only a new fit request moves the view; the feature object alone does not.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fitKey]);
+
+  if (!feature) return null;
+  const id = String(feature.properties?.ibge_code ?? '');
+  return (
+    <>
+      <GeoJSON key={`halo-${id}`} data={feature} pane={HIGHLIGHT_PANE} interactive={false} style={HALO} />
+      <GeoJSON key={`line-${id}`} data={feature} pane={HIGHLIGHT_PANE} interactive={false} style={LINE} />
+    </>
+  );
+}

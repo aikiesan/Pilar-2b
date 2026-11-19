@@ -33,7 +33,6 @@ export default function PublicMapPage() {
   // Map state
   const [biomassType, setBiomassType] = useState<BiomassType>('total')
   const [opacity, setOpacity] = useState(0.7)
-  const [searchQuery, setSearchQuery] = useState('')
 
   // Filter state
   const [activeFilters, setActiveFilters] = useState<FilterCriteria>({
@@ -65,8 +64,6 @@ export default function PublicMapPage() {
           onBiomassTypeChange={setBiomassType}
           opacity={opacity}
           onOpacityChange={setOpacity}
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
         />
       </div>
     </div>
