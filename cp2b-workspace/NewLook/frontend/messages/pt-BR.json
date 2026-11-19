@@ -2630,7 +2630,6 @@
     "lede": "Escolha uma pergunta. Cada uma abre a resposta pronta: o mapa no par de indicadores certo, com as faixas escritas na legenda e a procedência de cada número.",
     "doors_heading": "Perguntas",
     "open_map": "Abrir o mapa",
-    "soon": "Em breve",
     "purpose": {
       "siting": {
         "question": "Onde instalar uma planta?",
@@ -2647,10 +2646,6 @@
       "codigestao": {
         "question": "Com quem codigerir?",
         "answer": "Cruza a biomassa agrícola com a pecuária: onde as duas estão lado a lado."
-      },
-      "download": {
-        "question": "Baixar os dados",
-        "answer": "A tabela inteira, as quebras das classes e a geometria, com a procedência de cada valor."
       }
     }
   }

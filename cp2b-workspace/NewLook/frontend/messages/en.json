@@ -2630,7 +2630,6 @@
     "lede": "Pick a question. Each one opens its answer ready: the map on the right pair of indicators, with the ranges written in the legend and where each number comes from.",
     "doors_heading": "Questions",
     "open_map": "Open the map",
-    "soon": "Coming soon",
     "purpose": {
       "siting": {
         "question": "Where to build a plant?",
@@ -2647,10 +2646,6 @@
       "codigestao": {
         "question": "Who to co-digest with?",
         "answer": "Crosses agricultural with livestock biomass: where the two sit side by side."
-      },
-      "download": {
-        "question": "Download the data",
-        "answer": "The whole table, the class breaks and the geometry, with where each value comes from."
       }
     }
   }

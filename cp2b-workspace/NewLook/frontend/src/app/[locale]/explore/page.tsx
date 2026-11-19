@@ -1,10 +1,10 @@
 /**
  * /explore — the way in is a purpose (docs/planning/EXPLORE_MAPA_PARA_FERRAMENTA.md, §5).
  *
- * Five doors, ordered for the biogas sector: three open the bivariate map on a
- * curated pair (/explore/map?pair=…), one finds a municipality with the
- * site's own search and opens the profile that already exists, and one leads
- * to the downloads, which say "em breve" until Section 2.
+ * Four doors, ordered for the biogas sector: three open the one bivariate map
+ * on a curated pair (/explore/map?pair=…), and one finds a municipality with
+ * the site's own search and opens the profile that already exists. Downloads
+ * live under the Dados menu, not here.
  *
  * Rendered on the server with no map code, so it paints at once and needs no
  * API: the only client code is the search box.
@@ -12,7 +12,7 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 import { getTranslations } from 'next-intl/server'
-import { ArrowRight, Building2, Combine, Download, MapPinned, ScanSearch, type LucideIcon } from 'lucide-react'
+import { ArrowRight, Building2, Combine, MapPinned, ScanSearch, type LucideIcon } from 'lucide-react'
 import { Link } from '@/navigation'
 import { HeaderLeaves } from '@/components/ui/ArcOrnament'
 import MunicipalitySearch from '@/components/home/MunicipalitySearch'
@@ -21,19 +21,13 @@ import { titledMetadata } from '@/lib/pageMetadata'
 /** The curated pairs a door opens, by id (public/bivar/v1/pairs.json). */
 type ExplorePair = 'siting' | 'lacuna' | 'codigestao'
 
-type DoorKey = 'siting' | 'lacuna' | 'municipality' | 'codigestao' | 'download'
-
-type Door =
-  | { key: Exclude<DoorKey, 'municipality' | 'download'>; icon: LucideIcon; pair: ExplorePair }
-  | { key: 'municipality'; icon: LucideIcon }
-  | { key: 'download'; icon: LucideIcon }
+type Door = { key: ExplorePair; icon: LucideIcon; pair: ExplorePair } | { key: 'municipality'; icon: LucideIcon }
 
 const DOORS: Door[] = [
   { key: 'siting', icon: MapPinned, pair: 'siting' },
   { key: 'lacuna', icon: ScanSearch, pair: 'lacuna' },
   { key: 'municipality', icon: Building2 },
   { key: 'codigestao', icon: Combine, pair: 'codigestao' },
-  { key: 'download', icon: Download },
 ]
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -88,24 +82,6 @@ export default async function ExplorePage() {
                     <div className="mt-4">
                       <MunicipalitySearch />
                     </div>
-                  </DoorFrame>
-                </li>
-              )
-            }
-
-            if (door.key === 'download') {
-              return (
-                <li
-                  key={door.key}
-                  className="rounded-xl border border-dashed border-line bg-paper-raised p-6"
-                  data-testid={`explore-door-${door.key}`}
-                >
-                  <DoorFrame index={index} icon={door.icon}>
-                    <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                      <h3 className="text-xl text-ink">{question}</h3>
-                      <span className="badge-secondary">{t('soon')}</span>
-                    </div>
-                    <p className="mt-2 text-sm text-ink-muted">{answer}</p>
                   </DoorFrame>
                 </li>
               )
