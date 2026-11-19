@@ -44,6 +44,8 @@ export default function ThematicMapMenu({
   const t = useTranslations('Map.thematic');
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -51,7 +53,11 @@ export default function ThematicMapMenu({
       if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
     };
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setOpen(false);
+      if (event.key !== 'Escape') return;
+      // Handled here: the map's own Escape (clear the selection) skips it.
+      event.preventDefault();
+      setOpen(false);
+      buttonRef.current?.focus();
     };
     document.addEventListener('pointerdown', onPointer);
     document.addEventListener('keydown', onKey);
@@ -61,15 +67,27 @@ export default function ThematicMapMenu({
     };
   }, [open]);
 
+  // On open, focus goes to the active map (or the first one), so the keyboard
+  // starts inside the panel instead of behind it.
+  useEffect(() => {
+    if (!open) return;
+    const panel = panelRef.current;
+    const target =
+      panel?.querySelector<HTMLButtonElement>('button[aria-pressed="true"]:not(:disabled)') ??
+      panel?.querySelector<HTMLButtonElement>('button:not(:disabled)');
+    target?.focus();
+  }, [open]);
+
   const active = activePresetId ? THEMATIC_PRESETS.find((p) => p.id === activePresetId) : undefined;
 
   return (
     <div ref={rootRef} className="surface-light relative">
       <button
+        ref={buttonRef}
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
-        aria-haspopup="true"
+        aria-haspopup="dialog"
         className={`flex min-h-11 max-w-[16rem] items-center gap-2 border px-3 text-sm font-semibold shadow-md backdrop-blur transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-terra-600 ${
           open ? 'border-line-strong bg-paper-raised text-ink' : 'border-line bg-paper-raised/95 text-ink hover:bg-paper-raised'
         }`}
@@ -91,6 +109,7 @@ export default function ThematicMapMenu({
 
       {open && (
         <div
+          ref={panelRef}
           role="dialog"
           aria-label={t('title')}
           className="absolute left-0 top-full z-20 mt-1 max-h-[70vh] w-80 overflow-y-auto border border-line bg-paper-raised py-1 shadow-xl"
@@ -117,13 +136,14 @@ export default function ThematicMapMenu({
                       onClick={() => {
                         onApplyPreset(preset);
                         setOpen(false);
+                        buttonRef.current?.focus();
                       }}
                       title={
                         disabled
                           ? t('validating_tooltip', { description: t(`presets.${preset.id}.description`) })
                           : t(`presets.${preset.id}.description`)
                       }
-                      className={`flex w-full items-center gap-2 border-l-2 px-3 py-1.5 text-left transition-colors focus:outline-none focus-visible:bg-paper-sunken ${
+                      className={`flex min-h-11 w-full items-center gap-2 border-l-2 px-3 py-1.5 text-left transition-colors focus:outline-none focus-visible:bg-paper-sunken ${
                         disabled
                           ? 'cursor-not-allowed border-transparent opacity-45'
                           : isActive

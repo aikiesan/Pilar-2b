@@ -32,7 +32,7 @@ function setFlag(store: Store, key: string) {
 const STEPS = [
   { id: 'welcome', pose: 'feliz' },
   { id: 'themes', pose: 'em-pe', anchor: 'map-themes', placement: 'bottom' },
-  { id: 'search', pose: 'curioso', anchor: 'map-search', placement: 'right' },
+  { id: 'search', pose: 'curioso', anchor: 'map-search', placement: 'bottom-start' },
   { id: 'metric', pose: 'neutro', anchor: 'map-metric', placement: 'right' },
   { id: 'viz', pose: 'neutro', anchor: 'map-viz', placement: 'right' },
   { id: 'tabs', pose: 'curioso', anchor: 'map-tabs', placement: 'right' },
@@ -137,10 +137,11 @@ export function MapTourButton() {
       onClick={() => window.dispatchEvent(new Event(OPEN_EVENT))}
       aria-label={t('open')}
       title={t('open')}
-      className="surface-light flex min-h-11 min-w-11 items-center justify-center gap-1.5 border border-line bg-paper-raised/95 px-2 py-1 text-xs font-semibold text-ink shadow-md backdrop-blur transition-colors hover:bg-paper-raised focus:outline-none focus-visible:ring-2 focus-visible:ring-terra-600 md:min-h-0 md:min-w-0"
+      className="surface-light flex min-h-11 min-w-11 items-center justify-center gap-1.5 border border-line bg-paper-raised/95 px-2 py-1 text-xs font-semibold text-ink shadow-md backdrop-blur transition-colors hover:bg-paper-raised focus:outline-none focus-visible:ring-2 focus-visible:ring-terra-600"
     >
       <Metaninho pose="feliz" size={24} className="shrink-0" />
-      <span className="hidden sm:inline">{t('open')}</span>
+      {/* Name from 2xl up; below, Metaninho alone (aria-label names it), so the map's top row fits on one line. */}
+      <span className="hidden 2xl:inline">{t('open')}</span>
     </button>
   )
 }

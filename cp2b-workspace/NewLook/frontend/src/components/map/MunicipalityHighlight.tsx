@@ -24,13 +24,15 @@ const LINE = { color: '#111827', weight: 3, opacity: 1, fill: false } as const;
 /**
  * Room the view leaves around the municipality, clear of what opens with it:
  * the profile panel on the right on a desktop, the bottom sheet (about 60% of
- * the height) on a phone; the top keeps clear of the search.
+ * the height) on a phone. The top keeps clear of the controls over the map:
+ * on a desktop the top row, ~110 px when it wraps to two lines (md to xl); on
+ * a 375 px phone the thematic ribbon plus the search/state row, ~160 px.
  */
-function fitPadding(map: L.Map): { paddingTopLeft: L.PointExpression; paddingBottomRight: L.PointExpression } {
+export function fitPadding(map: Pick<L.Map, 'getSize'>): { paddingTopLeft: L.PointExpression; paddingBottomRight: L.PointExpression } {
   const { x, y } = map.getSize();
   return x >= 768
-    ? { paddingTopLeft: [48, 96], paddingBottomRight: [400, 48] }
-    : { paddingTopLeft: [24, 130], paddingBottomRight: [24, Math.round(y * 0.6)] };
+    ? { paddingTopLeft: [48, 120], paddingBottomRight: [400, 48] }
+    : { paddingTopLeft: [24, 170], paddingBottomRight: [24, Math.round(y * 0.6)] };
 }
 
 export default function MunicipalityHighlight({
@@ -62,8 +64,8 @@ export default function MunicipalityHighlight({
     if (!bounds.isValid() || size.x === 0 || size.y === 0) return;
     // 1.2 s, not 0.6: at 0.6 the fly's zoom-out-then-in arc read as a jump and
     // the visitor lost track of where the map went. maxZoom 9 with the map's
-    // quarter-step zoom frames a mid-sized municipality instead of stopping a
-    // full level short of it.
+    // fractional zoom (zoomSnap 0.1) frames a mid-sized municipality instead of
+    // stopping a full level short of it.
     map.flyToBounds(bounds, { ...fitPadding(map), maxZoom: 9, duration: 1.2 });
     // Only a new fit request moves the view; the feature object alone does not.
     // eslint-disable-next-line react-hooks/exhaustive-deps

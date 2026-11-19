@@ -592,7 +592,9 @@ export default function MapComponent({
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-      if (e.key === 'Escape') { selectMunicipality(null); return; }
+      // A menu that closed on this Escape (Temas, state) marks it handled;
+      // closing a menu must not also drop the selected municipality.
+      if (e.key === 'Escape') { if (!e.defaultPrevented) selectMunicipality(null); return; }
       if (e.key === 'c' || e.key === 'C') { setShowComparison(true); return; }
       if (e.key === 'e' || e.key === 'E') {
         if (DATA_EXPORT_ENABLED) setShowExport(true);
@@ -873,6 +875,27 @@ export default function MapComponent({
   const betaCount = mgDisplayData.features.length;
   const isMgScope = scope === '31';
   const activeScopeCount = activeStateData.features.length;
+  const infraAlertCards = infrastructureAlerts.map(status => (
+    <div
+      key={status.layerType}
+      className="rounded-lg border border-amber-300 bg-amber-50/95 px-3 py-2 text-xs text-amber-900 shadow-lg backdrop-blur"
+      role="status"
+    >
+      <p className="font-semibold">
+        {t('layerAlert.unavailable', { layer: getLayerLabel(status.layerType) })}
+      </p>
+      <p className="mt-1 leading-snug">
+        {status.state === 'error' ? t('layerAlert.error') : t('layerAlert.empty')}
+      </p>
+    </div>
+  ));
+  // The search finds every municipality of the state, not only those the
+  // filters left painted: a city without the selected residue still exists,
+  // and picking it outlines it and opens its profile all the same.
+  const searchFeatures = (scaledData ?? data)?.features.filter((f) => {
+    const code = f.properties?.ibge_code;
+    return isPublicMapMunicipality(code) && (scope === SCOPE_BRAZIL || ufOf(code) === scope);
+  }) ?? [];
   const activeScopeTotal = isMgScope ? MG_MUNICIPALITY_COUNT : SP_MUNICIPALITY_COUNT;
   const activeStateName = getState(scope)?.nome ?? 'São Paulo'; // i18n-exempt: proper noun
 
@@ -979,7 +1002,7 @@ export default function MapComponent({
         <div className="pointer-events-none absolute top-14 left-2 right-2 z-[1000] flex flex-nowrap items-start justify-between gap-2 md:top-3 md:left-3 md:right-3 md:flex-wrap [&>*]:pointer-events-auto">
         <div className="flex min-w-0 flex-1 flex-wrap items-start gap-2 md:flex-none">
           <MapMunicipalitySearch
-            features={activeStateData.features}
+            features={searchFeatures}
             selected={selectedMunicipality}
             onSelect={(feature) => selectMunicipality(feature, true)}
             onClear={() => selectMunicipality(null)}
@@ -1004,8 +1027,10 @@ export default function MapComponent({
         </div>
 
         <div className="ml-auto flex shrink-0 items-start gap-2">
-          <div data-tour="map-scenario" className="surface-light hidden min-h-11 md:flex items-center gap-1 px-1.5 py-1 border border-line bg-paper-raised/95 shadow-md backdrop-blur">
-            <span className="hidden px-2 text-[11px] font-semibold text-gray-500 2xl:inline">{t('scenario_label')}</span>
+          {/* Each button is the full 44 px of the bar (the click target); the
+              coloured pill inside it is only the look. */}
+          <div data-tour="map-scenario" className="surface-light hidden h-11 md:flex items-stretch px-1 border border-line bg-paper-raised/95 shadow-md backdrop-blur">
+            <span className="hidden items-center px-2 text-[11px] font-semibold text-gray-500 2xl:flex">{t('scenario_label')}</span>
             {MAP_SCENARIOS.map(({ key, color }) => (
               <button
                 key={key}
@@ -1016,15 +1041,20 @@ export default function MapComponent({
                     ? t(`scenario_${key}_tip`)
                     : undefined
                 }
-                className={`rounded-full px-3 py-1 text-[11px] font-medium transition-all ${
-                  mapScenario === key ? 'text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100'
-                }`}
-                style={mapScenario === key ? { backgroundColor: color } : undefined}
+                aria-pressed={mapScenario === key}
+                className="group flex items-center px-0.5 focus:outline-none"
               >
-                {t(`scenario_${key}`)}
+                <span
+                  className={`rounded-full px-3 py-1 text-[11px] font-medium transition-all group-focus-visible:ring-2 group-focus-visible:ring-terra-600 ${
+                    mapScenario === key ? 'text-white shadow-sm' : 'text-gray-600 group-hover:bg-gray-100'
+                  }`}
+                  style={mapScenario === key ? { backgroundColor: color } : undefined}
+                >
+                  {t(`scenario_${key}`)}
+                </span>
               </button>
             ))}
-            <span className="mx-0.5 h-4 w-px bg-gray-200" aria-hidden="true" />
+            <span className="mx-0.5 my-auto h-4 w-px bg-gray-200" aria-hidden="true" />
             <button
               type="button"
               onClick={toggleDaltonic}
@@ -1032,11 +1062,15 @@ export default function MapComponent({
               // Below 2xl only the eye shows; the name stays for screen readers.
               aria-label={t('daltonic.toggle')}
               title={t('daltonic.title')}
-              className={`rounded-full px-2.5 py-1 text-[11px] font-medium transition-all ${
-                daltonic ? 'bg-slate-700 text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100'
-              }`}
+              className="group flex items-center px-0.5 focus:outline-none"
             >
-              👁<span className="hidden 2xl:inline"> {t('daltonic.toggle')}</span>
+              <span
+                className={`rounded-full px-2.5 py-1 text-[11px] font-medium transition-all group-focus-visible:ring-2 group-focus-visible:ring-terra-600 ${
+                  daltonic ? 'bg-slate-700 text-white shadow-sm' : 'text-gray-600 group-hover:bg-gray-100'
+                }`}
+              >
+                👁<span className="hidden 2xl:inline"> {t('daltonic.toggle')}</span>
+              </span>
             </button>
           </div>
           {isMounted && (
@@ -1047,6 +1081,14 @@ export default function MapComponent({
           {/* Opens Metaninho's guided tour at any time. */}
           {isMounted && <MapTourButton />}
         </div>
+        {/* Layer alerts (md up): a full-width line of the row, so they land
+            under the controls on one line or two. Status only, no clicks: the
+            line lets clicks through to the map. */}
+        {infrastructureAlerts.length > 0 && (
+          <div className="hidden basis-full justify-end md:flex !pointer-events-none">
+            <div className="max-w-sm space-y-2">{infraAlertCards}</div>
+          </div>
+        )}
         </div>{/* end top row */}
 
         {/* First visit: Metaninho offers the guided tour. */}
@@ -1207,22 +1249,11 @@ export default function MapComponent({
         </div>
 
         {/* Overlays — all absolute-positioned within the map area */}
+        {/* Phones: under the top row. From md up the alerts ride inside the top
+            row (below), so they sit under the controls however the row wraps. */}
         {infrastructureAlerts.length > 0 && (
-          <div className="absolute top-28 right-4 z-[450] max-w-sm space-y-2 md:top-16">
-            {infrastructureAlerts.map(status => (
-              <div
-                key={status.layerType}
-                className="rounded-lg border border-amber-300 bg-amber-50/95 px-3 py-2 text-xs text-amber-900 shadow-lg backdrop-blur"
-                role="status"
-              >
-                <p className="font-semibold">
-                  {t('layerAlert.unavailable', { layer: getLayerLabel(status.layerType) })}
-                </p>
-                <p className="mt-1 leading-snug">
-                  {status.state === 'error' ? t('layerAlert.error') : t('layerAlert.empty')}
-                </p>
-              </div>
-            ))}
+          <div className="absolute top-28 right-4 z-[450] max-w-sm space-y-2 md:hidden">
+            {infraAlertCards}
           </div>
         )}
 

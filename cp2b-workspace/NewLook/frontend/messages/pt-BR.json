@@ -1001,7 +1001,7 @@
         },
         "search": {
           "title": "Ache sua cidade",
-          "body": "Digite o nome de um município: o mapa passa a mostrar só os que combinam com a busca."
+          "body": "Digite o nome ou o código IBGE e escolha na lista: o mapa voa até o município, contorna e abre o perfil dele."
         },
         "metric": {
           "title": "O que o mapa mede",

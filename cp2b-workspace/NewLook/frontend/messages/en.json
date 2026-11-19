@@ -1001,7 +1001,7 @@
         },
         "search": {
           "title": "Find your city",
-          "body": "Type a municipality's name: the map then shows only the ones matching the search."
+          "body": "Type a municipality's name or IBGE code and pick it from the list: the map flies there, outlines it and opens its profile."
         },
         "metric": {
           "title": "What the map measures",
