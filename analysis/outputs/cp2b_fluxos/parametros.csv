@@ -1,0 +1,95 @@
+origem,substrato,elemento,med,min,max,unidade,status,fonte
+Atlas Real,vinhaca,cadeia,"cana × 0,0478 m³ de etanol/t × 114 m³ de biogás/m³ de etanol × CH₄ 0,5",,,,,
+Atlas Real,torta,cadeia,cana × 35 kg/t × SV 20 % × BMP 280 NmL CH₄/g SV,,,,,
+Atlas Real,bovinos,cadeia,"todas as cabeças × 8 kg/dia coletável × SV 19,5 % × BMP 200 NmL CH₄/g SV",,,,,
+Atlas Real,suinos,cadeia,"todas as cabeças × 6 kg/dia coletável × SV 2,4 % × BMP 245 NmL CH₄/g SV",,,,,
+Atlas Real,aves,cadeia,"todas as cabeças × 0,025 kg/dia coletável × SV 17,5 % × BMP 280 NmL CH₄/g SV",,,,,
+Atlas Real,esgoto,cadeia,"população × 0,12 m³/hab/dia × coleta 0,905 × DQO 449,7 g/m³ × remoção 0,755 × 0,1115 Nm³ CH₄/kg DQO removida (fase líquida, não o lodo)",,,,,
+Atlas Real,rsu,cadeia,"população × per capita do Atlas por faixa × coleta 0,9962 × fração orgânica 0,4646 × 101,5 Nm³ de biogás/t × CH₄ 0,55",,,,,
+CP2b,TORTA_FILTRO,g,0.035,0.03,0.04,t úmida / t cana moída,cp2b,Atlas SP 2020 p.66; real_rpr
+CP2b,TORTA_FILTRO,ST,0.38,0.28,0.48,fração,cp2b,feedstocks.yaml
+CP2b,TORTA_FILTRO,SV,0.8,0.68,0.9,fração de ST,cp2b,feedstocks.yaml
+CP2b,TORTA_FILTRO,BMP,280.0,200.0,380.0,Nm³ CH4 / t SV,cp2b,feedstocks.yaml
+CP2b,TORTA_FILTRO,FC,0.9,0.85,0.95,fração,cp2b,cp2b
+CP2b,TORTA_FILTRO,FCo,1.0,0.9,1.0,fração,cp2b,cp2b
+CP2b,TORTA_FILTRO,FS,0.9,0.85,0.95,fração,cp2b,cp2b
+CP2b,TORTA_FILTRO,FL,0.85,0.78,0.92,fração,cp2b,"espacial (codig_alocado), por município: fl_espacial/outputs/fl_v5_municipio_substrato.csv; valores mostrados = feedstocks.yaml (referência v4)"
+CP2b,TORTA_FILTRO,u (usos excludentes) / notas,,,,texto,cp2b,Adubo é compatível com digestão (DBFZ).
+CP2b,VINHACA,direto,65.55,57.0,74.1,Nm³ CH4 / m³ etanol,cp2b,cp2b
+CP2b,VINHACA,FC,0.95,0.9,0.98,fração,cp2b,cp2b
+CP2b,VINHACA,FCo,1.0,0.9,1.0,fração,cp2b,cp2b
+CP2b,VINHACA,FS,0.92,0.85,0.98,fração,cp2b,cp2b
+CP2b,VINHACA,FL,0.9,0.88,0.92,fração,cp2b,"espacial (codig_alocado), por município: fl_espacial/outputs/fl_v5_municipio_substrato.csv; valores mostrados = feedstocks.yaml (referência v4)"
+CP2b,VINHACA,u (usos excludentes) / notas,,,,texto,cp2b,Fertirrigação é compatível.
+CP2b,BOV_LEITE,g,5.109999999999999,3.65,6.57,t / vaca / ano (10–18 kg/dia),provisorio,Embrapa Pecuária Sudeste via feedstocks.yaml (leite 10–18 kg/cab/dia)
+CP2b,BOV_LEITE,ST,0.25,0.15,0.35000000000000003,fração,provisorio,feedstocks.yaml
+CP2b,BOV_LEITE,SV,0.78,0.68,0.85,fração de ST,provisorio,feedstocks.yaml
+CP2b,BOV_LEITE,BMP,200.0,120.0,270.0,Nm³ CH4 / t SV,provisorio,feedstocks.yaml
+CP2b,BOV_LEITE,FC,0.5,0.4,0.75,fração,provisorio,cp2b
+CP2b,BOV_LEITE,FCo,1.0,0.9,1.0,fração,provisorio,cp2b
+CP2b,BOV_LEITE,FS,0.98,0.95,1.0,fração,provisorio,cp2b
+CP2b,BOV_LEITE,FL,0.68,0.6,0.76,fração,provisorio,"espacial (codig_alocado), por município: fl_espacial/outputs/fl_v5_municipio_substrato.csv; valores mostrados = feedstocks.yaml (referência v4)"
+CP2b,BOV_LEITE,u (usos excludentes) / notas,,,,texto,provisorio,"Adubo compatível. A = vacas ordenhadas (PPM 94). FC: IEA Task 37 (~40% coletável, Liebetrau 2021); yaml 0,75."
+CP2b,BOV_CONFINADO,g,7.3,4.8545,9.125,"t / cab / ano (13,3–25 kg/dia)",provisorio,"Montoro 2017 (13,33 kg/dia, ST 20,49%, SV 81%, Presidente Prudente); Cenario_Bovinocultura2 (20 kg/dia)"
+CP2b,BOV_CONFINADO,ST,0.205,0.18,0.23,fração,provisorio,"override cp2b: BMP 210–307 (Embrapa 0,21–0,23; Velásquez 2018 0,28; Montoro 2019 0,307)"
+CP2b,BOV_CONFINADO,SV,0.81,0.78,0.84,fração de ST,provisorio,"override cp2b: BMP 210–307 (Embrapa 0,21–0,23; Velásquez 2018 0,28; Montoro 2019 0,307)"
+CP2b,BOV_CONFINADO,BMP,260.0,210.0,307.0,Nm³ CH4 / t SV,provisorio,"override cp2b: BMP 210–307 (Embrapa 0,21–0,23; Velásquez 2018 0,28; Montoro 2019 0,307)"
+CP2b,BOV_CONFINADO,FC,0.65,0.4,0.75,fração,provisorio,"IEA Task 37 (40%); Cenario_Bovinocultura/2 (0,60–0,75; Herrero 2018, Mendes 2023)"
+CP2b,BOV_CONFINADO,FCo,1.0,0.9,1.0,fração,provisorio,cp2b
+CP2b,BOV_CONFINADO,FS,0.95,0.9,1.0,fração,provisorio,cp2b
+CP2b,BOV_CONFINADO,FL,0.65,0.52,0.85,fração,provisorio,"espacial (codig_alocado), por município: fl_espacial/outputs/fl_v5_municipio_substrato.csv; valores mostrados = feedstocks.yaml (referência v4)"
+CP2b,BOV_CONFINADO,u (usos excludentes) / notas,,,,texto,provisorio,"Adubo compatível. A = estoque confinado GEDAVE. Nota: a consistência das fezes em confinamento varia com a dieta (teor de fibra fisicamente efetiva; Contadini 2020) — afeta ST e, portanto, a faixa de ST adotada."
+CP2b,BOV_PASTO_MISTO,g,3.65,2.92,5.11,t / cab / ano,cp2b,cp2b
+CP2b,BOV_PASTO_MISTO,ST,0.25,0.15,0.35000000000000003,fração,cp2b,feedstocks.yaml
+CP2b,BOV_PASTO_MISTO,SV,0.78,0.68,0.85,fração de ST,cp2b,feedstocks.yaml
+CP2b,BOV_PASTO_MISTO,BMP,200.0,120.0,270.0,Nm³ CH4 / t SV,cp2b,feedstocks.yaml
+CP2b,BOV_PASTO_MISTO,FC,0.0,0.0,0.1,fração,cp2b,cp2b
+CP2b,BOV_PASTO_MISTO,FCo,1.0,0.9,1.0,fração,cp2b,cp2b
+CP2b,BOV_PASTO_MISTO,FS,0.98,0.95,1.0,fração,cp2b,cp2b
+CP2b,BOV_PASTO_MISTO,FL,0.65,0.52,0.85,fração,cp2b,feedstocks.yaml
+CP2b,BOV_PASTO_MISTO,u (usos excludentes) / notas,,,,texto,cp2b,Pasto e sistema misto: esterco de pastejo não recolhível (DBFZ/IEA). Máx. 10% para curral em sistema misto (Guerini Filho 2019: 20% em extensivo).
+CP2b,SUINOS,g,1.28,0.73,2.0,t / cab / ano,provisorio,cp2b
+CP2b,SUINOS,ST,0.1,0.08,0.12,fração,provisorio,override cp2b: ST 8–12% (excreta fresca; yaml 3% é chorume diluído)
+CP2b,SUINOS,SV,0.8,0.7000000000000001,0.85,fração de ST,provisorio,feedstocks.yaml
+CP2b,SUINOS,BMP,245.0,150.0,300.0,Nm³ CH4 / t SV,provisorio,feedstocks.yaml
+CP2b,SUINOS,FC,0.85,0.7,0.95,fração,provisorio,cp2b
+CP2b,SUINOS,FCo,1.0,0.9,1.0,fração,provisorio,cp2b
+CP2b,SUINOS,FS,0.95,0.9,1.0,fração,provisorio,cp2b
+CP2b,SUINOS,FL,0.72,0.55,0.88,fração,provisorio,"espacial (codig_alocado), por município: fl_espacial/outputs/fl_v5_municipio_substrato.csv; valores mostrados = feedstocks.yaml (referência v4)"
+CP2b,SUINOS,u (usos excludentes) / notas,,,,texto,provisorio,"Adubo compatível. FC reduzido: mediana paulista 33 cab/granja; 0,90–0,95 só para coleta ≤ 7 d (Kunz 2009)."
+CP2b,AVES_CORTE,g,0.045,0.035,0.06,t cama / ave alojada / ano,cp2b,cp2b
+CP2b,AVES_CORTE,ST,0.25,0.2125,0.28750000000000003,fração,cp2b,feedstocks.yaml
+CP2b,AVES_CORTE,SV,0.698,0.6282,0.7678,fração de ST,cp2b,feedstocks.yaml
+CP2b,AVES_CORTE,BMP,280.0,200.0,360.0,Nm³ CH4 / t SV,cp2b,feedstocks.yaml
+CP2b,AVES_CORTE,FC,,,,municipal,cp2b,"GEDAVE: fração comercial da capacidade × 0,90"
+CP2b,AVES_CORTE,FCo,0.95,0.85,1.0,fração,cp2b,cp2b
+CP2b,AVES_CORTE,FS,0.95,0.9,0.98,fração,cp2b,cp2b
+CP2b,AVES_CORTE,FL,0.75,0.65,0.85,fração,cp2b,"espacial (codig_alocado), por município: fl_espacial/outputs/fl_v5_municipio_substrato.csv; valores mostrados = feedstocks.yaml (referência v4)"
+CP2b,AVES_CORTE,u (usos excludentes) / notas,,,,texto,cp2b,Adubo compatível. A = galináceos − galinhas (PPM).
+CP2b,AVES_POSTURA,g,0.05,0.04,0.055,"t dejeto fresco / galinha / ano (~0,15 kg/dia)",provisorio,"Planilha Resíduo_Disponível (0,15 kg/ave/dia postura)"
+CP2b,AVES_POSTURA,ST,0.25,0.2,0.3,fração,provisorio,override cp2b: ST 20–30% (dejeto fresco)
+CP2b,AVES_POSTURA,SV,0.75,0.65,0.86,fração de ST,provisorio,feedstocks.yaml
+CP2b,AVES_POSTURA,BMP,250.0,150.0,340.0,Nm³ CH4 / t SV,provisorio,feedstocks.yaml
+CP2b,AVES_POSTURA,FC,,,,municipal,provisorio,cp2b
+CP2b,AVES_POSTURA,FCo,0.95,0.85,1.0,fração,provisorio,cp2b
+CP2b,AVES_POSTURA,FS,0.95,0.9,0.98,fração,provisorio,cp2b
+CP2b,AVES_POSTURA,FL,0.7,0.62,0.78,fração,provisorio,"espacial (codig_alocado), por município: fl_espacial/outputs/fl_v5_municipio_substrato.csv; valores mostrados = feedstocks.yaml (referência v4)"
+CP2b,AVES_POSTURA,u (usos excludentes) / notas,,,,texto,provisorio,Adubo compatível. A = galinhas (PPM).
+CP2b,RSU_ORGANICO,g,0.5,0.46,0.55,fração orgânica do RSU coletado,provisorio,"Atlas SP 2020 Eq. V.5 (0,4646); feedstocks.yaml (0,50–0,55)"
+CP2b,RSU_ORGANICO,ST,0.3058,0.26,0.3517,fração,provisorio,feedstocks.yaml
+CP2b,RSU_ORGANICO,SV,0.8200000000000001,0.738,0.902,fração de ST,provisorio,feedstocks.yaml
+CP2b,RSU_ORGANICO,BMP,270.0,170.0,360.0,Nm³ CH4 / t SV,provisorio,feedstocks.yaml
+CP2b,RSU_ORGANICO,FC,0.65,0.5,0.8,fração,provisorio,cp2b
+CP2b,RSU_ORGANICO,FCo,1.0,1.0,1.0,fração,provisorio,cp2b
+CP2b,RSU_ORGANICO,FS,1.0,0.98,1.0,fração,provisorio,cp2b
+CP2b,RSU_ORGANICO,FL,0.82,0.7,0.9,fração,provisorio,"espacial (codig_alocado), por município: fl_espacial/outputs/fl_v5_municipio_substrato.csv; valores mostrados = feedstocks.yaml (referência v4)"
+CP2b,RSU_ORGANICO,u (usos excludentes) / notas,,,,texto,provisorio,A = massa coletada SNIS 2022 (RDO+RPU). FC = separabilidade do orgânico em resíduo misturado (triagem mecânica; sem fonte primária — provisório). Aterro com captura = uso existente (subtraído no N3).
+CP2b,LODO_ETE,g,0.073,0.037,0.122,t úmida / hab / ano (ST 15%),cp2b,cp2b
+CP2b,LODO_ETE,ST,0.15,0.15,0.15,fração,cp2b,override cp2b: 
+CP2b,LODO_ETE,SV,0.68,0.55,0.8,fração de ST,cp2b,feedstocks.yaml
+CP2b,LODO_ETE,BMP,310.0,190.0,440.0,Nm³ CH4 / t SV,cp2b,feedstocks.yaml
+CP2b,LODO_ETE,FC,,,,municipal,cp2b,cp2b
+CP2b,LODO_ETE,FCo,1.0,1.0,1.0,fração,cp2b,cp2b
+CP2b,LODO_ETE,FS,1.0,0.98,1.0,fração,cp2b,cp2b
+CP2b,LODO_ETE,FL,0.9,0.82,0.95,fração,cp2b,"espacial (codig_alocado), por município: fl_espacial/outputs/fl_v5_municipio_substrato.csv; valores mostrados = feedstocks.yaml (referência v4)"
+CP2b,LODO_ETE,u (usos excludentes) / notas,,,,texto,cp2b,FC = atendimento (IN056) × tratamento (IN016) × fração de ETEs compatíveis com digestão (não-lagoa; ANA/Atlas Esgotos 2019). Metagás subtraída no N3.

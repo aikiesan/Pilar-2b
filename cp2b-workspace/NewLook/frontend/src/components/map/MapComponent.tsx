@@ -11,7 +11,7 @@
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { useIsClient } from '@/hooks/useIsClient';
 import { useTranslations } from 'next-intl';
-import MapFirstVisitTip from './MapFirstVisitTip';
+import MapTour, { MapTourButton } from './MapTour';
 import { MapContainer, TileLayer, ScaleControl, ZoomControl, useMap } from 'react-leaflet';
 import dynamic from 'next/dynamic';
 import { CircleAlert, Loader2 } from 'lucide-react';
@@ -954,8 +954,9 @@ export default function MapComponent({
         {/* ── Thematic maps ribbon — phones only. Their chips are the
             navigation there. From md up the same maps live in one button in the
             top row (ThematicMapMenu below), so the map has one row of controls
-            over it instead of two. ── */}
-        <div className="absolute top-0 inset-x-0 z-[1002] md:hidden">
+            over it instead of two. Both carry the tour's "map-themes" anchor;
+            the tour points at whichever is on screen. ── */}
+        <div data-tour="map-themes" className="absolute top-0 inset-x-0 z-[1002] md:hidden">
           {isMounted && (
             <ThematicMapBar
               activePresetId={activePresetId}
@@ -983,13 +984,15 @@ export default function MapComponent({
             onSelect={(feature) => selectMunicipality(feature, true)}
             onClear={() => selectMunicipality(null)}
           />
-          <ScopeSwitcher
-            scope={scope}
-            onScopeChange={handleScopeChange}
-            count={activeScopeCount}
-          />
+          <div data-tour="map-scope">
+            <ScopeSwitcher
+              scope={scope}
+              onScopeChange={handleScopeChange}
+              count={activeScopeCount}
+            />
+          </div>
           {isMounted && (
-            <div className="hidden md:block">
+            <div data-tour="map-themes" className="hidden md:block">
               <ThematicMapMenu
                 activePresetId={activePresetId}
                 onApplyPreset={handleApplyPreset}
@@ -1001,7 +1004,7 @@ export default function MapComponent({
         </div>
 
         <div className="ml-auto flex shrink-0 items-start gap-2">
-          <div className="surface-light hidden min-h-11 md:flex items-center gap-1 px-1.5 py-1 border border-line bg-paper-raised/95 shadow-md backdrop-blur">
+          <div data-tour="map-scenario" className="surface-light hidden min-h-11 md:flex items-center gap-1 px-1.5 py-1 border border-line bg-paper-raised/95 shadow-md backdrop-blur">
             <span className="hidden px-2 text-[11px] font-semibold text-gray-500 2xl:inline">{t('scenario_label')}</span>
             {MAP_SCENARIOS.map(({ key, color }) => (
               <button
@@ -1036,12 +1039,18 @@ export default function MapComponent({
               👁<span className="hidden 2xl:inline"> {t('daltonic.toggle')}</span>
             </button>
           </div>
-          {isMounted && <BasemapControl value={basemap} onChange={setBasemap} />}
+          {isMounted && (
+            <div data-tour="map-basemap">
+              <BasemapControl value={basemap} onChange={setBasemap} />
+            </div>
+          )}
+          {/* Opens Metaninho's guided tour at any time. */}
+          {isMounted && <MapTourButton />}
         </div>
         </div>{/* end top row */}
 
-        {/* First visit: what to do first, once per browser. */}
-        <MapFirstVisitTip />
+        {/* First visit: Metaninho offers the guided tour. */}
+        {isMounted && <MapTour />}
 
         {/* Keyboard instructions for the interactive map (WCAG 2.1.1). */}
         <p id="map-keyboard-help" className="sr-only">{t('map_keyboard_help')}</p>
@@ -1064,10 +1073,10 @@ export default function MapComponent({
           // zoomSnap, so with its defaults (snap 1, 60 px per level) one notch of
           // a mouse wheel moved two whole levels — the map grew 4x at once. With
           // a 0.1 snap and 300 px per level a notch moves about 0.3 of a level;
-          // a trackpad, which sends many small deltas, glides. The canvas
-          // renderer draws fractional zoom fine.
+          // a trackpad, which sends many small deltas, glides. zoomDelta stays at
+          // its default 1: it is the step of the +/− buttons and the keyboard, not
+          // of the wheel. The canvas renderer draws fractional zoom fine.
           zoomSnap={0.1}
-          zoomDelta={0.5}
           wheelPxPerZoomLevel={300}
           // Canvas renderer: one <canvas> instead of one SVG node per polygon.
           // SVG re-transformed every municipality path on each zoom frame (the
@@ -1367,11 +1376,11 @@ export default function MapComponent({
             colorMode === 'biogas' ? (
               <>
                 {/* Desktop — always expanded */}
-                <div className="hidden md:block">
+                <div data-tour="map-legend" className="hidden md:block">
                   <MapLegend displayMetric={displayMetric} daltonic={daltonic} showNationalBeta={showNationalBeta} scenario={mapScenario} scaleBreaks={scaleBreaks} scopeLabel={activeStateName} betaScope={isMgScope} />
                 </div>
                 {/* Mobile — chip + expandable legend */}
-                <div className="md:hidden">
+                <div data-tour="map-legend" className="md:hidden">
                   {legendOpenMobile ? (
                     <div className="relative">
                       <button

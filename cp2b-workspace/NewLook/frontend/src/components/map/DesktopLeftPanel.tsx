@@ -22,6 +22,9 @@ import { useSummaryStatistics } from '@/hooks/useGeospatialData';
 import { useMapPalette } from '@/hooks/useMapPalette';
 import { useFormat } from '@/hooks/useFormat';
 import { useMetricText } from '@/hooks/useMetricText';
+import { useDataSources, useDescribeSource } from '@/hooks/useDataSources';
+import { layerSources } from '@/lib/dataSources';
+import Cite from '@/components/mandate/Cite';
 import { DISPLAY_METRICS, METRIC_SPECS, MAP_PALETTES } from '@/lib/mapMetrics';
 import {
   THEMATIC_PRESETS,
@@ -134,7 +137,7 @@ const DATA_SOURCES: {
     icon: '🌾',
     sources: [
       { name: 'IBGE - PAM', detailKey: 'pam', year: '2024', url: 'https://sidra.ibge.gov.br/pesquisa/pam/tabelas' },
-      { name: 'MapBiomas 10.0', detailKey: 'mapbiomas', year: '2024', url: 'https://brasil.mapbiomas.org' },
+      { name: 'MapBiomas 10', detailKey: 'mapbiomas', year: '2024', url: 'https://brasil.mapbiomas.org' },
       // i18n-exempt: agency acronyms (Ministry of Agriculture / CONAB)
       { name: 'MAPA / CONAB', detailKey: 'conab', year: '2024', url: 'https://www.conab.gov.br' },
     ],
@@ -201,7 +204,7 @@ function FiltersSection({
     <div className="space-y-4">
       {/* Metric toggle — Biomassa / Biogás / Biometano / Bioenergia */}
       {onDisplayMetricChange && (
-        <div className="grid grid-cols-2 gap-1">
+        <div data-tour="map-metric" className="grid grid-cols-2 gap-1">
           {DISPLAY_METRICS.map((m) => {
             const spec = METRIC_SPECS[m];
             const active = displayMetric === m;
@@ -227,7 +230,7 @@ function FiltersSection({
       )}
 
       {/* Visualization mode */}
-      <div>
+      <div data-tour="map-viz">
         <label className="block text-[10px] font-semibold text-ink-muted uppercase tracking-wide mb-1">
           {t('vizModes.label')}
         </label>
@@ -416,6 +419,8 @@ function LayersSection({
   t: MapTranslator;
 }) {
   const opacityId = useId();
+  const sources = useDataSources();
+  const describeSource = useDescribeSource();
   // Layers arrive named in the page locale (MapComponent reads Map.layerNames).
   const getLayerName = (layer: Layer) => layer.name;
 
@@ -501,6 +506,14 @@ function LayersSection({
                         {t('beta.notice')}
                       </p>
                     )}
+                    {/* The source of what is on the map, once it is on the map. */}
+                    {layer.visible && (
+                      <Cite
+                        sources={layerSources(sources, layer.id)}
+                        describe={describeSource}
+                        className="!ml-0 mt-0.5"
+                      />
+                    )}
                   </div>
                 );
               })}
@@ -529,6 +542,7 @@ function DataSourcesSection({ t }: { t: MapTranslator }) {
                 </div>
                 {src.url && (
                   <a href={src.url} target="_blank" rel="noopener noreferrer"
+                    aria-label={src.name} title={src.name}
                     className="text-ink-muted hover:text-dusk-600 transition-colors shrink-0 mt-0.5">
                     <ExternalLink className="w-3 h-3" />
                   </a>
@@ -744,7 +758,7 @@ export default function DesktopLeftPanel({
           />
 
           {/* Tab nav */}
-          <div className="flex border-b border-line flex-shrink-0">
+          <div data-tour="map-tabs" className="flex border-b border-line flex-shrink-0">
             {tabs.map(tab => (
               <button
                 key={tab.id}

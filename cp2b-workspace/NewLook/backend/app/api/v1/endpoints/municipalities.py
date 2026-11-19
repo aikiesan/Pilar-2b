@@ -309,8 +309,31 @@ def _table_exists(cursor, table_name: str, schema: str = "public") -> bool:
 _GEOM_LOD = {
     "overview": ("geometry_overview", 4),  # ~2.2 km, ~1.9 MB nationally
     "detail": ("geometry_detail", 5),  # ~550 m,  ~6.7 MB nationally
+    # Migration 039 + scripts/build_map_geometry.py: simplified once per shared
+    # border (mapshaper), so neighbours meet on the same line. ~120 m, ~235
+    # vertices per municipality. 4 decimals (~10 m) is well under the 120 m
+    # simplification and cuts ~450 KB gzipped (~2.5 MB for SP+MG); neighbours
+    # round a shared vertex the same way, so their borders still match.
+    "map": ("geometry_map", 4),
     "full": ("geometry", 9),  # unsimplified; pair with a limit
 }
+
+# A municipality the map script has not reached yet (or a database without
+# migration 039) is drawn from the ~550 m column, never from the full geometry
+# that COALESCE would otherwise fall through to.
+_MAP_GEOM_FALLBACK = "geometry_detail"
+
+
+def _column_exists(cursor, table_name: str, column_name: str, schema: str = "public") -> bool:
+    cursor.execute(
+        """
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema = %s AND table_name = %s AND column_name = %s
+        LIMIT 1
+        """,
+        (schema, table_name, column_name),
+    )
+    return cursor.fetchone() is not None
 
 
 def _geojson_select_sql(
@@ -319,6 +342,7 @@ def _geojson_select_sql(
     geom_precision: int,
     has_limit: bool,
     include_cp2b: bool = False,
+    geom_fallback: Optional[str] = None,
 ) -> str:
     """Build SELECT for GeoJSON rows; omit a JOIN whose table is not deployed."""
     cluster_cols = (
@@ -346,12 +370,13 @@ def _geojson_select_sql(
             f"\n                LEFT JOIN {_CP2B_VIEW} cp ON cp.ibge_code = m.ibge_code::integer"
         )
     limit_clause = "LIMIT %s" if has_limit else ""
+    fallback_line = f"\n                            m.{geom_fallback}," if geom_fallback else ""
     return f"""
                 SELECT
                     m.ibge_code, m.municipality_name, m.id,
                     ST_AsGeoJSON(
                         COALESCE(
-                            m.{geom_column},
+                            m.{geom_column},{fallback_line}
                             m.geometry,
                             ST_Buffer(m.centroid::geography, 5000)::geometry
                         ),
@@ -406,9 +431,39 @@ def _build_municipalities_geojson(limit: Optional[int], detail: str, fields: str
     comum, chamada de dentro do cache.
     """
     geom_column, geom_precision = _GEOM_LOD[detail]
+    geom_fallback: Optional[str] = None
     try:
         with get_db() as conn:
             cursor = conn.cursor()
+            if detail == "map":
+                if _column_exists(cursor, "municipalities", "geometry_map"):
+                    geom_fallback = _MAP_GEOM_FALLBACK
+                    # Rows the script has not reached are drawn from geometry_detail,
+                    # whose borders do not meet the shared-arc neighbours. Say so,
+                    # rather than letting the gaps come back unnoticed.
+                    cursor.execute(
+                        """
+                        SELECT count(*) AS missing FROM municipalities
+                        WHERE geometry IS NOT NULL AND geometry_map IS NULL
+                          AND LEFT(ibge_code::text, 2) = ANY(%s)
+                        """,
+                        (list(_MAP_ENABLED_UF_PREFIXES),),
+                    )
+                    row = cursor.fetchone()
+                    missing = row["missing"] if row else 0
+                    if missing:
+                        logger.warning(
+                            f"{missing} municipalities have no geometry_map — drawn from "
+                            "geometry_detail, so their borders will not meet their "
+                            "neighbours' (run scripts/build_map_geometry.py)."
+                        )
+                else:
+                    logger.warning(
+                        "municipalities.geometry_map missing — map served from geometry_detail "
+                        "(apply app/migrations/039_municipality_geometry_map.sql and run "
+                        "scripts/build_map_geometry.py)."
+                    )
+                    geom_column = _MAP_GEOM_FALLBACK
             has_summary = _table_exists(cursor, "municipality_summary")
             if not has_summary:
                 logger.warning(
@@ -422,6 +477,7 @@ def _build_municipalities_geojson(limit: Optional[int], detail: str, fields: str
                 geom_precision,
                 has_limit=limit is not None,
                 include_cp2b=has_cp2b,
+                geom_fallback=geom_fallback,
             )
             params: tuple = (list(_MAP_ENABLED_UF_PREFIXES),)
             if limit is not None:
@@ -644,9 +700,10 @@ async def get_municipalities_geojson(
     ),
     detail: str = Query(
         "overview",
-        pattern="^(overview|detail|full)$",
-        description="Geometry level of detail (migration 022). 'overview' ~2.2 km "
-        "(default, national choropleth); 'detail' ~550 m; 'full' unsimplified "
+        pattern="^(overview|detail|map|full)$",
+        description="Geometry level of detail (migrations 022 and 039). 'overview' ~2.2 km "
+        "(default, national choropleth); 'detail' ~550 m; 'map' ~120 m with shared "
+        "borders simplified once (what /map paints); 'full' unsimplified "
         "(pair with limit — 471 MB exceeds PostgreSQL's jsonb ceiling nationally).",
     ),
     fields: str = Query(
@@ -900,15 +957,38 @@ _CONTEXT_BASE_SQL = """
     FROM municipalities WHERE ibge_code = %s
 """
 
+# Compared in pieces of at most 256 vertices (ST_Subdivide), not whole outlines.
+# Whole, ST_DWithin compares every segment of one outline against every segment
+# of the other whenever two bounding boxes touch but the outlines do not: Unaí/MG
+# (13,732 vertices) against a candidate of ~100k took 30.5 s on production and
+# hit the 30 s statement_timeout. In pieces, only pieces whose boxes come within
+# the tolerance are compared: 1.4 s for Unaí, 0.43 s for Campinas (2.7 s before).
+# Two outlines are within the tolerance exactly when some piece of each is, so
+# the neighbours are the same; checked on production for both, 19/11/2026.
+_SUBDIVIDE_MAX_VERTICES = 256
+
 _NEIGHBOURS_SQL = """
-    SELECT n.ibge_code, n.municipality_name
-    FROM municipalities m
-    JOIN municipalities n
-      ON n.ibge_code <> m.ibge_code
-     AND n.geometry IS NOT NULL
-     AND ST_DWithin(n.geometry, m.geometry, %s)
-    WHERE m.ibge_code = %s AND m.geometry IS NOT NULL
-    ORDER BY n.municipality_name
+    WITH target AS (
+        SELECT geometry AS g FROM municipalities
+        WHERE ibge_code = %(code)s AND geometry IS NOT NULL
+    ),
+    target_pieces AS (
+        SELECT ST_Subdivide(g, %(max_vertices)s) AS p FROM target
+    ),
+    candidate_pieces AS (
+        SELECT n.ibge_code, n.municipality_name,
+               ST_Subdivide(n.geometry, %(max_vertices)s) AS p
+        FROM municipalities n, target
+        WHERE n.ibge_code <> %(code)s
+          AND n.geometry IS NOT NULL
+          AND n.geometry && ST_Expand(target.g, %(tol)s)
+    )
+    SELECT DISTINCT c.ibge_code, c.municipality_name
+    FROM candidate_pieces c
+    JOIN target_pieces t
+      ON c.p && ST_Expand(t.p, %(tol)s)
+     AND ST_DWithin(c.p, t.p, %(tol)s)
+    ORDER BY c.municipality_name
 """
 
 # Ranked within the state (first two IBGE digits) among municipalities with a
@@ -983,7 +1063,14 @@ async def get_municipality_context(ibge_code: str):
                     raise HTTPException(
                         status_code=404, detail=f"Municipality {ibge_code} not found"
                     )
-                cursor.execute(_NEIGHBOURS_SQL, (_NEIGHBOUR_TOLERANCE_DEG, ibge_code))
+                cursor.execute(
+                    _NEIGHBOURS_SQL,
+                    {
+                        "code": ibge_code,
+                        "tol": _NEIGHBOUR_TOLERANCE_DEG,
+                        "max_vertices": _SUBDIVIDE_MAX_VERTICES,
+                    },
+                )
                 neighbours = cursor.fetchall()
                 rank = None
                 n4_by_code: dict[str, float | None] = {}

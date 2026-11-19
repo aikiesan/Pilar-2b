@@ -1,0 +1,148 @@
+# Registro de Números Oficiais do PILAR-2b (semente, 2026-10-19)
+#
+# Um indicador, um valor, uma fonte. Estratégia 2027 §2.1:
+#   docs/planning/ESTRATEGIA_2027_LIDERANCA_BIOECONOMIA.md
+#
+# Cada entrada aponta para o lugar do repositório que produz o número, e
+# scripts/verify_official_figures.py recalcula ou relê cada um a partir dessa
+# fonte. Se a fonte mudar e este arquivo não, o verificador falha.
+#
+# status:
+#   vigente      — pode aparecer na interface, no dossiê e no paper
+#   substituido  — não pode aparecer como manchete; fica aqui para que um número
+#                  antigo encontrado num slide ou e-mail possa ser identificado
+#   pendente     — aguarda decisão (ver `decisao`)
+#
+# rotulo_publico: o nome exato com que o número pode ser exibido. Dois números
+# vigentes nunca têm o mesmo rótulo.
+#
+# verificar.tipo:
+#   python_const — literal Python lido por AST (sem importar o módulo)
+#   json         — caminho dentro de um JSON
+#   script       — soma da função `calcular(rows, tier)` de um script de cenário
+#   csv_sum      — soma de uma coluna de CSV com filtro
+
+versao: 1
+unidade_padrao: Nm3 CH4/ano
+
+figuras:
+
+  - id: sp.cp2b_v51.n4.med
+    rotulo_publico: "Cenário Real (CP2b N4)"
+    valor: 5971705062.308847
+    unidade: Nm3 CH4/ano
+    escopo: SP, 645 municípios
+    ano_base: 2023
+    metodo: CP2b v5.1, nível N4 (acessível), cenário médio
+    status: vigente
+    exibido_em:
+      - frontend/src/components/map/DesktopLeftPanel.tsx (faixa de estatísticas, cenário Real)
+    verificar:
+      tipo: python_const
+      arquivo: backend/scripts/load_cp2b_potential.py
+      nome: EXPECTED_STATE_TOTALS
+      chave: [med, n4]
+
+  - id: sp.cp2b_v51.n3.med
+    rotulo_publico: "Cenário Ideal (CP2b N3)"
+    valor: 7001868463.6247235
+    unidade: Nm3 CH4/ano
+    escopo: SP, 645 municípios
+    ano_base: 2023
+    metodo: CP2b v5.1, nível N3 (mobilizável, líquido do uso existente U), cenário médio
+    status: vigente
+    verificar:
+      tipo: python_const
+      arquivo: backend/scripts/load_cp2b_potential.py
+      nome: EXPECTED_STATE_TOTALS
+      chave: [med, n3]
+
+  - id: sp.cp2b_v51.n1.med
+    rotulo_publico: "Potencial teórico (CP2b N1)"
+    valor: 23642553363.176816
+    unidade: Nm3 CH4/ano
+    escopo: SP, 645 municípios
+    ano_base: 2023
+    metodo: CP2b v5.1, nível N1 (teórico), cenário médio
+    status: vigente
+    verificar:
+      tipo: python_const
+      arquivo: backend/scripts/load_cp2b_potential.py
+      nome: EXPECTED_STATE_TOTALS
+      chave: [med, n1]
+
+  - id: sp.atlas_fde.real
+    rotulo_publico: "Cenário Real (Atlas-FDE)"
+    valor: 7832143834
+    unidade: Nm3 CH4/ano
+    escopo: SP, 645 municípios
+    ano_base: 2023
+    metodo: Enquadramento Atlas de Bioenergia SP 2020, FDE multiplicativo, 15 fluxos
+    status: pendente
+    decisao: >
+      docs/DECISOES_METODOLOGICAS.md ainda declara este o resultado de referência,
+      enquanto o mapa serve o CP2b N4 sob o mesmo nome "Cenário Real" (auditoria
+      CP2B_CANONICAL_AUDIT.md, D13). Decidir qual dos dois é a manchete e manter
+      o outro só com rótulo qualificado.
+    verificar:
+      tipo: script
+      arquivo: backend/scripts/sp_scenarios_real_ideal.py
+      tier: real
+      master: data/canonical_parameters/SP_master_residue_streams_2023_FINAL.csv
+
+  - id: sp.atlas_fde.ideal
+    rotulo_publico: "Cenário Ideal (Atlas-FDE)"
+    valor: 9841178207
+    unidade: Nm3 CH4/ano
+    escopo: SP, 645 municípios
+    ano_base: 2023
+    metodo: Enquadramento Atlas de Bioenergia SP 2020, 100 % de coleta
+    status: pendente
+    decisao: ver sp.atlas_fde.real
+    verificar:
+      tipo: script
+      arquivo: backend/scripts/sp_scenarios_real_ideal.py
+      tier: ideal
+      master: data/canonical_parameters/SP_master_residue_streams_2023_FINAL.csv
+
+  - id: sp.legado.teorico_19_9
+    rotulo_publico: "Potencial teórico (legado, 2026-07)"
+    valor: 19900698323
+    unidade: Nm3 CH4/ano
+    escopo: SP, 645 municípios
+    ano_base: 2023
+    metodo: massa × TS × VS × BMP, sem disponibilidade; colunas *_biogas_m3_year que guardam CH4
+    status: substituido
+    substituido_por: sp.cp2b_v51.n1.med
+    verificar:
+      tipo: json
+      arquivo: data/canonical_parameters/SP_TOTAIS_CONSOLIDADOS_2026-07-30.json
+      caminho: [potencial_teorico, ch4_m3_ano]
+
+  - id: sp.legado.mobilizavel_3_04
+    rotulo_publico: "Potencial mobilizável (legado, 2026-07)"
+    valor: 3037463853
+    unidade: Nm3 CH4/ano
+    escopo: SP, 645 municípios
+    ano_base: 2023
+    metodo: FDE por resíduo da tabela residuos (antes da reexpressão Atlas)
+    status: substituido
+    substituido_por: sp.cp2b_v51.n4.med
+    verificar:
+      tipo: json
+      arquivo: data/canonical_parameters/SP_TOTAIS_CONSOLIDADOS_2026-07-30.json
+      caminho: [potencial_mobilizavel, ch4_m3_ano]
+
+  - id: sp.anp.capacidade_autorizada_biometano.2026_04
+    rotulo_publico: "Capacidade autorizada de biometano em SP (ANP, 04/2026)"
+    valor: 557816
+    unidade: m3/dia
+    escopo: SP, plantas que reportaram em 04/2026
+    ano_base: 2026
+    metodo: soma de cap_biometano_m3d do registro ANP no mês mais recente
+    status: vigente
+    verificar:
+      tipo: csv_sum
+      arquivo: ../../analysis/data/05c_anp_biometano_plants_latest.csv
+      coluna: cap_biometano_m3d
+      filtro: {uf: SP, mesano: "04/2026"}

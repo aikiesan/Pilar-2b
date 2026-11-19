@@ -92,7 +92,7 @@ export default function MapMunicipalitySearch({
   const noMatch = editing && query.trim() !== '' && !expanded;
 
   return (
-    <div className="relative w-full sm:w-64 2xl:w-80">
+    <div data-tour="map-search" className="relative w-full sm:w-64 2xl:w-80">
       <label htmlFor={inputId} className="sr-only">
         {t('label')}
       </label>

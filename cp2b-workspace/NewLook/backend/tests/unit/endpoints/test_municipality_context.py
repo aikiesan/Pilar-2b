@@ -128,6 +128,15 @@ def test_endpoint_ranks_within_the_state(serve):
     assert rank_params == (35, 3509502)
 
 
+def test_neighbours_are_compared_in_pieces(serve):
+    # Whole outlines timed out on production (Unaí/MG, 30 s); pieces do not.
+    cursor = serve(base=BASE, neighbours=NEIGHBOURS, has_view=False, rank=None, n4_rows=[])
+    TestClient(app).get("/api/v1/municipalities/3170404/context")
+    sql, params = next((s, p) for s, p in cursor.statements if "ST_DWithin" in s)
+    assert "ST_Subdivide" in sql
+    assert params == {"code": "3170404", "tol": 0.0005, "max_vertices": 256}
+
+
 def test_endpoint_without_the_view_serves_no_rank(serve):
     serve(base=BASE, neighbours=[], has_view=False, rank=None, n4_rows=[])
     body = TestClient(app).get("/api/v1/municipalities/3509502/context").json()
