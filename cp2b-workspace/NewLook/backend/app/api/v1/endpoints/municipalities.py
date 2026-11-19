@@ -900,15 +900,38 @@ _CONTEXT_BASE_SQL = """
     FROM municipalities WHERE ibge_code = %s
 """
 
+# Compared in pieces of at most 256 vertices (ST_Subdivide), not whole outlines.
+# Whole, ST_DWithin compares every segment of one outline against every segment
+# of the other whenever two bounding boxes touch but the outlines do not: Unaí/MG
+# (13,732 vertices) against a candidate of ~100k took 30.5 s on production and
+# hit the 30 s statement_timeout. In pieces, only pieces whose boxes come within
+# the tolerance are compared: 1.4 s for Unaí, 0.43 s for Campinas (2.7 s before).
+# Two outlines are within the tolerance exactly when some piece of each is, so
+# the neighbours are the same; checked on production for both, 19/11/2026.
+_SUBDIVIDE_MAX_VERTICES = 256
+
 _NEIGHBOURS_SQL = """
-    SELECT n.ibge_code, n.municipality_name
-    FROM municipalities m
-    JOIN municipalities n
-      ON n.ibge_code <> m.ibge_code
-     AND n.geometry IS NOT NULL
-     AND ST_DWithin(n.geometry, m.geometry, %s)
-    WHERE m.ibge_code = %s AND m.geometry IS NOT NULL
-    ORDER BY n.municipality_name
+    WITH target AS (
+        SELECT geometry AS g FROM municipalities
+        WHERE ibge_code = %(code)s AND geometry IS NOT NULL
+    ),
+    target_pieces AS (
+        SELECT ST_Subdivide(g, %(max_vertices)s) AS p FROM target
+    ),
+    candidate_pieces AS (
+        SELECT n.ibge_code, n.municipality_name,
+               ST_Subdivide(n.geometry, %(max_vertices)s) AS p
+        FROM municipalities n, target
+        WHERE n.ibge_code <> %(code)s
+          AND n.geometry IS NOT NULL
+          AND n.geometry && ST_Expand(target.g, %(tol)s)
+    )
+    SELECT DISTINCT c.ibge_code, c.municipality_name
+    FROM candidate_pieces c
+    JOIN target_pieces t
+      ON c.p && ST_Expand(t.p, %(tol)s)
+     AND ST_DWithin(c.p, t.p, %(tol)s)
+    ORDER BY c.municipality_name
 """
 
 # Ranked within the state (first two IBGE digits) among municipalities with a
@@ -983,7 +1006,14 @@ async def get_municipality_context(ibge_code: str):
                     raise HTTPException(
                         status_code=404, detail=f"Municipality {ibge_code} not found"
                     )
-                cursor.execute(_NEIGHBOURS_SQL, (_NEIGHBOUR_TOLERANCE_DEG, ibge_code))
+                cursor.execute(
+                    _NEIGHBOURS_SQL,
+                    {
+                        "code": ibge_code,
+                        "tol": _NEIGHBOUR_TOLERANCE_DEG,
+                        "max_vertices": _SUBDIVIDE_MAX_VERTICES,
+                    },
+                )
                 neighbours = cursor.fetchall()
                 rank = None
                 n4_by_code: dict[str, float | None] = {}
