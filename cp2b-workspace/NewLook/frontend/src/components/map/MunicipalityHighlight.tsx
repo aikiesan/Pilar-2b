@@ -60,7 +60,11 @@ export default function MunicipalityHighlight({
     const size = map.getSize();
     // A zero-sized container makes Leaflet's zoom maths return NaN (see ScopeViewController).
     if (!bounds.isValid() || size.x === 0 || size.y === 0) return;
-    map.flyToBounds(bounds, { ...fitPadding(map), maxZoom: 8, duration: 0.6 });
+    // 1.2 s, not 0.6: at 0.6 the fly's zoom-out-then-in arc read as a jump and
+    // the visitor lost track of where the map went. maxZoom 9 with the map's
+    // quarter-step zoom frames a mid-sized municipality instead of stopping a
+    // full level short of it.
+    map.flyToBounds(bounds, { ...fitPadding(map), maxZoom: 9, duration: 1.2 });
     // Only a new fit request moves the view; the feature object alone does not.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fitKey]);

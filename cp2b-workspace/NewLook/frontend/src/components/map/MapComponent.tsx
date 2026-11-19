@@ -127,6 +127,7 @@ const DesktopLeftPanel = dynamic(() => import('./DesktopLeftPanel'), { ssr: fals
 // Map chrome overlays (basemap switcher + compass)
 const BasemapControl = dynamic(() => import('./BasemapControl'), { ssr: false });
 const ThematicMapBar = dynamic(() => import('./ThematicMapBar'), { ssr: false });
+const ThematicMapMenu = dynamic(() => import('./ThematicMapMenu'), { ssr: false });
 const MunicipalityHighlight = dynamic(() => import('./MunicipalityHighlight'), { ssr: false });
 
 // Profile + Tooltip overlays
@@ -950,10 +951,11 @@ export default function MapComponent({
           </div>
         )}
 
-        {/* ── Thematic maps ribbon — the "test drive". Ready-made maps surfaced
-            directly on the map, always visible, one click applies. Pinned to the
-            top of the map area; every other top control sits just below it. ── */}
-        <div className="absolute top-0 inset-x-0 z-[1002]">
+        {/* ── Thematic maps ribbon — phones only. Their chips are the
+            navigation there. From md up the same maps live in one button in the
+            top row (ThematicMapMenu below), so the map has one row of controls
+            over it instead of two. ── */}
+        <div className="absolute top-0 inset-x-0 z-[1002] md:hidden">
           {isMounted && (
             <ThematicMapBar
               activePresetId={activePresetId}
@@ -966,10 +968,15 @@ export default function MapComponent({
           )}
         </div>
 
-        {/* ── Scope switcher — top-left on every viewport. Picks SP (default)
-            or the MG beta pilot. On mobile this is the primary
-            navigation affordance and sits alone at the top so nothing wraps. */}
-        <div className="absolute top-14 left-2 right-14 z-[1000] flex flex-wrap items-start gap-2 md:top-16 md:left-3 md:right-auto">
+        {/* ── The top row: one row of controls over the map.
+            Left: search, state (SP or the MG pilot) and, from md up, the
+            thematic maps. Right: scenario (md up; on phones it lives in the
+            bottom sheet) and basemap. On phones the row sits under the ribbon
+            and the basemap keeps its corner; on a desktop too narrow for both
+            groups the right one wraps under, aligned right, instead of
+            overlapping the left. The compass is gone: this map never rotates. */}
+        <div className="pointer-events-none absolute top-14 left-2 right-2 z-[1000] flex flex-nowrap items-start justify-between gap-2 md:top-3 md:left-3 md:right-3 md:flex-wrap [&>*]:pointer-events-auto">
+        <div className="flex min-w-0 flex-1 flex-wrap items-start gap-2 md:flex-none">
           <MapMunicipalitySearch
             features={activeStateData.features}
             selected={selectedMunicipality}
@@ -981,16 +988,21 @@ export default function MapComponent({
             onScopeChange={handleScopeChange}
             count={activeScopeCount}
           />
+          {isMounted && (
+            <div className="hidden md:block">
+              <ThematicMapMenu
+                activePresetId={activePresetId}
+                onApplyPreset={handleApplyPreset}
+                disabledBiomassTypes={[]}
+                disabledResidues={isMgScope ? ['aquaculture', 'rpo', 'sewage'] : []}
+              />
+            </div>
+          )}
         </div>
 
-        {/* ── Top-right: scenario and basemap, side by side. The scenario toggle is
-            desktop only: on mobile it moves into the bottom sheet (a specific
-            analytical control, not something you switch constantly). It used to
-            sit top-centre, where it collided with the search; the compass is
-            gone, as this map never rotates and north is always up. ── */}
-        <div className="absolute top-14 right-2 z-[1000] flex items-start gap-2 md:top-16 md:right-3">
-          <div className="surface-light hidden md:flex items-center gap-1 px-1.5 py-1 border border-line bg-paper-raised/95 shadow-md backdrop-blur">
-            <span className="px-2 text-[11px] font-semibold text-gray-500">{t('scenario_label')}</span>
+        <div className="ml-auto flex shrink-0 items-start gap-2">
+          <div className="surface-light hidden min-h-11 md:flex items-center gap-1 px-1.5 py-1 border border-line bg-paper-raised/95 shadow-md backdrop-blur">
+            <span className="hidden px-2 text-[11px] font-semibold text-gray-500 2xl:inline">{t('scenario_label')}</span>
             {MAP_SCENARIOS.map(({ key, color }) => (
               <button
                 key={key}
@@ -1014,16 +1026,19 @@ export default function MapComponent({
               type="button"
               onClick={toggleDaltonic}
               aria-pressed={daltonic}
+              // Below 2xl only the eye shows; the name stays for screen readers.
+              aria-label={t('daltonic.toggle')}
               title={t('daltonic.title')}
               className={`rounded-full px-2.5 py-1 text-[11px] font-medium transition-all ${
                 daltonic ? 'bg-slate-700 text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
-              👁 {t('daltonic.toggle')}
+              👁<span className="hidden 2xl:inline"> {t('daltonic.toggle')}</span>
             </button>
           </div>
           {isMounted && <BasemapControl value={basemap} onChange={setBasemap} />}
         </div>
+        </div>{/* end top row */}
 
         {/* First visit: what to do first, once per browser. */}
         <MapFirstVisitTip />
@@ -1045,6 +1060,15 @@ export default function MapComponent({
           zoom={mapZoom}
           zoomControl={false}
           scrollWheelZoom={true}
+          // Gentle wheel zoom. Leaflet rounds each wheel step UP to the next
+          // zoomSnap, so with its defaults (snap 1, 60 px per level) one notch of
+          // a mouse wheel moved two whole levels — the map grew 4x at once. With
+          // a 0.1 snap and 300 px per level a notch moves about 0.3 of a level;
+          // a trackpad, which sends many small deltas, glides. The canvas
+          // renderer draws fractional zoom fine.
+          zoomSnap={0.1}
+          zoomDelta={0.5}
+          wheelPxPerZoomLevel={300}
           // Canvas renderer: one <canvas> instead of one SVG node per polygon.
           // SVG re-transformed every municipality path on each zoom frame (the
           // source of the zoom stutter); canvas redraws once per frame and is
@@ -1175,7 +1199,7 @@ export default function MapComponent({
 
         {/* Overlays — all absolute-positioned within the map area */}
         {infrastructureAlerts.length > 0 && (
-          <div className="absolute top-28 right-4 z-[450] max-w-sm space-y-2">
+          <div className="absolute top-28 right-4 z-[450] max-w-sm space-y-2 md:top-16">
             {infrastructureAlerts.map(status => (
               <div
                 key={status.layerType}

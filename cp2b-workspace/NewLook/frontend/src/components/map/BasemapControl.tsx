@@ -32,7 +32,7 @@ export default function BasemapControl({ value, onChange }: BasemapControlProps)
         aria-expanded={open}
         aria-label={t('switch')}
         title={t('heading')}
-        className="flex min-h-11 min-w-11 items-center justify-center gap-1.5 px-3 py-1.5 border border-line bg-paper-raised/95 text-xs font-semibold text-ink shadow-md backdrop-blur transition-colors hover:bg-paper-raised md:min-h-0 md:min-w-0"
+        className="flex min-h-11 min-w-11 items-center justify-center gap-1.5 px-3 py-1.5 border border-line bg-paper-raised/95 text-xs font-semibold text-ink shadow-md backdrop-blur transition-colors hover:bg-paper-raised"
       >
         <span aria-hidden="true">{active.icon}</span>
         <span className="hidden sm:inline">{t(active.id)}</span>
