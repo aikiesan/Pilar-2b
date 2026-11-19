@@ -69,7 +69,7 @@ export default function MapBiomasLayer({
       maxZoom={maxZoom}
       tileSize={256}
       zIndex={100}
-      attribution="MapBiomas - Agropecuaria SP 2024"
+      attribution='<a href="https://brasil.mapbiomas.org">MapBiomas</a> Coleção 10 · Agropecuária SP 2024'
       // Error handling for tiles
       eventHandlers={{
         tileerror: (error) => {

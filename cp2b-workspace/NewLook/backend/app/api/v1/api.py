@@ -10,15 +10,19 @@ from app.api.v1.endpoints import (
     auth,
     codigestion,
     cp2b,
+    financing,
     geospatial,
+    ghg,
     infrastructure,
     intermediate_regions,
+    mandate,
     mapbiomas,
     municipalities,
     newsletter,
     proximity,
     residuos,
     scientific,
+    sources,
     statistics,
 )
 from app.routers import calculator, technology_routes
@@ -83,6 +87,20 @@ api_router.include_router(
 
 # CP2b method: N1-N4 potential per municipality x substrate x scenario (migration 034)
 api_router.include_router(cp2b.router, prefix="/cp2b", tags=["cp2b", "potential", "methane"])
+
+# Avoided GHG emissions: ER = BE_methane + BE_fossil − PE (docs/data/ESPEC_MODULO_GEE.md)
+api_router.include_router(ghg.router, prefix="/ghg", tags=["ghg", "emissions", "climate"])
+
+# Financing observatory: CAPEX per m³/day from BNDES approvals (C18)
+api_router.include_router(
+    financing.router, prefix="/financing", tags=["financing", "capex", "biomethane"]
+)
+
+# Biomethane mandate panel: CNPE targets against ANP production (C26)
+api_router.include_router(mandate.router, prefix="/mandate", tags=["mandate", "biomethane"])
+
+# Sources of every map layer and page block (fontes_dados.yaml)
+api_router.include_router(sources.router, prefix="/sources", tags=["sources"])
 
 # National intermediate regions (Phase 1 — 133 IBGE regions)
 api_router.include_router(

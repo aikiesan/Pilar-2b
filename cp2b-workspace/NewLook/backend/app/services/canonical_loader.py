@@ -309,3 +309,38 @@ def get_params_for_stream(stream: str, path: str | None = None) -> FeedstockPara
     if stream not in STREAM_TO_CANONICAL:
         raise KeyError(f"no canonical mapping for stream {stream!r}")
     return get_params(STREAM_TO_CANONICAL[stream], path)
+
+
+@functools.lru_cache(maxsize=1)
+def load_ghg_params() -> dict:
+    """Load and cache ghg.yaml, which sits next to feedstocks.yaml."""
+    import yaml
+
+    p = resolve_feedstocks_path().parent / "ghg.yaml"
+    if not p.is_file():
+        raise FileNotFoundError(f"GHG parameters not found at {p}")
+    return yaml.safe_load(p.read_text(encoding="utf-8"))
+
+
+@functools.lru_cache(maxsize=1)
+def load_financing_params() -> dict:
+    """Load and cache the BNDES deals and their assumptions (C18), next to feedstocks.yaml."""
+    from app.services import financing_service
+
+    return financing_service.read(resolve_feedstocks_path().parent)
+
+
+@functools.lru_cache(maxsize=1)
+def load_mandate_params() -> dict:
+    """Load and cache the mandate targets and the ANP monthly series (C26)."""
+    from app.services import mandate_service
+
+    return mandate_service.read(resolve_feedstocks_path().parent)
+
+
+@functools.lru_cache(maxsize=1)
+def load_data_sources() -> dict:
+    """Load and cache the registry of data sources, next to feedstocks.yaml."""
+    from app.services import data_sources
+
+    return data_sources.read(resolve_feedstocks_path().parent)
