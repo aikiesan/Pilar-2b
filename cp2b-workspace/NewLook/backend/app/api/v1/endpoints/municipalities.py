@@ -311,8 +311,10 @@ _GEOM_LOD = {
     "detail": ("geometry_detail", 5),  # ~550 m,  ~6.7 MB nationally
     # Migration 039 + scripts/build_map_geometry.py: simplified once per shared
     # border (mapshaper), so neighbours meet on the same line. ~120 m, ~235
-    # vertices per municipality, ~3 MB gzipped for SP+MG.
-    "map": ("geometry_map", 5),
+    # vertices per municipality. 4 decimals (~10 m) is well under the 120 m
+    # simplification and cuts ~450 KB gzipped (~2.5 MB for SP+MG); neighbours
+    # round a shared vertex the same way, so their borders still match.
+    "map": ("geometry_map", 4),
     "full": ("geometry", 9),  # unsimplified; pair with a limit
 }
 
@@ -436,6 +438,25 @@ def _build_municipalities_geojson(limit: Optional[int], detail: str, fields: str
             if detail == "map":
                 if _column_exists(cursor, "municipalities", "geometry_map"):
                     geom_fallback = _MAP_GEOM_FALLBACK
+                    # Rows the script has not reached are drawn from geometry_detail,
+                    # whose borders do not meet the shared-arc neighbours. Say so,
+                    # rather than letting the gaps come back unnoticed.
+                    cursor.execute(
+                        """
+                        SELECT count(*) AS missing FROM municipalities
+                        WHERE geometry IS NOT NULL AND geometry_map IS NULL
+                          AND LEFT(ibge_code::text, 2) = ANY(%s)
+                        """,
+                        (list(_MAP_ENABLED_UF_PREFIXES),),
+                    )
+                    row = cursor.fetchone()
+                    missing = row["missing"] if row else 0
+                    if missing:
+                        logger.warning(
+                            f"{missing} municipalities have no geometry_map — drawn from "
+                            "geometry_detail, so their borders will not meet their "
+                            "neighbours' (run scripts/build_map_geometry.py)."
+                        )
                 else:
                     logger.warning(
                         "municipalities.geometry_map missing — map served from geometry_detail "

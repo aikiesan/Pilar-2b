@@ -10,7 +10,7 @@
 --
 -- geometry_map is simplified once per shared border (mapshaper, which keeps the
 -- arcs neighbours have in common), at ~120 m. Measured on SP+MG (1,498
--- municipalities): ~235 vertices each, all valid, ~3 MB gzipped for the map.
+-- municipalities): ~235 vertices each, all valid, ~2.5 MB gzipped for the map.
 --
 -- PostGIS cannot do this here: ST_CoverageSimplify needs GEOS >= 3.12, and
 -- production runs GEOS 3.11 (local Docker 3.9). So this migration only adds the

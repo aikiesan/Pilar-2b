@@ -30,11 +30,12 @@ import tempfile
 from pathlib import Path
 
 import psycopg2
+from psycopg2.extras import execute_values
 
 MAPSHAPER = "mapshaper@0.6.102"
 
 # Measured on SP+MG, 19/11/2026: 120 m gives ~235 vertices per municipality
-# (overview had 12, detail 36), ~3 MB gzipped for the map, and borders that
+# (overview had 12, detail 36), ~2.5 MB gzipped for the map, and borders that
 # follow the real outline at the zooms /map is used at. 60 m doubles the size
 # for a difference that is hard to see; 200 m starts to cut corners again.
 DEFAULT_INTERVAL_M = 120
@@ -80,8 +81,8 @@ def main() -> int:
     try:
         with conn.cursor() as cur:
             cur.execute(
-                "SELECT 1 FROM information_schema.columns "
-                "WHERE table_name = 'municipalities' AND column_name = 'geometry_map'"
+                "SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' "
+                "AND table_name = 'municipalities' AND column_name = 'geometry_map'"
             )
             if cur.fetchone() is None:
                 print("Column geometry_map missing: apply migration 039 first.", file=sys.stderr)
@@ -126,7 +127,9 @@ def main() -> int:
                         "keep-shapes",
                         "-o",
                         str(out),
-                        "precision=0.00001",
+                        # No precision= here: rounding after simplifying can make a
+                        # ring touch itself, and the repair below would then redraw
+                        # one side of a shared border. The API rounds on output.
                         "format=geojson",
                     ],
                     check=True,
@@ -143,15 +146,39 @@ def main() -> int:
                 )
                 return 1
 
-            for feature in simplified:
-                cur.execute(
-                    """
-                    UPDATE municipalities SET geometry_map = ST_Multi(ST_CollectionExtract(
-                        ST_MakeValid(ST_SetSRID(ST_GeomFromGeoJSON(%s), 4326)), 3))
-                    WHERE ibge_code = %s
-                    """,
-                    (json.dumps(feature["geometry"]), str(feature["properties"]["ibge_code"])),
+            # One round-trip: load every outline into a temp table, then a single
+            # UPDATE ... FROM.
+            cur.execute(
+                "CREATE TEMP TABLE map_geom (ibge_code text PRIMARY KEY, geom geometry) "
+                "ON COMMIT DROP"
+            )
+            execute_values(
+                cur,
+                "INSERT INTO map_geom (ibge_code, geom) VALUES %s",
+                [
+                    (str(f["properties"]["ibge_code"]), json.dumps(f["geometry"]))
+                    for f in simplified
+                ],
+                template="(%s, ST_SetSRID(ST_GeomFromGeoJSON(%s), 4326))",
+                page_size=500,
+            )
+            # ST_MakeValid repairs each outline on its own, so a repaired one may no
+            # longer meet its neighbours on the same line. Name them, so the border
+            # can be looked at; it does not block the save.
+            cur.execute("SELECT ibge_code FROM map_geom WHERE NOT ST_IsValid(geom) ORDER BY 1")
+            repaired = [r[0] for r in cur.fetchall()]
+            if repaired:
+                print(
+                    f"warning: {len(repaired)} outlines came back invalid from mapshaper and "
+                    f"were repaired with ST_MakeValid; check their borders: {repaired[:20]}",
+                    file=sys.stderr,
                 )
+            cur.execute("""
+                UPDATE municipalities m SET geometry_map = ST_Multi(ST_CollectionExtract(
+                    ST_MakeValid(t.geom), 3))
+                FROM map_geom t
+                WHERE m.ibge_code::text = t.ibge_code
+                """)
 
             cur.execute(
                 """

@@ -20,12 +20,12 @@ def _coalesce(sql: str) -> list[str]:
 
 
 def test_map_level_reads_geometry_map():
-    assert _GEOM_LOD["map"] == ("geometry_map", 5)
+    assert _GEOM_LOD["map"] == ("geometry_map", 4)
 
 
 def test_map_select_falls_back_to_detail_before_the_full_geometry():
     sql = _geojson_select_sql(
-        False, "geometry_map", 5, has_limit=False, geom_fallback="geometry_detail"
+        False, "geometry_map", 4, has_limit=False, geom_fallback="geometry_detail"
     )
     assert _coalesce(sql)[:3] == ["m.geometry_map", "m.geometry_detail", "m.geometry"]
 
@@ -38,8 +38,9 @@ def test_other_levels_keep_their_coalesce():
 class _Cursor:
     """Answers the builder's statements; records them."""
 
-    def __init__(self, has_map_column: bool):
+    def __init__(self, has_map_column: bool, missing_map_rows: int = 0):
         self.has_map_column = has_map_column
+        self.missing_map_rows = missing_map_rows
         self.statements: list[str] = []
 
     def execute(self, sql, params=None):
@@ -49,6 +50,8 @@ class _Cursor:
         last = self.statements[-1]
         if "information_schema.columns" in last:
             return (1,) if self.has_map_column else None
+        if "AS missing" in last:
+            return {"missing": self.missing_map_rows}
         return None  # no optional table deployed
 
     def fetchall(self):
@@ -58,8 +61,8 @@ class _Cursor:
         pass
 
 
-def _serve(monkeypatch, has_map_column: bool) -> _Cursor:
-    cursor = _Cursor(has_map_column)
+def _serve(monkeypatch, has_map_column: bool, missing_map_rows: int = 0) -> _Cursor:
+    cursor = _Cursor(has_map_column, missing_map_rows)
 
     class Conn:
         def cursor(self):
@@ -89,6 +92,20 @@ def test_builder_without_the_column_serves_detail(monkeypatch):
     sql = _geojson_sql(cursor)
     assert "geometry_map" not in sql
     assert _coalesce(sql)[0] == "m.geometry_detail"
+
+
+def test_builder_warns_when_rows_fall_back_to_detail(monkeypatch, caplog):
+    _serve(monkeypatch, has_map_column=True, missing_map_rows=3)
+    with caplog.at_level("WARNING"):
+        municipalities._build_municipalities_geojson(None, "map", "map")
+    assert "3 municipalities have no geometry_map" in caplog.text
+
+
+def test_builder_is_quiet_when_every_row_has_geometry_map(monkeypatch, caplog):
+    _serve(monkeypatch, has_map_column=True, missing_map_rows=0)
+    with caplog.at_level("WARNING"):
+        municipalities._build_municipalities_geojson(None, "map", "map")
+    assert "have no geometry_map" not in caplog.text
 
 
 def test_route_accepts_detail_map(monkeypatch):
