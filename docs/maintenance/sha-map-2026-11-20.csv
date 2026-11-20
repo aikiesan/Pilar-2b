@@ -1,0 +1,11 @@
+old_sha,new_sha,old_subject,new_subject
+158dc5865fe5dc2ba69acf25ff034c07bfbad056,6e71f614178674b8b1b049e9a54b8d06ef5affd8,"Initial commit","chore: initial commit"
+6dbf96752b31ef4a9ca36ab8a7e74f18a1768495,09b39260d0279f16f9a6daa8f25931f769f0647c,"PILAR-2b: início do repositório limpo (base: main aa8e0873 do repo arquivado)","chore: import platform from archived repository (aa8e087)"
+bfa7cc4aed489c223b07bb123911eec66712ea1f,0751441f2b5c59c656b33681cdae653d3daa6bb6,"Next.js 16.4.6 (#25)","build(deps): bump next to 16.4.6 (#25)"
+98bddc7493a5a5ea429e44aceba5ce0a170d6c3e,36c2cb87897789c081fa28c377fd148d3bfa947c,"Testes: aquece as rotas antes do e2e e acha os parâmetros canônicos no Docker (#22)","test(e2e): warm up routes and locate canonical params in docker (#22)"
+cc214f29158a60a601a031452ca0457d244bcb48,77c8175ccd01b2c39ed70a1f3c969776fef09303,"Dependabot: só alertas, sem PRs automáticos (#23)","ci(dependabot): keep alerts, disable automatic prs (#23)"
+fd8c68d2599f8918637cd8fcbd4ae3a0bec62238,9113baaddf6a449b1e438cf15e9cc4dc29dd15d1,"[Acarajé #04] Repõe arquivos que faltaram no primeiro commit (#24)","fix(repo): restore files missing from initial import (#24)"
+53869c6baad9886358f13ea025335573079a7604,ff3da8cb04d610f75023be45a18cc9f24ec1dfc0,"[Brigadeiro] Fontes, C23 e evidências do CP2b (#26)","feat(sources): add c23 sources and cp2b evidence (#26)"
+4df330fb6419ca77d555bf2ba64629ca42fa2219,ac6887c0e8ab3122394b36af5375a737a0feab9c,"Perfil do município: vizinhos comparados em pedaços, sem timeout (#28)","perf(profile): batch neighbour comparison to avoid timeouts (#28)"
+d4cce651152bd77ab4ca1c06c8a509abf121cf9d,baf9121f8875e5b6af49b2659221fb98f7e5a4ef,"[Galinhada] Mapa com contornos que se encaixam e zoom suave (#29)","feat(map): align municipal boundaries and smooth zoom (#29)"
+77c36d1adafeb52769e7f913c3d745eea8cf3380,23c22fab73ae6edeb3b8d549bd7b640d6803c53d,"[Feijoada] Busca do mapa destaca o município; controles numa linha só (#30)","feat(map): highlight searched municipality, single-row controls (#30)"

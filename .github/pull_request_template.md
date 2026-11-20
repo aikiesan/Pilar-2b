@@ -1,56 +1,53 @@
-<!-- Title: Conventional Commits, in English, imperative, ≤ 72 characters.
+<!-- Title: Conventional Commits, in English, imperative, at most 72 characters.
      It becomes the squash commit on main ("Squash and merge").
-     Ex.: feat(map): highlight the searched municipality
-          fix(ingest): keep IBGE codes as 7-digit strings
-     Branch: <type>/<slug>   Ex.: feat/map-search-highlight
-     Types and scopes: CONTRIBUTING.md, "Commit Message Guidelines".
-     Description below in PT-BR: short, what changes and why. -->
-
-## Revisão de código
-
-- [ ] `/code-review --comment` rodado neste PR
-- [ ] Todos os achados resolvidos ou respondidos (só faz merge depois disso)
+     e.g. feat(map): highlight the searched municipality
+          fix(topology): repair shared borders after simplification
+     Branch: <type>/<short-description>, e.g. feat/map-search-highlight
+     Types and scopes: CONTRIBUTING.md, "Commit messages and pull requests". -->
 
 ## Summary
 
-<!-- What does this PR change and why? Link the plan item it advances
-     (docs/planning/BRAZIL_EXPANSION_ROADMAP.md §…, IMPROVEMENT_BACKLOG.md, …). -->
+<!-- What changes and why. Link the plan item it advances, if any. -->
 
-## Type of change
+Fixes #
 
-- [ ] Bug fix
-- [ ] New feature
-- [ ] **Data ingestion** (fill in the Data lineage section below)
-- [ ] Documentation update
-- [ ] Refactoring / performance improvement
-- [ ] Dependency update
-- [ ] CI / tooling
+## Spatial impact
 
-## Testing
+<!-- Delete this section if the PR touches no CRS, geometry, tiles or map rendering. -->
 
-<!-- Paste the actual result lines ("1028 passed"), not just checkmarks. -->
+- **CRS:** <!-- unchanged / reprojected from … to … -->
+- **Bounding box / extent:** <!-- unchanged / changed (before → after) -->
+- **Null or empty geometries:** <!-- how they are handled; counts before and after -->
+- **Rendering performance:** <!-- payload size, vertex count, tile size, timings -->
 
-- [ ] Tests pass locally (`npm test` / `pytest`)
-- [ ] New tests added where applicable
-- [ ] E2E tests verified for UI changes
-- [ ] Affected flow exercised end-to-end (describe how)
+## Data / parameters touched
 
-## Data lineage (delete this section unless the PR ingests or changes data)
+<!-- Delete this section if no data or canonical parameter changes. -->
 
-- [ ] Follows the ingestion contract (`backend/ingest/`, **one source per PR**)
-- [ ] All 8 validation gates pass; ingest report committed at
-      `docs/data/ingest_reports/<source>_<year>.md`
-- [ ] `docs/data/METADATA.json` entry complete — version/collection, reference
-      year, URL, DOI, retrieval date; **no `VERIFY` placeholders**
+- [ ] `data/canonical_parameters/` changed (list the parameters and the source of each value)
+- [ ] New or corrected source (ingest report in `docs/data/ingest_reports/`, entry in `docs/data/METADATA.json`, no `VERIFY` placeholders)
 - [ ] Raw snapshot path documented (`data/raw/<source>/<year>/`, immutable)
-- [ ] Unit conversions happen in exactly one place, with a comment
-- [ ] Headline platform numbers unchanged, or every change explained in the
-      ingest report (regression gate)
+- [ ] Headline platform numbers unchanged, or every change explained
+
+## Tests
+
+<!-- Paste the actual result lines ("1028 passed"), not only checkmarks. -->
+
+- [ ] `npm test` / `pytest` pass locally
+- [ ] New tests added where applicable
+- [ ] E2E checked for UI changes
+- [ ] Affected flow exercised end to end (describe how)
+
+## Screenshots
+
+<!-- Before / after for any UI or map change. Delete if not applicable. -->
+
+| Before | After |
+|---|---|
+|  |  |
 
 ## Checklist
 
-- [ ] Code follows project style (ESLint / Black / isort / flake8)
-- [ ] Self-review completed
-- [ ] Documentation updated (if needed)
-- [ ] No secrets or credentials included (placeholders use bare `${VAR:?}` form)
-- [ ] Migrations numbered sequentially; breaking changes called out in the summary
+- [ ] Review findings resolved or answered before merge
+- [ ] No secrets or credentials (placeholders use the bare `${VAR:?}` form)
+- [ ] Migrations numbered sequentially; breaking changes marked with `!` and called out above

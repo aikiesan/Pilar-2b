@@ -1,7 +1,7 @@
 #!/bin/sh
 # Validates the commit message: Conventional Commits in English, no AI attribution lines.
 # Enable once per clone:  git config core.hooksPath .githooks
-# Full rules: CONTRIBUTING.md, "Commit Message Guidelines".
+# Full rules: CONTRIBUTING.md, "Commit messages and pull requests".
 
 msg_file="$1"
 subject=$(grep -v '^#' "$msg_file" | sed -n '1p')

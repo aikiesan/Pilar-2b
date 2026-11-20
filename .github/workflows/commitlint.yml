@@ -1,0 +1,42 @@
+name: Commit messages
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  commitlint:
+    name: Conventional Commits
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          fetch-depth: 0
+
+      - name: Install commitlint
+        run: npm install --no-save --no-audit --no-fund @commitlint/cli@19.8.1 @commitlint/config-conventional@19.8.1
+
+      # PRs are merged with "Squash and merge": the title becomes the commit on main.
+      - name: Check the PR title
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: printf '%s\n' "$PR_TITLE" | npx --no-install commitlint --verbose
+
+      - name: Check every commit in the PR
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: npx --no-install commitlint --from "$BASE_SHA" --to "$HEAD_SHA" --verbose
+
+      - name: No AI attribution lines
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          if git log --format=%B "$BASE_SHA..$HEAD_SHA" | grep -iE '^(Co-Authored-By:.*(Claude|anthropic)|.*Generated with \[?Claude Code)'; then
+            echo "::error::Remove the AI attribution lines above from the commit messages."
+            exit 1
+          fi
