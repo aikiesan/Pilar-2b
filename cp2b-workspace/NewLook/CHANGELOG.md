@@ -7,6 +7,33 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Since the clean repository (2026-11-18)
+
+Grouped by type, from the commits on `main`. Version number to be set at release.
+
+#### Features
+- Map search highlights the searched municipality; map controls on a single row (#30)
+- Municipal boundaries simplified along shared borders, smooth mouse-wheel zoom (#29)
+- C23 sources and CP2b evidence; mandate and funding rendered at request time (#26)
+
+#### Performance
+- Municipality profile compares neighbours in subdivided pieces: Unaí/MG 30.5 s -> 1.4 s, no more timeouts (#28)
+
+#### Fixes
+- Restore the files missing from the initial import (#24)
+
+#### Tests
+- Warm up routes before the e2e run and locate the canonical parameters inside Docker (#22)
+
+#### Build and CI
+- Bump next to 16.4.6, closing the critical audit advisories (#25)
+- Dependabot keeps security alerts and stops opening automatic PRs (#23)
+
+#### Repository
+- Commit messages on `main` rewritten to Conventional Commits in English; old-to-new hash map in
+  `docs/maintenance/sha-map-2026-11-20.csv`
+- Commit message rules enforced by `.githooks/commit-msg` and the `Commit messages` CI workflow
+
 ### 📊 Monitoramento e Observabilidade
 - **NOVO**: Integração completa com Sentry para rastreamento de erros
   * Frontend (Next.js): Captura de erros, Session Replay, Performance Monitoring
