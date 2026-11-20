@@ -1,8 +1,10 @@
-<!-- Título: [Prato #NN] o que muda, em PT-BR
-     Ex.: [Acarajé #01] corrige o harness de testes no Docker
-     Branch: <prato>/<NN>-<slug>   Ex.: acaraje/01-test-harness-docker
-     Cada prato é um milestone (ciclo), em ordem alfabética:
-     Acarajé, Brigadeiro, Coxinha, Dobradinha, Empada, Feijoada, … -->
+<!-- Title: Conventional Commits, in English, imperative, ≤ 72 characters.
+     It becomes the squash commit on main ("Squash and merge").
+     Ex.: feat(map): highlight the searched municipality
+          fix(ingest): keep IBGE codes as 7-digit strings
+     Branch: <type>/<slug>   Ex.: feat/map-search-highlight
+     Types and scopes: CONTRIBUTING.md, "Commit Message Guidelines".
+     Description below in PT-BR: short, what changes and why. -->
 
 ## Revisão de código
 

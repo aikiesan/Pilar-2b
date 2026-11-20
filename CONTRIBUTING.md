@@ -369,52 +369,70 @@ Add screenshots for UI changes
 
 ## 📝 Commit Message Guidelines
 
+We follow [Conventional Commits](https://www.conventionalcommits.org/), in English and in the imperative mood
+(complete the sentence "If applied, this commit will…").
+
 ### Format
 
 ```
-<type>(<scope>): <subject>
+<type>(<scope>): <description>
 
-<body (optional)>
+<body (optional): why, not how>
 
-<footer (optional)>
+<footer (optional): Fixes #123, BREAKING CHANGE: …>
 ```
+
+- Subject: at most 72 characters, lowercase after the colon, no trailing period.
+- Add `!` before the colon when a change breaks compatibility (API response, table schema, URL):
+  `feat(api)!: return municipality codes as strings`.
+- No AI attribution lines (`Co-Authored-By: Claude`, "Generated with Claude Code").
 
 ### Types
 
-- `feat`: New feature
-- `fix`: Bug fix
-- `docs`: Documentation changes
-- `style`: Code style changes (formatting)
-- `refactor`: Code refactoring
-- `test`: Adding tests
-- `chore`: Maintenance tasks
-- `perf`: Performance improvements
+- `feat`: new feature, layer, page or analysis
+- `fix`: bug fix, wrong value, broken geometry or rendering
+- `data`: new or corrected data values or sources, with no code change in the method
+- `docs`: documentation only
+- `refactor`: restructuring with no change in behaviour or output
+- `perf`: performance (queries, tiles, rendering, memory)
+- `test`: tests or fixtures
+- `build`: build system, Docker, dependencies pinning
+- `ci`: GitHub Actions and other CI
+- `chore`: maintenance that fits none of the above
+- `revert`: reverts a previous commit
 
 ### Scopes
 
-- `frontend`: Frontend changes
-- `backend`: Backend changes
-- `ci`: CI/CD changes
-- `docs`: Documentation
-- `deps`: Dependencies
+One scope per commit, the most specific that applies:
+
+- `frontend`, `backend`, `api`, `db`
+- `ingest`, `map`, `explore`, `calculator`
+- `docker`, `deps`, `readme`
 
 ### Examples
 
 ```bash
-# Good commit messages
-feat(frontend): add municipality filter to dashboard
+# Good
+feat(map): highlight the searched municipality
 fix(backend): resolve API timeout on proximity analysis
+data(ingest): add PAM 2024 crop production for MG
 docs(readme): update installation instructions
-chore(deps): upgrade Next.js to 15.5.7
+chore(deps): upgrade Next.js to 16.4.6
 
-# Bad commit messages
+# Bad
 update
 fix bug
-changes
-WIP
+[Feijoada] Busca do mapa destaca o município
+Fixed the map.
 ```
 
----
+### Branches and pull requests
+
+- Branch: `<type>/<slug>` in English (e.g. `feat/map-search-highlight`, `fix/ibge-code-strings`).
+- PR title: the same format as a commit subject. PRs are merged with "Squash and merge", so the title becomes the
+  commit on `main`.
+- The hook `.githooks/commit-msg` rejects malformed subjects and attribution lines. Enable it once per clone:
+  `git config core.hooksPath .githooks`.
 
 ## 🤝 Community Guidelines
 
