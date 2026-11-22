@@ -15,7 +15,7 @@ class TestMainApplication:
     def test_app_creation(self, test_app):
         """Test that FastAPI app is created properly"""
         assert test_app.title == "PILAR-2b V3 API"
-        assert test_app.version == "3.0.0"
+        assert test_app.version == "3.1.0"
         assert test_app.docs_url == "/docs"
         assert test_app.redoc_url == "/redoc"
 
@@ -32,7 +32,7 @@ class TestMainApplication:
             assert field in data
 
         assert data["message"] == "PILAR-2b V3 API"
-        assert data["version"] == "3.0.0"
+        assert data["version"] == "3.1.0"
         assert data["docs"] == "/docs"
         assert data["status"] == "running"
 
@@ -76,7 +76,7 @@ class TestMainApplication:
 
         # Verify basic schema structure
         assert schema["info"]["title"] == "PILAR-2b V3 API"
-        assert schema["info"]["version"] == "3.0.0"
+        assert schema["info"]["version"] == "3.1.0"
 
     def test_nonexistent_endpoint(self, client: TestClient):
         """Test 404 handling for non-existent endpoints"""

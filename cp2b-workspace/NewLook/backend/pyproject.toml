@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cp2b-maps-backend"
-version = "3.0.0"
+version = "3.1.0"
 description = "CP2B Maps V3 Backend API for geospatial biogas potential analysis"
 authors = [
     {name = "CP2B Team", email = "contact@detecta.org"}

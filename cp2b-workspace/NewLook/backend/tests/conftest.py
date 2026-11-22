@@ -120,7 +120,7 @@ def create_test_app():
     test_app = FastAPI(
         title="PILAR-2b V3 API",  # Match production title for schema assertions
         description="Test version without middleware restrictions",
-        version="3.0.0",
+        version="3.1.0",
         docs_url="/docs",
         redoc_url="/redoc",
     )
@@ -133,7 +133,7 @@ def create_test_app():
     async def root():
         return {
             "message": "PILAR-2b V3 API",
-            "version": "3.0.0",
+            "version": "3.1.0",
             "docs": "/docs",
             "status": "running",
         }

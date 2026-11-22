@@ -35,4 +35,4 @@ def test_app_instance():
     assert hasattr(app, "title")
     assert hasattr(app, "version")
     assert app.title == "PILAR-2b V3 API"
-    assert app.version == "3.0.0"
+    assert app.version == "3.1.0"

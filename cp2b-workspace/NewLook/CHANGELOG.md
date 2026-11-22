@@ -7,9 +7,12 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
-### Since the clean repository (2026-11-18)
+---
 
-Grouped by type, from the commits on `main`. Version number to be set at release.
+## [3.1.0] - 2026-11-21
+
+First release from the clean public repository (2026-11-18). Grouped by type, from the
+commits on `main`.
 
 #### Features
 - Map search highlights the searched municipality; map controls on a single row (#30)
@@ -32,25 +35,9 @@ Grouped by type, from the commits on `main`. Version number to be set at release
 #### Repository
 - Commit messages on `main` rewritten to Conventional Commits in English; old-to-new hash map in
   `docs/maintenance/sha-map-2026-11-20.csv`
-- Commit message rules enforced by `.githooks/commit-msg` and the `Commit messages` CI workflow
-
-### 📊 Monitoramento e Observabilidade
-- **NOVO**: Integração completa com Sentry para rastreamento de erros
-  * Frontend (Next.js): Captura de erros, Session Replay, Performance Monitoring
-  * Backend (FastAPI): Rastreamento de exceções, Performance de API, Monitoramento de queries SQL
-  * Taxa de amostragem: 10% em produção (otimiza quota gratuita)
-  * Filtragem inteligente: Ignora erros de extensões e 404s
-  * Source maps automáticos em produção
-- Adicionado `@sentry/nextjs` (frontend) e `sentry-sdk[fastapi]` (backend)
-- Configuração completa com hooks de instrumentação
-- Documentação em `docs/SENTRY_SETUP.md` com guia passo-a-passo
-- Templates de variáveis de ambiente atualizados
-
-### 🚀 Planejado
-- MCDA configurável
-- WCAG 2.1 AA compliance
-- Bagacinho IA Assistant
-- Sistema completo de referências científicas
+- Commit message rules enforced by `.githooks/commit-msg` and the `Commit messages` CI workflow (#31)
+- `LICENSE` holds the full GPL-3.0 text, so GitHub detects the licence
+- Version aligned to 3.1.0 across `CITATION.cff`, frontend, backend and the citation page
 
 ---
 

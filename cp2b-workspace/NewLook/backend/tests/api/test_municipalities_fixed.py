@@ -15,7 +15,7 @@ def create_test_app():
     test_app = FastAPI(
         title="PILAR-2b V3 API - Test",
         description="Test version without middleware restrictions",
-        version="3.0.0",
+        version="3.1.0",
     )
 
     # Include API routes without middleware
