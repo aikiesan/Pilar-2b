@@ -1,0 +1,53 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="/node_modules/leaflet/dist/leaflet.css">
+<style>html,body,#map{margin:0;height:100%}</style></head><body><div id="map"></div>
+<script src="/node_modules/leaflet/dist/leaflet.js"></script>
+<script>
+window.bench = async function (file, view) {
+  const gj = await (await fetch(file)).json();
+  const map = L.map('map', { preferCanvas: true, zoomAnimation: false }).setView(view.c, view.z);
+  const ramp = ['#ffffcc','#c7e9b4','#7fcdbb','#41b6c4','#1d91c0','#225ea8','#0c2c84'];
+  const pick = (seed, i) => ramp[(i * 7 + seed) % ramp.length];
+  const styleFor = seed => f => ({ fillColor: pick(seed, f.properties._i), weight: 0.65, color: '#4b5563', opacity: 0.75, fillOpacity: 0.7 });
+  gj.features.forEach((f, i) => f.properties._i = i);
+  let layer = L.geoJSON(gj, { style: styleFor(0) }).addTo(map);
+  const renderer = map.getRenderer(layer.getLayers()[0]);
+  // instrument Leaflet's batched canvas redraw
+  const redrawTimes = []; const orig = renderer._redraw;
+  renderer._redraw = function () { const t = performance.now(); orig.call(this); redrawTimes.push(performance.now() - t); };
+  const nextFrame = () => new Promise(r => requestAnimationFrame(r));
+  for (let i = 0; i < 10; i++) await nextFrame();
+  const longTasks = []; new PerformanceObserver(l => l.getEntries().forEach(e => longTasks.push(e.duration))).observe({ type: 'longtask', buffered: false });
+  const stats = a => { const s = [...a].sort((x, y) => x - y); const q = p => s[Math.min(s.length - 1, Math.floor(p * s.length))]; return { n: s.length, p50: +q(.5).toFixed(2), p95: +q(.95).toFixed(2), max: +s[s.length - 1].toFixed(2) }; };
+  const out = { features: gj.features.length };
+
+  // A) tween: restyle ALL features every frame for 40 frames
+  const layers = layer.getLayers(); const loop = []; redrawTimes.length = 0; longTasks.length = 0;
+  let last = performance.now(); const frameGaps = [];
+  for (let k = 0; k < 40; k++) {
+    await nextFrame(); const now = performance.now(); frameGaps.push(now - last); last = now;
+    const t = performance.now();
+    for (let i = 0; i < layers.length; i++) layers[i].setStyle({ fillColor: pick(k, i) });
+    loop.push(performance.now() - t);
+  }
+  for (let i = 0; i < 5; i++) await nextFrame();
+  out.tweenAll = { setStyleLoop: stats(loop), redraw: stats(redrawTimes), frameGap: stats(frameGaps.slice(2)), longTasks: longTasks.length };
+
+  // B) tween only features intersecting the viewport
+  const vb = map.getBounds(); const vis = layers.filter(l => { const b = l.getBounds(); return b.isValid() && vb.intersects(b); });
+  const loopV = []; redrawTimes.length = 0; longTasks.length = 0;
+  for (let k = 0; k < 40; k++) { await nextFrame(); const t = performance.now(); for (const l of vis) l.setStyle({ fillColor: pick(k + 3, l.feature.properties._i) }); loopV.push(performance.now() - t); }
+  for (let i = 0; i < 5; i++) await nextFrame();
+  out.tweenViewport = { visible: vis.length, setStyleLoop: stats(loopV), redraw: stats(redrawTimes), longTasks: longTasks.length };
+
+  // C) current behaviour: remount (remove + new L.geoJSON) — single shot, x5
+  const remount = []; longTasks.length = 0;
+  for (let k = 0; k < 5; k++) {
+    await nextFrame(); const t = performance.now();
+    map.removeLayer(layer); layer = L.geoJSON(gj, { style: styleFor(k + 1) }).addTo(map);
+    const t2 = performance.now(); await nextFrame(); await nextFrame(); remount.push({ build: +(t2 - t).toFixed(1), toPaint: +(performance.now() - t).toFixed(1) });
+  }
+  out.remount = remount; out.remountLongTasks = longTasks.map(d => Math.round(d));
+  map.remove(); return out;
+};
+</script></body></html>

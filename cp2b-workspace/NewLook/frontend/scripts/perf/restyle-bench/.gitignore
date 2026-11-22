@@ -1,3 +1,4 @@
 # Geometry exported from the local API — never commit it.
 *.geojson
 results-*.jsonl
+!bench.html
