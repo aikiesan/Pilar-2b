@@ -450,10 +450,12 @@ services:
 ```powershell
 docker compose --profile perf up --build -d frontend-prod
 # Em produção o basePath é /pilar2b:
-$env:PLAYWRIGHT_BASE_URL="http://localhost:3007/pilar2b"
+$env:PLAYWRIGHT_BASE_URL="http://localhost:3007/pilar2b/"
 npx playwright test e2e/motion.spec.ts --project=chromium --grep @perf --trace off
 ```
 Marcar os testes de performance com a tag `@perf` para rodá-los só nesse alvo.
+Atenção: com `baseURL` terminando em `/pilar2b/`, use `page.goto('pt-BR/map')` **sem barra inicial**;
+`goto('/pt-BR/map')` resolve para a raiz do host e descarta o basePath.
 
 ### 10.4 E2E a escrever (`frontend/e2e/motion.spec.ts`)
 1. **Constância de objeto:** abrir o mapa, ler `__pilarMotion.layerMounts`, trocar o substrato 3
