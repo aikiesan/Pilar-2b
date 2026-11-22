@@ -25,7 +25,6 @@ const renderSelector = () =>
       colorMode="biogas"
       onColorModeChange={jest.fn()}
       options={OPTIONS}
-      lockedHint="Camada beta em teste — entre para visualizar."
     />,
   );
 
