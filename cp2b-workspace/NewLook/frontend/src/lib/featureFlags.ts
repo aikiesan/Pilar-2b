@@ -50,3 +50,22 @@ export const DATA_EXPORT_DISABLED_REASON =
  *    the whole catalogue, old method text included, in its RSC payload.
  */
 export const METHOD_PAGES_ENABLED = false;
+
+/**
+ * Whether the map analyses are on: the four bivariate analyses on /map (the
+ * panel section, the legend and ?a= links), the map questions on the home page
+ * and /explore.
+ *
+ * OFF until sign-in with approval exists: the analyses are the group's own
+ * work on top of the raw data, which is already public on REDU, and they are
+ * to be shown only to approved accounts
+ * (docs/superpowers/specs/2026-11-22-login-com-aprovacao-design.md). While off,
+ * ?a= is ignored and dropped from the URL, the panel shows no analyses,
+ * /siting-indicators is never requested, the home leaves the questions out and
+ * /explore answers 404.
+ *
+ * Once sign-in exists, the rule becomes "this switch on AND an approved
+ * session"; the switch stays as the way to take every analysis down at once.
+ * Set it to `true` and every entry point returns together.
+ */
+export const MAP_ANALYSES_ENABLED = false;

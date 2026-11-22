@@ -34,7 +34,7 @@ import type { Messages } from '@/types/i18n';
 import { hasAnySelectedResidue } from '@/lib/mapValues';
 import { BASEMAPS, DEFAULT_BASEMAP, type BasemapId } from '@/data/basemaps';
 import type { ThematicPreset } from '@/data/thematicPresets';
-import { DATA_EXPORT_ENABLED } from '@/lib/featureFlags';
+import { DATA_EXPORT_ENABLED, MAP_ANALYSES_ENABLED } from '@/lib/featureFlags';
 import {
   isSaoPaulo,
   isMinasGerais,
@@ -333,7 +333,8 @@ export default function MapComponent({
   const urlQuery = readURLParam('q');
   const urlMetric = readURLParam('metric');
   const urlScope = readURLParam('scope'); // 'brazil' → national view
-  const urlAnalysis = readURLParam('a');
+  // Held back with MAP_ANALYSES_ENABLED: an old ?a= link opens the plain map.
+  const urlAnalysis = MAP_ANALYSES_ENABLED ? readURLParam('a') : null;
   const initialScope = parseScopeParam(urlScope);
 
   // An analysis paints the choropleth, so ?a= wins over any other ?mode=.
@@ -397,6 +398,16 @@ export default function MapComponent({
   const [activeAnalysis, setActiveAnalysis] = useState<AnalysisId | null>(
     isAnalysisId(urlAnalysis) ? urlAnalysis : null
   );
+  // While the analyses are held back, drop an old ?a= so the URL matches the
+  // plain map it opened (and a shared link does not carry it on).
+  useEffect(() => {
+    if (MAP_ANALYSES_ENABLED || typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    if (!params.has('a')) return;
+    params.delete('a');
+    const query = params.toString();
+    window.history.replaceState(null, '', `${window.location.pathname}${query ? `?${query}` : ''}`);
+  }, []);
 
   // Preserve valid MG sector/metric bookmarks while removing residue keys that
   // are visibly disabled for the pilot. Without this, a stale URL could count
@@ -1034,7 +1045,7 @@ export default function MapComponent({
           onApplyPreset={handleApplyPreset}
           activePresetId={activePresetId}
           activeAnalysis={activeAnalysis}
-          onAnalysisChange={handleAnalysisChange}
+          onAnalysisChange={MAP_ANALYSES_ENABLED ? handleAnalysisChange : undefined}
         />
       )}
 
