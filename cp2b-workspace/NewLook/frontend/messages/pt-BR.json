@@ -21,7 +21,6 @@
       "map_interactive": "Mapa interativo",
       "municipalities": "Municípios",
       "compare_municipalities": "Comparar municípios",
-      "proximity_logistics": "Proximidade e logística",
       "multicriteria": "Análise multicritério",
       "data_catalog": "Catálogo de produtos",
       "data_legend": "Legenda e códigos",
@@ -52,7 +51,6 @@
       "compare": "Até 4 municípios lado a lado",
       "scientific_database": "Caracterização química, cinética e referências",
       "technology_routes": "Simule biogás, biometano e energia",
-      "proximity": "Resíduos e infraestrutura num raio",
       "cite": "Como citar o PILAR-2b",
       "patch_notes": "Mudanças da plataforma, versão a versão",
       "municipalities": "Busque um município e abra o perfil dele",
@@ -1123,6 +1121,51 @@
         "answer": "muito potencial Ideal e a maior perda até o Real."
       },
       "method_plants": "Usinas em 0, 1 e 2 ou mais."
+    },
+    "landAround": {
+      "toggle": "Uso do solo no entorno",
+      "toggle_hint": "Clique num ponto do mapa para ver como a terra em volta é usada",
+      "window_aria": "Uso do solo no entorno",
+      "close": "Fechar Uso do solo no entorno",
+      "title": "Num raio de {radius} km de {place}",
+      "title_point": "Num raio de {radius} km deste ponto",
+      "meta": "{count, plural, =0 {{area} km²} one {# município, {area} km²} other {# municípios, {area} km²}}",
+      "radius_group": "Raio",
+      "radius_option": "{radius} km",
+      "idle": "Clique num ponto do mapa para ver como é usada a terra num raio de {radius} km.",
+      "loading": "Medindo a terra em volta deste ponto…",
+      "headline": "{share}% de lavouras",
+      "subline": "{pasture}% de pastagem, {forest}% de silvicultura",
+      "bar_aria": "Uso do solo dentro do círculo",
+      "row_share": "{share}%",
+      "rows": {
+        "other_farming": "Outros usos agrícolas",
+        "unmapped": "Fora da agropecuária (vegetação nativa, cidades, água)"
+      },
+      "class_fallback": "Classe {id}",
+      "extras": {
+        "biogas": "Potencial de biogás",
+        "biogas_value": "{value} milhões de m³/ano",
+        "gas_pipeline": "Gasoduto mais próximo",
+        "substation": "Termelétrica mais próxima",
+        "distance": "{distance} km",
+        "none_within": "Nenhum a até {radius} km"
+      },
+      "move_hint": "Clique em outro ponto do mapa para mover o círculo.",
+      "source": "MapBiomas Coleção 10, 2024. O uso do solo está mapeado só para São Paulo.",
+      "empty": "Nenhuma área agropecuária num raio de {radius} km. O uso do solo está mapeado só para São Paulo, então pontos em Minas Gerais não mostram nada aqui.",
+      "signed_out_title": "Entre para usar o Uso do solo no entorno",
+      "signed_out_body": "A ferramenta mede lavouras, pastagem e silvicultura em volta de qualquer ponto de São Paulo.",
+      "sign_in": "Entrar",
+      "retry": "Tentar de novo",
+      "errors": {
+        "rate_limited": "Muitas análises seguidas. Aguarde {seconds} segundos e tente de novo.",
+        "timeout": "A análise está demorando demais. Tente de novo com um raio menor.",
+        "network": "Erro de conexão. Verifique sua internet e tente de novo.",
+        "invalid_coordinates": "Este ponto está fora de São Paulo, o único estado com uso do solo mapeado. Escolha um ponto dentro de São Paulo.",
+        "invalid_radius": "O raio deve ser de 10, 20 ou 50 km.",
+        "server": "Não foi possível concluir a análise. Tente de novo."
+      }
     }
   },
   "metadata": {
@@ -1322,134 +1365,6 @@
         }
       }
     },
-    "proximity": {
-      "title": "Análise de Proximidade",
-      "subtitle": "Análise espacial de potencial de biogás por raio de captação",
-      "how_to_use": "Como usar",
-      "step1": "Clique no mapa para selecionar um ponto",
-      "step2": "Ajuste o raio de captação com o slider",
-      "step3": "Clique em Analisar para ver os municípios próximos",
-      "selected_point": "Ponto Selecionado",
-      "latitude": "Latitude:",
-      "longitude": "Longitude:",
-      "click_to_select": "Clique no mapa para selecionar um ponto",
-      "capture_radius": "Raio de Captação",
-      "radius_optimal": "Ótimo",
-      "radius_acceptable": "Aceitável",
-      "radius_limit": "Limite",
-      "radius_excessive": "Excessivo",
-      "analyzing": "Analisando…",
-      "analyze": "Analisar",
-      "land_use_title": "Análise de Uso do Solo",
-      "municipalities_count": "{count, plural, one {# município} other {# municípios}}",
-      "share": "Compartilhar",
-      "export": "Exportar Dados",
-      "total_area": "Área Total Analisada",
-      "km2": "quilômetros quadrados",
-      "agricultural_use": "Uso Agrícola",
-      "farmable_area": "Área Agricultável",
-      "main_class": "Classe Principal",
-      "predominant_use": "uso predominante na área",
-      "detailed_distribution": "Distribuição Detalhada do Uso do Solo",
-      "visual_proportion": "Proporção Visual",
-      "link_copied": "Link copiado para a área de transferência!",
-      "mapbiomas_badge": "MapBiomas 2024",
-      "map": {
-        "loading": "Carregando mapa…",
-        "radius": "Raio: {radius} km",
-        "distance": "Distância:",
-        "population": "População:",
-        "biogas": "Biogás:",
-        "scope": "Estado de <strong>São Paulo</strong>",
-        "coordinates": "{lat}; {lng}"
-      },
-      "infrastructure": {
-        "title": "Infraestrutura mais próxima",
-        "subtitle": "Distância em linha reta do ponto até o elemento mais próximo de cada tipo, nas camadas de infraestrutura do mapa. No mapa, a linha tracejada liga o ponto a cada um.",
-        "types": {
-          "gas_pipeline": "Gasoduto",
-          "substation": "Usina termelétrica",
-          "railway": "Rodovia estadual",
-          "transmission_line": "Linha de transmissão",
-          "ete": "Estação de tratamento de esgoto"
-        },
-        "distance": "{distance} km",
-        "none_within": "Nenhum em até {radius} km",
-        "nearest_at": "o mais próximo está a {distance} km",
-        "unavailable": "Camada não carregada no servidor"
-      },
-      "processed_in": "Processado em {ms} ms",
-      "badge": {
-        "optimal": "Logística ideal",
-        "moderate": "Custos moderados",
-        "high": "Custos elevados",
-        "unviable": "Inviável economicamente"
-      },
-      "dominant_badge": "Dominante",
-      "class_fallback": "Classe {id}",
-      "of_area": "da área",
-      "categories": {
-        "agricultural": "Agropecuária",
-        "forestry": "Silvicultura",
-        "forest": "Vegetação nativa",
-        "grassland": "Campo",
-        "water": "Água",
-        "urban": "Urbano",
-        "other": "Outros",
-        "nodata": "Sem dados",
-        "unknown": "Não classificado"
-      },
-      "suitability": {
-        "high": {
-          "title": "✓ Alta aptidão para biogás agrícola",
-          "body": "A área possui predominância de uso agrícola ({percent}), ideal para coleta de resíduos agrícolas e produção de biogás. Esta região apresenta excelente potencial para instalação de biodigestores."
-        },
-        "medium": {
-          "title": "Aptidão moderada para biogás agrícola",
-          "body": "A área possui {percent} de uso agrícola. Há potencial razoável para produção de biogás de fontes agrícolas, podendo ser complementado com outras fontes de biomassa."
-        },
-        "low": {
-          "title": "Baixo uso agrícola na área",
-          "body": "Apenas {percent} de uso agrícola. Considere fontes urbanas (RSU) ou pecuárias para viabilizar a produção de biogás nesta região."
-        }
-      },
-      "errors": {
-        "rate_limited": "Muitas análises seguidas. Aguarde {seconds} segundos e tente novamente.",
-        "timeout": "A análise está demorando muito. Tente novamente com um raio menor.",
-        "network": "Erro de conexão. Verifique sua conexão com a internet e tente novamente.",
-        "invalid_coordinates": "O ponto está fora da área coberta pela análise de proximidade, que hoje é o estado de São Paulo. Escolha um ponto em terra dentro do estado.",
-        "invalid_radius": "O raio deve estar entre {min} e {max} km.",
-        "server": "Não foi possível concluir a análise. Tente novamente."
-      },
-      "csv": {
-        "municipality": "Município",
-        "ibge_code": "Código IBGE",
-        "distance_km": "Distância (km)",
-        "biogas_m3_year": "Biogás (m³/ano)",
-        "population": "População",
-        "land_use_class": "Classe de uso",
-        "percent": "Porcentagem (%)",
-        "area_km2": "Área (km²)",
-        "type": "Tipo",
-        "name": "Nome",
-        "latitude": "Latitude",
-        "longitude": "Longitude",
-        "metric": "Métrica",
-        "value": "Valor",
-        "point_latitude": "Ponto de análise (lat)",
-        "point_longitude": "Ponto de análise (lng)",
-        "radius_km": "Raio (km)",
-        "total_municipalities": "Total de municípios",
-        "total_population": "População total",
-        "avg_distance_km": "Distância média (km)",
-        "total_biogas": "Potencial total de biogás (m³/ano)",
-        "agricultural_biogas": "Potencial agrícola (m³/ano)",
-        "livestock_biogas": "Potencial pecuário (m³/ano)",
-        "urban_biogas": "Potencial urbano (m³/ano)",
-        "agricultural_land": "Uso agrícola do solo (%)",
-        "processing_time_s": "Tempo de processamento (s)"
-      }
-    },
     "compare": {
       "title": "Comparação de Municípios",
       "comparing": "Comparando {count} municípios",
@@ -1504,15 +1419,12 @@
     "open_map_aria": "Abrir o mapa interativo",
     "path_label": "Como usar",
     "path_map": "Explore o Mapa",
-    "path_proximity": "Proximidade",
     "path_science": "Rotas & Ciência",
     "features_heading": "Ferramentas Disponíveis",
     "badge_popular": "Popular",
     "badge_new": "Novo",
     "feat_map_title": "Mapa Interativo",
     "feat_map_desc": "Explore o potencial de biogás por município, com filtros por tipo de resíduo. São Paulo completo; Minas Gerais em validação (beta).",
-    "feat_proximity_title": "Análise de Proximidade",
-    "feat_proximity_desc": "Analise a viabilidade de plantas de biogás considerando infraestrutura próxima",
     "feat_routes_title": "Rotas Tecnológicas",
     "feat_routes_desc": "Compare diferentes tecnologias de produção de biogás e biometano",
     "feat_scientific_title": "Base Científica",
@@ -2478,8 +2390,6 @@
       "build": {
         "heading": "Antes de construir uma planta",
         "lede": "O potencial é o começo. Uma planta precisa de acesso, de quem compre o gás e de uma escala que se pague.",
-        "proximity": "Ver o que há em volta",
-        "proximity_body": "Gasodutos, subestações, rodovias e indústrias a partir de um ponto do mapa.",
         "calculator": "Calcular uma propriedade",
         "calculator_body": "Quanto biogás e biometano o rebanho e a lavoura de uma propriedade podem gerar."
       },
@@ -2700,12 +2610,6 @@
       "note": "Potencial de redução, não crédito de carbono. GWP do metano: {gwp}.",
       "unverified": "Parte dos fatores ainda está em conferência.",
       "more": "Simular uma usina na calculadora"
-    },
-    "infrastructure": {
-      "heading": "Infraestrutura próxima",
-      "cta": "Abrir em Proximidade e logística",
-      "cta_plain": "Abrir Proximidade e logística",
-      "short": "Distâncias até gasodutos, linhas de transmissão, subestações e usinas."
     },
     "data": {
       "downloads_paused": "Os downloads estão pausados durante o beta, enquanto a base é validada. A planilha e o relatório deste município voltam junto com os demais arquivos.",

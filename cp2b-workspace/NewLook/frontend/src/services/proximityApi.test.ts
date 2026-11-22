@@ -57,6 +57,19 @@ describe('analyzeProximity', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1)
   })
 
+  it('maps a point outside the request bounds (FastAPI 422) to invalid_coordinates', async () => {
+    fetchMock.mockReturnValue(respond(422, { detail: [{ type: 'less_than_equal', loc: ['body', 'latitude'], msg: '…' }] }))
+    await expect(analyzeProximity(request)).rejects.toMatchObject({ code: 'invalid_coordinates', status: 422 })
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('sends the options it is given', async () => {
+    fetchMock.mockReturnValue(respond(200, { results: {} }))
+    const options = { include_mapbiomas: true, include_biogas_potential: true, include_infrastructure: true }
+    await analyzeProximity({ ...request, options })
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({ ...request, options })
+  })
+
   it('retries a server error, then reports it', async () => {
     fetchMock.mockReturnValue(respond(500, { detail: 'boom' }))
     await expect(analyzeProximity(request)).rejects.toMatchObject({ code: 'server', status: 500 })
@@ -91,9 +104,9 @@ describe('dominantLandUseClass', () => {
 })
 
 describe('generateShareURL', () => {
-  it('keeps the sharer’s language in the link', () => {
+  it('opens the Land around tool on the map, in the sharer’s language', () => {
     expect(generateShareURL(-22.9, -47.06, 20, 'en')).toBe(
-      `${window.location.origin}/en/proximity?lat=-22.900000&lng=-47.060000&radius=20`
+      `${window.location.origin}/en/map?tool=land&lat=-22.9000&lng=-47.0600&radius=20`
     )
   })
 })

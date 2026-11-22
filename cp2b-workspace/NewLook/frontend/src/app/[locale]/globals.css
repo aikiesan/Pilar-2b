@@ -882,3 +882,35 @@ input[type="range"]::-moz-range-thumb:active {
 @media (prefers-reduced-motion: reduce) {
   .home-rise { animation: none; }
 }
+
+/* Land around (map click tool). The circle and its veil are SVG in their own
+   pane (LandAroundLayer); colours here override Leaflet's path attributes. */
+.leaflet-container.land-around-on,
+.leaflet-container.land-around-on .leaflet-interactive {
+  cursor: crosshair;
+}
+@keyframes land-around-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes land-around-drift {
+  to { stroke-dashoffset: -28; }
+}
+.land-around-veil {
+  fill: rgb(var(--paper));
+  fill-opacity: 0.55;
+  animation: land-around-fade 400ms ease-out both;
+}
+.land-around-ring {
+  stroke: rgb(var(--ink));
+  stroke-opacity: 0.9;
+  animation: land-around-fade 400ms ease-out both, land-around-drift 2.4s linear 400ms infinite;
+}
+.land-around-fade {
+  animation: land-around-fade 400ms ease-out both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .land-around-veil,
+  .land-around-ring,
+  .land-around-fade { animation: none; }
+}

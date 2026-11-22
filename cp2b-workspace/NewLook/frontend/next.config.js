@@ -25,7 +25,9 @@ const movedPages = [
   { from: '/dashboard', to: '/', statusCode: 307 },
   { from: '/dashboard/advanced-analysis', to: '/map', statusCode: 307 },
   { from: '/dashboard/compare', to: '/compare' },
-  { from: '/dashboard/proximity', to: '/proximity' },
+  // Proximity Analysis became the Land around tool on the map.
+  { from: '/proximity', to: '/map?tool=land' },
+  { from: '/dashboard/proximity', to: '/map?tool=land' },
   { from: '/dashboard/technology-routes', to: '/calculator' },
   { from: '/dashboard/scientific-database', to: '/method/science-base' },
   // Portuguese addresses a visitor might type or say aloud ("pilar2b/mapa").
@@ -37,7 +39,7 @@ const movedPages = [
   { from: '/guia', to: '/guide' },
   { from: '/comparar', to: '/compare' },
   { from: '/calculadora', to: '/calculator' },
-  { from: '/proximidade', to: '/proximity' },
+  { from: '/proximidade', to: '/map?tool=land' },
   { from: '/citar', to: '/cite' },
   { from: '/acessibilidade', to: '/accessibility' },
   { from: '/privacidade', to: '/privacy' },

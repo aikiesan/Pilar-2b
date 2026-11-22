@@ -9,7 +9,7 @@
  *   questions the four map analyses, each with its 3 × 3 grid;
  *   market    biomethane demand: the mandate and the cost of a plant (video);
  *   sectors   the data catalogue by sector;
- *   build     the siting tools: proximity and the calculator (video);
+ *   build     the siting tools: the calculator (video);
  *   method, news and citation, partners.
  *
  * Server-rendered; the videos are the only client islands (HomeVideo). No
@@ -300,7 +300,6 @@ export default async function LandingPage() {
         <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-l from-dusk-950/95 via-dusk-950/80 to-dusk-950/55" />
         <div className="mx-auto grid max-w-7xl gap-10 px-4 py-20 sm:px-6 sm:py-28 lg:grid-cols-2 lg:px-8">
           <ul className="order-2 self-end border-b border-white/25 lg:order-1">
-            <BandLink href="/proximity" title={t('v2.build.proximity')} body={t('v2.build.proximity_body')} />
             <BandLink href="/calculator" title={t('v2.build.calculator')} body={t('v2.build.calculator_body')} />
           </ul>
           <div className="order-1 lg:order-2">

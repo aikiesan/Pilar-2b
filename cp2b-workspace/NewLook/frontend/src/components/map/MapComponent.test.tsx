@@ -96,6 +96,43 @@ jest.mock('./MunicipalityHighlight', () => ({
     ) : null,
 }));
 
+// Land around reads the real session; each test sets who is signed in.
+// useBetaAccess keeps its real reading (no stored token, so no beta).
+const mockSession = { signedIn: true };
+jest.mock('@/lib/betaAccess', () => ({
+  ...jest.requireActual('@/lib/betaAccess'),
+  useRealSession: () => mockSession.signedIn,
+}));
+
+// The Land around window renders for real; its sign-in link is a plain anchor.
+jest.mock('@/navigation', () => ({
+  Link: ({ children, href, ...props }: React.AnchorHTMLAttributes<HTMLAnchorElement> & { href: string }) => (
+    <a href={href} {...props}>{children}</a>
+  ),
+}));
+
+// The analysis behind the Land around window.
+const mockAnalyzeProximity = jest.fn();
+jest.mock('@/services/proximityApi', () => ({
+  ...jest.requireActual('@/services/proximityApi'),
+  analyzeProximity: (...args: unknown[]) => mockAnalyzeProximity(...args),
+}));
+
+// The circle on the map: which point it draws, and a stand-in for a map click.
+jest.mock('./LandAroundLayer', () => ({
+  __esModule: true,
+  default: ({ active, point, radiusKm, onPick }: any) => (
+    <div
+      data-testid="land-around-layer"
+      data-active={String(active)}
+      data-point={point ? `${point.lat},${point.lng}` : ''}
+      data-radius={radiusKm}
+    >
+      <button type="button" onClick={() => onPick({ lat: -21.18, lng: -47.81 })}>map click</button>
+    </div>
+  ),
+}));
+
 jest.mock('./MunicipalityLayer', () => ({
   __esModule: true,
   default: ({ data, biomassType, opacity, paintBetaData }: any) => (
@@ -1165,6 +1202,102 @@ describe('MapComponent', () => {
       fireEvent.keyDown(window, { key: 'C' });
 
       expect(panel).toHaveAttribute('data-visible', 'false');
+    });
+  });
+
+  describe('Land around', () => {
+    const landResult = {
+      analysis_id: 'a',
+      request: { latitude: -21.18, longitude: -47.81, radius_km: 20 },
+      results: {
+        buffer_geometry: null,
+        municipalities: [{ name: 'Ribeirão Preto', distance_km: 1 }],
+        land_use: {
+          total_area_km2: 700,
+          by_class: { '20': { class_id: 20, name: 'Cana-de-açúcar', color: '#db7093', category: 'agricultural', pixel_count: 1, area_km2: 628.3, percent: 90 } },
+          dominant_class: 'Cana-de-açúcar',
+          agricultural_percent: 90,
+        },
+        infrastructure: [],
+      },
+      summary: { total_area_km2: 1256.6, total_municipalities: 1, total_population: 0, total_biogas_m3_year: 0, energy_potential_mwh_year: 0, radius_recommendation: 'optimal' },
+      metadata: { analysis_timestamp: '', processing_time_ms: 1 },
+    };
+
+    beforeEach(() => {
+      mockSession.signedIn = true;
+      mockAnalyzeProximity.mockResolvedValue(landResult);
+      mockUseGeospatialData.mockReturnValue({
+        data: createMunicipalityCollection([createMunicipalityFeature()]),
+        loading: false,
+        error: null,
+      });
+    });
+
+    const toggle = () => screen.getByRole('button', { name: 'Uso do solo no entorno', pressed: false });
+
+    it('turns on from the top row, keeps itself in the URL, and a click measures the land there', async () => {
+      render(<MapComponent />);
+      act(() => { jest.advanceTimersByTime(1500); });
+      fireEvent.click(await screen.findByRole('button', { name: 'Uso do solo no entorno' }));
+
+      expect(await screen.findByRole('complementary', { name: 'Uso do solo no entorno' })).toBeInTheDocument();
+      expect(window.location.search).toContain('tool=land');
+
+      fireEvent.click(await screen.findByRole('button', { name: 'map click' }));
+      expect(await screen.findByText('50% de lavouras')).toBeInTheDocument();
+      expect(screen.getByTestId('land-around-layer')).toHaveAttribute('data-point', '-21.18,-47.81');
+      expect(mockAnalyzeProximity).toHaveBeenCalledWith(expect.objectContaining({ latitude: -21.18, longitude: -47.81, radius_km: 20 }));
+      expect(window.location.search).toContain('lat=-21.1800');
+      expect(window.location.search).toContain('radius=20');
+    });
+
+    it('opens a shared link at its point and radius', async () => {
+      window.history.replaceState(null, '', '/map?tool=land&lat=-21.18&lng=-47.81&radius=50');
+      render(<MapComponent />);
+      act(() => { jest.advanceTimersByTime(1500); });
+
+      await waitFor(() => expect(mockAnalyzeProximity).toHaveBeenCalledWith(
+        expect.objectContaining({ latitude: -21.18, longitude: -47.81, radius_km: 50 }),
+      ));
+      expect(await screen.findByRole('button', { name: '50 km', pressed: true })).toBeInTheDocument();
+      expect(screen.getByTestId('land-around-layer')).toHaveAttribute('data-radius', '50');
+    });
+
+    it('asks a signed-out visitor to sign in, and their clicks draw nothing', async () => {
+      mockSession.signedIn = false;
+      render(<MapComponent />);
+      act(() => { jest.advanceTimersByTime(1500); });
+      fireEvent.click(await screen.findByRole('button', { name: 'Uso do solo no entorno' }));
+
+      expect(await screen.findByText('Entre para usar o Uso do solo no entorno')).toBeInTheDocument();
+      fireEvent.click(screen.getByRole('button', { name: 'map click' }));
+      expect(screen.getByTestId('land-around-layer')).toHaveAttribute('data-point', '');
+      expect(mockAnalyzeProximity).not.toHaveBeenCalled();
+    });
+
+    it('hides the municipality shapes while it is on, so clicks reach the map, and brings them back', async () => {
+      render(<MapComponent />);
+      act(() => { jest.advanceTimersByTime(1500); });
+      expect(await screen.findByTestId('municipality-layer')).toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('button', { name: 'Uso do solo no entorno' }));
+      await waitFor(() => expect(screen.queryByTestId('municipality-layer')).not.toBeInTheDocument());
+
+      fireEvent.keyDown(window, { key: 'Escape' });
+      expect(await screen.findByTestId('municipality-layer')).toBeInTheDocument();
+    });
+
+    it('closes on Escape and leaves the URL as it was', async () => {
+      window.history.replaceState(null, '', '/map?tool=land&lat=-21.18&lng=-47.81&radius=20');
+      render(<MapComponent />);
+      act(() => { jest.advanceTimersByTime(1500); });
+      expect(await screen.findByRole('complementary', { name: 'Uso do solo no entorno' })).toBeInTheDocument();
+
+      fireEvent.keyDown(window, { key: 'Escape' });
+      await waitFor(() => expect(screen.queryByRole('complementary', { name: 'Uso do solo no entorno' })).not.toBeInTheDocument());
+      expect(window.location.search).not.toMatch(/tool|lat|lng|radius/);
+      expect(toggle()).toBeInTheDocument();
     });
   });
 });

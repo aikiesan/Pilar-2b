@@ -21,7 +21,6 @@
       "map_interactive": "Interactive map",
       "municipalities": "Municipalities",
       "compare_municipalities": "Compare municipalities",
-      "proximity_logistics": "Proximity and logistics",
       "multicriteria": "Multi-criteria analysis",
       "data_catalog": "Product catalogue",
       "data_legend": "Legend and codes",
@@ -52,7 +51,6 @@
       "compare": "Up to 4 municipalities side by side",
       "scientific_database": "Chemical characterization, kinetics and references",
       "technology_routes": "Simulate biogas, biomethane and energy",
-      "proximity": "Residues and infrastructure within a radius",
       "cite": "How to cite PILAR-2b",
       "patch_notes": "Platform changes, version by version",
       "municipalities": "Find a municipality and open its profile",
@@ -1123,6 +1121,51 @@
         "answer": "much Ideal potential and the largest loss to Real."
       },
       "method_plants": "Plants as 0, 1 and 2 or more."
+    },
+    "landAround": {
+      "toggle": "Land around",
+      "toggle_hint": "Click a point on the map to see what the land around it is used for",
+      "window_aria": "Land around",
+      "close": "Close Land around",
+      "title": "Within {radius} km of {place}",
+      "title_point": "Within {radius} km of this point",
+      "meta": "{count, plural, =0 {{area} km²} one {# municipality, {area} km²} other {# municipalities, {area} km²}}",
+      "radius_group": "Radius",
+      "radius_option": "{radius} km",
+      "idle": "Click a point on the map to see what the land within {radius} km is used for.",
+      "loading": "Measuring the land around this point…",
+      "headline": "{share}% cropland",
+      "subline": "{pasture}% pasture, {forest}% planted forest",
+      "bar_aria": "Land use within the circle",
+      "row_share": "{share}%",
+      "rows": {
+        "other_farming": "Other farming",
+        "unmapped": "Not farmland (native vegetation, towns, water)"
+      },
+      "class_fallback": "Class {id}",
+      "extras": {
+        "biogas": "Biogas potential",
+        "biogas_value": "{value} million m³/yr",
+        "gas_pipeline": "Nearest gas pipeline",
+        "substation": "Nearest thermal power plant",
+        "distance": "{distance} km",
+        "none_within": "None within {radius} km"
+      },
+      "move_hint": "Click elsewhere on the map to move the circle.",
+      "source": "MapBiomas Collection 10, 2024. Land cover is mapped for São Paulo only.",
+      "empty": "No farmland found within {radius} km. Land cover is mapped for São Paulo only, so points in Minas Gerais show nothing here.",
+      "signed_out_title": "Sign in to use Land around",
+      "signed_out_body": "It measures cropland, pasture and planted forest around any point in São Paulo.",
+      "sign_in": "Sign in",
+      "retry": "Try again",
+      "errors": {
+        "rate_limited": "Too many analyses in a row. Wait {seconds} seconds and try again.",
+        "timeout": "The analysis is taking too long. Try again with a smaller radius.",
+        "network": "Connection error. Check your internet connection and try again.",
+        "invalid_coordinates": "This point is outside São Paulo, the only state the land cover covers. Choose a point within São Paulo.",
+        "invalid_radius": "The radius must be 10, 20 or 50 km.",
+        "server": "The analysis could not be completed. Please try again."
+      }
     }
   },
   "metadata": {
@@ -1322,134 +1365,6 @@
         }
       }
     },
-    "proximity": {
-      "title": "Proximity Analysis",
-      "subtitle": "Spatial analysis of biogas potential by collection radius",
-      "how_to_use": "How to use",
-      "step1": "Click on the map to select a point",
-      "step2": "Adjust the capture radius with the slider",
-      "step3": "Click Analyze to see nearby municipalities",
-      "selected_point": "Selected Point",
-      "latitude": "Latitude:",
-      "longitude": "Longitude:",
-      "click_to_select": "Click on the map to select a point",
-      "capture_radius": "Capture Radius",
-      "radius_optimal": "Optimal",
-      "radius_acceptable": "Acceptable",
-      "radius_limit": "At limit",
-      "radius_excessive": "Excessive",
-      "analyzing": "Analyzing…",
-      "analyze": "Analyze",
-      "land_use_title": "Land Use Analysis",
-      "municipalities_count": "{count, plural, one {# municipality} other {# municipalities}}",
-      "share": "Share",
-      "export": "Export Data",
-      "total_area": "Total Analyzed Area",
-      "km2": "square kilometers",
-      "agricultural_use": "Agricultural Use",
-      "farmable_area": "Farmable Area",
-      "main_class": "Main Class",
-      "predominant_use": "predominant land use in area",
-      "detailed_distribution": "Detailed Land Use Distribution",
-      "visual_proportion": "Visual Proportion",
-      "link_copied": "Link copied to clipboard!",
-      "mapbiomas_badge": "MapBiomas 2024",
-      "map": {
-        "loading": "Loading map…",
-        "radius": "Radius: {radius} km",
-        "distance": "Distance:",
-        "population": "Population:",
-        "biogas": "Biogas:",
-        "scope": "<strong>São Paulo</strong> State",
-        "coordinates": "{lat}, {lng}"
-      },
-      "infrastructure": {
-        "title": "Nearest infrastructure",
-        "subtitle": "Straight-line distance from the point to the nearest feature of each type, in the map's infrastructure layers. On the map, a dashed line joins the point to each one.",
-        "types": {
-          "gas_pipeline": "Gas pipeline",
-          "substation": "Thermal power plant",
-          "railway": "State highway",
-          "transmission_line": "Transmission line",
-          "ete": "Sewage treatment plant"
-        },
-        "distance": "{distance} km",
-        "none_within": "None within {radius} km",
-        "nearest_at": "the nearest is {distance} km away",
-        "unavailable": "Layer not loaded on the server"
-      },
-      "processed_in": "Processed in {ms} ms",
-      "badge": {
-        "optimal": "Ideal logistics",
-        "moderate": "Moderate costs",
-        "high": "High costs",
-        "unviable": "Economically unviable"
-      },
-      "dominant_badge": "Dominant",
-      "class_fallback": "Class {id}",
-      "of_area": "of the area",
-      "categories": {
-        "agricultural": "Farming",
-        "forestry": "Forestry",
-        "forest": "Native vegetation",
-        "grassland": "Grassland",
-        "water": "Water",
-        "urban": "Urban",
-        "other": "Other",
-        "nodata": "No data",
-        "unknown": "Unclassified"
-      },
-      "suitability": {
-        "high": {
-          "title": "✓ High suitability for agricultural biogas",
-          "body": "Farming dominates the area ({percent}), which suits the collection of agricultural residues for biogas. This region has excellent potential for digesters."
-        },
-        "medium": {
-          "title": "Moderate suitability for agricultural biogas",
-          "body": "Farming covers {percent} of the area. There is reasonable potential for biogas from agricultural sources, which other biomass sources can complement."
-        },
-        "low": {
-          "title": "Little farming in the area",
-          "body": "Only {percent} of the area is farmed. Consider urban (MSW) or livestock sources to make biogas viable in this region."
-        }
-      },
-      "errors": {
-        "rate_limited": "Too many analyses in a row. Wait {seconds} seconds and try again.",
-        "timeout": "The analysis is taking too long. Try again with a smaller radius.",
-        "network": "Connection error. Check your internet connection and try again.",
-        "invalid_coordinates": "The point is outside the area the proximity analysis covers, which today is the state of São Paulo. Choose a point on land within the state.",
-        "invalid_radius": "The radius must be between {min} and {max} km.",
-        "server": "The analysis could not be completed. Please try again."
-      },
-      "csv": {
-        "municipality": "Municipality",
-        "ibge_code": "IBGE code",
-        "distance_km": "Distance (km)",
-        "biogas_m3_year": "Biogas (m³/year)",
-        "population": "Population",
-        "land_use_class": "Land-use class",
-        "percent": "Share (%)",
-        "area_km2": "Area (km²)",
-        "type": "Type",
-        "name": "Name",
-        "latitude": "Latitude",
-        "longitude": "Longitude",
-        "metric": "Metric",
-        "value": "Value",
-        "point_latitude": "Analysis point (lat)",
-        "point_longitude": "Analysis point (lng)",
-        "radius_km": "Radius (km)",
-        "total_municipalities": "Municipalities",
-        "total_population": "Total population",
-        "avg_distance_km": "Average distance (km)",
-        "total_biogas": "Total biogas potential (m³/year)",
-        "agricultural_biogas": "Agricultural potential (m³/year)",
-        "livestock_biogas": "Livestock potential (m³/year)",
-        "urban_biogas": "Urban potential (m³/year)",
-        "agricultural_land": "Agricultural land use (%)",
-        "processing_time_s": "Processing time (s)"
-      }
-    },
     "compare": {
       "title": "Municipality Comparison",
       "comparing": "Comparing {count} municipalities",
@@ -1504,15 +1419,12 @@
     "open_map_aria": "Open the interactive map",
     "path_label": "How to use",
     "path_map": "Explore the Map",
-    "path_proximity": "Proximity",
     "path_science": "Routes & Science",
     "features_heading": "Available Tools",
     "badge_popular": "Popular",
     "badge_new": "New",
     "feat_map_title": "Interactive Map",
     "feat_map_desc": "Explore biogas potential by municipality, with residue-type filters. São Paulo complete; Minas Gerais in validation (beta).",
-    "feat_proximity_title": "Proximity Analysis",
-    "feat_proximity_desc": "Analyze biogas plant feasibility considering nearby infrastructure",
     "feat_routes_title": "Technology Routes",
     "feat_routes_desc": "Compare different biogas and biomethane production technologies",
     "feat_scientific_title": "Scientific Knowledge Base",
@@ -2478,8 +2390,6 @@
       "build": {
         "heading": "Before building a plant",
         "lede": "Potential is the start. A plant also needs access, someone to buy the gas and a scale that pays.",
-        "proximity": "See what is nearby",
-        "proximity_body": "Pipelines, substations, roads and industry around a point on the map.",
         "calculator": "Calculate a farm",
         "calculator_body": "How much biogas and biomethane a farm’s herd and crops could produce."
       },
@@ -2700,12 +2610,6 @@
       "note": "A reduction potential, not a carbon credit. Methane GWP: {gwp}.",
       "unverified": "Some factors are still being checked.",
       "more": "Simulate a plant in the calculator"
-    },
-    "infrastructure": {
-      "heading": "Nearby infrastructure",
-      "cta": "Open in Proximity and logistics",
-      "cta_plain": "Open Proximity and logistics",
-      "short": "Distances to gas pipelines, transmission lines, substations and plants."
     },
     "data": {
       "downloads_paused": "Downloads are paused during the beta while the database is validated. This municipality's workbook and report return with the other files.",

@@ -36,7 +36,7 @@ test.describe('Portuguese addresses', () => {
     ['/guia', '/guide', 301],
     ['/comparar', '/compare', 301],
     ['/calculadora', '/calculator', 301],
-    ['/proximidade', '/proximity', 301],
+    ['/proximidade', '/map', 301],
     ['/citar', '/cite', 301],
     ['/acessibilidade', '/accessibility', 301],
     ['/privacidade', '/privacy', 301],

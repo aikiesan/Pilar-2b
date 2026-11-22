@@ -1,12 +1,10 @@
-import { datedFilename, downloadCsv, toCsv } from '@/lib/download';
 /**
  * Proximity Analysis API service for PILAR-2b V3
  * Handles spatial analysis with MapBiomas integration: retry, timeout, frontend
  * caching and the request queue.
  *
  * No user-facing text here: failures are thrown as ProximityError with a code,
- * and the page words them (pages.proximity.errors). CSV headers are passed in by
- * the caller, in the page's language.
+ * and the Land around tool on the map words them (Map.landAround.errors).
  */
 
 import { retryOperation, measurePerformance } from '@/lib/performance';
@@ -22,7 +20,12 @@ export interface ProximityAnalysisRequest {
   latitude: number;
   longitude: number;
   radius_km: number;
-  infrastructure_types?: string[];
+  /** What to compute; the backend turns each part on when this is left out. */
+  options?: {
+    include_mapbiomas?: boolean;
+    include_biogas_potential?: boolean;
+    include_infrastructure?: boolean;
+  };
 }
 
 /** One MapBiomas class inside the buffer, keyed by its class id. */
@@ -142,6 +145,15 @@ const VALIDATION_CODES: Record<string, ProximityErrorCode> = {
   INVALID_RADIUS: 'invalid_radius',
 };
 
+/** The error code for a FastAPI 422, from the request fields it names. */
+function requestFieldError(detail: unknown): ProximityErrorCode | null {
+  if (!Array.isArray(detail)) return null;
+  const fields = detail.flatMap((d) => (Array.isArray(d?.loc) ? d.loc : []));
+  if (fields.includes('latitude') || fields.includes('longitude')) return 'invalid_coordinates';
+  if (fields.includes('radius_km')) return 'invalid_radius';
+  return null;
+}
+
 /** The class covering the most of the buffer, when the backend did not name its id. */
 export function dominantLandUseClass(byClass: Record<string, LandUseClass>): LandUseClass | null {
   let best: LandUseClass | null = null;
@@ -197,8 +209,10 @@ export async function analyzeProximity(
             throw new ProximityError('rate_limited', Number(data.retry_after) || 60, 429);
           }
           // 400s carry { detail: { error, code, suggestion } }; the error text is
-          // the backend's own (Portuguese), so only the code is used.
-          const code = VALIDATION_CODES[data?.detail?.code] ?? 'server';
+          // the backend's own (Portuguese), so only the code is used. A point or
+          // radius outside the request model's bounds fails earlier, in FastAPI's
+          // own validation: a 422 whose detail lists the fields at fault.
+          const code = VALIDATION_CODES[data?.detail?.code] ?? requestFieldError(data?.detail) ?? 'server';
           logger.warn('Proximity analysis rejected:', response.status, data?.detail);
           throw new ProximityError(code, undefined, response.status);
         }
@@ -238,97 +252,10 @@ function isRetryable(error: unknown): boolean {
   return error.code === 'network' || (error.code === 'server' && (error.status ?? 500) >= 500);
 }
 
-/** Column and row headings for the CSV export, in the page's language. */
-export interface ProximityCsvHeaders {
-  municipalities: [name: string, ibge: string, distance: string, biogas: string, population: string];
-  landUse: [className: string, percent: string, area: string];
-  infrastructure: [type: string, name: string, distance: string, latitude: string, longitude: string];
-  summary: {
-    metric: string;
-    value: string;
-    latitude: string;
-    longitude: string;
-    radius: string;
-    municipalities: string;
-    population: string;
-    avgDistance: string;
-    totalBiogas: string;
-    agricultural: string;
-    livestock: string;
-    urban: string;
-    agriculturalLand: string;
-    processingTime: string;
-  };
-  /** Display name of a land-use class, by its MapBiomas id. */
-  landUseClass: (entry: LandUseClass) => string;
-}
-
 /**
- * Export analysis results as four CSV files. Numbers use a dot decimal
- * separator, as data files should, whatever the page language.
- */
-export function exportAnalysisToCSV(result: ProximityAnalysisResult, headers: ProximityCsvHeaders): void {
-  const { municipalities } = result.results;
-  const landUse = Object.values(result.results.land_use?.by_class ?? {});
-  const infrastructure = result.results.infrastructure ?? [];
-  const byCategory = result.results.biogas_potential?.by_category ?? {};
-  const distances = municipalities.map((m) => Number(m.distance_km) || 0);
-  const avgDistance = distances.length ? distances.reduce((a, b) => a + b, 0) / distances.length : 0;
-  const fixed = (value: unknown, digits = 2) => (Number(value) || 0).toFixed(digits);
-
-  const municipalitiesCSV = toCsv([
-    headers.municipalities,
-    ...municipalities.map((m) => [
-      m.name,
-      m.ibge_code ?? '',
-      fixed(m.distance_km),
-      fixed(m.biogas_m3_year),
-      String(Number(m.population) || 0),
-    ]),
-  ]);
-
-  const landUseCSV = toCsv([
-    headers.landUse,
-    ...landUse.map((entry) => [headers.landUseClass(entry), fixed(entry.percent), fixed(entry.area_km2)]),
-  ]);
-
-  const infrastructureCSV = toCsv([
-    headers.infrastructure,
-    ...infrastructure.map((inf) => [
-      inf.type,
-      inf.name ?? '',
-      inf.distance_km == null ? '' : fixed(inf.distance_km),
-      inf.coordinates ? inf.coordinates.latitude.toFixed(6) : '',
-      inf.coordinates ? inf.coordinates.longitude.toFixed(6) : '',
-    ]),
-  ]);
-
-  const s = headers.summary;
-  const summaryCSV = toCsv([
-    [s.metric, s.value],
-    [s.latitude, result.request.latitude.toFixed(6)],
-    [s.longitude, result.request.longitude.toFixed(6)],
-    [s.radius, String(result.request.radius_km)],
-    [s.municipalities, String(result.summary.total_municipalities)],
-    [s.population, String(result.summary.total_population)],
-    [s.avgDistance, avgDistance.toFixed(2)],
-    [s.totalBiogas, fixed(result.summary.total_biogas_m3_year)],
-    [s.agricultural, fixed(byCategory.agricultural)],
-    [s.livestock, fixed(byCategory.livestock)],
-    [s.urban, fixed(byCategory.urban)],
-    [s.agriculturalLand, fixed(result.results.land_use?.agricultural_percent)],
-    [s.processingTime, (result.metadata.processing_time_ms / 1000).toFixed(2)],
-  ]);
-
-  downloadCsv(summaryCSV, datedFilename('proximity-summary', 'csv'));
-  downloadCsv(municipalitiesCSV, datedFilename('proximity-municipalities', 'csv'));
-  downloadCsv(landUseCSV, datedFilename('proximity-land-use', 'csv'));
-  downloadCsv(infrastructureCSV, datedFilename('proximity-infrastructure', 'csv'));
-}
-
-/**
- * Shareable URL for an analysis, in the sharer's language (a link without the
- * locale prefix would open in Portuguese for everyone).
+ * Shareable link to the Land around tool on the map, open at this point, in the
+ * sharer's language (a link without the locale prefix would open in Portuguese
+ * for everyone).
  */
 export function generateShareURL(
   latitude: number,
@@ -337,36 +264,12 @@ export function generateShareURL(
   locale: Locale
 ): string {
   const params = new URLSearchParams({
-    lat: latitude.toFixed(6),
-    lng: longitude.toFixed(6),
+    tool: 'land',
+    lat: latitude.toFixed(4),
+    lng: longitude.toFixed(4),
     radius: radiusKm.toString(),
   });
 
   // Built by hand, so the base path (/pilar2b in production) is added here.
-  return `${window.location.origin}${withBasePath(`/${locale}/proximity`)}?${params.toString()}`;
-}
-
-/**
- * Parse URL parameters for shared analysis
- */
-export function parseShareURL(): {
-  latitude: number | null;
-  longitude: number | null;
-  radiusKm: number | null;
-} {
-  if (typeof window === 'undefined') {
-    return { latitude: null, longitude: null, radiusKm: null };
-  }
-
-  const params = new URLSearchParams(window.location.search);
-
-  const lat = params.get('lat');
-  const lng = params.get('lng');
-  const radius = params.get('radius');
-
-  return {
-    latitude: lat ? parseFloat(lat) : null,
-    longitude: lng ? parseFloat(lng) : null,
-    radiusKm: radius ? parseInt(radius, 10) : null,
-  };
+  return `${window.location.origin}${withBasePath(`/${locale}/map`)}?${params.toString()}`;
 }
