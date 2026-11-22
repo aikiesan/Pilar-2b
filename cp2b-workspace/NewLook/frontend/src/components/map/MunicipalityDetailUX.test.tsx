@@ -64,41 +64,52 @@ describe('municipality detail UX', () => {
     expect(container.firstElementChild).toHaveStyle({ left: '748px', top: '644px' });
   });
 
-  it('moves the three SP urban streams into the click-open detail panel', () => {
+  const renderPanel = (feature: MunicipalityFeature, features?: MunicipalityFeature[]) =>
     render(
       <MunicipalityProfilePanel
-        municipality={municipality('SP')}
+        municipality={feature}
         visible
         onClose={jest.fn()}
         metric="methane_m3"
         scenario="real"
+        features={features}
       />,
     );
+  const openTab = (name: string) => fireEvent.click(screen.getByRole('button', { name }));
+
+  it('opens on the summary, with the answer in one sentence', () => {
+    renderPanel(municipality('SP'));
 
     expect(screen.getByRole('complementary', { name: /Detalhes do município de Campinas/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Resumo' })).toHaveAttribute('aria-pressed', 'true');
+    // 2 000 Nm³ of N4, of which FORSU (1 200) is the largest share.
+    expect(screen.getByText(/Pode gerar/)).toHaveTextContent('Pode gerar 2 mil Nm³ de metano por ano');
+    expect(screen.getByText(/viria de/)).toHaveTextContent('60% viria de FORSU (orgânicos).');
+    expect(screen.getByText('Principal: FORSU')).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'De onde vem o metano' })).toHaveTextContent('Lodo de ETE');
+  });
 
-    // No accordion: the urban streams are on screen as soon as the panel opens.
+  it('keeps the three SP urban streams in the residues tab', () => {
+    renderPanel(municipality('SP'));
+    openTab('Resíduos');
+
     const urban = screen.getByRole('region', { name: 'Urbano' });
     expect(urban).toHaveTextContent('FORSU');
     expect(urban).toHaveTextContent('Poda urbana');
     expect(urban).toHaveTextContent('Lodo de ETE');
+
+    // The scenario note sits with the sources, so the residue list fits.
+    openTab('Fontes');
     expect(screen.getByText(/Não representa massa coletada em t\/ano/)).toBeInTheDocument();
   });
 
   it('starts the residue list in the map metric and switches to tonnes', () => {
-    render(
-      <MunicipalityProfilePanel
-        municipality={municipality('SP')}
-        visible
-        onClose={jest.fn()}
-        metric="methane_m3"
-        scenario="real"
-      />,
-    );
+    renderPanel(municipality('SP'));
+    openTab('Resíduos');
 
     const methane = screen.getByRole('button', { name: 'CH₄ N4' });
     expect(methane).toHaveAttribute('aria-pressed', 'true');
-    expect(screen.getByText(/nível N4 do método CP2b/)).toBeInTheDocument();
+    expect(screen.getByText(/Nível N4, em/)).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Toneladas' }));
     expect(screen.getByRole('button', { name: 'Toneladas' })).toHaveAttribute('aria-pressed', 'true');
@@ -107,17 +118,60 @@ describe('municipality detail UX', () => {
   });
 
   it('shows the explicit MG validation gap instead of population-derived values', () => {
-    render(
-      <MunicipalityProfilePanel
-        municipality={municipality('MG')}
-        visible
-        onClose={jest.fn()}
-        metric="methane_m3"
-        scenario="real"
-      />,
-    );
+    renderPanel(municipality('MG'));
+    openTab('Resíduos');
 
     expect(screen.getByText('Sem inventário urbano validado para MG')).toBeInTheDocument();
     expect(screen.getByText(/não foram inferidos a partir da população/i)).toBeInTheDocument();
+  });
+
+  it('shows the population under the area only when it has one', () => {
+    const feature = municipality('SP');
+    feature.properties = {
+      ...feature.properties,
+      population: null,
+      population_density: null,
+      gdp_per_capita: null,
+    } as unknown as MunicipalityFeature['properties'];
+    const { unmount } = renderPanel(feature);
+    const area = screen.getByText('Área').closest('div')!;
+    expect(area).toHaveTextContent('100');
+    expect(area).not.toHaveTextContent('habitantes');
+    unmount();
+
+    renderPanel(municipality('SP'));
+    expect(screen.getByText('Área').closest('div')).toHaveTextContent('1 mi habitantes');
+  });
+
+  it('ranks the municipality in the state and its region from the map features', () => {
+    const peer = (code: string, name: string, region: string, n4: number): MunicipalityFeature => ({
+      type: 'Feature',
+      geometry: { type: 'Polygon', coordinates: [] },
+      properties: municipalityProps({ name, ibge_code: code, immediate_region: region, ch4_cp2b_n4_m3_year: n4 }),
+    });
+    const self = municipality('SP');
+    self.properties = { ...self.properties, immediate_region: 'Campinas' };
+    const features = [
+      peer('3500001', 'Grande', 'Campinas', 9_000),
+      self,
+      peer('3500002', 'Pequena', 'Campinas', 100),
+      peer('3500003', 'Longe', 'Outra', 5_000),
+    ];
+    renderPanel(self, features);
+
+    expect(screen.getByText('3º de 4 em SP')).toBeInTheDocument();
+
+    openTab('Posição');
+    expect(screen.getByRole('img', { name: /Campinas é o 3º/ })).toBeInTheDocument();
+    const region = screen.getByRole('region', { name: 'Na região imediata de Campinas' });
+    expect(region).toHaveTextContent('2º de 3');
+    expect(region).toHaveTextContent('1º Grande');
+    expect(region).toHaveTextContent('2º Campinas');
+  });
+
+  it('says so when there is nothing to rank', () => {
+    renderPanel(municipality('SP'));
+    openTab('Posição');
+    expect(screen.getByText('Sem metano calculado para comparar este município.')).toBeInTheDocument();
   });
 });

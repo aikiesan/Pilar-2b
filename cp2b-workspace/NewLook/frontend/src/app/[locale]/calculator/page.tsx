@@ -1,8 +1,13 @@
 'use client'
 
+/**
+ * /calculator — the biogas viability calculator, under the same header as the
+ * other sector pages (eyebrow, title, lede over the leaf ornament).
+ */
 import { useTranslations } from 'next-intl'
 import dynamic from 'next/dynamic'
-import { BreadcrumbBar } from '@/components/ui/Breadcrumb'
+import Breadcrumb from '@/components/ui/Breadcrumb'
+import { HeaderLeaves } from '@/components/ui/ArcOrnament'
 import { useBreadcrumbs } from '@/hooks/useBreadcrumbs'
 
 const BiogasCalculator = dynamic(() => import('./components/BiogasCalculator'), { ssr: false })
@@ -12,21 +17,25 @@ export default function TechnologyRoutesPage() {
   const breadcrumbs = useBreadcrumbs()
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-slate-900">
-      <BreadcrumbBar items={breadcrumbs} />
-      <div className="max-w-2xl mx-auto px-4 py-6">
-        <div className="mb-8 text-center">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100">{t('title')}</h1>
-          <p className="text-gray-500 dark:text-slate-400 text-sm mt-1">{t('subtitle')}</p>
+    <div className="min-h-screen bg-paper">
+      <header className="relative overflow-hidden border-b border-line">
+        <HeaderLeaves />
+        <div className="relative mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
+          <Breadcrumb items={breadcrumbs} />
+          <p className="eyebrow mt-4">{t('eyebrow')}</p>
+          <h1 className="mt-2 text-4xl text-ink sm:text-5xl">{t('title')}</h1>
+          <p className="mt-4 max-w-2xl text-ink-muted">{t('subtitle')}</p>
         </div>
+      </header>
 
-        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700 p-6">
+      <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className="border border-line bg-paper-raised p-6 shadow-sm">
           <BiogasCalculator />
         </div>
 
-        <p className="text-center text-xs text-gray-500 dark:text-slate-400 mt-6">
+        <p className="mt-6 text-center text-xs text-ink-muted">
           {t('footer_note')}
-          <a href="mailto:cp2b@unicamp.br" className="underline hover:text-gray-700 dark:hover:text-slate-200">cp2b@unicamp.br</a>
+          <a href="mailto:cp2b@unicamp.br" className="underline hover:text-ink">cp2b@unicamp.br</a>
         </p>
       </div>
     </div>

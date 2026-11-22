@@ -251,6 +251,22 @@ export function useIntermediateRegionsGeoJSON(params: {
 }
 
 /**
+ * Plants and pipeline distance per municipality, for the map's two
+ * infrastructure analyses. Fetched only once one of them is chosen: the first
+ * request costs the backend a few seconds (it is cached there after that).
+ */
+export function useSitingIndicators(enabled: boolean) {
+  return useQuery({
+    queryKey: ['siting-indicators'],
+    queryFn: () => geospatialClient.getSitingIndicators(),
+    enabled,
+    staleTime: 6 * 60 * 60 * 1000,
+    gcTime: 6 * 60 * 60 * 1000,
+    retry: 1,
+  });
+}
+
+/**
  * Full properties for one municipality, fetched on demand.
  *
  * The collection is served slim (`fields=map`), so the tooltip and panel top up

@@ -55,6 +55,7 @@ jest.mock('@/hooks/useGeospatialData', () => ({
   // Tooltip/panel top up from the per-municipality detail endpoint; the
   // collection is served slim (fields=map).
   useMunicipalityMetrics: () => ({ data: undefined, isLoading: false, error: null }),
+  useSitingIndicators: () => ({ data: undefined, isError: false }),
 }));
 
 // The beta typology hook lives in a separate module and also calls React
@@ -378,7 +379,8 @@ describe('MapComponent', () => {
 
       await waitFor(() => {
         expect(screen.getByTestId('map-container')).toBeInTheDocument();
-        expect(screen.getByTestId('tile-layer')).toBeInTheDocument();
+        // The basemap, plus its labels overlay drawn above the choropleth.
+        expect(screen.getAllByTestId('tile-layer')).toHaveLength(2);
       });
     });
 

@@ -32,7 +32,7 @@ export default function Cite<S extends Citable>({
 }) {
   if (!sources?.length) return null
   return (
-    <span className={`ml-1 inline-flex flex-wrap gap-1 align-baseline ${className}`}>
+    <span className={`ml-1 inline-flex max-w-full flex-wrap gap-1 align-baseline ${className}`}>
       {sources.map((s) =>
         s.url ? (
           <a

@@ -163,23 +163,26 @@ export function BarList({
   rows,
   scale,
   labelWidth = 'minmax(6.5rem, 9rem)',
+  dense = false,
 }: {
   rows: BarRow[]
   /** The value a full-width bar stands for; defaults to the largest row. */
   scale?: number
   labelWidth?: string
+  /** Smaller text and tighter rows, for narrow panels. */
+  dense?: boolean
 }) {
   const max = scale ?? Math.max(0, ...rows.map((r) => r.value))
   return (
-    <ul className="space-y-1.5">
+    <ul className={dense ? 'space-y-0.5' : 'space-y-1.5'}>
       {rows.map((r) => (
         <li
           key={r.key}
-          className="grid items-center gap-x-3 text-sm"
+          className={`grid items-center gap-x-3 ${dense ? 'text-xs leading-5' : 'text-sm'}`}
           style={{ gridTemplateColumns: `${labelWidth} 1fr auto` } as CSSProperties}
         >
           <span className={`truncate ${r.emphasis ? 'font-semibold text-ink' : 'text-ink'}`}>{r.label}</span>
-          <span className="block h-2.5" aria-hidden="true">
+          <span className={`block ${dense ? 'h-2' : 'h-2.5'}`} aria-hidden="true">
             <span
               className={`block h-full rounded-r ${r.barClassName ?? ''}`}
               style={{ width: barWidth(r.value, max), backgroundColor: r.barClassName ? undefined : r.color }}

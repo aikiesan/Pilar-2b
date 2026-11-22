@@ -13,9 +13,16 @@
  * default covered the map with that watermark. basemaps.test.ts refuses any
  * provider that needs a key.
  *
- * `refUrl` is an optional label/boundary overlay drawn ON TOP of the base — only
- * satellite needs it, because imagery alone carries no municipality names.
+ * `labelsUrl` is a labels-only overlay (place names, borders) that the map draws
+ * ABOVE the choropleth, in its own pane: the base tiles carry their own names,
+ * but those sit under the municipality fill and can't be read once it is on.
+ * Esri's light-gray reference (dark text, white halo) reads on any fill colour;
+ * satellite keeps Esri's imagery reference, which it always needed for names.
  */
+
+const LIGHT_LABELS =
+  'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}';
+const LABELS_ATTRIBUTION = 'Labels &copy; Esri';
 
 export type BasemapId = 'mapa' | 'satelite' | 'terreno';
 
@@ -26,8 +33,8 @@ export interface Basemap {
   url: string;
   attribution: string;
   maxZoom: number;
-  /** Optional reference overlay (labels/boundaries) drawn above the base tiles. */
-  refUrl?: string;
+  /** Labels-only overlay (names, borders), drawn above the choropleth. */
+  labelsUrl: string;
 }
 
 export const BASEMAPS: Record<BasemapId, Basemap> = {
@@ -36,8 +43,9 @@ export const BASEMAPS: Record<BasemapId, Basemap> = {
     icon: '🗺️',
     url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
     attribution:
-      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      `&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> · ${LABELS_ATTRIBUTION}`,
     maxZoom: 19,
+    labelsUrl: LIGHT_LABELS,
   },
   satelite: {
     id: 'satelite',
@@ -46,7 +54,7 @@ export const BASEMAPS: Record<BasemapId, Basemap> = {
     attribution:
       'Tiles &copy; Esri — Source: Esri, Maxar, Earthstar Geographics, and the GIS User Community',
     maxZoom: 19,
-    refUrl:
+    labelsUrl:
       'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
   },
   terreno: {
@@ -54,8 +62,10 @@ export const BASEMAPS: Record<BasemapId, Basemap> = {
     icon: '⛰️',
     url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
     attribution:
-      'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, SRTM | Style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (CC-BY-SA)',
+      'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, SRTM | Style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (CC-BY-SA) · ' +
+      LABELS_ATTRIBUTION,
     maxZoom: 17,
+    labelsUrl: LIGHT_LABELS,
   },
 };
 

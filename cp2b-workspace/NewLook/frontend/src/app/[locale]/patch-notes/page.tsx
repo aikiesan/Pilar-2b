@@ -119,7 +119,7 @@ export default function PatchNotesPage() {
                         <Icon className="h-3 w-3" aria-hidden="true" />
                         {t(`kind.${change.kind}`)}
                       </span>
-                      <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                      <p className="text-gray-700 dark:text-gray-300 leading-relaxed [overflow-wrap:anywhere]">
                         {pick(change.text, locale)}
                       </p>
                     </li>

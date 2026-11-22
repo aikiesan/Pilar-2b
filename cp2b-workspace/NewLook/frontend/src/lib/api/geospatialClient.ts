@@ -3,6 +3,7 @@
  * Centralized API client for geospatial data fetching
  */
 
+import type { SitingIndicators } from '@/lib/mapAnalyses';
 import type {
   MunicipalityCollection,
   SummaryStatistics,
@@ -131,6 +132,14 @@ class GeospatialClient {
     const url = `${this.baseUrl}/api/v1/municipalities/${ibgeCode}/metrics`;
     const response = await fetch(url, { headers: { 'Content-Type': 'application/json' } });
     if (!response.ok) throw new Error(`metrics ${ibgeCode}: HTTP ${response.status}`);
+    return response.json();
+  }
+
+  /** Biogas plants and distance to the nearest gas pipeline, per municipality (map analyses). */
+  async getSitingIndicators(): Promise<{ available: boolean; indicators: SitingIndicators }> {
+    const url = `${this.baseUrl}/api/v1/municipalities/siting-indicators`;
+    const response = await fetch(url, { headers: { 'Content-Type': 'application/json' } });
+    if (!response.ok) throw new Error(`siting indicators: HTTP ${response.status}`);
     return response.json();
   }
 

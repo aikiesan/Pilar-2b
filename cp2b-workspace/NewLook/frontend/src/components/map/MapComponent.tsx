@@ -15,10 +15,12 @@ import MapTour, { MapTourButton } from './MapTour';
 import { MapContainer, TileLayer, ScaleControl, ZoomControl, useMap } from 'react-leaflet';
 import dynamic from 'next/dynamic';
 import { CircleAlert, Loader2 } from 'lucide-react';
-import { useGeospatialData, useCodigestionClusters, useResidueCNMatrix, useIntermediateRegionsGeoJSON } from '@/hooks/useGeospatialData';
+import { useGeospatialData, useCodigestionClusters, useResidueCNMatrix, useIntermediateRegionsGeoJSON, useSitingIndicators } from '@/hooks/useGeospatialData';
+import { ANALYSES, analysisFill, classifyAnalysis, isAnalysisId, type AnalysisId } from '@/lib/mapAnalyses';
+import BivariateLegend from './BivariateLegend';
 import type { FilterCriteria, BiomassType, ResidueType, VisualizationMode } from '@/types/map';
 import type { MunicipalityCollection, MunicipalityFeature, DisplayMetric, CodigestionCluster } from '@/types/geospatial';
-import { MAP_SCENARIOS, DEFAULT_MAP_SCENARIO, applyScenarioToProps, isServedScenario, type MapScenarioKey } from '@/data/scenarioFactors';
+import { MAP_SCENARIOS, DEFAULT_MAP_SCENARIO, SERVED_SOURCE_TIER, applyScenarioToProps, isServedScenario, type MapScenarioKey } from '@/data/scenarioFactors';
 import { DISPLAY_METRICS, getMetricSpec, computeAdaptiveBreaks, DEFAULT_MAP_PALETTE } from '@/lib/mapMetrics';
 import { setMapPalette } from '@/hooks/useMapPalette';
 import { CN_LEGEND_ROWS } from '@/lib/cnScale';
@@ -109,6 +111,24 @@ function InfraPane() {
     }
   }, [map]);
   return null;
+}
+
+// Place names drawn ABOVE the choropleth, infrastructure and the highlight
+// outline (460), below markers (600): the base tiles' own names sit under the
+// municipality fill and can't be read once it is on. The pane never catches
+// the pointer, so clicks still reach the municipality underneath. Made during
+// render so it exists before the TileLayer child adds itself to it.
+const LABELS_PANE = 'basemap-labels';
+function BasemapLabels({ url, maxZoom }: { url: string; maxZoom: number }) {
+  const map = useMap();
+  useMemo(() => {
+    if (!map.getPane(LABELS_PANE)) {
+      const p = map.createPane(LABELS_PANE);
+      p.style.zIndex = '470';
+      p.style.pointerEvents = 'none';
+    }
+  }, [map]);
+  return <TileLayer key={url} url={url} maxZoom={maxZoom} pane={LABELS_PANE} />;
 }
 
 // Dynamically import components to avoid SSR issues
@@ -313,10 +333,13 @@ export default function MapComponent({
   const urlQuery = readURLParam('q');
   const urlMetric = readURLParam('metric');
   const urlScope = readURLParam('scope'); // 'brazil' → national view
+  const urlAnalysis = readURLParam('a');
   const initialScope = parseScopeParam(urlScope);
 
+  // An analysis paints the choropleth, so ?a= wins over any other ?mode=.
   const initialMode: VisualizationMode =
-    VALID_VIZ.includes(urlMode as VisualizationMode) ? (urlMode as VisualizationMode) : 'choropleth';
+    isAnalysisId(urlAnalysis) ? 'choropleth'
+      : VALID_VIZ.includes(urlMode as VisualizationMode) ? (urlMode as VisualizationMode) : 'choropleth';
 
   // visualizationMode must be declared before useCodigestionClusters uses it
   const [visualizationMode, setVisualizationMode] = useState<VisualizationMode>(initialMode);
@@ -369,6 +392,11 @@ export default function MapComponent({
   // The on-map thematic ribbon starts visible (that's the point — it invites
   // exploration); users can collapse it to reclaim the strip.
   const [thematicBarCollapsed, setThematicBarCollapsed] = useState(false);
+  // The bivariate analysis painting the map, if any (?a=<id>). Any other map
+  // choice (metric, mode, theme, filter) ends it: the two never mix.
+  const [activeAnalysis, setActiveAnalysis] = useState<AnalysisId | null>(
+    isAnalysisId(urlAnalysis) ? urlAnalysis : null
+  );
 
   // Preserve valid MG sector/metric bookmarks while removing residue keys that
   // are visibly disabled for the pilot. Without this, a stale URL could count
@@ -473,6 +501,9 @@ export default function MapComponent({
     if (residues.length > 0) params.set('r', residues.join(',')); else params.delete('r');
     params.delete('q');
     if (metric !== 'biomass_tons') params.set('metric', metric); else params.delete('metric');
+    // Every caller is a map choice that ends the analysis.
+    params.delete('a');
+    setActiveAnalysis(null);
     window.history.replaceState(null, '', `${window.location.pathname}?${params.toString()}`);
   }, []);
 
@@ -702,6 +733,54 @@ export default function MapComponent({
     syncURL(nextMode, nextType, nextResidues, nextMetric);
   }, [visualizationMode, biomassType, selectedResidues, displayMetric, onBiomassTypeChange, syncURL]);
 
+  // Choose a bivariate analysis (or none). It paints the choropleth, so the map
+  // goes back to the choropleth mode, and the theme highlight goes.
+  const handleAnalysisChange = useCallback((next: AnalysisId | null) => {
+    setActiveAnalysis(next);
+    if (next) {
+      setVisualizationMode('choropleth');
+      setShowClusterPanel(false);
+      setSelectedClusterId(null);
+      setActivePresetId(null);
+    }
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (next) {
+        params.set('a', next);
+        params.set('mode', 'choropleth');
+      } else {
+        params.delete('a');
+      }
+      window.history.replaceState(null, '', `${window.location.pathname}?${params.toString()}`);
+    }
+  }, []);
+
+  // An analysis brings its infrastructure as context (plants for the gap,
+  // pipelines for siting) and takes it away when it ends. Only the layers the
+  // analysis itself switched on are taken away: one the reader already had on
+  // stays on.
+  const analysisOwnedLayersRef = useRef<readonly string[]>([]);
+  useEffect(() => {
+    const next: readonly string[] = activeAnalysis ? ANALYSES[activeAnalysis].layers : [];
+    if (analysisOwnedLayersRef.current.length === 0 && next.length === 0) return;
+    setLayers(prev => {
+      const owned = analysisOwnedLayersRef.current;
+      const nowOwned: string[] = [];
+      const updated = prev.map(l => {
+        if (next.includes(l.id)) {
+          if (owned.includes(l.id)) nowOwned.push(l.id);
+          if (l.visible) return l;
+          nowOwned.push(l.id);
+          return { ...l, visible: true };
+        }
+        if (owned.includes(l.id) && l.visible) return { ...l, visible: false };
+        return l;
+      });
+      analysisOwnedLayersRef.current = nowOwned;
+      return updated;
+    });
+  }, [activeAnalysis]);
+
   const visibleLayerIds = useMemo(
     () => layers.filter(l => l.visible).map((l): string => l.id),
     [layers]
@@ -842,6 +921,28 @@ export default function MapComponent({
     return computeAdaptiveBreaks(values);
   }, [filteredData, displayMetric, biomassType, selectedResidues, mapScenario, scope]);
 
+  // ── Bivariate analysis ──────────────────────────────────────────────────────
+  const analysisDef = activeAnalysis ? ANALYSES[activeAnalysis] : null;
+  const siting = useSitingIndicators(Boolean(analysisDef?.needsSiting));
+  const sitingIndicators = siting.data?.available ? siting.data.indicators : null;
+  const analysisWaiting = Boolean(analysisDef?.needsSiting) && !sitingIndicators;
+  const analysisFailed = Boolean(analysisDef?.needsSiting) && (siting.isError || siting.data?.available === false);
+  const analysisUf = scope === '31' ? '31' : SAO_PAULO_UF;
+  const analysisResult = useMemo(() => {
+    if (!analysisDef || analysisWaiting) return null;
+    // Methane follows the scenario the map is on (N4 Real, N3 Ideal).
+    const tier = SERVED_SOURCE_TIER[isServedScenario(mapScenario) ? mapScenario : 'real'];
+    return classifyAnalysis(analysisDef, data?.features ?? [], analysisUf, sitingIndicators, `ch4_${tier}_m3_year`);
+  }, [analysisDef, analysisWaiting, data, analysisUf, sitingIndicators, mapScenario]);
+  const analysisFillFor = useMemo(() => {
+    if (!analysisResult) return null;
+    const palette = daltonic ? 'cvd' : 'default';
+    return (code: string) => {
+      const row = analysisResult.byCode.get(code);
+      return row ? analysisFill(row.cell, palette) : undefined;
+    };
+  }, [analysisResult, daltonic]);
+
   // ── Guard states ────────────────────────────────────────────────────────────
   if (!isMounted) return <MapLoadingSkeleton />;
   if (loading || (data && isRendering)) return <MapLoadingSkeleton />;
@@ -932,6 +1033,8 @@ export default function MapComponent({
           scenario={mapScenario}
           onApplyPreset={handleApplyPreset}
           activePresetId={activePresetId}
+          activeAnalysis={activeAnalysis}
+          onAnalysisChange={handleAnalysisChange}
         />
       )}
 
@@ -1128,19 +1231,17 @@ export default function MapComponent({
           preferCanvas={true}
           style={MAP_CONTAINER_STYLE}
         >
-          {/* Basemap — switchable (Mapa / Satélite / Terreno / Light Canvas).
-              The `key` forces a clean re-fetch when the source changes. Satellite
-              carries a reference overlay (labels/boundaries) so municipality names
-              stay legible over the imagery. */}
+          {/* Basemap — switchable (Mapa / Satélite / Terreno).
+              The `key` forces a clean re-fetch when the source changes. Every
+              basemap carries a labels overlay, drawn above the choropleth by
+              BasemapLabels, so place names stay legible over the fill. */}
           <TileLayer
             key={basemap}
             attribution={activeBasemap.attribution}
             url={activeBasemap.url}
             maxZoom={activeBasemap.maxZoom}
           />
-          {activeBasemap.refUrl && (
-            <TileLayer key={`${basemap}-ref`} url={activeBasemap.refUrl} maxZoom={activeBasemap.maxZoom} />
-          )}
+          <BasemapLabels key={`${basemap}-labels`} url={activeBasemap.labelsUrl} maxZoom={activeBasemap.maxZoom} />
 
           {/* Metric scale bar (km only — imperial off). */}
           <ScaleControl position="bottomleft" imperial={false} metric={true} />
@@ -1167,6 +1268,7 @@ export default function MapComponent({
                   scaleBreaks={scaleBreaks}
                   showNationalBeta={showNationalBeta}
                   paintBetaData={isMgScope || showNationalBeta}
+                  fillOverride={visualizationMode === 'choropleth' ? analysisFillFor : null}
                   onMunicipalityClick={visualizationMode === 'clusters' ? undefined : handleMunicipalityClick}
                   onMunicipalityHover={visualizationMode === 'clusters' ? undefined : handleMunicipalityHover}
                 />
@@ -1276,6 +1378,7 @@ export default function MapComponent({
             visible={selectedMunicipality !== null}
             metric={displayMetric}
             scenario={mapScenario}
+            features={data?.features}
           />
         )}
 
@@ -1396,13 +1499,35 @@ export default function MapComponent({
 
         </div>{/* end bottom-left overlay stack */}
 
-        {/* ── Bottom-right overlay stack (same non-overlapping flow) ── */}
-        <div className="absolute bottom-20 right-2 z-[500] flex flex-col-reverse items-end gap-2 pointer-events-none md:bottom-4 md:right-4 [&>*]:pointer-events-auto">
+        {/* ── Bottom-right overlay stack (same non-overlapping flow) ──
+            While the profile panel is open as a right-hand drawer (landscape,
+            which covers every desktop) the stack moves left of it, so the
+            legend stays readable next to the municipality it explains. The
+            offset is the drawer's width in MunicipalityProfilePanel plus 1rem. */}
+        <div
+          data-testid="map-bottom-right-stack"
+          className={`absolute bottom-20 right-2 z-[500] flex flex-col-reverse items-end gap-2 pointer-events-none md:bottom-4 md:right-4 [&>*]:pointer-events-auto transition-[right] duration-200 ${
+            selectedMunicipality ? 'landscape:right-[calc(min(88vw,360px)+1rem)]' : ''
+          }`}
+        >
 
         {/* Legends.
             Desktop: shown in full. Mobile: the choropleth legend collapses to a
             chip (tap to expand) so it doesn't crowd the screen. */}
-        {visibleLayerIds.includes('municipalities') && visualizationMode !== 'clusters' && (
+        {visibleLayerIds.includes('municipalities') && activeAnalysis && visualizationMode === 'choropleth' && (
+          <div data-tour="map-legend">
+            <BivariateLegend
+              id={activeAnalysis}
+              result={analysisResult}
+              loading={analysisWaiting && !analysisFailed}
+              failed={analysisFailed}
+              palette={daltonic ? 'cvd' : 'default'}
+              stateLabel={activeStateName}
+              onClose={() => handleAnalysisChange(null)}
+            />
+          </div>
+        )}
+        {visibleLayerIds.includes('municipalities') && !activeAnalysis && visualizationMode !== 'clusters' && (
           visualizationMode === 'choropleth' ? (
             colorMode === 'biogas' ? (
               <>

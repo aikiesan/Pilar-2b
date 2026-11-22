@@ -20,6 +20,9 @@ const movedPages = [
   // Temporary while /analysis is held back with the Método pages
   // (METHOD_PAGES_ENABLED): the old address opens the map instead of a 404.
   // When the flag turns on, point this back at /analysis with a 301.
+  // The old logged-in hub (and the ABIOGAS QR code) now lands on the home page.
+  // Temporary, so the printed codes keep working if the hub ever comes back.
+  { from: '/dashboard', to: '/', statusCode: 307 },
   { from: '/dashboard/advanced-analysis', to: '/map', statusCode: 307 },
   { from: '/dashboard/compare', to: '/compare' },
   { from: '/dashboard/proximity', to: '/proximity' },
