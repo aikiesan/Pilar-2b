@@ -8,12 +8,13 @@ import {
 } from '../mapTools'
 
 describe('availableMapTools', () => {
-  it('offers only Land around while the analyses are held back', () => {
-    expect(availableMapTools(false)).toEqual(['land'])
+  it('offers Land around and Cruzar while the analyses are held back', () => {
+    expect(availableMapTools(false)).toEqual(['land', 'cross'])
+    expect(isMapToolAvailable('compare', false)).toBe(false)
   })
 
   it('offers only tools that are built, even with the analyses on', () => {
-    expect(availableMapTools(true)).toEqual(['land', 'compare'])
+    expect(availableMapTools(true)).toEqual(['land', 'compare', 'cross'])
     expect(isMapToolAvailable('compare', true)).toBe(true)
     expect(isMapToolAvailable('gather', true)).toBe(false)
     expect(isMapToolAvailable(null, true)).toBe(false)
@@ -54,6 +55,15 @@ describe('parseMapToolParams', () => {
   it('reads Find similar without taking the map\'s own scope param', () => {
     expect(parseMapToolParams('?tool=similar&of=3509502&scope=31&within=both').similar).toEqual({ of: '3509502', within: 'both' })
     expect(parseMapToolParams('?tool=similar&of=x').similar).toEqual({ of: null, within: 'state' })
+  })
+})
+
+describe('Cruzar in the URL', () => {
+  it('opens from ?tool=cross and keeps the analysis in ?a=', () => {
+    expect(parseMapToolParams('?tool=cross&a=lacuna').tool).toBe('cross')
+    const params = writeMapToolParams('?a=lacuna&mode=choropleth', { tool: 'cross' })
+    expect(params.get('tool')).toBe('cross')
+    expect(params.get('a')).toBe('lacuna')
   })
 })
 

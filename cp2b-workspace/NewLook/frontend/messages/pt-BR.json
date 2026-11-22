@@ -1057,14 +1057,13 @@
       "heading": "Análises prontas",
       "heading_note": "cruzam dois dados",
       "themes_hint": "Mapas por setor e resíduo ficam no menu Temas, acima do mapa.",
-      "legend_kicker": "Análise · {state}",
       "close": "Fechar análise",
       "loading": "Calculando a infraestrutura por município…",
       "failed": "Não foi possível carregar usinas e gasodutos. Tente de novo em instantes.",
       "matrix_aria": "Municípios por combinação de classes",
       "cell_aria": "{x} e {y}: {count, plural, one {# município} other {# municípios}}",
       "answer": "<b>{count, plural, one {# município} other {# municípios}}</b> na célula destacada:",
-      "method": "Classes em tercis entre os municípios do estado com valor.",
+      "method": "Classes em tercis entre os municípios de {state} com valor.",
       "no_data": "{count, plural, one {# município} other {# municípios}} sem dado, em cinza.",
       "axes": {
         "methane": "Metano",
@@ -1156,6 +1155,10 @@
         "compare": {
           "name": "Comparar",
           "description": "Dois municípios lado a lado, sem sair do mapa"
+        },
+        "cross": {
+          "name": "Cruzar dados",
+          "description": "Quatro mapas que cruzam dois dados, como metano e usinas"
         }
       },
       "pending_title": "Seu pedido de acesso está em análise",
@@ -1205,6 +1208,20 @@
       "signed_out_body": "Comparar usa dados liberados para contas aprovadas. Entre, ou peça acesso.",
       "sign_in": "Entrar",
       "source": "Biometano e resíduos: método CP2b, no cenário do mapa. Uso da terra: MapBiomas Coleção 11. Gasodutos e usinas: camadas de infraestrutura do MapBiomas. Agropecuária soma pastagem, lavouras, cana, silvicultura e mosaico de usos."
+    },
+    "cross": {
+      "window_aria": "Cruzar dois dados no mapa",
+      "title": "Cruzar dados",
+      "close": "Fechar Cruzar dados",
+      "intro": "Escolha uma pergunta. Cada município ganha a cor da combinação das duas classes.",
+      "choices_aria": "Perguntas",
+      "pick_hint": "Clique num município, ou ache-o na busca, para ver em que célula ele cai.",
+      "picked": "{name} está na célula marcada.",
+      "picked_no_data": "{name} não tem os dois dados, e fica em cinza.",
+      "picked_outside": "{name} fica fora de {state}, que esta leitura cobre.",
+      "signed_out_title": "Entre para cruzar dados",
+      "signed_out_body": "As análises cruzadas estão abertas a contas aprovadas enquanto seguem em teste. Entre, ou peça acesso.",
+      "sign_in": "Entrar"
     }
   },
   "metadata": {
