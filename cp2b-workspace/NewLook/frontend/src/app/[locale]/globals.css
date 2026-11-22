@@ -914,3 +914,36 @@ input[type="range"]::-moz-range-thumb:active {
   .land-around-ring,
   .land-around-fade { animation: none; }
 }
+
+/* Compare (map click tool): the A and B chips at each centroid and the
+   distance label at the middle of the line between them. Leaflet divIcons,
+   so plain HTML over the map; they never catch the pointer. */
+.compare-chip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: 2px solid currentColor;
+  border-radius: 9999px;
+  background: rgb(var(--paper));
+  font: 700 12px/1 "Neulis Sans", Verdana, Geneva, "DejaVu Sans", sans-serif;
+  pointer-events: none;
+}
+.compare-chip > span { color: rgb(var(--ink)); }
+.compare-distance {
+  display: inline-block;
+  transform: translate(-50%, -50%);
+  white-space: nowrap;
+  padding: 4px 8px;
+  border: 1px solid rgb(var(--line));
+  background: rgb(var(--paper));
+  color: rgb(var(--ink));
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+  animation: land-around-fade 300ms ease-out both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .compare-distance { animation: none; }
+}

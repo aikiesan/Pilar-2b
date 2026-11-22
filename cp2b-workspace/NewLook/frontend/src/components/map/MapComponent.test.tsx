@@ -48,6 +48,7 @@ jest.mock('@/lib/leafletConfig', () => ({}));
 // throws "useCodigestionClusters is not a function" before render.
 const mockUseGeospatialData = jest.fn();
 const mockUseSitingIndicators = jest.fn((_enabled: boolean) => ({ data: undefined, isError: false }));
+const mockUseLandCover = jest.fn((_enabled: boolean) => ({ data: undefined, isError: false }));
 jest.mock('@/hooks/useGeospatialData', () => ({
   useGeospatialData: () => mockUseGeospatialData(),
   useCodigestionClusters: () => ({ data: null, loading: false, error: null, isFetching: false, refetch: jest.fn() }),
@@ -57,6 +58,7 @@ jest.mock('@/hooks/useGeospatialData', () => ({
   // collection is served slim (fields=map).
   useMunicipalityMetrics: () => ({ data: undefined, isLoading: false, error: null }),
   useSitingIndicators: (enabled: boolean) => mockUseSitingIndicators(enabled),
+  useMunicipalityLandCover: (_year: number, enabled: boolean) => mockUseLandCover(enabled),
 }));
 
 // MAP_ANALYSES_ENABLED is a build-time constant; a getter lets each test pick it.
@@ -114,6 +116,16 @@ const mockAnalyzeProximity = jest.fn();
 jest.mock('@/services/proximityApi', () => ({
   ...jest.requireActual('@/services/proximityApi'),
   analyzeProximity: (...args: unknown[]) => mockAnalyzeProximity(...args),
+}));
+
+// Compare on the map: the pair it draws, and a stand-in for a click on Ribeirão Preto.
+jest.mock('./CompareLayer', () => ({
+  __esModule: true,
+  default: ({ pair, interactive, onPick }: any) => (
+    <div data-testid="compare-layer" data-pair={pair.join(',')} data-interactive={String(interactive)}>
+      <button type="button" onClick={() => onPick('3543402')}>compare click</button>
+    </div>
+  ),
 }));
 
 // The circle on the map: which point it draws, and a stand-in for a map click.
@@ -1334,7 +1346,25 @@ describe('MapComponent', () => {
 
       const list = await screen.findByRole('group', { name: 'Ferramentas do mapa' });
       const items = Array.from(list.querySelectorAll('button')).map((b) => b.getAttribute('aria-label'));
-      expect(items).toEqual(['Uso do solo no entorno']);
+      // Compare waits for the analyses; Land around replaced a public page and stays.
+      expect(items).toEqual(analyses ? ['Uso do solo no entorno', 'Comparar'] : ['Uso do solo no entorno']);
+    });
+
+    it('opens Compare from a shared link once the analyses are on, keeping the pair', async () => {
+      mockAnalysesEnabled = true;
+      window.history.replaceState(null, '', '/map?tool=compare&pair=3509502,3550308&scope=35');
+      render(<MapComponent />);
+      act(() => { jest.advanceTimersByTime(1500); });
+
+      expect(await screen.findByRole('complementary', { name: 'Comparar dois municípios' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Ferramentas: Comparar' })).toBeInTheDocument();
+      expect(new URLSearchParams(window.location.search).get('pair')).toBe('3509502,3550308');
+
+      // A third pick replaces B.
+      fireEvent.click(screen.getByRole('button', { name: 'compare click' }));
+      expect(screen.getByTestId('compare-layer')).toHaveAttribute('data-pair', '3509502,3543402');
+      await waitFor(() => expect(new URLSearchParams(window.location.search).get('pair')).toBe('3509502,3543402'));
+      mockAnalysesEnabled = false;
     });
 
     it('opens nothing for a link to a tool not on offer, and drops it from the URL', async () => {

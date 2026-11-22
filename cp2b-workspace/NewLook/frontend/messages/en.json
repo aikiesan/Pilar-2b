@@ -1152,10 +1152,56 @@
         "land": {
           "name": "Land around",
           "description": "What the land within 10, 20 or 50 km of a point is used for"
+        },
+        "compare": {
+          "name": "Compare",
+          "description": "Two municipalities side by side, without leaving the map"
         }
       },
       "pending_title": "Your access request is being reviewed",
       "pending_body": "The map tools open as soon as your account is approved."
+    },
+    "compare": {
+      "window_aria": "Compare two municipalities",
+      "title": "Compare",
+      "close": "Close Compare",
+      "idle": "Click a municipality on the map, or find it in the search. The first one you pick is A, the second B.",
+      "pick_b": "Click a second municipality",
+      "one_hint": "Click A again on the map to take it out. A third pick replaces B.",
+      "slot_a": "A:",
+      "slot_b": "B:",
+      "remove": "Take {name} out",
+      "loading": "Loading",
+      "no_data": "No data",
+      "no_residues": "No residue mass",
+      "distance": "{km} km apart in a straight line",
+      "rows": {
+        "rank": "Rank in the state by biomethane",
+        "biomethane": "Biomethane, {scenario} scenario",
+        "sectors": "Residue mass by source",
+        "residues": "Top three residues by mass",
+        "land_cover": "Land cover in 2025",
+        "pipeline": "Nearest gas pipeline",
+        "plants": "Biogas plants today"
+      },
+      "rank_value": "#{position} of {of} in {uf}",
+      "biomethane_value": "{value} million m³/yr",
+      "tons_value": "{value} t/yr",
+      "km_value": "{km} km",
+      "farmland": "{share}% farmland",
+      "sectors_aria": "Residue mass by source: agricultural {agricultural}, livestock {livestock}, urban {urban}",
+      "land_aria": "Land cover in 2025 by group",
+      "cover": {
+        "native": "Native vegetation",
+        "pasture": "Pasture",
+        "cane": "Sugar cane",
+        "other_farming": "Other farming",
+        "urban_other": "Urban, water and other"
+      },
+      "signed_out_title": "Sign in to compare municipalities",
+      "signed_out_body": "Compare uses figures shared with approved accounts. Sign in, or ask for access.",
+      "sign_in": "Sign in",
+      "source": "Biomethane and residues: CP2b method, the scenario on the map. Land cover: MapBiomas Collection 11. Pipelines and plants: MapBiomas infrastructure layers. Farmland counts pasture, crops, sugar cane, planted forest and mixed farm use."
     }
   },
   "metadata": {

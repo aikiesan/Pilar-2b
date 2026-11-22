@@ -1152,10 +1152,56 @@
         "land": {
           "name": "Uso do solo no entorno",
           "description": "Como é usada a terra num raio de 10, 20 ou 50 km de um ponto"
+        },
+        "compare": {
+          "name": "Comparar",
+          "description": "Dois municípios lado a lado, sem sair do mapa"
         }
       },
       "pending_title": "Seu pedido de acesso está em análise",
       "pending_body": "As ferramentas do mapa abrem assim que sua conta for aprovada."
+    },
+    "compare": {
+      "window_aria": "Comparar dois municípios",
+      "title": "Comparar",
+      "close": "Fechar Comparar",
+      "idle": "Clique num município no mapa, ou ache-o na busca. O primeiro que você escolher é o A, o segundo o B.",
+      "pick_b": "Clique num segundo município",
+      "one_hint": "Clique de novo no A no mapa para tirá-lo. Uma terceira escolha troca o B.",
+      "slot_a": "A:",
+      "slot_b": "B:",
+      "remove": "Tirar {name}",
+      "loading": "Carregando",
+      "no_data": "Sem dado",
+      "no_residues": "Sem massa de resíduo",
+      "distance": "A {km} km em linha reta",
+      "rows": {
+        "rank": "Posição no estado em biometano",
+        "biomethane": "Biometano, cenário {scenario}",
+        "sectors": "Massa de resíduo por origem",
+        "residues": "Os três resíduos de maior massa",
+        "land_cover": "Uso da terra em 2025",
+        "pipeline": "Gasoduto mais próximo",
+        "plants": "Usinas de biogás hoje"
+      },
+      "rank_value": "{position}º de {of} em {uf}",
+      "biomethane_value": "{value} milhões de m³/ano",
+      "tons_value": "{value} t/ano",
+      "km_value": "{km} km",
+      "farmland": "{share}% de agropecuária",
+      "sectors_aria": "Massa de resíduo por origem: agrícola {agricultural}, pecuária {livestock}, urbana {urban}",
+      "land_aria": "Uso da terra em 2025 por grupo",
+      "cover": {
+        "native": "Vegetação nativa",
+        "pasture": "Pastagem",
+        "cane": "Cana",
+        "other_farming": "Outra agricultura",
+        "urban_other": "Urbano, água e outros"
+      },
+      "signed_out_title": "Entre para comparar municípios",
+      "signed_out_body": "Comparar usa dados liberados para contas aprovadas. Entre, ou peça acesso.",
+      "sign_in": "Entrar",
+      "source": "Biometano e resíduos: método CP2b, no cenário do mapa. Uso da terra: MapBiomas Coleção 11. Gasodutos e usinas: camadas de infraestrutura do MapBiomas. Agropecuária soma pastagem, lavouras, cana, silvicultura e mosaico de usos."
     }
   },
   "metadata": {
