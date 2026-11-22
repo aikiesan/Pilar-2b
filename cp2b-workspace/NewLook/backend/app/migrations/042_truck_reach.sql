@@ -27,13 +27,13 @@
 CREATE TABLE IF NOT EXISTS truck_site (
     site_id    TEXT PRIMARY KEY,
     name       TEXT NOT NULL,
-    tipo       TEXT NOT NULL,
+    kind       TEXT NOT NULL,
     ibge_code  TEXT NOT NULL,
-    municipio  TEXT NOT NULL,
+    municipality TEXT NOT NULL,
     geom       geometry(Point, 4326) NOT NULL,
     snap_m     INTEGER NOT NULL,
     at_town_centre BOOLEAN NOT NULL,
-    CONSTRAINT truck_site_tipo CHECK (tipo IN ('aterro', 'etanol', 'biometano', 'biogas')),
+    CONSTRAINT truck_site_kind CHECK (kind IN ('landfill', 'ethanol', 'biomethane', 'biogas')),
     CONSTRAINT truck_site_sp CHECK (LEFT(ibge_code, 2) = '35'),
     CONSTRAINT truck_site_snap CHECK (snap_m >= 0)
 );
@@ -89,9 +89,9 @@ COMMENT ON TABLE truck_build IS
 
 -- =============================================================================
 -- Verification (after the loader):
---   SELECT tipo, count(*) FROM truck_site GROUP BY tipo ORDER BY tipo;
---   -- expect aterro 300, biogas 2, biometano 6, etanol 119 (build of 2026-11-22)
---   SELECT count(*) FROM truck_reach WHERE site_id = 'ITB_SP_0005';  -- 51
---   SELECT count(*) FROM truck_route WHERE pipeline IS NULL;          -- 7
---   SELECT count(*) FROM truck_site WHERE at_town_centre;             -- 372
+--   SELECT kind, count(*) FROM truck_site GROUP BY kind ORDER BY kind;
+--   -- expect biogas 2, biomethane 6, ethanol 119, landfill 300 (build of 2026-11-22)
+--   SELECT count(*) FROM truck_reach WHERE site_id = 'ITB_SP_0005';  -- 53
+--   SELECT count(*) FROM truck_route WHERE pipeline IS NULL;          -- 10
+--   SELECT count(*) FROM truck_site WHERE at_town_centre;             -- 229
 -- =============================================================================

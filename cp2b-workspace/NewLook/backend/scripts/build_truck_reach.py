@@ -16,6 +16,8 @@ Usage:
         --localities <folder>/BR_localidades_2022.gpkg \\
         --pipelines  <folder>/gas_pipeline_transport.geojson \\
                      <folder>/gas_pipeline_distribution.geojson \\
+        --positions  A:/Data_Biogas-integra/data/derivados/usinas_coordenadas_proposta.csv \\
+                     A:/Data_Biogas-aterros/data/derivados/aterros_coordenadas_proposta.csv \\
         --out        <folder>/truck_reach.json.gz
 
     --graph       nos.parquet (id, lon, lat) and arestas.parquet
@@ -25,6 +27,11 @@ Usage:
     --localities  IBGE Localidades 2022; the municipal seats of SP are the towns
     --pipelines   the platform's pipeline layers as GeoJSON, from
                   /api/v1/infrastructure/features/<layer>/geojson
+    --positions   Data_Biogas proposals of each plant's own position (ANEEL, EPE,
+                  OpenStreetMap, documents, hand checks): plant_id, lat_proposta,
+                  lon_proposta. Most sources give only the town, so without these a
+                  site sits on its town's seat. Every proposed point is used, as
+                  Data_Biogas's own build does.
     --only        plant_id[,plant_id...]: build these sites only (a quick check)
 
 Method
@@ -39,7 +46,9 @@ runs on the forward graph (site -> pipeline).
 
 Snapping: sites, town centres and pipeline samples snap to the nearest node on
 a road a truck can enter (SNAP_CLASSES), within the largest strongly connected
-part of the graph, so no point lands on a fragment it cannot leave.
+part of the graph, so no point lands on a fragment it cannot leave. A site
+or town centre more than 2 km from such a road is left out, and listed in
+the build's meta (snap_over_2km).
 
 Route tree: the union of the shortest paths, each edge with the minutes at its
 end nearer the site and at its far end, so the map can grow every route from
@@ -103,6 +112,14 @@ TOWN_CENTRE_M = 300.0
 GRID_M = 250.0
 M_PER_DEG = 111_320.0
 CLOSED_LANDFILL = {"encerrado", "encerrado_ou_sem_aterro_em_uso"}
+# Data_Biogas names each site's type in Portuguese; the platform's tables and
+# API speak English.
+KIND_OF_TIPO = {
+    "aterro": "landfill",
+    "etanol": "ethanol",
+    "biometano": "biomethane",
+    "biogas": "biogas",
+}
 GRAPH_SOURCE = (
     "OpenStreetMap contributors, Geofabrik Sudeste extract of 2026-10-21, "
     "road graph of São Paulo (essencial-geo osm/sp)"
@@ -214,13 +231,15 @@ def read_sites(path: Path, only: set[str] | None = None):
             closed.append(p["plant_id"])
             continue
         lon, lat = f["geometry"]["coordinates"][:2]
+        if p["tipo"] not in KIND_OF_TIPO:
+            raise SystemExit(f"{p['plant_id']}: unknown tipo {p['tipo']!r}")
         sites.append(
             {
                 "site_id": p["plant_id"],
                 "name": p["nome_curto"],
-                "tipo": p["tipo"],
+                "kind": KIND_OF_TIPO[p["tipo"]],
                 "ibge_code": str(p["cod_ibge"]),
-                "municipio": p["municipio"],
+                "municipality": p["municipio"],
                 "lon": float(lon),
                 "lat": float(lat),
             }
@@ -285,6 +304,45 @@ def at_town_centre(site: dict, towns: dict) -> bool:
     k = math.cos(math.radians(site["lat"]))
     metres = math.hypot((site["lon"] - town[1]) * k, site["lat"] - town[2]) * M_PER_DEG
     return metres <= TOWN_CENTRE_M
+
+
+def off_network(sites: list[dict], nodes, snap_m):
+    """Split sites by their distance to the road network.
+
+    A site farther than SNAP_FLAG_M from a snappable road is not on the
+    network (a wrong proposed position, an island): its routes would start
+    from an unrelated node, so it is left out, as such town seats are.
+    Returns the kept sites with their nodes and distances, and [site_id, m]
+    for each site left out.
+    """
+    keep = np.asarray(snap_m) <= SNAP_FLAG_M
+    kept = [s for s, ok in zip(sites, keep) if ok]
+    dropped = [[s["site_id"], round(float(m))] for s, m, ok in zip(sites, snap_m, keep) if not ok]
+    return kept, np.asarray(nodes)[keep], np.asarray(snap_m)[keep], dropped
+
+
+def read_positions(paths: list[Path]) -> dict[str, tuple[float, float]]:
+    """Proposed plant positions: {plant_id: (lon, lat)}. Only the position is read."""
+    import csv
+
+    out: dict[str, tuple[float, float]] = {}
+    for path in paths:
+        with open(path, encoding="utf-8", newline="") as fh:
+            for row in csv.DictReader(fh):
+                if row["plant_id"] in out:
+                    raise SystemExit(f"{path.name}: {row['plant_id']} has two proposed positions")
+                out[row["plant_id"]] = (float(row["lon_proposta"]), float(row["lat_proposta"]))
+    return out
+
+
+def apply_positions(sites: list[dict], positions: dict) -> int:
+    """Move sites to their proposed plant position; returns how many moved."""
+    moved = 0
+    for site in sites:
+        if site["site_id"] in positions:
+            site["lon"], site["lat"] = positions[site["site_id"]]
+            moved += 1
+    return moved
 
 
 # ── Routes ───────────────────────────────────────────────────────────────────
@@ -394,6 +452,7 @@ def main() -> int:
     ap.add_argument("--localities", required=True, type=Path)
     ap.add_argument("--pipelines", required=True, type=Path, nargs="+")
     ap.add_argument("--out", required=True, type=Path)
+    ap.add_argument("--positions", type=Path, nargs="*", default=[])
     ap.add_argument("--only", default="")
     args = ap.parse_args()
     t0 = time.monotonic()
@@ -405,7 +464,12 @@ def main() -> int:
     )
 
     sites, closed = read_sites(args.sites, set(filter(None, args.only.split(","))) or None)
+    moved = apply_positions(sites, read_positions(args.positions))
+    print(f"{moved} sites moved to their proposed plant position")
     site_nodes, site_snap = graph.snap([s["lon"] for s in sites], [s["lat"] for s in sites])
+    sites, site_nodes, site_snap, off_sites = off_network(sites, site_nodes, site_snap)
+    if off_sites:
+        print(f"{len(off_sites)} sites left out, over {SNAP_FLAG_M:.0f} m from a road: {off_sites}")
     towns = read_towns(args.localities)
     codes = sorted(towns)
     t_nodes, t_snap = graph.snap([towns[c][1] for c in codes], [towns[c][2] for c in codes])
@@ -426,9 +490,7 @@ def main() -> int:
     )
 
     flagged = {
-        "sites": [
-            [s["site_id"], round(float(m))] for s, m in zip(sites, site_snap) if m > SNAP_FLAG_M
-        ],
+        "sites": off_sites,
         "towns": [[c, round(float(m))] for c, m in zip(codes, t_snap) if m > SNAP_FLAG_M],
     }
     reach, routes = [], {}
@@ -452,6 +514,8 @@ def main() -> int:
             "pipeline_limit_min": PIPELINE_LIMIT_MIN,
             "grid_m": GRID_M,
             "closed_left_out": closed,
+            "positions": [p.name for p in args.positions],
+            "moved_to_plant_position": moved,
             "snap_over_2km": flagged,
         },
         "sites": sites,

@@ -30,9 +30,9 @@ from psycopg2.extras import Json, execute_values
 SITE_FIELDS = (
     "site_id",
     "name",
-    "tipo",
+    "kind",
     "ibge_code",
-    "municipio",
+    "municipality",
     "lon",
     "lat",
     "snap_m",
@@ -63,7 +63,7 @@ def write(conn, data: dict) -> dict:
         cur.execute("DELETE FROM truck_site")  # cascades to truck_reach and truck_route
         execute_values(
             cur,
-            "INSERT INTO truck_site (site_id, name, tipo, ibge_code, municipio, geom, snap_m, "
+            "INSERT INTO truck_site (site_id, name, kind, ibge_code, municipality, geom, snap_m, "
             "at_town_centre) VALUES %s",
             site_rows(data),
             template="(%s, %s, %s, %s, %s, ST_SetSRID(ST_MakePoint(%s, %s), 4326), %s, %s)",

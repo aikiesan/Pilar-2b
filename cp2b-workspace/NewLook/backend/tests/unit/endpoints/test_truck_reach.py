@@ -37,9 +37,9 @@ BUILT = datetime(2026, 11, 22, 20, 28, 51, tzinfo=timezone.utc)
 SITE = {
     "site_id": "ITB_SP_0005",
     "name": "Usina São Martinho",
-    "tipo": "etanol",
+    "kind": "ethanol",
     "ibge_code": "3540903",
-    "municipio": "Pradópolis",
+    "municipality": "Pradópolis",
     "at_town_centre": True,
     "lon": -48.0667,
     "lat": -21.3574,
@@ -199,9 +199,16 @@ def test_one_site_in_full(signed_in, monkeypatch):
     # Behind a login: the browser may keep it, a shared proxy must not, and
     # it never takes a slot in the shared in-process cache.
     assert res.headers["cache-control"].startswith("private")
+    assert res.headers["vary"] == "Authorization"
     assert not response_cache._CACHE
     again = signed_in.get(f"{URL}/ITB_SP_0005", headers={"If-None-Match": res.headers["etag"]})
     assert again.status_code == 304
+    # A list, or a weak tag, still matches; a longer tag that contains it does not.
+    etag = res.headers["etag"]
+    listed = signed_in.get(f"{URL}/ITB_SP_0005", headers={"If-None-Match": f'"x", W/{etag}'})
+    assert listed.status_code == 304
+    longer = signed_in.get(f"{URL}/ITB_SP_0005", headers={"If-None-Match": etag[:-1] + 'x"'})
+    assert longer.status_code == 200
 
 
 def test_unknown_and_malformed_sites(signed_in, monkeypatch):
@@ -288,6 +295,14 @@ def test_at_town_centre():
     assert not build.at_town_centre({**site, "ibge_code": "3500000"}, towns)
 
 
+def test_sites_off_the_road_network_are_left_out():
+    sites = [{"site_id": "NEAR"}, {"site_id": "FAR"}, {"site_id": "EDGE"}]
+    kept, nodes, snap, dropped = build.off_network(sites, [7, 8, 9], [60.0, 5200.4, 2000.0])
+    assert [s["site_id"] for s in kept] == ["NEAR", "EDGE"]
+    assert nodes.tolist() == [7, 9] and snap.tolist() == [60.0, 2000.0]
+    assert dropped == [["FAR", 5200]]
+
+
 def test_closed_landfills_are_left_out(tmp_path):
     def feature(pid, situacao=None):
         props = {
@@ -319,7 +334,8 @@ def test_closed_landfills_are_left_out(tmp_path):
     sites, closed = build.read_sites(path)
     assert [s["site_id"] for s in sites] == ["A", "D"]
     assert closed == ["B", "C"]
-    assert set(sites[0]) == {"site_id", "name", "tipo", "ibge_code", "municipio", "lon", "lat"}
+    assert set(sites[0]) == {"site_id", "name", "kind", "ibge_code", "municipality", "lon", "lat"}
+    assert sites[0]["kind"] == "landfill"
 
 
 # ── The loader ───────────────────────────────────────────────────────────────
@@ -354,3 +370,26 @@ def test_loader_refuses_a_file_that_is_not_a_build(tmp_path):
         json.dump({"sites": []}, fh)
     with pytest.raises(SystemExit, match="meta"):
         loader.read_build(path)
+
+
+def test_sites_move_to_their_proposed_plant_position(tmp_path):
+    mills = tmp_path / "usinas_coordenadas_proposta.csv"
+    mills.write_text(
+        "plant_id,nome_unidade,lat_proposta,lon_proposta,confianca,nota\n"
+        'ITB_SP_0005,São Martinho,-21.31925,-48.12363,alta,"ANEEL, EPE, OSM"\n',
+        encoding="utf-8",
+    )
+    landfills = tmp_path / "aterros_coordenadas_proposta.csv"
+    landfills.write_text(
+        "plant_id,lat_proposta,lon_proposta\nITB_SP_0174,-22.9,-46.5\n", encoding="utf-8"
+    )
+    positions = build.read_positions([mills, landfills])
+    assert positions == {"ITB_SP_0005": (-48.12363, -21.31925), "ITB_SP_0174": (-46.5, -22.9)}
+
+    sites = [dict(SITE), {**SITE, "site_id": "ITB_SP_0099"}]
+    assert build.apply_positions(sites, positions) == 1
+    assert (sites[0]["lon"], sites[0]["lat"]) == (-48.12363, -21.31925)
+    assert (sites[1]["lon"], sites[1]["lat"]) == (SITE["lon"], SITE["lat"])
+
+    with pytest.raises(SystemExit, match="two proposed positions"):
+        build.read_positions([mills, mills])

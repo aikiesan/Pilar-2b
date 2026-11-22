@@ -50,7 +50,7 @@ def _build_sites() -> dict:
             cur.execute("SELECT built_at FROM truck_build")
             built_at = cur.fetchone()["built_at"]
             cur.execute("""
-                SELECT site_id, name, tipo, ibge_code, municipio, at_town_centre,
+                SELECT site_id, name, kind, ibge_code, municipality, at_town_centre,
                        ST_X(geom) AS lon, ST_Y(geom) AS lat
                 FROM truck_site ORDER BY site_id
                 """)
@@ -58,9 +58,9 @@ def _build_sites() -> dict:
                 {
                     "site_id": r["site_id"],
                     "name": r["name"],
-                    "tipo": r["tipo"],
+                    "kind": r["kind"],
                     "ibge_code": r["ibge_code"],
-                    "municipio": r["municipio"],
+                    "municipality": r["municipality"],
                     "at_town_centre": r["at_town_centre"],
                     "lon": round(float(r["lon"]), 5),
                     "lat": round(float(r["lat"]), 5),
@@ -94,7 +94,7 @@ def _read_site(site_id: str) -> dict | None:
                 raise _TruckReachUnavailable
             cur.execute(
                 """
-                SELECT s.site_id, s.name, s.tipo, s.ibge_code, s.municipio, s.snap_m,
+                SELECT s.site_id, s.name, s.kind, s.ibge_code, s.municipality, s.snap_m,
                        s.at_town_centre,
                        ST_X(s.geom) AS lon, ST_Y(s.geom) AS lat,
                        r.tree, r.pipeline, r.built_at, r.graph_source
@@ -136,9 +136,9 @@ def _read_site(site_id: str) -> dict | None:
         "site": {
             "site_id": row["site_id"],
             "name": row["name"],
-            "tipo": row["tipo"],
+            "kind": row["kind"],
             "ibge_code": row["ibge_code"],
-            "municipio": row["municipio"],
+            "municipality": row["municipality"],
             "lon": round(float(row["lon"]), 5),
             "lat": round(float(row["lat"]), 5),
             "snap_m": row["snap_m"],
@@ -186,7 +186,16 @@ def get_truck_reach(
 
     raw = json.dumps(body, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
     etag = '"' + hashlib.sha1(raw, usedforsecurity=False).hexdigest()[:20] + '"'
-    headers = {"ETag": etag, "Cache-Control": f"private, max-age={SITE_MAX_AGE}"}
-    if etag in request.headers.get("if-none-match", ""):
+    headers = {
+        "ETag": etag,
+        "Cache-Control": f"private, max-age={SITE_MAX_AGE}",
+        # The browser must not hand this copy to a request without the token.
+        "Vary": "Authorization",
+    }
+    # If-None-Match may hold a list, each tag possibly weak (W/).
+    sent = [
+        t.strip().removeprefix("W/") for t in request.headers.get("if-none-match", "").split(",")
+    ]
+    if etag in sent:
         return Response(status_code=304, headers=headers)
     return Response(content=raw, media_type="application/json", headers=headers)
