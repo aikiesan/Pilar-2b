@@ -11,17 +11,17 @@ const CITATIONS = {
   abnt:
     'CEREJO, L. N.; LAMPARELLI, R. A. C.; MORAES, B. de S.; AGUIAR, A. B. S. ' + // i18n-exempt: citation
     'PILAR-2b: Plataforma Inteligente de Localização e Aproveitamento de Resíduos para Biogás e Bioprodutos. ' + // i18n-exempt: citation
-    'Versão 3.0.3. Campinas: NIPE-UNICAMP, 2026. Software registrado no INPI sob nº BR512026003115-0. ' + // i18n-exempt: citation
+    'Versão 3.1.0. Campinas: NIPE-UNICAMP, 2026. Software registrado no INPI sob nº BR512026003115-0. ' + // i18n-exempt: citation
     'Disponível em: https://cp2b.unicamp.br/pilar2b. Acesso em: [data de acesso].', // i18n-exempt: citation
   apa:
     'Cerejo, L. N., Lamparelli, R. A. C., Moraes, B. de S., & Aguiar, A. B. S. (2026). ' + // i18n-exempt: citation
     'PILAR-2b: Plataforma Inteligente de Localização e Aproveitamento de Resíduos para Biogás e Bioprodutos ' + // i18n-exempt: citation
-    '(Version 3.0.3) [Computer software]. NIPE-UNICAMP. https://cp2b.unicamp.br/pilar2b',
+    '(Version 3.1.0) [Computer software]. NIPE-UNICAMP. https://cp2b.unicamp.br/pilar2b',
   bibtex:
     `@software{pilar2b_2026,
   author    = {Cerejo, Lucas Nakamura and Lamparelli, Rubens Augusto Camargo and Moraes, Bruna de Souza and Aguiar, Ana Beatriz Soares},
   title     = {PILAR-2b: Plataforma Inteligente de Localiza\\c{c}\\~ao e Aproveitamento de Res\\'iduos para Biog\\'as e Bioprodutos},
-  version   = {3.0.3},
+  version   = {3.1.0},
   year      = {2026},
   publisher = {NIPE-UNICAMP},
   url       = {https://github.com/aikiesan/Pilar-2b},

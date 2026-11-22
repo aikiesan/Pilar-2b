@@ -68,7 +68,7 @@ _is_production = settings.APP_ENV == "production"
 app = FastAPI(
     title="PILAR-2b V3 API",
     description="Backend API for biogas potential analysis platform",
-    version="3.0.0",
+    version="3.1.0",
     docs_url=None if _is_production else "/docs",
     redoc_url=None if _is_production else "/redoc",
     lifespan=lifespan,
@@ -148,7 +148,7 @@ app.include_router(api_router, prefix="/api/v1")
 @app.get("/")
 async def root():
     """Root endpoint with API information"""
-    return {"message": "PILAR-2b V3 API", "version": "3.0.0", "docs": "/docs", "status": "running"}
+    return {"message": "PILAR-2b V3 API", "version": "3.1.0", "docs": "/docs", "status": "running"}
 
 
 @app.get("/health")

@@ -1,22 +1,19 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite it using the metadata below."
 title: "PILAR-2b: Plataforma Inteligente de Localização e Aproveitamento de Resíduos para Biogas e Bioprodutos"
-version: "3.0.3"
-date-released: "2026-05-18"
+version: "3.1.0"
+date-released: "2026-11-21"
 license: GPL-3.0
 repository-code: "https://github.com/aikiesan/Pilar-2b"
 url: "https://cp2b.unicamp.br/pilar2b/pt-BR"
 abstract: >
-  PILAR-2b is an open-source microservices platform for analyzing biogas and
-  bioproduct potential from agricultural, livestock, and urban residues across
-  645 municipalities in São Paulo State, Brazil. It integrates heterogeneous
-  government datasets (IBGE, MapBiomas, ABIOVE) into a unified geospatial
-  database with a browser-based interface that requires no desktop GIS software.
-  The platform implements a feedstock-dependent correction factor (FDE)
-  methodology that decomposes theoretical biomass potential into practical
-  mobilisable availability, and quantifies the spatial distribution of biogas
-  potential at municipal resolution within an open and replicable computational
-  architecture.
+  PILAR-2b is an open-source web GIS platform for mapping the biogas and
+  biomethane potential of agricultural, livestock and urban residues. It covers
+  the 645 municipalities of São Paulo State, Brazil, with a beta pilot for
+  Minas Gerais. It integrates public datasets (IBGE, MapBiomas, SNIS/SINISA,
+  OpenStreetMap) into a PostGIS database served by a FastAPI backend and a
+  Next.js interface, so the potential can be explored per municipality,
+  substrate and scenario in a browser, without desktop GIS software.
 keywords:
   - biogas
   - bioenergy
@@ -30,7 +27,9 @@ keywords:
   - fastapi
   - nextjs
   - postgis
-  - feedstock-dependent-efficiency
+  - biomethane
+  - sao-paulo
+  - minas-gerais
 authors:
   - family-names: Cerejo
     given-names: Lucas Nakamura
@@ -50,6 +49,27 @@ references:
       name: "Fundação de Amparo à Pesquisa do Estado de São Paulo (FAPESP)"
     number: "2024/01112-1"
     description: "CP2Bsd — research funding"
+  - type: grant
+    institution:
+      name: "Fundação de Amparo à Pesquisa do Estado de São Paulo (FAPESP)"
+    number: "2025/08745-2"
+    description: "Research funding"
+  - type: dataset
+    title: "Mapeamento e classificação das fontes de geração de resíduos nas cadeias agroindustriais e cidades do estado de São Paulo para produção de biogás"
+    authors:
+      - family-names: Cerejo
+        given-names: Lucas Nakamura
+      - family-names: Lamparelli
+        given-names: Rubens Augusto Camargo
+      - family-names: Moraes
+        given-names: Bruna de Souza
+      - family-names: Aguiar
+        given-names: Ana Beatriz Soares
+    year: 2026
+    doi: "10.25824/REDU/F36WP9"
+    publisher:
+      name: "Repositório de Dados de Pesquisa da Unicamp (REDU)"
+    license: CC-BY-NC-4.0
 identifiers:
   - type: other
     value: "BR512026003115-0"

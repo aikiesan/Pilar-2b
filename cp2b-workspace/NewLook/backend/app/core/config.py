@@ -18,7 +18,7 @@ class Settings(BaseSettings):
 
     # App settings
     APP_NAME: str = "PILAR-2b V3 API"
-    VERSION: str = "3.0.1"
+    VERSION: str = "3.1.0"
     APP_ENV: str = "development"  # development, staging, production
     DEBUG: bool = False  # Default to False for security - can be overridden by env var
     HOST: str = "0.0.0.0"
