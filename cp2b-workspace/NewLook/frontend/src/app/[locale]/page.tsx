@@ -30,7 +30,7 @@ import MunicipalitySearch from '@/components/home/MunicipalitySearch';
 import { DETAILED_RESIDUES } from '@/data/residueFactors';
 import { CATALOG_SECTORS, SECTOR_SWATCH, residuePath, residuesInSector } from '@/data/residueCatalog';
 import patchNotes from '@/data/patch-notes.json';
-import { METHOD_PAGES_ENABLED } from '@/lib/featureFlags';
+import { MAP_ANALYSES_ENABLED, METHOD_PAGES_ENABLED } from '@/lib/featureFlags';
 import { countFrom, serverGetJson } from '@/lib/serverApi';
 import { municipalityDirectory } from '@/lib/municipalityDirectory';
 import { BIVARIATE_FILLS } from '@/lib/bivariate';
@@ -206,35 +206,38 @@ export default async function LandingPage() {
       </section>
 
       {/* ── Four questions the map answers ──────────────────────────────── */}
-      <section aria-labelledby="home-questions" className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
-        <h2 id="home-questions" className="max-w-2xl text-3xl font-bold text-ink sm:text-4xl">{t('v2.questions.heading')}</h2>
-        <p className="mt-3 max-w-2xl text-ink-muted">{t('v2.questions.lede')}</p>
-        <ul className="mt-10 grid gap-px border border-line bg-line sm:grid-cols-2">
-          {ANALYSIS_IDS.map((id) => (
-            <li key={id} className="bg-paper-raised">
-              <Link
-                href={`/map?a=${id}`}
-                className="group flex h-full items-start gap-5 p-6 transition-colors hover:bg-paper-sunken focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-terra-600 sm:p-8"
-              >
-                <AnalysisGlyph id={id} />
-                <span className="min-w-0">
-                  <span className="block text-sm text-ink-muted">{tA(`${id}.title`)}</span>
-                  <span className="mt-1 block text-xl font-bold leading-snug text-ink group-hover:text-terra-700 dark:group-hover:text-terra-300">
-                    {tA(`${id}.question`)}
+      {/* Held back with the analyses they open (MAP_ANALYSES_ENABLED). */}
+      {MAP_ANALYSES_ENABLED && (
+        <section aria-labelledby="home-questions" className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+          <h2 id="home-questions" className="max-w-2xl text-3xl font-bold text-ink sm:text-4xl">{t('v2.questions.heading')}</h2>
+          <p className="mt-3 max-w-2xl text-ink-muted">{t('v2.questions.lede')}</p>
+          <ul className="mt-10 grid gap-px border border-line bg-line sm:grid-cols-2">
+            {ANALYSIS_IDS.map((id) => (
+              <li key={id} className="bg-paper-raised">
+                <Link
+                  href={`/map?a=${id}`}
+                  className="group flex h-full items-start gap-5 p-6 transition-colors hover:bg-paper-sunken focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-terra-600 sm:p-8"
+                >
+                  <AnalysisGlyph id={id} />
+                  <span className="min-w-0">
+                    <span className="block text-sm text-ink-muted">{tA(`${id}.title`)}</span>
+                    <span className="mt-1 block text-xl font-bold leading-snug text-ink group-hover:text-terra-700 dark:group-hover:text-terra-300">
+                      {tA(`${id}.question`)}
+                    </span>
                   </span>
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-        <div className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-3">
-          <Link href="/map" className={MAP_CTA_ON_LIGHT}>
-            {t('v2.hero.cta')}
-            <ArrowRight className="h-6 w-6" aria-hidden="true" />
-          </Link>
-          <p className="max-w-sm text-sm text-ink-muted">{t('v2.questions.cta_note')}</p>
-        </div>
-      </section>
+                </Link>
+              </li>
+            ))}
+          </ul>
+          <div className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-3">
+            <Link href="/map" className={MAP_CTA_ON_LIGHT}>
+              {t('v2.hero.cta')}
+              <ArrowRight className="h-6 w-6" aria-hidden="true" />
+            </Link>
+            <p className="max-w-sm text-sm text-ink-muted">{t('v2.questions.cta_note')}</p>
+          </div>
+        </section>
+      )}
 
       {/* ── The market: biomethane demand (video band) ──────────────────── */}
       <section aria-labelledby="home-market" className="relative isolate overflow-hidden bg-cp2b-petroleo text-white">
