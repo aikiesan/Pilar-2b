@@ -23,15 +23,15 @@ Thank you for your interest in contributing to PILAR-2b! This document provides 
 - **Node.js** 18+ (for frontend)
 - **Python** 3.10+ (for backend)
 - **Git** for version control
-- **PostgreSQL** 15+ with PostGIS (or Supabase account)
+- **PostgreSQL** 15+ with PostGIS
 
 ### Quick Start
 
 1. **Fork the repository**
    ```bash
    # Fork via GitHub UI, then clone your fork
-   git clone https://github.com/YOUR_USERNAME/NewLook.git
-   cd NewLook
+   git clone https://github.com/YOUR_USERNAME/Pilar-2b.git
+   cd Pilar-2b
    ```
 
 2. **Set up development environment**
@@ -42,7 +42,7 @@ Thank you for your interest in contributing to PILAR-2b! This document provides 
 
 3. **Create a branch**
    ```bash
-   git checkout -b feature/your-feature-name
+   git checkout -b feat/your-feature-name
    ```
 
 ---
@@ -61,7 +61,7 @@ npm install
 cp .env.example .env.local
 
 # Edit .env.local with your configuration
-# Add: NEXT_PUBLIC_API_URL, NEXT_PUBLIC_SUPABASE_URL, etc.
+# Set NEXT_PUBLIC_API_URL (default http://localhost:8000)
 
 # Run development server
 npm run dev
@@ -83,7 +83,7 @@ pip install -r requirements.txt
 cp .env.example .env
 
 # Edit .env with your configuration
-# Add: DATABASE_URL, SUPABASE_URL, SECRET_KEY, etc.
+# Set DATABASE_URL (a PostgreSQL database with PostGIS) and SECRET_KEY
 
 # Run development server
 uvicorn app.main:app --reload
@@ -452,10 +452,10 @@ git config core.hooksPath .githooks
 ## 📚 Additional Resources
 
 - [Project README](./README.md)
-- [Architecture Documentation](./STRUCTURE.md)
-- [API Documentation](https://newlook-production.up.railway.app/docs)
-- [Deployment Guide](./docs/deployment/DEPLOYMENT_GUIDE.md)
-- [Improvement Roadmap](./docs/planning/IMPROVEMENT_ROADMAP.md)
+- [Documentation index](./cp2b-workspace/NewLook/docs/DOCUMENTATION_INDEX.md)
+- [API reference](./cp2b-workspace/NewLook/docs/api/API_DOCUMENTATION.md) (OpenAPI docs at `/docs` on a running backend)
+- [Local Docker setup](./cp2b-workspace/NewLook/docs/LOCAL_DOCKER_SETUP.md)
+- [Production deployment on the UNICAMP VM](./cp2b-workspace/NewLook/docs/VM_UPDATE_GUIDE.md)
 
 ---
 
