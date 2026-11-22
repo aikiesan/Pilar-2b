@@ -637,7 +637,6 @@ export default function MapComponent({
       // A menu that closed on this Escape (Temas, state) marks it handled;
       // closing a menu must not also drop the selected municipality.
       if (e.key === 'Escape') { if (!e.defaultPrevented) selectMunicipality(null); return; }
-      if (e.key === 'c' || e.key === 'C') { setShowComparison(true); return; }
       if (e.key === 'e' || e.key === 'E') {
         if (DATA_EXPORT_ENABLED) setShowExport(true);
         return;

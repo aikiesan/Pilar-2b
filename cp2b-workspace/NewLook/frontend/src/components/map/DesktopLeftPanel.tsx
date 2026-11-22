@@ -263,20 +263,18 @@ function MapShowsSection({
 
       {/* What the choropleth colours by: the metric, or the residue profile. */}
       {visualizationMode === 'choropleth' && !analysisActive && (
-        <div className="pt-1">
-          <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-ink-muted">{t('colorModes.label')}</p>
-          <ColorModeSelector
-            colorMode={colorMode}
-            onColorModeChange={onColorModeChange}
-            lockedHint={t('colorModes.beta_locked')}
-            variant="desktop"
-            options={buildColorModeOptions(
-              displayMetric === 'biomass_tons' ? t('colorModes.biomass') : t('colorModes.biogas'),
-              t,
-              scopeUf,
-            )}
-          />
-        </div>
+        <ColorModeSelector
+          className="pt-1"
+          label={t('colorModes.label')}
+          colorMode={colorMode}
+          onColorModeChange={onColorModeChange}
+          variant="desktop"
+          options={buildColorModeOptions(
+            displayMetric === 'biomass_tons' ? t('colorModes.biomass') : t('colorModes.biogas'),
+            t,
+            scopeUf,
+          )}
+        />
       )}
 
       {/* Residue filter: the map counts only the residues picked here. */}

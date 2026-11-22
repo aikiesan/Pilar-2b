@@ -326,7 +326,6 @@
       "cn_profile": "Perfil C/N",
       "tipologia": "Tipologia de resíduo",
       "regime": "Regime de nutrientes",
-      "beta_locked": "Camada beta em teste — entre para visualizar. A metodologia ainda está em verificação.",
       "clear_filter": "Mostrar todas as classes"
     },
     "opacity": {

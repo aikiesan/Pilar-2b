@@ -182,22 +182,17 @@ export default function MobileBottomSheet({
 
                 {/* Color mode selector (for choropleth mode) */}
                 {visualizationMode === 'choropleth' && (
-                  <div>
-                    <label className="block text-xs font-semibold text-ink-muted uppercase tracking-wide mb-1.5">
-                      {t('colorModes.label')}
-                    </label>
-                    <ColorModeSelector
-                      colorMode={colorMode}
-                      onColorModeChange={onColorModeChange}
-                      lockedHint={t('colorModes.beta_locked')}
-                      variant="mobile"
-                      options={buildColorModeOptions(
-                        displayMetric === 'biomass_tons' ? t('colorModes.biomass') : t('colorModes.biogas'),
-                        t,
-                        scopeUf,
-                      )}
-                    />
-                  </div>
+                  <ColorModeSelector
+                    label={t('colorModes.label')}
+                    colorMode={colorMode}
+                    onColorModeChange={onColorModeChange}
+                    variant="mobile"
+                    options={buildColorModeOptions(
+                      displayMetric === 'biomass_tons' ? t('colorModes.biomass') : t('colorModes.biogas'),
+                      t,
+                      scopeUf,
+                    )}
+                  />
                 )}
 
                 {/* Biomass type */}
