@@ -169,6 +169,11 @@ jest.mock('./DesktopLeftPanel', () => ({
   ),
 }));
 
+jest.mock('./ComparisonPanel', () => ({
+  __esModule: true,
+  default: ({ visible }: any) => <div data-testid="comparison-panel" data-visible={String(Boolean(visible))} />,
+}));
+
 jest.mock('./MapLegend', () => ({
   __esModule: true,
   default: () => <div data-testid="map-legend">Legend</div>,
@@ -1138,6 +1143,28 @@ describe('MapComponent', () => {
       const panel = await screen.findByTestId('desktop-left-panel');
       expect(panel).toHaveAttribute('data-has-analyses', 'true');
       expect(panel).toHaveAttribute('data-active-analysis', 'lacuna');
+    });
+  });
+
+  describe('Keyboard', () => {
+    beforeEach(() => {
+      mockUseGeospatialData.mockReturnValue({
+        data: createMunicipalityCollection([createMunicipalityFeature()]),
+        loading: false,
+        error: null,
+      });
+    });
+
+    it('does not open the comparison on Ctrl+C or a plain C', async () => {
+      render(<MapComponent />);
+      act(() => { jest.advanceTimersByTime(1500); });
+      const panel = await screen.findByTestId('comparison-panel');
+
+      fireEvent.keyDown(window, { key: 'c', ctrlKey: true });
+      fireEvent.keyDown(window, { key: 'c' });
+      fireEvent.keyDown(window, { key: 'C' });
+
+      expect(panel).toHaveAttribute('data-visible', 'false');
     });
   });
 });

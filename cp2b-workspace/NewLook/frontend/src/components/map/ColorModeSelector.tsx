@@ -5,14 +5,15 @@
  * mobile sheet. Those two kept byte-identical copies of this list, which is how
  * they drifted; one component now serves both.
  *
- * Beta modes (typology, regime, C:N) are locked until the visitor holds a real
- * backend token. The lock is honest about what it is: the data behind these
- * modes is 401-gated server-side, so a locked user cannot fetch it even by
- * editing the DOM. See lib/betaAccess.ts for why this is not useAuth().
+ * Beta modes (typology, regime, C:N) are shown only to a visitor with a real
+ * backend token; without one they are left out, not shown locked, since they
+ * are the group's method and stay behind sign-in. The data behind them is
+ * 401-gated server-side as well. See lib/betaAccess.ts for why this is not
+ * useAuth(). With a single mode left there is nothing to choose, so the
+ * selector, title included, is not shown.
  */
 
 import React from 'react';
-import { Lock } from 'lucide-react';
 import type { ColorMode } from '@/types/geospatial';
 import { useBetaAccess } from '@/lib/betaAccess';
 
@@ -71,23 +72,26 @@ export function buildColorModeOptions(
 }
 
 interface ColorModeSelectorProps {
+  /** The selector's title, shown above the modes. */
+  label: string;
   colorMode: ColorMode;
   onColorModeChange: (mode: ColorMode) => void;
   options: ColorModeOption[];
-  /** Copy for the locked-state note. */
-  lockedHint: string;
   variant?: 'desktop' | 'mobile';
+  className?: string;
 }
 
 export default function ColorModeSelector({
+  label,
   colorMode,
   onColorModeChange,
   options,
-  lockedHint,
   variant = 'desktop',
+  className,
 }: ColorModeSelectorProps) {
   const hasBeta = useBetaAccess();
-  const anyLocked = options.some((o) => o.beta) && !hasBeta;
+  const visible = hasBeta ? options : options.filter((o) => !o.beta);
+  if (visible.length <= 1) return null;
 
   const sizing =
     variant === 'mobile'
@@ -95,7 +99,16 @@ export default function ColorModeSelector({
       : 'w-full py-1 px-2.5 rounded-md text-[11px] font-semibold text-left flex items-center justify-between';
 
   return (
-    <>
+    <div className={className}>
+      <p
+        className={
+          variant === 'mobile'
+            ? 'mb-1.5 text-xs font-semibold uppercase tracking-wide text-ink-muted'
+            : 'mb-1 text-[10px] font-semibold uppercase tracking-wide text-ink-muted'
+        }
+      >
+        {label}
+      </p>
       <div
         className={
           variant === 'mobile'
@@ -103,23 +116,15 @@ export default function ColorModeSelector({
             : 'flex flex-col gap-1 bg-paper-sunken p-1.5 rounded-lg border border-line'
         }
       >
-        {options.map((opt) => {
-          const locked = opt.beta && !hasBeta;
+        {visible.map((opt) => {
           const active = colorMode === opt.value;
           return (
             <button
               key={opt.value}
               type="button"
-              disabled={locked}
-              aria-disabled={locked}
-              title={locked ? lockedHint : undefined}
-              onClick={() => !locked && onColorModeChange(opt.value)}
+              onClick={() => onColorModeChange(opt.value)}
               className={`${sizing} transition-all ${
-                active
-                  ? 'bg-terra-700 text-white shadow-sm'
-                  : locked
-                    ? 'text-ink-muted cursor-not-allowed'
-                    : 'text-ink hover:bg-line'
+                active ? 'bg-terra-700 text-white shadow-sm' : 'text-ink hover:bg-line'
               }`}
             >
               <span className="flex items-center gap-1.5">
@@ -134,14 +139,11 @@ export default function ColorModeSelector({
                   </span>
                 )}
               </span>
-              {locked ? <Lock className="h-3 w-3 shrink-0" /> : active ? <span className="text-[10px]">✓</span> : null}
+              {active ? <span className="text-[10px]">✓</span> : null}
             </button>
           );
         })}
       </div>
-      {anyLocked && (
-        <p className="mt-1.5 text-[10px] leading-snug text-ink-muted">{lockedHint}</p>
-      )}
-    </>
+    </div>
   );
 }
