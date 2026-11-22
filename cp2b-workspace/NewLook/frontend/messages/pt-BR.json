@@ -16,7 +16,7 @@
       "compare": "Comparar",
       "group_platform": "Plataforma",
       "group_method": "Método",
-      "open_map": "Abrir mapa",
+      "open_map": "Abrir o mapa",
       "group_data": "Dados",
       "map_interactive": "Mapa interativo",
       "municipalities": "Municípios",
@@ -2359,13 +2359,6 @@
     "close": "Fechar vídeo"
   },
   "home": {
-    "hero": {
-      "eyebrow": "Plataforma aberta · NIPE-UNICAMP",
-      "title": "Potencial de biogás e bioprodutos, município a município",
-      "lede": "Estimativas do que os resíduos agrícolas, pecuários e urbanos podem gerar em biogás e biometano, com o método e as fontes à vista. Base canônica: estado de São Paulo; Minas Gerais em validação.",
-      "cta_map": "Abrir mapa",
-      "cta_method": "Como funciona"
-    },
     "preview": {
       "cta": "Explorar o mapa",
       "caption": "Prévia: biomassa residual por município no estado de São Paulo",
@@ -2384,15 +2377,15 @@
     },
     "counts": {
       "heading": "A plataforma em números",
-      "municipalities": "municípios na base",
+      "municipalities": "municípios cobertos (SP e MG)",
       "residues": "resíduos com fatores FDE",
-      "sectors": "setores",
+      "sectors": "setores no catálogo",
       "references": "referências científicas",
       "unavailable": "indisponível no momento",
-      "unavailable_note": "Um travessão indica um número que vem da API e que não pôde ser lido agora."
+      "unavailable_note": "Um travessão indica um número que vem da API e que não pôde ser lido agora.",
+      "states": "estados: São Paulo e o piloto de Minas Gerais"
     },
     "sectors": {
-      "eyebrow": "Dados por setor",
       "heading": "O que a plataforma mede",
       "lede": "Cada resíduo traz seus fatores de disponibilidade, seu potencial metanogênico e as fontes que os sustentam.",
       "names": {
@@ -2425,13 +2418,11 @@
       "cta": "Ler a base científica"
     },
     "news": {
-      "eyebrow": "Novidades",
       "heading": "O que mudou",
       "version": "versão {version}",
       "cta": "Todas as notas de versão"
     },
     "cite": {
-      "eyebrow": "Dados abertos",
       "heading": "Use e cite",
       "body": "Os dados podem ser usados livremente, inclusive para fins comerciais, desde que a fonte seja citada.",
       "licence": "Código GPL-3.0 · Dados CC BY 4.0",
@@ -2451,6 +2442,51 @@
       "factors_title": "Fatores de disponibilidade",
       "factors_body": "Do que é gerado, desconta-se o que não pode chegar a uma planta de biogás.",
       "sectors_lede": "Cada resíduo traz seu potencial metanogênico, sua caracterização química e as fontes que os sustentam."
+    },
+    "v2": {
+      "hero": {
+        "name": "PILAR-2b",
+        "full_name": "Plataforma Inteligente de Localização e Aproveitamento de Resíduos para Biogás e Bioprodutos",
+        "lede": "Resíduos agrícolas, pecuários e urbanos de São Paulo e Minas Gerais, convertidos em biogás e biometano, com o método e as fontes à vista.",
+        "cta": "Abrir o mapa",
+        "pause": "Pausar o vídeo",
+        "play": "Reproduzir o vídeo",
+        "sources": {
+          "label": "Fontes de biogás no vídeo",
+          "plant": "Planta de biogás",
+          "livestock": "Pecuária",
+          "crops": "Resíduos agrícolas",
+          "sanitation": "Esgoto"
+        }
+      },
+      "search": {
+        "heading": "Comece pelo seu município",
+        "body": "Veja o potencial, os resíduos que mais pesam e a posição do município no estado."
+      },
+      "questions": {
+        "heading": "Quatro perguntas que o mapa responde",
+        "lede": "Cada uma cruza duas medidas e pinta os municípios numa grade de 3 × 3. A célula destacada é a resposta.",
+        "cta_note": "Escolha uma pergunta no painel do mapa ou explore os 1.498 municípios livremente."
+      },
+      "market": {
+        "heading": "O biometano já tem demanda obrigatória",
+        "lede": "A Lei do Combustível do Futuro obriga o gás natural vendido no país a incluir biometano. Acompanhe a meta e o que custa atendê-la.",
+        "mandate": "Acompanhar o mandato",
+        "mandate_body": "A meta de cada ano ao lado da produção mensal da ANP.",
+        "financing": "Ver quanto custa uma planta",
+        "financing_body": "O investimento por m³/dia nas operações aprovadas pelo BNDES."
+      },
+      "build": {
+        "heading": "Antes de construir uma planta",
+        "lede": "O potencial é o começo. Uma planta precisa de acesso, de quem compre o gás e de uma escala que se pague.",
+        "proximity": "Ver o que há em volta",
+        "proximity_body": "Gasodutos, subestações, rodovias e indústrias a partir de um ponto do mapa.",
+        "calculator": "Calcular uma propriedade",
+        "calculator_body": "Quanto biogás e biometano o rebanho e a lavoura de uma propriedade podem gerar."
+      },
+      "closing": {
+        "heading": "Todo o potencial de São Paulo e Minas Gerais, município por município."
+      }
     }
   },
   "data_catalog": {

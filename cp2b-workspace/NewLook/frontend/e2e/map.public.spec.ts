@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test'
 import { MapPage } from './pages/map.page'
 import { a11y } from './fixtures/test-fixtures'
+import { MAP_ANALYSES_ENABLED } from '../src/lib/featureFlags'
 
 /**
  * Public Map Page E2E Tests
@@ -404,5 +405,29 @@ test.describe('Proximity Analysis Sanity', () => {
 
     // The base map must survive an API failure gracefully
     await expect(mapPage.leafletContainer).toBeVisible()
+  })
+})
+
+// The analyses are held back until sign-in with approval exists. An old shared
+// link must open the plain map: no analyses section, no siting request, ?a=
+// dropped and every other parameter kept.
+test.describe('Map analyses held back (MAP_ANALYSES_ENABLED off)', () => {
+  test.skip(MAP_ANALYSES_ENABLED, 'the map analyses are public in this build')
+
+  test('an old ?a= link opens the plain map', async ({ page }) => {
+    const sitingRequests: string[] = []
+    page.on('request', (request) => {
+      if (request.url().includes('siting-indicators')) sitingRequests.push(request.url())
+    })
+    const mapPage = new MapPage(page)
+    await page.goto('/pt-BR/map?a=siting&m=3509502&scope=31')
+    await mapPage.waitForMapLoad()
+
+    await expect(page.locator('#map-panel-analyses')).toHaveCount(0)
+    await expect.poll(() => new URL(page.url()).searchParams.has('a')).toBe(false)
+    const params = new URL(page.url()).searchParams
+    expect(params.get('m')).toBe('3509502')
+    expect(params.get('scope')).toBe('31')
+    expect(sitingRequests).toEqual([])
   })
 })

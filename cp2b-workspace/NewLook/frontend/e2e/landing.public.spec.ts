@@ -5,6 +5,7 @@
  */
 import { test, expect } from '@playwright/test'
 import { CONSENT_VERSION } from '../src/lib/consent'
+import { MAP_ANALYSES_ENABLED } from '../src/lib/featureFlags'
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript((version) => {
@@ -42,3 +43,12 @@ for (const width of [1280, 390]) {
     })
   })
 }
+
+// The four map questions open the analyses, which are held back until sign-in
+// with approval exists (MAP_ANALYSES_ENABLED).
+test('the home leaves the map questions out while analyses are held back', async ({ page }) => {
+  test.skip(MAP_ANALYSES_ENABLED, 'analyses are public in this build')
+  await page.goto('/pt-BR')
+  await expect(page.locator('#home-questions')).toHaveCount(0)
+  await expect(page.locator('a[href*="map?a="]')).toHaveCount(0)
+})

@@ -21,7 +21,8 @@ import { Search, X, MapPin } from 'lucide-react'
 
 const MAX_RESULTS = 8
 
-export default function GlobalSearch() {
+/** onDark: a clear trigger, for the header over the home hero. */
+export default function GlobalSearch({ onDark = false }: { onDark?: boolean } = {}) {
   const t = useTranslations('common.search')
   const router = useRouter()
 
@@ -143,7 +144,7 @@ export default function GlobalSearch() {
         ref={triggerRef}
         type="button"
         onClick={openSearch}
-        className={`flex min-h-[44px] min-w-[44px] items-center justify-center gap-2 rounded border border-line bg-paper-sunken px-3 text-sm text-ink-muted transition-colors hover:border-line-strong hover:text-ink sm:min-h-[36px] ${open ? 'invisible' : ''}`}
+        className={`flex min-h-[44px] min-w-[44px] items-center justify-center gap-2 rounded border px-3 text-sm transition-colors sm:min-h-[36px] ${onDark ? 'border-white/30 bg-white/10 text-white hover:bg-white/20' : 'border-line bg-paper-sunken text-ink-muted hover:border-line-strong hover:text-ink'} ${open ? 'invisible' : ''}`}
         aria-label={t('trigger_aria')}
       >
         <Search className="h-4 w-4 shrink-0" aria-hidden="true" />

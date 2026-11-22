@@ -64,6 +64,12 @@ export const METHOD_PAGES_ENABLED = false;
  * /siting-indicators is never requested, the home leaves the questions out and
  * /explore answers 404.
  *
+ * This is a frontend gate only. It hides the analyses; it does not protect
+ * them: GET /municipalities/siting-indicators still answers anyone, the
+ * message catalogue still carries the analysis copy, and the /map bundle still
+ * holds lib/mapAnalyses.ts. Protecting the data is Part 2's job, on the server
+ * (an approved session), never this switch.
+ *
  * Once sign-in exists, the rule becomes "this switch on AND an approved
  * session"; the switch stays as the way to take every analysis down at once.
  * Set it to `true` and every entry point returns together.
