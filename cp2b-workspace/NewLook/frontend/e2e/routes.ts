@@ -1,4 +1,4 @@
-import { METHOD_PAGES_ENABLED } from '../src/lib/featureFlags';
+import { MAP_ANALYSES_ENABLED, METHOD_PAGES_ENABLED } from '../src/lib/featureFlags';
 
 /** The Método pages behind METHOD_PAGES_ENABLED. */
 export const METHOD_PAGES = ['/method', '/method/fde', '/method/scenarios', '/method/validation'];
@@ -16,7 +16,7 @@ export const ROUTES = [
   '/en/calculator',
   '/en/compare',
   '/en/municipalities',
-  '/en/explore',
+  ...(MAP_ANALYSES_ENABLED ? ['/en/explore'] : []),
   '/en/data',
   '/en/data/legend',
   '/en/data/agricultural',

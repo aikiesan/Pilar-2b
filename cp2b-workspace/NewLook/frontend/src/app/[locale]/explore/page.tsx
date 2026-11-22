@@ -8,6 +8,8 @@
  *
  * Rendered on the server with no map code, so it paints at once and needs no
  * API: the only client code is the search box.
+ *
+ * Held back with the map analyses (MAP_ANALYSES_ENABLED): 404 while it is off.
  */
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
@@ -17,6 +19,7 @@ import { Link } from '@/navigation'
 import { HeaderLeaves } from '@/components/ui/ArcOrnament'
 import MunicipalitySearch from '@/components/home/MunicipalitySearch'
 import { titledMetadata } from '@/lib/pageMetadata'
+import { requireMapAnalyses } from '@/components/explore/requireMapAnalyses'
 
 /** The map analyses a door opens, by id (AnalysisId in lib/mapAnalyses.ts). */
 type ExploreAnalysis = 'siting' | 'lacuna' | 'codigestao'
@@ -31,6 +34,7 @@ const DOORS: Door[] = [
 ]
 
 export async function generateMetadata(): Promise<Metadata> {
+  requireMapAnalyses()
   const t = await getTranslations('explore')
   return titledMetadata(t('title'), t('lede'))
 }
@@ -50,6 +54,7 @@ function DoorFrame({ index, icon: Icon, children }: { index: number; icon: Lucid
 }
 
 export default async function ExplorePage() {
+  requireMapAnalyses()
   const t = await getTranslations('explore')
 
   return (
