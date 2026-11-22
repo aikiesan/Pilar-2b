@@ -205,6 +205,10 @@ onInputsChange(newInputs):
   Se um tween estiver ativo, o hover sobrepõe só `weight` e `color`, sem tocar no `fillColor`.
 
 ### 5.3 Degradação adaptativa (`frameBudget.ts`)
+
+> **Revisado pelo benchmark** (`MICROTRANSICOES_PLANO_DE_VIABILIDADE.md` §2): atualizar "só o viewport"
+> praticamente não reduz o custo de redesenho no escopo nacional. A estratégia nacional passa a ser o
+> **crossfade por snapshot** (ADR-1 do plano). O texto abaixo vale como histórico.
 - Medir a duração de cada quadro durante o tween. Após `degradeAfterSlowFrames` quadros > 24 ms:
   passar para **passos discretos** (8 passos em vez de contínuo) e desligar a cascata.
 - Escopo nacional (> 2.000 features): começar já em `none` e atualizar só as features **no
@@ -830,3 +834,10 @@ aplicadas nas seções indicadas.
   entre o modo "só viewport" e os passos discretos.
 - Custo do `setStyle` em polígonos com muitos vértices: se o redesenho no escopo SP passar de 8 ms,
   simplificar as geometrias servidas (`ST_SimplifyPreserveTopology`) antes de otimizar o motor.
+
+### 26.11 Atualização após o benchmark
+Um benchmark de redesenho (Leaflet canvas, 645 e 5.564 municípios simplificados a 120 m) mostrou
+que o tween por município é viável em SP e MG, mas não no escopo nacional em CPU lenta, e que
+"só o viewport" não ajuda. A remontagem atual custa 0,2 a 1,6 s por troca no nacional. Estratégias,
+etapas e gates estão em `docs/planning/MICROTRANSICOES_PLANO_DE_VIABILIDADE.md`, que prevalece
+sobre esta spec onde as duas divergirem.
