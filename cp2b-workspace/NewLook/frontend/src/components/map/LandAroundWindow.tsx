@@ -87,8 +87,6 @@ export function useLandAroundAnalysis(
 export interface LandAroundWindowProps extends LandAroundState {
   point: LandAroundPoint | null;
   radius: LandAroundRadius;
-  /** The municipality the visitor clicked on, to name the place before the server does. */
-  placeHint?: string | null;
   onRadiusChange: (radius: LandAroundRadius) => void;
   onClose: () => void;
   onRetry?: () => void;
@@ -102,7 +100,6 @@ export function LandAroundWindow({
   error,
   point,
   radius,
-  placeHint,
   onRadiusChange,
   onClose,
   onRetry,
@@ -129,7 +126,7 @@ export function LandAroundWindow({
     return tClass.has(key) ? tClass(key) : row.servedName || t('class_fallback', { id: key });
   };
 
-  const place = placeHint || summary?.placeName || null;
+  const place = summary?.placeName || null;
   const gated = status === 'signed_out' || status === 'pending';
   const title = !point || gated || status === 'idle'
     ? t('toggle')
@@ -336,7 +333,6 @@ function Extras({
 export interface LandAroundProps {
   point: LandAroundPoint | null;
   radius: LandAroundRadius;
-  placeHint?: string | null;
   /** Who may use the tool (useMapToolAccess). */
   access: MapToolAccess;
   onRadiusChange: (radius: LandAroundRadius) => void;
@@ -351,7 +347,7 @@ const GATED_STATUS: Record<Exclude<MapToolAccess, 'allowed'>, LandAroundStatus> 
   loading: 'idle',
 };
 
-export default function LandAround({ point, radius, placeHint, access, onRadiusChange, onClose }: LandAroundProps) {
+export default function LandAround({ point, radius, access, onRadiusChange, onClose }: LandAroundProps) {
   const analysis = useLandAroundAnalysis(point, radius, access === 'allowed');
   const status: LandAroundStatus = access === 'allowed'
     ? analysis.status
@@ -363,7 +359,6 @@ export default function LandAround({ point, radius, placeHint, access, onRadiusC
       error={analysis.error}
       point={point}
       radius={radius}
-      placeHint={placeHint}
       onRadiusChange={onRadiusChange}
       onClose={onClose}
       onRetry={analysis.retry}

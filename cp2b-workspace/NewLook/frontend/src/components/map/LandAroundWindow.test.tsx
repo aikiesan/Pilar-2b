@@ -92,11 +92,6 @@ describe('LandAroundWindow', () => {
     expect(screen.getByText('MapBiomas Coleção 10, 2024. O uso do solo está mapeado só para São Paulo.')).toBeInTheDocument()
   })
 
-  it('result: the clicked municipality names the place before the server does', () => {
-    renderWindow({ status: 'done', result, point, placeHint: 'Sertãozinho' })
-    expect(screen.getByRole('heading', { name: 'Num raio de 20 km de Sertãozinho' })).toBeInTheDocument()
-  })
-
   it('empty: no farming found, and why', () => {
     const empty = { ...result, results: { ...result.results, municipalities: [], land_use: { ...result.results.land_use!, by_class: {} } } }
     renderWindow({ status: 'done', result: empty, point })
