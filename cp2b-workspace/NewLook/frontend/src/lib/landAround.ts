@@ -160,49 +160,6 @@ export interface LandAroundPoint {
   lng: number;
 }
 
-/** The tool's state as the URL keeps it: ?tool=land&lat=..&lng=..&radius=.. */
-export interface LandAroundParams {
-  on: boolean;
-  point: LandAroundPoint | null;
-  radius: LandAroundRadius;
-}
-
-export const LAND_AROUND_TOOL = 'land';
-
-/** Reads the tool's state from a query string. Anything malformed falls back quietly. */
-export function parseLandAroundParams(search: string | URLSearchParams): LandAroundParams {
-  const params = typeof search === 'string' ? new URLSearchParams(search) : search;
-  const on = params.get('tool') === LAND_AROUND_TOOL;
-  const radiusRaw = Number(params.get('radius'));
-  const radius = isLandAroundRadius(radiusRaw) ? radiusRaw : DEFAULT_LAND_AROUND_RADIUS;
-  const latRaw = params.get('lat');
-  const lngRaw = params.get('lng');
-  const lat = latRaw === null || latRaw.trim() === '' ? NaN : Number(latRaw);
-  const lng = lngRaw === null || lngRaw.trim() === '' ? NaN : Number(lngRaw);
-  const valid = Number.isFinite(lat) && Number.isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180;
-  return { on, point: on && valid ? { lat, lng } : null, radius };
-}
-
-/**
- * Writes the tool's state into a copy of the query string, leaving every other
- * parameter as it was. Off removes all four.
- */
-export function writeLandAroundParams(search: string | URLSearchParams, state: LandAroundParams): URLSearchParams {
-  const params = new URLSearchParams(search);
-  params.delete('tool');
-  params.delete('lat');
-  params.delete('lng');
-  params.delete('radius');
-  if (!state.on) return params;
-  params.set('tool', LAND_AROUND_TOOL);
-  if (state.point) {
-    params.set('lat', state.point.lat.toFixed(4));
-    params.set('lng', state.point.lng.toFixed(4));
-  }
-  params.set('radius', String(state.radius));
-  return params;
-}
-
 /** The nearest feature of one infrastructure type, or null when the server has no such layer. */
 export interface NearestInfrastructure {
   /** Null when nothing was found within maxKm. */

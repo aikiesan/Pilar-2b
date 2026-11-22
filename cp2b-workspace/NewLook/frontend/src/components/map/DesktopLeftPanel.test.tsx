@@ -32,7 +32,6 @@ const baseProps: React.ComponentProps<typeof DesktopLeftPanel> = {
   onLayerToggle: () => {},
   municipalityCount: 645,
   totalMunicipalities: 645,
-  onOpenComparison: () => {},
   onOpenExport: () => {},
   colorMode: 'biogas',
   onColorModeChange: () => {},
@@ -58,6 +57,8 @@ describe('DesktopLeftPanel', () => {
     expect(screen.queryByRole('button', { name: 'Ferramentas' })).not.toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Fontes' })).toHaveAttribute('href', expect.stringContaining('/data'));
     expect(screen.getByRole('button', { name: 'Copiar link' })).toBeInTheDocument();
+    // Until Compare on the map exists, Compare opens the comparison page.
+    expect(screen.getByRole('link', { name: 'Comparar' })).toHaveAttribute('href', expect.stringContaining('/compare'));
   });
 
   it('folds a layer group away and back', () => {

@@ -26,9 +26,18 @@ import { getStoredToken } from '@/lib/apiClient';
  * that distinction.
  */
 export function useRealSession(): boolean {
+  return useRealSessionState() ?? false;
+}
+
+/**
+ * The same reading, with null until it has been read (the first render, and
+ * every server render). For callers that must not show "signed out" before
+ * they know: useMapToolAccess.
+ */
+export function useRealSessionState(): boolean | null {
   // Resolved after mount: localStorage does not exist during SSR, and reading
   // it during render would desync hydration.
-  const [hasSession, setHasSession] = useState(false);
+  const [hasSession, setHasSession] = useState<boolean | null>(null);
 
   useEffect(() => {
     const read = () => setHasSession(!!getStoredToken());

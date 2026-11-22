@@ -14,8 +14,10 @@ import { useTranslations } from 'next-intl';
 import MapTour, { MapTourButton } from './MapTour';
 import { MapContainer, TileLayer, ScaleControl, ZoomControl, useMap } from 'react-leaflet';
 import dynamic from 'next/dynamic';
-import { CircleAlert, CircleDashed, Loader2 } from 'lucide-react';
-import { parseLandAroundParams, writeLandAroundParams, type LandAroundPoint, type LandAroundRadius } from '@/lib/landAround';
+import { CircleAlert, Loader2 } from 'lucide-react';
+import type { LandAroundPoint, LandAroundRadius } from '@/lib/landAround';
+import { availableMapTools, isMapToolAvailable, parseMapToolParams, writeMapToolParams, type MapToolId } from '@/lib/mapTools';
+import { useMapToolAccess } from '@/lib/mapToolAccess';
 import { useGeospatialData, useCodigestionClusters, useResidueCNMatrix, useIntermediateRegionsGeoJSON, useSitingIndicators } from '@/hooks/useGeospatialData';
 import { ANALYSES, analysisFill, classifyAnalysis, isAnalysisId, type AnalysisId } from '@/lib/mapAnalyses';
 import BivariateLegend from './BivariateLegend';
@@ -26,7 +28,7 @@ import { DISPLAY_METRICS, getMetricSpec, computeAdaptiveBreaks, DEFAULT_MAP_PALE
 import { setMapPalette } from '@/hooks/useMapPalette';
 import { CN_LEGEND_ROWS } from '@/lib/cnScale';
 import { useTypologyProfiles } from '@/hooks/useTypologyProfiles';
-import { useBetaAccess, useRealSession } from '@/lib/betaAccess';
+import { useBetaAccess } from '@/lib/betaAccess';
 import {
   TIPOLOGIA_COLORS, REGIME_COLORS, TIPOLOGIA_ORDER, REGIME_ORDER,
   TIPOLOGIA_KEY, REGIME_KEY,
@@ -151,7 +153,8 @@ const ThematicMapBar = dynamic(() => import('./ThematicMapBar'), { ssr: false })
 const ThematicMapMenu = dynamic(() => import('./ThematicMapMenu'), { ssr: false });
 const MunicipalityHighlight = dynamic(() => import('./MunicipalityHighlight'), { ssr: false });
 
-// Land around: the click tool's circle on the map and its floating window.
+// The click tools: the Tools menu, and Land around's circle and window.
+const MapToolsMenu = dynamic(() => import('./MapToolsMenu'), { ssr: false });
 const LandAroundLayer = dynamic(() => import('./LandAroundLayer'), { ssr: false });
 const LandAround = dynamic(() => import('./LandAroundWindow'), { ssr: false });
 
@@ -160,7 +163,6 @@ const MunicipalityProfilePanel = dynamic(() => import('./MunicipalityProfilePane
 const EnhancedTooltip = dynamic(() => import('./EnhancedTooltip'), { ssr: false });
 
 // Modals
-const ComparisonPanel = dynamic(() => import('./ComparisonPanel'), { ssr: false });
 const ExportControl = dynamic(() => import('./ExportControl'), { ssr: false });
 
 // Visualization layers
@@ -499,18 +501,22 @@ export default function MapComponent({
   const [selectedMunicipality, setSelectedMunicipality] = useState<MunicipalityFeature | null>(null);
   const [hoveredMunicipality, setHoveredMunicipality] = useState<MunicipalityFeature | null>(null);
 
-  // ── Land around (click tool) ──────────────────────────────────────────────
-  // Kept in the URL (?tool=land&lat&lng&radius), so a shared link opens the
-  // tool at that point. Signed-out visitors can open it, but a click draws
-  // nothing: the window asks them to sign in. A real session, never
-  // useAuth().isAuthenticated: open mode makes that true for every visitor.
-  const signedIn = useRealSession();
-  const [initialLand] = useState(() =>
-    parseLandAroundParams(typeof window === 'undefined' ? '' : window.location.search),
+  // ── Click tools (lib/mapTools.ts) ─────────────────────────────────────────
+  // One tool open at a time, kept in the URL (?tool=..), so a shared link
+  // opens it. Anyone can open a tool; useMapToolAccess decides whether its
+  // clicks do anything, and the tool's window says what is needed.
+  const toolAccess = useMapToolAccess();
+  const toolsOnOffer = useMemo(() => availableMapTools(MAP_ANALYSES_ENABLED), []);
+  const [initialTools] = useState(() =>
+    parseMapToolParams(typeof window === 'undefined' ? '' : window.location.search),
   );
-  const [landOn, setLandOn] = useState(initialLand.on);
-  const [landPoint, setLandPoint] = useState<LandAroundPoint | null>(initialLand.point);
-  const [landRadius, setLandRadius] = useState<LandAroundRadius>(initialLand.radius);
+  const [activeTool, setActiveTool] = useState<MapToolId | null>(
+    isMapToolAvailable(initialTools.tool, MAP_ANALYSES_ENABLED) ? initialTools.tool : null,
+  );
+  // Land around
+  const landOn = activeTool === 'land';
+  const [landPoint, setLandPoint] = useState<LandAroundPoint | null>(initialTools.land.point);
+  const [landRadius, setLandRadius] = useState<LandAroundRadius>(initialTools.land.radius);
   const [landPlace, setLandPlace] = useState<string | null>(null);
   // A click on a municipality reaches its layer just before the map: the layer
   // leaves the name here and the map's click, which places the circle, takes it.
@@ -518,14 +524,17 @@ export default function MapComponent({
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const params = writeLandAroundParams(window.location.search, { on: landOn, point: landPoint, radius: landRadius });
+    const params = writeMapToolParams(window.location.search, {
+      tool: activeTool,
+      land: { point: landPoint, radius: landRadius },
+    });
     const query = params.toString();
     const next = `${window.location.pathname}${query ? `?${query}` : ''}`;
     if (next !== `${window.location.pathname}${window.location.search}`) window.history.replaceState(null, '', next);
-  }, [landOn, landPoint, landRadius]);
+  }, [activeTool, landPoint, landRadius]);
 
-  const closeLandAround = useCallback(() => {
-    setLandOn(false);
+  const closeTool = useCallback(() => {
+    setActiveTool(null);
     setLandPoint(null);
     setLandPlace(null);
   }, []);
@@ -533,13 +542,11 @@ export default function MapComponent({
   const handleLandPick = useCallback((point: LandAroundPoint) => {
     const name = landClickedName.current;
     landClickedName.current = null;
-    if (!signedIn) return;
+    if (toolAccess !== 'allowed') return;
     setLandPoint(point);
     setLandPlace(name);
-  }, [signedIn]);
+  }, [toolAccess]);
   const [mousePosition, setMousePosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
-  const [comparisonMunicipalities, setComparisonMunicipalities] = useState<MunicipalityFeature[]>([]);
-  const [showComparison, setShowComparison] = useState(false);
   const [showExport, setShowExport] = useState(false);
 
   // Write URL whenever filter state changes
@@ -646,21 +653,31 @@ export default function MapComponent({
     window.history.replaceState(null, '', `${window.location.pathname}?${params.toString()}`);
   }, []);
 
+  // With a tool open, a click on a municipality goes to the tool, never to the
+  // profile.
   const handleMunicipalityClick = useCallback((feature: MunicipalityFeature) => {
-    // With Land around on, the click places the circle (LandAroundLayer); the
-    // municipality only names the place.
-    if (landOn) {
-      landClickedName.current = feature.properties?.name ?? null;
-      return;
+    switch (activeTool) {
+      case 'land':
+        // The click places the circle (LandAroundLayer); the municipality only
+        // names the place.
+        landClickedName.current = feature.properties?.name ?? null;
+        return;
+      case null:
+        selectMunicipality(feature);
+        return;
+      default:
+        // A tool on offer that takes municipalities handles them here.
+        return;
     }
-    selectMunicipality(feature);
-  }, [selectMunicipality, landOn]);
+  }, [selectMunicipality, activeTool]);
 
-  const toggleLandAround = useCallback(() => {
-    if (landOn) { closeLandAround(); return; }
+  // Opening a tool closes the profile; picking the open tool, or none, closes it.
+  const selectTool = useCallback((tool: MapToolId | null) => {
+    if (tool === null || tool === activeTool) { closeTool(); return; }
+    closeTool();
     selectMunicipality(null);
-    setLandOn(true);
-  }, [landOn, closeLandAround, selectMunicipality]);
+    setActiveTool(tool);
+  }, [activeTool, closeTool, selectMunicipality]);
 
   // The municipality the URL (or the caller) names, selected and framed once the
   // data is in. Matched as the search matches, among the municipalities of the
@@ -694,7 +711,7 @@ export default function MapComponent({
       // closing a menu must not also drop the selected municipality.
       if (e.key === 'Escape') {
         if (e.defaultPrevented) return;
-        if (landOn) closeLandAround(); else selectMunicipality(null);
+        if (activeTool) closeTool(); else selectMunicipality(null);
         return;
       }
       if (e.key === 'e' || e.key === 'E') {
@@ -704,20 +721,7 @@ export default function MapComponent({
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [selectMunicipality, landOn, closeLandAround]);
-
-  // ── Comparison callbacks (Phase 3) ────────────────────────────────────────
-  const handleAddToComparison = useCallback((feature: MunicipalityFeature) => {
-    setComparisonMunicipalities(prev => {
-      if (prev.length >= 4) return prev;
-      if (prev.some(m => m.properties.ibge_code === feature.properties.ibge_code)) return prev;
-      return [...prev, feature];
-    });
-  }, []);
-
-  const handleRemoveFromComparison = useCallback((id: number) => {
-    setComparisonMunicipalities(prev => prev.filter(m => m.properties.id !== id));
-  }, []);
+  }, [selectMunicipality, activeTool, closeTool]);
 
   // ── Layer state ─────────────────────────────────────────────────────────────
   // Names are copy (Map.layerNames.<id>) and are attached at render time, so
@@ -1104,7 +1108,6 @@ export default function MapComponent({
           municipalityCount={activeScopeCount}
           totalMunicipalities={activeScopeTotal}
           betaMunicipalityCount={!isMgScope && showNationalBeta ? betaCount : 0}
-          onOpenComparison={() => setShowComparison(true)}
           onOpenExport={() => setShowExport(true)}
           displayMetric={displayMetric}
           onDisplayMetricChange={handleDisplayMetricChange}
@@ -1193,8 +1196,8 @@ export default function MapComponent({
             selected={selectedMunicipality}
             onSelect={(feature) => {
               // Picking a municipality opens its profile, which takes the
-              // place of the Land around window.
-              if (landOn) closeLandAround();
+              // place of the open tool's window.
+              if (activeTool) closeTool();
               selectMunicipality(feature, true);
             }}
             onClear={() => selectMunicipality(null)}
@@ -1206,24 +1209,12 @@ export default function MapComponent({
               count={activeScopeCount}
             />
           </div>
-          {/* Land around: a click on the map opens a circle and what its land is used for. */}
-          <button
-            type="button"
-            onClick={toggleLandAround}
-            aria-pressed={landOn}
-            aria-label={t('landAround.toggle')}
-            title={t('landAround.toggle_hint')}
-            className={`surface-light flex min-h-11 min-w-11 items-center justify-center gap-1.5 border px-3 text-sm font-semibold shadow-md backdrop-blur transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-terra-600 ${
-              landOn
-                ? 'border-ink bg-ink text-paper hover:bg-ink/90 active:bg-ink/80'
-                : 'border-line bg-paper-raised/95 text-ink hover:bg-paper-raised active:bg-paper-sunken'
-            }`}
-          >
-            <CircleDashed className={`h-4 w-4 shrink-0 ${landOn ? 'text-paper' : 'text-terra-800'}`} aria-hidden="true" />
-            {/* Colour on the label itself: .surface-light sets the button's
-                text colour after the utilities and would win over text-paper. */}
-            <span className={`hidden sm:inline ${landOn ? 'text-paper' : 'text-ink'}`}>{t('landAround.toggle')}</span>
-          </button>
+          {/* The click tools: each answers a click on the map in its own way. */}
+          {isMounted && (
+            <div data-tour="map-tools">
+              <MapToolsMenu tools={toolsOnOffer} active={activeTool} onSelect={selectTool} />
+            </div>
+          )}
           {isMounted && (
             <div data-tour="map-themes" className="hidden md:block">
               <ThematicMapMenu
@@ -1459,7 +1450,7 @@ export default function MapComponent({
           {isMounted && (
             <LandAroundLayer
               active={landOn}
-              point={landOn && signedIn ? landPoint : null}
+              point={landOn && toolAccess === 'allowed' ? landPoint : null}
               radiusKm={landRadius}
               onPick={handleLandPick}
             />
@@ -1504,9 +1495,9 @@ export default function MapComponent({
             point={landPoint}
             radius={landRadius}
             placeHint={landPlace}
-            signedIn={signedIn}
+            access={toolAccess}
             onRadiusChange={setLandRadius}
-            onClose={closeLandAround}
+            onClose={closeTool}
           />
         )}
 
@@ -1517,20 +1508,6 @@ export default function MapComponent({
               : null}
             onClose={() => { setShowClusterPanel(false); setSelectedClusterId(null); }}
             visible={showClusterPanel && selectedClusterId !== null}
-          />
-        )}
-
-        {isMounted && (
-          <ComparisonPanel
-            // Comparison puts two municipalities' numbers side by side as if
-            // they were commensurable. Until the national rows clear validation
-            // they are not, so the picker offers São Paulo only.
-            municipalities={(data?.features ?? []).filter(f => isSaoPaulo(f.properties?.ibge_code))}
-            selectedMunicipalities={comparisonMunicipalities}
-            onMunicipalityAdd={handleAddToComparison}
-            onMunicipalityRemove={handleRemoveFromComparison}
-            onClose={() => setShowComparison(false)}
-            visible={showComparison}
           />
         )}
 

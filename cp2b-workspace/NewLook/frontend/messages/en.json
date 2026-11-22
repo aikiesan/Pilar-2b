@@ -900,27 +900,6 @@
       "daltonic": "Color-blind mode",
       "active": "on"
     },
-    "comparePanel": {
-      "title": "Municipality Comparison",
-      "subtitle": "Compare up to 4 municipalities side by side",
-      "add_label": "Add a municipality to compare",
-      "add_placeholder": "Name or IBGE code…",
-      "metric_column": "Metric",
-      "empty_title": "No municipality selected",
-      "empty_hint": "Use the search above to add municipalities to the comparison",
-      "highest": "Highest value",
-      "lowest": "Lowest value",
-      "remove_aria": "Remove {name} from the comparison",
-      "categories": {
-        "overview": "Overview",
-        "biogas": "Total biogas"
-      },
-      "metrics": {
-        "population": "Population",
-        "area": "Area",
-        "total": "Total"
-      }
-    },
     "exportPanel": {
       "title": "Export Data",
       "subtitle": "Choose an export format",
@@ -1124,7 +1103,6 @@
     },
     "landAround": {
       "toggle": "Land around",
-      "toggle_hint": "Click a point on the map to see what the land around it is used for",
       "window_aria": "Land around",
       "close": "Close Land around",
       "title": "Within {radius} km of {place}",
@@ -1166,6 +1144,18 @@
         "invalid_radius": "The radius must be 10, 20 or 50 km.",
         "server": "The analysis could not be completed. Please try again."
       }
+    },
+    "mapTools": {
+      "menu": "Tools",
+      "menu_aria": "Map tools",
+      "items": {
+        "land": {
+          "name": "Land around",
+          "description": "What the land within 10, 20 or 50 km of a point is used for"
+        }
+      },
+      "pending_title": "Your access request is being reviewed",
+      "pending_body": "The map tools open as soon as your account is approved."
     }
   },
   "metadata": {
