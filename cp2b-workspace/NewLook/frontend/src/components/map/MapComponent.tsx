@@ -19,7 +19,8 @@ import type { LandAroundPoint, LandAroundRadius } from '@/lib/landAround';
 import { availableMapTools, isMapToolAvailable, parseMapToolParams, writeMapToolParams, type MapToolId } from '@/lib/mapTools';
 import { useMapToolAccess } from '@/lib/mapToolAccess';
 import { useGeospatialData, useCodigestionClusters, useResidueCNMatrix, useIntermediateRegionsGeoJSON, useSitingIndicators, useMunicipalityLandCover } from '@/hooks/useGeospatialData';
-import { nextComparePair } from '@/lib/compare';
+import { figureState, kmDecimals, nextComparePair } from '@/lib/compare';
+import { useFormat } from '@/hooks/useFormat';
 import { LATEST_LAND_COVER_YEAR } from '@/lib/landCover';
 import { centroidOf, haversineKm } from '@/lib/mapGeometry';
 import { ANALYSES, analysisFill, classifyAnalysis, isAnalysisId, type AnalysisId } from '@/lib/mapAnalyses';
@@ -1030,7 +1031,11 @@ export default function MapComponent({
     const [a, b] = comparePair.map((code) => centroidOf(data.features.find((f) => String(f.properties?.ibge_code) === code)));
     return a && b ? haversineKm(a, b) : null;
   }, [comparePair, data]);
-  const compareDistanceLabel = useCallback((km: number) => tCompare('distance', { km: Math.round(km) }), [tCompare]);
+  const formatNumber = useFormat().number;
+  const compareDistanceLabel = useCallback(
+    (km: number) => tCompare('distance', { km: formatNumber(km, { decimals: kmDecimals(km) }) }),
+    [tCompare, formatNumber],
+  );
   const sitingIndicators = siting.data?.available ? siting.data.indicators : null;
   const analysisWaiting = Boolean(analysisDef?.needsSiting) && !sitingIndicators;
   const analysisFailed = Boolean(analysisDef?.needsSiting) && (siting.isError || siting.data?.available === false);
@@ -1482,6 +1487,7 @@ export default function MapComponent({
           {isMounted && compareOn && filteredData && (
             <CompareLayer
               features={filteredData.features}
+              allFeatures={data?.features ?? filteredData.features}
               pair={comparePair}
               interactive={toolAccess === 'allowed'}
               onPick={pickCompare}
@@ -1541,7 +1547,9 @@ export default function MapComponent({
             features={data?.features ?? []}
             scenario={mapScenario}
             siting={siting.data?.available ? siting.data.indicators : null}
+            sitingState={figureState(siting)}
             landCover={compareLandCover.data}
+            landCoverState={figureState(compareLandCover)}
             distanceKm={compareDistanceKm}
             onRemove={pickCompare}
             onClose={closeTool}

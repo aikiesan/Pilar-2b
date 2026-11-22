@@ -27,7 +27,7 @@ import {
   type LandAroundRadius,
   type LandRow,
 } from '@/lib/landAround';
-import { writeMapToolParams } from '@/lib/mapTools';
+import { currentMapSearch, writeMapToolParams } from '@/lib/mapTools';
 import type { MapToolAccess } from '@/lib/mapToolAccess';
 import { analyzeProximity, ProximityError, type ProximityAnalysisResult } from '@/services/proximityApi';
 import type { Messages } from '@/types/i18n';
@@ -139,7 +139,8 @@ export function LandAroundWindow({
       : t(`errors.${e.code}`);
   };
 
-  const loginNext = `/map?${writeMapToolParams('', { tool: 'land', land: { point, radius } }).toString()}`;
+  // Built from the map's own link, so the scope, scenario and filters come back too.
+  const loginNext = `/map?${writeMapToolParams(currentMapSearch(), { tool: 'land', land: { point, radius } }).toString()}`;
 
   return (
     <aside

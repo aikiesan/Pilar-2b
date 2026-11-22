@@ -11,6 +11,10 @@
  * each municipality's detail (useMunicipalityMetrics), so the states can be
  * tested without a network. Every other figure comes in through props, from
  * what the map already holds.
+ *
+ * A cell says "no data" only once its request has answered without the figure.
+ * While the detail, /siting-indicators or the land cover is on its way the cell
+ * says so, and if the request failed it says it could not load.
  */
 import { useMemo } from 'react';
 import { useTranslations } from 'next-intl';
@@ -23,8 +27,11 @@ import {
   COVER_BAR_COLORS,
   COVER_BAR_GROUPS,
   compareSide,
+  figureState,
+  kmDecimals,
   type CompareSide,
   type CompareSlot,
+  type FigureState,
 } from '@/lib/compare';
 import { SECTOR_COLORS } from '@/data/sectorColors';
 import { isServedScenario, type MapScenarioKey } from '@/data/scenarioFactors';
@@ -33,13 +40,26 @@ import { useFormat } from '@/hooks/useFormat';
 import type { LandCoverResponse } from '@/lib/landCover';
 import type { SitingIndicators } from '@/lib/mapAnalyses';
 import type { MapToolAccess } from '@/lib/mapToolAccess';
-import { writeMapToolParams } from '@/lib/mapTools';
+import { currentMapSearch, writeMapToolParams } from '@/lib/mapTools';
 import { ufAbbreviation } from '@/lib/municipalitySearch';
 import type { MunicipalityFeature, MunicipalityProperties } from '@/types/geospatial';
 import type { ResidueType } from '@/types/map';
 
 const focusRing = 'focus:outline-none focus-visible:ring-2 focus-visible:ring-terra-600 focus-visible:ring-offset-1 focus-visible:ring-offset-paper';
 const SLOTS: CompareSlot[] = ['a', 'b'];
+
+/** Where the requests behind the rows stand; the rank and biomethane need none. */
+export interface CompareFigureStates {
+  /** Each municipality's detail: the residue tonnes and sector totals. */
+  detail: [FigureState, FigureState];
+  /** /siting-indicators: the pipeline and the plants. */
+  siting: FigureState;
+  /** The land cover. */
+  landCover: FigureState;
+}
+type RowSource = 'detail' | 'siting' | 'landCover' | null;
+
+const ALL_READY: CompareFigureStates = { detail: ['ready', 'ready'], siting: 'ready', landCover: 'ready' };
 
 export interface CompareWindowProps {
   access: MapToolAccess;
@@ -49,11 +69,15 @@ export interface CompareWindowProps {
   sides: (CompareSide | null)[];
   distanceKm: number | null;
   scenario: MapScenarioKey;
+  /** Defaults to every request answered. */
+  states?: CompareFigureStates;
   onRemove: (code: string) => void;
   onClose: () => void;
 }
 
-export function CompareWindow({ access, pair, sides, distanceKm, scenario, onRemove, onClose }: CompareWindowProps) {
+export function CompareWindow({
+  access, pair, sides, distanceKm, scenario, states = ALL_READY, onRemove, onClose,
+}: CompareWindowProps) {
   const t = useTranslations('Map.compare');
   const tTools = useTranslations('Map.mapTools');
   const tMap = useTranslations('Map');
@@ -64,25 +88,44 @@ export function CompareWindow({ access, pair, sides, distanceKm, scenario, onRem
   const residueName = (r: ResidueType) =>
     r === 'rsu' || r === 'rpo' || r === 'sewage' ? tMap(`urbanTotals.streams.${r}`) : tMap(`residues.${r}`);
   const noData = <span className="text-ink-muted">{t('no_data')}</span>;
+  /** The land cover bar read out: each group's share, as the sectors bar lists its values. */
+  const landAria = (groups: Record<(typeof COVER_BAR_GROUPS)[number], number>) => {
+    const total = COVER_BAR_GROUPS.reduce((sum, g) => sum + groups[g], 0);
+    const shares = COVER_BAR_GROUPS.map((g) =>
+      t('land_share', { group: t(`cover.${g}`), share: number(total > 0 ? (groups[g] / total) * 100 : 0) }),
+    );
+    return t('land_aria', { groups: shares.join(', ') });
+  };
 
   const gated = access === 'sign_in' || access === 'pending';
   const both = sides.length === 2 && sides.every(Boolean) ? (sides as CompareSide[]) : null;
   const maxBiomethane = Math.max(0, ...sides.map((s) => s?.biomethane ?? 0));
-  const loginNext = `/map?${writeMapToolParams('', { tool: 'compare', compare: { pair: [...pair] } }).toString()}`;
+  // Built from the map's own link, so the scope, scenario and filters come back too.
+  const loginNext = `/map?${writeMapToolParams(currentMapSearch(), { tool: 'compare', compare: { pair: [...pair] } }).toString()}`;
+  const loadingNote = <span className="text-ink-muted">{t('loading')}</span>;
 
-  const cell = (slot: CompareSlot, render: (side: CompareSide) => React.ReactNode) => {
-    const side = sides[SLOTS.indexOf(slot)];
-    if (side) return render(side);
-    return pair[SLOTS.indexOf(slot)] ? <span className="text-ink-muted">{t('loading')}</span> : null;
+  const cell = (slot: CompareSlot, source: RowSource, render: (side: CompareSide) => React.ReactNode) => {
+    const i = SLOTS.indexOf(slot);
+    const side = sides[i];
+    if (!side) return pair[i] ? loadingNote : null;
+    const state = source === null ? 'ready' : source === 'detail' ? states.detail[i] : states[source];
+    if (state === 'loading') return loadingNote;
+    if (state === 'failed') return <span className="text-ink-muted">{t('failed')}</span>;
+    return render(side);
   };
 
   /** One comparison row: its label, then A and B in two columns. */
-  const row = (key: string, label: string, render: (side: CompareSide, slot: CompareSlot) => React.ReactNode) => (
+  const row = (
+    key: string,
+    label: string,
+    source: RowSource,
+    render: (side: CompareSide, slot: CompareSlot) => React.ReactNode,
+  ) => (
     <div key={key} className="border-t border-line pt-2">
       <p className="mb-1 text-xs text-ink-muted">{label}</p>
       <div className="grid grid-cols-2 gap-3 text-sm">
         {SLOTS.map((slot) => (
-          <div key={slot} className="min-w-0">{cell(slot, (side) => render(side, slot))}</div>
+          <div key={slot} className="min-w-0">{cell(slot, source, (side) => render(side, slot))}</div>
         ))}
       </div>
     </div>
@@ -105,7 +148,7 @@ export function CompareWindow({ access, pair, sides, distanceKm, scenario, onRem
           <h2 className="font-display text-lg font-bold leading-snug text-ink">{t('title')}</h2>
           {both && distanceKm !== null && (
             <p className="mt-0.5 text-xs tabular-nums text-ink-muted">
-              {t('distance', { km: number(distanceKm, distanceKm < 10 ? 1 : 0) })}
+              {t('distance', { km: number(distanceKm, kmDecimals(distanceKm)) })}
             </p>
           )}
         </div>
@@ -187,7 +230,7 @@ export function CompareWindow({ access, pair, sides, distanceKm, scenario, onRem
               })}
             </div>
 
-            {row('rank', t('rows.rank'), (s) =>
+            {row('rank', t('rows.rank'), null, (s) =>
               s.rank ? (
                 <span className="tabular-nums">
                   {t('rank_value', { position: s.rank.position, of: s.rank.of, uf: ufAbbreviation(s.code) ?? '' })}
@@ -195,7 +238,7 @@ export function CompareWindow({ access, pair, sides, distanceKm, scenario, onRem
               ) : noData,
             )}
 
-            {row('biomethane', t('rows.biomethane', { scenario: tMap(isServedScenario(scenario) ? `scenario_${scenario}` : 'scenario_real') }), (s, slot) =>
+            {row('biomethane', t('rows.biomethane', { scenario: tMap(isServedScenario(scenario) ? `scenario_${scenario}` : 'scenario_real') }), null, (s, slot) =>
               s.biomethane === null ? noData : (
                 <div>
                   <p className="font-semibold tabular-nums">
@@ -215,13 +258,20 @@ export function CompareWindow({ access, pair, sides, distanceKm, scenario, onRem
               ),
             )}
 
-            {row('sectors', t('rows.sectors'), (s) => {
+            {row('sectors', t('rows.sectors'), 'detail', (s) => {
               const values = COMPARE_SECTORS.map((k) => s.sectors[k]);
               if (values.every((v) => v === null)) return noData;
               const total = values.reduce<number>((sum, v) => sum + (v ?? 0), 0);
+              // A sector without data is not a zero: the sum is then only part of the total.
+              const missing = COMPARE_SECTORS.filter((k) => s.sectors[k] === null);
               return (
                 <div>
                   <p className="font-semibold tabular-nums">{tons(total)}</p>
+                  {missing.length > 0 && (
+                    <p className="text-[11px] leading-snug text-ink-muted">
+                      {t('partial_total', { sectors: missing.map((k) => tMap(`categories.${k}`)).join(', ') })}
+                    </p>
+                  )}
                   <div role="img" aria-label={t('sectors_aria', {
                     agricultural: s.sectors.agricultural === null ? t('no_data') : tons(s.sectors.agricultural),
                     livestock: s.sectors.livestock === null ? t('no_data') : tons(s.sectors.livestock),
@@ -239,7 +289,7 @@ export function CompareWindow({ access, pair, sides, distanceKm, scenario, onRem
               );
             })}
 
-            {row('residues', t('rows.residues'), (s) =>
+            {row('residues', t('rows.residues'), 'detail', (s) =>
               s.topResidues === null ? noData : s.topResidues.length === 0 ? (
                 <span className="text-ink-muted">{t('no_residues')}</span>
               ) : (
@@ -254,13 +304,13 @@ export function CompareWindow({ access, pair, sides, distanceKm, scenario, onRem
               ),
             )}
 
-            {row('land', t('rows.land_cover'), (s) =>
+            {row('land', t('rows.land_cover'), 'landCover', (s) =>
               s.landCover === null ? noData : (
                 <div>
                   <p className="font-semibold tabular-nums">
                     {t('farmland', { share: number(s.landCover.farmlandShare * 100) })}
                   </p>
-                  <div role="img" aria-label={t('land_aria')} className="mt-1 flex h-2 gap-[2px]">
+                  <div role="img" aria-label={landAria(s.landCover.groups)} className="mt-1 flex h-2 gap-[2px]">
                     {COVER_BAR_GROUPS.map((g) => s.landCover!.groups[g] > 0 && (
                       <span
                         key={g}
@@ -273,15 +323,15 @@ export function CompareWindow({ access, pair, sides, distanceKm, scenario, onRem
               ),
             )}
 
-            {row('pipeline', t('rows.pipeline'), (s) =>
+            {row('pipeline', t('rows.pipeline'), 'siting', (s) =>
               s.pipelineKm === null ? noData : (
                 <span className="font-semibold tabular-nums">
-                  {t('km_value', { km: number(s.pipelineKm, s.pipelineKm < 10 ? 1 : 0) })}
+                  {t('km_value', { km: number(s.pipelineKm, kmDecimals(s.pipelineKm)) })}
                 </span>
               ),
             )}
 
-            {row('plants', t('rows.plants'), (s) =>
+            {row('plants', t('rows.plants'), 'siting', (s) =>
               s.biogasPlants === null ? noData : (
                 <span className="font-semibold tabular-nums">{number(s.biogasPlants)}</span>
               ),
@@ -323,14 +373,18 @@ export interface CompareProps {
   features: readonly MunicipalityFeature[];
   scenario: MapScenarioKey;
   siting: SitingIndicators | null;
+  sitingState: FigureState;
   landCover: LandCoverResponse | undefined;
+  landCoverState: FigureState;
   distanceKm: number | null;
   onRemove: (code: string) => void;
   onClose: () => void;
 }
 
 /** The window with each municipality's detail. */
-export default function Compare({ access, pair, features, scenario, siting, landCover, distanceKm, onRemove, onClose }: CompareProps) {
+export default function Compare({
+  access, pair, features, scenario, siting, sitingState, landCover, landCoverState, distanceKm, onRemove, onClose,
+}: CompareProps) {
   const allowed = access === 'allowed';
   const [codeA, codeB] = pair;
   const detailA = useMunicipalityMetrics(allowed && codeA ? codeA : null);
@@ -352,6 +406,13 @@ export default function Compare({ access, pair, features, scenario, siting, land
       });
   }, [allowed, codeA, codeB, detailA.data, detailB.data, features, scenario, siting, landCover]);
 
+  const detailStateA = figureState(detailA);
+  const detailStateB = figureState(detailB);
+  const states = useMemo<CompareFigureStates>(
+    () => ({ detail: [detailStateA, detailStateB], siting: sitingState, landCover: landCoverState }),
+    [detailStateA, detailStateB, sitingState, landCoverState],
+  );
+
   return (
     <CompareWindow
       access={access}
@@ -359,6 +420,7 @@ export default function Compare({ access, pair, features, scenario, siting, land
       sides={sides}
       distanceKm={distanceKm}
       scenario={scenario}
+      states={states}
       onRemove={onRemove}
       onClose={onClose}
     />

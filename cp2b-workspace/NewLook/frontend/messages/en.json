@@ -1173,7 +1173,9 @@
       "remove": "Take {name} out",
       "loading": "Loading",
       "no_data": "No data",
+      "failed": "Couldn't load",
       "no_residues": "No residue mass",
+      "partial_total": "Partial sum, no data for {sectors}",
       "distance": "{km} km apart in a straight line",
       "rows": {
         "rank": "Rank in the state by biomethane",
@@ -1190,7 +1192,8 @@
       "km_value": "{km} km",
       "farmland": "{share}% farmland",
       "sectors_aria": "Residue mass by source: agricultural {agricultural}, livestock {livestock}, urban {urban}",
-      "land_aria": "Land cover in 2025 by group",
+      "land_aria": "Land cover in 2025: {groups}",
+      "land_share": "{group} {share}%",
       "cover": {
         "native": "Native vegetation",
         "pasture": "Pasture",

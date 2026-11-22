@@ -34,6 +34,22 @@ export function nextComparePair(pair: readonly string[], code: string): string[]
 
 export const COMPARE_SECTORS: readonly SectorKey[] = ['agricultural', 'livestock', 'urban'];
 
+/**
+ * Where a request behind some of the figures stands. Only `ready` lets a null
+ * figure read as "no data": while it loads, or when it failed, the platform
+ * may well have the figure, so the window says that instead.
+ */
+export type FigureState = 'ready' | 'loading' | 'failed';
+
+/** The state of a query whose data the figures come from. */
+export function figureState(query: { data?: unknown; isError: boolean }): FigureState {
+  if (query.data !== undefined) return 'ready';
+  return query.isError ? 'failed' : 'loading';
+}
+
+/** Decimals for a distance in km, the same on the map and in the window. */
+export const kmDecimals = (km: number) => (km < 10 ? 1 : 0);
+
 const RESIDUES_BY_SECTOR: Record<SectorKey, readonly ResidueType[]> = {
   agricultural: ['sugarcane', 'soybean', 'corn', 'coffee', 'citrus'],
   livestock: ['cattle', 'swine', 'poultry', 'aquaculture'],

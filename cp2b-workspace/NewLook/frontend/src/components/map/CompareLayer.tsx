@@ -26,8 +26,14 @@ const INK = '#1E3E4C';
 const OUTLINE = '#9DB0B8';
 
 interface CompareLayerProps {
-  /** The municipalities a click can pick (the map's scope). */
+  /** The municipalities a click can pick (the map's scope and filters). */
   features: readonly MunicipalityFeature[];
+  /**
+   * Every municipality the map holds, to place A and B: a pair from a link or
+   * a search may lie outside the scope or the filters, and the window still
+   * shows it.
+   */
+  allFeatures: readonly MunicipalityFeature[];
   /** IBGE codes: [A] or [A, B]. */
   pair: readonly string[];
   /** Whether a click picks (approved sign-in); otherwise the outlines are inert. */
@@ -81,6 +87,7 @@ const along = (a: LatLng, b: LatLng, t: number): [number, number] => [
 
 export default function CompareLayer({
   features,
+  allFeatures,
   pair,
   interactive,
   onPick,
@@ -98,8 +105,8 @@ export default function CompareLayer({
   }, [map]);
 
   const byCode = useMemo(
-    () => new Map(features.map((f) => [String(f.properties?.ibge_code), f])),
-    [features],
+    () => new Map(allFeatures.map((f) => [String(f.properties?.ibge_code), f])),
+    [allFeatures],
   );
   const [codeA, codeB] = pair;
   const a = codeA ? centroidOf(byCode.get(codeA)) : null;

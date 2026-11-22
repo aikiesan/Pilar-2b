@@ -128,6 +128,14 @@ export function parseMapToolParams(search: string | URLSearchParams): MapToolUrl
 }
 
 /**
+ * The map's query string as it stands, for links that come back to it (after
+ * sign-in): they keep the scope, scenario, mode and filters. Empty on the server.
+ */
+export function currentMapSearch(): string {
+  return typeof window === 'undefined' ? '' : window.location.search;
+}
+
+/**
  * Writes the open tool's params into a copy of the query string, leaving every
  * other param as it was. No tool removes all of them.
  */

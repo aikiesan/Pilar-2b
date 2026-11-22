@@ -1173,7 +1173,9 @@
       "remove": "Tirar {name}",
       "loading": "Carregando",
       "no_data": "Sem dado",
+      "failed": "Não carregou",
       "no_residues": "Sem massa de resíduo",
+      "partial_total": "Soma parcial, sem dado de {sectors}",
       "distance": "A {km} km em linha reta",
       "rows": {
         "rank": "Posição no estado em biometano",
@@ -1190,7 +1192,8 @@
       "km_value": "{km} km",
       "farmland": "{share}% de agropecuária",
       "sectors_aria": "Massa de resíduo por origem: agrícola {agricultural}, pecuária {livestock}, urbana {urban}",
-      "land_aria": "Uso da terra em 2025 por grupo",
+      "land_aria": "Uso da terra em 2025: {groups}",
+      "land_share": "{group} {share}%",
       "cover": {
         "native": "Vegetação nativa",
         "pasture": "Pastagem",
