@@ -132,7 +132,10 @@ def cached_json_response(
         "Cache-Control": f"{'private' if private else 'public'}, max-age={BROWSER_MAX_AGE}",
         # Sem isto, um proxy pode servir a versão gzip para um cliente que não
         # aceita gzip — o GZipMiddleware varia a resposta pelo Accept-Encoding.
-        "Vary": "Accept-Encoding",
+        # Atrás de login, varia também pelo Authorization: sem isso o próprio
+        # navegador entregaria a cópia guardada a um pedido sem token, depois
+        # de sair da conta.
+        "Vary": "Accept-Encoding, Authorization" if private else "Accept-Encoding",
     }
 
     # If-None-Match pode trazer uma lista, e o RFC permite o prefixo W/.

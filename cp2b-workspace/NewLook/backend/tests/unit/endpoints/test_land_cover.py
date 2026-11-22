@@ -150,6 +150,8 @@ def test_one_year_for_every_municipality_in_group_order(signed_in, monkeypatch):
     assert body["data"]["3106200"] == [10.0, 0, 0, 0, 0, 0, 5.0, 0]
     # Behind a login: the browser may keep it, a shared proxy must not.
     assert res.headers["cache-control"].startswith("private")
+    # ...and the browser keeps it per token, not for a request without one.
+    assert "Authorization" in res.headers["vary"]
 
 
 def test_one_municipality_for_every_year(signed_in, monkeypatch):
