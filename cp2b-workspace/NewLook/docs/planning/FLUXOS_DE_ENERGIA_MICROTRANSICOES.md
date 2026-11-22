@@ -152,7 +152,8 @@ animate<T>(opts: { from: T; to: T; duration: number; easing: Easing;
   `element.animate()`. Usar no ranking do painel e na lista de comparação.
 
 ### 4.5 Debug hook (`debug.ts`)
-Somente quando `process.env.NODE_ENV !== 'production'`:
+Somente quando `process.env.NODE_ENV !== 'production'` **ou** `process.env.NEXT_PUBLIC_MOTION_DEBUG === '1'`
+(o segundo caso permite medir performance num build de produção; ver 10.3):
 ```ts
 window.__pilarMotion = { activeTweens, completedTransitions, lastTransitionMs,
   slowFrames, degraded, particles, layerMounts };
@@ -176,6 +177,13 @@ window.__pilarMotion = { activeTweens, completedTransitions, lastTransitionMs,
   `paintBetaData`) e `locale` (tooltips).
 - Remover do `key`: `biomassType`, `displayMetric`, `colorMode`, `mapScenario`, `selectedResidues`.
 - Guardar as layers por `cd_mun` num `Map` em ref (preenchido em `onEachFeature`).
+- **Bloqueante (ver 26.1):** o react-leaflet 4 chama `layer.setStyle(props.style)` sempre que a
+  identidade da prop `style` muda. Se o `useCallback` do `style` continuar dependendo de substrato,
+  cenário etc., todos os municípios saltam para a cor final **antes** do tween. A prop `style`
+  passa a ser estável (só para a montagem) e todo restyle é imperativo, pelo motor. Isso inclui o
+  slider de opacidade, que hoje depende justamente da troca de identidade do `style`.
+- **Canais separados:** o tween escreve só `fillColor` e `fillOpacity`; hover e seleção escrevem só
+  `weight`, `color` e `opacity` (contorno). Um nunca sobrescreve o outro.
 
 ### 5.2 `choroplethTransition.ts`
 ```
@@ -260,8 +268,13 @@ interface FlowPath {
 
 ### 7.2 `FlowParticleLayer` (L.Layer)
 - Canvas próprio numa pane `flowPane` (zIndex acima dos overlays, `pointer-events: none`).
-- Pré-processamento por path: projetar para pixels na zoom atual e calcular comprimentos acumulados.
-  Recalcular em `zoomend` e `viewreset`; esconder durante `zoomanim` e reexibir no fim.
+- Pré-processamento por path: projetar com `map.latLngToLayerPoint` e calcular comprimentos
+  acumulados. Recalcular em `zoomend` e `viewreset`; esconder durante `zoomanim` e reexibir no fim.
+- Durante o pan, **não** reprojetar: no `move`, reposicionar o canvas com
+  `L.DomUtil.setPosition(canvas, map.containerPointToLayerPoint([0, 0]))` e desenhar com esse
+  deslocamento. Sem isso as partículas escorregam ao arrastar o mapa.
+- Escalar o canvas por `devicePixelRatio` (largura e altura físicas × DPR, `ctx.scale(dpr, dpr)`) e
+  redimensionar em `resize`.
 - Partícula = `{ pathIdx, s, speed }`. A cada quadro: `s += speed · dt`; a posição sai de uma busca
   binária nos comprimentos acumulados. Desenho: círculo + cauda curta (3 a 5 segmentos com alpha
   decrescente). **Não** usar o truque de "limpar com alpha", que borra ao arrastar o mapa.
@@ -402,9 +415,45 @@ docker compose exec backend pytest tests -k energy_flows
 
 # E2E a partir do host, contra o container:
 cd frontend
+npm ci                                   # node_modules no host, só para o Playwright
+npx playwright install chromium          # uma vez
 $env:PLAYWRIGHT_BASE_URL="http://localhost:3006"
+$env:PLAYWRIGHT_SKIP_WEBSERVER="1"       # sem isto o config sobe `npm run dev` na porta 3000
 npx playwright test e2e/motion.spec.ts --project=chromium --trace off
 ```
+O projeto `chromium` depende do `setup` (login, `e2e/auth.setup.ts`). No Docker o compose usa
+`NEXT_PUBLIC_DISABLE_AUTH=true`; confirme que o setup passa nesse modo. Testes que não precisam de
+sessão podem ir para `e2e/motion.public.spec.ts` (projeto `public`); os de modos beta ficam no
+`chromium`.
+
+**Performance só se mede em build de produção.** `next dev` (Turbopack, React em modo dev) gera
+long tasks por conta própria, então os testes de orçamento de quadro (10.4 item 3 e Fase 3) não
+valem contra a porta 3006. Para medi-los:
+criar um serviço separado no `docker-compose.override.yml` (o serviço `frontend` define
+`NODE_ENV=development`, o que deixaria o `next.config.js` fora do modo produção mesmo num build):
+```yaml
+services:
+  frontend-prod:
+    build: { context: ./frontend, dockerfile: Dockerfile.dev }
+    command: sh -c "npm run build && npx next start -H 0.0.0.0 -p 3007"
+    volumes: [ "./frontend:/app", "/app/node_modules", "/app/.next" ]
+    ports: [ "3007:3007" ]
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_MOTION_DEBUG: "1"
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+      API_INTERNAL_URL: http://backend:8000
+      NEXT_PUBLIC_DISABLE_AUTH: "true"
+    depends_on: [ backend ]
+    profiles: [ "perf" ]
+```
+```powershell
+docker compose --profile perf up --build -d frontend-prod
+# Em produção o basePath é /pilar2b:
+$env:PLAYWRIGHT_BASE_URL="http://localhost:3007/pilar2b"
+npx playwright test e2e/motion.spec.ts --project=chromium --grep @perf --trace off
+```
+Marcar os testes de performance com a tag `@perf` para rodá-los só nesse alvo.
 
 ### 10.4 E2E a escrever (`frontend/e2e/motion.spec.ts`)
 1. **Constância de objeto:** abrir o mapa, ler `__pilarMotion.layerMounts`, trocar o substrato 3
@@ -412,8 +461,9 @@ npx playwright test e2e/motion.spec.ts --project=chromium --trace off
 2. **Transição termina:** após a troca, `waitForFunction(() => __pilarMotion.activeTweens === 0)`
    em ≤ 1,5 s; `completedTransitions` incrementou.
 3. **Orçamento de quadro:** instalar `PerformanceObserver({ type: 'longtask' })` antes da troca;
-   afirmar zero entradas > 50 ms no escopo SP.
-4. **Reduced-motion:** `test.use({ reducedMotion: 'reduce' })`; a troca termina no mesmo quadro
+   afirmar zero entradas > 50 ms no escopo SP. Só no Chromium (a API não existe no Firefox nem no
+   WebKit; usar `test.skip` por browser) e só em build de produção (ver 10.3).
+4. **Reduced-motion:** `await page.emulateMedia({ reducedMotion: 'reduce' })` antes do `goto`; a troca termina no mesmo quadro
    (`lastTransitionMs < 20`).
 5. **Partículas:** ligar o modo Fluxos e verificar `particles > 0`; desligar e verificar `=== 0`;
    com reduced-motion, verificar o fallback estático visível e `particles === 0`.
@@ -612,9 +662,12 @@ move a câmera. Útil em zoom alto e no mobile. **C**
 - **Carregamento como transição:** primeiro as fronteiras chegam em cinza de contexto; quando os
   valores chegam, as cores "entram" em cascata por ranking. O tempo de espera vira parte da
   animação. Combinar com o `MapLoadingSkeleton` existente. **A**
-- **Pré-busca na intenção:** ao passar o mouse sobre um item do menu de substrato ou de modo, chamar
-  `queryClient.prefetchQuery` (react-query já está no projeto). Quando o clique acontece, a
-  transição começa sem espera. **A**
+- **Pré-busca na intenção:** os valores de substrato e cenário já vêm nas propriedades do GeoJSON
+  municipal (`useGeospatialData`), então essas trocas não esperam rede e não precisam de pré-busca.
+  A pré-busca vale para o que tem endpoint próprio: modos beta (tipologia, C/N, regime, só com
+  sessão), indicadores de localização (`useSitingIndicators`), clusters de codigestão, regiões
+  intermediárias e camadas de infraestrutura. Ao passar o mouse sobre esses itens, chamar
+  `queryClient.prefetchQuery` com a mesma `queryKey` do hook. **A**
 - **Transição otimista:** ao clicar, iniciar imediatamente a fase de esmaecimento ou a câmera
   enquanto os dados chegam; se a resposta demorar mais que a animação, manter um pulso sutil de
   "carregando" na legenda, não um spinner sobre o mapa. **B**
@@ -679,6 +732,11 @@ Um controle em Configurações e no menu do mapa:
 - **Velocidade:** 0,5× · 1× · 1,5× (multiplicador sobre os tokens de duração).
 - O padrão segue `prefers-reduced-motion`; a escolha manual tem prioridade e é guardada localmente
   (com `try/catch`, pois o armazenamento pode falhar). **A**
+- **Ajuste no CSS global (ver 26.2):** a regra de `globals.css` zera todas as transições sob
+  `prefers-reduced-motion` com `!important`, então a escolha "completas" não teria efeito em CSS.
+  Escrever a preferência efetiva em `<html data-motion="full|reduced|off">` e trocar o seletor da
+  regra global por `html[data-motion="reduced"], html[data-motion="off"]`, mantendo a media query
+  como padrão quando não há atributo.
 
 ---
 
@@ -705,8 +763,9 @@ seleção. Se uma transição for pulada em mais de 30% das vezes, ela está lon
    `aria-live` anuncia o nome.
 9. **Legenda que destaca:** hover num item da legenda reduz a opacidade dos municípios de outras
    classes (ler pelo debug hook: `dimmedCount > 0`).
-10. **Pré-busca:** hover no item de substrato dispara uma requisição antes do clique
-    (`page.waitForRequest`).
+10. **Pré-busca:** hover no item de uma camada com endpoint próprio (ex.: infraestrutura) dispara a
+    requisição antes do clique (`page.waitForRequest`). Trocar de substrato **não** deve gerar
+    requisição.
 11. **Erro de rede:** `page.route` falhando a API de valores → o mapa mantém o último estado e mostra
     a faixa de erro.
 12. **Configuração de movimento:** "desligadas" → nenhuma transição com quadros intermediários,
@@ -731,3 +790,41 @@ seleção. Se uma transição for pulada em mais de 30% das vezes, ela está lon
 Ordem recomendada: **0 → 1 → 2 → 7 → 8 → 9 → 10**, e só então o motor de partículas (3) e os modos
 de energia (4–6). As fases 7 a 10 entregam a maior parte da melhoria de navegação percebida, com
 dados que já existem.
+
+
+---
+
+## 26. Revisão técnica da spec (2026-11-22)
+
+Revisão das premissas da spec contra o código da `main` (commit 3fe4072). Ainda não há código de
+implementação; os itens abaixo corrigem a spec antes de a Fase 0 começar. As correções já foram
+aplicadas nas seções indicadas.
+
+| # | Severidade | Achado | Onde no código | Correção |
+|---|---|---|---|---|
+| 26.1 | **Bloqueante** | O react-leaflet 4 aplica `setStyle(props.style)` a cada troca de identidade do `style`. Tirar os dados do `key` sem estabilizar o `style` faz tudo saltar para a cor final antes do tween. O slider de opacidade usa exatamente esse caminho hoje. | `MunicipalityLayer.tsx` (useCallback `style`, comentários sobre opacidade) | 5.1: `style` estável, restyle imperativo pelo motor, opacidade migrada para o motor, canais de preenchimento e contorno separados |
+| 26.2 | **Bloqueante** | A regra global de reduced-motion usa `!important` em todos os elementos; a configuração manual "completas" (seção 22) não conseguiria religar transições CSS. A Web Animations API (FLIP) não é afetada por essa regra. | `globals.css` (bloco "Reduced motion") | 22: atributo `data-motion` no `<html>`; `useFlip` checa a preferência efetiva em JS |
+| 26.3 | Alta | Os voos de câmera atuais ignoram reduced-motion (problema já existente). | `MapComponent.tsx` (`flyTo`, 0,6 s) e `MunicipalityHighlight.tsx` (`flyToBounds`, 1,2 s) | 16.2: o `cameraController` usa `setView`/`fitBounds` sem animação quando o movimento está reduzido ou desligado |
+| 26.4 | Alta | Medir long tasks contra `next dev` dá falso negativo; o compose sobe só modo dev. | `docker-compose.yml` (frontend `npm run dev`) | 10.3: medições de performance só em build de produção, com `NEXT_PUBLIC_MOTION_DEBUG=1` e basePath `/pilar2b` |
+| 26.5 | Alta | Rodar o Playwright do host sem `PLAYWRIGHT_SKIP_WEBSERVER` sobe um segundo `npm run dev` na porta 3000. O projeto `chromium` depende do setup de login. | `playwright.config.ts` (`webServer`, `projects`) | 10.3: variável documentada, divisão entre `motion.public.spec.ts` e o projeto `chromium` |
+| 26.6 | Média | Pré-busca no hover de substrato não faz sentido: os valores já vêm no GeoJSON municipal. O teste 10 da seção 24 falharia. Por outro lado, isso significa que as transições de substrato e cenário começam sem nenhuma espera de rede. | `useGeospatialData.ts` | 18 e 24.10 reescritos |
+| 26.7 | Média | Sem translação do canvas no pan, as partículas escorregam; sem DPR ficam borradas em telas retina e 4K. | — (código novo) | 7.2 |
+| 26.8 | Média | `test.use({ reducedMotion })` não é a forma documentada de emular a preferência; `PerformanceObserver('longtask')` só existe no Chromium. | — | 10.4: `page.emulateMedia({ reducedMotion: 'reduce' })` e `test.skip` por browser |
+| 26.9 | Média | No Jest (jsdom), não existem `canvas.getContext` nem `element.animate`, e o mock de `matchMedia` sempre retorna `matches: false`. | `src/test/setup.ts` | Manter a geometria de partículas e a lógica do FLIP em funções puras testáveis; sobrescrever `matchMedia` por teste em `usePrefersReducedMotion`; mockar `element.animate` |
+| 26.10 | Baixa (verificar cedo) | `pushState` nativo com o App Router do Next 16: o Next sincroniza entradas criadas pela History API nativa, mas é preciso confirmar que o Voltar dentro do mapa não remonta o `MapComponent`. | `MapComponent.tsx` (hoje só `replaceState`) | Fazer um spike de meio dia antes da Fase 7; critério: `layerMounts` inalterado após `goBack()` |
+
+### Premissas confirmadas
+- `preferCanvas={true}` e redesenho do canvas agrupado por quadro (o Leaflet agenda `_redraw` com
+  `requestAnimFrame`): o tween de um único `rAF` com N `setStyle` é viável no escopo SP.
+- O canvas do Leaflet não suporta `dashOffset`, então o contorno "traçado" precisa do renderer SVG
+  próprio. `MunicipalityHighlight` já usa uma pane dedicada (`zIndex 460`, sem eventos); basta
+  passar `renderer={L.svg({ pane })}` aos dois `<GeoJSON>` (halo e linha).
+- `reactStrictMode: false`: o contador `layerMounts` não é duplicado pelo modo estrito.
+- O padrão de restyle sem remontagem já existe para a opacidade e serve de ponto de partida.
+- Os endpoints de infraestrutura necessários para os Fluxos de Energia existem.
+
+### Riscos que só se resolvem medindo
+- Tempo de redesenho do canvas com 5.571 polígonos por quadro. Medir na Fase 1 antes de decidir
+  entre o modo "só viewport" e os passos discretos.
+- Custo do `setStyle` em polígonos com muitos vértices: se o redesenho no escopo SP passar de 8 ms,
+  simplificar as geometrias servidas (`ST_SimplifyPreserveTopology`) antes de otimizar o motor.
