@@ -3,7 +3,7 @@
 > Documento de trabalho para implementar com Claude Code local e validar em Docker Desktop.
 > Escopo: `cp2b-workspace/NewLook/frontend` (Next.js 16 · React 19 · react-leaflet 4) e um
 > endpoint novo em `backend/` (FastAPI + PostGIS).
-> Status: proposta · Data: 2026-11-22
+> Status: proposta · Data: 2026-11-22 · Parte I (seções 1–13): micro-transições e Fluxos de Energia · Parte II (seções 14–25): catálogo ampliado de transições e navegação
 
 ---
 
@@ -485,3 +485,249 @@ Depois que eu aprovar, seguimos para a Fase 1 com o mesmo processo.
 | 6 | Loader de dado social | fonte MDS confirmada | 2 dias |
 
 As Fases 0 a 2 sozinhas já entregam a sensação de "mapa que respira", sem nenhum dado novo.
+
+---
+
+# Parte II — Catálogo ampliado de transições e navegação
+
+> As seções 14 a 24 ampliam a Parte I. Reaproveitam o mesmo motor (Fase 0), o mesmo
+> `choroplethTransition` (Fase 1) e o mesmo `FlowParticleLayer` (Fase 3). Nenhuma exige
+> dependência nova. Cada item tem uma prioridade: **A** (alto impacto, baixo custo), **B** e **C**.
+
+Princípio adicional para esta parte:
+
+| # | Princípio | Regra prática |
+|---|---|---|
+| P8 | A transição explica a mudança | Quando o usuário troca de modo, a animação deve mostrar *o que* o novo modo representa (de onde veio cada cor, cada bolha, cada classe), não só suavizar a troca. |
+
+---
+
+## 14. Transições entre modos de visualização
+
+Hoje o mapa tem coroplético de biogás, tipologia, regime, perfil C/N, bivariado, bolhas e heatmap
+(`ColorModeSelector.tsx`, `BubbleChartLayer.tsx`, `HeatmapLayer.tsx`, `TypologyChoroLayer.tsx`,
+`CnChoroLayer.tsx`). Trocar entre eles é hoje um corte seco. Matriz proposta:
+
+| De → Para | Transição | Prioridade |
+|---|---|---|
+| Contínuo → contínuo (troca de métrica/substrato) | Interpolação OKLab com cascata por ranking (Fase 1) | A |
+| Contínuo → categórico (tipologia, regime) | Não interpolar cores de significado diferente. Primeiro esmaecer para o neutro (`DURATION.short`), depois **acender classe por classe**, sincronizado com o item da legenda que se destaca naquele momento. O usuário aprende a legenda enquanto ela é aplicada. | A |
+| Categórico → categórico | Municípios que **mudam de classe** fazem a transição; os que ficam na mesma classe permanecem parados e recebem um leve pulso. Revela a estabilidade entre as duas classificações. | B |
+| Univariado → bivariado | **Montagem em três tempos**: (1) só a variável A na rampa horizontal; (2) só a variável B na rampa vertical; (3) as duas se combinam na matriz 3×3 e a legenda bivariada se monta junto. Resolve a principal dificuldade do bivariado, que é a leitura da legenda. | A |
+| Coroplético → bolhas | O preenchimento esmaece até um tom de contexto enquanto as bolhas **crescem a partir do centróide** (raio de 0 ao valor, cascata por valor). Inverso: as bolhas encolhem para o centróide enquanto o preenchimento volta. | A |
+| Coroplético → heatmap | Crossfade de opacidade; o raio do kernel do heatmap cresce de 0 ao valor final. | B |
+| Coroplético → cartograma de Dorling (modo novo) | (1) polígonos esmaecem e um círculo surge em cada centróide; (2) os círculos crescem até a área ∝ valor; (3) uma relaxação de colisão os afasta até não se sobreporem. Inverso no caminho de volta. Posições finais calculadas no cliente para SP e MG (≤ 900 círculos, relaxação simples em ~60 iterações) e pré-calculadas no backend para o escopo nacional. | B |
+| Troca de escopo (SP → MG → nacional) | (1) a câmera recua até enquadrar os dois escopos; (2) o escopo antigo esmaece para o cinza de contexto; (3) o novo acende em onda a partir da fronteira comum; (4) a câmera enquadra o novo. | A |
+| Troca de cenário (teórico → acessível) | Cascata por **perda relativa**: os municípios que mais perdem potencial mudam primeiro. Um contador de "potencial perdido no estado" desce junto. (Liga ao funil de níveis discutido no plano.) | A |
+
+Nota: tipologia, perfil C/N e regime são modos beta, visíveis só com sessão (commit 3fe4072); os
+dados respondem 401 sem login. As transições para esses modos só existem para usuários logados, e
+o orquestrador não deve pré-buscar esses dados sem sessão.
+
+Implementação: um `ModeTransitionOrchestrator` que recebe `(fromMode, toMode)` e devolve uma
+sequência de passos (`fade`, `stagger-by`, `grow-from-centroid`, `relax`, `camera`), executados pelo
+motor da Fase 0. Cada passo pode ser pulado (reduced-motion ou clique do usuário durante a
+sequência, que vai direto ao estado final).
+
+---
+
+## 15. Legenda como controle (não só como chave)
+
+| Ideia | Comportamento | Prioridade |
+|---|---|---|
+| Legenda que destaca | Hover sobre uma classe da legenda: os municípios daquela classe ficam em destaque e o resto esmaece (canal de opacidade da Fase 1). Clique fixa o filtro. | A |
+| Legenda-histograma | Abaixo da rampa, um histograma com o número de municípios por classe. Ao trocar de métrica, as barras se reorganizam (FLIP) e as quebras deslizam para as novas posições. Mostra a distribuição, não só as cores. | A |
+| Quebras animadas | Alternar entre quantis, quebras naturais (Jenks) e intervalos iguais: as quebras se movem na rampa e o mapa se recolore em cascata. Ótimo para ensinar que a classificação muda a leitura. | B |
+| Marcador do selecionado | Um triângulo na rampa indica o valor do município selecionado e desliza quando a métrica muda. | A |
+| Faixa de filtro | Arrastar duas alças na rampa define um intervalo; municípios fora dele esmaecem em tempo real. | B |
+
+---
+
+## 16. Navegação e câmera
+
+### 16.1 Histórico do navegador
+Hoje o estado vai para a URL com `history.replaceState` (`MapComponent.tsx`, várias chamadas). Isso
+permite compartilhar o link, mas o botão **Voltar** sai do mapa em vez de desfazer o último passo.
+- Usar `pushState` para passos **discretos e significativos** (selecionar município, abrir
+  comparação, trocar de modo ou escopo) e manter `replaceState` para ajustes contínuos (opacidade,
+  pan e zoom).
+- No `popstate`, aplicar o estado anterior **com a transição inversa** (o holofote se desfaz, a
+  câmera volta). Voltar passa a funcionar como "desfazer animado". **A**
+
+### 16.2 Regras de câmera
+Centralizar num `cameraController.ts`:
+- se o alvo já está inteiro no viewport: **não mover**, só pulsar o contorno;
+- se está perto (< 1 viewport de distância): `panTo` curto;
+- se está longe: `flyToBounds` com duração proporcional à distância, limitada entre 0,6 s e 1,4 s
+  (hoje: 0,6 s em `MapComponent.tsx` e 1,2 s em `MunicipalityHighlight.tsx`, sem regra comum);
+- sempre descontar o painel lateral e a bottom sheet do enquadramento (estender o `fitPadding`
+  existente);
+- uma interação do usuário (arrastar, roda do mouse) cancela o voo imediatamente. **A**
+
+### 16.3 Zoom semântico
+- Em zoom baixo, mostrar as **regiões intermediárias** agregadas (a camada já existe); ao aproximar,
+  cada região "se abre" em municípios com um fade em cascata a partir do centro da região. Ao
+  afastar, os municípios se fundem de volta. Reduz a poluição visual no escopo nacional. **B**
+- Rótulos progressivos: em cada nível de zoom, só os N municípios de maior valor ganham rótulo
+  (com valor), com fade de entrada e saída e prevenção de colisão. **B**
+
+### 16.4 Navegação espacial por teclado
+- Com um município selecionado, as **setas** levam ao vizinho naquela direção (vizinho contíguo
+  cujo azimute de centróide mais se aproxima da direção da seta). A câmera acompanha com `panTo`.
+- `aria-live="polite"` anuncia "Campinas, 412 GWh/ano, 3º no estado".
+- Atalhos: `/` foca a busca, `Esc` limpa a seleção, `[` e `]` trocam de substrato. Documentar no
+  tour e numa folha de atalhos (`?`).
+- **Regra para todo atalho** (lição do commit 3fe4072, que removeu o `C` porque Ctrl+C abria a
+  comparação): só disparar com o foco no mapa ou no painel do mapa; ignorar se houver qualquer
+  modificador (`ctrlKey`, `metaKey`, `altKey`) ou se o alvo for editável (`input`, `textarea`,
+  `contenteditable`). **Não reintroduzir o atalho de comparação** por letra única; o botão
+  Comparar continua sendo o caminho. Cobrir com o mesmo padrão de teste de `MapComponent.test.tsx`
+  (`describe('Keyboard')`).
+- Isso é acessibilidade e também uma forma rápida de explorar para usuários avançados. **A**
+
+### 16.5 Busca com pré-visualização
+Enquanto o usuário digita, os municípios que casam com o texto pulsam no mapa (sem mover a câmera).
+Setas no menu de resultados destacam o município correspondente; Enter voa até ele. **A**
+
+### 16.6 Mapa de localização (inset)
+Um mini-mapa do estado no canto, com o retângulo do viewport atual. Clicar ou arrastar o retângulo
+move a câmera. Útil em zoom alto e no mobile. **C**
+
+---
+
+## 17. Hover e tooltip
+
+| Ideia | Comportamento | Prioridade |
+|---|---|---|
+| Intenção antes do hover | Atraso de 60–80 ms antes de destacar, para não piscar ao varrer o mapa com o mouse. | A |
+| Tooltip com mola | A tooltip segue o cursor com leve atraso (mola criticamente amortecida), sem saltar de município em município; o conteúdo faz crossfade. | B |
+| Hover em dois níveis | Passagem rápida: nome e valor. Pausa de 300 ms: tooltip rica com posição no ranking, mini-barra dos 3 principais substratos e a comparação com a mediana do estado. | A |
+| Contexto de vizinhança | Durante o hover, os vizinhos contíguos ganham um contorno leve: mostra o contexto local sem clicar. | C |
+| Hover sincronizado | Hover numa linha da tabela, do ranking ou de um gráfico destaca o município no mapa, e vice-versa (um único `hoveredCdMunStore`). | A |
+
+---
+
+## 18. Carregamento, vazios e erros
+
+- **Carregamento como transição:** primeiro as fronteiras chegam em cinza de contexto; quando os
+  valores chegam, as cores "entram" em cascata por ranking. O tempo de espera vira parte da
+  animação. Combinar com o `MapLoadingSkeleton` existente. **A**
+- **Pré-busca na intenção:** ao passar o mouse sobre um item do menu de substrato ou de modo, chamar
+  `queryClient.prefetchQuery` (react-query já está no projeto). Quando o clique acontece, a
+  transição começa sem espera. **A**
+- **Transição otimista:** ao clicar, iniciar imediatamente a fase de esmaecimento ou a câmera
+  enquanto os dados chegam; se a resposta demorar mais que a animação, manter um pulso sutil de
+  "carregando" na legenda, não um spinner sobre o mapa. **B**
+- **Sem dado ≠ zero:** municípios sem dado com contorno tracejado e preenchimento mais claro (o
+  canvas do Leaflet não faz hachura nativa; uma hachura exigiria uma camada de padrão separada).
+  Tooltip explica o motivo ("PPM não informa", "fora do escopo"). **B**
+- **Erro de rede:** manter o último estado visível, esmaecido, com uma faixa "não foi possível
+  atualizar · tentar de novo". Nunca deixar o mapa em branco. **A**
+
+---
+
+## 19. Painéis, layout e mobile
+
+- **Bottom sheet com pontos de encaixe** (`MobileBottomSheet.tsx`): física de mola entre recolhida,
+  meia altura e cheia. A câmera **recentraliza o selecionado** na área visível do mapa quando a sheet
+  muda de altura. **A**
+- **Painel que não empurra o mapa:** o painel lateral entra por `transform` sobre o mapa e a câmera
+  compensa o deslocamento, em vez de redimensionar o container (redimensionar força
+  `invalidateSize` e um redesenho completo do canvas). **B**
+- **Resumo fixo:** ao rolar o perfil do município, um cabeçalho compacto (nome, valor, ranking)
+  permanece visível, com transição de tamanho. **B**
+- **Comparação com cortina (swipe):** arrastar uma divisória vertical revela o município A com uma
+  métrica e o B com outra, ou o mesmo território em dois cenários. Requer duas camadas e
+  `clip-path` no canvas de cada uma. **C**
+
+---
+
+## 20. Leitura visual e hierarquia
+
+- **Profundidade sutil:** sombra suave abaixo do município selecionado (desenho extra no canvas com
+  `shadowBlur`), que o "eleva" acima do resto. **B**
+- **Contraste no holofote:** ao esmaecer o resto do mapa, manter as fronteiras visíveis (opacidade
+  da linha ≥ 0,4) para não perder a referência espacial. Verificar o contraste em modo escuro e nas
+  paletas CVD. **A**
+- **Infraestrutura em camadas de importância:** em zoom baixo, só gasodutos troncais e linhas de alta
+  tensão; os demais entram com fade conforme o zoom. **B**
+- **Destaque de infraestrutura próxima:** ao selecionar um município, a subestação, o trecho de
+  gasoduto e a usina mais próximos acendem, e uma linha tracejada se desenha até cada um, com a
+  distância. Conecta a seleção com a pergunta "e como a energia sai daqui?". **A**
+
+---
+
+## 21. Narrativa e compartilhamento
+
+- **Gravar uma sequência:** o usuário navega (seleciona, troca de cenário, compara) e o mapa grava os
+  estados da URL; depois, "reproduzir" refaz a sequência com as transições. Vira apresentação para
+  banca, reunião ou aula sem slides. Reutiliza o histórico da seção 16.1. **B**
+- **Tour guiado com transições** (`MapTour.tsx` com react-joyride): cada passo do tour dispara a
+  transição correspondente em vez de só apontar para um botão. **B**
+- **Link com estado de animação:** `?play=scenario` abre o mapa e executa a transição de cenário
+  uma vez, útil para links em notícias e no site do CP2b. **C**
+- **Exportação de imagem/GIF:** fica atrás do `DATA_EXPORT_ENABLED`, que está `false` durante o beta.
+  Não reabrir por esta spec. **—**
+
+---
+
+## 22. Configuração de movimento pelo usuário
+
+Um controle em Configurações e no menu do mapa:
+- **Animações:** completas · reduzidas (só fades curtos, sem partículas nem câmera longa) ·
+  desligadas.
+- **Velocidade:** 0,5× · 1× · 1,5× (multiplicador sobre os tokens de duração).
+- O padrão segue `prefers-reduced-motion`; a escolha manual tem prioridade e é guardada localmente
+  (com `try/catch`, pois o armazenamento pode falhar). **A**
+
+---
+
+## 23. Medir se ajudou
+
+Usar `src/lib/analytics.ts` (já existe, respeitando `consent.ts`), apenas com eventos agregados e
+sem dado pessoal:
+- tempo até a primeira seleção de município;
+- número de trocas de modo por sessão e quais pares de modos são usados;
+- uso de teclado e de "Voltar" no mapa;
+- proporção de sessões com animações reduzidas ou desligadas;
+- abandono durante transições longas (clique de pular).
+
+Critério de sucesso sugerido: mais trocas de modo por sessão **sem** aumento do tempo até a primeira
+seleção. Se uma transição for pulada em mais de 30% das vezes, ela está longa demais.
+
+---
+
+## 24. Testes adicionais (somar à seção 10.4)
+
+7. **Voltar desfaz:** selecionar município → `page.goBack()` → seleção limpa, sem sair da rota do
+   mapa, `completedTransitions` incrementou.
+8. **Teclado:** com um município selecionado, `ArrowRight` seleciona um vizinho contíguo; a região
+   `aria-live` anuncia o nome.
+9. **Legenda que destaca:** hover num item da legenda reduz a opacidade dos municípios de outras
+   classes (ler pelo debug hook: `dimmedCount > 0`).
+10. **Pré-busca:** hover no item de substrato dispara uma requisição antes do clique
+    (`page.waitForRequest`).
+11. **Erro de rede:** `page.route` falhando a API de valores → o mapa mantém o último estado e mostra
+    a faixa de erro.
+12. **Configuração de movimento:** "desligadas" → nenhuma transição com quadros intermediários,
+    mesmo sem `prefers-reduced-motion`.
+13. **Mobile** (`mobile-chrome`): expandir a bottom sheet mantém o município selecionado visível no
+    mapa (bounding box do selecionado dentro da área livre).
+
+---
+
+## 25. Sequência atualizada
+
+| Fase | Entrega | Itens | Depende de |
+|---|---|---|---|
+| 0–2 | Fundação, coroplético, seleção | Parte I | — |
+| 7 | Navegação essencial | 16.1 histórico, 16.2 câmera, 16.4 teclado, 16.5 busca, 22 configuração | 0 |
+| 8 | Legenda viva e hover | 15 (A), 17 (A), 20 contraste e infraestrutura próxima | 1 |
+| 9 | Transições entre modos | 14 (A): categórico, bivariado em três tempos, bolhas, escopo, cenário | 1 |
+| 10 | Carregamento e mobile | 18 (A), 19 bottom sheet | 0, 7 |
+| 3–6 | Fluxos de Energia | Parte I | 0 |
+| 11 | Itens B e C | Dorling, zoom semântico, swipe, gravação de sequência, inset | 9, 10 |
+
+Ordem recomendada: **0 → 1 → 2 → 7 → 8 → 9 → 10**, e só então o motor de partículas (3) e os modos
+de energia (4–6). As fases 7 a 10 entregam a maior parte da melhoria de navegação percebida, com
+dados que já existem.
