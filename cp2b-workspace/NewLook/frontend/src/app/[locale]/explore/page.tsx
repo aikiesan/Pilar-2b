@@ -1,10 +1,10 @@
 /**
  * /explore — the way in is a purpose (docs/planning/EXPLORE_MAPA_PARA_FERRAMENTA.md, §5).
  *
- * Four doors, ordered for the biogas sector: three open the one bivariate map
- * on a curated pair (/explore/map?pair=…), and one finds a municipality with
- * the site's own search and opens the profile that already exists. Downloads
- * live under the Dados menu, not here.
+ * Four doors, ordered for the biogas sector: three open /map on one of its
+ * bivariate analyses (/map?a=…, lib/mapAnalyses.ts), and one finds a
+ * municipality with the site's own search and opens the profile that already
+ * exists. Downloads live under the Dados menu, not here.
  *
  * Rendered on the server with no map code, so it paints at once and needs no
  * API: the only client code is the search box.
@@ -18,16 +18,16 @@ import { HeaderLeaves } from '@/components/ui/ArcOrnament'
 import MunicipalitySearch from '@/components/home/MunicipalitySearch'
 import { titledMetadata } from '@/lib/pageMetadata'
 
-/** The curated pairs a door opens, by id (public/bivar/v1/pairs.json). */
-type ExplorePair = 'siting' | 'lacuna' | 'codigestao'
+/** The map analyses a door opens, by id (AnalysisId in lib/mapAnalyses.ts). */
+type ExploreAnalysis = 'siting' | 'lacuna' | 'codigestao'
 
-type Door = { key: ExplorePair; icon: LucideIcon; pair: ExplorePair } | { key: 'municipality'; icon: LucideIcon }
+type Door = { key: ExploreAnalysis; icon: LucideIcon } | { key: 'municipality'; icon: LucideIcon }
 
 const DOORS: Door[] = [
-  { key: 'siting', icon: MapPinned, pair: 'siting' },
-  { key: 'lacuna', icon: ScanSearch, pair: 'lacuna' },
+  { key: 'siting', icon: MapPinned },
+  { key: 'lacuna', icon: ScanSearch },
   { key: 'municipality', icon: Building2 },
-  { key: 'codigestao', icon: Combine, pair: 'codigestao' },
+  { key: 'codigestao', icon: Combine },
 ]
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -90,7 +90,7 @@ export default async function ExplorePage() {
             return (
               <li key={door.key} data-testid={`explore-door-${door.key}`}>
                 <Link
-                  href={{ pathname: '/explore/map', query: { pair: door.pair } }}
+                  href={{ pathname: '/map', query: { a: door.key } }}
                   className="card group focus-ring block h-full"
                 >
                   <DoorFrame index={index} icon={door.icon}>
