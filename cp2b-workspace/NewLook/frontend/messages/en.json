@@ -16,7 +16,7 @@
       "compare": "Compare",
       "group_platform": "Platform",
       "group_method": "Method",
-      "open_map": "Open map",
+      "open_map": "Open the map",
       "group_data": "Data",
       "map_interactive": "Interactive map",
       "municipalities": "Municipalities",
@@ -2384,12 +2384,13 @@
     },
     "counts": {
       "heading": "The platform in numbers",
-      "municipalities": "municipalities in the base",
+      "municipalities": "municipalities covered (SP and MG)",
       "residues": "residues with FDE factors",
-      "sectors": "sectors",
+      "sectors": "sectors in the catalogue",
       "references": "scientific references",
       "unavailable": "unavailable right now",
-      "unavailable_note": "A dash marks a number that comes from the API and could not be read just now."
+      "unavailable_note": "A dash marks a number that comes from the API and could not be read just now.",
+      "states": "states: São Paulo and the Minas Gerais pilot"
     },
     "sectors": {
       "eyebrow": "Data by sector",
@@ -2451,6 +2452,51 @@
       "factors_title": "Availability factors",
       "factors_body": "What cannot reach a biogas plant is taken out of what is generated.",
       "sectors_lede": "Each residue comes with its methane potential, its chemical characterization and the sources behind them."
+    },
+    "v2": {
+      "hero": {
+        "name": "PILAR-2b",
+        "full_name": "Intelligent Platform for Locating and Using Residues for Biogas and Bioproducts",
+        "lede": "Agricultural, livestock and urban residues in São Paulo and Minas Gerais, turned into biogas and biomethane, with the method and sources in plain view.",
+        "cta": "Open the map",
+        "pause": "Pause the video",
+        "play": "Play the video",
+        "sources": {
+          "label": "Biogas sources in the video",
+          "plant": "Biogas plant",
+          "livestock": "Livestock",
+          "crops": "Crop residues",
+          "sanitation": "Sewage"
+        }
+      },
+      "search": {
+        "heading": "Start with your municipality",
+        "body": "See its potential, the residues that weigh most and where it stands in the state."
+      },
+      "questions": {
+        "heading": "Four questions the map answers",
+        "lede": "Each crosses two measures and paints the municipalities on a 3 × 3 grid. The outlined cell is the answer.",
+        "cta_note": "Pick a question in the map panel, or explore all 1,498 municipalities freely."
+      },
+      "market": {
+        "heading": "Biomethane already has mandatory demand",
+        "lede": "The Fuel of the Future Law requires natural gas sold in Brazil to include biomethane. Follow the target and what it costs to meet it.",
+        "mandate": "Follow the mandate",
+        "mandate_body": "Each year’s target next to ANP’s monthly production.",
+        "financing": "See what a plant costs",
+        "financing_body": "Investment per m³/day in the operations BNDES has approved."
+      },
+      "build": {
+        "heading": "Before building a plant",
+        "lede": "Potential is the start. A plant also needs access, someone to buy the gas and a scale that pays.",
+        "proximity": "See what is nearby",
+        "proximity_body": "Pipelines, substations, roads and industry around a point on the map.",
+        "calculator": "Calculate a farm",
+        "calculator_body": "How much biogas and biomethane a farm’s herd and crops could produce."
+      },
+      "closing": {
+        "heading": "The full potential of São Paulo and Minas Gerais, municipality by municipality."
+      }
     }
   },
   "data_catalog": {

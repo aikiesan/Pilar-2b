@@ -14,3 +14,7 @@ tsconfig.tsbuildinfo
 /AGENTS.md
 /CLAUDE.md
 /update-report/
+
+# Home page videos and posters: served from the server, not kept in git.
+# Build them with scripts/encode-home-media.sh; see src/lib/mediaUrl.ts.
+/public/media/

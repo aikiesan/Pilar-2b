@@ -4,8 +4,11 @@
  * PILAR-2b — header, the same on every page.
  *
  * Paper bar with a hairline rule (earth identity). Four mega-menus, from the
- * redesign's navigation (siteNav.ts):
- *   Plataforma ▾ · Dados ▾ · Método ▾ · Sobre ▾      Guia · search · PT/EN · theme · Entrar · [Abrir mapa]
+ * redesign's navigation (siteNav.ts), then the guide:
+ *   Plataforma ▾  Dados ▾  Método ▾  Sobre ▾  Guia        search  PT/EN  theme  Entrar  [Abrir o mapa]
+ * The map button is the one filled control, in the brand lime, at every width
+ * from 640 px (phones have it in the bottom bar). On the home page the bar is
+ * clear over the hero video until the reader scrolls or opens a menu.
  * each opening a full-width panel with a short introduction and its pages,
  * one line of description each. From 1280 px the full bar shows; below it the
  * menu button opens the same groups as hairline lists, and phones get a
@@ -16,7 +19,7 @@
  * 44 px tall on phones.
  */
 
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useState, useSyncExternalStore } from 'react'
 import { Link, usePathname } from '@/navigation'
 import Image from 'next/image'
 import { useTranslations } from 'next-intl'
@@ -43,6 +46,13 @@ import { CP2B_SITE } from '@/config/contact'
 // sees a plain "sign in" button, and only a genuinely signed-in account gets
 // the menu. Navigation is the same for everyone.
 
+// Whether the page is still at its top: the home bar is clear only there.
+function subscribeScroll(onChange: () => void) {
+  window.addEventListener('scroll', onChange, { passive: true })
+  return () => window.removeEventListener('scroll', onChange)
+}
+const atPageTop = () => window.scrollY < 24
+
 export default function UnifiedHeader() {
   const pathname = usePathname()
   const { user, logout } = useAuth()
@@ -55,6 +65,7 @@ export default function UnifiedHeader() {
   const t = useTranslations('common')
   const tWay = useTranslations('wayfinding')
   const hasTabBar = !isFullViewport(pathname)
+  const atTop = useSyncExternalStore(subscribeScroll, atPageTop, () => true)
 
   const setGroupOpen = useCallback(
     (id: NavGroupId, open: boolean) =>
@@ -73,6 +84,9 @@ export default function UnifiedHeader() {
 
   const current = currentNavHref(pathname)
   const isActive = (href: string) => href === current
+  const anyMenuOpen = (openMenu !== null && openMenu.on === pathname) || mobileMenuOpen || userMenuOpen
+  // Clear over the home hero; solid as soon as the page moves or a menu opens.
+  const overHero = pathname === '/' && atTop && !anyMenuOpen
 
   const toItems = (group: NavGroup) =>
     group.items.map(({ href, labelKey, descriptionKey, icon: Icon }) => ({
@@ -84,11 +98,22 @@ export default function UnifiedHeader() {
     }))
 
   const plainLink = (active: boolean) =>
-    `relative flex items-center px-3 py-2 text-sm font-medium whitespace-nowrap transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-terra-600 dark:focus-visible:ring-terra-400 ${
+    `relative flex h-16 items-center px-3 text-sm font-medium whitespace-nowrap transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset ${
+      overHero ? 'focus-visible:ring-white' : 'focus-visible:ring-terra-600 dark:focus-visible:ring-terra-400'
+    } ${
       active
-        ? 'text-terra-600 dark:text-terra-400 after:absolute after:bottom-1 after:left-3 after:right-3 after:h-px after:bg-current'
-        : 'text-ink-muted hover:text-ink'
+        ? `${overHero ? 'text-white' : 'text-terra-600 dark:text-terra-400'} after:absolute after:bottom-0 after:left-3 after:right-3 after:h-0.5 after:bg-current`
+        : overHero
+          ? 'text-white/85 hover:text-white'
+          : 'text-ink-muted hover:text-ink'
     }`
+
+  // The one filled control in the bar, matching the home hero's button.
+  const mapButton = `tour-map inline-flex h-10 items-center gap-2 rounded px-4 text-sm font-bold whitespace-nowrap transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 bg-cp2b-lima text-cp2b-petroleo ${
+    overHero
+      ? 'hover:bg-white focus-visible:ring-white focus-visible:ring-offset-transparent'
+      : 'hover:bg-cp2b-petroleo hover:text-cp2b-lima focus-visible:ring-terra-600 focus-visible:ring-offset-paper'
+  }`
 
   const mobileRow = (active: boolean) =>
     `flex min-h-[48px] items-center gap-3 border-l-2 px-4 py-3 text-base ${
@@ -128,7 +153,14 @@ export default function UnifiedHeader() {
         />
       )}
 
-      <header className="sticky top-0 z-50 border-b border-line bg-paper-raised/95 backdrop-blur-sm">
+      <header
+        data-over-hero={overHero || undefined}
+        className={`sticky top-0 z-50 border-b transition-colors duration-300 ${
+          overHero
+            ? 'border-transparent bg-transparent text-white'
+            : 'border-line bg-paper-raised/95 backdrop-blur-sm'
+        }`}
+      >
         <nav className="max-w-full mx-auto px-4 sm:px-6 lg:px-8" aria-label={tWay('main_nav')}>
           <div className="flex items-center justify-between h-16 gap-2 sm:gap-4">
             {/* Logo: the CP2b mark leads to the CP2b site; the PILAR-2b name to
@@ -147,7 +179,7 @@ export default function UnifiedHeader() {
                   width={110}
                   height={42}
                   unoptimized
-                  className="block dark:hidden"
+                  className={overHero ? 'hidden' : 'block dark:hidden'}
                   style={{ height: 'auto' }}
                   priority
                 />
@@ -157,19 +189,19 @@ export default function UnifiedHeader() {
                   width={110}
                   height={42}
                   unoptimized
-                  className="hidden dark:block"
+                  className={overHero ? 'block' : 'hidden dark:block'}
                   style={{ height: 'auto' }}
                   priority
                 />
               </a>
-              <span aria-hidden="true" className="h-7 w-px bg-line" />
+              <span aria-hidden="true" className={`h-7 w-px ${overHero ? 'bg-white/35' : 'bg-line'}`} />
               <Link
                 href="/"
                 aria-label={t('logo_alt')}
                 className="flex items-center gap-2 rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-terra-600 focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
               >
-                <span className="text-base font-bold tracking-tight text-ink">PILAR-2b</span>
-                <span className="inline-flex items-center px-1.5 py-0.5 rounded-full border border-ochre-700/50 text-ochre-700 dark:border-ochre-400/50 dark:text-ochre-300 text-[10px] font-medium uppercase tracking-[0.12em]">
+                <span className={`text-base font-bold tracking-tight ${overHero ? 'text-white' : 'text-ink'}`}>PILAR-2b</span>
+                <span className={`text-xs font-semibold ${overHero ? 'text-cp2b-lima' : 'text-ochre-700 dark:text-ochre-300'}`}>
                   {t('badge.beta')}
                 </span>
               </Link>
@@ -190,36 +222,37 @@ export default function UnifiedHeader() {
                   open={openMenu?.id === group.id && openMenu.on === pathname}
                   onOpenChange={(open) => setGroupOpen(group.id, open)}
                   triggerClassName={group.tourClass}
+                  onDark={overHero}
                 />
               ))}
-            </div>
-
-            <div className="flex items-center gap-2 xl:gap-3">
               <Link
                 href={GUIDE_LINK.href}
-                className={`hidden xl:flex ${plainLink(isActive(GUIDE_LINK.href))}`}
+                className={plainLink(isActive(GUIDE_LINK.href))}
                 aria-current={isActive(GUIDE_LINK.href) ? 'page' : undefined}
               >
                 {t(`nav.${GUIDE_LINK.labelKey}`)}
               </Link>
+            </div>
 
+            <div className="flex items-center gap-2 xl:gap-3">
               {/* Global Search: in the bar at every width, phones included. One
                   instance only, since it listens for "/" on the whole window. */}
               <div>
-                <GlobalSearch />
+                <GlobalSearch onDark={overHero} />
               </div>
 
-              <div className="hidden xl:flex items-center gap-3">
-                <LanguageSwitcher variant="light" />
-                <div className="text-ink-muted">
-                  <ThemeToggle variant="light" />
-                </div>
+              <div className="hidden xl:flex items-center gap-1">
+                <LanguageSwitcher variant={overHero ? 'dark' : 'light'} />
+                <ThemeToggle variant={overHero ? 'dark' : 'light'} />
+              </div>
+
+              <div className="hidden xl:flex items-center">
 
                 {hasRealSession && user ? (
                   <div className="relative">
                     <button
                       onClick={() => setUserMenuOpen(!userMenuOpen)}
-                      className="flex items-center gap-2 px-3 py-2 text-sm rounded text-ink hover:bg-paper-sunken focus:outline-none focus-visible:ring-2 focus-visible:ring-terra-600"
+                      className={`flex items-center gap-2 px-3 py-2 text-sm rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-terra-600 ${overHero ? 'text-white hover:bg-white/10' : 'text-ink hover:bg-paper-sunken'}`}
                       aria-expanded={userMenuOpen}
                       aria-haspopup="true"
                     >
@@ -257,26 +290,23 @@ export default function UnifiedHeader() {
                     )}
                   </div>
                 ) : (
-                  <Link
-                    href={loginHref(pathname)}
-                    className="px-4 py-2 text-sm font-medium rounded border border-ink/70 text-ink hover:bg-ink hover:text-paper transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-terra-600 focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
-                  >
+                  <Link href={loginHref(pathname)} className={plainLink(false)}>
                     {t('auth.login')}
                   </Link>
                 )}
-
-                <Link href="/map" className="tour-map btn-primary py-2 text-sm">
-                  {t('nav.open_map')}
-                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                </Link>
               </div>
+
+              <Link href="/map" className={`hidden sm:inline-flex ${mapButton}`}>
+                {t('nav.open_map')}
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </Link>
 
               {/* Menu button (below xl). Phones reach the menu through the
                   bottom bar's "Mais" instead, except on the full-viewport tools. */}
               <div className={hasTabBar ? 'hidden md:block xl:hidden' : 'xl:hidden'}>
                 <button
                   onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                  className="inline-flex h-11 w-11 items-center justify-center rounded text-ink hover:bg-paper-sunken focus:outline-none focus-visible:ring-2 focus-visible:ring-terra-600"
+                  className={`inline-flex h-11 w-11 items-center justify-center rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-terra-600 ${overHero ? 'text-white hover:bg-white/10' : 'text-ink hover:bg-paper-sunken'}`}
                   aria-expanded={mobileMenuOpen}
                   aria-controls="mobile-menu"
                   aria-label={mobileMenuOpen ? t('menu.close') : t('menu.open')}

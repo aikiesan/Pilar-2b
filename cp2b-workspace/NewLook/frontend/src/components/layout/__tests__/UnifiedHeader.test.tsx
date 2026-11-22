@@ -71,7 +71,7 @@ describe('UnifiedHeader navigation', () => {
     // Base científica lives in the Método menu now, not in the bar.
     expect(within(nav).queryByRole('link', { name: /Base científica/i })).not.toBeInTheDocument()
     expect(within(nav).getByRole('link', { name: 'Guia' })).toHaveAttribute('href', '/guide')
-    expect(within(nav).getByRole('link', { name: 'Abrir mapa' })).toHaveAttribute('href', '/map')
+    expect(within(nav).getByRole('link', { name: 'Abrir o mapa' })).toHaveAttribute('href', '/map')
     expect(within(nav).queryByRole('link', { name: 'Hub' })).not.toBeInTheDocument()
   })
 
@@ -190,7 +190,7 @@ describe('UnifiedHeader phone menu', () => {
     for (const heading of ['Plataforma', 'Dados', 'Método', 'Sobre']) {
       expect(within(drawer()).getByRole('heading', { name: heading })).toBeInTheDocument()
     }
-    expect(within(drawer()).getByRole('link', { name: /Abrir mapa/ })).toHaveAttribute('href', '/map')
+    expect(within(drawer()).getByRole('link', { name: /Abrir o mapa/ })).toHaveAttribute('href', '/map')
     const about = within(drawer()).getByRole('link', { name: /^O CP2b/ })
     expect(about).toHaveAttribute('href', 'https://cp2b.unicamp.br/sobre')
     expect(about).toHaveTextContent('O centro que mantém o PILAR-2b')

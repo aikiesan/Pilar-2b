@@ -35,9 +35,11 @@ interface NavDropdownProps {
   onOpenChange: (open: boolean) => void
   /** Extra classes for the trigger (the guided tour targets them). */
   triggerClassName?: string
+  /** White trigger, for the clear bar over the home hero. */
+  onDark?: boolean
 }
 
-export default function NavDropdown({ label, intro, items, open, onOpenChange, triggerClassName = '' }: NavDropdownProps) {
+export default function NavDropdown({ label, intro, items, open, onOpenChange, triggerClassName = '', onDark = false }: NavDropdownProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const buttonRef = useRef<HTMLButtonElement>(null)
   const panelId = useId()
@@ -82,10 +84,14 @@ export default function NavDropdown({ label, intro, items, open, onOpenChange, t
             focusFirstPage()
           }
         }}
-        className={`${triggerClassName} relative flex h-16 items-center gap-1 px-3 text-sm font-medium whitespace-nowrap transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-terra-600 dark:focus-visible:ring-terra-400 ${
-          anyActive || open
-            ? 'text-terra-600 dark:text-terra-400'
-            : 'text-ink-muted hover:text-ink'
+        className={`${triggerClassName} relative flex h-16 items-center gap-1 px-3 text-sm font-medium whitespace-nowrap transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset ${
+          onDark ? 'focus-visible:ring-white' : 'focus-visible:ring-terra-600 dark:focus-visible:ring-terra-400'
+        } ${
+          onDark
+            ? anyActive || open ? 'text-white' : 'text-white/85 hover:text-white'
+            : anyActive || open
+              ? 'text-terra-600 dark:text-terra-400'
+              : 'text-ink-muted hover:text-ink'
         } ${anyActive || open ? 'after:absolute after:bottom-0 after:left-3 after:right-3 after:h-0.5 after:bg-current' : ''}`}
       >
         {label}
