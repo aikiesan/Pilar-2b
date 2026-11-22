@@ -3074,5 +3074,30 @@
         "Eu também me perco às vezes. Os caminhos abaixo levam às partes principais da plataforma."
       ]
     }
+  },
+  "explore": {
+    "eyebrow": "Explorar",
+    "title": "O que você quer saber?",
+    "lede": "Escolha uma pergunta. Cada uma abre a resposta pronta: o mapa no par de indicadores certo, com as faixas escritas na legenda e a procedência de cada número.",
+    "doors_heading": "Perguntas",
+    "open_map": "Abrir o mapa",
+    "purpose": {
+      "siting": {
+        "question": "Onde instalar uma planta?",
+        "answer": "Cruza o potencial de metano com a distância até o gasoduto mais próximo: onde há substrato e onde injetar o biometano."
+      },
+      "lacuna": {
+        "question": "Onde há potencial sem planta?",
+        "answer": "Cruza o potencial de metano com as plantas de biogás que já operam em cada município."
+      },
+      "municipality": {
+        "question": "Quanto meu município tem?",
+        "answer": "Busque pelo nome ou pelo código IBGE e abra o perfil, com o potencial por setor e por resíduo."
+      },
+      "codigestao": {
+        "question": "Com quem codigerir?",
+        "answer": "Cruza a biomassa agrícola com a pecuária: onde as duas estão lado a lado."
+      }
+    }
   }
 }
