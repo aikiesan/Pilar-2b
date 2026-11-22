@@ -2359,13 +2359,6 @@
     "close": "Fechar vídeo"
   },
   "home": {
-    "hero": {
-      "eyebrow": "Plataforma aberta · NIPE-UNICAMP",
-      "title": "Potencial de biogás e bioprodutos, município a município",
-      "lede": "Estimativas do que os resíduos agrícolas, pecuários e urbanos podem gerar em biogás e biometano, com o método e as fontes à vista. Base canônica: estado de São Paulo; Minas Gerais em validação.",
-      "cta_map": "Abrir mapa",
-      "cta_method": "Como funciona"
-    },
     "preview": {
       "cta": "Explorar o mapa",
       "caption": "Prévia: biomassa residual por município no estado de São Paulo",
@@ -2393,7 +2386,6 @@
       "states": "estados: São Paulo e o piloto de Minas Gerais"
     },
     "sectors": {
-      "eyebrow": "Dados por setor",
       "heading": "O que a plataforma mede",
       "lede": "Cada resíduo traz seus fatores de disponibilidade, seu potencial metanogênico e as fontes que os sustentam.",
       "names": {
@@ -2426,13 +2418,11 @@
       "cta": "Ler a base científica"
     },
     "news": {
-      "eyebrow": "Novidades",
       "heading": "O que mudou",
       "version": "versão {version}",
       "cta": "Todas as notas de versão"
     },
     "cite": {
-      "eyebrow": "Dados abertos",
       "heading": "Use e cite",
       "body": "Os dados podem ser usados livremente, inclusive para fins comerciais, desde que a fonte seja citada.",
       "licence": "Código GPL-3.0 · Dados CC BY 4.0",
