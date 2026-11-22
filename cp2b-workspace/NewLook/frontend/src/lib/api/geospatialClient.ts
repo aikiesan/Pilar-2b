@@ -4,6 +4,8 @@
  */
 
 import type { SitingIndicators } from '@/lib/mapAnalyses';
+import type { LandCoverResponse } from '@/lib/landCover';
+import { authenticatedFetch } from '@/lib/apiClient';
 import type {
   MunicipalityCollection,
   SummaryStatistics,
@@ -140,6 +142,17 @@ class GeospatialClient {
     const url = `${this.baseUrl}/api/v1/municipalities/siting-indicators`;
     const response = await fetch(url, { headers: { 'Content-Type': 'application/json' } });
     if (!response.ok) throw new Error(`siting indicators: HTTP ${response.status}`);
+    return response.json();
+  }
+
+  /**
+   * Land cover per municipality for one year (signed-in only: the request
+   * carries the session token, and the endpoint answers 401 without one).
+   */
+  async getMunicipalityLandCover(year: number): Promise<LandCoverResponse> {
+    const url = `${this.baseUrl}/api/v1/municipalities/land-cover?year=${year}`;
+    const response = await authenticatedFetch(url);
+    if (!response.ok) throw new Error(`land cover: HTTP ${response.status}`);
     return response.json();
   }
 

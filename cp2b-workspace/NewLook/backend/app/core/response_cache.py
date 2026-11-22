@@ -83,12 +83,16 @@ def cached_json_response(
     key: str,
     build: Callable[[], Any],
     ttl: int = DEFAULT_TTL,
+    private: bool = False,
 ) -> Response:
     """Serve `build()` como JSON, com ETag e cache em processo.
 
     `build` só é chamado quando não há entrada válida — é onde mora o custo, e
     a graça é justamente não pagá-lo. `key` deve conter todos os parâmetros que
     mudam o corpo da resposta, ou dois pedidos diferentes compartilharão bytes.
+
+    `private=True` para dados atrás de login: o navegador pode guardar, mas um
+    proxy ou CDN no caminho não, senão serviria a resposta a quem não entrou.
     """
     now = time.monotonic()
 
@@ -125,7 +129,7 @@ def cached_json_response(
 
     headers = {
         "ETag": etag,
-        "Cache-Control": f"public, max-age={BROWSER_MAX_AGE}",
+        "Cache-Control": f"{'private' if private else 'public'}, max-age={BROWSER_MAX_AGE}",
         # Sem isto, um proxy pode servir a versão gzip para um cliente que não
         # aceita gzip — o GZipMiddleware varia a resposta pelo Accept-Encoding.
         "Vary": "Accept-Encoding",
