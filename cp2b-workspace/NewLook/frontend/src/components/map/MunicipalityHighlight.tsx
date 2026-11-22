@@ -22,17 +22,24 @@ const HALO = { color: '#ffffff', weight: 7, opacity: 0.95, fill: false } as cons
 const LINE = { color: '#111827', weight: 3, opacity: 1, fill: false } as const;
 
 /**
+ * The most of the map's height the profile bottom sheet takes on a phone in
+ * portrait. Keep it equal to the `max-h-[55%]` in MunicipalityProfilePanel:
+ * the fit below must clear the whole sheet, or the municipality lands under it.
+ */
+export const PHONE_SHEET_SHARE = 0.55;
+
+/**
  * Room the view leaves around the municipality, clear of what opens with it:
- * the profile panel on the right on a desktop, the bottom sheet (about 60% of
- * the height) on a phone. The top keeps clear of the controls over the map:
- * on a desktop the top row, ~110 px when it wraps to two lines (md to xl); on
- * a 375 px phone the thematic ribbon plus the search/state row, ~160 px.
+ * the profile panel on the right on a desktop and on a phone in landscape, the
+ * bottom sheet on a phone in portrait. The top keeps clear of the controls over
+ * the map: on a desktop the top row, ~110 px when it wraps to two lines (md to
+ * xl); on a 375 px phone the thematic ribbon plus the search/state row, ~160 px.
  */
 export function fitPadding(map: Pick<L.Map, 'getSize'>): { paddingTopLeft: L.PointExpression; paddingBottomRight: L.PointExpression } {
   const { x, y } = map.getSize();
-  return x >= 768
-    ? { paddingTopLeft: [48, 120], paddingBottomRight: [400, 48] }
-    : { paddingTopLeft: [24, 170], paddingBottomRight: [24, Math.round(y * 0.6)] };
+  if (x >= 768) return { paddingTopLeft: [48, 120], paddingBottomRight: [400, 48] };
+  if (x > y) return { paddingTopLeft: [24, 120], paddingBottomRight: [380, 24] };
+  return { paddingTopLeft: [24, 170], paddingBottomRight: [24, Math.round(y * PHONE_SHEET_SHARE) + 16] };
 }
 
 export default function MunicipalityHighlight({

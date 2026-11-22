@@ -62,6 +62,20 @@ describe('searchMunicipalities', () => {
     expect(names('tingueta')).toEqual(['Guaratinguetá'])
   })
 
+  it('puts the closest name first among equally good matches', () => {
+    // A to Z alone would put "Campina do Monte Alegre" first (the space sorts
+    // before the "s"), and Enter would open the wrong municipality.
+    const places = [
+      { name: 'Campina do Monte Alegre', code: '3509452' },
+      { name: 'Campinas', code: '3509502' },
+      { name: 'Campina Verde', code: '3111606' },
+    ]
+    const found = (query: string) =>
+      searchMunicipalities(places, query, (p) => p).map((p) => p.name)
+    expect(found('campi')).toEqual(['Campinas', 'Campina Verde', 'Campina do Monte Alegre'])
+    expect(found('campina')).toEqual(['Campinas', 'Campina Verde', 'Campina do Monte Alegre'])
+  })
+
   it('finds a code from its start, never from its middle', () => {
     expect(names('3509502')).toEqual(['Campinas'])
     expect(names('3550')).toEqual(['São Paulo'])

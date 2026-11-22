@@ -5,7 +5,7 @@
  */
 import { test, expect, type Page } from '@playwright/test'
 import { CONSENT_VERSION } from '../src/lib/consent'
-import { METHOD_PAGES_ENABLED } from '../src/lib/featureFlags'
+import { MAP_ANALYSES_ENABLED, METHOD_PAGES_ENABLED } from '../src/lib/featureFlags'
 import { METHOD_PAGES } from './routes'
 
 /**
@@ -80,6 +80,15 @@ test('/geoserver-demo is not public without its flag', async ({ request }) => {
   test.skip(process.env.NEXT_PUBLIC_ENABLE_GEOSERVER_DEMO === 'true', 'demo enabled for this run')
   const response = await request.get('/pt-BR/geoserver-demo')
   expect(response.status()).toBe(404)
+})
+
+test.describe('/explore held back (MAP_ANALYSES_ENABLED off)', () => {
+  test.skip(MAP_ANALYSES_ENABLED, 'the map analyses are public in this build')
+  test('/explore answers 404 in either language', async ({ request }) => {
+    for (const locale of ['pt-BR', 'en']) {
+      expect((await request.get(`/${locale}/explore`)).status()).toBe(404)
+    }
+  })
 })
 
 test.describe('Método pages held back (METHOD_PAGES_ENABLED off)', () => {

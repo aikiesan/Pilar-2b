@@ -8,6 +8,7 @@ import type { DisplayMetric, ResidueCNMatrix, ColorMode } from '@/types/geospati
 import { DISPLAY_METRICS, METRIC_SPECS } from '@/lib/mapMetrics';
 import { MAP_SCENARIOS, type MapScenarioKey } from '@/data/scenarioFactors';
 import { useMetricText } from '@/hooks/useMetricText';
+import { RESIDUE_META } from '@/lib/residueMeta';
 
 interface Layer {
   id: string;
@@ -46,21 +47,6 @@ interface MobileBottomSheetProps {
 }
 
 type ActiveSheet = 'filters' | 'layers' | null;
-
-const RESIDUE_META = [
-  { value: 'sugarcane' as const, category: 'agricultural' as const, icon: '🌾' },
-  { value: 'soybean' as const, category: 'agricultural' as const, icon: '🌿' },
-  { value: 'corn' as const, category: 'agricultural' as const, icon: '🌽' },
-  { value: 'coffee' as const, category: 'agricultural' as const, icon: '☕' },
-  { value: 'citrus' as const, category: 'agricultural' as const, icon: '🍊' },
-  { value: 'cattle' as const, category: 'livestock' as const, icon: '🐄' },
-  { value: 'swine' as const, category: 'livestock' as const, icon: '🐷' },
-  { value: 'poultry' as const, category: 'livestock' as const, icon: '🐔' },
-  { value: 'aquaculture' as const, category: 'livestock' as const, icon: '🐟' },
-  { value: 'rsu' as const, category: 'urban' as const, icon: '🗑️' },
-  { value: 'rpo' as const, category: 'urban' as const, icon: '♻️' },
-  { value: 'sewage' as const, category: 'urban' as const, icon: '💧' },
-];
 
 const BIOMASS_META: { value: BiomassType; icon: string }[] = [
   { value: 'total', icon: '⚡' },

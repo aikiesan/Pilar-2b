@@ -47,6 +47,7 @@ jest.mock('@/lib/leafletConfig', () => ({}));
 // useIntermediateRegionsGeoJSON — they must be stubbed too or the component
 // throws "useCodigestionClusters is not a function" before render.
 const mockUseGeospatialData = jest.fn();
+const mockUseSitingIndicators = jest.fn((_enabled: boolean) => ({ data: undefined, isError: false }));
 jest.mock('@/hooks/useGeospatialData', () => ({
   useGeospatialData: () => mockUseGeospatialData(),
   useCodigestionClusters: () => ({ data: null, loading: false, error: null, isFetching: false, refetch: jest.fn() }),
@@ -55,6 +56,14 @@ jest.mock('@/hooks/useGeospatialData', () => ({
   // Tooltip/panel top up from the per-municipality detail endpoint; the
   // collection is served slim (fields=map).
   useMunicipalityMetrics: () => ({ data: undefined, isLoading: false, error: null }),
+  useSitingIndicators: (enabled: boolean) => mockUseSitingIndicators(enabled),
+}));
+
+// MAP_ANALYSES_ENABLED is a build-time constant; a getter lets each test pick it.
+let mockAnalysesEnabled = false;
+jest.mock('@/lib/featureFlags', () => ({
+  ...jest.requireActual('@/lib/featureFlags'),
+  get MAP_ANALYSES_ENABLED() { return mockAnalysesEnabled; },
 }));
 
 // The beta typology hook lives in a separate module and also calls React
@@ -131,9 +140,13 @@ jest.mock('./DesktopLeftPanel', () => ({
   __esModule: true,
   default: ({
     layers, onLayerToggle, municipalityCount, totalMunicipalities,
-    visualizationMode, onVisualizationModeChange,
+    visualizationMode, onVisualizationModeChange, activeAnalysis, onAnalysisChange,
   }: any) => (
-    <div data-testid="desktop-left-panel">
+    <div
+      data-testid="desktop-left-panel"
+      data-has-analyses={String(Boolean(onAnalysisChange))}
+      data-active-analysis={activeAnalysis ?? ''}
+    >
       <div data-testid="municipality-count">{municipalityCount} / {totalMunicipalities}</div>
       <select
         data-testid="visualization-mode-select"
@@ -242,6 +255,7 @@ describe('MapComponent', () => {
     // within this file, so a previous test's URL params would otherwise leak
     // into the next test's initial state (read via readURLParam on mount).
     window.history.replaceState(null, '', '/');
+    mockAnalysesEnabled = false;
   });
 
   afterEach(() => {
@@ -378,7 +392,8 @@ describe('MapComponent', () => {
 
       await waitFor(() => {
         expect(screen.getByTestId('map-container')).toBeInTheDocument();
-        expect(screen.getByTestId('tile-layer')).toBeInTheDocument();
+        // The basemap, plus its labels overlay drawn above the choropleth.
+        expect(screen.getAllByTestId('tile-layer')).toHaveLength(2);
       });
     });
 
@@ -1088,6 +1103,41 @@ describe('MapComponent', () => {
       await waitFor(() => {
         expect(screen.getByTestId('municipality-count')).toHaveTextContent('0 / 645');
       });
+    });
+  });
+
+  describe('Map analyses flag (MAP_ANALYSES_ENABLED)', () => {
+    beforeEach(() => {
+      mockUseGeospatialData.mockReturnValue({
+        data: createMunicipalityCollection([createMunicipalityFeature()]),
+        loading: false,
+        error: null,
+      });
+    });
+
+    it('hides the analyses and drops ?a= when the flag is off', async () => {
+      window.history.replaceState(null, '', '/map?a=siting&m=3509502&scope=31');
+      render(<MapComponent />);
+      act(() => { jest.advanceTimersByTime(1500); });
+
+      const panel = await screen.findByTestId('desktop-left-panel');
+      expect(panel).toHaveAttribute('data-has-analyses', 'false');
+      expect(panel).toHaveAttribute('data-active-analysis', '');
+      await waitFor(() => expect(window.location.search).not.toMatch(/(^|[?&])a=/));
+      expect(window.location.search).toContain('m=3509502');
+      expect(window.location.search).toContain('scope=31');
+      expect(mockUseSitingIndicators).not.toHaveBeenCalledWith(true);
+    });
+
+    it('opens the analysis from ?a= when the flag is on', async () => {
+      mockAnalysesEnabled = true;
+      window.history.replaceState(null, '', '/map?a=lacuna');
+      render(<MapComponent />);
+      act(() => { jest.advanceTimersByTime(1500); });
+
+      const panel = await screen.findByTestId('desktop-left-panel');
+      expect(panel).toHaveAttribute('data-has-analyses', 'true');
+      expect(panel).toHaveAttribute('data-active-analysis', 'lacuna');
     });
   });
 });

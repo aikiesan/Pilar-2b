@@ -7,6 +7,7 @@
 
 import React from 'react';
 import { useTranslations } from 'next-intl';
+import { MG_MUNICIPALITY_COUNT, SP_MUNICIPALITY_COUNT } from '@/lib/mapScope';
 
 export default function MapLoadingSkeleton() {
   const t = useTranslations('Map.loading');
@@ -81,7 +82,7 @@ export default function MapLoadingSkeleton() {
               </div>
 
               <p className="text-sm text-gray-500 dark:text-gray-500">
-                {t('subtitle')}
+                {t('subtitle', { count: SP_MUNICIPALITY_COUNT + MG_MUNICIPALITY_COUNT })}
               </p>
             </div>
 

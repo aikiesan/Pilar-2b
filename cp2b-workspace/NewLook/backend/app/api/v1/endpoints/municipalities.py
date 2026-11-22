@@ -10,6 +10,7 @@ import re
 from typing import Annotated, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
+from fastapi.responses import JSONResponse
 
 from app.core.database import get_db
 from app.core.log_sanitizer import log_safe
@@ -739,6 +740,116 @@ async def get_municipalities_geojson(
         key,
         lambda: _build_municipalities_geojson(limit, detail, fields),
     )
+
+
+_SITING_PIPELINE_LAYERS = ("gas_pipeline_transport", "gas_pipeline_distribution")
+# ~500 m. The pipelines carry ~430 k vertices nationally; simplified, the
+# distances below come out identical to 0.1 km and the query drops from ~40 s
+# (geography over the raw lines) to ~6 s for SP + MG. Cached, so paid once.
+_SITING_SIMPLIFY_DEG = 0.005
+# SIRGAS 2000 / Brazil Polyconic: metres, valid across the country.
+_SITING_SRID = 5880
+
+
+def _build_siting_indicators() -> dict:
+    """Biogas plants per municipality and centroid distance to the nearest gas
+    pipeline, for the map's bivariate analyses.
+
+    Plants are counted by the ibge_code stored with each plant. The distance is
+    from the municipality's centroid to the nearest transport or distribution
+    pipeline; outflow lines (production gathering) are left out, since a plant
+    cannot inject into them. Gaps are null, never zero.
+    """
+    indicators: dict[str, dict] = {}
+    try:
+        with get_db() as conn:
+            cursor = conn.cursor()
+            try:
+                if not _table_exists(cursor, "infrastructure_features"):
+                    return {"available": False, "indicators": indicators}
+                _fetch_siting_rows(cursor, indicators)
+            finally:
+                cursor.close()
+    except Exception as e:
+        logger.error("Error building siting indicators: %s", e, exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal server error")
+    return {"available": True, "indicators": indicators}
+
+
+def _fetch_siting_rows(cursor, indicators: dict[str, dict]) -> None:
+    """Run the siting query and fill `indicators` by IBGE code."""
+    cursor.execute(
+        """
+        WITH pipes AS MATERIALIZED (
+            SELECT ST_Transform(ST_Collect(ST_Simplify(geometry, %(tol)s)), %(srid)s) AS g
+            FROM infrastructure_features
+            WHERE layer_id = ANY(%(pipes)s)
+        ),
+        plants AS (
+            SELECT ibge_code, count(*) AS n
+            FROM infrastructure_features
+            WHERE layer_id = 'biogas_plant' AND ibge_code IS NOT NULL
+            GROUP BY ibge_code
+        )
+        SELECT m.ibge_code,
+               COALESCE(p.n, 0) AS biogas_plants,
+               CASE WHEN pipes.g IS NULL OR m.centroid IS NULL THEN NULL
+                    ELSE ST_Distance(ST_Transform(m.centroid, %(srid)s), pipes.g) / 1000.0
+               END AS pipeline_km
+        FROM municipalities m
+        CROSS JOIN pipes
+        LEFT JOIN plants p ON p.ibge_code = m.ibge_code
+        WHERE LEFT(m.ibge_code::text, 2) = ANY(%(ufs)s)
+        """,
+        {
+            "tol": _SITING_SIMPLIFY_DEG,
+            "srid": _SITING_SRID,
+            "pipes": list(_SITING_PIPELINE_LAYERS),
+            "ufs": list(_MAP_ENABLED_UF_PREFIXES),
+        },
+    )
+    for row in cursor.fetchall():
+        km = row["pipeline_km"]
+        indicators[str(row["ibge_code"])] = {
+            "biogas_plants": int(row["biogas_plants"]),
+            "pipeline_km": round(float(km), 1) if km is not None else None,
+        }
+
+
+class _SitingUnavailable(Exception):
+    """Raised inside the cache build so a "not available" answer is not cached."""
+
+    def __init__(self, payload: dict):
+        super().__init__("infrastructure_features is missing")
+        self.payload = payload
+
+
+def _build_siting_or_raise() -> dict:
+    out = _build_siting_indicators()
+    if not out["available"]:
+        raise _SitingUnavailable(out)
+    return out
+
+
+@router.get("/siting-indicators")
+def get_siting_indicators(request: Request):
+    """Plants and pipeline distance per municipality (SP and the MG pilot).
+
+    Feeds the map's two infrastructure analyses: "potencial sem planta"
+    (methane × plants) and "onde instalar" (methane × distance to a pipeline).
+    The distance query costs ~6 s, so the bytes are cached like /geojson; the
+    data only changes when infrastructure_features is reloaded.
+
+    A plain `def`, not `async def`: the build is synchronous psycopg2 work, so
+    FastAPI runs it in its threadpool instead of stalling the event loop for
+    the ~6 s of a cold build. "Not available" is answered without caching, so
+    loading the table shows up on the next request, not 6 hours later.
+    """
+    key = f"municipalities:siting:ufs={','.join(_MAP_ENABLED_UF_PREFIXES)}"
+    try:
+        return cached_json_response(request, key, _build_siting_or_raise, ttl=6 * 3600)
+    except _SitingUnavailable as unavailable:
+        return JSONResponse(unavailable.payload, headers={"Cache-Control": "no-store"})
 
 
 @router.get("/test-geometry")

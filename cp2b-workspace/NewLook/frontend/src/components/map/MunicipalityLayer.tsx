@@ -61,6 +61,12 @@ interface MunicipalityLayerProps {
   showNationalBeta?: boolean;
   /** Paint MG with the active ramp when the MG pilot is the selected scope. */
   paintBetaData?: boolean;
+  /**
+   * Overrides the choropleth fill (the bivariate analyses): the fill for a
+   * municipality code, or null for no data. Municipalities it does not cover
+   * keep the beta context style.
+   */
+  fillOverride?: ((code: string) => string | null | undefined) | null;
   onMunicipalityClick?: (feature: MunicipalityFeature) => void;
   onMunicipalityHover?: (feature: MunicipalityFeature | null, e?: MouseEvent) => void;
 }
@@ -95,6 +101,7 @@ export default function MunicipalityLayer({
   scaleBreaks = null,
   showNationalBeta = true,
   paintBetaData = false,
+  fillOverride = null,
   onMunicipalityClick,
   onMunicipalityHover,
 }: MunicipalityLayerProps) {
@@ -136,6 +143,13 @@ export default function MunicipalityLayer({
   // stale closed-over prop.
   const opacityRef = useRef(opacity);
   opacityRef.current = opacity;
+  // Same story for the analysis fill: the hover handlers read the current one.
+  const fillOverrideRef = useRef(fillOverride);
+  fillOverrideRef.current = fillOverride;
+
+  /** The analysis fill for a feature: a colour, null for no data, undefined when not covered. */
+  const overrideFill = (props: MunicipalityProperties): string | null | undefined =>
+    fillOverrideRef.current ? fillOverrideRef.current(String(props.ibge_code)) : undefined;
 
   // Display value + coverage. Biomass reads served per-sector tonnage; biogas reads
   // the canonical municipality total at the chosen scenario. Both preserve null so
@@ -152,6 +166,13 @@ export default function MunicipalityLayer({
   // the mounted layer whenever the `style` prop identity changes.
   const style = useCallback((feature?: Feature) => {
     if (!feature || !feature.properties) return {};
+
+    if (fillOverride) {
+      const fill = overrideFill(feature.properties as MunicipalityProperties);
+      if (fill === undefined) return { ...BETA_STYLE };
+      if (fill === null) return { ...NO_DATA_STYLE };
+      return { fillColor: fill, weight: 0.65, opacity: 0.75, color: '#4b5563', fillOpacity: opacity };
+    }
 
     // Scope check precedes every colour mode — including cluster and C/N. The
     // canonical pipeline, the FDE audit and the K-means clustering were all run
@@ -185,7 +206,7 @@ export default function MunicipalityLayer({
     // getMapValue is recreated per render but only depends on the deps listed here,
     // so listing them directly keeps the identity stable.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [colorMode, displayMetric, biomassType, selectedResidues, mapScenario, daltonic, cvdPalette, mapPalette, opacity, scaleBreaks, paintBetaData]);
+  }, [colorMode, displayMetric, biomassType, selectedResidues, mapScenario, daltonic, cvdPalette, mapPalette, opacity, scaleBreaks, paintBetaData, fillOverride]);
 
   // Tooltip value in the active metric's display unit. null -> "No data", so the
   // tooltip never shows a fabricated 0 for a municipality we have no data for.
@@ -268,12 +289,17 @@ export default function MunicipalityLayer({
           // tier: a muted outline, no fill boost, and no bringToFront — lifting
           // them above SP would invert the hierarchy the whole change exists to
           // establish.
+          // During an analysis, municipalities outside the analysed state are
+          // painted as background too, so they hover like beta polygons.
+          const foreground =
+            isCanonicalPaint &&
+            !(fillOverrideRef.current && overrideFill(feature.properties as MunicipalityProperties) === undefined);
           target.setStyle(
-            isCanonicalPaint
+            foreground
               ? { weight: 2, color: '#000000', fillOpacity: Math.min(opacityRef.current + 0.2, 1) }
               : { weight: 1.2, color: '#475569', fillOpacity: 0.3 }
           );
-          if (isCanonicalPaint) target.bringToFront();
+          if (foreground) target.bringToFront();
 
           // Desktop: call hover handler with feature + mouse event
           if (onMunicipalityHover) {
@@ -282,6 +308,20 @@ export default function MunicipalityLayer({
         },
         mouseout: (e) => {
           const target = e.target;
+          const fill = overrideFill(feature.properties as MunicipalityProperties);
+          if (fillOverrideRef.current) {
+            // Same three cases as the style function: outside the analysed
+            // state (undefined) is background, null is no data, else the cell.
+            target.setStyle(
+              fill === undefined
+                ? BETA_STYLE
+                : fill === null
+                  ? NO_DATA_STYLE
+                  : { weight: 0.65, color: '#4b5563', fillOpacity: opacityRef.current, fillColor: fill }
+            );
+            if (onMunicipalityHover) onMunicipalityHover(null);
+            return;
+          }
           if (!isCanonicalPaint) {
             target.setStyle(BETA_STYLE);
             if (onMunicipalityHover) onMunicipalityHover(null);

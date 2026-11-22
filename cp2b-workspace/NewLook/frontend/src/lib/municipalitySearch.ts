@@ -8,7 +8,8 @@
  * finds "Santa Bárbara d'Oeste"), and may end in the state ("Campinas SP",
  * "Itajubá/MG"). Digits look up the IBGE code from its start. Results come back
  * best first: the exact name, then names that start with the query, then names
- * with a word that does, then the rest, each A to Z.
+ * with a word that does, then the rest; within each, the shortest name first
+ * (the closest match), then A to Z.
  */
 import { MG_UF_CODE, SP_UF_CODE } from '@/lib/mapScope'
 
@@ -73,11 +74,15 @@ export function searchMunicipalities<T>(
     .flatMap((item) => {
       const { name, code } = read(item)
       const rank = municipalityRank(query, name, code)
-      return rank === null ? [] : [{ item, rank, name, code: String(code) }]
+      return rank === null ? [] : [{ item, rank, name, code: String(code), size: words(name).join('').length }]
     })
+    // Among equally good matches the shortest name is the closest one: "campi"
+    // wants Campinas before Campina do Monte Alegre, which A to Z gets wrong.
     .sort((a, b) =>
       a.rank - b.rank ||
-      (query.kind === 'code' ? a.code.localeCompare(b.code) : a.name.localeCompare(b.name, 'pt-BR')),
+      (query.kind === 'code'
+        ? a.code.localeCompare(b.code)
+        : a.size - b.size || a.name.localeCompare(b.name, 'pt-BR')),
     )
     .slice(0, limit)
     .map(({ item }) => item)

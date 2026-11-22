@@ -256,7 +256,7 @@
     "loading_map": "Carregando mapa…",
     "loading": {
       "title": "Carregando Mapa Interativo",
-      "subtitle": "5.571 municípios do Brasil",
+      "subtitle": "{count, number} municípios de São Paulo e Minas Gerais",
       "step_geodata": "Carregando dados geoespaciais",
       "step_geometries": "Processando geometrias",
       "step_layers": "Inicializando camadas"
@@ -565,10 +565,36 @@
       "view_aria": "Unidade dos resíduos",
       "view_methane": "CH₄ {tier}",
       "view_biomass": "Toneladas",
-      "residues_caption_methane": "Metano por resíduo, nível {tier} do método CP2b, em {unit}.",
+      "residues_caption_methane": "Nível {tier}, em {unit}.",
       "residues_caption_biomass": "Biomassa gerada por resíduo, em {unit}.",
       "zero_list": "Zero: {list}",
-      "no_data_list": "Sem dados: {list}"
+      "no_data_list": "Sem dados: {list}",
+      "tabs_aria": "Seções do perfil",
+      "tab_summary": "Resumo",
+      "tab_residues": "Resíduos",
+      "tab_position": "Posição",
+      "tab_sources": "Fontes",
+      "chip_main": "Principal: {residue}",
+      "chip_state_rank": "{rank}º de {count} em {state}",
+      "lede": "Pode gerar <b>{value} de metano por ano</b>, cerca de {perDay} por dia.",
+      "lede_main": "<b>{percent}</b> viria de {residue}.",
+      "methane_sources_heading": "De onde vem o metano",
+      "methane_sources_caption": "Metano {tier} por resíduo, em {unit}.",
+      "others": "Outros {count}",
+      "position_heading": "Posição em {state}",
+      "position_caption": "{count} municípios, do maior ao menor.",
+      "position_chart_aria": "Curva dos {count} municípios por metano {tier}; {name} é o {rank}º, com {value}",
+      "position_leader": "1º {name}, {value}",
+      "position_median": "Mediana do estado: {value}. Escala em raiz quadrada, para caberem os pequenos.",
+      "region_heading": "Na região imediata de {region}",
+      "region_caption": "{rank}º de {count} municípios, em {unit}.",
+      "rank": "{rank}º",
+      "state_share": "Responde por {share} do metano {tier} de {state} ({total}).",
+      "sources_heading": "Fontes deste perfil",
+      "sources_potential": "Biomassa e metano",
+      "sources_context": "Área e dados do IBGE",
+      "no_standing": "Sem metano calculado para comparar este município.",
+      "nm3_year": "Nm³/ano"
     },
     "infrastructure": {
       "na": "—",
@@ -862,7 +888,13 @@
     "panel": {
       "title": "Biomassa · {state}",
       "expand": "Expandir painel",
-      "collapse": "Recolher painel"
+      "collapse": "Recolher painel",
+      "shows": "O mapa mostra",
+      "metric_aria": "Indicador do mapa",
+      "layers_on": "{count, plural, one {# ligada} other {# ligadas}}",
+      "copy_link": "Copiar link",
+      "copied": "Copiado",
+      "sections_aria": "Seções do painel"
     },
     "mobile": {
       "close_filters": "Fechar filtros",
@@ -1012,8 +1044,8 @@
           "body": "Coroplético pinta cada município, Calor mostra onde o potencial se concentra e Bolhas desenha um círculo do tamanho do potencial."
         },
         "tabs": {
-          "title": "Mais opções no painel",
-          "body": "Temas filtra por tipo de resíduo, Camadas liga infraestrutura, logística e restrições ambientais, Fontes diz de onde vêm os dados e Ferramentas compara municípios e exporta os números."
+          "title": "Análises e camadas",
+          "body": "Comece por uma das quatro análises prontas: cada uma cruza dois dados num mapa de nove cores. Abaixo, escolha o indicador e ligue usinas, gasodutos, rodovias e restrições ambientais."
         },
         "scenario": {
           "title": "Real ou Ideal",
@@ -1044,6 +1076,54 @@
           "body": "Este botão reabre o guia a qualquer momento. Bom proveito!"
         }
       }
+    },
+    "analyses": {
+      "heading": "Análises prontas",
+      "heading_note": "cruzam dois dados",
+      "themes_hint": "Mapas por setor e resíduo ficam no menu Temas, acima do mapa.",
+      "legend_kicker": "Análise · {state}",
+      "close": "Fechar análise",
+      "loading": "Calculando a infraestrutura por município…",
+      "failed": "Não foi possível carregar usinas e gasodutos. Tente de novo em instantes.",
+      "matrix_aria": "Municípios por combinação de classes",
+      "cell_aria": "{x} e {y}: {count, plural, one {# município} other {# municípios}}",
+      "answer": "<b>{count, plural, one {# município} other {# municípios}}</b> na célula destacada:",
+      "method": "Classes em tercis entre os municípios do estado com valor.",
+      "no_data": "{count, plural, one {# município} other {# municípios}} sem dado, em cinza.",
+      "axes": {
+        "methane": "Metano",
+        "methane_ideal": "Metano Ideal",
+        "plants": "Usinas de biogás",
+        "pipeline": "Gasoduto",
+        "agricultural": "Agrícola",
+        "livestock": "Pecuária",
+        "loss": "Perda até o Real"
+      },
+      "lacuna": {
+        "title": "Potencial sem planta",
+        "axes": "metano × usinas",
+        "question": "Onde há metano e nenhuma usina de biogás?",
+        "answer": "muito metano e nenhuma usina."
+      },
+      "siting": {
+        "title": "Onde instalar",
+        "axes": "metano × gasoduto",
+        "question": "Onde há metano perto de um gasoduto?",
+        "answer": "muito metano e gasoduto mais perto."
+      },
+      "codigestao": {
+        "title": "Com quem codigerir",
+        "axes": "agrícola × pecuária",
+        "question": "Onde resíduo agrícola e pecuário se encontram?",
+        "answer": "muito resíduo agrícola e muito pecuário."
+      },
+      "coleta": {
+        "title": "Onde a coleta perde",
+        "axes": "Ideal × perda",
+        "question": "Onde o potencial Ideal mais se perde até o Real?",
+        "answer": "muito potencial Ideal e a maior perda até o Real."
+      },
+      "method_plants": "Usinas em 0, 1 e 2 ou mais."
     }
   },
   "metadata": {
@@ -1704,7 +1784,7 @@
   },
   "calculator": {
     "title": "Calculadora de Viabilidade de Biogás",
-    "subtitle": "Descubra o potencial da sua propriedade em instantes",
+    "subtitle": "Estime quanto biogás e biometano uma propriedade pode gerar a partir do rebanho e da lavoura.",
     "footer_note": "CP2B / UNICAMP · Dados baseados em coeficientes científicos validados · ",
     "common": {
       "next": "Próximo",
@@ -1971,7 +2051,8 @@
       "unverified": "Inclui fatores do IPCC ainda em conferência.",
       "loading": "Calculando emissões…",
       "unavailable": "O cálculo de emissões está indisponível agora (API fora do ar)."
-    }
+    },
+    "eyebrow": "Ferramenta"
   },
   "guide": {
     "sidebar_heading": "Guia da Plataforma",
@@ -1985,7 +2066,7 @@
     "nav_calculator": "Calculadora de Biogás",
     "nav_proximity": "Análise de Proximidade",
     "banner_title": "Abrir o Mapa Interativo",
-    "banner_subtitle": "Comece em São Paulo, filtre por resíduo ou navegue por qualquer estado do Brasil.",
+    "banner_subtitle": "Comece em São Paulo, filtre por resíduo ou abra o piloto de Minas Gerais.",
     "eyebrow": "Guia da plataforma",
     "heading": "Tudo sobre o PILAR-2b",
     "lead": "Explore cada funcionalidade ou faça um tour rápido pela plataforma. Os tópicos abaixo cobrem o uso prático, a metodologia e as perguntas mais comuns.",
@@ -1993,7 +2074,7 @@
     "topics_items": [
       {
         "title": "Mapa Interativo",
-        "description": "Explore visualmente o potencial de biogás em cada município paulista."
+        "description": "Explore visualmente o potencial de biogás em cada município de São Paulo e do piloto de Minas Gerais."
       },
       {
         "title": "Análises",
@@ -2051,7 +2132,7 @@
     },
     "mapa": {
       "title": "Mapa Interativo",
-      "subtitle": "Explore visualmente o potencial de biogás em cada município paulista.",
+      "subtitle": "Explore visualmente o potencial de biogás em cada município de São Paulo e do piloto de Minas Gerais.",
       "sections": [
         {
           "id": "o-que-e",

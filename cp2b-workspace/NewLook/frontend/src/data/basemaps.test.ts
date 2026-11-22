@@ -35,11 +35,19 @@ describe('basemaps', () => {
   })
 
   it.each(Object.values(BASEMAPS))('$id needs no API key', (basemap) => {
-    for (const template of [basemap.url, basemap.refUrl].filter((u): u is string => !!u)) {
+    for (const template of [basemap.url, basemap.labelsUrl]) {
       const url = tileUrl(template)
       expect(KEYED_DOMAINS.filter((domain) => onDomain(url.hostname, domain))).toEqual([])
       expect(KEY_PARAMS.filter((param) => url.searchParams.has(param))).toEqual([])
     }
+  })
+
+  // The base tiles' own names end up under the choropleth fill; every basemap
+  // needs a labels overlay the map can draw above it, credited in the attribution.
+  it.each(Object.values(BASEMAPS))('$id has a labels overlay, credited', (basemap) => {
+    expect(basemap.labelsUrl).toMatch(/^https:\/\//)
+    expect(basemap.labelsUrl).not.toBe(basemap.url)
+    expect(basemap.attribution).toContain('Esri')
   })
 
   it('would catch the CARTO basemap it replaced', () => {

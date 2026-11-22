@@ -11,6 +11,9 @@
  * presets and the same apply handler (MapComponent.handleApplyPreset). The
  * active map's name rides on the button, so the visitor sees which map is on
  * without opening anything.
+ *
+ * The colour scale sits at the bottom of the same panel: it styles whichever
+ * map is on, so it belongs with the maps rather than in the sidebar.
  */
 
 import { useEffect, useRef, useState } from 'react';
@@ -22,6 +25,7 @@ import {
   type ThematicPreset,
 } from '@/data/thematicPresets';
 import { MAP_PALETTES } from '@/lib/mapMetrics';
+import { useMapPalette } from '@/hooks/useMapPalette';
 
 function rampGradient(palette?: ThematicPreset['config']['palette']): string {
   const ramp = palette ? MAP_PALETTES[palette].ramp : MAP_PALETTES.ylgnbu.ramp;
@@ -42,6 +46,8 @@ export default function ThematicMapMenu({
   disabledResidues = [],
 }: ThematicMapMenuProps) {
   const t = useTranslations('Map.thematic');
+  const tPalettes = useTranslations('Map.palettes');
+  const [palette, setPalette] = useMapPalette();
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -173,6 +179,48 @@ export default function ThematicMapMenu({
               </section>
             );
           })}
+          <section className="mt-1 border-t border-line px-3 pb-2 pt-2" aria-label={tPalettes('heading')}>
+            <p className="pb-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-muted">{tPalettes('heading')}</p>
+            <div
+              className="grid grid-cols-3 gap-1"
+              role="radiogroup"
+              aria-label={tPalettes('group_aria')}
+              onKeyDown={(e) => {
+                // Radio-group keys: arrows move the choice, focus follows it.
+                const ids = Object.values(MAP_PALETTES).map((p) => p.id);
+                const step = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1 : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 0;
+                if (step === 0) return;
+                e.preventDefault();
+                const next = ids[(ids.indexOf(palette) + step + ids.length) % ids.length];
+                setPalette(next);
+                const radios = e.currentTarget.querySelectorAll<HTMLButtonElement>('[role="radio"]');
+                radios[ids.indexOf(next)]?.focus();
+              }}
+            >
+              {Object.values(MAP_PALETTES).map((p) => {
+                const checked = palette === p.id;
+                const name = tPalettes(`${p.id}.label`);
+                return (
+                  <button
+                    key={p.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={checked}
+                    tabIndex={checked ? 0 : -1}
+                    onClick={() => setPalette(p.id)}
+                    title={`${name} — ${tPalettes(`${p.id}.note`)}`}
+                    className={`flex min-h-11 flex-col justify-center border p-1 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-terra-600 ${
+                      checked ? 'border-ink ring-1 ring-ink' : 'border-line hover:border-line-strong'
+                    }`}
+                  >
+                    <span aria-hidden="true" className="block h-2.5 w-full" style={{ background: `linear-gradient(to right, ${p.ramp.join(',')})` }} />
+                    <span className="mt-0.5 block truncate text-[10px] font-medium text-ink-muted">{name}</span>
+                  </button>
+                );
+              })}
+            </div>
+            <p className="mt-1.5 text-[10px] leading-snug text-ink-muted">{tPalettes('scope_note')}</p>
+          </section>
         </div>
       )}
     </div>
