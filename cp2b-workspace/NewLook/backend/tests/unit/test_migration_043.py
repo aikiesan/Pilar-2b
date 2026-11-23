@@ -3,12 +3,7 @@
 import re
 from pathlib import Path
 
-MIGRATION = (
-    Path(__file__).resolve().parents[2]
-    / "app"
-    / "migrations"
-    / "043_analysis_registry.sql"
-)
+MIGRATION = Path(__file__).resolve().parents[2] / "app" / "migrations" / "043_analysis_registry.sql"
 
 TABLES = (
     "analyses",

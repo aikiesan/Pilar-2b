@@ -75,3 +75,7 @@ id_ed25519*
 /Reposicionamento_*/
 /PILAR-2b Design System/
 __pycache__/
+
+# Real analysis manifests and their data stay outside the public repo
+**/analises-mapa/
+**/*.analysis.yaml

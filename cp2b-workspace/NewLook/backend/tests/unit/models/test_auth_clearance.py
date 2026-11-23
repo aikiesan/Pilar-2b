@@ -10,9 +10,7 @@ PASSWORD = "Passw0rd-long"
 
 
 def _make(**extra):
-    return AdminCreateUser(
-        email="a@b.co", password=PASSWORD, full_name="Ana Teste", **extra
-    )
+    return AdminCreateUser(email="a@b.co", password=PASSWORD, full_name="Ana Teste", **extra)
 
 
 def test_create_user_accepts_levels_0_to_3():
