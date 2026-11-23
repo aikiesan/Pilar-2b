@@ -1,122 +1,126 @@
 /**
- * PILAR-2b V3 - Map Loading Skeleton
- * Beautiful progressive loading UI for map component
+ * PILAR-2b - Map loading screen
+ *
+ * One loader for both waits: the map code downloading (next/dynamic in
+ * app/[locale]/map/page.tsx) and the municipalities GeoJSON arriving
+ * (MapComponent). Using the same component for both keeps the screen still
+ * between the two steps instead of swapping a spinner for a card.
+ *
+ * The drawing is a small digester in the manual's flat cut-paper style:
+ * methane molecules (Metaninho's CH₄, carbon in Azul Petróleo, hydrogens in
+ * lime) rise from the substrate, travel up the gas pipe and keep a flame lit.
+ * No floating card and no placeholder panels: on a phone those stacked on top
+ * of each other. The screen fades in after a short delay so a fast load does
+ * not flash it. With reduced motion the drawing simply stands still (the
+ * global rule in globals.css), and the text carries the meaning.
  */
 
 'use client';
 
-import React from 'react';
 import { useTranslations } from 'next-intl';
 import { MG_MUNICIPALITY_COUNT, SP_MUNICIPALITY_COUNT } from '@/lib/mapScope';
+
+const PETROLEO = '#1E3E4C';
+const LIMA = '#B6E03B';
+
+/** Metaninho's methane molecule, drawn small: carbon plus four hydrogens. */
+function Molecule({ className }: { className: string }) {
+  return (
+    <g className={className}>
+      <g stroke={PETROLEO} strokeWidth={1.2} strokeLinecap="round">
+        <line x1={0} y1={0} x2={-4.2} y2={-4.2} />
+        <line x1={0} y1={0} x2={4.2} y2={-4.2} />
+        <line x1={0} y1={0} x2={-4.2} y2={4.2} />
+        <line x1={0} y1={0} x2={4.2} y2={4.2} />
+      </g>
+      <circle r={3.4} fill={PETROLEO} />
+      <circle cx={-4.6} cy={-4.6} r={1.9} fill={LIMA} stroke={PETROLEO} strokeWidth={0.8} />
+      <circle cx={4.6} cy={-4.6} r={1.9} fill={LIMA} stroke={PETROLEO} strokeWidth={0.8} />
+      <circle cx={-4.6} cy={4.6} r={1.9} fill={LIMA} stroke={PETROLEO} strokeWidth={0.8} />
+      <circle cx={4.6} cy={4.6} r={1.9} fill={LIMA} stroke={PETROLEO} strokeWidth={0.8} />
+    </g>
+  );
+}
+
+function DigesterDrawing() {
+  return (
+    <svg
+      viewBox="0 0 200 140"
+      width={200}
+      height={140}
+      className="biogas-loader w-[220px] sm:w-[260px] h-auto"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <defs>
+        <clipPath id="biogas-loader-dome">
+          <path d="M36 92 V70 A44 40 0 0 1 124 70 V92 Z" />
+        </clipPath>
+      </defs>
+
+      {/* Ground */}
+      <line x1={14} y1={118} x2={186} y2={118} stroke="#C9D3D8" strokeWidth={2} strokeLinecap="round" />
+
+      {/* Tank body, half buried */}
+      <rect x={32} y={88} width={96} height={30} rx={3} fill="#DCE8EC" stroke={PETROLEO} strokeWidth={2.5} />
+      {/* Substrate inside the tank, with a slow surface */}
+      <path
+        className="biogas-loader-slurry"
+        d="M34 98 q12 -4 24 0 t24 0 t24 0 t24 0 V116 H34 Z"
+        fill="#AD5F00"
+        opacity={0.22}
+      />
+
+      {/* Gas dome */}
+      <path d="M36 90 V70 A44 40 0 0 1 124 70 V90" fill="#FFFFFF" stroke={PETROLEO} strokeWidth={2.5} strokeLinejoin="round" />
+
+      {/* Molecules rising inside the dome */}
+      <g clipPath="url(#biogas-loader-dome)">
+        <g transform="translate(58 84) scale(1.5)"><Molecule className="biogas-loader-rise biogas-loader-rise-1" /></g>
+        <g transform="translate(82 84) scale(1.5)"><Molecule className="biogas-loader-rise biogas-loader-rise-2" /></g>
+        <g transform="translate(104 84) scale(1.5)"><Molecule className="biogas-loader-rise biogas-loader-rise-3" /></g>
+      </g>
+
+      {/* Gas pipe from the dome top to the burner */}
+      <path d="M80 31 V20 H142 V81 H156" fill="none" stroke={PETROLEO} strokeWidth={5} strokeLinejoin="round" />
+      <path
+        className="biogas-loader-flow"
+        d="M80 31 V20 H142 V81 H156"
+        fill="none"
+        stroke={LIMA}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeDasharray="4 10"
+      />
+
+      {/* Burner on its stand, and the flame */}
+      <line x1={165} y1={84} x2={165} y2={118} stroke={PETROLEO} strokeWidth={3} />
+      <rect x={155} y={77} width={20} height={7} rx={1.5} fill={PETROLEO} />
+      <g className="biogas-loader-flame">
+        <path d="M165 44 C157 57 155 65 158 71 C160 76 170 76 172 71 C175 65 173 57 165 44 Z" fill="#E6922B" />
+        <path d="M165 57 C161 64 161 68 162.5 71 C163.5 73.5 166.5 73.5 167.5 71 C169 68 169 64 165 57 Z" fill={LIMA} />
+      </g>
+    </svg>
+  );
+}
 
 export default function MapLoadingSkeleton() {
   const t = useTranslations('Map.loading');
 
   return (
-    <div className="w-full h-full bg-gradient-to-br from-gray-50 to-gray-100 dark:from-slate-900 dark:to-slate-800 relative overflow-hidden">
-      {/* Animated gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 dark:via-white/5 to-transparent animate-shimmer" />
-
-      {/* Map grid pattern */}
-      <div className="absolute inset-0 opacity-10 dark:opacity-5">
-        <svg width="100%" height="100%">
-          <defs>
-            <pattern
-              id="grid"
-              width="40"
-              height="40"
-              patternUnits="userSpaceOnUse"
-            >
-              <path
-                d="M 40 0 L 0 0 0 40"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="0.5"
-                className="text-gray-400 dark:text-gray-600"
-              />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#grid)" />
-        </svg>
-      </div>
-
-      {/* Center loading indicator */}
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div className="bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm p-8 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 max-w-md mx-4">
-          {/* Animated map icon */}
-          <div className="mb-6 flex justify-center">
-            <div className="relative">
-              {/* Pulsing outer circle */}
-              <div className="absolute inset-0 rounded-full bg-terra-800/20 dark:bg-terra-500/20 animate-ping" />
-
-              {/* Main circle with icon */}
-              <div className="relative w-20 h-20 bg-gradient-to-br from-terra-600 to-cp2b-verde dark:from-terra-500 dark:to-cp2b-lima rounded-full flex items-center justify-center shadow-lg">
-                <svg
-                  className="w-10 h-10 text-white animate-pulse"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
-                  />
-                </svg>
-              </div>
-            </div>
-          </div>
-
-          {/* Loading text */}
-          <div className="text-center space-y-3">
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-              {t('title')}
-            </h3>
-
-            <div className="space-y-2">
-              <div className="flex items-center justify-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                <div className="w-2 h-2 bg-terra-800 dark:bg-terra-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                <div className="w-2 h-2 bg-terra-800 dark:bg-terra-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                <div className="w-2 h-2 bg-terra-800 dark:bg-terra-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-              </div>
-
-              <p className="text-sm text-gray-500 dark:text-gray-500">
-                {t('subtitle', { count: SP_MUNICIPALITY_COUNT + MG_MUNICIPALITY_COUNT })}
-              </p>
-            </div>
-
-            {/* Progress indicators */}
-            <div className="pt-4 space-y-2">
-              <LoadingStep text={t('step_geodata')} delay="0s" />
-              <LoadingStep text={t('step_geometries')} delay="0.5s" />
-              <LoadingStep text={t('step_layers')} delay="1s" />
-            </div>
-          </div>
-
-          {/* Progress bar */}
-          <div className="mt-6 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-            <div className="h-full bg-gradient-to-r from-terra-600 to-cp2b-verde dark:from-terra-500 dark:to-cp2b-lima animate-loading-bar origin-left" />
-          </div>
-        </div>
-      </div>
-
-      {/* Corner skeletons for floating panels */}
-      <div className="absolute top-20 left-4 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-lg shadow-lg w-80 h-48 animate-pulse border border-gray-200 dark:border-gray-700" />
-      <div className="absolute bottom-4 left-4 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-lg shadow-lg w-64 h-32 animate-pulse border border-gray-200 dark:border-gray-700" />
-      <div className="absolute bottom-4 right-4 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-lg shadow-lg w-48 h-40 animate-pulse border border-gray-200 dark:border-gray-700" />
-    </div>
-  );
-}
-
-function LoadingStep({ text, delay }: { text: string; delay: string }) {
-  return (
     <div
-      className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 opacity-0 animate-fade-in"
-      style={{ animationDelay: delay }}
+      role="status"
+      aria-live="polite"
+      className="w-full h-full bg-gray-50 flex items-center justify-center px-4"
     >
-      <div className="w-1 h-1 bg-terra-800 dark:bg-terra-500 rounded-full" />
-      <span>{text}</span>
+      <div className="biogas-loader-enter flex flex-col items-center text-center max-w-sm">
+        <DigesterDrawing />
+        <p className="mt-5 text-base font-semibold text-ink">{t('title')}</p>
+        <p className="mt-1 text-sm text-ink-muted text-balance">
+          {t('subtitle', { count: SP_MUNICIPALITY_COUNT + MG_MUNICIPALITY_COUNT })}
+        </p>
+      </div>
     </div>
   );
 }

@@ -7,21 +7,9 @@
 'use client'
 
 import { useState } from 'react'
-import { useTranslations } from 'next-intl'
 import dynamic from 'next/dynamic'
 import type { FilterCriteria, BiomassType } from '@/types/map'
-
-function MapLoadingSkeleton() {
-  const t = useTranslations('Map')
-  return (
-    <div className="w-full h-full bg-gray-100 dark:bg-slate-800 flex items-center justify-center">
-      <div className="text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-terra-800 dark:border-terra-500 mx-auto"></div>
-        <p className="mt-4 text-gray-600 dark:text-gray-400">{t('loading_map')}</p>
-      </div>
-    </div>
-  )
-}
+import MapLoadingSkeleton from '@/components/map/MapLoadingSkeleton'
 
 // Dynamically import Map component to avoid SSR issues
 const MapComponent = dynamic(() => import('@/components/map/MapComponent'), {
