@@ -517,10 +517,6 @@ export default function MapComponent({
   const landOn = activeTool === 'land';
   const [landPoint, setLandPoint] = useState<LandAroundPoint | null>(initialTools.land.point);
   const [landRadius, setLandRadius] = useState<LandAroundRadius>(initialTools.land.radius);
-  const [landPlace, setLandPlace] = useState<string | null>(null);
-  // A click on a municipality reaches its layer just before the map: the layer
-  // leaves the name here and the map's click, which places the circle, takes it.
-  const landClickedName = useRef<string | null>(null);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -536,15 +532,11 @@ export default function MapComponent({
   const closeTool = useCallback(() => {
     setActiveTool(null);
     setLandPoint(null);
-    setLandPlace(null);
   }, []);
 
   const handleLandPick = useCallback((point: LandAroundPoint) => {
-    const name = landClickedName.current;
-    landClickedName.current = null;
     if (toolAccess !== 'allowed') return;
     setLandPoint(point);
-    setLandPlace(name);
   }, [toolAccess]);
   const [mousePosition, setMousePosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [showExport, setShowExport] = useState(false);
@@ -658,9 +650,7 @@ export default function MapComponent({
   const handleMunicipalityClick = useCallback((feature: MunicipalityFeature) => {
     switch (activeTool) {
       case 'land':
-        // The click places the circle (LandAroundLayer); the municipality only
-        // names the place.
-        landClickedName.current = feature.properties?.name ?? null;
+        // The click places the circle (LandAroundLayer).
         return;
       case null:
         selectMunicipality(feature);
@@ -1494,7 +1484,6 @@ export default function MapComponent({
           <LandAround
             point={landPoint}
             radius={landRadius}
-            placeHint={landPlace}
             access={toolAccess}
             onRadiusChange={setLandRadius}
             onClose={closeTool}
