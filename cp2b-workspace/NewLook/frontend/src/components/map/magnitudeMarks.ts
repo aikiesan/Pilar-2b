@@ -4,6 +4,7 @@
  */
 import type L from 'leaflet';
 import { SECTOR_COLORS } from '@/data/sectorColors';
+import type { GatherSource } from '@/lib/gather';
 import { SPLIT_SECTORS } from '@/lib/sectorSplit';
 
 /**
@@ -27,6 +28,14 @@ export const NO_SPLIT_COLOR = '#4B5563';
 
 /** Index = DotKind: the three sectors in SPLIT_SECTORS order, then no split. */
 export const KIND_COLORS: readonly string[] = [...SPLIT_SECTORS.map((s) => SECTOR_COLORS[s]), NO_SPLIT_COLOR];
+
+/** The same colours by name, for Gather's fills, particles and bar. */
+export const SOURCE_COLORS: Record<GatherSource, string> = {
+  agricultural: SECTOR_COLORS.agricultural,
+  livestock: SECTOR_COLORS.livestock,
+  urban: SECTOR_COLORS.urban,
+  unsplit: NO_SPLIT_COLOR,
+};
 
 /** The paper the marks are cut from: the gaps between segments and the halo. */
 export const MARK_PAPER = '#FCFCFB';

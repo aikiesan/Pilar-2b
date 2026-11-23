@@ -1169,6 +1169,10 @@
         "cross": {
           "name": "Cruzar dados",
           "description": "Quatro mapas que cruzam dois dados, como metano e usinas"
+        },
+        "gather": {
+          "name": "Reunir",
+          "description": "Quanto biometano uma usina num ponto juntaria num raio de 25, 50 ou 100 km"
         }
       },
       "pending_title": "Seu pedido de acesso está em análise",
@@ -1231,6 +1235,33 @@
       "picked_outside": "{name} fica fora de {state}, que esta leitura cobre.",
       "signed_out_title": "Entre para cruzar dados",
       "signed_out_body": "As análises cruzadas estão abertas a contas aprovadas enquanto seguem em teste. Entre, ou peça acesso.",
+      "sign_in": "Entrar"
+    },
+    "gather": {
+      "name": "Reunir",
+      "window_aria": "Reunir resíduos num raio",
+      "close": "Fechar Reunir",
+      "title": "Uma usina em {place}",
+      "title_point": "Uma usina neste ponto",
+      "meta": "{count, plural, =0 {Nenhum município} one {# município} other {# municípios}} a até {radius} km",
+      "radius_group": "Raio",
+      "radius_option": "{radius} km",
+      "idle": "Clique num ponto do mapa, ou ache um município na busca, para pôr a usina e ver o que chega num raio de {radius} km.",
+      "empty": "Nenhum município com biometano neste cenário num raio de {radius} km.",
+      "total_value": "{value} milhões de m³/ano",
+      "total_label": "de biometano, no cenário {scenario}",
+      "power": "Cerca de {mw} MW em média, se queimado para gerar eletricidade com 38% de eficiência.",
+      "sources_aria": "Biometano por origem: {list}",
+      "source_value": "{value} mi m³, {share}%",
+      "unsplit": "Sem divisão por origem",
+      "top_title": "Os que mais contribuem",
+      "top_share": "{share}%",
+      "border": "O círculo passa a divisa entre São Paulo e Minas Gerais; os dois estados contam.",
+      "without_data": "{count, plural, one {# município} other {# municípios}} no círculo sem biometano neste cenário.",
+      "straight_line": "Conta cada município cujo centro está a até o raio, em linha reta. O transporte por estrada vem com o Alcance de caminhão.",
+      "move_hint": "Clique em outro ponto do mapa para mover a usina.",
+      "signed_out_title": "Entre para usar o Reunir",
+      "signed_out_body": "Reunir usa dados liberados para contas aprovadas. Entre, ou peça acesso.",
       "sign_in": "Entrar"
     }
   },

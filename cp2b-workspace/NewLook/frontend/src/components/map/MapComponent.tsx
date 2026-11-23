@@ -16,6 +16,7 @@ import { MapContainer, TileLayer, ScaleControl, ZoomControl, useMap } from 'reac
 import dynamic from 'next/dynamic';
 import { CircleAlert, Loader2 } from 'lucide-react';
 import type { LandAroundPoint, LandAroundRadius } from '@/lib/landAround';
+import { gatherAround, placeOf, type GatherRadius } from '@/lib/gather';
 import { availableMapTools, isMapToolAvailable, parseMapToolParams, writeMapToolParams, type MapToolId } from '@/lib/mapTools';
 import { useMapToolAccess } from '@/lib/mapToolAccess';
 import { useGeospatialData, useCodigestionClusters, useResidueCNMatrix, useIntermediateRegionsGeoJSON, useSitingIndicators, useMunicipalityLandCover } from '@/hooks/useGeospatialData';
@@ -196,6 +197,8 @@ const CompareLayer = dynamic(() => import('./CompareLayer'), { ssr: false });
 const Compare = dynamic(() => import('./CompareWindow'), { ssr: false });
 const CrossWindow = dynamic(() => import('./CrossWindow'), { ssr: false });
 const LandAround = dynamic(() => import('./LandAroundWindow'), { ssr: false });
+const GatherLayer = dynamic(() => import('./GatherLayer'), { ssr: false });
+const GatherWindow = dynamic(() => import('./GatherWindow'), { ssr: false });
 
 // Profile + Tooltip overlays
 const MunicipalityProfilePanel = dynamic(() => import('./MunicipalityProfilePanel'), { ssr: false });
@@ -565,8 +568,15 @@ export default function MapComponent({
   const compareOn = activeTool === 'compare';
   const [comparePair, setComparePair] = useState<string[]>(initialTools.compare.pair);
   const pickCompare = useCallback((code: string) => setComparePair((pair) => nextComparePair(pair, code)), []);
+  // Gather: the plant's point and the catchment radius.
+  const gatherOn = activeTool === 'gather';
+  const [gatherPoint, setGatherPoint] = useState<LandAroundPoint | null>(initialTools.gather.point);
+  const [gatherRadius, setGatherRadius] = useState<GatherRadius>(initialTools.gather.radius);
+  // A link may name the plant by municipality (?hub=); its centre is the point
+  // once the map's features are in.
+  const [gatherHub, setGatherHub] = useState<string | null>(initialTools.gather.hub);
   // A tool that draws its own municipality layer hides the choropleth and its legends.
-  const fillHiddenByTool = landOn || compareOn;
+  const fillHiddenByTool = landOn || compareOn || gatherOn;
   // Cruzar: the analysis is the map's own ?a=; the tool is how it reaches
   // approved accounts while MAP_ANALYSES_ENABLED keeps it off the public map.
   const crossOn = activeTool === 'cross';
@@ -581,11 +591,12 @@ export default function MapComponent({
       tool: activeTool,
       land: { point: landPoint, radius: landRadius },
       compare: { pair: comparePair },
+      gather: { point: gatherPoint, radius: gatherRadius, hub: gatherPoint ? null : gatherHub },
     });
     const query = params.toString();
     const next = `${window.location.pathname}${query ? `?${query}` : ''}`;
     if (next !== `${window.location.pathname}${window.location.search}`) window.history.replaceState(null, '', next);
-  }, [activeTool, landPoint, landRadius, comparePair]);
+  }, [activeTool, landPoint, landRadius, comparePair, gatherPoint, gatherRadius, gatherHub]);
 
   // Choose a bivariate analysis (or none). It paints the choropleth, so the map
   // goes back to the choropleth mode, and the theme highlight goes.
@@ -616,7 +627,17 @@ export default function MapComponent({
     setLandPoint(null);
     setComparePair([]);
     setCrossPick(null);
+    setGatherPoint(null);
+    setGatherHub(null);
   }, [activeTool, handleAnalysisChange]);
+
+  // Gather places the plant where the map is clicked (the shapes are hidden
+  // while it is on, so the click reaches the map).
+  const handleGatherPick = useCallback((point: LandAroundPoint) => {
+    if (toolAccess !== 'allowed') return;
+    setGatherHub(null);
+    setGatherPoint(point);
+  }, [toolAccess]);
 
   // The window names the place from the server's nearest municipality: while
   // Land around is on, the municipality shapes are hidden and take no clicks.
@@ -1126,6 +1147,27 @@ export default function MapComponent({
     return { name, status: cell === null ? 'no_data' : 'cell', cell };
   }, [crossPick, data, analysisUf, analysisResult]);
 
+  // ── Gather: the catchment around the plant ────────────────────────────────
+  // A link by municipality (?hub=) puts the plant on its centroid until a
+  // click moves it.
+  const gatherAt = useMemo<LandAroundPoint | null>(() => {
+    if (gatherPoint) return gatherPoint;
+    if (!gatherHub || !data) return null;
+    const hub = data.features.find((f) => String(f.properties?.ibge_code) === gatherHub);
+    const centre = hub ? centroidOf(hub) : null;
+    return centre ? { lat: centre.lat, lng: centre.lng } : null;
+  }, [gatherPoint, gatherHub, data]);
+  const gatherResult = useMemo(
+    () => (gatherOn && toolAccess === 'allowed' && gatherAt && data
+      ? gatherAround(data.features, gatherAt, gatherRadius, mapScenario)
+      : null),
+    [gatherOn, toolAccess, gatherAt, gatherRadius, data, mapScenario],
+  );
+  const gatherPlace = useMemo(() => {
+    if (!gatherOn || !gatherAt || !data) return null;
+    return placeOf(data.features, gatherAt)?.properties?.name ?? null;
+  }, [gatherOn, gatherAt, data]);
+
   // ── Pontos and Símbolos: the amounts of the state in view, by origin ───────
   // The same features the old heat and bubble views drew: the scope's state,
   // after the filters. Built only while the view is on.
@@ -1246,7 +1288,6 @@ export default function MapComponent({
           onApplyPreset={handleApplyPreset}
           activePresetId={activePresetId}
           activeAnalysis={analysisShown}
-          onAnalysisChange={MAP_ANALYSES_ENABLED ? handleAnalysisChange : undefined}
         />
       )}
 
@@ -1323,6 +1364,15 @@ export default function MapComponent({
               // With Compare open the search fills A or B, as a click does.
               if (compareOn) {
                 if (toolAccess === 'allowed' && feature?.properties?.ibge_code != null) pickCompare(String(feature.properties.ibge_code));
+                return;
+              }
+              // With Gather open it puts the plant at the municipality's centre.
+              if (gatherOn) {
+                const centre = feature ? centroidOf(feature) : null;
+                if (toolAccess === 'allowed' && centre) {
+                  setGatherHub(null);
+                  setGatherPoint({ lat: centre.lat, lng: centre.lng });
+                }
                 return;
               }
               // With Cruzar open it marks the municipality's cell, and the map
@@ -1605,6 +1655,16 @@ export default function MapComponent({
               onPick={handleLandPick}
             />
           )}
+          {isMounted && gatherOn && (
+            <GatherLayer
+              active={gatherOn}
+              point={toolAccess === 'allowed' ? gatherAt : null}
+              radiusKm={gatherRadius}
+              result={gatherResult}
+              features={data?.features ?? []}
+              onPick={handleGatherPick}
+            />
+          )}
           {isMounted && compareOn && filteredData && (
             <CompareLayer
               features={filteredData.features}
@@ -1680,6 +1740,21 @@ export default function MapComponent({
             palette={daltonic ? 'cvd' : 'default'}
             stateLabel={activeStateName}
             picked={crossPicked}
+          />
+          </MapPresence>
+        )}
+
+        {isMounted && (
+          <MapPresence show={gatherOn}>
+          <GatherWindow
+            access={toolAccess}
+            point={gatherAt}
+            place={gatherPlace}
+            radius={gatherRadius}
+            onRadiusChange={setGatherRadius}
+            result={gatherResult}
+            scenarioLabel={t(isServedScenario(mapScenario) ? `scenario_${mapScenario}` : 'scenario_real')}
+            onClose={closeTool}
           />
           </MapPresence>
         )}

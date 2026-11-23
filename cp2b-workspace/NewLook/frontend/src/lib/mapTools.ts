@@ -11,7 +11,7 @@
  *   land     ?tool=land&lat&lng&radius
  *   compare  ?tool=compare&pair=<ibge>,<ibge>
  *   cross    ?tool=cross, the analysis in the map's own ?a=<id>
- *   gather   ?tool=gather&lat&lng&radius  or  ?tool=gather&hub=<ibge>
+ *   gather   ?tool=gather&lat&lng&radius (25, 50 or 100 km)  or  ?tool=gather&hub=<ibge>
  *   similar  ?tool=similar&of=<ibge>&within=state|both
  *
  * Who may USE a tool is a separate question: useMapToolAccess().
@@ -23,6 +23,7 @@ import {
   type LandAroundPoint,
   type LandAroundRadius,
 } from '@/lib/landAround';
+import { DEFAULT_GATHER_RADIUS, isGatherRadius, type GatherRadius } from '@/lib/gather';
 
 export type MapToolId = 'land' | 'compare' | 'cross' | 'gather' | 'similar';
 
@@ -32,7 +33,7 @@ export const MAP_TOOL_IDS: readonly MapToolId[] = ['land', 'compare', 'cross', '
  * Tools that are built. A tool joins this list in the step that builds it;
  * until then it is left out of the menu and its links open the plain map.
  */
-export const BUILT_MAP_TOOLS: readonly MapToolId[] = ['land', 'compare', 'cross'];
+export const BUILT_MAP_TOOLS: readonly MapToolId[] = ['land', 'compare', 'cross', 'gather'];
 
 /**
  * Tools that open with the analyses held back (MAP_ANALYSES_ENABLED off).
@@ -63,7 +64,7 @@ export interface MapToolUrlState {
   tool: MapToolId | null;
   land: { point: LandAroundPoint | null; radius: LandAroundRadius };
   compare: { pair: string[] };
-  gather: { point: LandAroundPoint | null; radius: LandAroundRadius; hub: string | null };
+  gather: { point: LandAroundPoint | null; radius: GatherRadius; hub: string | null };
   similar: { of: string | null; within: SimilarWithin };
 }
 
@@ -81,6 +82,11 @@ function readPoint(params: URLSearchParams): LandAroundPoint | null {
   return valid ? { lat, lng } : null;
 }
 
+function readGatherRadius(params: URLSearchParams): GatherRadius {
+  const raw = Number(params.get('radius'));
+  return isGatherRadius(raw) ? raw : DEFAULT_GATHER_RADIUS;
+}
+
 function readRadius(params: URLSearchParams): LandAroundRadius {
   const raw = Number(params.get('radius'));
   return isLandAroundRadius(raw) ? raw : DEFAULT_LAND_AROUND_RADIUS;
@@ -96,7 +102,7 @@ export function emptyMapToolState(): MapToolUrlState {
     tool: null,
     land: { point: null, radius: DEFAULT_LAND_AROUND_RADIUS },
     compare: { pair: [] },
-    gather: { point: null, radius: DEFAULT_LAND_AROUND_RADIUS, hub: null },
+    gather: { point: null, radius: DEFAULT_GATHER_RADIUS, hub: null },
     similar: { of: null, within: 'state' },
   };
 }
@@ -121,7 +127,7 @@ export function parseMapToolParams(search: string | URLSearchParams): MapToolUrl
       break;
     }
     case 'gather':
-      state.gather = { point: readPoint(params), radius: readRadius(params), hub: readIbge(params.get('hub')) };
+      state.gather = { point: readPoint(params), radius: readGatherRadius(params), hub: readIbge(params.get('hub')) };
       break;
     case 'similar':
       state.similar = { of: readIbge(params.get('of')), within: params.get('within') === 'both' ? 'both' : 'state' };
@@ -167,7 +173,7 @@ export function writeMapToolParams(
       if (state.gather?.hub) params.set('hub', state.gather.hub);
       else {
         point(state.gather?.point);
-        params.set('radius', String(state.gather?.radius ?? DEFAULT_LAND_AROUND_RADIUS));
+        params.set('radius', String(state.gather?.radius ?? DEFAULT_GATHER_RADIUS));
       }
       break;
     case 'similar':
