@@ -105,7 +105,7 @@ def test_the_hidden_field_gets_the_same_answer_and_does_nothing(api):
 
 
 @pytest.mark.parametrize(
-    "over", [{"password": "fraca"}, {"accept_terms": False}, {"email": "not-an-email"}]
+    "over", [{"password": "a" * 5}, {"accept_terms": False}, {"email": "not-an-email"}]
 )
 def test_signup_rejects_bad_input(api, over):
     client, _, calls = api

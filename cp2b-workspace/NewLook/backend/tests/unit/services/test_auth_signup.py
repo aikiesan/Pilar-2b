@@ -136,8 +136,8 @@ def test_signup_again_while_unconfirmed_sends_a_fresh_link_and_retires_the_old(s
 @pytest.mark.parametrize(
     "over",
     [
-        {"password": "Curta1A"},  # under 10
-        {"password": "semmaiusculas123"},
+        {"password": "Ab1" + "x" * 4},  # under 10
+        {"password": "x" * 12 + "123"},  # no upper case
         {"accept_terms": False},
         {"purpose": "curto"},
         {"institution": ""},
