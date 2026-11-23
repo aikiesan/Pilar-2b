@@ -14,6 +14,9 @@ const site: TruckSite = {
   site_id: 'ITB_SP_0005', name: 'Usina São Martinho', kind: 'ethanol', ibge_code: '3540705',
   municipality: 'Pradópolis', at_town_centre: false, lon: -48.07, lat: -21.36,
 }
+const near = (site_id: string, name: string, kind: TruckSite['kind'], municipality: string, minutes: number) => ({
+  site: { site_id, name, kind, municipality, ibge_code: '3500001', at_town_centre: false, lon: 0, lat: 0 }, minutes,
+})
 const summary: TruckSummary = {
   byLimit: { 30: 5, 60: 24, 90: 53 },
   reached: [],
@@ -21,12 +24,16 @@ const summary: TruckSummary = {
   biomethane: 45_600_000,
   withoutData: 2,
   otherSites: { mills: 3, landfills: 1, plants: 0 },
+  nearest: {
+    mills: [near('M1', 'Usina Santa Elisa', 'ethanol', 'Sertãozinho', 18.4), near('M2', 'Usina Bonfim', 'ethanol', 'Guariba', 24)],
+    landfills: [],
+  },
   pipeline: { minutes: 52.7, km: 61.9, beyond: false },
   circle: { inCircle: 30, slowerByRoad: 12, roadBeyondCircle: 6 },
 }
 
 function renderWindow(props: Partial<TruckReachWindowProps>) {
-  const handlers = { onLimitChange: jest.fn(), onCircleChange: jest.fn(), onClose: jest.fn() }
+  const handlers = { onLimitChange: jest.fn(), onCircleChange: jest.fn(), onPickSite: jest.fn(), onHoverSite: jest.fn(), onClose: jest.fn() }
   render(
     <TruckReachWindow
       access="allowed"
@@ -143,6 +150,22 @@ describe('TruckReachWindow', () => {
     renderWindow({ siteId: site.site_id, site, state: 'ready', summary: { ...summary, otherSites: { mills: 1, landfills: 0, plants: 2 } } })
     // Portuguese counts 0 as one; the copy says "nenhum" instead.
     expect(screen.getByText(/1 usina, nenhum aterro/)).toHaveTextContent('1 usina, nenhum aterro e 2 usinas de biogás ou biometano')
+  })
+
+  it('lists the nearest mills and landfills by road; a row rings its site and picks it', () => {
+    const { onPickSite, onHoverSite } = renderWindow({ siteId: site.site_id, site, state: 'ready', summary })
+    expect(screen.getByText('Mais perto pela estrada')).toBeInTheDocument()
+    const row = screen.getByRole('button', { name: 'Usina Santa Elisa, em Sertãozinho, a cerca de 18 minutos. Ver o alcance deste local.' })
+    expect(row).toHaveTextContent('≈ 18 min')
+    // No landfill within the limit: said, not left blank.
+    expect(screen.getByText('Nenhum a até 60 minutos')).toBeInTheDocument()
+    fireEvent.mouseEnter(row)
+    expect(onHoverSite).toHaveBeenLastCalledWith('M1')
+    fireEvent.mouseLeave(row)
+    expect(onHoverSite).toHaveBeenLastCalledWith(null)
+    fireEvent.click(row)
+    expect(onPickSite).toHaveBeenCalledWith('M1')
+    expect(screen.getByText(/Os minutos até um local são os da sede do seu município/)).toBeInTheDocument()
   })
 
   it('closes', () => {

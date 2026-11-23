@@ -117,6 +117,13 @@ export function segmentShare(t1: number, t2: number, minute: number): number {
   return t2 > t1 ? (minute - t1) / (t2 - t1) : 1;
 }
 
+/** Truck minutes over which a reached town's fill fades in. */
+export const TOWN_FADE_MINUTES = 6;
+
+/** How far a town reached at `arrival` has faded in at `minute`, 0 to 1. */
+export const townShare = (arrival: number, minute: number) =>
+  Math.max(0, Math.min(1, (minute - arrival) / TOWN_FADE_MINUTES));
+
 // ── Colours by band ──────────────────────────────────────────────────────────
 
 /** Azul Petróleo ramp (dusk 700, 500, 300 in styles/palette.js). */
@@ -145,6 +152,33 @@ export type TruckSiteShape = 'square' | 'triangle' | 'diamond';
 export const siteShape = (kind: TruckSiteKind): TruckSiteShape =>
   kind === 'ethanol' ? 'square' : kind === 'landfill' ? 'triangle' : 'diamond';
 
+// ── The sites in reach ───────────────────────────────────────────────────────
+
+/** How many of each kind the window lists as nearest. */
+export const TRUCK_NEAREST = 3;
+
+/**
+ * Another site the truck reaches, and when: the minutes to its town's centre.
+ * The routes end at town centres, not at the sites, so a site's minutes are
+ * its town's.
+ */
+export interface TruckSiteArrival {
+  site: TruckSite;
+  minutes: number;
+}
+
+/** Every other site whose town the truck reaches in 90 minutes, nearest first. */
+export function siteArrivals(data: TruckReachData, sites: readonly TruckSite[]): TruckSiteArrival[] {
+  const minutesByTown = new Map(data.towns.map((t) => [t.ibge_code, t.minutes]));
+  const out: TruckSiteArrival[] = [];
+  for (const site of sites) {
+    if (site.site_id === data.site.site_id) continue;
+    const minutes = minutesByTown.get(site.ibge_code);
+    if (minutes !== undefined) out.push({ site, minutes });
+  }
+  return out.sort((a, b) => a.minutes - b.minutes || a.site.name.localeCompare(b.site.name));
+}
+
 // ── The window's figures ─────────────────────────────────────────────────────
 
 export interface TruckSummary {
@@ -160,6 +194,8 @@ export interface TruckSummary {
   withoutData: number;
   /** Other sites whose town is within the limit. */
   otherSites: { mills: number; landfills: number; plants: number };
+  /** The nearest mills and landfills within the limit, nearest first. */
+  nearest: { mills: TruckSiteArrival[]; landfills: TruckSiteArrival[] };
   pipeline: { minutes: number; km: number; beyond: boolean } | null;
   circle: {
     /** São Paulo municipalities whose centre is within 50 km in a straight line. */
@@ -207,11 +243,19 @@ export function summarizeTruckReach(
   }
 
   const otherSites = { mills: 0, landfills: 0, plants: 0 };
-  for (const s of sites) {
-    if (s.site_id === data.site.site_id || !reachedCodes.has(s.ibge_code)) continue;
-    if (s.kind === 'ethanol') otherSites.mills++;
-    else if (s.kind === 'landfill') otherSites.landfills++;
-    else otherSites.plants++;
+  const nearest: TruckSummary['nearest'] = { mills: [], landfills: [] };
+  for (const arrival of siteArrivals(data, sites)) {
+    if (arrival.minutes > limit) break;
+    const { kind } = arrival.site;
+    if (kind === 'ethanol') {
+      otherSites.mills++;
+      if (nearest.mills.length < TRUCK_NEAREST) nearest.mills.push(arrival);
+    } else if (kind === 'landfill') {
+      otherSites.landfills++;
+      if (nearest.landfills.length < TRUCK_NEAREST) nearest.landfills.push(arrival);
+    } else {
+      otherSites.plants++;
+    }
   }
 
   const site: LatLng = { lat: data.site.lat, lng: data.site.lon };
@@ -240,6 +284,7 @@ export function summarizeTruckReach(
     biomethane,
     withoutData,
     otherSites,
+    nearest,
     pipeline: p ? { minutes: p.minutes, km: p.km, beyond: p.minutes > limit } : null,
     circle: { inCircle, slowerByRoad, roadBeyondCircle },
   };

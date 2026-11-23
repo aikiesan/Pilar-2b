@@ -609,6 +609,8 @@ export default function MapComponent({
   const [truckSite, setTruckSite] = useState<string | null>(initialTools.truck.site);
   const [truckLimit, setTruckLimit] = useState<TruckLimit>(initialTools.truck.limit);
   const [truckCircle, setTruckCircle] = useState(false);
+  // The site a row of the nearest list points at.
+  const [truckHovered, setTruckHovered] = useState<string | null>(null);
   // A tool that draws its own municipality layer hides the choropleth and its legends.
   const fillHiddenByTool = landOn || compareOn || gatherOn || similarOn;
   // Cruzar: the analysis is the map's own ?a=; the tool is how it reaches
@@ -669,6 +671,7 @@ export default function MapComponent({
     setSimilarHovered(null);
     setTruckSite(null);
     setTruckCircle(false);
+    setTruckHovered(null);
   }, [activeTool, handleAnalysisChange]);
 
   // Gather places the plant where the map is clicked (the shapes are hidden
@@ -1811,6 +1814,7 @@ export default function MapComponent({
               selected={truckAllowed ? truckSite : null}
               openedWith={initialTools.truck.site}
               data={truckData}
+              hovered={truckAllowed ? truckHovered : null}
               limit={truckLimit}
               showCircle={truckCircle && truckData !== null}
               features={data?.features ?? []}
@@ -1932,6 +1936,8 @@ export default function MapComponent({
             onLimitChange={setTruckLimit}
             showCircle={truckCircle}
             onCircleChange={setTruckCircle}
+            onPickSite={pickTruckSite}
+            onHoverSite={setTruckHovered}
             onClose={closeTool}
           />
           </MapPresence>

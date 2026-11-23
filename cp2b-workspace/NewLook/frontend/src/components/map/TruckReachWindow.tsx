@@ -24,6 +24,7 @@ import {
   TRUCK_LIMITS,
   type TruckLimit,
   type TruckSite,
+  type TruckSiteArrival,
   type TruckSummary,
 } from '@/lib/truckReach';
 
@@ -44,11 +45,15 @@ export interface TruckReachWindowProps {
   onLimitChange: (limit: TruckLimit) => void;
   showCircle: boolean;
   onCircleChange: (show: boolean) => void;
+  /** A row of the nearest list picks that site instead. */
+  onPickSite: (siteId: string) => void;
+  /** A row pointed at (hover or focus) rings its site on the map. */
+  onHoverSite: (siteId: string | null) => void;
   onClose: () => void;
 }
 
 export default function TruckReachWindow({
-  access, siteId, site, state, summary, limit, onLimitChange, showCircle, onCircleChange, onClose,
+  access, siteId, site, state, summary, limit, onLimitChange, showCircle, onCircleChange, onPickSite, onHoverSite, onClose,
 }: TruckReachWindowProps) {
   const t = useTranslations('Map.truck');
   const tTools = useTranslations('Map.mapTools');
@@ -56,6 +61,40 @@ export default function TruckReachWindow({
   const gated = access === 'sign_in' || access === 'pending';
   const outside = site !== null && !isInSaoPaulo(site.ibge_code);
   const ready = !gated && siteId && site && !outside && state === 'ready' && summary ? summary : null;
+  const nearestList = (label: string, rows: TruckSiteArrival[]) => (
+    <div>
+      <p className="mb-1 text-xs text-ink-muted">{label}</p>
+      {rows.length === 0 ? (
+        <p className="text-sm text-ink-muted">{t('nearest_none', { minutes: limit })}</p>
+      ) : (
+        <ol className="-mx-2">
+          {rows.map((row) => {
+            const minutes = format.number(row.minutes, { decimals: 0 });
+            return (
+              <li key={row.site.site_id}>
+                <button
+                  type="button"
+                  aria-label={t('nearest_row_aria', { name: row.site.name, town: row.site.municipality, minutes })}
+                  onClick={() => { onHoverSite(null); onPickSite(row.site.site_id); }}
+                  onMouseEnter={() => onHoverSite(row.site.site_id)}
+                  onMouseLeave={() => onHoverSite(null)}
+                  onFocus={() => onHoverSite(row.site.site_id)}
+                  onBlur={() => onHoverSite(null)}
+                  className={`flex min-h-11 w-full items-center justify-between gap-3 px-2 text-left text-sm transition-colors hover:bg-paper-sunken active:bg-line/60 ${focusRing}`}
+                >
+                  <span className="min-w-0">
+                    <span className="block truncate text-ink">{row.site.name}</span>
+                    <span className="block truncate text-xs text-ink-muted">{row.site.municipality}</span>
+                  </span>
+                  <span className="shrink-0 tabular-nums text-ink-muted">{t('nearest_minutes', { minutes })}</span>
+                </button>
+              </li>
+            );
+          })}
+        </ol>
+      )}
+    </div>
+  );
   const loginNext = `/map?${writeMapToolParams(currentMapSearch(), { tool: 'truck', truck: { site: siteId, limit } }).toString()}`;
 
   return (
@@ -181,6 +220,12 @@ export default function TruckReachWindow({
               </div>
             </dl>
 
+            <div className="space-y-3 border-t border-line pt-3">
+              <p className="text-sm font-semibold text-ink">{t('nearest_title')}</p>
+              {nearestList(t('nearest_mills'), ready.nearest.mills)}
+              {nearestList(t('nearest_landfills'), ready.nearest.landfills)}
+            </div>
+
             <p className="border-t border-line pt-3 text-sm text-ink">
               {ready.pipeline
                 ? (ready.pipeline.beyond
@@ -213,6 +258,7 @@ export default function TruckReachWindow({
 
             <div className="space-y-1.5 border-t border-line pt-3 text-[11px] leading-snug text-ink-muted">
               {ready.withoutData > 0 && <p>{t('without_data', { count: ready.withoutData })}</p>}
+              <p>{t('nearest_note')}</p>
               <p>{t('source')}</p>
               <p>{t('sp_only')}</p>
               <p>{t('straight_line')}</p>

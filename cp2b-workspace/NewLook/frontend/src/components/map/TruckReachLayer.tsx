@@ -8,6 +8,8 @@
  * a ring on the pipeline.
  *
  * Panes, all between the infrastructure (450) and the highlight (460):
+ *   453  truck-towns   SVG: each town reached, filled in its band as the
+ *                      truck gets there (quieter than the roads);
  *   455  truck-routes  one canvas for the tree (about 1,800 segments), redrawn
  *                      per frame while it grows and again after a pan or a
  *                      zoom, never 1,800 Leaflet polylines;
@@ -18,7 +20,9 @@
  *                      opens with Enter, carries its name for a screen
  *                      reader, and Leaflet does the hit testing and tooltips.
  *
- * A change of limit recolours what is drawn, with no replay. With reduced
+ * The other sites start dimmed and grow to full colour as the truck reaches
+ * their town (a site's minutes are its town's: the routes end at town
+ * centres). A change of limit recolours what is drawn, with no replay. With reduced
  * motion the whole tree is there at once.
  */
 import { useEffect, useMemo, useRef } from 'react';
@@ -27,8 +31,11 @@ import { useMap } from 'react-leaflet';
 import { centroidOf } from '@/lib/mapGeometry';
 import { prefersReducedMotion } from '@/lib/mapMotion';
 import {
+  bandColor,
   frameSegments,
   minuteToDraw,
+  siteArrivals,
+  townShare,
   siteShape,
   treeSegments,
   truckPlayMs,
@@ -40,6 +47,7 @@ import {
 } from '@/lib/truckReach';
 import type { MunicipalityFeature } from '@/types/geospatial';
 
+const TOWNS_PANE = 'truck-towns';
 const ROUTES_PANE = 'truck-routes';
 const MARKS_PANE = 'truck-marks';
 const SITES_PANE = 'truck-sites';
@@ -58,6 +66,8 @@ interface TruckReachLayerProps {
   /** The site the page's link named, framed on arrival whatever the view. */
   openedWith: string | null;
   data: TruckReachData | null;
+  /** A site a row in the window points at: ringed, its name shown. */
+  hovered: string | null;
   limit: TruckLimit;
   showCircle: boolean;
   /** Every municipality the map holds, for the town dots. */
@@ -103,7 +113,7 @@ function nameMarker(marker: L.Marker, label: string, picked: boolean): void {
 }
 
 export default function TruckReachLayer({
-  sites, interactive, selected, openedWith, data, limit, showCircle, features, describe, onPick,
+  sites, interactive, selected, openedWith, data, hovered, limit, showCircle, features, describe, onPick,
 }: TruckReachLayerProps) {
   const map = useMap();
   const renderer = useMemo(() => {
@@ -111,6 +121,10 @@ export default function TruckReachLayer({
     ensurePane(map, MARKS_PANE, 456);
     ensurePane(map, SITES_PANE, 458, true);
     return L.svg({ pane: MARKS_PANE });
+  }, [map]);
+  const townRenderer = useMemo(() => {
+    ensurePane(map, TOWNS_PANE, 453);
+    return L.svg({ pane: TOWNS_PANE });
   }, [map]);
 
   // Handlers bound once per marker read the latest props here.
@@ -212,6 +226,24 @@ export default function TruckReachLayer({
   const byCode = useMemo(() => new Map(features.map((f) => [String(f.properties?.ibge_code), f])), [features]);
   const segments = useMemo(() => (data ? treeSegments(data.tree) : []), [data]);
   const pipelineSegments = useMemo(() => (data?.pipeline ? treeSegments(data.pipeline.tree) : []), [data]);
+  const arrivals = useMemo(
+    () => new Map((data ? siteArrivals(data, sites) : []).map((a) => [a.site.site_id, a.minutes])),
+    [data, sites],
+  );
+
+  // ── The site a window row points at ──
+  useEffect(() => {
+    const entry = hovered ? markersRef.current.get(hovered) : undefined;
+    if (!entry) return;
+    const ring = L.circleMarker(entry.marker.getLatLng(), {
+      radius: 13, pane: MARKS_PANE, renderer, interactive: false, color: INK, weight: 2.5, fill: false,
+    }).addTo(map);
+    entry.marker.openTooltip();
+    return () => {
+      ring.remove();
+      entry.marker.closeTooltip();
+    };
+  }, [map, renderer, hovered]);
 
   // The limit, read by the drawing without replaying the clock.
   const limitRef = useRef(limit);
@@ -295,6 +327,23 @@ export default function TruckReachLayer({
       })
       .filter(Boolean) as { dot: L.CircleMarker; minutes: number }[];
 
+    // Each town reached, filled in its band as the truck gets there. Leaflet
+    // hands the GeoJSON options to each polygon, renderer included; its types
+    // list only the GeoJSON ones.
+    const fillOptions: L.GeoJSONOptions & L.PathOptions = {
+      pane: TOWNS_PANE, renderer: townRenderer, interactive: false,
+      style: { stroke: true, weight: 1, opacity: 0, fill: true, fillOpacity: 0 },
+    };
+    const fills = data.towns
+      .map((town) => {
+        const feature = byCode.get(town.ibge_code);
+        if (!feature) return null;
+        const shape = L.geoJSON(feature, fillOptions).addTo(map);
+        layers.push(shape);
+        return { shape, minutes: town.minutes, key: '' };
+      })
+      .filter(Boolean) as { shape: L.GeoJSON; minutes: number; key: string }[];
+
     const pipe = data.pipeline;
     const pipeEnd = pipe
       ? L.circleMarker([pipe.lat, pipe.lon], {
@@ -318,6 +367,29 @@ export default function TruckReachLayer({
         });
       }
       if (pipeEnd && pipe) pipeEnd.setStyle({ opacity: minute >= pipe.minutes ? 1 : 0 });
+      for (const f of fills) {
+        const share = Math.round(townShare(f.minutes, minute) * 20) / 20;
+        const within = f.minutes <= l;
+        const key = `${share}|${within}`;
+        if (key === f.key) continue;
+        f.key = key;
+        const band = bandColor(f.minutes, l);
+        f.shape.setStyle(within
+          ? { color: band, weight: 1, opacity: 0.85 * share, fillColor: band, fillOpacity: 0.4 * share }
+          : { color: FAINT, weight: 0.75, opacity: 0.6 * share, fillOpacity: 0 });
+      }
+      // The other sites: dimmed until the truck reaches their town within
+      // the limit, then grown to full colour. The picked one stays as it is.
+      for (const [id, entry] of markersRef.current) {
+        const el = entry.marker.getElement();
+        if (!el) continue;
+        const at = arrivals.get(id);
+        const state = id === data.site.site_id ? '' : at !== undefined && at <= l && minute >= at ? 'reached' : 'dim';
+        if (el.dataset.reach === state) continue;
+        el.dataset.reach = state;
+        el.classList.toggle('truck-site-reached', state === 'reached');
+        el.classList.toggle('truck-site-dim', state === 'dim');
+      }
       if (!ctx || zooming) return;
       L.DomUtil.setPosition(canvas, map.containerPointToLayerPoint([0, 0]));
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -409,8 +481,14 @@ export default function TruckReachLayer({
       map.off('resize', onResize);
       canvas.remove();
       for (const l of layers) l.remove();
+      for (const entry of markersRef.current.values()) {
+        const el = entry.marker.getElement();
+        if (!el) continue;
+        delete el.dataset.reach;
+        el.classList.remove('truck-site-reached', 'truck-site-dim');
+      }
     };
-  }, [map, renderer, data, segments, pipelineSegments, byCode]);
+  }, [map, renderer, townRenderer, data, segments, pipelineSegments, byCode, arrivals]);
 
   return null;
 }

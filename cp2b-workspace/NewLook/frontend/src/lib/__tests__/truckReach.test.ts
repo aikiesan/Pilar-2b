@@ -6,7 +6,10 @@ import {
   isTruckLimit,
   readSiteId,
   segmentShare,
+  siteArrivals,
   summarizeTruckReach,
+  townShare,
+  TOWN_FADE_MINUTES,
   treeSegments,
   truckMinuteAt,
   truckPlayMs,
@@ -95,6 +98,20 @@ describe('summarizeTruckReach', () => {
     expect(summarizeTruckReach(data, 90, features, sites).otherSites).toEqual({ mills: 2, landfills: 1, plants: 1 });
   });
 
+  it('lists the nearest mills and landfills within the limit, nearest first', () => {
+    const at60 = summarizeTruckReach(data, 60, features, sites).nearest;
+    expect(at60.mills.map((a) => [a.site.site_id, a.minutes])).toEqual([['S3', 55]]);
+    expect(at60.landfills.map((a) => [a.site.site_id, a.minutes])).toEqual([['S2', 45]]);
+    expect(summarizeTruckReach(data, 90, features, sites).nearest.mills.map((a) => a.site.site_id)).toEqual(['S3', 'S4']);
+    expect(summarizeTruckReach(data, 30, features, sites).nearest).toEqual({ mills: [], landfills: [] });
+  });
+
+  it('times each other site by its town, leaving out the picked one and towns never reached', () => {
+    expect(siteArrivals(data, sites).map((a) => [a.site.site_id, a.minutes])).toEqual([
+      ['S5', 20], ['S2', 45], ['S3', 55], ['S4', 80],
+    ]);
+  });
+
   it('says when the pipeline is beyond the limit', () => {
     expect(summarizeTruckReach(data, 60, features, sites).pipeline).toEqual({ minutes: 72, km: 80, beyond: true });
     expect(summarizeTruckReach(data, 90, features, sites).pipeline?.beyond).toBe(false);
@@ -129,6 +146,12 @@ describe('the clock and the colours', () => {
     expect(bandColor(45, 90)).toBe(TRUCK_BAND_COLORS[1]);
     expect(bandColor(75, 90)).toBe(TRUCK_BAND_COLORS[2]);
     expect(bandColor(45, 30)).toBe(TRUCK_BEYOND_COLOR);
+  });
+
+  it('fades a town in over a few truck minutes from its arrival', () => {
+    expect(townShare(20, 10)).toBe(0);
+    expect(townShare(20, 20 + TOWN_FADE_MINUTES / 2)).toBe(0.5);
+    expect(townShare(20, Infinity)).toBe(1);
   });
 
   it('reads the flat tree as lat/lng segments with their minutes', () => {
