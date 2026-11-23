@@ -12,6 +12,7 @@ import {
   isAnalysisId,
   type AnalysisId,
   type AnalysisResult,
+  type AxisDef,
   type Breaks,
   type Classified,
   type MapAnalysisRef,
@@ -79,8 +80,11 @@ export interface AnalysisView {
   layers: readonly string[]
 }
 
+/** The Map.analyses keys a built-in view reads; next-intl's typed translator fits. */
+export type BuiltInViewKey = `${AnalysisId}.${'title' | 'question' | 'answer'}` | `axes.${AxisDef['key']}`
+
 /** `t` reads under Map.analyses. */
-export function builtInView(id: AnalysisId, t: (key: string) => string): AnalysisView {
+export function builtInView(id: AnalysisId, t: (key: BuiltInViewKey) => string): AnalysisView {
   const def = ANALYSES[id]
   return {
     ref: id,
