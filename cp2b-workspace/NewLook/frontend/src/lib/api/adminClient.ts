@@ -21,6 +21,24 @@ export interface AdminUser {
   created_at: string
   updated_at: string
   last_login_at: string | null
+  status?: RequestStatus
+}
+
+export type RequestStatus = 'pending_email' | 'pending_review' | 'approved' | 'rejected'
+
+/** One account as the request queue shows it (GET /auth/admin/requests). */
+export interface AccessRequest {
+  id: string
+  email: string
+  full_name: string
+  institution: string | null
+  purpose: string | null
+  status: RequestStatus
+  clearance: number
+  created_at: string
+  email_verified_at: string | null
+  reviewed_at: string | null
+  review_note: string | null
 }
 
 export interface AdminAnalysis {
@@ -68,6 +86,7 @@ async function failure(res: Response): Promise<Error> {
   if (res.status === 400 && /own clearance/i.test(detail)) {
     return new Error('Não é possível mudar o próprio nível.')
   }
+  if (res.status === 409) return new Error('Este pedido já foi decidido. Atualize a página.')
   if (res.status === 422) return new Error('Dados inválidos. Confira os campos.')
   if (res.status === 429) return new Error('Muitas tentativas. Espere um pouco.')
   return new Error('Não foi possível concluir. Tente de novo.')
@@ -106,6 +125,26 @@ export async function setClearance(userId: string, clearance: number): Promise<v
     method: 'PATCH',
     ...json({ clearance }),
   })
+}
+
+export async function listRequests(status: RequestStatus): Promise<AccessRequest[]> {
+  return (await request(`${AUTH}/admin/requests?status=${status}`)).json()
+}
+
+export async function approveRequest(userId: string, clearance: number): Promise<AccessRequest> {
+  const res = await request(`${AUTH}/admin/requests/${encodeURIComponent(userId)}/approve`, {
+    method: 'POST',
+    ...json({ clearance }),
+  })
+  return res.json()
+}
+
+export async function rejectRequest(userId: string, note: string | null): Promise<AccessRequest> {
+  const res = await request(`${AUTH}/admin/requests/${encodeURIComponent(userId)}/reject`, {
+    method: 'POST',
+    ...json({ note }),
+  })
+  return res.json()
 }
 
 export async function listAnalyses(): Promise<AdminAnalysis[]> {
