@@ -1199,6 +1199,7 @@
       "loading": "Carregando",
       "no_data": "Sem dado",
       "failed": "Não carregou",
+      "unavailable": "Ainda não carregado neste servidor",
       "no_residues": "Sem massa de resíduo",
       "partial_total": "Soma parcial, sem dado de {sectors}",
       "distance": "A {km} km em linha reta",

@@ -24,7 +24,7 @@ import { isTruckReachData, summarizeTruckReach, type TruckLimit, type TruckSite 
 import type { TruckReachState } from './TruckReachWindow';
 import { useMapToolAccess } from '@/lib/mapToolAccess';
 import { useGeospatialData, useCodigestionClusters, useResidueCNMatrix, useIntermediateRegionsGeoJSON, useSitingIndicators, useMunicipalityLandCover, useTruckSites, useTruckReach } from '@/hooks/useGeospatialData';
-import { figureState, kmDecimals, nextComparePair } from '@/lib/compare';
+import { figureState, kmDecimals, landCoverFigureState, nextComparePair } from '@/lib/compare';
 import { buildDots, buildSymbols } from '@/lib/magnitudeViews';
 import { isAmountMetric } from '@/lib/sectorSplit';
 import { CONTEXT_FILL } from './magnitudeMarks';
@@ -587,7 +587,9 @@ export default function MapComponent({
   // Compare: A and B as IBGE codes, in pick order.
   const compareOn = activeTool === 'compare';
   const [comparePair, setComparePair] = useState<string[]>(initialTools.compare.pair);
-  const pickCompare = useCallback((code: string) => setComparePair((pair) => nextComparePair(pair, code)), []);
+  const pickCompare = useCallback((code: string) => setComparePair((pair) => nextComparePair(pair, code, 'click') as string[]), []);
+  // A search pick fills A or B but never takes one away (nextComparePair).
+  const searchCompare = useCallback((code: string) => setComparePair((pair) => nextComparePair(pair, code, 'search') as string[]), []);
   // Gather: the plant's point and the catchment radius.
   const gatherOn = activeTool === 'gather';
   const [gatherPoint, setGatherPoint] = useState<LandAroundPoint | null>(initialTools.gather.point);
@@ -1488,7 +1490,7 @@ export default function MapComponent({
             onSelect={(feature) => {
               // With Compare open the search fills A or B, as a click does.
               if (compareOn) {
-                if (toolAccess === 'allowed' && feature?.properties?.ibge_code != null) pickCompare(String(feature.properties.ibge_code));
+                if (toolAccess === 'allowed' && feature?.properties?.ibge_code != null) searchCompare(String(feature.properties.ibge_code));
                 return;
               }
               // With Gather open it puts the plant at the municipality's centre.
@@ -1962,7 +1964,7 @@ export default function MapComponent({
             siting={siting.data?.available ? siting.data.indicators : null}
             sitingState={figureState(siting)}
             landCover={compareLandCover.data}
-            landCoverState={figureState(compareLandCover)}
+            landCoverState={landCoverFigureState(compareLandCover)}
             distanceKm={compareDistanceKm}
             onRemove={pickCompare}
             onClose={closeTool}

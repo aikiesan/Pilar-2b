@@ -32,6 +32,7 @@ import {
   type CompareSide,
   type CompareSlot,
   type FigureState,
+  type LandCoverFigureState,
 } from '@/lib/compare';
 import { SECTOR_COLORS } from '@/data/sectorColors';
 import { isServedScenario, type MapScenarioKey } from '@/data/scenarioFactors';
@@ -55,8 +56,8 @@ export interface CompareFigureStates {
   detail: [FigureState, FigureState];
   /** /siting-indicators: the pipeline and the plants. */
   siting: FigureState;
-  /** The land cover. */
-  landCover: FigureState;
+  /** The land cover; `unavailable` when the server has none loaded. */
+  landCover: LandCoverFigureState;
 }
 type RowSource = 'detail' | 'siting' | 'landCover' | null;
 
@@ -112,6 +113,7 @@ export function CompareWindow({
     const state = source === null ? 'ready' : source === 'detail' ? states.detail[i] : states[source];
     if (state === 'loading') return loadingNote;
     if (state === 'failed') return <span className="text-ink-muted">{t('failed')}</span>;
+    if (state === 'unavailable') return <span className="text-ink-muted">{t('unavailable')}</span>;
     return render(side);
   };
 
@@ -373,7 +375,7 @@ export interface CompareProps {
   siting: SitingIndicators | null;
   sitingState: FigureState;
   landCover: LandCoverResponse | undefined;
-  landCoverState: FigureState;
+  landCoverState: LandCoverFigureState;
   distanceKm: number | null;
   onRemove: (code: string) => void;
   onClose: () => void;

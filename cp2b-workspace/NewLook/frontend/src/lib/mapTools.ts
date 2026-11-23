@@ -24,6 +24,7 @@ import {
   type LandAroundPoint,
   type LandAroundRadius,
 } from '@/lib/landAround';
+import { isComparable } from '@/lib/compare';
 import { DEFAULT_GATHER_RADIUS, isGatherRadius, type GatherRadius } from '@/lib/gather';
 import { DEFAULT_TRUCK_LIMIT, isTruckLimit, readSiteId, type TruckLimit } from '@/lib/truckReach';
 
@@ -127,7 +128,8 @@ export function parseMapToolParams(search: string | URLSearchParams): MapToolUrl
       break;
     case 'compare': {
       const codes = (params.get('pair') ?? '').split(',').map((c) => readIbge(c.trim()));
-      state.compare = { pair: Array.from(new Set(codes.filter((c): c is string => c !== null))).slice(0, 2) };
+      // Only São Paulo and Minas Gerais municipalities can be A or B (isComparable).
+      state.compare = { pair: Array.from(new Set(codes.filter((c): c is string => c !== null && isComparable(c)))).slice(0, 2) };
       break;
     }
     case 'gather':

@@ -58,6 +58,11 @@ describe('parseMapToolParams', () => {
     expect(parseMapToolParams('?tool=compare&pair=abc,123').compare.pair).toEqual([])
   })
 
+  it('takes Compare picks from São Paulo and Minas Gerais only', () => {
+    expect(parseMapToolParams('?tool=compare&pair=3304557,3550308').compare.pair).toEqual(['3550308'])
+    expect(parseMapToolParams('?tool=compare&pair=3106200,4106902').compare.pair).toEqual(['3106200'])
+  })
+
   it('reads Find similar without taking the map\'s own scope param', () => {
     expect(parseMapToolParams('?tool=similar&of=3509502&scope=31&within=both').similar).toEqual({ of: '3509502', within: 'both' })
     expect(parseMapToolParams('?tool=similar&of=x').similar).toEqual({ of: null, within: 'state' })
