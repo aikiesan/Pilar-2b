@@ -24,6 +24,7 @@ from app.api.v1.endpoints import (
     scientific,
     sources,
     statistics,
+    truck_reach,
 )
 from app.routers import calculator, technology_routes
 
@@ -44,6 +45,11 @@ api_router.include_router(geospatial.router, prefix="/geospatial", tags=["geospa
 
 api_router.include_router(
     infrastructure.router, prefix="/infrastructure", tags=["infrastructure", "geospatial"]
+)
+
+# Truck reach: stored truck routes around biogas and biomethane sites (migration 042)
+api_router.include_router(
+    truck_reach.router, prefix="/truck-reach", tags=["truck-reach", "geospatial"]
 )
 
 # MapBiomas raster tile endpoints
