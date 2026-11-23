@@ -15,14 +15,19 @@
  * (the map's GeoJSON and /siting-indicators); the gate is the team's call
  * while the analyses are tested with approved accounts.
  *
+ * Once one is chosen, the choices fold into one line (its matrix, title and
+ * axes, with "Trocar") so the reading sits right under it without a scroll;
+ * the line opens the choices again.
+ *
  * Under the four, "Mais análises": the registry analyses GET /analyses gave
  * this account (`registry`). The server decides which; nothing here reads a
  * level. They are open even without a session (level 0 is all the API serves
  * then), so the gate above holds only the four, and a visitor without a
  * session always gets the call to sign in for more.
  */
+import { useEffect, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Check, X } from 'lucide-react';
+import { Check, ChevronDown, X } from 'lucide-react';
 import { Link } from '@/navigation';
 import { loginHref } from '@/lib/authRedirect';
 import { currentMapSearch, writeMapToolParams } from '@/lib/mapTools';
@@ -86,6 +91,39 @@ export default function CrossWindow({
   // whatever the API served this session.
   const showReading = active !== null && (activeIsRegistry || access === 'allowed');
 
+  // The choices fold once a reading shows; "Trocar" opens them again.
+  const [browsing, setBrowsing] = useState(false);
+  const folded = showReading && activeView !== null && !browsing;
+  // Where focus goes after the list folds or opens: the control that was
+  // pressed is gone, so it lands on its stand-in.
+  const focusNext = useRef<'summary' | 'list' | null>(null);
+  const summaryRef = useRef<HTMLButtonElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const target = focusNext.current;
+    focusNext.current = null;
+    if (target === 'summary') summaryRef.current?.focus();
+    if (target === 'list') {
+      const list = listRef.current;
+      const pressed = list?.querySelector<HTMLButtonElement>('[aria-pressed="true"]');
+      (pressed ?? list?.querySelector<HTMLButtonElement>('button'))?.focus();
+    }
+  });
+
+  const choose = (ref: MapAnalysisRef | null) => {
+    setBrowsing(false);
+    if (ref) focusNext.current = 'summary';
+    onChoose(ref);
+  };
+
+  const cardClass = (on: boolean) =>
+    `border text-left transition-colors disabled:cursor-wait disabled:opacity-60 ${focusRing} ${
+      on
+        ? 'border-terra-600 bg-terra-50'
+        : 'border-line bg-paper-raised hover:border-line-strong hover:bg-paper-sunken active:bg-line/60'
+    }`;
+
+  /** One of the four: a card in the 2 x 2 grid. */
   const choice = (view: AnalysisView, axes: string) => {
     const on = active === view.ref;
     return (
@@ -94,13 +132,9 @@ export default function CrossWindow({
         type="button"
         aria-pressed={on}
         disabled={access === 'loading'}
-        onClick={() => onChoose(on ? null : view.ref)}
+        onClick={() => choose(on ? null : view.ref)}
         title={view.question}
-        className={`relative flex min-h-11 flex-col gap-1.5 border p-2 text-left transition-colors disabled:cursor-wait disabled:opacity-60 ${focusRing} ${
-          on
-            ? 'border-terra-600 bg-terra-50'
-            : 'border-line bg-paper-raised hover:border-line-strong hover:bg-paper-sunken active:bg-line/60'
-        }`}
+        className={`relative flex min-h-11 flex-col gap-1.5 p-2 ${cardClass(on)}`}
       >
         <MiniMatrix answerCell={view.answerCell} />
         <span className="pr-4 text-xs font-semibold leading-tight text-ink">{view.title}</span>
@@ -109,6 +143,45 @@ export default function CrossWindow({
       </button>
     );
   };
+
+  /** Title and axes on two short lines, cut with an ellipsis when long. */
+  const titleLines = (view: AnalysisView) => (
+    <span className="min-w-0 flex-1">
+      <span className="block truncate text-xs font-semibold leading-tight text-ink">{view.title}</span>
+      <span className="block truncate text-[11px] leading-tight text-ink-muted">
+        {`${view.xLabel} × ${view.yLabel}`}
+      </span>
+    </span>
+  );
+
+  /** A registry analysis: one line, so a long list stays short. */
+  const row = (view: AnalysisView) => {
+    const on = active === view.ref;
+    return (
+      <button
+        key={view.ref}
+        type="button"
+        aria-pressed={on}
+        disabled={access === 'loading'}
+        onClick={() => choose(on ? null : view.ref)}
+        title={view.question}
+        className={`flex min-h-11 w-full items-center gap-2.5 px-2 py-1.5 ${cardClass(on)}`}
+      >
+        <MiniMatrix answerCell={view.answerCell} size="h-1.5 w-1.5" />
+        {titleLines(view)}
+        {on && <Check className="h-4 w-4 shrink-0 text-terra-600" aria-hidden="true" />}
+      </button>
+    );
+  };
+
+  const moreWithLogin = signedOut && (
+    <Link
+      href={loginHref(loginNext)}
+      className={`inline-flex min-h-11 items-center text-sm font-medium text-terra-800 underline-offset-2 hover:underline ${focusRing}`}
+    >
+      {tA('registry_more_with_login')}
+    </Link>
+  );
 
   return (
     <aside
@@ -157,35 +230,51 @@ export default function CrossWindow({
           </div>
         )}
 
-        {!gated && (
+        {folded && activeView && (
           <>
-            {!active && <p className="text-sm text-ink-muted">{t('intro')}</p>}
-
-            <div role="group" aria-label={t('choices_aria')} className="grid grid-cols-2 gap-1.5">
-              {ANALYSIS_IDS.map((id) => choice(builtInView(id, tA), tA(`${id}.axes`)))}
-            </div>
+            <button
+              ref={summaryRef}
+              type="button"
+              aria-expanded={false}
+              onClick={() => {
+                focusNext.current = 'list';
+                setBrowsing(true);
+              }}
+              className={`flex min-h-11 w-full items-center gap-2.5 border border-terra-600 bg-terra-50 px-2 py-1.5 text-left transition-colors hover:bg-terra-100 ${focusRing}`}
+            >
+              <MiniMatrix answerCell={activeView.answerCell} size="h-1.5 w-1.5" />
+              {titleLines(activeView)}
+              <span className="flex shrink-0 items-center gap-1 text-xs font-medium text-terra-800">
+                {t('change')}
+                <ChevronDown className="h-3.5 w-3.5" aria-hidden="true" />
+              </span>
+            </button>
+            {moreWithLogin}
           </>
         )}
 
-        {(registry.length > 0 || signedOut) && (
-          <section aria-labelledby="cross-registry-h" className="space-y-1.5">
-            <h3 id="cross-registry-h" className="text-[11px] font-semibold uppercase tracking-wide text-ink-muted">
-              {tA('registry_section')}
-            </h3>
-            {registry.length > 0 && (
-              <div className="grid grid-cols-2 gap-1.5">
-                {registry.map((view) => choice(view, `${view.xLabel} × ${view.yLabel}`))}
-              </div>
+        {!folded && (
+          <div ref={listRef} className="space-y-3">
+            {!gated && (
+              <>
+                {!active && <p className="text-sm text-ink-muted">{t('intro')}</p>}
+
+                <div role="group" aria-label={t('choices_aria')} className="grid grid-cols-2 gap-1.5">
+                  {ANALYSIS_IDS.map((id) => choice(builtInView(id, tA), tA(`${id}.axes`)))}
+                </div>
+              </>
             )}
-            {signedOut && (
-              <Link
-                href={loginHref(loginNext)}
-                className={`inline-flex min-h-11 items-center text-sm font-medium text-terra-800 underline-offset-2 hover:underline ${focusRing}`}
-              >
-                {tA('registry_more_with_login')}
-              </Link>
+
+            {(registry.length > 0 || signedOut) && (
+              <section aria-labelledby="cross-registry-h" className="space-y-1.5">
+                <h3 id="cross-registry-h" className="text-[11px] font-semibold uppercase tracking-wide text-ink-muted">
+                  {tA('registry_section')}
+                </h3>
+                {registry.length > 0 && <div className="space-y-1">{registry.map(row)}</div>}
+                {moreWithLogin}
+              </section>
             )}
-          </section>
+          </div>
         )}
 
         {showReading && (

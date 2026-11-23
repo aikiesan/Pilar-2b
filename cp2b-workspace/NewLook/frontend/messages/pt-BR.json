@@ -1285,6 +1285,7 @@
     },
     "cross": {
       "window_aria": "Cruzar dois dados no mapa",
+      "change": "Trocar",
       "title": "Cruzar dados",
       "close": "Fechar Cruzar dados",
       "intro": "Escolha uma pergunta. Cada município ganha a cor da combinação das duas classes.",

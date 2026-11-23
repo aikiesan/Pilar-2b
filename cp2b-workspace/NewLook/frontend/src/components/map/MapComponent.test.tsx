@@ -489,8 +489,8 @@ describe('MapComponent', () => {
 
       await waitFor(() => {
         expect(screen.getByTestId('map-container')).toBeInTheDocument();
-        // The basemap, plus its labels overlay drawn above the choropleth.
-        expect(screen.getAllByTestId('tile-layer')).toHaveLength(2);
+        // OpenStreetMap alone: it prints its own names, so no overlay doubles them.
+        expect(screen.getAllByTestId('tile-layer')).toHaveLength(1);
       });
     });
 
@@ -1502,7 +1502,7 @@ describe('MapComponent', () => {
       act(() => { jest.advanceTimersByTime(1500); });
 
       expect(await screen.findByRole('complementary', { name: 'Cruzar dois dados no mapa' })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /Com quem codigerir/, pressed: true })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Com quem codigerir.*Trocar/ })).toBeInTheDocument();
       expect(window.location.search).toContain('a=codigestao');
       expect(screen.getByTestId('desktop-left-panel')).toHaveAttribute('data-active-analysis', 'codigestao');
       // The reading sits in the window, not in the map corner too.
@@ -1517,7 +1517,9 @@ describe('MapComponent', () => {
       expect(outline).toHaveAttribute('data-ibge', '3550308');
       expect(outline).toHaveAttribute('data-fit', '0');
 
-      // Switching to the gap reads plants, a signed-in endpoint.
+      // Switching to the gap reads plants, a signed-in endpoint. The choices
+      // are folded under the chosen one; Trocar opens them.
+      fireEvent.click(screen.getByRole('button', { name: /Com quem codigerir.*Trocar/ }));
       fireEvent.click(screen.getByRole('button', { name: /Potencial sem planta/ }));
       await waitFor(() => expect(mockUseSitingIndicators).toHaveBeenCalledWith(true));
       expect(window.location.search).toContain('a=lacuna');
@@ -1574,7 +1576,7 @@ describe('MapComponent', () => {
         act(() => { jest.advanceTimersByTime(1500); });
 
         expect(await screen.findByRole('heading', { name: 'Onde X e Y se encontram?' })).toBeInTheDocument();
-        expect(screen.getByRole('button', { name: /Demo XY/, pressed: true })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /Demo XY.*Trocar/ })).toBeInTheDocument();
         expect(screen.getByTestId('desktop-left-panel')).toHaveAttribute('data-active-analysis', 'r:demo_xy');
         expect(screen.getByRole('region', { name: 'Demo XY' })).toHaveTextContent('1 municípios na célula em destaque');
         await waitFor(() => expect(screen.getByTestId('layer-toggle-biogas_plant')).toHaveTextContent(': ON'));

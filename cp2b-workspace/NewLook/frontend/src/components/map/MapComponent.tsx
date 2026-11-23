@@ -1075,16 +1075,6 @@ export default function MapComponent({
   // would catch it first; while the tool is on they step aside (fill, its
   // beta overlays and legends), and come back as they were when it closes.
   const showMunicipalityFill = visibleLayerIds.includes('municipalities') && !fillHiddenByTool;
-  // The labels overlay repeats the names the base tiles already carry, a few
-  // pixels apart; it is only needed where a fill hides those names, or on
-  // satellite imagery, which has none. Drawn over bare tiles, every name
-  // shows twice.
-  const baseNamesHidden =
-    showMunicipalityFill ||
-    ((isCnMode || isTypologyMode) && !fillHiddenByTool) ||
-    visibleLayerIds.includes('mapbiomas') ||
-    visibleLayerIds.includes('intermediate-regions');
-  const showLabelsOverlay = basemap === 'satelite' || baseNamesHidden;
   // Every plant layer on the map, so the legend explains all of them and only
   // them. (The legacy SP `biogas-plants` layer is retired from INITIAL_LAYERS;
   // the legend still knows how to expand it should it come back.)
@@ -1726,16 +1716,17 @@ export default function MapComponent({
           style={MAP_CONTAINER_STYLE}
         >
           {/* Basemap — switchable (Mapa / Satélite / Terreno).
-              The `key` forces a clean re-fetch when the source changes. Every
-              basemap carries a labels overlay, drawn above the choropleth by
-              BasemapLabels, so place names stay legible over the fill. */}
+              The `key` forces a clean re-fetch when the source changes.
+              Only satellite has a labels overlay (BasemapLabels): its imagery
+              has no names. The other bases print their own, which show through
+              the see-through fill; a second set would double every name. */}
           <TileLayer
             key={basemap}
             attribution={activeBasemap.attribution}
             url={activeBasemap.url}
             maxZoom={activeBasemap.maxZoom}
           />
-          {showLabelsOverlay && (
+          {activeBasemap.labelsUrl && (
             <BasemapLabels key={`${basemap}-labels`} url={activeBasemap.labelsUrl} maxZoom={activeBasemap.maxZoom} />
           )}
 

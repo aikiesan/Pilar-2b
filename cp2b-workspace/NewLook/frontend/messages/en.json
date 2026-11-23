@@ -1284,6 +1284,7 @@
       "source": "Biomethane and residues: CP2b method, the scenario on the map. Land cover: MapBiomas Collection 11. Pipelines and plants: MapBiomas infrastructure layers. Farmland counts pasture, crops, sugar cane, planted forest and mixed farm use."
     },
     "cross": {
+      "change": "Change",
       "window_aria": "Cross two figures on the map",
       "title": "Cross data",
       "close": "Close Cross data",

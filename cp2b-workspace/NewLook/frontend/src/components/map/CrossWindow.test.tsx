@@ -59,15 +59,46 @@ describe('CrossWindow', () => {
     expect(screen.queryByRole('button', { pressed: true })).not.toBeInTheDocument()
   })
 
-  it('chooses a question, and choosing it again turns it off', () => {
+  it('chooses a question, and choosing it again from the list turns it off', () => {
     const onChoose = jest.fn()
     const { rerender } = renderWindow({ onChoose })
     fireEvent.click(screen.getByRole('button', { name: /Com quem codigerir/ }))
     expect(onChoose).toHaveBeenLastCalledWith('codigestao')
 
     rerender(<CrossWindow {...base} onChoose={onChoose} active="codigestao" result={result} />)
+    fireEvent.click(screen.getByRole('button', { name: /Trocar/ }))
     fireEvent.click(screen.getByRole('button', { name: /Com quem codigerir/, pressed: true }))
     expect(onChoose).toHaveBeenLastCalledWith(null)
+  })
+
+  it('folds the choices into one line once a reading shows, with focus on it', () => {
+    const onChoose = jest.fn()
+    const { rerender } = renderWindow({ onChoose })
+    fireEvent.click(screen.getByRole('button', { name: /Com quem codigerir/ }))
+    rerender(<CrossWindow {...base} onChoose={onChoose} active="codigestao" result={result} />)
+
+    expect(screen.queryByRole('group', { name: 'Perguntas' })).not.toBeInTheDocument()
+    const summary = screen.getByRole('button', { name: /Com quem codigerir.*Trocar/ })
+    expect(summary).toHaveAttribute('aria-expanded', 'false')
+    expect(summary).toHaveFocus()
+    // The reading sits right under the line.
+    expect(screen.getByRole('heading', { name: 'Onde resíduo agrícola e pecuário se encontram?' })).toBeInTheDocument()
+  })
+
+  it('opens the choices again from the line, focus on the chosen one, and folds after a new pick', () => {
+    const onChoose = jest.fn()
+    const { rerender } = renderWindow({ onChoose, active: 'codigestao', result })
+    fireEvent.click(screen.getByRole('button', { name: /Trocar/ }))
+    expect(screen.getByRole('group', { name: 'Perguntas' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Com quem codigerir/, pressed: true })).toHaveFocus()
+    // The reading stays while browsing.
+    expect(screen.getByRole('heading', { name: 'Onde resíduo agrícola e pecuário se encontram?' })).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: /Onde instalar/ }))
+    expect(onChoose).toHaveBeenLastCalledWith('siting')
+    rerender(<CrossWindow {...base} onChoose={onChoose} active="siting" result={{ ...result, id: 'siting' }} />)
+    expect(screen.queryByRole('group', { name: 'Perguntas' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Onde instalar.*Trocar/ })).toBeInTheDocument()
   })
 
   it('shows the reading under the choices, with the state in the method', () => {
@@ -143,11 +174,20 @@ describe('CrossWindow', () => {
       expect(screen.queryByRole('link', { name: 'Mais análises com login' })).not.toBeInTheDocument()
     })
 
-    it('shows the reading of the chosen registry analysis', () => {
+    it('shows the reading of the chosen registry analysis, under its folded line', () => {
       renderWindow({ registry: [demoView], active: 'r:demo_xy', result: demoResult })
-      expect(screen.getByRole('button', { name: /Demo XY/, pressed: true })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /Demo XY.*Eixo X × Eixo Y.*Trocar/ })).toBeInTheDocument()
+      expect(screen.queryByRole('heading', { name: 'Mais análises' })).not.toBeInTheDocument()
       expect(screen.getByRole('heading', { name: 'Onde X e Y se encontram?' })).toBeInTheDocument()
       expect(screen.getByRole('region', { name: 'Demo XY' })).toHaveTextContent('90 municípios na célula em destaque')
+    })
+
+    it('lists each registry analysis on one line, not as a card', () => {
+      const second = registryView({ ...demoMeta, id: 'demo_two', title: { pt: 'Demo dois', en: 'Demo two' } }, 'pt-BR', 'x')
+      renderWindow({ registry: [demoView, second] })
+      const rows = screen.getAllByRole('button', { name: /Demo/ })
+      expect(rows).toHaveLength(2)
+      for (const r of rows) expect(r.parentElement).not.toHaveClass('grid')
     })
 
     it('signed in with nothing from the registry: no heading at all', () => {

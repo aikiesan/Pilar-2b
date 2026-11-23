@@ -35,19 +35,24 @@ describe('basemaps', () => {
   })
 
   it.each(Object.values(BASEMAPS))('$id needs no API key', (basemap) => {
-    for (const template of [basemap.url, basemap.labelsUrl]) {
+    for (const template of [basemap.url, basemap.labelsUrl].filter((u): u is string => !!u)) {
       const url = tileUrl(template)
       expect(KEYED_DOMAINS.filter((domain) => onDomain(url.hostname, domain))).toEqual([])
       expect(KEY_PARAMS.filter((param) => url.searchParams.has(param))).toEqual([])
     }
   })
 
-  // The base tiles' own names end up under the choropleth fill; every basemap
-  // needs a labels overlay the map can draw above it, credited in the attribution.
-  it.each(Object.values(BASEMAPS))('$id has a labels overlay, credited', (basemap) => {
-    expect(basemap.labelsUrl).toMatch(/^https:\/\//)
-    expect(basemap.labelsUrl).not.toBe(basemap.url)
-    expect(basemap.attribution).toContain('Esri')
+  // A base that prints its own names gets no overlay: a second set from
+  // another source lands a few pixels off and every town reads twice.
+  it.each([BASEMAPS.mapa, BASEMAPS.terreno])('$id keeps its own names, with no overlay', (basemap) => {
+    expect(basemap.labelsUrl).toBeUndefined()
+    expect(basemap.attribution).not.toContain('Labels')
+  })
+
+  it('satellite, whose imagery has no names, draws Esri names above it', () => {
+    expect(BASEMAPS.satelite.labelsUrl).toMatch(/^https:\/\/server\.arcgisonline\.com\//)
+    expect(BASEMAPS.satelite.labelsUrl).not.toBe(BASEMAPS.satelite.url)
+    expect(BASEMAPS.satelite.attribution).toContain('Esri')
   })
 
   it('would catch the CARTO basemap it replaced', () => {
