@@ -18,7 +18,11 @@ import { CircleAlert, Loader2 } from 'lucide-react';
 import type { LandAroundPoint, LandAroundRadius } from '@/lib/landAround';
 import { availableMapTools, isMapToolAvailable, parseMapToolParams, writeMapToolParams, type MapToolId } from '@/lib/mapTools';
 import { useMapToolAccess } from '@/lib/mapToolAccess';
-import { useGeospatialData, useCodigestionClusters, useResidueCNMatrix, useIntermediateRegionsGeoJSON, useSitingIndicators } from '@/hooks/useGeospatialData';
+import { useGeospatialData, useCodigestionClusters, useResidueCNMatrix, useIntermediateRegionsGeoJSON, useSitingIndicators, useMunicipalityLandCover } from '@/hooks/useGeospatialData';
+import { figureState, kmDecimals, nextComparePair } from '@/lib/compare';
+import { useFormat } from '@/hooks/useFormat';
+import { LATEST_LAND_COVER_YEAR } from '@/lib/landCover';
+import { centroidOf, haversineKm } from '@/lib/mapGeometry';
 import { ANALYSES, analysisFill, classifyAnalysis, isAnalysisId, type AnalysisId } from '@/lib/mapAnalyses';
 import BivariateLegend from './BivariateLegend';
 import type { FilterCriteria, BiomassType, ResidueType, VisualizationMode } from '@/types/map';
@@ -156,6 +160,8 @@ const MunicipalityHighlight = dynamic(() => import('./MunicipalityHighlight'), {
 // The click tools: the Tools menu, and Land around's circle and window.
 const MapToolsMenu = dynamic(() => import('./MapToolsMenu'), { ssr: false });
 const LandAroundLayer = dynamic(() => import('./LandAroundLayer'), { ssr: false });
+const CompareLayer = dynamic(() => import('./CompareLayer'), { ssr: false });
+const Compare = dynamic(() => import('./CompareWindow'), { ssr: false });
 const LandAround = dynamic(() => import('./LandAroundWindow'), { ssr: false });
 
 // Profile + Tooltip overlays
@@ -312,6 +318,7 @@ export default function MapComponent({
   searchQuery: propSearchQuery = '',
 }: MapComponentProps = {}) {
   const t = useTranslations('Map');
+  const tCompare = useTranslations('Map.compare');
   const tCommon = useTranslations('common');
   const { data, loading, error } = useGeospatialData();
 
@@ -517,23 +524,33 @@ export default function MapComponent({
   const landOn = activeTool === 'land';
   const [landPoint, setLandPoint] = useState<LandAroundPoint | null>(initialTools.land.point);
   const [landRadius, setLandRadius] = useState<LandAroundRadius>(initialTools.land.radius);
+  // Compare: A and B as IBGE codes, in pick order.
+  const compareOn = activeTool === 'compare';
+  const [comparePair, setComparePair] = useState<string[]>(initialTools.compare.pair);
+  const pickCompare = useCallback((code: string) => setComparePair((pair) => nextComparePair(pair, code)), []);
+  // A tool that draws its own municipality layer hides the choropleth and its legends.
+  const fillHiddenByTool = landOn || compareOn;
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const params = writeMapToolParams(window.location.search, {
       tool: activeTool,
       land: { point: landPoint, radius: landRadius },
+      compare: { pair: comparePair },
     });
     const query = params.toString();
     const next = `${window.location.pathname}${query ? `?${query}` : ''}`;
     if (next !== `${window.location.pathname}${window.location.search}`) window.history.replaceState(null, '', next);
-  }, [activeTool, landPoint, landRadius]);
+  }, [activeTool, landPoint, landRadius, comparePair]);
 
   const closeTool = useCallback(() => {
     setActiveTool(null);
     setLandPoint(null);
+    setComparePair([]);
   }, []);
 
+  // The window names the place from the server's nearest municipality: while
+  // Land around is on, the municipality shapes are hidden and take no clicks.
   const handleLandPick = useCallback((point: LandAroundPoint) => {
     if (toolAccess !== 'allowed') return;
     setLandPoint(point);
@@ -652,6 +669,10 @@ export default function MapComponent({
       case 'land':
         // The click places the circle (LandAroundLayer).
         return;
+      case 'compare':
+        // CompareLayer picks on its own outlines; this covers any other path.
+        if (toolAccess === 'allowed' && feature.properties?.ibge_code != null) pickCompare(String(feature.properties.ibge_code));
+        return;
       case null:
         selectMunicipality(feature);
         return;
@@ -659,7 +680,7 @@ export default function MapComponent({
         // A tool on offer that takes municipalities handles them here.
         return;
     }
-  }, [selectMunicipality, activeTool]);
+  }, [selectMunicipality, activeTool, toolAccess, pickCompare]);
 
   // Opening a tool closes the profile; picking the open tool, or none, closes it.
   const selectTool = useCallback((tool: MapToolId | null) => {
@@ -852,14 +873,14 @@ export default function MapComponent({
   // Land around takes every click on the map, and the municipality shapes
   // would catch it first; while the tool is on they step aside (fill, its
   // beta overlays and legends), and come back as they were when it closes.
-  const showMunicipalityFill = visibleLayerIds.includes('municipalities') && !landOn;
+  const showMunicipalityFill = visibleLayerIds.includes('municipalities') && !fillHiddenByTool;
   // The labels overlay repeats the names the base tiles already carry, a few
   // pixels apart; it is only needed where a fill hides those names, or on
   // satellite imagery, which has none. Drawn over bare tiles, every name
   // shows twice.
   const baseNamesHidden =
     showMunicipalityFill ||
-    ((isCnMode || isTypologyMode) && !landOn) ||
+    ((isCnMode || isTypologyMode) && !fillHiddenByTool) ||
     visibleLayerIds.includes('mapbiomas') ||
     visibleLayerIds.includes('intermediate-regions');
   const showLabelsOverlay = basemap === 'satelite' || baseNamesHidden;
@@ -1001,7 +1022,20 @@ export default function MapComponent({
 
   // ── Bivariate analysis ──────────────────────────────────────────────────────
   const analysisDef = activeAnalysis ? ANALYSES[activeAnalysis] : null;
-  const siting = useSitingIndicators(Boolean(analysisDef?.needsSiting));
+  const compareAllowed = compareOn && toolAccess === 'allowed';
+  // Compare reads the pipelines and plants too; both endpoints are signed-in only.
+  const siting = useSitingIndicators(Boolean(analysisDef?.needsSiting) || compareAllowed);
+  const compareLandCover = useMunicipalityLandCover(LATEST_LAND_COVER_YEAR, compareAllowed);
+  const compareDistanceKm = useMemo(() => {
+    if (comparePair.length < 2 || !data) return null;
+    const [a, b] = comparePair.map((code) => centroidOf(data.features.find((f) => String(f.properties?.ibge_code) === code)));
+    return a && b ? haversineKm(a, b) : null;
+  }, [comparePair, data]);
+  const formatNumber = useFormat().number;
+  const compareDistanceLabel = useCallback(
+    (km: number) => tCompare('distance', { km: formatNumber(km, { decimals: kmDecimals(km) }) }),
+    [tCompare, formatNumber],
+  );
   const sitingIndicators = siting.data?.available ? siting.data.indicators : null;
   const analysisWaiting = Boolean(analysisDef?.needsSiting) && !sitingIndicators;
   const analysisFailed = Boolean(analysisDef?.needsSiting) && (siting.isError || siting.data?.available === false);
@@ -1185,6 +1219,11 @@ export default function MapComponent({
             features={searchFeatures}
             selected={selectedMunicipality}
             onSelect={(feature) => {
+              // With Compare open the search fills A or B, as a click does.
+              if (compareOn) {
+                if (toolAccess === 'allowed' && feature?.properties?.ibge_code != null) pickCompare(String(feature.properties.ibge_code));
+                return;
+              }
               // Picking a municipality opens its profile, which takes the
               // place of the open tool's window.
               if (activeTool) closeTool();
@@ -1382,11 +1421,11 @@ export default function MapComponent({
               they read covers SP+MG (1498 rows), so pinning them to SP left the
               MG scope painting nothing at all while the legend still announced
               the full SP+MG counts. */}
-          {isCnMode && !landOn && !typologyLoading && activeStateData && (
+          {isCnMode && !fillHiddenByTool && !typologyLoading && activeStateData && (
             <CnChoroLayer geoJsonData={activeStateData} cnByIbge={cnByIbge} />
           )}
 
-          {isTypologyMode && !landOn && !typologyLoading && activeStateData && (
+          {isTypologyMode && !fillHiddenByTool && !typologyLoading && activeStateData && (
             <TypologyChoroLayer
               geoJsonData={activeStateData}
               typologyMap={typologyMap}
@@ -1445,6 +1484,17 @@ export default function MapComponent({
               onPick={handleLandPick}
             />
           )}
+          {isMounted && compareOn && filteredData && (
+            <CompareLayer
+              features={filteredData.features}
+              allFeatures={data?.features ?? filteredData.features}
+              pair={comparePair}
+              interactive={toolAccess === 'allowed'}
+              onPick={pickCompare}
+              distanceKm={compareDistanceKm}
+              distanceLabel={compareDistanceLabel}
+            />
+          )}
         </MapContainer>
         </div>
 
@@ -1490,6 +1540,22 @@ export default function MapComponent({
           />
         )}
 
+        {isMounted && compareOn && (
+          <Compare
+            access={toolAccess}
+            pair={comparePair}
+            features={data?.features ?? []}
+            scenario={mapScenario}
+            siting={siting.data?.available ? siting.data.indicators : null}
+            sitingState={figureState(siting)}
+            landCover={compareLandCover.data}
+            landCoverState={figureState(compareLandCover)}
+            distanceKm={compareDistanceKm}
+            onRemove={pickCompare}
+            onClose={closeTool}
+          />
+        )}
+
         {isMounted && (
           <CodigestionDetailPanel
             cluster={showClusterPanel && selectedClusterId
@@ -1519,7 +1585,7 @@ export default function MapComponent({
             the same disagreement one scope down — SP showed "Pecuário 599" over
             a map that is overwhelmingly sugarcane (SP's real split is 354
             cana / 77 pecuário). Click a class to isolate it. */}
-        {isTypologyMode && !landOn && Object.keys(typologyMap).length > 0 && (() => {
+        {isTypologyMode && !fillHiddenByTool && Object.keys(typologyMap).length > 0 && (() => {
           const isTip = colorMode === 'tipologia';
           const order = isTip ? TIPOLOGIA_ORDER : REGIME_ORDER;
           const colors: Record<string, string> = isTip ? TIPOLOGIA_COLORS : REGIME_COLORS;

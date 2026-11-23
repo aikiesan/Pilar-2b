@@ -13,8 +13,9 @@ describe('availableMapTools', () => {
   })
 
   it('offers only tools that are built, even with the analyses on', () => {
-    expect(availableMapTools(true)).toEqual(['land'])
-    expect(isMapToolAvailable('compare', true)).toBe(false)
+    expect(availableMapTools(true)).toEqual(['land', 'compare'])
+    expect(isMapToolAvailable('compare', true)).toBe(true)
+    expect(isMapToolAvailable('gather', true)).toBe(false)
     expect(isMapToolAvailable(null, true)).toBe(false)
   })
 })
