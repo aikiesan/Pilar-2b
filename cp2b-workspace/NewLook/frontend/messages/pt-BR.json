@@ -1104,7 +1104,11 @@
         "question": "Onde o potencial Ideal mais se perde até o Real?",
         "answer": "muito potencial Ideal e a maior perda até o Real."
       },
-      "method_plants": "Usinas em 0, 1 e 2 ou mais."
+      "method_plants": "Usinas em 0, 1 e 2 ou mais.",
+      "registry_answer": "municípios na célula em destaque",
+      "registry_section": "Mais análises",
+      "registry_more_with_login": "Mais análises com login",
+      "registry_unavailable": "Esta análise não está disponível para esta conta."
     },
     "landAround": {
       "toggle": "Uso do solo no entorno",

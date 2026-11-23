@@ -6,7 +6,8 @@
 import type { SitingIndicators } from '@/lib/mapAnalyses';
 import type { LandCoverResponse } from '@/lib/landCover';
 import type { TruckReachResponse, TruckSitesResponse } from '@/lib/truckReach';
-import { authenticatedFetch } from '@/lib/apiClient';
+import { authenticatedFetch, getStoredToken } from '@/lib/apiClient';
+import { isRegistryId, type RegistryAnalysisDetail, type RegistryAnalysisMeta } from '@/lib/analysisRegistry';
 import type {
   MunicipalityCollection,
   SummaryStatistics,
@@ -171,6 +172,33 @@ class GeospatialClient {
     const response = await authenticatedFetch(url);
     if (!response.ok) throw new Error(`truck reach: HTTP ${response.status}`);
     return response.json();
+  }
+
+  /**
+   * Registry analyses this account may see. Never cached: the list depends on
+   * who asks, and a shared cache must not hand it to someone else.
+   */
+  async getRegistryAnalyses(): Promise<RegistryAnalysisMeta[]> {
+    const response = await this.registryFetch(`${this.baseUrl}/api/v1/analyses`);
+    if (!response.ok) throw new Error(`analyses: HTTP ${response.status}`);
+    const body = (await response.json()) as { analyses?: RegistryAnalysisMeta[] };
+    return body.analyses ?? [];
+  }
+
+  /** One registry analysis, or null when it does not exist or this account may not see it (404). */
+  async getRegistryAnalysis(id: string): Promise<RegistryAnalysisDetail | null> {
+    if (!isRegistryId(id)) return null;
+    const response = await this.registryFetch(`${this.baseUrl}/api/v1/analyses/${id}`);
+    if (response.status === 404) return null;
+    if (!response.ok) throw new Error(`analysis ${id}: HTTP ${response.status}`);
+    return response.json();
+  }
+
+  private registryFetch(url: string): Promise<Response> {
+    const init: RequestInit = { cache: 'no-store' };
+    return getStoredToken()
+      ? authenticatedFetch(url, init)
+      : fetch(url, { ...init, headers: { 'Content-Type': 'application/json' } });
   }
 
   async getMunicipalitiesGeoJSON(): Promise<MunicipalityCollection> {

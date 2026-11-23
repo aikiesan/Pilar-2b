@@ -7,6 +7,8 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { logger } from '@/lib/logger';
+import { useAuth } from '@/contexts/AuthContext';
+import { useRealSessionState } from '@/lib/betaAccess';
 import { geospatialClient } from '@/lib/api/geospatialClient';
 import { queryKeys } from '@/lib/queryClient';
 import type {
@@ -331,5 +333,53 @@ export function useMunicipalityMetrics(ibgeCode: string | null) {
     staleTime: 30 * 60 * 1000,
     gcTime: 60 * 60 * 1000,
     retry: 1,
+  });
+}
+
+// The open-mode synthetic user (contexts/AuthContext.tsx) has this id.
+const SYNTHETIC_USER_ID = '00000000-0000-0000-0000-000000000000';
+
+/**
+ * Who the registry cache belongs to: the real account's id, or 'anon'. Null
+ * while that is not known yet (before mount, or a token whose profile has not
+ * loaded and still shows the synthetic user): fetching then would file one
+ * person's list under another key. Changes on login and logout.
+ */
+function useRegistrySessionKey(): string | null {
+  const session = useRealSessionState();
+  const { user } = useAuth();
+  if (session === null) return null;
+  if (!session) return 'anon';
+  if (!user || user.id === SYNTHETIC_USER_ID) return null;
+  return user.id;
+}
+
+/**
+ * The registry analyses this account may see (GET /analyses). Never reused
+ * across accounts: keyed by session, always stale, dropped from memory as soon
+ * as nothing reads it. AuthContext also clears the whole cache on login/logout.
+ */
+export function useRegistryAnalyses(enabled: boolean) {
+  const sessionKey = useRegistrySessionKey();
+  return useQuery({
+    queryKey: ['registry-analyses', sessionKey],
+    queryFn: () => geospatialClient.getRegistryAnalyses(),
+    enabled: enabled && sessionKey !== null,
+    staleTime: 0,
+    gcTime: 0,
+    retry: 1,
+  });
+}
+
+/** One registry analysis; null data when the account may not see it. */
+export function useRegistryAnalysis(id: string | null, enabled: boolean) {
+  const sessionKey = useRegistrySessionKey();
+  return useQuery({
+    queryKey: ['registry-analysis', id, sessionKey],
+    queryFn: () => geospatialClient.getRegistryAnalysis(id as string),
+    enabled: enabled && Boolean(id) && sessionKey !== null,
+    staleTime: 0,
+    gcTime: 0,
+    retry: false,
   });
 }
