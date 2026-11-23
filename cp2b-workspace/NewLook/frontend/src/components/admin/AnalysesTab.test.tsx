@@ -98,7 +98,8 @@ it('grants an analysis to one person with an expiry, and revokes it', async () =
   fireEvent.click(within(list).getByRole('button', { name: 'Liberar' }))
   await waitFor(() =>
     expect(api.putGrant).toHaveBeenCalledWith('demo_xy', 'u2', {
-      expires_at: '2027-06-30T00:00:00-03:00',
+      // valid through the 30th: the instant is the start of the 1st
+      expires_at: '2027-07-01T00:00:00-03:00',
       note: 'revisão',
     }),
   )
@@ -151,4 +152,23 @@ it('activating an inactive analysis asks first', async () => {
   expect(api.patchAnalysis).not.toHaveBeenCalled()
   fireEvent.click(screen.getByRole('button', { name: 'Confirmar' }))
   await waitFor(() => expect(api.patchAnalysis).toHaveBeenCalledWith('demo_xy', { is_active: true }))
+})
+
+it('shows an expiry as the last valid day, not the instant', async () => {
+  // 01/07 00:00 in São Paulo: valid through 30/06.
+  api.listGrants.mockResolvedValue([{ ...grant, expires_at: '2099-07-01T03:00:00Z' }])
+  render(<AnalysesTab />)
+  fireEvent.click(await screen.findByRole('button', { name: /Liberações/ }))
+  const list = await screen.findByRole('region', { name: 'Liberações' })
+  expect(await within(list).findByText('30/06/2099')).toBeInTheDocument()
+  expect(within(list).queryByText(/vencida/)).not.toBeInTheDocument()
+})
+
+it('marks a grant whose expiry has passed as vencida', async () => {
+  api.listGrants.mockResolvedValue([{ ...grant, expires_at: '2020-01-02T03:00:00Z' }])
+  render(<AnalysesTab />)
+  fireEvent.click(await screen.findByRole('button', { name: /Liberações/ }))
+  const list = await screen.findByRole('region', { name: 'Liberações' })
+  expect(await within(list).findByText('01/01/2020')).toBeInTheDocument()
+  expect(within(list).getByText('vencida')).toBeInTheDocument()
 })

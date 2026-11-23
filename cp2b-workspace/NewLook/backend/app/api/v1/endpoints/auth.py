@@ -6,6 +6,7 @@ Login/logout/me/verify use VM-local JWTs. Admin user-management endpoints suppor
 LGPD data-subject operations (deactivate / delete / list).
 """
 
+import uuid
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
@@ -84,7 +85,13 @@ async def set_user_clearance(
     admin: UserProfile = Depends(require_admin),
 ):
     # Changing your own level is refused outright: it can only lock you out.
-    if user_id == admin.id:
+    # Compared in canonical form, so another spelling of the same id (upper
+    # case, urn:uuid:) cannot get past it.
+    try:
+        user_id = str(uuid.UUID(user_id))
+    except ValueError:
+        pass  # the service answers 404 for it
+    if user_id == str(admin.id).lower():
         raise HTTPException(status_code=400, detail="You cannot change your own clearance")
     return await auth_service.set_clearance(user_id, payload.clearance)
 

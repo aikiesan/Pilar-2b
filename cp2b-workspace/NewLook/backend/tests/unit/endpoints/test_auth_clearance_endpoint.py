@@ -117,6 +117,24 @@ def test_admin_cannot_change_their_own_clearance(api):
     assert resp.status_code == 400 and holder["cursor"].calls == []
 
 
+def test_own_id_in_another_spelling_is_still_refused(api):
+    client, holder = api
+    for spelled in (ADMIN_ID.upper(), f"urn:uuid:{ADMIN_ID}"):
+        resp = client.patch(f"/api/v1/auth/users/{spelled}/clearance", json={"clearance": 1})
+        assert resp.status_code == 400
+    assert holder["cursor"].calls == []
+
+
+def test_clearance_queries_use_the_canonical_id(api):
+    client, holder = api
+    holder["cursor"] = _Cursor([_user_row(clearance=2)])
+    resp = client.patch(
+        f"/api/v1/auth/users/urn:uuid:{USER_ID.upper()}/clearance", json={"clearance": 2}
+    )
+    assert resp.status_code == 200
+    assert holder["cursor"].calls[0][1] == (2, USER_ID)
+
+
 def test_non_admin_gets_403(api, test_app):
     client, holder = api
     test_app.dependency_overrides[get_current_user] = lambda: _profile("interno", "other")

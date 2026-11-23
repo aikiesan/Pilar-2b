@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { deleteGrant, listGrants, putGrant, type AdminGrant, type AdminUser } from '@/lib/api/adminClient'
-import { dateToSaoPauloIso, formatDate } from './adminFormat'
+import { expiryToSaoPauloIso, formatDate, formatExpiry, isExpired } from './adminFormat'
 
 const NOTE_MAX = 200
 
@@ -66,7 +66,7 @@ export default function GrantsList({ analysisId, users, onChanged }: Props) {
     setError(null)
     try {
       await putGrant(analysisId, chosen.id, {
-        expires_at: expires ? dateToSaoPauloIso(expires) : null,
+        expires_at: expires ? expiryToSaoPauloIso(expires) : null,
         note: note.trim() ? note.trim() : null,
       })
       setChosen(null)
@@ -192,7 +192,10 @@ export default function GrantsList({ analysisId, users, onChanged }: Props) {
                   <td className="py-2 pr-4 text-ink-muted">{g.granted_by_name ?? '—'}</td>
                   <td className="py-2 pr-4 text-ink-muted">{formatDate(g.granted_at)}</td>
                   <td className="py-2 pr-4 text-ink-muted">
-                    {g.expires_at ? formatDate(g.expires_at) : 'Sem vencimento'}
+                    {g.expires_at ? formatExpiry(g.expires_at) : 'Sem vencimento'}
+                    {g.expires_at && isExpired(g.expires_at) && (
+                      <span className="ml-2 border border-line px-1.5 py-0.5 text-xs">vencida</span>
+                    )}
                   </td>
                   <td className="py-2 pr-4 text-ink-muted">{g.note ?? ''}</td>
                   <td className="py-2">

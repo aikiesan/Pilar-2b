@@ -179,6 +179,8 @@ export default function BivariateLegend({
             {def && (def.x.method === 'fixed_count' || def.y.method === 'fixed_count') && ` ${t('method_plants')}`}
             {result.noData > 0 && ` ${t('no_data', { count: result.noData })}`}
           </p>
+          {/* The registry's own source line; '' when the analysis has none. */}
+          {view.source && <p className="mt-1 text-[10px] leading-snug text-ink-muted">{view.source}</p>}
         </>
       )}
     </section>

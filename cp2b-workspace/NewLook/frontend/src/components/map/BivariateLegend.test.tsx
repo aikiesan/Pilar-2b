@@ -77,4 +77,19 @@ describe('BivariateLegend', () => {
     expect(section).not.toHaveTextContent('Usinas em 0, 1 e 2')
     expect(section.querySelector('.ring-2')).toHaveTextContent('9')
   })
+
+  it('shows the registry source after the method line, when there is one', () => {
+    const view = registryView({ ...demoMeta, source: { pt: 'Fonte demo, 2024', en: 'Demo source, 2024' } }, 'pt-BR', 'x')
+    render(<BivariateLegend view={view} result={demoResult} stateLabel="São Paulo" />)
+    expect(screen.getByText('Fonte demo, 2024')).toBeInTheDocument()
+  })
+
+  it('shows nothing for an empty source, and the built-in legend has none', () => {
+    const empty = registryView({ ...demoMeta, source: { pt: '', en: '' } }, 'pt-BR', 'x')
+    const { container, unmount } = render(<BivariateLegend view={empty} result={demoResult} stateLabel="São Paulo" />)
+    expect(container.querySelectorAll('p')).toHaveLength(3) // x axis title, answer, method
+    unmount()
+    const c2 = render(<Lacuna />).container
+    expect(c2.querySelectorAll('p')).toHaveLength(3)
+  })
 })

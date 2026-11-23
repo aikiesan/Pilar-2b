@@ -73,16 +73,19 @@ def _not_found(what: str) -> HTTPException:
     return HTTPException(status_code=404, detail=f"{what} not found", headers=NO_STORE)
 
 
-def _check_ids(analysis_id: str, user_id: Optional[str] = None) -> None:
+def _check_ids(analysis_id: str, user_id: Optional[str] = None) -> Optional[str]:
     # Malformed ids are plain 404s and never reach the database (a bad UUID
-    # would raise a driver error there).
+    # would raise a driver error there). Returns the user id in canonical
+    # form (a urn:uuid: or upper-case spelling parses), which is what every
+    # query must use.
     if not _ID_RE.fullmatch(analysis_id):
         raise _not_found("Analysis")
-    if user_id is not None:
-        try:
-            uuid.UUID(user_id)
-        except ValueError:
-            raise _not_found("User")
+    if user_id is None:
+        return None
+    try:
+        return str(uuid.UUID(user_id))
+    except ValueError:
+        raise _not_found("User")
 
 
 def _analysis_exists(cur, analysis_id: str) -> bool:
@@ -175,7 +178,7 @@ def put_grant(
     admin: UserProfile = Depends(require_admin),
 ) -> dict:
     response.headers.update(NO_STORE)
-    _check_ids(analysis_id, user_id)
+    user_id = _check_ids(analysis_id, user_id) or user_id
     with get_db_transaction() as conn:
         cur = conn.cursor(cursor_factory=RealDictCursor)
         try:
@@ -213,7 +216,7 @@ def delete_grant(
     user_id: str,
     admin: UserProfile = Depends(require_admin),
 ) -> Response:
-    _check_ids(analysis_id, user_id)
+    user_id = _check_ids(analysis_id, user_id) or user_id
     with get_db_transaction() as conn:
         cur = conn.cursor()
         try:

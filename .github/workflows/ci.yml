@@ -213,6 +213,29 @@ jobs:
           SUPABASE_URL: https://placeholder.supabase.co
           SUPABASE_KEY: placeholder-key
           SUPABASE_SERVICE_ROLE_KEY: placeholder-service-key
+      # The access-control tests of the analysis registry (who may read which
+      # analysis, grants, clearance) run against real SQL and skip without
+      # TEST_DATABASE_URL. It is set only on this step, not globally, so the
+      # data-integrity tests stay asleep: they expect the full dataset, which
+      # this empty database does not have.
+      # municipalities is a stub with the two columns the six-digit loader
+      # test needs; 043 runs twice to prove the re-run changes nothing.
+      - name: Registry access-control tests (real database)
+        env:
+          PGPASSWORD: test
+          TEST_DATABASE_URL: postgresql://test:test@localhost:5432/test_db
+          DATABASE_URL: postgresql://test:test@localhost:5432/test_db
+          SECRET_KEY: test-secret-key-for-ci-only-xxxx
+          SUPABASE_URL: https://placeholder.supabase.co
+          SUPABASE_KEY: placeholder-key
+          SUPABASE_SERVICE_ROLE_KEY: placeholder-service-key
+        run: |
+          PSQL="psql -h localhost -U test -d test_db -v ON_ERROR_STOP=1"
+          $PSQL -c "CREATE TABLE municipalities (id SERIAL PRIMARY KEY, municipality_name VARCHAR(100) NOT NULL, ibge_code VARCHAR(7) UNIQUE)"
+          $PSQL -f app/migrations/020_create_auth_users.sql
+          $PSQL -f app/migrations/043_analysis_registry.sql
+          $PSQL -f app/migrations/043_analysis_registry.sql
+          pytest -m database --no-cov -p no:cacheprovider -v             tests/unit/services/test_analysis_access.py             tests/unit/endpoints/test_analyses.py             tests/unit/endpoints/test_admin_analyses.py             tests/unit/endpoints/test_auth_clearance_endpoint.py             tests/unit/test_load_analysis.py
 
   backend-security:
     name: Backend - Security Check

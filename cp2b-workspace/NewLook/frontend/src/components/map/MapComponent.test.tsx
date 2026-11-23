@@ -355,6 +355,7 @@ describe('MapComponent', () => {
     // into the next test's initial state (read via readURLParam on mount).
     window.history.replaceState(null, '', '/');
     mockAnalysesEnabled = false;
+    mockToolAccess = 'allowed';
     mockUseRegistryAnalyses.mockImplementation(() => registryEmpty);
     mockUseRegistryAnalysis.mockImplementation(() => ({ data: undefined, isError: false, isSuccess: false }));
   });
@@ -1600,6 +1601,35 @@ describe('MapComponent', () => {
         expect(screen.getByTestId('desktop-left-panel')).toHaveAttribute('data-active-analysis', '');
         await waitFor(() => expect(window.location.search).not.toMatch(/(^|[?&])a=/));
         expect(window.location.search).toContain('scope=35');
+      });
+
+      it('a signed-out visitor whose link the API hides still gets a login that brings the analysis back', async () => {
+        mockToolAccess = 'sign_in';
+        mockUseRegistryAnalyses.mockImplementation(() => ({ data: [], isError: false, isSuccess: true }));
+        mockUseRegistryAnalysis.mockImplementation((id) => (
+          id === 'hidden_one' ? { data: null, isError: false, isSuccess: true } : { data: undefined, isError: false, isSuccess: false }
+        ));
+        window.history.replaceState(null, '', '/map?a=r:hidden_one&scope=35');
+        render(<MapComponent />);
+        act(() => { jest.advanceTimersByTime(1500); });
+
+        expect(await screen.findByText(unavailable)).toBeInTheDocument();
+        await waitFor(() => expect(window.location.search).not.toMatch(/(^|[?&])a=/));
+        for (const name of ['Entrar', 'Mais análises com login']) {
+          const href = screen.getByRole('link', { name }).getAttribute('href') ?? '';
+          expect(new URL(href, 'http://x').searchParams.get('next')).toContain('a=r%3Ahidden_one');
+        }
+      });
+
+      it('a malformed ref is not carried through the login', async () => {
+        mockToolAccess = 'sign_in';
+        window.history.replaceState(null, '', '/map?a=r:Bad-Id');
+        render(<MapComponent />);
+        act(() => { jest.advanceTimersByTime(1500); });
+
+        expect(await screen.findByText(unavailable)).toBeInTheDocument();
+        const href = screen.getByRole('link', { name: 'Entrar' }).getAttribute('href') ?? '';
+        expect(decodeURIComponent(href)).not.toContain('a=');
       });
 
       it('a malformed ?a=r:Bad-Id says exactly the same', async () => {

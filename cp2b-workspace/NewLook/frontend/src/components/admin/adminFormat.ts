@@ -15,6 +15,25 @@ const ZONE = 'America/Sao_Paulo'
 /** "2027-03-01" -> midnight in São Paulo as an aware ISO (Brazil has no DST). */
 export const dateToSaoPauloIso = (date: string) => `${date}T00:00:00-03:00`
 
+/**
+ * Last valid day -> the instant the grant ends: midnight starting the next
+ * day in São Paulo. "Vencimento 10/03" then means valid through 10/03.
+ */
+export function expiryToSaoPauloIso(lastDay: string): string {
+  const [y, m, d] = lastDay.split('-').map(Number)
+  const next = new Date(Date.UTC(y, m - 1, d + 1)).toISOString().slice(0, 10)
+  return dateToSaoPauloIso(next)
+}
+
+/** The last valid day of an expiry instant, "dd/mm/aaaa"; "—" when absent. */
+export function formatExpiry(iso: string | null | undefined): string {
+  if (!iso) return '—'
+  return formatDate(new Date(new Date(iso).getTime() - 1).toISOString())
+}
+
+/** True once an expiry instant has passed. */
+export const isExpired = (iso: string) => new Date(iso).getTime() <= Date.now()
+
 /** Aware ISO -> "dd/mm/aaaa" in São Paulo; "—" when absent. */
 export function formatDate(iso: string | null | undefined): string {
   if (!iso) return '—'

@@ -58,11 +58,13 @@ export interface CrossWindowProps {
   registry?: readonly AnalysisView[];
   /** A linked ?a=r:<id> that is malformed or that this account may not see. */
   unavailable?: boolean;
+  /** The registry analysis the visitor asked for by link: the login brings it back even when the API hid it. */
+  loginAnalysis?: MapAnalysisRef | null;
 }
 
 export default function CrossWindow({
   access, active, onChoose, onClose, result, loading, failed, palette, stateLabel, picked,
-  registry = [], unavailable = false,
+  registry = [], unavailable = false, loginAnalysis = null,
 }: CrossWindowProps) {
   const t = useTranslations('Map.cross');
   const tA = useTranslations('Map.analyses');
@@ -70,7 +72,8 @@ export default function CrossWindow({
   const gated = access === 'sign_in' || access === 'pending';
   // Built from the map's own link, so the scope, scenario and filters come back too.
   const loginParams = writeMapToolParams(currentMapSearch(), { tool: 'cross' });
-  if (active) loginParams.set('a', active);
+  const carried = active ?? loginAnalysis;
+  if (carried) loginParams.set('a', carried);
   else loginParams.delete('a');
   const loginNext = `/map?${loginParams.toString()}`;
   const signedOut = access === 'sign_in';
@@ -198,6 +201,9 @@ export default function CrossWindow({
                 bare
                 pickedCell={picked?.status === 'cell' ? picked.cell : null}
               />
+            ) : failed ? (
+              // The registry list never came.
+              <p role="alert" className="text-xs text-red-700">{tA('failed')}</p>
             ) : (
               // The registry list is still on its way.
               <p role="status" className="text-xs text-ink-muted">{tA('loading')}</p>

@@ -329,6 +329,23 @@ def test_delete_grant_204_then_404(api):
     assert resp.status_code == 404 and resp.headers["cache-control"] == NO_STORE
 
 
+def test_grant_routes_canonicalise_the_user_id(api):
+    as_role, cursor, _, _ = api
+    client = as_role()
+    spelled = f"urn:uuid:{USER_ID.upper()}"
+    cursor.answers = {
+        "FROM analyses": [{"ok": 1}],
+        "FROM auth_users WHERE": [{"ok": 1}],
+        "FROM analysis_grants g": [GRANT_ROW],
+        "DELETE FROM analysis_grants": [{"ok": 1}],
+    }
+    assert client.put(f"{BASE}/demo_xy/grants/{spelled}", json={}).status_code == 200
+    assert cursor.sent("INSERT INTO analysis_grants")[0][1][1] == USER_ID
+    assert cursor.sent("FROM auth_users WHERE")[0][1] == (USER_ID,)
+    assert client.delete(f"{BASE}/demo_xy/grants/{spelled}").status_code == 204
+    assert cursor.sent("DELETE FROM analysis_grants")[0][1] == ("demo_xy", USER_ID)
+
+
 # --- the Cache-Control middleware -------------------------------------------
 
 

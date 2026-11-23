@@ -312,7 +312,7 @@ class AuthService:
 
     async def set_clearance(self, user_id: str, clearance: int) -> UserProfile:
         try:
-            uuid.UUID(user_id)
+            user_id = str(uuid.UUID(user_id))
         except ValueError:
             raise HTTPException(status_code=404, detail="User not found")
         with get_db_transaction() as conn:

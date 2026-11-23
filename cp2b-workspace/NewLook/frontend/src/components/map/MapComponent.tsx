@@ -481,6 +481,12 @@ export default function MapComponent({
   // A registry link that is malformed, or that this account may not see: the
   // map opens with no analysis and the Cruzar window says so, the same words
   // either way, so a link does not tell a hidden analysis from a missing one.
+  // The registry link as asked for (well-formed only). A visitor who is not
+  // signed in gets a 404 for it and the analysis is cleared, yet the login
+  // link must still bring it back once the account may see it.
+  const [requestedRegistryRef] = useState<MapAnalysisRef | null>(
+    urlAnalysisRef !== null && isRegistryRef(urlAnalysisRef) ? urlAnalysisRef : null,
+  );
   const [registryUnavailable, setRegistryUnavailable] = useState(urlRegistryLink && urlAnalysisRef === null);
   // While the analyses are held back, drop an old ?a= so the URL matches the
   // plain map it opened (and a shared link does not carry it on).
@@ -1972,6 +1978,7 @@ export default function MapComponent({
             picked={crossPicked}
             registry={registryViews}
             unavailable={analysisUnavailable}
+            loginAnalysis={requestedRegistryRef}
           />
           </MapPresence>
         )}

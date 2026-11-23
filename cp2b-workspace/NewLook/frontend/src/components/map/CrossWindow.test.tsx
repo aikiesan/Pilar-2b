@@ -178,6 +178,12 @@ describe('CrossWindow', () => {
       expect(screen.getByRole('heading', { name: 'Onde X e Y se encontram?' })).toBeInTheDocument()
     })
 
+    it('says the reading failed, not loading, when the list never came', () => {
+      renderWindow({ registry: [], active: 'r:demo_xy', failed: true, loading: false })
+      expect(screen.queryByText('Carregando…')).not.toBeInTheDocument()
+      expect(screen.getByRole('alert')).toBeInTheDocument()
+    })
+
     it('says when a linked analysis is not available', () => {
       renderWindow({ unavailable: true })
       expect(screen.getByText('Esta análise não está disponível para esta conta.')).toBeInTheDocument()
