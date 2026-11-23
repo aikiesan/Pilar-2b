@@ -1,4 +1,4 @@
-import { compareSide, nextComparePair, rankField } from './compare';
+import { compareSide, isComparable, landCoverFigureState, nextComparePair, rankField } from './compare';
 import type { LandCoverResponse } from './landCover';
 import type { MunicipalityProperties } from '@/types/geospatial';
 
@@ -16,6 +16,43 @@ describe('nextComparePair', () => {
     expect(nextComparePair(['3550308', '3543402'], '3543402')).toEqual(['3550308']);
     expect(nextComparePair(['3550308', '3543402'], '3550308')).toEqual(['3543402']);
     expect(nextComparePair(['3550308'], '3550308')).toEqual([]);
+  });
+
+  it('keeps A and B when the search picks one of them', () => {
+    const pair = ['3550308', '3543402'];
+    expect(nextComparePair(pair, '3543402', 'search')).toBe(pair);
+    expect(nextComparePair(pair, '3550308', 'search')).toBe(pair);
+    expect(nextComparePair(['3550308'], '3550308', 'search')).toEqual(['3550308']);
+  });
+
+  it('fills and replaces from the search as a click does', () => {
+    expect(nextComparePair([], '3550308', 'search')).toEqual(['3550308']);
+    expect(nextComparePair(['3550308', '3543402'], '3106200', 'search')).toEqual(['3550308', '3106200']);
+  });
+
+  it('takes no municipality outside São Paulo and Minas Gerais', () => {
+    const pair = ['3550308'];
+    expect(nextComparePair(pair, '3304557')).toBe(pair);
+    expect(nextComparePair(pair, '3304557', 'search')).toBe(pair);
+    expect(nextComparePair([], '4106902')).toEqual([]);
+  });
+});
+
+describe('isComparable', () => {
+  it('accepts São Paulo (35) and Minas Gerais (31) codes only', () => {
+    expect(isComparable('3550308')).toBe(true);
+    expect(isComparable('3106200')).toBe(true);
+    expect(isComparable('3304557')).toBe(false);
+    expect(isComparable('355030')).toBe(false);
+  });
+});
+
+describe('landCoverFigureState', () => {
+  it('tells a server without land cover from loading, failing and ready', () => {
+    expect(landCoverFigureState({ data: { available: false }, isError: false })).toBe('unavailable');
+    expect(landCoverFigureState({ data: { available: true }, isError: false })).toBe('ready');
+    expect(landCoverFigureState({ data: undefined, isError: false })).toBe('loading');
+    expect(landCoverFigureState({ data: undefined, isError: true })).toBe('failed');
   });
 });
 

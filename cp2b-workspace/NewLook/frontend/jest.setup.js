@@ -14,8 +14,9 @@ jest.mock('next/navigation', () => ({
       asPath: '/',
     }
   },
+  // The page's query, as the router would give it for the page under test.
   useSearchParams() {
-    return new URLSearchParams()
+    return new URLSearchParams(window.location.search)
   },
   usePathname() {
     return '/'

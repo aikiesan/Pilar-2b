@@ -22,12 +22,27 @@ export const COMPARE_COLORS = { a: '#c2610c', b: '#1f6fb0' } as const;
 export type CompareSlot = keyof typeof COMPARE_COLORS;
 
 /**
- * The next pair after a click (or a search pick) on `code`:
- * the first is A, the second B, a third replaces B, and a click on A or B
- * removes it (B moves up to A when A goes).
+ * Whether a municipality can be A or B: the platform's two states only, São
+ * Paulo (35) and Minas Gerais (31). The map may show others (the Brazil view);
+ * their figures are not the platform's.
  */
-export function nextComparePair(pair: readonly string[], code: string): string[] {
-  if (pair.includes(code)) return pair.filter((c) => c !== code);
+export const isComparable = (code: string): boolean => /^(35|31)\d{5}$/.test(code);
+
+/**
+ * The next pair after a pick of `code`:
+ * - the first is A, the second B, a third replaces B;
+ * - a click on the map on A or B removes it (B moves up to A when A goes),
+ *   and so does the window's remove button;
+ * - a search pick of A or B keeps the pair: picking a name never removes it;
+ * - a municipality outside São Paulo and Minas Gerais leaves the pair as it is.
+ */
+export function nextComparePair(
+  pair: readonly string[],
+  code: string,
+  from: 'click' | 'search' = 'click',
+): readonly string[] {
+  if (!isComparable(code)) return pair;
+  if (pair.includes(code)) return from === 'click' ? pair.filter((c) => c !== code) : pair;
   if (pair.length < 2) return [...pair, code];
   return [pair[0], code];
 }
@@ -45,6 +60,17 @@ export type FigureState = 'ready' | 'loading' | 'failed';
 export function figureState(query: { data?: unknown; isError: boolean }): FigureState {
   if (query.data !== undefined) return 'ready';
   return query.isError ? 'failed' : 'loading';
+}
+
+/**
+ * Land cover's state, which has one more: `unavailable` when the server
+ * answers that it has no land cover loaded at all. That is not "no data" for
+ * one municipality, and the window says so.
+ */
+export type LandCoverFigureState = FigureState | 'unavailable';
+
+export function landCoverFigureState(query: { data?: { available: boolean }; isError: boolean }): LandCoverFigureState {
+  return query.data?.available === false ? 'unavailable' : figureState(query);
 }
 
 /** Decimals for a distance in km, the same on the map and in the window. */

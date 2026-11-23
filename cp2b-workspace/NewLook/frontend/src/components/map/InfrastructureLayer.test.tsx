@@ -25,6 +25,8 @@ jest.mock('@/hooks/useGeospatialData', () => ({
 
 // Mock react-leaflet
 jest.mock('react-leaflet', () => ({
+  // The layer takes its renderer off the map when it goes (useRendererCleanup).
+  useMap: () => ({ hasLayer: () => false, removeLayer: jest.fn() }),
   MapContainer: ({ children }: { children: React.ReactNode }) => <div data-testid="map-container">{children}</div>,
   GeoJSON: ({ data, style, pointToLayer, onEachFeature }: any) => {
     // Call pointToLayer for point features if provided

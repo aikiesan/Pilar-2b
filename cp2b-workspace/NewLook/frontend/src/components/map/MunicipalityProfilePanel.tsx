@@ -266,7 +266,7 @@ export default function MunicipalityProfilePanel({
       <aside
         aria-label={t('detail_aria', { name: props.name })}
         className="absolute z-[1101] map-window flex flex-col overflow-y-auto border-line bg-paper shadow-2xl
-                   inset-x-0 bottom-0 max-h-[55%] rounded-t-2xl
+                   inset-x-0 bottom-[var(--map-bottom-bar,0px)] max-h-[55%] rounded-t-2xl
                    landscape:inset-x-auto landscape:right-0 landscape:top-0 landscape:bottom-0 landscape:max-h-none landscape:w-[min(88vw,360px)] landscape:rounded-none landscape:overflow-hidden landscape:border-l"
       >
         {/* Drag-handle affordance (bottom-sheet only) */}

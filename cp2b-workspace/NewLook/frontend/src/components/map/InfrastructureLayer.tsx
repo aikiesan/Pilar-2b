@@ -7,7 +7,7 @@
 
 import React, { useEffect, useMemo, useRef } from 'react';
 import { useTranslations } from 'next-intl';
-import { GeoJSON, Marker, Popup } from 'react-leaflet';
+import { GeoJSON, Marker, Popup, useMap } from 'react-leaflet';
 import type { GeoJsonObject, Feature } from 'geojson';
 import L from 'leaflet';
 import { logger } from '@/lib/logger';
@@ -17,6 +17,7 @@ import { PLANT_LAYERS, BIOMETHANE_PLANT, type PlantTypeInfo } from '@/lib/plantL
 import { escapeHtml } from '@/lib/html';
 import { useDataSources } from '@/hooks/useDataSources';
 import { layerSources, type DataSource } from '@/lib/dataSources';
+import { useRendererCleanup } from './useRendererCleanup';
 
 /** What a layer's load came to. The map words it (Map.layerAlert); server notes go to the log. */
 export type InfrastructureLayerStatus = {
@@ -365,6 +366,8 @@ export default function InfrastructureLayer({ layerType, onStatus, uf, bbox, pan
     () => (pane ? ({ renderer: L.svg({ pane }) } as Pick<L.PathOptions, 'renderer'>) : {}),
     [pane],
   );
+  const map = useMap();
+  useRendererCleanup(map, rendererOption.renderer);
   const format = useFormat();
   // Read when a popup opens, so popups bound before the registry arrived still cite it.
   const sources = useRef<DataSource[]>([]);

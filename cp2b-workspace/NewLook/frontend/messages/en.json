@@ -1199,6 +1199,7 @@
       "loading": "Loading",
       "no_data": "No data",
       "failed": "Couldn't load",
+      "unavailable": "Not loaded on this server yet",
       "no_residues": "No residue mass",
       "partial_total": "Partial sum, no data for {sectors}",
       "distance": "{km} km apart in a straight line",

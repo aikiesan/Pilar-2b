@@ -32,6 +32,7 @@ import {
   type CompareSide,
   type CompareSlot,
   type FigureState,
+  type LandCoverFigureState,
 } from '@/lib/compare';
 import { SECTOR_COLORS } from '@/data/sectorColors';
 import { isServedScenario, type MapScenarioKey } from '@/data/scenarioFactors';
@@ -44,6 +45,7 @@ import { currentMapSearch, writeMapToolParams } from '@/lib/mapTools';
 import { ufAbbreviation } from '@/lib/municipalitySearch';
 import type { MunicipalityFeature, MunicipalityProperties } from '@/types/geospatial';
 import type { ResidueType } from '@/types/map';
+import { MAP_WINDOW_WIDE_CLASS } from './mapWindowShell';
 
 const focusRing = 'focus:outline-none focus-visible:ring-2 focus-visible:ring-terra-600 focus-visible:ring-offset-1 focus-visible:ring-offset-paper';
 const SLOTS: CompareSlot[] = ['a', 'b'];
@@ -54,8 +56,8 @@ export interface CompareFigureStates {
   detail: [FigureState, FigureState];
   /** /siting-indicators: the pipeline and the plants. */
   siting: FigureState;
-  /** The land cover. */
-  landCover: FigureState;
+  /** The land cover; `unavailable` when the server has none loaded. */
+  landCover: LandCoverFigureState;
 }
 type RowSource = 'detail' | 'siting' | 'landCover' | null;
 
@@ -111,6 +113,7 @@ export function CompareWindow({
     const state = source === null ? 'ready' : source === 'detail' ? states.detail[i] : states[source];
     if (state === 'loading') return loadingNote;
     if (state === 'failed') return <span className="text-ink-muted">{t('failed')}</span>;
+    if (state === 'unavailable') return <span className="text-ink-muted">{t('unavailable')}</span>;
     return render(side);
   };
 
@@ -134,10 +137,7 @@ export function CompareWindow({
   return (
     <aside
       aria-label={t('window_aria')}
-      className="surface-light absolute z-[1101] map-window flex flex-col overflow-y-auto border-line bg-paper text-ink shadow-xl
-                 inset-x-0 bottom-0 max-h-[60%] rounded-t-2xl border-t
-                 landscape:inset-x-auto landscape:bottom-auto landscape:right-3 landscape:top-16 landscape:z-[999]
-                 landscape:max-h-[calc(100%-5rem)] landscape:w-[380px] landscape:rounded-none landscape:border"
+      className={MAP_WINDOW_WIDE_CLASS}
     >
       <div className="flex justify-center pt-2 landscape:hidden" aria-hidden="true">
         <span className="h-1.5 w-10 rounded-full bg-line-strong/50" />
@@ -375,7 +375,7 @@ export interface CompareProps {
   siting: SitingIndicators | null;
   sitingState: FigureState;
   landCover: LandCoverResponse | undefined;
-  landCoverState: FigureState;
+  landCoverState: LandCoverFigureState;
   distanceKm: number | null;
   onRemove: (code: string) => void;
   onClose: () => void;

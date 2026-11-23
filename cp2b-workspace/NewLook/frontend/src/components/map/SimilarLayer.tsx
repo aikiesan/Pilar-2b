@@ -24,6 +24,8 @@ import {
   type SimilarResult,
 } from '@/lib/similarity';
 import type { MunicipalityFeature } from '@/types/geospatial';
+import { useToolFraming } from './useToolFraming';
+import { useRendererCleanup } from './useRendererCleanup';
 
 const PANE = 'similar';
 const INK = '#1E3E4C';
@@ -43,6 +45,8 @@ interface SimilarLayerProps {
   /** Whether a click picks (approved sign-in); otherwise the outlines are inert. */
   interactive: boolean;
   onPick: (code: string) => void;
+  /** The tool opened from a link with a pick: frame it and its twelve on arrival. */
+  openedFromLink?: boolean;
 }
 
 /** A number per features array, for the GeoJSON's key (see CompareLayer). */
@@ -61,8 +65,20 @@ const OUTLINE_STYLE: L.PathOptions = { color: OUTLINE, weight: 0.6, opacity: 0.9
 const MATCH_SHOWN: L.PathOptions = { color: MATCH_LINE, weight: 1, opacity: 0.9, fillColor: SIMILAR_MATCH_FILL, fillOpacity: 0.45 };
 const MATCH_HIDDEN: L.PathOptions = { ...MATCH_SHOWN, opacity: 0, fillOpacity: 0 };
 
-export default function SimilarLayer({ features, allFeatures, result, hovered, interactive, onPick }: SimilarLayerProps) {
+export default function SimilarLayer({ features, allFeatures, result, hovered, interactive, onPick, openedFromLink = false }: SimilarLayerProps) {
   const map = useMap();
+
+  // A link frames the origin and its twelve; a click keeps the view.
+  const ready = result?.status === 'ready' ? result : null;
+  useToolFraming({
+    resultKey: ready ? [ready.origin.code, ...ready.matches.map((m) => m.code)].join('|') : null,
+    openedFromLink,
+    pick: ready ? [[ready.origin.lat, ready.origin.lng]] : [],
+    extent: ready
+      ? L.latLngBounds([[ready.origin.lat, ready.origin.lng], ...ready.matches.map((m): L.LatLngTuple => [m.lat, m.lng])])
+      : null,
+    maxZoom: 9,
+  });
   const renderer = useMemo(() => {
     if (!map.getPane(PANE)) {
       const pane = map.createPane(PANE);
@@ -71,6 +87,7 @@ export default function SimilarLayer({ features, allFeatures, result, hovered, i
     }
     return L.svg({ pane: PANE });
   }, [map]);
+  useRendererCleanup(map, renderer);
 
   const byCode = useMemo(
     () => new Map(allFeatures.map((f) => [String(f.properties?.ibge_code), f])),

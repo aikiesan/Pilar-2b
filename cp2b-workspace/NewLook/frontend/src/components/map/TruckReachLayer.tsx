@@ -46,6 +46,8 @@ import {
   type TruckSite,
 } from '@/lib/truckReach';
 import type { MunicipalityFeature } from '@/types/geospatial';
+import { useToolFraming } from './useToolFraming';
+import { useRendererCleanup } from './useRendererCleanup';
 
 const TOWNS_PANE = 'truck-towns';
 const ROUTES_PANE = 'truck-routes';
@@ -55,8 +57,6 @@ const INK = '#1E3E4C';
 const FAINT = '#93A3AB';
 /** The transport pipeline's colour (InfrastructureLayer). */
 const PIPELINE = '#FF6B35';
-/** The map's fly to the state on load (ScopeViewController), with a margin. */
-const OPENING_MOVE_MS = 900;
 
 interface TruckReachLayerProps {
   sites: readonly TruckSite[];
@@ -126,6 +126,8 @@ export default function TruckReachLayer({
     ensurePane(map, TOWNS_PANE, 453);
     return L.svg({ pane: TOWNS_PANE });
   }, [map]);
+  useRendererCleanup(map, renderer);
+  useRendererCleanup(map, townRenderer);
 
   // Handlers bound once per marker read the latest props here.
   const pickRef = useRef(onPick);
@@ -254,42 +256,21 @@ export default function TruckReachLayer({
   }, [limit]);
 
   // ── A site picked off screen (a shared link) is brought into view ──
-  // Its whole tree is framed, clear of the window: a card on the right in
-  // landscape, a bottom sheet over the lower half in portrait. A site clicked
-  // on screen leaves the map where it is. On a fresh page the map's own
-  // opening move (a 0.6 s fly to the state) would override the framing, so it
-  // waits for that to settle.
-  const mountedAtRef = useRef(0);
-  const framedRef = useRef<string | null>(null);
-  const openedWithRef = useRef(openedWith);
-  useEffect(() => {
-    mountedAtRef.current = performance.now();
-  }, []);
-  useEffect(() => {
-    if (!data || framedRef.current === data.site.site_id) return;
-    const frame = () => {
-      framedRef.current = data.site.site_id;
-      const size = map.getSize();
-      const landscape = size.x > size.y;
-      const topLeft = L.point(24, 72);
-      const bottomRight = landscape ? L.point(372, 24) : L.point(24, Math.round(size.y * 0.55));
-      const clear = L.bounds(topLeft, size.subtract(bottomRight));
-      const fromLink = data.site.site_id === openedWithRef.current;
-      if (!fromLink && clear.contains(map.latLngToContainerPoint([data.site.lat, data.site.lon]))) return;
-      const points: L.LatLngTuple[] = [[data.site.lat, data.site.lon]];
-      for (const s of segments) points.push(s.b);
-      map.fitBounds(L.latLngBounds(points), {
-        paddingTopLeft: topLeft,
-        paddingBottomRight: bottomRight,
-        maxZoom: 10,
-        animate: !prefersReducedMotion(),
-      });
-    };
-    const wait = Math.max(0, OPENING_MOVE_MS - (performance.now() - mountedAtRef.current));
-    if (wait === 0) { frame(); return; }
-    const timer = window.setTimeout(frame, wait);
-    return () => window.clearTimeout(timer);
-  }, [map, data, segments]);
+  // Its whole tree is framed, clear of the window. A link frames it whatever
+  // the view; a site clicked on screen leaves the map where it is.
+  const treeExtent = useMemo(() => {
+    if (!data) return null;
+    const points: L.LatLngTuple[] = [[data.site.lat, data.site.lon]];
+    for (const s of segments) points.push(s.b);
+    return L.latLngBounds(points);
+  }, [data, segments]);
+  useToolFraming({
+    resultKey: data ? data.site.site_id : null,
+    openedFromLink: openedWith !== null,
+    pick: data ? [[data.site.lat, data.site.lon]] : [],
+    extent: treeExtent,
+    maxZoom: 10,
+  });
 
   // ── The tree, the towns and the pipeline, on one clock ──
   useEffect(() => {

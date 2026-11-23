@@ -9,6 +9,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useIsClient } from '@/hooks/useIsClient';
 import { useTranslations } from 'next-intl';
 import MapTour, { MapTourButton } from './MapTour';
@@ -17,13 +18,13 @@ import dynamic from 'next/dynamic';
 import { CircleAlert, Loader2 } from 'lucide-react';
 import type { LandAroundPoint, LandAroundRadius } from '@/lib/landAround';
 import { gatherAround, placeOf, type GatherRadius } from '@/lib/gather';
-import { availableMapTools, isMapToolAvailable, parseMapToolParams, writeMapToolParams, type MapToolId, type SimilarWithin } from '@/lib/mapTools';
+import { availableMapTools, initialMapSearch, isMapToolAvailable, parseMapToolParams, writeMapToolParams, type MapToolId, type SimilarWithin } from '@/lib/mapTools';
 import { buildProfiles, findSimilar } from '@/lib/similarity';
 import { isTruckReachData, summarizeTruckReach, type TruckLimit, type TruckSite } from '@/lib/truckReach';
 import type { TruckReachState } from './TruckReachWindow';
 import { useMapToolAccess } from '@/lib/mapToolAccess';
 import { useGeospatialData, useCodigestionClusters, useResidueCNMatrix, useIntermediateRegionsGeoJSON, useSitingIndicators, useMunicipalityLandCover, useTruckSites, useTruckReach } from '@/hooks/useGeospatialData';
-import { figureState, kmDecimals, nextComparePair } from '@/lib/compare';
+import { figureState, kmDecimals, landCoverFigureState, nextComparePair } from '@/lib/compare';
 import { buildDots, buildSymbols } from '@/lib/magnitudeViews';
 import { isAmountMetric } from '@/lib/sectorSplit';
 import { CONTEXT_FILL } from './magnitudeMarks';
@@ -71,6 +72,7 @@ import {
   type MapScope,
 } from '@/data/brazilStates';
 import ScopeSwitcher from './ScopeSwitcher';
+import { useTopRowClearance } from './mapWindowShell';
 import MapMunicipalitySearch from './MapMunicipalitySearch';
 import MapLegend from './MapLegend';
 import MapLoadingSkeleton from './MapLoadingSkeleton';
@@ -385,10 +387,14 @@ export default function MapComponent({
   };
 
   // ── URL state sync (client-only, safe since ssr:false) ─────────────────────
-  const readURLParam = (key: string): string | null => {
-    if (typeof window === 'undefined') return null;
-    return new URLSearchParams(window.location.search).get(key);
-  };
+  // The link the map opens with, read once from the router, not from
+  // window.location: on a client-side navigation (back from sign-in, a link in
+  // the header) this renders before the browser's address changes, so
+  // window.location still holds the previous page's query. Reading that, the
+  // map found no tool and its URL sync then wrote the bare /map back.
+  const routeSearch = useSearchParams();
+  const [initialSearch] = useState(() => initialMapSearch(routeSearch));
+  const readURLParam = (key: string): string | null => new URLSearchParams(initialSearch).get(key);
 
   const rawUrlMode = readURLParam('mode');
   const urlMode = rawUrlMode && LEGACY_VIZ[rawUrlMode] ? LEGACY_VIZ[rawUrlMode] : rawUrlMode;
@@ -569,7 +575,7 @@ export default function MapComponent({
   const toolAccess = useMapToolAccess();
   const toolsOnOffer = useMemo(() => availableMapTools(MAP_ANALYSES_ENABLED), []);
   const [initialTools] = useState(() =>
-    parseMapToolParams(typeof window === 'undefined' ? '' : window.location.search),
+    parseMapToolParams(initialSearch),
   );
   const [activeTool, setActiveTool] = useState<MapToolId | null>(
     isMapToolAvailable(initialTools.tool, MAP_ANALYSES_ENABLED) ? initialTools.tool : null,
@@ -581,7 +587,9 @@ export default function MapComponent({
   // Compare: A and B as IBGE codes, in pick order.
   const compareOn = activeTool === 'compare';
   const [comparePair, setComparePair] = useState<string[]>(initialTools.compare.pair);
-  const pickCompare = useCallback((code: string) => setComparePair((pair) => nextComparePair(pair, code)), []);
+  const pickCompare = useCallback((code: string) => setComparePair((pair) => nextComparePair(pair, code, 'click') as string[]), []);
+  // A search pick fills A or B but never takes one away (nextComparePair).
+  const searchCompare = useCallback((code: string) => setComparePair((pair) => nextComparePair(pair, code, 'search') as string[]), []);
   // Gather: the plant's point and the catchment radius.
   const gatherOn = activeTool === 'gather';
   const [gatherPoint, setGatherPoint] = useState<LandAroundPoint | null>(initialTools.gather.point);
@@ -611,6 +619,27 @@ export default function MapComponent({
   const [truckCircle, setTruckCircle] = useState(false);
   // The site a row of the nearest list points at.
   const [truckHovered, setTruckHovered] = useState<string | null>(null);
+  // The tool a link opened with its pick, framed on arrival (useToolFraming).
+  // Once the reader leaves it, reopening the tool is not an arrival any more.
+  const [arrivalTool, setArrivalTool] = useState<MapToolId | null>(() => {
+    const t = initialTools;
+    const picked =
+      (t.tool === 'land' && t.land.point !== null) ||
+      (t.tool === 'compare' && t.compare.pair.length > 0) ||
+      (t.tool === 'gather' && (t.gather.point !== null || t.gather.hub !== null)) ||
+      (t.tool === 'similar' && t.similar.of !== null) ||
+      (t.tool === 'truck' && t.truck.site !== null);
+    return picked ? t.tool : null;
+  });
+  // A new pick leaves the link too: a link whose pick never drew must not
+  // make the reader's first click move the map.
+  const leftLinkPick =
+    (arrivalTool === 'land' && landPoint !== initialTools.land.point) ||
+    (arrivalTool === 'compare' && comparePair !== initialTools.compare.pair) ||
+    (arrivalTool === 'gather' && (gatherPoint !== initialTools.gather.point || gatherHub !== initialTools.gather.hub)) ||
+    (arrivalTool === 'similar' && similarOf !== initialTools.similar.of) ||
+    (arrivalTool === 'truck' && truckSite !== initialTools.truck.site);
+  if (arrivalTool !== null && (activeTool !== arrivalTool || leftLinkPick)) setArrivalTool(null);
   // A tool that draws its own municipality layer hides the choropleth and its legends.
   const fillHiddenByTool = landOn || compareOn || gatherOn || similarOn;
   // Cruzar: the analysis is the map's own ?a=; the tool is how it reaches
@@ -966,6 +995,9 @@ export default function MapComponent({
   // pipelines for siting) and takes it away when it ends. Only the layers the
   // analysis itself switched on are taken away: one the reader already had on
   // stays on. Truck reach brings the gas pipelines the same way.
+  // The tool windows sit under the control row, however many lines it wraps to.
+  const topRowRef = useTopRowClearance();
+
   const analysisOwnedLayersRef = useRef<readonly string[]>([]);
   useEffect(() => {
     const next: readonly string[] = [
@@ -1471,7 +1503,7 @@ export default function MapComponent({
             and the basemap keeps its corner; on a desktop too narrow for both
             groups the right one wraps under, aligned right, instead of
             overlapping the left. The compass is gone: this map never rotates. */}
-        <div className="pointer-events-none absolute top-14 left-2 right-2 z-[1000] flex flex-nowrap items-start justify-between gap-2 md:top-3 md:left-3 md:right-3 md:flex-wrap [&>*]:pointer-events-auto">
+        <div ref={topRowRef} className="pointer-events-none absolute top-14 left-2 right-2 z-[1000] flex flex-nowrap items-start justify-between gap-2 md:top-3 md:left-3 md:right-3 md:flex-wrap [&>*]:pointer-events-auto">
         <div className="flex min-w-0 flex-1 flex-wrap items-start gap-2 md:flex-none">
           <MapMunicipalitySearch
             features={searchFeatures}
@@ -1479,7 +1511,7 @@ export default function MapComponent({
             onSelect={(feature) => {
               // With Compare open the search fills A or B, as a click does.
               if (compareOn) {
-                if (toolAccess === 'allowed' && feature?.properties?.ibge_code != null) pickCompare(String(feature.properties.ibge_code));
+                if (toolAccess === 'allowed' && feature?.properties?.ibge_code != null) searchCompare(String(feature.properties.ibge_code));
                 return;
               }
               // With Gather open it puts the plant at the municipality's centre.
@@ -1774,6 +1806,7 @@ export default function MapComponent({
               point={landOn && toolAccess === 'allowed' ? landPoint : null}
               radiusKm={landRadius}
               onPick={handleLandPick}
+              openedFromLink={arrivalTool === 'land'}
             />
           )}
           {isMounted && gatherOn && (
@@ -1784,6 +1817,7 @@ export default function MapComponent({
               result={gatherResult}
               features={data?.features ?? []}
               onPick={handleGatherPick}
+              openedFromLink={arrivalTool === 'gather'}
             />
           )}
           {isMounted && compareOn && filteredData && (
@@ -1795,6 +1829,7 @@ export default function MapComponent({
               onPick={pickCompare}
               distanceKm={compareDistanceKm}
               distanceLabel={compareDistanceLabel}
+              openedFromLink={arrivalTool === 'compare'}
             />
           )}
           {isMounted && similarOn && filteredData && (
@@ -1805,6 +1840,7 @@ export default function MapComponent({
               hovered={toolAccess === 'allowed' ? similarHovered : null}
               interactive={toolAccess === 'allowed'}
               onPick={pickSimilar}
+              openedFromLink={arrivalTool === 'similar'}
             />
           )}
           {isMounted && truckOn && (
@@ -1812,7 +1848,7 @@ export default function MapComponent({
               sites={truckSiteList}
               interactive={toolAccess === 'allowed'}
               selected={truckAllowed ? truckSite : null}
-              openedWith={initialTools.truck.site}
+              openedWith={arrivalTool === 'truck' ? initialTools.truck.site : null}
               data={truckData}
               hovered={truckAllowed ? truckHovered : null}
               limit={truckLimit}
@@ -1953,7 +1989,7 @@ export default function MapComponent({
             siting={siting.data?.available ? siting.data.indicators : null}
             sitingState={figureState(siting)}
             landCover={compareLandCover.data}
-            landCoverState={figureState(compareLandCover)}
+            landCoverState={landCoverFigureState(compareLandCover)}
             distanceKm={compareDistanceKm}
             onRemove={pickCompare}
             onClose={closeTool}

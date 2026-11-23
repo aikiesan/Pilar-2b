@@ -19,6 +19,8 @@ import { GeoJSON, Marker, Polyline, useMap } from 'react-leaflet';
 import { COMPARE_COLORS, type CompareSlot } from '@/lib/compare';
 import { centroidOf, midpoint, type LatLng } from '@/lib/mapGeometry';
 import type { MunicipalityFeature } from '@/types/geospatial';
+import { useToolFraming } from './useToolFraming';
+import { useRendererCleanup } from './useRendererCleanup';
 
 const PANE = 'compare-line';
 const DRAW_MS = 700;
@@ -42,6 +44,8 @@ interface CompareLayerProps {
   /** "{n} km apart in a straight line", for the label. */
   distanceLabel: (km: number) => string;
   distanceKm: number | null;
+  /** The tool opened from a link with a pair: frame A and B on arrival. */
+  openedFromLink?: boolean;
 }
 
 const prefersReducedMotion = () =>
@@ -93,6 +97,7 @@ export default function CompareLayer({
   onPick,
   distanceLabel,
   distanceKm,
+  openedFromLink = false,
 }: CompareLayerProps) {
   const map = useMap();
   const renderer = useMemo(() => {
@@ -103,6 +108,7 @@ export default function CompareLayer({
     }
     return L.svg({ pane: PANE });
   }, [map]);
+  useRendererCleanup(map, renderer);
 
   const byCode = useMemo(
     () => new Map(allFeatures.map((f) => [String(f.properties?.ibge_code), f])),
@@ -111,6 +117,37 @@ export default function CompareLayer({
   const [codeA, codeB] = pair;
   const a = codeA ? centroidOf(byCode.get(codeA)) : null;
   const b = codeB ? centroidOf(byCode.get(codeB)) : null;
+
+  // A link frames A and B; a click keeps the view.
+  const pairExtent = useMemo(() => {
+    let bounds: L.LatLngBounds | null = null;
+    for (const code of pair) {
+      const feature = byCode.get(code);
+      if (!feature) continue;
+      const own = L.geoJSON(feature as unknown as Feature<Geometry>).getBounds();
+      if (own.isValid()) bounds = bounds ? bounds.extend(own) : own;
+    }
+    return bounds;
+  }, [pair, byCode]);
+  // Only the place just added counts as the click's pick: removing B, or
+  // swapping it, must not pull the map back to an A scrolled out of view.
+  const [shownPair, setShownPair] = useState(pair);
+  const [added, setAdded] = useState<readonly string[]>(pair);
+  if (shownPair !== pair) {
+    setShownPair(pair);
+    setAdded(pair.filter((code) => !shownPair.includes(code)));
+  }
+  useToolFraming({
+    resultKey: pairExtent ? pair.join('|') : null,
+    openedFromLink,
+    pick: added
+      .map((code) => centroidOf(byCode.get(code)))
+      .filter((p): p is LatLng => p !== null)
+      .map((p) => [p.lat, p.lng] as L.LatLngTuple),
+    extent: pairExtent,
+    windowWidth: 380,
+    maxZoom: 9,
+  });
 
   // ── Outlines: one layer for the scope, restyled when the pair changes ──
   const geoRef = useRef<L.GeoJSON | null>(null);
