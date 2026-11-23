@@ -1,5 +1,6 @@
 import {
   availableMapTools,
+  initialMapSearch,
   isMapToolAvailable,
   parseMapToolParams,
   writeMapToolParams,
@@ -104,5 +105,39 @@ describe('writeMapToolParams', () => {
     { ...emptyMapToolState(), tool: 'truck', truck: { site: 'ITB_SP_0005', limit: 90 } },
   ])('round-trips $tool', (state) => {
     expect(parseMapToolParams(writeMapToolParams('', state))).toEqual(state)
+  })
+})
+
+describe('initialMapSearch: back on the map after sign-in', () => {
+  afterEach(() => window.history.replaceState(null, '', '/'))
+
+  // A client-side navigation renders the map before the address bar changes:
+  // window.location still holds the sign-in page and its ?next=.
+  const signInPage = '/en/login?next=%2Fmap%3Ftool%3Dsimilar%26of%3D3543402%26within%3Dboth'
+
+  it("reads the router's query, not the sign-in page still in the address bar", () => {
+    window.history.replaceState(null, '', signInPage)
+    const route = new URLSearchParams('tool=similar&of=3543402&within=both')
+    expect(parseMapToolParams(initialMapSearch(route)).similar).toEqual({ of: '3543402', within: 'both' })
+    expect(parseMapToolParams(initialMapSearch(route)).tool).toBe('similar')
+  })
+
+  it("keeps Truck reach's site and limit through the round trip", () => {
+    window.history.replaceState(null, '', '/en/login?next=%2Fmap%3Ftool%3Dtruck%26site%3DITB_SP_0005%26t%3D60')
+    const state = parseMapToolParams(initialMapSearch(new URLSearchParams('tool=truck&site=ITB_SP_0005&t=60')))
+    expect(state.tool).toBe('truck')
+    expect(state.truck).toEqual({ site: 'ITB_SP_0005', limit: 60 })
+  })
+
+  it('the sign-in link carries the tool in next, and that next opens it again', () => {
+    const mapSearch = '?scope=35&tool=similar&of=3543402'
+    const next = `/map?${writeMapToolParams(mapSearch, parseMapToolParams(mapSearch)).toString()}`
+    const back = new URL(next, 'http://localhost').search
+    expect(parseMapToolParams(initialMapSearch(new URLSearchParams(back)))).toEqual(parseMapToolParams(mapSearch))
+  })
+
+  it('reads the address bar only outside the app router', () => {
+    window.history.replaceState(null, '', '/en/map?tool=land&lat=-21.18&lng=-47.81')
+    expect(initialMapSearch(null)).toBe('tool=land&lat=-21.18&lng=-47.81')
   })
 })

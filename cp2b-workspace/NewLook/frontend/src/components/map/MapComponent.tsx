@@ -9,6 +9,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useIsClient } from '@/hooks/useIsClient';
 import { useTranslations } from 'next-intl';
 import MapTour, { MapTourButton } from './MapTour';
@@ -17,7 +18,7 @@ import dynamic from 'next/dynamic';
 import { CircleAlert, Loader2 } from 'lucide-react';
 import type { LandAroundPoint, LandAroundRadius } from '@/lib/landAround';
 import { gatherAround, placeOf, type GatherRadius } from '@/lib/gather';
-import { availableMapTools, isMapToolAvailable, parseMapToolParams, writeMapToolParams, type MapToolId, type SimilarWithin } from '@/lib/mapTools';
+import { availableMapTools, initialMapSearch, isMapToolAvailable, parseMapToolParams, writeMapToolParams, type MapToolId, type SimilarWithin } from '@/lib/mapTools';
 import { buildProfiles, findSimilar } from '@/lib/similarity';
 import { isTruckReachData, summarizeTruckReach, type TruckLimit, type TruckSite } from '@/lib/truckReach';
 import type { TruckReachState } from './TruckReachWindow';
@@ -386,10 +387,14 @@ export default function MapComponent({
   };
 
   // ── URL state sync (client-only, safe since ssr:false) ─────────────────────
-  const readURLParam = (key: string): string | null => {
-    if (typeof window === 'undefined') return null;
-    return new URLSearchParams(window.location.search).get(key);
-  };
+  // The link the map opens with, read once from the router, not from
+  // window.location: on a client-side navigation (back from sign-in, a link in
+  // the header) this renders before the browser's address changes, so
+  // window.location still holds the previous page's query. Reading that, the
+  // map found no tool and its URL sync then wrote the bare /map back.
+  const routeSearch = useSearchParams();
+  const [initialSearch] = useState(() => initialMapSearch(routeSearch));
+  const readURLParam = (key: string): string | null => new URLSearchParams(initialSearch).get(key);
 
   const rawUrlMode = readURLParam('mode');
   const urlMode = rawUrlMode && LEGACY_VIZ[rawUrlMode] ? LEGACY_VIZ[rawUrlMode] : rawUrlMode;
@@ -570,7 +575,7 @@ export default function MapComponent({
   const toolAccess = useMapToolAccess();
   const toolsOnOffer = useMemo(() => availableMapTools(MAP_ANALYSES_ENABLED), []);
   const [initialTools] = useState(() =>
-    parseMapToolParams(typeof window === 'undefined' ? '' : window.location.search),
+    parseMapToolParams(initialSearch),
   );
   const [activeTool, setActiveTool] = useState<MapToolId | null>(
     isMapToolAvailable(initialTools.tool, MAP_ANALYSES_ENABLED) ? initialTools.tool : null,

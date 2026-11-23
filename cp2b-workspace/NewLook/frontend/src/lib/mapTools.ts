@@ -154,6 +154,18 @@ export function currentMapSearch(): string {
 }
 
 /**
+ * The query the map opens with. The router's search params when there are
+ * some to read: right after a client-side navigation (back from sign-in) the
+ * page renders before the browser's address changes, so window.location
+ * still holds the previous page's query. The address bar only outside the
+ * app router (null).
+ */
+export function initialMapSearch(route: { toString(): string } | null): string {
+  if (route) return route.toString();
+  return typeof window === 'undefined' ? '' : window.location.search.replace(/^\?/, '');
+}
+
+/**
  * Writes the open tool's params into a copy of the query string, leaving every
  * other param as it was. No tool removes all of them.
  */
