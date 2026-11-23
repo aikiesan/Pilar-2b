@@ -1,14 +1,11 @@
 import {
-  DEFAULT_LAND_AROUND_RADIUS,
   OTHER_FARMING_COLOR,
   UNMAPPED_COLOR,
   circleAreaKm2,
   circleRing,
   isInLandAroundBounds,
   nearestInfrastructure,
-  parseLandAroundParams,
   summarizeLandAround,
-  writeLandAroundParams,
 } from '../landAround'
 import type { LandUseClass, ProximityAnalysisResult } from '@/services/proximityApi'
 
@@ -106,52 +103,6 @@ describe('summarizeLandAround', () => {
     const s = summarizeLandAround(result([cls(20, 10)]), 20)
     expect(s.placeName).toBeNull()
     expect(s.biogasM3Year).toBeNull()
-  })
-})
-
-describe('parseLandAroundParams', () => {
-  it('reads a shared link', () => {
-    expect(parseLandAroundParams('?tool=land&lat=-21.18&lng=-47.81&radius=50')).toEqual({
-      on: true, point: { lat: -21.18, lng: -47.81 }, radius: 50,
-    })
-  })
-
-  it('is off without tool=land, and keeps no point then', () => {
-    expect(parseLandAroundParams('?lat=-21.18&lng=-47.81&radius=50')).toEqual({ on: false, point: null, radius: 50 })
-    expect(parseLandAroundParams('')).toEqual({ on: false, point: null, radius: DEFAULT_LAND_AROUND_RADIUS })
-  })
-
-  it('opens the tool without a point when lat or lng is missing or malformed', () => {
-    expect(parseLandAroundParams('?tool=land')).toEqual({ on: true, point: null, radius: 20 })
-    expect(parseLandAroundParams('?tool=land&lat=abc&lng=-47')).toMatchObject({ point: null })
-    expect(parseLandAroundParams('?tool=land&lat=&lng=-47')).toMatchObject({ point: null })
-    expect(parseLandAroundParams('?tool=land&lat=-95&lng=-47')).toMatchObject({ point: null })
-  })
-
-  it('falls back to 20 km for a radius the tool does not offer', () => {
-    expect(parseLandAroundParams('?tool=land&radius=35').radius).toBe(20)
-    expect(parseLandAroundParams('?tool=land&radius=-10').radius).toBe(20)
-  })
-})
-
-describe('writeLandAroundParams', () => {
-  it('writes the tool, a rounded point and the radius, and keeps the other parameters', () => {
-    const params = writeLandAroundParams('?mode=choropleth&m=3543402', {
-      on: true, point: { lat: -21.181234, lng: -47.810987 }, radius: 10,
-    })
-    expect(params.toString()).toBe('mode=choropleth&m=3543402&tool=land&lat=-21.1812&lng=-47.8110&radius=10')
-  })
-
-  it('removes all four when off', () => {
-    const params = writeLandAroundParams('?mode=choropleth&tool=land&lat=-21&lng=-47&radius=50', {
-      on: false, point: null, radius: 20,
-    })
-    expect(params.toString()).toBe('mode=choropleth')
-  })
-
-  it('round-trips through parseLandAroundParams', () => {
-    const state = { on: true, point: { lat: -22.9056, lng: -47.0608 }, radius: 50 } as const
-    expect(parseLandAroundParams(writeLandAroundParams('', state))).toEqual(state)
   })
 })
 

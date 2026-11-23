@@ -900,27 +900,6 @@
       "daltonic": "Modo daltônico",
       "active": "ativo"
     },
-    "comparePanel": {
-      "title": "Comparação de Municípios",
-      "subtitle": "Compare até 4 municípios lado a lado",
-      "add_label": "Adicionar município à comparação",
-      "add_placeholder": "Nome ou código IBGE…",
-      "metric_column": "Métrica",
-      "empty_title": "Nenhum município selecionado",
-      "empty_hint": "Use a busca acima para adicionar municípios à comparação",
-      "highest": "Maior valor",
-      "lowest": "Menor valor",
-      "remove_aria": "Remover {name} da comparação",
-      "categories": {
-        "overview": "Visão geral",
-        "biogas": "Biogás total"
-      },
-      "metrics": {
-        "population": "População",
-        "area": "Área",
-        "total": "Total"
-      }
-    },
     "exportPanel": {
       "title": "Exportar dados",
       "subtitle": "Escolha o formato para exportação",
@@ -1124,7 +1103,6 @@
     },
     "landAround": {
       "toggle": "Uso do solo no entorno",
-      "toggle_hint": "Clique num ponto do mapa para ver como a terra em volta é usada",
       "window_aria": "Uso do solo no entorno",
       "close": "Fechar Uso do solo no entorno",
       "title": "Num raio de {radius} km de {place}",
@@ -1166,6 +1144,18 @@
         "invalid_radius": "O raio deve ser de 10, 20 ou 50 km.",
         "server": "Não foi possível concluir a análise. Tente de novo."
       }
+    },
+    "mapTools": {
+      "menu": "Ferramentas",
+      "menu_aria": "Ferramentas do mapa",
+      "items": {
+        "land": {
+          "name": "Uso do solo no entorno",
+          "description": "Como é usada a terra num raio de 10, 20 ou 50 km de um ponto"
+        }
+      },
+      "pending_title": "Seu pedido de acesso está em análise",
+      "pending_body": "As ferramentas do mapa abrem assim que sua conta for aprovada."
     }
   },
   "metadata": {

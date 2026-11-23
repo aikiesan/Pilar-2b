@@ -23,17 +23,18 @@ import {
   isInLandAroundBounds,
   nearestInfrastructure,
   summarizeLandAround,
-  writeLandAroundParams,
   type LandAroundPoint,
   type LandAroundRadius,
   type LandRow,
 } from '@/lib/landAround';
+import { writeMapToolParams } from '@/lib/mapTools';
+import type { MapToolAccess } from '@/lib/mapToolAccess';
 import { analyzeProximity, ProximityError, type ProximityAnalysisResult } from '@/services/proximityApi';
 import type { Messages } from '@/types/i18n';
 
 type ClassKey = keyof Messages['Map']['mapbiomasLegend']['classes'];
 
-export type LandAroundStatus = 'signed_out' | 'idle' | 'loading' | 'done' | 'error';
+export type LandAroundStatus = 'signed_out' | 'pending' | 'idle' | 'loading' | 'done' | 'error';
 
 export interface LandAroundState {
   status: LandAroundStatus;
@@ -86,8 +87,6 @@ export function useLandAroundAnalysis(
 export interface LandAroundWindowProps extends LandAroundState {
   point: LandAroundPoint | null;
   radius: LandAroundRadius;
-  /** The municipality the visitor clicked on, to name the place before the server does. */
-  placeHint?: string | null;
   onRadiusChange: (radius: LandAroundRadius) => void;
   onClose: () => void;
   onRetry?: () => void;
@@ -101,13 +100,13 @@ export function LandAroundWindow({
   error,
   point,
   radius,
-  placeHint,
   onRadiusChange,
   onClose,
   onRetry,
 }: LandAroundWindowProps) {
   const t = useTranslations('Map.landAround');
   const tClass = useTranslations('Map.mapbiomasLegend.classes');
+  const tTools = useTranslations('Map.mapTools');
   const locale = useLocale();
 
   const summary = useMemo(
@@ -127,8 +126,9 @@ export function LandAroundWindow({
     return tClass.has(key) ? tClass(key) : row.servedName || t('class_fallback', { id: key });
   };
 
-  const place = placeHint || summary?.placeName || null;
-  const title = !point || status === 'signed_out' || status === 'idle'
+  const place = summary?.placeName || null;
+  const gated = status === 'signed_out' || status === 'pending';
+  const title = !point || gated || status === 'idle'
     ? t('toggle')
     : place ? t('title', { radius, place }) : t('title_point', { radius });
 
@@ -139,7 +139,7 @@ export function LandAroundWindow({
       : t(`errors.${e.code}`);
   };
 
-  const loginNext = `/map?${writeLandAroundParams('', { on: true, point, radius }).toString()}`;
+  const loginNext = `/map?${writeMapToolParams('', { tool: 'land', land: { point, radius } }).toString()}`;
 
   return (
     <aside
@@ -174,7 +174,7 @@ export function LandAroundWindow({
         </button>
       </header>
 
-      {status !== 'signed_out' && (
+      {!gated && (
         <div role="group" aria-label={t('radius_group')} className="mx-4 grid grid-cols-3 border border-line">
           {LAND_AROUND_RADII.map((r) => {
             const on = r === radius;
@@ -209,6 +209,13 @@ export function LandAroundWindow({
             >
               {t('sign_in')}
             </Link>
+          </div>
+        )}
+
+        {status === 'pending' && (
+          <div className="space-y-2">
+            <p className="text-sm font-semibold text-ink">{tTools('pending_title')}</p>
+            <p className="text-sm text-ink-muted">{tTools('pending_body')}</p>
           </div>
         )}
 
@@ -279,7 +286,7 @@ export function LandAroundWindow({
           </div>
         )}
 
-        {status !== 'signed_out' && (
+        {!gated && (
           <p className="mt-4 border-t border-line pt-2 text-[11px] leading-snug text-ink-muted">{t('source')}</p>
         )}
       </div>
@@ -326,16 +333,25 @@ function Extras({
 export interface LandAroundProps {
   point: LandAroundPoint | null;
   radius: LandAroundRadius;
-  placeHint?: string | null;
-  signedIn: boolean;
+  /** Who may use the tool (useMapToolAccess). */
+  access: MapToolAccess;
   onRadiusChange: (radius: LandAroundRadius) => void;
   onClose: () => void;
 }
 
 /** The window with its request. */
-export default function LandAround({ point, radius, placeHint, signedIn, onRadiusChange, onClose }: LandAroundProps) {
-  const analysis = useLandAroundAnalysis(point, radius, signedIn);
-  const status: LandAroundStatus = signedIn ? analysis.status : 'signed_out';
+const GATED_STATUS: Record<Exclude<MapToolAccess, 'allowed'>, LandAroundStatus> = {
+  sign_in: 'signed_out',
+  pending: 'pending',
+  // The session is still being read: wait rather than ask to sign in.
+  loading: 'idle',
+};
+
+export default function LandAround({ point, radius, access, onRadiusChange, onClose }: LandAroundProps) {
+  const analysis = useLandAroundAnalysis(point, radius, access === 'allowed');
+  const status: LandAroundStatus = access === 'allowed'
+    ? analysis.status
+    : access === 'loading' && point ? 'loading' : GATED_STATUS[access];
   return (
     <LandAroundWindow
       status={status}
@@ -343,7 +359,6 @@ export default function LandAround({ point, radius, placeHint, signedIn, onRadiu
       error={analysis.error}
       point={point}
       radius={radius}
-      placeHint={placeHint}
       onRadiusChange={onRadiusChange}
       onClose={onClose}
       onRetry={analysis.retry}

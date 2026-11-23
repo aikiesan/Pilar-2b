@@ -92,11 +92,6 @@ describe('LandAroundWindow', () => {
     expect(screen.getByText('MapBiomas Coleção 10, 2024. O uso do solo está mapeado só para São Paulo.')).toBeInTheDocument()
   })
 
-  it('result: the clicked municipality names the place before the server does', () => {
-    renderWindow({ status: 'done', result, point, placeHint: 'Sertãozinho' })
-    expect(screen.getByRole('heading', { name: 'Num raio de 20 km de Sertãozinho' })).toBeInTheDocument()
-  })
-
   it('empty: no farming found, and why', () => {
     const empty = { ...result, results: { ...result.results, municipalities: [], land_use: { ...result.results.land_use!, by_class: {} } } }
     renderWindow({ status: 'done', result: empty, point })
@@ -134,7 +129,7 @@ describe('LandAround (with its request)', () => {
 
   it('asks for land use, biogas and infrastructure, then shows the result', async () => {
     mockAnalyze.mockResolvedValue(result)
-    render(<LandAround {...props} point={point} signedIn />)
+    render(<LandAround {...props} point={point} access="allowed" />)
     expect(await screen.findByText('50% de lavouras')).toBeInTheDocument()
     expect(mockAnalyze).toHaveBeenCalledWith({
       latitude: -21.18, longitude: -47.81, radius_km: 20,
@@ -143,22 +138,37 @@ describe('LandAround (with its request)', () => {
   })
 
   it('refuses a point outside São Paulo without asking the server', async () => {
-    render(<LandAround {...props} point={{ lat: -18.9, lng: -46.5 }} signedIn />)
+    render(<LandAround {...props} point={{ lat: -18.9, lng: -46.5 }} access="allowed" />)
     expect(await screen.findByRole('alert')).toHaveTextContent('Este ponto está fora de São Paulo')
     expect(mockAnalyze).not.toHaveBeenCalled()
   })
 
   it('shows a failed request and retries it', async () => {
     mockAnalyze.mockRejectedValueOnce(new ProximityError('network')).mockResolvedValueOnce(result)
-    render(<LandAround {...props} point={point} signedIn />)
+    render(<LandAround {...props} point={point} access="allowed" />)
     fireEvent.click(await screen.findByRole('button', { name: 'Tentar de novo' }))
     await waitFor(() => expect(screen.getByText('50% de lavouras')).toBeInTheDocument())
     expect(mockAnalyze).toHaveBeenCalledTimes(2)
   })
 
   it('asks nothing of the server for a signed-out visitor', () => {
-    render(<LandAround {...props} point={point} signedIn={false} />)
+    render(<LandAround {...props} point={point} access="sign_in" />)
     expect(screen.getByText('Entre para usar o Uso do solo no entorno')).toBeInTheDocument()
+    expect(mockAnalyze).not.toHaveBeenCalled()
+  })
+
+  it('tells a visitor waiting for approval, and asks nothing of the server', () => {
+    render(<LandAround {...props} point={point} access="pending" />)
+    expect(screen.getByText('Seu pedido de acesso está em análise')).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Entrar' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('group', { name: 'Raio' })).not.toBeInTheDocument()
+    expect(mockAnalyze).not.toHaveBeenCalled()
+  })
+
+  it('waits, without asking to sign in, while the session is being read', () => {
+    render(<LandAround {...props} point={point} access="loading" />)
+    expect(screen.getByRole('status')).toHaveTextContent('Medindo a terra em volta deste ponto')
+    expect(screen.queryByText('Entre para usar o Uso do solo no entorno')).not.toBeInTheDocument()
     expect(mockAnalyze).not.toHaveBeenCalled()
   })
 })

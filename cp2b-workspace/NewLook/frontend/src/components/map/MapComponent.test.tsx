@@ -96,12 +96,10 @@ jest.mock('./MunicipalityHighlight', () => ({
     ) : null,
 }));
 
-// Land around reads the real session; each test sets who is signed in.
-// useBetaAccess keeps its real reading (no stored token, so no beta).
-const mockSession = { signedIn: true };
-jest.mock('@/lib/betaAccess', () => ({
-  ...jest.requireActual('@/lib/betaAccess'),
-  useRealSession: () => mockSession.signedIn,
+// Who may use the click tools; each test sets it.
+let mockToolAccess: 'allowed' | 'sign_in' | 'pending' | 'loading' = 'allowed';
+jest.mock('@/lib/mapToolAccess', () => ({
+  useMapToolAccess: () => mockToolAccess,
 }));
 
 // The Land around window renders for real; its sign-in link is a plain anchor.
@@ -135,7 +133,7 @@ jest.mock('./LandAroundLayer', () => ({
 
 jest.mock('./MunicipalityLayer', () => ({
   __esModule: true,
-  default: ({ data, biomassType, opacity, paintBetaData }: any) => (
+  default: ({ data, biomassType, opacity, paintBetaData, onMunicipalityClick }: any) => (
     <div
       data-testid="municipality-layer"
       data-biomass-type={biomassType}
@@ -143,6 +141,9 @@ jest.mock('./MunicipalityLayer', () => ({
       data-paint-beta={String(Boolean(paintBetaData))}
     >
       {data?.features?.length || 0} municipalities
+      {onMunicipalityClick && data?.features?.[0] && (
+        <button type="button" onClick={() => onMunicipalityClick(data.features[0])}>municipality click</button>
+      )}
     </div>
   ),
 }));
@@ -204,11 +205,6 @@ jest.mock('./DesktopLeftPanel', () => ({
       ))}
     </div>
   ),
-}));
-
-jest.mock('./ComparisonPanel', () => ({
-  __esModule: true,
-  default: ({ visible }: any) => <div data-testid="comparison-panel" data-visible={String(Boolean(visible))} />,
 }));
 
 jest.mock('./MapLegend', () => ({
@@ -1192,16 +1188,17 @@ describe('MapComponent', () => {
       });
     });
 
-    it('does not open the comparison on Ctrl+C or a plain C', async () => {
+    it('opens no tool on Ctrl+C or a plain C', async () => {
       render(<MapComponent />);
       act(() => { jest.advanceTimersByTime(1500); });
-      const panel = await screen.findByTestId('comparison-panel');
+      await screen.findByRole('button', { name: 'Ferramentas' });
 
       fireEvent.keyDown(window, { key: 'c', ctrlKey: true });
       fireEvent.keyDown(window, { key: 'c' });
       fireEvent.keyDown(window, { key: 'C' });
 
-      expect(panel).toHaveAttribute('data-visible', 'false');
+      expect(screen.queryByRole('complementary')).not.toBeInTheDocument();
+      expect(window.location.search).not.toContain('tool=');
     });
   });
 
@@ -1225,7 +1222,7 @@ describe('MapComponent', () => {
     };
 
     beforeEach(() => {
-      mockSession.signedIn = true;
+      mockToolAccess = 'allowed';
       mockAnalyzeProximity.mockResolvedValue(landResult);
       mockUseGeospatialData.mockReturnValue({
         data: createMunicipalityCollection([createMunicipalityFeature()]),
@@ -1234,14 +1231,20 @@ describe('MapComponent', () => {
       });
     });
 
-    const toggle = () => screen.getByRole('button', { name: 'Uso do solo no entorno', pressed: false });
+    // The Tools menu, closed and with no tool open.
+    const menu = () => screen.getByRole('button', { name: 'Ferramentas' });
+    const openLandAround = async () => {
+      fireEvent.click(await screen.findByRole('button', { name: 'Ferramentas' }));
+      fireEvent.click(await screen.findByRole('button', { name: 'Uso do solo no entorno' }));
+    };
 
     it('turns on from the top row, keeps itself in the URL, and a click measures the land there', async () => {
       render(<MapComponent />);
       act(() => { jest.advanceTimersByTime(1500); });
-      fireEvent.click(await screen.findByRole('button', { name: 'Uso do solo no entorno' }));
+      await openLandAround();
 
       expect(await screen.findByRole('complementary', { name: 'Uso do solo no entorno' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Ferramentas: Uso do solo no entorno' })).toBeInTheDocument();
       expect(window.location.search).toContain('tool=land');
 
       fireEvent.click(await screen.findByRole('button', { name: 'map click' }));
@@ -1265,10 +1268,10 @@ describe('MapComponent', () => {
     });
 
     it('asks a signed-out visitor to sign in, and their clicks draw nothing', async () => {
-      mockSession.signedIn = false;
+      mockToolAccess = 'sign_in';
       render(<MapComponent />);
       act(() => { jest.advanceTimersByTime(1500); });
-      fireEvent.click(await screen.findByRole('button', { name: 'Uso do solo no entorno' }));
+      await openLandAround();
 
       expect(await screen.findByText('Entre para usar o Uso do solo no entorno')).toBeInTheDocument();
       fireEvent.click(screen.getByRole('button', { name: 'map click' }));
@@ -1281,7 +1284,7 @@ describe('MapComponent', () => {
       act(() => { jest.advanceTimersByTime(1500); });
       expect(await screen.findByTestId('municipality-layer')).toBeInTheDocument();
 
-      fireEvent.click(screen.getByRole('button', { name: 'Uso do solo no entorno' }));
+      await openLandAround();
       await waitFor(() => expect(screen.queryByTestId('municipality-layer')).not.toBeInTheDocument());
 
       fireEvent.keyDown(window, { key: 'Escape' });
@@ -1297,7 +1300,67 @@ describe('MapComponent', () => {
       fireEvent.keyDown(window, { key: 'Escape' });
       await waitFor(() => expect(screen.queryByRole('complementary', { name: 'Uso do solo no entorno' })).not.toBeInTheDocument());
       expect(window.location.search).not.toMatch(/tool|lat|lng|radius/);
-      expect(toggle()).toBeInTheDocument();
+      expect(menu()).toBeInTheDocument();
+    });
+
+    it('tells a visitor waiting for approval, and their clicks draw nothing', async () => {
+      mockToolAccess = 'pending';
+      window.history.replaceState(null, '', '/map?tool=land');
+      render(<MapComponent />);
+      act(() => { jest.advanceTimersByTime(1500); });
+
+      expect(await screen.findByText('Seu pedido de acesso está em análise')).toBeInTheDocument();
+      fireEvent.click(screen.getByRole('button', { name: 'map click' }));
+      expect(screen.getByTestId('land-around-layer')).toHaveAttribute('data-point', '');
+      expect(mockAnalyzeProximity).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Tools menu', () => {
+    beforeEach(() => {
+      mockToolAccess = 'allowed';
+      mockUseGeospatialData.mockReturnValue({
+        data: createMunicipalityCollection([createMunicipalityFeature()]),
+        loading: false,
+        error: null,
+      });
+    });
+
+    it.each([false, true])('offers the tools that are built (analyses on: %s)', async (analyses) => {
+      mockAnalysesEnabled = analyses;
+      render(<MapComponent />);
+      act(() => { jest.advanceTimersByTime(1500); });
+      fireEvent.click(await screen.findByRole('button', { name: 'Ferramentas' }));
+
+      const list = await screen.findByRole('group', { name: 'Ferramentas do mapa' });
+      const items = Array.from(list.querySelectorAll('button')).map((b) => b.getAttribute('aria-label'));
+      expect(items).toEqual(['Uso do solo no entorno']);
+    });
+
+    it('opens nothing for a link to a tool not on offer, and drops it from the URL', async () => {
+      window.history.replaceState(null, '', '/map?tool=compare&pair=3509502,3550308&scope=35');
+      render(<MapComponent />);
+      act(() => { jest.advanceTimersByTime(1500); });
+
+      await screen.findByRole('button', { name: 'Ferramentas' });
+      expect(screen.queryByRole('complementary')).not.toBeInTheDocument();
+      await waitFor(() => expect(window.location.search).not.toMatch(/tool|pair/));
+      expect(window.location.search).toContain('scope=35');
+    });
+
+    it('sends a municipality click to the profile with no tool open, and opening a tool closes the profile', async () => {
+      render(<MapComponent />);
+      act(() => { jest.advanceTimersByTime(1500); });
+
+      fireEvent.click(await screen.findByRole('button', { name: 'municipality click' }));
+      await waitFor(() => expect(window.location.search).toMatch(/(^|[?&])m=/));
+
+      fireEvent.click(screen.getByRole('button', { name: 'Ferramentas' }));
+      fireEvent.click(await screen.findByRole('button', { name: 'Uso do solo no entorno' }));
+      await waitFor(() => expect(window.location.search).not.toMatch(/(^|[?&])m=/));
+      expect(window.location.search).toContain('tool=land');
+      // The shapes step aside, so no click can reach the profile while the tool is open.
+      expect(screen.queryByRole('button', { name: 'municipality click' })).not.toBeInTheDocument();
     });
   });
 });

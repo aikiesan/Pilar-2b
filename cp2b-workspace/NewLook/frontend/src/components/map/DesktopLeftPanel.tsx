@@ -67,7 +67,6 @@ interface DesktopLeftPanelProps {
   totalMunicipalities: number;
   /** Non-SP municipalities currently drawn as beta context (0 when hidden). */
   betaMunicipalityCount?: number;
-  onOpenComparison: () => void;
   onOpenExport: () => void;
   displayMetric?: DisplayMetric;
   onDisplayMetricChange?: (metric: DisplayMetric) => void;
@@ -459,9 +458,9 @@ function LayersSection({
 }
 
 // The few actions that are not map settings: compare, share, and where the
-// data comes from. Each layer cites its own source when it is on.
-function PanelFooter({ onOpenComparison, onOpenExport, t }: {
-  onOpenComparison: () => void;
+// data comes from. Each layer cites its own source when it is on. Compare
+// opens the comparison page until Compare on the map (a click tool) replaces it.
+function PanelFooter({ onOpenExport, t }: {
   onOpenExport: () => void;
   t: MapTranslator;
 }) {
@@ -481,9 +480,9 @@ function PanelFooter({ onOpenComparison, onOpenExport, t }: {
   const item = 'flex min-h-[36px] flex-auto items-center justify-center gap-1 whitespace-nowrap rounded-lg px-1 text-[11px] font-medium text-ink-muted transition-colors hover:bg-paper-sunken hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-terra-600';
   return (
     <footer className="flex shrink-0 gap-1 border-t border-line px-2 py-1.5">
-      <button type="button" onClick={onOpenComparison} className={item}>
+      <Link href="/compare" className={item}>
         <BarChart3 className="h-3.5 w-3.5" aria-hidden="true" />{t('tools.compare')}
-      </button>
+      </Link>
       {DATA_EXPORT_ENABLED && (
         <button type="button" onClick={onOpenExport} className={item}>
           <Download className="h-3.5 w-3.5" aria-hidden="true" />{t('tools.export')}
@@ -582,7 +581,7 @@ export default function DesktopLeftPanel({
   visualizationMode, onVisualizationModeChange,
   opacity, onOpacityChange, layers, onLayerToggle,
   municipalityCount, totalMunicipalities, betaMunicipalityCount = 0,
-  onOpenComparison, onOpenExport,
+  onOpenExport,
   displayMetric, onDisplayMetricChange,
   scopeUf = 'SP',
   scenario = DEFAULT_MAP_SCENARIO,
@@ -683,7 +682,7 @@ export default function DesktopLeftPanel({
               layers={layers} onLayerToggle={onLayerToggle} t={t}
             />
           </div>
-          <PanelFooter onOpenComparison={onOpenComparison} onOpenExport={onOpenExport} t={t} />
+          <PanelFooter onOpenExport={onOpenExport} t={t} />
         </>
       )}
     </aside>
