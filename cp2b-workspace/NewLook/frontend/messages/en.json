@@ -1681,6 +1681,8 @@
     "role": "Role",
     "role_admin": "Administrator",
     "role_user": "User",
+    "admin_link": "Access dashboard",
+    "admin_hint": "Approve access requests and set each person's level.",
     "not_set": "Not set",
     "notifications_heading": "Notifications",
     "notifications_subtitle": "Configure your notification preferences",
