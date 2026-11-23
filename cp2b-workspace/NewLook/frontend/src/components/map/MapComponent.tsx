@@ -71,6 +71,7 @@ import {
   type MapScope,
 } from '@/data/brazilStates';
 import ScopeSwitcher from './ScopeSwitcher';
+import { useTopRowClearance } from './mapWindowShell';
 import MapMunicipalitySearch from './MapMunicipalitySearch';
 import MapLegend from './MapLegend';
 import MapLoadingSkeleton from './MapLoadingSkeleton';
@@ -966,6 +967,9 @@ export default function MapComponent({
   // pipelines for siting) and takes it away when it ends. Only the layers the
   // analysis itself switched on are taken away: one the reader already had on
   // stays on. Truck reach brings the gas pipelines the same way.
+  // The tool windows sit under the control row, however many lines it wraps to.
+  const topRowRef = useTopRowClearance();
+
   const analysisOwnedLayersRef = useRef<readonly string[]>([]);
   useEffect(() => {
     const next: readonly string[] = [
@@ -1471,7 +1475,7 @@ export default function MapComponent({
             and the basemap keeps its corner; on a desktop too narrow for both
             groups the right one wraps under, aligned right, instead of
             overlapping the left. The compass is gone: this map never rotates. */}
-        <div className="pointer-events-none absolute top-14 left-2 right-2 z-[1000] flex flex-nowrap items-start justify-between gap-2 md:top-3 md:left-3 md:right-3 md:flex-wrap [&>*]:pointer-events-auto">
+        <div ref={topRowRef} className="pointer-events-none absolute top-14 left-2 right-2 z-[1000] flex flex-nowrap items-start justify-between gap-2 md:top-3 md:left-3 md:right-3 md:flex-wrap [&>*]:pointer-events-auto">
         <div className="flex min-w-0 flex-1 flex-wrap items-start gap-2 md:flex-none">
           <MapMunicipalitySearch
             features={searchFeatures}

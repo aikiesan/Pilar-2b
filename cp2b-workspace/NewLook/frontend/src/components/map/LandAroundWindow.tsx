@@ -31,6 +31,7 @@ import { currentMapSearch, writeMapToolParams } from '@/lib/mapTools';
 import type { MapToolAccess } from '@/lib/mapToolAccess';
 import { analyzeProximity, ProximityError, type ProximityAnalysisResult } from '@/services/proximityApi';
 import type { Messages } from '@/types/i18n';
+import { MAP_WINDOW_CLASS } from './mapWindowShell';
 
 type ClassKey = keyof Messages['Map']['mapbiomasLegend']['classes'];
 
@@ -145,10 +146,7 @@ export function LandAroundWindow({
   return (
     <aside
       aria-label={t('window_aria')}
-      className="surface-light absolute z-[1101] map-window flex flex-col overflow-y-auto border-line bg-paper text-ink shadow-xl
-                 inset-x-0 bottom-0 max-h-[55%] rounded-t-2xl border-t
-                 landscape:inset-x-auto landscape:bottom-auto landscape:right-3 landscape:top-16 landscape:z-[999]
-                 landscape:max-h-[calc(100%-5rem)] landscape:w-[340px] landscape:rounded-none landscape:border"
+      className={MAP_WINDOW_CLASS}
     >
       {/* Drag-handle look, bottom sheet only */}
       <div className="flex justify-center pt-2 landscape:hidden" aria-hidden="true">

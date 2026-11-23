@@ -57,6 +57,7 @@ const BIOMASS_META: { value: BiomassType; icon: string }[] = [
 
 
 import ColorModeSelector, { buildColorModeOptions } from './ColorModeSelector';
+import { useBottomBarHeight } from './mapWindowShell';
 
 export default function MobileBottomSheet({
   selectedResidues, onResiduesChange,
@@ -72,6 +73,8 @@ export default function MobileBottomSheet({
   const t = useTranslations('Map');
   const metricText = useMetricText();
   const [activeSheet, setActiveSheet] = useState<ActiveSheet>(null);
+  // The tool sheets and the profile stand on this bar, not under it.
+  const tabBarRef = useBottomBarHeight();
   const [showBiomassTypes, setShowBiomassTypes] = useState(false);
   const [showResidues, setShowResidues] = useState(false);
 
@@ -402,7 +405,7 @@ export default function MobileBottomSheet({
       </div>
 
       {/* Persistent tab bar — always visible */}
-      <div data-tour="map-mobile-tabs" className="min-h-14 flex flex-shrink-0 items-stretch border-t border-line bg-paper-raised pb-[env(safe-area-inset-bottom)] shadow-lg">
+      <div ref={tabBarRef} data-tour="map-mobile-tabs" className="min-h-14 flex flex-shrink-0 items-stretch border-t border-line bg-paper-raised pb-[env(safe-area-inset-bottom)] shadow-lg">
         {/* Filtros */}
         <button
           onClick={() => toggleSheet('filters')}
