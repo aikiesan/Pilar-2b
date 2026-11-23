@@ -285,6 +285,33 @@ export function useMunicipalityLandCover(year: number, enabled: boolean) {
   });
 }
 
+/** The Truck reach sites: public points, kept for the session. */
+export function useTruckSites(enabled: boolean) {
+  return useQuery({
+    queryKey: ['truck-sites'],
+    queryFn: () => geospatialClient.getTruckSites(),
+    enabled,
+    staleTime: 6 * 60 * 60 * 1000,
+    gcTime: 6 * 60 * 60 * 1000,
+    retry: 1,
+  });
+}
+
+/**
+ * One site's truck reach. Signed-in only: gate `enabled` on
+ * useMapToolAccess() === 'allowed'.
+ */
+export function useTruckReach(siteId: string | null, enabled: boolean) {
+  return useQuery({
+    queryKey: ['truck-reach', siteId],
+    queryFn: () => geospatialClient.getTruckReach(siteId as string),
+    enabled: enabled && siteId !== null,
+    staleTime: 60 * 60 * 1000,
+    gcTime: 60 * 60 * 1000,
+    retry: false, // a 401 or 404 will never succeed on retry
+  });
+}
+
 /**
  * Full properties for one municipality, fetched on demand.
  *

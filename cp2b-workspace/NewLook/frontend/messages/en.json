@@ -1177,6 +1177,10 @@
         "similar": {
           "name": "Find similar",
           "description": "The twelve municipalities most like the one you click"
+        },
+        "truck": {
+          "name": "Truck reach",
+          "description": "Where a truck gets from a mill or landfill in 30, 60 or 90 minutes"
         }
       },
       "pending_title": "Your access request is being reviewed",
@@ -1239,6 +1243,49 @@
       "picked_outside": "{name} is outside {state}, which this reading covers.",
       "signed_out_title": "Sign in to cross data",
       "signed_out_body": "The crossed analyses are open to approved accounts while they are being tested. Sign in, or ask for access.",
+      "sign_in": "Sign in"
+    },
+    "truck": {
+      "name": "Truck reach",
+      "window_aria": "Where a truck gets from the picked site",
+      "close": "Close Truck reach",
+      "site_meta": "{kind} in {town}",
+      "kinds": {
+        "ethanol": "Ethanol mill",
+        "landfill": "Landfill",
+        "biogas": "Biogas plant",
+        "biomethane": "Biomethane plant"
+      },
+      "site_tip": "{name}, {kind} in {town}",
+      "limit_group": "Drive time",
+      "limit_option": "{minutes} min",
+      "idle": "Click a mill or landfill to see where a truck reaches.",
+      "loading": "Loading the routes.",
+      "failed": "The routes did not load. Try again later.",
+      "unavailable": "Truck routes are not loaded on this server yet.",
+      "not_found": "There are no truck routes for this site.",
+      "outside": "Trucks are routed in São Paulo only, and this site lies outside it.",
+      "headline": "{count, plural, one {# municipality} other {# municipalities}} within {minutes} minutes by truck",
+      "table_caption": "Municipalities reached by drive time",
+      "table_row": "Up to {minutes} minutes",
+      "cane_label": "Cane residue in reach",
+      "cane_value": "{value} thousand t/yr",
+      "biomethane_label": "Biomethane potential in reach",
+      "biomethane_value": "{value} million m³/yr",
+      "sites_label": "Other sites in reach",
+      "sites_value": "{mills, plural, one {# mill} other {# mills}}, {landfills, plural, one {# landfill} other {# landfills}}",
+      "sites_plants": "and {count, plural, one {# plant} other {# plants}}",
+      "pipeline": "Nearest gas pipeline: {minutes} minutes by truck.",
+      "pipeline_beyond": "Nearest gas pipeline: {minutes} minutes by truck, beyond the {limit} minute limit.",
+      "pipeline_none": "No gas pipeline within 180 minutes by truck.",
+      "circle_toggle": "Show a {km} km circle",
+      "circle_compare": "A {km} km circle would take {inCircle, plural, one {# municipality} other {# municipalities}}. {slower, plural, =0 {None of them is} one {# of them is} other {# of them are}} more than {minutes} minutes away by road, {beyond, plural, =0 {and the road reaches none outside the circle} other {and the road reaches # outside the circle}}.",
+      "without_data": "{count, plural, one {# municipality in reach has} other {# municipalities in reach have}} no cane or biomethane figure.",
+      "source": "Routes on OpenStreetMap roads in São Paulo, truck speeds capped by road class. Town centres: IBGE 2022.",
+      "sp_only": "Trucks are not routed into Minas Gerais.",
+      "straight_line": "The circle measures in a straight line to each municipality's centre.",
+      "signed_out_title": "Sign in to use Truck reach",
+      "signed_out_body": "Truck reach uses data open to approved accounts. Sign in, or ask for access.",
       "sign_in": "Sign in"
     },
     "gather": {

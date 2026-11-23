@@ -13,6 +13,7 @@
  *   cross    ?tool=cross, the analysis in the map's own ?a=<id>
  *   gather   ?tool=gather&lat&lng&radius (25, 50 or 100 km)  or  ?tool=gather&hub=<ibge>
  *   similar  ?tool=similar&of=<ibge>&within=state|both
+ *   truck    ?tool=truck&site=<site_id>&t=30|60|90
  *
  * Who may USE a tool is a separate question: useMapToolAccess().
  */
@@ -24,16 +25,17 @@ import {
   type LandAroundRadius,
 } from '@/lib/landAround';
 import { DEFAULT_GATHER_RADIUS, isGatherRadius, type GatherRadius } from '@/lib/gather';
+import { DEFAULT_TRUCK_LIMIT, isTruckLimit, readSiteId, type TruckLimit } from '@/lib/truckReach';
 
-export type MapToolId = 'land' | 'compare' | 'cross' | 'gather' | 'similar';
+export type MapToolId = 'land' | 'compare' | 'cross' | 'gather' | 'similar' | 'truck';
 
-export const MAP_TOOL_IDS: readonly MapToolId[] = ['land', 'compare', 'cross', 'gather', 'similar'];
+export const MAP_TOOL_IDS: readonly MapToolId[] = ['land', 'compare', 'cross', 'gather', 'similar', 'truck'];
 
 /**
  * Tools that are built. A tool joins this list in the step that builds it;
  * until then it is left out of the menu and its links open the plain map.
  */
-export const BUILT_MAP_TOOLS: readonly MapToolId[] = ['land', 'compare', 'cross', 'gather', 'similar'];
+export const BUILT_MAP_TOOLS: readonly MapToolId[] = ['land', 'compare', 'cross', 'gather', 'similar', 'truck'];
 
 /**
  * Tools that open with the analyses held back (MAP_ANALYSES_ENABLED off).
@@ -66,10 +68,11 @@ export interface MapToolUrlState {
   compare: { pair: string[] };
   gather: { point: LandAroundPoint | null; radius: GatherRadius; hub: string | null };
   similar: { of: string | null; within: SimilarWithin };
+  truck: { site: string | null; limit: TruckLimit };
 }
 
 /** Every param a tool may write; cleared together on each write. */
-const TOOL_PARAMS = ['tool', 'lat', 'lng', 'radius', 'pair', 'hub', 'of', 'within'] as const;
+const TOOL_PARAMS = ['tool', 'lat', 'lng', 'radius', 'pair', 'hub', 'of', 'within', 'site', 't'] as const;
 
 const IBGE = /^\d{7}$/;
 
@@ -104,6 +107,7 @@ export function emptyMapToolState(): MapToolUrlState {
     compare: { pair: [] },
     gather: { point: null, radius: DEFAULT_GATHER_RADIUS, hub: null },
     similar: { of: null, within: 'state' },
+    truck: { site: null, limit: DEFAULT_TRUCK_LIMIT },
   };
 }
 
@@ -132,6 +136,11 @@ export function parseMapToolParams(search: string | URLSearchParams): MapToolUrl
     case 'similar':
       state.similar = { of: readIbge(params.get('of')), within: params.get('within') === 'both' ? 'both' : 'state' };
       break;
+    case 'truck': {
+      const limit = Number(params.get('t'));
+      state.truck = { site: readSiteId(params.get('site')), limit: isTruckLimit(limit) ? limit : DEFAULT_TRUCK_LIMIT };
+      break;
+    }
   }
   return state;
 }
@@ -179,6 +188,10 @@ export function writeMapToolParams(
     case 'similar':
       if (state.similar?.of) params.set('of', state.similar.of);
       if (state.similar?.within === 'both') params.set('within', 'both');
+      break;
+    case 'truck':
+      if (state.truck?.site) params.set('site', state.truck.site);
+      params.set('t', String(state.truck?.limit ?? DEFAULT_TRUCK_LIMIT));
       break;
   }
   return params;

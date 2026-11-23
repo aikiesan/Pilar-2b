@@ -1016,3 +1016,31 @@ input[type="range"]::-moz-range-thumb:active {
   .map-presence[data-leaving] .map-window,
   .leaflet-pane.map-pane-fade { animation: none; }
 }
+
+/* Truck reach (map click tool): the site symbols are Leaflet divIcons with an
+   inline SVG, keyboard focusable; the tooltip names the site, light like the
+   tool's window. */
+.truck-site {
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+.truck-site:focus { outline: none; }
+.truck-site:focus-visible {
+  outline: 2px solid rgb(var(--ink));
+  outline-offset: 2px;
+}
+.truck-site svg { display: block; overflow: visible; }
+.leaflet-tooltip.truck-site-tip {
+  background: rgb(var(--paper));
+  border: 1px solid rgb(var(--line));
+  border-radius: 0;
+  color: rgb(var(--ink));
+  font-weight: 500;
+  font-size: 12px;
+  padding: 4px 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+.leaflet-tooltip-top.truck-site-tip:before {
+  border-top-color: rgb(var(--line));
+}
