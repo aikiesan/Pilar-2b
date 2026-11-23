@@ -175,13 +175,18 @@
       "email_taken": "Já existe uma conta com este e-mail.",
       "invite_only": "As contas são criadas apenas por convite. Solicite acesso à equipe do CP2B.",
       "too_many_attempts": "Muitas tentativas. Aguarde um minuto e tente novamente.",
-      "network": "Não foi possível contatar o servidor. Verifique sua conexão e tente novamente."
+      "network": "Não foi possível contatar o servidor. Verifique sua conexão e tente novamente.",
+      "email_not_verified": "Confirme seu e-mail antes de entrar. Procure o link que enviamos, também na caixa de spam.",
+      "pending_review": "Seu pedido de acesso está em análise. Você recebe um e-mail quando a conta for liberada.",
+      "rejected": "Seu pedido de acesso não foi aprovado. Se quiser que seja revisto, responda ao e-mail que recebeu.",
+      "invalid_token": "Este link não vale mais: já foi usado ou passou do prazo.",
+      "access_failed": "Não foi possível concluir. Tente de novo em instantes."
     },
     "login": {
       "back_to_home": "Voltar para página inicial - PILAR-2b",
       "title": "Acessar sua conta",
       "or": "Ou",
-      "create_account": "crie uma nova conta",
+      "create_account": "peça acesso",
       "email_label": "Endereço de e-mail",
       "email_placeholder": "seu@email.com",
       "password_label": "Senha",
@@ -189,16 +194,14 @@
       "forgot_password": "Esqueceu a senha?",
       "submitting": "Entrando…",
       "submit": "Entrar",
-      "new_to_platform": "Novo na plataforma?",
-      "create_new_account": "Criar nova conta"
+      "new_to_platform": "Ainda não tem conta?",
+      "create_new_account": "Pedir acesso",
+      "resend_confirmation": "Enviar o link de confirmação de novo",
+      "resent_confirmation": "Se o endereço estiver esperando confirmação, um link novo está a caminho."
     },
     "register": {
-      "back_to_home": "Voltar para página inicial",
-      "title": "Criar nova conta",
-      "or": "Ou",
-      "login_existing": "faça login com sua conta existente",
+      "title": "Pedir acesso",
       "full_name_label": "Nome completo",
-      "full_name_placeholder": "João Silva",
       "email_label": "Endereço de e-mail",
       "email_placeholder": "seu@email.com",
       "password_label": "Senha",
@@ -211,13 +214,61 @@
       "terms_of_service": "Termos de Serviço",
       "and": "e",
       "privacy_policy": "Política de Privacidade",
-      "submitting": "Criando conta…",
-      "submit": "Criar conta",
+      "submitting": "Enviando…",
+      "submit": "Enviar pedido",
       "already_have_account": "Já tem uma conta?",
-      "login": "Fazer login"
+      "login": "Fazer login",
+      "intro": "As análises e as ferramentas do mapa são para contas aprovadas. Conte quem você é e para que vai usar; a equipe do CP2B responde por e-mail.",
+      "institution_label": "Instituição",
+      "institution_placeholder": "Universidade, empresa, órgão público…",
+      "purpose_label": "Para que vai usar o PILAR-2b",
+      "purpose_hint": "Entre 10 e 500 caracteres. Ajuda a equipe a decidir.",
+      "password_hint": "Pelo menos 10 caracteres, com uma letra maiúscula, uma minúscula e um número.",
+      "website_label": "Não preencha este campo",
+      "sent_title": "Confirme seu e-mail",
+      "sent_body": "Enviamos um link para {email}. Abra o link para confirmar o endereço; depois disso o pedido vai para análise e você recebe outro e-mail quando a conta for liberada.",
+      "sent_spam": "Não chegou em alguns minutos? Procure na caixa de spam ou envie de novo.",
+      "resend": "Enviar o link de novo",
+      "resent": "Se o endereço estiver esperando confirmação, um link novo está a caminho."
     },
     "common": {
       "copyright": "© {year} PILAR-2b. Plataforma Inteligente de Localização e Aproveitamento de Resíduos para Biogás e Bioprodutos."
+    },
+    "verify": {
+      "title": "Confirmação de e-mail",
+      "checking": "Confirmando seu e-mail…",
+      "review_title": "E-mail confirmado",
+      "review_body": "Seu pedido foi para análise. Você recebe um e-mail quando a conta for liberada.",
+      "approved_title": "Conta liberada",
+      "approved_body": "Seu e-mail já estava confirmado e a conta já foi liberada. Você pode entrar.",
+      "rejected_title": "Pedido não aprovado",
+      "rejected_body": "Este pedido de acesso não foi aprovado. Se quiser que seja revisto, responda ao e-mail que recebeu.",
+      "invalid_title": "Link sem validade",
+      "invalid_body": "Este link já foi usado ou passou do prazo de 48 horas. Peça um novo com o mesmo e-mail.",
+      "missing_body": "O link está incompleto. Abra de novo o link do e-mail, inteiro.",
+      "request_again": "Pedir um link novo",
+      "go_login": "Entrar",
+      "go_home": "Voltar ao início"
+    },
+    "forgot": {
+      "title": "Trocar a senha",
+      "intro": "Informe o e-mail da sua conta. Se ela estiver liberada, enviamos um link para escolher uma senha nova.",
+      "submit": "Enviar link",
+      "submitting": "Enviando…",
+      "sent_title": "Confira seu e-mail",
+      "sent_body": "Se uma conta liberada usa {email}, o link está a caminho. Ele vale por 1 hora.",
+      "back_to_login": "Voltar para a entrada"
+    },
+    "reset": {
+      "title": "Escolher uma senha nova",
+      "password_label": "Senha nova",
+      "confirm_label": "Repita a senha nova",
+      "submit": "Trocar a senha",
+      "submitting": "Trocando…",
+      "done_title": "Senha trocada",
+      "done_body": "Entre com a senha nova.",
+      "go_login": "Entrar",
+      "request_new": "Pedir um link novo"
     }
   },
   "landing": {
@@ -2422,7 +2473,8 @@
     "email_invalid": "Informe um e-mail válido.",
     "password_too_short": "A senha deve ter pelo menos {min} caracteres.",
     "passwords_mismatch": "As senhas não coincidem.",
-    "consent_required": "É preciso dar seu consentimento para continuar."
+    "consent_required": "É preciso dar seu consentimento para continuar.",
+    "password_needs_mix": "A senha precisa de uma letra maiúscula, uma minúscula e um número."
   },
   "newsletter": {
     "title": "Fique por dentro das novidades",

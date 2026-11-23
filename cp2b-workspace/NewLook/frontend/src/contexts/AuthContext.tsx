@@ -6,7 +6,8 @@
  * Real, VM-local auth: talks to the FastAPI auth endpoints, stores a JWT in
  * localStorage (shared with apiClient so every authenticated request carries it),
  * and exposes role + data-clearance helpers for gating tools by access level.
- * Registration is invite-only (admin creates accounts via POST /auth/users).
+ * Anyone may ask for an account (POST /auth/signup); it opens once the e-mail is
+ * confirmed and an admin approves it.
  */
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
@@ -66,6 +67,7 @@ function announceAuthChange() {
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserProfile | null>(anonymousUser())
+  const [sessionUser, setSessionUser] = useState<UserProfile | null | undefined>(undefined)
   // Open mode renders immediately as the anonymous user; the effect below only
   // upgrades that if a real token turns out to be stored. Blocking on a spinner
   // there would regress the public page for the sake of a rare case.
@@ -87,18 +89,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } catch { /* ignore */ }
 
       if (!getStoredToken()) {
-        if (!cancelled) { setUser(anonymousUser()); setLoading(false) }
+        if (!cancelled) { setUser(anonymousUser()); setSessionUser(null); setLoading(false) }
         return
       }
       try {
         const res = await authenticatedFetch(`${AUTH}/me`)
         if (!res.ok) throw new Error(`me ${res.status}`)
         const profile = (await res.json()) as UserProfile
-        if (!cancelled) setUser(profile)
+        if (!cancelled) { setUser(profile); setSessionUser(profile) }
       } catch {
         setStoredToken(null) // invalid/expired → drop it
         announceAuthChange()
-        if (!cancelled) setUser(anonymousUser())
+        if (!cancelled) { setUser(anonymousUser()); setSessionUser(null) }
       } finally {
         if (!cancelled) setLoading(false)
       }
@@ -132,12 +134,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setStoredToken(data.access_token)
     announceAuthChange()
     setUser(data.user as UserProfile)
+    setSessionUser(data.user as UserProfile)
     queryClient.clear()
   }, [queryClient])
 
-  // Invite-only: hits the admin create-user endpoint (403 unless the caller is admin).
+  // An access request: no session comes back, the person confirms the e-mail first.
   const register = useCallback(async (data: RegistrationData) => {
-    const res = await authenticatedFetch(`${AUTH}/users`, {
+    const res = await authenticatedFetch(`${AUTH}/signup`, {
       method: 'POST',
       body: JSON.stringify(data),
     }).catch(() => {
@@ -160,6 +163,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     announceAuthChange()
     // Open mode drops back to the anonymous browsing identity, not to nobody.
     setUser(anonymousUser())
+    setSessionUser(null)
     queryClient.clear()
   }, [queryClient])
 
@@ -176,6 +180,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const value: AuthContextType = {
     user,
+    sessionUser,
     loading,
     login,
     register,
@@ -189,6 +194,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+}
+
+/**
+ * The real signed-in profile (see AuthContextType.sessionUser). Outside an
+ * AuthProvider it reads as "still checking", never as signed in.
+ */
+export function useSessionUser(): UserProfile | null | undefined {
+  return useContext(AuthContext)?.sessionUser
 }
 
 // Hook to use auth context

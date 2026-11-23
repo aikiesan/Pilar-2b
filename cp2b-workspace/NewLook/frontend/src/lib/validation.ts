@@ -14,11 +14,12 @@ export type ValidationError =
   | 'required'
   | 'email_invalid'
   | 'password_too_short'
+  | 'password_needs_mix'
   | 'passwords_mismatch'
   | 'consent_required'
 
-/** Shortest password the sign-up form accepts. */
-export const PASSWORD_MIN_LENGTH = 6
+/** Shortest password the sign-up form accepts (the server asks the same). */
+export const PASSWORD_MIN_LENGTH = 10
 
 /** One @, something on each side, a dot in the domain, no spaces. */
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -33,9 +34,11 @@ export function validateEmail(value: string): ValidationError | null {
   return EMAIL_PATTERN.test(email) ? null : 'email_invalid'
 }
 
+/** Length first, then one upper-case letter, one lower-case letter and one digit. */
 export function validatePassword(value: string): ValidationError | null {
   if (value === '') return 'required'
-  return value.length >= PASSWORD_MIN_LENGTH ? null : 'password_too_short'
+  if (value.length < PASSWORD_MIN_LENGTH) return 'password_too_short'
+  return /[A-Z]/.test(value) && /[a-z]/.test(value) && /\d/.test(value) ? null : 'password_needs_mix'
 }
 
 export function validatePasswordConfirmation(
@@ -56,8 +59,8 @@ export function validateConsent(checked: boolean): ValidationError | null {
  */
 export function passwordStrength(password: string): number {
   let score = 0
+  if (password.length >= 8) score += 25
   if (password.length >= PASSWORD_MIN_LENGTH) score += 25
-  if (password.length >= 10) score += 25
   if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score += 25
   if (/\d/.test(password)) score += 15
   if (/[^a-zA-Z\d]/.test(password)) score += 10

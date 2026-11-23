@@ -16,6 +16,7 @@ import { safeNext } from '@/lib/authRedirect'
 import { firstError, validateEmail, validateRequired } from '@/lib/validation'
 import { useValidationMessage } from '@/hooks/useValidationMessage'
 import { withBasePath } from '@/lib/basePath'
+import { resendVerification } from '@/lib/api/accessClient'
 
 /** Read at redirect time, so the page needs no Suspense boundary for useSearchParams. */
 const afterLogin = () => safeNext(new URLSearchParams(window.location.search).get('next'))
@@ -28,6 +29,9 @@ export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  // Set when the account exists but its e-mail is not confirmed: offer the link again.
+  const [unconfirmed, setUnconfirmed] = useState(false)
+  const [resent, setResent] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [shouldNavigate, setShouldNavigate] = useState(false)
 
@@ -72,8 +76,20 @@ export default function LoginPage() {
       // Signal that we should navigate once user is loaded
       setShouldNavigate(true)
     } catch (err: unknown) {
-      setError(t(`errors.${err instanceof AuthError ? err.code : 'login_failed'}`))
+      const code = err instanceof AuthError ? err.code : 'login_failed'
+      setUnconfirmed(code === 'email_not_verified')
+      setResent(false)
+      setError(t(`errors.${code}`))
       setIsSubmitting(false)
+    }
+  }
+
+  const resend = async () => {
+    try {
+      await resendVerification(email.trim())
+    } finally {
+      // The answer is the same either way; say so once.
+      setResent(true)
     }
   }
 
@@ -135,6 +151,17 @@ export default function LoginPage() {
                   />
                   <p className="text-sm text-red-800 dark:text-red-200">{error}</p>
                 </div>
+                {unconfirmed && (
+                  <div className="mt-3 pl-8">
+                    {resent ? (
+                      <p role="status" className="text-sm text-ink">{t('login.resent_confirmation')}</p>
+                    ) : (
+                      <button type="button" onClick={resend} className="text-sm font-medium text-terra-800 underline">
+                        {t('login.resend_confirmation')}
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 
@@ -205,12 +232,12 @@ export default function LoginPage() {
               </div>
 
               <div className="text-sm">
-                <a
-                  href="#"
+                <Link
+                  href="/forgot-password"
                   className="font-medium text-terra-800 dark:text-terra-400 hover:text-ochre-600 dark:hover:text-terra-300 underline focus:outline-none focus:ring-2 focus:ring-terra-800 dark:focus:ring-terra-500 rounded"
                 >
                   {t('login.forgot_password')}
-                </a>
+                </Link>
               </div>
             </div>
 

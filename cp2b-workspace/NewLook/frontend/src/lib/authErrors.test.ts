@@ -12,9 +12,16 @@ describe('authErrorFrom', () => {
   it('reads the status when there is no code', async () => {
     expect((await authErrorFrom(response(401, { detail: 'Not authenticated' }), 'login')).code).toBe('invalid_credentials')
     expect((await authErrorFrom(response(429), 'login')).code).toBe('too_many_attempts')
-    // A visitor trying to sign up: the endpoint is admin-only.
-    expect((await authErrorFrom(response(401, { detail: 'Not authenticated' }), 'registration')).code).toBe('invite_only')
-    expect((await authErrorFrom(response(403), 'registration')).code).toBe('invite_only')
+    expect((await authErrorFrom(response(403), 'registration')).code).toBe('registration_failed')
+  })
+
+  it('reads the sign-up with approval codes', async () => {
+    const coded = (code: string) => response(403, { detail: { code, message: '…' } })
+    expect((await authErrorFrom(coded('email_not_verified'), 'login')).code).toBe('email_not_verified')
+    expect((await authErrorFrom(coded('pending_review'), 'login')).code).toBe('pending_review')
+    expect((await authErrorFrom(coded('rejected'), 'login')).code).toBe('rejected')
+    expect((await authErrorFrom(response(400, { detail: { code: 'invalid_token' } }), 'access')).code).toBe('invalid_token')
+    expect((await authErrorFrom(response(500), 'access')).code).toBe('access_failed')
   })
 
   it("falls back to the form's generic failure", async () => {

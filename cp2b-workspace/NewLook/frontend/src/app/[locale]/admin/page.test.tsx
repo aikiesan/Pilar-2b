@@ -13,6 +13,10 @@ jest.mock('@/components/admin/AnalysesTab', () => ({
   __esModule: true,
   default: () => <div>painel de análises</div>,
 }))
+jest.mock('@/components/admin/RequestsTab', () => ({
+  __esModule: true,
+  default: () => <div>painel de pedidos</div>,
+}))
 const api = adminClient as jest.Mocked<typeof adminClient>
 
 const me = (over = {}) => ({
@@ -29,13 +33,25 @@ const me = (over = {}) => ({
 
 beforeEach(() => jest.resetAllMocks())
 
-it('is shown to an active admin', async () => {
+it('is shown to an active admin, opening on the requests with their count', async () => {
   api.fetchSession.mockResolvedValue(me() as never)
+  api.listRequests.mockResolvedValue([{ id: 'r1' }, { id: 'r2' }] as never)
   render(<AdminPage />)
-  expect(await screen.findByText('painel de análises')).toBeInTheDocument()
+  expect(await screen.findByText('painel de pedidos')).toBeInTheDocument()
+  expect(await screen.findByRole('button', { name: 'Pedidos 2 para decidir' })).toBeInTheDocument()
+  expect(api.listRequests).toHaveBeenCalledWith('pending_review')
   fireEvent.click(screen.getByRole('button', { name: 'Pessoas' }))
   expect(screen.getByText('painel de pessoas')).toBeInTheDocument()
+  fireEvent.click(screen.getByRole('button', { name: 'Análises' }))
+  expect(screen.getByText('painel de análises')).toBeInTheDocument()
   expect(notFound).not.toHaveBeenCalled()
+})
+
+it('shows no count when nothing waits', async () => {
+  api.fetchSession.mockResolvedValue(me() as never)
+  api.listRequests.mockResolvedValue([] as never)
+  render(<AdminPage />)
+  expect(await screen.findByRole('button', { name: 'Pedidos' })).toBeInTheDocument()
 })
 
 it('is not shown to a non-admin', async () => {

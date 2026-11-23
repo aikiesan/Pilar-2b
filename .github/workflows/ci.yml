@@ -219,7 +219,7 @@ jobs:
       # data-integrity tests stay asleep: they expect the full dataset, which
       # this empty database does not have.
       # municipalities is a stub with the two columns the six-digit loader
-      # test needs; 043 runs twice to prove the re-run changes nothing.
+      # test needs; 043 and 040 run twice to prove the re-run changes nothing.
       - name: Registry access-control tests (real database)
         env:
           PGPASSWORD: test
@@ -235,6 +235,8 @@ jobs:
           $PSQL -f app/migrations/020_create_auth_users.sql
           $PSQL -f app/migrations/043_analysis_registry.sql
           $PSQL -f app/migrations/043_analysis_registry.sql
+          $PSQL -f app/migrations/040_auth_access_requests.sql
+          $PSQL -f app/migrations/040_auth_access_requests.sql
           pytest -m database --no-cov -p no:cacheprovider -v             tests/unit/services/test_analysis_access.py             tests/unit/endpoints/test_analyses.py             tests/unit/endpoints/test_admin_analyses.py             tests/unit/endpoints/test_auth_clearance_endpoint.py             tests/unit/test_load_analysis.py
 
   backend-security:
