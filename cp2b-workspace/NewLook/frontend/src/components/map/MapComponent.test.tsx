@@ -160,13 +160,15 @@ jest.mock('./MunicipalityLayer', () => ({
   ),
 }));
 
-jest.mock('./HeatmapLayer', () => ({
+jest.mock('./DotDensityLayer', () => ({
   __esModule: true,
-  default: ({ data, opacity }: any) => (
-    <div data-testid="heatmap-layer" data-opacity={opacity}>
-      {data?.features?.length || 0} municipalities
-    </div>
-  ),
+  default: ({ dots }: any) => <div data-testid="dot-layer" data-dots={dots.length} />,
+  dotRadius: () => 1,
+}));
+
+jest.mock('./SectorSymbolLayer', () => ({
+  __esModule: true,
+  default: ({ items }: any) => <div data-testid="symbol-layer" data-items={items.length} />,
 }));
 
 jest.mock('./InfrastructureLayer', () => ({
@@ -204,7 +206,8 @@ jest.mock('./DesktopLeftPanel', () => ({
         onChange={(e) => onVisualizationModeChange(e.target.value)}
       >
         <option value="choropleth">Choropleth</option>
-        <option value="heatmap">Heatmap</option>
+        <option value="dots">Dots</option>
+        <option value="symbols">Symbols</option>
       </select>
       {layers.map((layer: any) => (
         <button
@@ -224,9 +227,9 @@ jest.mock('./MapLegend', () => ({
   default: () => <div data-testid="map-legend">Legend</div>,
 }));
 
-jest.mock('./HeatmapLegend', () => ({
+jest.mock('./MagnitudeLegend', () => ({
   __esModule: true,
-  default: () => <div data-testid="heatmap-legend">Heatmap Legend</div>,
+  default: ({ view, facts }: any) => <div data-testid="magnitude-legend" data-view={view} data-count={facts.count} />,
 }));
 
 jest.mock('./MapBiomasLegend', () => ({
@@ -499,11 +502,11 @@ describe('MapComponent', () => {
       await waitFor(() => {
         expect(screen.getByTestId('municipality-layer')).toBeInTheDocument();
         expect(screen.getByTestId('map-legend')).toBeInTheDocument();
-        expect(screen.queryByTestId('heatmap-layer')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('dot-layer')).not.toBeInTheDocument();
       });
     });
 
-    it('should switch to heatmap mode', async () => {
+    it('switches to Pontos: the dots over the municipalities as context, with their key', async () => {
       const user = userEvent.setup({ delay: null });
       render(<MapComponent />);
       act(() => { jest.advanceTimersByTime(1500); });
@@ -512,14 +515,30 @@ describe('MapComponent', () => {
         expect(screen.getByTestId('visualization-mode-select')).toBeInTheDocument();
       });
 
-      const select = screen.getByTestId('visualization-mode-select');
-      await user.selectOptions(select, 'heatmap');
+      await user.selectOptions(screen.getByTestId('visualization-mode-select'), 'dots');
 
       await waitFor(() => {
-        expect(screen.getByTestId('heatmap-layer')).toBeInTheDocument();
-        expect(screen.getByTestId('heatmap-legend')).toBeInTheDocument();
-        expect(screen.queryByTestId('municipality-layer')).not.toBeInTheDocument();
+        expect(screen.getByTestId('dot-layer')).toBeInTheDocument();
+        expect(screen.getByTestId('magnitude-legend')).toHaveAttribute('data-view', 'dots');
+        // The outlines stay, for hover and click.
+        expect(screen.getByTestId('municipality-layer')).toBeInTheDocument();
+        expect(screen.queryByTestId('map-legend')).not.toBeInTheDocument();
       });
+      expect(window.location.search).toContain('mode=dots');
+
+      await user.selectOptions(screen.getByTestId('visualization-mode-select'), 'symbols');
+      await waitFor(() => {
+        expect(screen.getByTestId('symbol-layer')).toBeInTheDocument();
+        expect(screen.queryByTestId('dot-layer')).not.toBeInTheDocument();
+        expect(screen.getByTestId('magnitude-legend')).toHaveAttribute('data-view', 'symbols');
+      });
+    });
+
+    it('opens an old heat or bubble link in the view that replaced it', async () => {
+      window.history.replaceState(null, '', '/map?mode=bubble');
+      render(<MapComponent />);
+      act(() => { jest.advanceTimersByTime(1500); });
+      expect(await screen.findByTestId('symbol-layer')).toBeInTheDocument();
     });
   });
 

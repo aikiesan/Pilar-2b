@@ -157,8 +157,8 @@ export default function MobileBottomSheet({
                   <div className="grid grid-cols-2 gap-2">
                     {([
                       { value: 'choropleth' as const, label: t('vizModes.choropleth'), disabled: false },
-                      { value: 'heatmap' as const, label: t('vizModes.heatmap'), disabled: false },
-                      { value: 'bubble' as const, label: t('vizModes.bubble'), disabled: false },
+                      { value: 'dots' as const, label: t('vizModes.dots'), disabled: false },
+                      { value: 'symbols' as const, label: t('vizModes.symbols'), disabled: false },
                       { value: 'clusters' as const, label: t('vizModes.clusters'), disabled: true },
                     ] as const).map(opt => (
                       <button
