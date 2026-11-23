@@ -50,6 +50,7 @@ def mock_db_connection(monkeypatch):
     # is active. Without these call-site patches those modules keep the real
     # get_db reference and attempt live DB connections during unit tests.
     _call_sites = [
+        "app.api.v1.endpoints.admin_analyses",
         "app.api.v1.endpoints.analyses",
         "app.api.v1.endpoints.analysis",
         "app.api.v1.endpoints.cp2b",
@@ -62,6 +63,7 @@ def mock_db_connection(monkeypatch):
         "app.api.v1.endpoints.residuos",
         "app.api.v1.endpoints.scientific",
         "app.api.v1.endpoints.statistics",
+        "app.services.auth_service",
         "app.routers.calculator",
         "app.routers.technology_routes",
     ]

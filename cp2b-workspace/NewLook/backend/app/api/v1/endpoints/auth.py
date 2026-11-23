@@ -8,7 +8,7 @@ LGPD data-subject operations (deactivate / delete / list).
 
 from typing import List
 
-from fastapi import APIRouter, Depends, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials
 
 from app.middleware.auth import get_current_user, require_admin, security
@@ -16,6 +16,7 @@ from app.middleware.rate_limit import auth_limiter, login_limiter, read_limiter
 from app.models.auth import (
     AdminCreateUser,
     AuthResponse,
+    ClearanceUpdate,
     MessageResponse,
     UpdateProfile,
     UserLogin,
@@ -68,6 +69,24 @@ async def set_user_active(
 ):
     result = await auth_service.set_active(user_id, active)
     return MessageResponse(message=result["message"])
+
+
+@router.patch(
+    "/users/{user_id}/clearance",
+    response_model=UserProfile,
+    summary="Set an account's data clearance (admin only)",
+)
+@auth_limiter.limit("20/minute")
+async def set_user_clearance(
+    request: Request,
+    user_id: str,
+    payload: ClearanceUpdate,
+    admin: UserProfile = Depends(require_admin),
+):
+    # Changing your own level is refused outright: it can only lock you out.
+    if user_id == admin.id:
+        raise HTTPException(status_code=400, detail="You cannot change your own clearance")
+    return await auth_service.set_clearance(user_id, payload.clearance)
 
 
 @router.delete(

@@ -20,6 +20,7 @@ from app.api.v1.api import api_router
 from app.core.config import settings
 from app.core.database import test_db_connection
 from app.core.log_sanitizer import install_pii_redaction
+from app.middleware.no_store import no_store_middleware
 from app.middleware.rate_limit import limiter, rate_limit_exceeded_handler
 from app.middleware.rate_limiter import rate_limit_middleware
 from app.middleware.request_size_limit import request_size_limit_middleware
@@ -90,6 +91,10 @@ app.middleware("http")(validation_middleware)
 
 # 3b. Security headers (X-Content-Type-Options, X-Frame-Options, HSTS, …)
 app.middleware("http")(security_headers_middleware)
+
+# 3c. Per-person answers are never cached (registry analyses, their admin routes).
+# Registered after the others so it wraps them and also sees their 4xx/429.
+app.middleware("http")(no_store_middleware)
 
 # 4. CORS middleware - Allow specific PILAR-2b deployments only
 app.add_middleware(

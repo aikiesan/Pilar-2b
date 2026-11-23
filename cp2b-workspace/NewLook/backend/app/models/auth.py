@@ -77,6 +77,7 @@ class UserProfile(BaseModel):
     is_active: bool = True
     created_at: datetime
     updated_at: datetime
+    last_login_at: Optional[datetime] = None  # filled by the admin user list
 
     class Config:
         json_schema_extra = {
@@ -143,6 +144,12 @@ class AdminCreateUser(BaseModel):
         if not re.search(r"\d", v):
             raise ValueError("Password must contain at least one digit")
         return v
+
+
+class ClearanceUpdate(BaseModel):
+    """Admin-only: set a person's data clearance (0 public .. 3 internal)."""
+
+    clearance: int = Field(..., ge=0, le=3)
 
 
 class MessageResponse(BaseModel):

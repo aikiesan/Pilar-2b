@@ -5,6 +5,7 @@ Main API router for PILAR-2b V3
 from fastapi import APIRouter
 
 from app.api.v1.endpoints import (
+    admin_analyses,
     analyses,
     analysis,
     analytics,
@@ -44,6 +45,11 @@ api_router.include_router(analysis.router, prefix="/analysis", tags=["analysis"]
 
 # Registry analyses, filtered by who is asking (migration 043)
 api_router.include_router(analyses.router, prefix="/analyses", tags=["analyses"])
+
+# Admin: set analysis levels, opening dates and per-person grants
+api_router.include_router(
+    admin_analyses.router, prefix="/admin/analyses", tags=["admin", "analyses"]
+)
 
 api_router.include_router(geospatial.router, prefix="/geospatial", tags=["geospatial", "postgis"])
 
