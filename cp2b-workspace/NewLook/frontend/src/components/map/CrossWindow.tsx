@@ -19,6 +19,7 @@ import { useTranslations } from 'next-intl';
 import { Check, X } from 'lucide-react';
 import { Link } from '@/navigation';
 import { loginHref } from '@/lib/authRedirect';
+import { currentMapSearch, writeMapToolParams } from '@/lib/mapTools';
 import type { BivariatePalette } from '@/lib/bivariate';
 import { ANALYSES, ANALYSIS_IDS, type AnalysisId, type AnalysisResult } from '@/lib/mapAnalyses';
 import type { MapToolAccess } from '@/lib/mapToolAccess';
@@ -54,7 +55,11 @@ export default function CrossWindow({
   const tA = useTranslations('Map.analyses');
   const tTools = useTranslations('Map.mapTools');
   const gated = access === 'sign_in' || access === 'pending';
-  const loginNext = `/map?tool=cross${active ? `&a=${active}` : ''}`;
+  // Built from the map's own link, so the scope, scenario and filters come back too.
+  const loginParams = writeMapToolParams(currentMapSearch(), { tool: 'cross' });
+  if (active) loginParams.set('a', active);
+  else loginParams.delete('a');
+  const loginNext = `/map?${loginParams.toString()}`;
 
   return (
     <aside
