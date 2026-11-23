@@ -14,6 +14,7 @@
 import React, { useEffect, useRef } from 'react';
 import { useMap } from 'react-leaflet';
 import L from 'leaflet';
+import { crossFadePaneCanvas, fadePaneIn } from '@/lib/mapCrossFade';
 import type { MunicipalityCollection } from '@/types/geospatial';
 import type { MunicipalityTypology } from '@/hooks/useTypologyProfiles';
 import { tipologiaColor, regimeColor, TYPOLOGY_NO_DATA_COLOR } from '@/lib/typologyScale';
@@ -36,6 +37,8 @@ export default function TypologyChoroLayer({
 }: TypologyChoroLayerProps) {
   const map = useMap();
   const layerRef = useRef<L.GeoJSON | null>(null);
+  // Fades in over the map once; after that each repaint cross-fades.
+  const shown = useRef(false);
 
   useEffect(() => {
     if (!geoJsonData?.features?.length || !Object.keys(typologyMap).length) return;
@@ -73,8 +76,14 @@ export default function TypologyChoroLayer({
 
     layer.addTo(map);
     layerRef.current = layer;
+    if (!shown.current) {
+      shown.current = true;
+      fadePaneIn(map.getPane('typologyChoro'));
+    }
 
     return () => {
+      // New colours, or the overlay leaving: the old picture fades out.
+      crossFadePaneCanvas(map, map.getPane('typologyChoro'));
       layer.remove();
       layerRef.current = null;
     };
