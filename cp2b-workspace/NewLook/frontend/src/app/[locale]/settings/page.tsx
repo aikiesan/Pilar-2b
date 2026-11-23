@@ -8,12 +8,12 @@
 
 import { useEffect, useState } from 'react'
 import { useLocale, useTranslations } from 'next-intl'
-import { usePathname, useRouter } from '@/navigation'
+import { Link, usePathname, useRouter } from '@/navigation'
 import { loginHref } from '@/lib/authRedirect'
 import { isLocale } from '@/config/i18n'
 import { useLocaleSwitch } from '@/components/ui/LanguageSwitcher'
 import { Settings, User, Bell, Palette, Shield, HelpCircle, Save, Check } from 'lucide-react'
-import { useAuth } from '@/contexts/AuthContext'
+import { useAuth, useSessionUser } from '@/contexts/AuthContext'
 import { logger } from '@/lib/logger'
 import { BreadcrumbBar } from '@/components/ui/Breadcrumb'
 import { useBreadcrumbs } from '@/hooks/useBreadcrumbs'
@@ -39,6 +39,10 @@ export default function SettingsPage() {
   const router = useRouter()
   const pathname = usePathname()
   const { user, loading, isAuthenticated } = useAuth()
+  // The real profile from /auth/me, never the open-mode test user; /admin
+  // checks again on the server.
+  const sessionUser = useSessionUser()
+  const isAdmin = sessionUser?.role === 'admin' && sessionUser.is_active
   const t = useTranslations('settings_page')
   const locale = useLocale()
   const switchLocale = useLocaleSwitch()
@@ -180,6 +184,14 @@ export default function SettingsPage() {
                     </dd>
                   </div>
                 </dl>
+                {isAdmin && (
+                  <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-gray-200 pt-4 dark:border-slate-700">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">{t('admin_hint')}</p>
+                    <Link href="/admin" className="btn-primary min-h-11">
+                      {t('admin_link')}
+                    </Link>
+                  </div>
+                )}
               </div>
             </section>
 

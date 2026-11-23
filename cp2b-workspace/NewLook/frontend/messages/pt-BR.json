@@ -1681,6 +1681,8 @@
     "role": "Função",
     "role_admin": "Administrador",
     "role_user": "Usuário",
+    "admin_link": "Painel de acessos",
+    "admin_hint": "Aprovar pedidos de acesso e ajustar o nível de cada pessoa.",
     "not_set": "Não definido",
     "notifications_heading": "Notificações",
     "notifications_subtitle": "Configure suas preferências de notificação",
