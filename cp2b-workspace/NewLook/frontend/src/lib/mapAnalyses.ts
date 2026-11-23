@@ -179,8 +179,11 @@ export interface Classified {
   cell: number | null
 }
 
+/** A built-in analysis, or one served by the registry as `r:<id>` (lib/analysisRegistry.ts). */
+export type MapAnalysisRef = AnalysisId | `r:${string}`
+
 export interface AnalysisResult {
-  id: AnalysisId
+  id: MapAnalysisRef
   xBreaks: Breaks | null
   yBreaks: Breaks | null
   byCode: Map<string, Classified>

@@ -13,11 +13,12 @@ import { useTranslations } from 'next-intl';
 import { X } from 'lucide-react';
 import { useFormat } from '@/hooks/useFormat';
 import { BIVARIATE_FILLS, bivariateFills, cellInk, type BivariatePalette } from '@/lib/bivariate';
-import { ANALYSES, type AnalysisResult, type AxisDef, type Breaks } from '@/lib/mapAnalyses';
-import type { AnalysisId } from '@/lib/mapAnalyses';
+import { ANALYSES, isAnalysisId, type AnalysisResult, type AxisDef, type Breaks } from '@/lib/mapAnalyses';
+import type { AnalysisView } from '@/lib/analysisRegistry';
 
 interface Props {
-  id: AnalysisId;
+  /** What to draw, built-in or from the registry (lib/analysisRegistry.ts). */
+  view: AnalysisView;
   result: AnalysisResult | null;
   loading?: boolean;
   failed?: boolean;
@@ -52,11 +53,13 @@ export function MiniMatrix({ answerCell, size = 'h-2 w-2' }: { answerCell: numbe
 }
 
 export default function BivariateLegend({
-  id, result, loading, failed, palette = 'default', stateLabel, onClose, bare = false, pickedCell = null,
+  view, result, loading, failed, palette = 'default', stateLabel, onClose, bare = false, pickedCell = null,
 }: Props) {
   const t = useTranslations('Map.analyses');
   const format = useFormat();
-  const def = ANALYSES[id];
+  // A built-in knows its axes' units and methods; a registry analysis is
+  // served as cuts only, so its breaks read as plain tertile bounds.
+  const def = isAnalysisId(view.ref) ? ANALYSES[view.ref] : null;
   const fills = bivariateFills(palette);
 
   /** A break in the axis's own unit. */
@@ -73,25 +76,25 @@ export default function BivariateLegend({
     }
   };
   /** The three class labels of an axis, weakest first. */
-  const classLabels = (axis: AxisDef, breaks: Breaks | null): [string, string, string] => {
-    if (axis.method === 'fixed_count') return ['0', '1', '2+'];
+  const classLabels = (axis: AxisDef | null, breaks: Breaks | null): [string, string, string] => {
+    if (axis?.method === 'fixed_count') return ['0', '1', '2+'];
     if (!breaks) return ['', '', ''];
-    const [a, b] = breaks.map((v) => value(axis, v));
+    const [a, b] = breaks.map((v) => (axis ? value(axis, v) : format.compact(v)));
     // Inverted (distance): the strongest class is the smallest value.
-    return axis.invert ? [`≥ ${b}`, `${a}–${b}`, `< ${a}`] : [`< ${a}`, `${a}–${b}`, `≥ ${b}`];
+    return axis?.invert ? [`≥ ${b}`, `${a}–${b}`, `< ${a}`] : [`< ${a}`, `${a}–${b}`, `≥ ${b}`];
   };
 
-  const xLabels = classLabels(def.x, result?.xBreaks ?? null);
-  const yLabels = classLabels(def.y, result?.yBreaks ?? null);
-  const answer = result ? result.counts[def.answerCell] : null;
+  const xLabels = classLabels(def?.x ?? null, result?.xBreaks ?? null);
+  const yLabels = classLabels(def?.y ?? null, result?.yBreaks ?? null);
+  const answer = result ? result.counts[view.answerCell] : null;
 
   return (
     <section
-      aria-label={t(`${id}.title`)}
+      aria-label={view.title}
       className={bare ? 'text-ink' : 'surface-light w-[260px] border border-line bg-paper-raised/95 p-3 text-ink shadow-md backdrop-blur'}
     >
       <header className="mb-2 flex items-start gap-2">
-        <h3 className="min-w-0 flex-1 text-sm font-bold leading-snug">{t(`${id}.question`)}</h3>
+        <h3 className="min-w-0 flex-1 text-sm font-bold leading-snug">{view.question}</h3>
         {onClose && (
           <button
             type="button"
@@ -116,7 +119,7 @@ export default function BivariateLegend({
             <div className="flex items-stretch gap-1">
               <span className="flex w-4 items-center justify-center">
                 <span className="-rotate-90 whitespace-nowrap text-[10px] font-semibold text-ink-muted">
-                  {t(`axes.${def.y.key}`)} ↑
+                  {view.yLabel} ↑
                 </span>
               </span>
               <div className="flex flex-col gap-px text-right text-[10px] tabular-nums leading-none text-ink-muted">
@@ -130,7 +133,7 @@ export default function BivariateLegend({
                 {[2, 1, 0].map((cy) =>
                   [0, 1, 2].map((cx) => {
                     const cell = cy * 3 + cx;
-                    const isAnswer = cell === def.answerCell;
+                    const isAnswer = cell === view.answerCell;
                     const isPicked = cell === pickedCell;
                     return (
                       <span
@@ -159,18 +162,25 @@ export default function BivariateLegend({
               <div className="mt-1 grid grid-cols-3 text-center text-[10px] tabular-nums leading-tight text-ink-muted">
                 {xLabels.map((l, i) => <span key={i}>{l}</span>)}
               </div>
-              <p className="mt-0.5 text-center text-[10px] font-semibold text-ink-muted">{t(`axes.${def.x.key}`)} →</p>
+              <p className="mt-0.5 text-center text-[10px] font-semibold text-ink-muted">{view.xLabel} →</p>
             </div>
           </div>
 
           <p className="mt-2 text-xs leading-snug">
-            {t.rich('answer', { count: answer ?? 0, b: (c) => <b>{c}</b> })} {t(`${id}.answer`)}
+            {def ? (
+              <>{t.rich('answer', { count: answer ?? 0, b: (c) => <b>{c}</b> })} {view.answer}</>
+            ) : (
+              // The registry has no answer of its own: the count, then the generic line.
+              <><b>{format.number(answer ?? 0)}</b> {view.answer}</>
+            )}
           </p>
           <p className="mt-1 text-[10px] leading-snug text-ink-muted">
             {t('method', { state: stateLabel })}
-            {(def.x.method === 'fixed_count' || def.y.method === 'fixed_count') && ` ${t('method_plants')}`}
+            {def && (def.x.method === 'fixed_count' || def.y.method === 'fixed_count') && ` ${t('method_plants')}`}
             {result.noData > 0 && ` ${t('no_data', { count: result.noData })}`}
           </p>
+          {/* The registry's own source line; '' when the analysis has none. */}
+          {view.source && <p className="mt-1 text-[10px] leading-snug text-ink-muted">{view.source}</p>}
         </>
       )}
     </section>

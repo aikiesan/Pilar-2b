@@ -1104,7 +1104,11 @@
         "question": "Where is the most Ideal potential lost before Real?",
         "answer": "much Ideal potential and the largest loss to Real."
       },
-      "method_plants": "Plants as 0, 1 and 2 or more."
+      "method_plants": "Plants as 0, 1 and 2 or more.",
+      "registry_answer": "municipalities in the highlighted cell",
+      "registry_section": "More analyses",
+      "registry_more_with_login": "More analyses with sign-in",
+      "registry_unavailable": "This analysis is not available for this account."
     },
     "landAround": {
       "toggle": "Land around",

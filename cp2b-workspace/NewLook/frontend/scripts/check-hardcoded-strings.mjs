@@ -37,6 +37,13 @@ const report = process.argv.includes('--report');
 const PENDING = [
 ];
 
+/**
+ * The admin panel is Portuguese only by decision (a handful of admins, not the
+ * public site), so its copy is written in the components. The API client for it
+ * carries the same Portuguese error messages.
+ */
+const PT_ONLY = ['src/components/admin/', 'src/app/[locale]/admin/', 'src/lib/api/adminClient.ts'];
+
 function sourceFiles(dir, out = []) {
   for (const name of readdirSync(dir)) {
     const path = join(dir, name);
@@ -56,6 +63,7 @@ const perFile = [];
 
 for (const path of sourceFiles(SRC)) {
   const file = toPosix(relative(ROOT, path));
+  if (PT_ONLY.some((prefix) => file.startsWith(prefix))) continue;
   const { findings, bareExemptions } = scanSource(readFileSync(path, 'utf8'), path);
 
   for (const line of bareExemptions) {

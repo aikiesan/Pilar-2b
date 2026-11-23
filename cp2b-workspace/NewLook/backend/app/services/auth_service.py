@@ -76,6 +76,7 @@ def _row_to_profile(row: dict) -> UserProfile:
         is_active=bool(row["is_active"]),
         created_at=row["created_at"],
         updated_at=row["updated_at"],
+        last_login_at=row.get("last_login_at"),
     )
 
 
@@ -289,7 +290,8 @@ class AuthService:
         with get_db() as conn:
             cur = conn.cursor()
             cur.execute("""
-                SELECT id, email, full_name, role, clearance, is_active, created_at, updated_at
+                SELECT id, email, full_name, role, clearance, is_active, created_at, updated_at,
+                       last_login_at
                 FROM auth_users ORDER BY created_at DESC
                 """)
             rows = cur.fetchall()
@@ -307,6 +309,27 @@ class AuthService:
         if not found:
             raise HTTPException(status_code=404, detail="User not found")
         return {"message": "User activated" if active else "User deactivated"}
+
+    async def set_clearance(self, user_id: str, clearance: int) -> UserProfile:
+        try:
+            user_id = str(uuid.UUID(user_id))
+        except ValueError:
+            raise HTTPException(status_code=404, detail="User not found")
+        with get_db_transaction() as conn:
+            cur = conn.cursor()
+            cur.execute(
+                """
+                UPDATE auth_users SET clearance=%s, updated_at=now() WHERE id=%s
+                RETURNING id, email, full_name, role, clearance, is_active, created_at,
+                          updated_at, last_login_at
+                """,
+                (clearance, user_id),
+            )
+            row = cur.fetchone()
+            cur.close()
+        if not row:
+            raise HTTPException(status_code=404, detail="User not found")
+        return _row_to_profile(row)
 
     async def delete_user(self, user_id: str) -> Dict[str, str]:
         with get_db_transaction() as conn:

@@ -11,7 +11,7 @@
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useIsClient } from '@/hooks/useIsClient';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import MapTour, { MapTourButton } from './MapTour';
 import { MapContainer, TileLayer, ScaleControl, ZoomControl, useMap } from 'react-leaflet';
 import dynamic from 'next/dynamic';
@@ -23,7 +23,7 @@ import { buildProfiles, findSimilar } from '@/lib/similarity';
 import { isTruckReachData, summarizeTruckReach, type TruckLimit, type TruckSite } from '@/lib/truckReach';
 import type { TruckReachState } from './TruckReachWindow';
 import { useMapToolAccess } from '@/lib/mapToolAccess';
-import { useGeospatialData, useCodigestionClusters, useResidueCNMatrix, useIntermediateRegionsGeoJSON, useSitingIndicators, useMunicipalityLandCover, useTruckSites, useTruckReach } from '@/hooks/useGeospatialData';
+import { useGeospatialData, useCodigestionClusters, useResidueCNMatrix, useIntermediateRegionsGeoJSON, useSitingIndicators, useMunicipalityLandCover, useTruckSites, useTruckReach, useRegistryAnalyses, useRegistryAnalysis } from '@/hooks/useGeospatialData';
 import { figureState, kmDecimals, landCoverFigureState, nextComparePair } from '@/lib/compare';
 import { buildDots, buildSymbols } from '@/lib/magnitudeViews';
 import { isAmountMetric } from '@/lib/sectorSplit';
@@ -32,7 +32,11 @@ import { prefersReducedMotion } from '@/lib/mapMotion';
 import { useFormat } from '@/hooks/useFormat';
 import { LATEST_LAND_COVER_YEAR } from '@/lib/landCover';
 import { centroidOf, haversineKm } from '@/lib/mapGeometry';
-import { ANALYSES, analysisFill, classifyAnalysis, isAnalysisId, type AnalysisId } from '@/lib/mapAnalyses';
+import { ANALYSES, analysisFill, classifyAnalysis, isAnalysisId } from '@/lib/mapAnalyses';
+import {
+  builtInView, isRegistryRef, readAnalysisRef, registryId, registryResult, registryView,
+  type AnalysisView, type MapAnalysisRef,
+} from '@/lib/analysisRegistry';
 import BivariateLegend from './BivariateLegend';
 import type { CrossPicked } from './CrossWindow';
 import type { FilterCriteria, BiomassType, ResidueType, VisualizationMode } from '@/types/map';
@@ -374,6 +378,8 @@ export default function MapComponent({
   const t = useTranslations('Map');
   const tCompare = useTranslations('Map.compare');
   const tCommon = useTranslations('common');
+  const tAnalyses = useTranslations('Map.analyses');
+  const viewLocale = useLocale() === 'en' ? 'en' : 'pt-BR';
   const { data, loading, error } = useGeospatialData();
 
   // Backend typology/regime values are identifiers; show their catalog label.
@@ -408,12 +414,16 @@ export default function MapComponent({
   const urlScope = readURLParam('scope'); // 'brazil' → national view
   // Held back with MAP_ANALYSES_ENABLED: an old ?a= link opens the plain map,
   // unless it opens the Cruzar tool, which shows it to approved accounts.
-  const urlAnalysis = MAP_ANALYSES_ENABLED || readURLParam('tool') === 'cross' ? readURLParam('a') : null;
+  // A registry link (?a=r:<id>) is not held back: the API decides who sees it.
+  const rawUrlAnalysis = readURLParam('a');
+  const urlRegistryLink = rawUrlAnalysis?.startsWith('r:') ?? false;
+  const urlAnalysis = MAP_ANALYSES_ENABLED || urlRegistryLink || readURLParam('tool') === 'cross' ? rawUrlAnalysis : null;
+  const urlAnalysisRef = readAnalysisRef(urlAnalysis);
   const initialScope = parseScopeParam(urlScope);
 
   // An analysis paints the choropleth, so ?a= wins over any other ?mode=.
   const initialMode: VisualizationMode =
-    isAnalysisId(urlAnalysis) ? 'choropleth'
+    urlAnalysisRef ? 'choropleth'
       : VALID_VIZ.includes(urlMode as VisualizationMode) ? (urlMode as VisualizationMode) : 'choropleth';
 
   // visualizationMode must be declared before useCodigestionClusters uses it
@@ -467,15 +477,23 @@ export default function MapComponent({
   const [thematicBarCollapsed, setThematicBarCollapsed] = useState(false);
   // The bivariate analysis painting the map, if any (?a=<id>). Any other map
   // choice (metric, mode, theme, filter) ends it: the two never mix.
-  const [activeAnalysis, setActiveAnalysis] = useState<AnalysisId | null>(
-    isAnalysisId(urlAnalysis) ? urlAnalysis : null
+  const [activeAnalysis, setActiveAnalysis] = useState<MapAnalysisRef | null>(urlAnalysisRef);
+  // A registry link that is malformed, or that this account may not see: the
+  // map opens with no analysis and the Cruzar window says so, the same words
+  // either way, so a link does not tell a hidden analysis from a missing one.
+  // The registry link as asked for (well-formed only). A visitor who is not
+  // signed in gets a 404 for it and the analysis is cleared, yet the login
+  // link must still bring it back once the account may see it.
+  const [requestedRegistryRef] = useState<MapAnalysisRef | null>(
+    urlAnalysisRef !== null && isRegistryRef(urlAnalysisRef) ? urlAnalysisRef : null,
   );
+  const [registryUnavailable, setRegistryUnavailable] = useState(urlRegistryLink && urlAnalysisRef === null);
   // While the analyses are held back, drop an old ?a= so the URL matches the
   // plain map it opened (and a shared link does not carry it on).
   useEffect(() => {
     if (MAP_ANALYSES_ENABLED || typeof window === 'undefined') return;
     const params = new URLSearchParams(window.location.search);
-    if (!params.has('a') || params.get('tool') === 'cross') return;
+    if (!params.has('a') || params.get('tool') === 'cross' || params.get('a')?.startsWith('r:')) return;
     params.delete('a');
     const query = params.toString();
     window.history.replaceState(null, '', `${window.location.pathname}${query ? `?${query}` : ''}`);
@@ -576,7 +594,10 @@ export default function MapComponent({
     parseMapToolParams(initialSearch),
   );
   const [activeTool, setActiveTool] = useState<MapToolId | null>(
-    isMapToolAvailable(initialTools.tool) ? initialTools.tool : null,
+    isMapToolAvailable(initialTools.tool)
+      ? initialTools.tool
+      // A registry link opens Cruzar: its reading, or why there is none, lives there.
+      : urlRegistryLink ? 'cross' : null,
   );
   // Land around
   const landOn = activeTool === 'land';
@@ -643,8 +664,42 @@ export default function MapComponent({
   // Cruzar: the analysis is the map's own ?a=; the tool is how it reaches
   // approved accounts while MAP_ANALYSES_ENABLED keeps it off the public map.
   const crossOn = activeTool === 'cross';
-  const analysisShown: AnalysisId | null =
-    activeAnalysis && (MAP_ANALYSES_ENABLED || (crossOn && toolAccess === 'allowed')) ? activeAnalysis : null;
+  const activeRegistryId = activeAnalysis && isRegistryRef(activeAnalysis) ? registryId(activeAnalysis) : null;
+  // Asked for only where they can show: Cruzar, the panel (flag on), or a link.
+  const registryList = useRegistryAnalyses(crossOn || MAP_ANALYSES_ENABLED || activeRegistryId !== null);
+  const registryDetail = useRegistryAnalysis(activeRegistryId, activeRegistryId !== null);
+  // The API's 404 (or a list without it) reads the same as a malformed link.
+  const registryHidden = activeRegistryId !== null && (
+    (registryDetail.isSuccess && registryDetail.data === null)
+    || (registryList.isSuccess && !registryList.data?.some((meta) => meta.id === activeRegistryId))
+  );
+  const analysisUnavailable = registryUnavailable || registryHidden;
+  // What was chosen, less a registry analysis the API will not serve.
+  const analysisChosen = registryHidden ? null : activeAnalysis;
+  // A registry analysis is shown whenever the API served it, flag or not.
+  const analysisShown: MapAnalysisRef | null =
+    analysisChosen && (isRegistryRef(analysisChosen) || MAP_ANALYSES_ENABLED || (crossOn && toolAccess === 'allowed'))
+      ? analysisChosen
+      : null;
+  const registryAnswer = tAnalyses('registry_answer');
+  const registryViews = useMemo(
+    () => (registryList.data ?? []).map((meta) => registryView(meta, viewLocale, registryAnswer)),
+    [registryList.data, viewLocale, registryAnswer],
+  );
+  const analysisView: AnalysisView | null = !analysisShown
+    ? null
+    : isAnalysisId(analysisShown)
+      ? builtInView(analysisShown, tAnalyses)
+      : (registryViews.find((v) => v.ref === analysisShown) ?? null);
+  // Drop the link's ?a=, so the URL matches the plain map it opened.
+  useEffect(() => {
+    if (!analysisUnavailable || typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    if (!params.has('a')) return;
+    params.delete('a');
+    const query = params.toString();
+    window.history.replaceState(null, '', `${window.location.pathname}${query ? `?${query}` : ''}`);
+  }, [analysisUnavailable]);
   // The municipality whose cell the Cruzar window marks (a click or a search pick).
   const [crossPick, setCrossPick] = useState<string | null>(null);
 
@@ -665,8 +720,9 @@ export default function MapComponent({
 
   // Choose a bivariate analysis (or none). It paints the choropleth, so the map
   // goes back to the choropleth mode, and the theme highlight goes.
-  const handleAnalysisChange = useCallback((next: AnalysisId | null) => {
+  const handleAnalysisChange = useCallback((next: MapAnalysisRef | null) => {
     setActiveAnalysis(next);
+    setRegistryUnavailable(false);
     if (next) {
       setVisualizationMode('choropleth');
       setShowClusterPanel(false);
@@ -985,9 +1041,11 @@ export default function MapComponent({
   const topRowRef = useTopRowClearance();
 
   const analysisOwnedLayersRef = useRef<readonly string[]>([]);
+  // As a string, so a registry view rebuilt on each render does not re-run it.
+  const analysisLayersKey = (analysisView?.layers ?? []).join(',');
   useEffect(() => {
     const next: readonly string[] = [
-      ...(analysisShown ? ANALYSES[analysisShown].layers : []),
+      ...(analysisLayersKey ? analysisLayersKey.split(',') : []),
       ...(truckOn ? TRUCK_CONTEXT_LAYERS : []),
     ];
     if (analysisOwnedLayersRef.current.length === 0 && next.length === 0) return;
@@ -1007,7 +1065,7 @@ export default function MapComponent({
       analysisOwnedLayersRef.current = nowOwned;
       return updated;
     });
-  }, [analysisShown, truckOn]);
+  }, [analysisLayersKey, truckOn]);
 
   const visibleLayerIds = useMemo(
     () => layers.filter(l => l.visible).map((l): string => l.id),
@@ -1164,7 +1222,8 @@ export default function MapComponent({
   }, [filteredData, displayMetric, biomassType, selectedResidues, mapScenario, scope]);
 
   // ── Bivariate analysis ──────────────────────────────────────────────────────
-  const analysisDef = analysisShown ? ANALYSES[analysisShown] : null;
+  const analysisDef = analysisShown && isAnalysisId(analysisShown) ? ANALYSES[analysisShown] : null;
+  const registryShown = analysisShown !== null && isRegistryRef(analysisShown);
   const compareAllowed = compareOn && toolAccess === 'allowed';
   // Compare reads the pipelines and plants too (a public endpoint) and the land
   // cover (signed-in only).
@@ -1181,15 +1240,22 @@ export default function MapComponent({
     [tCompare, formatNumber],
   );
   const sitingIndicators = siting.data?.available ? siting.data.indicators : null;
-  const analysisWaiting = Boolean(analysisDef?.needsSiting) && !sitingIndicators;
-  const analysisFailed = Boolean(analysisDef?.needsSiting) && (siting.isError || siting.data?.available === false);
+  const analysisWaiting = registryShown
+    ? !registryDetail.data || !analysisView
+    : Boolean(analysisDef?.needsSiting) && !sitingIndicators;
+  const analysisFailed = registryShown
+    ? registryDetail.isError || registryList.isError
+    : Boolean(analysisDef?.needsSiting) && (siting.isError || siting.data?.available === false);
   const analysisUf = scope === '31' ? '31' : SAO_PAULO_UF;
+  const registryDetailData = registryShown ? registryDetail.data ?? null : null;
   const analysisResult = useMemo(() => {
+    // Served already classified: the server cut the classes per state.
+    if (registryDetailData) return registryResult(registryDetailData, analysisUf);
     if (!analysisDef || analysisWaiting) return null;
     // Methane follows the scenario the map is on (N4 Real, N3 Ideal).
     const tier = SERVED_SOURCE_TIER[isServedScenario(mapScenario) ? mapScenario : 'real'];
     return classifyAnalysis(analysisDef, data?.features ?? [], analysisUf, sitingIndicators, `ch4_${tier}_m3_year`);
-  }, [analysisDef, analysisWaiting, data, analysisUf, sitingIndicators, mapScenario]);
+  }, [registryDetailData, analysisDef, analysisWaiting, data, analysisUf, sitingIndicators, mapScenario]);
   const analysisFillFor = useMemo(() => {
     if (!analysisResult) return null;
     const palette = daltonic ? 'cvd' : 'default';
@@ -1901,7 +1967,7 @@ export default function MapComponent({
           <MapPresence show={crossOn}>
           <CrossWindow
             access={toolAccess}
-            active={analysisShown ?? (toolAccess === 'allowed' ? null : activeAnalysis)}
+            active={analysisShown ?? (toolAccess === 'allowed' ? null : analysisChosen)}
             onChoose={handleAnalysisChange}
             onClose={closeTool}
             result={analysisResult}
@@ -1910,6 +1976,9 @@ export default function MapComponent({
             palette={daltonic ? 'cvd' : 'default'}
             stateLabel={activeStateName}
             picked={crossPicked}
+            registry={registryViews}
+            unavailable={analysisUnavailable}
+            loginAnalysis={requestedRegistryRef}
           />
           </MapPresence>
         )}
@@ -2106,10 +2175,10 @@ export default function MapComponent({
         {/* With Cruzar open to an approved account the reading sits in its
             window instead; anyone else sees the window's gate, so the map
             keeps its key here. */}
-        {showMunicipalityFill && analysisShown && !(crossOn && toolAccess === 'allowed') && visualizationMode === 'choropleth' && (
+        {showMunicipalityFill && analysisView && !(crossOn && (registryShown || toolAccess === 'allowed')) && visualizationMode === 'choropleth' && (
           <div data-tour="map-legend">
             <BivariateLegend
-              id={analysisShown}
+              view={analysisView}
               result={analysisResult}
               loading={analysisWaiting && !analysisFailed}
               failed={analysisFailed}

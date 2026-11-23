@@ -157,8 +157,8 @@ def require_clearance(level: int):
     """
     Dependency factory to require a minimum data-clearance level.
 
-    Clearance tiers: 0 public · 1 internal · 2 confidential. Gated independently
-    of role so the most confidential data can require an explicit clearance.
+    Clearance tiers: 0 público · 1 registrado · 2 parceiro · 3 interno. Gated independently
+    of role so restricted data can require an explicit clearance.
 
     Usage:
         @router.get("/secret", dependencies=[Depends(require_clearance(2))])

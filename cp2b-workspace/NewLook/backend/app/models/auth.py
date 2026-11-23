@@ -13,8 +13,8 @@ from pydantic import BaseModel, EmailStr, Field, field_validator
 UserRole = Literal["visitante", "autenticado", "interno", "admin"]
 
 # Data-clearance tiers, gated independently of role:
-#   0 = public · 1 = internal · 2 = confidential
-Clearance = Literal[0, 1, 2]
+#   0 = public · 1 = registered · 2 = partner · 3 = internal
+Clearance = Literal[0, 1, 2, 3]
 
 
 class UserRegistration(BaseModel):
@@ -77,6 +77,7 @@ class UserProfile(BaseModel):
     is_active: bool = True
     created_at: datetime
     updated_at: datetime
+    last_login_at: Optional[datetime] = None  # filled by the admin user list
 
     class Config:
         json_schema_extra = {
@@ -131,7 +132,7 @@ class AdminCreateUser(BaseModel):
     password: str = Field(..., min_length=8, max_length=100)
     full_name: str = Field(..., min_length=2, max_length=100)
     role: UserRole = "autenticado"
-    clearance: int = Field(0, ge=0, le=2)
+    clearance: int = Field(1, ge=0, le=3)  # 1 = registered, unless the admin says otherwise
 
     @field_validator("password")
     @classmethod
@@ -143,6 +144,12 @@ class AdminCreateUser(BaseModel):
         if not re.search(r"\d", v):
             raise ValueError("Password must contain at least one digit")
         return v
+
+
+class ClearanceUpdate(BaseModel):
+    """Admin-only: set a person's data clearance (0 public .. 3 internal)."""
+
+    clearance: int = Field(..., ge=0, le=3)
 
 
 class MessageResponse(BaseModel):

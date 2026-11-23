@@ -54,6 +54,13 @@ const TRUCK_SITES = [
   { site_id: 'ITB_SP_0005', name: 'Usina São Martinho', kind: 'ethanol', ibge_code: '3518206', municipality: 'Pradópolis', at_town_centre: false, lon: -48.07, lat: -21.36 },
   { site_id: 'ITB_SP_0006', name: 'Usina Alta Mogiana', kind: 'ethanol', ibge_code: '3549102', municipality: 'São Joaquim da Barra', at_town_centre: false, lon: -47.85, lat: -20.58 },
 ];
+// Registry analyses (GET /analyses, /analyses/{id}); each test sets what the API answers.
+type RegistryQuery = { data: unknown; isError: boolean; isSuccess: boolean };
+const registryEmpty: RegistryQuery = { data: [], isError: false, isSuccess: true };
+const mockUseRegistryAnalyses = jest.fn((_enabled: boolean): RegistryQuery => registryEmpty);
+const mockUseRegistryAnalysis = jest.fn(
+  (_id: string | null, _enabled: boolean): RegistryQuery => ({ data: undefined, isError: false, isSuccess: false }),
+);
 jest.mock('@/hooks/useGeospatialData', () => ({
   useGeospatialData: () => mockUseGeospatialData(),
   useCodigestionClusters: () => ({ data: null, loading: false, error: null, isFetching: false, refetch: jest.fn() }),
@@ -66,6 +73,8 @@ jest.mock('@/hooks/useGeospatialData', () => ({
   useMunicipalityLandCover: (_year: number, enabled: boolean) => mockUseLandCover(enabled),
   useTruckSites: (enabled: boolean) => ({ data: enabled ? { available: true, built_at: '', sites: TRUCK_SITES } : undefined, isError: false }),
   useTruckReach: (site: string | null, enabled: boolean) => mockUseTruckReach(site, enabled),
+  useRegistryAnalyses: (enabled: boolean) => mockUseRegistryAnalyses(enabled),
+  useRegistryAnalysis: (id: string | null, enabled: boolean) => mockUseRegistryAnalysis(id, enabled),
 }));
 
 // MAP_ANALYSES_ENABLED is a build-time constant; a getter lets each test pick it.
@@ -346,6 +355,9 @@ describe('MapComponent', () => {
     // into the next test's initial state (read via readURLParam on mount).
     window.history.replaceState(null, '', '/');
     mockAnalysesEnabled = false;
+    mockToolAccess = 'allowed';
+    mockUseRegistryAnalyses.mockImplementation(() => registryEmpty);
+    mockUseRegistryAnalysis.mockImplementation(() => ({ data: undefined, isError: false, isSuccess: false }));
   });
 
   afterEach(() => {
@@ -1528,6 +1540,109 @@ describe('MapComponent', () => {
       expect(screen.queryByRole('button', { name: /Potencial sem planta/ })).not.toBeInTheDocument();
       expect(mockUseSitingIndicators).not.toHaveBeenCalledWith(true);
       expect(screen.getByTestId('desktop-left-panel')).toHaveAttribute('data-active-analysis', '');
+    });
+
+    describe('registry analyses (?a=r:<id>)', () => {
+      // Made up: the repository is public.
+      const demoMeta = {
+        id: 'demo_xy',
+        title: { pt: 'Demo XY', en: 'Demo XY (en)' },
+        question: { pt: 'Onde X e Y se encontram?', en: 'Where do X and Y meet?' },
+        source: null,
+        x_label: { pt: 'Eixo X', en: 'X axis' },
+        y_label: { pt: 'Eixo Y', en: 'Y axis' },
+        answer_cell: 8,
+        layers: ['biogas_plant'],
+        uf_prefixes: ['35'],
+      };
+      const demoDetail = {
+        id: 'demo_xy',
+        cells: { '3550308': 8 },
+        breaks: { '35': { x: [10, 20], y: [3, 7] } },
+        counts: { '35': [0, 0, 0, 0, 0, 0, 0, 0, 1] },
+        no_data: { '35': 0 },
+      };
+      const unavailable = 'Esta análise não está disponível para esta conta.';
+
+      it('draws a registry analysis the API serves, with the flag off, and turns its layers on', async () => {
+        mockUseRegistryAnalyses.mockImplementation(() => ({ data: [demoMeta], isError: false, isSuccess: true }));
+        mockUseRegistryAnalysis.mockImplementation((id) => (
+          id === 'demo_xy' ? { data: demoDetail, isError: false, isSuccess: true } : { data: undefined, isError: false, isSuccess: false }
+        ));
+        window.history.replaceState(null, '', '/map?tool=cross&a=r:demo_xy');
+        render(<MapComponent />);
+        act(() => { jest.advanceTimersByTime(1500); });
+
+        expect(await screen.findByRole('heading', { name: 'Onde X e Y se encontram?' })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /Demo XY/, pressed: true })).toBeInTheDocument();
+        expect(screen.getByTestId('desktop-left-panel')).toHaveAttribute('data-active-analysis', 'r:demo_xy');
+        expect(screen.getByRole('region', { name: 'Demo XY' })).toHaveTextContent('1 municípios na célula em destaque');
+        await waitFor(() => expect(screen.getByTestId('layer-toggle-biogas_plant')).toHaveTextContent(': ON'));
+        expect(window.location.search).toContain('a=r%3Ademo_xy');
+        expect(screen.queryByText(unavailable)).not.toBeInTheDocument();
+
+        // Closing the tool ends it and takes its layer away again.
+        fireEvent.keyDown(window, { key: 'Escape' });
+        await waitFor(() => expect(screen.getByTestId('layer-toggle-biogas_plant')).toHaveTextContent(': OFF'));
+        expect(window.location.search).not.toMatch(/(^|[?&])a=/);
+      });
+
+      it('a shared ?a=r:<id> the API hides opens the map with no analysis and says so', async () => {
+        mockUseRegistryAnalyses.mockImplementation(() => ({ data: [], isError: false, isSuccess: true }));
+        mockUseRegistryAnalysis.mockImplementation((id) => (
+          id === 'hidden_one' ? { data: null, isError: false, isSuccess: true } : { data: undefined, isError: false, isSuccess: false }
+        ));
+        window.history.replaceState(null, '', '/map?a=r:hidden_one&scope=35');
+        render(<MapComponent />);
+        act(() => { jest.advanceTimersByTime(1500); });
+
+        expect(await screen.findByText(unavailable)).toBeInTheDocument();
+        expect(screen.getByRole('complementary', { name: 'Cruzar dois dados no mapa' })).toBeInTheDocument();
+        expect(screen.getByTestId('desktop-left-panel')).toHaveAttribute('data-active-analysis', '');
+        await waitFor(() => expect(window.location.search).not.toMatch(/(^|[?&])a=/));
+        expect(window.location.search).toContain('scope=35');
+      });
+
+      it('a signed-out visitor whose link the API hides still gets a login that brings the analysis back', async () => {
+        mockToolAccess = 'sign_in';
+        mockUseRegistryAnalyses.mockImplementation(() => ({ data: [], isError: false, isSuccess: true }));
+        mockUseRegistryAnalysis.mockImplementation((id) => (
+          id === 'hidden_one' ? { data: null, isError: false, isSuccess: true } : { data: undefined, isError: false, isSuccess: false }
+        ));
+        window.history.replaceState(null, '', '/map?a=r:hidden_one&scope=35');
+        render(<MapComponent />);
+        act(() => { jest.advanceTimersByTime(1500); });
+
+        expect(await screen.findByText(unavailable)).toBeInTheDocument();
+        await waitFor(() => expect(window.location.search).not.toMatch(/(^|[?&])a=/));
+        for (const name of ['Entrar', 'Mais análises com login']) {
+          const href = screen.getByRole('link', { name }).getAttribute('href') ?? '';
+          expect(new URL(href, 'http://x').searchParams.get('next')).toContain('a=r%3Ahidden_one');
+        }
+      });
+
+      it('a malformed ref is not carried through the login', async () => {
+        mockToolAccess = 'sign_in';
+        window.history.replaceState(null, '', '/map?a=r:Bad-Id');
+        render(<MapComponent />);
+        act(() => { jest.advanceTimersByTime(1500); });
+
+        expect(await screen.findByText(unavailable)).toBeInTheDocument();
+        const href = screen.getByRole('link', { name: 'Entrar' }).getAttribute('href') ?? '';
+        expect(decodeURIComponent(href)).not.toContain('a=');
+      });
+
+      it('a malformed ?a=r:Bad-Id says exactly the same', async () => {
+        window.history.replaceState(null, '', '/map?a=r:Bad-Id&scope=35');
+        render(<MapComponent />);
+        act(() => { jest.advanceTimersByTime(1500); });
+
+        expect(await screen.findByText(unavailable)).toBeInTheDocument();
+        expect(screen.getByTestId('desktop-left-panel')).toHaveAttribute('data-active-analysis', '');
+        expect(mockUseRegistryAnalysis).not.toHaveBeenCalledWith(expect.anything(), true);
+        await waitFor(() => expect(window.location.search).not.toMatch(/(^|[?&])a=/));
+        expect(window.location.search).toContain('scope=35');
+      });
     });
 
     it('opens nothing for a link to a tool not on offer, and drops it from the URL', async () => {

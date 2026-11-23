@@ -27,7 +27,8 @@ import { layerSources } from '@/lib/dataSources';
 import Cite from '@/components/mandate/Cite';
 import { DISPLAY_METRICS, METRIC_SPECS } from '@/lib/mapMetrics';
 import { MiniMatrix } from './BivariateLegend';
-import { ANALYSES, ANALYSIS_IDS, type AnalysisId } from '@/lib/mapAnalyses';
+import { ANALYSIS_IDS } from '@/lib/mapAnalyses';
+import { builtInView, type AnalysisView, type MapAnalysisRef } from '@/lib/analysisRegistry';
 import type { ThematicPreset } from '@/data/thematicPresets';
 import { DATA_EXPORT_ENABLED } from '@/lib/featureFlags';
 import { MG_BETA_LAYER_ID } from '@/lib/mapScope';
@@ -84,8 +85,10 @@ interface DesktopLeftPanelProps {
   /** Id of the last-applied preset, for highlighting; null once edited by hand. */
   activePresetId?: string | null;
   /** The bivariate analysis painting the map, if any. */
-  activeAnalysis?: AnalysisId | null;
-  onAnalysisChange?: (id: AnalysisId | null) => void;
+  activeAnalysis?: MapAnalysisRef | null;
+  onAnalysisChange?: (ref: MapAnalysisRef | null) => void;
+  /** Registry analyses this account may see (GET /analyses), after the four. */
+  registryAnalyses?: readonly AnalysisView[];
 }
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -130,12 +133,32 @@ const LAYER_GROUPS: { labelKey: LayerGroupKey; ids: readonly string[] }[] = [
 // They sit first because they are the answers; the metric and the layers below
 // are for whoever wants to build a reading of their own.
 function AnalysesSection({
-  activeAnalysis, onAnalysisChange,
+  activeAnalysis, onAnalysisChange, registry,
 }: {
-  activeAnalysis: AnalysisId | null;
-  onAnalysisChange: (id: AnalysisId | null) => void;
+  activeAnalysis: MapAnalysisRef | null;
+  onAnalysisChange: (ref: MapAnalysisRef | null) => void;
+  registry: readonly AnalysisView[];
 }) {
   const t = useTranslations('Map.analyses');
+  const card = (view: AnalysisView, axes: string) => {
+    const active = activeAnalysis === view.ref;
+    return (
+      <button
+        key={view.ref}
+        type="button"
+        aria-pressed={active}
+        onClick={() => onAnalysisChange(active ? null : view.ref)}
+        title={view.question}
+        className={`flex flex-col gap-1.5 rounded-lg border p-2 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-terra-600 ${
+          active ? 'border-terra-600 bg-terra-50 ring-1 ring-terra-600' : 'border-line bg-paper-raised hover:border-line-strong hover:bg-paper-sunken'
+        }`}
+      >
+        <MiniMatrix answerCell={view.answerCell} />
+        <span className="text-xs font-semibold leading-tight text-ink">{view.title}</span>
+        <span className="text-[10px] leading-tight text-ink-muted">{axes}</span>
+      </button>
+    );
+  };
   return (
     <section id="map-panel-analyses" aria-labelledby="map-panel-analyses-h" data-tour="map-tabs">
       <div className="mb-1.5 flex items-baseline justify-between gap-2">
@@ -143,26 +166,16 @@ function AnalysesSection({
         <span className="text-[10px] text-ink-muted">{t('heading_note')}</span>
       </div>
       <div className="grid grid-cols-2 gap-1.5">
-        {ANALYSIS_IDS.map((id) => {
-          const active = activeAnalysis === id;
-          return (
-            <button
-              key={id}
-              type="button"
-              aria-pressed={active}
-              onClick={() => onAnalysisChange(active ? null : id)}
-              title={t(`${id}.question`)}
-              className={`flex flex-col gap-1.5 rounded-lg border p-2 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-terra-600 ${
-                active ? 'border-terra-600 bg-terra-50 ring-1 ring-terra-600' : 'border-line bg-paper-raised hover:border-line-strong hover:bg-paper-sunken'
-              }`}
-            >
-              <MiniMatrix answerCell={ANALYSES[id].answerCell} />
-              <span className="text-xs font-semibold leading-tight text-ink">{t(`${id}.title`)}</span>
-              <span className="text-[10px] leading-tight text-ink-muted">{t(`${id}.axes`)}</span>
-            </button>
-          );
-        })}
+        {ANALYSIS_IDS.map((id) => card(builtInView(id, t), t(`${id}.axes`)))}
       </div>
+      {registry.length > 0 && (
+        <>
+          <h3 className="mb-1.5 mt-3 text-[11px] font-semibold uppercase tracking-wide text-ink-muted">{t('registry_section')}</h3>
+          <div className="grid grid-cols-2 gap-1.5">
+            {registry.map((view) => card(view, `${view.xLabel} × ${view.yLabel}`))}
+          </div>
+        </>
+      )}
       <p className="mt-1.5 text-[10px] leading-snug text-ink-muted">{t('themes_hint')}</p>
     </section>
   );
@@ -565,7 +578,7 @@ export default function DesktopLeftPanel({
   displayMetric, onDisplayMetricChange,
   scopeUf = 'SP',
   scenario = DEFAULT_MAP_SCENARIO,
-  activeAnalysis = null, onAnalysisChange,
+  activeAnalysis = null, onAnalysisChange, registryAnalyses = [],
 }: DesktopLeftPanelProps) {
   const t = useTranslations('Map');
   const [collapsed, setCollapsed] = useState(false);
@@ -646,7 +659,7 @@ export default function DesktopLeftPanel({
           />
           <div className="flex-1 min-h-0 space-y-4 overflow-y-auto px-3 py-3">
             {onAnalysisChange && (
-              <AnalysesSection activeAnalysis={activeAnalysis} onAnalysisChange={onAnalysisChange} />
+              <AnalysesSection activeAnalysis={activeAnalysis} onAnalysisChange={onAnalysisChange} registry={registryAnalyses} />
             )}
             <MapShowsSection
               visualizationMode={visualizationMode} onVisualizationModeChange={onVisualizationModeChange}

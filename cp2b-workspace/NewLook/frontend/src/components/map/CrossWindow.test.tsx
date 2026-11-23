@@ -4,6 +4,7 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import CrossWindow, { type CrossWindowProps } from './CrossWindow'
 import type { AnalysisResult } from '@/lib/mapAnalyses'
+import { registryView, type RegistryAnalysisMeta } from '@/lib/analysisRegistry'
 
 jest.mock('next-intl', () => jest.requireActual('@/test/mocks/next-intl-real'))
 jest.mock('@/navigation', () => ({
@@ -31,6 +32,21 @@ const base: CrossWindowProps = {
   stateLabel: 'São Paulo',
   picked: null,
 }
+// Made up: the repository is public.
+const demoMeta: RegistryAnalysisMeta = {
+  id: 'demo_xy',
+  title: { pt: 'Demo XY', en: 'Demo XY (en)' },
+  question: { pt: 'Onde X e Y se encontram?', en: 'Where do X and Y meet?' },
+  source: null,
+  x_label: { pt: 'Eixo X', en: 'X axis' },
+  y_label: { pt: 'Eixo Y', en: 'Y axis' },
+  answer_cell: 8,
+  layers: [],
+  uf_prefixes: ['35'],
+}
+const demoView = registryView(demoMeta, 'pt-BR', 'municípios na célula em destaque')
+const demoResult: AnalysisResult = { ...result, id: 'r:demo_xy' }
+
 const renderWindow = (props: Partial<CrossWindowProps> = {}) => render(<CrossWindow {...base} {...props} />)
 
 describe('CrossWindow', () => {
@@ -109,5 +125,68 @@ describe('CrossWindow', () => {
     renderWindow({ onClose })
     fireEvent.click(screen.getByRole('button', { name: 'Fechar Cruzar dados' }))
     expect(onClose).toHaveBeenCalled()
+  })
+
+  describe('registry analyses', () => {
+    it('lists registry analyses under their own heading, after the four', () => {
+      const onChoose = jest.fn()
+      renderWindow({ registry: [demoView], onChoose })
+      const heading = screen.getByRole('heading', { name: 'Mais análises' })
+      const four = screen.getByRole('group', { name: 'Perguntas' })
+      // Heading after the four.
+      expect(four.compareDocumentPosition(heading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+      const demo = screen.getByRole('button', { name: /Demo XY/ })
+      expect(demo).toHaveTextContent('Eixo X × Eixo Y')
+      expect(four).not.toContainElement(demo)
+      fireEvent.click(demo)
+      expect(onChoose).toHaveBeenLastCalledWith('r:demo_xy')
+      expect(screen.queryByRole('link', { name: 'Mais análises com login' })).not.toBeInTheDocument()
+    })
+
+    it('shows the reading of the chosen registry analysis', () => {
+      renderWindow({ registry: [demoView], active: 'r:demo_xy', result: demoResult })
+      expect(screen.getByRole('button', { name: /Demo XY/, pressed: true })).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: 'Onde X e Y se encontram?' })).toBeInTheDocument()
+      expect(screen.getByRole('region', { name: 'Demo XY' })).toHaveTextContent('90 municípios na célula em destaque')
+    })
+
+    it('signed in with nothing from the registry: no heading at all', () => {
+      renderWindow({ registry: [] })
+      expect(screen.queryByRole('heading', { name: 'Mais análises' })).not.toBeInTheDocument()
+      expect(screen.queryByRole('link', { name: 'Mais análises com login' })).not.toBeInTheDocument()
+    })
+
+    it('signed out: shows the level-0 ones and always the login call', () => {
+      const onChoose = jest.fn()
+      const { rerender } = renderWindow({ access: 'sign_in', registry: [demoView], onChoose })
+      // The four stay behind sign-in; the registry's open ones are usable.
+      expect(screen.queryByRole('group', { name: 'Perguntas' })).not.toBeInTheDocument()
+      fireEvent.click(screen.getByRole('button', { name: /Demo XY/ }))
+      expect(onChoose).toHaveBeenLastCalledWith('r:demo_xy')
+      const more = screen.getByRole('link', { name: 'Mais análises com login' })
+      const next = new URL(more.getAttribute('href') ?? '', 'http://x').searchParams.get('next') ?? ''
+      expect(next).toBe('/map?tool=cross')
+
+      // Even with an empty list.
+      rerender(<CrossWindow {...base} access="sign_in" registry={[]} />)
+      expect(screen.getByRole('heading', { name: 'Mais análises' })).toBeInTheDocument()
+      expect(screen.getByRole('link', { name: 'Mais análises com login' })).toBeInTheDocument()
+    })
+
+    it('signed out, a level-0 registry analysis shows its reading', () => {
+      renderWindow({ access: 'sign_in', registry: [demoView], active: 'r:demo_xy', result: demoResult })
+      expect(screen.getByRole('heading', { name: 'Onde X e Y se encontram?' })).toBeInTheDocument()
+    })
+
+    it('says the reading failed, not loading, when the list never came', () => {
+      renderWindow({ registry: [], active: 'r:demo_xy', failed: true, loading: false })
+      expect(screen.queryByText('Carregando…')).not.toBeInTheDocument()
+      expect(screen.getByRole('alert')).toBeInTheDocument()
+    })
+
+    it('says when a linked analysis is not available', () => {
+      renderWindow({ unavailable: true })
+      expect(screen.getByText('Esta análise não está disponível para esta conta.')).toBeInTheDocument()
+    })
   })
 })

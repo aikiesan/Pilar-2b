@@ -1,0 +1,338 @@
+{
+  "breaks": [
+    {
+      "method": "tertile",
+      "values": [
+        1,
+        2
+      ],
+      "breaks": null
+    },
+    {
+      "method": "tertile_nonzero",
+      "values": [
+        0,
+        0,
+        5,
+        7
+      ],
+      "breaks": null
+    },
+    {
+      "method": "tertile",
+      "values": [
+        4,
+        4,
+        4,
+        4
+      ],
+      "breaks": null
+    },
+    {
+      "method": "tertile",
+      "values": [
+        2,
+        2,
+        2
+      ],
+      "breaks": null
+    },
+    {
+      "method": "tertile",
+      "values": [],
+      "breaks": null
+    },
+    {
+      "method": "tertile_nonzero",
+      "values": [
+        0,
+        0,
+        0,
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "breaks": [
+        3,
+        5
+      ]
+    },
+    {
+      "method": "tertile",
+      "values": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "breaks": [
+        1,
+        2
+      ]
+    },
+    {
+      "method": "tertile",
+      "values": [
+        1,
+        2,
+        3,
+        3,
+        3,
+        3
+      ],
+      "breaks": [
+        3,
+        3
+      ]
+    },
+    {
+      "method": "tertile",
+      "values": [
+        1,
+        2,
+        2,
+        2,
+        2,
+        5
+      ],
+      "breaks": [
+        2,
+        5
+      ]
+    },
+    {
+      "method": "fixed_count",
+      "values": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "breaks": [
+        1,
+        2
+      ]
+    },
+    {
+      "method": "fixed_count",
+      "values": [],
+      "breaks": [
+        1,
+        2
+      ]
+    },
+    {
+      "method": "tertile",
+      "values": [
+        9,
+        1,
+        8,
+        2,
+        7,
+        3,
+        6,
+        4,
+        5
+      ],
+      "breaks": [
+        4,
+        7
+      ]
+    },
+    {
+      "method": "tertile",
+      "values": [
+        0.5,
+        0.1,
+        0.9,
+        0.3,
+        0.7,
+        0.2
+      ],
+      "breaks": [
+        0.3,
+        0.7
+      ]
+    },
+    {
+      "method": "tertile",
+      "values": [
+        1,
+        5,
+        9
+      ],
+      "breaks": [
+        5,
+        9
+      ]
+    }
+  ],
+  "classes": [
+    {
+      "method": "tertile_nonzero",
+      "invert": false,
+      "breaks": [
+        3,
+        5
+      ],
+      "value": 0,
+      "class": 0
+    },
+    {
+      "method": "tertile_nonzero",
+      "invert": false,
+      "breaks": [
+        3,
+        5
+      ],
+      "value": 2,
+      "class": 0
+    },
+    {
+      "method": "tertile_nonzero",
+      "invert": false,
+      "breaks": [
+        3,
+        5
+      ],
+      "value": 3,
+      "class": 1
+    },
+    {
+      "method": "tertile_nonzero",
+      "invert": false,
+      "breaks": [
+        3,
+        5
+      ],
+      "value": 4,
+      "class": 1
+    },
+    {
+      "method": "tertile_nonzero",
+      "invert": false,
+      "breaks": [
+        3,
+        5
+      ],
+      "value": 5,
+      "class": 2
+    },
+    {
+      "method": "tertile_nonzero",
+      "invert": false,
+      "breaks": [
+        3,
+        5
+      ],
+      "value": 40,
+      "class": 2
+    },
+    {
+      "method": "tertile",
+      "invert": false,
+      "breaks": [
+        1,
+        2
+      ],
+      "value": 0,
+      "class": 0
+    },
+    {
+      "method": "tertile",
+      "invert": false,
+      "breaks": [
+        1,
+        2
+      ],
+      "value": null,
+      "class": null
+    },
+    {
+      "method": "tertile",
+      "invert": false,
+      "breaks": null,
+      "value": 5,
+      "class": null
+    },
+    {
+      "method": "fixed_count",
+      "invert": false,
+      "breaks": [
+        1,
+        2
+      ],
+      "value": 0,
+      "class": 0
+    },
+    {
+      "method": "fixed_count",
+      "invert": false,
+      "breaks": [
+        1,
+        2
+      ],
+      "value": 1,
+      "class": 1
+    },
+    {
+      "method": "fixed_count",
+      "invert": false,
+      "breaks": [
+        1,
+        2
+      ],
+      "value": 7,
+      "class": 2
+    },
+    {
+      "method": "tertile",
+      "invert": true,
+      "breaks": [
+        4,
+        7
+      ],
+      "value": 2,
+      "class": 2
+    },
+    {
+      "method": "tertile",
+      "invert": true,
+      "breaks": [
+        4,
+        7
+      ],
+      "value": 4,
+      "class": 1
+    },
+    {
+      "method": "tertile",
+      "invert": true,
+      "breaks": [
+        4,
+        7
+      ],
+      "value": 7,
+      "class": 0
+    },
+    {
+      "method": "tertile_nonzero",
+      "invert": true,
+      "breaks": [
+        3,
+        5
+      ],
+      "value": 0,
+      "class": 2
+    }
+  ]
+}

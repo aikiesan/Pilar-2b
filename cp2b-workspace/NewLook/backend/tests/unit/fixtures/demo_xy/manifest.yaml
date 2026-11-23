@@ -1,0 +1,11 @@
+# Made-up analysis used only by the loader tests; none of this is real data.
+id: demo_xy
+title: {pt: "Demonstração X × Y", en: "Demo X × Y"}
+question: {pt: "Onde X e Y coincidem na demonstração?", en: "Where do X and Y coincide in the demo?"}
+source: {pt: "Dados inventados para teste", en: "Made-up data for tests"}
+uf_prefixes: ["35", "31"]
+answer_cell: 8
+layers: []
+level: 3
+x: {label: {pt: "Valor X", en: "Value X"}, csv: x.csv, key: CD_MUN, column: valor_x, method: tertile_nonzero, invert: false}
+y: {label: {pt: "Valor Y", en: "Value Y"}, csv: y.csv, key: CD_MUN, column: valor_y, method: tertile, invert: false}
