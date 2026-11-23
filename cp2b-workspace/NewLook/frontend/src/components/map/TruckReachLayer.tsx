@@ -46,6 +46,7 @@ import {
   type TruckSite,
 } from '@/lib/truckReach';
 import type { MunicipalityFeature } from '@/types/geospatial';
+import { useRendererCleanup } from './useRendererCleanup';
 
 const TOWNS_PANE = 'truck-towns';
 const ROUTES_PANE = 'truck-routes';
@@ -126,6 +127,8 @@ export default function TruckReachLayer({
     ensurePane(map, TOWNS_PANE, 453);
     return L.svg({ pane: TOWNS_PANE });
   }, [map]);
+  useRendererCleanup(map, renderer);
+  useRendererCleanup(map, townRenderer);
 
   // Handlers bound once per marker read the latest props here.
   const pickRef = useRef(onPick);

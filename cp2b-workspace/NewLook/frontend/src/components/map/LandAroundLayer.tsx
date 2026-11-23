@@ -13,6 +13,7 @@ import { useEffect, useMemo } from 'react';
 import L from 'leaflet';
 import { Circle, Polygon, useMap, useMapEvents } from 'react-leaflet';
 import { circleRing, type LandAroundPoint } from '@/lib/landAround';
+import { useRendererCleanup } from './useRendererCleanup';
 
 const PANE = 'land-around';
 
@@ -40,6 +41,7 @@ export default function LandAroundLayer({ active, point, radiusKm, onPick }: Lan
     }
     return L.svg({ pane: PANE });
   }, [map]);
+  useRendererCleanup(map, renderer);
 
   useEffect(() => {
     const container = map.getContainer();

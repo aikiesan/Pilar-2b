@@ -19,6 +19,7 @@ import { GeoJSON, Marker, Polyline, useMap } from 'react-leaflet';
 import { COMPARE_COLORS, type CompareSlot } from '@/lib/compare';
 import { centroidOf, midpoint, type LatLng } from '@/lib/mapGeometry';
 import type { MunicipalityFeature } from '@/types/geospatial';
+import { useRendererCleanup } from './useRendererCleanup';
 
 const PANE = 'compare-line';
 const DRAW_MS = 700;
@@ -103,6 +104,7 @@ export default function CompareLayer({
     }
     return L.svg({ pane: PANE });
   }, [map]);
+  useRendererCleanup(map, renderer);
 
   const byCode = useMemo(
     () => new Map(allFeatures.map((f) => [String(f.properties?.ibge_code), f])),

@@ -37,6 +37,7 @@ import { prefersReducedMotion } from '@/lib/mapMotion';
 import type { LatLng } from '@/lib/mapGeometry';
 import type { MunicipalityFeature } from '@/types/geospatial';
 import { SOURCE_COLORS } from './magnitudeMarks';
+import { useRendererCleanup } from './useRendererCleanup';
 
 const PANE = 'gather';
 const FLOW_PANE = 'gather-flow';
@@ -76,6 +77,7 @@ export default function GatherLayer({ active, point, radiusKm, result, features,
     ensurePane(map, PANE, 456);
     return L.svg({ pane: PANE });
   }, [map]);
+  useRendererCleanup(map, renderer);
 
   useEffect(() => {
     const container = map.getContainer();
