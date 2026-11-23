@@ -33,7 +33,7 @@ export const MAP_TOOL_IDS: readonly MapToolId[] = ['land', 'compare', 'cross', '
  * Tools that are built. A tool joins this list in the step that builds it;
  * until then it is left out of the menu and its links open the plain map.
  */
-export const BUILT_MAP_TOOLS: readonly MapToolId[] = ['land', 'compare', 'cross', 'gather'];
+export const BUILT_MAP_TOOLS: readonly MapToolId[] = ['land', 'compare', 'cross', 'gather', 'similar'];
 
 /**
  * Tools that open with the analyses held back (MAP_ANALYSES_ENABLED off).

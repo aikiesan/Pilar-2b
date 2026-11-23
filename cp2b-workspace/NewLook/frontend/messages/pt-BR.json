@@ -1173,6 +1173,10 @@
         "gather": {
           "name": "Reunir",
           "description": "Quanto biometano uma usina num ponto juntaria num raio de 25, 50 ou 100 km"
+        },
+        "similar": {
+          "name": "Parecidos",
+          "description": "Os doze municípios mais parecidos com o que você clicar"
         }
       },
       "pending_title": "Seu pedido de acesso está em análise",
@@ -1262,6 +1266,31 @@
       "move_hint": "Clique em outro ponto do mapa para mover a usina.",
       "signed_out_title": "Entre para usar o Reunir",
       "signed_out_body": "Reunir usa dados liberados para contas aprovadas. Entre, ou peça acesso.",
+      "sign_in": "Entrar"
+    },
+    "similar": {
+      "name": "Parecidos",
+      "window_aria": "Municípios mais parecidos com o escolhido",
+      "close": "Fechar Parecidos",
+      "title": "Mais parecidos com {name}",
+      "subtitle": "pela mistura de resíduos, uso do solo e porte",
+      "within_group": "Onde procurar",
+      "within_state": "Mesmo estado",
+      "within_both": "Os dois estados",
+      "idle": "Clique num município do mapa, ou ache um na busca, para ver os doze mais parecidos com ele.",
+      "loading": "Carregando o uso do solo.",
+      "failed": "O uso do solo não carregou, e a comparação precisa dele. Tente de novo mais tarde.",
+      "unavailable": "O uso do solo ainda não está carregado neste servidor, e a comparação precisa dele.",
+      "no_profile": "{name} não tem dados de resíduos, uso do solo ou biometano, então não há perfil para comparar.",
+      "value_caption": "Biometano no cenário {scenario}, milhões de m³/ano",
+      "value": "{value} mi",
+      "no_data": "Sem dado",
+      "similarity_sr": "{similarity}% parecido",
+      "method": "Ordenados pela proximidade da mistura de resíduos, do uso do solo em 2025 e do porte em biometano com os de {name}. A barra é relativa ao décimo segundo.",
+      "skipped": "{count, plural, one {# município ficou} other {# municípios ficaram}} de fora por falta de dados.",
+      "open_hint": "Clique num nome para abrir o perfil, ou em outro município do mapa para recomeçar.",
+      "signed_out_title": "Entre para usar o Parecidos",
+      "signed_out_body": "Parecidos usa dados liberados para contas aprovadas. Entre, ou peça acesso.",
       "sign_in": "Entrar"
     }
   },

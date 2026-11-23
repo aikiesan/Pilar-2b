@@ -17,7 +17,8 @@ import dynamic from 'next/dynamic';
 import { CircleAlert, Loader2 } from 'lucide-react';
 import type { LandAroundPoint, LandAroundRadius } from '@/lib/landAround';
 import { gatherAround, placeOf, type GatherRadius } from '@/lib/gather';
-import { availableMapTools, isMapToolAvailable, parseMapToolParams, writeMapToolParams, type MapToolId } from '@/lib/mapTools';
+import { availableMapTools, isMapToolAvailable, parseMapToolParams, writeMapToolParams, type MapToolId, type SimilarWithin } from '@/lib/mapTools';
+import { buildProfiles, findSimilar } from '@/lib/similarity';
 import { useMapToolAccess } from '@/lib/mapToolAccess';
 import { useGeospatialData, useCodigestionClusters, useResidueCNMatrix, useIntermediateRegionsGeoJSON, useSitingIndicators, useMunicipalityLandCover } from '@/hooks/useGeospatialData';
 import { figureState, kmDecimals, nextComparePair } from '@/lib/compare';
@@ -44,7 +45,7 @@ import {
   TIPOLOGIA_KEY, REGIME_KEY,
 } from '@/lib/typologyScale';
 import type { Messages } from '@/types/i18n';
-import { hasAnySelectedResidue } from '@/lib/mapValues';
+import { getBiomethaneScenarioValue, hasAnySelectedResidue } from '@/lib/mapValues';
 import { BASEMAPS, DEFAULT_BASEMAP, type BasemapId } from '@/data/basemaps';
 import type { ThematicPreset } from '@/data/thematicPresets';
 import { DATA_EXPORT_ENABLED, MAP_ANALYSES_ENABLED } from '@/lib/featureFlags';
@@ -203,6 +204,8 @@ const CrossWindow = dynamic(() => import('./CrossWindow'), { ssr: false });
 const LandAround = dynamic(() => import('./LandAroundWindow'), { ssr: false });
 const GatherLayer = dynamic(() => import('./GatherLayer'), { ssr: false });
 const GatherWindow = dynamic(() => import('./GatherWindow'), { ssr: false });
+const SimilarLayer = dynamic(() => import('./SimilarLayer'), { ssr: false });
+const SimilarWindow = dynamic(() => import('./SimilarWindow'), { ssr: false });
 
 // Profile + Tooltip overlays
 const MunicipalityProfilePanel = dynamic(() => import('./MunicipalityProfilePanel'), { ssr: false });
@@ -579,8 +582,23 @@ export default function MapComponent({
   // A link may name the plant by municipality (?hub=); its centre is the point
   // once the map's features are in.
   const [gatherHub, setGatherHub] = useState<string | null>(initialTools.gather.hub);
+  // Find similar: the municipality picked, where to look, and the match a row
+  // in the window points at.
+  const similarOn = activeTool === 'similar';
+  const [similarOf, setSimilarOf] = useState<string | null>(initialTools.similar.of);
+  const [similarWithin, setSimilarWithin] = useState<SimilarWithin>(initialTools.similar.within);
+  const [similarHovered, setSimilarHovered] = useState<string | null>(null);
+  const pickSimilar = useCallback((code: string) => {
+    setSimilarHovered(null);
+    setSimilarOf(code);
+  }, []);
+  // The rows change with the scope, so the outline of one that goes would stay.
+  const changeSimilarWithin = useCallback((within: SimilarWithin) => {
+    setSimilarHovered(null);
+    setSimilarWithin(within);
+  }, []);
   // A tool that draws its own municipality layer hides the choropleth and its legends.
-  const fillHiddenByTool = landOn || compareOn || gatherOn;
+  const fillHiddenByTool = landOn || compareOn || gatherOn || similarOn;
   // Cruzar: the analysis is the map's own ?a=; the tool is how it reaches
   // approved accounts while MAP_ANALYSES_ENABLED keeps it off the public map.
   const crossOn = activeTool === 'cross';
@@ -596,11 +614,12 @@ export default function MapComponent({
       land: { point: landPoint, radius: landRadius },
       compare: { pair: comparePair },
       gather: { point: gatherPoint, radius: gatherRadius, hub: gatherPoint ? null : gatherHub },
+      similar: { of: similarOf, within: similarWithin },
     });
     const query = params.toString();
     const next = `${window.location.pathname}${query ? `?${query}` : ''}`;
     if (next !== `${window.location.pathname}${window.location.search}`) window.history.replaceState(null, '', next);
-  }, [activeTool, landPoint, landRadius, comparePair, gatherPoint, gatherRadius, gatherHub]);
+  }, [activeTool, landPoint, landRadius, comparePair, gatherPoint, gatherRadius, gatherHub, similarOf, similarWithin]);
 
   // Choose a bivariate analysis (or none). It paints the choropleth, so the map
   // goes back to the choropleth mode, and the theme highlight goes.
@@ -633,6 +652,8 @@ export default function MapComponent({
     setCrossPick(null);
     setGatherPoint(null);
     setGatherHub(null);
+    setSimilarOf(null);
+    setSimilarHovered(null);
   }, [activeTool, handleAnalysisChange]);
 
   // Gather places the plant where the map is clicked (the shapes are hidden
@@ -767,6 +788,10 @@ export default function MapComponent({
         // CompareLayer picks on its own outlines; this covers any other path.
         if (toolAccess === 'allowed' && feature.properties?.ibge_code != null) pickCompare(String(feature.properties.ibge_code));
         return;
+      case 'similar':
+        // SimilarLayer picks on its own outlines; this covers any other path.
+        if (toolAccess === 'allowed' && feature.properties?.ibge_code != null) pickSimilar(String(feature.properties.ibge_code));
+        return;
       case 'cross':
         // The window marks the municipality's cell; the profile stays shut.
         if (feature.properties?.ibge_code != null) setCrossPick(String(feature.properties.ibge_code));
@@ -778,7 +803,7 @@ export default function MapComponent({
         // A tool on offer that takes municipalities handles them here.
         return;
     }
-  }, [selectMunicipality, activeTool, toolAccess, pickCompare]);
+  }, [selectMunicipality, activeTool, toolAccess, pickCompare, pickSimilar]);
 
   // Opening a tool closes the profile; picking the open tool, or none, closes it.
   const selectTool = useCallback((tool: MapToolId | null) => {
@@ -1172,6 +1197,39 @@ export default function MapComponent({
     return placeOf(data.features, gatherAt)?.properties?.name ?? null;
   }, [gatherOn, gatherAt, data]);
 
+  // ── Find similar: the twelve most like the picked municipality ────────────
+  // The land cover query is Compare's (same key), so switching between the two
+  // tools does not fetch it twice.
+  const similarAllowed = similarOn && toolAccess === 'allowed';
+  const similarLandCover = useMunicipalityLandCover(LATEST_LAND_COVER_YEAR, similarAllowed);
+  const similarProfiles = useMemo(
+    () => (similarAllowed && data && similarLandCover.data?.available
+      ? buildProfiles(data.features, similarLandCover.data)
+      : null),
+    [similarAllowed, data, similarLandCover.data],
+  );
+  const similarResult = useMemo(
+    () => (similarProfiles && similarOf ? findSimilar(similarProfiles, similarOf, similarWithin) : null),
+    [similarProfiles, similarOf, similarWithin],
+  );
+  const similarDataState = similarLandCover.data?.available === false ? 'unavailable' : figureState(similarLandCover);
+  const featureByCode = useMemo(
+    () => new Map((data?.features ?? []).map((f) => [String(f.properties?.ibge_code), f])),
+    [data],
+  );
+  const similarOfName = similarOf ? featureByCode.get(similarOf)?.properties?.name ?? null : null;
+  const similarBiomethaneOf = useCallback((code: string) => {
+    const props = featureByCode.get(code)?.properties;
+    return props ? getBiomethaneScenarioValue(props, mapScenario).value : null;
+  }, [featureByCode, mapScenario]);
+  // A row opens that municipality's profile, which takes the tool's place.
+  const openSimilar = useCallback((code: string) => {
+    const feature = featureByCode.get(code);
+    if (!feature) return;
+    closeTool();
+    selectMunicipality(feature, true);
+  }, [featureByCode, closeTool, selectMunicipality]);
+
   // ── Pontos and Símbolos: the amounts of the state in view, by origin ───────
   // The same features the old heat and bubble views drew: the scope's state,
   // after the filters. Built only while the view is on.
@@ -1377,6 +1435,11 @@ export default function MapComponent({
                   setGatherHub(null);
                   setGatherPoint({ lat: centre.lat, lng: centre.lng });
                 }
+                return;
+              }
+              // With Find similar open it picks the municipality, as a click does.
+              if (similarOn) {
+                if (toolAccess === 'allowed' && feature?.properties?.ibge_code != null) pickSimilar(String(feature.properties.ibge_code));
                 return;
               }
               // With Cruzar open it marks the municipality's cell, and the map
@@ -1680,6 +1743,16 @@ export default function MapComponent({
               distanceLabel={compareDistanceLabel}
             />
           )}
+          {isMounted && similarOn && filteredData && (
+            <SimilarLayer
+              features={filteredData.features}
+              allFeatures={data?.features ?? filteredData.features}
+              result={toolAccess === 'allowed' ? similarResult : null}
+              hovered={toolAccess === 'allowed' ? similarHovered : null}
+              interactive={toolAccess === 'allowed'}
+              onPick={pickSimilar}
+            />
+          )}
         </MapContainer>
         </div>
 
@@ -1758,6 +1831,25 @@ export default function MapComponent({
             onRadiusChange={setGatherRadius}
             result={gatherResult}
             scenarioLabel={t(isServedScenario(mapScenario) ? `scenario_${mapScenario}` : 'scenario_real')}
+            onClose={closeTool}
+          />
+          </MapPresence>
+        )}
+
+        {isMounted && (
+          <MapPresence show={similarOn}>
+          <SimilarWindow
+            access={toolAccess}
+            of={similarOf}
+            ofName={similarOfName}
+            within={similarWithin}
+            onWithinChange={changeSimilarWithin}
+            dataState={similarDataState}
+            result={toolAccess === 'allowed' ? similarResult : null}
+            biomethaneOf={similarBiomethaneOf}
+            scenarioLabel={t(isServedScenario(mapScenario) ? `scenario_${mapScenario}` : 'scenario_real')}
+            onHover={setSimilarHovered}
+            onOpen={openSimilar}
             onClose={closeTool}
           />
           </MapPresence>
