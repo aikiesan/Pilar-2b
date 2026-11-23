@@ -12,7 +12,7 @@
 #   FFMPEG  ffmpeg binary (default: ffmpeg on the PATH)
 #
 # Sources (all free to use, no attribution required):
-#   gemini_generated_video_c3bedb58.mp4   biogas plant, drone pull-back (AI-generated)
+#   gemini_generated_video_acf20ff7.mp4   biogas plant in cane fields, drone push-in (AI-generated)
 #   7120005-uhd_3840_2160_30fps.mp4       cattle grazing (Pexels)
 #   15791219_3840_2160_30fps.mp4          crop field with wind turbines (Pexels)
 #   13805097-hd_1920_1080_30fps.mp4       sewage treatment plant, aerial (Pexels)
@@ -37,7 +37,7 @@ hero() {
   local name=$1 width=$2 crf=$3
   local n="scale=$width:-2:flags=lanczos,fps=24,format=yuv420p,setsar=1,setpts=PTS-STARTPTS"
   "$FFMPEG" -v error -y \
-    -ss 15 -t 10 -i "$SRC/gemini_generated_video_c3bedb58.mp4" \
+    -ss 0 -t 10 -i "$SRC/gemini_generated_video_acf20ff7.mp4" \
     -ss 14 -t 6 -i "$SRC/7120005-uhd_3840_2160_30fps.mp4" \
     -ss 6 -t 6 -i "$SRC/15791219_3840_2160_30fps.mp4" \
     -ss 0 -t 6 -i "$SRC/13805097-hd_1920_1080_30fps.mp4" \
