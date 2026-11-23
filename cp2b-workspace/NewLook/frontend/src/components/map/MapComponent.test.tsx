@@ -49,6 +49,11 @@ jest.mock('@/lib/leafletConfig', () => ({}));
 const mockUseGeospatialData = jest.fn();
 const mockUseSitingIndicators = jest.fn((_enabled: boolean) => ({ data: undefined, isError: false }));
 const mockUseLandCover = jest.fn((_enabled: boolean) => ({ data: undefined, isError: false }));
+const mockUseTruckReach = jest.fn((_site: string | null, _enabled: boolean) => ({ data: undefined, isError: false, error: null }));
+const TRUCK_SITES = [
+  { site_id: 'ITB_SP_0005', name: 'Usina São Martinho', kind: 'ethanol', ibge_code: '3518206', municipality: 'Pradópolis', at_town_centre: false, lon: -48.07, lat: -21.36 },
+  { site_id: 'ITB_SP_0006', name: 'Usina Alta Mogiana', kind: 'ethanol', ibge_code: '3549102', municipality: 'São Joaquim da Barra', at_town_centre: false, lon: -47.85, lat: -20.58 },
+];
 jest.mock('@/hooks/useGeospatialData', () => ({
   useGeospatialData: () => mockUseGeospatialData(),
   useCodigestionClusters: () => ({ data: null, loading: false, error: null, isFetching: false, refetch: jest.fn() }),
@@ -59,6 +64,8 @@ jest.mock('@/hooks/useGeospatialData', () => ({
   useMunicipalityMetrics: () => ({ data: undefined, isLoading: false, error: null }),
   useSitingIndicators: (enabled: boolean) => mockUseSitingIndicators(enabled),
   useMunicipalityLandCover: (_year: number, enabled: boolean) => mockUseLandCover(enabled),
+  useTruckSites: (enabled: boolean) => ({ data: enabled ? { available: true, built_at: '', sites: TRUCK_SITES } : undefined, isError: false }),
+  useTruckReach: (site: string | null, enabled: boolean) => mockUseTruckReach(site, enabled),
 }));
 
 // MAP_ANALYSES_ENABLED is a build-time constant; a getter lets each test pick it.
@@ -144,6 +151,16 @@ jest.mock('./SimilarLayer', () => ({
   default: ({ result, interactive, onPick }: any) => (
     <div data-testid="similar-layer" data-result={result?.status ?? ''} data-interactive={String(interactive)}>
       <button type="button" onClick={() => onPick('3543402')}>similar click</button>
+    </div>
+  ),
+}));
+
+// Truck reach on the map: the sites it draws, the pick, and a stand-in for a click on Alta Mogiana.
+jest.mock('./TruckReachLayer', () => ({
+  __esModule: true,
+  default: ({ sites, selected, interactive, onPick }: any) => (
+    <div data-testid="truck-layer" data-sites={sites.length} data-selected={selected ?? ''} data-interactive={String(interactive)}>
+      <button type="button" onClick={() => onPick('ITB_SP_0006')}>truck click</button>
     </div>
   ),
 }));
@@ -1391,7 +1408,7 @@ describe('MapComponent', () => {
       // stays; Cruzar brings the analyses to approved accounts either way.
       expect(items).toEqual(
         analyses
-          ? ['Uso do solo no entorno', 'Comparar', 'Cruzar dados', 'Reunir', 'Parecidos']
+          ? ['Uso do solo no entorno', 'Comparar', 'Cruzar dados', 'Reunir', 'Parecidos', 'Alcance do caminhão']
           : ['Uso do solo no entorno', 'Cruzar dados'],
       );
     });
@@ -1432,6 +1449,30 @@ describe('MapComponent', () => {
       fireEvent.click(screen.getByRole('button', { name: 'similar click' }));
       await waitFor(() => expect(new URLSearchParams(window.location.search).get('of')).toBe('3543402'));
       expect(new URLSearchParams(window.location.search).get('within')).toBe('both');
+      mockAnalysesEnabled = false;
+    });
+
+    it('opens Truck reach from a shared link, and a click or a limit keeps the link', async () => {
+      mockAnalysesEnabled = true;
+      window.history.replaceState(null, '', '/map?tool=truck&site=ITB_SP_0005&t=90');
+      render(<MapComponent />);
+      act(() => { jest.advanceTimersByTime(1500); });
+
+      expect(await screen.findByRole('complementary', { name: 'Até onde um caminhão chega a partir do local escolhido' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Ferramentas: Alcance do caminhão' })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Usina São Martinho' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: '90 min' })).toHaveAttribute('aria-pressed', 'true');
+      // The routes are fetched for an approved account, and the window waits for them.
+      expect(mockUseTruckReach).toHaveBeenLastCalledWith('ITB_SP_0005', true);
+      expect(screen.getByText('Carregando as rotas.')).toBeInTheDocument();
+      expect(screen.getByTestId('truck-layer')).toHaveAttribute('data-sites', '2');
+      expect(screen.getByTestId('truck-layer')).toHaveAttribute('data-selected', 'ITB_SP_0005');
+
+      fireEvent.click(screen.getByRole('button', { name: 'truck click' }));
+      await waitFor(() => expect(new URLSearchParams(window.location.search).get('site')).toBe('ITB_SP_0006'));
+      fireEvent.click(screen.getByRole('button', { name: '30 min' }));
+      await waitFor(() => expect(new URLSearchParams(window.location.search).get('t')).toBe('30'));
+      expect(mockUseTruckReach).toHaveBeenLastCalledWith('ITB_SP_0006', true);
       mockAnalysesEnabled = false;
     });
 

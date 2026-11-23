@@ -1177,6 +1177,10 @@
         "similar": {
           "name": "Parecidos",
           "description": "Os doze municípios mais parecidos com o que você clicar"
+        },
+        "truck": {
+          "name": "Alcance do caminhão",
+          "description": "Até onde um caminhão chega de uma usina ou aterro em 30, 60 ou 90 minutos"
         }
       },
       "pending_title": "Seu pedido de acesso está em análise",
@@ -1239,6 +1243,56 @@
       "picked_outside": "{name} fica fora de {state}, que esta leitura cobre.",
       "signed_out_title": "Entre para cruzar dados",
       "signed_out_body": "As análises cruzadas estão abertas a contas aprovadas enquanto seguem em teste. Entre, ou peça acesso.",
+      "sign_in": "Entrar"
+    },
+    "truck": {
+      "name": "Alcance do caminhão",
+      "window_aria": "Até onde um caminhão chega a partir do local escolhido",
+      "close": "Fechar Alcance do caminhão",
+      "site_meta": "{kind} em {town}",
+      "kinds": {
+        "ethanol": "Usina de etanol",
+        "landfill": "Aterro",
+        "biogas": "Usina de biogás",
+        "biomethane": "Usina de biometano"
+      },
+      "site_tip": "{name}, {kind} em {town}",
+      "limit_group": "Tempo de viagem",
+      "limit_option": "{minutes} min",
+      "idle": "Clique numa usina ou aterro para ver até onde um caminhão chega.",
+      "loading": "Carregando as rotas.",
+      "failed": "As rotas não carregaram. Tente de novo mais tarde.",
+      "unavailable": "As rotas de caminhão ainda não estão carregadas neste servidor.",
+      "not_found": "Não há rotas de caminhão para este local.",
+      "outside": "As rotas de caminhão cobrem só São Paulo, e este local fica fora.",
+      "headline": "{count, plural, =0 {Nenhum município} one {# município} other {# municípios}} a até {minutes} minutos de caminhão",
+      "table_caption": "Municípios alcançados por tempo de viagem",
+      "table_row": "Até {minutes} minutos",
+      "cane_label": "Resíduo de cana ao alcance",
+      "cane_value": "{value} mil t/ano",
+      "biomethane_label": "Potencial de biometano ao alcance",
+      "biomethane_value": "{value} milhões de m³/ano",
+      "sites_label": "Outros locais ao alcance",
+      "sites_value": "{mills, plural, =0 {nenhuma usina} one {# usina} other {# usinas}}, {landfills, plural, =0 {nenhum aterro} one {# aterro} other {# aterros}}",
+      "sites_plants": "e {count, plural, one {# usina de biogás ou biometano} other {# usinas de biogás ou biometano}}",
+      "nearest_title": "Mais perto pela estrada",
+      "nearest_mills": "Usinas",
+      "nearest_landfills": "Aterros",
+      "nearest_minutes": "≈ {minutes} min",
+      "nearest_row_aria": "{name}, em {town}, a cerca de {minutes} minutos. Ver o alcance deste local.",
+      "nearest_none": "Nenhum a até {minutes} minutos",
+      "nearest_note": "Os minutos até um local são os da sede do seu município: as rotas terminam ali.",
+      "pipeline": "Gasoduto mais próximo: {minutes} minutos de caminhão.",
+      "pipeline_beyond": "Gasoduto mais próximo: {minutes} minutos de caminhão, além do limite de {limit} minutos.",
+      "pipeline_none": "Nenhum gasoduto a até 180 minutos de caminhão.",
+      "circle_toggle": "Mostrar um círculo de {km} km",
+      "circle_compare": "Um círculo de {km} km pegaria {inCircle, plural, =0 {nenhum município} one {# município} other {# municípios}}. {slower, plural, =0 {Nenhum deles fica} one {# deles fica} other {# deles ficam}} a mais de {minutes} minutos pela estrada, {beyond, plural, =0 {e a estrada não alcança nenhum fora do círculo} other {e a estrada alcança # fora do círculo}}.",
+      "without_data": "{count, plural, one {# município ao alcance não tem} other {# municípios ao alcance não têm}} dado de cana ou biometano.",
+      "source": "Rotas nas estradas do OpenStreetMap em São Paulo, com a velocidade do caminhão limitada por tipo de via. Sedes municipais: IBGE 2022.",
+      "sp_only": "As rotas de caminhão não entram em Minas Gerais.",
+      "straight_line": "O círculo mede em linha reta até o centro de cada município.",
+      "signed_out_title": "Entre para usar o Alcance do caminhão",
+      "signed_out_body": "O Alcance do caminhão usa dados liberados para contas aprovadas. Entre, ou peça acesso.",
       "sign_in": "Entrar"
     },
     "gather": {

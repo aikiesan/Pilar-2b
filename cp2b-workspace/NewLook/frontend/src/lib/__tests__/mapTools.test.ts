@@ -14,12 +14,14 @@ describe('availableMapTools', () => {
   })
 
   it('offers only tools that are built, even with the analyses on', () => {
-    expect(availableMapTools(true)).toEqual(['land', 'compare', 'cross', 'gather', 'similar'])
+    expect(availableMapTools(true)).toEqual(['land', 'compare', 'cross', 'gather', 'similar', 'truck'])
     expect(isMapToolAvailable('compare', true)).toBe(true)
     expect(isMapToolAvailable('gather', true)).toBe(true)
     expect(isMapToolAvailable('gather', false)).toBe(false)
     expect(isMapToolAvailable('similar', true)).toBe(true)
     expect(isMapToolAvailable('similar', false)).toBe(false)
+    expect(isMapToolAvailable('truck', true)).toBe(true)
+    expect(isMapToolAvailable('truck', false)).toBe(false)
     expect(isMapToolAvailable(null, true)).toBe(false)
   })
 })
@@ -59,6 +61,11 @@ describe('parseMapToolParams', () => {
     expect(parseMapToolParams('?tool=similar&of=3509502&scope=31&within=both').similar).toEqual({ of: '3509502', within: 'both' })
     expect(parseMapToolParams('?tool=similar&of=x').similar).toEqual({ of: null, within: 'state' })
   })
+
+  it('reads Truck reach, falling back to 60 minutes and no site', () => {
+    expect(parseMapToolParams('?tool=truck&site=ITB_SP_0005&t=30').truck).toEqual({ site: 'ITB_SP_0005', limit: 30 })
+    expect(parseMapToolParams('?tool=truck&site=a/b&t=45').truck).toEqual({ site: null, limit: 60 })
+  })
 })
 
 describe('Cruzar in the URL', () => {
@@ -79,7 +86,7 @@ describe('writeMapToolParams', () => {
   })
 
   it('removes every tool param when no tool is open', () => {
-    const params = writeMapToolParams('?mode=choropleth&tool=land&lat=-21&lng=-47&radius=50&pair=1&hub=2&of=3&within=both', { tool: null })
+    const params = writeMapToolParams('?mode=choropleth&tool=land&lat=-21&lng=-47&radius=50&pair=1&hub=2&of=3&within=both&site=S&t=30', { tool: null })
     expect(params.toString()).toBe('mode=choropleth')
   })
 
@@ -94,6 +101,7 @@ describe('writeMapToolParams', () => {
     { ...emptyMapToolState(), tool: 'gather', gather: { point: { lat: -22.9056, lng: -47.0608 }, radius: 100, hub: null } },
     { ...emptyMapToolState(), tool: 'gather', gather: { point: null, radius: 50, hub: '3509502' } },
     { ...emptyMapToolState(), tool: 'similar', similar: { of: '3509502', within: 'both' } },
+    { ...emptyMapToolState(), tool: 'truck', truck: { site: 'ITB_SP_0005', limit: 90 } },
   ])('round-trips $tool', (state) => {
     expect(parseMapToolParams(writeMapToolParams('', state))).toEqual(state)
   })

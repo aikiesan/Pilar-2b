@@ -5,6 +5,7 @@
 
 import type { SitingIndicators } from '@/lib/mapAnalyses';
 import type { LandCoverResponse } from '@/lib/landCover';
+import type { TruckReachResponse, TruckSitesResponse } from '@/lib/truckReach';
 import { authenticatedFetch } from '@/lib/apiClient';
 import type {
   MunicipalityCollection,
@@ -153,6 +154,22 @@ class GeospatialClient {
     const url = `${this.baseUrl}/api/v1/municipalities/land-cover?year=${year}`;
     const response = await authenticatedFetch(url);
     if (!response.ok) throw new Error(`land cover: HTTP ${response.status}`);
+    return response.json();
+  }
+
+  /** Every site Truck reach has routes for (public points). */
+  async getTruckSites(): Promise<TruckSitesResponse> {
+    const url = `${this.baseUrl}/api/v1/truck-reach/sites`;
+    const response = await fetch(url, { headers: { 'Content-Type': 'application/json' } });
+    if (!response.ok) throw new Error(`truck sites: HTTP ${response.status}`);
+    return response.json();
+  }
+
+  /** One site's towns, route tree and pipeline route (signed-in only). */
+  async getTruckReach(siteId: string): Promise<TruckReachResponse> {
+    const url = `${this.baseUrl}/api/v1/truck-reach/${encodeURIComponent(siteId)}`;
+    const response = await authenticatedFetch(url);
+    if (!response.ok) throw new Error(`truck reach: HTTP ${response.status}`);
     return response.json();
   }
 

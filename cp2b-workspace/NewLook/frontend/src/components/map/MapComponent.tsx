@@ -19,8 +19,10 @@ import type { LandAroundPoint, LandAroundRadius } from '@/lib/landAround';
 import { gatherAround, placeOf, type GatherRadius } from '@/lib/gather';
 import { availableMapTools, isMapToolAvailable, parseMapToolParams, writeMapToolParams, type MapToolId, type SimilarWithin } from '@/lib/mapTools';
 import { buildProfiles, findSimilar } from '@/lib/similarity';
+import { isTruckReachData, summarizeTruckReach, type TruckLimit, type TruckSite } from '@/lib/truckReach';
+import type { TruckReachState } from './TruckReachWindow';
 import { useMapToolAccess } from '@/lib/mapToolAccess';
-import { useGeospatialData, useCodigestionClusters, useResidueCNMatrix, useIntermediateRegionsGeoJSON, useSitingIndicators, useMunicipalityLandCover } from '@/hooks/useGeospatialData';
+import { useGeospatialData, useCodigestionClusters, useResidueCNMatrix, useIntermediateRegionsGeoJSON, useSitingIndicators, useMunicipalityLandCover, useTruckSites, useTruckReach } from '@/hooks/useGeospatialData';
 import { figureState, kmDecimals, nextComparePair } from '@/lib/compare';
 import { buildDots, buildSymbols } from '@/lib/magnitudeViews';
 import { isAmountMetric } from '@/lib/sectorSplit';
@@ -206,6 +208,8 @@ const GatherLayer = dynamic(() => import('./GatherLayer'), { ssr: false });
 const GatherWindow = dynamic(() => import('./GatherWindow'), { ssr: false });
 const SimilarLayer = dynamic(() => import('./SimilarLayer'), { ssr: false });
 const SimilarWindow = dynamic(() => import('./SimilarWindow'), { ssr: false });
+const TruckReachLayer = dynamic(() => import('./TruckReachLayer'), { ssr: false });
+const TruckReachWindow = dynamic(() => import('./TruckReachWindow'), { ssr: false });
 
 // Profile + Tooltip overlays
 const MunicipalityProfilePanel = dynamic(() => import('./MunicipalityProfilePanel'), { ssr: false });
@@ -338,6 +342,9 @@ const VALID_VIZ: VisualizationMode[] = ['choropleth', 'dots', 'symbols', 'cluste
 /** The views Pontos and Símbolos replaced, so their old links still open something close. */
 const LEGACY_VIZ: Record<string, VisualizationMode> = { heatmap: 'dots', bubble: 'symbols' };
 const VALID_METRICS: DisplayMetric[] = DISPLAY_METRICS;
+/** Truck reach shows the gas pipelines its routes run to. */
+const TRUCK_CONTEXT_LAYERS: readonly string[] = ['gas_pipeline_transport', 'gas_pipeline_distribution'];
+const NO_TRUCK_SITES: readonly TruckSite[] = [];
 const MG_DISABLED_RESIDUES = new Set<ResidueType>(['aquaculture', 'rpo', 'sewage']);
 
 function sanitizeResiduesForScope(scope: MapScope, residues: ResidueType[]): ResidueType[] {
@@ -597,6 +604,13 @@ export default function MapComponent({
     setSimilarHovered(null);
     setSimilarWithin(within);
   }, []);
+  // Truck reach: the picked site, the drive-time limit and the 50 km circle.
+  const truckOn = activeTool === 'truck';
+  const [truckSite, setTruckSite] = useState<string | null>(initialTools.truck.site);
+  const [truckLimit, setTruckLimit] = useState<TruckLimit>(initialTools.truck.limit);
+  const [truckCircle, setTruckCircle] = useState(false);
+  // The site a row of the nearest list points at.
+  const [truckHovered, setTruckHovered] = useState<string | null>(null);
   // A tool that draws its own municipality layer hides the choropleth and its legends.
   const fillHiddenByTool = landOn || compareOn || gatherOn || similarOn;
   // Cruzar: the analysis is the map's own ?a=; the tool is how it reaches
@@ -615,11 +629,12 @@ export default function MapComponent({
       compare: { pair: comparePair },
       gather: { point: gatherPoint, radius: gatherRadius, hub: gatherPoint ? null : gatherHub },
       similar: { of: similarOf, within: similarWithin },
+      truck: { site: truckSite, limit: truckLimit },
     });
     const query = params.toString();
     const next = `${window.location.pathname}${query ? `?${query}` : ''}`;
     if (next !== `${window.location.pathname}${window.location.search}`) window.history.replaceState(null, '', next);
-  }, [activeTool, landPoint, landRadius, comparePair, gatherPoint, gatherRadius, gatherHub, similarOf, similarWithin]);
+  }, [activeTool, landPoint, landRadius, comparePair, gatherPoint, gatherRadius, gatherHub, similarOf, similarWithin, truckSite, truckLimit]);
 
   // Choose a bivariate analysis (or none). It paints the choropleth, so the map
   // goes back to the choropleth mode, and the theme highlight goes.
@@ -654,6 +669,9 @@ export default function MapComponent({
     setGatherHub(null);
     setSimilarOf(null);
     setSimilarHovered(null);
+    setTruckSite(null);
+    setTruckCircle(false);
+    setTruckHovered(null);
   }, [activeTool, handleAnalysisChange]);
 
   // Gather places the plant where the map is clicked (the shapes are hidden
@@ -791,6 +809,9 @@ export default function MapComponent({
       case 'similar':
         // SimilarLayer picks on its own outlines; this covers any other path.
         if (toolAccess === 'allowed' && feature.properties?.ibge_code != null) pickSimilar(String(feature.properties.ibge_code));
+        return;
+      case 'truck':
+        // Truck reach picks its sites, not municipalities.
         return;
       case 'cross':
         // The window marks the municipality's cell; the profile stays shut.
@@ -944,10 +965,13 @@ export default function MapComponent({
   // An analysis brings its infrastructure as context (plants for the gap,
   // pipelines for siting) and takes it away when it ends. Only the layers the
   // analysis itself switched on are taken away: one the reader already had on
-  // stays on.
+  // stays on. Truck reach brings the gas pipelines the same way.
   const analysisOwnedLayersRef = useRef<readonly string[]>([]);
   useEffect(() => {
-    const next: readonly string[] = analysisShown ? ANALYSES[analysisShown].layers : [];
+    const next: readonly string[] = [
+      ...(analysisShown ? ANALYSES[analysisShown].layers : []),
+      ...(truckOn ? TRUCK_CONTEXT_LAYERS : []),
+    ];
     if (analysisOwnedLayersRef.current.length === 0 && next.length === 0) return;
     setLayers(prev => {
       const owned = analysisOwnedLayersRef.current;
@@ -965,7 +989,7 @@ export default function MapComponent({
       analysisOwnedLayersRef.current = nowOwned;
       return updated;
     });
-  }, [analysisShown]);
+  }, [analysisShown, truckOn]);
 
   const visibleLayerIds = useMemo(
     () => layers.filter(l => l.visible).map((l): string => l.id),
@@ -1229,6 +1253,36 @@ export default function MapComponent({
     closeTool();
     selectMunicipality(feature, true);
   }, [featureByCode, closeTool, selectMunicipality]);
+
+  // ── Truck reach: where a truck gets from the picked site ──────────────────
+  // The sites are public; the routes need an approved sign-in. The choropleth
+  // stays, quieter, so the roads read over it.
+  const truckAllowed = truckOn && toolAccess === 'allowed';
+  const truckSites = useTruckSites(truckOn);
+  const truckReach = useTruckReach(truckSite, truckAllowed);
+  const truckSiteList = truckSites.data?.available ? truckSites.data.sites : NO_TRUCK_SITES;
+  const truckData = truckAllowed && isTruckReachData(truckReach.data) && truckReach.data.site.site_id === truckSite
+    ? truckReach.data
+    : null;
+  const truckPicked = useMemo(
+    () => truckData?.site ?? truckSiteList.find((s) => s.site_id === truckSite) ?? null,
+    [truckData, truckSiteList, truckSite],
+  );
+  let truckState: TruckReachState = 'loading';
+  if (truckSites.data?.available === false || (truckReach.data && !isTruckReachData(truckReach.data))) truckState = 'unavailable';
+  else if (truckReach.isError) truckState = /HTTP 404/.test(truckReach.error?.message ?? '') ? 'not_found' : 'failed';
+  else if (truckData) truckState = 'ready';
+  const truckSummary = useMemo(
+    () => (truckData && data ? summarizeTruckReach(truckData, truckLimit, data.features, truckSiteList) : null),
+    [truckData, truckLimit, data, truckSiteList],
+  );
+  const describeTruckSite = useCallback(
+    (site: TruckSite) => t('truck.site_tip', { name: site.name, kind: t(`truck.kinds.${site.kind}`), town: site.municipality }),
+    [t],
+  );
+  const pickTruckSite = useCallback((siteId: string) => {
+    if (toolAccess === 'allowed') setTruckSite(siteId);
+  }, [toolAccess]);
 
   // ── Pontos and Símbolos: the amounts of the state in view, by origin ───────
   // The same features the old heat and bubble views drew: the scope's state,
@@ -1615,7 +1669,7 @@ export default function MapComponent({
               {visualizationMode === 'choropleth' || visualizationMode === 'clusters' ? (
                 <MunicipalityLayer
                   data={displayData}
-                  opacity={visualizationMode === 'clusters' ? 0.4 : opacity}
+                  opacity={visualizationMode === 'clusters' ? 0.4 : truckOn ? Math.min(opacity, 0.35) : opacity}
                   biomassType={biomassType}
                   selectedResidues={selectedResidues}
                   displayMetric={displayMetric}
@@ -1633,7 +1687,7 @@ export default function MapComponent({
                 <>
                   <MunicipalityLayer
                     data={displayData}
-                    opacity={0.7}
+                    opacity={truckOn ? 0.35 : 0.7}
                     biomassType={biomassType}
                     selectedResidues={selectedResidues}
                     displayMetric={displayMetric}
@@ -1753,6 +1807,21 @@ export default function MapComponent({
               onPick={pickSimilar}
             />
           )}
+          {isMounted && truckOn && (
+            <TruckReachLayer
+              sites={truckSiteList}
+              interactive={toolAccess === 'allowed'}
+              selected={truckAllowed ? truckSite : null}
+              openedWith={initialTools.truck.site}
+              data={truckData}
+              hovered={truckAllowed ? truckHovered : null}
+              limit={truckLimit}
+              showCircle={truckCircle && truckData !== null}
+              features={data?.features ?? []}
+              describe={describeTruckSite}
+              onPick={pickTruckSite}
+            />
+          )}
         </MapContainer>
         </div>
 
@@ -1850,6 +1919,25 @@ export default function MapComponent({
             scenarioLabel={t(isServedScenario(mapScenario) ? `scenario_${mapScenario}` : 'scenario_real')}
             onHover={setSimilarHovered}
             onOpen={openSimilar}
+            onClose={closeTool}
+          />
+          </MapPresence>
+        )}
+
+        {isMounted && (
+          <MapPresence show={truckOn}>
+          <TruckReachWindow
+            access={toolAccess}
+            siteId={truckSite}
+            site={truckPicked}
+            state={truckState}
+            summary={truckSummary}
+            limit={truckLimit}
+            onLimitChange={setTruckLimit}
+            showCircle={truckCircle}
+            onCircleChange={setTruckCircle}
+            onPickSite={pickTruckSite}
+            onHoverSite={setTruckHovered}
             onClose={closeTool}
           />
           </MapPresence>
