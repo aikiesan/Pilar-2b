@@ -1173,6 +1173,10 @@
         "gather": {
           "name": "Gather",
           "description": "How much biomethane a plant at a point would gather within 25, 50 or 100 km"
+        },
+        "similar": {
+          "name": "Find similar",
+          "description": "The twelve municipalities most like the one you click"
         }
       },
       "pending_title": "Your access request is being reviewed",
@@ -1262,6 +1266,31 @@
       "move_hint": "Click another point on the map to move the plant.",
       "signed_out_title": "Sign in to use Gather",
       "signed_out_body": "Gather uses data open to approved accounts. Sign in, or ask for access.",
+      "sign_in": "Sign in"
+    },
+    "similar": {
+      "name": "Find similar",
+      "window_aria": "Municipalities most like the one picked",
+      "close": "Close Find similar",
+      "title": "Most like {name}",
+      "subtitle": "by residue mix, land cover and size",
+      "within_group": "Where to look",
+      "within_state": "Same state",
+      "within_both": "Both states",
+      "idle": "Click a municipality on the map, or find one in the search, to see the twelve most like it.",
+      "loading": "Loading land cover.",
+      "failed": "Land cover did not load, and the comparison needs it. Try again later.",
+      "unavailable": "Land cover is not loaded on this server yet, and the comparison needs it.",
+      "no_profile": "{name} has no residue, land cover or biomethane data, so there is no profile to compare.",
+      "value_caption": "Biomethane in the {scenario} scenario, million m³/yr",
+      "value": "{value} M",
+      "no_data": "No data",
+      "similarity_sr": "{similarity}% alike",
+      "method": "Ranked by how close each one's residue mix, land cover in 2025 and biomethane size come to {name}'s. The bar is relative to the twelfth.",
+      "skipped": "{count, plural, one {# municipality was} other {# municipalities were}} left out for missing data.",
+      "open_hint": "Click a name to open its profile, or another municipality on the map to start again.",
+      "signed_out_title": "Sign in to use Find similar",
+      "signed_out_body": "Find similar uses data open to approved accounts. Sign in, or ask for access.",
       "sign_in": "Sign in"
     }
   },

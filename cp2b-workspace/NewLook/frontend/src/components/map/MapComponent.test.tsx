@@ -138,6 +138,16 @@ jest.mock('./GatherLayer', () => ({
   ),
 }));
 
+// Find similar on the map: the picked municipality, and a stand-in for a click on Ribeirão Preto.
+jest.mock('./SimilarLayer', () => ({
+  __esModule: true,
+  default: ({ result, interactive, onPick }: any) => (
+    <div data-testid="similar-layer" data-result={result?.status ?? ''} data-interactive={String(interactive)}>
+      <button type="button" onClick={() => onPick('3543402')}>similar click</button>
+    </div>
+  ),
+}));
+
 // The circle on the map: which point it draws, and a stand-in for a map click.
 jest.mock('./LandAroundLayer', () => ({
   __esModule: true,
@@ -1381,7 +1391,7 @@ describe('MapComponent', () => {
       // stays; Cruzar brings the analyses to approved accounts either way.
       expect(items).toEqual(
         analyses
-          ? ['Uso do solo no entorno', 'Comparar', 'Cruzar dados', 'Reunir']
+          ? ['Uso do solo no entorno', 'Comparar', 'Cruzar dados', 'Reunir', 'Parecidos']
           : ['Uso do solo no entorno', 'Cruzar dados'],
       );
     });
@@ -1402,6 +1412,26 @@ describe('MapComponent', () => {
       fireEvent.click(screen.getByRole('button', { name: 'gather click' }));
       expect(screen.getByTestId('gather-layer')).toHaveAttribute('data-point', '-22.9,-47.06');
       await waitFor(() => expect(new URLSearchParams(window.location.search).get('lat')).toBe('-22.9000'));
+      mockAnalysesEnabled = false;
+    });
+
+    it('opens Find similar from a shared link, and a click picks another municipality', async () => {
+      mockAnalysesEnabled = true;
+      window.history.replaceState(null, '', '/map?tool=similar&of=3550308&within=both');
+      render(<MapComponent />);
+      act(() => { jest.advanceTimersByTime(1500); });
+
+      expect(await screen.findByRole('complementary', { name: 'Municípios mais parecidos com o escolhido' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Ferramentas: Parecidos' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Os dois estados' })).toHaveAttribute('aria-pressed', 'true');
+      // The land cover is fetched for an approved account, and the window waits for it.
+      expect(mockUseLandCover).toHaveBeenLastCalledWith(true);
+      expect(screen.getByText('Carregando o uso do solo.')).toBeInTheDocument();
+      expect(screen.getByTestId('similar-layer')).toHaveAttribute('data-interactive', 'true');
+
+      fireEvent.click(screen.getByRole('button', { name: 'similar click' }));
+      await waitFor(() => expect(new URLSearchParams(window.location.search).get('of')).toBe('3543402'));
+      expect(new URLSearchParams(window.location.search).get('within')).toBe('both');
       mockAnalysesEnabled = false;
     });
 
