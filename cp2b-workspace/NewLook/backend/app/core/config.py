@@ -77,7 +77,22 @@ class Settings(BaseSettings):
     # JWT settings - CRITICAL: Change in production
     SECRET_KEY: str = "your-secret-key-change-in-production"
     ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    # Seven days: an approved person working on the map is not signed out
+    # mid-task. Logout, deactivation and refusal still end a session at once
+    # (denylist + the status check on every request).
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 10080
+
+    # E-mail for sign-up with approval (services/mailer.py). With SMTP_HOST
+    # empty (Docker, tests) messages are written to the log instead of sent.
+    SMTP_HOST: str = ""
+    SMTP_PORT: int = 587
+    SMTP_USER: str = ""
+    SMTP_PASSWORD: str = ""
+    SMTP_FROM: str = ""
+    # Who is told about each new access request.
+    ADMIN_NOTIFY_EMAIL: str = ""
+    # Base of the links in the e-mails, without a trailing slash or locale.
+    PUBLIC_SITE_URL: str = "http://localhost:3006"
 
     # External APIs
     GEMINI_API_KEY: Optional[str] = None
