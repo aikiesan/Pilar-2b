@@ -33,8 +33,10 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import sys
 import tempfile
+import unicodedata
 import zipfile
 from contextlib import contextmanager
 from pathlib import Path
@@ -100,15 +102,86 @@ def resolve_archive(rel: str) -> Path | None:
     return None
 
 
+def _member_name(member: zipfile.ZipInfo) -> str:
+    """A ZIP entry's real file name.
+
+    Without the UTF-8 flag (bit 11), zipfile reads a name as CP437, the DOS code
+    page. The MapBiomas archives store UTF-8 names without the flag, and their
+    accents are decomposed ("e" + U+0301), so `Usinas_Termelétricas` came out
+    as `Usinas_Termele╠ütricas` and was stored as the layer's source file.
+    Re-read such names as UTF-8 when they are valid UTF-8, then compose them
+    (NFC), so "é" is one character everywhere.
+    """
+    name = member.filename
+    if not member.flag_bits & 0x800:
+        try:
+            name = name.encode("cp437").decode("utf-8")
+        except (UnicodeEncodeError, UnicodeDecodeError):
+            pass  # a genuine CP437 name: keep it
+    return unicodedata.normalize("NFC", name)
+
+
 def _safe_extract_zip(archive: Path, destination: Path) -> None:
-    """Extract a trusted data ZIP without permitting path traversal."""
+    """Extract a trusted data ZIP under its real file names, without permitting
+    path traversal."""
     root = destination.resolve()
     with zipfile.ZipFile(archive) as bundle:
-        for member in bundle.infolist():
-            target = (destination / member.filename).resolve()
+        members = [(m, _member_name(m)) for m in bundle.infolist()]
+        for member, name in members:
+            target = (destination / name).resolve()
             if target != root and root not in target.parents:
                 raise ValueError(f"unsafe path in {archive.name}: {member.filename}")
-        bundle.extractall(destination)
+        for member, name in members:
+            target = destination / name
+            if member.is_dir():
+                target.mkdir(parents=True, exist_ok=True)
+                continue
+            target.parent.mkdir(parents=True, exist_ok=True)
+            with bundle.open(member) as src, open(target, "wb") as out:
+                out.write(src.read())
+
+
+# Attribute text. A shapefile names its .dbf encoding in a .cpg file; most
+# MapBiomas infrastructure layers ship without one, and their .dbf header says
+# nothing either (language driver 0). Their text is Windows-1252. Left to
+# guess, GDAL reads it right on one machine and as UTF-8 on another, which
+# turns every accent into U+FFFD ("Gasoduto de Distribui\ufffd\ufffdo"). So the
+# loader decides: the .cpg when there is one, Windows-1252 when there is not.
+DEFAULT_DBF_ENCODING = "cp1252"
+
+# Damage that must never reach the table: the replacement character, UTF-8
+# read as Latin-1 ("Ã§", "Ã£"), box drawing from a DOS code page, and loose
+# combining accents.
+BROKEN_TEXT = re.compile(
+    "\ufffd|\u00c3[\u0080-\u00bf]|\u00c2[\u0080-\u00bf]|[\u2500-\u257f]|[\u0300-\u036f]"
+)
+
+
+def dbf_encoding(shp: Path) -> str | None:
+    """The encoding to read a shapefile's attributes with, or None to follow its .cpg."""
+    # Any case: "x.CPG" is as good as "x.cpg", and Linux globs are case-sensitive.
+    has_cpg = any(
+        p.suffix.lower() == ".cpg" and p.stem.lower() == shp.stem.lower()
+        for p in shp.parent.iterdir()
+    )
+    return None if has_cpg else DEFAULT_DBF_ENCODING
+
+
+def clean_text(value: str) -> str:
+    """Compose accents (NFC) so the same name always has the same characters."""
+    return unicodedata.normalize("NFC", value)
+
+
+def broken_strings(rows: list[dict]) -> list[str]:
+    """Attribute keys and values in loaded rows that still show broken text."""
+    found = []
+    for row in rows:
+        for text in [row.get("name") or "", row.get("source_file") or ""] + [
+            t for k, v in json.loads(row["attributes"]).items() for t in (k, v or "")
+        ]:
+            if BROKEN_TEXT.search(text):
+                found.append(text)
+    return found
 
 
 @contextmanager
@@ -251,7 +324,8 @@ def load_layer(layer_id: str, folder: str):
             print(f"  !! no .shp in {source_dir} — skipping")
             return None, []
         shp = shps[0]
-        gdf = gpd.read_file(shp, engine="pyogrio")
+        encoding = dbf_encoding(shp)
+        gdf = gpd.read_file(shp, engine="pyogrio", **({"encoding": encoding} if encoding else {}))
         if gdf.crs is not None:
             gdf = gdf.to_crs(epsg=4326)
 
@@ -271,22 +345,30 @@ def load_layer(layer_id: str, folder: str):
             if geom is None or geom.is_empty:
                 continue
             attrs = {
-                k: (None if v is None or str(v) == "nan" else str(v))
+                clean_text(str(k)): (None if v is None or str(v) == "nan" else clean_text(str(v)))
                 for k, v in r.drop(labels=["geometry"]).items()
             }
+            name = _first(r, NAME_FIELDS)
             rows.append(
                 {
                     "layer_id": layer_id,
-                    "name": _first(r, NAME_FIELDS),
+                    "name": clean_text(name) if isinstance(name, str) else name,
                     "wkb": geom.wkb,
                     "ibge_code": _clean_code(_first(r, CODE_FIELDS)),
                     "uf": _clean_uf(_first(r, UF_FIELDS)),
                     "attributes": json.dumps(attrs, ensure_ascii=False),
                     "source_id": folder,
-                    "source_file": shp.name,
+                    "source_file": clean_text(shp.name),
                 }
             )
-        return shp.name, rows
+        broken = broken_strings(rows)
+        if broken:
+            # Refuse rather than store: a reload would otherwise hide the damage.
+            raise ValueError(
+                f"{layer_id}: {len(broken)} strings still broken after reading "
+                f"{shp.name} as {encoding or 'its .cpg'}, e.g. {broken[0]!r}"
+            )
+        return clean_text(shp.name), rows
 
 
 # ST_Force2D: the gas pipeline layers are PolyLineZ (3D), and the column is 2D.
