@@ -9,7 +9,7 @@ export interface UserProfile {
   email: string
   full_name: string
   role: UserRole
-  clearance: number // 0 public · 1 internal · 2 confidential
+  clearance: number // 0 public · 1 registered · 2 partner · 3 internal
   is_active: boolean
   created_at: string
   updated_at: string

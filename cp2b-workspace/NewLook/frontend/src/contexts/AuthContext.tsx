@@ -5,7 +5,7 @@
  *
  * Real, VM-local auth: talks to the FastAPI auth endpoints, stores a JWT in
  * localStorage (shared with apiClient so every authenticated request carries it),
- * and exposes role + data-clearance helpers for gating internal/confidential tools.
+ * and exposes role + data-clearance helpers for gating tools by access level.
  * Registration is invite-only (admin creates accounts via POST /auth/users).
  */
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react'
@@ -37,8 +37,8 @@ const AUTH = `${API_BASE_URL}/api/v1/auth`
 // hand. See docs/deployment/AUTH_VM_DEPLOYMENT.md.
 const AUTH_DISABLED = process.env.NEXT_PUBLIC_DISABLE_AUTH === 'true'
 
-// Synthetic user used ONLY in offline mode. 'interno' + clearance 2 opens every
-// research/analysis tool and confidential data tier so the whole app is
+// Synthetic user used ONLY in offline mode. 'interno' + clearance 3 opens every
+// research/analysis tool and every access level so the whole app is
 // explorable locally; it deliberately is NOT 'admin', so the admin-only account
 // management UI (which needs the real backend) stays hidden rather than 401-ing.
 const TEST_USER: UserProfile = {
@@ -46,7 +46,7 @@ const TEST_USER: UserProfile = {
   email: 'test@example.org',
   full_name: 'Test User',
   role: 'interno',
-  clearance: 2,
+  clearance: 3,
   is_active: true,
   created_at: new Date(0).toISOString(),
   updated_at: new Date(0).toISOString(),

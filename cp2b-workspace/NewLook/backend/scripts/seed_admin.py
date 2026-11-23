@@ -44,13 +44,13 @@ def main() -> int:
         cur.execute(
             """
             INSERT INTO auth_users (email, password_hash, full_name, role, clearance)
-            VALUES (%s, %s, %s, 'admin', 2)
+            VALUES (%s, %s, %s, 'admin', 3)
             RETURNING id
             """,
             (email, password_hash, name),
         )
         new_id = cur.fetchone()["id"]
-    print(f"Created admin {email} (id={new_id}, role=admin, clearance=2).")
+    print(f"Created admin {email} (id={new_id}, role=admin, clearance=3).")
     return 0
 
 
