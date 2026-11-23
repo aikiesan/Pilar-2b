@@ -62,6 +62,17 @@ describe('BivariateLegend', () => {
     )
   })
 
+  it('legend runs an inverted registry axis backwards: the top row is the shortest distance', () => {
+    const view = registryView({ ...demoMeta, y_invert: true }, 'pt-BR', 'x')
+    render(<BivariateLegend view={view} result={demoResult} stateLabel="São Paulo" />)
+    const text = screen.getByRole('region', { name: 'Demo XY' }).textContent ?? ''
+    // Rows are drawn top (class 2) to bottom (class 0).
+    expect(text.indexOf('< 3')).toBeGreaterThanOrEqual(0)
+    expect(text.indexOf('< 3')).toBeLessThan(text.indexOf('≥ 7'))
+    // The x axis is not inverted and keeps its order.
+    expect(text.indexOf('< 10')).toBeLessThan(text.indexOf('≥ 20'))
+  })
+
   it('legend draws a registry view with its own labels and the generic answer', () => {
     const view = registryView(demoMeta, 'pt-BR', 'municípios na célula em destaque')
     render(<BivariateLegend view={view} result={demoResult} stateLabel="São Paulo" />)
