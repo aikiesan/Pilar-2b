@@ -5,7 +5,7 @@
 
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import { GeoJSON, Marker, Popup } from 'react-leaflet';
 import type { GeoJsonObject, Feature } from 'geojson';
@@ -351,6 +351,20 @@ function popupSources(sources: DataSource[], label: string, unchecked: string): 
 export default function InfrastructureLayer({ layerType, onStatus, uf, bbox, pane }: InfrastructureLayerProps) {
   const t = useTranslations('Map.infrastructure');
   const tSources = useTranslations('dataSources');
+  // Lines and areas draw as SVG in their pane, never on a canvas. With the
+  // map's preferCanvas, a canvas renderer here would be a full-size layer
+  // above the municipalities that catches every click and hit-tests only its
+  // own lines, and Leaflet keeps it after the layer goes, so the municipalities
+  // could no longer be clicked. SVG catches the pointer on its painted lines
+  // only (their popups still open), and lets every other click through.
+  // GeoJSON's props leave `renderer` out of their type, though Leaflet hands
+  // it to every path the layer makes; it is passed as a spread for that. It
+  // has to be an option, not a style: the renderer is chosen when a path is
+  // added, and a style only reaches setStyle().
+  const rendererOption = useMemo(
+    () => (pane ? ({ renderer: L.svg({ pane }) } as Pick<L.PathOptions, 'renderer'>) : {}),
+    [pane],
+  );
   const format = useFormat();
   // Read when a popup opens, so popups bound before the registry arrived still cite it.
   const sources = useRef<DataSource[]>([]);
@@ -597,6 +611,7 @@ export default function InfrastructureLayer({ layerType, onStatus, uf, bbox, pan
       pointToLayer={pointToLayer}
       onEachFeature={onEachFeature}
       pane={pane}
+      {...rendererOption}
     />
   );
 }
