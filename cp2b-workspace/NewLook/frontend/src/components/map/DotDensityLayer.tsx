@@ -13,6 +13,7 @@ import { useEffect, useMemo } from 'react';
 import L from 'leaflet';
 import { useMap } from 'react-leaflet';
 import type { Dot } from '@/lib/dotDensity';
+import { replayPaneFade } from '@/lib/mapMotion';
 import { ensureMagnitudePane, KIND_COLORS, MAGNITUDE_PANE } from './magnitudeMarks';
 
 interface DotDensityLayerProps {
@@ -42,7 +43,7 @@ export default function DotDensityLayer({ dots }: DotDensityLayerProps) {
   }, [dots]);
 
   useEffect(() => {
-    ensureMagnitudePane(map);
+    const pane = ensureMagnitudePane(map);
     const { xs, ys, kinds } = packed;
     const Grid = L.GridLayer.extend({
       createTile(coords: L.Coords) {
@@ -82,6 +83,8 @@ export default function DotDensityLayer({ dots }: DotDensityLayerProps) {
     const DotGrid = Grid as unknown as new (options: L.GridLayerOptions) => L.GridLayer;
     const layer = new DotGrid({ pane: MAGNITUDE_PANE, updateWhenZooming: false, keepBuffer: 2 });
     layer.addTo(map);
+    // New dots (another metric, scenario or residue) fade in over the old place.
+    replayPaneFade(pane);
     return () => {
       layer.remove();
     };

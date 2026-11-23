@@ -16,6 +16,7 @@ import { useMap } from 'react-leaflet';
 import { SECTOR_COLORS } from '@/data/sectorColors';
 import type { SymbolItem } from '@/lib/magnitudeViews';
 import type { SectorAmounts } from '@/lib/sectorSplit';
+import { replayPaneFade } from '@/lib/mapMotion';
 import { ringSegments, symbolRadius, SYMBOL_HOLE_FROM, SYMBOL_HOLE_SHARE } from '@/lib/sectorSymbols';
 import { ensureMagnitudePane, MAGNITUDE_PANE, MARK_PAPER, NO_SPLIT_COLOR } from './magnitudeMarks';
 
@@ -50,7 +51,7 @@ export default function SectorSymbolLayer({ items, maxValue }: SectorSymbolLayer
   const map = useMap();
 
   useEffect(() => {
-    ensureMagnitudePane(map);
+    const pane = ensureMagnitudePane(map);
     const markers: L.Marker[] = [];
     for (const item of items) {
       const r = symbolRadius(item.amounts.total, maxValue);
@@ -72,6 +73,7 @@ export default function SectorSymbolLayer({ items, maxValue }: SectorSymbolLayer
       marker.addTo(map);
       markers.push(marker);
     }
+    replayPaneFade(pane);
     return () => {
       for (const m of markers) m.remove();
     };

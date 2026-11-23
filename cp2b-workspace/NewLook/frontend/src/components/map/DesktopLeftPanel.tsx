@@ -587,7 +587,7 @@ export default function DesktopLeftPanel({
   ];
 
   return (
-    <aside className={`surface-light hidden md:flex flex-col flex-shrink-0 h-full bg-paper-raised border-r border-line shadow-sm overflow-hidden transition-all duration-200 ${collapsed ? 'w-14' : 'w-72'}`}>
+    <aside className={`surface-light hidden md:flex flex-col flex-shrink-0 h-full bg-paper-raised border-r border-line shadow-sm overflow-hidden ${collapsed ? 'w-14' : 'w-72'}`}>
       {/* Top bar */}
       <div className="flex items-center border-b border-line flex-shrink-0 h-12 px-2">
         {!collapsed && (

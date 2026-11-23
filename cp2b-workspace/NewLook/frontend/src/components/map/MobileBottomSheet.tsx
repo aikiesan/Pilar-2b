@@ -99,12 +99,12 @@ export default function MobileBottomSheet({
     <div className="surface-light fixed bottom-0 left-0 right-0 z-[1200] flex flex-col md:hidden">
       {/* Content sheet — slides up when a tab is active */}
       <div
-        className={`bg-paper-raised border-t border-line shadow-2xl transition-all duration-300 ease-out overflow-y-auto ${
+        className={`bg-paper-raised border-t border-line shadow-2xl overflow-y-auto ${
           activeSheet ? 'h-[min(60vh,32rem)] rounded-t-2xl' : 'h-0 overflow-hidden'
         }`}
       >
         {activeSheet && (
-          <div className="px-4 py-3 space-y-4">
+          <div key={activeSheet} className="map-rise px-4 py-3 space-y-4">
             {/* Sheet header */}
             <div className="flex items-center justify-between">
               <span className="text-sm font-semibold text-ink">
@@ -276,7 +276,7 @@ export default function MobileBottomSheet({
                                     key={residue.value}
                                     disabled={!categoryAvailable}
                                     onClick={() => handleResidueToggle(residue.value)}
-                                    className={`flex min-h-11 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
+                                    className={`flex min-h-11 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
                                       isSelected ? activeColor : 'bg-paper-raised border-line text-ink-muted hover:bg-paper-sunken'
                                     }`}
                                   >
@@ -348,8 +348,8 @@ export default function MobileBottomSheet({
                   </div>
                   <div className="w-full bg-line rounded-full h-2">
                     <div
-                      className="bg-terra-600 h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${(municipalityCount / totalMunicipalities) * 100}%` }}
+                      className="h-2 w-full origin-left rounded-full bg-terra-600 transition-transform duration-300 motion-reduce:transition-none"
+                      style={{ transform: `scaleX(${totalMunicipalities > 0 ? municipalityCount / totalMunicipalities : 0})` }}
                     />
                   </div>
                 </div>

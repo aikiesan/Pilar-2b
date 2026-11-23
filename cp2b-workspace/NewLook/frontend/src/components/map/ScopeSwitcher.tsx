@@ -66,7 +66,7 @@ export default function ScopeSwitcher({ scope, onScopeChange, count, className =
       </button>
 
       {open && (
-        <div role="listbox" className="absolute left-0 top-full z-[1200] mt-2 w-64 rounded-xl bg-paper-raised p-1.5 shadow-2xl ring-1 ring-black/10">
+        <div role="listbox" className="map-pop absolute left-0 top-full z-[1200] mt-2 w-64 rounded-xl bg-paper-raised p-1.5 shadow-2xl ring-1 ring-black/10">
           {PUBLIC_SCOPES.map((code) => {
             const active = scope === code;
             return (

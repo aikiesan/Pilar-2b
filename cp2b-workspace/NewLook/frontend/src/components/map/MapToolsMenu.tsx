@@ -113,7 +113,7 @@ export default function MapToolsMenu({ tools, active, onSelect }: MapToolsMenuPr
           ref={listRef}
           role="group"
           aria-label={t('menu_aria')}
-          className="absolute left-0 top-full z-20 mt-1 w-72 max-w-[calc(100vw-1.5rem)] border border-line bg-paper-raised py-1 shadow-md"
+          className="map-pop absolute left-0 top-full z-20 mt-1 w-72 max-w-[calc(100vw-1.5rem)] border border-line bg-paper-raised py-1 shadow-md"
         >
           {tools.map((id) => {
             const isActive = active === id;

@@ -123,7 +123,7 @@ export default function ColorModeSelector({
               key={opt.value}
               type="button"
               onClick={() => onColorModeChange(opt.value)}
-              className={`${sizing} transition-all ${
+              className={`${sizing} transition-colors ${
                 active ? 'bg-terra-700 text-white shadow-sm' : 'text-ink hover:bg-line'
               }`}
             >
