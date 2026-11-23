@@ -137,7 +137,9 @@ export default function CrossWindow({
               })}
             </div>
 
-            {active && (
+            {/* The reading waits for the access check: until then the result
+                is not asked for, and its loading line would mislead. */}
+            {active && access === 'allowed' && (
               <div key={active} className="tool-reveal border-t border-line pt-3">
                 <BivariateLegend
                   id={active}

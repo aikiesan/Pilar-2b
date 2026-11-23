@@ -91,6 +91,13 @@ describe('CrossWindow', () => {
     expect(screen.queryByRole('group', { name: 'Perguntas' })).not.toBeInTheDocument()
   })
 
+  it('holds the reading back while the access check runs, the choice still shown', () => {
+    renderWindow({ access: 'loading', active: 'lacuna', loading: true })
+    expect(screen.getByRole('button', { pressed: true })).toBeDisabled()
+    expect(screen.queryByText(/infraestrutura/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/Clique num município/)).not.toBeInTheDocument()
+  })
+
   it('tells a pending account to wait', () => {
     renderWindow({ access: 'pending' })
     expect(screen.getByText('Seu pedido de acesso está em análise')).toBeInTheDocument()

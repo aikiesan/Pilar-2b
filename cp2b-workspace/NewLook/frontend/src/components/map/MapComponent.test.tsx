@@ -1388,6 +1388,10 @@ describe('MapComponent', () => {
       fireEvent.click(screen.getByRole('button', { name: 'municipality click' }));
       expect(await screen.findByText(/^São Paulo (está na célula marcada|não tem os dois dados)/)).toBeInTheDocument();
       expect(window.location.search).not.toMatch(/(^|[?&])m=/);
+      // The map outlines the pick; a click leaves the view where it is.
+      const outline = screen.getByTestId('municipality-highlight');
+      expect(outline).toHaveAttribute('data-ibge', '3550308');
+      expect(outline).toHaveAttribute('data-fit', '0');
 
       // Switching to the gap reads plants, a signed-in endpoint.
       fireEvent.click(screen.getByRole('button', { name: /Potencial sem planta/ }));

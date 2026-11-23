@@ -1072,6 +1072,15 @@ export default function MapComponent({
       return row ? analysisFill(row.cell, palette) : undefined;
     };
   }, [analysisResult, daltonic]);
+  // The municipality Cruzar marks, outlined on the map in place of the profile's.
+  const crossPickFeature = useMemo(
+    () => (crossOn && crossPick && data
+      ? data.features.find((f) => String(f.properties?.ibge_code) === crossPick) ?? null
+      : null),
+    [crossOn, crossPick, data],
+  );
+  const highlighted = crossOn ? crossPickFeature : selectedMunicipality;
+
   const crossPicked = useMemo((): CrossPicked | null => {
     // Nothing to say until the reading is in: a loading analysis is not "no data".
     if (!crossPick || !data || !analysisResult) return null;
@@ -1245,16 +1254,20 @@ export default function MapComponent({
         <div className="flex min-w-0 flex-1 flex-wrap items-start gap-2 md:flex-none">
           <MapMunicipalitySearch
             features={searchFeatures}
-            selected={selectedMunicipality}
+            selected={highlighted}
             onSelect={(feature) => {
               // With Compare open the search fills A or B, as a click does.
               if (compareOn) {
                 if (toolAccess === 'allowed' && feature?.properties?.ibge_code != null) pickCompare(String(feature.properties.ibge_code));
                 return;
               }
-              // With Cruzar open it marks the municipality's cell.
+              // With Cruzar open it marks the municipality's cell, and the map
+              // outlines it and goes there, as for a profile picked by search.
               if (crossOn) {
-                if (feature?.properties?.ibge_code != null) setCrossPick(String(feature.properties.ibge_code));
+                if (feature?.properties?.ibge_code != null) {
+                  setCrossPick(String(feature.properties.ibge_code));
+                  setFitKey((k) => k + 1);
+                }
                 return;
               }
               // Picking a municipality opens its profile, which takes the
@@ -1262,7 +1275,7 @@ export default function MapComponent({
               if (activeTool) closeTool();
               selectMunicipality(feature, true);
             }}
-            onClear={() => selectMunicipality(null)}
+            onClear={() => (crossOn ? setCrossPick(null) : selectMunicipality(null))}
           />
           <div data-tour="map-scope">
             <ScopeSwitcher
@@ -1508,7 +1521,7 @@ export default function MapComponent({
                 />
               : <IntermediateRegionBoundaryLayer visible={true} />
           )}
-          <MunicipalityHighlight feature={selectedMunicipality} fitKey={fitKey} />
+          <MunicipalityHighlight feature={highlighted} fitKey={fitKey} />
           {isMounted && (
             <LandAroundLayer
               active={landOn}
@@ -1722,8 +1735,10 @@ export default function MapComponent({
         {/* Legends.
             Desktop: shown in full. Mobile: the choropleth legend collapses to a
             chip (tap to expand) so it doesn't crowd the screen. */}
-        {/* With Cruzar open the reading sits in its window instead. */}
-        {showMunicipalityFill && analysisShown && !crossOn && visualizationMode === 'choropleth' && (
+        {/* With Cruzar open to an approved account the reading sits in its
+            window instead; anyone else sees the window's gate, so the map
+            keeps its key here. */}
+        {showMunicipalityFill && analysisShown && !(crossOn && toolAccess === 'allowed') && visualizationMode === 'choropleth' && (
           <div data-tour="map-legend">
             <BivariateLegend
               id={analysisShown}
