@@ -9,21 +9,13 @@ import {
 } from '../mapTools'
 
 describe('availableMapTools', () => {
-  it('offers Land around and Cruzar while the analyses are held back', () => {
-    expect(availableMapTools(false)).toEqual(['land', 'cross'])
-    expect(isMapToolAvailable('compare', false)).toBe(false)
-  })
-
-  it('offers only tools that are built, even with the analyses on', () => {
-    expect(availableMapTools(true)).toEqual(['land', 'compare', 'cross', 'gather', 'similar', 'truck'])
-    expect(isMapToolAvailable('compare', true)).toBe(true)
-    expect(isMapToolAvailable('gather', true)).toBe(true)
-    expect(isMapToolAvailable('gather', false)).toBe(false)
-    expect(isMapToolAvailable('similar', true)).toBe(true)
-    expect(isMapToolAvailable('similar', false)).toBe(false)
-    expect(isMapToolAvailable('truck', true)).toBe(true)
-    expect(isMapToolAvailable('truck', false)).toBe(false)
-    expect(isMapToolAvailable(null, true)).toBe(false)
+  it('offers every built tool, in menu order', () => {
+    expect(availableMapTools()).toEqual(['land', 'compare', 'cross', 'gather', 'similar', 'truck'])
+    expect(isMapToolAvailable('compare')).toBe(true)
+    expect(isMapToolAvailable('gather')).toBe(true)
+    expect(isMapToolAvailable('similar')).toBe(true)
+    expect(isMapToolAvailable('truck')).toBe(true)
+    expect(isMapToolAvailable(null)).toBe(false)
   })
 })
 

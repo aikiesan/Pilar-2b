@@ -13,8 +13,8 @@
  * the public site and Docker) every anonymous visitor is a synthetic TEST_USER
  * and it is true for all of them. See lib/betaAccess.ts.
  *
- * Which tools are OFFERED is a different question (MAP_ANALYSES_ENABLED and
- * what is built): lib/mapTools.ts.
+ * Which tools are OFFERED is a different question (what is built):
+ * lib/mapTools.ts.
  */
 
 import { useRealSessionState } from '@/lib/betaAccess';

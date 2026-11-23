@@ -571,12 +571,12 @@ export default function MapComponent({
   // opens it. Anyone can open a tool; useMapToolAccess decides whether its
   // clicks do anything, and the tool's window says what is needed.
   const toolAccess = useMapToolAccess();
-  const toolsOnOffer = useMemo(() => availableMapTools(MAP_ANALYSES_ENABLED), []);
+  const toolsOnOffer = useMemo(() => availableMapTools(), []);
   const [initialTools] = useState(() =>
     parseMapToolParams(initialSearch),
   );
   const [activeTool, setActiveTool] = useState<MapToolId | null>(
-    isMapToolAvailable(initialTools.tool, MAP_ANALYSES_ENABLED) ? initialTools.tool : null,
+    isMapToolAvailable(initialTools.tool) ? initialTools.tool : null,
   );
   // Land around
   const landOn = activeTool === 'land';
