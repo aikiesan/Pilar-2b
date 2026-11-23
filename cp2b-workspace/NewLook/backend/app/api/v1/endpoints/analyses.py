@@ -44,6 +44,10 @@ def _meta(row: dict) -> dict:
         "x_label": _pair(row, "x_label"),
         "y_label": _pair(row, "y_label"),
         "answer_cell": row["answer_cell"],
+        # Which axis reads "closer is stronger": the legend needs it to label the
+        # rows. The methods and the values stay on the server.
+        "x_invert": bool(row["x_invert"]),
+        "y_invert": bool(row["y_invert"]),
         "layers": list(row["layers"]),
         "uf_prefixes": list(row["uf_prefixes"]),
     }

@@ -76,16 +76,17 @@ export default function BivariateLegend({
     }
   };
   /** The three class labels of an axis, weakest first. */
-  const classLabels = (axis: AxisDef | null, breaks: Breaks | null): [string, string, string] => {
+  const classLabels = (axis: AxisDef | null, breaks: Breaks | null, invert: boolean): [string, string, string] => {
     if (axis?.method === 'fixed_count') return ['0', '1', '2+'];
     if (!breaks) return ['', '', ''];
     const [a, b] = breaks.map((v) => (axis ? value(axis, v) : format.compact(v)));
     // Inverted (distance): the strongest class is the smallest value.
-    return axis?.invert ? [`≥ ${b}`, `${a}–${b}`, `< ${a}`] : [`< ${a}`, `${a}–${b}`, `≥ ${b}`];
+    return invert ? [`≥ ${b}`, `${a}–${b}`, `< ${a}`] : [`< ${a}`, `${a}–${b}`, `≥ ${b}`];
   };
 
-  const xLabels = classLabels(def?.x ?? null, result?.xBreaks ?? null);
-  const yLabels = classLabels(def?.y ?? null, result?.yBreaks ?? null);
+  // The view carries the direction for built-ins and registry analyses alike.
+  const xLabels = classLabels(def?.x ?? null, result?.xBreaks ?? null, view.xInvert);
+  const yLabels = classLabels(def?.y ?? null, result?.yBreaks ?? null, view.yInvert);
   const answer = result ? result.counts[view.answerCell] : null;
 
   return (

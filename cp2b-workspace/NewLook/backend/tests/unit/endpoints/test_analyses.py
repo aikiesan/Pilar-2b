@@ -26,6 +26,8 @@ META_KEYS = {
     "x_label",
     "y_label",
     "answer_cell",
+    "x_invert",
+    "y_invert",
     "layers",
     "uf_prefixes",
 }
@@ -50,11 +52,11 @@ def _row(aid, level, **kw):
         "level": level,
         "opens_at": None,
         "is_active": True,
+        "x_invert": False,
+        "y_invert": False,
         # Columns that must never reach the client.
         "x_method": "tertile",
         "y_method": "tertile",
-        "x_invert": False,
-        "y_invert": False,
     }
     row.update(kw)
     return row
@@ -195,6 +197,7 @@ def test_list_never_leaks_level_or_dates(api):
     first = body["analyses"][0]
     assert first["title"] == {"pt": "Título demo_xy", "en": "Title demo_xy"}
     assert first["layers"] == ["a", "b"] and first["uf_prefixes"] == ["35", "31"]
+    assert first["x_invert"] is False and first["y_invert"] is False
 
 
 def test_detail_404_for_hidden_and_for_missing_alike(api):

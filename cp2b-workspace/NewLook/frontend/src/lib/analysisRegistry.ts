@@ -34,6 +34,9 @@ export interface RegistryAnalysisMeta {
   x_label: LocalizedText
   y_label: LocalizedText
   answer_cell: number
+  /** The axis reads "closer is stronger" (a distance): its labels run backwards. */
+  x_invert?: boolean
+  y_invert?: boolean
   layers: string[]
   uf_prefixes: string[]
 }
@@ -76,6 +79,8 @@ export interface AnalysisView {
   xLabel: string
   yLabel: string
   answerCell: number
+  xInvert: boolean
+  yInvert: boolean
   source: string | null
   layers: readonly string[]
 }
@@ -94,6 +99,8 @@ export function builtInView(id: AnalysisId, t: (key: BuiltInViewKey) => string):
     xLabel: t(`axes.${def.x.key}`),
     yLabel: t(`axes.${def.y.key}`),
     answerCell: def.answerCell,
+    xInvert: def.x.invert ?? false,
+    yInvert: def.y.invert ?? false,
     source: null,
     layers: def.layers,
   }
@@ -110,6 +117,8 @@ export function registryView(meta: RegistryAnalysisMeta, locale: 'pt-BR' | 'en',
     xLabel: meta.x_label[k],
     yLabel: meta.y_label[k],
     answerCell: meta.answer_cell,
+    xInvert: meta.x_invert ?? false,
+    yInvert: meta.y_invert ?? false,
     source: meta.source ? meta.source[k] : null,
     layers: meta.layers,
   }
