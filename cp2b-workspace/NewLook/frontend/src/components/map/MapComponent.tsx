@@ -619,6 +619,27 @@ export default function MapComponent({
   const [truckCircle, setTruckCircle] = useState(false);
   // The site a row of the nearest list points at.
   const [truckHovered, setTruckHovered] = useState<string | null>(null);
+  // The tool a link opened with its pick, framed on arrival (useToolFraming).
+  // Once the reader leaves it, reopening the tool is not an arrival any more.
+  const [arrivalTool, setArrivalTool] = useState<MapToolId | null>(() => {
+    const t = initialTools;
+    const picked =
+      (t.tool === 'land' && t.land.point !== null) ||
+      (t.tool === 'compare' && t.compare.pair.length > 0) ||
+      (t.tool === 'gather' && (t.gather.point !== null || t.gather.hub !== null)) ||
+      (t.tool === 'similar' && t.similar.of !== null) ||
+      (t.tool === 'truck' && t.truck.site !== null);
+    return picked ? t.tool : null;
+  });
+  // A new pick leaves the link too: a link whose pick never drew must not
+  // make the reader's first click move the map.
+  const leftLinkPick =
+    (arrivalTool === 'land' && landPoint !== initialTools.land.point) ||
+    (arrivalTool === 'compare' && comparePair !== initialTools.compare.pair) ||
+    (arrivalTool === 'gather' && (gatherPoint !== initialTools.gather.point || gatherHub !== initialTools.gather.hub)) ||
+    (arrivalTool === 'similar' && similarOf !== initialTools.similar.of) ||
+    (arrivalTool === 'truck' && truckSite !== initialTools.truck.site);
+  if (arrivalTool !== null && (activeTool !== arrivalTool || leftLinkPick)) setArrivalTool(null);
   // A tool that draws its own municipality layer hides the choropleth and its legends.
   const fillHiddenByTool = landOn || compareOn || gatherOn || similarOn;
   // Cruzar: the analysis is the map's own ?a=; the tool is how it reaches
@@ -1785,6 +1806,7 @@ export default function MapComponent({
               point={landOn && toolAccess === 'allowed' ? landPoint : null}
               radiusKm={landRadius}
               onPick={handleLandPick}
+              openedFromLink={arrivalTool === 'land'}
             />
           )}
           {isMounted && gatherOn && (
@@ -1795,6 +1817,7 @@ export default function MapComponent({
               result={gatherResult}
               features={data?.features ?? []}
               onPick={handleGatherPick}
+              openedFromLink={arrivalTool === 'gather'}
             />
           )}
           {isMounted && compareOn && filteredData && (
@@ -1806,6 +1829,7 @@ export default function MapComponent({
               onPick={pickCompare}
               distanceKm={compareDistanceKm}
               distanceLabel={compareDistanceLabel}
+              openedFromLink={arrivalTool === 'compare'}
             />
           )}
           {isMounted && similarOn && filteredData && (
@@ -1816,6 +1840,7 @@ export default function MapComponent({
               hovered={toolAccess === 'allowed' ? similarHovered : null}
               interactive={toolAccess === 'allowed'}
               onPick={pickSimilar}
+              openedFromLink={arrivalTool === 'similar'}
             />
           )}
           {isMounted && truckOn && (
@@ -1823,7 +1848,7 @@ export default function MapComponent({
               sites={truckSiteList}
               interactive={toolAccess === 'allowed'}
               selected={truckAllowed ? truckSite : null}
-              openedWith={initialTools.truck.site}
+              openedWith={arrivalTool === 'truck' ? initialTools.truck.site : null}
               data={truckData}
               hovered={truckAllowed ? truckHovered : null}
               limit={truckLimit}

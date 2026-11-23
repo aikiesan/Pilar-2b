@@ -13,6 +13,7 @@ import { useEffect, useMemo } from 'react';
 import L from 'leaflet';
 import { Circle, Polygon, useMap, useMapEvents } from 'react-leaflet';
 import { circleRing, type LandAroundPoint } from '@/lib/landAround';
+import { useToolFraming } from './useToolFraming';
 import { useRendererCleanup } from './useRendererCleanup';
 
 const PANE = 'land-around';
@@ -27,10 +28,21 @@ interface LandAroundLayerProps {
   point: LandAroundPoint | null;
   radiusKm: number;
   onPick: (point: LandAroundPoint) => void;
+  /** The tool opened from a link with a circle: frame it on arrival. */
+  openedFromLink?: boolean;
 }
 
-export default function LandAroundLayer({ active, point, radiusKm, onPick }: LandAroundLayerProps) {
+export default function LandAroundLayer({ active, point, radiusKm, onPick, openedFromLink = false }: LandAroundLayerProps) {
   const map = useMap();
+
+  // A link frames the circle; a click keeps the view.
+  useToolFraming({
+    resultKey: point ? `${point.lat},${point.lng},${radiusKm}` : null,
+    openedFromLink,
+    pick: point ? [[point.lat, point.lng]] : [],
+    extent: point ? L.latLng(point.lat, point.lng).toBounds(radiusKm * 2000) : null,
+    maxZoom: 11,
+  });
 
   // Made during render, so it exists before the paths below add themselves to it.
   const renderer = useMemo(() => {

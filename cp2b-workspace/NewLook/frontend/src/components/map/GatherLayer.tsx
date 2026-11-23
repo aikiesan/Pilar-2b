@@ -37,6 +37,7 @@ import { prefersReducedMotion } from '@/lib/mapMotion';
 import type { LatLng } from '@/lib/mapGeometry';
 import type { MunicipalityFeature } from '@/types/geospatial';
 import { SOURCE_COLORS } from './magnitudeMarks';
+import { useToolFraming } from './useToolFraming';
 import { useRendererCleanup } from './useRendererCleanup';
 
 const PANE = 'gather';
@@ -52,6 +53,8 @@ interface GatherLayerProps {
   /** Outlines of the members, by IBGE code. */
   features: readonly MunicipalityFeature[];
   onPick: (point: LatLng) => void;
+  /** The tool opened from a link with a plant: frame its circle on arrival. */
+  openedFromLink?: boolean;
 }
 
 interface Particle {
@@ -71,8 +74,17 @@ function ensurePane(map: L.Map, name: string, z: number): HTMLElement {
   return pane;
 }
 
-export default function GatherLayer({ active, point, radiusKm, result, features, onPick }: GatherLayerProps) {
+export default function GatherLayer({ active, point, radiusKm, result, features, onPick, openedFromLink = false }: GatherLayerProps) {
   const map = useMap();
+
+  // A link frames the circle; a click keeps the view.
+  useToolFraming({
+    resultKey: point ? `${point.lat},${point.lng},${radiusKm}` : null,
+    openedFromLink,
+    pick: point ? [[point.lat, point.lng]] : [],
+    extent: point ? L.latLng(point.lat, point.lng).toBounds(radiusKm * 2000) : null,
+    maxZoom: 11,
+  });
   const renderer = useMemo(() => {
     ensurePane(map, PANE, 456);
     return L.svg({ pane: PANE });
