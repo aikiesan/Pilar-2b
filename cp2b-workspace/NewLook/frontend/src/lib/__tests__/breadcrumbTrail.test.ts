@@ -7,10 +7,10 @@ const crumbs = (pathname: string, tail: BreadcrumbItem[] = []) => navCrumbs(path
 
 describe('navCrumbs', () => {
   it('climbs from home through the menu group to the page', () => {
-    expect(crumbs('/proximity')).toEqual([
+    expect(crumbs('/compare')).toEqual([
       { label: 'home', href: '/' },
       { label: 'group_platform', href: '/map' },
-      { label: 'proximity_logistics' },
+      { label: 'compare_municipalities' },
     ])
   })
 

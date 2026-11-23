@@ -24,7 +24,8 @@ async function answerCookieBanner(page: Page) {
 test.describe('Retired paths', () => {
   for (const [from, to] of [
     ['/en/dashboard/compare', '/en/compare'],
-    ['/pt-BR/dashboard/proximity?lat=-22.9&lng=-47.06&radius=20', '/pt-BR/proximity?lat=-22.9&lng=-47.06&radius=20'],
+    ['/pt-BR/dashboard/proximity?lat=-22.9&lng=-47.06&radius=20', '/pt-BR/map?tool=land&lat=-22.9&lng=-47.06&radius=20'],
+    ['/en/proximity?lat=-21.18&lng=-47.81&radius=20', '/en/map?tool=land&lat=-21.18&lng=-47.81&radius=20'],
     ['/en/dashboard/technology-routes', '/en/calculator'],
     ['/pt-BR/dashboard/scientific-database?view=references', '/pt-BR/method/science-base?view=references'],
   ] as const) {

@@ -14,7 +14,8 @@ import { useTranslations } from 'next-intl';
 import MapTour, { MapTourButton } from './MapTour';
 import { MapContainer, TileLayer, ScaleControl, ZoomControl, useMap } from 'react-leaflet';
 import dynamic from 'next/dynamic';
-import { CircleAlert, Loader2 } from 'lucide-react';
+import { CircleAlert, CircleDashed, Loader2 } from 'lucide-react';
+import { parseLandAroundParams, writeLandAroundParams, type LandAroundPoint, type LandAroundRadius } from '@/lib/landAround';
 import { useGeospatialData, useCodigestionClusters, useResidueCNMatrix, useIntermediateRegionsGeoJSON, useSitingIndicators } from '@/hooks/useGeospatialData';
 import { ANALYSES, analysisFill, classifyAnalysis, isAnalysisId, type AnalysisId } from '@/lib/mapAnalyses';
 import BivariateLegend from './BivariateLegend';
@@ -25,7 +26,7 @@ import { DISPLAY_METRICS, getMetricSpec, computeAdaptiveBreaks, DEFAULT_MAP_PALE
 import { setMapPalette } from '@/hooks/useMapPalette';
 import { CN_LEGEND_ROWS } from '@/lib/cnScale';
 import { useTypologyProfiles } from '@/hooks/useTypologyProfiles';
-import { useBetaAccess } from '@/lib/betaAccess';
+import { useBetaAccess, useRealSession } from '@/lib/betaAccess';
 import {
   TIPOLOGIA_COLORS, REGIME_COLORS, TIPOLOGIA_ORDER, REGIME_ORDER,
   TIPOLOGIA_KEY, REGIME_KEY,
@@ -149,6 +150,10 @@ const BasemapControl = dynamic(() => import('./BasemapControl'), { ssr: false })
 const ThematicMapBar = dynamic(() => import('./ThematicMapBar'), { ssr: false });
 const ThematicMapMenu = dynamic(() => import('./ThematicMapMenu'), { ssr: false });
 const MunicipalityHighlight = dynamic(() => import('./MunicipalityHighlight'), { ssr: false });
+
+// Land around: the click tool's circle on the map and its floating window.
+const LandAroundLayer = dynamic(() => import('./LandAroundLayer'), { ssr: false });
+const LandAround = dynamic(() => import('./LandAroundWindow'), { ssr: false });
 
 // Profile + Tooltip overlays
 const MunicipalityProfilePanel = dynamic(() => import('./MunicipalityProfilePanel'), { ssr: false });
@@ -493,6 +498,45 @@ export default function MapComponent({
   // ── Enhanced interaction state (Phase 2+3) ────────────────────────────────
   const [selectedMunicipality, setSelectedMunicipality] = useState<MunicipalityFeature | null>(null);
   const [hoveredMunicipality, setHoveredMunicipality] = useState<MunicipalityFeature | null>(null);
+
+  // ── Land around (click tool) ──────────────────────────────────────────────
+  // Kept in the URL (?tool=land&lat&lng&radius), so a shared link opens the
+  // tool at that point. Signed-out visitors can open it, but a click draws
+  // nothing: the window asks them to sign in. A real session, never
+  // useAuth().isAuthenticated: open mode makes that true for every visitor.
+  const signedIn = useRealSession();
+  const [initialLand] = useState(() =>
+    parseLandAroundParams(typeof window === 'undefined' ? '' : window.location.search),
+  );
+  const [landOn, setLandOn] = useState(initialLand.on);
+  const [landPoint, setLandPoint] = useState<LandAroundPoint | null>(initialLand.point);
+  const [landRadius, setLandRadius] = useState<LandAroundRadius>(initialLand.radius);
+  const [landPlace, setLandPlace] = useState<string | null>(null);
+  // A click on a municipality reaches its layer just before the map: the layer
+  // leaves the name here and the map's click, which places the circle, takes it.
+  const landClickedName = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = writeLandAroundParams(window.location.search, { on: landOn, point: landPoint, radius: landRadius });
+    const query = params.toString();
+    const next = `${window.location.pathname}${query ? `?${query}` : ''}`;
+    if (next !== `${window.location.pathname}${window.location.search}`) window.history.replaceState(null, '', next);
+  }, [landOn, landPoint, landRadius]);
+
+  const closeLandAround = useCallback(() => {
+    setLandOn(false);
+    setLandPoint(null);
+    setLandPlace(null);
+  }, []);
+
+  const handleLandPick = useCallback((point: LandAroundPoint) => {
+    const name = landClickedName.current;
+    landClickedName.current = null;
+    if (!signedIn) return;
+    setLandPoint(point);
+    setLandPlace(name);
+  }, [signedIn]);
   const [mousePosition, setMousePosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [comparisonMunicipalities, setComparisonMunicipalities] = useState<MunicipalityFeature[]>([]);
   const [showComparison, setShowComparison] = useState(false);
@@ -603,8 +647,20 @@ export default function MapComponent({
   }, []);
 
   const handleMunicipalityClick = useCallback((feature: MunicipalityFeature) => {
+    // With Land around on, the click places the circle (LandAroundLayer); the
+    // municipality only names the place.
+    if (landOn) {
+      landClickedName.current = feature.properties?.name ?? null;
+      return;
+    }
     selectMunicipality(feature);
-  }, [selectMunicipality]);
+  }, [selectMunicipality, landOn]);
+
+  const toggleLandAround = useCallback(() => {
+    if (landOn) { closeLandAround(); return; }
+    selectMunicipality(null);
+    setLandOn(true);
+  }, [landOn, closeLandAround, selectMunicipality]);
 
   // The municipality the URL (or the caller) names, selected and framed once the
   // data is in. Matched as the search matches, among the municipalities of the
@@ -636,7 +692,11 @@ export default function MapComponent({
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
       // A menu that closed on this Escape (Temas, state) marks it handled;
       // closing a menu must not also drop the selected municipality.
-      if (e.key === 'Escape') { if (!e.defaultPrevented) selectMunicipality(null); return; }
+      if (e.key === 'Escape') {
+        if (e.defaultPrevented) return;
+        if (landOn) closeLandAround(); else selectMunicipality(null);
+        return;
+      }
       if (e.key === 'e' || e.key === 'E') {
         if (DATA_EXPORT_ENABLED) setShowExport(true);
         return;
@@ -644,7 +704,7 @@ export default function MapComponent({
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [selectMunicipality]);
+  }, [selectMunicipality, landOn, closeLandAround]);
 
   // ── Comparison callbacks (Phase 3) ────────────────────────────────────────
   const handleAddToComparison = useCallback((feature: MunicipalityFeature) => {
@@ -795,6 +855,20 @@ export default function MapComponent({
     () => layers.filter(l => l.visible).map((l): string => l.id),
     [layers]
   );
+  // Land around takes every click on the map, and the municipality shapes
+  // would catch it first; while the tool is on they step aside (fill, its
+  // beta overlays and legends), and come back as they were when it closes.
+  const showMunicipalityFill = visibleLayerIds.includes('municipalities') && !landOn;
+  // The labels overlay repeats the names the base tiles already carry, a few
+  // pixels apart; it is only needed where a fill hides those names, or on
+  // satellite imagery, which has none. Drawn over bare tiles, every name
+  // shows twice.
+  const baseNamesHidden =
+    showMunicipalityFill ||
+    ((isCnMode || isTypologyMode) && !landOn) ||
+    visibleLayerIds.includes('mapbiomas') ||
+    visibleLayerIds.includes('intermediate-regions');
+  const showLabelsOverlay = basemap === 'satelite' || baseNamesHidden;
   // Every plant layer on the map, so the legend explains all of them and only
   // them. (The legacy SP `biogas-plants` layer is retired from INITIAL_LAYERS;
   // the legend still knows how to expand it should it come back.)
@@ -1117,7 +1191,12 @@ export default function MapComponent({
           <MapMunicipalitySearch
             features={searchFeatures}
             selected={selectedMunicipality}
-            onSelect={(feature) => selectMunicipality(feature, true)}
+            onSelect={(feature) => {
+              // Picking a municipality opens its profile, which takes the
+              // place of the Land around window.
+              if (landOn) closeLandAround();
+              selectMunicipality(feature, true);
+            }}
             onClear={() => selectMunicipality(null)}
           />
           <div data-tour="map-scope">
@@ -1127,6 +1206,24 @@ export default function MapComponent({
               count={activeScopeCount}
             />
           </div>
+          {/* Land around: a click on the map opens a circle and what its land is used for. */}
+          <button
+            type="button"
+            onClick={toggleLandAround}
+            aria-pressed={landOn}
+            aria-label={t('landAround.toggle')}
+            title={t('landAround.toggle_hint')}
+            className={`surface-light flex min-h-11 min-w-11 items-center justify-center gap-1.5 border px-3 text-sm font-semibold shadow-md backdrop-blur transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-terra-600 ${
+              landOn
+                ? 'border-ink bg-ink text-paper hover:bg-ink/90 active:bg-ink/80'
+                : 'border-line bg-paper-raised/95 text-ink hover:bg-paper-raised active:bg-paper-sunken'
+            }`}
+          >
+            <CircleDashed className={`h-4 w-4 shrink-0 ${landOn ? 'text-paper' : 'text-terra-800'}`} aria-hidden="true" />
+            {/* Colour on the label itself: .surface-light sets the button's
+                text colour after the utilities and would win over text-paper. */}
+            <span className={`hidden sm:inline ${landOn ? 'text-paper' : 'text-ink'}`}>{t('landAround.toggle')}</span>
+          </button>
           {isMounted && (
             <div data-tour="map-themes" className="hidden md:block">
               <ThematicMapMenu
@@ -1251,7 +1348,9 @@ export default function MapComponent({
             url={activeBasemap.url}
             maxZoom={activeBasemap.maxZoom}
           />
-          <BasemapLabels key={`${basemap}-labels`} url={activeBasemap.labelsUrl} maxZoom={activeBasemap.maxZoom} />
+          {showLabelsOverlay && (
+            <BasemapLabels key={`${basemap}-labels`} url={activeBasemap.labelsUrl} maxZoom={activeBasemap.maxZoom} />
+          )}
 
           {/* Metric scale bar (km only — imperial off). */}
           <ScaleControl position="bottomleft" imperial={false} metric={true} />
@@ -1263,7 +1362,7 @@ export default function MapComponent({
 
 
           {/* Municipality Layer */}
-          {visibleLayerIds.includes('municipalities') && displayData && (
+          {showMunicipalityFill && displayData && (
             <>
               {visualizationMode === 'choropleth' || visualizationMode === 'clusters' ? (
                 <MunicipalityLayer
@@ -1302,11 +1401,11 @@ export default function MapComponent({
               they read covers SP+MG (1498 rows), so pinning them to SP left the
               MG scope painting nothing at all while the legend still announced
               the full SP+MG counts. */}
-          {isCnMode && !typologyLoading && activeStateData && (
+          {isCnMode && !landOn && !typologyLoading && activeStateData && (
             <CnChoroLayer geoJsonData={activeStateData} cnByIbge={cnByIbge} />
           )}
 
-          {isTypologyMode && !typologyLoading && activeStateData && (
+          {isTypologyMode && !landOn && !typologyLoading && activeStateData && (
             <TypologyChoroLayer
               geoJsonData={activeStateData}
               typologyMap={typologyMap}
@@ -1357,6 +1456,14 @@ export default function MapComponent({
               : <IntermediateRegionBoundaryLayer visible={true} />
           )}
           <MunicipalityHighlight feature={selectedMunicipality} fitKey={fitKey} />
+          {isMounted && (
+            <LandAroundLayer
+              active={landOn}
+              point={landOn && signedIn ? landPoint : null}
+              radiusKm={landRadius}
+              onPick={handleLandPick}
+            />
+          )}
         </MapContainer>
         </div>
 
@@ -1389,6 +1496,17 @@ export default function MapComponent({
             metric={displayMetric}
             scenario={mapScenario}
             features={data?.features}
+          />
+        )}
+
+        {isMounted && landOn && (
+          <LandAround
+            point={landPoint}
+            radius={landRadius}
+            placeHint={landPlace}
+            signedIn={signedIn}
+            onRadiusChange={setLandRadius}
+            onClose={closeLandAround}
           />
         )}
 
@@ -1435,7 +1553,7 @@ export default function MapComponent({
             the same disagreement one scope down — SP showed "Pecuário 599" over
             a map that is overwhelmingly sugarcane (SP's real split is 354
             cana / 77 pecuário). Click a class to isolate it. */}
-        {isTypologyMode && Object.keys(typologyMap).length > 0 && (() => {
+        {isTypologyMode && !landOn && Object.keys(typologyMap).length > 0 && (() => {
           const isTip = colorMode === 'tipologia';
           const order = isTip ? TIPOLOGIA_ORDER : REGIME_ORDER;
           const colors: Record<string, string> = isTip ? TIPOLOGIA_COLORS : REGIME_COLORS;
@@ -1524,7 +1642,7 @@ export default function MapComponent({
         {/* Legends.
             Desktop: shown in full. Mobile: the choropleth legend collapses to a
             chip (tap to expand) so it doesn't crowd the screen. */}
-        {visibleLayerIds.includes('municipalities') && activeAnalysis && visualizationMode === 'choropleth' && (
+        {showMunicipalityFill && activeAnalysis && visualizationMode === 'choropleth' && (
           <div data-tour="map-legend">
             <BivariateLegend
               id={activeAnalysis}
@@ -1537,7 +1655,7 @@ export default function MapComponent({
             />
           </div>
         )}
-        {visibleLayerIds.includes('municipalities') && !activeAnalysis && visualizationMode !== 'clusters' && (
+        {showMunicipalityFill && !activeAnalysis && visualizationMode !== 'clusters' && (
           visualizationMode === 'choropleth' ? (
             colorMode === 'biogas' ? (
               <>

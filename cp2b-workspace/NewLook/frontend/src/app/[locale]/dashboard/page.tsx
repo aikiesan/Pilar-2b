@@ -20,7 +20,6 @@ import { METHOD_PAGES_ENABLED } from '@/lib/featureFlags'
 import { SkeletonDashboard } from '@/components/ui/Skeleton'
 import {
   Map,
-  Gauge,
   BookOpen,
   TrendingUp,
   Database,
@@ -74,14 +73,6 @@ export default function DashboardPage() {
       badge: t('badge_popular'),
     },
     {
-      title: t('feat_proximity_title'),
-      description: t('feat_proximity_desc'),
-      icon: Gauge,
-      href: '/proximity',
-      color: 'blue',
-      badge: t('badge_new'),
-    },
-    {
       title: t('feat_routes_title'),
       description: t('feat_routes_desc'),
       icon: TrendingUp,
@@ -127,7 +118,6 @@ export default function DashboardPage() {
   // explains why, so the next move is always inferable.
   const usagePath = [
     { label: t('path_map'), hint: t('feat_map_desc'), href: '/map' },
-    { label: t('path_proximity'), hint: t('feat_proximity_desc'), href: '/proximity' },
     { label: t('path_science'), hint: t('feat_scientific_desc'), href: '/method/science-base' },
   ]
 

@@ -80,7 +80,6 @@ export const NAV_GROUPS: NavGroup[] = [
       { href: '/map', labelKey: 'map_interactive', descriptionKey: 'map', icon: Map },
       { href: '/municipalities', labelKey: 'municipalities', descriptionKey: 'municipalities', icon: Building2 },
       { href: '/compare', labelKey: 'compare_municipalities', descriptionKey: 'compare', icon: Columns3 },
-      { href: '/proximity', labelKey: 'proximity_logistics', descriptionKey: 'proximity', icon: Target },
       { href: '/calculator', labelKey: 'technology_routes', descriptionKey: 'technology_routes', icon: Workflow },
       // Held back with the Método pages: it shows the availability factors.
       ...(METHOD_PAGES_ENABLED

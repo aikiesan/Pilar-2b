@@ -10,7 +10,7 @@
  *     METHOD_PAGES_ENABLED is on — see MunicipalityProfile.upstream); the
  *     climate section (GHG module, folded) when the API answers
  *  5. neighbours compared, this municipality highlighted
- *  6. actions: nearby infrastructure (→ Proximidade), share, cite
+ *  6. actions: share, cite
  *  7. notes and limitations, folded; report an error
  *
  * Every figure comes from the API (lib/municipalityProfile). Outside the CP2b
@@ -70,9 +70,6 @@ export function generateStaticParams() {
 }
 
 type Params = { params: Promise<{ locale: string; slug: string }> }
-
-/** Proximidade opens on a point with this radius (km). */
-const PROXIMITY_RADIUS_KM = 50
 
 /**
  * The municipality a slug names. Without the list (API down) only an IBGE code
@@ -219,9 +216,6 @@ export default async function MunicipalityProfilePage({ params }: Params) {
       ].sort((a, b) => (b.n4 ?? -1) - (a.n4 ?? -1))
     : []
 
-  const proximityHref = p.centroid
-    ? `/proximity?lat=${p.centroid.lat.toFixed(6)}&lng=${p.centroid.lng.toFixed(6)}&radius=${PROXIMITY_RADIUS_KM}`
-    : '/proximity'
   const cite = (sources: DataSource[]) => (
     <Cite sources={sources} describe={(s) => describeSource(s, tSources, (kind) => tSources(`kinds.${kind}`), format)} />
   )
@@ -234,18 +228,6 @@ export default async function MunicipalityProfilePage({ params }: Params) {
   const today = format.dateTime(new Date(), { dateStyle: 'long' })
   const linkClass = 'font-medium text-terra-800 underline underline-offset-4 hover:text-terra-900 dark:text-terra-300'
   const chip = 'flex gap-1.5 border border-line bg-paper-raised px-2 py-1'
-
-  // Beside the method levels when there is CP2b data; with the actions otherwise.
-  const infrastructure = (
-    <Card id="infraestrutura" title={t('infrastructure.heading')} caption={t('infrastructure.short')}>
-      <Link
-        href={proximityHref}
-        className="inline-flex min-h-[44px] items-center bg-terra-800 px-4 text-sm font-medium text-white hover:bg-terra-900"
-      >
-        {p.centroid ? t('infrastructure.cta') : t('infrastructure.cta_plain')}
-      </Link>
-    </Card>
-  )
 
   return (
     <div className="bg-paper">
@@ -397,7 +379,6 @@ export default async function MunicipalityProfilePage({ params }: Params) {
                 <LevelBars rows={levels} />
                 {!METHOD_PAGES_ENABLED && <p className="mt-4 text-xs text-ink-muted">{t('scenarios.held')}</p>}
               </Card>
-              {infrastructure}
             </div>
           </div>
         )}
@@ -499,7 +480,6 @@ export default async function MunicipalityProfilePage({ params }: Params) {
 
           {/* 6. Actions */}
           <div className="grid content-start gap-5 lg:col-span-2">
-            {!hasCp2b && infrastructure}
             <Card id="compartilhar" title={t('share.heading')}>
               <ShareLinks url={url} text={t('share.text', { name: p.name, uf })} />
             </Card>
