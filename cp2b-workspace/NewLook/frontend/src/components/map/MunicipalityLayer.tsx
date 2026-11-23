@@ -5,7 +5,7 @@
 
 'use client';
 
-import React, { useCallback, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { GeoJSON } from 'react-leaflet';
 import {
   NextIntlClientProvider,
@@ -146,6 +146,15 @@ export default function MunicipalityLayer({
   // Same story for the analysis fill: the hover handlers read the current one.
   const fillOverrideRef = useRef(fillOverride);
   fillOverrideRef.current = fillOverride;
+  // And for the click and hover handlers: they change with the open tool, and
+  // a handler bound at mount kept the tool that was open then. Opened with
+  // Truck reach, the map went on ignoring municipality clicks after it closed.
+  const clickRef = useRef(onMunicipalityClick);
+  const hoverRef = useRef(onMunicipalityHover);
+  useEffect(() => {
+    clickRef.current = onMunicipalityClick;
+    hoverRef.current = onMunicipalityHover;
+  });
 
   /** The analysis fill for a feature: a colour, null for no data, undefined when not covered. */
   const overrideFill = (props: MunicipalityProperties): string | null | undefined =>
@@ -302,8 +311,8 @@ export default function MunicipalityLayer({
           if (foreground) target.bringToFront();
 
           // Desktop: call hover handler with feature + mouse event
-          if (onMunicipalityHover) {
-            onMunicipalityHover(feature as MunicipalityFeature, e.originalEvent as MouseEvent);
+          if (hoverRef.current) {
+            hoverRef.current(feature as MunicipalityFeature, e.originalEvent as MouseEvent);
           }
         },
         mouseout: (e) => {
@@ -319,18 +328,18 @@ export default function MunicipalityLayer({
                   ? NO_DATA_STYLE
                   : { weight: 0.65, color: '#4b5563', fillOpacity: opacityRef.current, fillColor: fill }
             );
-            if (onMunicipalityHover) onMunicipalityHover(null);
+            hoverRef.current?.(null);
             return;
           }
           if (!isCanonicalPaint) {
             target.setStyle(BETA_STYLE);
-            if (onMunicipalityHover) onMunicipalityHover(null);
+            hoverRef.current?.(null);
             return;
           }
           const { value, coverage } = getMapValue(feature.properties as MunicipalityProperties);
           if (value === null || coverage === 'no_data') {
             target.setStyle(NO_DATA_STYLE);
-            if (onMunicipalityHover) onMunicipalityHover(null);
+            hoverRef.current?.(null);
             return;
           }
           const resetColor = getMetricColor(getMapValue(feature.properties as MunicipalityProperties).value ?? 0, metricSpec, daltonic, cvdPalette, scaleBreaks, mapPalette);
@@ -342,14 +351,14 @@ export default function MunicipalityLayer({
           });
 
           // Desktop: clear hover
-          if (onMunicipalityHover) {
-            onMunicipalityHover(null);
+          if (hoverRef.current) {
+            hoverRef.current(null);
           }
         },
         click: () => {
           // Desktop: open profile panel instead of popup
-          if (onMunicipalityClick) {
-            onMunicipalityClick(feature as MunicipalityFeature);
+          if (clickRef.current) {
+            clickRef.current(feature as MunicipalityFeature);
           }
         },
       });
