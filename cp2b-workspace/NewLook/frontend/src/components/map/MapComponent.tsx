@@ -115,6 +115,10 @@ function InfraPane() {
     if (!map.getPane('infrastructure')) {
       const p = map.createPane('infrastructure');
       p.style.zIndex = '450';
+      // The pane itself never catches the pointer: its interactive lines and
+      // markers turn it back on for themselves (leaflet-interactive), and every
+      // other click reaches the municipality underneath.
+      p.style.pointerEvents = 'none';
     }
   }, [map]);
   return null;
