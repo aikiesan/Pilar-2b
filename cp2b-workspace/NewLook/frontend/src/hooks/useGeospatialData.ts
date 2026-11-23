@@ -267,6 +267,25 @@ export function useSitingIndicators(enabled: boolean) {
 }
 
 /**
+ * Land cover per municipality for one year (MapBiomas Collection 11, SP and
+ * MG), for the map's Compare and Find similar tools.
+ *
+ * Signed-in only: gate `enabled` on useMapToolAccess() === 'allowed', or the
+ * request is a guaranteed 401. Long staleTime like useSitingIndicators: the
+ * table changes only when it is reloaded.
+ */
+export function useMunicipalityLandCover(year: number, enabled: boolean) {
+  return useQuery({
+    queryKey: ['municipality-land-cover', year],
+    queryFn: () => geospatialClient.getMunicipalityLandCover(year),
+    enabled,
+    staleTime: 6 * 60 * 60 * 1000,
+    gcTime: 6 * 60 * 60 * 1000,
+    retry: false, // a 401 will never succeed on retry
+  });
+}
+
+/**
  * Full properties for one municipality, fetched on demand.
  *
  * The collection is served slim (`fields=map`), so the tooltip and panel top up

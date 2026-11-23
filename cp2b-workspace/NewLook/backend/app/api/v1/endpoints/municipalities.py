@@ -15,7 +15,7 @@ from fastapi.responses import JSONResponse
 from app.core.database import get_db
 from app.core.log_sanitizer import log_safe
 from app.core.response_cache import cached_json_response
-from app.middleware.auth import optional_auth
+from app.middleware.auth import optional_auth, require_authenticated
 from app.models.auth import UserProfile
 from app.services.biomass_availability import derive_biomass_with_coverage, raw_value
 from app.services.canonical_loader import (
@@ -850,6 +850,132 @@ def get_siting_indicators(request: Request):
         return cached_json_response(request, key, _build_siting_or_raise, ttl=6 * 3600)
     except _SitingUnavailable as unavailable:
         return JSONResponse(unavailable.payload, headers={"Cache-Control": "no-store"})
+
+
+# ── Land cover per municipality (migration 041) ─────────────────────────────
+
+LAND_COVER_GROUPS = (
+    "forest",
+    "pasture",
+    "cane",
+    "crops",
+    "silviculture",
+    "mosaic",
+    "urban",
+    "other",
+)
+LAND_COVER_SOURCE = "MapBiomas Collection 11"
+_IBGE_RE = re.compile(r"^\d{7}$")
+
+
+class _LandCoverUnavailable(Exception):
+    """Raised inside the cache build so an empty table is not cached."""
+
+
+def _land_cover_years(cursor) -> list[int]:
+    if not _table_exists(cursor, "municipality_land_cover"):
+        return []
+    cursor.execute("SELECT DISTINCT year FROM municipality_land_cover ORDER BY year")
+    return [int(r["year"]) for r in cursor.fetchall()]
+
+
+def _land_cover_vector(by_group: dict[str, float]) -> list[float]:
+    return [round(float(by_group.get(g, 0.0)), 1) for g in LAND_COVER_GROUPS]
+
+
+def _build_land_cover_year(year: int) -> dict:
+    """Every municipality's eight groups for one year."""
+    with get_db() as conn:
+        cursor = conn.cursor()
+        try:
+            years = _land_cover_years(cursor)
+            if not years:
+                raise _LandCoverUnavailable()
+            if year not in years:
+                loaded = ", ".join(map(str, years))
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"No land cover for {year}; available years: {loaded}",
+                )
+            cursor.execute(
+                "SELECT ibge_code, group_key, area_ha FROM municipality_land_cover WHERE year = %s",
+                (year,),
+            )
+            rows: dict[str, dict[str, float]] = {}
+            for row in cursor.fetchall():
+                rows.setdefault(str(row["ibge_code"]), {})[row["group_key"]] = row["area_ha"]
+        finally:
+            cursor.close()
+    return {
+        "available": True,
+        "source": LAND_COVER_SOURCE,
+        "unit": "ha",
+        "year": year,
+        "years": years,
+        "groups": list(LAND_COVER_GROUPS),
+        "data": {code: _land_cover_vector(g) for code, g in sorted(rows.items())},
+    }
+
+
+def _build_land_cover_one(ibge: str) -> dict:
+    """One municipality's eight groups for every year loaded."""
+    with get_db() as conn:
+        cursor = conn.cursor()
+        try:
+            years = _land_cover_years(cursor)
+            if not years:
+                raise _LandCoverUnavailable()
+            cursor.execute(
+                "SELECT year, group_key, area_ha FROM municipality_land_cover WHERE ibge_code = %s",
+                (ibge,),
+            )
+            by_year: dict[int, dict[str, float]] = {}
+            for row in cursor.fetchall():
+                by_year.setdefault(int(row["year"]), {})[row["group_key"]] = row["area_ha"]
+        finally:
+            cursor.close()
+    if not by_year:
+        raise HTTPException(status_code=404, detail="No land cover for this municipality")
+    return {
+        "available": True,
+        "source": LAND_COVER_SOURCE,
+        "unit": "ha",
+        "ibge": ibge,
+        "groups": list(LAND_COVER_GROUPS),
+        "years": {str(y): _land_cover_vector(g) for y, g in sorted(by_year.items())},
+    }
+
+
+@router.get("/land-cover")
+def get_land_cover(
+    request: Request,
+    year: Annotated[int, Query(ge=1985, le=2100)] = 2025,
+    ibge: Annotated[Optional[str], Query(description="One municipality, every year")] = None,
+    _user: UserProfile = Depends(require_authenticated),
+):
+    """Land cover per municipality, SP and MG, in eight groups (hectares).
+
+    For the map's Compare and Find similar tools; signed-in only. Without
+    `ibge`: every municipality for one `year` (1985, 2005 or 2025), as
+    `{ibge: [hectares in the order of groups]}`. With `ibge`: that municipality
+    for every year. Source: MapBiomas Collection 11 (migration 041).
+
+    Cached like /siting-indicators, but `private`: the browser may keep it, a
+    shared proxy must not. An empty table answers {"available": false},
+    uncached, so loading it shows up on the next request.
+    """
+    if ibge is not None:
+        if not _IBGE_RE.match(ibge):
+            raise HTTPException(status_code=400, detail="ibge must be a 7-digit IBGE code")
+        key, build = f"municipalities:land-cover:ibge={ibge}", (lambda: _build_land_cover_one(ibge))
+    else:
+        key, build = f"municipalities:land-cover:year={year}", (
+            lambda: _build_land_cover_year(year)
+        )
+    try:
+        return cached_json_response(request, key, build, ttl=6 * 3600, private=True)
+    except _LandCoverUnavailable:
+        return JSONResponse({"available": False}, headers={"Cache-Control": "no-store"})
 
 
 @router.get("/test-geometry")
