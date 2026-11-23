@@ -1,6 +1,7 @@
 /**
- * Why signing in or signing up failed, as a code the forms word in the page's
- * language (auth.errors.<code>). The backend's own message is English only.
+ * Why signing in, asking for access or a password step failed, as a code the
+ * forms word in the page's language (auth.errors.<code>). The backend's own
+ * message is English only.
  */
 
 export type AuthErrorCode =
@@ -8,11 +9,15 @@ export type AuthErrorCode =
   | 'account_inactive'
   | 'account_locked'
   | 'email_taken'
-  | 'invite_only'
+  | 'email_not_verified'
+  | 'pending_review'
+  | 'rejected'
+  | 'invalid_token'
   | 'too_many_attempts'
   | 'network'
   | 'login_failed'
   | 'registration_failed'
+  | 'access_failed'
 
 export class AuthError extends Error {
   constructor(
@@ -30,21 +35,30 @@ const BACKEND_CODES: Record<string, AuthErrorCode> = {
   account_inactive: 'account_inactive',
   account_locked: 'account_locked',
   email_taken: 'email_taken',
+  email_not_verified: 'email_not_verified',
+  pending_review: 'pending_review',
+  rejected: 'rejected',
+  invalid_token: 'invalid_token',
+}
+
+const FALLBACK: Record<'login' | 'registration' | 'access', AuthErrorCode> = {
+  login: 'login_failed',
+  registration: 'registration_failed',
+  access: 'access_failed',
 }
 
 /**
  * The error a failed response stands for: the backend's code when it sends
  * one, else what the status means for this form.
  */
-export async function authErrorFrom(response: Response, form: 'login' | 'registration'): Promise<AuthError> {
+export async function authErrorFrom(
+  response: Response,
+  form: 'login' | 'registration' | 'access'
+): Promise<AuthError> {
   const body: { detail?: { code?: string } } | null = await response.json().catch(() => null)
   const code = BACKEND_CODES[body?.detail?.code ?? '']
   if (code) return new AuthError(code, response.status)
   if (response.status === 429) return new AuthError('too_many_attempts', 429)
   if (form === 'login' && response.status === 401) return new AuthError('invalid_credentials', 401)
-  // Accounts are created by an admin: anyone else is turned away with 401/403.
-  if (form === 'registration' && (response.status === 401 || response.status === 403)) {
-    return new AuthError('invite_only', response.status)
-  }
-  return new AuthError(form === 'login' ? 'login_failed' : 'registration_failed', response.status)
+  return new AuthError(FALLBACK[form], response.status)
 }

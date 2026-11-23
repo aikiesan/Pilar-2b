@@ -175,13 +175,18 @@
       "email_taken": "An account with this email already exists.",
       "invite_only": "Accounts are created by invitation only. Ask the CP2B team for access.",
       "too_many_attempts": "Too many attempts. Wait a minute and try again.",
-      "network": "The server could not be reached. Check your connection and try again."
+      "network": "The server could not be reached. Check your connection and try again.",
+      "email_not_verified": "Confirm your e-mail before signing in. Look for the link we sent, in the spam folder too.",
+      "pending_review": "Your access request is being reviewed. You will get an e-mail when the account is approved.",
+      "rejected": "Your access request was not approved. If you would like it reviewed, reply to the e-mail you received.",
+      "invalid_token": "This link no longer works: it was already used or has expired.",
+      "access_failed": "This could not be completed. Try again in a moment."
     },
     "login": {
       "back_to_home": "Back to home page - PILAR-2b",
       "title": "Sign in to your account",
       "or": "Or",
-      "create_account": "create a new account",
+      "create_account": "request access",
       "email_label": "Email address",
       "email_placeholder": "your@email.com",
       "password_label": "Password",
@@ -189,16 +194,14 @@
       "forgot_password": "Forgot password?",
       "submitting": "Signing in…",
       "submit": "Sign in",
-      "new_to_platform": "New to the platform?",
-      "create_new_account": "Create new account"
+      "new_to_platform": "No account yet?",
+      "create_new_account": "Request access",
+      "resend_confirmation": "Send the confirmation link again",
+      "resent_confirmation": "If the address is waiting for confirmation, a new link is on its way."
     },
     "register": {
-      "back_to_home": "Back to home page",
-      "title": "Create new account",
-      "or": "Or",
-      "login_existing": "sign in with your existing account",
+      "title": "Request access",
       "full_name_label": "Full name",
-      "full_name_placeholder": "John Doe",
       "email_label": "Email address",
       "email_placeholder": "your@email.com",
       "password_label": "Password",
@@ -211,13 +214,61 @@
       "terms_of_service": "Terms of Service",
       "and": "and",
       "privacy_policy": "Privacy Policy",
-      "submitting": "Creating account…",
-      "submit": "Create account",
+      "submitting": "Sending…",
+      "submit": "Send request",
       "already_have_account": "Already have an account?",
-      "login": "Sign in"
+      "login": "Sign in",
+      "intro": "The analyses and the map tools are for approved accounts. Tell us who you are and what you will use it for; the CP2B team answers by e-mail.",
+      "institution_label": "Institution",
+      "institution_placeholder": "University, company, public agency…",
+      "purpose_label": "What you will use PILAR-2b for",
+      "purpose_hint": "Between 10 and 500 characters. It helps the team decide.",
+      "password_hint": "At least 10 characters, with an upper-case letter, a lower-case letter and a digit.",
+      "website_label": "Leave this field empty",
+      "sent_title": "Confirm your e-mail",
+      "sent_body": "We sent a link to {email}. Open it to confirm the address; the request then goes to review and you get another e-mail when the account is approved.",
+      "sent_spam": "Nothing after a few minutes? Check the spam folder or send it again.",
+      "resend": "Send the link again",
+      "resent": "If the address is waiting for confirmation, a new link is on its way."
     },
     "common": {
       "copyright": "© {year} PILAR-2b. Intelligent Platform for Locating and Using Residues for Biogas and Bioproducts."
+    },
+    "verify": {
+      "title": "E-mail confirmation",
+      "checking": "Confirming your e-mail…",
+      "review_title": "E-mail confirmed",
+      "review_body": "Your request has gone to review. You will get an e-mail when the account is approved.",
+      "approved_title": "Account approved",
+      "approved_body": "Your e-mail was already confirmed and the account is approved. You can sign in.",
+      "rejected_title": "Request not approved",
+      "rejected_body": "This access request was not approved. If you would like it reviewed, reply to the e-mail you received.",
+      "invalid_title": "Link no longer valid",
+      "invalid_body": "This link was already used or is past its 48 hours. Ask for a new one with the same e-mail.",
+      "missing_body": "The link is incomplete. Open the link in the e-mail again, in full.",
+      "request_again": "Ask for a new link",
+      "go_login": "Sign in",
+      "go_home": "Back to the home page"
+    },
+    "forgot": {
+      "title": "Change your password",
+      "intro": "Enter your account's e-mail. If the account is approved, we send a link to choose a new password.",
+      "submit": "Send link",
+      "submitting": "Sending…",
+      "sent_title": "Check your e-mail",
+      "sent_body": "If an approved account uses {email}, the link is on its way. It is valid for 1 hour.",
+      "back_to_login": "Back to sign in"
+    },
+    "reset": {
+      "title": "Choose a new password",
+      "password_label": "New password",
+      "confirm_label": "Repeat the new password",
+      "submit": "Change password",
+      "submitting": "Changing…",
+      "done_title": "Password changed",
+      "done_body": "Sign in with the new password.",
+      "go_login": "Sign in",
+      "request_new": "Ask for a new link"
     }
   },
   "landing": {
@@ -2422,7 +2473,8 @@
     "email_invalid": "Enter a valid email address.",
     "password_too_short": "The password must be at least {min} characters long.",
     "passwords_mismatch": "The passwords do not match.",
-    "consent_required": "Your consent is needed to continue."
+    "consent_required": "Your consent is needed to continue.",
+    "password_needs_mix": "The password needs an upper-case letter, a lower-case letter and a digit."
   },
   "newsletter": {
     "title": "Stay Up to Date",

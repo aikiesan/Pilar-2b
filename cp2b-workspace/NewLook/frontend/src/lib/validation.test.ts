@@ -50,12 +50,18 @@ describe('validatePassword', () => {
   })
 
   it(`needs at least ${PASSWORD_MIN_LENGTH} characters`, () => {
-    expect(validatePassword('a'.repeat(PASSWORD_MIN_LENGTH - 1))).toBe('password_too_short')
-    expect(validatePassword('a'.repeat(PASSWORD_MIN_LENGTH))).toBeNull()
+    expect(validatePassword(candidate(PASSWORD_MIN_LENGTH - 1, { upper: true, digit: true }))).toBe('password_too_short')
+    expect(validatePassword(candidate(PASSWORD_MIN_LENGTH, { upper: true, digit: true }))).toBeNull()
+  })
+
+  it('needs an upper-case letter, a lower-case letter and a digit, as the server does', () => {
+    expect(validatePassword(candidate(PASSWORD_MIN_LENGTH))).toBe('password_needs_mix')
+    expect(validatePassword(candidate(PASSWORD_MIN_LENGTH, { upper: true }))).toBe('password_needs_mix')
+    expect(validatePassword(candidate(PASSWORD_MIN_LENGTH, { digit: true }))).toBe('password_needs_mix')
   })
 
   it('does not trim: spaces are characters in a password', () => {
-    expect(validatePassword('      ')).toBeNull()
+    expect(validatePassword(' '.repeat(PASSWORD_MIN_LENGTH))).toBe('password_needs_mix')
   })
 })
 
@@ -96,8 +102,8 @@ describe('passwordStrength', () => {
   })
 
   it('grows with length and variety', () => {
-    const weak = passwordStrength(candidate(PASSWORD_MIN_LENGTH))
-    const medium = passwordStrength(candidate(10))
+    const weak = passwordStrength(candidate(8))
+    const medium = passwordStrength(candidate(PASSWORD_MIN_LENGTH))
     const strong = passwordStrength(candidate(12, { upper: true, digit: true, symbol: true }))
     expect(weak).toBeLessThan(medium)
     expect(medium).toBeLessThan(strong)

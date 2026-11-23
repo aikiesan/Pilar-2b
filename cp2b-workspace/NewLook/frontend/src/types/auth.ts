@@ -11,6 +11,8 @@ export interface UserProfile {
   role: UserRole
   clearance: number // 0 public · 1 registered · 2 partner · 3 internal
   is_active: boolean
+  /** Sign-up with approval; a session only exists for approved accounts. */
+  status?: 'pending_email' | 'pending_review' | 'approved' | 'rejected'
   created_at: string
   updated_at: string
 }
@@ -20,14 +22,25 @@ export interface LoginCredentials {
   password: string
 }
 
+/** An access request (POST /auth/signup): it waits for the e-mail, then for an admin. */
 export interface RegistrationData {
   email: string
   password: string
   full_name: string
+  institution: string
+  purpose: string
+  accept_terms: boolean
+  /** The hidden field a person leaves empty. */
+  website?: string
 }
 
 export interface AuthContextType {
   user: UserProfile | null
+  /**
+   * The REAL signed-in profile, never the open-mode TEST_USER: undefined while
+   * a stored token is being checked, null without a session.
+   */
+  sessionUser: UserProfile | null | undefined
   loading: boolean
   login: (credentials: LoginCredentials) => Promise<void>
   register: (data: RegistrationData) => Promise<void>
