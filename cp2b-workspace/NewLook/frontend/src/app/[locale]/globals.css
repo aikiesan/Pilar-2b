@@ -1072,3 +1072,48 @@ input[type="range"]::-moz-range-thumb:active {
 .leaflet-tooltip-top.truck-site-tip:before {
   border-top-color: rgb(var(--line));
 }
+
+/* Map loading screen (components/map/MapLoadingSkeleton.tsx): methane rises
+   in the digester, flows up the pipe and keeps the flame lit. Under reduced
+   motion the global rule above stops every loop, so each part rests at its
+   base style: molecules in the dome, the flame lit. */
+.biogas-loader-enter {
+  animation: biogas-loader-enter 400ms ease-out 250ms both;
+}
+@keyframes biogas-loader-enter {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+.biogas-loader-rise {
+  transform: translateY(-22px);
+  animation: biogas-loader-rise 2.4s ease-in infinite;
+}
+.biogas-loader-rise-2 { animation-delay: 0.8s; }
+.biogas-loader-rise-3 { animation-delay: 1.6s; }
+@keyframes biogas-loader-rise {
+  0% { transform: translateY(0) scale(0.6); opacity: 0; }
+  20% { opacity: 1; }
+  80% { opacity: 1; }
+  100% { transform: translateY(-44px) scale(1); opacity: 0; }
+}
+.biogas-loader-flow {
+  animation: biogas-loader-flow 0.9s linear infinite;
+}
+@keyframes biogas-loader-flow {
+  to { stroke-dashoffset: -14; }
+}
+.biogas-loader-flame {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: biogas-loader-flame 1.2s ease-in-out infinite alternate;
+}
+@keyframes biogas-loader-flame {
+  0% { transform: scale(0.94, 0.9); }
+  100% { transform: scale(1.04, 1.08); }
+}
+.biogas-loader-slurry {
+  animation: biogas-loader-slurry 3s ease-in-out infinite alternate;
+}
+@keyframes biogas-loader-slurry {
+  to { transform: translateX(-12px); }
+}

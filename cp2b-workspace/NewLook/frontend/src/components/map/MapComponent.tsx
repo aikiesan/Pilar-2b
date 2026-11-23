@@ -432,8 +432,6 @@ export default function MapComponent({
     enabled: intermediateRegionsEnabled,
   });
   const isMounted = useIsClient();
-  const [isRendering, setIsRendering] = useState(false);
-  const [layersRendered, setLayersRendered] = useState(0);
 
   const initialBiomass: BiomassType =
     VALID_BIOMASS.includes(urlType as BiomassType) ? (urlType as BiomassType) : propBiomassType;
@@ -927,18 +925,6 @@ export default function MapComponent({
   // expands on tap, so it doesn't crowd the small screen.
   const [legendOpenMobile, setLegendOpenMobile] = useState(false);
 
-  useEffect(() => {
-    if (data && !loading && isMounted) {
-      setIsRendering(true);
-      setLayersRendered(0);
-      const timer = setTimeout(() => {
-        setIsRendering(false);
-        setLayersRendered(1);
-      }, 1500);
-      return () => clearTimeout(timer);
-    }
-  }, [data, loading, isMounted]);
-
   const handleLayerToggle = (layerId: string, visible: boolean) => {
     setLayers(prev => prev.map(l => l.id === layerId ? { ...l, visible } : l));
     if (!visible) {
@@ -1348,7 +1334,9 @@ export default function MapComponent({
 
   // ── Guard states ────────────────────────────────────────────────────────────
   if (!isMounted) return <MapLoadingSkeleton />;
-  if (loading || (data && isRendering)) return <MapLoadingSkeleton />;
+  // Only the first load: React Query keeps `data` during a background
+  // refetch, so the map stays mounted (view, tools and selection intact).
+  if (loading) return <MapLoadingSkeleton />;
 
   // Data problems no longer blank the whole page: the base map (OSM tiles,
   // independent of our backend) always renders, with an alert banner floating

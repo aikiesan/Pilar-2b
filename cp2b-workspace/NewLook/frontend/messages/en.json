@@ -251,13 +251,9 @@
   },
   "Map": {
     "title": "Interactive Map",
-    "loading_map": "Loading map…",
     "loading": {
-      "title": "Loading Interactive Map",
-      "subtitle": "{count, number} municipalities in São Paulo and Minas Gerais",
-      "step_geodata": "Loading geospatial data",
-      "step_geometries": "Processing geometries",
-      "step_layers": "Initializing layers"
+      "title": "Loading the map",
+      "subtitle": "{count, number} municipalities in São Paulo and Minas Gerais"
     },
     "panels": {
       "filters": "Filters",

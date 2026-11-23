@@ -251,13 +251,9 @@
   },
   "Map": {
     "title": "Mapa Interativo",
-    "loading_map": "Carregando mapa…",
     "loading": {
-      "title": "Carregando Mapa Interativo",
-      "subtitle": "{count, number} municípios de São Paulo e Minas Gerais",
-      "step_geodata": "Carregando dados geoespaciais",
-      "step_geometries": "Processando geometrias",
-      "step_layers": "Inicializando camadas"
+      "title": "Carregando o mapa",
+      "subtitle": "{count, number} municípios de São Paulo e Minas Gerais"
     },
     "panels": {
       "filters": "Filtros",

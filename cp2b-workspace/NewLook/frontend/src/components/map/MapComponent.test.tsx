@@ -367,7 +367,7 @@ describe('MapComponent', () => {
       expect(screen.getByText('Loading...')).toBeInTheDocument();
     });
 
-    it('should display loading skeleton during initial rendering', async () => {
+    it('should show the map as soon as the data is there', () => {
       const sampleData = createMunicipalityCollection([
         createMunicipalityFeature(),
       ]);
@@ -380,14 +380,9 @@ describe('MapComponent', () => {
 
       render(<MapComponent />);
 
-      // Initially shows loading skeleton during rendering phase
-      expect(screen.getByTestId('loading-skeleton')).toBeInTheDocument();
-
-      // After rendering timer completes
-      act(() => { jest.advanceTimersByTime(1500); });
-      await waitFor(() => {
-        expect(screen.queryByTestId('loading-skeleton')).not.toBeInTheDocument();
-      });
+      // No fixed wait after the data arrives: the loader used to hold the
+      // map back for 1.5 s, and again on every background refetch.
+      expect(screen.queryByTestId('loading-skeleton')).not.toBeInTheDocument();
     });
   });
 
