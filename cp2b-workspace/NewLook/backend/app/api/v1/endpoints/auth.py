@@ -1,7 +1,9 @@
 """
 Authentication API endpoints — local, self-hosted (UNICAMP VM).
 
-Registration is invite-only: only an admin can provision accounts (POST /users).
+Anyone may ask for an account (POST /signup): it waits for the e-mail to be
+confirmed and then for an admin to approve it at a level. Admins can still
+create an approved account directly (POST /users).
 Login/logout/me/verify use VM-local JWTs. Admin user-management endpoints support
 LGPD data-subject operations (deactivate / delete / list).
 """
@@ -9,21 +11,32 @@ LGPD data-subject operations (deactivate / delete / list).
 import uuid
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Request, status
 from fastapi.security import HTTPAuthorizationCredentials
 
 from app.middleware.auth import get_current_user, require_admin, security
 from app.middleware.rate_limit import auth_limiter, login_limiter, read_limiter
 from app.models.auth import (
+    AccessRequest,
+    AccountStatus,
     AdminCreateUser,
+    ApproveRequest,
     AuthResponse,
     ClearanceUpdate,
+    EmailOnly,
     MessageResponse,
+    PasswordReset,
+    RejectRequest,
+    SignupRequest,
+    TokenOnly,
     UpdateProfile,
     UserLogin,
     UserProfile,
+    VerifyEmailResponse,
 )
+from app.services import mailer
 from app.services.auth_service import auth_service
+from app.services.mailer import Mail
 
 router = APIRouter()
 
@@ -174,3 +187,128 @@ async def update_me(
 @read_limiter.limit("100/minute")
 async def verify_token(request: Request, current_user: UserProfile = Depends(get_current_user)):
     return MessageResponse(message=f"Token is valid for user: {current_user.email}")
+
+
+# ── Sign-up with approval ─────────────────────────────────────────────────────
+# Every public answer here is the same whether or not the e-mail has an
+# account, so the forms never reveal who is registered.
+_SIGNUP_ANSWER = "If the address can be used, a confirmation link is on its way."
+_FORGOT_ANSWER = "If an approved account uses this address, a link is on its way."
+
+
+def _send_later(background: BackgroundTasks, mails: List[Mail]) -> None:
+    for mail in mails:
+        background.add_task(mailer.send, mail)
+
+
+@router.post(
+    "/signup",
+    response_model=MessageResponse,
+    status_code=status.HTTP_202_ACCEPTED,
+    summary="Ask for an account (public)",
+)
+@auth_limiter.limit("3/minute")
+async def signup(request: Request, payload: SignupRequest, background: BackgroundTasks):
+    # The hidden field: a person never fills it. Answer as usual, do nothing.
+    if payload.website.strip():
+        return MessageResponse(message=_SIGNUP_ANSWER)
+    _send_later(background, await auth_service.signup(payload))
+    return MessageResponse(message=_SIGNUP_ANSWER)
+
+
+@router.post(
+    "/verify-email",
+    response_model=VerifyEmailResponse,
+    summary="Confirm the e-mail address from the link (public)",
+)
+@auth_limiter.limit("10/minute")
+async def verify_email(request: Request, payload: TokenOnly, background: BackgroundTasks):
+    account_status, mails = await auth_service.verify_email(payload.token)
+    _send_later(background, mails)
+    return VerifyEmailResponse(status=account_status)
+
+
+@router.post(
+    "/verify-email/resend",
+    response_model=MessageResponse,
+    status_code=status.HTTP_202_ACCEPTED,
+    summary="Send the confirmation link again (public)",
+)
+@auth_limiter.limit("3/minute")
+async def resend_verification(request: Request, payload: EmailOnly, background: BackgroundTasks):
+    _send_later(background, await auth_service.resend_verification(payload.email))
+    return MessageResponse(message=_SIGNUP_ANSWER)
+
+
+@router.post(
+    "/password/forgot",
+    response_model=MessageResponse,
+    status_code=status.HTTP_202_ACCEPTED,
+    summary="Send a password reset link (public)",
+)
+@auth_limiter.limit("3/minute")
+async def forgot_password(request: Request, payload: EmailOnly, background: BackgroundTasks):
+    _send_later(background, await auth_service.forgot_password(payload.email))
+    return MessageResponse(message=_FORGOT_ANSWER)
+
+
+@router.post(
+    "/password/reset",
+    response_model=MessageResponse,
+    summary="Choose a new password from the link (public)",
+)
+@auth_limiter.limit("5/minute")
+async def reset_password(request: Request, payload: PasswordReset):
+    await auth_service.reset_password(payload.token, payload.password)
+    return MessageResponse(message="Password changed")
+
+
+# ── Admin: the request queue ──────────────────────────────────────────────────
+@router.get(
+    "/admin/requests",
+    response_model=List[AccessRequest],
+    summary="Access requests by status (admin only)",
+)
+@read_limiter.limit("60/minute")
+async def list_requests(
+    request: Request,
+    status_filter: AccountStatus = Query("pending_review", alias="status"),
+    admin: UserProfile = Depends(require_admin),
+):
+    return await auth_service.list_requests(status_filter)
+
+
+@router.post(
+    "/admin/requests/{user_id}/approve",
+    response_model=AccessRequest,
+    summary="Approve a request at a level (admin only)",
+)
+@auth_limiter.limit("30/minute")
+async def approve_request(
+    request: Request,
+    user_id: str,
+    payload: ApproveRequest,
+    background: BackgroundTasks,
+    admin: UserProfile = Depends(require_admin),
+):
+    approved, mails = await auth_service.approve_request(user_id, payload.clearance, admin.id)
+    _send_later(background, mails)
+    return approved
+
+
+@router.post(
+    "/admin/requests/{user_id}/reject",
+    response_model=AccessRequest,
+    summary="Refuse a request, with an optional reason (admin only)",
+)
+@auth_limiter.limit("30/minute")
+async def reject_request(
+    request: Request,
+    user_id: str,
+    payload: RejectRequest,
+    background: BackgroundTasks,
+    admin: UserProfile = Depends(require_admin),
+):
+    refused, mails = await auth_service.reject_request(user_id, payload.note, admin.id)
+    _send_later(background, mails)
+    return refused
