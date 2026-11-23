@@ -13,16 +13,12 @@
  * default covered the map with that watermark. basemaps.test.ts refuses any
  * provider that needs a key.
  *
- * `labelsUrl` is a labels-only overlay (place names, borders) that the map draws
- * ABOVE the choropleth, in its own pane: the base tiles carry their own names,
- * but those sit under the municipality fill and can't be read once it is on.
- * Esri's light-gray reference (dark text, white halo) reads on any fill colour;
- * satellite keeps Esri's imagery reference, which it always needed for names.
+ * `labelsUrl` is a labels-only overlay (place names, borders) drawn above the
+ * choropleth, in its own pane. Only satellite has one: its imagery carries no
+ * names. OpenStreetMap and OpenTopoMap print their own, and the municipality
+ * fill is see-through, so they show under it; a second set from another source
+ * lands a few pixels off and every town reads twice.
  */
-
-const LIGHT_LABELS =
-  'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}';
-const LABELS_ATTRIBUTION = 'Labels &copy; Esri';
 
 export type BasemapId = 'mapa' | 'satelite' | 'terreno';
 
@@ -33,8 +29,8 @@ export interface Basemap {
   url: string;
   attribution: string;
   maxZoom: number;
-  /** Labels-only overlay (names, borders), drawn above the choropleth. */
-  labelsUrl: string;
+  /** Labels-only overlay (names, borders) above the choropleth, for a base without names of its own. */
+  labelsUrl?: string;
 }
 
 export const BASEMAPS: Record<BasemapId, Basemap> = {
@@ -43,9 +39,8 @@ export const BASEMAPS: Record<BasemapId, Basemap> = {
     icon: '🗺️',
     url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
     attribution:
-      `&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> · ${LABELS_ATTRIBUTION}`,
+      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
     maxZoom: 19,
-    labelsUrl: LIGHT_LABELS,
   },
   satelite: {
     id: 'satelite',
@@ -62,10 +57,8 @@ export const BASEMAPS: Record<BasemapId, Basemap> = {
     icon: '⛰️',
     url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
     attribution:
-      'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, SRTM | Style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (CC-BY-SA) · ' +
-      LABELS_ATTRIBUTION,
+      'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, SRTM | Style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (CC-BY-SA)',
     maxZoom: 17,
-    labelsUrl: LIGHT_LABELS,
   },
 };
 
