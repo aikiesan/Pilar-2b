@@ -134,7 +134,7 @@ export function CompareWindow({
   return (
     <aside
       aria-label={t('window_aria')}
-      className="surface-light absolute z-[1101] flex flex-col overflow-y-auto border-line bg-paper text-ink shadow-xl
+      className="surface-light absolute z-[1101] map-window flex flex-col overflow-y-auto border-line bg-paper text-ink shadow-xl
                  inset-x-0 bottom-0 max-h-[60%] rounded-t-2xl border-t
                  landscape:inset-x-auto landscape:bottom-auto landscape:right-3 landscape:top-16 landscape:z-[999]
                  landscape:max-h-[calc(100%-5rem)] landscape:w-[380px] landscape:rounded-none landscape:border"

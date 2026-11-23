@@ -13,11 +13,13 @@ import { SPLIT_SECTORS } from '@/lib/sectorSplit';
  */
 export const MAGNITUDE_PANE = 'magnitude-marks';
 
-export function ensureMagnitudePane(map: L.Map): void {
-  if (map.getPane(MAGNITUDE_PANE)) return;
+export function ensureMagnitudePane(map: L.Map): HTMLElement {
+  const existing = map.getPane(MAGNITUDE_PANE);
+  if (existing) return existing;
   const pane = map.createPane(MAGNITUDE_PANE);
   pane.style.zIndex = '420';
   pane.style.pointerEvents = 'none';
+  return pane;
 }
 
 /** Ink for an amount the data cannot split by origin. */

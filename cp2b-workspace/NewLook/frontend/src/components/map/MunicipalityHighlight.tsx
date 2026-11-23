@@ -14,6 +14,7 @@
 import { useEffect, useMemo } from 'react';
 import { GeoJSON, useMap } from 'react-leaflet';
 import L from 'leaflet';
+import { prefersReducedMotion, replayPaneFade } from '@/lib/mapMotion';
 import type { MunicipalityFeature } from '@/types/geospatial';
 
 export const HIGHLIGHT_PANE = 'municipality-highlight';
@@ -73,13 +74,20 @@ export default function MunicipalityHighlight({
     // the visitor lost track of where the map went. maxZoom 9 with the map's
     // fractional zoom (zoomSnap 0.1) frames a mid-sized municipality instead of
     // stopping a full level short of it.
-    map.flyToBounds(bounds, { ...fitPadding(map), maxZoom: 9, duration: 1.2 });
+    if (prefersReducedMotion()) map.fitBounds(bounds, { ...fitPadding(map), maxZoom: 9, animate: false });
+    else map.flyToBounds(bounds, { ...fitPadding(map), maxZoom: 9, duration: 1.2 });
     // Only a new fit request moves the view; the feature object alone does not.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fitKey]);
 
+  // A new outline fades in rather than snapping on.
+  const featureId = feature ? String(feature.properties?.ibge_code ?? '') : '';
+  useEffect(() => {
+    if (featureId && typeof map.getPane === 'function') replayPaneFade(map.getPane(HIGHLIGHT_PANE));
+  }, [featureId, map]);
+
   if (!feature) return null;
-  const id = String(feature.properties?.ibge_code ?? '');
+  const id = featureId;
   return (
     <>
       <GeoJSON key={`halo-${id}`} data={feature} pane={HIGHLIGHT_PANE} interactive={false} style={HALO} />

@@ -23,6 +23,7 @@ import { figureState, kmDecimals, nextComparePair } from '@/lib/compare';
 import { buildDots, buildSymbols } from '@/lib/magnitudeViews';
 import { isAmountMetric } from '@/lib/sectorSplit';
 import { CONTEXT_FILL } from './magnitudeMarks';
+import { prefersReducedMotion } from '@/lib/mapMotion';
 import { useFormat } from '@/hooks/useFormat';
 import { LATEST_LAND_COVER_YEAR } from '@/lib/landCover';
 import { centroidOf, haversineKm } from '@/lib/mapGeometry';
@@ -101,9 +102,35 @@ function ScopeViewController({ center, zoom }: { center: [number, number]; zoom:
     const size = typeof map.getSize === 'function' ? map.getSize() : null;
     if (size && (size.x === 0 || size.y === 0)) return;
 
-    map.flyTo(center, isMobile ? Math.max(zoom - 1, 3) : zoom, { duration: 0.6 });
+    const target = isMobile ? Math.max(zoom - 1, 3) : zoom;
+    if (prefersReducedMotion()) map.setView(center, target, { animate: false });
+    else map.flyTo(center, target, { duration: 0.6 });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [center[0], center[1], zoom]);
+  return null;
+}
+
+/**
+ * Leaflet 1.9 resizes the map only with the window. The left panel folding,
+ * a sheet opening or the layout reflowing changed the container's size behind
+ * its back: tiles went missing at the new edge until the next window resize.
+ * This tells it on every container resize, once per frame.
+ */
+function MapResizeWatcher() {
+  const map = useMap();
+  useEffect(() => {
+    if (typeof ResizeObserver === 'undefined' || typeof map.getContainer !== 'function') return;
+    let frame = 0;
+    const observer = new ResizeObserver(() => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => map.invalidateSize({ pan: false }));
+    });
+    observer.observe(map.getContainer());
+    return () => {
+      cancelAnimationFrame(frame);
+      observer.disconnect();
+    };
+  }, [map]);
   return null;
 }
 
@@ -160,6 +187,7 @@ const BasemapControl = dynamic(() => import('./BasemapControl'), { ssr: false })
 const ThematicMapBar = dynamic(() => import('./ThematicMapBar'), { ssr: false });
 const ThematicMapMenu = dynamic(() => import('./ThematicMapMenu'), { ssr: false });
 const MunicipalityHighlight = dynamic(() => import('./MunicipalityHighlight'), { ssr: false });
+const MapPresence = dynamic(() => import('./MapPresence'), { ssr: false });
 
 // The click tools: the Tools menu, and Land around's circle and window.
 const MapToolsMenu = dynamic(() => import('./MapToolsMenu'), { ssr: false });
@@ -1357,7 +1385,7 @@ export default function MapComponent({
                 className="group flex items-center px-0.5 focus:outline-none"
               >
                 <span
-                  className={`rounded-full px-3 py-1 text-[11px] font-medium transition-all group-focus-visible:ring-2 group-focus-visible:ring-terra-600 ${
+                  className={`rounded-full px-3 py-1 text-[11px] font-medium transition-colors group-focus-visible:ring-2 group-focus-visible:ring-terra-600 ${
                     mapScenario === key ? 'text-white shadow-sm' : 'text-gray-600 group-hover:bg-gray-100'
                   }`}
                   style={mapScenario === key ? { backgroundColor: color } : undefined}
@@ -1377,7 +1405,7 @@ export default function MapComponent({
               className="group flex items-center px-0.5 focus:outline-none"
             >
               <span
-                className={`rounded-full px-2.5 py-1 text-[11px] font-medium transition-all group-focus-visible:ring-2 group-focus-visible:ring-terra-600 ${
+                className={`rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors group-focus-visible:ring-2 group-focus-visible:ring-terra-600 ${
                   daltonic ? 'bg-slate-700 text-white shadow-sm' : 'text-gray-600 group-hover:bg-gray-100'
                 }`}
               >
@@ -1459,6 +1487,7 @@ export default function MapComponent({
           <ZoomControl position="bottomleft" />
 
           <ScopeViewController center={mapCenter} zoom={mapZoom} />
+          <MapResizeWatcher />
           <InfraPane />
 
 
@@ -1611,18 +1640,23 @@ export default function MapComponent({
           </div>
         )}
 
+        {/* The windows slide in from their edge and leave the same way
+            (MapPresence keeps each one on screen for its exit). */}
         {isMounted && (
-          <MunicipalityProfilePanel
-            municipality={selectedMunicipality}
-            onClose={() => selectMunicipality(null)}
-            visible={selectedMunicipality !== null}
-            metric={displayMetric}
-            scenario={mapScenario}
-            features={data?.features}
-          />
+          <MapPresence show={selectedMunicipality !== null}>
+            <MunicipalityProfilePanel
+              municipality={selectedMunicipality}
+              onClose={() => selectMunicipality(null)}
+              visible={selectedMunicipality !== null}
+              metric={displayMetric}
+              scenario={mapScenario}
+              features={data?.features}
+            />
+          </MapPresence>
         )}
 
-        {isMounted && landOn && (
+        {isMounted && (
+          <MapPresence show={landOn}>
           <LandAround
             point={landPoint}
             radius={landRadius}
@@ -1630,9 +1664,11 @@ export default function MapComponent({
             onRadiusChange={setLandRadius}
             onClose={closeTool}
           />
+          </MapPresence>
         )}
 
-        {isMounted && crossOn && (
+        {isMounted && (
+          <MapPresence show={crossOn}>
           <CrossWindow
             access={toolAccess}
             active={analysisShown ?? (toolAccess === 'allowed' ? null : activeAnalysis)}
@@ -1645,9 +1681,11 @@ export default function MapComponent({
             stateLabel={activeStateName}
             picked={crossPicked}
           />
+          </MapPresence>
         )}
 
-        {isMounted && compareOn && (
+        {isMounted && (
+          <MapPresence show={compareOn}>
           <Compare
             access={toolAccess}
             pair={comparePair}
@@ -1661,6 +1699,7 @@ export default function MapComponent({
             onRemove={pickCompare}
             onClose={closeTool}
           />
+          </MapPresence>
         )}
 
         {isMounted && (

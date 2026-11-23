@@ -959,3 +959,60 @@ input[type="range"]::-moz-range-thumb:active {
 @media (prefers-reduced-motion: reduce) {
   .tool-reveal, .bivar-picked { animation: none; }
 }
+
+/* Map motion. One set of durations and curves for the map's chrome: menus pop
+   in from their button, windows slide in from the edge they sit on (the right
+   in landscape, the bottom in portrait) and leave the same way, a little
+   faster. Only transform and opacity move. With reduced motion everything is
+   a plain swap. MAP_EXIT_MS in lib/mapMotion.ts mirrors --motion-exit. */
+:root {
+  --motion-fast: 140ms;
+  --motion-base: 220ms;
+  --motion-exit: 160ms;
+  --ease-enter: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+}
+@keyframes map-pop-in {
+  from { opacity: 0; transform: translateY(-4px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes map-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes map-from-bottom {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes map-to-bottom {
+  to { opacity: 0; transform: translateY(24px); }
+}
+@keyframes map-from-right {
+  from { opacity: 0; transform: translateX(16px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes map-to-right {
+  to { opacity: 0; transform: translateX(16px); }
+}
+.map-pop {
+  transform-origin: top left;
+  animation: map-pop-in var(--motion-fast) var(--ease-enter) both;
+}
+.map-rise { animation: map-from-bottom var(--motion-base) var(--ease-enter) both; }
+.map-window { animation: map-from-bottom var(--motion-base) var(--ease-enter) both; }
+.map-presence[data-leaving] .map-window {
+  animation: map-to-bottom var(--motion-exit) var(--ease-exit) both;
+}
+@media (orientation: landscape) {
+  .map-window { animation-name: map-from-right; }
+  .map-presence[data-leaving] .map-window { animation-name: map-to-right; }
+}
+/* A Leaflet pane fading in under a new outline or new marks (replayPaneFade). */
+.leaflet-pane.map-pane-fade { animation: map-fade-in 260ms ease-out both; }
+@media (prefers-reduced-motion: reduce) {
+  .map-pop,
+  .map-rise,
+  .map-window,
+  .map-presence[data-leaving] .map-window,
+  .leaflet-pane.map-pane-fade { animation: none; }
+}

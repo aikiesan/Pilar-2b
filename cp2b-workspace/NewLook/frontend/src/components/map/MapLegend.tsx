@@ -130,7 +130,7 @@ export default function MapLegend({
                     aria-checked={active}
                     onClick={() => setCvdPalette(id)}
                     title={`${name} — ${t(`palettes.${id}.note`)}`}
-                    className={`flex-1 rounded-md border p-1 transition-all ${
+                    className={`flex-1 rounded-md border p-1 transition-colors ${
                       active ? 'border-ink ring-1 ring-ink' : 'border-line hover:border-line-strong'
                     }`}
                   >

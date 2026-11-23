@@ -45,7 +45,7 @@ export default function BasemapControl({ value, onChange }: BasemapControlProps)
         <div
           role="radiogroup"
           aria-label={t('heading')}
-          className="flex flex-col gap-0.5 rounded-xl bg-paper-raised/95 p-1.5 shadow-xl ring-1 ring-black/5 backdrop-blur"
+          className="map-pop flex flex-col gap-0.5 rounded-xl bg-paper-raised/95 p-1.5 shadow-xl ring-1 ring-black/5 backdrop-blur"
         >
           {BASEMAP_ORDER.map((id) => {
             const b = BASEMAPS[id];

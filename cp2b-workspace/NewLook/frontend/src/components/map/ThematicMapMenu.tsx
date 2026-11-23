@@ -118,7 +118,7 @@ export default function ThematicMapMenu({
           ref={panelRef}
           role="dialog"
           aria-label={t('title')}
-          className="absolute left-0 top-full z-20 mt-1 max-h-[70vh] w-80 overflow-y-auto border border-line bg-paper-raised py-1 shadow-xl"
+          className="map-pop absolute left-0 top-full z-20 mt-1 max-h-[70vh] w-80 overflow-y-auto border border-line bg-paper-raised py-1 shadow-xl"
         >
           {PRESET_GROUP_META.map(({ group }) => {
             const items = THEMATIC_PRESETS.filter((p) => p.group === group);
