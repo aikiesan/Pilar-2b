@@ -10,6 +10,7 @@
  *
  *   land     ?tool=land&lat&lng&radius
  *   compare  ?tool=compare&pair=<ibge>,<ibge>
+ *   cross    ?tool=cross, the analysis in the map's own ?a=<id>
  *   gather   ?tool=gather&lat&lng&radius  or  ?tool=gather&hub=<ibge>
  *   similar  ?tool=similar&of=<ibge>&within=state|both
  *
@@ -23,21 +24,23 @@ import {
   type LandAroundRadius,
 } from '@/lib/landAround';
 
-export type MapToolId = 'land' | 'compare' | 'gather' | 'similar';
+export type MapToolId = 'land' | 'compare' | 'cross' | 'gather' | 'similar';
 
-export const MAP_TOOL_IDS: readonly MapToolId[] = ['land', 'compare', 'gather', 'similar'];
+export const MAP_TOOL_IDS: readonly MapToolId[] = ['land', 'compare', 'cross', 'gather', 'similar'];
 
 /**
  * Tools that are built. A tool joins this list in the step that builds it;
  * until then it is left out of the menu and its links open the plain map.
  */
-export const BUILT_MAP_TOOLS: readonly MapToolId[] = ['land', 'compare'];
+export const BUILT_MAP_TOOLS: readonly MapToolId[] = ['land', 'compare', 'cross'];
 
 /**
  * Tools that open with the analyses held back (MAP_ANALYSES_ENABLED off).
- * Land around replaced a public page, so it stays; the new tools wait.
+ * Land around replaced a public page, so it stays. Cruzar is how the four
+ * analyses reach signed-in visitors while the flag keeps them off the public
+ * map. The other new tools wait.
  */
-const TOOLS_WITHOUT_ANALYSES: readonly MapToolId[] = ['land'];
+const TOOLS_WITHOUT_ANALYSES: readonly MapToolId[] = ['land', 'cross'];
 
 export function isMapToolId(value: unknown): value is MapToolId {
   return typeof value === 'string' && (MAP_TOOL_IDS as readonly string[]).includes(value);

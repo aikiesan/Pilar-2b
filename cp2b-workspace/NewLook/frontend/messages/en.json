@@ -1057,14 +1057,13 @@
       "heading": "Ready analyses",
       "heading_note": "two datasets crossed",
       "themes_hint": "Maps by sector and residue are in the Themes menu above the map.",
-      "legend_kicker": "Analysis · {state}",
       "close": "Close analysis",
       "loading": "Computing infrastructure per municipality…",
       "failed": "Could not load plants and pipelines. Try again in a moment.",
       "matrix_aria": "Municipalities by class combination",
       "cell_aria": "{x} and {y}: {count, plural, one {# municipality} other {# municipalities}}",
       "answer": "<b>{count, plural, one {# municipality} other {# municipalities}}</b> in the outlined cell:",
-      "method": "Classes are tertiles among the state's municipalities with a value.",
+      "method": "Classes are tertiles among the municipalities of {state} with a value.",
       "no_data": "{count, plural, one {# municipality} other {# municipalities}} without data, in grey.",
       "axes": {
         "methane": "Methane",
@@ -1156,6 +1155,10 @@
         "compare": {
           "name": "Compare",
           "description": "Two municipalities side by side, without leaving the map"
+        },
+        "cross": {
+          "name": "Cross data",
+          "description": "Four maps that cross two figures, such as methane and plants"
         }
       },
       "pending_title": "Your access request is being reviewed",
@@ -1205,6 +1208,20 @@
       "signed_out_body": "Compare uses figures shared with approved accounts. Sign in, or ask for access.",
       "sign_in": "Sign in",
       "source": "Biomethane and residues: CP2b method, the scenario on the map. Land cover: MapBiomas Collection 11. Pipelines and plants: MapBiomas infrastructure layers. Farmland counts pasture, crops, sugar cane, planted forest and mixed farm use."
+    },
+    "cross": {
+      "window_aria": "Cross two figures on the map",
+      "title": "Cross data",
+      "close": "Close Cross data",
+      "intro": "Pick a question. Each municipality takes the colour of its two classes combined.",
+      "choices_aria": "Questions",
+      "pick_hint": "Click a municipality, or find it in the search, to see which cell it falls in.",
+      "picked": "{name} is in the marked cell.",
+      "picked_no_data": "{name} lacks one of the two figures, so it stays grey.",
+      "picked_outside": "{name} is outside {state}, which this reading covers.",
+      "signed_out_title": "Sign in to cross data",
+      "signed_out_body": "The crossed analyses are open to approved accounts while they are being tested. Sign in, or ask for access.",
+      "sign_in": "Sign in"
     }
   },
   "metadata": {

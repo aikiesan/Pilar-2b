@@ -1346,8 +1346,13 @@ describe('MapComponent', () => {
 
       const list = await screen.findByRole('group', { name: 'Ferramentas do mapa' });
       const items = Array.from(list.querySelectorAll('button')).map((b) => b.getAttribute('aria-label'));
-      // Compare waits for the analyses; Land around replaced a public page and stays.
-      expect(items).toEqual(analyses ? ['Uso do solo no entorno', 'Comparar'] : ['Uso do solo no entorno']);
+      // Compare waits for the analyses; Land around replaced a public page and
+      // stays; Cruzar brings the analyses to approved accounts either way.
+      expect(items).toEqual(
+        analyses
+          ? ['Uso do solo no entorno', 'Comparar', 'Cruzar dados']
+          : ['Uso do solo no entorno', 'Cruzar dados'],
+      );
     });
 
     it('opens Compare from a shared link once the analyses are on, keeping the pair', async () => {
@@ -1365,6 +1370,52 @@ describe('MapComponent', () => {
       expect(screen.getByTestId('compare-layer')).toHaveAttribute('data-pair', '3509502,3543402');
       await waitFor(() => expect(new URLSearchParams(window.location.search).get('pair')).toBe('3509502,3543402'));
       mockAnalysesEnabled = false;
+    });
+
+    it('opens Cruzar from a link with the flag off and paints its analysis for an approved account', async () => {
+      window.history.replaceState(null, '', '/map?tool=cross&a=codigestao');
+      render(<MapComponent />);
+      act(() => { jest.advanceTimersByTime(1500); });
+
+      expect(await screen.findByRole('complementary', { name: 'Cruzar dois dados no mapa' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Com quem codigerir/, pressed: true })).toBeInTheDocument();
+      expect(window.location.search).toContain('a=codigestao');
+      expect(screen.getByTestId('desktop-left-panel')).toHaveAttribute('data-active-analysis', 'codigestao');
+      // The reading sits in the window, not in the map corner too.
+      expect(screen.getAllByRole('heading', { name: 'Onde resíduo agrícola e pecuário se encontram?' })).toHaveLength(1);
+
+      // A click marks the municipality's cell instead of opening the profile.
+      fireEvent.click(screen.getByRole('button', { name: 'municipality click' }));
+      expect(await screen.findByText(/^São Paulo (está na célula marcada|não tem os dois dados)/)).toBeInTheDocument();
+      expect(window.location.search).not.toMatch(/(^|[?&])m=/);
+      // The map outlines the pick; a click leaves the view where it is.
+      const outline = screen.getByTestId('municipality-highlight');
+      expect(outline).toHaveAttribute('data-ibge', '3550308');
+      expect(outline).toHaveAttribute('data-fit', '0');
+
+      // Switching to the gap reads plants, a signed-in endpoint.
+      fireEvent.click(screen.getByRole('button', { name: /Potencial sem planta/ }));
+      await waitFor(() => expect(mockUseSitingIndicators).toHaveBeenCalledWith(true));
+      expect(window.location.search).toContain('a=lacuna');
+
+      // Closing the tool ends the analysis.
+      fireEvent.keyDown(window, { key: 'Escape' });
+      await waitFor(() => expect(window.location.search).not.toMatch(/tool=|(^|[?&])a=/));
+    });
+
+    it('asks a signed-out visitor to sign in to Cruzar and paints nothing', async () => {
+      mockToolAccess = 'sign_in';
+      window.history.replaceState(null, '', '/map?tool=cross&a=lacuna');
+      render(<MapComponent />);
+      act(() => { jest.advanceTimersByTime(1500); });
+
+      expect(await screen.findByText('Entre para cruzar dados')).toBeInTheDocument();
+      const next = new URL(screen.getByRole('link', { name: 'Entrar' }).getAttribute('href') ?? '', 'http://x').searchParams.get('next') ?? '';
+      expect(next).toContain('tool=cross');
+      expect(next).toContain('a=lacuna');
+      expect(screen.queryByRole('button', { name: /Potencial sem planta/ })).not.toBeInTheDocument();
+      expect(mockUseSitingIndicators).not.toHaveBeenCalledWith(true);
+      expect(screen.getByTestId('desktop-left-panel')).toHaveAttribute('data-active-analysis', '');
     });
 
     it('opens nothing for a link to a tool not on offer, and drops it from the URL', async () => {

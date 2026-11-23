@@ -25,6 +25,7 @@ import { LATEST_LAND_COVER_YEAR } from '@/lib/landCover';
 import { centroidOf, haversineKm } from '@/lib/mapGeometry';
 import { ANALYSES, analysisFill, classifyAnalysis, isAnalysisId, type AnalysisId } from '@/lib/mapAnalyses';
 import BivariateLegend from './BivariateLegend';
+import type { CrossPicked } from './CrossWindow';
 import type { FilterCriteria, BiomassType, ResidueType, VisualizationMode } from '@/types/map';
 import type { MunicipalityCollection, MunicipalityFeature, DisplayMetric, CodigestionCluster } from '@/types/geospatial';
 import { MAP_SCENARIOS, DEFAULT_MAP_SCENARIO, SERVED_SOURCE_TIER, applyScenarioToProps, isServedScenario, type MapScenarioKey } from '@/data/scenarioFactors';
@@ -162,6 +163,7 @@ const MapToolsMenu = dynamic(() => import('./MapToolsMenu'), { ssr: false });
 const LandAroundLayer = dynamic(() => import('./LandAroundLayer'), { ssr: false });
 const CompareLayer = dynamic(() => import('./CompareLayer'), { ssr: false });
 const Compare = dynamic(() => import('./CompareWindow'), { ssr: false });
+const CrossWindow = dynamic(() => import('./CrossWindow'), { ssr: false });
 const LandAround = dynamic(() => import('./LandAroundWindow'), { ssr: false });
 
 // Profile + Tooltip overlays
@@ -347,8 +349,9 @@ export default function MapComponent({
   const urlQuery = readURLParam('q');
   const urlMetric = readURLParam('metric');
   const urlScope = readURLParam('scope'); // 'brazil' → national view
-  // Held back with MAP_ANALYSES_ENABLED: an old ?a= link opens the plain map.
-  const urlAnalysis = MAP_ANALYSES_ENABLED ? readURLParam('a') : null;
+  // Held back with MAP_ANALYSES_ENABLED: an old ?a= link opens the plain map,
+  // unless it opens the Cruzar tool, which shows it to approved accounts.
+  const urlAnalysis = MAP_ANALYSES_ENABLED || readURLParam('tool') === 'cross' ? readURLParam('a') : null;
   const initialScope = parseScopeParam(urlScope);
 
   // An analysis paints the choropleth, so ?a= wins over any other ?mode=.
@@ -417,7 +420,7 @@ export default function MapComponent({
   useEffect(() => {
     if (MAP_ANALYSES_ENABLED || typeof window === 'undefined') return;
     const params = new URLSearchParams(window.location.search);
-    if (!params.has('a')) return;
+    if (!params.has('a') || params.get('tool') === 'cross') return;
     params.delete('a');
     const query = params.toString();
     window.history.replaceState(null, '', `${window.location.pathname}${query ? `?${query}` : ''}`);
@@ -530,6 +533,13 @@ export default function MapComponent({
   const pickCompare = useCallback((code: string) => setComparePair((pair) => nextComparePair(pair, code)), []);
   // A tool that draws its own municipality layer hides the choropleth and its legends.
   const fillHiddenByTool = landOn || compareOn;
+  // Cruzar: the analysis is the map's own ?a=; the tool is how it reaches
+  // approved accounts while MAP_ANALYSES_ENABLED keeps it off the public map.
+  const crossOn = activeTool === 'cross';
+  const analysisShown: AnalysisId | null =
+    activeAnalysis && (MAP_ANALYSES_ENABLED || (crossOn && toolAccess === 'allowed')) ? activeAnalysis : null;
+  // The municipality whose cell the Cruzar window marks (a click or a search pick).
+  const [crossPick, setCrossPick] = useState<string | null>(null);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -543,11 +553,36 @@ export default function MapComponent({
     if (next !== `${window.location.pathname}${window.location.search}`) window.history.replaceState(null, '', next);
   }, [activeTool, landPoint, landRadius, comparePair]);
 
+  // Choose a bivariate analysis (or none). It paints the choropleth, so the map
+  // goes back to the choropleth mode, and the theme highlight goes.
+  const handleAnalysisChange = useCallback((next: AnalysisId | null) => {
+    setActiveAnalysis(next);
+    if (next) {
+      setVisualizationMode('choropleth');
+      setShowClusterPanel(false);
+      setSelectedClusterId(null);
+      setActivePresetId(null);
+    }
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (next) {
+        params.set('a', next);
+        params.set('mode', 'choropleth');
+      } else {
+        params.delete('a');
+      }
+      window.history.replaceState(null, '', `${window.location.pathname}?${params.toString()}`);
+    }
+  }, []);
+
   const closeTool = useCallback(() => {
+    // Closing Cruzar ends the analysis it painted.
+    if (activeTool === 'cross') handleAnalysisChange(null);
     setActiveTool(null);
     setLandPoint(null);
     setComparePair([]);
-  }, []);
+    setCrossPick(null);
+  }, [activeTool, handleAnalysisChange]);
 
   // The window names the place from the server's nearest municipality: while
   // Land around is on, the municipality shapes are hidden and take no clicks.
@@ -672,6 +707,10 @@ export default function MapComponent({
       case 'compare':
         // CompareLayer picks on its own outlines; this covers any other path.
         if (toolAccess === 'allowed' && feature.properties?.ibge_code != null) pickCompare(String(feature.properties.ibge_code));
+        return;
+      case 'cross':
+        // The window marks the municipality's cell; the profile stays shut.
+        if (feature.properties?.ibge_code != null) setCrossPick(String(feature.properties.ibge_code));
         return;
       case null:
         selectMunicipality(feature);
@@ -818,35 +857,13 @@ export default function MapComponent({
     syncURL(nextMode, nextType, nextResidues, nextMetric);
   }, [visualizationMode, biomassType, selectedResidues, displayMetric, onBiomassTypeChange, syncURL]);
 
-  // Choose a bivariate analysis (or none). It paints the choropleth, so the map
-  // goes back to the choropleth mode, and the theme highlight goes.
-  const handleAnalysisChange = useCallback((next: AnalysisId | null) => {
-    setActiveAnalysis(next);
-    if (next) {
-      setVisualizationMode('choropleth');
-      setShowClusterPanel(false);
-      setSelectedClusterId(null);
-      setActivePresetId(null);
-    }
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      if (next) {
-        params.set('a', next);
-        params.set('mode', 'choropleth');
-      } else {
-        params.delete('a');
-      }
-      window.history.replaceState(null, '', `${window.location.pathname}?${params.toString()}`);
-    }
-  }, []);
-
   // An analysis brings its infrastructure as context (plants for the gap,
   // pipelines for siting) and takes it away when it ends. Only the layers the
   // analysis itself switched on are taken away: one the reader already had on
   // stays on.
   const analysisOwnedLayersRef = useRef<readonly string[]>([]);
   useEffect(() => {
-    const next: readonly string[] = activeAnalysis ? ANALYSES[activeAnalysis].layers : [];
+    const next: readonly string[] = analysisShown ? ANALYSES[analysisShown].layers : [];
     if (analysisOwnedLayersRef.current.length === 0 && next.length === 0) return;
     setLayers(prev => {
       const owned = analysisOwnedLayersRef.current;
@@ -864,7 +881,7 @@ export default function MapComponent({
       analysisOwnedLayersRef.current = nowOwned;
       return updated;
     });
-  }, [activeAnalysis]);
+  }, [analysisShown]);
 
   const visibleLayerIds = useMemo(
     () => layers.filter(l => l.visible).map((l): string => l.id),
@@ -1021,9 +1038,10 @@ export default function MapComponent({
   }, [filteredData, displayMetric, biomassType, selectedResidues, mapScenario, scope]);
 
   // ── Bivariate analysis ──────────────────────────────────────────────────────
-  const analysisDef = activeAnalysis ? ANALYSES[activeAnalysis] : null;
+  const analysisDef = analysisShown ? ANALYSES[analysisShown] : null;
   const compareAllowed = compareOn && toolAccess === 'allowed';
-  // Compare reads the pipelines and plants too; both endpoints are signed-in only.
+  // Compare reads the pipelines and plants too (a public endpoint) and the land
+  // cover (signed-in only).
   const siting = useSitingIndicators(Boolean(analysisDef?.needsSiting) || compareAllowed);
   const compareLandCover = useMunicipalityLandCover(LATEST_LAND_COVER_YEAR, compareAllowed);
   const compareDistanceKm = useMemo(() => {
@@ -1054,6 +1072,25 @@ export default function MapComponent({
       return row ? analysisFill(row.cell, palette) : undefined;
     };
   }, [analysisResult, daltonic]);
+  // The municipality Cruzar marks, outlined on the map in place of the profile's.
+  const crossPickFeature = useMemo(
+    () => (crossOn && crossPick && data
+      ? data.features.find((f) => String(f.properties?.ibge_code) === crossPick) ?? null
+      : null),
+    [crossOn, crossPick, data],
+  );
+  const highlighted = crossOn ? crossPickFeature : selectedMunicipality;
+
+  const crossPicked = useMemo((): CrossPicked | null => {
+    // Nothing to say until the reading is in: a loading analysis is not "no data".
+    if (!crossPick || !data || !analysisResult) return null;
+    const feature = data.features.find((f) => String(f.properties?.ibge_code) === crossPick);
+    if (!feature) return null;
+    const name = feature.properties?.name ?? crossPick;
+    if (crossPick.slice(0, 2) !== analysisUf) return { name, status: 'outside', cell: null };
+    const cell = analysisResult?.byCode.get(crossPick)?.cell ?? null;
+    return { name, status: cell === null ? 'no_data' : 'cell', cell };
+  }, [crossPick, data, analysisUf, analysisResult]);
 
   // ── Guard states ────────────────────────────────────────────────────────────
   if (!isMounted) return <MapLoadingSkeleton />;
@@ -1144,7 +1181,7 @@ export default function MapComponent({
           scenario={mapScenario}
           onApplyPreset={handleApplyPreset}
           activePresetId={activePresetId}
-          activeAnalysis={activeAnalysis}
+          activeAnalysis={analysisShown}
           onAnalysisChange={MAP_ANALYSES_ENABLED ? handleAnalysisChange : undefined}
         />
       )}
@@ -1217,11 +1254,20 @@ export default function MapComponent({
         <div className="flex min-w-0 flex-1 flex-wrap items-start gap-2 md:flex-none">
           <MapMunicipalitySearch
             features={searchFeatures}
-            selected={selectedMunicipality}
+            selected={highlighted}
             onSelect={(feature) => {
               // With Compare open the search fills A or B, as a click does.
               if (compareOn) {
                 if (toolAccess === 'allowed' && feature?.properties?.ibge_code != null) pickCompare(String(feature.properties.ibge_code));
+                return;
+              }
+              // With Cruzar open it marks the municipality's cell, and the map
+              // outlines it and goes there, as for a profile picked by search.
+              if (crossOn) {
+                if (feature?.properties?.ibge_code != null) {
+                  setCrossPick(String(feature.properties.ibge_code));
+                  setFitKey((k) => k + 1);
+                }
                 return;
               }
               // Picking a municipality opens its profile, which takes the
@@ -1229,7 +1275,7 @@ export default function MapComponent({
               if (activeTool) closeTool();
               selectMunicipality(feature, true);
             }}
-            onClear={() => selectMunicipality(null)}
+            onClear={() => (crossOn ? setCrossPick(null) : selectMunicipality(null))}
           />
           <div data-tour="map-scope">
             <ScopeSwitcher
@@ -1475,7 +1521,7 @@ export default function MapComponent({
                 />
               : <IntermediateRegionBoundaryLayer visible={true} />
           )}
-          <MunicipalityHighlight feature={selectedMunicipality} fitKey={fitKey} />
+          <MunicipalityHighlight feature={highlighted} fitKey={fitKey} />
           {isMounted && (
             <LandAroundLayer
               active={landOn}
@@ -1537,6 +1583,21 @@ export default function MapComponent({
             access={toolAccess}
             onRadiusChange={setLandRadius}
             onClose={closeTool}
+          />
+        )}
+
+        {isMounted && crossOn && (
+          <CrossWindow
+            access={toolAccess}
+            active={analysisShown ?? (toolAccess === 'allowed' ? null : activeAnalysis)}
+            onChoose={handleAnalysisChange}
+            onClose={closeTool}
+            result={analysisResult}
+            loading={analysisWaiting && !analysisFailed}
+            failed={analysisFailed}
+            palette={daltonic ? 'cvd' : 'default'}
+            stateLabel={activeStateName}
+            picked={crossPicked}
           />
         )}
 
@@ -1674,10 +1735,13 @@ export default function MapComponent({
         {/* Legends.
             Desktop: shown in full. Mobile: the choropleth legend collapses to a
             chip (tap to expand) so it doesn't crowd the screen. */}
-        {showMunicipalityFill && activeAnalysis && visualizationMode === 'choropleth' && (
+        {/* With Cruzar open to an approved account the reading sits in its
+            window instead; anyone else sees the window's gate, so the map
+            keeps its key here. */}
+        {showMunicipalityFill && analysisShown && !(crossOn && toolAccess === 'allowed') && visualizationMode === 'choropleth' && (
           <div data-tour="map-legend">
             <BivariateLegend
-              id={activeAnalysis}
+              id={analysisShown}
               result={analysisResult}
               loading={analysisWaiting && !analysisFailed}
               failed={analysisFailed}
@@ -1687,7 +1751,7 @@ export default function MapComponent({
             />
           </div>
         )}
-        {showMunicipalityFill && !activeAnalysis && visualizationMode !== 'clusters' && (
+        {showMunicipalityFill && !analysisShown && visualizationMode !== 'clusters' && (
           visualizationMode === 'choropleth' ? (
             colorMode === 'biogas' ? (
               <>

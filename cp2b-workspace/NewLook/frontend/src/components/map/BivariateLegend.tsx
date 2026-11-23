@@ -3,14 +3,16 @@
 /**
  * Legend for a bivariate analysis: the 3×3 matrix with the municipality count
  * in each cell, the two axes with their breaks, and the cell that answers the
- * analysis's question outlined. Sits where the choropleth legend sits.
+ * analysis's question outlined. Sits where the choropleth legend sits, or,
+ * bare, inside the Cruzar window, which then marks the clicked municipality's
+ * cell too.
  */
 
 import React from 'react';
 import { useTranslations } from 'next-intl';
 import { X } from 'lucide-react';
 import { useFormat } from '@/hooks/useFormat';
-import { bivariateFills, cellInk, type BivariatePalette } from '@/lib/bivariate';
+import { BIVARIATE_FILLS, bivariateFills, cellInk, type BivariatePalette } from '@/lib/bivariate';
 import { ANALYSES, type AnalysisResult, type AxisDef, type Breaks } from '@/lib/mapAnalyses';
 import type { AnalysisId } from '@/lib/mapAnalyses';
 
@@ -21,10 +23,37 @@ interface Props {
   failed?: boolean;
   palette?: BivariatePalette;
   stateLabel: string;
-  onClose: () => void;
+  /** Without one, no close button (the Cruzar window closes itself). */
+  onClose?: () => void;
+  /** No card of its own: it sits inside a window. */
+  bare?: boolean;
+  /** A cell to mark besides the answer: the municipality the visitor picked. */
+  pickedCell?: number | null;
 }
 
-export default function BivariateLegend({ id, result, loading, failed, palette = 'default', stateLabel, onClose }: Props) {
+/** The nine fills as a thumbnail, the answer cell outlined. */
+export function MiniMatrix({ answerCell, size = 'h-2 w-2' }: { answerCell: number; size?: string }) {
+  return (
+    <span className="grid w-max grid-cols-3 gap-px" aria-hidden="true">
+      {[2, 1, 0].map((cy) =>
+        [0, 1, 2].map((cx) => {
+          const cell = cy * 3 + cx;
+          return (
+            <span
+              key={cell}
+              className={`${size} ${cell === answerCell ? 'outline outline-1 outline-ink' : ''}`}
+              style={{ backgroundColor: BIVARIATE_FILLS[cell] }}
+            />
+          );
+        })
+      )}
+    </span>
+  );
+}
+
+export default function BivariateLegend({
+  id, result, loading, failed, palette = 'default', stateLabel, onClose, bare = false, pickedCell = null,
+}: Props) {
   const t = useTranslations('Map.analyses');
   const format = useFormat();
   const def = ANALYSES[id];
@@ -59,22 +88,21 @@ export default function BivariateLegend({ id, result, loading, failed, palette =
   return (
     <section
       aria-label={t(`${id}.title`)}
-      className="surface-light w-[260px] border border-line bg-paper-raised/95 p-3 text-ink shadow-md backdrop-blur"
+      className={bare ? 'text-ink' : 'surface-light w-[260px] border border-line bg-paper-raised/95 p-3 text-ink shadow-md backdrop-blur'}
     >
       <header className="mb-2 flex items-start gap-2">
-        <div className="min-w-0 flex-1">
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-ink-muted">{t('legend_kicker', { state: stateLabel })}</p>
-          <h3 className="text-sm font-bold leading-snug">{t(`${id}.question`)}</h3>
-        </div>
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label={t('close')}
-          title={t('close')}
-          className="-mr-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-ink-muted hover:bg-paper-sunken hover:text-ink"
-        >
-          <X className="h-4 w-4" aria-hidden="true" />
-        </button>
+        <h3 className="min-w-0 flex-1 text-sm font-bold leading-snug">{t(`${id}.question`)}</h3>
+        {onClose && (
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label={t('close')}
+            title={t('close')}
+            className="-mr-3 -mt-3 flex h-11 w-11 shrink-0 items-center justify-center text-ink-muted transition-colors hover:bg-paper-sunken hover:text-ink active:bg-line/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-terra-600"
+          >
+            <X className="h-4 w-4" aria-hidden="true" />
+          </button>
+        )}
       </header>
 
       {failed ? (
@@ -103,15 +131,26 @@ export default function BivariateLegend({ id, result, loading, failed, palette =
                   [0, 1, 2].map((cx) => {
                     const cell = cy * 3 + cx;
                     const isAnswer = cell === def.answerCell;
+                    const isPicked = cell === pickedCell;
                     return (
                       <span
                         key={cell}
                         role="cell"
                         aria-label={t('cell_aria', { x: xLabels[cx], y: yLabels[cy], count: result.counts[cell] })}
-                        className={`flex h-9 w-9 items-center justify-center text-[10px] font-semibold tabular-nums ${isAnswer ? 'ring-2 ring-ink ring-offset-1' : ''}`}
+                        data-picked={isPicked || undefined}
+                        className={`relative flex h-9 w-9 items-center justify-center text-[10px] font-semibold tabular-nums ${isAnswer ? 'ring-2 ring-ink ring-offset-1' : ''}`}
                         style={{ backgroundColor: fills[cell], color: cellInk(fills[cell]) }}
                       >
                         {result.counts[cell]}
+                        {/* The picked municipality: a dot in the cell's ink, so it
+                            reads on every fill and next to the answer's ring. */}
+                        {isPicked && (
+                          <span
+                            aria-hidden="true"
+                            className="bivar-picked absolute right-0.5 top-0.5 h-2 w-2 rounded-full"
+                            style={{ backgroundColor: cellInk(fills[cell]) }}
+                          />
+                        )}
                       </span>
                     );
                   })
@@ -128,7 +167,7 @@ export default function BivariateLegend({ id, result, loading, failed, palette =
             {t.rich('answer', { count: answer ?? 0, b: (c) => <b>{c}</b> })} {t(`${id}.answer`)}
           </p>
           <p className="mt-1 text-[10px] leading-snug text-ink-muted">
-            {t('method')}
+            {t('method', { state: stateLabel })}
             {(def.x.method === 'fixed_count' || def.y.method === 'fixed_count') && ` ${t('method_plants')}`}
             {result.noData > 0 && ` ${t('no_data', { count: result.noData })}`}
           </p>

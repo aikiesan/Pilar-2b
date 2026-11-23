@@ -26,7 +26,7 @@ import { useDataSources, useDescribeSource } from '@/hooks/useDataSources';
 import { layerSources } from '@/lib/dataSources';
 import Cite from '@/components/mandate/Cite';
 import { DISPLAY_METRICS, METRIC_SPECS } from '@/lib/mapMetrics';
-import { BIVARIATE_FILLS } from '@/lib/bivariate';
+import { MiniMatrix } from './BivariateLegend';
 import { ANALYSES, ANALYSIS_IDS, type AnalysisId } from '@/lib/mapAnalyses';
 import type { ThematicPreset } from '@/data/thematicPresets';
 import { DATA_EXPORT_ENABLED } from '@/lib/featureFlags';
@@ -165,26 +165,6 @@ function AnalysesSection({
       </div>
       <p className="mt-1.5 text-[10px] leading-snug text-ink-muted">{t('themes_hint')}</p>
     </section>
-  );
-}
-
-/** The nine fills as a thumbnail, the answer cell outlined. */
-function MiniMatrix({ answerCell }: { answerCell: number }) {
-  return (
-    <span className="grid w-max grid-cols-3 gap-px" aria-hidden="true">
-      {[2, 1, 0].map((cy) =>
-        [0, 1, 2].map((cx) => {
-          const cell = cy * 3 + cx;
-          return (
-            <span
-              key={cell}
-              className={`h-2 w-2 ${cell === answerCell ? 'outline outline-1 outline-ink' : ''}`}
-              style={{ backgroundColor: BIVARIATE_FILLS[cell] }}
-            />
-          );
-        })
-      )}
-    </span>
   );
 }
 
