@@ -233,7 +233,9 @@ def test_manifest_validation(tmp_path, demo):
         ("method: tertile_nonzero", "method: median", "method"),
         ('["35", "31"]', '["35", "41"]', "uf_prefixes"),
         ('["35", "31"]', '["35", "35"]', "duplicate"),
-        ("id: demo_xy", 'id: "demo_xy\n"', "id"),
+        # The YAML escape gives a real trailing newline, which re.match with $
+        # would accept; fullmatch must not.
+        ("id: demo_xy", 'id: "demo_xy\\n"', "id"),
     ):
         (demo / "m.yaml").write_text(text.replace(old, new), encoding="utf-8")
         with pytest.raises(ManifestError, match=msg):
