@@ -1399,12 +1399,10 @@ describe('MapComponent', () => {
 
       const list = await screen.findByRole('group', { name: 'Ferramentas do mapa' });
       const items = Array.from(list.querySelectorAll('button')).map((b) => b.getAttribute('aria-label'));
-      // Compare waits for the analyses; Land around replaced a public page and
-      // stays; Cruzar brings the analyses to approved accounts either way.
+      // The tools are for approved accounts, so the switch that keeps the
+      // analyses off the public map offers them all either way.
       expect(items).toEqual(
-        analyses
-          ? ['Uso do solo no entorno', 'Comparar', 'Cruzar dados', 'Reunir', 'Parecidos', 'Alcance do caminhão']
-          : ['Uso do solo no entorno', 'Cruzar dados'],
+        ['Uso do solo no entorno', 'Comparar', 'Cruzar dados', 'Reunir', 'Parecidos', 'Alcance do caminhão'],
       );
     });
 
@@ -1471,8 +1469,7 @@ describe('MapComponent', () => {
       mockAnalysesEnabled = false;
     });
 
-    it('opens Compare from a shared link once the analyses are on, keeping the pair', async () => {
-      mockAnalysesEnabled = true;
+    it('opens Compare from a shared link with the analyses off, keeping the pair', async () => {
       window.history.replaceState(null, '', '/map?tool=compare&pair=3509502,3550308&scope=35');
       render(<MapComponent />);
       act(() => { jest.advanceTimersByTime(1500); });
@@ -1485,7 +1482,6 @@ describe('MapComponent', () => {
       fireEvent.click(screen.getByRole('button', { name: 'compare click' }));
       expect(screen.getByTestId('compare-layer')).toHaveAttribute('data-pair', '3509502,3543402');
       await waitFor(() => expect(new URLSearchParams(window.location.search).get('pair')).toBe('3509502,3543402'));
-      mockAnalysesEnabled = false;
     });
 
     it('opens Cruzar from a link with the flag off and paints its analysis for an approved account', async () => {
@@ -1535,7 +1531,7 @@ describe('MapComponent', () => {
     });
 
     it('opens nothing for a link to a tool not on offer, and drops it from the URL', async () => {
-      window.history.replaceState(null, '', '/map?tool=compare&pair=3509502,3550308&scope=35');
+      window.history.replaceState(null, '', '/map?tool=ruler&pair=3509502,3550308&scope=35');
       render(<MapComponent />);
       act(() => { jest.advanceTimersByTime(1500); });
 

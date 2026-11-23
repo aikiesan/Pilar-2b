@@ -15,7 +15,10 @@
  *   similar  ?tool=similar&of=<ibge>&within=state|both
  *   truck    ?tool=truck&site=<site_id>&t=30|60|90
  *
- * Who may USE a tool is a separate question: useMapToolAccess().
+ * Every built tool is offered, with or without MAP_ANALYSES_ENABLED: the
+ * tools work only for an approved account, so the switch that keeps the
+ * analyses off the public map does not hold them back. Who may USE a tool is
+ * useMapToolAccess().
  */
 
 import {
@@ -38,27 +41,17 @@ export const MAP_TOOL_IDS: readonly MapToolId[] = ['land', 'compare', 'cross', '
  */
 export const BUILT_MAP_TOOLS: readonly MapToolId[] = ['land', 'compare', 'cross', 'gather', 'similar', 'truck'];
 
-/**
- * Tools that open with the analyses held back (MAP_ANALYSES_ENABLED off).
- * Land around replaced a public page, so it stays. Cruzar is how the four
- * analyses reach signed-in visitors while the flag keeps them off the public
- * map. The other new tools wait.
- */
-const TOOLS_WITHOUT_ANALYSES: readonly MapToolId[] = ['land', 'cross'];
-
 export function isMapToolId(value: unknown): value is MapToolId {
   return typeof value === 'string' && (MAP_TOOL_IDS as readonly string[]).includes(value);
 }
 
 /** The tools the Tools menu offers, in menu order. */
-export function availableMapTools(analysesEnabled: boolean): MapToolId[] {
-  return MAP_TOOL_IDS.filter(
-    (id) => BUILT_MAP_TOOLS.includes(id) && (analysesEnabled || TOOLS_WITHOUT_ANALYSES.includes(id)),
-  );
+export function availableMapTools(): MapToolId[] {
+  return MAP_TOOL_IDS.filter((id) => BUILT_MAP_TOOLS.includes(id));
 }
 
-export function isMapToolAvailable(id: MapToolId | null, analysesEnabled: boolean): id is MapToolId {
-  return id !== null && availableMapTools(analysesEnabled).includes(id);
+export function isMapToolAvailable(id: MapToolId | null): id is MapToolId {
+  return id !== null && availableMapTools().includes(id);
 }
 
 export type SimilarWithin = 'state' | 'both';
