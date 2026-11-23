@@ -313,8 +313,8 @@
     "vizModes": {
       "label": "Visualization Mode",
       "choropleth": "Choropleth",
-      "heatmap": "Heat",
-      "bubble": "Bubbles",
+      "dots": "Dots",
+      "symbols": "Symbols",
       "clusters": "Co-digestion"
     },
     "colorModes": {
@@ -495,13 +495,13 @@
           "label": "Typologies (K4)",
           "description": "K-means clustering of municipalities by biomass profile (2023)."
         },
-        "calor": {
-          "label": "Heat map",
-          "description": "Potential density as a heat surface."
+        "pontos": {
+          "label": "Dot map",
+          "description": "Each dot is a fixed amount of potential, in the colour of the residue’s origin."
         },
-        "bolhas": {
-          "label": "Proportional bubbles",
-          "description": "Potential per municipality as sized bubbles."
+        "simbolos": {
+          "label": "Circles by origin",
+          "description": "One circle per municipality, its area the size of the potential, its ring split by origin."
         },
         "per_capita": {
           "label": "Per capita potential",
@@ -842,8 +842,18 @@
       "mg_option": "Minas Gerais (beta pilot)",
       "shown": "{count} municipalities shown"
     },
-    "heatmap_legend": {
-      "title": "Concentration"
+    "magnitude": {
+      "aria_dots": "Dot map legend",
+      "aria_symbols": "Circles by origin legend",
+      "dots_value": "1 dot = {value} {unit}",
+      "dots_note": "Each dot sits at a random place inside its municipality.",
+      "symbols_area": "A circle’s area is proportional to the value, in {unit}. The smallest keep a minimum size so they stay visible.",
+      "circles_aria": "Reference circles: {values} {unit}",
+      "origin_dots": "Dot colour: residue origin",
+      "origin_ring": "Ring: residue origin",
+      "unsplit": "No split by origin ({count, plural, one {# municipality} other {# municipalities}})",
+      "rate_note": "Dots and Symbols show amounts. A value per inhabitant stays on the Choropleth.",
+      "empty": "No municipality has a value for this choice."
     },
     "mapbiomasLegend": {
       "subtitle": "Agricultural land use",
@@ -1017,7 +1027,7 @@
         },
         "viz": {
           "title": "How it is drawn",
-          "body": "Choropleth fills each municipality, Heat shows where the potential concentrates and Bubbles draws a circle sized by the potential."
+          "body": "Choropleth paints each municipality. Dots spreads the potential in dots of equal value, coloured by origin, and Symbols draws a circle whose area is the potential."
         },
         "tabs": {
           "title": "Analyses and layers",

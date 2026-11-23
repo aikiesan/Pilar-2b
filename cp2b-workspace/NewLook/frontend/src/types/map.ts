@@ -17,7 +17,12 @@ export type ResidueType =
   | 'rsu' | 'rpo' | 'sewage';
 
 /** How municipality values are drawn. */
-export type VisualizationMode = 'choropleth' | 'heatmap' | 'bubble' | 'clusters';
+/**
+ * How the map draws the metric. `dots` (Pontos, dot density) and `symbols`
+ * (Símbolos, circles by origin) replaced the heat surface and the log-scaled
+ * bubbles; old links (?mode=heatmap, ?mode=bubble) open them.
+ */
+export type VisualizationMode = 'choropleth' | 'dots' | 'symbols' | 'clusters';
 
 /** Programmatic filters applied on top of the map's own controls. */
 export interface FilterCriteria {

@@ -313,8 +313,8 @@
     "vizModes": {
       "label": "Modo de Visualização",
       "choropleth": "Coroplético",
-      "heatmap": "Calor",
-      "bubble": "Bolhas",
+      "dots": "Pontos",
+      "symbols": "Símbolos",
       "clusters": "Co-digestão"
     },
     "colorModes": {
@@ -495,13 +495,13 @@
           "label": "Tipologias (K4)",
           "description": "Agrupamento K-means dos municípios por perfil de biomassa (2023)."
         },
-        "calor": {
-          "label": "Mapa de calor",
-          "description": "Densidade do potencial como superfície de calor."
+        "pontos": {
+          "label": "Mapa de pontos",
+          "description": "Cada ponto é uma quantidade fixa do potencial, na cor da origem do resíduo."
         },
-        "bolhas": {
-          "label": "Bolhas proporcionais",
-          "description": "Potencial por município como bolhas dimensionadas."
+        "simbolos": {
+          "label": "Círculos por origem",
+          "description": "Um círculo por município, com a área do tamanho do potencial e o anel dividido por origem."
         },
         "per_capita": {
           "label": "Potencial per capita",
@@ -842,8 +842,18 @@
       "mg_option": "Minas Gerais (piloto beta)",
       "shown": "{count} municípios exibidos"
     },
-    "heatmap_legend": {
-      "title": "Concentração"
+    "magnitude": {
+      "aria_dots": "Legenda do mapa de pontos",
+      "aria_symbols": "Legenda dos círculos por origem",
+      "dots_value": "1 ponto = {value} {unit}",
+      "dots_note": "Cada ponto fica num lugar ao acaso dentro do seu município.",
+      "symbols_area": "A área do círculo é proporcional ao valor, em {unit}. Os menores têm um tamanho mínimo para continuar visíveis.",
+      "circles_aria": "Círculos de referência: {values} {unit}",
+      "origin_dots": "Cor do ponto: origem do resíduo",
+      "origin_ring": "Anel: origem do resíduo",
+      "unsplit": "Sem divisão por origem ({count, plural, one {# município} other {# municípios}})",
+      "rate_note": "Pontos e Símbolos mostram quantidades. Um valor por habitante fica no Coroplético.",
+      "empty": "Nenhum município tem valor nesta escolha."
     },
     "mapbiomasLegend": {
       "subtitle": "Uso do solo agropecuário",
@@ -1017,7 +1027,7 @@
         },
         "viz": {
           "title": "Jeito de desenhar",
-          "body": "Coroplético pinta cada município, Calor mostra onde o potencial se concentra e Bolhas desenha um círculo do tamanho do potencial."
+          "body": "Coroplético pinta cada município. Pontos espalha o potencial em pontos de mesmo valor, na cor da origem, e Símbolos desenha um círculo com a área do tamanho do potencial."
         },
         "tabs": {
           "title": "Análises e camadas",

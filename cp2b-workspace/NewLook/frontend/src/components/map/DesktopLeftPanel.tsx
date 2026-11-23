@@ -195,8 +195,8 @@ function MapShowsSection({
   const metricText = useMetricText();
   const vizModes: { value: VisualizationMode; label: string }[] = [
     { value: 'choropleth', label: t('vizModes.choropleth') },
-    { value: 'heatmap', label: t('vizModes.heatmap') },
-    { value: 'bubble', label: t('vizModes.bubble') },
+    { value: 'dots', label: t('vizModes.dots') },
+    { value: 'symbols', label: t('vizModes.symbols') },
   ];
   const segment = (on: boolean) =>
     `min-h-[30px] px-1 text-[11px] font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-terra-600 ${

@@ -281,16 +281,16 @@ export const THEMATIC_PRESETS: ThematicPreset[] = [
     config: { ...BASE, colorMode: 'tipologia' },
   },
   {
-    id: 'calor',
+    id: 'pontos',
     icon: '🔥',
     group: 'analise',
-    config: { ...BASE, visualizationMode: 'heatmap' },
+    config: { ...BASE, visualizationMode: 'dots' },
   },
   {
-    id: 'bolhas',
+    id: 'simbolos',
     icon: '⭕',
     group: 'analise',
-    config: { ...BASE, visualizationMode: 'bubble' },
+    config: { ...BASE, visualizationMode: 'symbols' },
   },
   {
     id: 'per_capita',

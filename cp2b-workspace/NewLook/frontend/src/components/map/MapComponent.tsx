@@ -20,6 +20,9 @@ import { availableMapTools, isMapToolAvailable, parseMapToolParams, writeMapTool
 import { useMapToolAccess } from '@/lib/mapToolAccess';
 import { useGeospatialData, useCodigestionClusters, useResidueCNMatrix, useIntermediateRegionsGeoJSON, useSitingIndicators, useMunicipalityLandCover } from '@/hooks/useGeospatialData';
 import { figureState, kmDecimals, nextComparePair } from '@/lib/compare';
+import { buildDots, buildSymbols } from '@/lib/magnitudeViews';
+import { isAmountMetric } from '@/lib/sectorSplit';
+import { CONTEXT_FILL } from './magnitudeMarks';
 import { useFormat } from '@/hooks/useFormat';
 import { LATEST_LAND_COVER_YEAR } from '@/lib/landCover';
 import { centroidOf, haversineKm } from '@/lib/mapGeometry';
@@ -142,11 +145,11 @@ function BasemapLabels({ url, maxZoom }: { url: string; maxZoom: number }) {
 // Dynamically import components to avoid SSR issues
 const MunicipalityLayer = dynamic(() => import('./MunicipalityLayer'), { ssr: false });
 const InfrastructureLayer = dynamic(() => import('./InfrastructureLayer'), { ssr: false });
-const HeatmapLayer = dynamic(() => import('./HeatmapLayer'), { ssr: false });
+const DotDensityLayer = dynamic(() => import('./DotDensityLayer'), { ssr: false });
 const MapBiomasLayer = dynamic(() => import('./MapBiomasLayer'), { ssr: false });
 const MapBiomasLegend = dynamic(() => import('./MapBiomasLegend'), { ssr: false });
 const BiomassLayerLegend = dynamic(() => import('./BiomassLayerLegend'), { ssr: false });
-const HeatmapLegend = dynamic(() => import('./HeatmapLegend'), { ssr: false });
+const MagnitudeLegend = dynamic(() => import('./MagnitudeLegend'), { ssr: false });
 const MobileBottomSheet = dynamic(() => import('./MobileBottomSheet'), { ssr: false });
 
 // Desktop left panel (replaces bottom drawer with compact vertical control)
@@ -174,7 +177,7 @@ const EnhancedTooltip = dynamic(() => import('./EnhancedTooltip'), { ssr: false 
 const ExportControl = dynamic(() => import('./ExportControl'), { ssr: false });
 
 // Visualization layers
-const BubbleChartLayer = dynamic(() => import('./BubbleChartLayer'), { ssr: false });
+const SectorSymbolLayer = dynamic(() => import('./SectorSymbolLayer'), { ssr: false });
 
 // Co-digestion clustering layers
 const CodigestionClusterLayer = dynamic(() => import('./CodigestionClusterLayer'), { ssr: false });
@@ -293,7 +296,9 @@ const VALID_RESIDUES: ResidueType[] = [
   'cattle', 'swine', 'poultry', 'aquaculture', 'rsu', 'rpo', 'sewage',
 ];
 const VALID_BIOMASS: BiomassType[] = ['total', 'agricultural', 'livestock', 'urban'];
-const VALID_VIZ: VisualizationMode[] = ['choropleth', 'heatmap', 'bubble', 'clusters'];
+const VALID_VIZ: VisualizationMode[] = ['choropleth', 'dots', 'symbols', 'clusters'];
+/** The views Pontos and Símbolos replaced, so their old links still open something close. */
+const LEGACY_VIZ: Record<string, VisualizationMode> = { heatmap: 'dots', bubble: 'symbols' };
 const VALID_METRICS: DisplayMetric[] = DISPLAY_METRICS;
 const MG_DISABLED_RESIDUES = new Set<ResidueType>(['aquaculture', 'rpo', 'sewage']);
 
@@ -340,7 +345,8 @@ export default function MapComponent({
     return new URLSearchParams(window.location.search).get(key);
   };
 
-  const urlMode = readURLParam('mode');
+  const rawUrlMode = readURLParam('mode');
+  const urlMode = rawUrlMode && LEGACY_VIZ[rawUrlMode] ? LEGACY_VIZ[rawUrlMode] : rawUrlMode;
   const urlType = readURLParam('type');
   const urlResidues = readURLParam('r');
   // `m` is the selected municipality (IBGE code); `q` is the old search, read once
@@ -1092,6 +1098,36 @@ export default function MapComponent({
     return { name, status: cell === null ? 'no_data' : 'cell', cell };
   }, [crossPick, data, analysisUf, analysisResult]);
 
+  // ── Pontos and Símbolos: the amounts of the state in view, by origin ───────
+  // The same features the old heat and bubble views drew: the scope's state,
+  // after the filters. Built only while the view is on.
+  const magnitudeFeatures = useMemo(() => {
+    const source = filteredData || scaledData || data;
+    if (!source) return [];
+    const inState = scope === '31' ? isMinasGerais : isSaoPaulo;
+    return source.features.filter((f) => inState(f.properties?.ibge_code));
+  }, [filteredData, scaledData, data, scope]);
+  const amountMetric = isAmountMetric(displayMetric);
+  const magnitudeCtx = useMemo(
+    () => ({ biomassType, selectedResidues, scenario: mapScenario }),
+    [biomassType, selectedResidues, mapScenario],
+  );
+  const dotsView = useMemo(
+    () => (visualizationMode === 'dots' && amountMetric ? buildDots(magnitudeFeatures, displayMetric, magnitudeCtx) : null),
+    [visualizationMode, amountMetric, magnitudeFeatures, displayMetric, magnitudeCtx],
+  );
+  const symbolsView = useMemo(
+    () => (visualizationMode === 'symbols' && amountMetric ? buildSymbols(magnitudeFeatures, displayMetric, magnitudeCtx) : null),
+    [visualizationMode, amountMetric, magnitudeFeatures, displayMetric, magnitudeCtx],
+  );
+  // Under the marks the municipalities are flat context: one pale fill, their
+  // outlines, and the usual hover and click. Outside the state in view they
+  // keep the background style.
+  const contextFill = useMemo(() => {
+    const prefix = scope === '31' ? '31' : '35';
+    return (code: string) => (code.startsWith(prefix) ? CONTEXT_FILL : undefined);
+  }, [scope]);
+
   // ── Guard states ────────────────────────────────────────────────────────────
   if (!isMounted) return <MapLoadingSkeleton />;
   if (loading || (data && isRendering)) return <MapLoadingSkeleton />;
@@ -1447,17 +1483,27 @@ export default function MapComponent({
                   onMunicipalityClick={visualizationMode === 'clusters' ? undefined : handleMunicipalityClick}
                   onMunicipalityHover={visualizationMode === 'clusters' ? undefined : handleMunicipalityHover}
                 />
-              ) : visualizationMode === 'bubble' ? (
-                <BubbleChartLayer
-                  data={activeStateData}
-                  opacity={opacity}
-                  metric={displayMetric}
-                  biomassType={biomassType}
-                  selectedResidues={selectedResidues}
-                  scenario={mapScenario}
-                />
               ) : (
-                <HeatmapLayer data={activeStateData} selectedResidues={selectedResidues} opacity={opacity} />
+                <>
+                  <MunicipalityLayer
+                    data={displayData}
+                    opacity={0.7}
+                    biomassType={biomassType}
+                    selectedResidues={selectedResidues}
+                    displayMetric={displayMetric}
+                    colorMode={colorMode}
+                    mapScenario={mapScenario}
+                    daltonic={daltonic}
+                    scaleBreaks={scaleBreaks}
+                    showNationalBeta={showNationalBeta}
+                    paintBetaData={isMgScope || showNationalBeta}
+                    fillOverride={contextFill}
+                    onMunicipalityClick={handleMunicipalityClick}
+                    onMunicipalityHover={handleMunicipalityHover}
+                  />
+                  {dotsView && <DotDensityLayer dots={dotsView.dots} />}
+                  {symbolsView && <SectorSymbolLayer items={symbolsView.items} maxValue={symbolsView.maxValue} />}
+                </>
               )}
             </>
           )}
@@ -1786,7 +1832,18 @@ export default function MapComponent({
                 </div>
               </>
             ) : null
-          ) : <HeatmapLegend />
+          ) : (
+            <MagnitudeLegend
+              view={visualizationMode === 'symbols' ? 'symbols' : 'dots'}
+              metric={displayMetric}
+              biomassType={biomassType}
+              selectedResidues={selectedResidues}
+              amount={amountMetric}
+              facts={dotsView ?? symbolsView ?? { sectors: [], unsplit: 0, count: 0 }}
+              dotValue={dotsView?.dotValue}
+              maxValue={symbolsView?.maxValue}
+            />
+          )
         )}
 
         {visualizationMode === 'clusters' && clusterLoading && isMounted && (
