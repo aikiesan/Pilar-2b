@@ -26,7 +26,7 @@ jest.mock('@/hooks/useGeospatialData', () => ({
 const bindPopup = jest.fn();
 jest.mock('react-leaflet', () => ({
   // The layer takes its renderer off the map when it goes (useRendererCleanup).
-  useMap: () => ({ hasLayer: () => false, removeLayer: jest.fn() }),
+  useMap: () => ({ hasLayer: () => false, removeLayer: jest.fn(), getPane: () => undefined }),
   GeoJSON: ({ data, onEachFeature }: any) => {
     onEachFeature(data.features[0], { bindPopup, on: jest.fn() });
     return null;
