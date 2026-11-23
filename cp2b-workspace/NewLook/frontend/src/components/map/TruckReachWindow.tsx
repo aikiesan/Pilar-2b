@@ -28,6 +28,7 @@ import {
   type TruckSummary,
 } from '@/lib/truckReach';
 import { MAP_WINDOW_CLASS } from './mapWindowShell';
+import CountUp from './CountUp';
 
 const focusRing = 'focus:outline-none focus-visible:ring-2 focus-visible:ring-terra-600 focus-visible:ring-offset-1 focus-visible:ring-offset-paper';
 
@@ -203,11 +204,15 @@ export default function TruckReachWindow({
             <dl className="space-y-1.5 text-sm">
               <div className="flex items-baseline justify-between gap-3">
                 <dt className="text-ink-muted">{t('cane_label')}</dt>
-                <dd className="tabular-nums text-ink">{t('cane_value', { value: format.number(ready.caneTons / 1e3, { decimals: 0 }) })}</dd>
+                <dd className="tabular-nums text-ink">
+                  <CountUp value={ready.caneTons} format={(v) => t('cane_value', { value: format.number(v / 1e3, { decimals: 0 }) })} />
+                </dd>
               </div>
               <div className="flex items-baseline justify-between gap-3">
                 <dt className="text-ink-muted">{t('biomethane_label')}</dt>
-                <dd className="tabular-nums text-ink">{t('biomethane_value', { value: format.number(ready.biomethane / 1e6, { decimals: 1 }) })}</dd>
+                <dd className="tabular-nums text-ink">
+                  <CountUp value={ready.biomethane} format={(v) => t('biomethane_value', { value: format.number(v / 1e6, { decimals: 1 }) })} />
+                </dd>
               </div>
               <div className="flex items-baseline justify-between gap-3">
                 <dt className="text-ink-muted">{t('sites_label')}</dt>

@@ -47,6 +47,7 @@ import Cite from '@/components/mandate/Cite';
 import { useDataSources, useDescribeSource } from '@/hooks/useDataSources';
 import { layerSources, pageSources, type DataSource } from '@/lib/dataSources';
 import { MG_BETA_LAYER_ID } from '@/lib/mapScope';
+import CountUp from './CountUp';
 import {
   BarList,
   Card,
@@ -363,7 +364,7 @@ export default function MunicipalityProfilePanel({
                   <Figure
                     icon={<Flame className="h-3.5 w-3.5" />}
                     label={t('n4_label')}
-                    value={short(n4)}
+                    value={<CountUp value={n4} format={short} />}
                     unit={t('nm3_year')}
                     note={n4 > 0 ? t('per_day', { value: short(n4 / 365) }) : undefined}
                   />
@@ -372,7 +373,7 @@ export default function MunicipalityProfilePanel({
                   <Figure
                     icon={<Gauge className="h-3.5 w-3.5" />}
                     label={t('n3_label')}
-                    value={short(n3)}
+                    value={<CountUp value={n3} format={short} />}
                     unit={t('nm3_year')}
                     note={n4 !== null && n3 > 0 ? t('n4_kept', { percent: percent(n4, n3) }) : undefined}
                   >
@@ -390,7 +391,7 @@ export default function MunicipalityProfilePanel({
                   <Figure
                     icon={<Layers className="h-3.5 w-3.5" />}
                     label={metricText('biomass_tons').label}
-                    value={short(biomass)}
+                    value={<CountUp value={biomass} format={short} />}
                     unit={tCommon('units.t_year')}
                   >
                     <StackedBar segments={biomassSegments} height="h-1.5" />
