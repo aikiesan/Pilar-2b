@@ -12,6 +12,7 @@
 import React, { useEffect, useRef } from 'react';
 import { useMap } from 'react-leaflet';
 import L from 'leaflet';
+import { crossFadePaneCanvas, fadePaneIn } from '@/lib/mapCrossFade';
 import type { MunicipalityCollection } from '@/types/geospatial';
 import { cnColor, CN_NO_DATA_COLOR } from '@/lib/cnScale';
 
@@ -31,6 +32,8 @@ interface CnChoroLayerProps {
 export default function CnChoroLayer({ geoJsonData, cnByIbge }: CnChoroLayerProps) {
   const map = useMap();
   const layerRef = useRef<L.GeoJSON | null>(null);
+  // Fades in over the map once; after that each repaint cross-fades.
+  const shown = useRef(false);
 
   useEffect(() => {
     if (!geoJsonData?.features?.length || !Object.keys(cnByIbge).length) return;
@@ -61,8 +64,14 @@ export default function CnChoroLayer({ geoJsonData, cnByIbge }: CnChoroLayerProp
 
     layer.addTo(map);
     layerRef.current = layer;
+    if (!shown.current) {
+      shown.current = true;
+      fadePaneIn(map.getPane('cnChoro'));
+    }
 
     return () => {
+      // New colours, or the overlay leaving: the old picture fades out.
+      crossFadePaneCanvas(map, map.getPane('cnChoro'));
       layer.remove();
       layerRef.current = null;
     };

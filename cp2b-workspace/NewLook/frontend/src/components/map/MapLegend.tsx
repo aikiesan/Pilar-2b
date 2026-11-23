@@ -74,6 +74,13 @@ export default function MapLegend({
   const scenarioApplies = displayMetric !== 'biomass_tons';
   const served = isServedScenario(scenario);
 
+  // A change of metric, scenario or palette: the swatches blend to their new
+  // colours (map-legend-swatch) and a label that changed fades in, keyed by
+  // its text. Nothing fades as the legend first shows.
+  const look = `${displayMetric}|${scenario}|${daltonic}|${cvdPalette}|${mapPalette}|${scopeLabel}|${betaScope}`;
+  const [firstLook] = useState(look);
+  const swap = look === firstLook ? '' : 'map-swap';
+
   return (
     <div>
       <div className="surface-light bg-paper-raised/95 backdrop-blur-sm rounded-xl shadow-lg border border-line overflow-hidden w-40 md:w-48">
@@ -82,7 +89,7 @@ export default function MapLegend({
           {/* The ramp is the São Paulo ramp. Saying so in the legend header is
               the cheapest place to prevent the whole misreading — the reader is
               already looking here to decode the colours. */}
-          <span className="text-[10px] font-semibold text-ink uppercase tracking-wide leading-tight">
+          <span key={`${title}|${scenarioApplies ? scenario : ''}`} className={`text-[10px] font-semibold text-ink uppercase tracking-wide leading-tight ${swap}`}>
             {title}
             <span className="block text-[9px] font-bold text-terra-700 normal-case tracking-normal">
               {scopeLabel}{betaScope ? ' · BETA' : ''}
@@ -158,13 +165,13 @@ export default function MapLegend({
               >
                 {/* Color box */}
                 <div
-                  className="w-5 h-3.5 rounded border border-line shadow-sm flex-shrink-0"
+                  className="map-legend-swatch w-5 h-3.5 rounded border border-line shadow-sm flex-shrink-0"
                   style={{ backgroundColor: item.color }}
                   aria-hidden="true"
                 />
 
                 {/* Label */}
-                <span className="text-[10px] text-ink font-medium flex-1">
+                <span key={item.label} className={`text-[10px] text-ink font-medium flex-1 ${swap}`}>
                   {item.label}
                 </span>
               </div>

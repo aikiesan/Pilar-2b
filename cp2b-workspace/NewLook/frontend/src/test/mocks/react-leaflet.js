@@ -88,6 +88,8 @@ const noopHookMap = {
   removeLayer: jest.fn(),
   eachLayer: jest.fn(),
   fitBounds: jest.fn(),
+  getPane: jest.fn(() => undefined),
+  createPane: jest.fn(() => ({ style: {} })),
 }
 
 module.exports = {

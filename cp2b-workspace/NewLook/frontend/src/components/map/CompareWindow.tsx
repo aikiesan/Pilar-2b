@@ -46,6 +46,7 @@ import { ufAbbreviation } from '@/lib/municipalitySearch';
 import type { MunicipalityFeature, MunicipalityProperties } from '@/types/geospatial';
 import type { ResidueType } from '@/types/map';
 import { MAP_WINDOW_WIDE_CLASS } from './mapWindowShell';
+import CountUp from './CountUp';
 
 const focusRing = 'focus:outline-none focus-visible:ring-2 focus-visible:ring-terra-600 focus-visible:ring-offset-1 focus-visible:ring-offset-paper';
 const SLOTS: CompareSlot[] = ['a', 'b'];
@@ -242,7 +243,10 @@ export function CompareWindow({
               s.biomethane === null ? noData : (
                 <div>
                   <p className="font-semibold tabular-nums">
-                    {t('biomethane_value', { value: number(s.biomethane / 1e6, s.biomethane < 1e7 ? 2 : 1) })}
+                    <CountUp
+                      value={s.biomethane}
+                      format={(v) => t('biomethane_value', { value: number(v / 1e6, v < 1e7 ? 2 : 1) })}
+                    />
                   </p>
                   {/* Paired bars on one scale: the larger of the two fills the column. */}
                   <div className="mt-1 h-2 bg-paper-sunken" aria-hidden="true">
@@ -266,7 +270,7 @@ export function CompareWindow({
               const missing = COMPARE_SECTORS.filter((k) => s.sectors[k] === null);
               return (
                 <div>
-                  <p className="font-semibold tabular-nums">{tons(total)}</p>
+                  <p className="font-semibold tabular-nums"><CountUp value={total} format={tons} /></p>
                   {missing.length > 0 && (
                     <p className="text-[11px] leading-snug text-ink-muted">
                       {t('partial_total', { sectors: missing.map((k) => tMap(`categories.${k}`)).join(', ') })}

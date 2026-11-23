@@ -5,7 +5,7 @@
 
 'use client';
 
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import { GeoJSON, Marker, Popup, useMap } from 'react-leaflet';
 import type { GeoJsonObject, Feature } from 'geojson';
@@ -18,6 +18,7 @@ import { escapeHtml } from '@/lib/html';
 import { useDataSources } from '@/hooks/useDataSources';
 import { layerSources, type DataSource } from '@/lib/dataSources';
 import { useRendererCleanup } from './useRendererCleanup';
+import { fadePaneIn, fadePaneOut } from '@/lib/mapCrossFade';
 
 /** What a layer's load came to. The map words it (Map.layerAlert); server notes go to the log. */
 export type InfrastructureLayerStatus = {
@@ -362,11 +363,21 @@ export default function InfrastructureLayer({ layerType, onStatus, uf, bbox, pan
   // it to every path the layer makes; it is passed as a spread for that. It
   // has to be an option, not a style: the renderer is chosen when a path is
   // added, and a style only reaches setStyle().
-  const rendererOption = useMemo(
-    () => (pane ? ({ renderer: L.svg({ pane }) } as Pick<L.PathOptions, 'renderer'>) : {}),
-    [pane],
-  );
   const map = useMap();
+  // Each layer draws into a pane of its own inside `pane`, so it fades in and
+  // out as one picture (lib/mapCrossFade) without touching the others. Like
+  // its parent, it never catches the pointer itself.
+  const layerPane = useMemo(() => {
+    const parent = pane ? map.getPane(pane) : undefined;
+    if (!pane || !parent) return pane;
+    const name = `${pane}-${layerType}`;
+    if (!map.getPane(name)) map.createPane(name, parent).style.pointerEvents = 'none';
+    return name;
+  }, [map, pane, layerType]);
+  const rendererOption = useMemo(
+    () => (layerPane ? ({ renderer: L.svg({ pane: layerPane }) } as Pick<L.PathOptions, 'renderer'>) : {}),
+    [layerPane],
+  );
   useRendererCleanup(map, rendererOption.renderer);
   const format = useFormat();
   // Read when a popup opens, so popups bound before the registry arrived still cite it.
@@ -404,6 +415,17 @@ export default function InfrastructureLayer({ layerType, onStatus, uf, bbox, pan
       onStatus({ layerType, state: 'ready', featureCount });
     }
   }, [data, error, featureCount, isFetching, layerType, loading, onStatus, t]);
+
+  // Fades in when it first draws; turned off, a copy of it fades out. The
+  // clean-up is a layout effect's so it runs before react-leaflet removes
+  // the layer's paths and markers.
+  const drawn = !loading && !error && !!data && featureCount > 0;
+  useLayoutEffect(() => {
+    if (!drawn || !layerPane || layerPane === pane) return;
+    const own = map.getPane(layerPane);
+    fadePaneIn(own);
+    return () => fadePaneOut(map, own);
+  }, [map, drawn, layerPane, pane]);
 
   // Show subtle loading indicator when refetching in background
   if (isFetching && !data) {
@@ -491,7 +513,7 @@ export default function InfrastructureLayer({ layerType, onStatus, uf, bbox, pan
     // Same pane as the paths so every infrastructure feature sits above the
     // municipality choropleth (markers default to markerPane, which is already
     // above it, but keeping them together makes the layering explicit).
-    return L.marker(latlng, pane ? { icon, pane } : { icon });
+    return L.marker(latlng, layerPane ? { icon, pane: layerPane } : { icon });
   };
 
   // Event handlers for each feature
@@ -613,7 +635,7 @@ export default function InfrastructureLayer({ layerType, onStatus, uf, bbox, pan
       style={style}
       pointToLayer={pointToLayer}
       onEachFeature={onEachFeature}
-      pane={pane}
+      pane={layerPane}
       {...rendererOption}
     />
   );

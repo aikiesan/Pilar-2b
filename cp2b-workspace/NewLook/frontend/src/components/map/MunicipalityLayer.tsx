@@ -5,8 +5,8 @@
 
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
-import { GeoJSON } from 'react-leaflet';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef } from 'react';
+import { GeoJSON, useMap } from 'react-leaflet';
 import {
   NextIntlClientProvider,
   useLocale,
@@ -36,6 +36,7 @@ import { useMetricText } from '@/hooks/useMetricText';
 import { useSelectionLabel } from '@/hooks/useSelectionLabel';
 import type { MapScenarioKey } from '@/data/scenarioFactors';
 import { escapeHtml } from '@/lib/html';
+import { crossFadePaneCanvas } from '@/lib/mapCrossFade';
 
 interface MunicipalityLayerProps {
   data: MunicipalityCollection;
@@ -216,6 +217,21 @@ export default function MunicipalityLayer({
     // so listing them directly keeps the identity stable.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [colorMode, displayMetric, biomassType, selectedResidues, mapScenario, daltonic, cvdPalette, mapPalette, opacity, scaleBreaks, paintBetaData, fillOverride]);
+
+  // A new colouring (metric, scenario, colour mode, palette, analysis) fades
+  // over the old one: the canvas is copied before Leaflet repaints it on the
+  // next frame. Opacity is left out: the slider restyles on every step.
+  const map = useMap();
+  const look = [colorMode, displayMetric, biomassType, selectedResidues.join(','), mapScenario, daltonic,
+    cvdPalette, mapPalette, scaleBreaks, paintBetaData, showNationalBeta, fillOverride];
+  const lastLook = useRef<unknown[] | null>(null);
+  useLayoutEffect(() => {
+    const before = lastLook.current;
+    lastLook.current = look;
+    if (before && before.some((value, i) => value !== look[i])) crossFadePaneCanvas(map, map.getPane('overlayPane'));
+    // `look` is a new array each render; its items are the dependencies.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [map, ...look]);
 
   // Tooltip value in the active metric's display unit. null -> "No data", so the
   // tooltip never shows a fabricated 0 for a municipality we have no data for.

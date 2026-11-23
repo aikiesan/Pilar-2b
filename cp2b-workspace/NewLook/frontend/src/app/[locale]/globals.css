@@ -964,13 +964,19 @@ input[type="range"]::-moz-range-thumb:active {
    in from their button, windows slide in from the edge they sit on (the right
    in landscape, the bottom in portrait) and leave the same way, a little
    faster. Only transform and opacity move. With reduced motion everything is
-   a plain swap. MAP_EXIT_MS in lib/mapMotion.ts mirrors --motion-exit. */
+   a plain swap. MAP_EXIT_MS in lib/mapMotion.ts mirrors --motion-exit.
+   What the windows sit on changes in place: the map's colours, its layers,
+   the legend and the figures give way over --motion-change, and a figure
+   counts to its new value over --motion-count (lib/mapMotion.ts reads both). */
 :root {
   --motion-fast: 140ms;
   --motion-base: 220ms;
   --motion-exit: 160ms;
+  --motion-change: 260ms;
+  --motion-count: 300ms;
   --ease-enter: cubic-bezier(0.2, 0.8, 0.2, 1);
   --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+  --ease-change: cubic-bezier(0.4, 0, 0.2, 1);
 }
 @keyframes map-pop-in {
   from { opacity: 0; transform: translateY(-4px) scale(0.98); }
@@ -1009,12 +1015,22 @@ input[type="range"]::-moz-range-thumb:active {
 }
 /* A Leaflet pane fading in under a new outline or new marks (replayPaneFade). */
 .leaflet-pane.map-pane-fade { animation: map-fade-in 260ms ease-out both; }
+/* The map's own snapshots (lib/mapCrossFade.ts): an old picture fading over
+   the new one, never in the pointer's way. */
+.map-fade-snapshot,
+.map-fade-snapshot * { pointer-events: none !important; }
+/* Legend: a swatch blends to its new colour; a label that changed fades in
+   (it is keyed by its text, so only a new one does). */
+.map-legend-swatch { transition: background-color var(--motion-change) var(--ease-change); }
+.map-swap { animation: map-fade-in var(--motion-change) var(--ease-change) both; }
 @media (prefers-reduced-motion: reduce) {
   .map-pop,
   .map-rise,
   .map-window,
   .map-presence[data-leaving] .map-window,
-  .leaflet-pane.map-pane-fade { animation: none; }
+  .leaflet-pane.map-pane-fade,
+  .map-swap { animation: none; }
+  .map-legend-swatch { transition: none; }
 }
 
 /* Truck reach (map click tool): the site symbols are Leaflet divIcons with an

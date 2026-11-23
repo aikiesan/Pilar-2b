@@ -35,6 +35,7 @@ jest.mock('react-leaflet', () => {
       }
       return null
     },
+    useMap: () => ({ getPane: () => undefined }),
   }
 })
 

@@ -23,3 +23,22 @@ export function replayPaneFade(pane: HTMLElement | undefined | null): void {
   void pane.offsetWidth;
   pane.classList.add('map-pane-fade');
 }
+
+/**
+ * A motion token from globals.css ("Map motion") in milliseconds, so a
+ * transition run from script (Web Animations, a counter) keeps the CSS's
+ * timing. The fallback is the token's own value, for tests and the server.
+ */
+export function motionMs(token: string, fallback: number): number {
+  if (typeof window === 'undefined' || typeof getComputedStyle !== 'function') return fallback;
+  const raw = getComputedStyle(document.documentElement).getPropertyValue(token).trim();
+  const n = parseFloat(raw);
+  if (!Number.isFinite(n)) return fallback;
+  return raw.endsWith('ms') ? n : raw.endsWith('s') ? n * 1000 : n;
+}
+
+/** A curve token from globals.css (`--ease-*`), or the fallback. */
+export function motionEasing(token: string, fallback: string): string {
+  if (typeof window === 'undefined' || typeof getComputedStyle !== 'function') return fallback;
+  return getComputedStyle(document.documentElement).getPropertyValue(token).trim() || fallback;
+}
