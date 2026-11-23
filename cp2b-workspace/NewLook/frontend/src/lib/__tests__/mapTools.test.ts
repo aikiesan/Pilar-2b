@@ -14,9 +14,11 @@ describe('availableMapTools', () => {
   })
 
   it('offers only tools that are built, even with the analyses on', () => {
-    expect(availableMapTools(true)).toEqual(['land', 'compare', 'cross'])
+    expect(availableMapTools(true)).toEqual(['land', 'compare', 'cross', 'gather'])
     expect(isMapToolAvailable('compare', true)).toBe(true)
-    expect(isMapToolAvailable('gather', true)).toBe(false)
+    expect(isMapToolAvailable('gather', true)).toBe(true)
+    expect(isMapToolAvailable('gather', false)).toBe(false)
+    expect(isMapToolAvailable('similar', true)).toBe(false)
     expect(isMapToolAvailable(null, true)).toBe(false)
   })
 })
@@ -88,8 +90,8 @@ describe('writeMapToolParams', () => {
   it.each<MapToolUrlState>([
     { ...emptyMapToolState(), tool: 'land', land: { point: { lat: -22.9056, lng: -47.0608 }, radius: 50 } },
     { ...emptyMapToolState(), tool: 'compare', compare: { pair: ['3509502', '3550308'] } },
-    { ...emptyMapToolState(), tool: 'gather', gather: { point: { lat: -22.9056, lng: -47.0608 }, radius: 20, hub: null } },
-    { ...emptyMapToolState(), tool: 'gather', gather: { point: null, radius: 20, hub: '3509502' } },
+    { ...emptyMapToolState(), tool: 'gather', gather: { point: { lat: -22.9056, lng: -47.0608 }, radius: 100, hub: null } },
+    { ...emptyMapToolState(), tool: 'gather', gather: { point: null, radius: 50, hub: '3509502' } },
     { ...emptyMapToolState(), tool: 'similar', similar: { of: '3509502', within: 'both' } },
   ])('round-trips $tool', (state) => {
     expect(parseMapToolParams(writeMapToolParams('', state))).toEqual(state)

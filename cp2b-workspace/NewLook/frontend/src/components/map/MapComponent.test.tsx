@@ -128,6 +128,16 @@ jest.mock('./CompareLayer', () => ({
   ),
 }));
 
+// Gather on the map: where the plant is, and a stand-in for a map click.
+jest.mock('./GatherLayer', () => ({
+  __esModule: true,
+  default: ({ point, radiusKm, onPick }: any) => (
+    <div data-testid="gather-layer" data-point={point ? `${point.lat},${point.lng}` : ''} data-radius={radiusKm}>
+      <button type="button" onClick={() => onPick({ lat: -22.9, lng: -47.06 })}>gather click</button>
+    </div>
+  ),
+}));
+
 // The circle on the map: which point it draws, and a stand-in for a map click.
 jest.mock('./LandAroundLayer', () => ({
   __esModule: true,
@@ -1198,15 +1208,17 @@ describe('MapComponent', () => {
       expect(mockUseSitingIndicators).not.toHaveBeenCalledWith(true);
     });
 
-    it('opens the analysis from ?a= when the flag is on', async () => {
+    it('opens the analysis from ?a= when the flag is on, but not in the sidebar', async () => {
       mockAnalysesEnabled = true;
       window.history.replaceState(null, '', '/map?a=lacuna');
       render(<MapComponent />);
       act(() => { jest.advanceTimersByTime(1500); });
 
+      // The analyses live in the tools menu (Cruzar dados), flag on or off.
       const panel = await screen.findByTestId('desktop-left-panel');
-      expect(panel).toHaveAttribute('data-has-analyses', 'true');
+      expect(panel).toHaveAttribute('data-has-analyses', 'false');
       expect(panel).toHaveAttribute('data-active-analysis', 'lacuna');
+      mockAnalysesEnabled = false;
     });
   });
 
@@ -1369,9 +1381,28 @@ describe('MapComponent', () => {
       // stays; Cruzar brings the analyses to approved accounts either way.
       expect(items).toEqual(
         analyses
-          ? ['Uso do solo no entorno', 'Comparar', 'Cruzar dados']
+          ? ['Uso do solo no entorno', 'Comparar', 'Cruzar dados', 'Reunir']
           : ['Uso do solo no entorno', 'Cruzar dados'],
       );
+    });
+
+    it('opens Gather from a shared link, at its radius', async () => {
+      mockAnalysesEnabled = true;
+      window.history.replaceState(null, '', '/map?tool=gather&lat=-21.1800&lng=-47.8100&radius=25');
+      render(<MapComponent />);
+      act(() => { jest.advanceTimersByTime(1500); });
+
+      expect(await screen.findByRole('complementary', { name: 'Reunir resíduos num raio' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Ferramentas: Reunir' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: '25 km' })).toHaveAttribute('aria-pressed', 'true');
+      expect(new URLSearchParams(window.location.search).get('radius')).toBe('25');
+      expect(screen.getByTestId('gather-layer')).toHaveAttribute('data-point', '-21.18,-47.81');
+
+      // A click moves the plant, and the link follows.
+      fireEvent.click(screen.getByRole('button', { name: 'gather click' }));
+      expect(screen.getByTestId('gather-layer')).toHaveAttribute('data-point', '-22.9,-47.06');
+      await waitFor(() => expect(new URLSearchParams(window.location.search).get('lat')).toBe('-22.9000'));
+      mockAnalysesEnabled = false;
     });
 
     it('opens Compare from a shared link once the analyses are on, keeping the pair', async () => {

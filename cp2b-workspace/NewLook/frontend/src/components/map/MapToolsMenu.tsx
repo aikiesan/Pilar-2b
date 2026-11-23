@@ -14,14 +14,14 @@
 
 import { useEffect, useRef, useState, type ComponentType } from 'react';
 import { useTranslations } from 'next-intl';
-import { Check, ChevronDown, CircleDashed, Columns2, Grid3x3, MousePointerClick } from 'lucide-react';
+import { Check, ChevronDown, CircleDashed, Columns2, Grid3x3, MousePointerClick, Target } from 'lucide-react';
 import type { MapToolId } from '@/lib/mapTools';
 
 const TOOL_ICONS: Record<MapToolId, ComponentType<{ className?: string; 'aria-hidden'?: boolean }>> = {
   land: CircleDashed,
   compare: Columns2,
   cross: Grid3x3,
-  gather: CircleDashed,
+  gather: Target,
   similar: CircleDashed,
 };
 
@@ -43,8 +43,8 @@ export default function MapToolsMenu({ tools, active, onSelect }: MapToolsMenuPr
   const listRef = useRef<HTMLDivElement>(null);
   // Copy exists for the tools on offer only (each step adds its own), and only
   // those reach this menu; the cast names that, once.
-  const name = (id: MapToolId) => t(`items.${id as 'land' | 'compare' | 'cross'}.name`);
-  const description = (id: MapToolId) => t(`items.${id as 'land' | 'compare' | 'cross'}.description`);
+  const name = (id: MapToolId) => t(`items.${id as 'land' | 'compare' | 'cross' | 'gather'}.name`);
+  const description = (id: MapToolId) => t(`items.${id as 'land' | 'compare' | 'cross' | 'gather'}.description`);
 
   useEffect(() => {
     if (!open) return;
