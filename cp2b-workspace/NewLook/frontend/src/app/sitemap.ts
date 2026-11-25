@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next'
 import { CATALOG_SECTORS, allResidueParams } from '@/data/residueCatalog'
-import { METHOD_PAGES_ENABLED } from '@/lib/featureFlags'
+import { MAP_ANALYSES_ENABLED, METHOD_PAGES_ENABLED } from '@/lib/featureFlags'
 import { municipalityDirectory } from '@/lib/municipalityDirectory'
 
 const BASE_URL = 'https://cp2b.unicamp.br/pilar2b'
@@ -27,6 +27,9 @@ const publicRoutes = [
   ...(METHOD_PAGES_ENABLED ? ['', '/fde', '/scenarios', '/validation'] : []).map((page) => (
     { path: `/method${page}`, changeFrequency: 'monthly' as const, priority: page ? 0.6 : 0.7, lastModified: '2026-10-14' }
   )),
+  // Each answers 404 while its flag is off.
+  ...(MAP_ANALYSES_ENABLED ? [{ path: '/explore', changeFrequency: 'monthly' as const, priority: 0.7, lastModified: '2026-11-24' }] : []),
+  ...(METHOD_PAGES_ENABLED ? [{ path: '/analysis', changeFrequency: 'monthly' as const, priority: 0.6, lastModified: '2026-10-14' }] : []),
   { path: '/guide',     changeFrequency: 'monthly' as const, priority: 0.7, lastModified: '2025-01-01' },
   { path: '/cite',      changeFrequency: 'monthly' as const, priority: 0.6, lastModified: '2025-01-01' },
   { path: '/privacy',   changeFrequency: 'yearly'  as const, priority: 0.5, lastModified: '2025-01-01' },
