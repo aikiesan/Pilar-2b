@@ -4,6 +4,7 @@
  */
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
+import { canonical } from '@/lib/pageMetadata';
 import { ArrowRight } from 'lucide-react';
 import { Link } from '@/navigation';
 import MethodShell from '@/components/method/MethodShell';
@@ -13,7 +14,7 @@ import { NAV_GROUPS } from '@/components/layout/siteNav';
 export async function generateMetadata(): Promise<Metadata> {
   requireMethodPages();
   const t = await getTranslations('method.overview');
-  return { title: `${t('title')} · PILAR-2b`, description: t('lede') };
+  return { title: `${t('title')} · PILAR-2b`, description: t('lede'), ...(await canonical('/method')) };
 }
 
 const STEPS = ['data', 'factors', 'potential'] as const;

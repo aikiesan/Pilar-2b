@@ -5,6 +5,7 @@
  */
 import type { Metadata } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
+import { canonical } from '@/lib/pageMetadata';
 import { ArrowRight } from 'lucide-react';
 import { Link } from '@/navigation';
 import NavLink from '@/components/layout/NavLink';
@@ -17,7 +18,7 @@ import { DETAILED_RESIDUES } from '@/data/residueFactors';
 export async function generateMetadata(): Promise<Metadata> {
   requireMethodPages();
   const t = await getTranslations('method.validation');
-  return { title: `${t('title')} · PILAR-2b`, description: t('lede') };
+  return { title: `${t('title')} · PILAR-2b`, description: t('lede'), ...(await canonical('/method/validation')) };
 }
 
 const LEVELS = ['HIGH', 'MEDIUM', 'LOW'] as const;

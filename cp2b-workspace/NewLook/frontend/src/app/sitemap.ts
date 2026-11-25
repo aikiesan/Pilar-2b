@@ -32,8 +32,7 @@ const publicRoutes = [
   { path: '/privacy',   changeFrequency: 'yearly'  as const, priority: 0.5, lastModified: '2025-01-01' },
   { path: '/terms',     changeFrequency: 'yearly'  as const, priority: 0.5, lastModified: '2025-01-01' },
   { path: '/accessibility', changeFrequency: 'yearly' as const, priority: 0.5, lastModified: '2026-10-14' },
-  { path: '/login',     changeFrequency: 'yearly'  as const, priority: 0.3, lastModified: '2025-01-01' },
-  { path: '/register',  changeFrequency: 'yearly'  as const, priority: 0.3, lastModified: '2025-01-01' },
+  // Sign-in and account pages are noindex (NOT_INDEXED), so they stay out.
 ]
 
 // The municipality pages come from the API, so the sitemap is rebuilt hourly

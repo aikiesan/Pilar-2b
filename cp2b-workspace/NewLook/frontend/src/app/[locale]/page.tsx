@@ -19,6 +19,7 @@
  * instead of showing a figure. Until the paper is submitted
  * (METHOD_PAGES_ENABLED off) the copy does not name the factors one by one.
  */
+import type { Metadata } from 'next';
 import { getFormatter, getLocale, getTranslations } from 'next-intl/server';
 import { ArrowRight } from 'lucide-react';
 import { Link } from '@/navigation';
@@ -28,6 +29,7 @@ import HomeVideo from '@/components/home/HomeVideo';
 import HeroStage from '@/components/home/HeroStage';
 import MunicipalitySearch from '@/components/home/MunicipalitySearch';
 import { DETAILED_RESIDUES } from '@/data/residueFactors';
+import { canonical } from '@/lib/pageMetadata';
 import { CATALOG_SECTORS, SECTOR_SWATCH, residuePath, residuesInSector } from '@/data/residueCatalog';
 import patchNotes from '@/data/patch-notes.json';
 import { MAP_ANALYSES_ENABLED, METHOD_PAGES_ENABLED } from '@/lib/featureFlags';
@@ -98,6 +100,10 @@ const MAP_CTA_BASE =
   'inline-flex min-h-[60px] items-center gap-3 rounded px-8 text-lg font-bold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2';
 const MAP_CTA_ON_DARK = `${MAP_CTA_BASE} bg-cp2b-lima text-cp2b-petroleo hover:bg-white focus-visible:ring-white focus-visible:ring-offset-cp2b-petroleo`;
 const MAP_CTA_ON_LIGHT = `${MAP_CTA_BASE} bg-cp2b-petroleo text-cp2b-lima hover:bg-dusk-950 focus-visible:ring-terra-600 focus-visible:ring-offset-paper`;
+
+// Title and description come from the locale layout; the home adds its own
+// canonical, so /pilar2b/pt-BR?utm_… and the like count as this page.
+export const generateMetadata = (): Promise<Metadata> => canonical('/');
 
 export default async function LandingPage() {
   const t = await getTranslations('home');

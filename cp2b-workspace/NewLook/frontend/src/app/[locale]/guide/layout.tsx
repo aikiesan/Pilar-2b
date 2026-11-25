@@ -5,7 +5,7 @@ import GuideTourController from '@/components/ui/GuideTourController'
 import { navMetadata } from '@/lib/pageMetadata'
 
 // Article pages set their own title; this one names the guide's index.
-export const generateMetadata = () => navMetadata('guide_usage', 'guide')
+export const generateMetadata = () => navMetadata('guide_usage', 'guide', '/guide')
 
 export default function GuideLayout({
   children,

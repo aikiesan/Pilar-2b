@@ -4,6 +4,7 @@
  */
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
+import { canonical } from '@/lib/pageMetadata';
 import { ArrowRight } from 'lucide-react';
 import { Link } from '@/navigation';
 import ResidueTable from '@/components/data/ResidueTable';
@@ -16,6 +17,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: `${t('catalog.title')} · PILAR-2b`,
     description: METHOD_PAGES_ENABLED ? t('catalog.lede') : t('held.catalog_lede'),
+    ...(await canonical('/data')),
   };
 }
 

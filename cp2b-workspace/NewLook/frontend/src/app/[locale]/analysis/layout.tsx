@@ -7,7 +7,7 @@ import { requireMethodPages } from '@/components/method/requireMethodPages'
 // (METHOD_PAGES_ENABLED) and answers 404 until the paper is submitted.
 export const generateMetadata = () => {
   requireMethodPages()
-  return navMetadata('multicriteria', 'advanced')
+  return navMetadata('multicriteria', 'advanced', '/analysis')
 }
 
 export default function Layout({ children }: { children: ReactNode }) {

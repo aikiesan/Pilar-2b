@@ -171,7 +171,7 @@ const titleCase = (s: string) =>
     .join(' ')
     .replace(/\bS\.a\b\.?/g, 'S.A.')
 
-export const generateMetadata = (): Promise<Metadata> => navMetadata('mandate', 'mandate')
+export const generateMetadata = (): Promise<Metadata> => navMetadata('mandate', 'mandate', '/mandate')
 
 export default async function MandatePage() {
   // Rendered per request, never at build time (no API there, and the throw

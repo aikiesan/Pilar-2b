@@ -9,6 +9,7 @@
  */
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
+import { canonical } from '@/lib/pageMetadata';
 import { Link } from '@/navigation';
 import MunicipalitySearch from '@/components/home/MunicipalitySearch';
 import { municipalityDirectory, type DirectoryEntry } from '@/lib/municipalityDirectory';
@@ -16,7 +17,7 @@ import { HeaderLeaves } from '@/components/ui/ArcOrnament'
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('municipalities_index');
-  return { title: `${t('title')} · PILAR-2b`, description: t('lede') };
+  return { title: `${t('title')} · PILAR-2b`, description: t('lede'), ...(await canonical('/municipalities')) };
 }
 
 // "Ábaco" files under A, as people look for it.

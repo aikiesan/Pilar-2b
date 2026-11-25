@@ -1,7 +1,7 @@
 import LegalDocument, { type LegalText } from '@/components/layout/LegalDocument'
 import type { Localized } from '@/lib/localized'
 import { isLocale } from '@/config/i18n'
-import { titledMetadata } from '@/lib/pageMetadata'
+import { localeAlternates, titledMetadata } from '@/lib/pageMetadata'
 
 /**
  * Terms of Use / Termos de Uso.
@@ -119,7 +119,8 @@ const TEXT: Localized<LegalText> = {
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
-  return titledMetadata(TEXT[isLocale(locale) ? locale : 'pt-BR'].title)
+  const lang = isLocale(locale) ? locale : 'pt-BR'
+  return { ...titledMetadata(TEXT[lang].title), alternates: localeAlternates(lang, '/terms') }
 }
 
 export default function TermsPage() {

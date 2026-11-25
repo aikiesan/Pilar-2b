@@ -14,6 +14,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getFormatter, getLocale, getTranslations } from 'next-intl/server';
+import { localeAlternates } from '@/lib/pageMetadata';
 import { ArrowRight } from 'lucide-react';
 import { Link } from '@/navigation';
 import NavLink from '@/components/layout/NavLink';
@@ -49,6 +50,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   return {
     title: `${residue.name[locale]} · ${t('catalog.title')} · PILAR-2b`,
     description: `${residue.name[locale]} — ${METHOD_PAGES_ENABLED ? t('product.card_scope') : t('held.card_scope')}.`,
+    alternates: localeAlternates(locale, `/data/${sector}/${slug}`),
   };
 }
 

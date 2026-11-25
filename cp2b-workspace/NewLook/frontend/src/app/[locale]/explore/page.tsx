@@ -18,7 +18,7 @@ import { ArrowRight, Building2, Combine, MapPinned, ScanSearch, type LucideIcon 
 import { Link } from '@/navigation'
 import { HeaderLeaves } from '@/components/ui/ArcOrnament'
 import MunicipalitySearch from '@/components/home/MunicipalitySearch'
-import { titledMetadata } from '@/lib/pageMetadata'
+import { canonical, titledMetadata } from '@/lib/pageMetadata'
 import { requireMapAnalyses } from '@/components/explore/requireMapAnalyses'
 
 /** The map analyses a door opens, by id (AnalysisId in lib/mapAnalyses.ts). */
@@ -36,7 +36,7 @@ const DOORS: Door[] = [
 export async function generateMetadata(): Promise<Metadata> {
   requireMapAnalyses()
   const t = await getTranslations('explore')
-  return titledMetadata(t('title'), t('lede'))
+  return { ...titledMetadata(t('title'), t('lede')), ...(await canonical('/explore')) }
 }
 
 function DoorFrame({ index, icon: Icon, children }: { index: number; icon: LucideIcon; children: ReactNode }) {
