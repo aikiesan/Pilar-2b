@@ -56,6 +56,8 @@ import {
 } from '@/lib/municipalityProfile'
 import { loadMunicipalityClimate } from '@/lib/municipalityClimate'
 import { isIbgeCode, municipalityPath } from '@/lib/municipalitySlug'
+import { catalogResidues, loadRegionSeat, mainResidue, seatName } from '@/lib/municipalityPlace'
+import { residuePath } from '@/data/residueCatalog'
 import { publicUrl } from '@/lib/siteUrl'
 import { HeaderLeaves } from '@/components/ui/ArcOrnament'
 import Cite from '@/components/mandate/Cite'
@@ -86,6 +88,46 @@ async function resolve(slug: string): Promise<{ ibge: string; name?: string }> {
   throw new Error('municipality list unavailable')
 }
 
+type Formatter = Awaited<ReturnType<typeof getFormatter>>
+type ProfileT = Awaited<ReturnType<typeof getTranslations<'municipality_profile'>>>
+
+/** "8,9 milhões" / "786 mil" with the unit that reads right after each. */
+function volumeText(t: ProfileT, format: Formatter, key: 'meta' | 'summary', value: number): string {
+  const text = format.number(value, { notation: 'compact', compactDisplay: 'long', maximumFractionDigits: 1 })
+  return value >= 1e6 ? t(`${key}.volume_millions`, { value: text }) : t(`${key}.volume`, { value: text })
+}
+
+const sharePercent = (format: Formatter, share: number) =>
+  format.number(share, { style: 'percent', maximumFractionDigits: share > 0 && share < 0.01 ? 1 : 0 })
+
+/**
+ * The search result's two lines: where the municipality is and how many live
+ * there (for someone who searched its name), then its biogas potential, main
+ * residue and rank. Every figure is served; a missing one drops its clause.
+ */
+function metaDescription(p: MunicipalityProfile, t: ProfileT, format: Formatter, uf: string, state: string): string {
+  if (p.n4 === null) return t('meta.description_no_data', { name: p.name, uf })
+  const region = seatName(p)
+  const population = p.population === null ? null : format.number(p.population)
+  const main = mainResidue(p)
+  const parts = [
+    population === null
+      ? null
+      : region
+        ? t('meta.place', { name: p.name, region, uf, state, population })
+        : t('meta.place_no_region', { name: p.name, uf, state, population }),
+    main
+      ? t('meta.potential', {
+          volume: volumeText(t, format, 'meta', p.n4),
+          share: sharePercent(format, main.share),
+          residue: t(`plain_residues.${main.key}` as Parameters<ProfileT>[0]),
+        })
+      : null,
+    p.rank ? t('meta.rank', { position: p.rank.position, of: p.rank.of, uf }) : null,
+  ]
+  return parts.filter(Boolean).join(' ')
+}
+
 async function load(slug: string): Promise<MunicipalityProfile> {
   const { ibge, name } = await resolve(slug)
   const profile = await loadMunicipalityProfile(ibge, name)
@@ -99,16 +141,10 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const profile = await load(slug)
   const t = await getTranslations({ locale, namespace: 'municipality_profile' })
   const format = await getFormatter({ locale })
-  const uf = getState(ufOf(profile.ibge))?.sigla ?? ''
+  const state = getState(ufOf(profile.ibge))
+  const uf = state?.sigla ?? ''
   const path = municipalityPath(profile.name, profile.ibge)
-  const description =
-    profile.n4 === null
-      ? t('meta.description_no_data', { name: profile.name, uf })
-      : t('meta.description', {
-          name: profile.name,
-          uf,
-          value: format.number(profile.n4, { notation: 'compact', compactDisplay: 'long', maximumFractionDigits: 1 }),
-        })
+  const description = metaDescription(profile, t, format, uf, state?.nome ?? uf)
   const image = {
     // Absolute: Next adds no basePath (/pilar2b) to a URL given here.
     url: publicUrl(`/${locale}${path}/share-image`),
@@ -164,6 +200,8 @@ export default async function MunicipalityProfilePage({ params }: Params) {
   const hasCp2b = p.n4 !== null
   // Optional: without the GHG module's answer the card is left out, never zeroed.
   const climate = hasCp2b ? await loadMunicipalityClimate(p.ibge) : null
+  // Optional: without the seat's centroid the distance is left out.
+  const seat = await loadRegionSeat(p)
 
   const volume = (v: number) => format.number(v, { maximumSignificantDigits: 3 })
   const big = (v: number) =>
@@ -224,6 +262,81 @@ export default async function MunicipalityProfilePage({ params }: Params) {
     ...(perCapita !== null ? pageSources(catalog, 'municipio_populacao') : []),
   ]
   const regionSources = p.intermediateRegion || p.immediateRegion ? pageSources(catalog, 'municipio_regioes') : []
+
+  // One line for someone who searched the name: regions, people, distance.
+  const regions =
+    p.immediateRegion && p.intermediateRegion
+      ? p.immediateRegion === p.intermediateRegion
+        ? t('place.regions_same', { region: p.immediateRegion })
+        : t('place.regions', { immediate: p.immediateRegion, intermediate: p.intermediateRegion })
+      : null
+  const placeLine = [
+    regions,
+    p.population === null
+      ? null
+      : p.populationYear
+        ? t('place.population', { value: format.number(p.population), year: p.populationYear })
+        : t('place.population_no_year', { value: format.number(p.population) }),
+    seat ? t('place.distance', { km: seat.km, seat: seat.name }) : null,
+  ].filter(Boolean)
+
+  // The plain-language summary under the heading: no unexplained units.
+  const main = mainResidue(p)
+  const plainResidue = (key: string) => t(`plain_residues.${key}` as Parameters<typeof t>[0])
+  const summary = hasCp2b
+    ? [
+        t('summary.potential', { name: p.name, volume: volumeText(t, format, 'summary', p.n4!) }),
+        main
+          ? p.rank
+            ? t('summary.main_rank', {
+                share: sharePercent(format, main.share),
+                residue: plainResidue(main.key),
+                position: p.rank.position,
+                of: p.rank.of,
+                state: state?.nome ?? uf,
+              })
+            : t('summary.main', { share: sharePercent(format, main.share), residue: plainResidue(main.key) })
+          : null,
+      ].filter(Boolean).join(' ')
+    : null
+
+  // Catalog pages for the two largest residues, then the rest of the site.
+  const residueLinks = residues
+    .filter((r) => (r.n4 ?? 0) > 0)
+    .slice(0, 2)
+    .map((r) => ({ key: r.key, pages: catalogResidues(r.key) }))
+    .filter((r) => r.pages.length > 0)
+
+  const homeUrl = publicUrl(`/${locale}`)
+  const indexUrl = publicUrl(`/${locale}/municipalities`)
+  const structuredData = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'PILAR-2b', item: homeUrl },
+          { '@type': 'ListItem', position: 2, name: tNav('municipalities'), item: indexUrl },
+          { '@type': 'ListItem', position: 3, name: `${p.name} (${uf})`, item: url },
+        ],
+      },
+      {
+        '@type': 'Place',
+        '@id': `${url}#place`,
+        name: `${p.name} (${uf})`,
+        url,
+        ...(p.centroid
+          ? { geo: { '@type': 'GeoCoordinates', latitude: p.centroid.lat, longitude: p.centroid.lng } }
+          : {}),
+        containedInPlace: {
+          '@type': 'AdministrativeArea',
+          name: state?.nome ?? uf,
+          containedInPlace: { '@type': 'Country', name: 'Brasil' },
+        },
+        identifier: { '@type': 'PropertyValue', propertyID: 'IBGE', value: p.ibge },
+      },
+    ],
+  }
   const stamp = p.methodVersion ? t('data.stamp', { version: p.methodVersion }) : t('data.stamp_no_version')
   const today = format.dateTime(new Date(), { dateStyle: 'long' })
   const linkClass = 'font-medium text-terra-800 underline underline-offset-4 hover:text-terra-900 dark:text-terra-300'
@@ -231,6 +344,11 @@ export default async function MunicipalityProfilePage({ params }: Params) {
 
   return (
     <div className="bg-paper">
+      <script
+        type="application/ld+json"
+        // Built from served values only; < is escaped so a name cannot close the tag.
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData).replace(/</g, '\\u003c') }}
+      />
       {/* 1. Header */}
       <header className="relative overflow-hidden border-b border-line">
         <HeaderLeaves />
@@ -239,22 +357,12 @@ export default async function MunicipalityProfilePage({ params }: Params) {
           <div className="mt-4 flex flex-wrap items-end justify-between gap-x-8 gap-y-3">
             <div>
               <p className="eyebrow">{t('eyebrow', { state: state?.nome ?? uf })}</p>
-              <h1 className="mt-1 text-3xl text-ink sm:text-4xl">
-                {p.name} <span className="text-ink-muted">({uf})</span>
+              <h1 className="mt-1 max-w-3xl text-3xl text-ink sm:text-4xl">
+                {t('heading', { name: p.name, uf })}
               </h1>
+              {placeLine.length > 0 && <p className="mt-2 text-sm text-ink">{placeLine.join(' · ')}</p>}
+              {summary && <p className="mt-3 max-w-2xl text-base text-ink">{summary}</p>}
               <dl className="mt-3 flex flex-wrap gap-2 text-xs">
-                {p.intermediateRegion && (
-                  <div className={chip}>
-                    <dt className="text-ink-muted">{t('region_intermediate')}</dt>
-                    <dd className="text-ink">{p.intermediateRegion}</dd>
-                  </div>
-                )}
-                {p.immediateRegion && (
-                  <div className={chip}>
-                    <dt className="text-ink-muted">{t('region_immediate')}</dt>
-                    <dd className="text-ink">{p.immediateRegion}</dd>
-                  </div>
-                )}
                 <div className={chip}>
                   <dt className="text-ink-muted">{t('ibge_code')}</dt>
                   <dd className="tabular-nums text-ink">{p.ibge}</dd>
@@ -494,6 +602,25 @@ export default async function MunicipalityProfilePage({ params }: Params) {
             </Card>
           </div>
         </div>
+
+        {/* 6b. Next steps: the tools and the catalog pages for this municipality's residues */}
+        <Card id="continuar" title={t('next.heading')}>
+          <ul className="grid gap-2 text-sm sm:grid-cols-2">
+            <li><Link href={`/map?m=${p.ibge}`} className={linkClass}>{t('next.map', { name: p.name })}</Link></li>
+            <li><Link href={`/compare?ids=${p.ibge}`} className={linkClass}>{t('next.compare', { name: p.name })}</Link></li>
+            {residueLinks.map((r) => (
+              <li key={r.key}>
+                <span className="text-ink">{t('next.residues', { residue: residueName(r.key) })}</span>
+                <span className="mt-1 flex flex-wrap gap-x-3 gap-y-1">
+                  {r.pages.map((page) => (
+                    <Link key={page.code} href={residuePath(page)} className={linkClass}>{page.name[locale]}</Link>
+                  ))}
+                </span>
+              </li>
+            ))}
+            <li><Link href="/data" className={linkClass}>{t('next.data')}</Link></li>
+          </ul>
+        </Card>
 
         {/* 7. Notes */}
         <details id="notas" className="group border border-line bg-paper-raised">

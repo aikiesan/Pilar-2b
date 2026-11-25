@@ -2806,8 +2806,6 @@
     "index": "Municipalities",
     "eyebrow": "Municipality in {state}",
     "ibge_code": "IBGE code",
-    "region_immediate": "Immediate region",
-    "region_intermediate": "Intermediate region",
     "switch": "Not your municipality? Change it",
     "lede_label": "Accessible methane potential",
     "top_share": "in the state's top {share}% by potential",
@@ -2885,9 +2883,14 @@
       "open": "Open"
     },
     "meta": {
-      "title": "{name} ({uf}) · Municipalities · PILAR-2b",
-      "description": "Accessible methane potential of {name} ({uf}) by the CP2b method: {value} Nm³ CH₄ per year, by sector and residue.",
-      "description_no_data": "Profile of {name} ({uf}) on PILAR-2b. The CP2b method does not cover this municipality yet."
+      "title": "{name} ({uf}), Brazil: biogas and biomethane potential · PILAR-2b",
+      "description_no_data": "Profile of {name} ({uf}) on PILAR-2b. The CP2b method does not cover this municipality yet.",
+      "place": "{name} ({uf}, Brazil) is in the {region} region and has {population} inhabitants.",
+      "place_no_region": "{name} ({uf}, Brazil) has {population} inhabitants.",
+      "potential": "Its residues could yield {volume} of methane a year, {share} from {residue}.",
+      "rank": "Ranked {position, selectordinal, one {#st} two {#nd} few {#rd} other {#th}} of {of} in {uf}.",
+      "volume": "{value} m³",
+      "volume_millions": "{value} m³"
     },
     "og": {
       "alt": "{name} ({uf}): accessible methane potential by the CP2b method, on PILAR-2b.",
@@ -2912,6 +2915,41 @@
       "heading": "Where the methane comes from",
       "caption": "Accessible methane (N4) by sector and residue, in Nm³ CH₄ per year.",
       "zero": "No accessible methane: {list}."
+    },
+    "heading": "Biogas and biomethane potential in {name} ({uf})",
+    "summary": {
+      "potential": "{name}'s residues could yield about {volume} of methane a year, counting only what can reach a viable plant.",
+      "volume": "{value} cubic metres",
+      "volume_millions": "{value} cubic metres",
+      "main_rank": "{share} comes from {residue}; it ranks {position, selectordinal, one {#st} two {#nd} few {#rd} other {#th}} of {of} in {state}.",
+      "main": "{share} comes from {residue}."
+    },
+    "place": {
+      "regions_same": "Immediate and intermediate region of {region}",
+      "regions": "Immediate region of {immediate}, intermediate region of {intermediate}",
+      "population": "{value} inhabitants (IBGE {year})",
+      "population_no_year": "{value} inhabitants (IBGE)",
+      "distance": "{km} km from {seat} in a straight line"
+    },
+    "plain_residues": {
+      "sugarcane": "sugarcane",
+      "soybean": "soybean",
+      "corn": "corn",
+      "coffee": "coffee",
+      "citrus": "citrus",
+      "cattle": "cattle",
+      "swine": "pigs",
+      "poultry": "poultry",
+      "rsu": "urban organic waste",
+      "rpo": "urban pruning",
+      "sewage": "sewage"
+    },
+    "next": {
+      "heading": "Next steps",
+      "map": "See {name} on the map",
+      "compare": "Compare {name} with other municipalities",
+      "residues": "{residue} residue pages: methane potential and sources",
+      "data": "Data catalog by sector and residue"
     }
   },
   "financing": {
