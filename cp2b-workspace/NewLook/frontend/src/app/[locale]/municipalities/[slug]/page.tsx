@@ -94,7 +94,8 @@ type ProfileT = Awaited<ReturnType<typeof getTranslations<'municipality_profile'
 /** "8,9 milhões" / "786 mil" with the unit that reads right after each. */
 function volumeText(t: ProfileT, format: Formatter, key: 'meta' | 'summary', value: number): string {
   const text = format.number(value, { notation: 'compact', compactDisplay: 'long', maximumFractionDigits: 1 })
-  return value >= 1e6 ? t(`${key}.volume_millions`, { value: text }) : t(`${key}.volume`, { value: text })
+  // By the rounded figure: 999 970 is written "1 milhão" and takes "de m³".
+  return Math.round(value / 1e5) >= 10 ?t(`${key}.volume_millions`, { value: text }) : t(`${key}.volume`, { value: text })
 }
 
 const sharePercent = (format: Formatter, share: number) =>
@@ -269,7 +270,11 @@ export default async function MunicipalityProfilePage({ params }: Params) {
       ? p.immediateRegion === p.intermediateRegion
         ? t('place.regions_same', { region: p.immediateRegion })
         : t('place.regions', { immediate: p.immediateRegion, intermediate: p.intermediateRegion })
-      : null
+      : p.immediateRegion
+        ? t('place.region_immediate', { region: p.immediateRegion })
+        : p.intermediateRegion
+          ? t('place.region_intermediate', { region: p.intermediateRegion })
+          : null
   const placeLine = [
     regions,
     p.population === null
@@ -331,7 +336,7 @@ export default async function MunicipalityProfilePage({ params }: Params) {
         containedInPlace: {
           '@type': 'AdministrativeArea',
           name: state?.nome ?? uf,
-          containedInPlace: { '@type': 'Country', name: 'Brasil' },
+          containedInPlace: { '@type': 'Country', name: locale === 'en' ? 'Brazil' : 'Brasil' },
         },
         identifier: { '@type': 'PropertyValue', propertyID: 'IBGE', value: p.ibge },
       },

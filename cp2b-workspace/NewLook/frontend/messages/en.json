@@ -2883,14 +2883,14 @@
       "open": "Open"
     },
     "meta": {
-      "title": "{name} ({uf}), Brazil: biogas and biomethane potential · PILAR-2b",
+      "title": "{name} ({uf}): biogas and biomethane potential · PILAR-2b",
       "description_no_data": "Profile of {name} ({uf}) on PILAR-2b. The CP2b method does not cover this municipality yet.",
       "place": "{name} ({uf}, Brazil) is in the {region} region and has {population} inhabitants.",
       "place_no_region": "{name} ({uf}, Brazil) has {population} inhabitants.",
       "potential": "Its residues could yield {volume} of methane a year, {share} from {residue}.",
       "rank": "Ranked {position, selectordinal, one {#st} two {#nd} few {#rd} other {#th}} of {of} in {uf}.",
-      "volume": "{value} m³",
-      "volume_millions": "{value} m³"
+      "volume": "{value} Nm³",
+      "volume_millions": "{value} Nm³"
     },
     "og": {
       "alt": "{name} ({uf}): accessible methane potential by the CP2b method, on PILAR-2b.",
@@ -2919,14 +2919,16 @@
     "heading": "Biogas and biomethane potential in {name} ({uf})",
     "summary": {
       "potential": "{name}'s residues could yield about {volume} of methane a year, counting only what can reach a viable plant.",
-      "volume": "{value} cubic metres",
-      "volume_millions": "{value} cubic metres",
+      "volume": "{value} normal cubic metres",
+      "volume_millions": "{value} normal cubic metres",
       "main_rank": "{share} comes from {residue}; it ranks {position, selectordinal, one {#st} two {#nd} few {#rd} other {#th}} of {of} in {state}.",
       "main": "{share} comes from {residue}."
     },
     "place": {
       "regions_same": "Immediate and intermediate region of {region}",
       "regions": "Immediate region of {immediate}, intermediate region of {intermediate}",
+      "region_immediate": "Immediate region of {region}",
+      "region_intermediate": "Intermediate region of {region}",
       "population": "{value} inhabitants (IBGE {year})",
       "population_no_year": "{value} inhabitants (IBGE)",
       "distance": "{km} km from {seat} in a straight line"

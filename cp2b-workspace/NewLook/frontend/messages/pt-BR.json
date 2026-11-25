@@ -2889,8 +2889,8 @@
       "place_no_region": "{name} ({uf}) tem {population} habitantes.",
       "potential": "Seus resíduos podem render {volume} de metano por ano, {share} de {residue}.",
       "rank": "{position}º de {of} em {uf}.",
-      "volume": "{value} m³",
-      "volume_millions": "{value} de m³"
+      "volume": "{value} Nm³",
+      "volume_millions": "{value} de Nm³"
     },
     "og": {
       "alt": "{name} ({uf}): potencial de metano acessível pelo método CP2b, no PILAR-2b.",
@@ -2919,14 +2919,16 @@
     "heading": "Potencial de biogás e biometano em {name} ({uf})",
     "summary": {
       "potential": "Os resíduos de {name} podem render cerca de {volume} de metano por ano, contando só o que chega a uma usina viável.",
-      "volume": "{value} metros cúbicos",
-      "volume_millions": "{value} de metros cúbicos",
+      "volume": "{value} metros cúbicos normais",
+      "volume_millions": "{value} de metros cúbicos normais",
       "main_rank": "{share} vem de {residue}; o município é o {position}º de {of} em {state}.",
       "main": "{share} vem de {residue}."
     },
     "place": {
       "regions_same": "Regiões imediata e intermediária de {region}",
       "regions": "Região imediata de {immediate}, intermediária de {intermediate}",
+      "region_immediate": "Região imediata de {region}",
+      "region_intermediate": "Região intermediária de {region}",
       "population": "{value} habitantes (IBGE {year})",
       "population_no_year": "{value} habitantes (IBGE)",
       "distance": "a {km} km de {seat}, em linha reta"
