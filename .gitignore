@@ -79,3 +79,4 @@ __pycache__/
 # Real analysis manifests and their data stay outside the public repo
 **/analises-mapa/
 **/*.analysis.yaml
+.superpowers/
