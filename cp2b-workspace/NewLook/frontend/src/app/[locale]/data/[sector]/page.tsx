@@ -5,6 +5,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
+import { canonical } from '@/lib/pageMetadata';
 import { Link } from '@/navigation';
 import Breadcrumb from '@/components/ui/Breadcrumb';
 import { navCrumbs } from '@/lib/breadcrumbTrail';
@@ -27,7 +28,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const t = await getTranslations('data_catalog');
   const name = t(`sectors.${sector}`);
   const description = METHOD_PAGES_ENABLED ? t('sector_page.lede', { sector: name }) : t('held.sector_lede', { sector: name });
-  return { title: `${name} · ${t('catalog.title')} · PILAR-2b`, description };
+  return { title: `${name} · ${t('catalog.title')} · PILAR-2b`, description, ...(await canonical(`/data/${sector}`)) };
 }
 
 export default async function DataSectorPage({ params }: Params) {

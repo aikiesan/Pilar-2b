@@ -4,6 +4,7 @@
  */
 import type { Metadata } from 'next';
 import { getFormatter, getLocale, getTranslations } from 'next-intl/server';
+import { canonical } from '@/lib/pageMetadata';
 import { Link } from '@/navigation';
 import MethodShell from '@/components/method/MethodShell';
 import { requireMethodPages } from '@/components/method/requireMethodPages';
@@ -13,7 +14,7 @@ import { DETAILED_RESIDUES } from '@/data/residueFactors';
 export async function generateMetadata(): Promise<Metadata> {
   requireMethodPages();
   const t = await getTranslations('method.fde');
-  return { title: `${t('title')} · PILAR-2b`, description: t('lede') };
+  return { title: `${t('title')} · PILAR-2b`, description: t('lede'), ...(await canonical('/method/fde')) };
 }
 
 const FACTORS = ['fc', 'fcp', 'fs', 'fl'] as const;

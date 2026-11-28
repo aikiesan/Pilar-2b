@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
-import { navMetadata } from '@/lib/pageMetadata'
+import { NOT_INDEXED, navMetadata } from '@/lib/pageMetadata'
 
-export const generateMetadata = () => navMetadata('dashboard')
+export const generateMetadata = async () => ({ ...(await navMetadata('dashboard')), robots: NOT_INDEXED })
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   return children

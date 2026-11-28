@@ -42,7 +42,7 @@ interface Benchmarks {
 
 const ROUTES: RouteKey[] = ['aterro', 'agroindustrial']
 
-export const generateMetadata = (): Promise<Metadata> => navMetadata('financing', 'financing')
+export const generateMetadata = (): Promise<Metadata> => navMetadata('financing', 'financing', '/financing')
 
 export default async function FinancingPage() {
   // Rendered per request, never at build time (no API there, and the throw

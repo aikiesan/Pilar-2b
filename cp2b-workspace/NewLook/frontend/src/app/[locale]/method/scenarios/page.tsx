@@ -5,6 +5,7 @@
  */
 import type { Metadata } from 'next';
 import { getFormatter, getTranslations } from 'next-intl/server';
+import { canonical } from '@/lib/pageMetadata';
 import { ArrowRight } from 'lucide-react';
 import { Link } from '@/navigation';
 import MethodShell from '@/components/method/MethodShell';
@@ -14,7 +15,7 @@ import { CH4_FRACTION_OF_BIOGAS, MAP_SCENARIOS } from '@/data/scenarioFactors';
 export async function generateMetadata(): Promise<Metadata> {
   requireMethodPages();
   const t = await getTranslations('method.scenarios');
-  return { title: `${t('title')} · PILAR-2b`, description: t('lede') };
+  return { title: `${t('title')} · PILAR-2b`, description: t('lede'), ...(await canonical('/method/scenarios')) };
 }
 
 export default async function MethodScenariosPage() {

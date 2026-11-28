@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import { Link } from '@/navigation';
 import Breadcrumb from '@/components/ui/Breadcrumb';
 import { navCrumbs } from '@/lib/breadcrumbTrail';
-import { titledMetadata } from '@/lib/pageMetadata';
+import { canonical, titledMetadata } from '@/lib/pageMetadata';
 import { ArrowLeft } from 'lucide-react';
 import type { Messages } from '@/types/i18n';
 
@@ -37,7 +37,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const t = await getTranslations('guide_articles');
   const tNav = await getTranslations('common.nav');
   // "Calculadora de biogás · Guia": the article, not the tool it describes.
-  return titledMetadata(`${t(`${slug}.title`)} · ${tNav('guide')}`);
+  return { ...titledMetadata(`${t(`${slug}.title`)} · ${tNav('guide')}`), ...(await canonical(`/guide/${slug}`)) };
 }
 
 export default async function GuideArticlePage({ params }: { params: Promise<{ slug: string }> }) {

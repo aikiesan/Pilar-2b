@@ -82,7 +82,11 @@ const nextConfig = {
       ];
     }
     return [
-      { source: '/', destination: '/pilar2b/pt-BR', permanent: false, basePath: false },
+      // The platform's bare address opens the Portuguese home in one permanent
+      // hop. Apache answers /pilar2b and /pilar2b/ itself (apache/
+      // cp2b.unicamp.br.conf); these cover a request that reaches Next directly.
+      { source: '/', destination: '/pt-BR', statusCode: 301 },
+      { source: '/', destination: '/pilar2b/pt-BR', statusCode: 301, basePath: false },
       ...movedPages,
       ...cp2bPages,
     ];
