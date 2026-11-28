@@ -21,7 +21,11 @@ from pathlib import Path
 # a sources/<id>/source.py implementing the contract (see contract.py).
 SOURCES: dict[str, str] = {
     "aneel_siga": "ingest.sources.aneel_siga.source",
+    "ibge_censo_historico": "ingest.sources.ibge_censo_historico.source",
+    "ibge_censo_idade": "ingest.sources.ibge_censo_idade.source",
+    "ibge_censo_situacao": "ingest.sources.ibge_censo_situacao.source",
     "ibge_ppm": "ingest.sources.ibge_ppm.source",
+    "mapbiomas_cobertura": "ingest.sources.mapbiomas_cobertura.source",
     "pam_1612": "ingest.sources.pam_1612.source",
     "pam_1613": "ingest.sources.pam_1613.source",
     "snis": "ingest.sources.snis.source",

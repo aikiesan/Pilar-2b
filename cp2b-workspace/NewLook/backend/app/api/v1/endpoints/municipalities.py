@@ -880,7 +880,11 @@ def _land_cover_years(cursor) -> list[int]:
 
 
 def _land_cover_vector(by_group: dict[str, float]) -> list[float]:
-    return [round(float(by_group.get(g, 0.0)), 1) for g in LAND_COVER_GROUPS]
+    # Migration 044 stores soy apart from crops (for the profile's land chart).
+    # This endpoint keeps its eight groups, so soy counts as crops here.
+    merged = dict(by_group)
+    merged["crops"] = float(merged.get("crops", 0.0)) + float(merged.pop("soy", 0.0))
+    return [round(float(merged.get(g, 0.0)), 1) for g in LAND_COVER_GROUPS]
 
 
 def _build_land_cover_year(year: int) -> dict:
@@ -956,9 +960,10 @@ def get_land_cover(
     """Land cover per municipality, SP and MG, in eight groups (hectares).
 
     For the map's Compare and Find similar tools; signed-in only. Without
-    `ibge`: every municipality for one `year` (1985, 2005 or 2025), as
-    `{ibge: [hectares in the order of groups]}`. With `ibge`: that municipality
-    for every year. Source: MapBiomas Collection 11 (migration 041).
+    `ibge`: every municipality for one loaded `year` (1985–2025 since the
+    ingest source mapbiomas_cobertura), as `{ibge: [hectares in the order of
+    groups]}`. With `ibge`: that municipality for every year. Source: MapBiomas
+    Collection 11 (migrations 041, 044); the table's `soy` rows count as crops.
 
     Cached like /siting-indicators, but `private`: the browser may keep it, a
     shared proxy must not. An empty table answers {"available": false},

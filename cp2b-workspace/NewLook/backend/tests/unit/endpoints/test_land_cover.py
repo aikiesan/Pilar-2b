@@ -201,3 +201,22 @@ def test_says_not_available_without_data_and_does_not_cache_it(signed_in, monkey
 )
 def test_groups_each_class(l1, l2, l4, expected):
     assert group_of(l1, l2, l4) == expected
+
+
+def test_soy_rows_fold_back_into_crops(signed_in, monkeypatch):
+    """Since migration 044 the table stores soy apart from crops; the endpoint
+    keeps its eight-group contract, so soy must count as crops, not vanish."""
+    table = [
+        ("3521705", 2025, "pasture", 8798.0),
+        ("3521705", 2025, "soy", 57546.6),
+        ("3521705", 2025, "crops", 1000.0),
+    ]
+    _patch(monkeypatch, table)
+    body = signed_in.get(URL, params={"year": 2025}).json()
+    assert "soy" not in body["groups"]
+    vec = dict(zip(body["groups"], body["data"]["3521705"]))
+    assert vec["crops"] == pytest.approx(58546.6)
+    assert sum(body["data"]["3521705"]) == pytest.approx(8798.0 + 57546.6 + 1000.0)
+
+    one = signed_in.get(URL, params={"ibge": "3521705"}).json()
+    assert dict(zip(one["groups"], one["years"]["2025"]))["crops"] == pytest.approx(58546.6)
