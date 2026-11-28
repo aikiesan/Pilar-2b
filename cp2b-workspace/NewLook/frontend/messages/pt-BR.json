@@ -2806,8 +2806,6 @@
     "index": "Municípios",
     "eyebrow": "Município de {state}",
     "ibge_code": "Código IBGE",
-    "region_immediate": "Região imediata",
-    "region_intermediate": "Região intermediária",
     "switch": "Não é seu município? Troque",
     "lede_label": "Potencial de metano acessível",
     "top_share": "entre os {share}% de maior potencial do estado",
@@ -2885,9 +2883,14 @@
       "open": "Abrir"
     },
     "meta": {
-      "title": "{name} ({uf}) · Municípios · PILAR-2b",
-      "description": "Potencial de metano acessível de {name} ({uf}) pelo método CP2b: {value} Nm³ CH₄ por ano, por setor e por resíduo.",
-      "description_no_data": "Perfil de {name} ({uf}) no PILAR-2b. O método CP2b ainda não cobre este município."
+      "title": "{name} ({uf}): potencial de biogás e biometano · PILAR-2b",
+      "description_no_data": "Perfil de {name} ({uf}) no PILAR-2b. O método CP2b ainda não cobre este município.",
+      "place": "{name} fica na região de {region} ({uf}) e tem {population} habitantes.",
+      "place_no_region": "{name} ({uf}) tem {population} habitantes.",
+      "potential": "Seus resíduos podem render {volume} de metano por ano, {share} de {residue}.",
+      "rank": "{position}º de {of} em {uf}.",
+      "volume": "{value} Nm³",
+      "volume_millions": "{value} de Nm³"
     },
     "og": {
       "alt": "{name} ({uf}): potencial de metano acessível pelo método CP2b, no PILAR-2b.",
@@ -2912,6 +2915,43 @@
       "heading": "De onde vem o metano",
       "caption": "Metano acessível (N4) por setor e resíduo, em Nm³ CH₄ por ano.",
       "zero": "Sem metano acessível: {list}."
+    },
+    "heading": "Potencial de biogás e biometano em {name} ({uf})",
+    "summary": {
+      "potential": "Os resíduos de {name} podem render cerca de {volume} de metano por ano, contando só o que chega a uma usina viável.",
+      "volume": "{value} metros cúbicos normais",
+      "volume_millions": "{value} de metros cúbicos normais",
+      "main_rank": "{share} vem de {residue}; o município é o {position}º de {of} em {state}.",
+      "main": "{share} vem de {residue}."
+    },
+    "place": {
+      "regions_same": "Regiões imediata e intermediária de {region}",
+      "regions": "Região imediata de {immediate}, intermediária de {intermediate}",
+      "region_immediate": "Região imediata de {region}",
+      "region_intermediate": "Região intermediária de {region}",
+      "population": "{value} habitantes (IBGE {year})",
+      "population_no_year": "{value} habitantes (IBGE)",
+      "distance": "a {km} km de {seat}, em linha reta"
+    },
+    "plain_residues": {
+      "sugarcane": "cana-de-açúcar",
+      "soybean": "soja",
+      "corn": "milho",
+      "coffee": "café",
+      "citrus": "citros",
+      "cattle": "gado bovino",
+      "swine": "suínos",
+      "poultry": "aves",
+      "rsu": "lixo orgânico urbano",
+      "rpo": "poda urbana",
+      "sewage": "esgoto"
+    },
+    "next": {
+      "heading": "Para continuar",
+      "map": "Ver {name} no mapa",
+      "compare": "Comparar {name} com outros municípios",
+      "residues": "Fichas de {residue}: potencial metanogênico e fontes",
+      "data": "Catálogo de dados por setor e resíduo"
     }
   },
   "financing": {
