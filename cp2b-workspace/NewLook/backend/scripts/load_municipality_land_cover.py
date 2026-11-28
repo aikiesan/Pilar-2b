@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
 """
+RETIRED (2026-11): load land cover with the ingest source `mapbiomas_cobertura`
+(scripts/promote_profile_data.py --source mapbiomas_cobertura --year 2025), which
+loads every year 1985-2025, splits soy out of crops and records the load in
+staging.ingest_runs. Kept as a reference for reading the workbook.
+
 Load MapBiomas Collection 11 land cover per municipality (SP and MG) into
 municipality_land_cover (migration 041).
 

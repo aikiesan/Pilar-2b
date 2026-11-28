@@ -32,6 +32,8 @@ WHAT IS DELIBERATELY NOT WRITTEN
 counts, not the urban/rural split, and SNIS `populacao_urbana` is a different
 concept (service-area population, reported by the operator). Leaving them NULL
 reads as "we do not have this" — writing a proxy would assert we did.
+Since 2026-11 they come from the census's own split, SIDRA table 9923, via the
+ingest source `ibge_censo_situacao` (scripts/promote_profile_data.py).
 """
 
 from __future__ import annotations

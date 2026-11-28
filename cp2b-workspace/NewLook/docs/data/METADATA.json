@@ -148,6 +148,46 @@
       "url": "https://abiogas.org.br/wp-content/uploads/2025/06/O-Biometano-em-Sao-Paulo_Potencial-e-Medidas-para-alavancar-a-producao_2025.pdf",
       "doi": null,
       "retrieved": "2026-06"
+    },
+    {
+      "id": "ibge_censo_idade",
+      "name": "IBGE — Censo Demográfico 2022, população residente por sexo e grupo de idade (SIDRA tabela 9514)",
+      "role": "Perfil municipal: pirâmide etária (17 grupos de 5 anos, 80+ somado) por município",
+      "reference_year": "2022",
+      "url": "https://sidra.ibge.gov.br/tabela/9514",
+      "doi": null,
+      "retrieved": "2026-11-28",
+      "notes": "backend/ingest/sources/ibge_censo_idade. API SIDRA por UF, snapshots imutáveis em data/raw/ibge_censo_idade/2022/<uf>.json. Gate de agregação contra os totais publicados do Censo 2022 (Brasil 203.080.756; SP 44.411.238; MG 20.539.989)."
+    },
+{
+      "id": "ibge_censo_situacao",
+      "name": "IBGE — Censo Demográfico 2022, população residente por situação do domicílio (SIDRA tabela 9923)",
+      "role": "Perfil municipal: população urbana e rural (municipalities.urban_population / rural_population)",
+      "reference_year": "2022",
+      "url": "https://sidra.ibge.gov.br/tabela/9923",
+      "doi": null,
+      "retrieved": "2026-11-28",
+      "notes": "backend/ingest/sources/ibge_censo_situacao. Gate: urbana + rural = total em todo município."
+    },
+{
+      "id": "ibge_censo_historico",
+      "name": "IBGE — Censos Demográficos 1970–2010 (SIDRA tabela 200) e Censo 2022 (SIDRA tabela 4714), população residente",
+      "role": "Perfil municipal: linha da população 1970–2022",
+      "reference_year": "1970, 1980, 1991, 2000, 2010, 2022",
+      "url": "https://sidra.ibge.gov.br/tabela/200",
+      "doi": null,
+      "retrieved": "2026-11-28",
+      "notes": "backend/ingest/sources/ibge_censo_historico. Censos anteriores à criação do município ficam ausentes (sem linha), nunca 0. Gate nacional 2010: 190.755.799."
+    },
+{
+      "id": "mapbiomas_cobertura",
+      "name": "MapBiomas Coleção 11 — estatísticas de cobertura e uso da terra por bioma, estado e município (MAPBIOMAS_BRAZIL-COL.11-BIOME_STATE_MUNICIPALITY.xlsx, aba COVERAGE_11)",
+      "role": "Perfil municipal: uso da terra 1985–2025 em nove grupos (soja separada) em municipality_land_cover",
+      "reference_year": "1985–2025",
+      "url": "https://brasil.mapbiomas.org/estatisticas/",
+      "doi": null,
+      "retrieved": "2026-11-28",
+      "notes": "backend/ingest/sources/mapbiomas_cobertura (substitui scripts/load_municipality_land_cover.py). Municípios em dois biomas somados. Gates: soma dos grupos = fonte; total 2025 por UF = área territorial IBGE (±1%)."
     }
   ],
   "derived_artifacts": {
